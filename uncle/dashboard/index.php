@@ -9590,9 +9590,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             -webkit-transform: scaleX(1) !important;
             width: 100% !important;
             height: 100% !important;
+        }
 
-            /* ── Paper Exams Styles ── */
-            .paper-exam-card {
+        /* ── Paper Exams Styles ── */
+        .paper-exam-card {
                 background: var(--surface);
                 border: 1px solid var(--border-solid);
                 border-radius: var(--r-md);
