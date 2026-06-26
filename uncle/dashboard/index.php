@@ -505,7 +505,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             .dev-church-bar-pill {
                 width: 34px !important;
                 height: 34px !important;
-                border-radius: 50% !important;
+                border-radius: var(--r-md)% !important;
                 padding: 0 !important;
                 justify-content: center !important;
                 background: rgba(124, 58, 237, 0.08) !important;
