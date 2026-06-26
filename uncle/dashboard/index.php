@@ -428,10 +428,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
             animation: devDropdownFadeIn 0.2s ease forwards;
             direction: rtl;
         }
+
         @keyframes devDropdownFadeIn {
-            from { opacity: 0; transform: translateY(-8px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
         .dev-church-dropdown-search-wrap {
             padding: 8px;
             border-bottom: 1px solid var(--border-solid, rgba(0, 0, 0, 0.08));
@@ -440,10 +449,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             gap: 6px;
             background: rgba(0, 0, 0, 0.02);
         }
+
         .dev-church-dropdown-search-wrap .search-icon {
             font-size: 0.78rem;
             color: var(--text-3);
         }
+
         .dev-church-dropdown-search-input {
             border: none;
             background: transparent;
@@ -453,6 +464,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             color: var(--text);
             font-family: 'Cairo', sans-serif;
         }
+
         .dev-church-dropdown-list {
             max-height: 200px;
             overflow-y: auto;
@@ -460,6 +472,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             flex-direction: column;
             padding: 4px;
         }
+
         .dev-church-dropdown-item {
             padding: 8px 12px;
             font-size: 0.8rem;
@@ -470,14 +483,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
             text-align: right;
             transition: all 0.15s ease;
         }
+
         .dev-church-dropdown-item:hover {
             background: rgba(124, 58, 237, 0.08);
             color: var(--brand);
         }
+
         .dev-church-dropdown-item.selected {
             background: var(--brand);
             color: #fff;
         }
+
         .dev-church-dropdown-item-empty {
             padding: 12px;
             font-size: 0.78rem;
@@ -10726,18 +10742,26 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         style="display:none;position:absolute;top:-3px;right:-3px;min-width:17px;height:17px;background:var(--danger,#ef4444);border-radius:9px;border:2px solid white;font-size:.58rem;font-weight:800;color:#fff;display:none;align-items:center;justify-content:center;padding:0 3px;"></span>
                 </button>
                 <!-- Dev Switcher in Topbar Actions -->
-                <div id="devDashboardChurchSwitcher" class="dev-church-bar-pill" onclick="toggleDevChurchDropdown(event)"
+                <div id="devDashboardChurchSwitcher" class="dev-church-bar-pill"
+                    onclick="toggleDevChurchDropdown(event)"
                     style="display:none; align-items:center; margin-inline-end: 8px; position:relative; cursor:pointer;">
-                    <div class="dev-church-trigger" style="position:relative;display:flex;align-items:center;width:100%;height:100%;cursor:pointer;" onclick="toggleDevChurchDropdown(event)">
+                    <div class="dev-church-trigger"
+                        style="position:relative;display:flex;align-items:center;width:100%;height:100%;cursor:pointer;"
+                        onclick="toggleDevChurchDropdown(event)">
                         <i class="fas fa-laptop-code dev-church-bar-icon"></i>
-                        <span id="devChurchSelectedLabel" class="dev-church-selected-label" style="margin-inline-start:6px; margin-inline-end: 18px; font-size: 0.8rem; font-weight: 800; color: var(--brand); font-family: 'Cairo', sans-serif;">كنيستي الافتراضية</span>
+                        <span id="devChurchSelectedLabel" class="dev-church-selected-label"
+                            style="margin-inline-start:6px; margin-inline-end: 18px; font-size: 0.8rem; font-weight: 800; color: var(--brand); font-family: 'Cairo', sans-serif;">كنيستي
+                            الافتراضية</span>
                         <i class="fas fa-chevron-down dev-church-chevron"></i>
                     </div>
                     <select id="devChurchSelect" style="display:none;"></select>
-                    <div class="dev-church-dropdown-menu" id="devChurchDropdownMenu" style="display:none;" onclick="event.stopPropagation()">
+                    <div class="dev-church-dropdown-menu" id="devChurchDropdownMenu" style="display:none;"
+                        onclick="event.stopPropagation()">
                         <div class="dev-church-dropdown-search-wrap">
                             <i class="fas fa-search search-icon"></i>
-                            <input type="text" id="devChurchDropdownSearch" class="dev-church-dropdown-search-input" placeholder="ابحث عن كنيسة..." oninput="filterDevChurches(this.value)" onclick="event.stopPropagation()">
+                            <input type="text" id="devChurchDropdownSearch" class="dev-church-dropdown-search-input"
+                                placeholder="ابحث عن كنيسة..." oninput="filterDevChurches(this.value)"
+                                onclick="event.stopPropagation()">
                         </div>
                         <div class="dev-church-dropdown-list" id="devChurchDropdownList">
                             <!-- Option items will be rendered here dynamically -->
@@ -10764,7 +10788,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <!-- Admin / Church settings -->
                     <a class="topbar-btn" href="<?php echo $pathPrefix; ?>/uncle/church/" title="لوحة الإدارة والإعدادات"
                         style="text-decoration:none;">
-                        <i class="fas fa-church"></i>
+                        <i class="fa-solid fa-sliders"></i>
                     </a>
                 <?php endif; ?>
 
@@ -23327,9 +23351,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function renderDevChurchDropdownList(churches) {
             const listContainer = document.getElementById('devChurchDropdownList');
             if (!listContainer) return;
-            
+
             let html = '';
-            
+
             // Default option
             const isSelectedDefault = !devViewChurchId;
             html += `
@@ -23338,7 +23362,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     كنيستي الافتراضية
                 </div>
             `;
-            
+
             if (!churches || churches.length === 0) {
                 if (document.getElementById('devChurchDropdownSearch')?.value.trim()) {
                     html += `<div class="dev-church-dropdown-item-empty">لا توجد نتائج</div>`;
@@ -23376,15 +23400,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 renderDevChurchDropdownList(allChurchesCache || []);
                 return;
             }
-            
+
             const scored = (allChurchesCache || []).map(church => {
-                return { 
-                    ...church, 
-                    _score: getMatchScore({ 'الاسم': church.church_name }, q) 
+                return {
+                    ...church,
+                    _score: getMatchScore({ 'الاسم': church.church_name }, q)
                 };
             }).filter(c => c._score > 0)
-              .sort((a, b) => b._score - a._score);
-              
+                .sort((a, b) => b._score - a._score);
+
             renderDevChurchDropdownList(scored);
         }
 
