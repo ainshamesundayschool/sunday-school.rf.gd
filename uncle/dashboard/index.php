@@ -9960,9 +9960,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         /* Profile Avatar Card specific styles */
         .profile-avatar-card {
-            background: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
+            background: var(--surface) !important;
+            border: 1px solid var(--border-solid) !important;
+            border-radius: var(--r-xl) !important;
+            box-shadow: var(--shadow-sm) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: all var(--t) var(--ease);
         }
 
         @media (max-width: 768px) {
