@@ -36117,7 +36117,7 @@ function saveChurchSettings()
 
             $stmt->bind_param(
 
-                "iisssiiiss",
+                "iissssiiss",
 
                 $churchId,
 
