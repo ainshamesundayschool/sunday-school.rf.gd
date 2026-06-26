@@ -10577,6 +10577,23 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <!-- ═══ CLASSES VIEW ═══ -->
             <div id="classesView">
 
+                <!-- Profile picture suggestion banner -->
+                <div id="profilePicSuggestionBanner" style="display:none; background: linear-gradient(135deg, var(--brand-bg), rgba(79, 70, 229, 0.15)); border: 1px solid var(--brand); padding: 12px 16px; border-radius: 12px; margin-bottom: 12px; align-items: center; justify-content: space-between; gap: 12px; direction: rtl; text-align: right; position: relative;">
+                    <div style="display:flex; align-items:center; gap:10px; min-width:0; flex:1;">
+                        <div style="background:var(--brand); color:#fff; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                        <div style="min-width:0; flex:1;">
+                            <h4 style="margin:0 0 2px 0; font-size:0.9rem; font-weight:800; color:var(--text-1); font-family: 'Baloo Bhaijaan 2', sans-serif;">أضف صورتك الشخصية يا خادم</h4>
+                            <p style="margin:0; font-size:0.78rem; color:var(--text-3); line-height:1.3; font-family: 'Baloo Bhaijaan 2', sans-serif; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">اضغط هنا لتحديث صورتك وتسهيل التعرف عليك في لوحة الإدارة</p>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+                        <button onclick="showAccountModal()" style="font-size:0.75rem; font-weight:800; padding:6px 12px; background:var(--brand); color:#fff; border:none; border-radius:8px; cursor:pointer; font-family: 'Baloo Bhaijaan 2', sans-serif;">إضافة الآن</button>
+                        <button onclick="dismissProfilePicSuggestion()" style="background:none; border:none; color:var(--text-3); cursor:pointer; padding:4px 6px; font-size:0.9rem;" title="إغلاق"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+
                 <!-- Centered inline intelligent search bar -->
                 <div class="inline-search-wrap">
                     <button class="home-tools-link" onclick="showAllToolsModal()" title="كل الأدوات"
@@ -12812,6 +12829,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             stopAutoRefresh();
         }
         function hideAccountModal() { document.getElementById('accountModal').classList.remove('active'); startAutoRefresh(); }
+        function dismissProfilePicSuggestion() {
+            try {
+                localStorage.setItem('dismissProfilePicSuggestion', 'true');
+            } catch (e) {}
+            const banner = document.getElementById('profilePicSuggestionBanner');
+            if (banner) banner.style.display = 'none';
+        }
         function showAccountEditForm() { document.getElementById('accountEditForm').classList.add('active'); }
         function hideAccountEditForm() { document.getElementById('accountEditForm').classList.remove('active'); }
         function showAllToolsModal() { document.getElementById('allToolsModal').classList.add('active'); stopAutoRefresh(); }
@@ -19443,10 +19467,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         av.style.display = 'block';
                         if (ini) ini.style.display = 'none';
                         av.onerror = function () { this.style.display = 'none'; if (ini) { ini.textContent = initials; ini.style.display = 'flex'; } };
+                        const banner = document.getElementById('profilePicSuggestionBanner');
+                        if (banner) banner.style.display = 'none';
                     } else if (ini) {
                         ini.textContent = initials;
                         ini.style.display = 'flex';
                         if (av) av.style.display = 'none';
+                        const banner = document.getElementById('profilePicSuggestionBanner');
+                        if (banner && localStorage.getItem('dismissProfilePicSuggestion') !== 'true') {
+                            banner.style.display = 'flex';
+                        }
                     }
                     // Also update hero name immediately from cache
                     const heroEl = document.getElementById('heroName');
@@ -19477,10 +19507,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         if (ini) ini.style.display = 'none';
                         if (av) av.onerror = function () { this.style.display = 'none'; if (ini) { ini.style.display = 'flex'; } };
                         try { localStorage.setItem('uncleImageUrl', r.uncle.image_url); } catch (e) { }
+                        const banner = document.getElementById('profilePicSuggestionBanner');
+                        if (banner) banner.style.display = 'none';
                     } else {
                         if (av) av.style.display = 'none';
                         if (ini) ini.style.display = 'flex';
                         try { localStorage.removeItem('uncleImageUrl'); } catch (e) { }
+                        const banner = document.getElementById('profilePicSuggestionBanner');
+                        if (banner && localStorage.getItem('dismissProfilePicSuggestion') !== 'true') {
+                            banner.style.display = 'flex';
+                        }
                     }
                     _sendUnclMetaToSW();
                     // Cache assigned classes for offline/early filtering
@@ -19508,6 +19544,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         if (bav) bav.src = window.photoUrl(d.imageUrl);
                         if (window.currentUncle) window.currentUncle.image_url = d.imageUrl;
                         try { localStorage.setItem('uncleImageUrl', d.imageUrl); } catch (e) { } // store raw URL
+                        const banner = document.getElementById('profilePicSuggestionBanner');
+                        if (banner) banner.style.display = 'none';
                     }, () => showToast('فشل التحديث', 'error'));
                 }
                 else showToast('فشل الرفع', 'error');
