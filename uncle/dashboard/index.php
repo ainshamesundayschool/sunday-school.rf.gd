@@ -9802,6 +9802,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
         /* ═══════════════════════════════════════════════════════════════════
    SETTINGS HUB + PAGE ROUTING (Uncle Account Refactored)
 ═══════════════════════════════════════════════════════════════════ */
+        :root {
+            --radius-sm: var(--r-sm);
+            --radius-lg: var(--r-md);
+            --radius-xl: var(--r-lg);
+            --radius: var(--r-md);
+            --shadow-xs: var(--shadow-sm);
+            --t-fast: var(--t);
+            --t-base: var(--t);
+            --ease-spring: var(--spring);
+            --primary: var(--brand);
+            --primary-bg: var(--brand-bg);
+            --card: var(--surface);
+        }
         .settings-breadcrumb {
             display: flex;
             align-items: center;
@@ -11042,39 +11055,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </button>
                 </div>
 
-                <!-- ═══ SETTINGS HUB (page router) ═══ -->
-                <div id="uncleAccountHub" style="width: 100%;">
-                    <!-- Breadcrumb -->
+                <!-- Page: Profile View (Main Account Page) -->
+                <div id="uncleAccountPage_profile" class="settings-page" style="display:block; width: 100%;">
                     <div class="settings-breadcrumb">
                         <span class="settings-bc-item active"><i class="fas fa-user-cog"></i> إعدادات حسابي</span>
                     </div>
-
-                    <!-- Grid of setting groups -->
-                    <div class="settings-hub-grid">
-                        <button type="button" class="settings-hub-card" onclick="openUncleAccountPage('profile')">
-                            <div class="settings-hub-icon" style="background:rgba(91, 108, 245, 0.1);color:var(--brand);"><i class="fas fa-user-circle"></i></div>
-                            <div class="settings-hub-title">البيانات الشخصية</div>
-                        </button>
-                        <button type="button" class="settings-hub-card" onclick="openUncleAccountPage('fees')">
-                            <div class="settings-hub-icon" style="background:rgba(16, 185, 129, 0.1);color:#10b981;"><i class="fas fa-money-bill-wave"></i></div>
-                            <div class="settings-hub-title">اشتراكاتي المالية</div>
-                        </button>
-                        <button type="button" class="settings-hub-card" onclick="openUncleAccountPage('logs')">
-                            <div class="settings-hub-icon" style="background:rgba(245, 158, 11, 0.1);color:#f59e0b;"><i class="fas fa-history"></i></div>
-                            <div class="settings-hub-title">سجل نشاطاتي</div>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Page: Profile View -->
-                <div id="uncleAccountPage_profile" class="settings-page" style="display:none; width: 100%;">
-                    <div class="settings-breadcrumb">
-                        <button class="settings-bc-item" onclick="closeUncleAccountPage()"><i class="fas fa-user-cog"></i> إعدادات حسابي</button>
-                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);transform:scaleX(-1);"></i>
-                        <span class="settings-bc-item active">البيانات الشخصية</span>
-                    </div>
                     
-                    <div style="display: flex; gap: 24px; flex-wrap: wrap; width: 100%; direction: rtl;">
+                    <div style="display: flex; gap: 24px; flex-wrap: wrap; width: 100%; direction: rtl; align-items: flex-start;">
                         <!-- Profile Card on the right -->
                         <div class="glass-card" style="padding: 24px; border: 1px solid var(--border-solid); border-radius: 14px; text-align: center; display: flex; flex-direction: column; align-items: center; width: 240px; flex-shrink: 0; background: var(--card);">
                             <div style="position:relative; display:inline-block;">
@@ -11102,29 +11089,52 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         </div>
 
                         <!-- Read-only Details on the left -->
-                        <div style="flex: 1; min-width: 280px; display: flex; flex-direction: column; gap: 12px; max-width: 500px;">
-                            <div class="settings-field-box">
-                                <div class="form-group">
-                                    <label class="form-label" style="font-size: 0.78rem; color: var(--text-3); font-weight: 800; display: block; margin-bottom: 4px;">الاسم الكامل</label>
-                                    <div style="font-size: 0.95rem; font-weight: 800; color: var(--text);" id="aiName">---</div>
+                        <div style="flex: 1; min-width: 280px; display: flex; flex-direction: column; gap: 16px; max-width: 500px;">
+                            <!-- Profile Information -->
+                            <div style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
+                                <div class="settings-field-box">
+                                    <div class="form-group">
+                                        <label class="form-label" style="font-size: 0.78rem; color: var(--text-3); font-weight: 800; display: block; margin-bottom: 4px;">الاسم الكامل</label>
+                                        <div style="font-size: 0.95rem; font-weight: 800; color: var(--text);" id="aiName">---</div>
+                                    </div>
+                                </div>
+                                <div class="settings-field-box">
+                                    <div class="form-group">
+                                        <label class="form-label" style="font-size: 0.78rem; color: var(--text-3); font-weight: 800; display: block; margin-bottom: 4px;">اسم المستخدم</label>
+                                        <div style="font-size: 0.95rem; font-weight: 800; color: var(--text);" id="aiUsername">---</div>
+                                    </div>
+                                </div>
+                                <div class="settings-field-box">
+                                    <div class="form-group">
+                                        <label class="form-label" style="font-size: 0.78rem; color: var(--text-3); font-weight: 800; display: block; margin-bottom: 4px;">الصلاحية</label>
+                                        <div style="font-size: 0.95rem; font-weight: 800; color: var(--text);" id="aiRole">---</div>
+                                    </div>
+                                </div>
+                                
+                                <div style="margin-top: 4px;">
+                                    <button class="btn btn-primary" style="padding:10px 20px; font-size:.82rem; font-weight:800; border-radius: 10px;" onclick="openUncleAccountPage('editProfile')">
+                                        <i class="fas fa-edit"></i> تعديل بيانات الحساب
+                                    </button>
                                 </div>
                             </div>
-                            <div class="settings-field-box">
-                                <div class="form-group">
-                                    <label class="form-label" style="font-size: 0.78rem; color: var(--text-3); font-weight: 800; display: block; margin-bottom: 4px;">اسم المستخدم</label>
-                                    <div style="font-size: 0.95rem; font-weight: 800; color: var(--text);" id="aiUsername">---</div>
-                                </div>
-                            </div>
-                            <div class="settings-field-box">
-                                <div class="form-group">
-                                    <label class="form-label" style="font-size: 0.78rem; color: var(--text-3); font-weight: 800; display: block; margin-bottom: 4px;">الصلاحية</label>
-                                    <div style="font-size: 0.95rem; font-weight: 800; color: var(--text);" id="aiRole">---</div>
-                                </div>
-                            </div>
-                            
-                            <div style="margin-top: 8px;">
-                                <button class="btn btn-primary" style="padding:10px 20px; font-size:.82rem; font-weight:800; border-radius: 10px;" onclick="openUncleAccountPage('editProfile')">
-                                    <i class="fas fa-edit"></i> تعديل بيانات الحساب
+
+                            <hr style="border: 0; border-top: 1px solid var(--border-solid); margin: 8px 0; width: 100%;">
+
+                            <!-- Hub Grid of sub-sections directly under the info -->
+                            <div class="settings-hub-grid" style="width: 100%; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px;">
+                                <button type="button" class="settings-hub-card" onclick="openUncleAccountPage('fees')" style="max-width: 100%; aspect-ratio: auto; min-height: 80px; display: flex; flex-direction: row; align-items: center; justify-content: flex-start; padding: 12px; gap: 12px; border-radius: 12px;">
+                                    <div class="settings-hub-icon" style="background:rgba(16, 185, 129, 0.1);color:#10b981; width: 40px; height: 40px; font-size: 1.1rem; border-radius: 10px;"><i class="fas fa-money-bill-wave"></i></div>
+                                    <div style="text-align: right;">
+                                        <div class="settings-hub-title" style="font-size: 0.8rem; font-weight: 800; color: var(--text);">اشتراكاتي المالية</div>
+                                        <div style="font-size: 0.68rem; color: var(--text-3); margin-top: 2px;">عرض الاشتراكات</div>
+                                    </div>
+                                </button>
+                                <button type="button" class="settings-hub-card" onclick="openUncleAccountPage('logs')" style="max-width: 100%; aspect-ratio: auto; min-height: 80px; display: flex; flex-direction: row; align-items: center; justify-content: flex-start; padding: 12px; gap: 12px; border-radius: 12px;">
+                                    <div class="settings-hub-icon" style="background:rgba(245, 158, 11, 0.1);color:#f59e0b; width: 40px; height: 40px; font-size: 1.1rem; border-radius: 10px;"><i class="fas fa-history"></i></div>
+                                    <div style="text-align: right;">
+                                        <div class="settings-hub-title" style="font-size: 0.8rem; font-weight: 800; color: var(--text);">سجل نشاطاتي</div>
+                                        <div style="font-size: 0.68rem; color: var(--text-3); margin-top: 2px;">مراجعة العمليات</div>
+                                    </div>
                                 </button>
                             </div>
                         </div>
@@ -11134,9 +11144,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <!-- Page: Edit Profile -->
                 <div id="uncleAccountPage_editProfile" class="settings-page" style="display:none; width: 100%;">
                     <div class="settings-breadcrumb">
-                        <button class="settings-bc-item" onclick="closeUncleAccountPage()"><i class="fas fa-user-cog"></i> إعدادات حسابي</button>
-                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);transform:scaleX(-1);"></i>
-                        <button class="settings-bc-item" onclick="openUncleAccountPage('profile')">البيانات الشخصية</button>
+                        <button class="settings-bc-item" onclick="openUncleAccountPage('profile')"><i class="fas fa-user-cog"></i> إعدادات حسابي</button>
                         <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);transform:scaleX(-1);"></i>
                         <span class="settings-bc-item active">تعديل البيانات</span>
                     </div>
@@ -11205,7 +11213,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <!-- Page: Fees -->
                 <div id="uncleAccountPage_fees" class="settings-page" style="display:none; width: 100%;">
                     <div class="settings-breadcrumb">
-                        <button class="settings-bc-item" onclick="closeUncleAccountPage()"><i class="fas fa-user-cog"></i> إعدادات حسابي</button>
+                        <button class="settings-bc-item" onclick="openUncleAccountPage('profile')"><i class="fas fa-user-cog"></i> إعدادات حسابي</button>
                         <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);transform:scaleX(-1);"></i>
                         <span class="settings-bc-item active">اشتراكاتي المالية</span>
                     </div>
@@ -11220,7 +11228,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <!-- Page: Logs -->
                 <div id="uncleAccountPage_logs" class="settings-page" style="display:none; width: 100%;">
                     <div class="settings-breadcrumb">
-                        <button class="settings-bc-item" onclick="closeUncleAccountPage()"><i class="fas fa-user-cog"></i> إعدادات حسابي</button>
+                        <button class="settings-bc-item" onclick="openUncleAccountPage('profile')"><i class="fas fa-user-cog"></i> إعدادات حسابي</button>
                         <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);transform:scaleX(-1);"></i>
                         <span class="settings-bc-item active">سجل الأنشطة</span>
                     </div>
@@ -13294,16 +13302,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             // Show the uncleAccountView container
             document.getElementById('uncleAccountView').style.display = 'flex';
 
-            // Show Hub page first
-            closeUncleAccountPage();
+            // Show Profile directly
+            openUncleAccountPage('profile');
             stopAutoRefresh();
         }
 
         function openUncleAccountPage(pageId) {
-            // Hide the Hub container
-            const hub = document.getElementById('uncleAccountHub');
-            if (hub) hub.style.display = 'none';
-
             // Hide all subpages
             const pages = ['profile', 'editProfile', 'fees', 'logs'];
             pages.forEach(p => {
@@ -13369,15 +13373,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         function closeUncleAccountPage() {
-            // Hide all subpages
-            const pages = ['profile', 'editProfile', 'fees', 'logs'];
-            pages.forEach(p => {
-                const el = document.getElementById('uncleAccountPage_' + p);
-                if (el) el.style.display = 'none';
-            });
-            // Show the Hub container
-            const hub = document.getElementById('uncleAccountHub');
-            if (hub) hub.style.display = 'block';
+            openUncleAccountPage('profile');
         }
 
         function showUncleFees() {
