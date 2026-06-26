@@ -12015,7 +12015,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         let devViewChurchId = parseInt(localStorage.getItem('devViewChurchId') || 0);
         let devOrigChurchId = <?php echo json_encode($_SESSION['church_id'] ?? 0); ?>;
         let allChurchesCache = [];
-        let currentClass = '', currentFriday = '', isInitialLoad = true;
+        let currentClass = '', currentFriday = '';
         let attendanceData = {}, couponData = {}, absentData = {};
         let originalAttendanceData = {}, originalCouponData = {};
         let changedStudents = new Set(), savedStudents = new Set();
@@ -13016,6 +13016,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
             setupEventListeners();
             if (ul) loadUncleProfile();
             loadChurchSettings();
+
+            // Revert last week's date to today on app startup
+            (function _resolveStartupDate() {
+                const today = new Date();
+                const jsDay = dbDayToJsDay(churchAttendanceDay || 5);
+                const d = new Date(today);
+                let diff = (today.getDay() - jsDay + 7) % 7;
+                d.setDate(today.getDate() - diff);
+                const prevD = new Date(d);
+                prevD.setDate(d.getDate() - 7);
+                const previousFriday = formatDateDDMMYYYY(prevD);
+                if (localStorage.getItem('selectedFriday') === previousFriday) {
+                    localStorage.removeItem('selectedFriday');
+                }
+            })();
+
             initAutoRefresh();
 
             // Restore view: URL hash takes priority, then last-opened class from localStorage
@@ -13037,7 +13053,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             loadData();
             updateCurrentDateDisplay();
-            isInitialLoad = false;
             setTimeout(() => { setupBirthdayInputListeners(); setupLiveSearch(); setupAllStudentsSearch(); }, 800);
 
             // Trigger once-daily checks for birthdays and unsaved attendance
@@ -18545,22 +18560,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             d.setDate(today.getDate() - diff);
             const computedFriday = formatDateDDMMYYYY(d);
 
-            // Calculate previous attendance date (exactly 1 cycle/7 days ago)
-            const prevD = new Date(d);
-            prevD.setDate(d.getDate() - 7);
-            const previousFriday = formatDateDDMMYYYY(prevD);
-
             const sf = localStorage.getItem('selectedFriday');
             let resolvedFriday = computedFriday;
             if (sf) {
-                if (sf === previousFriday && isInitialLoad) {
-                    // Revert to new one automatically if the uncle was on the last date on startup
-                    localStorage.removeItem('selectedFriday');
-                    resolvedFriday = computedFriday;
-                } else if (sf === computedFriday) {
+                if (sf === computedFriday) {
                     resolvedFriday = computedFriday;
                 } else {
-                    // Different older date. Do not auto-revert! Keep the cached date.
                     resolvedFriday = sf;
                 }
             }
