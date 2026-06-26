@@ -7679,7 +7679,7 @@
                                 <div class="form-group">
                                     <label class="form-label"><i class="fas fa-calendar-day"
                                              style="margin-left:6px;color:var(--primary);"></i> يوم الحضور الافتراضي</label>
-                                    <select id="settingAttendanceDay" class="form-select" style="width:100%;">
+                                    <select id="settingAttendanceDay" class="form-select" style="width:100%;" onchange="triggerAutoSave()">
                                         <option value="1">الاثنين</option>
                                         <option value="2">الثلاثاء</option>
                                         <option value="3">الأربعاء</option>
@@ -7696,7 +7696,7 @@
                                 <div class="form-group">
                                     <label class="form-label"><i class="fas fa-user-lock"
                                             style="margin-left:6px;color:var(--primary);"></i> صلاحية الخادم للتنقل</label>
-                                    <select id="settingUncleNav" class="form-select" style="width:100%;">
+                                    <select id="settingUncleNav" class="form-select" style="width:100%;" onchange="triggerAutoSave()">
                                         <option value="all">يرى جميع الفصول</option>
                                         <option value="own">فصوله المعينة فقط</option>
                                     </select>
@@ -7725,7 +7725,7 @@
                             <label class="settings-toggle-row" id="viewModeClassesLabel">
                                 <input type="checkbox" id="settingViewClasses" checked
                                     style="accent-color:var(--primary);width:17px;height:17px;flex-shrink:0;"
-                                    onchange="_updateViewModeStyle()">
+                                    onchange="_updateViewModeStyle(); triggerAutoSave()">
                                 <div>
                                     <div style="font-weight:700;font-size:0.88rem;">عرض الفصول منفصلة</div>
                                     <div style="font-size:0.74rem;color:var(--muted);margin-top:2px;">يرى الخادم كل فصل
@@ -7737,7 +7737,7 @@
                             <label class="settings-toggle-row" id="viewModeAllLabel">
                                 <input type="checkbox" id="settingViewAll"
                                     style="accent-color:var(--primary);width:17px;height:17px;flex-shrink:0;"
-                                    onchange="_updateViewModeStyle()">
+                                    onchange="_updateViewModeStyle(); triggerAutoSave()">
                                 <div>
                                     <div style="font-weight:700;font-size:0.88rem;">عرض الكل معاً</div>
                                     <div style="font-size:0.74rem;color:var(--muted);margin-top:2px;">زر يفتح كل الأطفال
@@ -7780,7 +7780,7 @@
                                     <div style="position:relative;width:48px;height:26px;flex-shrink:0;">
                                         <input type="checkbox" id="settingCouponsEnabled"
                                             style="opacity:0;width:0;height:0;position:absolute;"
-                                            onchange="_updateCouponsEnabledStyle()">
+                                            onchange="_updateCouponsEnabledStyle(); triggerAutoSave()">
                                         <span id="couponEnabledTrack"
                                             style="position:absolute;inset:0;border-radius:13px;background:var(--border-solid,#e0e0e0);transition:background .2s;"></span>
                                         <span id="couponEnabledThumb"
@@ -7799,7 +7799,7 @@
                                 <div class="form-group">
                                     <label class="form-label"><i class="fas fa-coins"
                                             style="margin-left:6px;color:var(--primary);"></i> عدد الكوبونات عند تسجيل حضور طفل</label>
-                                    <input type="number" id="settingCouponsCount" class="form-input" value="100" min="0" style="width:100%;">
+                                    <input type="number" id="settingCouponsCount" class="form-input" value="100" min="0" style="width:100%;" oninput="triggerAutoSave()" onchange="triggerAutoSave()">
                                     <small style="color:var(--text-3);margin-top:6px;display:block;font-size:0.76rem;">عدد الكوبونات التي تضاف تلقائياً لرصيد الطفل عند تسجيله "حاضر"</small>
                                 </div>
                             </div>
@@ -7807,7 +7807,7 @@
                                 <div class="form-group">
                                     <label class="form-label"><i class="fas fa-list-ol"
                                             style="margin-left:6px;color:var(--primary);"></i> قيم الكوبونات للتعديل السريع (مفصولة بفاصلة)</label>
-                                    <input type="text" id="settingCouponPresets" class="form-input" value="10,30,50,100" style="width:100%;">
+                                    <input type="text" id="settingCouponPresets" class="form-input" value="10,30,50,100" style="width:100%;" oninput="triggerAutoSave()">
                                     <small style="color:var(--text-3);margin-top:6px;display:block;font-size:0.76rem;">القيم التي تظهر وتتنقل بينها عند تعديل كوبونات الطالب في الفصل (مثال: 10,30,50,100)</small>
                                 </div>
                             </div>
@@ -7874,10 +7874,7 @@
                             </div>
                         </div>
 
-                        <div class="settings-actions">
-                            <button type="button" class="btn btn-primary" onclick="saveChurchSettings()"><i
-                                    class="fas fa-save"></i> حفظ التفضيلات</button>
-                        </div>
+
                     </div>
                 </div>
 
@@ -7902,7 +7899,7 @@
                                 <div style="position:relative;width:48px;height:26px;flex-shrink:0;">
                                     <input type="checkbox" id="settingAutoKidsApproval"
                                         style="opacity:0;width:0;height:0;position:absolute;"
-                                        onchange="_updateAutoApprovalStyle()">
+                                        onchange="_updateAutoApprovalStyle(); triggerAutoSave()">
                                     <span id="autoApprovalTrack"
                                         style="position:absolute;inset:0;border-radius:13px;background:var(--border-solid,#e0e0e0);transition:background .2s;"></span>
                                     <span id="autoApprovalThumb"
@@ -7917,10 +7914,7 @@
                                 </div>
                             </label>
                         </div>
-                        <div class="settings-actions">
-                            <button type="button" class="btn btn-primary" onclick="saveChurchSettings()"><i
-                                    class="fas fa-save"></i> حفظ التفضيلات</button>
-                        </div>
+
                     </div>
                 </div>
 
@@ -7948,10 +7942,7 @@
                             </div>
                             <div id="customFieldsList"></div>
                         </div>
-                        <div class="settings-actions">
-                            <button type="button" class="btn btn-primary" onclick="saveChurchSettings()"><i
-                                    class="fas fa-save"></i> حفظ</button>
-                        </div>
+
                     </div>
                 </div>
 
@@ -12526,14 +12517,14 @@
                     border-radius:10px;margin-bottom:8px;border:1px solid rgba(79,70,229,0.12);" id="cfi_${i}">
             <span style="font-size:0.78rem;font-weight:700;color:var(--muted);min-width:18px;">${i + 1}</span>
             <input type="text" class="form-input" placeholder="اسم الحقل..." value="${escHtml(cf.name)}"
-                oninput="_currentCustomFields[${i}].name=this.value" style="flex:1;">
+                oninput="_currentCustomFields[${i}].name=this.value; triggerAutoSave()" style="flex:1;">
             <button type="button" title="اختر أيقونة"
                 onclick="toggleIconPickerFor(${i})"
                 style="width:42px;height:42px;border:2px solid var(--primary);border-radius:10px;
                     background:white;display:flex;align-items:center;justify-content:center;
                     font-size:1.1rem;color:var(--primary);cursor:pointer;flex-shrink:0;"
                 id="cfibtn_${i}">${iconHtml}</button>
-            <button class="act-btn act-delete" title="حذف" onclick="_currentCustomFields.splice(${i},1);renderCustomFieldsList();">
+            <button class="act-btn act-delete" title="حذف" onclick="_currentCustomFields.splice(${i},1);renderCustomFieldsList();triggerAutoSave();">
                 <i class="fas fa-trash"></i>
             </button>
         </div>
@@ -12595,6 +12586,7 @@
             // Close picker
             const picker = document.getElementById(`cfipicker_${idx}`);
             if (picker) picker.style.display = 'none';
+            triggerAutoSave();
         }
 
         // Keep these for any old calls
@@ -12603,6 +12595,7 @@
         function clearCustomField() {
             _currentCustomFields = [];
             renderCustomFieldsList();
+            triggerAutoSave();
         }
 
 
@@ -12765,6 +12758,7 @@
                         currentList = currentList.filter(x => x.toLowerCase() !== usernameVal.toLowerCase());
                     }
                     backingInput.value = currentList.join(',');
+                    triggerAutoSave();
                 });
 
                 container.appendChild(itemDiv);
@@ -12803,10 +12797,10 @@
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
                 <input type="text" class="form-input" placeholder="اسم المجموعة (مثال: الصغار)" 
                     value="${escHtml(g.label || '')}"
-                    oninput="_currentCombinedGroups[${i}].label=this.value"
+                    oninput="_currentCombinedGroups[${i}].label=this.value; triggerAutoSave()"
                     style="flex:1;font-weight:600;">
                 <button class="act-btn act-delete" title="حذف المجموعة"
-                    onclick="_currentCombinedGroups.splice(${i},1);renderCombinedGroups();">
+                    onclick="_currentCombinedGroups.splice(${i},1);renderCombinedGroups();triggerAutoSave();">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
@@ -12840,6 +12834,7 @@
                     previewEl.innerHTML = 'المدمج: ' + preview;
                 }
             }
+            triggerAutoSave();
         }
 
         function addCombinedGroup() {
@@ -12850,7 +12845,15 @@
             if (inputs.length) inputs[inputs.length - 1].focus();
         }
 
-        async function saveChurchSettings() {
+        let _settingsSaveTimeout;
+        function triggerAutoSave() {
+            clearTimeout(_settingsSaveTimeout);
+            _settingsSaveTimeout = setTimeout(() => {
+                saveChurchSettings(true);
+            }, 600);
+        }
+
+        async function saveChurchSettings(isAuto = false) {
             const dayEl = document.getElementById('settingAttendanceDay');
             const navEl = document.getElementById('settingUncleNav');
             if (!dayEl || !navEl) { showToast('خطأ في الصفحة', 'error'); return; }
@@ -12861,7 +12864,9 @@
             if (!showClasses && !showAll) {
                 const wBox = document.getElementById('viewModeWarningBox');
                 if (wBox) wBox.style.display = '';
-                showToast('يجب تفعيل خيار عرض واحد على الأقل', 'warning');
+                if (!isAuto) {
+                    showToast('يجب تفعيل خيار عرض واحد على الأقل', 'warning');
+                }
                 return;
             }
             const wBox = document.getElementById('viewModeWarningBox');
@@ -12874,7 +12879,12 @@
             });
 
             const badGroups = _currentCombinedGroups.filter(g => !g.label || !g.classes || g.classes.length < 2);
-            if (badGroups.length) { showToast('كل مجموعة تحتاج اسماً وفصلين على الأقل', 'warning'); return; }
+            if (badGroups.length) {
+                if (!isAuto) {
+                    showToast('كل مجموعة تحتاج اسماً وفصلين على الأقل', 'warning');
+                }
+                return;
+            }
 
             // Filter out empty-name fields and assign stable keys
             const validFields = _currentCustomFields
@@ -12914,7 +12924,9 @@
 
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
             if (d.success) { showToast('تم حفظ الإعدادات', 'success'); }
-            else showToast(d.message || 'فشل في الحفظ', 'error');
+            else {
+                if (!isAuto) showToast(d.message || 'فشل في الحفظ', 'error');
+            }
         }
 
         function _populateAutoGradeDayOptions(selectedDay) {
