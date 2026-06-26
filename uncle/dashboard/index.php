@@ -11259,7 +11259,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                             style="width: 34px; height: 34px; border-radius: 8px; background: rgba(91, 108, 245, 0.08); color: var(--brand); display: flex; align-items: center; justify-content: center; font-size: 0.9rem;">
                                             <i class="fas fa-envelope"></i>
                                         </div>
-                                        <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-2);">البريد الإلكتروني</div>
+                                        <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-2);">البريد
+                                            الإلكتروني</div>
                                     </div>
                                     <div style="font-size: 0.88rem; font-weight: 800; color: var(--text);" id="aiEmail">
                                         ---</div>
@@ -11273,7 +11274,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                             style="width: 34px; height: 34px; border-radius: 8px; background: rgba(91, 108, 245, 0.08); color: var(--brand); display: flex; align-items: center; justify-content: center; font-size: 0.9rem;">
                                             <i class="fas fa-phone"></i>
                                         </div>
-                                        <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-2);">رقم الهاتف</div>
+                                        <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-2);">رقم
+                                            الهاتف</div>
                                     </div>
                                     <div style="font-size: 0.88rem; font-weight: 800; color: var(--text);" id="aiPhone">
                                         ---</div>
@@ -11582,8 +11584,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div id="studentDetails" style="margin-bottom:14px"></div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
                 <button class="btn" id="editStudentBtn" style="flex:1"><i class="fas fa-edit"></i> تعديل</button>
-                <button class="btn btn-secondary" id="viewProfileBtn" style="flex:1"><i
-                        class="fas fa-user"></i> ملف الطفل</button>
+                <button class="btn btn-secondary" id="viewProfileBtn" style="flex:1"><i class="fas fa-user"></i> ملف
+                    الطفل</button>
                 <button class="btn btn-danger" id="deleteStudentBtn" style="flex:1"><i class="fas fa-trash"></i>
                     حذف</button>
             </div>
@@ -11917,7 +11919,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <h3><i class="fas fa-sliders-h" style="color:var(--coupon)"></i> تصدير مخصص</h3>
                 <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
                     <button class="btn btn-sm btn-outline" id="mobileExportToggleBtn" onclick="toggleMobileExportView()"
-                        style="display:none; font-size:0.75rem; padding:4px 8px; border-radius:8px; border:1px solid var(--border-solid); height:30px;"><i
+                        style="display:none; font-size:0.75rem; padding:4px 8px; border-radius:8px; height:30px;"><i
                             class="fas fa-eye"></i> <span>معاينة الجدول</span></button>
                     <button class="header-btn" id="customExportCsvBtn" title="تصدير CSV"><i class="fas fa-file-csv"
                             style="color:var(--success)"></i></button>
