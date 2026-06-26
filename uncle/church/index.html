@@ -776,9 +776,9 @@
             padding: calc(22px + env(safe-area-inset-top, 0px)) 28px 10px;
             gap: 12px;
             position: relative;
-            z-index: 10;
+            z-index: 1000;
             flex-wrap: nowrap;
-            overflow: hidden;
+            overflow: visible;
         }
 
         .page-header-left {
@@ -6420,6 +6420,8 @@
                 margin-left: 4px !important;
                 margin-right: 4px !important;
                 cursor: pointer !important;
+                position: relative !important;
+                overflow: visible !important;
             }
             .dev-church-bar-pill > div {
                 width: 100% !important;
@@ -6450,7 +6452,7 @@
             }
             .dev-church-dropdown-menu {
                 right: auto;
-                left: -10px;
+                left: 0;
                 width: 200px;
             }
         }

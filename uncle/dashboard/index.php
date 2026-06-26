@@ -497,6 +497,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 margin-left: 4px !important;
                 margin-right: 4px !important;
                 cursor: pointer !important;
+                position: relative !important;
+                overflow: visible !important;
             }
 
             .dev-church-bar-pill>div {
@@ -533,7 +535,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             .dev-church-dropdown-menu {
                 right: auto;
-                left: -10px;
+                left: 0;
                 width: 200px;
             }
         }
