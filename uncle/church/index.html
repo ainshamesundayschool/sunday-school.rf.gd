@@ -5859,6 +5859,39 @@
             gap: 10px;
             max-width: 480px;
             width: 100%;
+            transition: max-width var(--t) var(--ease);
+        }
+
+        @media (min-width: 768px) {
+            .settings-stack {
+                max-width: 800px !important;
+            }
+            .settings-stack.wide {
+                max-width: 900px !important;
+            }
+        }
+
+        .settings-form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .settings-form-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Ensure all inputs and buttons in settings inherit custom font */
+        .settings-page button,
+        .settings-page input,
+        .settings-page select,
+        .settings-page textarea,
+        .settings-hub-card,
+        .settings-bc-item {
+            font-family: 'Cairo', 'Segoe UI', Tahoma, 'Arabic Typesetting', sans-serif !important;
         }
 
         .settings-stack.wide {
@@ -7438,28 +7471,36 @@
                         <span class="settings-bc-item active">حسابي</span>
                     </div>
                     <div class="settings-stack">
-                        <div class="settings-field-box">
-                            <div class="form-group">
-                                <label class="form-label">الاسم الكامل</label>
-                                <input type="text" id="adminProfileName" class="form-input" placeholder="اسم المسؤول">
+                        <div class="settings-form-grid">
+                            <div class="settings-field-box">
+                                <div class="form-group">
+                                    <label class="form-label">الاسم الكامل</label>
+                                    <div class="input-icon-wrap">
+                                        <i class="fas fa-user input-icon"></i>
+                                        <input type="text" id="adminProfileName" class="form-input" placeholder="اسم المسؤول">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="settings-field-box">
+                                <div class="form-group">
+                                    <label class="form-label">اسم المستخدم</label>
+                                    <div class="input-icon-wrap">
+                                        <i class="fas fa-user-tag input-icon"></i>
+                                        <input type="text" id="adminProfileUsername" class="form-input" placeholder="username"
+                                            oninput="this.value=this.value.replace(/\s/g,'')" autocomplete="off">
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="settings-field-box">
-                            <div class="form-group">
-                                <label class="form-label">اسم المستخدم</label>
-                                <input type="text" id="adminProfileUsername" class="form-input" placeholder="username"
-                                    oninput="this.value=this.value.replace(/\s/g,'')" autocomplete="off">
-                            </div>
-                        </div>
-                        <div class="settings-field-box">
+                        <div style="width: 100%; margin-top: 4px;">
                             <button type="button" class="btn btn-outline"
-                                style="width:100%; justify-content:center; border-radius: var(--radius);"
+                                style="width:100%; justify-content:center; border-radius: var(--radius); padding: 12px 16px; font-weight: 800;"
                                 onclick="openSettingsPage('changePassword')">
                                 <i class="fas fa-key"></i> تغيير كلمة المرور &larr;
                             </button>
                         </div>
-                        <div class="settings-actions">
-                            <button type="button" class="btn btn-primary" onclick="saveAdminProfile()"><i
+                        <div class="settings-actions" style="margin-top: 4px;">
+                            <button type="button" class="btn btn-primary" style="padding: 10px 24px; font-weight: 800; border-radius: 8px;" onclick="saveAdminProfile()"><i
                                     class="fas fa-save"></i> حفظ</button>
                         </div>
                     </div>
@@ -7476,41 +7517,46 @@
                         <span class="settings-bc-item active">تغيير كلمة المرور</span>
                     </div>
                     <div class="settings-stack">
-                        <div class="settings-field-box">
-                            <div class="form-group">
-                                <label class="form-label">كلمة المرور الحالية</label>
-                                <div style="position:relative;">
-                                    <input type="password" id="adminCurrentPassword" class="form-input"
-                                        placeholder="أدخل كلمة المرور الحالية" style="padding-left:40px;">
-                                    <button type="button" onclick="toggleFieldPwd('adminCurrentPassword','eyeCurrent')"
-                                        class="pwd-eye-btn"><i class="fas fa-eye" id="eyeCurrent"></i></button>
+                        <div class="settings-form-grid">
+                            <div class="settings-field-box">
+                                <div class="form-group">
+                                    <label class="form-label">كلمة المرور الحالية</label>
+                                    <div class="input-icon-wrap" style="position:relative;">
+                                        <i class="fas fa-lock input-icon"></i>
+                                        <input type="password" id="adminCurrentPassword" class="form-input"
+                                            placeholder="أدخل كلمة المرور الحالية" style="padding-left:40px;">
+                                        <button type="button" onclick="toggleFieldPwd('adminCurrentPassword','eyeCurrent')"
+                                            class="pwd-eye-btn"><i class="fas fa-eye" id="eyeCurrent"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="settings-field-box">
+                                <div class="form-group">
+                                    <label class="form-label">كلمة المرور الجديدة</label>
+                                    <div class="input-icon-wrap" style="position:relative;">
+                                        <i class="fas fa-key input-icon"></i>
+                                        <input type="password" id="adminNewPassword" class="form-input"
+                                            placeholder="6 أحرف على الأقل" minlength="6" style="padding-left:40px;">
+                                        <button type="button" onclick="toggleFieldPwd('adminNewPassword','eyeNew')"
+                                            class="pwd-eye-btn"><i class="fas fa-eye" id="eyeNew"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="settings-field-box">
+                                <div class="form-group">
+                                    <label class="form-label">تأكيد كلمة المرور الجديدة</label>
+                                    <div class="input-icon-wrap" style="position:relative;">
+                                        <i class="fas fa-key input-icon"></i>
+                                        <input type="password" id="adminConfirmPassword" class="form-input"
+                                            placeholder="أعد كتابة كلمة المرور الجديدة" style="padding-left:40px;">
+                                        <button type="button" onclick="toggleFieldPwd('adminConfirmPassword','eyeConfirm')"
+                                            class="pwd-eye-btn"><i class="fas fa-eye" id="eyeConfirm"></i></button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="settings-field-box">
-                            <div class="form-group">
-                                <label class="form-label">كلمة المرور الجديدة</label>
-                                <div style="position:relative;">
-                                    <input type="password" id="adminNewPassword" class="form-input"
-                                        placeholder="6 أحرف على الأقل" minlength="6" style="padding-left:40px;">
-                                    <button type="button" onclick="toggleFieldPwd('adminNewPassword','eyeNew')"
-                                        class="pwd-eye-btn"><i class="fas fa-eye" id="eyeNew"></i></button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="settings-field-box">
-                            <div class="form-group">
-                                <label class="form-label">تأكيد كلمة المرور الجديدة</label>
-                                <div style="position:relative;">
-                                    <input type="password" id="adminConfirmPassword" class="form-input"
-                                        placeholder="أعد كتابة كلمة المرور الجديدة" style="padding-left:40px;">
-                                    <button type="button" onclick="toggleFieldPwd('adminConfirmPassword','eyeConfirm')"
-                                        class="pwd-eye-btn"><i class="fas fa-eye" id="eyeConfirm"></i></button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="settings-actions">
-                            <button type="button" class="btn btn-primary" onclick="savePasswordChange()"><i
+                        <div class="settings-actions" style="margin-top: 4px;">
+                            <button type="button" class="btn btn-primary" style="padding: 10px 24px; font-weight: 800; border-radius: 8px;" onclick="savePasswordChange()"><i
                                     class="fas fa-save"></i> حفظ كلمة المرور</button>
                         </div>
                     </div>
@@ -7525,28 +7571,36 @@
                         <span class="settings-bc-item active">بيانات الكنيسة</span>
                     </div>
                     <div class="settings-stack">
-                        <div class="settings-field-box">
-                            <div class="form-group">
-                                <label class="form-label">اسم الكنيسة</label>
-                                <input type="text" id="churchEditName" class="form-input" placeholder="اسم الكنيسة">
+                        <div class="settings-form-grid">
+                            <div class="settings-field-box">
+                                <div class="form-group">
+                                    <label class="form-label">اسم الكنيسة</label>
+                                    <div class="input-icon-wrap">
+                                        <i class="fas fa-church input-icon"></i>
+                                        <input type="text" id="churchEditName" class="form-input" placeholder="اسم الكنيسة">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="settings-field-box">
+                                <div class="form-group">
+                                    <label class="form-label">البريد الإلكتروني</label>
+                                    <div class="input-icon-wrap">
+                                        <i class="fas fa-envelope input-icon"></i>
+                                        <input type="email" id="churchEditEmail" class="form-input"
+                                            placeholder="البريد الإلكتروني للكنيسة">
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="settings-field-box">
-                            <div class="form-group">
-                                <label class="form-label">البريد الإلكتروني</label>
-                                <input type="email" id="churchEditEmail" class="form-input"
-                                    placeholder="البريد الإلكتروني للكنيسة">
-                            </div>
-                        </div>
-                        <div class="settings-field-box">
+                        <div style="width: 100%; margin-top: 4px;">
                             <button type="button" class="btn btn-outline"
-                                style="width:100%; justify-content:center; border-radius: var(--radius);"
+                                style="width:100%; justify-content:center; border-radius: var(--radius); padding: 12px 16px; font-weight: 800;"
                                 onclick="openSettingsPage('changeChurchPassword')">
                                 <i class="fas fa-shield-alt"></i> تغيير كلمة مرور الكنيسة &larr;
                             </button>
                         </div>
-                        <div class="settings-actions">
-                            <button type="button" class="btn btn-primary" onclick="saveChurchInfoSettings()"><i
+                        <div class="settings-actions" style="margin-top: 4px;">
+                            <button type="button" class="btn btn-primary" style="padding: 10px 24px; font-weight: 800; border-radius: 8px;" onclick="saveChurchInfoSettings()"><i
                                     class="fas fa-save"></i> حفظ</button>
                         </div>
                     </div>
@@ -7564,43 +7618,48 @@
                         <span class="settings-bc-item active">تغيير كلمة مرور الكنيسة</span>
                     </div>
                     <div class="settings-stack">
-                        <div class="settings-field-box">
-                            <div class="form-group">
-                                <label class="form-label">كلمة المرور الحالية للكنيسة</label>
-                                <div style="position:relative;">
-                                    <input type="password" id="churchCurrentPassword" class="form-input"
-                                        placeholder="أدخل كلمة المرور الحالية للكنيسة" style="padding-left:40px;">
-                                    <button type="button"
-                                        onclick="toggleFieldPwd('churchCurrentPassword','eyeChurchCur')"
-                                        class="pwd-eye-btn"><i class="fas fa-eye" id="eyeChurchCur"></i></button>
+                        <div class="settings-form-grid">
+                            <div class="settings-field-box">
+                                <div class="form-group">
+                                    <label class="form-label">كلمة المرور الحالية للكنيسة</label>
+                                    <div class="input-icon-wrap" style="position:relative;">
+                                        <i class="fas fa-lock input-icon"></i>
+                                        <input type="password" id="churchCurrentPassword" class="form-input"
+                                            placeholder="أدخل كلمة المرور الحالية للكنيسة" style="padding-left:40px;">
+                                        <button type="button"
+                                            onclick="toggleFieldPwd('churchCurrentPassword','eyeChurchCur')"
+                                            class="pwd-eye-btn"><i class="fas fa-eye" id="eyeChurchCur"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="settings-field-box">
+                                <div class="form-group">
+                                    <label class="form-label">كلمة المرور الجديدة</label>
+                                    <div class="input-icon-wrap" style="position:relative;">
+                                        <i class="fas fa-key input-icon"></i>
+                                        <input type="password" id="churchNewPassword" class="form-input"
+                                            placeholder="6 أحرف على الأقل" minlength="6" style="padding-left:40px;">
+                                        <button type="button" onclick="toggleFieldPwd('churchNewPassword','eyeChurchNew')"
+                                            class="pwd-eye-btn"><i class="fas fa-eye" id="eyeChurchNew"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="settings-field-box">
+                                <div class="form-group">
+                                    <label class="form-label">تأكيد كلمة المرور الجديدة</label>
+                                    <div class="input-icon-wrap" style="position:relative;">
+                                        <i class="fas fa-key input-icon"></i>
+                                        <input type="password" id="churchNewPasswordConfirm" class="form-input"
+                                            placeholder="أعد كتابة كلمة المرور الجديدة" style="padding-left:40px;">
+                                        <button type="button"
+                                            onclick="toggleFieldPwd('churchNewPasswordConfirm','eyeChurchNewConfirm')"
+                                            class="pwd-eye-btn"><i class="fas fa-eye" id="eyeChurchNewConfirm"></i></button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="settings-field-box">
-                            <div class="form-group">
-                                <label class="form-label">كلمة المرور الجديدة</label>
-                                <div style="position:relative;">
-                                    <input type="password" id="churchNewPassword" class="form-input"
-                                        placeholder="6 أحرف على الأقل" minlength="6" style="padding-left:40px;">
-                                    <button type="button" onclick="toggleFieldPwd('churchNewPassword','eyeChurchNew')"
-                                        class="pwd-eye-btn"><i class="fas fa-eye" id="eyeChurchNew"></i></button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="settings-field-box">
-                            <div class="form-group">
-                                <label class="form-label">تأكيد كلمة المرور الجديدة</label>
-                                <div style="position:relative;">
-                                    <input type="password" id="churchNewPasswordConfirm" class="form-input"
-                                        placeholder="أعد كتابة كلمة المرور الجديدة" style="padding-left:40px;">
-                                    <button type="button"
-                                        onclick="toggleFieldPwd('churchNewPasswordConfirm','eyeChurchNewConfirm')"
-                                        class="pwd-eye-btn"><i class="fas fa-eye" id="eyeChurchNewConfirm"></i></button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="settings-actions">
-                            <button type="button" class="btn btn-primary" onclick="saveChurchPasswordChange()"><i
+                        <div class="settings-actions" style="margin-top: 4px;">
+                            <button type="button" class="btn btn-primary" style="padding: 10px 24px; font-weight: 800; border-radius: 8px;" onclick="saveChurchPasswordChange()"><i
                                     class="fas fa-save"></i> حفظ كلمة المرور</button>
                         </div>
                     </div>
@@ -7615,31 +7674,33 @@
                         <span class="settings-bc-item active">إعدادات لوحة التحكم</span>
                     </div>
                     <div class="settings-stack">
-                        <div class="settings-field-box">
-                            <div class="form-group">
-                                <label class="form-label"><i class="fas fa-calendar-day"
-                                        style="margin-left:6px;color:var(--primary);"></i> يوم الحضور الافتراضي</label>
-                                <select id="settingAttendanceDay" class="form-select" style="width:100%;">
-                                    <option value="1">الاثنين</option>
-                                    <option value="2">الثلاثاء</option>
-                                    <option value="3">الأربعاء</option>
-                                    <option value="4">الخميس</option>
-                                    <option value="5" selected>الجمعة</option>
-                                    <option value="6">السبت</option>
-                                    <option value="7">الأحد</option>
-                                </select>
-                                <small style="color:var(--text-3);margin-top:6px;display:block;font-size:0.76rem;">يُحسب
-                                    تلقائياً في لوحة الخادم</small>
+                        <div class="settings-form-grid">
+                            <div class="settings-field-box">
+                                <div class="form-group">
+                                    <label class="form-label"><i class="fas fa-calendar-day"
+                                             style="margin-left:6px;color:var(--primary);"></i> يوم الحضور الافتراضي</label>
+                                    <select id="settingAttendanceDay" class="form-select" style="width:100%;">
+                                        <option value="1">الاثنين</option>
+                                        <option value="2">الثلاثاء</option>
+                                        <option value="3">الأربعاء</option>
+                                        <option value="4">الخميس</option>
+                                        <option value="5" selected>الجمعة</option>
+                                        <option value="6">السبت</option>
+                                        <option value="7">الأحد</option>
+                                    </select>
+                                    <small style="color:var(--text-3);margin-top:6px;display:block;font-size:0.76rem;">يُحسب
+                                        تلقائياً في لوحة الخادم</small>
+                                </div>
                             </div>
-                        </div>
-                        <div class="settings-field-box">
-                            <div class="form-group">
-                                <label class="form-label"><i class="fas fa-user-lock"
-                                        style="margin-left:6px;color:var(--primary);"></i> صلاحية الخادم للتنقل</label>
-                                <select id="settingUncleNav" class="form-select" style="width:100%;">
-                                    <option value="all">يرى جميع الفصول</option>
-                                    <option value="own">فصوله المعينة فقط</option>
-                                </select>
+                            <div class="settings-field-box">
+                                <div class="form-group">
+                                    <label class="form-label"><i class="fas fa-user-lock"
+                                            style="margin-left:6px;color:var(--primary);"></i> صلاحية الخادم للتنقل</label>
+                                    <select id="settingUncleNav" class="form-select" style="width:100%;">
+                                        <option value="all">يرى جميع الفصول</option>
+                                        <option value="own">فصوله المعينة فقط</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                         <div class="settings-field-box" id="settingAllowedViewUnclesContainer" style="display:none;">
@@ -7774,32 +7835,34 @@
                                     <span>حدّد تاريخاً كل سنة يُنفَّذ فيه نقل الفصول تلقائياً (مرة واحدة في السنة).</span>
                                 </div>
                             </div>
-                            <div class="settings-field-box">
-                                <div class="form-group">
-                                    <label class="form-label">الشهر</label>
-                                    <select id="settingAutoGradeMonth" class="form-select" style="width:100%;">
-                                        <option value="0">معطّل</option>
-                                        <option value="1">يناير</option>
-                                        <option value="2">فبراير</option>
-                                        <option value="3">مارس</option>
-                                        <option value="4">أبريل</option>
-                                        <option value="5">مايو</option>
-                                        <option value="6">يونيو</option>
-                                        <option value="7">يوليو</option>
-                                        <option value="8">أغسطس</option>
-                                        <option value="9">سبتمبر</option>
-                                        <option value="10">أكتوبر</option>
-                                        <option value="11">نوفمبر</option>
-                                        <option value="12">ديسمبر</option>
-                                    </select>
+                            <div class="settings-form-grid">
+                                <div class="settings-field-box">
+                                    <div class="form-group">
+                                        <label class="form-label">الشهر</label>
+                                        <select id="settingAutoGradeMonth" class="form-select" style="width:100%;">
+                                            <option value="0">معطّل</option>
+                                            <option value="1">يناير</option>
+                                            <option value="2">فبراير</option>
+                                            <option value="3">مارس</option>
+                                            <option value="4">أبريل</option>
+                                            <option value="5">مايو</option>
+                                            <option value="6">يونيو</option>
+                                            <option value="7">يوليو</option>
+                                            <option value="8">أغسطس</option>
+                                            <option value="9">سبتمبر</option>
+                                            <option value="10">أكتوبر</option>
+                                            <option value="11">نوفمبر</option>
+                                            <option value="12">ديسمبر</option>
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="settings-field-box">
-                                <div class="form-group">
-                                    <label class="form-label">اليوم</label>
-                                    <select id="settingAutoGradeDay" class="form-select" style="width:100%;">
-                                        <option value="0">—</option>
-                                    </select>
+                                <div class="settings-field-box">
+                                    <div class="form-group">
+                                        <label class="form-label">اليوم</label>
+                                        <select id="settingAutoGradeDay" class="form-select" style="width:100%;">
+                                            <option value="0">—</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                             <div class="settings-field-box" id="autoGradeStatusHintBox" style="padding:12px 14px;">
