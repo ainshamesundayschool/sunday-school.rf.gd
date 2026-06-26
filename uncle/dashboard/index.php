@@ -21903,7 +21903,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             Object.entries(groups).forEach(([dateLabel, items]) => {
                 html += `<div style="font-size:.72rem;font-weight:800;color:var(--text-3);
             text-transform:uppercase;letter-spacing:.06em;padding:10px 0 4px;
-            position:sticky;top:0;background:var(--surface);z-index:1;">
+            position:sticky;top:0;background:var(--bg);z-index:1;">
             ${dateLabel}
         </div>`;
 
