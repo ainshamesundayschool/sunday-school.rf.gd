@@ -23562,7 +23562,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             approveRegistration, rejectRegistration, toggleRegistrationSelection, searchPendingRegistrations,
             clearAllStudentsSearch, performAllStudentsSearch, showAnnouncementsModal, toggleAnnouncementStatus,
             deleteAnnouncement, adjustStudentCoupons, toggleCouponValue, closeAllDropdowns, logout,
-            showAccountModal, hideAccountModal, showUncleHistory, showUncleFees, openUncleAccountPage, closeUncleAccountPage, retryConnection: () => { },
+            showAccountModal, showUncleHistory, showUncleFees, openUncleAccountPage, closeUncleAccountPage, retryConnection: () => { },
             resetToCurrentFriday, showUnsavedModal, toggleTheme, escJs,
             shareAbsentToWhatsApp, shareAttendedToWhatsApp, saveAttendedAsCSV,
             toggleAbsentDropdown, executeAbsentAction,
