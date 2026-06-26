@@ -9799,29 +9799,211 @@ if ($hasUncleId && $uncleRole === 'uncle')
             color: var(--brand);
             border-color: var(--brand-glow);
         }
-        .uncle-tab-panel {
-            animation: fadeSlideDown .25s var(--ease);
+        /* ═══════════════════════════════════════════════════════════════════
+   SETTINGS HUB + PAGE ROUTING (Uncle Account Refactored)
+═══════════════════════════════════════════════════════════════════ */
+        .settings-breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
         }
-        @media (max-width: 768px) {
-            .uncle-acc-container {
-                flex-direction: column;
-                gap: 12px;
+
+        .settings-bc-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-3);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: var(--radius-sm);
+            transition: all var(--t-fast) var(--ease);
+        }
+
+        .settings-bc-item:hover {
+            background: var(--primary-bg);
+            color: var(--primary);
+        }
+
+        .settings-bc-item.active {
+            color: var(--text);
+            pointer-events: none;
+            background: none;
+        }
+
+        .settings-hub-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+            gap: 12px;
+            max-width: 920px;
+        }
+
+        .settings-hub-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            aspect-ratio: 1;
+            max-width: 168px;
+            background: var(--card);
+            border: 1px solid var(--border-solid);
+            border-radius: var(--radius-xl);
+            padding: 18px 12px;
+            cursor: pointer;
+            text-align: center;
+            transition: border-color var(--t-base) var(--ease), transform var(--t-fast) var(--ease-spring), box-shadow var(--t-base) var(--ease);
+            box-shadow: var(--shadow-xs);
+            width: 100%;
+        }
+
+        .settings-hub-card:hover {
+            border-color: rgba(91, 108, 245, .35);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .settings-hub-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.35rem;
+            flex-shrink: 0;
+        }
+
+        .settings-hub-title {
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1.35;
+        }
+
+        .settings-page {
+            animation: settingsPageIn 0.22s var(--ease-spring);
+            width: 100%;
+        }
+
+        .settings-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 480px;
+            width: 100%;
+        }
+
+        .settings-stack.wide {
+            max-width: 560px;
+        }
+
+        .settings-field-box {
+            background: var(--card);
+            border: 1px solid var(--border-solid);
+            border-radius: var(--radius-lg);
+            padding: 14px 16px;
+            box-shadow: var(--shadow-xs);
+            transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+            width: 100%;
+        }
+
+        .settings-field-box:hover {
+            border-color: rgba(91, 108, 245, .18);
+        }
+
+        .settings-field-box .form-group {
+            margin-bottom: 0;
+        }
+
+        .settings-field-box .form-label {
+            margin-bottom: 6px;
+        }
+
+        .settings-panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .settings-panel-head .settings-panel-title {
+            font-size: 0.88rem;
+            font-weight: 800;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+        }
+
+        .settings-panel-head .settings-panel-title i {
+            color: var(--primary);
+            font-size: 0.9rem;
+        }
+
+        .settings-stack .settings-section-divider {
+            margin: 6px 0 2px;
+            padding: 0 4px 6px;
+            border-bottom: none;
+            background: none;
+        }
+
+        .settings-stack .settings-hint {
+            margin-bottom: 0;
+        }
+
+        .settings-stack .settings-toggle-row {
+            max-width: none;
+            margin: 0;
+        }
+
+        .settings-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        @keyframes settingsPageIn {
+            from {
+                opacity: 0;
+                transform: translateX(-14px);
             }
-            .uncle-acc-sidebar {
-                width: 100%;
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
             }
-            .uncle-acc-nav-list {
-                flex-direction: row !important;
-                overflow-x: auto;
-                padding-bottom: 4px;
-                -webkit-overflow-scrolling: touch;
-            }
-            .uncle-nav-btn {
-                white-space: nowrap;
-                width: auto !important;
-                padding: 8px 14px;
-                font-size: 0.82rem;
-            }
+        }
+
+        .settings-section-divider {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--text-3);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+            margin-top: 4px;
+        }
+
+        .settings-toggle-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all var(--t-fast) var(--ease);
         }
     </style>
     <script src="/js/og-meta.js"></script>
@@ -10845,207 +11027,243 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             <!-- ═══ UNCLE ACCOUNT VIEW ═══ -->
             <div id="uncleAccountView" style="display:none; flex-direction:column; gap:16px; width: 100%;">
-                <!-- Header with Back Button and Title -->
-                <div class="class-topbar" style="display: flex; align-items: center; justify-content: space-between; width: 100%; direction: rtl;">
-                    <div style="display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1;">
+                
+                <!-- Header with Back Button, Title, and Logout Button -->
+                <div class="class-topbar" style="display: flex; align-items: center; justify-content: space-between; width: 100%; direction: rtl; border-bottom: 1.5px solid var(--border-solid); padding-bottom: 12px; margin-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
                         <button class="btn btn-ghost btn-sm" onclick="showClassesView()"
-                            style="min-width:40px;height:40px;padding:0;font-size:.9rem;background:transparent;border:none !important;box-shadow:none !important;display:flex;align-items:center;justify-content:center;">
+                            style="min-width:40px;height:40px;padding:0;font-size:.9rem;background:transparent;border:none !important;box-shadow:none !important;display:flex;align-items:center;justify-content:center;color:var(--text);">
                             <i class="fas fa-arrow-right"></i>
                         </button>
-                        <h2 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--text); font-family: 'Cairo', sans-serif;">حسابي</h2>
+                        <h2 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--text); font-family: 'Cairo', sans-serif;">حسابي</h2>
+                    </div>
+                    <button class="btn btn-danger btn-sm" onclick="logout()" style="padding: 8px 16px; font-size: 0.82rem; font-weight: 800; border-radius: 8px; display: flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+                    </button>
+                </div>
+
+                <!-- ═══ SETTINGS HUB (page router) ═══ -->
+                <div id="uncleAccountHub" style="width: 100%;">
+                    <!-- Breadcrumb -->
+                    <div class="settings-breadcrumb">
+                        <span class="settings-bc-item active"><i class="fas fa-user-cog"></i> إعدادات حسابي</span>
+                    </div>
+
+                    <!-- Grid of setting groups -->
+                    <div class="settings-hub-grid">
+                        <button type="button" class="settings-hub-card" onclick="openUncleAccountPage('profile')">
+                            <div class="settings-hub-icon" style="background:rgba(91, 108, 245, 0.1);color:var(--brand);"><i class="fas fa-user-circle"></i></div>
+                            <div class="settings-hub-title">البيانات الشخصية</div>
+                        </button>
+                        <button type="button" class="settings-hub-card" onclick="openUncleAccountPage('fees')">
+                            <div class="settings-hub-icon" style="background:rgba(16, 185, 129, 0.1);color:#10b981;"><i class="fas fa-money-bill-wave"></i></div>
+                            <div class="settings-hub-title">اشتراكاتي المالية</div>
+                        </button>
+                        <button type="button" class="settings-hub-card" onclick="openUncleAccountPage('logs')">
+                            <div class="settings-hub-icon" style="background:rgba(245, 158, 11, 0.1);color:#f59e0b;"><i class="fas fa-history"></i></div>
+                            <div class="settings-hub-title">سجل نشاطاتي</div>
+                        </button>
                     </div>
                 </div>
 
-                <div class="uncle-acc-container">
-                    <!-- Sidebar Navigation (Right side in RTL) -->
-                    <div class="uncle-acc-sidebar">
-                        <!-- Profile Card inside Sidebar -->
-                        <div class="glass-card" style="padding: 16px; border: 1px solid var(--border-solid); border-radius: 14px; text-align: center; display: flex; flex-direction: column; align-items: center; width: 100%;">
+                <!-- Page: Profile View -->
+                <div id="uncleAccountPage_profile" class="settings-page" style="display:none; width: 100%;">
+                    <div class="settings-breadcrumb">
+                        <button class="settings-bc-item" onclick="closeUncleAccountPage()"><i class="fas fa-user-cog"></i> إعدادات حسابي</button>
+                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);transform:scaleX(-1);"></i>
+                        <span class="settings-bc-item active">البيانات الشخصية</span>
+                    </div>
+                    
+                    <div style="display: flex; gap: 24px; flex-wrap: wrap; width: 100%; direction: rtl;">
+                        <!-- Profile Card on the right -->
+                        <div class="glass-card" style="padding: 24px; border: 1px solid var(--border-solid); border-radius: 14px; text-align: center; display: flex; flex-direction: column; align-items: center; width: 240px; flex-shrink: 0; background: var(--card);">
                             <div style="position:relative; display:inline-block;">
-                                <div class="account-avatar-circle-wrap" onclick="document.getElementById('unclePhotoInput').click()">
-                                    <img src="" alt="" class="account-big-avatar" id="accountBigAvatar">
-                                    <div class="account-avatar-plus"><i class="fas fa-plus"></i></div>
+                                <div class="account-avatar-circle-wrap" onclick="document.getElementById('unclePhotoInput').click()" style="width: 110px; height: 110px; border-radius: 50%; overflow: hidden; cursor: pointer; border: 3px solid var(--brand); position: relative; display: flex; align-items: center; justify-content: center;">
+                                    <img src="" alt="" class="account-big-avatar" id="accountBigAvatar" style="width: 100%; height: 100%; object-fit: cover;">
+                                    <div class="account-avatar-plus" style="position: absolute; bottom: 0; left: 0; right: 0; height: 30px; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem;"><i class="fas fa-camera"></i></div>
                                 </div>
                                 <button type="button" id="deleteAccountPhotoBtn" onclick="deleteAccountPhoto(event)" style="display:none; position:absolute; top:-4px; right:-4px; background:var(--danger); color:white; border:none; border-radius:50%; width:28px; height:28px; cursor:pointer; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;"><i class="fas fa-trash-alt" style="font-size:0.8rem;"></i></button>
                             </div>
-                            <div class="account-name" id="accountDisplayName" style="font-size:1.1rem; font-weight:800; margin-top:8px;">---</div>
-                            <div class="account-role" id="accountDisplayRole" style="font-size:0.82rem; color:var(--text-3); font-weight:600; margin-top:2px;">---</div>
+                            <div class="account-name" id="accountDisplayName" style="font-size:1.15rem; font-weight:800; margin-top:12px; color: var(--text);">---</div>
+                            <div class="account-role" id="accountDisplayRole" style="font-size:0.85rem; color:var(--text-3); font-weight:600; margin-top:2px;">---</div>
                             <input type="file" id="unclePhotoInput" accept="image/*" style="display:none">
                             
-                            <div style="display:flex;gap:6px;justify-content:center;margin-top:10px;flex-wrap:wrap; width:100%;">
+                            <div style="display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap; width:100%;">
                                 <button class="btn btn-secondary btn-sm" id="themeToggleBtn" onclick="toggleTheme()"
-                                    style="flex: 1; padding:6px 10px;font-size:.78rem" title="تبديل الوضع">
+                                    style="flex: 1; padding:8px 10px;font-size:.78rem; border-radius: 8px;" title="تبديل الوضع">
                                     <i class="fas fa-moon theme-toggle-icon-moon"></i>
                                     <i class="fas fa-sun theme-toggle-icon-sun"></i>
                                 </button>
                                 <a href="<?php echo $pathPrefix; ?>/leaderboard/" class="btn btn-secondary btn-sm"
-                                    style="flex: 1; padding:6px 10px;font-size:.78rem;text-decoration:none; display:flex; align-items:center; justify-content:center; gap:4px;">
+                                    style="flex: 1; padding:8px 10px;font-size:.78rem;text-decoration:none; display:flex; align-items:center; justify-content:center; gap:4px; border-radius: 8px;">
                                     <i class="fas fa-crown"></i> الأوائل
                                 </a>
                             </div>
                         </div>
 
-                        <!-- Navigation Tabs -->
-                        <div class="uncle-acc-nav-list" style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px; width: 100%;">
-                            <button id="uncleTabBtn_profile" class="uncle-nav-btn active" onclick="switchUncleAccountTab('profile')">
-                                <i class="fas fa-user-circle"></i> البيانات الشخصية
-                            </button>
-                            <button id="uncleTabBtn_fees" class="uncle-nav-btn" onclick="switchUncleAccountTab('fees')">
-                                <i class="fas fa-money-bill-wave"></i> الاشتراكات المالية
-                            </button>
-                            <button id="uncleTabBtn_logs" class="uncle-nav-btn" onclick="switchUncleAccountTab('logs')">
-                                <i class="fas fa-history"></i> سجل النشاطات
-                            </button>
-                        </div>
-
-                        <!-- Logout button at bottom of sidebar on desktop -->
-                        <button class="btn btn-danger" style="margin-top: auto; padding: 10px; font-size: 0.85rem; justify-content: center; border-radius: 10px; width: 100%;" onclick="logout()">
-                            <i class="fas fa-sign-out-alt"></i> خروج
-                        </button>
-                    </div>
-
-                    <!-- Main Content Panel (Left side in RTL) -->
-                    <div class="uncle-acc-content">
-                        <!-- PANEL: Profile -->
-                        <div id="uncleTabPanel_profile" class="uncle-tab-panel active">
-                            <div class="glass-card" style="padding: 20px; border: 1px solid var(--border-solid); border-radius: 14px; background: var(--surface);">
-                                <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text); margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
-                                    <i class="fas fa-user-circle" style="color: var(--brand)"></i> الملف الشخصي
-                                </h3>
-                                
-                                <div id="accountInfoView" style="margin-bottom:14px">
-                                    <div class="account-info-row">
-                                        <span class="account-info-label"><i class="fas fa-user"></i> الاسم</span>
-                                        <span class="account-info-value copy-holdable" id="aiName">---</span>
-                                    </div>
-                                    <div class="account-info-row">
-                                        <span class="account-info-label"><i class="fas fa-at"></i> المستخدم</span>
-                                        <span class="account-info-value copy-holdable" id="aiUsername">---</span>
-                                    </div>
-                                    <div class="account-info-row">
-                                        <span class="account-info-label"><i class="fas fa-shield-alt"></i> الدور</span>
-                                        <span class="account-info-value copy-holdable" id="aiRole">---</span>
-                                    </div>
-                                </div>
-
-                                <div style="display:flex;gap:8px;margin-bottom:12px" class="profile-actions-row">
-                                    <button class="btn" style="flex:1;padding:10px 12px;font-size:.82rem; justify-content:center;" onclick="showAccountEditForm()"><i class="fas fa-edit"></i> تعديل البيانات</button>
-                                </div>
-
-                                <div class="account-edit-form" id="accountEditForm">
-                                    <form id="uncleProfileForm">
-                                        <div class="form-group">
-                                            <label class="form-label">الاسم</label>
-                                            <div class="input-icon-wrap"><i class="fas fa-user input-icon"></i><input type="text"
-                                                    class="form-input" id="uncleProfileName" required></div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label">اسم المستخدم</label>
-                                            <div class="input-icon-wrap"><i class="fas fa-at input-icon"></i><input type="text"
-                                                    class="form-input" id="uncleProfileUsername" required></div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label">البريد الإلكتروني</label>
-                                            <div class="input-icon-wrap"><i class="fas fa-envelope input-icon"></i><input type="email"
-                                                    class="form-input" id="uncleProfileEmail"></div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label">الهاتف</label>
-                                            <div class="input-icon-wrap"><i class="fas fa-phone input-icon"></i><input type="text"
-                                                    class="form-input" id="uncleProfilePhone"></div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label">النوع</label>
-                                            <div class="input-icon-wrap"><i class="fas fa-venus-mars input-icon"></i>
-                                                <select class="form-input" id="uncleProfileGender">
-                                                    <option value="male">ذكر</option>
-                                                    <option value="female">أنثى</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label">كلمة المرور الحالية</label>
-                                            <div class="input-icon-wrap"><i class="fas fa-key input-icon"></i><input type="password"
-                                                    class="form-input" id="uncleProfileCurrentPassword"></div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label">كلمة مرور جديدة <small style="color:var(--text-3)">(اتركها فارغة للإبقاء)</small></label>
-                                            <div class="input-icon-wrap"><i class="fas fa-lock input-icon"></i><input type="password"
-                                                    class="form-input" id="uncleProfileNewPassword" minlength="6"></div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label">تأكيد كلمة المرور الجديدة</label>
-                                            <div class="input-icon-wrap"><i class="fas fa-lock input-icon"></i><input type="password"
-                                                    class="form-input" id="uncleProfileConfirmPassword" minlength="6"></div>
-                                        </div>
-                                        <div style="display:flex;gap:8px">
-                                            <button type="submit" class="btn btn-success" style="flex:1; justify-content:center;"><i class="fas fa-save"></i> حفظ</button>
-                                            <button type="button" class="btn btn-secondary" style="flex:1; justify-content:center;" onclick="hideAccountEditForm()"><i class="fas fa-times"></i> إلغاء</button>
-                                        </div>
-                                    </form>
+                        <!-- Read-only Details on the left -->
+                        <div style="flex: 1; min-width: 280px; display: flex; flex-direction: column; gap: 12px; max-width: 500px;">
+                            <div class="settings-field-box">
+                                <div class="form-group">
+                                    <label class="form-label" style="font-size: 0.78rem; color: var(--text-3); font-weight: 800; display: block; margin-bottom: 4px;">الاسم الكامل</label>
+                                    <div style="font-size: 0.95rem; font-weight: 800; color: var(--text);" id="aiName">---</div>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- PANEL: Fees -->
-                        <div id="uncleTabPanel_fees" class="uncle-tab-panel" style="display:none;">
-                            <div class="glass-card" style="padding: 20px; border: 1px solid var(--border-solid); border-radius: 14px; background: var(--surface);">
-                                <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text); margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
-                                    <i class="fas fa-money-bill-wave" style="color: #10b981"></i> الاشتراكات المالية للخدمة
-                                </h3>
-                                <div id="uncleOwnFeesList" style="display:flex; flex-direction:column; gap:10px; max-height: 50vh; overflow-y:auto; padding-inline-end:4px;">
-                                    <!-- Dynamically populated -->
+                            <div class="settings-field-box">
+                                <div class="form-group">
+                                    <label class="form-label" style="font-size: 0.78rem; color: var(--text-3); font-weight: 800; display: block; margin-bottom: 4px;">اسم المستخدم</label>
+                                    <div style="font-size: 0.95rem; font-weight: 800; color: var(--text);" id="aiUsername">---</div>
                                 </div>
-                                <div id="uncleOwnFeesSection" style="display:none;"></div>
                             </div>
-                        </div>
-
-                        <!-- PANEL: Logs -->
-                        <div id="uncleTabPanel_logs" class="uncle-tab-panel" style="display:none;">
-                            <div class="glass-card" style="padding: 20px; border: 1px solid var(--border-solid); border-radius: 14px; background: var(--surface);">
-                                <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text); margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
-                                    <i class="fas fa-history" style="color: #f59e0b"></i> سجل نشاطي
-                                </h3>
-                                
-                                <!-- Search + filter bar -->
-                                <div style="padding:0 0 12px;display:flex;gap:8px;flex-wrap:wrap;">
-                                    <div style="flex:1;min-width:140px;display:flex;align-items:center;gap:6px;background:var(--surface-3);border-radius:var(--r-md);padding:6px 10px;border:1.5px solid var(--border-solid)">
-                                        <i class="fas fa-search" style="color:var(--text-3);font-size:.8rem;flex-shrink:0"></i>
-                                        <input id="historySearch" type="text" placeholder="بحث في السجل..."
-                                            style="border:none;background:transparent;font-family:Cairo,sans-serif;font-size:.82rem;color:var(--text);width:100%;outline:none"
-                                            oninput="filterHistory()">
-                                    </div>
-                                    <select id="historyFilter" onchange="filterHistory()"
-                                        style="border:1.5px solid var(--border-solid);border-radius:var(--r-md);padding:6px 10px;font-family:Cairo,sans-serif;font-size:.82rem;background:var(--surface-3);color:var(--text);cursor:pointer;outline:none">
-                                        <option value="">كل الأنشطة</option>
-                                        <option value="attendance">الحضور</option>
-                                        <option value="student">الأطفال</option>
-                                        <option value="coupon">الكوبونات</option>
-                                        <option value="login">تسجيل الدخول</option>
-                                        <option value="other">أخرى</option>
-                                    </select>
+                            <div class="settings-field-box">
+                                <div class="form-group">
+                                    <label class="form-label" style="font-size: 0.78rem; color: var(--text-3); font-weight: 800; display: block; margin-bottom: 4px;">الصلاحية</label>
+                                    <div style="font-size: 0.95rem; font-weight: 800; color: var(--text);" id="aiRole">---</div>
                                 </div>
-
-                                <!-- Summary chips (filled dynamically) -->
-                                <div id="historySummary" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;"></div>
-
-                                <!-- Log list -->
-                                <div id="uncleHistoryContent" style="max-height:50vh;overflow-y:auto;margin:0 -4px;padding:0 4px">
-                                    <div style="text-align:center;padding:2rem;color:var(--text-3)">
-                                        <i class="fas fa-spinner fa-spin" style="font-size:1.5rem"></i>
-                                        <p style="margin-top:8px">جاري التحميل...</p>
-                                    </div>
-                                </div>
-
-                                <!-- Empty / no-match state (hidden initially) -->
-                                <div id="historyEmpty" style="display:none;text-align:center;padding:2rem;color:var(--text-3)">
-                                    <i class="fas fa-search" style="font-size:1.5rem;display:block;margin-bottom:8px"></i>
-                                    لا توجد نتائج
-                                </div>
+                            </div>
+                            
+                            <div style="margin-top: 8px;">
+                                <button class="btn btn-primary" style="padding:10px 20px; font-size:.82rem; font-weight:800; border-radius: 10px;" onclick="openUncleAccountPage('editProfile')">
+                                    <i class="fas fa-edit"></i> تعديل بيانات الحساب
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Page: Edit Profile -->
+                <div id="uncleAccountPage_editProfile" class="settings-page" style="display:none; width: 100%;">
+                    <div class="settings-breadcrumb">
+                        <button class="settings-bc-item" onclick="closeUncleAccountPage()"><i class="fas fa-user-cog"></i> إعدادات حسابي</button>
+                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);transform:scaleX(-1);"></i>
+                        <button class="settings-bc-item" onclick="openUncleAccountPage('profile')">البيانات الشخصية</button>
+                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);transform:scaleX(-1);"></i>
+                        <span class="settings-bc-item active">تعديل البيانات</span>
+                    </div>
+
+                    <div class="settings-stack">
+                        <form id="uncleProfileForm">
+                            <div class="settings-field-box" style="margin-bottom: 12px;">
+                                <div class="form-group">
+                                    <label class="form-label">الاسم</label>
+                                    <input type="text" class="form-input" id="uncleProfileName" required style="width:100%; background:var(--surface-3); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit;">
+                                </div>
+                            </div>
+                            <div class="settings-field-box" style="margin-bottom: 12px;">
+                                <div class="form-group">
+                                    <label class="form-label">اسم المستخدم</label>
+                                    <input type="text" class="form-input" id="uncleProfileUsername" required style="width:100%; background:var(--surface-3); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit;">
+                                </div>
+                            </div>
+                            <div class="settings-field-box" style="margin-bottom: 12px;">
+                                <div class="form-group">
+                                    <label class="form-label">البريد الإلكتروني</label>
+                                    <input type="email" class="form-input" id="uncleProfileEmail" style="width:100%; background:var(--surface-3); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit;">
+                                </div>
+                            </div>
+                            <div class="settings-field-box" style="margin-bottom: 12px;">
+                                <div class="form-group">
+                                    <label class="form-label">الهاتف</label>
+                                    <input type="text" class="form-input" id="uncleProfilePhone" style="width:100%; background:var(--surface-3); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit;">
+                                </div>
+                            </div>
+                            <div class="settings-field-box" style="margin-bottom: 12px;">
+                                <div class="form-group">
+                                    <label class="form-label">النوع</label>
+                                    <select class="form-input" id="uncleProfileGender" style="width:100%; background:var(--surface-3); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit;">
+                                        <option value="male">ذكر</option>
+                                        <option value="female">أنثى</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="settings-field-box" style="margin-bottom: 12px;">
+                                <div class="form-group">
+                                    <label class="form-label">كلمة المرور الحالية</label>
+                                    <input type="password" class="form-input" id="uncleProfileCurrentPassword" placeholder="أدخل كلمة المرور الحالية لتأكيد التغيير" style="width:100%; background:var(--surface-3); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit;">
+                                </div>
+                            </div>
+                            <div class="settings-field-box" style="margin-bottom: 12px;">
+                                <div class="form-group">
+                                    <label class="form-label">كلمة مرور جديدة (اختياري)</label>
+                                    <input type="password" class="form-input" id="uncleProfileNewPassword" minlength="6" placeholder="اتركها فارغة للإبقاء على الحالية" style="width:100%; background:var(--surface-3); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit;">
+                                </div>
+                            </div>
+                            <div class="settings-field-box" style="margin-bottom: 16px;">
+                                <div class="form-group">
+                                    <label class="form-label">تأكيد كلمة المرور الجديدة</label>
+                                    <input type="password" class="form-input" id="uncleProfileConfirmPassword" minlength="6" placeholder="أعد إدخال كلمة المرور الجديدة" style="width:100%; background:var(--surface-3); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit;">
+                                </div>
+                            </div>
+                            <div class="settings-actions">
+                                <button type="submit" class="btn btn-primary" style="padding:10px 24px; font-weight:800; border-radius:8px;"><i class="fas fa-save"></i> حفظ التغييرات</button>
+                                <button type="button" class="btn btn-secondary" onclick="openUncleAccountPage('profile')" style="padding:10px 24px; font-weight:800; border-radius:8px;"><i class="fas fa-times"></i> إلغاء</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Page: Fees -->
+                <div id="uncleAccountPage_fees" class="settings-page" style="display:none; width: 100%;">
+                    <div class="settings-breadcrumb">
+                        <button class="settings-bc-item" onclick="closeUncleAccountPage()"><i class="fas fa-user-cog"></i> إعدادات حسابي</button>
+                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);transform:scaleX(-1);"></i>
+                        <span class="settings-bc-item active">اشتراكاتي المالية</span>
+                    </div>
+
+                    <div style="max-width: 600px; display: flex; flex-direction: column; gap: 12px; width: 100%;">
+                        <div id="uncleOwnFeesList" style="display:flex; flex-direction:column; gap:10px; max-height: 70vh; overflow-y:auto; padding-inline-end:4px;">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Page: Logs -->
+                <div id="uncleAccountPage_logs" class="settings-page" style="display:none; width: 100%;">
+                    <div class="settings-breadcrumb">
+                        <button class="settings-bc-item" onclick="closeUncleAccountPage()"><i class="fas fa-user-cog"></i> إعدادات حسابي</button>
+                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);transform:scaleX(-1);"></i>
+                        <span class="settings-bc-item active">سجل الأنشطة</span>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+                        <!-- Search + filter bar -->
+                        <div style="padding:0 0 12px;display:flex;gap:8px;flex-wrap:wrap;max-width:600px;">
+                            <div style="flex:1;min-width:180px;display:flex;align-items:center;gap:6px;background:var(--surface-3);border-radius:var(--radius);padding:8px 12px;border:1px solid var(--border)">
+                                <i class="fas fa-search" style="color:var(--text-3);font-size:.8rem;flex-shrink:0"></i>
+                                <input id="historySearch" type="text" placeholder="بحث في السجل..."
+                                    style="border:none;background:transparent;font-family:Cairo,sans-serif;font-size:.85rem;color:var(--text);width:100%;outline:none"
+                                    oninput="filterHistory()">
+                            </div>
+                            <select id="historyFilter" onchange="filterHistory()"
+                                style="border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;font-family:Cairo,sans-serif;font-size:.85rem;background:var(--surface-3);color:var(--text);cursor:pointer;outline:none">
+                                <option value="">كل الأنشطة</option>
+                                <option value="attendance">الحضور</option>
+                                <option value="student">الأطفال</option>
+                                <option value="coupon">الكوبونات</option>
+                                <option value="login">تسجيل الدخول</option>
+                                <option value="other">أخرى</option>
+                            </select>
+                        </div>
+
+                        <!-- Summary chips (filled dynamically) -->
+                        <div id="historySummary" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;"></div>
+
+                        <!-- Log list -->
+                        <div id="uncleHistoryContent" style="max-height:60vh;overflow-y:auto;max-width:700px;margin:0 -4px;padding:0 4px">
+                            <div style="text-align:center;padding:2rem;color:var(--text-3)">
+                                <i class="fas fa-spinner fa-spin" style="font-size:1.5rem"></i>
+                                <p style="margin-top:8px">جاري التحميل...</p>
+                            </div>
+                        </div>
+
+                        <!-- Empty / no-match state (hidden initially) -->
+                        <div id="historyEmpty" style="display:none;text-align:center;padding:2rem;color:var(--text-3)">
+                            <i class="fas fa-search" style="font-size:1.5rem;display:block;margin-bottom:8px"></i>
+                            لا توجد نتائج
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
         </div><!-- end page-wrap -->
@@ -13003,22 +13221,35 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 name: localStorage.getItem('uncleName') || '',
                 username: localStorage.getItem('uncleUsername') || '',
                 role: localStorage.getItem('uncleRole') || '',
-                image_url: localStorage.getItem('uncleImageUrl') || ''
+                image_url: localStorage.getItem('uncleImageUrl') || '',
+                email: '',
+                phone: '',
+                gender: 'male'
             };
 
             const roleTranslate = { 'admin': 'مسؤول', 'developer': 'مطور', 'dev': 'مطور', 'uncle': 'خادم' };
             const rText = roleTranslate[(u.role || '').toLowerCase().trim()] || u.role || '';
-            document.getElementById('accountDisplayName').textContent = u.name || '';
-            document.getElementById('accountDisplayRole').textContent = rText;
-            document.getElementById('aiName').textContent = u.name || '';
-            document.getElementById('aiUsername').textContent = u.username || '';
-            document.getElementById('aiRole').textContent = rText;
-            document.getElementById('uncleProfileName').value = u.name || '';
-            document.getElementById('uncleProfileUsername').value = u.username || '';
-            document.getElementById('uncleProfileNewPassword').value = '';
+            
+            // Text displays (read-only views)
+            if (document.getElementById('accountDisplayName')) document.getElementById('accountDisplayName').textContent = u.name || '';
+            if (document.getElementById('accountDisplayRole')) document.getElementById('accountDisplayRole').textContent = rText;
+            if (document.getElementById('aiName')) document.getElementById('aiName').textContent = u.name || '';
+            if (document.getElementById('aiUsername')) document.getElementById('aiUsername').textContent = u.username || '';
+            if (document.getElementById('aiRole')) document.getElementById('aiRole').textContent = rText;
+            
+            // Inputs (edit-only views)
+            if (document.getElementById('uncleProfileName')) document.getElementById('uncleProfileName').value = u.name || '';
+            if (document.getElementById('uncleProfileUsername')) document.getElementById('uncleProfileUsername').value = u.username || '';
+            if (document.getElementById('uncleProfileEmail')) document.getElementById('uncleProfileEmail').value = u.email || '';
+            if (document.getElementById('uncleProfilePhone')) document.getElementById('uncleProfilePhone').value = u.phone || '';
+            if (document.getElementById('uncleProfileGender')) document.getElementById('uncleProfileGender').value = u.gender || 'male';
+            if (document.getElementById('uncleProfileNewPassword')) document.getElementById('uncleProfileNewPassword').value = '';
+            if (document.getElementById('uncleProfileConfirmPassword')) document.getElementById('uncleProfileConfirmPassword').value = '';
+            if (document.getElementById('uncleProfileCurrentPassword')) document.getElementById('uncleProfileCurrentPassword').value = '';
+
             const av = document.getElementById('accountBigAvatar');
             if (av) {
-                av.src = window.photoUrl(u.image_url || 'https://sunday-school.online/profile_default..webp');
+                av.src = window.photoUrl(u.image_url || 'https://sunday-school.online/profile_default.webp');
             }
             const deleteBtn = document.getElementById('deleteAccountPhotoBtn');
             if (deleteBtn) {
@@ -13035,17 +13266,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const isUncleLoggedIn = localStorage.getItem('uncleLoggedIn') === 'true';
                 if (isUncleLoggedIn && fees.length > 0) {
                     ownFeesList.innerHTML = fees.map(fee => `
-                        <div class="glass-card" style="padding:10px 12px; border:1px solid var(--border-solid); border-radius:10px; display:flex; align-items:center; justify-content:space-between; gap:8px; background:rgba(255,255,255,0.01); direction:rtl; text-align:right;">
+                        <div class="glass-card" style="padding:14px 16px; border:1px solid var(--border-solid); border-radius:10px; display:flex; align-items:center; justify-content:space-between; gap:8px; background:var(--card); direction:rtl; text-align:right;">
                             <div style="flex:1;">
                                 <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                                    <span style="font-weight:700; font-size:0.82rem; color:var(--text);">${escHtml(fee.title)}</span>
+                                    <span style="font-weight:700; font-size:0.85rem; color:var(--text);">${escHtml(fee.title)}</span>
                                     <span style="background:var(--brand); color:white; font-size:0.7rem; font-weight:800; padding:2px 6px; border-radius:10px;">${fee.amount} ج.م</span>
                                 </div>
-                                <div style="font-size:0.72rem; color:var(--text-3); margin-top:2px;">
+                                <div style="font-size:0.75rem; color:var(--text-3); margin-top:2px;">
                                     <span>التاريخ: ${fee.date}</span>
                                     ${fee.description ? `<span style="margin-inline-start:8px; color:var(--text-2);">| ${escHtml(fee.description)}</span>` : ''}
                                 </div>
-                                <div style="font-size:0.65rem; color:var(--muted); margin-top:2px; opacity:0.8;">
+                                <div style="font-size:0.68rem; color:var(--muted); margin-top:2px; opacity:0.8;">
                                     المستلم: ${escHtml(fee.created_by || '---')} (${fee.created_at || ''})
                                 </div>
                             </div>
@@ -13056,8 +13287,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 }
             }
 
-            hideAccountEditForm();
-
             // Hide other main views
             document.getElementById('classesView').style.display = 'none';
             document.getElementById('classView').classList.remove('active');
@@ -13065,30 +13294,29 @@ if ($hasUncleId && $uncleRole === 'uncle')
             // Show the uncleAccountView container
             document.getElementById('uncleAccountView').style.display = 'flex';
 
-            // Default to profile tab
-            switchUncleAccountTab('profile');
+            // Show Hub page first
+            closeUncleAccountPage();
             stopAutoRefresh();
         }
 
-        function hideAccountModal() { showClassesView(); }
+        function openUncleAccountPage(pageId) {
+            // Hide the Hub container
+            const hub = document.getElementById('uncleAccountHub');
+            if (hub) hub.style.display = 'none';
 
-        function switchUncleAccountTab(tabId) {
-            const tabs = ['profile', 'fees', 'logs'];
-            tabs.forEach(t => {
-                const btn = document.getElementById('uncleTabBtn_' + t);
-                const panel = document.getElementById('uncleTabPanel_' + t);
-                if (btn) {
-                    if (t === tabId) btn.classList.add('active');
-                    else btn.classList.remove('active');
-                }
-                if (panel) {
-                    if (t === tabId) panel.style.display = 'block';
-                    else panel.style.display = 'none';
-                }
+            // Hide all subpages
+            const pages = ['profile', 'editProfile', 'fees', 'logs'];
+            pages.forEach(p => {
+                const el = document.getElementById('uncleAccountPage_' + p);
+                if (el) el.style.display = 'none';
             });
 
-            // If switching to logs, trigger the log loading logic (except the modal display part)
-            if (tabId === 'logs') {
+            // Show selected page
+            const curEl = document.getElementById('uncleAccountPage_' + pageId);
+            if (curEl) curEl.style.display = 'block';
+
+            // Special logic for logs loading
+            if (pageId === 'logs') {
                 const content = document.getElementById('uncleHistoryContent');
                 const empty = document.getElementById('historyEmpty');
 
@@ -13140,12 +13368,32 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
 
+        function closeUncleAccountPage() {
+            // Hide all subpages
+            const pages = ['profile', 'editProfile', 'fees', 'logs'];
+            pages.forEach(p => {
+                const el = document.getElementById('uncleAccountPage_' + p);
+                if (el) el.style.display = 'none';
+            });
+            // Show the Hub container
+            const hub = document.getElementById('uncleAccountHub');
+            if (hub) hub.style.display = 'block';
+        }
+
         function showUncleFees() {
             if (location.hash !== '#account') {
                 updateHash('account');
             }
             showAccountModalInternal();
-            switchUncleAccountTab('fees');
+            openUncleAccountPage('fees');
+        }
+
+        function showUncleHistory() {
+            if (location.hash !== '#account') {
+                updateHash('account');
+            }
+            showAccountModalInternal();
+            openUncleAccountPage('logs');
         }
 
         function dismissProfilePicSuggestion() {
@@ -13155,8 +13403,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const banner = document.getElementById('profilePicSuggestionBanner');
             if (banner) banner.style.display = 'none';
         }
-        function showAccountEditForm() { document.getElementById('accountEditForm').classList.add('active'); }
-        function hideAccountEditForm() { document.getElementById('accountEditForm').classList.remove('active'); }
+        function showAccountEditForm() { openUncleAccountPage('editProfile'); }
+        function hideAccountEditForm() { openUncleAccountPage('profile'); }
         function showAllToolsModal() { document.getElementById('allToolsModal').classList.add('active'); stopAutoRefresh(); }
         function hideAllToolsModal() { document.getElementById('allToolsModal').classList.remove('active'); startAutoRefresh(); }
 
@@ -21104,7 +21352,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 makeApiCall(payload, r => {
                     showToast('تم التحديث', 'success');
-                    document.getElementById('accountDisplayName').textContent = name;
+                    if (document.getElementById('accountDisplayName')) document.getElementById('accountDisplayName').textContent = name;
+                    if (document.getElementById('aiName')) document.getElementById('aiName').textContent = name;
+                    if (document.getElementById('aiUsername')) document.getElementById('aiUsername').textContent = username;
                     if (window.currentUncle) { window.currentUncle.name = name; window.currentUncle.username = username; window.currentUncle.email = email; window.currentUncle.phone = phone; window.currentUncle.gender = gender; }
                     hideAccountEditForm();
                 }, e => showToast('فشل: ' + e, 'error'));
@@ -21521,7 +21771,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 updateHash('account');
             }
             showAccountModalInternal();
-            switchUncleAccountTab('logs');
+            openUncleAccountPage('logs');
         }
 
         // ══════════════════════════════════════════════════════════════
@@ -23168,7 +23418,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             approveRegistration, rejectRegistration, toggleRegistrationSelection, searchPendingRegistrations,
             clearAllStudentsSearch, performAllStudentsSearch, showAnnouncementsModal, toggleAnnouncementStatus,
             deleteAnnouncement, adjustStudentCoupons, toggleCouponValue, closeAllDropdowns, logout,
-            showAccountModal, hideAccountModal, showUncleHistory, showUncleFees, retryConnection: () => { },
+            showAccountModal, hideAccountModal, showUncleHistory, showUncleFees, openUncleAccountPage, closeUncleAccountPage, retryConnection: () => { },
             resetToCurrentFriday, showUnsavedModal, toggleTheme, escJs,
             shareAbsentToWhatsApp, shareAttendedToWhatsApp, saveAttendedAsCSV,
             toggleAbsentDropdown, executeAbsentAction,
