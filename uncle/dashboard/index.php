@@ -9800,223 +9800,383 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border-color: var(--brand-glow);
         }
         /* ═══════════════════════════════════════════════════════════════════
-   SETTINGS HUB + PAGE ROUTING (Uncle Account Refactored)
+   UNCLE ACCOUNT PAGE — Premium Redesign
 ═══════════════════════════════════════════════════════════════════ */
-        :root {
-            --radius-sm: var(--r-sm);
-            --radius-lg: var(--r-md);
-            --radius-xl: var(--r-lg);
-            --radius: var(--r-md);
-            --shadow-xs: var(--shadow-sm);
-            --t-fast: var(--t);
-            --t-base: var(--t);
-            --ease-spring: var(--spring);
-            --primary: var(--brand);
-            --primary-bg: var(--brand-bg);
-            --card: var(--surface);
+        /* ── Account Hero ── */
+        .acct-hero {
+            position: relative;
+            border-radius: var(--r-xl);
+            overflow: hidden;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--brand) 0%, #7c3aed 100%);
+            padding: 28px 24px 60px;
+            direction: rtl;
         }
-        .settings-breadcrumb {
+        [data-theme="dark"] .acct-hero {
+            background: linear-gradient(135deg, #3d4fd8 0%, #5b21b6 100%);
+        }
+        .acct-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 60% 80% at 110% 50%, rgba(255,255,255,.12) 0%, transparent 60%),
+                radial-gradient(ellipse 40% 60% at -10% 80%, rgba(0,0,0,.15) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .acct-hero-back {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.18);
+            border: none;
+            color: #fff;
+            font-size: .9rem;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 18px;
-            flex-wrap: wrap;
+            justify-content: center;
+            transition: background var(--t) var(--ease);
+            backdrop-filter: blur(8px);
         }
-
-        .settings-bc-item {
+        .acct-hero-back:hover { background: rgba(255,255,255,.28); }
+        .acct-hero-logout {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            padding: 7px 14px;
+            border-radius: var(--r-full);
+            background: rgba(255,255,255,.18);
+            border: 1px solid rgba(255,255,255,.25);
+            color: #fff;
+            font-size: .76rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: background var(--t) var(--ease);
+            backdrop-filter: blur(8px);
+            font-family: 'Cairo', sans-serif;
+        }
+        .acct-hero-logout:hover { background: rgba(255,255,255,.28); }
+        .acct-hero-content {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+        .acct-hero-avatar-wrap {
+            position: relative;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .acct-hero-avatar {
+            width: 88px;
+            height: 88px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(255,255,255,.5);
+            box-shadow: 0 8px 24px rgba(0,0,0,.25);
+            display: block;
+            transition: transform var(--t) var(--spring);
+        }
+        .acct-hero-avatar-wrap:hover .acct-hero-avatar { transform: scale(1.05); }
+        .acct-hero-cam {
+            position: absolute;
+            bottom: 2px;
+            left: 2px;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #fff;
+            color: var(--brand);
+            border: 2px solid rgba(255,255,255,.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .65rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,.2);
+            pointer-events: none;
+        }
+        .acct-hero-del {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--danger);
+            color: #fff;
+            border: 2px solid #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .6rem;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,.25);
+            z-index: 5;
+        }
+        .acct-hero-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .acct-hero-name {
+            font-size: 1.35rem;
+            font-weight: 900;
+            color: #fff;
+            line-height: 1.2;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .acct-hero-role {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255,255,255,.18);
+            color: rgba(255,255,255,.92);
+            font-size: .75rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: var(--r-full);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255,255,255,.2);
+        }
+        /* Floating quick-action pills bottom of hero */
+        .acct-hero-pills {
+            position: absolute;
+            bottom: -18px;
+            right: 0;
+            left: 0;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 0 20px;
+        }
+        .acct-hero-pill {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            font-size: 0.82rem;
+            padding: 9px 16px;
+            border-radius: var(--r-full);
+            background: var(--surface);
+            border: 1px solid var(--border-solid);
+            color: var(--text-2);
+            font-size: .76rem;
             font-weight: 700;
-            color: var(--text-3);
-            background: none;
-            border: none;
             cursor: pointer;
-            padding: 5px 10px;
-            border-radius: var(--radius-sm);
-            transition: all var(--t-fast) var(--ease);
-        }
-
-        .settings-bc-item:hover {
-            background: var(--primary-bg);
-            color: var(--primary);
-        }
-
-        .settings-bc-item.active {
-            color: var(--text);
-            pointer-events: none;
-            background: none;
-        }
-
-        .settings-hub-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
-            gap: 12px;
-            max-width: 920px;
-        }
-
-        .settings-hub-card {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            aspect-ratio: 1;
-            max-width: 168px;
-            background: var(--card);
-            border: 1px solid var(--border-solid);
-            border-radius: var(--radius-xl);
-            padding: 18px 12px;
-            cursor: pointer;
-            text-align: center;
-            transition: border-color var(--t-base) var(--ease), transform var(--t-fast) var(--ease-spring), box-shadow var(--t-base) var(--ease);
-            box-shadow: var(--shadow-xs);
-            width: 100%;
-        }
-
-        .settings-hub-card:hover {
-            border-color: rgba(91, 108, 245, .35);
-            transform: translateY(-3px);
+            transition: all var(--t) var(--spring);
             box-shadow: var(--shadow-md);
+            font-family: 'Cairo', sans-serif;
+            text-decoration: none;
+            white-space: nowrap;
         }
-
-        .settings-hub-icon {
-            width: 52px;
-            height: 52px;
-            border-radius: var(--radius-lg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.35rem;
-            flex-shrink: 0;
+        .acct-hero-pill:hover {
+            border-color: var(--brand);
+            color: var(--brand);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
         }
+        .acct-hero-pill i { font-size: .78rem; }
 
-        .settings-hub-title {
-            font-size: 0.78rem;
-            font-weight: 800;
-            color: var(--text);
-            line-height: 1.35;
-        }
-
-        .settings-page {
-            animation: settingsPageIn 0.22s var(--ease-spring);
-            width: 100%;
-        }
-
-        .settings-stack {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            max-width: 480px;
-            width: 100%;
-        }
-
-        .settings-stack.wide {
-            max-width: 560px;
-        }
-
-        .settings-field-box {
-            background: var(--card);
+        /* ── Account Info Rows ── */
+        .acct-section {
+            background: var(--surface);
+            border-radius: var(--r-xl);
             border: 1px solid var(--border-solid);
-            border-radius: var(--radius-lg);
-            padding: 14px 16px;
-            box-shadow: var(--shadow-xs);
-            transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
-            width: 100%;
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            margin-bottom: 12px;
         }
-
-        .settings-field-box:hover {
-            border-color: rgba(91, 108, 245, .18);
+        .acct-section-label {
+            font-size: .7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--text-3);
+            padding: 12px 16px 6px;
+            display: block;
         }
-
-        .settings-field-box .form-group {
-            margin-bottom: 0;
-        }
-
-        .settings-field-box .form-label {
-            margin-bottom: 6px;
-        }
-
-        .settings-panel-head {
+        .acct-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 12px;
+            padding: 13px 16px;
+            border-bottom: 1px solid var(--border-solid);
+            gap: 12px;
+            direction: rtl;
+            transition: background var(--t) var(--ease);
         }
-
-        .settings-panel-head .settings-panel-title {
-            font-size: 0.88rem;
-            font-weight: 800;
-            color: var(--text);
+        .acct-row:last-child { border-bottom: none; }
+        .acct-row-left {
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin: 0;
+            gap: 12px;
+            min-width: 0;
         }
-
-        .settings-panel-head .settings-panel-title i {
-            color: var(--primary);
-            font-size: 0.9rem;
-        }
-
-        .settings-stack .settings-section-divider {
-            margin: 6px 0 2px;
-            padding: 0 4px 6px;
-            border-bottom: none;
-            background: none;
-        }
-
-        .settings-stack .settings-hint {
-            margin-bottom: 0;
-        }
-
-        .settings-stack .settings-toggle-row {
-            max-width: none;
-            margin: 0;
-        }
-
-        .settings-actions {
+        .acct-row-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--r-sm);
             display: flex;
-            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            font-size: .85rem;
+            flex-shrink: 0;
+        }
+        .acct-row-icon.blue  { background: rgba(91,108,245,.1);  color: var(--brand); }
+        .acct-row-icon.green { background: rgba(16,185,129,.1); color: #10b981; }
+        .acct-row-icon.amber { background: rgba(245,158,11,.1);  color: #f59e0b; }
+        .acct-row-icon.red   { background: rgba(239,68,68,.1);   color: var(--danger); }
+        .acct-row-icon.slate { background: var(--surface-3);     color: var(--text-3); }
+        .acct-row-label {
+            font-size: .84rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .acct-row-sub {
+            font-size: .72rem;
+            color: var(--text-3);
+            margin-top: 1px;
+        }
+        .acct-row-value {
+            font-size: .82rem;
+            font-weight: 600;
+            color: var(--text-3);
+            flex-shrink: 0;
+        }
+        .acct-row-chevron {
+            color: var(--text-3);
+            font-size: .7rem;
+            flex-shrink: 0;
+            opacity: .5;
+            margin-inline-start: 4px;
+        }
+        button.acct-row {
+            width: 100%;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+            text-align: right;
+        }
+        button.acct-row:hover {
+            background: var(--brand-bg);
+        }
+        button.acct-row:hover .acct-row-icon.blue { background: rgba(91,108,245,.18); }
+
+        /* ── Account edit form (subpage) ── */
+        .acct-page {
+            animation: acctPageIn .22s var(--spring) both;
+        }
+        @keyframes acctPageIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .acct-page-header {
+            display: flex;
+            align-items: center;
             gap: 10px;
-            margin-top: 4px;
+            margin-bottom: 20px;
+            direction: rtl;
         }
-
-        @keyframes settingsPageIn {
-            from {
-                opacity: 0;
-                transform: translateX(-14px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+        .acct-page-back {
+            width: 38px;
+            height: 38px;
+            border-radius: var(--r-sm);
+            background: var(--surface-3);
+            border: 1px solid var(--border-solid);
+            color: var(--text-2);
+            font-size: .85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--t) var(--ease);
+            flex-shrink: 0;
         }
-
-        .settings-section-divider {
-            font-size: 0.72rem;
+        .acct-page-back:hover {
+            background: var(--brand-bg);
+            color: var(--brand);
+            border-color: var(--brand);
+        }
+        .acct-page-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--text);
+        }
+        /* Form fields inside edit page */
+        .acct-field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 540px;
+        }
+        .acct-field {
+            background: var(--surface);
+            border: 1.5px solid var(--border-solid);
+            border-radius: var(--r-lg);
+            padding: 14px 16px;
+            transition: border-color var(--t) var(--ease), box-shadow var(--t) var(--ease);
+            box-shadow: var(--shadow-sm);
+        }
+        .acct-field:focus-within {
+            border-color: var(--brand);
+            box-shadow: 0 0 0 3px var(--brand-glow);
+        }
+        .acct-field label {
+            display: block;
+            font-size: .7rem;
+            font-weight: 800;
+            color: var(--brand);
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin-bottom: 6px;
+        }
+        .acct-field input,
+        .acct-field select {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-size: .9rem;
+            font-weight: 600;
+            color: var(--text);
+            font-family: 'Cairo', sans-serif;
+            padding: 0;
+        }
+        .acct-field select option {
+            background: var(--surface);
+            color: var(--text);
+        }
+        .acct-divider-label {
+            font-size: .7rem;
             font-weight: 800;
             color: var(--text-3);
             text-transform: uppercase;
-            letter-spacing: 0.08em;
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--border);
-            margin-top: 4px;
-        }
-
-        .settings-toggle-row {
+            letter-spacing: .08em;
+            padding: 6px 0 4px;
             display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            padding: 12px 16px;
-            border: 1.5px solid var(--border);
-            border-radius: var(--radius);
-            cursor: pointer;
-            transition: all var(--t-fast) var(--ease);
+            align-items: center;
+            gap: 8px;
+        }
+        .acct-divider-label::before,
+        .acct-divider-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-solid);
+        }
+        .acct-form-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 8px;
         }
     </style>
     <script src="/js/og-meta.js"></script>
@@ -11039,240 +11199,220 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <!-- end classView -->
 
             <!-- ═══ UNCLE ACCOUNT VIEW ═══ -->
-            <div id="uncleAccountView" style="display:none; flex-direction:column; gap:16px; width: 100%;">
-                
-                <!-- Header with Back Button, Title, and Logout Button -->
-                <div class="class-topbar" style="display: flex; align-items: center; justify-content: space-between; width: 100%; direction: rtl; border-bottom: 1.5px solid var(--border-solid); padding-bottom: 12px; margin-bottom: 8px;">
-                    <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                        <button class="btn btn-ghost btn-sm" onclick="showClassesView()"
-                            style="min-width:40px;height:40px;padding:0;font-size:.9rem;background:transparent;border:none !important;box-shadow:none !important;display:flex;align-items:center;justify-content:center;color:var(--text);">
-                            <i class="fas fa-arrow-right"></i>
+            <div id="uncleAccountView" style="display:none; flex-direction:column; width:100%; max-width:680px; margin:0 auto; padding-bottom:32px;">
+
+                <!-- ── Page: Profile (Main Landing) ── -->
+                <div id="uncleAccountPage_profile" class="acct-page">
+
+                    <!-- Hero Banner -->
+                    <div class="acct-hero">
+                        <button class="acct-hero-back" onclick="showClassesView()" title="رجوع"><i class="fas fa-arrow-right"></i></button>
+                        <button class="acct-hero-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
+
+                        <div class="acct-hero-content">
+                            <div class="acct-hero-avatar-wrap" onclick="document.getElementById('unclePhotoInput').click()">
+                                <img src="" alt="" id="accountBigAvatar" class="acct-hero-avatar">
+                                <div class="acct-hero-cam"><i class="fas fa-camera"></i></div>
+                                <button type="button" id="deleteAccountPhotoBtn" class="acct-hero-del" onclick="deleteAccountPhoto(event)" style="display:none;">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                            <div class="acct-hero-info">
+                                <div class="acct-hero-name" id="accountDisplayName">---</div>
+                                <div class="acct-hero-role" id="accountDisplayRole"><i class="fas fa-shield-alt" style="font-size:.65rem;"></i> ---</div>
+                            </div>
+                        </div>
+                        <input type="file" id="unclePhotoInput" accept="image/*" style="display:none">
+
+                        <!-- Floating pills -->
+                        <div class="acct-hero-pills">
+                            <button class="acct-hero-pill" id="themeToggleBtn" onclick="toggleTheme()">
+                                <i class="fas fa-moon theme-toggle-icon-moon"></i>
+                                <i class="fas fa-sun theme-toggle-icon-sun"></i>
+                                <span>المظهر</span>
+                            </button>
+                            <a href="<?php echo $pathPrefix; ?>/leaderboard/" class="acct-hero-pill">
+                                <i class="fas fa-crown" style="color:#f59e0b;"></i> الأوائل
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Spacer for pills overflow -->
+                    <div style="height:28px;"></div>
+
+                    <!-- Info Section -->
+                    <div class="acct-section">
+                        <span class="acct-section-label">البيانات الشخصية</span>
+                        <div class="acct-row">
+                            <div class="acct-row-left">
+                                <div class="acct-row-icon blue"><i class="fas fa-user"></i></div>
+                                <div class="acct-row-label">الاسم الكامل</div>
+                            </div>
+                            <div class="acct-row-value" id="aiName">---</div>
+                        </div>
+                        <div class="acct-row">
+                            <div class="acct-row-left">
+                                <div class="acct-row-icon blue"><i class="fas fa-at"></i></div>
+                                <div class="acct-row-label">اسم المستخدم</div>
+                            </div>
+                            <div class="acct-row-value" id="aiUsername">---</div>
+                        </div>
+                        <div class="acct-row">
+                            <div class="acct-row-left">
+                                <div class="acct-row-icon blue"><i class="fas fa-shield-alt"></i></div>
+                                <div class="acct-row-label">الصلاحية</div>
+                            </div>
+                            <div class="acct-row-value" id="aiRole">---</div>
+                        </div>
+                    </div>
+
+                    <!-- Actions / Navigation Section -->
+                    <div class="acct-section">
+                        <span class="acct-section-label">الإجراءات</span>
+                        <button class="acct-row" onclick="openUncleAccountPage('editProfile')">
+                            <div class="acct-row-left">
+                                <div class="acct-row-icon blue"><i class="fas fa-pen"></i></div>
+                                <div>
+                                    <div class="acct-row-label">تعديل بيانات الحساب</div>
+                                    <div class="acct-row-sub">الاسم، كلمة المرور، والمعلومات</div>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-left acct-row-chevron"></i>
                         </button>
-                        <h2 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--text); font-family: 'Cairo', sans-serif;">حسابي</h2>
-                    </div>
-                    <button class="btn btn-danger btn-sm" onclick="logout()" style="padding: 8px 16px; font-size: 0.82rem; font-weight: 800; border-radius: 8px; display: flex; align-items: center; gap: 6px;">
-                        <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
-                    </button>
-                </div>
-
-                <!-- Page: Profile View (Main Account Page) -->
-                <div id="uncleAccountPage_profile" class="settings-page" style="display:block; width: 100%;">
-                    <div class="settings-breadcrumb">
-                        <span class="settings-bc-item active"><i class="fas fa-user-cog"></i> إعدادات حسابي</span>
-                    </div>
-                    
-                    <div style="display: flex; gap: 24px; flex-wrap: wrap; width: 100%; direction: rtl; align-items: flex-start;">
-                        <!-- Profile Card on the right -->
-                        <div class="glass-card" style="padding: 24px; border: 1px solid var(--border-solid); border-radius: 14px; text-align: center; display: flex; flex-direction: column; align-items: center; width: 240px; flex-shrink: 0; background: var(--card);">
-                            <div style="position:relative; display:inline-block;">
-                                <div class="account-avatar-circle-wrap" onclick="document.getElementById('unclePhotoInput').click()" style="width: 110px; height: 110px; border-radius: 50%; overflow: hidden; cursor: pointer; border: 3px solid var(--brand); position: relative; display: flex; align-items: center; justify-content: center;">
-                                    <img src="" alt="" class="account-big-avatar" id="accountBigAvatar" style="width: 100%; height: 100%; object-fit: cover;">
-                                    <div class="account-avatar-plus" style="position: absolute; bottom: 0; left: 0; right: 0; height: 30px; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem;"><i class="fas fa-camera"></i></div>
+                        <button class="acct-row" onclick="openUncleAccountPage('fees')">
+                            <div class="acct-row-left">
+                                <div class="acct-row-icon green"><i class="fas fa-money-bill-wave"></i></div>
+                                <div>
+                                    <div class="acct-row-label">اشتراكاتي المالية</div>
+                                    <div class="acct-row-sub">عرض سجل المدفوعات</div>
                                 </div>
-                                <button type="button" id="deleteAccountPhotoBtn" onclick="deleteAccountPhoto(event)" style="display:none; position:absolute; top:-4px; right:-4px; background:var(--danger); color:white; border:none; border-radius:50%; width:28px; height:28px; cursor:pointer; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;"><i class="fas fa-trash-alt" style="font-size:0.8rem;"></i></button>
                             </div>
-                            <div class="account-name" id="accountDisplayName" style="font-size:1.15rem; font-weight:800; margin-top:12px; color: var(--text);">---</div>
-                            <div class="account-role" id="accountDisplayRole" style="font-size:0.85rem; color:var(--text-3); font-weight:600; margin-top:2px;">---</div>
-                            <input type="file" id="unclePhotoInput" accept="image/*" style="display:none">
-                            
-                            <div style="display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap; width:100%;">
-                                <button class="btn btn-secondary btn-sm" id="themeToggleBtn" onclick="toggleTheme()"
-                                    style="flex: 1; padding:8px 10px;font-size:.78rem; border-radius: 8px;" title="تبديل الوضع">
-                                    <i class="fas fa-moon theme-toggle-icon-moon"></i>
-                                    <i class="fas fa-sun theme-toggle-icon-sun"></i>
-                                </button>
-                                <a href="<?php echo $pathPrefix; ?>/leaderboard/" class="btn btn-secondary btn-sm"
-                                    style="flex: 1; padding:8px 10px;font-size:.78rem;text-decoration:none; display:flex; align-items:center; justify-content:center; gap:4px; border-radius: 8px;">
-                                    <i class="fas fa-crown"></i> الأوائل
-                                </a>
+                            <i class="fas fa-chevron-left acct-row-chevron"></i>
+                        </button>
+                        <button class="acct-row" onclick="openUncleAccountPage('logs')">
+                            <div class="acct-row-left">
+                                <div class="acct-row-icon amber"><i class="fas fa-history"></i></div>
+                                <div>
+                                    <div class="acct-row-label">سجل نشاطاتي</div>
+                                    <div class="acct-row-sub">مراجعة جميع العمليات</div>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-left acct-row-chevron"></i>
+                        </button>
+                    </div>
+
+                </div><!-- end profile page -->
+
+                <!-- ── Page: Edit Profile ── -->
+                <div id="uncleAccountPage_editProfile" class="acct-page" style="display:none;">
+                    <div class="acct-page-header">
+                        <button class="acct-page-back" onclick="openUncleAccountPage('profile')"><i class="fas fa-arrow-right"></i></button>
+                        <div class="acct-page-title">تعديل الحساب</div>
+                    </div>
+
+                    <form id="uncleProfileForm">
+                        <div class="acct-field-group">
+                            <div class="acct-field">
+                                <label>الاسم الكامل</label>
+                                <input type="text" id="uncleProfileName" required placeholder="أدخل اسمك الكامل">
+                            </div>
+                            <div class="acct-field">
+                                <label>اسم المستخدم</label>
+                                <input type="text" id="uncleProfileUsername" required placeholder="أدخل اسم المستخدم">
+                            </div>
+                            <div class="acct-field">
+                                <label>البريد الإلكتروني</label>
+                                <input type="email" id="uncleProfileEmail" placeholder="example@mail.com">
+                            </div>
+                            <div class="acct-field">
+                                <label>الهاتف</label>
+                                <input type="text" id="uncleProfilePhone" placeholder="01xxxxxxxxx">
+                            </div>
+                            <div class="acct-field">
+                                <label>النوع</label>
+                                <select id="uncleProfileGender">
+                                    <option value="male">ذكر</option>
+                                    <option value="female">أنثى</option>
+                                </select>
+                            </div>
+
+                            <div class="acct-divider-label">تغيير كلمة المرور</div>
+
+                            <div class="acct-field">
+                                <label>كلمة المرور الحالية</label>
+                                <input type="password" id="uncleProfileCurrentPassword" placeholder="أدخل كلمة المرور الحالية">
+                            </div>
+                            <div class="acct-field">
+                                <label>كلمة مرور جديدة (اختياري)</label>
+                                <input type="password" id="uncleProfileNewPassword" minlength="6" placeholder="اتركها فارغة للإبقاء على الحالية">
+                            </div>
+                            <div class="acct-field">
+                                <label>تأكيد كلمة المرور الجديدة</label>
+                                <input type="password" id="uncleProfileConfirmPassword" minlength="6" placeholder="أعد إدخال كلمة المرور الجديدة">
+                            </div>
+
+                            <div class="acct-form-actions">
+                                <button type="submit" class="btn" style="padding:10px 28px; font-weight:800;"><i class="fas fa-save"></i> حفظ التغييرات</button>
+                                <button type="button" class="btn btn-ghost" onclick="openUncleAccountPage('profile')" style="padding:10px 20px; font-weight:800;"><i class="fas fa-times"></i> إلغاء</button>
                             </div>
                         </div>
+                    </form>
+                </div><!-- end editProfile page -->
 
-                        <!-- Read-only Details on the left -->
-                        <div style="flex: 1; min-width: 280px; display: flex; flex-direction: column; gap: 16px; max-width: 500px;">
-                            <!-- Profile Information -->
-                            <div style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
-                                <div class="settings-field-box">
-                                    <div class="form-group">
-                                        <label class="form-label" style="font-size: 0.78rem; color: var(--text-3); font-weight: 800; display: block; margin-bottom: 4px;">الاسم الكامل</label>
-                                        <div style="font-size: 0.95rem; font-weight: 800; color: var(--text);" id="aiName">---</div>
-                                    </div>
-                                </div>
-                                <div class="settings-field-box">
-                                    <div class="form-group">
-                                        <label class="form-label" style="font-size: 0.78rem; color: var(--text-3); font-weight: 800; display: block; margin-bottom: 4px;">اسم المستخدم</label>
-                                        <div style="font-size: 0.95rem; font-weight: 800; color: var(--text);" id="aiUsername">---</div>
-                                    </div>
-                                </div>
-                                <div class="settings-field-box">
-                                    <div class="form-group">
-                                        <label class="form-label" style="font-size: 0.78rem; color: var(--text-3); font-weight: 800; display: block; margin-bottom: 4px;">الصلاحية</label>
-                                        <div style="font-size: 0.95rem; font-weight: 800; color: var(--text);" id="aiRole">---</div>
-                                    </div>
-                                </div>
-                                
-                                <div style="margin-top: 4px;">
-                                    <button class="btn btn-primary" style="padding:10px 20px; font-size:.82rem; font-weight:800; border-radius: 10px;" onclick="openUncleAccountPage('editProfile')">
-                                        <i class="fas fa-edit"></i> تعديل بيانات الحساب
-                                    </button>
-                                </div>
-                            </div>
+                <!-- ── Page: Fees ── -->
+                <div id="uncleAccountPage_fees" class="acct-page" style="display:none;">
+                    <div class="acct-page-header">
+                        <button class="acct-page-back" onclick="openUncleAccountPage('profile')"><i class="fas fa-arrow-right"></i></button>
+                        <div class="acct-page-title">اشتراكاتي المالية</div>
+                    </div>
+                    <div id="uncleOwnFeesList" style="display:flex; flex-direction:column; gap:10px; max-height:70vh; overflow-y:auto;">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div><!-- end fees page -->
 
-                            <hr style="border: 0; border-top: 1px solid var(--border-solid); margin: 8px 0; width: 100%;">
+                <!-- ── Page: Logs ── -->
+                <div id="uncleAccountPage_logs" class="acct-page" style="display:none;">
+                    <div class="acct-page-header">
+                        <button class="acct-page-back" onclick="openUncleAccountPage('profile')"><i class="fas fa-arrow-right"></i></button>
+                        <div class="acct-page-title">سجل النشاطات</div>
+                    </div>
 
-                            <!-- Hub Grid of sub-sections directly under the info -->
-                            <div class="settings-hub-grid" style="width: 100%; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px;">
-                                <button type="button" class="settings-hub-card" onclick="openUncleAccountPage('fees')" style="max-width: 100%; aspect-ratio: auto; min-height: 80px; display: flex; flex-direction: row; align-items: center; justify-content: flex-start; padding: 12px; gap: 12px; border-radius: 12px;">
-                                    <div class="settings-hub-icon" style="background:rgba(16, 185, 129, 0.1);color:#10b981; width: 40px; height: 40px; font-size: 1.1rem; border-radius: 10px;"><i class="fas fa-money-bill-wave"></i></div>
-                                    <div style="text-align: right;">
-                                        <div class="settings-hub-title" style="font-size: 0.8rem; font-weight: 800; color: var(--text);">اشتراكاتي المالية</div>
-                                        <div style="font-size: 0.68rem; color: var(--text-3); margin-top: 2px;">عرض الاشتراكات</div>
-                                    </div>
-                                </button>
-                                <button type="button" class="settings-hub-card" onclick="openUncleAccountPage('logs')" style="max-width: 100%; aspect-ratio: auto; min-height: 80px; display: flex; flex-direction: row; align-items: center; justify-content: flex-start; padding: 12px; gap: 12px; border-radius: 12px;">
-                                    <div class="settings-hub-icon" style="background:rgba(245, 158, 11, 0.1);color:#f59e0b; width: 40px; height: 40px; font-size: 1.1rem; border-radius: 10px;"><i class="fas fa-history"></i></div>
-                                    <div style="text-align: right;">
-                                        <div class="settings-hub-title" style="font-size: 0.8rem; font-weight: 800; color: var(--text);">سجل نشاطاتي</div>
-                                        <div style="font-size: 0.68rem; color: var(--text-3); margin-top: 2px;">مراجعة العمليات</div>
-                                    </div>
-                                </button>
-                            </div>
+                    <!-- Search + filter -->
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
+                        <div style="flex:1; min-width:180px; display:flex; align-items:center; gap:6px; background:var(--surface); border:1.5px solid var(--border-solid); border-radius:var(--r-lg); padding:10px 14px; box-shadow:var(--shadow-sm);">
+                            <i class="fas fa-search" style="color:var(--text-3); font-size:.8rem; flex-shrink:0;"></i>
+                            <input id="historySearch" type="text" placeholder="بحث في السجل..."
+                                style="border:none; background:transparent; font-family:Cairo,sans-serif; font-size:.85rem; color:var(--text); width:100%; outline:none;"
+                                oninput="filterHistory()">
+                        </div>
+                        <select id="historyFilter" onchange="filterHistory()"
+                            style="border:1.5px solid var(--border-solid); border-radius:var(--r-lg); padding:10px 14px; font-family:Cairo,sans-serif; font-size:.85rem; background:var(--surface); color:var(--text); cursor:pointer; outline:none; box-shadow:var(--shadow-sm);">
+                            <option value="">كل الأنشطة</option>
+                            <option value="attendance">الحضور</option>
+                            <option value="student">الأطفال</option>
+                            <option value="coupon">الكوبونات</option>
+                            <option value="login">تسجيل الدخول</option>
+                            <option value="other">أخرى</option>
+                        </select>
+                    </div>
+
+                    <!-- Summary chips -->
+                    <div id="historySummary" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;"></div>
+
+                    <!-- Log list -->
+                    <div id="uncleHistoryContent" style="max-height:60vh; overflow-y:auto;">
+                        <div style="text-align:center; padding:2rem; color:var(--text-3);">
+                            <i class="fas fa-spinner fa-spin" style="font-size:1.5rem;"></i>
+                            <p style="margin-top:8px; font-size:.85rem;">جاري التحميل...</p>
                         </div>
                     </div>
-                </div>
-
-                <!-- Page: Edit Profile -->
-                <div id="uncleAccountPage_editProfile" class="settings-page" style="display:none; width: 100%;">
-                    <div class="settings-breadcrumb">
-                        <button class="settings-bc-item" onclick="openUncleAccountPage('profile')"><i class="fas fa-user-cog"></i> إعدادات حسابي</button>
-                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);transform:scaleX(-1);"></i>
-                        <span class="settings-bc-item active">تعديل البيانات</span>
+                    <div id="historyEmpty" style="display:none; text-align:center; padding:2rem; color:var(--text-3);">
+                        <i class="fas fa-search" style="font-size:1.5rem; display:block; margin-bottom:8px;"></i>
+                        لا توجد نتائج
                     </div>
+                </div><!-- end logs page -->
 
-                    <div class="settings-stack">
-                        <form id="uncleProfileForm">
-                            <div class="settings-field-box" style="margin-bottom: 12px;">
-                                <div class="form-group">
-                                    <label class="form-label">الاسم</label>
-                                    <input type="text" class="form-input" id="uncleProfileName" required style="width:100%; background:var(--surface-3); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit;">
-                                </div>
-                            </div>
-                            <div class="settings-field-box" style="margin-bottom: 12px;">
-                                <div class="form-group">
-                                    <label class="form-label">اسم المستخدم</label>
-                                    <input type="text" class="form-input" id="uncleProfileUsername" required style="width:100%; background:var(--surface-3); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit;">
-                                </div>
-                            </div>
-                            <div class="settings-field-box" style="margin-bottom: 12px;">
-                                <div class="form-group">
-                                    <label class="form-label">البريد الإلكتروني</label>
-                                    <input type="email" class="form-input" id="uncleProfileEmail" style="width:100%; background:var(--surface-3); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit;">
-                                </div>
-                            </div>
-                            <div class="settings-field-box" style="margin-bottom: 12px;">
-                                <div class="form-group">
-                                    <label class="form-label">الهاتف</label>
-                                    <input type="text" class="form-input" id="uncleProfilePhone" style="width:100%; background:var(--surface-3); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit;">
-                                </div>
-                            </div>
-                            <div class="settings-field-box" style="margin-bottom: 12px;">
-                                <div class="form-group">
-                                    <label class="form-label">النوع</label>
-                                    <select class="form-input" id="uncleProfileGender" style="width:100%; background:var(--surface-3); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit;">
-                                        <option value="male">ذكر</option>
-                                        <option value="female">أنثى</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="settings-field-box" style="margin-bottom: 12px;">
-                                <div class="form-group">
-                                    <label class="form-label">كلمة المرور الحالية</label>
-                                    <input type="password" class="form-input" id="uncleProfileCurrentPassword" placeholder="أدخل كلمة المرور الحالية لتأكيد التغيير" style="width:100%; background:var(--surface-3); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit;">
-                                </div>
-                            </div>
-                            <div class="settings-field-box" style="margin-bottom: 12px;">
-                                <div class="form-group">
-                                    <label class="form-label">كلمة مرور جديدة (اختياري)</label>
-                                    <input type="password" class="form-input" id="uncleProfileNewPassword" minlength="6" placeholder="اتركها فارغة للإبقاء على الحالية" style="width:100%; background:var(--surface-3); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit;">
-                                </div>
-                            </div>
-                            <div class="settings-field-box" style="margin-bottom: 16px;">
-                                <div class="form-group">
-                                    <label class="form-label">تأكيد كلمة المرور الجديدة</label>
-                                    <input type="password" class="form-input" id="uncleProfileConfirmPassword" minlength="6" placeholder="أعد إدخال كلمة المرور الجديدة" style="width:100%; background:var(--surface-3); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit;">
-                                </div>
-                            </div>
-                            <div class="settings-actions">
-                                <button type="submit" class="btn btn-primary" style="padding:10px 24px; font-weight:800; border-radius:8px;"><i class="fas fa-save"></i> حفظ التغييرات</button>
-                                <button type="button" class="btn btn-secondary" onclick="openUncleAccountPage('profile')" style="padding:10px 24px; font-weight:800; border-radius:8px;"><i class="fas fa-times"></i> إلغاء</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- Page: Fees -->
-                <div id="uncleAccountPage_fees" class="settings-page" style="display:none; width: 100%;">
-                    <div class="settings-breadcrumb">
-                        <button class="settings-bc-item" onclick="openUncleAccountPage('profile')"><i class="fas fa-user-cog"></i> إعدادات حسابي</button>
-                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);transform:scaleX(-1);"></i>
-                        <span class="settings-bc-item active">اشتراكاتي المالية</span>
-                    </div>
-
-                    <div style="max-width: 600px; display: flex; flex-direction: column; gap: 12px; width: 100%;">
-                        <div id="uncleOwnFeesList" style="display:flex; flex-direction:column; gap:10px; max-height: 70vh; overflow-y:auto; padding-inline-end:4px;">
-                            <!-- Dynamically populated -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Page: Logs -->
-                <div id="uncleAccountPage_logs" class="settings-page" style="display:none; width: 100%;">
-                    <div class="settings-breadcrumb">
-                        <button class="settings-bc-item" onclick="openUncleAccountPage('profile')"><i class="fas fa-user-cog"></i> إعدادات حسابي</button>
-                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);transform:scaleX(-1);"></i>
-                        <span class="settings-bc-item active">سجل الأنشطة</span>
-                    </div>
-
-                    <div style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
-                        <!-- Search + filter bar -->
-                        <div style="padding:0 0 12px;display:flex;gap:8px;flex-wrap:wrap;max-width:600px;">
-                            <div style="flex:1;min-width:180px;display:flex;align-items:center;gap:6px;background:var(--surface-3);border-radius:var(--radius);padding:8px 12px;border:1px solid var(--border)">
-                                <i class="fas fa-search" style="color:var(--text-3);font-size:.8rem;flex-shrink:0"></i>
-                                <input id="historySearch" type="text" placeholder="بحث في السجل..."
-                                    style="border:none;background:transparent;font-family:Cairo,sans-serif;font-size:.85rem;color:var(--text);width:100%;outline:none"
-                                    oninput="filterHistory()">
-                            </div>
-                            <select id="historyFilter" onchange="filterHistory()"
-                                style="border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;font-family:Cairo,sans-serif;font-size:.85rem;background:var(--surface-3);color:var(--text);cursor:pointer;outline:none">
-                                <option value="">كل الأنشطة</option>
-                                <option value="attendance">الحضور</option>
-                                <option value="student">الأطفال</option>
-                                <option value="coupon">الكوبونات</option>
-                                <option value="login">تسجيل الدخول</option>
-                                <option value="other">أخرى</option>
-                            </select>
-                        </div>
-
-                        <!-- Summary chips (filled dynamically) -->
-                        <div id="historySummary" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;"></div>
-
-                        <!-- Log list -->
-                        <div id="uncleHistoryContent" style="max-height:60vh;overflow-y:auto;max-width:700px;margin:0 -4px;padding:0 4px">
-                            <div style="text-align:center;padding:2rem;color:var(--text-3)">
-                                <i class="fas fa-spinner fa-spin" style="font-size:1.5rem"></i>
-                                <p style="margin-top:8px">جاري التحميل...</p>
-                            </div>
-                        </div>
-
-                        <!-- Empty / no-match state (hidden initially) -->
-                        <div id="historyEmpty" style="display:none;text-align:center;padding:2rem;color:var(--text-3)">
-                            <i class="fas fa-search" style="font-size:1.5rem;display:block;margin-bottom:8px"></i>
-                            لا توجد نتائج
-                        </div>
-                    </div>
-                </div>
-
-            </div>
+            </div><!-- end uncleAccountView -->
 
         </div><!-- end page-wrap -->
     </div><!-- end mainContainer -->
