@@ -15416,7 +15416,7 @@ function getCurrentUncle()
 
         $conn = getDBConnection();
 
-        $stmt = $conn->prepare("SELECT id, name, username, image_url, role, custom_info FROM uncles WHERE id = ? AND (deleted IS NULL OR deleted = 0) LIMIT 1");
+        $stmt = $conn->prepare("SELECT id, name, username, image_url, role, custom_info, email, phone, gender FROM uncles WHERE id = ? AND (deleted IS NULL OR deleted = 0) LIMIT 1");
 
         $stmt->bind_param("i", $uncleId);
 
@@ -15473,6 +15473,12 @@ function getCurrentUncle()
                     'role' => $row['role'] ?? 'uncle',
 
                     'custom_info' => $row['custom_info'] ?? '',
+
+                    'email' => $row['email'] ?? '',
+
+                    'phone' => $row['phone'] ?? '',
+
+                    'gender' => $row['gender'] ?? 'male',
 
                     'classes' => $assignedClasses
 

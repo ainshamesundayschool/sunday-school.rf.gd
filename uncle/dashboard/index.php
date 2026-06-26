@@ -11250,6 +11250,34 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                     <div style="font-size: 0.88rem; font-weight: 800; color: var(--text);" id="aiRole">
                                         ---</div>
                                 </div>
+
+                                <!-- Email Row -->
+                                <div
+                                    style="display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%;">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <div
+                                            style="width: 34px; height: 34px; border-radius: 8px; background: rgba(91, 108, 245, 0.08); color: var(--brand); display: flex; align-items: center; justify-content: center; font-size: 0.9rem;">
+                                            <i class="fas fa-envelope"></i>
+                                        </div>
+                                        <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-2);">البريد الإلكتروني</div>
+                                    </div>
+                                    <div style="font-size: 0.88rem; font-weight: 800; color: var(--text);" id="aiEmail">
+                                        ---</div>
+                                </div>
+
+                                <!-- Phone Row -->
+                                <div
+                                    style="display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%;">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <div
+                                            style="width: 34px; height: 34px; border-radius: 8px; background: rgba(91, 108, 245, 0.08); color: var(--brand); display: flex; align-items: center; justify-content: center; font-size: 0.9rem;">
+                                            <i class="fas fa-phone"></i>
+                                        </div>
+                                        <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-2);">رقم الهاتف</div>
+                                    </div>
+                                    <div style="font-size: 0.88rem; font-weight: 800; color: var(--text);" id="aiPhone">
+                                        ---</div>
+                                </div>
                             </div>
 
                             <!-- Edit Button -->
@@ -13479,9 +13507,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 username: localStorage.getItem('uncleUsername') || '',
                 role: localStorage.getItem('uncleRole') || '',
                 image_url: localStorage.getItem('uncleImageUrl') || '',
-                email: '',
-                phone: '',
-                gender: 'male'
+                email: localStorage.getItem('uncleEmail') || '',
+                phone: localStorage.getItem('unclePhone') || '',
+                gender: localStorage.getItem('uncleGender') || 'male'
             };
 
             const roleTranslate = { 'admin': 'مسؤول', 'developer': 'مطور', 'dev': 'مطور', 'uncle': 'خادم' };
@@ -13494,6 +13522,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (document.getElementById('aiName')) document.getElementById('aiName').textContent = u.name || '';
             if (document.getElementById('aiUsername')) document.getElementById('aiUsername').textContent = u.username || '';
             if (document.getElementById('aiRole')) document.getElementById('aiRole').textContent = rText;
+            if (document.getElementById('aiEmail')) document.getElementById('aiEmail').textContent = u.email || 'غير مسجل';
+            if (document.getElementById('aiPhone')) document.getElementById('aiPhone').textContent = u.phone || 'غير مسجل';
 
             // Inputs (edit-only views)
             if (document.getElementById('uncleProfileName')) document.getElementById('uncleProfileName').value = u.name || '';
@@ -20974,6 +21004,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     localStorage.setItem('uncleName', r.uncle.name || '');
                     localStorage.setItem('uncleUsername', r.uncle.username || '');
                     localStorage.setItem('uncleRole', r.uncle.role || '');
+                    localStorage.setItem('uncleEmail', r.uncle.email || '');
+                    localStorage.setItem('unclePhone', r.uncle.phone || '');
+                    localStorage.setItem('uncleGender', r.uncle.gender || 'male');
                     const chip = document.getElementById('uncleChip');
                     if (chip) chip.style.display = 'flex';
                     // Update hero greeting with fresh name from DB
@@ -21590,6 +21623,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     if (document.getElementById('accountDisplayName')) document.getElementById('accountDisplayName').textContent = name;
                     if (document.getElementById('aiName')) document.getElementById('aiName').textContent = name;
                     if (document.getElementById('aiUsername')) document.getElementById('aiUsername').textContent = username;
+                    if (document.getElementById('aiEmail')) document.getElementById('aiEmail').textContent = email || 'غير مسجل';
+                    if (document.getElementById('aiPhone')) document.getElementById('aiPhone').textContent = phone || 'غير مسجل';
+
+                    localStorage.setItem('uncleName', name);
+                    localStorage.setItem('uncleUsername', username);
+                    localStorage.setItem('uncleEmail', email);
+                    localStorage.setItem('unclePhone', phone);
+                    localStorage.setItem('uncleGender', gender);
+
                     if (window.currentUncle) { window.currentUncle.name = name; window.currentUncle.username = username; window.currentUncle.email = email; window.currentUncle.phone = phone; window.currentUncle.gender = gender; }
                     hideAccountEditForm();
                 }, e => showToast('فشل: ' + e, 'error'));
