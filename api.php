@@ -15570,6 +15570,14 @@ function updateUncleProfile()
 
         $username = sanitize($_POST['username'] ?? '');
 
+        $email = sanitize($_POST['email'] ?? '');
+
+        $phone = sanitize($_POST['phone'] ?? '');
+
+        $gender = sanitize($_POST['gender'] ?? 'male');
+
+        $currentPassword = $_POST['current_password'] ?? '';
+
         $newPassword = $_POST['new_password'] ?? '';
 
 
@@ -15577,6 +15585,8 @@ function updateUncleProfile()
         if (empty($name) || empty($username)) {
 
             sendJSON(['success' => false, 'message' => 'الاسم واسم المستخدم مطلوبان']);
+
+            return;
 
         }
 
@@ -15598,11 +15608,55 @@ function updateUncleProfile()
 
             sendJSON(['success' => false, 'message' => 'اسم المستخدم مستخدم بالفعل']);
 
+            return;
+
         }
 
 
 
         if (!empty($newPassword)) {
+
+            // Verify current password
+
+            if (empty($currentPassword)) {
+
+                sendJSON(['success' => false, 'message' => 'أدخل كلمة المرور الحالية لتغييرها']);
+
+                return;
+
+            }
+
+            $passStmt = $conn->prepare("SELECT password_hash FROM uncles WHERE id = ?");
+
+            $passStmt->bind_param("i", $uncleId);
+
+            $passStmt->execute();
+
+            $passResult = $passStmt->get_result();
+
+            if ($passRow = $passResult->fetch_assoc()) {
+
+                $dbHash = $passRow['password_hash'];
+
+                $currentHash = hash('sha256', $currentPassword);
+
+                if ($dbHash !== $currentHash) {
+
+                    sendJSON(['success' => false, 'message' => 'كلمة المرور الحالية غير صحيحة']);
+
+                    return;
+
+                }
+
+            } else {
+
+                sendJSON(['success' => false, 'message' => 'الخادم غير موجود']);
+
+                return;
+
+            }
+
+
 
             $passwordHash = hash('sha256', $newPassword);
 
@@ -15610,13 +15664,13 @@ function updateUncleProfile()
 
                 UPDATE uncles 
 
-                SET name = ?, username = ?, password_hash = ?, updated_at = NOW()
+                SET name = ?, username = ?, password_hash = ?, email = ?, phone = ?, gender = ?, updated_at = NOW()
 
                 WHERE id = ?
 
             ");
 
-            $stmt->bind_param("sssi", $name, $username, $passwordHash, $uncleId);
+            $stmt->bind_param("ssssssi", $name, $username, $passwordHash, $email, $phone, $gender, $uncleId);
 
         } else {
 
@@ -15624,13 +15678,13 @@ function updateUncleProfile()
 
                 UPDATE uncles 
 
-                SET name = ?, username = ?, updated_at = NOW()
+                SET name = ?, username = ?, email = ?, phone = ?, gender = ?, updated_at = NOW()
 
                 WHERE id = ?
 
             ");
 
-            $stmt->bind_param("ssi", $name, $username, $uncleId);
+            $stmt->bind_param("sssssi", $name, $username, $email, $phone, $gender, $uncleId);
 
         }
 
@@ -15658,7 +15712,13 @@ function updateUncleProfile()
 
                     'name' => $name,
 
-                    'username' => $username
+                    'username' => $username,
+
+                    'email' => $email,
+
+                    'phone' => $phone,
+
+                    'gender' => $gender
 
                 ]
 
@@ -33838,9 +33898,17 @@ function saveUncleClasses($uncleId, $churchId, $classes)
 
             if (!empty($class)) {
 
-                $insertStmt->bind_param("iis", $uncleId, $churchId, $class);
+                $className = is_array($class) ? ($class['class_name'] ?? $class['arabic_name'] ?? $class['code'] ?? $class['name'] ?? '') : $class;
 
-                $insertStmt->execute();
+                $className = sanitize($className);
+
+                if (!empty($className)) {
+
+                    $insertStmt->bind_param("iis", $uncleId, $churchId, $className);
+
+                    $insertStmt->execute();
+
+                }
 
             }
 

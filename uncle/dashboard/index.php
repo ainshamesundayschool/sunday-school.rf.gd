@@ -9967,6 +9967,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             transition: all var(--t) var(--ease);
+            max-width: 500px;
         }
 
         @media (max-width: 768px) {
@@ -9988,23 +9989,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .settings-hub-card,
         .settings-bc-item {
             font-family: 'Cairo', 'Segoe UI', Tahoma, 'Arabic Typesetting', sans-serif !important;
-        }
-
-        /* Mobile compact logout button */
-        @media (max-width: 600px) {
-            .logout-text {
-                display: none !important;
-            }
-
-            .class-topbar .btn-danger {
-                padding: 0 !important;
-                width: 40px !important;
-                height: 40px !important;
-                border-radius: 50% !important;
-                display: inline-flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-            }
         }
 
         .settings-stack.wide {
@@ -11160,7 +11144,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             حسابي</h2>
                     </div>
                     <button class="btn btn-danger btn-sm" onclick="logout()"
-                        style="padding: 8px 16px; font-size: 0.82rem; font-weight: 800; border-radius: 8px; display: flex; align-items: center; gap: 6px;">
+                        style="padding: 8px 16px; font-size: 0.82rem; font-weight: 800; border-radius: var(--r-md); display: flex; align-items: center; gap: 6px;">
                         <i class="fas fa-sign-out-alt"></i> <span class="logout-text">تسجيل الخروج</span>
                     </button>
                 </div>
@@ -11198,16 +11182,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                             <div
                                 style="display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap; width:100%;">
-                                <button class="btn btn-secondary btn-sm" id="themeToggleBtn" onclick="toggleTheme()"
-                                    style="flex: 1; padding:8px 10px;font-size:.78rem; border-radius: 8px;"
-                                    title="تبديل الوضع">
-                                    <i class="fas fa-moon theme-toggle-icon-moon"></i>
-                                    <i class="fas fa-sun theme-toggle-icon-sun"></i>
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="openUncleAccountPage('fees')"
+                                    style="flex: 1; padding:8px 10px;font-size:.78rem; display:flex; align-items:center; justify-content:center; gap:4px; border-radius: var(--r-md);">
+                                    <i class="fas fa-money-bill-wave"></i> اشتراكاتي
                                 </button>
-                                <a href="<?php echo $pathPrefix; ?>/leaderboard/" class="btn btn-secondary btn-sm"
-                                    style="flex: 1; padding:8px 10px;font-size:.78rem;text-decoration:none; display:flex; align-items:center; justify-content:center; gap:4px; border-radius: 8px;">
-                                    <i class="fas fa-crown"></i> الأوائل
-                                </a>
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="openUncleAccountPage('logs')"
+                                    style="flex: 1; padding:8px 10px;font-size:.78rem; display:flex; align-items:center; justify-content:center; gap:4px; border-radius: var(--r-md);">
+                                    <i class="fas fa-history"></i> النشاطات
+                                </button>
                             </div>
                         </div>
 
@@ -11271,7 +11253,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <!-- Edit Button -->
                             <div style="width: 100%;">
                                 <button class="btn btn-primary"
-                                    style="width: 100%; padding: 12px 20px; font-size: 0.85rem; font-weight: 800; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;"
+                                    style="width: 100%; padding: 12px 20px; font-size: 0.85rem; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px;"
                                     onclick="openUncleAccountPage('editProfile')">
                                     <i class="fas fa-edit"></i> تعديل بيانات الحساب
                                 </button>
@@ -11283,34 +11265,31 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <!-- Hub Grid of sub-sections directly under the info -->
                             <div class="settings-hub-grid"
                                 style="width: 100%; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px;">
-                                <button type="button" class="settings-hub-card" onclick="openUncleAccountPage('fees')"
+                                <button type="button" class="settings-hub-card" id="themeToggleBtn" onclick="toggleTheme()"
                                     style="max-width: 100%; aspect-ratio: auto; min-height: 80px; display: flex; flex-direction: row; align-items: center; justify-content: flex-start; padding: 12px; gap: 12px; border-radius: 12px;">
                                     <div class="settings-hub-icon"
-                                        style="background:rgba(16, 185, 129, 0.1);color:#10b981; width: 40px; height: 40px; font-size: 1.1rem; border-radius: 10px;">
-                                        <i class="fas fa-money-bill-wave"></i>
+                                        style="background:rgba(91, 108, 245, 0.1);color:var(--brand); width: 40px; height: 40px; font-size: 1.1rem; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-moon theme-toggle-icon-moon"></i>
+                                        <i class="fas fa-sun theme-toggle-icon-sun"></i>
                                     </div>
                                     <div style="text-align: right;">
                                         <div class="settings-hub-title"
-                                            style="font-size: 0.8rem; font-weight: 800; color: var(--text);">اشتراكاتي
-                                            المالية</div>
-                                        <div style="font-size: 0.68rem; color: var(--text-3); margin-top: 2px;">عرض
-                                            الاشتراكات</div>
+                                            style="font-size: 0.8rem; font-weight: 800; color: var(--text);">مظهر التطبيق</div>
+                                        <div style="font-size: 0.68rem; color: var(--text-3); margin-top: 2px;">تبديل الوضع</div>
                                     </div>
                                 </button>
-                                <button type="button" class="settings-hub-card" onclick="openUncleAccountPage('logs')"
-                                    style="max-width: 100%; aspect-ratio: auto; min-height: 80px; display: flex; flex-direction: row; align-items: center; justify-content: flex-start; padding: 12px; gap: 12px; border-radius: 12px;">
+                                <a href="<?php echo $pathPrefix; ?>/leaderboard/" class="settings-hub-card"
+                                    style="max-width: 100%; aspect-ratio: auto; min-height: 80px; display: flex; flex-direction: row; align-items: center; justify-content: flex-start; padding: 12px; gap: 12px; border-radius: 12px; text-decoration: none;">
                                     <div class="settings-hub-icon"
-                                        style="background:rgba(245, 158, 11, 0.1);color:#f59e0b; width: 40px; height: 40px; font-size: 1.1rem; border-radius: 10px;">
-                                        <i class="fas fa-history"></i>
+                                        style="background:rgba(245, 158, 11, 0.1);color:#f59e0b; width: 40px; height: 40px; font-size: 1.1rem; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-crown"></i>
                                     </div>
                                     <div style="text-align: right;">
                                         <div class="settings-hub-title"
-                                            style="font-size: 0.8rem; font-weight: 800; color: var(--text);">سجل نشاطاتي
-                                        </div>
-                                        <div style="font-size: 0.68rem; color: var(--text-3); margin-top: 2px;">مراجعة
-                                            العمليات</div>
+                                            style="font-size: 0.8rem; font-weight: 800; color: var(--text);">لوحة الصدارة</div>
+                                        <div style="font-size: 0.68rem; color: var(--text-3); margin-top: 2px;">الأوائل والترتيب</div>
                                     </div>
-                                </button>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -11391,50 +11370,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                     </div>
                                 </div>
 
-                                <!-- Current Password -->
+                                <!-- Change Password Trigger Button -->
                                 <div class="settings-field-box">
                                     <div class="form-group">
-                                        <label class="form-label">كلمة المرور الحالية</label>
-                                        <div class="input-icon-wrap">
-                                            <i class="fas fa-lock input-icon"></i>
-                                            <input type="password" class="form-input" id="uncleProfileCurrentPassword"
-                                                placeholder="أدخل كلمة المرور الحالية لتأكيد التغييرات">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- New Password -->
-                                <div class="settings-field-box">
-                                    <div class="form-group">
-                                        <label class="form-label">كلمة المرور الجديدة</label>
-                                        <div class="input-icon-wrap">
-                                            <i class="fas fa-key input-icon"></i>
-                                            <input type="password" class="form-input" id="uncleProfileNewPassword"
-                                                minlength="6" placeholder="اتركها فارغة للإبقاء على الحالية">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Confirm New Password -->
-                                <div class="settings-field-box">
-                                    <div class="form-group">
-                                        <label class="form-label">تأكيد كلمة المرور الجديدة</label>
-                                        <div class="input-icon-wrap">
-                                            <i class="fas fa-key input-icon"></i>
-                                            <input type="password" class="form-input" id="uncleProfileConfirmPassword"
-                                                minlength="6" placeholder="أعد إدخال كلمة المرور الجديدة">
-                                        </div>
+                                        <label class="form-label">كلمة المرور</label>
+                                        <button type="button" class="btn btn-secondary btn-sm" style="width: 100%; height: 42px; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="openModal('changePasswordModal')">
+                                            <i class="fas fa-key"></i> تغيير كلمة المرور...
+                                        </button>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="settings-actions">
                                 <button type="submit" class="btn btn-primary"
-                                    style="padding:10px 24px; font-weight:800; border-radius:8px;"><i
+                                    style="padding:10px 24px; font-weight:800;"><i
                                         class="fas fa-save"></i> حفظ التغييرات</button>
                                 <button type="button" class="btn btn-secondary"
                                     onclick="openUncleAccountPage('profile')"
-                                    style="padding:10px 24px; font-weight:800; border-radius:8px;"><i
+                                    style="padding:10px 24px; font-weight:800;"><i
                                         class="fas fa-times"></i> إلغاء</button>
                             </div>
                         </form>
@@ -12328,6 +12281,43 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <button class="btn btn-secondary" id="cancelDeleteStudentBtn" style="flex:1"><i
                         class="fas fa-times"></i> إلغاء</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div class="modal-overlay" id="changePasswordModal" style="z-index:1000007">
+        <div class="modal modal-sm" style="max-width:400px">
+            <div class="modal-header">
+                <h3><i class="fas fa-key"></i> تغيير كلمة المرور</h3>
+                <button class="close-btn" onclick="closeModal('changePasswordModal')">&times;</button>
+            </div>
+            <form id="changePasswordForm" style="display:flex; flex-direction:column; gap:15px; padding-top:10px;">
+                <div class="form-group">
+                    <label class="form-label">كلمة المرور الحالية</label>
+                    <div class="input-icon-wrap">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input type="password" class="form-input" id="changePassCurrent" required placeholder="أدخل كلمة المرور الحالية">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">كلمة المرور الجديدة</label>
+                    <div class="input-icon-wrap">
+                        <i class="fas fa-key input-icon"></i>
+                        <input type="password" class="form-input" id="changePassNew" required minlength="6" placeholder="أدخل كلمة المرور الجديدة (6 أحرف على الأقل)">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">تأكيد كلمة المرور الجديدة</label>
+                    <div class="input-icon-wrap">
+                        <i class="fas fa-key input-icon"></i>
+                        <input type="password" class="form-input" id="changePassConfirm" required minlength="6" placeholder="أعد إدخال كلمة المرور الجديدة">
+                    </div>
+                </div>
+                <div style="display:flex;gap:10px;margin-top:10px">
+                    <button type="submit" class="btn btn-primary" style="flex:1"><i class="fas fa-save"></i> حفظ</button>
+                    <button type="button" class="btn btn-secondary" style="flex:1" onclick="closeModal('changePasswordModal')"><i class="fas fa-times"></i> إلغاء</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -13497,9 +13487,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (document.getElementById('uncleProfileEmail')) document.getElementById('uncleProfileEmail').value = u.email || '';
             if (document.getElementById('uncleProfilePhone')) document.getElementById('uncleProfilePhone').value = u.phone || '';
             if (document.getElementById('uncleProfileGender')) document.getElementById('uncleProfileGender').value = u.gender || 'male';
-            if (document.getElementById('uncleProfileNewPassword')) document.getElementById('uncleProfileNewPassword').value = '';
-            if (document.getElementById('uncleProfileConfirmPassword')) document.getElementById('uncleProfileConfirmPassword').value = '';
-            if (document.getElementById('uncleProfileCurrentPassword')) document.getElementById('uncleProfileCurrentPassword').value = '';
+
 
             const av = document.getElementById('accountBigAvatar');
             if (av) {
@@ -21577,20 +21565,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const email = (document.getElementById('uncleProfileEmail')?.value || '').trim();
                 const phone = (document.getElementById('uncleProfilePhone')?.value || '').trim();
                 const gender = (document.getElementById('uncleProfileGender')?.value || 'male');
-                const currentPass = (document.getElementById('uncleProfileCurrentPassword')?.value || '').trim();
-                const newPass = (document.getElementById('uncleProfileNewPassword')?.value || '').trim();
-                const confirmPass = (document.getElementById('uncleProfileConfirmPassword')?.value || '').trim();
 
                 if (!name || !username) { showToast('الاسم واسم المستخدم مطلوبان', 'error'); return; }
-                // If changing password, require current and confirm match
-                if (newPass) {
-                    if (!currentPass) { showToast('أدخل كلمة المرور الحالية لتغييرها', 'error'); return; }
-                    if (newPass !== confirmPass) { showToast('كلمة المرور الجديدة غير متطابقة', 'error'); return; }
-                }
 
                 showLoading('جاري التحديث...');
                 const payload = { action: 'updateUncleProfile', name, username, email, phone, gender };
-                if (newPass) { payload.current_password = currentPass; payload.new_password = newPass; }
 
                 makeApiCall(payload, r => {
                     showToast('تم التحديث', 'success');
@@ -21599,6 +21578,36 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     if (document.getElementById('aiUsername')) document.getElementById('aiUsername').textContent = username;
                     if (window.currentUncle) { window.currentUncle.name = name; window.currentUncle.username = username; window.currentUncle.email = email; window.currentUncle.phone = phone; window.currentUncle.gender = gender; }
                     hideAccountEditForm();
+                }, e => showToast('فشل: ' + e, 'error'));
+            });
+            on('changePasswordForm', 'submit', e => {
+                e.preventDefault();
+                const currentPass = document.getElementById('changePassCurrent').value.trim();
+                const newPass = document.getElementById('changePassNew').value.trim();
+                const confirmPass = document.getElementById('changePassConfirm').value.trim();
+
+                if (!currentPass || !newPass || !confirmPass) { showToast('يرجى ملء جميع الحقول', 'error'); return; }
+                if (newPass !== confirmPass) { showToast('كلمة المرور الجديدة غير متطابقة', 'error'); return; }
+                if (newPass.length < 6) { showToast('كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل', 'error'); return; }
+
+                showLoading('جاري تحديث كلمة المرور...');
+                const payload = {
+                    action: 'updateUncleProfile',
+                    name: document.getElementById('uncleProfileName').value.trim(),
+                    username: document.getElementById('uncleProfileUsername').value.trim(),
+                    email: (document.getElementById('uncleProfileEmail')?.value || '').trim(),
+                    phone: (document.getElementById('uncleProfilePhone')?.value || '').trim(),
+                    gender: (document.getElementById('uncleProfileGender')?.value || 'male'),
+                    current_password: currentPass,
+                    new_password: newPass
+                };
+
+                makeApiCall(payload, r => {
+                    showToast('تم تغيير كلمة المرور بنجاح', 'success');
+                    closeModal('changePasswordModal');
+                    document.getElementById('changePassCurrent').value = '';
+                    document.getElementById('changePassNew').value = '';
+                    document.getElementById('changePassConfirm').value = '';
                 }, e => showToast('فشل: ' + e, 'error'));
             });
             on('resetToTodayBtn', 'click', resetToCurrentFriday);
