@@ -12015,7 +12015,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         let devViewChurchId = parseInt(localStorage.getItem('devViewChurchId') || 0);
         let devOrigChurchId = <?php echo json_encode($_SESSION['church_id'] ?? 0); ?>;
         let allChurchesCache = [];
-        let currentClass = '', currentFriday = '';
+        let currentClass = '', currentFriday = '', isInitialLoad = true;
         let attendanceData = {}, couponData = {}, absentData = {};
         let originalAttendanceData = {}, originalCouponData = {};
         let changedStudents = new Set(), savedStudents = new Set();
@@ -13037,6 +13037,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             loadData();
             updateCurrentDateDisplay();
+            isInitialLoad = false;
             setTimeout(() => { setupBirthdayInputListeners(); setupLiveSearch(); setupAllStudentsSearch(); }, 800);
 
             // Trigger once-daily checks for birthdays and unsaved attendance
@@ -18552,8 +18553,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const sf = localStorage.getItem('selectedFriday');
             let resolvedFriday = computedFriday;
             if (sf) {
-                if (sf === previousFriday) {
-                    // Revert to new one automatically if the uncle was on the last date
+                if (sf === previousFriday && isInitialLoad) {
+                    // Revert to new one automatically if the uncle was on the last date on startup
                     localStorage.removeItem('selectedFriday');
                     resolvedFriday = computedFriday;
                 } else if (sf === computedFriday) {
