@@ -9913,6 +9913,63 @@ if ($hasUncleId && $uncleRole === 'uncle')
             gap: 10px;
             max-width: 480px;
             width: 100%;
+            transition: max-width var(--t) var(--ease);
+        }
+
+        @media (min-width: 768px) {
+            .settings-stack {
+                max-width: 800px !important;
+            }
+        }
+
+        .settings-form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .settings-form-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Glass card styling matching the system radius */
+        .glass-card {
+            background: var(--surface) !important;
+            border: 1px solid var(--border-solid) !important;
+            border-radius: var(--r-xl) !important;
+            box-shadow: var(--shadow-sm) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: all var(--t) var(--ease);
+        }
+
+        /* Ensure all inputs and buttons inherit custom font */
+        .settings-page button,
+        .settings-page input,
+        .settings-page select,
+        .settings-page textarea,
+        .settings-hub-card,
+        .settings-bc-item {
+            font-family: 'Cairo', 'Segoe UI', Tahoma, 'Arabic Typesetting', sans-serif !important;
+        }
+
+        /* Mobile compact logout button */
+        @media (max-width: 600px) {
+            .logout-text {
+                display: none !important;
+            }
+            .class-topbar .btn-danger {
+                padding: 0 !important;
+                width: 40px !important;
+                height: 40px !important;
+                border-radius: 50% !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
         }
 
         .settings-stack.wide {
@@ -11045,7 +11102,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div id="uncleAccountView" style="display:none; flex-direction:column; gap:16px; width: 100%;">
                 
                 <!-- Header with Back Button, Title, and Logout Button -->
-                <div class="class-topbar" style="display: flex; align-items: center; justify-content: space-between; width: 100%; direction: rtl; border-bottom: 1.5px solid var(--border-solid); padding-bottom: 12px; margin-bottom: 8px;">
+                <div class="class-topbar" style="display: flex; align-items: center; justify-content: space-between; width: 100%; direction: rtl; margin-bottom: 8px;">
                     <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
                         <button class="btn btn-ghost btn-sm" onclick="showClassesView()"
                             style="min-width:40px;height:40px;padding:0;font-size:.9rem;background:transparent;border:none !important;box-shadow:none !important;display:flex;align-items:center;justify-content:center;color:var(--text);">
@@ -11054,7 +11111,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <h2 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--text); font-family: 'Cairo', sans-serif;">حسابي</h2>
                     </div>
                     <button class="btn btn-danger btn-sm" onclick="logout()" style="padding: 8px 16px; font-size: 0.82rem; font-weight: 800; border-radius: 8px; display: flex; align-items: center; gap: 6px;">
-                        <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+                        <i class="fas fa-sign-out-alt"></i> <span class="logout-text">تسجيل الخروج</span>
                     </button>
                 </div>
 
@@ -11066,16 +11123,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     
                     <div style="display: flex; gap: 24px; flex-wrap: wrap; width: 100%; direction: rtl; align-items: flex-start;">
                         <!-- Profile Card on the right -->
-                        <div class="glass-card" style="padding: 24px; border: 1px solid var(--border-solid); border-radius: 14px; text-align: center; display: flex; flex-direction: column; align-items: center; width: 240px; flex-shrink: 0; background: var(--card);">
-                            <div style="position:relative; display:inline-block;">
-                                <div class="account-avatar-circle-wrap" onclick="document.getElementById('unclePhotoInput').click()" style="width: 110px; height: 110px; border-radius: 50%; overflow: hidden; cursor: pointer; border: 3px solid var(--brand); position: relative; display: flex; align-items: center; justify-content: center;">
-                                    <img src="" alt="" class="account-big-avatar" id="accountBigAvatar" style="width: 100%; height: 100%; object-fit: cover;">
-                                    <div class="account-avatar-plus" style="position: absolute; bottom: 0; left: 0; right: 0; height: 30px; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem;"><i class="fas fa-camera"></i></div>
+                        <div class="glass-card" style="padding: 24px; text-align: center; display: flex; flex-direction: column; align-items: center; width: 240px; flex-shrink: 0;">
+                            <div style="position:relative; display:inline-block; margin-bottom: 8px;">
+                                <div onclick="document.getElementById('unclePhotoInput').click()" style="width: 100px; height: 100px; border-radius: 50%; overflow: hidden; cursor: pointer; border: 3px solid var(--brand); position: relative; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm);">
+                                    <img src="" alt="" class="account-big-avatar" id="accountBigAvatar" style="width: 100%; height: 100%; object-fit: cover; transition: transform var(--t) var(--ease);">
+                                    <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 28px; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.75rem;"><i class="fas fa-camera"></i></div>
                                 </div>
-                                <button type="button" id="deleteAccountPhotoBtn" onclick="deleteAccountPhoto(event)" style="display:none; position:absolute; top:-4px; right:-4px; background:var(--danger); color:white; border:none; border-radius:50%; width:28px; height:28px; cursor:pointer; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;"><i class="fas fa-trash-alt" style="font-size:0.8rem;"></i></button>
+                                <button type="button" id="deleteAccountPhotoBtn" onclick="deleteAccountPhoto(event)" style="display:none; position:absolute; top:-2px; right:-2px; background:var(--danger); color:white; border:none; border-radius:50%; width:26px; height:26px; cursor:pointer; align-items:center; justify-content:center; box-shadow:var(--shadow-sm); z-index:10;"><i class="fas fa-trash-alt" style="font-size:0.75rem;"></i></button>
                             </div>
-                            <div class="account-name" id="accountDisplayName" style="font-size:1.15rem; font-weight:800; margin-top:12px; color: var(--text);">---</div>
-                            <div class="account-role" id="accountDisplayRole" style="font-size:0.85rem; color:var(--text-3); font-weight:600; margin-top:2px;">---</div>
+                            <div class="account-name" id="accountDisplayName" style="font-size:1.1rem; font-weight:800; color: var(--text);">---</div>
+                            <div class="account-role" id="accountDisplayRole" style="font-size:0.8rem; color:var(--text-3); font-weight:600; margin-top:2px;">---</div>
                             <input type="file" id="unclePhotoInput" accept="image/*" style="display:none">
                             
                             <div style="display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap; width:100%;">
@@ -11093,32 +11150,45 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                         <!-- Read-only Details on the left -->
                         <div style="flex: 1; min-width: 280px; display: flex; flex-direction: column; gap: 16px; max-width: 500px;">
-                            <!-- Profile Information -->
-                            <div style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
-                                <div class="settings-field-box">
-                                    <div class="form-group">
-                                        <label class="form-label" style="font-size: 0.78rem; color: var(--text-3); font-weight: 800; display: block; margin-bottom: 4px;">الاسم الكامل</label>
-                                        <div style="font-size: 0.95rem; font-weight: 800; color: var(--text);" id="aiName">---</div>
-                                    </div>
-                                </div>
-                                <div class="settings-field-box">
-                                    <div class="form-group">
-                                        <label class="form-label" style="font-size: 0.78rem; color: var(--text-3); font-weight: 800; display: block; margin-bottom: 4px;">اسم المستخدم</label>
-                                        <div style="font-size: 0.95rem; font-weight: 800; color: var(--text);" id="aiUsername">---</div>
-                                    </div>
-                                </div>
-                                <div class="settings-field-box">
-                                    <div class="form-group">
-                                        <label class="form-label" style="font-size: 0.78rem; color: var(--text-3); font-weight: 800; display: block; margin-bottom: 4px;">الصلاحية</label>
-                                        <div style="font-size: 0.95rem; font-weight: 800; color: var(--text);" id="aiRole">---</div>
-                                    </div>
+                            <!-- Profile Information Card -->
+                            <div class="glass-card" style="padding: 20px; display: flex; flex-direction: column; gap: 16px; width: 100%;">
+                                <div style="font-size: 0.88rem; font-weight: 800; color: var(--text); border-bottom: 1.5px solid var(--border-solid); padding-bottom: 8px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fas fa-id-card-alt" style="color: var(--brand);"></i> البيانات الشخصية
                                 </div>
                                 
-                                <div style="margin-top: 4px;">
-                                    <button class="btn btn-primary" style="padding:10px 20px; font-size:.82rem; font-weight:800; border-radius: 10px;" onclick="openUncleAccountPage('editProfile')">
-                                        <i class="fas fa-edit"></i> تعديل بيانات الحساب
-                                    </button>
+                                <!-- Name Row -->
+                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%;">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(91, 108, 245, 0.08); color: var(--brand); display: flex; align-items: center; justify-content: center; font-size: 0.9rem;"><i class="fas fa-user"></i></div>
+                                        <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-2);">الاسم الكامل</div>
+                                    </div>
+                                    <div style="font-size: 0.88rem; font-weight: 800; color: var(--text);" id="aiName">---</div>
                                 </div>
+                                
+                                <!-- Username Row -->
+                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%;">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(91, 108, 245, 0.08); color: var(--brand); display: flex; align-items: center; justify-content: center; font-size: 0.9rem;"><i class="fas fa-at"></i></div>
+                                        <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-2);">اسم المستخدم</div>
+                                    </div>
+                                    <div style="font-size: 0.88rem; font-weight: 800; color: var(--text);" id="aiUsername">---</div>
+                                </div>
+                                
+                                <!-- Role Row -->
+                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%;">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(91, 108, 245, 0.08); color: var(--brand); display: flex; align-items: center; justify-content: center; font-size: 0.9rem;"><i class="fas fa-shield-alt"></i></div>
+                                        <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-2);">الصلاحية</div>
+                                    </div>
+                                    <div style="font-size: 0.88rem; font-weight: 800; color: var(--text);" id="aiRole">---</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Edit Button -->
+                            <div style="width: 100%;">
+                                <button class="btn btn-primary" style="width: 100%; padding: 12px 20px; font-size: 0.85rem; font-weight: 800; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="openUncleAccountPage('editProfile')">
+                                    <i class="fas fa-edit"></i> تعديل بيانات الحساب
+                                </button>
                             </div>
 
                             <hr style="border: 0; border-top: 1px solid var(--border-solid); margin: 8px 0; width: 100%;">
@@ -11154,57 +11224,99 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                     <div class="settings-stack">
                         <form id="uncleProfileForm">
-                            <div class="settings-field-box" style="margin-bottom: 12px;">
-                                <div class="form-group">
-                                    <label class="form-label">الاسم</label>
-                                    <input type="text" class="form-input" id="uncleProfileName" required style="width:100%; background:var(--surface-3); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit;">
+                            <div class="settings-form-grid" style="margin-bottom: 16px;">
+                                <!-- Name -->
+                                <div class="settings-field-box">
+                                    <div class="form-group">
+                                        <label class="form-label">الاسم الكامل</label>
+                                        <div class="input-icon-wrap">
+                                            <i class="fas fa-user input-icon"></i>
+                                            <input type="text" class="form-input" id="uncleProfileName" required placeholder="الاسم الكامل...">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Username -->
+                                <div class="settings-field-box">
+                                    <div class="form-group">
+                                        <label class="form-label">اسم المستخدم</label>
+                                        <div class="input-icon-wrap">
+                                            <i class="fas fa-user-tag input-icon"></i>
+                                            <input type="text" class="form-input" id="uncleProfileUsername" required placeholder="اسم المستخدم...">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Email -->
+                                <div class="settings-field-box">
+                                    <div class="form-group">
+                                        <label class="form-label">البريد الإلكتروني</label>
+                                        <div class="input-icon-wrap">
+                                            <i class="fas fa-envelope input-icon"></i>
+                                            <input type="email" class="form-input" id="uncleProfileEmail" placeholder="example@domain.com">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Phone -->
+                                <div class="settings-field-box">
+                                    <div class="form-group">
+                                        <label class="form-label">رقم الهاتف</label>
+                                        <div class="input-icon-wrap">
+                                            <i class="fas fa-phone input-icon"></i>
+                                            <input type="text" class="form-input" id="uncleProfilePhone" placeholder="01xxxxxxxxx">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Gender -->
+                                <div class="settings-field-box">
+                                    <div class="form-group">
+                                        <label class="form-label">النوع</label>
+                                        <div class="input-icon-wrap">
+                                            <i class="fas fa-venus-mars input-icon"></i>
+                                            <select class="form-input" id="uncleProfileGender">
+                                                <option value="male">ذكر</option>
+                                                <option value="female">أنثى</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Current Password -->
+                                <div class="settings-field-box">
+                                    <div class="form-group">
+                                        <label class="form-label">كلمة المرور الحالية</label>
+                                        <div class="input-icon-wrap">
+                                            <i class="fas fa-lock input-icon"></i>
+                                            <input type="password" class="form-input" id="uncleProfileCurrentPassword" placeholder="أدخل كلمة المرور الحالية لتأكيد التغييرات">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- New Password -->
+                                <div class="settings-field-box">
+                                    <div class="form-group">
+                                        <label class="form-label">كلمة المرور الجديدة</label>
+                                        <div class="input-icon-wrap">
+                                            <i class="fas fa-key input-icon"></i>
+                                            <input type="password" class="form-input" id="uncleProfileNewPassword" minlength="6" placeholder="اتركها فارغة للإبقاء على الحالية">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Confirm New Password -->
+                                <div class="settings-field-box">
+                                    <div class="form-group">
+                                        <label class="form-label">تأكيد كلمة المرور الجديدة</label>
+                                        <div class="input-icon-wrap">
+                                            <i class="fas fa-key input-icon"></i>
+                                            <input type="password" class="form-input" id="uncleProfileConfirmPassword" minlength="6" placeholder="أعد إدخال كلمة المرور الجديدة">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="settings-field-box" style="margin-bottom: 12px;">
-                                <div class="form-group">
-                                    <label class="form-label">اسم المستخدم</label>
-                                    <input type="text" class="form-input" id="uncleProfileUsername" required style="width:100%; background:var(--surface-3); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit;">
-                                </div>
-                            </div>
-                            <div class="settings-field-box" style="margin-bottom: 12px;">
-                                <div class="form-group">
-                                    <label class="form-label">البريد الإلكتروني</label>
-                                    <input type="email" class="form-input" id="uncleProfileEmail" style="width:100%; background:var(--surface-3); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit;">
-                                </div>
-                            </div>
-                            <div class="settings-field-box" style="margin-bottom: 12px;">
-                                <div class="form-group">
-                                    <label class="form-label">الهاتف</label>
-                                    <input type="text" class="form-input" id="uncleProfilePhone" style="width:100%; background:var(--surface-3); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit;">
-                                </div>
-                            </div>
-                            <div class="settings-field-box" style="margin-bottom: 12px;">
-                                <div class="form-group">
-                                    <label class="form-label">النوع</label>
-                                    <select class="form-input" id="uncleProfileGender" style="width:100%; background:var(--surface-3); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit;">
-                                        <option value="male">ذكر</option>
-                                        <option value="female">أنثى</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="settings-field-box" style="margin-bottom: 12px;">
-                                <div class="form-group">
-                                    <label class="form-label">كلمة المرور الحالية</label>
-                                    <input type="password" class="form-input" id="uncleProfileCurrentPassword" placeholder="أدخل كلمة المرور الحالية لتأكيد التغيير" style="width:100%; background:var(--surface-3); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit;">
-                                </div>
-                            </div>
-                            <div class="settings-field-box" style="margin-bottom: 12px;">
-                                <div class="form-group">
-                                    <label class="form-label">كلمة مرور جديدة (اختياري)</label>
-                                    <input type="password" class="form-input" id="uncleProfileNewPassword" minlength="6" placeholder="اتركها فارغة للإبقاء على الحالية" style="width:100%; background:var(--surface-3); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit;">
-                                </div>
-                            </div>
-                            <div class="settings-field-box" style="margin-bottom: 16px;">
-                                <div class="form-group">
-                                    <label class="form-label">تأكيد كلمة المرور الجديدة</label>
-                                    <input type="password" class="form-input" id="uncleProfileConfirmPassword" minlength="6" placeholder="أعد إدخال كلمة المرور الجديدة" style="width:100%; background:var(--surface-3); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit;">
-                                </div>
-                            </div>
+
                             <div class="settings-actions">
                                 <button type="submit" class="btn btn-primary" style="padding:10px 24px; font-weight:800; border-radius:8px;"><i class="fas fa-save"></i> حفظ التغييرات</button>
                                 <button type="button" class="btn btn-secondary" onclick="openUncleAccountPage('profile')" style="padding:10px 24px; font-weight:800; border-radius:8px;"><i class="fas fa-times"></i> إلغاء</button>
@@ -13278,7 +13390,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const isUncleLoggedIn = localStorage.getItem('uncleLoggedIn') === 'true';
                 if (isUncleLoggedIn && fees.length > 0) {
                     ownFeesList.innerHTML = fees.map(fee => `
-                        <div class="glass-card" style="padding:14px 16px; border:1px solid var(--border-solid); border-radius:10px; display:flex; align-items:center; justify-content:space-between; gap:8px; background:var(--card); direction:rtl; text-align:right;">
+                        <div class="glass-card" style="padding:14px 16px; display:flex; align-items:center; justify-content:space-between; gap:8px; direction:rtl; text-align:right;">
                             <div style="flex:1;">
                                 <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                                     <span style="font-weight:700; font-size:0.85rem; color:var(--text);">${escHtml(fee.title)}</span>
