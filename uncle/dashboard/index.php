@@ -12062,12 +12062,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         function hasUnclesViewPermission() {
             const role = (window.currentUncle && window.currentUncle.role) || localStorage.getItem('uncleRole') || '';
-            const roleLower = String(role).toLowerCase();
-            if (roleLower === 'admin' || roleLower === 'developer') {
+            const roleLower = String(role).toLowerCase().trim();
+            if (roleLower === 'developer' || roleLower === 'dev') {
                 return true;
             }
             if (!allowedViewUncles || allowedViewUncles.trim() === '') {
-                return roleLower !== '';
+                return false;
             }
             const username = ((window.currentUncle && window.currentUncle.username) || localStorage.getItem('uncleUsername') || '').trim().toLowerCase();
             if (!username) return false;
