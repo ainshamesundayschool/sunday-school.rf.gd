@@ -14398,7 +14398,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             ontouchend="${isKhodam ? '' : '_holdEnd()'}"
             ontouchcancel="${isKhodam ? '' : '_holdEnd()'}"
             oncontextmenu="${isKhodam ? 'event.preventDefault()' : `_rowContextMenu(event,'${safeName}')`}">
-            <div class="student-info" onclick="${isKhodam ? '' : `isBulkSelectMode ? toggleStudentSelection(event, ${dbId}) : showStudentDetails('${safeName}')`}" style="cursor:pointer">
+            <div class="student-info" onclick="isBulkSelectMode ? toggleStudentSelection(event, ${dbId}) : showStudentDetails('${safeName}')" style="cursor:pointer">
                 <div class="bulk-check-wrap">
                     <div class="bulk-check-circle ${isSelected ? 'checked' : ''}"><i class="fas fa-check"></i></div>
                 </div>
@@ -16058,7 +16058,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             };
 
             const cls = isCombinedView ? (combinedGroupLabel || currentClass) : currentClass;
-            const list = isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === cls);
+            const list = (cls === 'الخدام')
+                ? (window.allUnclesData || [])
+                : (isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === cls));
             const ids = list.map(s => getStudentId(s));
 
             const allKeys = Object.keys(localStorage);
