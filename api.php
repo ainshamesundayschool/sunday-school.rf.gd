@@ -7108,12 +7108,34 @@ function submitAttendance()
 
 function ensureStudentTempIdColumn(mysqli $conn): void
 {
+    // 1. Create the new mapping table
+    $conn->query("
+        CREATE TABLE IF NOT EXISTS student_temp_ids (
+            student_id INT NOT NULL,
+            temp_id VARCHAR(50) NOT NULL,
+            PRIMARY KEY (student_id),
+            UNIQUE KEY idx_temp_id (temp_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+
+    // 2. Migrate existing data from old column if it exists
     $check = $conn->query("SHOW COLUMNS FROM students LIKE 'tempid'");
     if ($check && $check->num_rows > 0) {
-        return;
+        $res = $conn->query("SELECT id, tempid FROM students WHERE tempid IS NOT NULL AND tempid != ''");
+        if ($res && $res->num_rows > 0) {
+            $stmt = $conn->prepare("INSERT IGNORE INTO student_temp_ids (student_id, temp_id) VALUES (?, ?)");
+            if ($stmt) {
+                while ($row = $res->fetch_assoc()) {
+                    $stmt->bind_param("is", $row['id'], $row['tempid']);
+                    $stmt->execute();
+                }
+                $stmt->close();
+            }
+        }
+        // Remove index and column from students table
+        @$conn->query("ALTER TABLE students DROP INDEX idx_students_tempid");
+        @$conn->query("ALTER TABLE students DROP COLUMN tempid");
     }
-    $conn->query("ALTER TABLE students ADD COLUMN tempid VARCHAR(50) DEFAULT NULL");
-    $conn->query("ALTER TABLE students ADD UNIQUE INDEX IF NOT EXISTS idx_students_tempid (tempid)");
 }
 
 function linkTempIdToStudent()
@@ -7143,7 +7165,13 @@ function linkTempIdToStudent()
         }
 
         // Check if this tempid is already linked to another child
-        $checkTemp = $conn->prepare("SELECT id, name FROM students WHERE tempid = ? AND id != ? LIMIT 1");
+        $checkTemp = $conn->prepare("
+            SELECT s.id, s.name 
+            FROM students s 
+            JOIN student_temp_ids t ON s.id = t.student_id 
+            WHERE t.temp_id = ? AND s.id != ? 
+            LIMIT 1
+        ");
         $checkTemp->bind_param("si", $tempid, $studentId);
         $checkTemp->execute();
         $resTemp = $checkTemp->get_result();
@@ -7154,8 +7182,8 @@ function linkTempIdToStudent()
         }
 
         // Perform link
-        $upd = $conn->prepare("UPDATE students SET tempid = ? WHERE id = ?");
-        $upd->bind_param("si", $tempid, $studentId);
+        $upd = $conn->prepare("INSERT INTO student_temp_ids (student_id, temp_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE temp_id = VALUES(temp_id)");
+        $upd->bind_param("is", $studentId, $tempid);
         if (!$upd->execute()) {
             sendJSON(['success' => false, 'message' => 'فشل ربط الكود: ' . $conn->error]);
             return;
@@ -7208,7 +7236,13 @@ function createStudentAndLinkTempId()
         }
 
         // Check if this tempid is already linked to another child
-        $checkTemp = $conn->prepare("SELECT id, name FROM students WHERE tempid = ? LIMIT 1");
+        $checkTemp = $conn->prepare("
+            SELECT s.id, s.name 
+            FROM students s 
+            JOIN student_temp_ids t ON s.id = t.student_id 
+            WHERE t.temp_id = ? 
+            LIMIT 1
+        ");
         $checkTemp->bind_param("s", $tempid);
         $checkTemp->execute();
         $resTemp = $checkTemp->get_result();
@@ -7326,30 +7360,35 @@ function createStudentAndLinkTempId()
             $stmt = $conn->prepare("
                 INSERT INTO students 
                 (church_id, name, class_id, class, address, phone, emergency_phone, medical_notes,
-                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, tempid, added_by)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)
+                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, added_by)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
             ");
             safeBindParam(
                 $stmt,
                 $churchId, $name, $classId, $className, $address, $cleanPhone, $cleanEmergencyPhone,
-                $medicalNotes, $coupons, $totalCoupons, $photoUrl, $customInfoJson, $gender, $tempid, $addedByType
+                $medicalNotes, $coupons, $totalCoupons, $photoUrl, $customInfoJson, $gender, $addedByType
             );
         } else {
             $stmt = $conn->prepare("
                 INSERT INTO students 
                 (church_id, name, class_id, class, address, phone, emergency_phone, medical_notes, birthday, 
-                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, tempid, added_by)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)
+                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, added_by)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
             ");
             safeBindParam(
                 $stmt,
                 $churchId, $name, $classId, $className, $address, $cleanPhone, $cleanEmergencyPhone,
-                $medicalNotes, $formattedBirthday, $coupons, $totalCoupons, $photoUrl, $customInfoJson, $gender, $tempid, $addedByType
+                $medicalNotes, $formattedBirthday, $coupons, $totalCoupons, $photoUrl, $customInfoJson, $gender, $addedByType
             );
         }
 
         if ($stmt->execute()) {
             $newStudentId = $conn->insert_id;
+
+            // Link the temp ID
+            $insTemp = $conn->prepare("INSERT INTO student_temp_ids (student_id, temp_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE temp_id = VALUES(temp_id)");
+            $insTemp->bind_param("is", $newStudentId, $tempid);
+            $insTemp->execute();
 
             // Audit
             auditStudentAdd($newStudentId, $name, [
@@ -7693,7 +7732,13 @@ function addStudent()
         $tripId = isset($_POST['trip_id']) && !empty($_POST['trip_id']) ? intval($_POST['trip_id']) : null;
 
         if (!empty($tempid)) {
-            $checkTemp = $conn->prepare("SELECT id, name FROM students WHERE tempid = ? LIMIT 1");
+            $checkTemp = $conn->prepare("
+                SELECT s.id, s.name 
+                FROM students s 
+                JOIN student_temp_ids t ON s.id = t.student_id 
+                WHERE t.temp_id = ? 
+                LIMIT 1
+            ");
             $checkTemp->bind_param("s", $tempid);
             $checkTemp->execute();
             $resTemp = $checkTemp->get_result();
@@ -7709,8 +7754,8 @@ function addStudent()
             $stmt = $conn->prepare("
                 INSERT INTO students 
                 (church_id, name, class_id, class, address, phone, emergency_phone, medical_notes,
-                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, added_by, tempid)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)
+                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, added_by)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
             ");
             safeBindParam(
                 $stmt,
@@ -7727,15 +7772,14 @@ function addStudent()
                 $photoUrl,
                 $customInfoJson,
                 $gender,
-                $addedByType,
-                $tempid
+                $addedByType
             );
         } else {
             $stmt = $conn->prepare("
                 INSERT INTO students 
                 (church_id, name, class_id, class, address, phone, emergency_phone, medical_notes, birthday, 
-                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, added_by, tempid)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)
+                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, added_by)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
             ");
             safeBindParam(
                 $stmt,
@@ -7753,13 +7797,18 @@ function addStudent()
                 $photoUrl,
                 $customInfoJson,
                 $gender,
-                $addedByType,
-                $tempid
+                $addedByType
             );
         }
 
         if ($stmt->execute()) {
             $studentId = $conn->insert_id;
+
+            if (!empty($tempid)) {
+                $insTemp = $conn->prepare("INSERT INTO student_temp_ids (student_id, temp_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE temp_id = VALUES(temp_id)");
+                $insTemp->bind_param("is", $studentId, $tempid);
+                $insTemp->execute();
+            }
 
             // ► AUDIT
             auditStudentAdd($studentId, $name, [

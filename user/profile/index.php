@@ -33,7 +33,7 @@ $tempIdFromUrl = isset($_GET['tempid']) ? $_GET['tempid'] : null;
 if ($tempIdFromUrl && !$studentIdFromUrl) {
   try {
     $conn = getDBConnection();
-    $stmt = $conn->prepare("SELECT id FROM students WHERE tempid = ? LIMIT 1");
+    $stmt = $conn->prepare("SELECT student_id AS id FROM student_temp_ids WHERE temp_id = ? LIMIT 1");
     $stmt->bind_param("s", $tempIdFromUrl);
     $stmt->execute();
     $res = $stmt->get_result();
