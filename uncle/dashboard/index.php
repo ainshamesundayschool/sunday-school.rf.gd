@@ -12056,6 +12056,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
         let kidQrScanEntries = [];
         let kidQrScanInProgress = false;
 
+        function populateKidQrCouponSelect() {
+            const select = document.getElementById('kidQrCouponSelect');
+            if (!select) return;
+            select.innerHTML = couponPresetValues.map(val => {
+                return `<option value="${val}">${val} كوبون</option>`;
+            }).join('');
+            if (couponPresetValues.length > 0) {
+                const defaultIdx = couponPresetValues.indexOf(50) !== -1 ? couponPresetValues.indexOf(50) : 0;
+                select.selectedIndex = defaultIdx;
+                kidQrScanAmount = couponPresetValues[defaultIdx];
+            }
+        }
+
         // Sound effects
         function playSuccessSound() {
             try {
@@ -12479,6 +12492,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     else if (cf && cf.name) churchCustomFields = [cf];
                     else churchCustomFields = [];
                     churchCustomField = churchCustomFields[0] || null;
+                    if (r.coupon_presets) {
+                        const parsed = r.coupon_presets.split(',').map(x => parseInt(x.trim(), 10)).filter(x => !isNaN(x));
+                        if (parsed.length > 0) {
+                            couponPresetValues.length = 0;
+                            couponPresetValues.push(...parsed);
+                        }
+                    }
+                    populateKidQrCouponSelect();
                     updateCurrentDateDisplay();
                     _applyDayNameToUI();
                 }
@@ -12502,6 +12523,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         churchCustomFields = [];
                     }
                     churchCustomField = churchCustomFields[0] || null;
+                    if (r.settings.coupon_presets) {
+                        const parsed = r.settings.coupon_presets.split(',').map(x => parseInt(x.trim(), 10)).filter(x => !isNaN(x));
+                        if (parsed.length > 0) {
+                            couponPresetValues.length = 0;
+                            couponPresetValues.push(...parsed);
+                        }
+                    }
+                    populateKidQrCouponSelect();
                     // Cache settings for offline use
                     try { localStorage.setItem('churchSettings', JSON.stringify(r.settings)); } catch (e) { }
                 }
@@ -14039,10 +14068,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
         function getCouponValueIdx(studentId) {
             const idx = couponValueIdxByStudent[studentId];
-            return Number.isInteger(idx) && idx >= 0 && idx < couponPresetValues.length ? idx : 2;
+            const defaultIdx = couponPresetValues.indexOf(50) !== -1 ? couponPresetValues.indexOf(50) : Math.min(2, couponPresetValues.length - 1);
+            return Number.isInteger(idx) && idx >= 0 && idx < couponPresetValues.length ? idx : Math.max(0, defaultIdx);
         }
         function getCouponValueForStudent(studentId) {
-            return couponPresetValues[getCouponValueIdx(studentId)] || 50;
+            const idx = getCouponValueIdx(studentId);
+            return couponPresetValues[idx] || (couponPresetValues[0] || 50);
         }
         function setCouponValueDisplay(studentId, animate = false) {
             const el = document.getElementById(`cv-${studentId}`);

@@ -7419,7 +7419,7 @@
                             <div class="settings-hub-icon"
                                 style="background:var(--warning-light);color:var(--warning-dark);"><i
                                     class="fas fa-sliders-h"></i></div>
-                            <div class="settings-hub-title">تفضيلات الخدمة</div>
+                            <div class="settings-hub-title">إعدادات لوحة التحكم</div>
                         </button>
                         <button type="button" class="settings-hub-card" onclick="openSettingsPage('customFields')">
                             <div class="settings-hub-icon" style="background:var(--info-light);color:var(--info);"><i
@@ -7635,7 +7635,7 @@
                         <button class="settings-bc-item" onclick="closeSettingsPage()"><i class="fas fa-cog"></i>
                             الإعدادات</button>
                         <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
-                        <span class="settings-bc-item active">تفضيلات الخدمة</span>
+                        <span class="settings-bc-item active">إعدادات لوحة التحكم</span>
                     </div>
                     <div class="settings-stack">
                         <div class="settings-field-box">
@@ -7841,6 +7841,14 @@
                                         style="margin-left:6px;color:var(--primary);"></i> عدد الكوبونات عند تسجيل حضور طفل</label>
                                 <input type="number" id="settingCouponsCount" class="form-input" value="100" min="0" style="width:100%;">
                                 <small style="color:var(--text-3);margin-top:6px;display:block;font-size:0.76rem;">عدد الكوبونات التي تضاف تلقائياً لرصيد الطفل عند تسجيله "حاضر"</small>
+                            </div>
+                        </div>
+                        <div class="settings-field-box">
+                            <div class="form-group">
+                                <label class="form-label"><i class="fas fa-list-ol"
+                                        style="margin-left:6px;color:var(--primary);"></i> قيم الكوبونات للتعديل السريع (مفصولة بفاصلة)</label>
+                                <input type="text" id="settingCouponPresets" class="form-input" value="10,30,50,100" style="width:100%;">
+                                <small style="color:var(--text-3);margin-top:6px;display:block;font-size:0.76rem;">القيم التي تظهر وتتنقل بينها عند تعديل كوبونات الطالب في الفصل (مثال: 10,30,50,100)</small>
                             </div>
                         </div>
                         <div class="settings-actions">
@@ -12569,6 +12577,10 @@
                 if (couponsCountEl) {
                     couponsCountEl.value = s.coupons_count !== undefined ? String(s.coupons_count) : '100';
                 }
+                const couponPresetsEl = document.getElementById('settingCouponPresets');
+                if (couponPresetsEl) {
+                    couponPresetsEl.value = s.coupon_presets || '10,30,50,100';
+                }
 
                 _applyAutoGradeSettingsToForm(s);
 
@@ -12710,6 +12722,8 @@
             fd.append('coupons_enabled', (couponsEnabledEl && couponsEnabledEl.checked) ? '1' : '0');
             const couponsCountEl = document.getElementById('settingCouponsCount');
             fd.append('coupons_count', couponsCountEl ? couponsCountEl.value : '100');
+            const couponPresetsEl = document.getElementById('settingCouponPresets');
+            fd.append('coupon_presets', couponPresetsEl ? couponPresetsEl.value : '10,30,50,100');
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
             if (d.success) { showToast('تم حفظ الإعدادات', 'success'); }
             else showToast(d.message || 'فشل في الحفظ', 'error');
@@ -12770,6 +12784,7 @@
             fd.append('auto_kids_approval', document.getElementById('settingAutoKidsApproval')?.checked ? '1' : '0');
             fd.append('coupons_enabled', document.getElementById('settingCouponsEnabled')?.checked ? '1' : '0');
             fd.append('coupons_count', document.getElementById('settingCouponsCount')?.value || '100');
+            fd.append('coupon_presets', document.getElementById('settingCouponPresets')?.value || '10,30,50,100');
             fd.append('auto_grade_month', m ? String(m) : '0');
             fd.append('auto_grade_day', d ? String(d) : '0');
 

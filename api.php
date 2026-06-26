@@ -35297,6 +35297,10 @@ function ensureChurchSettingsTable($conn)
 
                                      COMMENT 'number of coupons awarded on attendance',
 
+            `coupon_presets`         VARCHAR(255) NOT NULL DEFAULT '10,30,50,100'
+
+                                     COMMENT 'comma separated quick coupon adjustment values',
+
             `updated_at`             TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
@@ -35328,6 +35332,12 @@ function ensureChurchSettingsTable($conn)
         `coupons_count` INT NOT NULL DEFAULT 100
 
         COMMENT 'number of coupons awarded on attendance'");
+
+    $conn->query("ALTER TABLE church_settings ADD COLUMN IF NOT EXISTS
+
+        `coupon_presets` VARCHAR(255) NOT NULL DEFAULT '10,30,50,100'
+
+        COMMENT 'comma separated quick coupon adjustment values'");
 
     ensureChurchSettingsAutoGradeColumns($conn);
 
@@ -35435,6 +35445,8 @@ function getChurchSettings()
 
             'coupons_count' => isset($row['coupons_count']) ? (int) $row['coupons_count'] : 100,
 
+            'coupon_presets' => $row['coupon_presets'] ?? '10,30,50,100',
+
         ];
 
 
@@ -35503,6 +35515,8 @@ function getDefaultChurchSettings(): array
         'coupons_enabled' => 1,
 
         'coupons_count' => 100,
+
+        'coupon_presets' => '10,30,50,100',
 
     ];
 
@@ -35670,6 +35684,8 @@ function saveChurchSettings()
 
         $couponsCount = isset($_POST['coupons_count']) ? intval($_POST['coupons_count']) : 100;
 
+        $couponPresets = sanitize($_POST['coupon_presets'] ?? '10,30,50,100');
+
         if ($hasAutoGradeFields) {
 
             $stmt = $conn->prepare("
@@ -35678,9 +35694,9 @@ function saveChurchSettings()
 
                     (church_id, attendance_day, uncle_class_navigation, combined_class_groups, custom_field, view_mode,
 
-                     auto_grade_month, auto_grade_day, coupons_enabled, coupons_count)
+                     auto_grade_month, auto_grade_day, coupons_enabled, coupons_count, coupon_presets)
 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 
                 ON DUPLICATE KEY UPDATE
 
@@ -35702,13 +35718,15 @@ function saveChurchSettings()
 
                     coupons_count          = VALUES(coupons_count),
 
+                    coupon_presets         = VALUES(coupon_presets),
+
                     updated_at             = NOW()
 
             ");
 
             $stmt->bind_param(
 
-                "iissssiiii",
+                "iissssiiiis",
 
                 $churchId,
 
@@ -35728,7 +35746,9 @@ function saveChurchSettings()
 
                 $couponsEnabled,
 
-                $couponsCount
+                $couponsCount,
+
+                $couponPresets
 
             );
 
@@ -35740,9 +35760,9 @@ function saveChurchSettings()
 
                     (church_id, attendance_day, uncle_class_navigation, combined_class_groups, custom_field, view_mode,
 
-                     coupons_enabled, coupons_count)
+                     coupons_enabled, coupons_count, coupon_presets)
 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 
                 ON DUPLICATE KEY UPDATE
 
@@ -35760,13 +35780,15 @@ function saveChurchSettings()
 
                     coupons_count          = VALUES(coupons_count),
 
+                    coupon_presets         = VALUES(coupon_presets),
+
                     updated_at             = NOW()
 
             ");
 
             $stmt->bind_param(
 
-                "iisssiii",
+                "iisssiiis",
 
                 $churchId,
 
@@ -35782,7 +35804,9 @@ function saveChurchSettings()
 
                 $couponsEnabled,
 
-                $couponsCount
+                $couponsCount,
+
+                $couponPresets
 
             );
 
