@@ -11168,7 +11168,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <!-- Page: Profile View (Main Account Page) -->
                 <div id="uncleAccountPage_profile" class="settings-page" style="display:block; width: 100%;">
                     <div class="settings-breadcrumb">
-                        <span class="settings-bc-item active"><i class="fas fa-user-cog"></i> إعدادات حسابي</span>
                     </div>
 
                     <div
