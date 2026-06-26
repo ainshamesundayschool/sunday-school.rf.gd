@@ -6042,11 +6042,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             height: 84px;
             border-radius: 50%;
             object-fit: cover;
-            border: 3px solid var(--brand-light);
             box-shadow: var(--shadow-md);
             cursor: pointer;
             transition: all var(--t) var(--spring);
-            display: block
+            display: block;
+            border: none;
         }
 
         .account-big-avatar:hover {
@@ -9946,6 +9946,23 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transition: all var(--t) var(--ease);
         }
 
+        /* Profile Avatar Card specific styles */
+        .profile-avatar-card {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .profile-avatar-card {
+                margin: 0 auto !important;
+                width: 100% !important;
+            }
+            #uncleAccountPage_profile > div {
+                justify-content: center !important;
+            }
+        }
+
         /* Ensure all inputs and buttons inherit custom font */
         .settings-page button,
         .settings-page input,
@@ -11121,11 +11138,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <span class="settings-bc-item active"><i class="fas fa-user-cog"></i> إعدادات حسابي</span>
                     </div>
                     
-                    <div style="display: flex; gap: 24px; flex-wrap: wrap; width: 100%; direction: rtl; align-items: flex-start;">
+                    <div style="display: flex; gap: 24px; flex-wrap: wrap; width: 100%; direction: rtl; align-items: flex-start; justify-content: center;">
                         <!-- Profile Card on the right -->
-                        <div class="glass-card" style="padding: 24px; text-align: center; display: flex; flex-direction: column; align-items: center; width: 240px; flex-shrink: 0;">
+                        <div class="profile-avatar-card" style="padding: 24px; text-align: center; display: flex; flex-direction: column; align-items: center; width: 240px; flex-shrink: 0;">
                             <div style="position:relative; display:inline-block; margin-bottom: 8px;">
-                                <div onclick="document.getElementById('unclePhotoInput').click()" style="width: 100px; height: 100px; border-radius: 50%; overflow: hidden; cursor: pointer; border: 3px solid var(--brand); position: relative; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm);">
+                                <div onclick="document.getElementById('unclePhotoInput').click()" style="width: 100px; height: 100px; border-radius: 50%; overflow: hidden; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm);">
                                     <img src="" alt="" class="account-big-avatar" id="accountBigAvatar" style="width: 100%; height: 100%; object-fit: cover; transition: transform var(--t) var(--ease);">
                                     <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 28px; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.75rem;"><i class="fas fa-camera"></i></div>
                                 </div>
