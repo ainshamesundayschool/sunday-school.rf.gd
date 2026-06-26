@@ -10726,15 +10726,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         style="display:none;position:absolute;top:-3px;right:-3px;min-width:17px;height:17px;background:var(--danger,#ef4444);border-radius:9px;border:2px solid white;font-size:.58rem;font-weight:800;color:#fff;display:none;align-items:center;justify-content:center;padding:0 3px;"></span>
                 </button>
                 <!-- Dev Switcher in Topbar Actions -->
-                <div id="devDashboardChurchSwitcher" class="dev-church-bar-pill"
-                    style="display:none; align-items:center; margin-inline-end: 8px; position:relative;">
+                <div id="devDashboardChurchSwitcher" class="dev-church-bar-pill" onclick="toggleDevChurchDropdown(event)"
+                    style="display:none; align-items:center; margin-inline-end: 8px; position:relative; cursor:pointer;">
                     <div style="position:relative;display:flex;align-items:center;width:100%;height:100%;cursor:pointer;" onclick="toggleDevChurchDropdown(event)">
                         <i class="fas fa-laptop-code dev-church-bar-icon"></i>
                         <span id="devChurchSelectedLabel" class="dev-church-selected-label" style="margin-inline-start:6px; margin-inline-end: 18px; font-size: 0.8rem; font-weight: 800; color: var(--brand); font-family: 'Cairo', sans-serif;">كنيستي الافتراضية</span>
                         <i class="fas fa-chevron-down dev-church-chevron"></i>
                     </div>
                     <select id="devChurchSelect" style="display:none;"></select>
-                    <div class="dev-church-dropdown-menu" id="devChurchDropdownMenu" style="display:none;">
+                    <div class="dev-church-dropdown-menu" id="devChurchDropdownMenu" style="display:none;" onclick="event.stopPropagation()">
                         <div class="dev-church-dropdown-search-wrap">
                             <i class="fas fa-search search-icon"></i>
                             <input type="text" id="devChurchDropdownSearch" class="dev-church-dropdown-search-input" placeholder="ابحث عن كنيسة..." oninput="filterDevChurches(this.value)" onclick="event.stopPropagation()">
@@ -23310,15 +23310,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (event) event.stopPropagation();
             const el = document.getElementById('devChurchDropdownMenu');
             if (!el) return;
-            const isHidden = el.style.display === 'none';
-            el.style.display = isHidden ? 'flex' : 'none';
+            const isHidden = el.style.display === 'none' || el.style.display === '' || getComputedStyle(el).display === 'none';
             if (isHidden) {
+                el.style.display = 'flex';
                 const searchInput = document.getElementById('devChurchDropdownSearch');
                 if (searchInput) {
                     searchInput.value = '';
                     searchInput.focus();
                 }
                 renderDevChurchDropdownList(allChurchesCache || []);
+            } else {
+                el.style.display = 'none';
             }
         }
 
