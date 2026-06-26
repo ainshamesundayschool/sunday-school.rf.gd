@@ -6448,7 +6448,7 @@
             </button>
         </nav>
         <div class="sidebar-footer">
-            <div class="sidebar-footer-user">
+            <div class="sidebar-footer-user" style="cursor:pointer;" onclick="switchTabByName('churchSettings'); openSettingsPage('adminProfile');">
                 <div class="user-avatar" id="sidebarAvatar">م</div>
                 <div class="user-info">
                     <strong id="sidebarUserName">المسؤول</strong>
@@ -7404,11 +7404,6 @@
 
                     <!-- Grid of setting groups -->
                     <div class="settings-hub-grid">
-                        <button type="button" class="settings-hub-card" onclick="openSettingsPage('adminProfile')">
-                            <div class="settings-hub-icon" style="background:var(--primary-bg);color:var(--primary);"><i
-                                    class="fas fa-user-cog"></i></div>
-                            <div class="settings-hub-title">حساب المسؤول</div>
-                        </button>
                         <button type="button" class="settings-hub-card" onclick="openSettingsPage('churchInfo')">
                             <div class="settings-hub-icon"
                                 style="background:var(--success-light);color:var(--success);"><i
@@ -7425,29 +7420,6 @@
                             <div class="settings-hub-icon" style="background:var(--info-light);color:var(--info);"><i
                                     class="fas fa-tags"></i></div>
                             <div class="settings-hub-title">بيانات إضافية</div>
-                        </button>
-                        <button type="button" class="settings-hub-card" onclick="openSettingsPage('classGroups')">
-                            <div class="settings-hub-icon" style="background:var(--dev-light);color:var(--dev);"><i
-                                    class="fas fa-layer-group"></i></div>
-                            <div class="settings-hub-title">مجموعات الفصول</div>
-                        </button>
-                        <button type="button" class="settings-hub-card" onclick="openSettingsPage('autoApproval')">
-                            <div class="settings-hub-icon" style="background:var(--danger-light);color:var(--danger);">
-                                <i class="fas fa-user-check"></i>
-                            </div>
-                            <div class="settings-hub-title">القبول التلقائي</div>
-                        </button>
-                        <button type="button" class="settings-hub-card" onclick="openSettingsPage('couponSettings')">
-                            <div class="settings-hub-icon" style="background:#ede9fe;color:#7c3aed;">
-                                <i class="fas fa-coins"></i>
-                            </div>
-                            <div class="settings-hub-title">إعدادات الكوبونات</div>
-                        </button>
-                        <button type="button" class="settings-hub-card" onclick="openSettingsPage('kidsGradeUp')">
-                            <div class="settings-hub-icon"
-                                style="background:var(--warning-light);color:var(--warning-dark);"><i
-                                    class="fas fa-graduation-cap"></i></div>
-                            <div class="settings-hub-title">نقل السنة الدراسية</div>
                         </button>
                     </div>
                 </div>
@@ -7695,6 +7667,158 @@
                                 <i class="fas fa-exclamation-triangle"></i> يجب تفعيل خيار واحد على الأقل
                             </p>
                         </div>
+
+                        <!-- [section_classGroups] -->
+                        <div id="section_classGroups">
+                            <div class="settings-section-divider">مجموعات الفصول</div>
+                            <div class="settings-field-box">
+                                <div class="settings-hint">
+                                    <i class="fas fa-circle-info"></i>
+                                    <span>ادمج عدة فصول في مجموعة تظهر كفصل واحد في لوحة الخادم</span>
+                                </div>
+                            </div>
+                            <div class="settings-field-box">
+                                <div class="settings-panel-head" style="margin-bottom:10px;">
+                                    <span class="settings-panel-title"><i class="fas fa-layer-group"></i> المجموعات</span>
+                                    <button type="button" class="btn btn-primary btn-sm" onclick="addCombinedGroup()"><i
+                                            class="fas fa-plus"></i> مجموعة جديدة</button>
+                                </div>
+                                <div id="combinedGroupsList"></div>
+                            </div>
+                        </div>
+
+                        <!-- [section_autoApproval] -->
+                        <div id="section_autoApproval">
+                            <div class="settings-section-divider">القبول التلقائي</div>
+                            <div class="settings-field-box">
+                                <div class="settings-hint">
+                                    <i class="fas fa-circle-info"></i>
+                                    <span>عند التفعيل، يُضاف الطفل مباشرة عند التسجيل بدون الحاجة لموافقة — لن يظهر في قسم
+                                        الطلبات المعلقة.</span>
+                                </div>
+                            </div>
+                            <div class="settings-field-box">
+                                <label class="settings-toggle-row" id="autoApprovalLabel">
+                                    <div style="position:relative;width:48px;height:26px;flex-shrink:0;">
+                                        <input type="checkbox" id="settingAutoKidsApproval"
+                                            style="opacity:0;width:0;height:0;position:absolute;"
+                                            onchange="_updateAutoApprovalStyle()">
+                                        <span id="autoApprovalTrack"
+                                            style="position:absolute;inset:0;border-radius:13px;background:var(--border-solid,#e0e0e0);transition:background .2s;"></span>
+                                        <span id="autoApprovalThumb"
+                                            style="position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:white;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:transform .2s;"></span>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight:700;font-size:0.9rem;" id="autoApprovalLabelText"><i
+                                                class="fas fa-times-circle" style="color:var(--muted);margin-left:5px;"></i>
+                                            القبول التلقائي معطّل</div>
+                                        <div style="font-size:0.74rem;color:var(--muted);margin-top:2px;">سيظهر كل طلب جديد
+                                            في لوحة الطلبات المعلقة</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- [section_couponSettings] -->
+                        <div id="section_couponSettings">
+                            <div class="settings-section-divider">إعدادات الكوبونات</div>
+                            <div class="settings-field-box">
+                                <label class="settings-toggle-row" id="couponEnabledLabel">
+                                    <div style="position:relative;width:48px;height:26px;flex-shrink:0;">
+                                        <input type="checkbox" id="settingCouponsEnabled"
+                                            style="opacity:0;width:0;height:0;position:absolute;"
+                                            onchange="_updateCouponsEnabledStyle()">
+                                        <span id="couponEnabledTrack"
+                                            style="position:absolute;inset:0;border-radius:13px;background:var(--border-solid,#e0e0e0);transition:background .2s;"></span>
+                                        <span id="couponEnabledThumb"
+                                            style="position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:white;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:transform .2s;"></span>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight:700;font-size:0.9rem;" id="couponEnabledLabelText">
+                                            <i class="fas fa-times-circle" style="color:var(--muted);margin-left:5px;"></i>
+                                            توزيع الكوبونات تلقائياً معطّل
+                                        </div>
+                                        <div style="font-size:0.74rem;color:var(--muted);margin-top:2px;">منح كوبونات للطفل تلقائياً عند تسجيل حضوره في الفصل</div>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="settings-field-box" id="settingCouponsCountWrap">
+                                <div class="form-group">
+                                    <label class="form-label"><i class="fas fa-coins"
+                                            style="margin-left:6px;color:var(--primary);"></i> عدد الكوبونات عند تسجيل حضور طفل</label>
+                                    <input type="number" id="settingCouponsCount" class="form-input" value="100" min="0" style="width:100%;">
+                                    <small style="color:var(--text-3);margin-top:6px;display:block;font-size:0.76rem;">عدد الكوبونات التي تضاف تلقائياً لرصيد الطفل عند تسجيله "حاضر"</small>
+                                </div>
+                            </div>
+                            <div class="settings-field-box">
+                                <div class="form-group">
+                                    <label class="form-label"><i class="fas fa-list-ol"
+                                            style="margin-left:6px;color:var(--primary);"></i> قيم الكوبونات للتعديل السريع (مفصولة بفاصلة)</label>
+                                    <input type="text" id="settingCouponPresets" class="form-input" value="10,30,50,100" style="width:100%;">
+                                    <small style="color:var(--text-3);margin-top:6px;display:block;font-size:0.76rem;">القيم التي تظهر وتتنقل بينها عند تعديل كوبونات الطالب في الفصل (مثال: 10,30,50,100)</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- [section_kidsGradeUp] -->
+                        <div id="section_kidsGradeUp">
+                            <div class="settings-section-divider">نقل السنة الدراسية</div>
+                            <div class="settings-field-box">
+                                <div class="settings-panel-title" style="margin-bottom:10px;"><i
+                                        class="fas fa-level-up-alt"></i> نقل يدوي</div>
+                                <button type="button" class="btn btn-warning" onclick="confirmGradeUpAllKids()"
+                                    style="width:100%; margin-bottom:12px;">
+                                    <i class="fas fa-graduation-cap"></i> نقل جميع الأطفال للسنة الجديدة
+                                </button>
+                                <div class="settings-hint">
+                                    <i class="fas fa-circle-info"></i>
+                                    <span>ينقل كل طفل إلى الفصل التالي حسب ترتيب الفصول. من كان في أعلى فصل يذهب إلى قسم
+                                        الخريجين. ترتيب الفصول حالياً يطابق «ترتيب العرض» في تبويب الفصول.</span>
+                                </div>
+                            </div>
+                            <div class="settings-field-box">
+                                <div class="settings-hint" style="margin-bottom:12px;">
+                                    <i class="fas fa-circle-info"></i>
+                                    <span>حدّد تاريخاً كل سنة يُنفَّذ فيه نقل الفصول تلقائياً (مرة واحدة في السنة).</span>
+                                </div>
+                            </div>
+                            <div class="settings-field-box">
+                                <div class="form-group">
+                                    <label class="form-label">الشهر</label>
+                                    <select id="settingAutoGradeMonth" class="form-select" style="width:100%;">
+                                        <option value="0">معطّل</option>
+                                        <option value="1">يناير</option>
+                                        <option value="2">فبراير</option>
+                                        <option value="3">مارس</option>
+                                        <option value="4">أبريل</option>
+                                        <option value="5">مايو</option>
+                                        <option value="6">يونيو</option>
+                                        <option value="7">يوليو</option>
+                                        <option value="8">أغسطس</option>
+                                        <option value="9">سبتمبر</option>
+                                        <option value="10">أكتوبر</option>
+                                        <option value="11">نوفمبر</option>
+                                        <option value="12">ديسمبر</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="settings-field-box">
+                                <div class="form-group">
+                                    <label class="form-label">اليوم</label>
+                                    <select id="settingAutoGradeDay" class="form-select" style="width:100%;">
+                                        <option value="0">—</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="settings-field-box" id="autoGradeStatusHintBox" style="padding:12px 14px;">
+                                <p id="autoGradeStatusHint" style="font-size:0.8rem;color:var(--text-3);margin:0;"></p>
+                            </div>
+                            <div class="settings-actions" style="margin-top:12px; margin-bottom:12px;">
+                                <button type="button" class="btn btn-primary" onclick="saveKidsGradeSettings()"><i
+                                        class="fas fa-save"></i> حفظ الجدولة</button>
+                            </div>
+                        </div>
+
                         <div class="settings-actions">
                             <button type="button" class="btn btn-primary" onclick="saveChurchSettings()"><i
                                     class="fas fa-save"></i> حفظ التفضيلات</button>
@@ -7733,197 +7857,7 @@
                     </div>
                 </div>
 
-                <!-- Page: Class Groups -->
-                <div id="settingsPage_classGroups" class="settings-page" style="display:none;">
-                    <div class="settings-breadcrumb">
-                        <button class="settings-bc-item" onclick="closeSettingsPage()"><i class="fas fa-cog"></i>
-                            الإعدادات</button>
-                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
-                        <span class="settings-bc-item active">مجموعات الفصول</span>
-                    </div>
-                    <div class="settings-stack wide">
-                        <div class="settings-field-box">
-                            <div class="settings-hint">
-                                <i class="fas fa-circle-info"></i>
-                                <span>ادمج عدة فصول في مجموعة تظهر كفصل واحد في لوحة الخادم</span>
-                            </div>
-                        </div>
-                        <div class="settings-field-box">
-                            <div class="settings-panel-head" style="margin-bottom:10px;">
-                                <span class="settings-panel-title"><i class="fas fa-layer-group"></i> المجموعات</span>
-                                <button type="button" class="btn btn-primary btn-sm" onclick="addCombinedGroup()"><i
-                                        class="fas fa-plus"></i> مجموعة جديدة</button>
-                            </div>
-                            <div id="combinedGroupsList"></div>
-                        </div>
-                        <div class="settings-actions">
-                            <button type="button" class="btn btn-primary" onclick="saveChurchSettings()"><i
-                                    class="fas fa-save"></i> حفظ</button>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Page: Auto Approval -->
-                <div id="settingsPage_autoApproval" class="settings-page" style="display:none;">
-                    <div class="settings-breadcrumb">
-                        <button class="settings-bc-item" onclick="closeSettingsPage()"><i class="fas fa-cog"></i>
-                            الإعدادات</button>
-                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
-                        <span class="settings-bc-item active">القبول التلقائي</span>
-                    </div>
-                    <div class="settings-stack">
-                        <div class="settings-field-box">
-                            <div class="settings-hint">
-                                <i class="fas fa-circle-info"></i>
-                                <span>عند التفعيل، يُضاف الطفل مباشرة عند التسجيل بدون الحاجة لموافقة — لن يظهر في قسم
-                                    الطلبات المعلقة.</span>
-                            </div>
-                        </div>
-                        <div class="settings-field-box">
-                            <label class="settings-toggle-row" id="autoApprovalLabel">
-                                <div style="position:relative;width:48px;height:26px;flex-shrink:0;">
-                                    <input type="checkbox" id="settingAutoKidsApproval"
-                                        style="opacity:0;width:0;height:0;position:absolute;"
-                                        onchange="_updateAutoApprovalStyle()">
-                                    <span id="autoApprovalTrack"
-                                        style="position:absolute;inset:0;border-radius:13px;background:var(--border-solid,#e0e0e0);transition:background .2s;"></span>
-                                    <span id="autoApprovalThumb"
-                                        style="position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:white;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:transform .2s;"></span>
-                                </div>
-                                <div>
-                                    <div style="font-weight:700;font-size:0.9rem;" id="autoApprovalLabelText"><i
-                                            class="fas fa-times-circle" style="color:var(--muted);margin-left:5px;"></i>
-                                        القبول التلقائي معطّل</div>
-                                    <div style="font-size:0.74rem;color:var(--muted);margin-top:2px;">سيظهر كل طلب جديد
-                                        في لوحة الطلبات المعلقة</div>
-                                </div>
-                            </label>
-                        </div>
-                        <div class="settings-actions">
-                            <button type="button" class="btn btn-primary" onclick="saveChurchSettings()"><i
-                                    class="fas fa-save"></i> حفظ</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Page: Coupon Settings -->
-                <div id="settingsPage_couponSettings" class="settings-page" style="display:none;">
-                    <div class="settings-breadcrumb">
-                        <button class="settings-bc-item" onclick="closeSettingsPage()"><i class="fas fa-cog"></i>
-                            الإعدادات</button>
-                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
-                        <span class="settings-bc-item active">إعدادات الكوبونات</span>
-                    </div>
-                    <div class="settings-stack">
-                        <div class="settings-field-box">
-                            <label class="settings-toggle-row" id="couponEnabledLabel">
-                                <div style="position:relative;width:48px;height:26px;flex-shrink:0;">
-                                    <input type="checkbox" id="settingCouponsEnabled"
-                                        style="opacity:0;width:0;height:0;position:absolute;"
-                                        onchange="_updateCouponsEnabledStyle()">
-                                    <span id="couponEnabledTrack"
-                                        style="position:absolute;inset:0;border-radius:13px;background:var(--border-solid,#e0e0e0);transition:background .2s;"></span>
-                                    <span id="couponEnabledThumb"
-                                        style="position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:white;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:transform .2s;"></span>
-                                </div>
-                                <div>
-                                    <div style="font-weight:700;font-size:0.9rem;" id="couponEnabledLabelText">
-                                        <i class="fas fa-times-circle" style="color:var(--muted);margin-left:5px;"></i>
-                                        توزيع الكوبونات تلقائياً معطّل
-                                    </div>
-                                    <div style="font-size:0.74rem;color:var(--muted);margin-top:2px;">منح كوبونات للطفل تلقائياً عند تسجيل حضوره في الفصل</div>
-                                </div>
-                            </label>
-                        </div>
-                        <div class="settings-field-box" id="settingCouponsCountWrap">
-                            <div class="form-group">
-                                <label class="form-label"><i class="fas fa-coins"
-                                        style="margin-left:6px;color:var(--primary);"></i> عدد الكوبونات عند تسجيل حضور طفل</label>
-                                <input type="number" id="settingCouponsCount" class="form-input" value="100" min="0" style="width:100%;">
-                                <small style="color:var(--text-3);margin-top:6px;display:block;font-size:0.76rem;">عدد الكوبونات التي تضاف تلقائياً لرصيد الطفل عند تسجيله "حاضر"</small>
-                            </div>
-                        </div>
-                        <div class="settings-field-box">
-                            <div class="form-group">
-                                <label class="form-label"><i class="fas fa-list-ol"
-                                        style="margin-left:6px;color:var(--primary);"></i> قيم الكوبونات للتعديل السريع (مفصولة بفاصلة)</label>
-                                <input type="text" id="settingCouponPresets" class="form-input" value="10,30,50,100" style="width:100%;">
-                                <small style="color:var(--text-3);margin-top:6px;display:block;font-size:0.76rem;">القيم التي تظهر وتتنقل بينها عند تعديل كوبونات الطالب في الفصل (مثال: 10,30,50,100)</small>
-                            </div>
-                        </div>
-                        <div class="settings-actions">
-                            <button type="button" class="btn btn-primary" onclick="saveChurchSettings()"><i
-                                    class="fas fa-save"></i> حفظ</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Page: Kids grade-up (manual + annual schedule) -->
-                <div id="settingsPage_kidsGradeUp" class="settings-page" style="display:none;">
-                    <div class="settings-breadcrumb">
-                        <button class="settings-bc-item" onclick="closeSettingsPage()"><i class="fas fa-cog"></i>
-                            الإعدادات</button>
-                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
-                        <span class="settings-bc-item active">نقل الفصول للسنة الدراسية الجديدة</span>
-                    </div>
-                    <div class="settings-stack wide">
-                        <div class="settings-field-box">
-                            <div class="settings-panel-title" style="margin-bottom:10px;"><i
-                                    class="fas fa-level-up-alt"></i> نقل يدوي</div>
-                            <button type="button" class="btn btn-warning" onclick="confirmGradeUpAllKids()"
-                                style="width:100%; margin-bottom:12px;">
-                                <i class="fas fa-graduation-cap"></i> نقل جميع الأطفال للسنة الجديدة
-                            </button>
-                            <div class="settings-hint">
-                                <i class="fas fa-circle-info"></i>
-                                <span>ينقل كل طفل إلى الفصل التالي حسب ترتيب الفصول. من كان في أعلى فصل يذهب إلى قسم
-                                    الخريجين. ترتيب الفصول حالياً يطابق «ترتيب العرض» في تبويب الفصول.</span>
-                            </div>
-                        </div>
-                        <div class="settings-section-divider">موعد النقل السنوي</div>
-                        <div class="settings-field-box">
-                            <div class="settings-hint" style="margin-bottom:12px;">
-                                <i class="fas fa-circle-info"></i>
-                                <span>حدّد تاريخاً كل سنة يُنفَّذ فيه نقل الفصول تلقائياً (مرة واحدة في السنة).</span>
-                            </div>
-                        </div>
-                        <div class="settings-field-box">
-                            <div class="form-group">
-                                <label class="form-label">الشهر</label>
-                                <select id="settingAutoGradeMonth" class="form-select" style="width:100%;">
-                                    <option value="0">معطّل</option>
-                                    <option value="1">يناير</option>
-                                    <option value="2">فبراير</option>
-                                    <option value="3">مارس</option>
-                                    <option value="4">أبريل</option>
-                                    <option value="5">مايو</option>
-                                    <option value="6">يونيو</option>
-                                    <option value="7">يوليو</option>
-                                    <option value="8">أغسطس</option>
-                                    <option value="9">سبتمبر</option>
-                                    <option value="10">أكتوبر</option>
-                                    <option value="11">نوفمبر</option>
-                                    <option value="12">ديسمبر</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="settings-field-box">
-                            <div class="form-group">
-                                <label class="form-label">اليوم</label>
-                                <select id="settingAutoGradeDay" class="form-select" style="width:100%;">
-                                    <option value="0">—</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="settings-field-box" id="autoGradeStatusHintBox" style="padding:12px 14px;">
-                            <p id="autoGradeStatusHint" style="font-size:0.8rem;color:var(--text-3);margin:0;"></p>
-                        </div>
-                        <div class="settings-actions">
-                            <button type="button" class="btn btn-primary" onclick="saveKidsGradeSettings()"><i
-                                    class="fas fa-save"></i> حفظ الجدولة</button>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Hidden container needed by loadChurchSettingsTab JS (keep invisible) -->
                 <div id="churchSettingsContainer" style="display:none;"></div>
@@ -7938,10 +7872,28 @@
                                 class="fas fa-check-double"></i> قبول المحدد</button>
                     </div>
                     <div class="card-body">
-                        <div class="toolbar"><select id="pendingClassFilter" class="form-select"
-                                onchange="loadPendingRegistrations()">
+                        <div class="toolbar" style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; width:100%;">
+                            <select id="pendingClassFilter" class="form-select" onchange="loadPendingRegistrations()" style="max-width:200px; margin:0;">
                                 <option value="">جميع الفصول</option>
-                            </select></div>
+                            </select>
+                            
+                            <label class="settings-toggle-row" id="autoApprovalLabelPending" style="margin:0; padding:6px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.82rem; background:var(--card-bg, #ffffff);">
+                                <div style="position:relative;width:40px;height:22px;flex-shrink:0;">
+                                    <input type="checkbox" id="settingAutoKidsApprovalPending"
+                                        style="opacity:0;width:0;height:0;position:absolute;"
+                                        onchange="onAutoApprovalPendingToggle(this.checked)">
+                                    <span id="autoApprovalTrackPending"
+                                        style="position:absolute;inset:0;border-radius:11px;background:var(--border-solid,#e0e0e0);transition:background .2s;"></span>
+                                    <span id="autoApprovalThumbPending"
+                                        style="position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:white;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:transform .2s;"></span>
+                                </div>
+                                <div>
+                                    <div style="font-weight:700;" id="autoApprovalLabelTextPending">
+                                        تفعيل القبول التلقائي للأطفال معطّل
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
                         <div class="data-list">
                             <div class="data-list-head data-cols-pending">
                                 <span class="data-row-check"><input type="checkbox" id="selectAllPending"
@@ -12318,12 +12270,17 @@
         // ── Church Settings Tab loader ────────────────────────────────
         // ── Settings Page Router ──────────────────────────────────────────
         function openSettingsPage(page) {
+            let sectionId = null;
+            if (['classGroups', 'autoApproval', 'couponSettings', 'kidsGradeUp'].includes(page)) {
+                sectionId = page;
+                page = 'churchPrefs';
+            }
             // Hide hub and all other settings pages, show the requested page
             document.getElementById('settingsHub').style.display = 'none';
             document.querySelectorAll('.settings-page').forEach(p => p.style.display = 'none');
             const el = document.getElementById('settingsPage_' + page);
             if (el) { el.style.display = ''; el.style.removeProperty('display'); }
-            if (page === 'kidsGradeUp') {
+            if (page === 'churchPrefs') {
                 _populateAutoGradeDayOptions();
             }
             if (page === 'adminProfile') loadAdminProfile();
@@ -12338,9 +12295,22 @@
                 document.getElementById('churchNewPassword') && (document.getElementById('churchNewPassword').value = '');
                 document.getElementById('churchNewPasswordConfirm') && (document.getElementById('churchNewPasswordConfirm').value = '');
             }
-            // Scroll to top of content
+            // Scroll to top or specific section
             const panel = document.getElementById('churchSettings');
-            if (panel) panel.scrollTop = 0;
+            if (panel) {
+                if (sectionId) {
+                    const sec = document.getElementById('section_' + sectionId);
+                    if (sec) {
+                        setTimeout(() => {
+                            sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }, 80);
+                    } else {
+                        panel.scrollTop = 0;
+                    }
+                } else {
+                    panel.scrollTop = 0;
+                }
+            }
         }
 
         function closeSettingsPage() {
@@ -12566,6 +12536,11 @@
                     autoEl.checked = !!s.auto_kids_approval;
                     _updateAutoApprovalStyle();
                 }
+                const pendingEl = document.getElementById('settingAutoKidsApprovalPending');
+                if (pendingEl) {
+                    pendingEl.checked = !!s.auto_kids_approval;
+                    _updateAutoApprovalStylePending();
+                }
 
                 // Load coupon settings
                 const couponsEnabledEl = document.getElementById('settingCouponsEnabled');
@@ -12724,6 +12699,21 @@
             fd.append('coupons_count', couponsCountEl ? couponsCountEl.value : '100');
             const couponPresetsEl = document.getElementById('settingCouponPresets');
             fd.append('coupon_presets', couponPresetsEl ? couponPresetsEl.value : '10,30,50,100');
+
+            const monthEl = document.getElementById('settingAutoGradeMonth');
+            const dayGradeEl = document.getElementById('settingAutoGradeDay');
+            if (monthEl && dayGradeEl) {
+                const m = parseInt(monthEl.value, 10) || 0;
+                const d = parseInt(dayGradeEl.value, 10) || 0;
+                if (m && !d) { showToast('اختر يوماً لموعد النقل السنوي', 'warning'); return; }
+                if (!m && d) { showToast('اختر شهراً لموعد النقل السنوي', 'warning'); return; }
+                fd.append('auto_grade_month', String(m));
+                fd.append('auto_grade_day', String(d));
+            } else {
+                fd.append('auto_grade_month', '0');
+                fd.append('auto_grade_day', '0');
+            }
+
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
             if (d.success) { showToast('تم حفظ الإعدادات', 'success'); }
             else showToast(d.message || 'فشل في الحفظ', 'error');
@@ -13100,6 +13090,79 @@
                 : '<i class="fas fa-times-circle" style="color:var(--muted);margin-left:5px;"></i> القبول التلقائي معطّل';
             if (wrap) wrap.style.borderColor = on ? 'var(--primary)' : 'var(--border)';
             if (wrap) wrap.style.background = on ? 'var(--brand-bg)' : '';
+
+            // Sync with pending tab toggle
+            const pendingEl = document.getElementById('settingAutoKidsApprovalPending');
+            if (pendingEl && pendingEl.checked !== on) {
+                pendingEl.checked = on;
+                _updateAutoApprovalStylePending();
+            }
+        }
+
+        function _updateAutoApprovalStylePending() {
+            const el = document.getElementById('settingAutoKidsApprovalPending');
+            const track = document.getElementById('autoApprovalTrackPending');
+            const thumb = document.getElementById('autoApprovalThumbPending');
+            const lbl = document.getElementById('autoApprovalLabelTextPending');
+            const wrap = document.getElementById('autoApprovalLabelPending');
+            if (!el) return;
+            const on = el.checked;
+            if (track) track.style.background = on ? 'var(--primary,#4f46e5)' : 'var(--border-solid,#e0e0e0)';
+            if (thumb) thumb.style.transform = on ? 'translateX(-18px)' : 'translateX(0)';
+            if (lbl) lbl.innerHTML = on
+                ? '<i class="fas fa-check-circle" style="color:var(--primary);margin-left:5px;"></i> القبول التلقائي مفعّل'
+                : '<i class="fas fa-times-circle" style="color:var(--muted);margin-left:5px;"></i> القبول التلقائي معطّل';
+            if (wrap) wrap.style.borderColor = on ? 'var(--primary)' : 'var(--border)';
+            if (wrap) wrap.style.background = on ? 'var(--brand-bg)' : '';
+        }
+
+        function onAutoApprovalPendingToggle(checked) {
+            const mainEl = document.getElementById('settingAutoKidsApproval');
+            if (mainEl && mainEl.checked !== checked) {
+                mainEl.checked = checked;
+                _updateAutoApprovalStyle();
+            }
+            _updateAutoApprovalStylePending();
+            saveAutoApprovalSettingOnly(checked);
+        }
+
+        async function saveAutoApprovalSettingOnly(checked) {
+            const fd = mkFd('saveChurchSettings');
+            const dayEl = document.getElementById('settingAttendanceDay');
+            const navEl = document.getElementById('settingUncleNav');
+            const showClasses = document.getElementById('settingViewClasses')?.checked ?? true;
+            const showAll = document.getElementById('settingViewAll')?.checked ?? false;
+            const viewMode = (showClasses && showAll) ? 'both' : showClasses ? 'classes' : 'all';
+            
+            fd.append('attendance_day', dayEl ? dayEl.value : '5');
+            fd.append('uncle_class_navigation', navEl ? navEl.value : 'all');
+            fd.append('combined_class_groups', JSON.stringify(_currentCombinedGroups || []));
+            
+            const validFields = (_currentCustomFields || [])
+                .filter(f => f.name)
+                .map((f, i) => ({ name: f.name, icon: f.icon || 'fa-tag', key: 'field_' + i }));
+            fd.append('custom_field', validFields.length ? JSON.stringify(validFields) : '');
+            fd.append('view_mode', viewMode);
+            fd.append('auto_kids_approval', checked ? '1' : '0');
+            
+            const couponsEnabledEl = document.getElementById('settingCouponsEnabled');
+            fd.append('coupons_enabled', (couponsEnabledEl && couponsEnabledEl.checked) ? '1' : '0');
+            const couponsCountEl = document.getElementById('settingCouponsCount');
+            fd.append('coupons_count', couponsCountEl ? couponsCountEl.value : '100');
+            const couponPresetsEl = document.getElementById('settingCouponPresets');
+            fd.append('coupon_presets', couponPresetsEl ? couponPresetsEl.value : '10,30,50,100');
+            
+            const monthEl = document.getElementById('settingAutoGradeMonth');
+            const dayGradeEl = document.getElementById('settingAutoGradeDay');
+            fd.append('auto_grade_month', monthEl ? monthEl.value : '0');
+            fd.append('auto_grade_day', dayGradeEl ? dayGradeEl.value : '0');
+
+            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+            if (d.success) { 
+                showToast('تم حفظ إعداد القبول التلقائي', 'success'); 
+            } else {
+                showToast(d.message || 'فشل في حفظ الإعداد', 'error');
+            }
         }
 
         function _updateCouponsEnabledStyle() {
