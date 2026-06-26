@@ -9582,9 +9582,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             -webkit-transform: scaleX(1) !important;
             width: 100% !important;
             height: 100% !important;
+        }
 
-            /* ── Paper Exams Styles ── */
-            .paper-exam-card {
+        /* ── Paper Exams Styles ── */
+        .paper-exam-card {
                 background: var(--surface);
                 border: 1px solid var(--border-solid);
                 border-radius: var(--r-md);
@@ -9803,10 +9804,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
    SETTINGS HUB + PAGE ROUTING (Uncle Account Refactored)
 ═══════════════════════════════════════════════════════════════════ */
         :root {
-            --radius-sm: var(--r-sm);
-            --radius-lg: var(--r-md);
-            --radius-xl: var(--r-lg);
-            --radius: var(--r-md);
+            --radius-sm: var(--r-md); /* 14px */
+            --radius-lg: var(--r-lg); /* 18px */
+            --radius-xl: var(--r-xl); /* 24px */
+            --radius: var(--r-lg);    /* 18px */
             --shadow-xs: var(--shadow-sm);
             --t-fast: var(--t);
             --t-base: var(--t);
@@ -9814,6 +9815,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             --primary: var(--brand);
             --primary-bg: var(--brand-bg);
             --card: var(--surface);
+            --muted: var(--text-3);
+            --surface-hover: var(--surface-2);
         }
         .settings-breadcrumb {
             display: flex;
@@ -13240,7 +13243,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             
             // Text displays (read-only views)
             if (document.getElementById('accountDisplayName')) document.getElementById('accountDisplayName').textContent = u.name || '';
-            if (document.getElementById('accountDisplayRole')) document.getElementById('accountDisplayRole').textContent = rText;
+            const rDisplay = document.getElementById('accountDisplayRole');
+            if (rDisplay) rDisplay.innerHTML = `<i class="fas fa-shield-alt" style="font-size:.65rem;"></i> ${escHtml(rText)}`;
             if (document.getElementById('aiName')) document.getElementById('aiName').textContent = u.name || '';
             if (document.getElementById('aiUsername')) document.getElementById('aiUsername').textContent = u.username || '';
             if (document.getElementById('aiRole')) document.getElementById('aiRole').textContent = rText;
@@ -23414,7 +23418,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             approveRegistration, rejectRegistration, toggleRegistrationSelection, searchPendingRegistrations,
             clearAllStudentsSearch, performAllStudentsSearch, showAnnouncementsModal, toggleAnnouncementStatus,
             deleteAnnouncement, adjustStudentCoupons, toggleCouponValue, closeAllDropdowns, logout,
-            showAccountModal, hideAccountModal, showUncleHistory, showUncleFees, openUncleAccountPage, closeUncleAccountPage, retryConnection: () => { },
+            showAccountModal, showUncleHistory, showUncleFees, openUncleAccountPage, closeUncleAccountPage, retryConnection: () => { },
             resetToCurrentFriday, showUnsavedModal, toggleTheme, escJs,
             shareAbsentToWhatsApp, shareAttendedToWhatsApp, saveAttendedAsCSV,
             toggleAbsentDropdown, executeAbsentAction,
