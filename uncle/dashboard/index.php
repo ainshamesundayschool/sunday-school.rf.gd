@@ -9919,6 +9919,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <span class="account-info-value copy-holdable" id="aiRole">---</span>
                 </div>
             </div>
+            <!-- Assigned Service Fees for the logged-in Uncle -->
+            <div id="uncleOwnFeesSection" style="display:none; margin-bottom:14px; border-top:1px solid var(--border); padding-top:14px;">
+                <h4 style="font-size:0.9rem; font-weight:700; color:var(--primary); margin:0 0 10px 0; display:flex; align-items:center; gap:6px; direction:rtl;">
+                    <i class="fas fa-money-bill-wave"></i> الاشتراكات الشهرية للخدمة
+                </h4>
+                <div id="uncleOwnFeesList" style="display:flex; flex-direction:column; gap:8px; max-height:180px; overflow-y:auto; padding-inline-end:4px;">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
             <div style="display:flex;gap:8px;margin-bottom:12px">
                 <button class="btn" style="flex:1;padding:10px 12px;font-size:.82rem" onclick="showAccountEditForm()"><i
                         class="fas fa-edit"></i> تعديل</button>
@@ -12885,6 +12894,41 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (deleteBtn) {
                 deleteBtn.style.display = u.image_url ? 'flex' : 'none';
             }
+            const ownFeesSection = document.getElementById('uncleOwnFeesSection');
+            const ownFeesList = document.getElementById('uncleOwnFeesList');
+            if (ownFeesSection && ownFeesList) {
+                let fees = [];
+                try {
+                    const info = u._customInfo || (u.custom_info ? (typeof u.custom_info === 'string' ? JSON.parse(u.custom_info) : u.custom_info) : {});
+                    fees = info._fees || [];
+                } catch(e) { fees = []; }
+
+                const isUncleLoggedIn = localStorage.getItem('uncleLoggedIn') === 'true';
+                if (isUncleLoggedIn && fees.length > 0) {
+                    ownFeesSection.style.display = 'block';
+                    ownFeesList.innerHTML = fees.map(fee => `
+                        <div class="glass-card" style="padding:10px 12px; border:1px solid var(--border-solid); border-radius:10px; display:flex; align-items:center; justify-content:space-between; gap:8px; background:rgba(255,255,255,0.01); direction:rtl; text-align:right;">
+                            <div style="flex:1;">
+                                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                                    <span style="font-weight:700; font-size:0.82rem; color:var(--text);">${escHtml(fee.title)}</span>
+                                    <span style="background:var(--brand); color:white; font-size:0.7rem; font-weight:800; padding:2px 6px; border-radius:10px;">${fee.amount} ج.م</span>
+                                </div>
+                                <div style="font-size:0.72rem; color:var(--text-3); margin-top:2px;">
+                                    <span>التاريخ: ${fee.date}</span>
+                                    ${fee.description ? `<span style="margin-inline-start:8px; color:var(--text-2);">| ${escHtml(fee.description)}</span>` : ''}
+                                </div>
+                                <div style="font-size:0.65rem; color:var(--muted); margin-top:2px; opacity:0.8;">
+                                    المستلم: ${escHtml(fee.created_by || '---')} (${fee.created_at || ''})
+                                </div>
+                            </div>
+                        </div>
+                    `).reverse().join('');
+                } else {
+                    ownFeesSection.style.display = 'none';
+                    ownFeesList.innerHTML = '';
+                }
+            }
+
             hideAccountEditForm();
             document.getElementById('accountModal').classList.add('active');
             stopAutoRefresh();
