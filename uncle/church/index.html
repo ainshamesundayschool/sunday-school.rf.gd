@@ -18144,13 +18144,20 @@
                 wrapper.appendChild(header);
                 wrapper.appendChild(clone);
 
-                // Hide action cell (last element) in head and all rows
+                // Remove action header and action cells from the clone completely
                 const headLast = clone.querySelector('.data-list-head > *:last-child');
-                if (headLast) headLast.style.display = 'none';
+                if (headLast) headLast.remove();
 
-                clone.querySelectorAll('.data-row').forEach(row => {
-                    const lastCell = row.querySelector('*:last-child');
-                    if (lastCell) lastCell.style.display = 'none';
+                clone.querySelectorAll('.data-row-actions-cell').forEach(cell => {
+                    cell.remove();
+                });
+
+                // Resolve relative images to absolute URLs so html2canvas renders them
+                clone.querySelectorAll('.avatar-text img').forEach(img => {
+                    const srcAttr = img.getAttribute('src');
+                    if (srcAttr && !srcAttr.startsWith('http') && !srcAttr.startsWith('data:')) {
+                        img.src = new URL(srcAttr, window.location.origin).href;
+                    }
                 });
 
                 // Style the list elements as a clean table/grid representation

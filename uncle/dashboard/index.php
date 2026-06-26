@@ -13124,6 +13124,34 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         classes = r.classes.sort((a, b) => getClassOrderWeight(a.arabic_name || a.code) - getClassOrderWeight(b.arabic_name || b.code));
                     }
 
+                    try {
+                        localStorage.setItem('lastStudentsData', freshString);
+                    } catch (e) { }
+
+                    if (window._prunePhotoCache) {
+                        const activeUrls = new Set(students.map(s => s['صورة']).filter(Boolean));
+                        window._prunePhotoCache(activeUrls);
+                    }
+
+                    updateDashboardStats();
+                    loadDashboardTrips();
+                    if (!currentClass) displayClasses();
+                    else renderTodayBirthdayBanner();
+                    _maybeSendBirthdayNotification();
+                    if (currentClass) {
+                        loadAttendanceDataForClass(currentClass);
+                        renderAttendanceList(currentClass);
+                        updateClassStats();
+                        loadClassUncles(currentClass);
+                        loadPendingRegistrationsForClass(currentClass);
+                    }
+                    prefetchStudentPhotos(students);
+                }
+
+                // Always fetch uncles online if the user is an admin or developer
+                const userRole = (window.currentUncle && window.currentUncle.role) || localStorage.getItem('uncleRole') || '';
+                const isUserAdmin = ['admin', 'developer'].includes(String(userRole).toLowerCase());
+                if (isUserAdmin) {
                     makeApiCall({ action: 'getAllUncles' }, ru => {
                         if (ru.success && Array.isArray(ru.uncles)) {
                             window.allUnclesData = ru.uncles;
@@ -13148,29 +13176,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             }
                         }
                     });
-
-                    try {
-                        localStorage.setItem('lastStudentsData', freshString);
-                    } catch (e) { }
-
-                    if (window._prunePhotoCache) {
-                        const activeUrls = new Set(students.map(s => s['صورة']).filter(Boolean));
-                        window._prunePhotoCache(activeUrls);
-                    }
-
-                    updateDashboardStats();
-                    loadDashboardTrips();
-                    if (!currentClass) displayClasses();
-                    else renderTodayBirthdayBanner();
-                    _maybeSendBirthdayNotification();
-                    if (currentClass) {
-                        loadAttendanceDataForClass(currentClass);
-                        renderAttendanceList(currentClass);
-                        updateClassStats();
-                        loadClassUncles(currentClass);
-                        loadPendingRegistrationsForClass(currentClass);
-                    }
-                    prefetchStudentPhotos(students);
                 }
 
                 if (window._pendingHashRestore) {
@@ -13684,8 +13689,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }).join('');
 
             const role = (window.currentUncle && window.currentUncle.role) || localStorage.getItem('uncleRole') || '';
+            const isUserAdmin = ['admin', 'developer'].includes(String(role).toLowerCase());
             let servantsCardHtml = '';
-            if (role) {
+            if (isUserAdmin) {
                 const servantsCount = (window.allUnclesData || []).length;
                 const unsaved = getUnsavedChangesCount('الخدام');
                 const unsavedHtml = unsaved > 0 ? `
