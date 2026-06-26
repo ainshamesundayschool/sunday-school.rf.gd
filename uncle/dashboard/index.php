@@ -20266,13 +20266,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
             return;
         }
         function updateKidsCountDisplay(visibleCount) {
-            const list = isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === currentClass);
+            const list = getActiveViewStudents();
             const totalCount = list.length;
+            let term = 'طفل';
+            if (currentClass === 'الخدام') {
+                term = 'خادم';
+            } else if (window.IS_YOUTH) {
+                term = 'شاب';
+            }
             let countText = '';
             if (visibleCount === totalCount) {
-                countText = `${totalCount} طفل`;
+                countText = `${totalCount} ${term}`;
             } else {
-                countText = `يظهر ${visibleCount} من ${totalCount} طفل`;
+                countText = `يظهر ${visibleCount} من ${totalCount} ${term}`;
             }
             const el = document.getElementById('classViewCount');
             if (el) el.innerText = countText;
