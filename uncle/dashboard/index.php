@@ -501,7 +501,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 overflow: visible !important;
             }
 
-            .dev-church-bar-pill>div {
+            .dev-church-trigger {
                 width: 100% !important;
                 height: 100% !important;
                 display: flex !important;
@@ -10728,7 +10728,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <!-- Dev Switcher in Topbar Actions -->
                 <div id="devDashboardChurchSwitcher" class="dev-church-bar-pill" onclick="toggleDevChurchDropdown(event)"
                     style="display:none; align-items:center; margin-inline-end: 8px; position:relative; cursor:pointer;">
-                    <div style="position:relative;display:flex;align-items:center;width:100%;height:100%;cursor:pointer;" onclick="toggleDevChurchDropdown(event)">
+                    <div class="dev-church-trigger" style="position:relative;display:flex;align-items:center;width:100%;height:100%;cursor:pointer;" onclick="toggleDevChurchDropdown(event)">
                         <i class="fas fa-laptop-code dev-church-bar-icon"></i>
                         <span id="devChurchSelectedLabel" class="dev-church-selected-label" style="margin-inline-start:6px; margin-inline-end: 18px; font-size: 0.8rem; font-weight: 800; color: var(--brand); font-family: 'Cairo', sans-serif;">كنيستي الافتراضية</span>
                         <i class="fas fa-chevron-down dev-church-chevron"></i>
