@@ -9748,17 +9748,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 max-width: 600px !important;
             }
 
-            /* .class-inline-search-wrap {
+            .class-inline-search-wrap {
                 position: sticky !important;
                 top: 72px !important;
-                background: var(--bg) !important;
                 z-index: 100 !important;
                 padding: 10px 0 !important;
-                border-bottom: 1px solid var(--border-solid) !important;
                 margin: 0 0 16px 0 !important;
                 max-width: none !important;
                 box-sizing: border-box !important;
-            }*/
+            }
         }
 
         /* ═══ UNCLE ACCOUNT PAGE STYLE ═══ */
