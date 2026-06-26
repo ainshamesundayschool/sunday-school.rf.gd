@@ -16731,6 +16731,70 @@ if ($hasUncleId && $uncleRole === 'uncle')
             return avatar + `<div class="sibling-mini-avatar-fallback ${gender}" ${photoSrc ? 'style="display:none"' : ''}><i class="fas fa-user"></i></div>`;
         }
 
+        function getFatherFromDisplayName(displayName) {
+            const text = String(displayName || '').trim();
+            if (!text) return '';
+            const parts = text.split(/\s+/).filter(Boolean);
+            if (parts.length >= 2) {
+                const first = parts[0];
+                if ((first === 'عبد' || first === 'ابو' || first === 'أبو' || first === 'ام' || first === 'أم') && parts.length >= 3) {
+                    return parts.slice(2).join(' ');
+                }
+                return parts.slice(1).join(' ');
+            }
+            return parts[0] || '';
+        }
+
+        function getPhoneticRepresentations(word) {
+            if (!word) return [];
+            const normalized = normalizeArabic(word);
+            const francoConverted = francoToArabic(word);
+            const reps = new Set();
+            
+            reps.add(normalized);
+            
+            const lat = arabicToLatin(normalized);
+            if (lat) {
+                reps.add(phoneticClean(lat));
+            }
+            
+            if (francoConverted) {
+                const normFranco = normalizeArabic(francoConverted);
+                reps.add(normFranco);
+                const latFranco = arabicToLatin(normFranco);
+                if (latFranco) {
+                    reps.add(phoneticClean(latFranco));
+                }
+            }
+            
+            reps.add(phoneticClean(word));
+            return Array.from(reps).filter(Boolean);
+        }
+
+        function wordsMatch(w1, w2) {
+            const reps1 = getPhoneticRepresentations(w1);
+            const reps2 = getPhoneticRepresentations(w2);
+            return reps1.some(r => reps2.includes(r));
+        }
+
+        function areFatherNamesMatching(f1, f2) {
+            f1 = String(f1 || '').trim();
+            f2 = String(f2 || '').trim();
+            if (!f1 || !f2) return false;
+            
+            const words1 = f1.split(/\s+/).filter(Boolean);
+            const words2 = f2.split(/\s+/).filter(Boolean);
+            if (words1.length === 0 || words2.length === 0) return false;
+            
+            const minLength = Math.min(words1.length, words2.length);
+            for (let i = 0; i < minLength; i++) {
+                if (!wordsMatch(words1[i], words2[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         function getSiblingSuggestion(current, target) {
             const currentInfo = parseStudentCustomInfo(current);
             const targetInfo = parseStudentCustomInfo(target);
@@ -16748,28 +16812,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 father: getStudentTextValue(target, targetInfo, ['father_name', 'اسم الأب', 'اسم الاب']),
                 nameFamilyPart: getNameFamilyPart(target),
             };
+
+            const currentFather = currentValues.father || getFatherFromDisplayName(getStudentDisplayName(current));
+            const targetFather = targetValues.father || getFatherFromDisplayName(getStudentDisplayName(target));
+
+            if (!areFatherNamesMatching(currentFather, targetFather)) {
+                return null;
+            }
+
             const norm = value => (window.normalizeArabic ? normalizeArabic(value) : String(value || '').toLowerCase().trim());
             const checks = [
                 { basis: 'shared_phone', label: 'رقم تليفون مشترك', detail: 'الرقم متطابق في الملفين', ok: currentValues.phone && targetValues.phone && norm(currentValues.phone) === norm(targetValues.phone) },
                 { basis: 'shared_address', label: 'عنوان مشترك', detail: 'العنوان متطابق في الملفين', ok: currentValues.address && targetValues.address && norm(currentValues.address) === norm(targetValues.address) },
                 { basis: 'shared_guardian', label: 'اسم ولي الأمر مشترك', detail: 'اسم ولي الأمر متطابق', ok: currentValues.guardian && targetValues.guardian && norm(currentValues.guardian) === norm(targetValues.guardian), strength: 'strong' },
-                {
-                    basis: 'shared_father', label: 'اسم الأب متشابه', detail: 'اقتراح ضعيف لأن اسم الأب أو الجزء الثاني من الاسم قد يتكرر', ok: (
-                        currentValues.father && targetValues.father && (
-                            norm(currentValues.father) === norm(targetValues.father) ||
-                            (
-                                getSecondNamePart(currentValues.father) &&
-                                getSecondNamePart(targetValues.father) &&
-                                norm(getSecondNamePart(currentValues.father)) === norm(getSecondNamePart(targetValues.father))
-                            )
-                        )
-                    ) || (
-                            currentValues.nameFamilyPart &&
-                            targetValues.nameFamilyPart &&
-                            norm(currentValues.nameFamilyPart) === norm(targetValues.nameFamilyPart)
-                        ), strength: 'weak'
-                },
+                { basis: 'shared_father', label: 'اسم الأب متطابق', detail: 'اسم الأب متطابق في الملفين', ok: true, strength: 'weak' },
             ].filter(x => x.ok);
+
             if (!checks.length) return null;
             return {
                 basis: checks[0].basis,
