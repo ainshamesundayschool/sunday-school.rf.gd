@@ -9752,7 +9752,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 position: sticky !important;
                 top: 72px !important;
                 z-index: 100 !important;
-                padding: 10px 0 !important;
+                padding: 10px !important;
                 margin: 0 0 16px 0 !important;
                 box-sizing: border-box !important;
             }
