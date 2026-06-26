@@ -17940,45 +17940,76 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
             `;
 
-            let feesHtml = `
-            <div class="uncle-fees-section" style="margin-top:16px; border-top:1px solid var(--border); padding-top:16px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                    <h4 style="font-size:0.95rem; font-weight:700; color:var(--primary); margin:0; display:flex; align-items:center; gap:6px;">
-                        <i class="fas fa-money-bill-wave"></i> الاشتراكات الشهرية للخدمة (${fees.length})
-                    </h4>
-                    <button type="button" class="btn btn-ghost sibling-link-btn" title="إضافة اشتراك" onclick="toggleAddFeeArea()"><i class="fas fa-money-bill-wave"></i> <i class="fas fa-plus"></i></button>
-                </div>
-                
-                ${feeForm}
+            const isUncleLoggedIn = localStorage.getItem('uncleLoggedIn') === 'true';
+            const currentUncleId = window.currentUncle?.id || localStorage.getItem('uncleId');
+            const uRole = window.currentUncle?.role || localStorage.getItem('uncleRole') || '';
+            const isDev = (typeof isDeveloper !== 'undefined' && isDeveloper) || ['developer', 'dev'].includes(String(uRole).toLowerCase());
 
-                <div style="display:flex; flex-direction:column; gap:8px; max-height:250px; overflow-y:auto; padding-inline-end:4px;">
-                    ${fees.length === 0 ? `
-                        <div style="text-align:center; padding:20px; color:var(--muted); font-size:0.78rem; font-style:italic;">
-                            لا توجد اشتراكات مسجلة.
-                        </div>
-                    ` : fees.map(fee => `
-                        <div class="glass-card" style="padding:10px 12px; border:1px solid var(--border-solid); border-radius:10px; display:flex; align-items:center; justify-content:space-between; gap:8px; background:rgba(255,255,255,0.01);">
-                            <div style="flex:1;">
-                                <div style="display:flex; align-items:center; gap:6px;">
-                                    <span style="font-weight:700; font-size:0.82rem; color:var(--text);">${escHtml(fee.title)}</span>
-                                    <span style="background:var(--brand); color:white; font-size:0.7rem; font-weight:800; padding:2px 6px; border-radius:10px;">${fee.amount} ج.م</span>
-                                </div>
-                                <div style="font-size:0.72rem; color:var(--text-3); margin-top:2px;">
-                                    <span>التاريخ: ${fee.date}</span>
-                                    ${fee.description ? `<span style="margin-inline-start:8px; color:var(--text-2);">| ${escHtml(fee.description)}</span>` : ''}
-                                </div>
-                                <div style="font-size:0.65rem; color:var(--muted); margin-top:2px; opacity:0.8;">
-                                    المستلم: ${escHtml(fee.created_by || '---')} (${fee.created_at || ''})
-                                </div>
+            let canViewFees = true;
+            if (isUncleLoggedIn) {
+                if (currentUncleId && String(currentUncleId) === String(full.id)) {
+                    canViewFees = true;
+                } else if (isDev) {
+                    canViewFees = true;
+                } else {
+                    canViewFees = false;
+                }
+            } else {
+                canViewFees = true;
+            }
+
+            let feesHtml = '';
+            if (canViewFees) {
+                const canManageFees = !isUncleLoggedIn || isDev;
+                const addFeeBtn = canManageFees ? `
+                    <button type="button" class="btn btn-ghost sibling-link-btn" title="إضافة اشتراك" onclick="toggleAddFeeArea()"><i class="fas fa-money-bill-wave"></i> <i class="fas fa-plus"></i></button>
+                ` : '';
+
+                feesHtml = `
+                <div class="uncle-fees-section" style="margin-top:16px; border-top:1px solid var(--border); padding-top:16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <h4 style="font-size:0.95rem; font-weight:700; color:var(--primary); margin:0; display:flex; align-items:center; gap:6px;">
+                            <i class="fas fa-money-bill-wave"></i> الاشتراكات الشهرية للخدمة (${fees.length})
+                        </h4>
+                        ${addFeeBtn}
+                    </div>
+                    
+                    ${canManageFees ? feeForm : ''}
+
+                    <div style="display:flex; flex-direction:column; gap:8px; max-height:250px; overflow-y:auto; padding-inline-end:4px;">
+                        ${fees.length === 0 ? `
+                            <div style="text-align:center; padding:20px; color:var(--muted); font-size:0.78rem; font-style:italic;">
+                                لا توجد اشتراكات مسجلة.
                             </div>
-                            <button class="btn btn-ghost" style="padding:6px; color:var(--danger); font-size:0.8rem;" onclick="deleteUncleFee(${full.id}, '${fee.id}')" title="حذف الاشتراك">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </div>
-                    `).reverse().join('')}
+                        ` : fees.map(fee => {
+                            const deleteBtn = canManageFees ? `
+                                <button class="btn btn-ghost" style="padding:6px; color:var(--danger); font-size:0.8rem;" onclick="deleteUncleFee(${full.id}, '${fee.id}')" title="حذف الاشتراك">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            ` : '';
+                            return `
+                            <div class="glass-card" style="padding:10px 12px; border:1px solid var(--border-solid); border-radius:10px; display:flex; align-items:center; justify-content:space-between; gap:8px; background:rgba(255,255,255,0.01);">
+                                <div style="flex:1;">
+                                    <div style="display:flex; align-items:center; gap:6px;">
+                                        <span style="font-weight:700; font-size:0.82rem; color:var(--text);">${escHtml(fee.title)}</span>
+                                        <span style="background:var(--brand); color:white; font-size:0.7rem; font-weight:800; padding:2px 6px; border-radius:10px;">${fee.amount} ج.م</span>
+                                    </div>
+                                    <div style="font-size:0.72rem; color:var(--text-3); margin-top:2px;">
+                                        <span>التاريخ: ${fee.date}</span>
+                                        ${fee.description ? `<span style="margin-inline-start:8px; color:var(--text-2);">| ${escHtml(fee.description)}</span>` : ''}
+                                    </div>
+                                    <div style="font-size:0.65rem; color:var(--muted); margin-top:2px; opacity:0.8;">
+                                        المستلم: ${escHtml(fee.created_by || '---')} (${fee.created_at || ''})
+                                    </div>
+                                </div>
+                                ${deleteBtn}
+                            </div>
+                            `;
+                        }).reverse().join('')}
+                    </div>
                 </div>
-            </div>
-            `;
+                `;
+            }
 
             document.getElementById('studentDetails').innerHTML = img + rows + feesHtml;
         }

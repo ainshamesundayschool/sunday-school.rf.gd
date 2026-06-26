@@ -14854,6 +14854,15 @@ function ensureUnclesTableCustomInfoColumn($conn)
 function addUncleFee()
 {
     try {
+        $callerRole = $_SESSION['uncle_role'] ?? $_SESSION['role'] ?? '';
+        $isDeveloper = in_array(strtolower(trim($callerRole)), ['developer', 'dev']);
+        $isChurchAdmin = !isset($_SESSION['uncle_id']) && isset($_SESSION['church_id']);
+
+        if (!$isDeveloper && !$isChurchAdmin) {
+            sendJSON(['success' => false, 'message' => 'غير مصرح لك بإجراء هذه العملية']);
+            return;
+        }
+
         $churchId = getChurchId();
         $uncleId = intval($_POST['uncleId'] ?? 0);
         $title = trim($_POST['title'] ?? '');
@@ -14923,6 +14932,15 @@ function addUncleFee()
 function deleteUncleFee()
 {
     try {
+        $callerRole = $_SESSION['uncle_role'] ?? $_SESSION['role'] ?? '';
+        $isDeveloper = in_array(strtolower(trim($callerRole)), ['developer', 'dev']);
+        $isChurchAdmin = !isset($_SESSION['uncle_id']) && isset($_SESSION['church_id']);
+
+        if (!$isDeveloper && !$isChurchAdmin) {
+            sendJSON(['success' => false, 'message' => 'غير مصرح لك بإجراء هذه العملية']);
+            return;
+        }
+
         $churchId = getChurchId();
         $uncleId = intval($_POST['uncleId'] ?? 0);
         $feeId = trim($_POST['feeId'] ?? '');
@@ -15093,9 +15111,24 @@ function getAllUncles()
         $stmt->execute();
         $result = $stmt->get_result();
 
+        $callerUncleId = $_SESSION['uncle_id'] ?? null;
+        $callerRole = $_SESSION['uncle_role'] ?? $_SESSION['role'] ?? '';
+        $isDeveloper = in_array(strtolower(trim($callerRole)), ['developer', 'dev']);
+        $isChurchAdmin = !isset($_SESSION['uncle_id']) && isset($_SESSION['church_id']);
+
         $uncles = [];
 
         while ($row = $result->fetch_assoc()) {
+            if (!empty($row['custom_info'])) {
+                $customData = json_decode($row['custom_info'], true);
+                if (is_array($customData) && isset($customData['_fees'])) {
+                    $canView = $isDeveloper || $isChurchAdmin || ($callerUncleId !== null && intval($row['id']) === intval($callerUncleId));
+                    if (!$canView) {
+                        unset($customData['_fees']);
+                        $row['custom_info'] = json_encode($customData, JSON_UNESCAPED_UNICODE);
+                    }
+                }
+            }
             $row['church_name'] = $row['church_name'] ?? '';
             $row['classes'] = getUncleClasses($row['id']);
             $classNames = array_column($row['classes'], 'class_name');
