@@ -1340,7 +1340,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .class-view.active {
-            display: block
+            display: block;
+            padding-bottom: 90px;
         }
 
         .class-topbar {
@@ -2345,19 +2346,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
 ═══════════════════════════════════════════════════════════════ */
         /* ── Sticky attendance toolbar ─────────────────────────────── */
         .att-toolbar {
-            position: sticky;
+            position: fixed;
             bottom: 0;
-            z-index: 150;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 1440px;
+            z-index: 999;
             border-radius: var(--r-md) var(--r-md) 0 0;
             background: var(--bg);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             padding: 14px 16px;
-            margin-top: 8px;
+            margin-top: 0;
             margin-bottom: 0;
             transition: background var(--t) var(--ease);
-            box-shadow: 0 -4px 12px rgba(15, 23, 42, 0.04) !important;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08) !important;
             border-top: 1px solid var(--border-solid) !important;
+            box-sizing: border-box;
         }
 
         .att-toolbar ::-webkit-scrollbar {
@@ -9736,21 +9742,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     max-width: 600px !important;
                 }
 
-                .class-view {
-                    display: grid !important;
-                    grid-template-columns: 1fr auto !important;
-                    gap: 0 16px !important;
-                    width: 100% !important;
-                }
-
-                .class-topbar {
-                    grid-column: 1 / -1 !important;
-                    grid-row: 1 !important;
-                }
-
                 .class-inline-search-wrap {
-                    grid-column: 1 !important;
-                    grid-row: 2 !important;
                     position: sticky !important;
                     top: 72px !important;
                     background: var(--bg) !important;
@@ -9761,49 +9753,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     max-width: none !important;
                     width: 100% !important;
                     box-sizing: border-box !important;
-                }
-
-                .att-toolbar {
-                    grid-column: 2 !important;
-                    grid-row: 2 !important;
-                    position: sticky !important;
-                    top: 72px !important;
-                    bottom: auto !important;
-                    background: var(--bg) !important;
-                    z-index: 100 !important;
-                    padding: 16px 0 !important;
-                    border-bottom: 1px solid var(--border-solid) !important;
-                    margin: 0 0 16px 0 !important;
-                    width: auto !important;
-                    border-top: none !important;
-                    border-radius: 0 !important;
-                    box-shadow: none !important;
-                    backdrop-filter: none !important;
-                    -webkit-backdrop-filter: none !important;
-                    box-sizing: border-box !important;
-                }
-
-                .pending-section {
-                    grid-column: 1 / -1 !important;
-                    grid-row: 3 !important;
-                }
-
-                .class-filters-panel {
-                    grid-column: 1 / -1 !important;
-                    grid-row: 4 !important;
-                }
-
-                .attendance-list {
-                    grid-column: 1 / -1 !important;
-                    grid-row: 5 !important;
-                }
-
-                body.bulk-active .att-toolbar {
-                    position: static !important;
-                    background: transparent !important;
-                    border: none !important;
-                    box-shadow: none !important;
-                    top: auto !important;
                 }
             }
     </style>
@@ -11691,7 +11640,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <h3 id="pastAttendanceModalTitle"><i class="fas fa-calendar-alt"></i> السجل التاريخي</h3>
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <!-- Add Date Button -->
-                    <button class="btn btn-ghost btn-sm" id="toggleCustomDateSectionBtn"
+                    <button class="btn btn-warning btn-sm" id="toggleCustomDateSectionBtn"
                         onclick="toggleCustomDateSection()" title="إضافة تاريخ مخصص"
                         style="width: 34px; height: 34px; padding: 0;">
                         <i class="fas fa-plus" style="font-size: 0.9rem;"></i>
@@ -13750,15 +13699,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
                 ` : '';
                 servantsCardHtml = `
-                    <div class="class-card" onclick="showClassView('الخدام')" style="--cls-color:#ef4444; border:2px solid #ef4444; position:relative;">
+                    <div class="class-card" onclick="showClassView('الخدام')" style="--cls-color:#4f46e5; border:2px solid #4f46e5; position:relative;">
                         <div class="class-card-badges">
                             <div style="display:flex; align-items:center; gap:4px;">
-                                <span style="background:#ef4444;color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;font-weight:700;font-family:Cairo,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,0.08);">خدام</span>
+                                <span style="background:#4f46e5;color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;font-weight:700;font-family:Cairo,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,0.08);">خدام</span>
                                 ${unsavedHtml}
                             </div>
                             <div></div>
                         </div>
-                        <div class="class-icon" style="background:color-mix(in srgb,#ef4444 15%,white);color:#ef4444"><i class="fas fa-user-shield"></i></div>
+                        <div class="class-icon" style="background:color-mix(in srgb,#4f46e5 15%,white);color:#4f46e5"><i class="fas fa-user"></i></div>
                         <div class="class-name">الخدام <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${servantsCount})</span></div>
                     </div>
                 `;
@@ -14358,7 +14307,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 list.innerHTML = `<div style="text-align:center;padding:2rem;grid-column:1/-1"><i class="fas fa-search" style="font-size:2rem;color:var(--text-3);margin-bottom:1rem;display:block"></i><p style="color:var(--text-3)">لا نتائج لـ "${searchQuery}"</p><button class="btn btn-sm btn-ghost" onclick="clearSearch()" style="margin-top:10px"><i class="fas fa-times"></i> عرض الكل</button></div>`;
                 updateSearchResultsInfo(0); return;
             }
-            if (!cs.length) { list.innerHTML = '<div style="text-align:center;padding:2rem;grid-column:1/-1;color:var(--text-3)">لا يوجد أطفال في هذا الفصل</div>'; return; }
+            if (!cs.length) {
+                const emptyMsg = (currentClass === 'الخدام') ? 'لا يوجد خدام في هذا الفصل' : 'لا يوجد أطفال في هذا الفصل';
+                list.innerHTML = `<div style="text-align:center;padding:2rem;grid-column:1/-1;color:var(--text-3)">${emptyMsg}</div>`;
+                return;
+            }
 
             list.innerHTML = cs.map(s => {
                 const id = getStudentId(s), st = attendanceData[id] || 'pending';
@@ -20462,8 +20415,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (!grid) return;
             const pool = getAnnouncementPickerStudents();
             if (!pool.length) {
-                grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-3);font-size:.75rem">لا يوجد أطفال في هذا الفصل</div>';
-                if (!selectedAnnouncementStudents.length && helper) helper.textContent = 'لا يوجد أطفال متاحون للاختيار في هذا الفصل';
+                const emptyMsg = (currentClass === 'الخدام') ? 'لا يوجد خدام في هذا الفصل' : 'لا يوجد أطفال في هذا الفصل';
+                grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text-3);font-size:.75rem">${emptyMsg}</div>`;
+                if (!selectedAnnouncementStudents.length && helper) {
+                    helper.textContent = (currentClass === 'الخدام') ? 'لا يوجد خدام متاحون للاختيار في هذا الفصل' : 'لا يوجد أطفال متاحون للاختيار في هذا الفصل';
+                }
                 syncAnnouncementStudentsInput();
                 return;
             }
@@ -22417,7 +22373,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         function startSwipeMode() {
             const src = isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === currentClass);
-            if (!src.length) { showToast('لا يوجد أطفال في هذا الفصل', 'info'); return; }
+            if (!src.length) {
+                const emptyMsg = (currentClass === 'الخدام') ? 'لا يوجد خدام في هذا الفصل' : 'لا يوجد أطفال في هذا الفصل';
+                showToast(emptyMsg, 'info');
+                return;
+            }
             _swipeList = sortStudentsForCurrentView(src);
             _swipeIdx = 0;
             _swipePres = 0;
