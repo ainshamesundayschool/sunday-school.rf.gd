@@ -10686,7 +10686,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <div class="dropdown-menu" id="classToolsDropdownMenu"
                             style="left: 0; right: auto; min-width: 220px;">
                             <div class="dropdown-group-label">الفصل</div>
-                            <button class="dropdown-item"
+                            <button class="dropdown-item" id="classTasksMenuItem"
                                 onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/tasks?class='+encodeURIComponent(currentClass);closeAllDropdowns()"><i
                                     class="fas fa-tasks"></i> مهام الفصل</button>
                             <button class="dropdown-item coupon"
@@ -10702,7 +10702,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <div class="dropdown-group-label">خيارات إضافية</div>
                             <button class="dropdown-item" onclick="startSwipeMode();closeAllDropdowns()"><i
                                     class="fas fa-hand-pointer"></i> وضع السحب السريع</button>
-                            <button class="dropdown-item" onclick="startMergeChooseMode();closeAllDropdowns()"><i
+                            <button class="dropdown-item" id="classMergeMenuItem" onclick="startMergeChooseMode();closeAllDropdowns()"><i
                                     class="fas fa-code-merge"></i> دمج الحسابات المكررة</button>
                             <button class="dropdown-item danger" onclick="_clearAllUnsaved();closeAllDropdowns()"><i
                                     class="fas fa-trash-alt"></i> مسح كل التغييرات</button>
@@ -12620,6 +12620,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             updateCurrentDateDisplay();
             loadAttendanceDataForClass(className, currentFriday);
             loadPendingRegistrationsForClass(className);
+
+            const tasksItem = document.getElementById('classTasksMenuItem');
+            if (tasksItem) tasksItem.style.display = (className === 'الخدام') ? 'none' : '';
+            const mergeItem = document.getElementById('classMergeMenuItem');
+            if (mergeItem) mergeItem.style.display = (className === 'الخدام') ? 'none' : '';
 
             // If students array is empty (offline, first load), show placeholder until data arrives
             const classStudents = students.filter(s => s['الفصل'] === className);
@@ -14960,6 +14965,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         function startMergeChooseMode() {
+            if (currentClass === 'الخدام') {
+                showToast('غير مسموح بدمج حسابات الخدام', 'error');
+                return;
+            }
             if (selectedStudentIds.size === 2) {
                 triggerBulkMerge();
                 return;
@@ -22846,7 +22855,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             // Clear in-memory attendance changes
             changedStudents.clear();
-            const list = isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === cls);
+            const list = getActiveViewStudents();
             list.forEach(s => {
                 const id = getStudentId(s);
                 attendanceData[id] = originalAttendanceData[id] || 'pending';
