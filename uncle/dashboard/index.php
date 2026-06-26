@@ -10700,7 +10700,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <!-- Admin / Church settings -->
                     <a class="topbar-btn" href="<?php echo $pathPrefix; ?>/uncle/church/" title="لوحة الإدارة والإعدادات"
                         style="text-decoration:none;">
-                        <i class="fa-solid fa-gear"></i>
+                        <i class="fas fa-church"></i>
                     </a>
                 <?php endif; ?>
 
