@@ -9754,7 +9754,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 z-index: 100 !important;
                 padding: 10px 0 !important;
                 margin: 0 0 16px 0 !important;
-                max-width: none !important;
                 box-sizing: border-box !important;
             }
         }
