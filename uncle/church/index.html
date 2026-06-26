@@ -12650,12 +12650,12 @@
             container.innerHTML = '';
             
             // Check if allUncles is loaded yet
-            if (!window.allUncles || window.allUncles.length === 0) {
+            if (!allUncles || allUncles.length === 0) {
                 container.innerHTML = '<div style="color:var(--text-3);padding:8px;font-size:0.84rem;text-align:center;">جاري تحميل الخدام...</div>';
                 return;
             }
 
-            const filteredUncles = window.allUncles.filter(u => {
+            const filteredUncles = allUncles.filter(u => {
                 if (!u.username) return false;
                 const nameMatch = u.name && u.name.toLowerCase().includes(searchVal);
                 const userMatch = u.username.toLowerCase().includes(searchVal);
