@@ -10687,7 +10687,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div id="devDashboardChurchSwitcher" class="dev-church-bar-pill"
                     style="display:none; align-items:center; margin-inline-end: 8px;">
                     <div style="position:relative;display:flex;align-items:center;width:100%;height:100%;">
-                        <i class="fas fa-church dev-church-bar-icon"></i>
+                        <i class="fas fa-laptop-code dev-church-bar-icon"></i>
                         <select id="devChurchSelect" class="dev-church-select-input"
                             onchange="devSwitchChurch(this.value)">
                             <option value="">كنيستي الافتراضية</option>
