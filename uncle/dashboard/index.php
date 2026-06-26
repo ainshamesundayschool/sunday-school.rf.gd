@@ -13124,34 +13124,30 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         classes = r.classes.sort((a, b) => getClassOrderWeight(a.arabic_name || a.code) - getClassOrderWeight(b.arabic_name || b.code));
                     }
 
-                    const role = (window.currentUncle && window.currentUncle.role) || localStorage.getItem('uncleRole') || '';
-                    const isUserAdmin = ['admin', 'developer'].includes(String(role).toLowerCase());
-                    if (isUserAdmin) {
-                        makeApiCall({ action: 'getAllUncles' }, ru => {
-                            if (ru.success && Array.isArray(ru.uncles)) {
-                                window.allUnclesData = ru.uncles;
-                                window.allUnclesData.forEach(u => {
-                                    u._isUncle = true;
-                                    u['الاسم'] = u.name;
-                                    u['الفصل'] = 'الخدام';
-                                    u['رقم التليفون'] = u.phone || '';
-                                    u['عيد الميلاد'] = '';
-                                    u['النوع'] = u.gender || 'male';
-                                    u['صورة'] = u.image_url || '';
-                                    u._customInfo = u.custom_info ? (typeof u.custom_info === 'string' ? JSON.parse(u.custom_info) : u.custom_info) : {};
-                                });
-                                try {
-                                    localStorage.setItem('lastUnclesData', JSON.stringify(ru.uncles));
-                                } catch(e) {}
-                                displayClasses();
-                                if (currentClass === 'الخدام') {
-                                    loadAttendanceDataForClass('الخدام');
-                                    renderAttendanceList('الخدام');
-                                    updateClassStats();
-                                }
+                    makeApiCall({ action: 'getAllUncles' }, ru => {
+                        if (ru.success && Array.isArray(ru.uncles)) {
+                            window.allUnclesData = ru.uncles;
+                            window.allUnclesData.forEach(u => {
+                                u._isUncle = true;
+                                u['الاسم'] = u.name;
+                                u['الفصل'] = 'الخدام';
+                                u['رقم التليفون'] = u.phone || '';
+                                u['عيد الميلاد'] = '';
+                                u['النوع'] = u.gender || 'male';
+                                u['صورة'] = u.image_url || '';
+                                u._customInfo = u.custom_info ? (typeof u.custom_info === 'string' ? JSON.parse(u.custom_info) : u.custom_info) : {};
+                            });
+                            try {
+                                localStorage.setItem('lastUnclesData', JSON.stringify(ru.uncles));
+                            } catch(e) {}
+                            displayClasses();
+                            if (currentClass === 'الخدام') {
+                                loadAttendanceDataForClass('الخدام');
+                                renderAttendanceList('الخدام');
+                                updateClassStats();
                             }
-                        });
-                    }
+                        }
+                    });
 
                     try {
                         localStorage.setItem('lastStudentsData', freshString);
@@ -13688,9 +13684,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }).join('');
 
             const role = (window.currentUncle && window.currentUncle.role) || localStorage.getItem('uncleRole') || '';
-            const isUserAdmin = ['admin', 'developer'].includes(String(role).toLowerCase());
             let servantsCardHtml = '';
-            if (isUserAdmin) {
+            if (role) {
                 const servantsCount = (window.allUnclesData || []).length;
                 const unsaved = getUnsavedChangesCount('الخدام');
                 const unsavedHtml = unsaved > 0 ? `
@@ -16722,7 +16717,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 ? `<div class="detail-avatar-wrap"><img src="${window.photoUrl(s['صورة'])}" class="detail-avatar" onclick="showImageModal('${s['صورة']}')" onerror="this.style.display='none';var el=document.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-student-name">${s['الاسم'] || ''}</div><div class="detail-student-class">${s['الفصل'] || ''}</div></div>`
                 : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${s['الاسم'] || ''}</div><div class="detail-student-class">${s['الفصل'] || ''}</div></div>`;
 
+            // Reset edit/delete buttons visibility to default
+            const editBtn = document.getElementById('editStudentBtn');
+            const deleteBtn = document.getElementById('deleteStudentBtn');
+            if (editBtn) editBtn.style.display = '';
+            if (deleteBtn) deleteBtn.style.display = '';
+
             if (s._isUncle) {
+                const userRole = (window.currentUncle && window.currentUncle.role) || localStorage.getItem('uncleRole') || '';
+                const isUserAdmin = ['admin', 'developer'].includes(String(userRole).toLowerCase());
+                if (editBtn) editBtn.style.display = isUserAdmin ? '' : 'none';
+                if (deleteBtn) deleteBtn.style.display = isUserAdmin ? '' : 'none';
+
                 document.getElementById('studentDetails').innerHTML = img + '<div style="padding:14px;text-align:center;color:var(--text-3)">جارٍ التحميل…</div>';
                 document.getElementById('studentModal').classList.add('active');
                 stopAutoRefresh();
@@ -17821,13 +17827,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             `).join('');
 
             const todayStr = new Date().toISOString().split('T')[0];
+            const currentRole = (window.currentUncle && window.currentUncle.role) || localStorage.getItem('uncleRole') || '';
+            const isCurrentUserAdmin = ['admin', 'developer'].includes(String(currentRole).toLowerCase());
 
-            let feesHtml = `
-            <div class="uncle-fees-section" style="margin-top:16px; border-top:1px solid var(--border); padding-top:16px;">
-                <h4 style="font-size:0.95rem; font-weight:700; color:var(--primary); margin:0 0 12px 0; display:flex; align-items:center; gap:6px;">
-                    <i class="fas fa-money-bill-wave"></i> الاشتراكات الشهرية للخدمة (${fees.length})
-                </h4>
-                
+            const feeForm = isCurrentUserAdmin ? `
                 <div class="glass-card" style="padding:12px; border:1px solid var(--border-solid); border-radius:12px; margin-bottom:16px; background:rgba(255,255,255,0.03);">
                     <div style="font-size:0.78rem; font-weight:700; color:var(--text-2); margin-bottom:6px;">تسجيل اشتراك جديد:</div>
                     <div style="margin-bottom:8px;">${suggestionBadges}</div>
@@ -17846,6 +17849,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         </button>
                     </div>
                 </div>
+            ` : '';
+
+            let feesHtml = `
+            <div class="uncle-fees-section" style="margin-top:16px; border-top:1px solid var(--border); padding-top:16px;">
+                <h4 style="font-size:0.95rem; font-weight:700; color:var(--primary); margin:0 0 12px 0; display:flex; align-items:center; gap:6px;">
+                    <i class="fas fa-money-bill-wave"></i> الاشتراكات الشهرية للخدمة (${fees.length})
+                </h4>
+                
+                ${feeForm}
 
                 <div style="display:flex; flex-direction:column; gap:8px; max-height:250px; overflow-y:auto; padding-inline-end:4px;">
                     ${fees.length === 0 ? `
@@ -17867,9 +17879,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                     المستلم: ${escHtml(fee.created_by || '---')} (${fee.created_at || ''})
                                 </div>
                             </div>
+                            ${isCurrentUserAdmin ? `
                             <button class="btn btn-ghost" style="padding:6px; color:var(--danger); font-size:0.8rem;" onclick="deleteUncleFee(${full.id}, '${fee.id}')" title="حذف الاشتراك">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
+                            ` : ''}
                         </div>
                     `).reverse().join('')}
                 </div>
