@@ -3467,6 +3467,26 @@ try {
 
 
 
+        case 'addUncleFee':
+
+            checkAuth();
+
+            addUncleFee();
+
+            break;
+
+
+
+        case 'deleteUncleFee':
+
+            checkAuth();
+
+            deleteUncleFee();
+
+            break;
+
+
+
         case 'updateChurchAdminEmail':
 
             updateChurchAdminEmail();
@@ -14769,7 +14789,6 @@ function sendRegistrationEmails($churchId, $userEmail, $registrationData)
             'phone' => $registrationData['phone'],
 
             'email' => $registrationData['email'],
-
             'address' => $registrationData['address'],
 
             'registration_id' => $registrationData['registration_id'],
@@ -14823,6 +14842,298 @@ function sendRegistrationEmails($churchId, $userEmail, $registrationData)
 }
 
 
+
+function ensureUnclesTableCustomInfoColumn($conn)
+{
+    $res = $conn->query("SHOW COLUMNS FROM `uncles` LIKE 'custom_info'");
+    if ($res->num_rows === 0) {
+        $conn->query("ALTER TABLE `uncles` ADD COLUMN `custom_info` TEXT DEFAULT NULL");
+    }
+}
+
+function addUncleFee()
+{
+    try {
+        $churchId = getChurchId();
+        $uncleId = intval($_POST['uncleId'] ?? 0);
+        $title = trim($_POST['title'] ?? '');
+        $amount = floatval($_POST['amount'] ?? 0);
+        $description = trim($_POST['description'] ?? '');
+        $date = trim($_POST['date'] ?? '');
+
+        if (!$uncleId || empty($title) || $amount <= 0) {
+            sendJSON(['success' => false, 'message' => 'بيانات غير كاملة']);
+            return;
+        }
+
+        if (empty($date)) {
+            $date = date('Y-m-d');
+        }
+
+        $conn = getDBConnection();
+        ensureUnclesTableCustomInfoColumn($conn);
+        
+        $stmt = $conn->prepare("SELECT name, custom_info FROM uncles WHERE id = ? AND church_id = ?");
+        $stmt->bind_param("ii", $uncleId, $churchId);
+        $stmt->execute();
+        $uncle = $stmt->get_result()->fetch_assoc();
+
+        if (!$uncle) {
+            sendJSON(['success' => false, 'message' => 'الخادم غير موجود']);
+            return;
+        }
+
+        $customInfo = !empty($uncle['custom_info']) ? json_decode($uncle['custom_info'], true) : [];
+        if (!is_array($customInfo)) {
+            $customInfo = [];
+        }
+
+        if (!isset($customInfo['_fees']) || !is_array($customInfo['_fees'])) {
+            $customInfo['_fees'] = [];
+        }
+
+        $feeId = uniqid('fee_', true);
+        $newFee = [
+            'id' => $feeId,
+            'title' => sanitize($title),
+            'amount' => $amount,
+            'description' => sanitize($description),
+            'date' => sanitize($date),
+            'created_by' => $_SESSION['uncle_name'] ?? 'أدمن',
+            'created_at' => date('Y-m-d H:i:s')
+        ];
+
+        $customInfo['_fees'][] = $newFee;
+        $customInfoJson = json_encode($customInfo, JSON_UNESCAPED_UNICODE);
+
+        $upd = $conn->prepare("UPDATE uncles SET custom_info = ?, updated_at = NOW() WHERE id = ? AND church_id = ?");
+        $upd->bind_param("sii", $customInfoJson, $uncleId, $churchId);
+
+        if ($upd->execute()) {
+            writeAuditLog('fee_add', 'uncle', $uncleId, $uncle['name'], null, $newFee, "إضافة اشتراك: " . $title . " بقيمة " . $amount);
+            sendJSON(['success' => true, 'message' => 'تم إضافة الاشتراك بنجاح']);
+        } else {
+            sendJSON(['success' => false, 'message' => 'فشل في حفظ الاشتراك']);
+        }
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => 'خطأ: ' . $e->getMessage()]);
+    }
+}
+
+function deleteUncleFee()
+{
+    try {
+        $churchId = getChurchId();
+        $uncleId = intval($_POST['uncleId'] ?? 0);
+        $feeId = trim($_POST['feeId'] ?? '');
+
+        if (!$uncleId || empty($feeId)) {
+            sendJSON(['success' => false, 'message' => 'بيانات غير كاملة']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        ensureUnclesTableCustomInfoColumn($conn);
+        
+        $stmt = $conn->prepare("SELECT name, custom_info FROM uncles WHERE id = ? AND church_id = ?");
+        $stmt->bind_param("ii", $uncleId, $churchId);
+        $stmt->execute();
+        $uncle = $stmt->get_result()->fetch_assoc();
+
+        if (!$uncle) {
+            sendJSON(['success' => false, 'message' => 'الخادم غير موجود']);
+            return;
+        }
+
+        $customInfo = !empty($uncle['custom_info']) ? json_decode($uncle['custom_info'], true) : [];
+        if (!is_array($customInfo) || !isset($customInfo['_fees']) || !is_array($customInfo['_fees'])) {
+            sendJSON(['success' => false, 'message' => 'لا توجد اشتراكات لحذفها']);
+            return;
+        }
+
+        $foundIdx = -1;
+        foreach ($customInfo['_fees'] as $idx => $fee) {
+            if (($fee['id'] ?? '') === $feeId) {
+                $foundIdx = $idx;
+                break;
+            }
+        }
+
+        if ($foundIdx === -1) {
+            sendJSON(['success' => false, 'message' => 'الاشتراك غير موجود']);
+            return;
+        }
+
+        $removedFee = $customInfo['_fees'][$foundIdx];
+        array_splice($customInfo['_fees'], $foundIdx, 1);
+        $customInfoJson = json_encode($customInfo, JSON_UNESCAPED_UNICODE);
+
+        $upd = $conn->prepare("UPDATE uncles SET custom_info = ?, updated_at = NOW() WHERE id = ? AND church_id = ?");
+        $upd->bind_param("sii", $customInfoJson, $uncleId, $churchId);
+
+        if ($upd->execute()) {
+            writeAuditLog('fee_delete', 'uncle', $uncleId, $uncle['name'], $removedFee, null, "حذف اشتراك: " . ($removedFee['title'] ?? ''));
+            sendJSON(['success' => true, 'message' => 'تم حذف الاشتراك بنجاح']);
+        } else {
+            sendJSON(['success' => false, 'message' => 'فشل في حذف الاشتراك']);
+        }
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => 'خطأ: ' . $e->getMessage()]);
+    }
+}
+
+// ===== ADMIN: GET ALL UNCLES =====
+
+function getAllUncles()
+{
+    checkAuth();
+
+    try {
+        $churchId = getChurchId();
+
+        if ($churchId === 0 && isset($_SESSION['church_id'])) {
+            $churchId = $_SESSION['church_id'];
+        }
+
+        error_log("getAllUncles - Church ID: " . $churchId);
+
+        if ($churchId === 0) {
+            sendJSON(['success' => false, 'message' => 'معرف الكنيسة غير موجود']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        ensureUnclesTableCustomInfoColumn($conn);
+        $tripId = intval($_POST['trip_id'] ?? 0);
+        $isAll = (!empty($_POST['all_churches']) && $_POST['all_churches'] === '1');
+
+        if ($tripId > 0) {
+            $churchIds = [$churchId];
+            $tStmt = $conn->prepare("SELECT church_id, collaborating_churches FROM trips WHERE id = ? LIMIT 1");
+            if ($tStmt) {
+                $tStmt->bind_param("i", $tripId);
+                $tStmt->execute();
+                $tRes = $tStmt->get_result();
+                if ($tRes->num_rows > 0) {
+                    $tRow = $tRes->fetch_assoc();
+                    $churchIds[] = intval($tRow['church_id']);
+                    $collabRaw = $tRow['collaborating_churches'] ?? '';
+                    if (!empty($collabRaw)) {
+                        $decoded = json_decode($collabRaw, true);
+                        if (is_array($decoded)) {
+                            foreach ($decoded as $cid) {
+                                $churchIds[] = intval($cid);
+                            }
+                        }
+                    }
+                }
+            }
+            $churchIds = array_values(array_unique(array_filter($churchIds)));
+
+            if (!empty($churchIds)) {
+                $placeholders = implode(',', array_fill(0, count($churchIds), '?'));
+                $types = str_repeat('i', count($churchIds));
+                $stmt = $conn->prepare("
+                    SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.gender, u.phone, u.created_at, u.custom_info,
+                           c.church_name
+                    FROM uncles u
+                    LEFT JOIN churches c ON u.church_id = c.id
+                    WHERE u.church_id IN ($placeholders) AND (u.deleted IS NULL OR u.deleted = 0) AND u.role NOT IN ('developer', 'dev')
+                    ORDER BY c.church_name,
+                        CASE u.role 
+                            WHEN 'admin' THEN 1
+                            WHEN 'developer' THEN 2
+                            ELSE 3
+                        END, u.name
+                ");
+                $stmt->bind_param($types, ...$churchIds);
+            } else {
+                $stmt = $conn->prepare("
+                    SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.gender, u.phone, u.created_at, u.custom_info
+                    FROM uncles u
+                    WHERE u.church_id = ? AND (u.deleted IS NULL OR u.deleted = 0) AND u.role NOT IN ('developer', 'dev')
+                    ORDER BY 
+                        CASE u.role 
+                            WHEN 'admin' THEN 1
+                            WHEN 'developer' THEN 2
+                            ELSE 3
+                        END, u.name
+                ");
+                $stmt->bind_param("i", $churchId);
+            }
+        } elseif ($isAll) {
+            $stmt = $conn->prepare("
+                SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.gender, u.phone, u.created_at, u.custom_info,
+                       c.church_name
+                FROM uncles u
+                LEFT JOIN churches c ON u.church_id = c.id
+                WHERE (u.deleted IS NULL OR u.deleted = 0) AND u.role NOT IN ('developer', 'dev')
+                ORDER BY c.church_name,
+                    CASE u.role 
+                        WHEN 'admin' THEN 1
+                        WHEN 'developer' THEN 2
+                        ELSE 3
+                    END, u.name
+            ");
+        } else {
+            $stmt = $conn->prepare("
+                SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.gender, u.phone, u.created_at, u.custom_info
+                FROM uncles u
+                WHERE u.church_id = ? AND (u.deleted IS NULL OR u.deleted = 0) AND u.role NOT IN ('developer', 'dev')
+                ORDER BY 
+                    CASE u.role 
+                        WHEN 'admin' THEN 1
+                        WHEN 'developer' THEN 2
+                        ELSE 3
+                    END, u.name
+            ");
+            $stmt->bind_param("i", $churchId);
+        }
+
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        $uncles = [];
+
+        while ($row = $result->fetch_assoc()) {
+            $row['church_name'] = $row['church_name'] ?? '';
+            $row['classes'] = getUncleClasses($row['id']);
+            $classNames = array_column($row['classes'], 'class_name');
+            $row['class'] = !empty($classNames) ? implode(', ', $classNames) : '';
+            $row['is_active'] = 1;
+
+            $row['_allAttendance'] = [];
+            $attStmt = $conn->prepare("
+                SELECT attendance_date, status 
+                FROM uncle_attendance 
+                WHERE uncle_id = ? AND church_id = ?
+                ORDER BY attendance_date DESC
+                LIMIT 50
+            ");
+            if ($attStmt) {
+                $attStmt->bind_param("ii", $row['id'], $churchId);
+                $attStmt->execute();
+                $attRes = $attStmt->get_result();
+                while ($attRow = $attRes->fetch_assoc()) {
+                    $date = formatDateFromDB($attRow['attendance_date']);
+                    $status = $attRow['status'] === 'present' ? 'ح' : 'غ';
+                    $row[$date] = $status;
+                    $row['_allAttendance'][$date] = $status;
+                }
+            }
+
+            $uncles[] = $row;
+        }
+
+        error_log("Found " . count($uncles) . " uncles");
+
+        sendJSON(['success' => true, 'uncles' => $uncles]);
+
+    } catch (Exception $e) {
+        error_log("getAllUncles error: " . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في جلب بيانات الخدام']);
+    }
+}
 
 function sendAsyncRequest($url, $data)
 
@@ -15416,7 +15727,7 @@ function updateUncleImage()
 
 // ===== ADMIN: GET ALL UNCLES =====
 
-function getAllUncles()
+function getAllUncles_duplicate()
 
 {
 
@@ -44177,7 +44488,7 @@ function submitUncleAttendance()
 
 
 
-        $recordedBy = $_SESSION['church_id'] ?? null;
+        $recordedBy = $_SESSION['uncle_id'] ?? ($_SESSION['church_id'] ?? null);
 
         $inserted = 0;
 

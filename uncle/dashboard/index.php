@@ -11169,7 +11169,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <div id="editStudentForm" class="modal-overlay" style="z-index:1000006">
         <div class="modal">
             <div class="modal-header">
-                <h3>تعديل بيانات الطفل</h3>
+                <h3 id="editStudentModalTitle">تعديل بيانات الطفل</h3>
                 <button class="close-btn" id="cancelEditBtn">&times;</button>
             </div>
             <form id="editForm">
@@ -11204,10 +11204,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <option value="female">بنت</option>
                         </select></div>
                 </div>
-                <div class="form-group">
+                <div class="form-group" id="editClassGroup">
                     <label class="form-label">الفصل *</label>
                     <div class="input-icon-wrap"><i class="fas fa-chalkboard-teacher input-icon"></i><select
-                            id="editStudentClass" class="form-input" required>
+                            id="editStudentClass" class="form-input">
                             <option value="">اختر الفصل</option>
                         </select></div>
                 </div>
@@ -11221,22 +11221,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="input-icon-wrap"><i class="fas fa-phone input-icon"></i><input type="tel"
                             id="editStudentPhone" class="form-input"></div>
                 </div>
-                <div class="form-group">
+                <div class="form-group" id="editEmergencyPhoneGroup">
                     <label class="form-label">تليفون الطوارئ</label>
                     <div class="input-icon-wrap"><i class="fas fa-phone-volume input-icon"></i><input type="tel"
                             id="editStudentEmergencyPhone" class="form-input"></div>
                 </div>
-                <div class="form-group" style="grid-column:1/-1;">
+                <div class="form-group" style="grid-column:1/-1;" id="editMedicalNotesGroup">
                     <label class="form-label">ملاحظات طبية</label>
                     <textarea id="editStudentMedicalNotes" class="form-input" rows="2"
                         style="min-height:72px;resize:vertical;"></textarea>
                 </div>
-                <div class="form-group">
+                <div class="form-group" id="editBirthdayGroup">
                     <label class="form-label">تاريخ الميلاد (DD/MM/YYYY)</label>
                     <div class="input-icon-wrap"><i class="fas fa-birthday-cake input-icon"></i><input type="text"
                             id="editStudentBirthday" class="form-input" placeholder="DD/MM/YYYY"></div>
                 </div>
-                <div class="form-group">
+                <div class="form-group" id="editCommitmentCouponsGroup">
                     <label class="form-label">كوبونات الالتزام</label>
                     <div class="input-icon-wrap"><i class="fas fa-star input-icon"
                             style="color:var(--coupon)"></i><input type="number" id="editStudentCommitmentCoupons"
@@ -11244,6 +11244,28 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
                 <!-- Multiple custom fields container (filled dynamically) -->
                 <div id="editCustomFieldsContainer" style="display:none"></div>
+                
+                <!-- fields for uncle editing only -->
+                <div id="uncleEditFields" style="display:none; grid-column:1/-1; border-top:1px solid var(--border); padding-top:16px; margin-top:8px;">
+                    <div style="font-weight:700; color:var(--primary); font-size:0.85rem; margin-bottom:12px;">بيانات حساب الخادم:</div>
+                    <div class="form-group" style="margin-bottom:12px;">
+                        <label class="form-label">اسم المستخدم *</label>
+                        <div class="input-icon-wrap"><i class="fas fa-user-tag input-icon"></i><input type="text" id="editUncleUsername" class="form-input"></div>
+                    </div>
+                    <div class="form-group" style="margin-bottom:12px;">
+                        <label class="form-label">كلمة المرور الجديدة (اتركها فارغة لعدم التغيير)</label>
+                        <div class="input-icon-wrap"><i class="fas fa-key input-icon"></i><input type="password" id="editUnclePassword" class="form-input" placeholder="كلمة المرور الجديدة..."></div>
+                    </div>
+                    <div class="form-group" style="margin-bottom:12px;">
+                        <label class="form-label">الدور / الصلاحية *</label>
+                        <div class="input-icon-wrap"><i class="fas fa-user-shield input-icon"></i><select id="editUncleRole" class="form-input">
+                            <option value="uncle">خادم (Uncle)</option>
+                            <option value="admin">مسؤول (Admin)</option>
+                            <option value="developer">مطور (Developer)</option>
+                        </select></div>
+                    </div>
+                </div>
+
                 <button type="submit" class="btn" style="width:100%"><i class="fas fa-save"></i> حفظ التعديلات</button>
             </form>
         </div>
@@ -12272,7 +12294,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         // ── HELPERS ───────────────────────────────────────────────────
-        function getStudentId(s) { return `${s['الفصل']}_${s['الاسم']}`; }
+        function getStudentId(s) {
+            if (s && s._isUncle) return `uncle_${s.id}`;
+            return `${s['الفصل']}_${s['الاسم']}`;
+        }
         function escJs(str) { return (str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"'); }
         function escHtml(str) { return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
 
@@ -13068,6 +13093,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     if (d.classes && d.classes.length) {
                         classes = d.classes.sort((a, b) => getClassOrderWeight(a.arabic_name || a.code) - getClassOrderWeight(b.arabic_name || b.code));
                     }
+                    const cachedUncles = localStorage.getItem('lastUnclesData');
+                    if (cachedUncles) {
+                        try {
+                            window.allUnclesData = JSON.parse(cachedUncles);
+                            window.allUnclesData.forEach(u => {
+                                u._isUncle = true;
+                                u['الاسم'] = u.name;
+                                u['الفصل'] = 'الخدام';
+                                u['رقم التليفون'] = u.phone || '';
+                                u['عيد الميلاد'] = '';
+                                u['النوع'] = u.gender || 'male';
+                                u['صورة'] = u.image_url || '';
+                                u._customInfo = u.custom_info ? (typeof u.custom_info === 'string' ? JSON.parse(u.custom_info) : u.custom_info) : {};
+                            });
+                        } catch(e) {}
+                    }
                     updateDashboardStats();
                     loadDashboardTrips();
                     if (!currentClass) {
@@ -13132,6 +13173,35 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     allStudentsData = students;
                     if (r.classes && Array.isArray(r.classes)) {
                         classes = r.classes.sort((a, b) => getClassOrderWeight(a.arabic_name || a.code) - getClassOrderWeight(b.arabic_name || b.code));
+                    }
+
+                    const role = (window.currentUncle && window.currentUncle.role) || localStorage.getItem('uncleRole') || '';
+                    const isUserAdmin = ['admin', 'developer'].includes(String(role).toLowerCase());
+                    if (isUserAdmin) {
+                        makeApiCall({ action: 'getAllUncles' }, ru => {
+                            if (ru.success && Array.isArray(ru.uncles)) {
+                                window.allUnclesData = ru.uncles;
+                                window.allUnclesData.forEach(u => {
+                                    u._isUncle = true;
+                                    u['الاسم'] = u.name;
+                                    u['الفصل'] = 'الخدام';
+                                    u['رقم التليفون'] = u.phone || '';
+                                    u['عيد الميلاد'] = '';
+                                    u['النوع'] = u.gender || 'male';
+                                    u['صورة'] = u.image_url || '';
+                                    u._customInfo = u.custom_info ? (typeof u.custom_info === 'string' ? JSON.parse(u.custom_info) : u.custom_info) : {};
+                                });
+                                try {
+                                    localStorage.setItem('lastUnclesData', JSON.stringify(ru.uncles));
+                                } catch(e) {}
+                                displayClasses();
+                                if (currentClass === 'الخدام') {
+                                    loadAttendanceDataForClass('الخدام');
+                                    renderAttendanceList('الخدام');
+                                    updateClassStats();
+                                }
+                            }
+                        });
                     }
 
                     try {
@@ -13668,9 +13738,35 @@ if ($hasUncleId && $uncleRole === 'uncle')
         </div>`;
             }).join('');
 
+            const role = (window.currentUncle && window.currentUncle.role) || localStorage.getItem('uncleRole') || '';
+            const isUserAdmin = ['admin', 'developer'].includes(String(role).toLowerCase());
+            let servantsCardHtml = '';
+            if (isUserAdmin) {
+                const servantsCount = (window.allUnclesData || []).length;
+                const unsaved = getUnsavedChangesCount('الخدام');
+                const unsavedHtml = unsaved > 0 ? `
+                    <div class="class-unsaved-badge" title="${unsaved} تغييرات غير محفوظة">
+                        <i class="fas fa-save" style="font-size: .75rem;"></i> ${unsaved}
+                    </div>
+                ` : '';
+                servantsCardHtml = `
+                    <div class="class-card" onclick="showClassView('الخدام')" style="--cls-color:#ef4444; border:2px solid #ef4444; position:relative;">
+                        <div class="class-card-badges">
+                            <div style="display:flex; align-items:center; gap:4px;">
+                                <span style="background:#ef4444;color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;font-weight:700;font-family:Cairo,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,0.08);">خدام</span>
+                                ${unsavedHtml}
+                            </div>
+                            <div></div>
+                        </div>
+                        <div class="class-icon" style="background:color-mix(in srgb,#ef4444 15%,white);color:#ef4444"><i class="fas fa-user-shield"></i></div>
+                        <div class="class-name">الخدام <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${servantsCount})</span></div>
+                    </div>
+                `;
+            }
+
             const visibleCombined = showClassCards ? combinedHtml : '';
             const visibleRegular = showClassCards ? regularHtml : '';
-            grid.innerHTML = allTogetherHtml + visibleCombined + visibleRegular;
+            grid.innerHTML = allTogetherHtml + servantsCardHtml + visibleCombined + visibleRegular;
             renderTodayBirthdayBanner();
         }
 
@@ -14008,7 +14104,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const chKey = `changedStudents_${className}_${dateKey}`;
             const local = JSON.parse(localStorage.getItem(localKey) || '{}');
             const savedChanged = localStorage.getItem(chKey);
-            const cs = students.filter(s => s['الفصل'] === className);
+            const cs = className === 'الخدام' ? (window.allUnclesData || []) : students.filter(s => s['الفصل'] === className);
             let restoredChanged = new Set();
             if (savedChanged) { try { const arr = JSON.parse(savedChanged); const ids = cs.map(s => getStudentId(s)); restoredChanged = new Set(arr.filter(id => ids.includes(id))); } catch (e) { } }
             changedStudents = restoredChanged;
@@ -14044,6 +14140,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             let cs = [];
             if (className === '__ALL__') {
                 cs = students;
+            } else if (className === 'الخدام') {
+                cs = window.allUnclesData || [];
             } else {
                 const grp = (typeof combinedClassGroups !== 'undefined' && combinedClassGroups)
                     ? combinedClassGroups.find(g => g.label === className)
@@ -14099,7 +14197,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             } catch (e) {
                 couponValueIdxByStudent = {};
             }
-            students.filter(s => s['الفصل'] === className).forEach(s => { const id = getStudentId(s); originalCouponData[id] = parseInt(s['كوبونات الالتزام'] || 0); });
+            const cs = className === 'الخدام' ? (window.allUnclesData || []) : students.filter(s => s['الفصل'] === className);
+            cs.forEach(s => { const id = getStudentId(s); originalCouponData[id] = parseInt(s['كوبونات الالتزام'] || 0); });
         }
         function saveCouponDataForClass(className) {
             if (!className) return;
@@ -14305,7 +14404,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     badges += `<span class="status-badge coupon-unsaved"><i class="fas fa-star"></i> ${addC >= 0 ? '+' : ''}${addC}</span>`;
                 }
 
-                const inlineCoupons = `<span class="student-coupons-inline"><i class="fas fa-star" style="font-size:.7rem"></i> ${totC}${addC > 0 ? `<small style="opacity:.65;font-size:.7em"> +${addC}</small>` : (addC < 0 ? `<small style="opacity:.65;font-size:.7em"> ${addC}</small>` : '')}${offlineC > 0 ? `<small style="opacity:.8;font-size:.7em;color:#0ea5e9"> +${offlineC}</small>` : ''}</span>`;
+                const isKhodam = (className === 'الخدام');
+                const inlineCoupons = isKhodam ? '' : `<span class="student-coupons-inline"><i class="fas fa-star" style="font-size:.7rem"></i> ${totC}${addC > 0 ? `<small style="opacity:.65;font-size:.7em"> +${addC}</small>` : (addC < 0 ? `<small style="opacity:.65;font-size:.7em"> ${addC}</small>` : '')}${offlineC > 0 ? `<small style="opacity:.8;font-size:.7em;color:#0ea5e9"> +${offlineC}</small>` : ''}</span>`;
 
                 const gender = (s['النوع'] === 'female' || s['gender'] === 'female') ? 'female' : 'male';
                 let name = s['الاسم'] || '---';
@@ -14322,12 +14422,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const isSelected = selectedStudentIds.has(dbId);
                 const selectClass = isSelected ? ' selected' : '';
                 return `<div class="attendance-item ${st}${localClass}${bdayClass}${selectClass}" id="ai-${id}" data-db-id="${dbId}"
-            ontouchstart="_holdStart(event,'${safeName}')"
-            ontouchmove="_holdMove(event)"
-            ontouchend="_holdEnd()"
-            ontouchcancel="_holdEnd()"
-            oncontextmenu="_rowContextMenu(event,'${safeName}')">
-            <div class="student-info" onclick="isBulkSelectMode ? toggleStudentSelection(event, ${dbId}) : showStudentDetails('${safeName}')" style="cursor:pointer">
+            ontouchstart="${isKhodam ? '' : `_holdStart(event,'${safeName}')`}"
+            ontouchmove="${isKhodam ? '' : '_holdMove(event)'}"
+            ontouchend="${isKhodam ? '' : '_holdEnd()'}"
+            ontouchcancel="${isKhodam ? '' : '_holdEnd()'}"
+            oncontextmenu="${isKhodam ? 'event.preventDefault()' : `_rowContextMenu(event,'${safeName}')`}">
+            <div class="student-info" onclick="${isKhodam ? '' : `isBulkSelectMode ? toggleStudentSelection(event, ${dbId}) : showStudentDetails('${safeName}')`}" style="cursor:pointer">
                 <div class="bulk-check-wrap">
                     <div class="bulk-check-circle ${isSelected ? 'checked' : ''}"><i class="fas fa-check"></i></div>
                 </div>
@@ -14338,12 +14438,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
             </div>
             <div class="attendance-actions">
+                ${isKhodam ? '' : `
                 <span class="student-coupons"><i class="fas fa-star" style="font-size:.7rem"></i> ${totC}${addC > 0 ? `<small style="opacity:.65;font-size:.7em"> +${addC}</small>` : (addC < 0 ? `<small style="opacity:.65;font-size:.7em"> ${addC}</small>` : '')}${offlineC > 0 ? `<small style="opacity:.8;font-size:.7em;color:#0ea5e9"> +${offlineC}</small>` : ''}</span>
                 <div class="coupon-toggle-row">
                     <button class="coupon-toggle-btn minus" onclick="adjustStudentCoupons('${id}',-1)"><i class="fas fa-minus"></i></button>
                     <div class="coupon-value-display" id="cv-${id}" data-idx="${getCouponValueIdx(id)}" onclick="toggleCouponValue('${id}')">${getCouponValueForStudent(id)}</div>
                     <button class="coupon-toggle-btn plus" onclick="adjustStudentCoupons('${id}',1)"><i class="fas fa-plus"></i></button>
                 </div>
+                `}
                 <div class="attend-btn-row">
                     <button class="present-btn" onclick="markStudentAttendance('${id}','present')"><i class="fas fa-check"></i> حضور</button>
                     <button class="absent-btn" onclick="markStudentAttendance('${id}','absent')"><i class="fas fa-times"></i> غياب</button>
@@ -16564,15 +16666,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
             // Normal single-class submit
             const records = [];
             changedStudents.forEach(id => {
-                const s = students.find(s => getStudentId(s) === id);
+                const s = (currentClass === 'الخدام') 
+                    ? (window.allUnclesData || []).find(u => getStudentId(u) === id)
+                    : students.find(s => getStudentId(s) === id);
                 if (!s) return;
                 const st = attendanceData[id] || 'pending';
-                // Include all changed students — 'pending' means "clear this record on server"
-                records.push({ studentName: s['الاسم'].trim(), status: st });
+                if (currentClass === 'الخدام') {
+                    records.push({ uncle_id: s.id, status: st });
+                } else {
+                    records.push({ studentName: s['الاسم'].trim(), status: st });
+                }
             });
             if (!records.length) { if (btn) btn.disabled = false; updateSaveBtns(); return; }
 
-            makeApiCall({ action: 'submitAttendance', className: currentClass, attendanceData: JSON.stringify(records), date }, r => {
+            const actionName = (currentClass === 'الخدام') ? 'submitUncleAttendance' : 'submitAttendance';
+            makeApiCall({ action: actionName, className: currentClass, attendanceData: JSON.stringify(records), date }, r => {
                 if (r.offline) {
                     showToast(r.message || 'التغييرات محفوظة محلياً وستُرفع عند عودة الإنترنت', 'warning', { dur: 6000 });
                     markAttendanceAsOfflineSaved(date);
@@ -16580,14 +16688,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     updateSaveBtns();
                     return;
                 }
-                showToast(`تم حفظ ${records.length} طفل`, 'success', { dur: 7000, refresh: true });
+                const successMsg = (currentClass === 'الخدام') ? `تم حفظ حضور ${records.length} خادم` : `تم حفظ ${records.length} طفل`;
+                showToast(successMsg, 'success', { dur: 7000, refresh: true });
                 changedStudents.forEach(id => { savedStudents.add(id); originalAttendanceData[id] = attendanceData[id] || 'pending'; });
                 changedStudents.clear();
                 localStorage.removeItem(`changedStudents_${currentClass}_${date}`);
                 saveAttendanceDataForClass(currentClass, date);
                 localStorage.removeItem(`offlineSavedAttendance_${currentClass}_${date}`);
                 updateAbsentData(); renderAttendanceList(currentClass); updateSaveBtns();
-                _sendSyncCompletePush(records.length, 'attendance');
+                _sendSyncCompletePush(records.length, (currentClass === 'الخدام') ? 'uncle_attendance' : 'attendance');
                 setTimeout(loadData, 1200);
             }, e => { showToast('فشل الحفظ: ' + e, 'error'); if (btn) btn.disabled = false; updateSaveBtns(); });
         }
@@ -16646,17 +16755,29 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         // ── STUDENT DETAILS ───────────────────────────────────────────
         function showStudentDetails(name) {
-            const s = isCombinedView
-                ? (combinedStudents.find(s => s['الاسم'] === name) || students.find(s => s['الاسم'] === name))
-                : students.find(s => s['الاسم'] === name);
-            if (!s) { showToast('لم يتم العثور على الطفل', 'error'); return; }
+            const s = (currentClass === 'الخدام')
+                ? (window.allUnclesData || []).find(u => u['الاسم'] === name)
+                : (isCombinedView
+                    ? (combinedStudents.find(s => s['الاسم'] === name) || students.find(s => s['الاسم'] === name))
+                    : students.find(s => s['الاسم'] === name));
+            if (!s) { showToast('لم يتم العثور على الشخص', 'error'); return; }
             currentStudentForEdit = s;
-            document.getElementById('studentModalTitle').textContent = 'معلومات: ' + name;
+            document.getElementById('studentModalTitle').textContent = s._isUncle ? 'معلومات الخادم: ' + name : 'معلومات: ' + name;
             const gender = (s['النوع'] === 'female' || s['gender'] === 'female') ? 'female' : 'male';
             // Basic avatar + header (kept from local cache)
             const img = s['صورة']
-                ? `<div class="detail-avatar-wrap"><img src="${s['صورة']}" class="detail-avatar" onclick="showImageModal('${s['صورة']}')" onerror="this.style.display='none';var el=document.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-student-name">${s['الاسم'] || ''}</div><div class="detail-student-class">${s['الفصل'] || ''}</div></div>`
+                ? `<div class="detail-avatar-wrap"><img src="${window.photoUrl(s['صورة'])}" class="detail-avatar" onclick="showImageModal('${s['صورة']}')" onerror="this.style.display='none';var el=document.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-student-name">${s['الاسم'] || ''}</div><div class="detail-student-class">${s['الفصل'] || ''}</div></div>`
                 : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${s['الاسم'] || ''}</div><div class="detail-student-class">${s['الفصل'] || ''}</div></div>`;
+
+            if (s._isUncle) {
+                document.getElementById('studentDetails').innerHTML = img + '<div style="padding:14px;text-align:center;color:var(--text-3)">جارٍ التحميل…</div>';
+                document.getElementById('studentModal').classList.add('active');
+                stopAutoRefresh();
+                const full = (window.allUnclesData || []).find(u => u.id === s.id) || s;
+                currentStudentForEdit = full;
+                buildUncleDetailsFromProfile(full);
+                return;
+            }
 
             // Show a loading stub while we fetch full profile (to get trip_points)
             document.getElementById('studentDetails').innerHTML = img + '<div style="padding:14px;text-align:center;color:var(--text-3)">جارٍ التحميل…</div>';
@@ -17688,6 +17809,200 @@ if ($hasUncleId && $uncleRole === 'uncle')
             document.getElementById('studentDetails').innerHTML = img + rows + siblingHtml + tpHtml + paperExamsHtml + notesHtml;
         }
 
+        function buildUncleDetailsFromProfile(full) {
+            const gender = (full.gender === 'female' || full['النوع'] === 'female') ? 'female' : 'male';
+            const showImgClick = full.image_url ? `onclick="showImageModal('${escJs(full.image_url)}', event)"` : '';
+            const img = full.image_url
+                ? `<div class="detail-avatar-wrap" ${showImgClick}><img src="${full.image_url}" class="detail-avatar"><div class="detail-student-name">${escStr(full.name || '')}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div>`
+                : `<div class="detail-avatar-wrap" ${showImgClick}><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${escStr(full.name || '')}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div>`;
+
+            const roleLabels = {
+                'admin': 'مسؤول (Admin)',
+                'developer': 'مطور (Developer)',
+                'dev': 'مطور (Developer)',
+                'uncle': 'خادم (Uncle)',
+                'servant': 'خادم (Uncle)'
+            };
+            const roleKey = String(full.role || '').toLowerCase();
+            const roleLabel = roleLabels[roleKey] || 'خادم (Uncle)';
+
+            let rowsList = [
+                ['معرّف الخادم (ID)', String(full.id), 'blue', 'fa-fingerprint', String(full.id)],
+                ['الاسم الكامل', full.name || '---', 'blue', 'fa-id-card', full.name || '---'],
+                ['اسم المستخدم', full.username || '---', 'orange', 'fa-user-tag', full.username || '---'],
+                ['النوع', (full.gender === 'female' ? 'خادمة' : 'خادم'), 'purple', 'fa-venus-mars', (full.gender === 'female' ? 'خادمة' : 'خادم')],
+                ['الدور / الصلاحية', roleLabel, 'red', 'fa-user-shield', roleLabel],
+                ['رقم التليفون', full.phone || '---', 'green', 'fa-phone', full.phone || '---'],
+            ];
+
+            let rows = rowsList.map(([l, v, color, icon, copyVal]) => `
+        <div class="detail-row">
+            <div class="detail-icon ${color}"><i class="fas ${icon}"></i></div>
+            <div class="detail-label">${l}</div>
+            <div class="detail-val copy-holdable" data-copy-text="${escAttr(copyVal || v)}">${v}</div>
+        </div>`).join('');
+
+            let fees = [];
+            try {
+                const info = full._customInfo || (full.custom_info ? (typeof full.custom_info === 'string' ? JSON.parse(full.custom_info) : full.custom_info) : {});
+                fees = info._fees || [];
+            } catch(e) { fees = []; }
+
+            const arabicMonths = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+            const suggestions = [];
+            const d = new Date();
+            for (let i = 0; i < 3; i++) {
+                const m = d.getMonth() - i;
+                const y = d.getFullYear() + (m < 0 ? -1 : 0);
+                const monthIndex = (m + 12) % 12;
+                suggestions.push(`اشتراك شهر ${arabicMonths[monthIndex]} ${y}`);
+            }
+
+            const suggestionBadges = suggestions.map(sug => `
+                <span class="suggestion-badge" onclick="document.getElementById('newFeeTitle').value='${sug}'" 
+                      style="cursor:pointer; display:inline-block; padding:3px 8px; font-size:0.7rem; font-weight:700; background:var(--surface-3); border:1px solid var(--border-solid); border-radius:12px; margin-inline-end:4px; margin-bottom:6px; color:var(--text-2); transition:all 0.2s;"
+                      onmouseover="this.style.background='var(--brand)';this.style.color='white'"
+                      onmouseout="this.style.background='var(--surface-3)';this.style.color='var(--text-2)'">
+                    ${sug}
+                </span>
+            `).join('');
+
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            let feesHtml = `
+            <div class="uncle-fees-section" style="margin-top:16px; border-top:1px solid var(--border); padding-top:16px;">
+                <h4 style="font-size:0.95rem; font-weight:700; color:var(--primary); margin:0 0 12px 0; display:flex; align-items:center; gap:6px;">
+                    <i class="fas fa-money-bill-wave"></i> الاشتراكات الشهرية للخدمة (${fees.length})
+                </h4>
+                
+                <div class="glass-card" style="padding:12px; border:1px solid var(--border-solid); border-radius:12px; margin-bottom:16px; background:rgba(255,255,255,0.03);">
+                    <div style="font-size:0.78rem; font-weight:700; color:var(--text-2); margin-bottom:6px;">تسجيل اشتراك جديد:</div>
+                    <div style="margin-bottom:8px;">${suggestionBadges}</div>
+                    
+                    <div style="display:flex; flex-direction:column; gap:8px;">
+                        <div style="display:flex; gap:8px;">
+                            <input type="text" id="newFeeTitle" class="form-input" style="flex:1; height:36px; font-size:0.8rem;" placeholder="اسم الاشتراك (مثال: اشتراك شهر يناير)">
+                            <input type="number" id="newFeeAmount" class="form-input" style="width:90px; height:36px; font-size:0.8rem; text-align:center;" placeholder="المبلغ">
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <input type="text" id="newFeeDesc" class="form-input" style="flex:1; height:36px; font-size:0.8rem;" placeholder="ملاحظات (اختياري)">
+                            <input type="date" id="newFeeDate" class="form-input" style="width:130px; height:36px; font-size:0.8rem; font-family:Cairo,sans-serif;" value="${todayStr}">
+                        </div>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="saveUncleFee(${full.id})" style="width:100%; height:36px; display:flex; align-items:center; justify-content:center; gap:6px;">
+                            <i class="fas fa-plus"></i> إضافة الاشتراك
+                        </button>
+                    </div>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:8px; max-height:250px; overflow-y:auto; padding-inline-end:4px;">
+                    ${fees.length === 0 ? `
+                        <div style="text-align:center; padding:20px; color:var(--muted); font-size:0.78rem; font-style:italic;">
+                            لا توجد اشتراكات مسجلة.
+                        </div>
+                    ` : fees.map(fee => `
+                        <div class="glass-card" style="padding:10px 12px; border:1px solid var(--border-solid); border-radius:10px; display:flex; align-items:center; justify-content:space-between; gap:8px; background:rgba(255,255,255,0.01);">
+                            <div style="flex:1;">
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <span style="font-weight:700; font-size:0.82rem; color:var(--text);">${escHtml(fee.title)}</span>
+                                    <span style="background:var(--brand); color:white; font-size:0.7rem; font-weight:800; padding:2px 6px; border-radius:10px;">${fee.amount} ج.م</span>
+                                </div>
+                                <div style="font-size:0.72rem; color:var(--text-3); margin-top:2px;">
+                                    <span>التاريخ: ${fee.date}</span>
+                                    ${fee.description ? `<span style="margin-inline-start:8px; color:var(--text-2);">| ${escHtml(fee.description)}</span>` : ''}
+                                </div>
+                                <div style="font-size:0.65rem; color:var(--muted); margin-top:2px; opacity:0.8;">
+                                    المستلم: ${escHtml(fee.created_by || '---')} (${fee.created_at || ''})
+                                </div>
+                            </div>
+                            <button class="btn btn-ghost" style="padding:6px; color:var(--danger); font-size:0.8rem;" onclick="deleteUncleFee(${full.id}, '${fee.id}')" title="حذف الاشتراك">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    `).reverse().join('')}
+                </div>
+            </div>
+            `;
+
+            document.getElementById('studentDetails').innerHTML = img + rows + feesHtml;
+        }
+
+        async function saveUncleFee(uncleId) {
+            const title = document.getElementById('newFeeTitle').value.trim();
+            const amount = parseFloat(document.getElementById('newFeeAmount').value);
+            const description = document.getElementById('newFeeDesc').value.trim();
+            const date = document.getElementById('newFeeDate').value;
+
+            if (!title || isNaN(amount) || amount <= 0) {
+                showToast('الرجاء إدخال اسم الاشتراك وقيمة صحيحة أكبر من الصفر', 'error');
+                return;
+            }
+
+            const fd = new FormData();
+            fd.append('action', 'addUncleFee');
+            fd.append('uncleId', uncleId);
+            fd.append('title', title);
+            fd.append('amount', amount);
+            fd.append('description', description);
+            fd.append('date', date);
+
+            try {
+                const r = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(res => res.json());
+                if (r.success) {
+                    showToast(r.message || 'تم إضافة الاشتراك بنجاح', 'success');
+                    
+                    const uncle = (window.allUnclesData || []).find(u => u.id === uncleId);
+                    if (uncle) {
+                        if (!uncle._customInfo) uncle._customInfo = {};
+                        if (!uncle._customInfo._fees) uncle._customInfo._fees = [];
+                        uncle._customInfo._fees.push({
+                            id: r.feeId || ('fee_' + Math.random().toString(36).substr(2, 9)),
+                            title: title,
+                            amount: amount,
+                            description: description,
+                            date: date,
+                            created_by: window.currentUncle?.name || 'أدمن',
+                            created_at: new Date().toISOString().replace('T', ' ').substr(0, 19)
+                        });
+                        uncle.custom_info = JSON.stringify(uncle._customInfo);
+                        buildUncleDetailsFromProfile(uncle);
+                    }
+                    setTimeout(loadData, 500);
+                } else {
+                    showToast(r.message || 'فشل في إضافة الاشتراك', 'error');
+                }
+            } catch(e) {
+                showToast('خطأ في الاتصال بالسيرفر', 'error');
+            }
+        }
+
+        async function deleteUncleFee(uncleId, feeId) {
+            if (!confirm('هل أنت متأكد من حذف هذا الاشتراك؟')) return;
+
+            const fd = new FormData();
+            fd.append('action', 'deleteUncleFee');
+            fd.append('uncleId', uncleId);
+            fd.append('feeId', feeId);
+
+            try {
+                const r = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(res => res.json());
+                if (r.success) {
+                    showToast(r.message || 'تم حذف الاشتراك', 'success');
+                    
+                    const uncle = (window.allUnclesData || []).find(u => u.id === uncleId);
+                    if (uncle && uncle._customInfo && Array.isArray(uncle._customInfo._fees)) {
+                        uncle._customInfo._fees = uncle._customInfo._fees.filter(f => f.id !== feeId);
+                        uncle.custom_info = JSON.stringify(uncle._customInfo);
+                        buildUncleDetailsFromProfile(uncle);
+                    }
+                    setTimeout(loadData, 500);
+                } else {
+                    showToast(r.message || 'فشل الحذف', 'error');
+                }
+            } catch(e) {
+                showToast('خطأ في الاتصال بالسيرفر', 'error');
+            }
+        }
+
         // Open a small prompt to update points for a given trip and student
         function openPointsEditor(tripId, studentId) {
             const amount = prompt('أدخل قيمة (إيجابية للإضافة، سلبية للطرح) أو ضع =n لتعيين مباشرة. مثال: 5  -2  =10', '1');
@@ -17721,6 +18036,39 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function showEditForm() {
             if (!currentStudentForEdit) return;
             const s = currentStudentForEdit;
+            const isUncle = !!s._isUncle;
+
+            // Set modal title
+            const titleEl = document.getElementById('editStudentModalTitle');
+            if (titleEl) {
+                titleEl.textContent = isUncle ? 'تعديل بيانات الخادم' : 'تعديل بيانات الطفل';
+            }
+
+            // Toggle field visibility
+            const studentGroupIds = [
+                'editClassGroup',
+                'editEmergencyPhoneGroup',
+                'editMedicalNotesGroup',
+                'editBirthdayGroup',
+                'editCommitmentCouponsGroup',
+                'editCustomFieldsContainer'
+            ];
+            studentGroupIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = isUncle ? 'none' : '';
+            });
+
+            const uncleEditFields = document.getElementById('uncleEditFields');
+            if (uncleEditFields) {
+                uncleEditFields.style.display = isUncle ? 'block' : 'none';
+            }
+
+            if (isUncle) {
+                document.getElementById('editUncleUsername').value = s.username || '';
+                document.getElementById('editUncleRole').value = s.role || 'uncle';
+                document.getElementById('editUnclePassword').value = '';
+            }
+
             const cs = document.getElementById('editStudentClass');
             cs.innerHTML = '<option value="">اختر الفصل</option>';
             classes.forEach(c => { const o = document.createElement('option'); o.value = c.id || c.code; o.textContent = c.arabic_name || c.code; cs.appendChild(o); });
@@ -17761,7 +18109,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             // Custom fields (multiple)
             const cfContainer = document.getElementById('editCustomFieldsContainer');
             if (cfContainer) {
-                if (churchCustomFields && churchCustomFields.length) {
+                if (churchCustomFields && churchCustomFields.length && !isUncle) {
                     const info = s._customInfo || {};
                     cfContainer.innerHTML = churchCustomFields.map((cf, idx) => {
                         const key = 'field_' + idx;
@@ -17782,9 +18130,41 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function hideEditForm() { document.getElementById('editStudentForm').classList.remove('active'); }
         function updateStudentInfo(e) {
             e.preventDefault(); if (!currentStudentForEdit) return;
-            const id = getStudentDbId(currentStudentForEdit); if (!id) { showToast('خطأ في بيانات الطفل', 'error'); return; }
-            const name = document.getElementById('editStudentName').value.trim(), cls = document.getElementById('editStudentClass').value;
-            if (!name || !cls) { showToast('الاسم والفصل مطلوبان', 'error'); return; }
+            const id = getStudentDbId(currentStudentForEdit); if (!id) { showToast('خطأ في البيانات', 'error'); return; }
+            const name = document.getElementById('editStudentName').value.trim();
+            if (!name) { showToast('الاسم مطلوب', 'error'); return; }
+
+            const isUncle = !!currentStudentForEdit._isUncle;
+            if (isUncle) {
+                const username = document.getElementById('editUncleUsername').value.trim();
+                const role = document.getElementById('editUncleRole').value;
+                const newPassword = document.getElementById('editUnclePassword').value;
+                if (!username) { showToast('اسم المستخدم مطلوب', 'error'); return; }
+
+                const updatePayload = {
+                    action: 'updateUncle',
+                    uncle_id: id,
+                    name: name,
+                    username: username,
+                    new_password: newPassword,
+                    role: role,
+                    gender: document.getElementById('editStudentGender').value,
+                    phone: document.getElementById('editStudentPhone').value.trim(),
+                    classes: JSON.stringify(currentStudentForEdit.classes || [])
+                };
+
+                showLoading('جاري التحديث...');
+                makeApiCall(updatePayload, r => {
+                    showToast('تم تحديث بيانات الخادم بنجاح', 'success');
+                    hideEditForm();
+                    hideStudentModal();
+                    setTimeout(loadData, 1000);
+                }, e => showToast('فشل: ' + e, 'error'));
+                return;
+            }
+
+            const cls = document.getElementById('editStudentClass').value;
+            if (!cls) { showToast('الفصل مطلوب للطفل', 'error'); return; }
             const cfContainer = document.getElementById('editCustomFieldsContainer');
             const existingInfo = (currentStudentForEdit && currentStudentForEdit._customInfo)
                 ? { ...currentStudentForEdit._customInfo } : {};
@@ -17855,9 +18235,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function hideDeleteStudentModal() { studentToDelete = null; document.getElementById('deleteStudentModal').classList.remove('active'); }
         function deleteStudent() {
             if (!studentToDelete) return;
-            const id = getStudentDbId(studentToDelete); if (!id) { showToast('معرف الطفل غير موجود', 'error'); return; }
+            const id = getStudentDbId(studentToDelete); if (!id) { showToast('المعرف غير موجود', 'error'); return; }
             showLoading('جاري الحذف...');
-            makeApiCall({ action: 'deleteStudent', studentId: id }, r => { showToast('تم الحذف بنجاح', 'success'); hideDeleteStudentModal(); hideStudentModal(); setTimeout(loadData, 1000); }, e => { showToast('فشل: ' + e, 'error'); hideDeleteStudentModal(); });
+            const isUncle = !!studentToDelete._isUncle;
+            const deletePayload = isUncle 
+                ? { action: 'deleteUncle', uncle_id: id }
+                : { action: 'deleteStudent', studentId: id };
+            makeApiCall(deletePayload, r => { showToast('تم الحذف بنجاح', 'success'); hideDeleteStudentModal(); hideStudentModal(); setTimeout(loadData, 1000); }, e => { showToast('فشل: ' + e, 'error'); hideDeleteStudentModal(); });
         }
 
         // ── MODALS ────────────────────────────────────────────────────
@@ -18716,6 +19100,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         function getActiveViewStudents() {
+            if (currentClass === 'الخدام') return window.allUnclesData || [];
             if (isCombinedView) return combinedStudents || [];
             if (currentClass && currentClass !== '__ALL__') return students.filter(s => s['الفصل'] === currentClass);
             return (allStudentsData && allStudentsData.length) ? allStudentsData : students;
@@ -18926,6 +19311,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' })); a.download = filename + '.csv'; a.click(); URL.revokeObjectURL(a.href);
         }
         function getCustomExportDefaultFields() {
+            if (currentClass === 'الخدام') {
+                return [
+                    { key: 'id', label: 'كود الخادم (ID)', type: 'id', selected: true },
+                    { key: 'photo', label: 'الصورة', type: 'photo', selected: false },
+                    { key: 'name', label: 'الاسم', source: 'الاسم', selected: true },
+                    { key: 'username', label: 'اسم المستخدم', source: 'username', selected: true },
+                    { key: 'role', label: 'الصلاحية / الدور', type: 'role', selected: true },
+                    { key: 'gender', label: 'النوع', type: 'gender', source: 'النوع', selected: false },
+                    { key: 'phone', label: 'رقم التليفون', source: 'رقم التليفون', selected: true },
+                    { key: 'fees', label: 'الاشتراكات الشهرية', type: 'fees', selected: true },
+                ];
+            }
             const fields = [
                 { key: 'id', label: 'كود الطفل (ID)', type: 'id', selected: true },
                 { key: 'photo', label: 'الصورة', type: 'photo', selected: false },
@@ -19039,6 +19436,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
             catch (e) { return versioned; }
         }
         function getCustomExportCellValue(s, field, forCsv = false) {
+            if (field.type === 'role') {
+                const roleLabels = {
+                    'admin': 'مسؤول (Admin)',
+                    'developer': 'مطور (Developer)',
+                    'dev': 'مطور (Developer)',
+                    'uncle': 'خادم (Uncle)',
+                    'servant': 'خادم (Uncle)'
+                };
+                return roleLabels[String(s.role || '').toLowerCase()] || 'خادم (Uncle)';
+            }
+            if (field.type === 'fees') {
+                let fees = [];
+                try {
+                    const info = s._customInfo || (s.custom_info ? (typeof s.custom_info === 'string' ? JSON.parse(s.custom_info) : s.custom_info) : {});
+                    fees = info._fees || [];
+                } catch(e) { fees = []; }
+                return fees.map(f => `${f.title}: ${f.amount} ج.م (${f.date})`).join(forCsv ? ' | ' : ' - ');
+            }
             if (field.type === 'id') return getStudentDbId(s) || '';
             if (field.type === 'qrcode') {
                 const studentId = getStudentDbId(s);
@@ -19503,7 +19918,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     if (prev) { prev.src = dataURL; prev.style.display = 'block'; }
                     if (ph) ph.style.display = 'none';
                     closeCropModal();
-                    if (!currentStudentForEdit) { showToast('خطأ: لا يوجد طفل محدد', 'error'); return; }
+                    if (!currentStudentForEdit) { showToast('خطأ: لا يوجد شخص محدد', 'error'); return; }
                     showLoading('جاري الرفع...');
                     const fd = new FormData();
                     fd.append('photo', new File([blob], `profile_${Date.now()}.jpg`, { type: 'image/jpeg' }));
@@ -19511,8 +19926,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     fd.append('studentClass', currentStudentForEdit['الفصل']);
                     fd.append('enhanceImage', 'false');
                     fetch('/upload.php', { method: 'POST', body: fd }).then(r => r.json()).then(d => {
-                        if (d.success) { makeApiCall({ action: 'updateStudentImage', studentId: getStudentDbId(currentStudentForEdit), studentName: currentStudentForEdit['الاسم'], imageUrl: d.imageUrl }, () => { showToast('تم حفظ الصورة', 'success'); const deleteBtn = document.getElementById('deleteStudentPhotoBtn'); if (deleteBtn) deleteBtn.style.display = 'flex'; setTimeout(loadData, 500); }, () => showToast('رُفعت ولكن فشل التحديث', 'warning')); }
-                        else showToast('فشل الرفع: ' + (d.message || ''), 'error');
+                        if (d.success) {
+                            const isUncle = !!currentStudentForEdit._isUncle;
+                            const updatePayload = isUncle 
+                                ? { action: 'updateUncleImage', uncle_id: getStudentDbId(currentStudentForEdit), imageUrl: d.imageUrl }
+                                : { action: 'updateStudentImage', studentId: getStudentDbId(currentStudentForEdit), studentName: currentStudentForEdit['الاسم'], imageUrl: d.imageUrl };
+                            makeApiCall(updatePayload, () => { showToast('تم حفظ الصورة', 'success'); const deleteBtn = document.getElementById('deleteStudentPhotoBtn'); if (deleteBtn) deleteBtn.style.display = 'flex'; setTimeout(loadData, 500); }, () => showToast('رُفعت ولكن فشل التحديث', 'warning'));
+                        } else showToast('فشل الرفع: ' + (d.message || ''), 'error');
                     }).catch(() => showToast('خطأ في الاتصال', 'error'));
                 }, 'image/jpeg', .9);
             } else {
@@ -19533,8 +19953,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const fd = new FormData(); fd.append('photo', new File([currentCroppedBlob], `profile_${Date.now()}.jpg`, { type: 'image/jpeg' })); fd.append('studentName', currentStudentForEdit['الاسم']); fd.append('studentClass', currentStudentForEdit['الفصل']);
             fd.append('enhanceImage', 'false');
             fetch('/upload.php', { method: 'POST', body: fd }).then(r => r.json()).then(d => {
-                if (d.success) { makeApiCall({ action: 'updateStudentImage', studentId: getStudentDbId(currentStudentForEdit), studentName: currentStudentForEdit['الاسم'], imageUrl: d.imageUrl }, () => { showToast('تم الرفع', 'success'); const deleteBtn = document.getElementById('deleteStudentPhotoBtn'); if (deleteBtn) deleteBtn.style.display = 'flex'; cancelPhotoUpload(); setTimeout(loadData, 500); }, () => showToast('رُفعت ولكن فشل التحديث', 'warning')); }
-                else showToast('فشل الرفع: ' + (d.message || ''), 'error');
+                if (d.success) {
+                    const isUncle = !!currentStudentForEdit._isUncle;
+                    const updatePayload = isUncle 
+                        ? { action: 'updateUncleImage', uncle_id: getStudentDbId(currentStudentForEdit), imageUrl: d.imageUrl }
+                        : { action: 'updateStudentImage', studentId: getStudentDbId(currentStudentForEdit), studentName: currentStudentForEdit['الاسم'], imageUrl: d.imageUrl };
+                    makeApiCall(updatePayload, () => { showToast('تم الرفع', 'success'); const deleteBtn = document.getElementById('deleteStudentPhotoBtn'); if (deleteBtn) deleteBtn.style.display = 'flex'; cancelPhotoUpload(); setTimeout(loadData, 500); }, () => showToast('رُفعت ولكن فشل التحديث', 'warning'));
+                } else showToast('فشل الرفع: ' + (d.message || ''), 'error');
             }).catch(() => showToast('خطأ في الاتصال', 'error'));
         }
         function cancelPhotoUpload() {
@@ -19685,12 +20110,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         async function deleteStudentPhoto(event) {
             if (event) event.stopPropagation();
-            if (!confirm('هل أنت متأكد من حذف صورة الطفل؟')) return;
+            const isUncle = !!currentStudentForEdit?._isUncle;
+            if (!confirm(isUncle ? 'هل أنت متأكد من حذف صورة الخادم؟' : 'هل أنت متأكد من حذف صورة الطفل؟')) return;
             if (!currentStudentForEdit) return;
             const studentId = getStudentDbId(currentStudentForEdit);
             if (!studentId) return;
             showLoading('جاري حذف الصورة...');
-            makeApiCall({ action: 'updateStudentImage', studentId: studentId, imageUrl: '' }, () => {
+            const updatePayload = isUncle 
+                ? { action: 'updateUncleImage', uncle_id: studentId, imageUrl: '' }
+                : { action: 'updateStudentImage', studentId: studentId, imageUrl: '' };
+            makeApiCall(updatePayload, () => {
                 showToast('تم حذف الصورة بنجاح', 'success');
                 const prev = document.getElementById('uploadPreview');
                 const ph = document.getElementById('photoPlaceholder');
@@ -22695,9 +23124,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const fields = [
                 { val: student['الاسم'] || student['name'], weight: 1.0 },
                 { val: student['الفصل'] || student['class'] || student['class_name'], weight: 0.7 },
-                { val: student['_studentId'] || student['id'] || student['معرف'] || student['id_student'], weight: 1.1 },
+                { val: student['_studentId'] || student['id'] || student['معرف'] || student['id_student'] || student['uncle_id'], weight: 1.1 },
                 { val: student['رقم التليفون'] || student['phone'], weight: 1.1 },
-                { val: student['تليفون الطوارئ'] || student['emergency_phone'], weight: 1.1 }
+                { val: student['تليفون الطوارئ'] || student['emergency_phone'], weight: 1.1 },
+                { val: student['username'], weight: 1.0 }
             ];
 
             fields.forEach(field => {
