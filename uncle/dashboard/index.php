@@ -9934,9 +9934,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <button class="close-btn" onclick="hideAccountModal()">&times;</button>
             </div>
             <div class="account-avatar-section">
-                <div class="account-avatar-circle-wrap" onclick="document.getElementById('unclePhotoInput').click()">
-                    <img src="" alt="" class="account-big-avatar" id="accountBigAvatar">
-                    <div class="account-avatar-plus"><i class="fas fa-plus"></i></div>
+                <div style="position:relative; display:inline-block;">
+                    <div class="account-avatar-circle-wrap" onclick="document.getElementById('unclePhotoInput').click()">
+                        <img src="" alt="" class="account-big-avatar" id="accountBigAvatar">
+                        <div class="account-avatar-plus"><i class="fas fa-plus"></i></div>
+                    </div>
+                    <button type="button" id="deleteAccountPhotoBtn" onclick="deleteAccountPhoto(event)" style="display:none; position:absolute; top:-4px; right:-4px; background:var(--danger); color:white; border:none; border-radius:50%; width:28px; height:28px; cursor:pointer; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;"><i class="fas fa-trash-alt" style="font-size:0.8rem;"></i></button>
                 </div>
                 <div class="account-name" id="accountDisplayName">---</div>
                 <div class="account-role" id="accountDisplayRole">---</div>
@@ -10584,12 +10587,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <i class="fas fa-camera"></i>
                         </div>
                         <div style="min-width:0; flex:1;">
-                            <h4 style="margin:0 0 2px 0; font-size:0.9rem; font-weight:800; color:var(--text-1); font-family: 'Baloo Bhaijaan 2', sans-serif;">أضف صورتك الشخصية يا خادم</h4>
-                            <p style="margin:0; font-size:0.78rem; color:var(--text-3); line-height:1.3; font-family: 'Baloo Bhaijaan 2', sans-serif; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">اضغط هنا لتحديث صورتك وتسهيل التعرف عليك في لوحة الإدارة</p>
+                            <h4 style="margin:0 0 2px 0; font-size:0.9rem; font-weight:800; color:var(--text-1); font-family: 'Cairo', sans-serif;">أضف صورتك الشخصية</h4>
+                            <p style="margin:0; font-size:0.78rem; color:var(--text-3); line-height:1.3; font-family: 'Cairo', sans-serif; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">اضغط هنا لتحديث صورتك</p>
                         </div>
                     </div>
                     <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
-                        <button onclick="showAccountModal()" style="font-size:0.75rem; font-weight:800; padding:6px 12px; background:var(--brand); color:#fff; border:none; border-radius:8px; cursor:pointer; font-family: 'Baloo Bhaijaan 2', sans-serif;">إضافة الآن</button>
+                        <button onclick="showAccountModal()" style="font-size:0.75rem; font-weight:800; padding:6px 12px; background:var(--brand); color:#fff; border:none; border-radius:8px; cursor:pointer; font-family: 'Cairo', sans-serif;">إضافة الآن</button>
                         <button onclick="dismissProfilePicSuggestion()" style="background:none; border:none; color:var(--text-3); cursor:pointer; padding:4px 6px; font-size:0.9rem;" title="إغلاق"><i class="fas fa-times"></i></button>
                     </div>
                 </div>
@@ -11173,14 +11176,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="form-group">
                     <label class="form-label">الصورة الشخصية</label>
                     <div class="photo-editor-section">
-                        <div class="photo-circle-wrap" id="photoUploadArea"
-                            onclick="document.getElementById('photoInput').click()">
-                            <img id="uploadPreview" class="photo-circle-img upload-preview" src="" alt=""
-                                style="display:none">
-                            <div class="photo-circle-placeholder" id="photoPlaceholder"><i class="fas fa-user"></i>
+                        <div style="position:relative; display:inline-block;">
+                            <div class="photo-circle-wrap" id="photoUploadArea"
+                                onclick="document.getElementById('photoInput').click()">
+                                <img id="uploadPreview" class="photo-circle-img upload-preview" src="" alt=""
+                                    style="display:none">
+                                <div class="photo-circle-placeholder" id="photoPlaceholder"><i class="fas fa-user"></i>
+                                </div>
+                                <div class="photo-circle-plus"><i class="fas fa-plus"></i></div>
+                                <input type="file" id="photoInput" accept="image/*" style="display:none">
                             </div>
-                            <div class="photo-circle-plus"><i class="fas fa-plus"></i></div>
-                            <input type="file" id="photoInput" accept="image/*" style="display:none">
+                            <button type="button" id="deleteStudentPhotoBtn" onclick="deleteStudentPhoto(event)" style="display:none; position:absolute; top:-4px; right:-4px; background:var(--danger); color:white; border:none; border-radius:50%; width:28px; height:28px; cursor:pointer; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;"><i class="fas fa-trash-alt" style="font-size:0.8rem;"></i></button>
                         </div>
                         <div id="uploadControls" style="display:none"></div>
                     </div>
@@ -12824,6 +12830,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             document.getElementById('uncleProfileNewPassword').value = '';
             const av = document.getElementById('accountBigAvatar');
             av.src = window.photoUrl(u.image_url || 'https://sunday-school.online/profile_default..webp');
+            const deleteBtn = document.getElementById('deleteAccountPhotoBtn');
+            if (deleteBtn) {
+                deleteBtn.style.display = u.image_url ? 'flex' : 'none';
+            }
             hideAccountEditForm();
             document.getElementById('accountModal').classList.add('active');
             stopAutoRefresh();
@@ -17648,13 +17658,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const prev = document.getElementById('uploadPreview');
             const ph = document.getElementById('photoPlaceholder');
             const photoVal = s.image_url || s['صورة'] || '';
+            const deleteBtn = document.getElementById('deleteStudentPhotoBtn');
             if (photoVal && prev) {
                 prev.src = (typeof window.photoUrl === 'function' && !photoVal.startsWith('http') && !photoVal.startsWith('/')) ? window.photoUrl(photoVal) : photoVal;
                 prev.style.display = 'block';
                 if (ph) ph.style.display = 'none';
+                if (deleteBtn) deleteBtn.style.display = 'flex';
             } else {
                 if (prev) prev.style.display = 'none';
                 if (ph) ph.style.display = 'flex';
+                if (deleteBtn) deleteBtn.style.display = 'none';
             }
             // Custom fields (multiple)
             const cfContainer = document.getElementById('editCustomFieldsContainer');
@@ -19409,7 +19422,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     fd.append('studentClass', currentStudentForEdit['الفصل']);
                     fd.append('enhanceImage', 'false');
                     fetch('/upload.php', { method: 'POST', body: fd }).then(r => r.json()).then(d => {
-                        if (d.success) { makeApiCall({ action: 'updateStudentImage', studentId: getStudentDbId(currentStudentForEdit), studentName: currentStudentForEdit['الاسم'], imageUrl: d.imageUrl }, () => { showToast('تم حفظ الصورة', 'success'); setTimeout(loadData, 500); }, () => showToast('رُفعت ولكن فشل التحديث', 'warning')); }
+                        if (d.success) { makeApiCall({ action: 'updateStudentImage', studentId: getStudentDbId(currentStudentForEdit), studentName: currentStudentForEdit['الاسم'], imageUrl: d.imageUrl }, () => { showToast('تم حفظ الصورة', 'success'); const deleteBtn = document.getElementById('deleteStudentPhotoBtn'); if (deleteBtn) deleteBtn.style.display = 'flex'; setTimeout(loadData, 500); }, () => showToast('رُفعت ولكن فشل التحديث', 'warning')); }
                         else showToast('فشل الرفع: ' + (d.message || ''), 'error');
                     }).catch(() => showToast('خطأ في الاتصال', 'error'));
                 }, 'image/jpeg', .9);
@@ -19431,7 +19444,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const fd = new FormData(); fd.append('photo', new File([currentCroppedBlob], `profile_${Date.now()}.jpg`, { type: 'image/jpeg' })); fd.append('studentName', currentStudentForEdit['الاسم']); fd.append('studentClass', currentStudentForEdit['الفصل']);
             fd.append('enhanceImage', 'false');
             fetch('/upload.php', { method: 'POST', body: fd }).then(r => r.json()).then(d => {
-                if (d.success) { makeApiCall({ action: 'updateStudentImage', studentId: getStudentDbId(currentStudentForEdit), studentName: currentStudentForEdit['الاسم'], imageUrl: d.imageUrl }, () => { showToast('تم الرفع', 'success'); cancelPhotoUpload(); setTimeout(loadData, 500); }, () => showToast('رُفعت ولكن فشل التحديث', 'warning')); }
+                if (d.success) { makeApiCall({ action: 'updateStudentImage', studentId: getStudentDbId(currentStudentForEdit), studentName: currentStudentForEdit['الاسم'], imageUrl: d.imageUrl }, () => { showToast('تم الرفع', 'success'); const deleteBtn = document.getElementById('deleteStudentPhotoBtn'); if (deleteBtn) deleteBtn.style.display = 'flex'; cancelPhotoUpload(); setTimeout(loadData, 500); }, () => showToast('رُفعت ولكن فشل التحديث', 'warning')); }
                 else showToast('فشل الرفع: ' + (d.message || ''), 'error');
             }).catch(() => showToast('خطأ في الاتصال', 'error'));
         }
@@ -19546,10 +19559,62 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         try { localStorage.setItem('uncleImageUrl', d.imageUrl); } catch (e) { } // store raw URL
                         const banner = document.getElementById('profilePicSuggestionBanner');
                         if (banner) banner.style.display = 'none';
+                        const deleteBtn = document.getElementById('deleteAccountPhotoBtn');
+                        if (deleteBtn) deleteBtn.style.display = 'flex';
                     }, () => showToast('فشل التحديث', 'error'));
                 }
                 else showToast('فشل الرفع', 'error');
             }).catch(() => showToast('خطأ', 'error'));
+        }
+
+        async function deleteAccountPhoto(event) {
+            if (event) event.stopPropagation();
+            if (!confirm('هل أنت متأكد من حذف الصورة الشخصية؟')) return;
+            showLoading('جاري حذف الصورة...');
+            makeApiCall({ action: 'updateUncleImage', imageUrl: '' }, () => {
+                showToast('تم حذف الصورة بنجاح', 'success');
+                const av = document.getElementById('uncleAvatar');
+                if (av) av.style.display = 'none';
+                const ini = document.getElementById('uncleInitials');
+                if (ini && window.currentUncle) {
+                    ini.textContent = _getInitials(window.currentUncle.name || '');
+                    ini.style.display = 'flex';
+                }
+                const bav = document.getElementById('accountBigAvatar');
+                if (bav) bav.src = 'https://sunday-school.online/profile_default..webp';
+                if (window.currentUncle) window.currentUncle.image_url = '';
+                try { localStorage.removeItem('uncleImageUrl'); } catch (e) { }
+                const deleteBtn = document.getElementById('deleteAccountPhotoBtn');
+                if (deleteBtn) deleteBtn.style.display = 'none';
+                // Show banner again if it wasn't dismissed
+                const banner = document.getElementById('profilePicSuggestionBanner');
+                if (banner && localStorage.getItem('dismissProfilePicSuggestion') !== 'true') {
+                    banner.style.display = 'flex';
+                }
+            }, () => showToast('فشل حذف الصورة', 'error'));
+        }
+
+        async function deleteStudentPhoto(event) {
+            if (event) event.stopPropagation();
+            if (!confirm('هل أنت متأكد من حذف صورة الطفل؟')) return;
+            if (!currentStudentForEdit) return;
+            const studentId = getStudentDbId(currentStudentForEdit);
+            if (!studentId) return;
+            showLoading('جاري حذف الصورة...');
+            makeApiCall({ action: 'updateStudentImage', studentId: studentId, imageUrl: '' }, () => {
+                showToast('تم حذف الصورة بنجاح', 'success');
+                const prev = document.getElementById('uploadPreview');
+                const ph = document.getElementById('photoPlaceholder');
+                if (prev) prev.style.display = 'none';
+                if (ph) ph.style.display = 'flex';
+                const deleteBtn = document.getElementById('deleteStudentPhotoBtn');
+                if (deleteBtn) deleteBtn.style.display = 'none';
+                if (currentStudentForEdit) {
+                    currentStudentForEdit.image_url = '';
+                    currentStudentForEdit['صورة'] = '';
+                }
+                setTimeout(loadData, 500);
+            }, () => showToast('فشل حذف الصورة', 'error'));
         }
 
         // ── CLASS UNCLES ──────────────────────────────────────────────

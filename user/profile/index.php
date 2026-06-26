@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
   <title id="pageTitle">بوابة الطفل</title>
   <meta name="theme-color" content="#4f46e5">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&display=swap"
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&family=Cairo:wght@300;400;600;700;800&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
@@ -4222,9 +4222,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       </div>
     </div>
     <div class="hero-body">
-      <div class="avatar-ring" id="avatarRing">
-        <div class="avatar-inner" id="avatarInner"><i class="fas fa-user"></i></div>
-        <div class="avatar-edit-fab" id="avatarEdit" onclick="openOv('photoOv')"><i class="fas fa-camera"></i></div>
+      <div style="position:relative; display:inline-block;">
+        <div class="avatar-ring" id="avatarRing">
+          <div class="avatar-inner" id="avatarInner"><i class="fas fa-user"></i></div>
+          <div class="avatar-edit-fab" id="avatarEdit" onclick="openOv('photoOv')"><i class="fas fa-camera"></i></div>
+        </div>
+        <button type="button" id="deleteStudentPhotoBtn" onclick="deleteStudentPhoto(event)" style="display:none; position:absolute; top:-4px; right:-4px; background:var(--err); color:white; border:none; border-radius:50%; width:28px; height:28px; cursor:pointer; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;"><i class="fas fa-trash-alt" style="font-size:0.8rem;"></i></button>
       </div>
       <div class="hero-name" id="heroName">—</div>
       <div class="hero-tags" id="heroTags">
@@ -4271,6 +4274,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
   <!-- Page -->
   <div class="page" id="mainPage" style="display:none">
+
+    <!-- Profile picture suggestion banner -->
+    <div id="profilePicSuggestionBanner" style="display:none; background: linear-gradient(135deg, var(--brand-bg), rgba(79, 70, 229, 0.15)); border: 1px solid var(--brand); padding: 12px 16px; border-radius: 12px; margin-bottom: 12px; align-items: center; justify-content: space-between; gap: 12px; direction: rtl; text-align: right; position: relative;">
+        <div style="display:flex; align-items:center; gap:10px; min-width:0; flex:1;">
+            <div style="background:var(--brand); color:#fff; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                <i class="fas fa-camera"></i>
+            </div>
+            <div style="min-width:0; flex:1;">
+                <h4 style="margin:0 0 2px 0; font-size:0.9rem; font-weight:800; color:var(--t1); font-family: 'Cairo', sans-serif;">أضف صورتك الشخصية</h4>
+                <p style="margin:0; font-size:0.78rem; color:var(--t3); line-height:1.3; font-family: 'Cairo', sans-serif; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">اضغط هنا لتحديث صورتك</p>
+            </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+            <button onclick="openOv('photoOv')" style="font-size:0.75rem; font-weight:800; padding:6px 12px; background:var(--brand); color:#fff; border:none; border-radius:8px; cursor:pointer; font-family: 'Cairo', sans-serif;">إضافة الآن</button>
+            <button onclick="dismissProfilePicSuggestion()" style="background:none; border:none; color:var(--t3); cursor:pointer; padding:4px 6px; font-size:0.9rem;" title="إغلاق"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
 
     <!-- Announcement notification banner -->
     <div class="ann-banner-wrap" id="scAnnBanner" style="display:none;">
@@ -6098,9 +6118,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       }
       if (s.image_url) {
         document.getElementById('avatarInner').innerHTML = `<img src="${esc(s.image_url)}" alt="${esc(s.name)}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user\\'></i>'">`;
+      } else {
+        document.getElementById('avatarInner').innerHTML = `<i class="fas fa-user"></i>`;
       }
       if (!isPrivate) {
         document.getElementById('avatarEdit').style.display = 'none';
+      } else {
+        document.getElementById('avatarEdit').style.display = 'flex';
+      }
+      const deleteBtn = document.getElementById('deleteStudentPhotoBtn');
+      if (deleteBtn) {
+        deleteBtn.style.display = (s.image_url && isPrivate) ? 'flex' : 'none';
+      }
+      const banner = document.getElementById('profilePicSuggestionBanner');
+      if (banner) {
+        if (!s.image_url && isPrivate && localStorage.getItem('dismissProfilePicSuggestion') !== 'true') {
+          banner.style.display = 'flex';
+        } else {
+          banner.style.display = 'none';
+        }
       }
       // Populate settings sheet
       const ssN = document.getElementById('ssName');
@@ -8045,6 +8081,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         if (fresh.success && (fresh.student || fresh.user)) student = norm(fresh.student || fresh.user);
         hideLoad();
         document.getElementById('avatarInner').innerHTML = `<img src="${savedUrl}?t=${Date.now()}" alt="">`;
+        const deleteBtn = document.getElementById('deleteStudentPhotoBtn');
+        if (deleteBtn) deleteBtn.style.display = 'flex';
+        const banner = document.getElementById('profilePicSuggestionBanner');
+        if (banner) banner.style.display = 'none';
         closeOv('photoOv'); resetPhoto(); toast('تم رفع الصورة ✓', 'ok');
       } catch (e) { hideLoad(); toast('خطأ: ' + e.message, 'err'); }
     }
@@ -8056,6 +8096,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       document.getElementById('photoPrev').style.display = 'none';
       document.getElementById('photoIn').value = '';
       if (cropper) { cropper.destroy(); cropper = null; } croppedBlob = null;
+    }
+
+    async function deleteStudentPhoto(event) {
+      if (event) event.stopPropagation();
+      if (!confirm('هل أنت متأكد من حذف الصورة الشخصية؟')) return;
+      if (isViewingOther()) {
+        toast('غير مسموح في وضع المعاينة', 'err');
+        return;
+      }
+      showLoad('جارٍ حذف الصورة…');
+      try {
+        const d = await api({ action: 'updateStudentImageAfterCreation', studentId: student.id, imageUrl: '' });
+        if (!d.success) throw new Error(d.message || 'فشل حذف الصورة');
+        student.image_url = '';
+        hideLoad();
+        document.getElementById('avatarInner').innerHTML = `<i class="fas fa-user"></i>`;
+        const deleteBtn = document.getElementById('deleteStudentPhotoBtn');
+        if (deleteBtn) deleteBtn.style.display = 'none';
+        const banner = document.getElementById('profilePicSuggestionBanner');
+        if (banner && localStorage.getItem('dismissProfilePicSuggestion') !== 'true') {
+          banner.style.display = 'flex';
+        }
+        toast('تم حذف الصورة الشخصية ✓', 'ok');
+      } catch (e) {
+        hideLoad();
+        toast('خطأ: ' + e.message, 'err');
+      }
+    }
+
+    function dismissProfilePicSuggestion() {
+      localStorage.setItem('dismissProfilePicSuggestion', 'true');
+      const banner = document.getElementById('profilePicSuggestionBanner');
+      if (banner) banner.style.display = 'none';
     }
 
     // ── Account switch ────────────────────────────────────────────────

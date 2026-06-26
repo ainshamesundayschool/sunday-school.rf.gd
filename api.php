@@ -8006,7 +8006,7 @@ function updateStudentImageAfterCreation()
 
 
 
-        if (empty($photoUrl)) {
+        if ($photoUrl === null) {
 
             sendJSON(['success' => false, 'message' => 'لا توجد صورة مرفوعة']);
 
@@ -10347,7 +10347,7 @@ function updateStudentImage()
 
 
 
-        if ($studentId === 0 || empty($imageUrl)) {
+        if ($studentId === 0 || !isset($_POST['imageUrl'])) {
 
             sendJSON(['success' => false, 'message' => 'بيانات غير كاملة']);
 
@@ -15341,6 +15341,17 @@ function updateUncleImage()
 
         $conn = getDBConnection();
 
+        if (isset($_POST['uncle_id']) && !empty($_POST['uncle_id'])) {
+            $targetId = intval($_POST['uncle_id']);
+            $churchId = getChurchId();
+            $check = $conn->prepare("SELECT id FROM uncles WHERE id = ? AND church_id = ?");
+            $check->bind_param("ii", $targetId, $churchId);
+            $check->execute();
+            if ($check->get_result()->num_rows > 0) {
+                $uncleId = $targetId;
+            }
+        }
+
         $oldQuery = $conn->prepare("SELECT name, image_url FROM uncles WHERE id = ? LIMIT 1");
         $oldQuery->bind_param("i", $uncleId);
         $oldQuery->execute();
@@ -15362,7 +15373,9 @@ function updateUncleImage()
 
             writeAuditLog('uncle_edit', 'uncle', $uncleId, $uncleName, ['image_url' => $oldImageUrl], ['image_url' => $imageUrl], 'تعديل صورة الخادم');
 
-            $_SESSION['uncle_image'] = $imageUrl;
+            if ($uncleId === $_SESSION['uncle_id']) {
+                $_SESSION['uncle_image'] = $imageUrl;
+            }
 
             sendJSON(['success' => true, 'message' => 'تم تحديث الصورة بنجاح']);
 
