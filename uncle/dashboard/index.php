@@ -11182,11 +11182,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                             <div
                                 style="display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap; width:100%;">
-                                <button type="button" class="btn btn-secondary btn-sm" onclick="openUncleAccountPage('fees')"
+                                <button type="button" class="btn btn-secondary btn-sm"
+                                    onclick="openUncleAccountPage('fees')"
                                     style="flex: 1; padding:8px 10px;font-size:.78rem; display:flex; align-items:center; justify-content:center; gap:4px; border-radius: var(--r-md);">
                                     <i class="fas fa-money-bill-wave"></i> اشتراكاتي
                                 </button>
-                                <button type="button" class="btn btn-secondary btn-sm" onclick="openUncleAccountPage('logs')"
+                                <button type="button" class="btn btn-secondary btn-sm"
+                                    onclick="openUncleAccountPage('logs')"
                                     style="flex: 1; padding:8px 10px;font-size:.78rem; display:flex; align-items:center; justify-content:center; gap:4px; border-radius: var(--r-md);">
                                     <i class="fas fa-history"></i> النشاطات
                                 </button>
@@ -11265,7 +11267,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <!-- Hub Grid of sub-sections directly under the info -->
                             <div class="settings-hub-grid"
                                 style="width: 100%; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px;">
-                                <button type="button" class="settings-hub-card" id="themeToggleBtn" onclick="toggleTheme()"
+                                <button type="button" class="settings-hub-card" id="themeToggleBtn"
+                                    onclick="toggleTheme()"
                                     style="max-width: 100%; aspect-ratio: auto; min-height: 80px; display: flex; flex-direction: row; align-items: center; justify-content: flex-start; padding: 12px; gap: 12px; border-radius: 12px;">
                                     <div class="settings-hub-icon"
                                         style="background:rgba(91, 108, 245, 0.1);color:var(--brand); width: 40px; height: 40px; font-size: 1.1rem; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
@@ -11274,8 +11277,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                     </div>
                                     <div style="text-align: right;">
                                         <div class="settings-hub-title"
-                                            style="font-size: 0.8rem; font-weight: 800; color: var(--text);">مظهر التطبيق</div>
-                                        <div style="font-size: 0.68rem; color: var(--text-3); margin-top: 2px;">تبديل الوضع</div>
+                                            style="font-size: 0.8rem; font-weight: 800; color: var(--text);">مظهر
+                                            التطبيق</div>
+                                        <div style="font-size: 0.68rem; color: var(--text-3); margin-top: 2px;">تبديل
+                                            الوضع</div>
                                     </div>
                                 </button>
                                 <a href="<?php echo $pathPrefix; ?>/leaderboard/" class="settings-hub-card"
@@ -11286,8 +11291,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                     </div>
                                     <div style="text-align: right;">
                                         <div class="settings-hub-title"
-                                            style="font-size: 0.8rem; font-weight: 800; color: var(--text);">لوحة الصدارة</div>
-                                        <div style="font-size: 0.68rem; color: var(--text-3); margin-top: 2px;">الأوائل والترتيب</div>
+                                            style="font-size: 0.8rem; font-weight: 800; color: var(--text);">لوحة
+                                            الأوائل</div>
+                                        <div style="font-size: 0.68rem; color: var(--text-3); margin-top: 2px;">الأوائل
+                                            والترتيب</div>
                                     </div>
                                 </a>
                             </div>
@@ -11374,7 +11381,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <div class="settings-field-box">
                                     <div class="form-group">
                                         <label class="form-label">كلمة المرور</label>
-                                        <button type="button" class="btn btn-secondary btn-sm" style="width: 100%; height: 42px; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="openModal('changePasswordModal')">
+                                        <button type="button" class="btn btn-secondary btn-sm"
+                                            style="width: 100%; height: 42px; display: flex; align-items: center; justify-content: center; gap: 8px;"
+                                            onclick="openModal('changePasswordModal')">
                                             <i class="fas fa-key"></i> تغيير كلمة المرور...
                                         </button>
                                     </div>
@@ -11383,12 +11392,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                             <div class="settings-actions">
                                 <button type="submit" class="btn btn-primary"
-                                    style="padding:10px 24px; font-weight:800;"><i
-                                        class="fas fa-save"></i> حفظ التغييرات</button>
+                                    style="padding:10px 24px; font-weight:800;"><i class="fas fa-save"></i> حفظ
+                                    التغييرات</button>
                                 <button type="button" class="btn btn-secondary"
                                     onclick="openUncleAccountPage('profile')"
-                                    style="padding:10px 24px; font-weight:800;"><i
-                                        class="fas fa-times"></i> إلغاء</button>
+                                    style="padding:10px 24px; font-weight:800;"><i class="fas fa-times"></i>
+                                    إلغاء</button>
                             </div>
                         </form>
                     </div>
@@ -12296,26 +12305,31 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <label class="form-label">كلمة المرور الحالية</label>
                     <div class="input-icon-wrap">
                         <i class="fas fa-lock input-icon"></i>
-                        <input type="password" class="form-input" id="changePassCurrent" required placeholder="أدخل كلمة المرور الحالية">
+                        <input type="password" class="form-input" id="changePassCurrent" required
+                            placeholder="أدخل كلمة المرور الحالية">
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">كلمة المرور الجديدة</label>
                     <div class="input-icon-wrap">
                         <i class="fas fa-key input-icon"></i>
-                        <input type="password" class="form-input" id="changePassNew" required minlength="6" placeholder="أدخل كلمة المرور الجديدة (6 أحرف على الأقل)">
+                        <input type="password" class="form-input" id="changePassNew" required minlength="6"
+                            placeholder="أدخل كلمة المرور الجديدة (6 أحرف على الأقل)">
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">تأكيد كلمة المرور الجديدة</label>
                     <div class="input-icon-wrap">
                         <i class="fas fa-key input-icon"></i>
-                        <input type="password" class="form-input" id="changePassConfirm" required minlength="6" placeholder="أعد إدخال كلمة المرور الجديدة">
+                        <input type="password" class="form-input" id="changePassConfirm" required minlength="6"
+                            placeholder="أعد إدخال كلمة المرور الجديدة">
                     </div>
                 </div>
                 <div style="display:flex;gap:10px;margin-top:10px">
-                    <button type="submit" class="btn btn-primary" style="flex:1"><i class="fas fa-save"></i> حفظ</button>
-                    <button type="button" class="btn btn-secondary" style="flex:1" onclick="closeModal('changePasswordModal')"><i class="fas fa-times"></i> إلغاء</button>
+                    <button type="submit" class="btn btn-primary" style="flex:1"><i class="fas fa-save"></i>
+                        حفظ</button>
+                    <button type="button" class="btn btn-secondary" style="flex:1"
+                        onclick="closeModal('changePasswordModal')"><i class="fas fa-times"></i> إلغاء</button>
                 </div>
             </form>
         </div>
