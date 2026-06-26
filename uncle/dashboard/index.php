@@ -546,6 +546,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
             --ease: cubic-bezier(.4, 0, .2, 1);
             --spring: cubic-bezier(.16, 1, .3, 1);
             --t: .22s;
+
+            /* Aliases used throughout the file */
+            --card: var(--surface);
+            --radius: var(--r-md);
+            --muted: var(--text-3);
+            --primary: var(--brand);
+            --primary-bg: var(--brand-bg);
+            --surface-hover: var(--surface-2);
         }
 
         [data-theme="dark"] {
@@ -13380,7 +13388,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             
             // Text displays (read-only views)
             if (document.getElementById('accountDisplayName')) document.getElementById('accountDisplayName').textContent = u.name || '';
-            if (document.getElementById('accountDisplayRole')) document.getElementById('accountDisplayRole').textContent = rText;
+            if (document.getElementById('accountDisplayRole')) document.getElementById('accountDisplayRole').innerHTML = `<i class="fas fa-shield-alt" style="font-size:.65rem;"></i> ${rText}`;
             if (document.getElementById('aiName')) document.getElementById('aiName').textContent = u.name || '';
             if (document.getElementById('aiUsername')) document.getElementById('aiUsername').textContent = u.username || '';
             if (document.getElementById('aiRole')) document.getElementById('aiRole').textContent = rText;
