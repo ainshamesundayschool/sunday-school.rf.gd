@@ -19345,12 +19345,21 @@
             // adminUncle = the uncle row with role=admin loaded from allUncles
             const churchName = document.getElementById('sidebarChurchName')?.textContent || '—';
             const churchCode = sessionChurchCode || localStorage.getItem('churchCode') || '—';
-            document.getElementById('churchInfoName').textContent = churchName;
-            document.getElementById('churchInfoCode').textContent = churchCode;
-            document.getElementById('churchInfoUsername').textContent = adminUncle?.username || '—';
+            
+            const nameEl = document.getElementById('churchInfoName');
+            if (nameEl) nameEl.textContent = churchName;
+            
+            const codeEl = document.getElementById('churchInfoCode');
+            if (codeEl) codeEl.textContent = churchCode;
+            
+            const userEl = document.getElementById('churchInfoUsername');
+            if (userEl) userEl.textContent = adminUncle?.username || '—';
+            
             // Password is never returned by API for security — show placeholder
             churchInfoRealPassword = ''; // cleared — real pw shown only if admin changes it
-            document.getElementById('churchInfoPassword').textContent = '••••••••';
+            const pwdEl = document.getElementById('churchInfoPassword');
+            if (pwdEl) pwdEl.textContent = '••••••••';
+            
             churchPasswordVisible = false;
             const icon = document.getElementById('churchPwdEyeIcon');
             if (icon) icon.className = 'fas fa-eye';
@@ -19360,8 +19369,10 @@
             const el = document.getElementById('churchInfoPassword');
             const icon = document.getElementById('churchPwdEyeIcon');
             churchPasswordVisible = !churchPasswordVisible;
-            el.textContent = churchPasswordVisible ? (churchInfoRealPassword || '(محمية — غير قابلة للعرض)') : '••••••••';
-            el.style.letterSpacing = churchPasswordVisible ? 'normal' : '2px';
+            if (el) {
+                el.textContent = churchPasswordVisible ? (churchInfoRealPassword || '(محمية — غير قابلة للعرض)') : '••••••••';
+                el.style.letterSpacing = churchPasswordVisible ? 'normal' : '2px';
+            }
             if (icon) icon.className = churchPasswordVisible ? 'fas fa-eye-slash' : 'fas fa-eye';
         }
 
