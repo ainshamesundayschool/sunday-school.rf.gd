@@ -14801,12 +14801,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         function bulkMarkAttendance(status) {
             if (selectedStudentIds.size === 0) {
-                showToast('الرجاء تحديد أطفال أولاً', 'warning');
+                const warnMsg = (currentClass === 'الخدام') ? 'الرجاء تحديد خدام أولاً' : 'الرجاء تحديد أطفال أولاً';
+                showToast(warnMsg, 'warning');
                 return;
             }
 
             // Iterate and mark attendance locally for all selected
-            const allList = isCombinedView ? combinedStudents : students;
+            const allList = (currentClass === 'الخدام')
+                ? (window.allUnclesData || [])
+                : (isCombinedView ? combinedStudents : students);
             selectedStudentIds.forEach(dbId => {
                 const s = allList.find(x => getStudentDbId(x) === dbId);
                 if (s) {
@@ -16460,7 +16463,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const un = document.getElementById('saveAllBtn');
             if (!un) return;
 
-            const list = isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === currentClass);
+            const list = (currentClass === 'الخدام')
+                ? (window.allUnclesData || [])
+                : (isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === currentClass));
             const ids = list.map(s => getStudentId(s));
             const achg = [...changedStudents].filter(id => ids.includes(id)).length;
             const cchg = [...changedCouponStudents].filter(id => ids.includes(id)).length;
@@ -16478,7 +16483,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (at) {
                 at.disabled = achg === 0;
                 at.innerHTML = btn('fas fa-user-check', 'الحضور', achg);
-                at.title = achg > 0 ? `حفظ حضور ${achg} طفل` : 'لا تغييرات في الحضور';
+                at.title = achg > 0 ? ((currentClass === 'الخدام') ? `حفظ حضور ${achg} خادم` : `حفظ حضور ${achg} طفل`) : 'لا تغييرات في الحضور';
             }
 
             // Coupons
@@ -22499,7 +22504,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         function startSwipeMode() {
-            const src = isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === currentClass);
+            const src = (currentClass === 'الخدام')
+                ? (window.allUnclesData || [])
+                : (isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === currentClass));
             if (!src.length) {
                 const emptyMsg = (currentClass === 'الخدام') ? 'لا يوجد خدام في هذا الفصل' : 'لا يوجد أطفال في هذا الفصل';
                 showToast(emptyMsg, 'info');
@@ -22553,6 +22560,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                onerror="this.outerHTML='<div class=\\'swipe-card-photo-placeholder\\'><i class=\\'fas fa-user\\'></i><span>لا توجد صورة</span></div>'">`
                 : `<div class="swipe-card-photo-placeholder"><i class="fas fa-user"></i><span>لا توجد صورة</span></div>`;
 
+            const rightPill = s._isUncle
+                ? `<div class="swipe-coupon-pill" style="background:var(--brand);color:white;font-weight:700;"><i class="fas fa-user-shield" style="font-size:.65rem"></i> ${s.role === 'admin' ? 'مسؤول' : (s.role === 'developer' || s.role === 'dev' ? 'مطور' : 'خادم')}</div>`
+                : `<div class="swipe-coupon-pill"><i class="fas fa-star" style="font-size:.65rem"></i> ${totC}</div>`;
+
             card.innerHTML = `
         ${photoEl}
         <div class="swipe-card-wash" id="swipeCardWash"></div>
@@ -22561,7 +22572,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         <div class="swipe-card-info">
             <div class="swipe-info-row1">
                 <div class="swipe-card-name">${s['الاسم'] || '---'}</div>
-                <div class="swipe-coupon-pill"><i class="fas fa-star" style="font-size:.65rem"></i> ${totC}</div>
+                ${rightPill}
             </div>
             <div class="swipe-info-row2">
                 <span class="swipe-class-pill">${s['الفصل'] || ''}</span>
