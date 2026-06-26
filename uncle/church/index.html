@@ -7437,6 +7437,12 @@
                             </div>
                             <div class="settings-hub-title">القبول التلقائي</div>
                         </button>
+                        <button type="button" class="settings-hub-card" onclick="openSettingsPage('couponSettings')">
+                            <div class="settings-hub-icon" style="background:#ede9fe;color:#7c3aed;">
+                                <i class="fas fa-coins"></i>
+                            </div>
+                            <div class="settings-hub-title">إعدادات الكوبونات</div>
+                        </button>
                         <button type="button" class="settings-hub-card" onclick="openSettingsPage('kidsGradeUp')">
                             <div class="settings-hub-icon"
                                 style="background:var(--warning-light);color:var(--warning-dark);"><i
@@ -7792,6 +7798,50 @@
                                         في لوحة الطلبات المعلقة</div>
                                 </div>
                             </label>
+                        </div>
+                        <div class="settings-actions">
+                            <button type="button" class="btn btn-primary" onclick="saveChurchSettings()"><i
+                                    class="fas fa-save"></i> حفظ</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Page: Coupon Settings -->
+                <div id="settingsPage_couponSettings" class="settings-page" style="display:none;">
+                    <div class="settings-breadcrumb">
+                        <button class="settings-bc-item" onclick="closeSettingsPage()"><i class="fas fa-cog"></i>
+                            الإعدادات</button>
+                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);"></i>
+                        <span class="settings-bc-item active">إعدادات الكوبونات</span>
+                    </div>
+                    <div class="settings-stack">
+                        <div class="settings-field-box">
+                            <label class="settings-toggle-row" id="couponEnabledLabel">
+                                <div style="position:relative;width:48px;height:26px;flex-shrink:0;">
+                                    <input type="checkbox" id="settingCouponsEnabled"
+                                        style="opacity:0;width:0;height:0;position:absolute;"
+                                        onchange="_updateCouponsEnabledStyle()">
+                                    <span id="couponEnabledTrack"
+                                        style="position:absolute;inset:0;border-radius:13px;background:var(--border-solid,#e0e0e0);transition:background .2s;"></span>
+                                    <span id="couponEnabledThumb"
+                                        style="position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:white;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:transform .2s;"></span>
+                                </div>
+                                <div>
+                                    <div style="font-weight:700;font-size:0.9rem;" id="couponEnabledLabelText">
+                                        <i class="fas fa-times-circle" style="color:var(--muted);margin-left:5px;"></i>
+                                        توزيع الكوبونات تلقائياً معطّل
+                                    </div>
+                                    <div style="font-size:0.74rem;color:var(--muted);margin-top:2px;">منح كوبونات للطفل تلقائياً عند تسجيل حضوره في الفصل</div>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="settings-field-box" id="settingCouponsCountWrap">
+                            <div class="form-group">
+                                <label class="form-label"><i class="fas fa-coins"
+                                        style="margin-left:6px;color:var(--primary);"></i> عدد الكوبونات عند تسجيل حضور طفل</label>
+                                <input type="number" id="settingCouponsCount" class="form-input" value="100" min="0" style="width:100%;">
+                                <small style="color:var(--text-3);margin-top:6px;display:block;font-size:0.76rem;">عدد الكوبونات التي تضاف تلقائياً لرصيد الطفل عند تسجيله "حاضر"</small>
+                            </div>
                         </div>
                         <div class="settings-actions">
                             <button type="button" class="btn btn-primary" onclick="saveChurchSettings()"><i
@@ -12509,6 +12559,17 @@
                     _updateAutoApprovalStyle();
                 }
 
+                // Load coupon settings
+                const couponsEnabledEl = document.getElementById('settingCouponsEnabled');
+                if (couponsEnabledEl) {
+                    couponsEnabledEl.checked = s.coupons_enabled !== 0;
+                    _updateCouponsEnabledStyle();
+                }
+                const couponsCountEl = document.getElementById('settingCouponsCount');
+                if (couponsCountEl) {
+                    couponsCountEl.value = s.coupons_count !== undefined ? String(s.coupons_count) : '100';
+                }
+
                 _applyAutoGradeSettingsToForm(s);
 
                 // Load custom fields (supports array or single object)
@@ -12645,6 +12706,10 @@
             fd.append('view_mode', viewMode);
             const autoKidsEl = document.getElementById('settingAutoKidsApproval');
             fd.append('auto_kids_approval', (autoKidsEl && autoKidsEl.checked) ? '1' : '0');
+            const couponsEnabledEl = document.getElementById('settingCouponsEnabled');
+            fd.append('coupons_enabled', (couponsEnabledEl && couponsEnabledEl.checked) ? '1' : '0');
+            const couponsCountEl = document.getElementById('settingCouponsCount');
+            fd.append('coupons_count', couponsCountEl ? couponsCountEl.value : '100');
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
             if (d.success) { showToast('تم حفظ الإعدادات', 'success'); }
             else showToast(d.message || 'فشل في الحفظ', 'error');
@@ -12703,6 +12768,8 @@
             const viewMode = (showClasses && showAll) ? 'both' : showClasses ? 'classes' : 'all';
             fd.append('view_mode', viewMode);
             fd.append('auto_kids_approval', document.getElementById('settingAutoKidsApproval')?.checked ? '1' : '0');
+            fd.append('coupons_enabled', document.getElementById('settingCouponsEnabled')?.checked ? '1' : '0');
+            fd.append('coupons_count', document.getElementById('settingCouponsCount')?.value || '100');
             fd.append('auto_grade_month', m ? String(m) : '0');
             fd.append('auto_grade_day', d ? String(d) : '0');
 
@@ -13018,6 +13085,25 @@
                 : '<i class="fas fa-times-circle" style="color:var(--muted);margin-left:5px;"></i> القبول التلقائي معطّل';
             if (wrap) wrap.style.borderColor = on ? 'var(--primary)' : 'var(--border)';
             if (wrap) wrap.style.background = on ? 'var(--brand-bg)' : '';
+        }
+
+        function _updateCouponsEnabledStyle() {
+            const el = document.getElementById('settingCouponsEnabled');
+            const track = document.getElementById('couponEnabledTrack');
+            const thumb = document.getElementById('couponEnabledThumb');
+            const lbl = document.getElementById('couponEnabledLabelText');
+            const wrap = document.getElementById('couponEnabledLabel');
+            const countWrap = document.getElementById('settingCouponsCountWrap');
+            if (!el) return;
+            const on = el.checked;
+            if (track) track.style.background = on ? 'var(--primary,#4f46e5)' : 'var(--border-solid,#e0e0e0)';
+            if (thumb) thumb.style.transform = on ? 'translateX(-22px)' : 'translateX(0)';
+            if (lbl) lbl.innerHTML = on
+                ? '<i class="fas fa-check-circle" style="color:var(--primary);margin-left:5px;"></i> توزيع الكوبونات تلقائياً مفعّل'
+                : '<i class="fas fa-times-circle" style="color:var(--muted);margin-left:5px;"></i> توزيع الكوبونات تلقائياً معطّل';
+            if (wrap) wrap.style.borderColor = on ? 'var(--primary)' : 'var(--border)';
+            if (wrap) wrap.style.background = on ? 'var(--brand-bg)' : '';
+            if (countWrap) countWrap.style.display = on ? '' : 'none';
         }
 
         // Highlight the active checkbox labels

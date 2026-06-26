@@ -6707,6 +6707,15 @@ function submitAttendance()
 
         $conn = getDBConnection();
 
+        // Fetch coupon settings for this church
+        ensureChurchSettingsTable($conn);
+        $settingsStmt = $conn->prepare("SELECT coupons_enabled, coupons_count FROM church_settings WHERE church_id = ?");
+        $settingsStmt->bind_param("i", $churchId);
+        $settingsStmt->execute();
+        $settingsRow = $settingsStmt->get_result()->fetch_assoc();
+        $couponsEnabled = isset($settingsRow['coupons_enabled']) ? intval($settingsRow['coupons_enabled']) : 1;
+        $couponsCount = isset($settingsRow['coupons_count']) ? intval($settingsRow['coupons_count']) : 100;
+
         $conn->begin_transaction();
 
 
@@ -6853,7 +6862,9 @@ function submitAttendance()
 
                         if ($oldStatus === 'present') {
 
-                            $newAtt = max(0, intval($student['attendance_coupons']) - 100);
+                            $subAmount = $couponsEnabled ? $couponsCount : 0;
+
+                            $newAtt = max(0, intval($student['attendance_coupons']) - $subAmount);
 
                             $newTotal = $newAtt + intval($student['commitment_coupons']) + intval($student['task_coupons']);
 
@@ -7026,7 +7037,9 @@ function submitAttendance()
 
                     if (!$existing || $existing['status'] !== 'present') {
 
-                        $newAtt = $currentAttCoupons + 100;
+                        $addAmount = $couponsEnabled ? $couponsCount : 0;
+
+                        $newAtt = $currentAttCoupons + $addAmount;
 
                         $newTotal = $newAtt + $commitmentCoupons + $taskCoupons;
 
@@ -7042,7 +7055,9 @@ function submitAttendance()
 
                     if ($existing && $existing['status'] === 'present') {
 
-                        $newAtt = max(0, $currentAttCoupons - 100);
+                        $subAmount = $couponsEnabled ? $couponsCount : 0;
+
+                        $newAtt = max(0, $currentAttCoupons - $subAmount);
 
                         $newTotal = $newAtt + $commitmentCoupons + $taskCoupons;
 
@@ -35274,6 +35289,14 @@ function ensureChurchSettingsTable($conn)
 
                                      COMMENT 'classes | all | both',
 
+            `coupons_enabled`        TINYINT NOT NULL DEFAULT 1
+
+                                     COMMENT '0=disabled, 1=enabled',
+
+            `coupons_count`          INT NOT NULL DEFAULT 100
+
+                                     COMMENT 'number of coupons awarded on attendance',
+
             `updated_at`             TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
@@ -35293,6 +35316,18 @@ function ensureChurchSettingsTable($conn)
         `view_mode` VARCHAR(10) NOT NULL DEFAULT 'classes'
 
         COMMENT 'classes | all | both'");
+
+    $conn->query("ALTER TABLE church_settings ADD COLUMN IF NOT EXISTS
+
+        `coupons_enabled` TINYINT NOT NULL DEFAULT 1
+
+        COMMENT '0=disabled, 1=enabled'");
+
+    $conn->query("ALTER TABLE church_settings ADD COLUMN IF NOT EXISTS
+
+        `coupons_count` INT NOT NULL DEFAULT 100
+
+        COMMENT 'number of coupons awarded on attendance'");
 
     ensureChurchSettingsAutoGradeColumns($conn);
 
@@ -35396,6 +35431,10 @@ function getChurchSettings()
 
             'last_auto_grade_year' => isset($row['last_auto_grade_year']) ? (int) $row['last_auto_grade_year'] : null,
 
+            'coupons_enabled' => isset($row['coupons_enabled']) ? (int) $row['coupons_enabled'] : 1,
+
+            'coupons_count' => isset($row['coupons_count']) ? (int) $row['coupons_count'] : 100,
+
         ];
 
 
@@ -35460,6 +35499,10 @@ function getDefaultChurchSettings(): array
         'auto_grade_day' => null,
 
         'last_auto_grade_year' => null,
+
+        'coupons_enabled' => 1,
+
+        'coupons_count' => 100,
 
     ];
 
@@ -35623,6 +35666,10 @@ function saveChurchSettings()
 
 
 
+        $couponsEnabled = isset($_POST['coupons_enabled']) ? intval($_POST['coupons_enabled']) : 1;
+
+        $couponsCount = isset($_POST['coupons_count']) ? intval($_POST['coupons_count']) : 100;
+
         if ($hasAutoGradeFields) {
 
             $stmt = $conn->prepare("
@@ -35631,9 +35678,9 @@ function saveChurchSettings()
 
                     (church_id, attendance_day, uncle_class_navigation, combined_class_groups, custom_field, view_mode,
 
-                     auto_grade_month, auto_grade_day)
+                     auto_grade_month, auto_grade_day, coupons_enabled, coupons_count)
 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 
                 ON DUPLICATE KEY UPDATE
 
@@ -35651,13 +35698,17 @@ function saveChurchSettings()
 
                     auto_grade_day         = VALUES(auto_grade_day),
 
+                    coupons_enabled        = VALUES(coupons_enabled),
+
+                    coupons_count          = VALUES(coupons_count),
+
                     updated_at             = NOW()
 
             ");
 
             $stmt->bind_param(
 
-                "iissssii",
+                "iissssiiii",
 
                 $churchId,
 
@@ -35673,7 +35724,11 @@ function saveChurchSettings()
 
                 $autoGradeMonth,
 
-                $autoGradeDay
+                $autoGradeDay,
+
+                $couponsEnabled,
+
+                $couponsCount
 
             );
 
@@ -35683,9 +35738,11 @@ function saveChurchSettings()
 
                 INSERT INTO church_settings
 
-                    (church_id, attendance_day, uncle_class_navigation, combined_class_groups, custom_field, view_mode)
+                    (church_id, attendance_day, uncle_class_navigation, combined_class_groups, custom_field, view_mode,
 
-                VALUES (?, ?, ?, ?, ?, ?)
+                     coupons_enabled, coupons_count)
+
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 
                 ON DUPLICATE KEY UPDATE
 
@@ -35699,13 +35756,17 @@ function saveChurchSettings()
 
                     view_mode              = VALUES(view_mode),
 
+                    coupons_enabled        = VALUES(coupons_enabled),
+
+                    coupons_count          = VALUES(coupons_count),
+
                     updated_at             = NOW()
 
             ");
 
             $stmt->bind_param(
 
-                "iissss",
+                "iisssiii",
 
                 $churchId,
 
@@ -35717,7 +35778,11 @@ function saveChurchSettings()
 
                 $customFieldJson,
 
-                $viewMode
+                $viewMode,
+
+                $couponsEnabled,
+
+                $couponsCount
 
             );
 
