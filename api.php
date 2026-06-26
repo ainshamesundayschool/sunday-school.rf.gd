@@ -44519,47 +44519,36 @@ function submitUncleAttendance()
         $conn->begin_transaction();
 
         foreach ($attendanceData as $row) {
-
             $uncleId = intval($row['uncle_id']);
+            $status = $row['status'] ?? 'pending';
 
-            $status = in_array($row['status'], ['present', 'absent']) ? $row['status'] : 'present';
-
-
-
-            // Upsert
-
-            $check = $conn->prepare("SELECT id FROM uncle_attendance WHERE uncle_id=? AND attendance_date=? AND church_id=?");
-
-            $check->bind_param('isi', $uncleId, $date, $churchId);
-
-            $check->execute();
-
-            $existing = $check->get_result()->fetch_assoc();
-
-
-
-            if ($existing) {
-
-                $upd = $conn->prepare("UPDATE uncle_attendance SET status=?, recorded_by=?, updated_at=NOW() WHERE id=?");
-
-                $upd->bind_param('sii', $status, $recordedBy, $existing['id']);
-
-                $upd->execute();
-
-                $updated++;
-
+            if ($status === 'pending') {
+                $del = $conn->prepare("DELETE FROM uncle_attendance WHERE uncle_id=? AND attendance_date=? AND church_id=?");
+                $del->bind_param('isi', $uncleId, $date, $churchId);
+                $del->execute();
+                if ($del->affected_rows > 0) {
+                    $updated++;
+                }
             } else {
+                $status = in_array($status, ['present', 'absent']) ? $status : 'present';
+                // Upsert
+                $check = $conn->prepare("SELECT id FROM uncle_attendance WHERE uncle_id=? AND attendance_date=? AND church_id=?");
+                $check->bind_param('isi', $uncleId, $date, $churchId);
+                $check->execute();
+                $existing = $check->get_result()->fetch_assoc();
 
-                $ins = $conn->prepare("INSERT INTO uncle_attendance (uncle_id, church_id, attendance_date, status, recorded_by) VALUES (?,?,?,?,?)");
-
-                $ins->bind_param('iissi', $uncleId, $churchId, $date, $status, $recordedBy);
-
-                $ins->execute();
-
-                $inserted++;
-
+                if ($existing) {
+                    $upd = $conn->prepare("UPDATE uncle_attendance SET status=?, recorded_by=?, updated_at=NOW() WHERE id=?");
+                    $upd->bind_param('sii', $status, $recordedBy, $existing['id']);
+                    $upd->execute();
+                    $updated++;
+                } else {
+                    $ins = $conn->prepare("INSERT INTO uncle_attendance (uncle_id, church_id, attendance_date, status, recorded_by) VALUES (?,?,?,?,?)");
+                    $ins->bind_param('iissi', $uncleId, $churchId, $date, $status, $recordedBy);
+                    $ins->execute();
+                    $inserted++;
+                }
             }
-
         }
 
         $conn->commit();
