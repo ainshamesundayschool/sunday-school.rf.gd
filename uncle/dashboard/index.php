@@ -11583,7 +11583,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div style="display:flex;gap:8px;flex-wrap:wrap">
                 <button class="btn" id="editStudentBtn" style="flex:1"><i class="fas fa-edit"></i> تعديل</button>
                 <button class="btn btn-secondary" id="viewProfileBtn" style="flex:1"><i
-                        class="fas fa-user"></i> الملف العام</button>
+                        class="fas fa-user"></i> ملف الطفل</button>
                 <button class="btn btn-danger" id="deleteStudentBtn" style="flex:1"><i class="fas fa-trash"></i>
                     حذف</button>
             </div>
