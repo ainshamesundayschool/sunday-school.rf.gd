@@ -366,7 +366,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <script defer
         src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <style>
-        /* ── Developer Church Switcher Pill ── */
+        /* ── Developer Church Switcher Pill & Custom Dropdown ── */
         .dev-church-bar-pill {
             display: flex;
             align-items: center;
@@ -379,6 +379,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transition: all 0.2s ease;
             flex-shrink: 0;
             box-sizing: border-box;
+            position: relative;
         }
 
         .dev-church-bar-pill:hover {
@@ -398,32 +399,90 @@ if ($hasUncleId && $uncleRole === 'uncle')
             flex-shrink: 0;
         }
 
-        .dev-church-select-input {
-            background: transparent;
-            border: none;
-            outline: none;
-            font-family: 'Cairo', sans-serif;
-            font-size: 0.8rem;
-            font-weight: 800;
-            color: var(--brand);
-            cursor: pointer;
-            padding-left: 16px;
-            padding-right: 4px;
-            appearance: none;
-            -webkit-appearance: none;
-            max-width: 180px;
-            text-overflow: ellipsis;
-            direction: rtl;
-        }
-
         .dev-church-chevron {
             position: absolute;
-            left: 0;
+            left: 10px;
             top: 50%;
             transform: translateY(-50%);
             font-size: 0.6rem;
             color: var(--brand);
             pointer-events: none;
+        }
+
+        /* Custom Web Dropdown Menu */
+        .dev-church-dropdown-menu {
+            position: absolute;
+            top: 42px;
+            right: 0;
+            width: 240px;
+            background: var(--bg-card, rgba(255, 255, 255, 0.95));
+            border: 1px solid var(--border-solid, rgba(0, 0, 0, 0.08));
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 1000000;
+            overflow: hidden;
+            display: none;
+            flex-direction: column;
+            animation: devDropdownFadeIn 0.2s ease forwards;
+            direction: rtl;
+        }
+        @keyframes devDropdownFadeIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .dev-church-dropdown-search-wrap {
+            padding: 8px;
+            border-bottom: 1px solid var(--border-solid, rgba(0, 0, 0, 0.08));
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0, 0, 0, 0.02);
+        }
+        .dev-church-dropdown-search-wrap .search-icon {
+            font-size: 0.78rem;
+            color: var(--text-3);
+        }
+        .dev-church-dropdown-search-input {
+            border: none;
+            background: transparent;
+            font-size: 0.78rem;
+            width: 100%;
+            outline: none;
+            color: var(--text);
+            font-family: 'Cairo', sans-serif;
+        }
+        .dev-church-dropdown-list {
+            max-height: 200px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            padding: 4px;
+        }
+        .dev-church-dropdown-item {
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-2);
+            cursor: pointer;
+            border-radius: 8px;
+            text-align: right;
+            transition: all 0.15s ease;
+        }
+        .dev-church-dropdown-item:hover {
+            background: rgba(124, 58, 237, 0.08);
+            color: var(--brand);
+        }
+        .dev-church-dropdown-item.selected {
+            background: var(--brand);
+            color: #fff;
+        }
+        .dev-church-dropdown-item-empty {
+            padding: 12px;
+            font-size: 0.78rem;
+            color: var(--text-3);
+            text-align: center;
         }
 
         @media (max-width: 600px) {
@@ -438,8 +497,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 margin-left: 4px !important;
                 margin-right: 4px !important;
                 cursor: pointer !important;
-                overflow: hidden !important;
-                position: relative !important;
             }
 
             .dev-church-bar-pill>div {
@@ -466,20 +523,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 font-size: 0.85rem !important;
             }
 
-            .dev-church-select-input {
-                position: absolute !important;
-                inset: 0 !important;
-                opacity: 0 !important;
-                width: 100% !important;
-                height: 100% !important;
-                max-width: 100% !important;
-                padding: 0 !important;
-                cursor: pointer !important;
-                z-index: 10 !important;
+            .dev-church-selected-label {
+                display: none !important;
             }
 
             .dev-church-chevron {
                 display: none !important;
+            }
+
+            .dev-church-dropdown-menu {
+                right: auto;
+                left: -10px;
+                width: 200px;
             }
         }
 
@@ -10668,6 +10723,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <span id="notifBellBadge"
                         style="display:none;position:absolute;top:-3px;right:-3px;min-width:17px;height:17px;background:var(--danger,#ef4444);border-radius:9px;border:2px solid white;font-size:.58rem;font-weight:800;color:#fff;display:none;align-items:center;justify-content:center;padding:0 3px;"></span>
                 </button>
+                <!-- Dev Switcher in Topbar Actions -->
+                <div id="devDashboardChurchSwitcher" class="dev-church-bar-pill"
+                    style="display:none; align-items:center; margin-inline-end: 8px; position:relative;">
+                    <div style="position:relative;display:flex;align-items:center;width:100%;height:100%;cursor:pointer;" onclick="toggleDevChurchDropdown(event)">
+                        <i class="fas fa-laptop-code dev-church-bar-icon"></i>
+                        <span id="devChurchSelectedLabel" class="dev-church-selected-label" style="margin-inline-start:6px; margin-inline-end: 18px; font-size: 0.8rem; font-weight: 800; color: var(--brand); font-family: 'Cairo', sans-serif;">كنيستي الافتراضية</span>
+                        <i class="fas fa-chevron-down dev-church-chevron"></i>
+                    </div>
+                    <select id="devChurchSelect" style="display:none;"></select>
+                    <div class="dev-church-dropdown-menu" id="devChurchDropdownMenu" style="display:none;">
+                        <div class="dev-church-dropdown-search-wrap">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" id="devChurchDropdownSearch" class="dev-church-dropdown-search-input" placeholder="ابحث عن كنيسة..." oninput="filterDevChurches(this.value)" onclick="event.stopPropagation()">
+                        </div>
+                        <div class="dev-church-dropdown-list" id="devChurchDropdownList">
+                            <!-- Option items will be rendered here dynamically -->
+                        </div>
+                    </div>
+                </div>
                 <!-- Offline saved sync indicator -->
                 <button class="topbar-btn" id="offlineSyncIndicator" onclick="triggerManualSync()"
                     title="يوجد تعديلات محفوظة أوفلاين في انتظار الاتصال بالإنترنت"
@@ -10683,18 +10757,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <span
                         style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:var(--warning);border-radius:50%;border:2px solid var(--bg)"></span>
                 </button>
-                <!-- Dev Switcher in Topbar Actions -->
-                <div id="devDashboardChurchSwitcher" class="dev-church-bar-pill"
-                    style="display:none; align-items:center; margin-inline-end: 8px;">
-                    <div style="position:relative;display:flex;align-items:center;width:100%;height:100%;">
-                        <i class="fas fa-laptop-code dev-church-bar-icon"></i>
-                        <select id="devChurchSelect" class="dev-church-select-input"
-                            onchange="devSwitchChurch(this.value)">
-                            <option value="">كنيستي الافتراضية</option>
-                        </select>
-                        <i class="fas fa-chevron-down dev-church-chevron"></i>
-                    </div>
-                </div>
 
                 <?php if ($showSettings): ?>
                     <!-- Admin / Church settings -->
@@ -23242,6 +23304,94 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 }
             } catch (err) { }
         }
+        function toggleDevChurchDropdown(event) {
+            if (event) event.stopPropagation();
+            const el = document.getElementById('devChurchDropdownMenu');
+            if (!el) return;
+            const isHidden = el.style.display === 'none';
+            el.style.display = isHidden ? 'flex' : 'none';
+            if (isHidden) {
+                const searchInput = document.getElementById('devChurchDropdownSearch');
+                if (searchInput) {
+                    searchInput.value = '';
+                    searchInput.focus();
+                }
+                renderDevChurchDropdownList(allChurchesCache || []);
+            }
+        }
+
+        function renderDevChurchDropdownList(churches) {
+            const listContainer = document.getElementById('devChurchDropdownList');
+            if (!listContainer) return;
+            
+            let html = '';
+            
+            // Default option
+            const isSelectedDefault = !devViewChurchId;
+            html += `
+                <div class="dev-church-dropdown-item ${isSelectedDefault ? 'selected' : ''}" 
+                     onclick="devSelectChurch(0, 'كنيستي الافتراضية')">
+                    كنيستي الافتراضية
+                </div>
+            `;
+            
+            if (!churches || churches.length === 0) {
+                if (document.getElementById('devChurchDropdownSearch')?.value.trim()) {
+                    html += `<div class="dev-church-dropdown-item-empty">لا توجد نتائج</div>`;
+                }
+            } else {
+                churches.forEach(church => {
+                    const isSelected = devViewChurchId === parseInt(church.id);
+                    html += `
+                        <div class="dev-church-dropdown-item ${isSelected ? 'selected' : ''}" 
+                             onclick="devSelectChurch(${church.id}, '${escJs(church.church_name)}')">
+                            ${escHtml(church.church_name)}
+                        </div>
+                    `;
+                });
+            }
+            listContainer.innerHTML = html;
+        }
+
+        function devSelectChurch(churchId, label) {
+            const hiddenSelect = document.getElementById('devChurchSelect');
+            if (hiddenSelect) hiddenSelect.value = churchId || '';
+            devSwitchChurch(churchId);
+            const labelEl = document.getElementById('devChurchSelectedLabel');
+            if (labelEl) labelEl.textContent = label;
+            const dropdown = document.getElementById('devChurchDropdownMenu');
+            if (dropdown) dropdown.style.display = 'none';
+            // Clear search query
+            const searchInput = document.getElementById('devChurchDropdownSearch');
+            if (searchInput) searchInput.value = '';
+        }
+
+        function filterDevChurches(query) {
+            const q = (query || '').trim();
+            if (!q) {
+                renderDevChurchDropdownList(allChurchesCache || []);
+                return;
+            }
+            
+            const scored = (allChurchesCache || []).map(church => {
+                return { 
+                    ...church, 
+                    _score: getMatchScore({ 'الاسم': church.church_name }, q) 
+                };
+            }).filter(c => c._score > 0)
+              .sort((a, b) => b._score - a._score);
+              
+            renderDevChurchDropdownList(scored);
+        }
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', e => {
+            const dropdown = document.getElementById('devChurchDropdownMenu');
+            if (dropdown && !e.target.closest('#devDashboardChurchSwitcher')) {
+                dropdown.style.display = 'none';
+            }
+        });
+
         async function initDevSwitcher() {
             if (!isDeveloper) return;
             const container = document.getElementById('devDashboardChurchSwitcher');
@@ -23263,11 +23413,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             select.appendChild(opt);
                         });
 
-                        // Set active select value
+                        // Set active select value & label
+                        let activeLabel = 'كنيستي الافتراضية';
                         if (devViewChurchId > 0) {
                             select.value = devViewChurchId;
+                            const target = r.churches.find(c => c.id == devViewChurchId);
+                            if (target) activeLabel = target.church_name;
                             updateSwitchedChurchHeader();
                         }
+                        const labelEl = document.getElementById('devChurchSelectedLabel');
+                        if (labelEl) labelEl.textContent = activeLabel;
+
+                        renderDevChurchDropdownList(r.churches);
                     }
                 }, () => {
                     console.error("Failed to load dev church list.");
@@ -23289,6 +23446,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
             if (select) {
                 select.value = devViewChurchId || '';
+            }
+
+            // Sync custom dropdown menu label and list highlight
+            if (typeof allChurchesCache !== 'undefined') {
+                renderDevChurchDropdownList(allChurchesCache);
+                let activeLabel = 'كنيستي الافتراضية';
+                if (devViewChurchId > 0 && allChurchesCache.length) {
+                    const target = allChurchesCache.find(c => c.id == devViewChurchId);
+                    if (target) activeLabel = target.church_name;
+                }
+                const labelEl = document.getElementById('devChurchSelectedLabel');
+                if (labelEl) labelEl.textContent = activeLabel;
             }
 
             // Clear students cache
