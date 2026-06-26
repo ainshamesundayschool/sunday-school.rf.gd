@@ -12036,6 +12036,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         let isDashboardDataLoading = false;
         // Class navigation permission: 'all' = can see all classes, 'own' = only assigned
         let uncleClassNavPermission = 'all';
+        let allowedViewUncles = '';
         let _uncleAssignedClassesLoaded = false;
         let kidQrScanner = null;
         let kidQrLastScanTime = 0;
@@ -12057,6 +12058,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 select.selectedIndex = defaultIdx;
                 kidQrScanAmount = couponPresetValues[defaultIdx];
             }
+        }
+
+        function hasUnclesViewPermission() {
+            const role = (window.currentUncle && window.currentUncle.role) || localStorage.getItem('uncleRole') || '';
+            const roleLower = String(role).toLowerCase();
+            if (roleLower === 'admin' || roleLower === 'developer') {
+                return true;
+            }
+            if (!allowedViewUncles || allowedViewUncles.trim() === '') {
+                return roleLower !== '';
+            }
+            const username = ((window.currentUncle && window.currentUncle.username) || localStorage.getItem('uncleUsername') || '').trim().toLowerCase();
+            if (!username) return false;
+            const allowedList = allowedViewUncles.split(',').map(x => x.trim().toLowerCase());
+            return allowedList.includes(username);
         }
 
         // Sound effects
@@ -12477,6 +12493,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (cached) {
                     const r = JSON.parse(cached);
                     uncleClassNavPermission = r.uncle_class_navigation || 'all';
+                    allowedViewUncles = r.allowed_view_uncles || '';
                     churchAttendanceDay = parseInt(r.attendance_day || 5);
                     combinedClassGroups = Array.isArray(r.combined_class_groups) ? r.combined_class_groups : [];
                     churchViewMode = r.view_mode || 'classes';
@@ -12503,6 +12520,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             makeApiCall({ action: 'getChurchSettings' }, r => {
                 if (r.settings) {
                     uncleClassNavPermission = r.settings.uncle_class_navigation || 'all';
+                    allowedViewUncles = r.settings.allowed_view_uncles || '';
                     churchAttendanceDay = parseInt(r.settings.attendance_day || 5);
                     combinedClassGroups = Array.isArray(r.settings.combined_class_groups)
                         ? r.settings.combined_class_groups : [];
@@ -12532,6 +12550,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (!currentClass) displayClasses();
             }, () => {
                 uncleClassNavPermission = 'all';
+                allowedViewUncles = '';
                 churchAttendanceDay = 5;
                 combinedClassGroups = [];
                 churchCustomFields = [];
@@ -12583,6 +12602,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             updateHash('class', className);
         }
         function showClassViewInternal(className) {
+            if (className === 'الخدام' && !hasUnclesViewPermission()) {
+                showToast('غير مصرح لك بالدخول لهذه الصفحة', 'error');
+                showClassesView();
+                return;
+            }
             isCombinedView = false;
             combinedGroupLabel = '';
             combinedStudents = [];
@@ -13708,7 +13732,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             const role = (window.currentUncle && window.currentUncle.role) || localStorage.getItem('uncleRole') || '';
             let servantsCardHtml = '';
-            if (role) {
+            if (hasUnclesViewPermission()) {
                 const servantsCount = (window.allUnclesData || []).length;
                 const unsaved = getUnsavedChangesCount('الخدام');
                 const unsavedHtml = unsaved > 0 ? `
@@ -17836,51 +17860,69 @@ if ($hasUncleId && $uncleRole === 'uncle')
             } catch(e) { fees = []; }
 
             const arabicMonths = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
-            const suggestions = [];
             const d = new Date();
-            for (let i = 0; i < 3; i++) {
-                const m = d.getMonth() - i;
-                const y = d.getFullYear() + (m < 0 ? -1 : 0);
-                const monthIndex = (m + 12) % 12;
-                suggestions.push(`اشتراك شهر ${arabicMonths[monthIndex]} ${y}`);
-            }
+            const curYear = d.getFullYear();
+            const curMonthIdx = d.getMonth();
 
-            const suggestionBadges = suggestions.map(sug => `
-                <span class="suggestion-badge" onclick="document.getElementById('newFeeTitle').value='${sug}'" 
-                      style="cursor:pointer; display:inline-block; padding:3px 8px; font-size:0.7rem; font-weight:700; background:var(--surface-3); border:1px solid var(--border-solid); border-radius:12px; margin-inline-end:4px; margin-bottom:6px; color:var(--text-2); transition:all 0.2s;"
-                      onmouseover="this.style.background='var(--brand)';this.style.color='white'"
-                      onmouseout="this.style.background='var(--surface-3)';this.style.color='var(--text-2)'">
-                    ${sug}
-                </span>
-            `).join('');
-
-            const todayStr = new Date().toISOString().split('T')[0];
             const feeForm = `
-                <div class="glass-card" style="padding:12px; border:1px solid var(--border-solid); border-radius:12px; margin-bottom:16px; background:rgba(255,255,255,0.03);">
-                    <div style="font-size:0.78rem; font-weight:700; color:var(--text-2); margin-bottom:6px;">تسجيل اشتراك جديد:</div>
-                    <div style="margin-bottom:8px;">${suggestionBadges}</div>
+                <div id="addFeeArea" class="glass-card" style="display:none; padding:12px; border:1px solid var(--border-solid); border-radius:12px; margin-bottom:16px; background:rgba(255,255,255,0.03);">
+                    <style>
+                        .no-spinner::-webkit-outer-spin-button,
+                        .no-spinner::-webkit-inner-spin-button {
+                            -webkit-appearance: none;
+                            margin: 0;
+                        }
+                        .no-spinner {
+                            -moz-appearance: textfield;
+                        }
+                    </style>
+                    <div style="font-size:0.78rem; font-weight:700; color:var(--text-2); margin-bottom:10px;">تسجيل اشتراك جديد:</div>
                     
-                    <div style="display:flex; flex-direction:column; gap:8px;">
-                        <div style="display:flex; gap:8px;">
-                            <input type="text" id="newFeeTitle" class="form-input" style="flex:1; height:36px; font-size:0.8rem;" placeholder="اسم الاشتراك (مثال: اشتراك شهر يناير)">
-                            <input type="number" id="newFeeAmount" class="form-input" style="width:90px; height:36px; font-size:0.8rem; text-align:center;" placeholder="المبلغ">
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                                <label style="font-size:0.7rem; font-weight:700; color:var(--text-3);">الشهر</label>
+                                <select id="newFeeMonth" class="form-input" style="height:36px; font-size:0.8rem; padding:4px 8px; font-family:Cairo,sans-serif;">
+                                    ${arabicMonths.map((m, idx) => `<option value="${m}" ${idx === curMonthIdx ? 'selected' : ''}>${m}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div style="width:90px; display:flex; flex-direction:column; gap:4px;">
+                                <label style="font-size:0.7rem; font-weight:700; color:var(--text-3);">السنة</label>
+                                <select id="newFeeYear" class="form-input" style="height:36px; font-size:0.8rem; padding:4px 8px; font-family:Cairo,sans-serif;">
+                                    <option value="${curYear - 1}">${curYear - 1}</option>
+                                    <option value="${curYear}" selected>${curYear}</option>
+                                    <option value="${curYear + 1}">${curYear + 1}</option>
+                                </select>
+                            </div>
+                            <div style="width:100px; display:flex; flex-direction:column; gap:4px;">
+                                <label style="font-size:0.7rem; font-weight:700; color:var(--text-3);">القيمة (ج.م)</label>
+                                <input type="number" id="newFeeAmount" class="form-input no-spinner" style="height:36px; font-size:0.8rem; text-align:center; padding:4px 8px;" placeholder="المبلغ" required>
+                            </div>
                         </div>
-                        <div style="display:flex; gap:8px;">
-                            <input type="text" id="newFeeDesc" class="form-input" style="flex:1; height:36px; font-size:0.8rem;" placeholder="ملاحظات (اختياري)">
-                            <input type="date" id="newFeeDate" class="form-input" style="width:130px; height:36px; font-size:0.8rem; font-family:Cairo,sans-serif;" value="${todayStr}">
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                                <label style="font-size:0.7rem; font-weight:700; color:var(--text-3);">ملاحظات (اختياري)</label>
+                                <input type="text" id="newFeeDesc" class="form-input" style="height:36px; font-size:0.8rem; padding:4px 10px;" placeholder="اكتب أي تفاصيل أخرى...">
+                            </div>
                         </div>
-                        <button type="button" class="btn btn-primary btn-sm" onclick="saveUncleFee(${full.id})" style="width:100%; height:36px; display:flex; align-items:center; justify-content:center; gap:6px;">
-                            <i class="fas fa-plus"></i> إضافة الاشتراك
-                        </button>
+                        <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:4px;">
+                            <button class="btn btn-ghost" onclick="toggleAddFeeArea(false)" style="font-size:0.75rem; padding:4px 10px; height:32px;">إلغاء</button>
+                            <button type="button" class="btn btn-primary btn-sm" onclick="saveUncleFee(${full.id})" style="font-size:0.75rem; padding:4px 12px; height:32px; display:flex; align-items:center; justify-content:center; gap:6px; background:var(--brand); color:#fff; border:none;">
+                                <i class="fas fa-plus"></i> حفظ الاشتراك
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
 
             let feesHtml = `
             <div class="uncle-fees-section" style="margin-top:16px; border-top:1px solid var(--border); padding-top:16px;">
-                <h4 style="font-size:0.95rem; font-weight:700; color:var(--primary); margin:0 0 12px 0; display:flex; align-items:center; gap:6px;">
-                    <i class="fas fa-money-bill-wave"></i> الاشتراكات الشهرية للخدمة (${fees.length})
-                </h4>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <h4 style="font-size:0.95rem; font-weight:700; color:var(--primary); margin:0; display:flex; align-items:center; gap:6px;">
+                        <i class="fas fa-money-bill-wave"></i> الاشتراكات الشهرية للخدمة (${fees.length})
+                    </h4>
+                    <button type="button" class="btn btn-ghost sibling-link-btn" title="إضافة اشتراك" onclick="toggleAddFeeArea()"><i class="fas fa-money-bill-wave"></i> <i class="fas fa-plus"></i></button>
+                </div>
                 
                 ${feeForm}
 
@@ -17917,13 +17959,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         async function saveUncleFee(uncleId) {
-            const title = document.getElementById('newFeeTitle').value.trim();
+            const month = document.getElementById('newFeeMonth').value;
+            const year = document.getElementById('newFeeYear').value;
+            const title = `اشتراك شهر ${month} ${year}`;
             const amount = parseFloat(document.getElementById('newFeeAmount').value);
             const description = document.getElementById('newFeeDesc').value.trim();
-            const date = document.getElementById('newFeeDate').value;
+            const date = new Date().toISOString().split('T')[0];
 
-            if (!title || isNaN(amount) || amount <= 0) {
-                showToast('الرجاء إدخال اسم الاشتراك وقيمة صحيحة أكبر من الصفر', 'error');
+            if (isNaN(amount) || amount <= 0) {
+                showToast('الرجاء إدخال قيمة صحيحة أكبر من الصفر للاشتراك', 'error');
                 return;
             }
 
@@ -18055,6 +18099,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             if (isUncle) {
                 document.getElementById('editUncleUsername').value = s.username || '';
+                const roleSelect = document.getElementById('editUncleRole');
+                if (roleSelect) {
+                    let devOpt = roleSelect.querySelector('option[value="developer"]');
+                    if (isDeveloper) {
+                        if (!devOpt) {
+                            devOpt = document.createElement('option');
+                            devOpt.value = 'developer';
+                            devOpt.textContent = 'مطور (Developer)';
+                            roleSelect.appendChild(devOpt);
+                        }
+                        devOpt.style.display = '';
+                        devOpt.disabled = false;
+                    } else {
+                        if (devOpt) {
+                            devOpt.style.display = 'none';
+                            devOpt.disabled = true;
+                        }
+                    }
+                }
                 document.getElementById('editUncleRole').value = s.role || 'uncle';
                 document.getElementById('editUnclePassword').value = '';
             }
@@ -23563,6 +23626,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     const dt = document.getElementById('noteDateInput');
                     if (dt) dt.value = new Date().toISOString().split('T')[0];
                 }
+            }
+        };
+
+        window.toggleAddFeeArea = function (show = true) {
+            const area = document.getElementById('addFeeArea');
+            if (area) {
+                area.style.display = (show && area.style.display === 'none') ? 'block' : 'none';
             }
         };
 

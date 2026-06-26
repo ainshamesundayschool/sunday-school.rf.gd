@@ -7642,6 +7642,14 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="settings-field-box">
+                            <div class="form-group">
+                                <label class="form-label"><i class="fas fa-users-cog"
+                                        style="margin-left:6px;color:var(--primary);"></i> الخدام المسموح لهم بـ "عرض الخدام" (مفصولة بفاصلة)</label>
+                                <input type="text" id="settingAllowedViewUncles" class="form-input" value="" style="width:100%;">
+                                <small style="color:var(--text-3);margin-top:6px;display:block;font-size:0.76rem;">أسماء المستخدمين (username) للخدام المسموح لهم برؤية صفحة "عرض الخدام" (مثال: admin,samir,peter)</small>
+                            </div>
+                        </div>
                         <div class="settings-section-divider">طريقة عرض القائمة الرئيسية</div>
                         <div class="settings-field-box">
                             <label class="settings-toggle-row" id="viewModeClassesLabel">
@@ -11519,6 +11527,27 @@
             document.getElementById('editUncleId').value = id;
             document.getElementById('editUncleName').value = name;
             document.getElementById('editUncleUsername').value = username;
+
+            const roleSelect = document.getElementById('editUncleRole');
+            if (roleSelect) {
+                let devOpt = roleSelect.querySelector('option[value="developer"]');
+                if (isDeveloper) {
+                    if (!devOpt) {
+                        devOpt = document.createElement('option');
+                        devOpt.value = 'developer';
+                        devOpt.textContent = 'مطور (Developer)';
+                        roleSelect.appendChild(devOpt);
+                    }
+                    devOpt.style.display = '';
+                    devOpt.disabled = false;
+                } else {
+                    if (devOpt) {
+                        devOpt.style.display = 'none';
+                        devOpt.disabled = true;
+                    }
+                }
+            }
+
             document.getElementById('editUncleRole').value = role;
             document.getElementById('editUncleGender').value = gender || 'male';
             const uncle = allUncles.find(u => u.id === id);
@@ -12536,6 +12565,10 @@
                 if (dayEl && s.attendance_day) dayEl.value = String(s.attendance_day);
                 const navEl = document.getElementById('settingUncleNav');
                 if (navEl && s.uncle_class_navigation) navEl.value = s.uncle_class_navigation;
+                const allowedViewUnclesEl = document.getElementById('settingAllowedViewUncles');
+                if (allowedViewUnclesEl) {
+                    allowedViewUnclesEl.value = s.allowed_view_uncles || '';
+                }
 
                 _currentCombinedGroups = Array.isArray(s.combined_class_groups) ? s.combined_class_groups : [];
                 renderCombinedGroups();
@@ -12717,6 +12750,8 @@
             fd.append('coupons_count', couponsCountEl ? couponsCountEl.value : '100');
             const couponPresetsEl = document.getElementById('settingCouponPresets');
             fd.append('coupon_presets', couponPresetsEl ? couponPresetsEl.value : '10,30,50,100');
+            const allowedViewUnclesEl = document.getElementById('settingAllowedViewUncles');
+            fd.append('allowed_view_uncles', allowedViewUnclesEl ? allowedViewUnclesEl.value : '');
 
             const monthEl = document.getElementById('settingAutoGradeMonth');
             const dayGradeEl = document.getElementById('settingAutoGradeDay');
@@ -12793,6 +12828,7 @@
             fd.append('coupons_enabled', document.getElementById('settingCouponsEnabled')?.checked ? '1' : '0');
             fd.append('coupons_count', document.getElementById('settingCouponsCount')?.value || '100');
             fd.append('coupon_presets', document.getElementById('settingCouponPresets')?.value || '10,30,50,100');
+            fd.append('allowed_view_uncles', document.getElementById('settingAllowedViewUncles')?.value || '');
             fd.append('auto_grade_month', m ? String(m) : '0');
             fd.append('auto_grade_day', d ? String(d) : '0');
 
@@ -13169,6 +13205,8 @@
             fd.append('coupons_count', couponsCountEl ? couponsCountEl.value : '100');
             const couponPresetsEl = document.getElementById('settingCouponPresets');
             fd.append('coupon_presets', couponPresetsEl ? couponPresetsEl.value : '10,30,50,100');
+            const allowedViewUnclesEl = document.getElementById('settingAllowedViewUncles');
+            fd.append('allowed_view_uncles', allowedViewUnclesEl ? allowedViewUnclesEl.value : '');
             
             const monthEl = document.getElementById('settingAutoGradeMonth');
             const dayGradeEl = document.getElementById('settingAutoGradeDay');
@@ -18384,6 +18422,27 @@
             document.getElementById('editUncleId').value = id;
             document.getElementById('editUncleName').value = name;
             document.getElementById('editUncleUsername').value = username;
+
+            const roleSelect = document.getElementById('editUncleRole');
+            if (roleSelect) {
+                let devOpt = roleSelect.querySelector('option[value="developer"]');
+                if (isDeveloper) {
+                    if (!devOpt) {
+                        devOpt = document.createElement('option');
+                        devOpt.value = 'developer';
+                        devOpt.textContent = 'مطور (Developer)';
+                        roleSelect.appendChild(devOpt);
+                    }
+                    devOpt.style.display = '';
+                    devOpt.disabled = false;
+                } else {
+                    if (devOpt) {
+                        devOpt.style.display = 'none';
+                        devOpt.disabled = true;
+                    }
+                }
+            }
+
             document.getElementById('editUncleRole').value = role;
             document.getElementById('editUnclePassword').value = '';
 
