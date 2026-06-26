@@ -441,16 +441,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 overflow: hidden !important;
                 position: relative !important;
             }
-            .dev-church-bar-pill > div {
+
+            .dev-church-bar-pill>div {
                 width: 100% !important;
                 height: 100% !important;
                 display: flex !important;
                 align-items: center !important;
                 justify-content: center !important;
             }
+
             .dev-church-bar-pill:hover {
                 background: rgba(124, 58, 237, 0.15) !important;
             }
+
             .dev-church-bar-icon {
                 margin: 0 !important;
                 width: 100% !important;
@@ -462,6 +465,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 justify-content: center !important;
                 font-size: 0.85rem !important;
             }
+
             .dev-church-select-input {
                 position: absolute !important;
                 inset: 0 !important;
@@ -473,6 +477,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 cursor: pointer !important;
                 z-index: 10 !important;
             }
+
             .dev-church-chevron {
                 display: none !important;
             }
@@ -9586,176 +9591,175 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         /* ── Paper Exams Styles ── */
         .paper-exam-card {
-                background: var(--surface);
-                border: 1px solid var(--border-solid);
-                border-radius: var(--r-md);
-                padding: 16px;
-                display: flex;
-                flex-direction: column;
-                gap: 12px;
-                transition: all 0.2s ease-in-out;
-                box-shadow: var(--shadow-sm);
+            background: var(--surface);
+            border: 1px solid var(--border-solid);
+            border-radius: var(--r-md);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: all 0.2s ease-in-out;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .paper-exam-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--brand);
+        }
+
+        .paper-exam-card-title {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text);
+            margin: 0;
+        }
+
+        .paper-exam-card-meta {
+            font-size: 0.8rem;
+            color: var(--text-3);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .paper-exam-card-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: auto;
+        }
+
+        .sheet-degree-input {
+            width: 70px;
+            text-align: center;
+            padding: 6px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            border-radius: 6px;
+            border: 1px solid var(--border-solid);
+            background: var(--surface);
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .sheet-degree-input:focus {
+            border-color: var(--brand);
+        }
+
+        .sheet-student-row {
+            border-bottom: 1px solid var(--border-solid);
+            transition: background 0.2s;
+        }
+
+        .sheet-student-row:hover {
+            background: var(--surface-2);
+        }
+
+        .sheet-student-cell {
+            padding: 8px 10px;
+            vertical-align: middle;
+        }
+
+        /* ── Desktop scaling (Make everything on desktop much bigger) ── */
+        @media (min-width: 1024px) {
+            html {
+                font-size: 18px !important;
             }
 
-            .paper-exam-card:hover {
-                transform: translateY(-2px);
-                box-shadow: var(--shadow-md);
-                border-color: var(--brand);
+            body {
+                font-size: 16px !important;
             }
 
-            .paper-exam-card-title {
-                font-size: 1rem;
-                font-weight: 800;
-                color: var(--text);
-                margin: 0;
+            .classes-grid {
+                grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)) !important;
+                gap: 16px !important;
             }
 
-            .paper-exam-card-meta {
-                font-size: 0.8rem;
-                color: var(--text-3);
-                display: flex;
-                flex-direction: column;
-                gap: 4px;
+            .class-card {
+                padding: 24px 18px !important;
             }
 
-            .paper-exam-card-actions {
-                display: flex;
-                gap: 8px;
-                margin-top: auto;
+            .class-icon {
+                width: 72px !important;
+                height: 72px !important;
+                font-size: 1.8rem !important;
             }
 
-            .sheet-degree-input {
-                width: 70px;
-                text-align: center;
-                padding: 6px;
-                font-size: 0.85rem;
-                font-weight: bold;
-                border-radius: 6px;
-                border: 1px solid var(--border-solid);
-                background: var(--surface);
-                color: var(--text);
-                outline: none;
-                transition: border-color 0.2s;
+            .class-name {
+                font-size: 1.15rem !important;
             }
 
-            .sheet-degree-input:focus {
-                border-color: var(--brand);
+            .topbar {
+                height: 72px !important;
             }
 
-            .sheet-student-row {
-                border-bottom: 1px solid var(--border-solid);
-                transition: background 0.2s;
+            .topbar-brand {
+                font-size: 1.25rem !important;
             }
 
-            .sheet-student-row:hover {
-                background: var(--surface-2);
+            .topbar-btn {
+                height: 42px !important;
+                min-width: 42px !important;
+                font-size: .95rem !important;
+                box-shadow: none !important;
             }
 
-            .sheet-student-cell {
-                padding: 8px 10px;
-                vertical-align: middle;
+            .data-table th,
+            .data-table td {
+                padding: 12px 16px !important;
+                font-size: 0.95rem !important;
             }
 
-            /* ── Desktop scaling (Make everything on desktop much bigger) ── */
-            @media (min-width: 1024px) {
-                html {
-                    font-size: 18px !important;
-                }
-
-                body {
-                    font-size: 16px !important;
-                }
-
-                .classes-grid {
-                    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)) !important;
-                    gap: 16px !important;
-                }
-
-                .class-card {
-                    padding: 24px 18px !important;
-                }
-
-                .class-icon {
-                    width: 72px !important;
-                    height: 72px !important;
-                    font-size: 1.8rem !important;
-                }
-
-                .class-name {
-                    font-size: 1.15rem !important;
-                }
-
-                .topbar {
-                    height: 72px !important;
-                }
-
-                .topbar-brand {
-                    font-size: 1.25rem !important;
-                }
-
-                .topbar-btn {
-                    height: 42px !important;
-                    min-width: 42px !important;
-                    font-size: .95rem !important;
-                    box-shadow: none !important;
-                }
-
-                .data-table th,
-                .data-table td {
-                    padding: 12px 16px !important;
-                    font-size: 0.95rem !important;
-                }
-
-                .kid-card {
-                    padding: 16px 20px !important;
-                }
-
-                .kid-name {
-                    font-size: 1.2rem !important;
-                }
-
-                .inline-search-wrap {
-                    max-width: 600px !important;
-                }
-
-                .topbar-btn {
-                    height: 42px !important;
-                    min-width: 42px !important;
-                    font-size: .95rem !important;
-                    box-shadow: none !important;
-                }
-
-                .data-table th,
-                .data-table td {
-                    padding: 12px 16px !important;
-                    font-size: 0.95rem !important;
-                }
-
-                .kid-card {
-                    padding: 16px 20px !important;
-                }
-
-                .kid-name {
-                    font-size: 1.2rem !important;
-                }
-
-                .inline-search-wrap {
-                    max-width: 600px !important;
-                }
-
-                .class-inline-search-wrap {
-                    position: sticky !important;
-                    top: 72px !important;
-                    background: var(--bg) !important;
-                    z-index: 100 !important;
-                    padding: 10px 0 !important;
-                    border-bottom: 1px solid var(--border-solid) !important;
-                    margin: 0 0 16px 0 !important;
-                    max-width: none !important;
-                    width: 100% !important;
-                    box-sizing: border-box !important;
-                }
+            .kid-card {
+                padding: 16px 20px !important;
             }
+
+            .kid-name {
+                font-size: 1.2rem !important;
+            }
+
+            .inline-search-wrap {
+                max-width: 600px !important;
+            }
+
+            .topbar-btn {
+                height: 42px !important;
+                min-width: 42px !important;
+                font-size: .95rem !important;
+                box-shadow: none !important;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 12px 16px !important;
+                font-size: 0.95rem !important;
+            }
+
+            .kid-card {
+                padding: 16px 20px !important;
+            }
+
+            .kid-name {
+                font-size: 1.2rem !important;
+            }
+
+            .inline-search-wrap {
+                max-width: 600px !important;
+            }
+
+            /* .class-inline-search-wrap {
+                position: sticky !important;
+                top: 72px !important;
+                background: var(--bg) !important;
+                z-index: 100 !important;
+                padding: 10px 0 !important;
+                border-bottom: 1px solid var(--border-solid) !important;
+                margin: 0 0 16px 0 !important;
+                max-width: none !important;
+                box-sizing: border-box !important;
+            }*/
+        }
 
         /* ═══ UNCLE ACCOUNT PAGE STYLE ═══ */
         .uncle-acc-container {
@@ -9763,6 +9767,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             gap: 20px;
             direction: rtl;
         }
+
         .uncle-acc-sidebar {
             width: 280px;
             display: flex;
@@ -9770,10 +9775,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             gap: 16px;
             flex-shrink: 0;
         }
+
         .uncle-acc-content {
             flex: 1;
             min-width: 0;
         }
+
         .uncle-nav-btn {
             display: flex;
             align-items: center;
@@ -9791,23 +9798,30 @@ if ($hasUncleId && $uncleRole === 'uncle')
             text-align: right;
             width: 100%;
         }
+
         .uncle-nav-btn:hover {
             background: var(--surface-hover);
             color: var(--text);
         }
+
         .uncle-nav-btn.active {
             background: var(--brand-bg);
             color: var(--brand);
             border-color: var(--brand-glow);
         }
+
         /* ═══════════════════════════════════════════════════════════════════
    SETTINGS HUB + PAGE ROUTING (Uncle Account Refactored)
 ═══════════════════════════════════════════════════════════════════ */
         :root {
-            --radius-sm: var(--r-md); /* 14px */
-            --radius-lg: var(--r-lg); /* 18px */
-            --radius-xl: var(--r-xl); /* 24px */
-            --radius: var(--r-lg);    /* 18px */
+            --radius-sm: var(--r-md);
+            /* 14px */
+            --radius-lg: var(--r-lg);
+            /* 18px */
+            --radius-xl: var(--r-xl);
+            /* 24px */
+            --radius: var(--r-lg);
+            /* 18px */
             --shadow-xs: var(--shadow-sm);
             --t-fast: var(--t);
             --t-base: var(--t);
@@ -9818,6 +9832,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             --muted: var(--text-3);
             --surface-hover: var(--surface-2);
         }
+
         .settings-breadcrumb {
             display: flex;
             align-items: center;
@@ -9958,7 +9973,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 margin: 0 auto !important;
                 width: 100% !important;
             }
-            #uncleAccountPage_profile > div {
+
+            #uncleAccountPage_profile>div {
                 justify-content: center !important;
             }
         }
@@ -9978,6 +9994,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             .logout-text {
                 display: none !important;
             }
+
             .class-topbar .btn-danger {
                 padding: 0 !important;
                 width: 40px !important;
@@ -10720,19 +10737,29 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div id="classesView">
 
                 <!-- Profile picture suggestion banner -->
-                <div id="profilePicSuggestionBanner" style="display:none; background: linear-gradient(135deg, var(--brand-bg), rgba(79, 70, 229, 0.15)); border: 1px solid var(--brand); padding: 12px 16px; border-radius: 12px; margin-bottom: 12px; align-items: center; justify-content: space-between; gap: 12px; direction: rtl; text-align: right; position: relative;">
+                <div id="profilePicSuggestionBanner"
+                    style="display:none; background: linear-gradient(135deg, var(--brand-bg), rgba(79, 70, 229, 0.15)); border: 1px solid var(--brand); padding: 12px 16px; border-radius: 12px; margin-bottom: 12px; align-items: center; justify-content: space-between; gap: 12px; direction: rtl; text-align: right; position: relative;">
                     <div style="display:flex; align-items:center; gap:10px; min-width:0; flex:1;">
-                        <div style="background:var(--brand); color:#fff; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <div
+                            style="background:var(--brand); color:#fff; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
                             <i class="fas fa-camera"></i>
                         </div>
                         <div style="min-width:0; flex:1;">
-                            <h4 style="margin:0 0 2px 0; font-size:0.9rem; font-weight:800; color:var(--text-1); font-family: 'Cairo', sans-serif;">أضف صورتك الشخصية</h4>
-                            <p style="margin:0; font-size:0.78rem; color:var(--text-3); line-height:1.3; font-family: 'Cairo', sans-serif; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">اضغط هنا لتحديث صورتك</p>
+                            <h4
+                                style="margin:0 0 2px 0; font-size:0.9rem; font-weight:800; color:var(--text-1); font-family: 'Cairo', sans-serif;">
+                                أضف صورتك الشخصية</h4>
+                            <p
+                                style="margin:0; font-size:0.78rem; color:var(--text-3); line-height:1.3; font-family: 'Cairo', sans-serif; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                اضغط هنا لتحديث صورتك</p>
                         </div>
                     </div>
                     <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
-                        <button onclick="showAccountModal()" style="font-size:0.75rem; font-weight:800; padding:6px 12px; background:var(--brand); color:#fff; border:none; border-radius:8px; cursor:pointer; font-family: 'Cairo', sans-serif;">إضافة الآن</button>
-                        <button onclick="dismissProfilePicSuggestion()" style="background:none; border:none; color:var(--text-3); cursor:pointer; padding:4px 6px; font-size:0.9rem;" title="إغلاق"><i class="fas fa-times"></i></button>
+                        <button onclick="showAccountModal()"
+                            style="font-size:0.75rem; font-weight:800; padding:6px 12px; background:var(--brand); color:#fff; border:none; border-radius:8px; cursor:pointer; font-family: 'Cairo', sans-serif;">إضافة
+                            الآن</button>
+                        <button onclick="dismissProfilePicSuggestion()"
+                            style="background:none; border:none; color:var(--text-3); cursor:pointer; padding:4px 6px; font-size:0.9rem;"
+                            title="إغلاق"><i class="fas fa-times"></i></button>
                     </div>
                 </div>
 
@@ -10892,8 +10919,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <div class="dropdown-group-label">خيارات إضافية</div>
                             <button class="dropdown-item" onclick="startSwipeMode();closeAllDropdowns()"><i
                                     class="fas fa-hand-pointer"></i> وضع السحب السريع</button>
-                            <button class="dropdown-item" id="classMergeMenuItem" onclick="startMergeChooseMode();closeAllDropdowns()"><i
-                                    class="fas fa-code-merge"></i> دمج الحسابات المكررة</button>
+                            <button class="dropdown-item" id="classMergeMenuItem"
+                                onclick="startMergeChooseMode();closeAllDropdowns()"><i class="fas fa-code-merge"></i>
+                                دمج الحسابات المكررة</button>
                             <button class="dropdown-item danger" onclick="_clearAllUnsaved();closeAllDropdowns()"><i
                                     class="fas fa-trash-alt"></i> مسح كل التغييرات</button>
                         </div>
@@ -11117,17 +11145,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             <!-- ═══ UNCLE ACCOUNT VIEW ═══ -->
             <div id="uncleAccountView" style="display:none; flex-direction:column; gap:16px; width: 100%;">
-                
+
                 <!-- Header with Back Button, Title, and Logout Button -->
-                <div class="class-topbar" style="display: flex; align-items: center; justify-content: space-between; width: 100%; direction: rtl; margin-bottom: 8px;">
+                <div class="class-topbar"
+                    style="display: flex; align-items: center; justify-content: space-between; width: 100%; direction: rtl; margin-bottom: 8px;">
                     <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
                         <button class="btn btn-ghost btn-sm" onclick="showClassesView()"
                             style="min-width:40px;height:40px;padding:0;font-size:.9rem;background:transparent;border:none !important;box-shadow:none !important;display:flex;align-items:center;justify-content:center;color:var(--text);">
                             <i class="fas fa-arrow-right"></i>
                         </button>
-                        <h2 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--text); font-family: 'Cairo', sans-serif;">حسابي</h2>
+                        <h2
+                            style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--text); font-family: 'Cairo', sans-serif;">
+                            حسابي</h2>
                     </div>
-                    <button class="btn btn-danger btn-sm" onclick="logout()" style="padding: 8px 16px; font-size: 0.82rem; font-weight: 800; border-radius: 8px; display: flex; align-items: center; gap: 6px;">
+                    <button class="btn btn-danger btn-sm" onclick="logout()"
+                        style="padding: 8px 16px; font-size: 0.82rem; font-weight: 800; border-radius: 8px; display: flex; align-items: center; gap: 6px;">
                         <i class="fas fa-sign-out-alt"></i> <span class="logout-text">تسجيل الخروج</span>
                     </button>
                 </div>
@@ -11137,24 +11169,38 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="settings-breadcrumb">
                         <span class="settings-bc-item active"><i class="fas fa-user-cog"></i> إعدادات حسابي</span>
                     </div>
-                    
-                    <div style="display: flex; gap: 24px; flex-wrap: wrap; width: 100%; direction: rtl; align-items: flex-start; justify-content: center;">
+
+                    <div
+                        style="display: flex; gap: 24px; flex-wrap: wrap; width: 100%; direction: rtl; align-items: flex-start; justify-content: center;">
                         <!-- Profile Card on the right -->
-                        <div class="profile-avatar-card" style="padding: 24px; text-align: center; display: flex; flex-direction: column; align-items: center; width: 240px; flex-shrink: 0;">
+                        <div class="profile-avatar-card"
+                            style="padding: 24px; text-align: center; display: flex; flex-direction: column; align-items: center; width: 240px; flex-shrink: 0;">
                             <div style="position:relative; display:inline-block; margin-bottom: 8px;">
-                                <div onclick="document.getElementById('unclePhotoInput').click()" style="width: 100px; height: 100px; border-radius: 50%; overflow: hidden; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm);">
-                                    <img src="" alt="" class="account-big-avatar" id="accountBigAvatar" style="width: 100%; height: 100%; object-fit: cover; transition: transform var(--t) var(--ease);">
-                                    <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 28px; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.75rem;"><i class="fas fa-camera"></i></div>
+                                <div onclick="document.getElementById('unclePhotoInput').click()"
+                                    style="width: 100px; height: 100px; border-radius: 50%; overflow: hidden; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm);">
+                                    <img src="" alt="" class="account-big-avatar" id="accountBigAvatar"
+                                        style="width: 100%; height: 100%; object-fit: cover; transition: transform var(--t) var(--ease);">
+                                    <div
+                                        style="position: absolute; bottom: 0; left: 0; right: 0; height: 28px; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.75rem;">
+                                        <i class="fas fa-camera"></i>
+                                    </div>
                                 </div>
-                                <button type="button" id="deleteAccountPhotoBtn" onclick="deleteAccountPhoto(event)" style="display:none; position:absolute; top:-2px; right:-2px; background:var(--danger); color:white; border:none; border-radius:50%; width:26px; height:26px; cursor:pointer; align-items:center; justify-content:center; box-shadow:var(--shadow-sm); z-index:10;"><i class="fas fa-trash-alt" style="font-size:0.75rem;"></i></button>
+                                <button type="button" id="deleteAccountPhotoBtn" onclick="deleteAccountPhoto(event)"
+                                    style="display:none; position:absolute; top:-2px; right:-2px; background:var(--danger); color:white; border:none; border-radius:50%; width:26px; height:26px; cursor:pointer; align-items:center; justify-content:center; box-shadow:var(--shadow-sm); z-index:10;"><i
+                                        class="fas fa-trash-alt" style="font-size:0.75rem;"></i></button>
                             </div>
-                            <div class="account-name" id="accountDisplayName" style="font-size:1.1rem; font-weight:800; color: var(--text);">---</div>
-                            <div class="account-role" id="accountDisplayRole" style="font-size:0.8rem; color:var(--text-3); font-weight:600; margin-top:2px;">---</div>
+                            <div class="account-name" id="accountDisplayName"
+                                style="font-size:1.1rem; font-weight:800; color: var(--text);">---</div>
+                            <div class="account-role" id="accountDisplayRole"
+                                style="font-size:0.8rem; color:var(--text-3); font-weight:600; margin-top:2px;">---
+                            </div>
                             <input type="file" id="unclePhotoInput" accept="image/*" style="display:none">
-                            
-                            <div style="display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap; width:100%;">
+
+                            <div
+                                style="display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap; width:100%;">
                                 <button class="btn btn-secondary btn-sm" id="themeToggleBtn" onclick="toggleTheme()"
-                                    style="flex: 1; padding:8px 10px;font-size:.78rem; border-radius: 8px;" title="تبديل الوضع">
+                                    style="flex: 1; padding:8px 10px;font-size:.78rem; border-radius: 8px;"
+                                    title="تبديل الوضع">
                                     <i class="fas fa-moon theme-toggle-icon-moon"></i>
                                     <i class="fas fa-sun theme-toggle-icon-sun"></i>
                                 </button>
@@ -11166,64 +11212,103 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         </div>
 
                         <!-- Read-only Details on the left -->
-                        <div style="flex: 1; min-width: 280px; display: flex; flex-direction: column; gap: 16px; max-width: 500px;">
+                        <div
+                            style="flex: 1; min-width: 280px; display: flex; flex-direction: column; gap: 16px; max-width: 500px;">
                             <!-- Profile Information Card -->
-                            <div class="glass-card" style="padding: 20px; display: flex; flex-direction: column; gap: 16px; width: 100%;">
-                                <div style="font-size: 0.88rem; font-weight: 800; color: var(--text); border-bottom: 1.5px solid var(--border-solid); padding-bottom: 8px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+                            <div class="glass-card"
+                                style="padding: 20px; display: flex; flex-direction: column; gap: 16px; width: 100%;">
+                                <div
+                                    style="font-size: 0.88rem; font-weight: 800; color: var(--text); border-bottom: 1.5px solid var(--border-solid); padding-bottom: 8px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
                                     <i class="fas fa-id-card-alt" style="color: var(--brand);"></i> البيانات الشخصية
                                 </div>
-                                
+
                                 <!-- Name Row -->
-                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%;">
+                                <div
+                                    style="display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%;">
                                     <div style="display: flex; align-items: center; gap: 10px;">
-                                        <div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(91, 108, 245, 0.08); color: var(--brand); display: flex; align-items: center; justify-content: center; font-size: 0.9rem;"><i class="fas fa-user"></i></div>
-                                        <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-2);">الاسم الكامل</div>
+                                        <div
+                                            style="width: 34px; height: 34px; border-radius: 8px; background: rgba(91, 108, 245, 0.08); color: var(--brand); display: flex; align-items: center; justify-content: center; font-size: 0.9rem;">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-2);">الاسم
+                                            الكامل</div>
                                     </div>
-                                    <div style="font-size: 0.88rem; font-weight: 800; color: var(--text);" id="aiName">---</div>
+                                    <div style="font-size: 0.88rem; font-weight: 800; color: var(--text);" id="aiName">
+                                        ---</div>
                                 </div>
-                                
+
                                 <!-- Username Row -->
-                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%;">
+                                <div
+                                    style="display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%;">
                                     <div style="display: flex; align-items: center; gap: 10px;">
-                                        <div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(91, 108, 245, 0.08); color: var(--brand); display: flex; align-items: center; justify-content: center; font-size: 0.9rem;"><i class="fas fa-at"></i></div>
-                                        <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-2);">اسم المستخدم</div>
+                                        <div
+                                            style="width: 34px; height: 34px; border-radius: 8px; background: rgba(91, 108, 245, 0.08); color: var(--brand); display: flex; align-items: center; justify-content: center; font-size: 0.9rem;">
+                                            <i class="fas fa-at"></i>
+                                        </div>
+                                        <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-2);">اسم
+                                            المستخدم</div>
                                     </div>
-                                    <div style="font-size: 0.88rem; font-weight: 800; color: var(--text);" id="aiUsername">---</div>
+                                    <div style="font-size: 0.88rem; font-weight: 800; color: var(--text);"
+                                        id="aiUsername">---</div>
                                 </div>
-                                
+
                                 <!-- Role Row -->
-                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%;">
+                                <div
+                                    style="display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%;">
                                     <div style="display: flex; align-items: center; gap: 10px;">
-                                        <div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(91, 108, 245, 0.08); color: var(--brand); display: flex; align-items: center; justify-content: center; font-size: 0.9rem;"><i class="fas fa-shield-alt"></i></div>
-                                        <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-2);">الصلاحية</div>
+                                        <div
+                                            style="width: 34px; height: 34px; border-radius: 8px; background: rgba(91, 108, 245, 0.08); color: var(--brand); display: flex; align-items: center; justify-content: center; font-size: 0.9rem;">
+                                            <i class="fas fa-shield-alt"></i>
+                                        </div>
+                                        <div style="font-size: 0.82rem; font-weight: 800; color: var(--text-2);">
+                                            الصلاحية</div>
                                     </div>
-                                    <div style="font-size: 0.88rem; font-weight: 800; color: var(--text);" id="aiRole">---</div>
+                                    <div style="font-size: 0.88rem; font-weight: 800; color: var(--text);" id="aiRole">
+                                        ---</div>
                                 </div>
                             </div>
-                            
+
                             <!-- Edit Button -->
                             <div style="width: 100%;">
-                                <button class="btn btn-primary" style="width: 100%; padding: 12px 20px; font-size: 0.85rem; font-weight: 800; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="openUncleAccountPage('editProfile')">
+                                <button class="btn btn-primary"
+                                    style="width: 100%; padding: 12px 20px; font-size: 0.85rem; font-weight: 800; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;"
+                                    onclick="openUncleAccountPage('editProfile')">
                                     <i class="fas fa-edit"></i> تعديل بيانات الحساب
                                 </button>
                             </div>
 
-                            <hr style="border: 0; border-top: 1px solid var(--border-solid); margin: 8px 0; width: 100%;">
+                            <hr
+                                style="border: 0; border-top: 1px solid var(--border-solid); margin: 8px 0; width: 100%;">
 
                             <!-- Hub Grid of sub-sections directly under the info -->
-                            <div class="settings-hub-grid" style="width: 100%; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px;">
-                                <button type="button" class="settings-hub-card" onclick="openUncleAccountPage('fees')" style="max-width: 100%; aspect-ratio: auto; min-height: 80px; display: flex; flex-direction: row; align-items: center; justify-content: flex-start; padding: 12px; gap: 12px; border-radius: 12px;">
-                                    <div class="settings-hub-icon" style="background:rgba(16, 185, 129, 0.1);color:#10b981; width: 40px; height: 40px; font-size: 1.1rem; border-radius: 10px;"><i class="fas fa-money-bill-wave"></i></div>
+                            <div class="settings-hub-grid"
+                                style="width: 100%; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px;">
+                                <button type="button" class="settings-hub-card" onclick="openUncleAccountPage('fees')"
+                                    style="max-width: 100%; aspect-ratio: auto; min-height: 80px; display: flex; flex-direction: row; align-items: center; justify-content: flex-start; padding: 12px; gap: 12px; border-radius: 12px;">
+                                    <div class="settings-hub-icon"
+                                        style="background:rgba(16, 185, 129, 0.1);color:#10b981; width: 40px; height: 40px; font-size: 1.1rem; border-radius: 10px;">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                    </div>
                                     <div style="text-align: right;">
-                                        <div class="settings-hub-title" style="font-size: 0.8rem; font-weight: 800; color: var(--text);">اشتراكاتي المالية</div>
-                                        <div style="font-size: 0.68rem; color: var(--text-3); margin-top: 2px;">عرض الاشتراكات</div>
+                                        <div class="settings-hub-title"
+                                            style="font-size: 0.8rem; font-weight: 800; color: var(--text);">اشتراكاتي
+                                            المالية</div>
+                                        <div style="font-size: 0.68rem; color: var(--text-3); margin-top: 2px;">عرض
+                                            الاشتراكات</div>
                                     </div>
                                 </button>
-                                <button type="button" class="settings-hub-card" onclick="openUncleAccountPage('logs')" style="max-width: 100%; aspect-ratio: auto; min-height: 80px; display: flex; flex-direction: row; align-items: center; justify-content: flex-start; padding: 12px; gap: 12px; border-radius: 12px;">
-                                    <div class="settings-hub-icon" style="background:rgba(245, 158, 11, 0.1);color:#f59e0b; width: 40px; height: 40px; font-size: 1.1rem; border-radius: 10px;"><i class="fas fa-history"></i></div>
+                                <button type="button" class="settings-hub-card" onclick="openUncleAccountPage('logs')"
+                                    style="max-width: 100%; aspect-ratio: auto; min-height: 80px; display: flex; flex-direction: row; align-items: center; justify-content: flex-start; padding: 12px; gap: 12px; border-radius: 12px;">
+                                    <div class="settings-hub-icon"
+                                        style="background:rgba(245, 158, 11, 0.1);color:#f59e0b; width: 40px; height: 40px; font-size: 1.1rem; border-radius: 10px;">
+                                        <i class="fas fa-history"></i>
+                                    </div>
                                     <div style="text-align: right;">
-                                        <div class="settings-hub-title" style="font-size: 0.8rem; font-weight: 800; color: var(--text);">سجل نشاطاتي</div>
-                                        <div style="font-size: 0.68rem; color: var(--text-3); margin-top: 2px;">مراجعة العمليات</div>
+                                        <div class="settings-hub-title"
+                                            style="font-size: 0.8rem; font-weight: 800; color: var(--text);">سجل نشاطاتي
+                                        </div>
+                                        <div style="font-size: 0.68rem; color: var(--text-3); margin-top: 2px;">مراجعة
+                                            العمليات</div>
                                     </div>
                                 </button>
                             </div>
@@ -11234,8 +11319,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <!-- Page: Edit Profile -->
                 <div id="uncleAccountPage_editProfile" class="settings-page" style="display:none; width: 100%;">
                     <div class="settings-breadcrumb">
-                        <button class="settings-bc-item" onclick="openUncleAccountPage('profile')"><i class="fas fa-user-cog"></i> إعدادات حسابي</button>
-                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);transform:scaleX(-1);"></i>
+                        <button class="settings-bc-item" onclick="openUncleAccountPage('profile')"><i
+                                class="fas fa-user-cog"></i> إعدادات حسابي</button>
+                        <i class="fas fa-chevron-left"
+                            style="font-size:0.6rem;color:var(--muted);transform:scaleX(-1);"></i>
                         <span class="settings-bc-item active">تعديل البيانات</span>
                     </div>
 
@@ -11248,7 +11335,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                         <label class="form-label">الاسم الكامل</label>
                                         <div class="input-icon-wrap">
                                             <i class="fas fa-user input-icon"></i>
-                                            <input type="text" class="form-input" id="uncleProfileName" required placeholder="الاسم الكامل...">
+                                            <input type="text" class="form-input" id="uncleProfileName" required
+                                                placeholder="الاسم الكامل...">
                                         </div>
                                     </div>
                                 </div>
@@ -11259,7 +11347,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                         <label class="form-label">اسم المستخدم</label>
                                         <div class="input-icon-wrap">
                                             <i class="fas fa-user-tag input-icon"></i>
-                                            <input type="text" class="form-input" id="uncleProfileUsername" required placeholder="اسم المستخدم...">
+                                            <input type="text" class="form-input" id="uncleProfileUsername" required
+                                                placeholder="اسم المستخدم...">
                                         </div>
                                     </div>
                                 </div>
@@ -11270,7 +11359,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                         <label class="form-label">البريد الإلكتروني</label>
                                         <div class="input-icon-wrap">
                                             <i class="fas fa-envelope input-icon"></i>
-                                            <input type="email" class="form-input" id="uncleProfileEmail" placeholder="example@domain.com">
+                                            <input type="email" class="form-input" id="uncleProfileEmail"
+                                                placeholder="example@domain.com">
                                         </div>
                                     </div>
                                 </div>
@@ -11281,7 +11371,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                         <label class="form-label">رقم الهاتف</label>
                                         <div class="input-icon-wrap">
                                             <i class="fas fa-phone input-icon"></i>
-                                            <input type="text" class="form-input" id="uncleProfilePhone" placeholder="01xxxxxxxxx">
+                                            <input type="text" class="form-input" id="uncleProfilePhone"
+                                                placeholder="01xxxxxxxxx">
                                         </div>
                                     </div>
                                 </div>
@@ -11306,7 +11397,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                         <label class="form-label">كلمة المرور الحالية</label>
                                         <div class="input-icon-wrap">
                                             <i class="fas fa-lock input-icon"></i>
-                                            <input type="password" class="form-input" id="uncleProfileCurrentPassword" placeholder="أدخل كلمة المرور الحالية لتأكيد التغييرات">
+                                            <input type="password" class="form-input" id="uncleProfileCurrentPassword"
+                                                placeholder="أدخل كلمة المرور الحالية لتأكيد التغييرات">
                                         </div>
                                     </div>
                                 </div>
@@ -11317,7 +11409,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                         <label class="form-label">كلمة المرور الجديدة</label>
                                         <div class="input-icon-wrap">
                                             <i class="fas fa-key input-icon"></i>
-                                            <input type="password" class="form-input" id="uncleProfileNewPassword" minlength="6" placeholder="اتركها فارغة للإبقاء على الحالية">
+                                            <input type="password" class="form-input" id="uncleProfileNewPassword"
+                                                minlength="6" placeholder="اتركها فارغة للإبقاء على الحالية">
                                         </div>
                                     </div>
                                 </div>
@@ -11328,15 +11421,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                         <label class="form-label">تأكيد كلمة المرور الجديدة</label>
                                         <div class="input-icon-wrap">
                                             <i class="fas fa-key input-icon"></i>
-                                            <input type="password" class="form-input" id="uncleProfileConfirmPassword" minlength="6" placeholder="أعد إدخال كلمة المرور الجديدة">
+                                            <input type="password" class="form-input" id="uncleProfileConfirmPassword"
+                                                minlength="6" placeholder="أعد إدخال كلمة المرور الجديدة">
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="settings-actions">
-                                <button type="submit" class="btn btn-primary" style="padding:10px 24px; font-weight:800; border-radius:8px;"><i class="fas fa-save"></i> حفظ التغييرات</button>
-                                <button type="button" class="btn btn-secondary" onclick="openUncleAccountPage('profile')" style="padding:10px 24px; font-weight:800; border-radius:8px;"><i class="fas fa-times"></i> إلغاء</button>
+                                <button type="submit" class="btn btn-primary"
+                                    style="padding:10px 24px; font-weight:800; border-radius:8px;"><i
+                                        class="fas fa-save"></i> حفظ التغييرات</button>
+                                <button type="button" class="btn btn-secondary"
+                                    onclick="openUncleAccountPage('profile')"
+                                    style="padding:10px 24px; font-weight:800; border-radius:8px;"><i
+                                        class="fas fa-times"></i> إلغاء</button>
                             </div>
                         </form>
                     </div>
@@ -11345,13 +11444,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <!-- Page: Fees -->
                 <div id="uncleAccountPage_fees" class="settings-page" style="display:none; width: 100%;">
                     <div class="settings-breadcrumb">
-                        <button class="settings-bc-item" onclick="openUncleAccountPage('profile')"><i class="fas fa-user-cog"></i> إعدادات حسابي</button>
-                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);transform:scaleX(-1);"></i>
+                        <button class="settings-bc-item" onclick="openUncleAccountPage('profile')"><i
+                                class="fas fa-user-cog"></i> إعدادات حسابي</button>
+                        <i class="fas fa-chevron-left"
+                            style="font-size:0.6rem;color:var(--muted);transform:scaleX(-1);"></i>
                         <span class="settings-bc-item active">اشتراكاتي المالية</span>
                     </div>
 
                     <div style="max-width: 600px; display: flex; flex-direction: column; gap: 12px; width: 100%;">
-                        <div id="uncleOwnFeesList" style="display:flex; flex-direction:column; gap:10px; max-height: 70vh; overflow-y:auto; padding-inline-end:4px;">
+                        <div id="uncleOwnFeesList"
+                            style="display:flex; flex-direction:column; gap:10px; max-height: 70vh; overflow-y:auto; padding-inline-end:4px;">
                             <!-- Dynamically populated -->
                         </div>
                     </div>
@@ -11360,15 +11462,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <!-- Page: Logs -->
                 <div id="uncleAccountPage_logs" class="settings-page" style="display:none; width: 100%;">
                     <div class="settings-breadcrumb">
-                        <button class="settings-bc-item" onclick="openUncleAccountPage('profile')"><i class="fas fa-user-cog"></i> إعدادات حسابي</button>
-                        <i class="fas fa-chevron-left" style="font-size:0.6rem;color:var(--muted);transform:scaleX(-1);"></i>
+                        <button class="settings-bc-item" onclick="openUncleAccountPage('profile')"><i
+                                class="fas fa-user-cog"></i> إعدادات حسابي</button>
+                        <i class="fas fa-chevron-left"
+                            style="font-size:0.6rem;color:var(--muted);transform:scaleX(-1);"></i>
                         <span class="settings-bc-item active">سجل الأنشطة</span>
                     </div>
 
                     <div style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                         <!-- Search + filter bar -->
                         <div style="padding:0 0 12px;display:flex;gap:8px;flex-wrap:wrap;max-width:600px;">
-                            <div style="flex:1;min-width:180px;display:flex;align-items:center;gap:6px;background:var(--surface-3);border-radius:var(--radius);padding:8px 12px;border:1px solid var(--border)">
+                            <div
+                                style="flex:1;min-width:180px;display:flex;align-items:center;gap:6px;background:var(--surface-3);border-radius:var(--radius);padding:8px 12px;border:1px solid var(--border)">
                                 <i class="fas fa-search" style="color:var(--text-3);font-size:.8rem;flex-shrink:0"></i>
                                 <input id="historySearch" type="text" placeholder="بحث في السجل..."
                                     style="border:none;background:transparent;font-family:Cairo,sans-serif;font-size:.85rem;color:var(--text);width:100%;outline:none"
@@ -11389,7 +11494,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <div id="historySummary" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;"></div>
 
                         <!-- Log list -->
-                        <div id="uncleHistoryContent" style="max-height:60vh;overflow-y:auto;max-width:700px;margin:0 -4px;padding:0 4px">
+                        <div id="uncleHistoryContent"
+                            style="max-height:60vh;overflow-y:auto;max-width:700px;margin:0 -4px;padding:0 4px">
                             <div style="text-align:center;padding:2rem;color:var(--text-3)">
                                 <i class="fas fa-spinner fa-spin" style="font-size:1.5rem"></i>
                                 <p style="margin-top:8px">جاري التحميل...</p>
@@ -11616,7 +11722,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <div class="photo-circle-plus"><i class="fas fa-plus"></i></div>
                                 <input type="file" id="photoInput" accept="image/*" style="display:none">
                             </div>
-                            <button type="button" id="deleteStudentPhotoBtn" onclick="deleteStudentPhoto(event)" style="display:none; position:absolute; top:-4px; right:-4px; background:var(--danger); color:white; border:none; border-radius:50%; width:28px; height:28px; cursor:pointer; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;"><i class="fas fa-trash-alt" style="font-size:0.8rem;"></i></button>
+                            <button type="button" id="deleteStudentPhotoBtn" onclick="deleteStudentPhoto(event)"
+                                style="display:none; position:absolute; top:-4px; right:-4px; background:var(--danger); color:white; border:none; border-radius:50%; width:28px; height:28px; cursor:pointer; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;"><i
+                                    class="fas fa-trash-alt" style="font-size:0.8rem;"></i></button>
                         </div>
                         <div id="uploadControls" style="display:none"></div>
                     </div>
@@ -11674,25 +11782,30 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
                 <!-- Multiple custom fields container (filled dynamically) -->
                 <div id="editCustomFieldsContainer" style="display:none"></div>
-                
+
                 <!-- fields for uncle editing only -->
-                <div id="uncleEditFields" style="display:none; grid-column:1/-1; border-top:1px solid var(--border); padding-top:16px; margin-top:8px;">
-                    <div style="font-weight:700; color:var(--primary); font-size:0.85rem; margin-bottom:12px;">بيانات حساب الخادم:</div>
+                <div id="uncleEditFields"
+                    style="display:none; grid-column:1/-1; border-top:1px solid var(--border); padding-top:16px; margin-top:8px;">
+                    <div style="font-weight:700; color:var(--primary); font-size:0.85rem; margin-bottom:12px;">بيانات
+                        حساب الخادم:</div>
                     <div class="form-group" style="margin-bottom:12px;">
                         <label class="form-label">اسم المستخدم *</label>
-                        <div class="input-icon-wrap"><i class="fas fa-user-tag input-icon"></i><input type="text" id="editUncleUsername" class="form-input"></div>
+                        <div class="input-icon-wrap"><i class="fas fa-user-tag input-icon"></i><input type="text"
+                                id="editUncleUsername" class="form-input"></div>
                     </div>
                     <div class="form-group" style="margin-bottom:12px;">
                         <label class="form-label">كلمة المرور الجديدة (اتركها فارغة لعدم التغيير)</label>
-                        <div class="input-icon-wrap"><i class="fas fa-key input-icon"></i><input type="password" id="editUnclePassword" class="form-input" placeholder="كلمة المرور الجديدة..."></div>
+                        <div class="input-icon-wrap"><i class="fas fa-key input-icon"></i><input type="password"
+                                id="editUnclePassword" class="form-input" placeholder="كلمة المرور الجديدة..."></div>
                     </div>
                     <div class="form-group" style="margin-bottom:12px;">
                         <label class="form-label">الدور / الصلاحية *</label>
-                        <div class="input-icon-wrap"><i class="fas fa-user-shield input-icon"></i><select id="editUncleRole" class="form-input">
-                            <option value="uncle">خادم (Uncle)</option>
-                            <option value="admin">مسؤول (Admin)</option>
-                            <option value="developer">مطور (Developer)</option>
-                        </select></div>
+                        <div class="input-icon-wrap"><i class="fas fa-user-shield input-icon"></i><select
+                                id="editUncleRole" class="form-input">
+                                <option value="uncle">خادم (Uncle)</option>
+                                <option value="admin">مسؤول (Admin)</option>
+                                <option value="developer">مطور (Developer)</option>
+                            </select></div>
                     </div>
                 </div>
 
@@ -11781,7 +11894,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="form-group" id="studentMedicalNotesGroup" style="grid-column:1/-1;">
                     <label class="form-label">ملاحظات طبية</label>
                     <textarea id="studentMedicalNotes" class="form-input" rows="2"
-                         style="min-height:72px;resize:vertical;"></textarea>
+                        style="min-height:72px;resize:vertical;"></textarea>
                 </div>
                 <div class="form-group" id="studentBirthdayGroup">
                     <label class="form-label">تاريخ الميلاد (DD/MM/YYYY)</label>
@@ -13369,7 +13482,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             const roleTranslate = { 'admin': 'مسؤول', 'developer': 'مطور', 'dev': 'مطور', 'uncle': 'خادم' };
             const rText = roleTranslate[(u.role || '').toLowerCase().trim()] || u.role || '';
-            
+
             // Text displays (read-only views)
             if (document.getElementById('accountDisplayName')) document.getElementById('accountDisplayName').textContent = u.name || '';
             const rDisplay = document.getElementById('accountDisplayRole');
@@ -13377,7 +13490,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (document.getElementById('aiName')) document.getElementById('aiName').textContent = u.name || '';
             if (document.getElementById('aiUsername')) document.getElementById('aiUsername').textContent = u.username || '';
             if (document.getElementById('aiRole')) document.getElementById('aiRole').textContent = rText;
-            
+
             // Inputs (edit-only views)
             if (document.getElementById('uncleProfileName')) document.getElementById('uncleProfileName').value = u.name || '';
             if (document.getElementById('uncleProfileUsername')) document.getElementById('uncleProfileUsername').value = u.username || '';
@@ -13402,7 +13515,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 try {
                     const info = u._customInfo || (u.custom_info ? (typeof u.custom_info === 'string' ? JSON.parse(u.custom_info) : u.custom_info) : {});
                     fees = info._fees || [];
-                } catch(e) { fees = []; }
+                } catch (e) { fees = []; }
 
                 const isUncleLoggedIn = localStorage.getItem('uncleLoggedIn') === 'true';
                 if (isUncleLoggedIn && fees.length > 0) {
@@ -13528,7 +13641,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function dismissProfilePicSuggestion() {
             try {
                 localStorage.setItem('dismissProfilePicSuggestion', 'true');
-            } catch (e) {}
+            } catch (e) { }
             const banner = document.getElementById('profilePicSuggestionBanner');
             if (banner) banner.style.display = 'none';
         }
@@ -13757,7 +13870,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 u['صورة'] = u.image_url || '';
                                 u._customInfo = u.custom_info ? (typeof u.custom_info === 'string' ? JSON.parse(u.custom_info) : u.custom_info) : {};
                             });
-                        } catch(e) {}
+                        } catch (e) { }
                     }
                     updateDashboardStats();
                     loadDashboardTrips();
@@ -13860,25 +13973,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             window.allUnclesData.forEach(u => {
                                 u._isUncle = true;
                                 u['الاسم'] = u.name;
-                                  u['الفصل'] = 'الخدام';
-                                  u['رقم التليفون'] = u.phone || '';
-                                  u['عيد الميلاد'] = '';
-                                  u['النوع'] = u.gender || 'male';
-                                  u['صورة'] = u.image_url || '';
-                                  u._customInfo = u.custom_info ? (typeof u.custom_info === 'string' ? JSON.parse(u.custom_info) : u.custom_info) : {};
-                              });
-                              try {
-                                  localStorage.setItem('lastUnclesData', JSON.stringify(ru.uncles));
-                              } catch(e) {}
-                              displayClasses();
-                              if (currentClass === 'الخدام') {
-                                  loadAttendanceDataForClass('الخدام');
-                                  renderAttendanceList('الخدام');
-                                  updateClassStats();
-                              }
-                          }
-                      });
-                  }
+                                u['الفصل'] = 'الخدام';
+                                u['رقم التليفون'] = u.phone || '';
+                                u['عيد الميلاد'] = '';
+                                u['النوع'] = u.gender || 'male';
+                                u['صورة'] = u.image_url || '';
+                                u._customInfo = u.custom_info ? (typeof u.custom_info === 'string' ? JSON.parse(u.custom_info) : u.custom_info) : {};
+                            });
+                            try {
+                                localStorage.setItem('lastUnclesData', JSON.stringify(ru.uncles));
+                            } catch (e) { }
+                            displayClasses();
+                            if (currentClass === 'الخدام') {
+                                loadAttendanceDataForClass('الخدام');
+                                renderAttendanceList('الخدام');
+                                updateClassStats();
+                            }
+                        }
+                    });
+                }
 
                 if (window._pendingHashRestore) {
                     const { type, value } = window._pendingHashRestore;
@@ -16248,7 +16361,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     try {
                         const url = new URL(cleaned.startsWith('/') || !cleaned.includes('://') ? window.location.origin + (cleaned.startsWith('/') ? '' : '/') + cleaned : cleaned);
                         tempid = url.searchParams.get('tempid');
-                    } catch(e) {
+                    } catch (e) {
                         const match = cleaned.match(/[?&]tempid=([^&]+)/);
                         if (match) tempid = match[1];
                     }
@@ -17336,7 +17449,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             // Normal single-class submit
             const records = [];
             changedStudents.forEach(id => {
-                const s = (currentClass === 'الخدام') 
+                const s = (currentClass === 'الخدام')
                     ? (window.allUnclesData || []).find(u => getStudentId(u) === id)
                     : students.find(s => getStudentId(s) === id);
                 if (!s) return;
@@ -17581,14 +17694,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const normalized = normalizeArabic(word);
             const francoConverted = francoToArabic(word);
             const reps = new Set();
-            
+
             reps.add(normalized);
-            
+
             const lat = arabicToLatin(normalized);
             if (lat) {
                 reps.add(phoneticClean(lat));
             }
-            
+
             if (francoConverted) {
                 const normFranco = normalizeArabic(francoConverted);
                 reps.add(normFranco);
@@ -17597,7 +17710,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     reps.add(phoneticClean(latFranco));
                 }
             }
-            
+
             reps.add(phoneticClean(word));
             return Array.from(reps).filter(Boolean);
         }
@@ -17612,11 +17725,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             f1 = String(f1 || '').trim();
             f2 = String(f2 || '').trim();
             if (!f1 || !f2) return false;
-            
+
             const words1 = f1.split(/\s+/).filter(Boolean);
             const words2 = f2.split(/\s+/).filter(Boolean);
             if (words1.length === 0 || words2.length === 0) return false;
-            
+
             const minLength = Math.min(words1.length, words2.length);
             for (let i = 0; i < minLength; i++) {
                 if (!wordsMatch(words1[i], words2[i])) {
@@ -18525,7 +18638,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             try {
                 const info = full._customInfo || (full.custom_info ? (typeof full.custom_info === 'string' ? JSON.parse(full.custom_info) : full.custom_info) : {});
                 fees = info._fees || [];
-            } catch(e) { fees = []; }
+            } catch (e) { fees = []; }
 
             const arabicMonths = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
             const d = new Date();
@@ -18625,12 +18738,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 لا توجد اشتراكات مسجلة.
                             </div>
                         ` : fees.map(fee => {
-                            const deleteBtn = canManageFees ? `
+                    const deleteBtn = canManageFees ? `
                                 <button class="btn btn-ghost" style="padding:6px; color:var(--danger); font-size:0.8rem;" onclick="deleteUncleFee(${full.id}, '${fee.id}')" title="حذف الاشتراك">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
                             ` : '';
-                            return `
+                    return `
                             <div class="glass-card" style="padding:10px 12px; border:1px solid var(--border-solid); border-radius:10px; display:flex; align-items:center; justify-content:space-between; gap:8px; background:rgba(255,255,255,0.01);">
                                 <div style="flex:1;">
                                     <div style="display:flex; align-items:center; gap:6px;">
@@ -18648,7 +18761,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 ${deleteBtn}
                             </div>
                             `;
-                        }).reverse().join('')}
+                }).reverse().join('')}
                     </div>
                 </div>
                 `;
@@ -18682,7 +18795,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const r = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(res => res.json());
                 if (r.success) {
                     showToast(r.message || 'تم إضافة الاشتراك بنجاح', 'success');
-                    
+
                     const uncle = (window.allUnclesData || []).find(u => u.id === uncleId);
                     if (uncle) {
                         if (!uncle._customInfo) uncle._customInfo = {};
@@ -18703,7 +18816,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 } else {
                     showToast(r.message || 'فشل في إضافة الاشتراك', 'error');
                 }
-            } catch(e) {
+            } catch (e) {
                 showToast('خطأ في الاتصال بالسيرفر', 'error');
             }
         }
@@ -18720,7 +18833,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const r = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(res => res.json());
                 if (r.success) {
                     showToast(r.message || 'تم حذف الاشتراك', 'success');
-                    
+
                     const uncle = (window.allUnclesData || []).find(u => u.id === uncleId);
                     if (uncle && uncle._customInfo && Array.isArray(uncle._customInfo._fees)) {
                         uncle._customInfo._fees = uncle._customInfo._fees.filter(f => f.id !== feeId);
@@ -18731,7 +18844,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 } else {
                     showToast(r.message || 'فشل الحذف', 'error');
                 }
-            } catch(e) {
+            } catch (e) {
                 showToast('خطأ في الاتصال بالسيرفر', 'error');
             }
         }
@@ -18955,7 +19068,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             e.preventDefault();
             const name = document.getElementById('studentName').value.trim();
             const isUncleClass = (currentClass === 'الخدام');
-            
+
             if (isUncleClass) {
                 // Add Uncle/Servant
                 const username = document.getElementById('uncleUsernameField').value.trim();
@@ -18978,7 +19091,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 fd.append('role', role);
                 fd.append('gender', gender);
                 fd.append('phone', phone);
-                
+
                 // Add photo if cropped photo exists
                 if (currentCroppedBlob && currentPhotoEditorType === 'new') {
                     fd.append('photo', new File([currentCroppedBlob], `profile_${Date.now()}.jpg`, { type: 'image/jpeg' }));
@@ -19037,7 +19150,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const id = getStudentDbId(studentToDelete); if (!id) { showToast('المعرف غير موجود', 'error'); return; }
             showLoading('جاري الحذف...');
             const isUncle = !!studentToDelete._isUncle;
-            const deletePayload = isUncle 
+            const deletePayload = isUncle
                 ? { action: 'deleteUncle', uncle_id: id }
                 : { action: 'deleteStudent', studentId: id };
             makeApiCall(deletePayload, r => { showToast('تم الحذف بنجاح', 'success'); hideDeleteStudentModal(); hideStudentModal(); setTimeout(loadData, 1000); }, e => { showToast('فشل: ' + e, 'error'); hideDeleteStudentModal(); });
@@ -19051,7 +19164,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const ph2 = document.getElementById('newStudentPhotoPlaceholder');
             if (prev2) prev2.style.display = 'none';
             if (ph2) ph2.style.display = 'flex';
-            
+
             const isUncleClass = (currentClass === 'الخدام');
             const modalHeader = document.querySelector('#addPersonModal .modal-header h3');
             if (modalHeader) {
@@ -19077,7 +19190,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 document.getElementById('studentMedicalNotesGroup').style.display = 'none';
                 document.getElementById('studentBirthdayGroup').style.display = 'none';
                 document.getElementById('studentCouponsGroup').style.display = 'none';
-                
+
                 const cfCont = document.getElementById('addCustomFieldsContainer');
                 if (cfCont) {
                     cfCont.innerHTML = '';
@@ -20290,7 +20403,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 try {
                     const info = s._customInfo || (s.custom_info ? (typeof s.custom_info === 'string' ? JSON.parse(s.custom_info) : s.custom_info) : {});
                     fees = info._fees || [];
-                } catch(e) { fees = []; }
+                } catch (e) { fees = []; }
                 return fees.map(f => `${f.title}: ${f.amount} ج.م (${f.date})`).join(forCsv ? ' | ' : ' - ');
             }
             if (field.type === 'id') return getStudentDbId(s) || '';
@@ -20767,7 +20880,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     fetch('/upload.php', { method: 'POST', body: fd }).then(r => r.json()).then(d => {
                         if (d.success) {
                             const isUncle = !!currentStudentForEdit._isUncle;
-                            const updatePayload = isUncle 
+                            const updatePayload = isUncle
                                 ? { action: 'updateUncleImage', uncle_id: getStudentDbId(currentStudentForEdit), imageUrl: d.imageUrl }
                                 : { action: 'updateStudentImage', studentId: getStudentDbId(currentStudentForEdit), studentName: currentStudentForEdit['الاسم'], imageUrl: d.imageUrl };
                             makeApiCall(updatePayload, () => { showToast('تم حفظ الصورة', 'success'); const deleteBtn = document.getElementById('deleteStudentPhotoBtn'); if (deleteBtn) deleteBtn.style.display = 'flex'; setTimeout(loadData, 500); }, () => showToast('رُفعت ولكن فشل التحديث', 'warning'));
@@ -20794,7 +20907,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             fetch('/upload.php', { method: 'POST', body: fd }).then(r => r.json()).then(d => {
                 if (d.success) {
                     const isUncle = !!currentStudentForEdit._isUncle;
-                    const updatePayload = isUncle 
+                    const updatePayload = isUncle
                         ? { action: 'updateUncleImage', uncle_id: getStudentDbId(currentStudentForEdit), imageUrl: d.imageUrl }
                         : { action: 'updateStudentImage', studentId: getStudentDbId(currentStudentForEdit), studentName: currentStudentForEdit['الاسم'], imageUrl: d.imageUrl };
                     makeApiCall(updatePayload, () => { showToast('تم الرفع', 'success'); const deleteBtn = document.getElementById('deleteStudentPhotoBtn'); if (deleteBtn) deleteBtn.style.display = 'flex'; cancelPhotoUpload(); setTimeout(loadData, 500); }, () => showToast('رُفعت ولكن فشل التحديث', 'warning'));
@@ -20955,7 +21068,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const studentId = getStudentDbId(currentStudentForEdit);
             if (!studentId) return;
             showLoading('جاري حذف الصورة...');
-            const updatePayload = isUncle 
+            const updatePayload = isUncle
                 ? { action: 'updateUncleImage', uncle_id: studentId, imageUrl: '' }
                 : { action: 'updateStudentImage', studentId: studentId, imageUrl: '' };
             makeApiCall(updatePayload, () => {
