@@ -6039,7 +6039,6 @@
         }
 
         if (field.type === 'church_custom') {
-          if (isGuest) return '';
           let cInfo = {};
           try { cInfo = JSON.parse(r.student_custom_info || '{}'); } catch (e) { }
           return cInfo['field_' + field.customIndex] || (field.customIndex === 0 ? (cInfo.value || '') : '') || '';

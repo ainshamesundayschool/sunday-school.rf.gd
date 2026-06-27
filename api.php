@@ -25631,7 +25631,7 @@ function getTripDetails()
 
                 COALESCE(s.gender, g.gender) as student_gender,
 
-                g.guardian_name as guest_guardian_name,
+                COALESCE(s.emergency_phone, g.guardian_name) as guest_guardian_name,
 
                 u.name as registered_by_name,
 
@@ -28459,88 +28459,68 @@ function registerStudentForTrip()
 
 
 
-        $dbStudentId = ($regType === 'guest') ? null : $studentId;
-
-        $dbGuestId = null;
-
-
-
         if ($regType === 'guest') {
-
-            // Either use existing guest_id or create a new guest inline
-
-            $dbGuestId = intval($_POST['guest_id'] ?? 0);
-
-            if ($dbGuestId === 0) {
-
-                // Create new guest record
-
+            $dbGuestIdVal = intval($_POST['guest_id'] ?? 0);
+            if ($dbGuestIdVal === 0) {
                 $guestName = sanitize($_POST['guest_name'] ?? '');
-
                 $guestPhone = sanitize($_POST['guest_phone'] ?? '');
-
                 $guestGuardianName = sanitize($_POST['guest_guardian_name'] ?? '');
-
                 $guestClass = sanitize($_POST['guest_class'] ?? '');
-
                 $guestGender = sanitize($_POST['guest_gender'] ?? '');
 
-
-
                 if (empty($guestName)) {
-
                     sendJSON(['success' => false, 'message' => 'اسم الزائر مطلوب']);
-
                     return;
-
                 }
 
+                $gGender = in_array($guestGender, ['male', 'female']) ? $guestGender : detectGenderFromName($guestName);
+                $className = !empty($guestClass) ? $guestClass : 'الزوار';
+                $classId = 0;
+                
+                if (!empty($className)) {
+                    $classStmt = $conn->prepare("
+                        SELECT id FROM church_classes 
+                        WHERE church_id = ? AND arabic_name = ? AND is_active = 1
+                        UNION
+                        SELECT id FROM classes 
+                        WHERE arabic_name = ?
+                        LIMIT 1
+                    ");
+                    $classStmt->bind_param("iss", $churchId, $className, $className);
+                    $classStmt->execute();
+                    $classRes = $classStmt->get_result()->fetch_assoc();
+                    if ($classRes) {
+                        $classId = intval($classRes['id']);
+                    }
+                }
 
-
-                ensureGuestsTable($conn);
-
-                $gInsert = $conn->prepare("INSERT INTO guests (church_id, name, phone, guardian_name, `class`, gender, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)");
-
-                $gPhone = $guestPhone ?: null;
-
-                $gGuardian = $guestGuardianName ?: null;
-
-                $gClass = $guestClass ?: null;
-
-                $gGender = in_array($guestGender, ['male', 'female']) ? $guestGender : null;
-
-                $gInsert->bind_param("isssssi", $churchId, $guestName, $gPhone, $gGuardian, $gClass, $gGender, $uncleId);
-
+                $gInsert = $conn->prepare("
+                    INSERT INTO students (church_id, name, class_id, class, address, phone, emergency_phone, gender, added_by, is_guest)
+                    VALUES (?, ?, ?, ?, '', ?, ?, ?, ?, 1)
+                ");
+                $addedByStr = $uncleId ? strval($uncleId) : 'church_admin';
+                $gInsert->bind_param("isisssss", $churchId, $guestName, $classId, $className, $guestPhone, $guestGuardianName, $gGender, $addedByStr);
                 $gInsert->execute();
-
-                $dbGuestId = $conn->insert_id;
-
+                $dbStudentId = $conn->insert_id;
+            } else {
+                $dbStudentId = $dbGuestIdVal;
             }
-
+            $dbGuestId = null;
+        } else {
+            $dbStudentId = $studentId;
+            $dbGuestId = null;
         }
 
-
-
         $stmt->bind_param(
-
             "iiidsssi",
-
             $tripId,
-
             $dbStudentId,
-
             $uncleId,
-
             $deposit,
-
             $notes,
-
             $customData,
-
             $regType,
-
             $dbGuestId
-
         );
 
 
@@ -45421,6 +45401,81 @@ function getUncleAttendanceReport()
 
 
 
+function transferGuestToStudent()
+{
+    try {
+        checkAuth();
+        $churchId = getChurchId();
+        $conn = getDBConnection();
+
+        $guestId = intval($_POST['guest_id'] ?? 0);
+        $classId = intval($_POST['class_id'] ?? 0);
+        $customClassName = sanitize($_POST['custom_class_name'] ?? '');
+
+        if ($guestId === 0) {
+            sendJSON(['success' => false, 'message' => 'معرف الزائر مطلوب']);
+            return;
+        }
+
+        // Verify guest belongs to this church and is a guest
+        $check = $conn->prepare("SELECT id, name FROM students WHERE id = ? AND church_id = ? AND is_guest = 1");
+        $check->bind_param("ii", $guestId, $churchId);
+        $check->execute();
+        $guest = $check->get_result()->fetch_assoc();
+        if (!$guest) {
+            sendJSON(['success' => false, 'message' => 'الزائر غير موجود']);
+            return;
+        }
+
+        // Determine the class_id and class name
+        $className = '';
+        if ($classId > 0) {
+            $cs = $conn->prepare("SELECT arabic_name FROM church_classes WHERE id = ? AND church_id = ?");
+            $cs->bind_param("ii", $classId, $churchId);
+            $cs->execute();
+            $cr = $cs->get_result()->fetch_assoc();
+            if ($cr) {
+                $className = $cr['arabic_name'];
+            } else {
+                $gs = $conn->prepare("SELECT arabic_name FROM classes WHERE id = ?");
+                $gs->bind_param("i", $classId);
+                $gs->execute();
+                $gr = $gs->get_result()->fetch_assoc();
+                $className = $gr ? $gr['arabic_name'] : '';
+            }
+        } elseif (!empty($customClassName)) {
+            $className = $customClassName;
+            $classId = 0;
+        } else {
+            sendJSON(['success' => false, 'message' => 'يجب اختيار فصل دراسي']);
+            return;
+        }
+
+        // We simply update the student record to not be a guest and assign the new class
+        $stmt = $conn->prepare("
+            UPDATE students 
+            SET is_guest = 0, class_id = ?, class = ?, added_by = 'guest_convert'
+            WHERE id = ? AND church_id = ? AND is_guest = 1
+        ");
+        $stmt->bind_param("isii", $classId, $className, $guestId, $churchId);
+
+        if ($stmt->execute()) {
+            sendJSON([
+                'success' => true,
+                'student_id' => $guestId,
+                'message' => 'تم تحويل الزائر "' . $guest['name'] . '" إلى طالب بنجاح'
+            ]);
+        } else {
+            sendJSON(['success' => false, 'message' => 'فشل في تحويل الزائر: ' . $stmt->error]);
+        }
+    } catch (Exception $e) {
+        error_log("transferGuestToStudent error: " . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في التحويل: ' . $e->getMessage()]);
+    }
+}
+
+
+
 function toggleUncleAttendance()
 
 {
@@ -46355,69 +46410,43 @@ function searchAllStudents()
 
 
 function getGuests()
-
 {
-
     try {
-
         checkAuth();
-
         $churchId = getChurchId();
-
         $conn = getDBConnection();
 
-        ensureGuestsTable($conn);
-
-
-
-        // Select all guests for this church with their trip registration info
-
+        // Select all guests from students table for this church with their trip registration info
         $stmt = $conn->prepare("
-
             SELECT 
-
-                g.*,
-
+                s.id as id,
+                s.name as name,
+                s.phone as phone,
+                s.emergency_phone as guardian_name,
+                s.class as class,
+                s.gender as gender,
+                s.medical_notes as notes,
+                s.image_url as image_url,
                 u.name as created_by_name,
-
-                (SELECT COUNT(*) FROM trip_registrations tr WHERE tr.guest_id = g.id AND tr.cancelled = 0) as trip_count,
-
-                (SELECT GROUP_CONCAT(DISTINCT t.title SEPARATOR '، ') FROM trip_registrations tr JOIN trips t ON tr.trip_id = t.id WHERE tr.guest_id = g.id AND tr.cancelled = 0) as trip_names
-
-            FROM guests g
-
-            LEFT JOIN uncles u ON g.created_by = u.id
-
-            WHERE g.church_id = ?
-
-            ORDER BY g.created_at DESC
-
+                (SELECT COUNT(*) FROM trip_registrations tr WHERE tr.student_id = s.id AND tr.cancelled = 0) as trip_count,
+                (SELECT GROUP_CONCAT(DISTINCT t.title SEPARATOR '، ') FROM trip_registrations tr JOIN trips t ON tr.trip_id = t.id WHERE tr.student_id = s.id AND tr.cancelled = 0) as trip_names
+            FROM students s
+            LEFT JOIN uncles u ON s.added_by = CAST(u.id AS CHAR)
+            WHERE s.church_id = ? AND s.is_guest = 1
+            ORDER BY s.created_at DESC
         ");
-
         $stmt->bind_param("i", $churchId);
-
         $stmt->execute();
-
-        $res = $stmt->get_result();
-
+        $result = $stmt->get_result();
         $guests = [];
-
-        while ($row = $res->fetch_assoc()) {
-
+        while ($row = $result->fetch_assoc()) {
             $guests[] = $row;
-
         }
-
         sendJSON(['success' => true, 'data' => $guests]);
-
     } catch (Exception $e) {
-
         error_log("getGuests error: " . $e->getMessage());
-
-        sendJSON(['success' => false, 'message' => 'خطأ في تحميل الزوار: ' . $e->getMessage()]);
-
+        sendJSON(['success' => false, 'message' => 'خطأ في جلب الزوار: ' . $e->getMessage()]);
     }
-
 }
 
 
@@ -46429,7 +46458,6 @@ function addGuest()
         $churchId = getChurchId();
         $uncleId = $_SESSION['uncle_id'] ?? null;
         $conn = getDBConnection();
-        ensureGuestsTable($conn);
 
         $name = sanitize($_POST['name'] ?? '');
         $phone = sanitize($_POST['phone'] ?? '');
@@ -46443,14 +46471,29 @@ function addGuest()
             return;
         }
 
-        if (!in_array($gender, ['male', 'female', ''])) {
-            $gender = null;
+        if ($gender !== 'male' && $gender !== 'female') {
+            $gender = detectGenderFromName($name);
         }
-        if ($gender === '') $gender = null;
-        if ($phone === '') $phone = null;
-        if ($guardianName === '') $guardianName = null;
-        if ($guestClass === '') $guestClass = null;
-        if ($notes === '') $notes = null;
+        
+        $className = !empty($guestClass) ? $guestClass : 'الزوار';
+        $classId = 0;
+        
+        if (!empty($className)) {
+            $classStmt = $conn->prepare("
+                SELECT id FROM church_classes 
+                WHERE church_id = ? AND arabic_name = ? AND is_active = 1
+                UNION
+                SELECT id FROM classes 
+                WHERE arabic_name = ?
+                LIMIT 1
+            ");
+            $classStmt->bind_param("iss", $churchId, $className, $className);
+            $classStmt->execute();
+            $classRes = $classStmt->get_result()->fetch_assoc();
+            if ($classRes) {
+                $classId = intval($classRes['id']);
+            }
+        }
 
         // Handle photo upload
         $photoUrl = '';
@@ -46472,10 +46515,12 @@ function addGuest()
         }
 
         $stmt = $conn->prepare("
-            INSERT INTO guests (church_id, name, phone, guardian_name, `class`, gender, notes, image_url, created_by)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO students 
+            (church_id, name, class_id, class, address, phone, emergency_phone, medical_notes, image_url, gender, added_by, is_guest)
+            VALUES (?, ?, ?, ?, '', ?, ?, ?, ?, ?, ?, 1)
         ");
-        $stmt->bind_param("isssssssi", $churchId, $name, $phone, $guardianName, $guestClass, $gender, $notes, $photoUrl, $uncleId);
+        $addedByStr = $uncleId ? strval($uncleId) : 'church_admin';
+        $stmt->bind_param("isissssssss", $churchId, $name, $classId, $className, $phone, $guardianName, $notes, $photoUrl, $gender, $addedByStr);
 
         if ($stmt->execute()) {
             $guestId = $conn->insert_id;
@@ -46495,7 +46540,6 @@ function updateGuest()
         checkAuth();
         $churchId = getChurchId();
         $conn = getDBConnection();
-        ensureGuestsTable($conn);
 
         $guestId = intval($_POST['guest_id'] ?? 0);
         if ($guestId === 0) {
@@ -46503,8 +46547,8 @@ function updateGuest()
             return;
         }
 
-        // Verify guest belongs to this church
-        $check = $conn->prepare("SELECT id, image_url FROM guests WHERE id = ? AND church_id = ?");
+        // Verify guest belongs to this church and is a guest
+        $check = $conn->prepare("SELECT id, image_url FROM students WHERE id = ? AND church_id = ? AND is_guest = 1");
         $check->bind_param("ii", $guestId, $churchId);
         $check->execute();
         $existing = $check->get_result()->fetch_assoc();
@@ -46525,12 +46569,29 @@ function updateGuest()
             return;
         }
 
-        if (!in_array($gender, ['male', 'female', ''])) $gender = null;
-        if ($gender === '') $gender = null;
-        if ($phone === '') $phone = null;
-        if ($guardianName === '') $guardianName = null;
-        if ($guestClass === '') $guestClass = null;
-        if ($notes === '') $notes = null;
+        if ($gender !== 'male' && $gender !== 'female') {
+            $gender = detectGenderFromName($name);
+        }
+
+        $className = !empty($guestClass) ? $guestClass : 'الزوار';
+        $classId = 0;
+        
+        if (!empty($className)) {
+            $classStmt = $conn->prepare("
+                SELECT id FROM church_classes 
+                WHERE church_id = ? AND arabic_name = ? AND is_active = 1
+                UNION
+                SELECT id FROM classes 
+                WHERE arabic_name = ?
+                LIMIT 1
+            ");
+            $classStmt->bind_param("iss", $churchId, $className, $className);
+            $classStmt->execute();
+            $classRes = $classStmt->get_result()->fetch_assoc();
+            if ($classRes) {
+                $classId = intval($classRes['id']);
+            }
+        }
 
         // Handle photo upload
         $photoUrl = $existing['image_url'] ?? '';
@@ -46552,21 +46613,20 @@ function updateGuest()
         }
 
         $stmt = $conn->prepare("
-            UPDATE guests SET name = ?, phone = ?, guardian_name = ?, `class` = ?, gender = ?, notes = ?, image_url = ?
-            WHERE id = ? AND church_id = ?
+            UPDATE students 
+            SET name = ?, class_id = ?, class = ?, phone = ?, emergency_phone = ?, medical_notes = ?, image_url = ?, gender = ?
+            WHERE id = ? AND church_id = ? AND is_guest = 1
         ");
-        $stmt->bind_param("sssssssii", $name, $phone, $guardianName, $guestClass, $gender, $notes, $photoUrl, $guestId, $churchId);
+        $stmt->bind_param("sissssssii", $name, $classId, $className, $phone, $guardianName, $notes, $photoUrl, $gender, $guestId, $churchId);
 
         if ($stmt->execute()) {
-            sendJSON(['success' => true, 'message' => 'تم تحديث بيانات الزائر بنجاح']);
+            sendJSON(['success' => true, 'message' => 'تم تعديل بيانات الزائر بنجاح']);
         } else {
-            sendJSON(['success' => false, 'message' => 'فشل في تحديث الزائر: ' . $stmt->error]);
+            sendJSON(['success' => false, 'message' => 'فشل في تعديل بيانات الزائر: ' . $stmt->error]);
         }
     } catch (Exception $e) {
         error_log("updateGuest error: " . $e->getMessage());
-
-        sendJSON(['success' => false, 'message' => 'خطأ في تحديث الزائر: ' . $e->getMessage()]);
-
+        sendJSON(['success' => false, 'message' => 'خطأ في تعديل بيانات الزائر: ' . $e->getMessage()]);
     }
 
 }
@@ -46574,87 +46634,45 @@ function updateGuest()
 
 
 function deleteGuest()
-
 {
-
     try {
-
         checkAuth();
-
         $churchId = getChurchId();
-
         $conn = getDBConnection();
 
-        ensureGuestsTable($conn);
-
-
-
         $guestId = intval($_POST['guest_id'] ?? 0);
-
         if ($guestId === 0) {
-
             sendJSON(['success' => false, 'message' => 'معرف الزائر مطلوب']);
-
             return;
-
         }
 
-
-
-        // Verify guest belongs to this church
-
-        $check = $conn->prepare("SELECT id FROM guests WHERE id = ? AND church_id = ?");
-
+        // Verify guest belongs to this church and is a guest
+        $check = $conn->prepare("SELECT id FROM students WHERE id = ? AND church_id = ? AND is_guest = 1");
         $check->bind_param("ii", $guestId, $churchId);
-
         $check->execute();
-
         if ($check->get_result()->num_rows === 0) {
-
             sendJSON(['success' => false, 'message' => 'الزائر غير موجود']);
-
             return;
-
         }
-
-
 
         // Cancel any active trip registrations for this guest
-
-        $cancelStmt = $conn->prepare("UPDATE trip_registrations SET cancelled = 1, cancelled_at = NOW() WHERE guest_id = ? AND cancelled = 0");
-
+        $cancelStmt = $conn->prepare("UPDATE trip_registrations SET cancelled = 1, cancelled_at = NOW() WHERE student_id = ? AND cancelled = 0");
         $cancelStmt->bind_param("i", $guestId);
-
         $cancelStmt->execute();
 
-
-
-        // Delete the guest record
-
-        $delStmt = $conn->prepare("DELETE FROM guests WHERE id = ? AND church_id = ?");
-
+        // Delete the guest record from students
+        $delStmt = $conn->prepare("DELETE FROM students WHERE id = ? AND church_id = ? AND is_guest = 1");
         $delStmt->bind_param("ii", $guestId, $churchId);
 
-
-
         if ($delStmt->execute()) {
-
             sendJSON(['success' => true, 'message' => 'تم حذف الزائر بنجاح']);
-
         } else {
-
             sendJSON(['success' => false, 'message' => 'فشل في حذف الزائر: ' . $delStmt->error]);
-
         }
-
     } catch (Exception $e) {
-
         error_log("deleteGuest error: " . $e->getMessage());
-
         sendJSON(['success' => false, 'message' => 'خطأ في حذف الزائر: ' . $e->getMessage()]);
-
     }
-
 }
 
 function updateGuestImage()
@@ -46698,7 +46716,7 @@ function updateGuestImage()
 
 
 
-function transferGuestToStudent()
+function legacy_transferGuestToStudent()
 
 {
 
