@@ -23764,7 +23764,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
           .ws-kid-actions { display: flex; gap: 4px; }
           .ws-kid-action-btn { background: none; border: none; padding: 2px; cursor: pointer; color: var(--muted); font-size: 0.7rem; transition: color 0.2s; }
           .ws-kid-action-btn:hover { color: var(--danger); }
-          .ws-unassigned-card { border: 1.5px solid var(--border-solid); border-radius: 8px; padding: 8px 10px; background: var(--bg); display: flex; flex-direction: column; gap: 3px; cursor: pointer; transition: all 0.2s; }
+          .ws-unassigned-card { border: 1.5px solid var(--border-solid); border-radius: 8px; padding: 8px 10px; background: var(--surface-2, #fff); display: flex; flex-direction: column; gap: 3px; cursor: pointer; transition: all 0.2s; }
           .ws-unassigned-card:hover { border-color: var(--primary); background: var(--surface-3); }
           .ws-unassigned-card.selected { border-color: var(--primary); background: #eff6ff; }
           .ws-unassigned-card.boy { border-right: 3px solid #3b82f6; }
@@ -23884,6 +23884,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
               padding: 12px 24px;
               font-weight: 800;
               font-size: 0.85rem;
+              font-family: 'Cairo', 'Baloo Bhaijaan 2', sans-serif;
               background: var(--primary);
               color: #fff;
               border: none;
