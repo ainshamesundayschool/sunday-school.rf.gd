@@ -128,6 +128,24 @@ function ensureStudentsAddedByColumn(mysqli $conn): void
 
 
 
+function ensureStudentsIsGuestColumn(mysqli $conn): void
+
+{
+
+    $check = $conn->query("SHOW COLUMNS FROM students LIKE 'is_guest'");
+
+    if ($check && $check->num_rows > 0) {
+
+        return;
+
+    }
+
+    $conn->query("ALTER TABLE students ADD COLUMN is_guest TINYINT(1) DEFAULT 0");
+
+}
+
+
+
 // ── Safe deletion of uploaded files ─────────────────────────
 
 /**
@@ -1248,6 +1266,7 @@ try {
     $conn = getDBConnection();
     ensureStudentsAddedByColumn($conn);
     ensureStudentTempIdColumn($conn);
+    ensureStudentsIsGuestColumn($conn);
 } catch (Exception $e) {
     error_log("Failed to run startup migrations: " . $e->getMessage());
 }
