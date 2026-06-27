@@ -13696,12 +13696,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             const statusBadge = isPaid
                                 ? `<span style="background:#10b981; color:white; font-size:0.65rem; font-weight:700; padding:2px 6px; border-radius:6px; margin-inline-start:6px;">مدفوع</span>`
                                 : `<span style="background:#ef4444; color:white; font-size:0.65rem; font-weight:700; padding:2px 6px; border-radius:6px; margin-inline-start:6px;">غير مدفوع</span>`;
+                            const amountBadge = isPaid
+                                ? `<span style="background:var(--brand); color:white; font-size:0.7rem; font-weight:800; padding:2px 6px; border-radius:10px;">${fee.amount} ج.م</span>`
+                                : '';
                             return `
                             <div class="glass-card" style="padding:14px 16px; display:flex; align-items:center; justify-content:space-between; gap:8px; direction:rtl; text-align:right;">
                                 <div style="flex:1;">
                                     <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                                         <span style="font-weight:700; font-size:0.85rem; color:var(--text);">${escHtml(fee.title)}</span>
-                                        <span style="background:var(--brand); color:white; font-size:0.7rem; font-weight:800; padding:2px 6px; border-radius:10px;">${fee.amount} ج.م</span>
+                                        ${amountBadge}
                                         ${statusBadge}
                                     </div>
                                     <div style="font-size:0.75rem; color:var(--text-3); margin-top:2px;">
@@ -18963,6 +18966,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     
                     <div style="display:flex; flex-direction:column; gap:10px;">
                         <div style="display:flex; gap:8px; align-items:center;">
+                            <div style="width:120px; display:flex; flex-direction:column; gap:4px;">
+                                <label style="font-size:0.7rem; font-weight:700; color:var(--text-3);">حالة الدفع</label>
+                                <select id="newFeeStatus" class="form-input" style="height:36px; font-size:0.8rem; padding:4px 8px; font-family:Cairo,sans-serif;" onchange="const amtEl = document.getElementById('newFeeAmount'); const wrapperEl = document.getElementById('newFeeAmountWrapper'); if (this.value === 'unpaid') { amtEl.value = ''; amtEl.removeAttribute('required'); wrapperEl.style.display = 'none'; } else { amtEl.setAttribute('required', 'required'); wrapperEl.style.display = 'flex'; }">
+                                    <option value="paid" selected>مدفوع</option>
+                                    <option value="unpaid">غير مدفوع</option>
+                                </select>
+                            </div>
                             <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
                                 <label style="font-size:0.7rem; font-weight:700; color:var(--text-3);">الشهر</label>
                                 <select id="newFeeMonth" class="form-input" style="height:36px; font-size:0.8rem; padding:4px 8px; font-family:Cairo,sans-serif;">
@@ -18977,7 +18987,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                     <option value="${curYear + 1}">${curYear + 1}</option>
                                 </select>
                             </div>
-                            <div style="width:100px; display:flex; flex-direction:column; gap:4px;">
+                            <div id="newFeeAmountWrapper" style="width:100px; display:flex; flex-direction:column; gap:4px;">
                                 <label style="font-size:0.7rem; font-weight:700; color:var(--text-3);">القيمة (ج.م)</label>
                                 <input type="number" id="newFeeAmount" class="form-input no-spinner" style="height:36px; font-size:0.8rem; text-align:center; padding:4px 8px;" placeholder="المبلغ" required>
                             </div>
@@ -18986,13 +18996,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
                                 <label style="font-size:0.7rem; font-weight:700; color:var(--text-3);">ملاحظات (اختياري)</label>
                                 <input type="text" id="newFeeDesc" class="form-input" style="height:36px; font-size:0.8rem; padding:4px 10px;" placeholder="اكتب أي تفاصيل أخرى...">
-                            </div>
-                            <div style="width:120px; display:flex; flex-direction:column; gap:4px;">
-                                <label style="font-size:0.7rem; font-weight:700; color:var(--text-3);">حالة الدفع</label>
-                                <select id="newFeeStatus" class="form-input" style="height:36px; font-size:0.8rem; padding:4px 8px; font-family:Cairo,sans-serif;" onchange="const amtEl = document.getElementById('newFeeAmount'); if (this.value === 'unpaid') { amtEl.value = ''; amtEl.disabled = true; } else { amtEl.disabled = false; }">
-                                    <option value="paid" selected>مدفوع</option>
-                                    <option value="unpaid">غير مدفوع</option>
-                                </select>
                             </div>
                         </div>
                         <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:4px;">
@@ -19065,6 +19068,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     const statusBadge = isPaid
                         ? `<span style="background:#10b981; color:white; font-size:0.65rem; font-weight:700; padding:1px 6px; border-radius:6px; margin-inline-start:6px;">مدفوع</span>`
                         : `<span style="background:#ef4444; color:white; font-size:0.65rem; font-weight:700; padding:1px 6px; border-radius:6px; margin-inline-start:6px;">غير مدفوع</span>`;
+                    const amountBadge = isPaid
+                        ? `<span style="background:var(--brand); color:white; font-size:0.7rem; font-weight:800; padding:2px 6px; border-radius:10px;">${fee.amount} ج.م</span>`
+                        : '';
 
                     const payBtn = (canManageFees && !isPaid) ? `
                                 <button class="btn btn-ghost" style="padding:6px; color:#10b981; font-size:0.85rem;" onclick="payUncleFee(${full.id}, '${fee.id}')" title="تسديد الاشتراك">
@@ -19081,7 +19087,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <div style="flex:1;">
                                     <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                                         <span style="font-weight:700; font-size:0.82rem; color:var(--text);">${escHtml(fee.title)}</span>
-                                        <span style="background:var(--brand); color:white; font-size:0.7rem; font-weight:800; padding:2px 6px; border-radius:10px;">${fee.amount} ج.م</span>
+                                        ${amountBadge}
                                         ${statusBadge}
                                     </div>
                                     <div style="font-size:0.72rem; color:var(--text-3); margin-top:2px;">
