@@ -4859,25 +4859,25 @@
       window.currentTripId = null;
       window.showAllChurchesStats = false;
 
-      function getFilteredTripRegistrations(trip, regsInput = null) {
+      function getFilteredTripRegistrations(trip, regsInput = null, ignoreAllChurchesStats = false) {
         const activeTrip = trip || allTripsCache.find(t => t.id == window.currentTripId) || window.currentTripObj;
         const regs = regsInput || (activeTrip ? (tripRegistrationsCache[activeTrip.id] || activeTrip.registrations) : []) || [];
         if (!activeTrip) return regs;
         const cid = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
         const isOwner = activeTrip.church_id == cid || activeTrip.is_owner == 1;
-        if (isOwner && window.showAllChurchesStats) {
+        if (isOwner && (window.showAllChurchesStats || ignoreAllChurchesStats)) {
           return regs;
         }
         return regs.filter(r => parseInt(r.student_church_id) === cid);
       }
 
-      function getFilteredTripWaitlist(trip, waitlistInput = null) {
+      function getFilteredTripWaitlist(trip, waitlistInput = null, ignoreAllChurchesStats = false) {
         const activeTrip = trip || allTripsCache.find(t => t.id == window.currentTripId) || window.currentTripObj;
         const waitlist = waitlistInput || window.currentWaitlistCache || (activeTrip ? activeTrip.waitlist : []) || [];
         if (!activeTrip) return waitlist;
         const cid = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
         const isOwner = activeTrip.church_id == cid || activeTrip.is_owner == 1;
-        if (isOwner && window.showAllChurchesStats) {
+        if (isOwner && (window.showAllChurchesStats || ignoreAllChurchesStats)) {
           return waitlist;
         }
         return waitlist.filter(w => parseInt(w.student_church_id) === cid);
@@ -6047,8 +6047,8 @@
         const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
         const rawRegs = tripRegistrationsCache[tripId] || trip?.registrations || [];
         const rawWaitlist = window.currentWaitlistCache || trip?.waitlist || [];
-        const filteredRegs = getFilteredTripRegistrations(trip, rawRegs);
-        const filteredWaitlist = getFilteredTripWaitlist(trip, rawWaitlist);
+        const filteredRegs = getFilteredTripRegistrations(trip, rawRegs, true);
+        const filteredWaitlist = getFilteredTripWaitlist(trip, rawWaitlist, true);
         const regs = filteredRegs.map(r => ({ ...r, _isWaitlist: false }));
         const waitlist = filteredWaitlist.map(w => ({ ...w, _isWaitlist: true }));
         const allParticipants = [...regs, ...waitlist];
