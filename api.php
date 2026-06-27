@@ -14895,9 +14895,14 @@ function addUncleFee()
         $amount = floatval($_POST['amount'] ?? 0);
         $description = trim($_POST['description'] ?? '');
         $date = trim($_POST['date'] ?? '');
+        $status = trim($_POST['status'] ?? 'paid');
+        if ($status !== 'unpaid') {
+            $status = 'paid';
+        }
 
-        if (!$uncleId || empty($title) || $amount <= 0) {
-            sendJSON(['success' => false, 'message' => 'بيانات غير كاملة']);
+        // Paid fees require amount > 0, unpaid fees require amount >= 0.
+        if (!$uncleId || empty($title) || ($status === 'paid' && $amount <= 0) || ($status === 'unpaid' && $amount < 0)) {
+            sendJSON(['success' => false, 'message' => 'بيانات غير كاملة أو قيمة الاشتراك غير صحيحة']);
             return;
         }
 
@@ -14925,11 +14930,6 @@ function addUncleFee()
 
         if (!isset($customInfo['_fees']) || !is_array($customInfo['_fees'])) {
             $customInfo['_fees'] = [];
-        }
-
-        $status = trim($_POST['status'] ?? 'paid');
-        if ($status !== 'unpaid') {
-            $status = 'paid';
         }
 
         $feeId = uniqid('fee_', true);

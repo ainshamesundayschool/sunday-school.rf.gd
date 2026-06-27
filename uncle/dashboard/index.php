@@ -19111,13 +19111,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const month = document.getElementById('newFeeMonth').value;
             const year = document.getElementById('newFeeYear').value;
             const title = `اشتراك شهر ${month} ${year}`;
-            const amount = parseFloat(document.getElementById('newFeeAmount').value);
+            let amount = parseFloat(document.getElementById('newFeeAmount').value);
             const description = document.getElementById('newFeeDesc').value.trim();
             const status = document.getElementById('newFeeStatus').value;
             const date = new Date().toISOString().split('T')[0];
 
-            if (isNaN(amount) || amount <= 0) {
+            if (isNaN(amount)) {
+                amount = 0;
+            }
+
+            if (status === 'paid' && amount <= 0) {
                 showToast('الرجاء إدخال قيمة صحيحة أكبر من الصفر للاشتراك', 'error');
+                return;
+            }
+            if (status === 'unpaid' && amount < 0) {
+                showToast('الرجاء إدخال قيمة صحيحة للاشتراك', 'error');
                 return;
             }
 
