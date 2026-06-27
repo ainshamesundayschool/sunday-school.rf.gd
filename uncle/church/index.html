@@ -7764,7 +7764,7 @@
                         <div class="settings-field-box" id="settingAllowedViewUnclesContainer" style="display:none;">
                             <div class="form-group">
                                 <label class="form-label"><i class="fas fa-users-cog"
-                                        style="margin-left:6px;color:var(--primary);"></i> الخدام المسموح لهم بـ "عرض الخدام"</label>
+                                        style="margin-left:6px;color:var(--primary);"></i> الخدام المسموح لهم بـ إدارة الخدام واشتراكاتهم</label>
                                 <input type="hidden" id="settingAllowedViewUncles" value="">
                                 
                                 <div class="input-icon-wrap" style="margin-bottom:8px;">
@@ -7775,7 +7775,7 @@
                                 <div id="allowedUnclesCheckboxes" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(160px, 1fr));gap:8px;max-height:180px;overflow-y:auto;padding:6px;border:1px solid var(--border);border-radius:8px;background:var(--bg-alpha);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);">
                                     <!-- Populated dynamically -->
                                 </div>
-                                <small style="color:var(--text-3);margin-top:6px;display:block;font-size:0.76rem;">حدد الخدام الذين ترغب في منحهم صلاحية رؤية صفحة "عرض الخدام". سيتم حفظ التغييرات تلقائيًا عند حفظ الإعدادات.</small>
+                                <small style="color:var(--text-3);margin-top:6px;display:block;font-size:0.76rem;">حدد الخدام الذين ترغب في منحهم صلاحية إدارة الخدام ورؤية/إضافة الاشتراكات المالية (المرتبات/الخدمات) الخاصة بهم. لن يتمكن أي خادم آخر من رؤية اشتراكات غيره إلا إذا تم تحديده هنا.</small>
                             </div>
                         </div>
                         <div class="settings-section-divider">طريقة عرض القائمة الرئيسية</div>
@@ -12748,7 +12748,8 @@
                 renderCustomFieldsList();
                 const allowedContainer = document.getElementById('settingAllowedViewUnclesContainer');
                 if (allowedContainer) {
-                    allowedContainer.style.display = isDeveloper ? 'block' : 'none';
+                    const isChurchAdmin = localStorage.getItem('loginType') === 'church' || userRole === 'admin' || userRole === 'administrator';
+                    allowedContainer.style.display = (isDeveloper || isChurchAdmin) ? 'block' : 'none';
                 }
                 populateAllowedUnclesCheckboxes();
             } catch (e) { console.error(e); renderCustomFieldsList(); }

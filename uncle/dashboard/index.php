@@ -12777,15 +12777,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         function hasUnclesViewPermission() {
-            const role = (window.currentUncle && window.currentUncle.role) || localStorage.getItem('uncleRole') || '';
-            const roleLower = String(role).toLowerCase().trim();
-            if (roleLower === 'developer' || roleLower === 'dev') {
+            if (localStorage.getItem('loginType') === 'church') {
                 return true;
             }
             if (!allowedViewUncles || allowedViewUncles.trim() === '') {
                 return false;
             }
-            const username = ((window.currentUncle && window.currentUncle.username) || localStorage.getItem('uncleUsername') || '').trim().toLowerCase();
+            const username = (localStorage.getItem('uncleUsername') || '').trim().toLowerCase();
             if (!username) return false;
             const allowedList = allowedViewUncles.split(',').map(x => x.trim().toLowerCase());
             return allowedList.includes(username);
@@ -18822,14 +18820,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             const isUncleLoggedIn = localStorage.getItem('uncleLoggedIn') === 'true';
             const currentUncleId = window.currentUncle?.id || localStorage.getItem('uncleId');
-            const uRole = window.currentUncle?.role || localStorage.getItem('uncleRole') || '';
-            const isDev = (typeof isDeveloper !== 'undefined' && isDeveloper) || ['developer', 'dev'].includes(String(uRole).toLowerCase());
+            const loggedInUsername = (localStorage.getItem('uncleUsername') || '').trim().toLowerCase();
+            const allowedList = (allowedViewUncles || '').split(',').map(x => x.trim().toLowerCase());
+            const isAssignedManager = loggedInUsername && allowedList.includes(loggedInUsername);
 
             let canViewFees = true;
             if (isUncleLoggedIn) {
                 if (currentUncleId && String(currentUncleId) === String(full.id)) {
                     canViewFees = true;
-                } else if (isDev) {
+                } else if (isAssignedManager) {
                     canViewFees = true;
                 } else {
                     canViewFees = false;
@@ -18840,7 +18839,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             let feesHtml = '';
             if (canViewFees) {
-                const canManageFees = !isUncleLoggedIn || isDev;
+                const canManageFees = !isUncleLoggedIn || isAssignedManager;
                 const addFeeBtn = canManageFees ? `
                     <button type="button" class="btn btn-ghost sibling-link-btn" title="إضافة اشتراك" onclick="toggleAddFeeArea()"><i class="fas fa-money-bill-wave"></i> <i class="fas fa-plus"></i></button>
                 ` : '';

@@ -14854,11 +14854,29 @@ function ensureUnclesTableCustomInfoColumn($conn)
 function addUncleFee()
 {
     try {
-        $callerRole = $_SESSION['uncle_role'] ?? $_SESSION['role'] ?? '';
-        $isDeveloper = in_array(strtolower(trim($callerRole)), ['developer', 'dev']);
+        $callerUsername = $_SESSION['uncle_username'] ?? '';
         $isChurchAdmin = !isset($_SESSION['uncle_id']) && isset($_SESSION['church_id']);
 
-        if (!$isDeveloper && !$isChurchAdmin) {
+        $churchId = getChurchId();
+        $conn = getDBConnection();
+        ensureUnclesTableCustomInfoColumn($conn);
+
+        // Fetch allowed_view_uncles from database
+        $settingsStmt = $conn->prepare("SELECT allowed_view_uncles FROM church_settings WHERE church_id = ? LIMIT 1");
+        $settingsStmt->bind_param("i", $churchId);
+        $settingsStmt->execute();
+        $settingsRow = $settingsStmt->get_result()->fetch_assoc();
+        $allowedViewUncles = $settingsRow['allowed_view_uncles'] ?? '';
+
+        $isAssignedManager = false;
+        if (!empty($callerUsername) && !empty($allowedViewUncles)) {
+            $allowedList = array_map('trim', explode(',', strtolower($allowedViewUncles)));
+            if (in_array(strtolower(trim($callerUsername)), $allowedList)) {
+                $isAssignedManager = true;
+            }
+        }
+
+        if (!$isChurchAdmin && !$isAssignedManager) {
             sendJSON(['success' => false, 'message' => 'غير مصرح لك بإجراء هذه العملية']);
             return;
         }
@@ -14932,11 +14950,29 @@ function addUncleFee()
 function deleteUncleFee()
 {
     try {
-        $callerRole = $_SESSION['uncle_role'] ?? $_SESSION['role'] ?? '';
-        $isDeveloper = in_array(strtolower(trim($callerRole)), ['developer', 'dev']);
+        $callerUsername = $_SESSION['uncle_username'] ?? '';
         $isChurchAdmin = !isset($_SESSION['uncle_id']) && isset($_SESSION['church_id']);
 
-        if (!$isDeveloper && !$isChurchAdmin) {
+        $churchId = getChurchId();
+        $conn = getDBConnection();
+        ensureUnclesTableCustomInfoColumn($conn);
+
+        // Fetch allowed_view_uncles from database
+        $settingsStmt = $conn->prepare("SELECT allowed_view_uncles FROM church_settings WHERE church_id = ? LIMIT 1");
+        $settingsStmt->bind_param("i", $churchId);
+        $settingsStmt->execute();
+        $settingsRow = $settingsStmt->get_result()->fetch_assoc();
+        $allowedViewUncles = $settingsRow['allowed_view_uncles'] ?? '';
+
+        $isAssignedManager = false;
+        if (!empty($callerUsername) && !empty($allowedViewUncles)) {
+            $allowedList = array_map('trim', explode(',', strtolower($allowedViewUncles)));
+            if (in_array(strtolower(trim($callerUsername)), $allowedList)) {
+                $isAssignedManager = true;
+            }
+        }
+
+        if (!$isChurchAdmin && !$isAssignedManager) {
             sendJSON(['success' => false, 'message' => 'غير مصرح لك بإجراء هذه العملية']);
             return;
         }
@@ -15112,9 +15148,25 @@ function getAllUncles()
         $result = $stmt->get_result();
 
         $callerUncleId = $_SESSION['uncle_id'] ?? null;
+        $callerUsername = $_SESSION['uncle_username'] ?? '';
         $callerRole = $_SESSION['uncle_role'] ?? $_SESSION['role'] ?? '';
-        $isDeveloper = in_array(strtolower(trim($callerRole)), ['developer', 'dev']);
         $isChurchAdmin = !isset($_SESSION['uncle_id']) && isset($_SESSION['church_id']);
+
+        // Fetch allowed_view_uncles from database
+        $churchId = getChurchId();
+        $settingsStmt = $conn->prepare("SELECT allowed_view_uncles FROM church_settings WHERE church_id = ? LIMIT 1");
+        $settingsStmt->bind_param("i", $churchId);
+        $settingsStmt->execute();
+        $settingsRow = $settingsStmt->get_result()->fetch_assoc();
+        $allowedViewUncles = $settingsRow['allowed_view_uncles'] ?? '';
+
+        $isAssignedManager = false;
+        if (!empty($callerUsername) && !empty($allowedViewUncles)) {
+            $allowedList = array_map('trim', explode(',', strtolower($allowedViewUncles)));
+            if (in_array(strtolower(trim($callerUsername)), $allowedList)) {
+                $isAssignedManager = true;
+            }
+        }
 
         $uncles = [];
 
@@ -15122,7 +15174,7 @@ function getAllUncles()
             if (!empty($row['custom_info'])) {
                 $customData = json_decode($row['custom_info'], true);
                 if (is_array($customData) && isset($customData['_fees'])) {
-                    $canView = $isDeveloper || $isChurchAdmin || ($callerUncleId !== null && intval($row['id']) === intval($callerUncleId));
+                    $canView = $isChurchAdmin || $isAssignedManager || ($callerUncleId !== null && intval($row['id']) === intval($callerUncleId));
                     if (!$canView) {
                         unset($customData['_fees']);
                         $row['custom_info'] = json_encode($customData, JSON_UNESCAPED_UNICODE);
