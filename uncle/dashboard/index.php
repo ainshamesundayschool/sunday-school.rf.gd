@@ -19164,27 +19164,31 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             const extended = [...fees];
 
-            // Auto-generate virtual unpaid fees for all months of the current year up to the current month.
-            for (let m = 0; m <= curMonthIdx; m++) {
-                const monthName = arabicMonths[m];
-                const titleToCheck = `اشتراك شهر ${monthName} ${curYear}`;
-                
-                // Check if there is an existing fee for this month (paid or unpaid)
-                const exists = fees.some(f => {
-                    const fTitle = (f.title || '').trim();
-                    return fTitle.includes(monthName) && fTitle.includes(String(curYear));
-                });
-
-                if (!exists) {
-                    extended.push({
-                        id: `virtual_${monthName}_${curYear}`,
-                        title: titleToCheck,
-                        amount: 0,
-                        status: 'unpaid',
-                        description: 'توليد تلقائي لعدم السداد',
-                        is_virtual: true,
-                        date: `${curYear}-${String(m + 1).padStart(2, '0')}-01`
+            // Auto-generate virtual unpaid fees for 2025 and 2026 (up to current month).
+            const startYear = 2025;
+            for (let year = startYear; year <= curYear; year++) {
+                const maxMonthIdx = (year === curYear) ? curMonthIdx : 11;
+                for (let m = 0; m <= maxMonthIdx; m++) {
+                    const monthName = arabicMonths[m];
+                    const titleToCheck = `اشتراك شهر ${monthName} ${year}`;
+                    
+                    // Check if there is an existing fee for this month (paid or unpaid)
+                    const exists = fees.some(f => {
+                        const fTitle = (f.title || '').trim();
+                        return fTitle.includes(monthName) && fTitle.includes(String(year));
                     });
+
+                    if (!exists) {
+                        extended.push({
+                            id: `virtual_${monthName}_${year}`,
+                            title: titleToCheck,
+                            amount: 0,
+                            status: 'unpaid',
+                            description: 'توليد تلقائي لعدم السداد',
+                            is_virtual: true,
+                            date: `${year}-${String(m + 1).padStart(2, '0')}-01`
+                        });
+                    }
                 }
             }
 
