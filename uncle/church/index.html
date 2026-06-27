@@ -12778,7 +12778,8 @@
                 renderCustomFieldsList();
                 const allowedContainer = document.getElementById('settingAllowedViewUnclesContainer');
                 if (allowedContainer) {
-                    const isChurchAdmin = localStorage.getItem('loginType') === 'church' || userRole === 'admin' || userRole === 'administrator';
+                    const role = (localStorage.getItem('uncleRole') || '').toLowerCase().trim();
+                    const isChurchAdmin = localStorage.getItem('loginType') === 'church' || role === 'admin' || role === 'administrator';
                     allowedContainer.style.display = (isDeveloper || isChurchAdmin) ? 'block' : 'none';
                 }
                 populateAllowedUnclesCheckboxes();
