@@ -14079,7 +14079,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         } catch (e) { }
                     }
                     if (!window.allGuestsData || !window.allGuestsData.length) {
-                        window.allGuestsData = students.filter(s => s._isGuest === 1 || s['الفصل'] === 'الزوار');
+                        window.allGuestsData = students.filter(s => s._isGuest == 1 || s._isGuest === true || s['الفصل'] === 'الزوار');
                         window.allGuestsData.forEach(g => {
                             g._isGuest = true;
                             g['الاسم'] = g.name || g['الاسم'];
@@ -14211,7 +14211,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         }
                     });
                     // Derive guests data from students
-                    window.allGuestsData = students.filter(s => s._isGuest === 1 || s['الفصل'] === 'الزوار');
+                    window.allGuestsData = students.filter(s => s._isGuest == 1 || s._isGuest === true || s['الفصل'] === 'الزوار');
                     window.allGuestsData.forEach(g => {
                         g._isGuest = true;
                         g['الاسم'] = g.name || g['الاسم'];

@@ -146,6 +146,170 @@ function ensureStudentsIsGuestColumn(mysqli $conn): void
 
 
 
+function autoMigrateLegacyGuests(mysqli $conn): void
+
+{
+
+    // Check if guests table exists
+
+    $tableCheck = $conn->query("SHOW TABLES LIKE 'guests'");
+
+    if (!$tableCheck || $tableCheck->num_rows === 0) {
+
+        return;
+
+    }
+
+
+
+    // Select all guests
+
+    $result = $conn->query("SELECT * FROM guests");
+
+    if (!$result || $result->num_rows === 0) {
+
+        return;
+
+    }
+
+
+
+    while ($row = $result->fetch_assoc()) {
+
+        $guestId = intval($row['id']);
+
+        $churchId = intval($row['church_id']);
+
+        $name = $row['name'];
+
+        $phone = $row['phone'] ?? '';
+
+        $guardianName = $row['guardian_name'] ?? '';
+
+        $gender = $row['gender'] ?? 'male';
+
+        if ($gender !== 'male' && $gender !== 'female') {
+
+            $gender = detectGenderFromName($name);
+
+        }
+
+        $notes = $row['notes'] ?? '';
+
+        $photoUrl = $row['image_url'] ?? '';
+
+        
+
+        $className = !empty($row['class']) ? trim($row['class']) : 'الزوار';
+
+        $classId = 0;
+
+        
+
+        if (!empty($row['class'])) {
+
+            $classStmt = $conn->prepare("
+
+                SELECT id FROM church_classes 
+
+                WHERE church_id = ? AND arabic_name = ? AND is_active = 1
+
+                UNION
+
+                SELECT id FROM classes 
+
+                WHERE arabic_name = ?
+
+                LIMIT 1
+
+            ");
+
+            $classStmt->bind_param("iss", $churchId, $className, $className);
+
+            $classStmt->execute();
+
+            $classRes = $classStmt->get_result()->fetch_assoc();
+
+            if ($classRes) {
+
+                $classId = intval($classRes['id']);
+
+            }
+
+        }
+
+        
+
+        $conn->begin_transaction();
+
+        try {
+
+            // Insert into students
+
+            $stmt = $conn->prepare("
+
+                INSERT INTO students 
+
+                (church_id, name, class_id, class, address, phone, emergency_phone, medical_notes, image_url, gender, added_by, is_guest)
+
+                VALUES (?, ?, ?, ?, '', ?, ?, ?, ?, ?, 'legacy_guest_migration', 1)
+
+            ");
+
+            $stmt->bind_param("isisssssss", $churchId, $name, $classId, $className, $phone, $guardianName, $notes, $photoUrl, $gender);
+
+            $stmt->execute();
+
+            
+
+            $newStudentId = $conn->insert_id;
+
+            
+
+            // Update trip registrations
+
+            $upd = $conn->prepare("
+
+                UPDATE trip_registrations 
+
+                SET student_id = ?, registration_type = 'student', guest_id = NULL 
+
+                WHERE guest_id = ?
+
+            ");
+
+            $upd->bind_param("ii", $newStudentId, $guestId);
+
+            $upd->execute();
+
+            
+
+            // Delete guest
+
+            $del = $conn->prepare("DELETE FROM guests WHERE id = ?");
+
+            $del->bind_param("i", $guestId);
+
+            $del->execute();
+
+            
+
+            $conn->commit();
+
+        } catch (Exception $e) {
+
+            $conn->rollback();
+
+            error_log("Failed to auto-migrate legacy guest ID $guestId: " . $e->getMessage());
+
+        }
+
+    }
+
+}
+
+
+
 // ── Safe deletion of uploaded files ─────────────────────────
 
 /**
@@ -1267,6 +1431,7 @@ try {
     ensureStudentsAddedByColumn($conn);
     ensureStudentTempIdColumn($conn);
     ensureStudentsIsGuestColumn($conn);
+    autoMigrateLegacyGuests($conn);
 } catch (Exception $e) {
     error_log("Failed to run startup migrations: " . $e->getMessage());
 }
