@@ -15083,9 +15083,10 @@ function payUncleFee()
         $churchId = getChurchId();
         $uncleId = intval($_POST['uncleId'] ?? 0);
         $feeId = trim($_POST['feeId'] ?? '');
+        $amount = floatval($_POST['amount'] ?? 0);
 
-        if (!$uncleId || empty($feeId)) {
-            sendJSON(['success' => false, 'message' => 'بيانات غير كاملة']);
+        if (!$uncleId || empty($feeId) || $amount <= 0) {
+            sendJSON(['success' => false, 'message' => 'بيانات غير كاملة أو قيمة الاشتراك غير صحيحة']);
             return;
         }
 
@@ -15121,6 +15122,7 @@ function payUncleFee()
         }
 
         $customInfo['_fees'][$foundIdx]['status'] = 'paid';
+        $customInfo['_fees'][$foundIdx]['amount'] = $amount;
         $customInfo['_fees'][$foundIdx]['paid_at'] = date('Y-m-d H:i:s');
         $customInfo['_fees'][$foundIdx]['paid_by'] = $_SESSION['uncle_name'] ?? 'أدمن';
         

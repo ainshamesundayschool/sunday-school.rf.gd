@@ -18989,7 +18989,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             </div>
                             <div style="width:120px; display:flex; flex-direction:column; gap:4px;">
                                 <label style="font-size:0.7rem; font-weight:700; color:var(--text-3);">حالة الدفع</label>
-                                <select id="newFeeStatus" class="form-input" style="height:36px; font-size:0.8rem; padding:4px 8px; font-family:Cairo,sans-serif;">
+                                <select id="newFeeStatus" class="form-input" style="height:36px; font-size:0.8rem; padding:4px 8px; font-family:Cairo,sans-serif;" onchange="const amtEl = document.getElementById('newFeeAmount'); if (this.value === 'unpaid') { amtEl.value = ''; amtEl.disabled = true; } else { amtEl.disabled = false; }">
                                     <option value="paid" selected>مدفوع</option>
                                     <option value="unpaid">غير مدفوع</option>
                                 </select>
@@ -19198,12 +19198,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         async function payUncleFee(uncleId, feeId) {
-            if (!confirm('هل أنت متأكد من تسديد هذا الاشتراك؟')) return;
+            const amountInput = prompt('الرجاء إدخال قيمة المبلغ المدفوع للاشتراك (ج.م):', '2000');
+            if (amountInput === null) return;
+            const amount = parseFloat(amountInput);
+            if (isNaN(amount) || amount <= 0) {
+                showToast('الرجاء إدخال مبلغ صحيح أكبر من الصفر للاشتراك', 'error');
+                return;
+            }
 
             const fd = new FormData();
             fd.append('action', 'payUncleFee');
             fd.append('uncleId', uncleId);
             fd.append('feeId', feeId);
+            fd.append('amount', amount);
 
             try {
                 const r = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(res => res.json());
@@ -19215,6 +19222,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         const fee = uncle._customInfo._fees.find(f => f.id === feeId);
                         if (fee) {
                             fee.status = 'paid';
+                            fee.amount = amount;
                             fee.paid_at = new Date().toISOString().replace('T', ' ').substr(0, 19);
                             fee.paid_by = window.currentUncle?.name || 'أدمن';
                         }
