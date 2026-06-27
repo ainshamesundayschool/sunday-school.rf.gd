@@ -17797,13 +17797,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const rawVal = item[4];
                 const isPhone = label.includes('تليفون') || label.includes('Phone') || label.includes('الهاتف');
                 const viewCallIcon = isPhone && rawVal && rawVal !== '---'
-                    ? `<a href="tel:${escHtml(rawVal)}" class="btn btn-ghost phone-call-btn" style="color:var(--brand);margin-right:auto;"><i class="fas fa-phone-alt"></i></a>`
+                    ? `<a href="tel:${escHtml(rawVal)}" class="btn btn-ghost phone-call-btn" style="color:var(--brand);margin-right:auto;margin-left:8px;"><i class="fas fa-phone-alt"></i></a>`
                     : '';
                 return `
-                    <div class="student-info-row" style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);position:relative;">
-                        <span class="info-icon ${color}"><i class="fas ${icon}"></i></span>
-                        <div class="info-label" style="font-weight:700;color:var(--text);margin-left:8px;font-size:0.88rem;">${escHtml(label)}</div>
-                        <div class="info-val" style="margin-right:auto;font-weight:600;color:var(--text-3);font-size:0.88rem;display:flex;align-items:center;">${val}</div>
+                    <div class="detail-row">
+                        <div class="detail-icon ${color}"><i class="fas ${icon}"></i></div>
+                        <div class="detail-label">${escHtml(label)}</div>
+                        <div class="detail-val copy-holdable" data-copy-text="${escAttr(rawVal || val)}">${val}</div>
                         ${viewCallIcon}
                     </div>
                 `;
