@@ -20584,7 +20584,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     const info = s._customInfo || (s.custom_info ? (typeof s.custom_info === 'string' ? JSON.parse(s.custom_info) : s.custom_info) : {});
                     fees = info._fees || [];
                 } catch (e) { fees = []; }
-                return fees.map(f => `${f.title}: ${f.amount} ج.م (${f.date})`).join(forCsv ? ' | ' : ' - ');
+                return fees.map(f => {
+                    const cleanTitle = (f.title || '').replace('اشتراك شهر ', '').replace('اشتراك ', '').trim();
+                    return `${cleanTitle}: ${f.amount} ج.م`;
+                }).join(forCsv ? ' | ' : ' - ');
             }
             if (field.type === 'id') return getStudentDbId(s) || '';
             if (field.type === 'qrcode') {
