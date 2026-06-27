@@ -18857,6 +18857,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
             `;
 
+            const isUncleLoggedIn = localStorage.getItem('uncleLoggedIn') === 'true';
+            const currentUncleId = window.currentUncle?.id || localStorage.getItem('uncleId');
+            const loggedInUsername = (localStorage.getItem('uncleUsername') || '').trim().toLowerCase();
+            const allowedList = (allowedViewUncles || '').split(',').map(x => x.trim().toLowerCase());
+            const isAssignedManager = loggedInUsername && allowedList.includes(loggedInUsername);
+
             let canViewFees = (churchUncleFeesEnabled !== 0);
             if (canViewFees && isUncleLoggedIn) {
                 if (currentUncleId && String(currentUncleId) === String(full.id)) {
