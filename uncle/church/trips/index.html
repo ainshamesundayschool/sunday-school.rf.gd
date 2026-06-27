@@ -5780,6 +5780,7 @@
           { key: 'student_id', label: 'كود الطفل (ID)', type: 'student_id', selected: true },
           { key: 'name', label: 'الاسم', source: 'student_name', selected: true },
           { key: 'class', label: 'الفصل', source: 'student_class', selected: true },
+          { key: 'church', label: 'الكنيسة', type: 'church', selected: false },
           { key: 'gender', label: 'النوع', type: 'gender', selected: false },
           { key: 'phone', label: 'رقم التليفون', source: 'student_phone', selected: false },
           { key: 'emergency_phone', label: 'تليفون الطوارئ', source: 'student_emergency_phone', selected: false },
@@ -5944,6 +5945,10 @@
 
         if (field.type === 'student_id') {
           return isGuest ? (r.guest_id || '') : getStudentDbId(r);
+        }
+
+        if (field.type === 'church') {
+          return r.student_church_name || r.church_name || '';
         }
 
         if (field.type === 'qrcode') {
@@ -6133,6 +6138,9 @@
             } else if (sortBy === 'عيد الميلاد') {
               vA = a.student_birthday || a.birthday || '';
               vB = b.student_birthday || b.birthday || '';
+            } else if (sortBy === 'الكنيسة') {
+              vA = a.student_church_name || a.church_name || '';
+              vB = b.student_church_name || b.church_name || '';
             } else {
               vA = a[sortBy] || '';
               vB = b[sortBy] || '';
@@ -6942,6 +6950,7 @@
                     onchange="renderCustomExportPreview()">
                     <option value="الاسم">الاسم</option>
                     <option value="الفصل">الفصل</option>
+                    <option value="الكنيسة">الكنيسة</option>
                     <option value="النوع">النوع</option>
                     <option value="الإخوات">الإخوات</option>
                     <option value="كوبونات">إجمالي الكوبونات</option>
