@@ -13149,6 +13149,8 @@
         style.textContent = `
           .rooms-ws-container { display: grid; grid-template-columns: 300px 1fr; gap: 20px; direction: rtl; margin-top: 15px; }
           .rooms-sidebar { background: var(--surface-1); border: 1.5px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; max-height: 75vh; overflow-y: auto; }
+          .rooms-sidebar-overlay { display: none; }
+          .rooms-mobile-toggle-btn { display: none; }
           .rooms-main { display: flex; flex-direction: column; gap: 15px; }
           .rooms-stats-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
           .rooms-stat-card { text-align: center; }
@@ -13264,6 +13266,72 @@
             70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
             100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
           }
+          @media (max-width: 991px) {
+            .rooms-ws-container { display: flex; flex-direction: column; gap: 15px; position: relative; }
+            .rooms-sidebar {
+              position: fixed;
+              top: 0;
+              right: -320px;
+              width: 300px;
+              height: 100vh;
+              max-height: 100vh;
+              z-index: 10000;
+              transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+              box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+              border-radius: 0;
+              border: none;
+              border-left: 1.5px solid var(--border);
+              margin: 0;
+              background: var(--surface-1);
+            }
+            .rooms-sidebar.open { right: 0; }
+            .rooms-sidebar-overlay {
+              position: fixed;
+              top: 0;
+              left: 0;
+              width: 100vw;
+              height: 100vh;
+              background: rgba(0, 0, 0, 0.4);
+              backdrop-filter: blur(2px);
+              z-index: 9999;
+              display: none;
+            }
+            .rooms-sidebar-overlay.open { display: block; }
+            .rooms-mobile-toggle-btn {
+              display: flex !important;
+              align-items: center;
+              justify-content: center;
+              gap: 8px;
+              position: fixed;
+              bottom: 20px;
+              left: 20px;
+              z-index: 9998;
+              box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+              border-radius: 50px;
+              padding: 12px 24px;
+              font-weight: 800;
+              font-size: 0.85rem;
+              background: var(--primary);
+              color: #fff;
+              border: none;
+              cursor: pointer;
+            }
+            .rooms-mobile-toggle-btn:hover { transform: translateY(-2px); }
+          }
+          @media (max-width: 768px) {
+            .rooms-stats-bar { grid-template-columns: repeat(2, 1fr); }
+            .rooms-stats-bar .rooms-stat-card:last-child { grid-column: span 2; }
+            .rooms-actions-row { flex-direction: column; align-items: stretch; gap: 12px; }
+            .rooms-actions-row > div { width: 100%; }
+            .rooms-actions-row > div:last-child input { width: 100% !important; }
+            .ws-room-search-popover {
+              width: auto;
+              left: -10px;
+              right: -10px;
+              max-width: calc(100vw - 40px);
+            }
+            .ws-kid-action-btn { padding: 6px; font-size: 0.85rem; }
+          }
         `;
         document.head.appendChild(style);
       })();
@@ -13337,6 +13405,7 @@
 
         // Render Workspace structure
         wrap.innerHTML = `
+          <div class="rooms-sidebar-overlay" id="roomsSidebarOverlay" onclick="toggleMobileUnassignedSidebar(false)"></div>
           <div class="rooms-ws-container">
             <div class="rooms-sidebar" id="roomsUnassignedSidebar">
               <!-- Rendered Dynamically -->
@@ -13359,6 +13428,18 @@
                 </div>
               </div>
 
+              <!-- Selection/Swap Mode Banner -->
+              <div id="roomsSelectionBanner" style="display:none; margin-bottom: 12px; background:linear-gradient(135deg, #f59e0b, #d97706); color:#fff; border-radius:10px; padding:12px 16px; align-items:center; justify-content:space-between; gap:10px; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2);">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <i class="fas fa-info-circle"></i>
+                  <div>
+                    <div style="font-weight:800; font-size:0.88rem;" id="roomsSelectionBannerText">جاري تسكين: ...</div>
+                    <div style="font-size:0.72rem; opacity:0.85; margin-top:2px;">اضغط على أي غرفة بالأسفل لتسكين الطفل فيها.</div>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-outline btn-sm" onclick="cancelSelectionMode()" style="color:#fff; border-color:rgba(255,255,255,0.4); background:transparent;"><i class="fas fa-times"></i> إلغاء</button>
+              </div>
+
               <!-- Draft Confirmation Header if draft is present -->
               <div id="roomsDraftBanner" style="display:none; background:linear-gradient(135deg, var(--primary), #4f46e5); color:#fff; border-radius:10px; padding:12px 16px; align-items:center; justify-content:space-between; gap:10px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);">
                 <div>
@@ -13375,6 +13456,11 @@
               <div class="rooms-grid" id="roomsBuildingsGrid"></div>
             </div>
           </div>
+          
+          <!-- Mobile Sidebar Toggle FAB -->
+          <button type="button" class="rooms-mobile-toggle-btn" onclick="toggleMobileUnassignedSidebar()">
+            <i class="fas fa-user-clock"></i> <span>غير المسكنين</span> (<span id="mobileUnassignedCount">0</span>)
+          </button>
         `;
 
         renderRoomsWorkspaceData();
@@ -13482,6 +13568,27 @@
         // Render Sidebar
         const unassignedKids = regs.filter(r => !allocatedMap[r.id]);
         renderUnassignedSidebar(unassignedKids, query);
+
+        // Update Mobile unassigned count label
+        const mobileCountEl = document.getElementById('mobileUnassignedCount');
+        if (mobileCountEl) mobileCountEl.textContent = unassignedKids.length;
+
+        // Show/hide Selection Banner and update text
+        const selectionBanner = document.getElementById('roomsSelectionBanner');
+        const selectionText = document.getElementById('roomsSelectionBannerText');
+        if (selectionBanner && selectionText) {
+          if (window.selectedKidForAllocation) {
+            const kid = regs.find(r => r.id == window.selectedKidForAllocation);
+            selectionText.innerHTML = `جاري تسكين: <strong style="font-size:0.95rem;">${escHtml(kid?.student_name)}</strong>`;
+            selectionBanner.style.display = 'flex';
+          } else if (window.roomsSwapSource) {
+            const kid = regs.find(r => r.id == window.roomsSwapSource.regId);
+            selectionText.innerHTML = `جاري نقل / مبادلة: <strong style="font-size:0.95rem;">${escHtml(kid?.student_name)}</strong> (من غرفة ${escHtml(window.roomsSwapSource.roomName)})`;
+            selectionBanner.style.display = 'flex';
+          } else {
+            selectionBanner.style.display = 'none';
+          }
+        }
 
         // Find all assigned uncle IDs in this trip to filter them out of available uncles dropdowns
         const assignedUncleIds = new Set();
@@ -13745,8 +13852,13 @@
         }
 
         sidebar.innerHTML = `
-          <h4 style="font-weight:800; font-size:0.88rem; display:flex; align-items:center; gap:8px; border-bottom:1.5px solid var(--border-solid); padding-bottom:6px; margin-bottom:8px;">
-            <i class="fas fa-user-clock" style="color:var(--primary);"></i> غير المسكنين (${unassignedKids.length})
+          <h4 style="font-weight:800; font-size:0.88rem; display:flex; align-items:center; justify-content:space-between; border-bottom:1.5px solid var(--border-solid); padding-bottom:6px; margin-bottom:8px;">
+            <span style="display:flex; align-items:center; gap:8px;">
+              <i class="fas fa-user-clock" style="color:var(--primary);"></i> غير المسكنين (${unassignedKids.length})
+            </span>
+            <button type="button" class="rooms-sidebar-close-btn" onclick="toggleMobileUnassignedSidebar(false)" style="display:none; background:none; border:none; color:var(--muted); cursor:pointer; font-size:1.1rem; padding: 2px 6px;">
+              <i class="fas fa-times"></i>
+            </button>
           </h4>
           <div style="display:flex; flex-direction:column; gap:6px; overflow-y:auto; flex:1; padding-right:2px;">
             ${kidsFiltered.map(k => {
@@ -13773,6 +13885,33 @@
         `;
       }
 
+      window.toggleMobileUnassignedSidebar = function(forceState) {
+        const sidebar = document.getElementById('roomsUnassignedSidebar');
+        const overlay = document.getElementById('roomsSidebarOverlay');
+        if (!sidebar || !overlay) return;
+
+        let isCurrentlyOpen = sidebar.classList.contains('open');
+        let nextOpenState = !isCurrentlyOpen;
+
+        if (typeof forceState === 'boolean') {
+          nextOpenState = forceState;
+        }
+
+        if (nextOpenState) {
+          sidebar.classList.add('open');
+          overlay.classList.add('open');
+        } else {
+          sidebar.classList.remove('open');
+          overlay.classList.remove('open');
+        }
+      };
+
+      window.cancelSelectionMode = function() {
+        window.selectedKidForAllocation = null;
+        window.roomsSwapSource = null;
+        renderRoomsWorkspaceData();
+      };
+
       /**
        * Handle click selecting a kid in sidebar for manual allocation
        */
@@ -13782,6 +13921,8 @@
         } else {
           window.selectedKidForAllocation = kidId;
           showToast('انقر فوق أي غرفة لنقل الطفل إليها مباشرة', 'info');
+          // Close mobile sidebar to expose rooms grid
+          toggleMobileUnassignedSidebar(false);
         }
         renderRoomsWorkspaceData();
       }
