@@ -14757,19 +14757,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <i class="fas fa-save" style="font-size: .75rem;"></i> ${guestsUnsaved}
                 </div>
             ` : '';
-            const guestsCardHtml = `
-                <div class="class-card" onclick="showClassView('الزوار')" style="--cls-color:#f59e0b; border:2px solid #f59e0b; position:relative;">
-                    <div class="class-card-badges">
-                        <div style="display:flex; align-items:center; gap:4px;">
-                            <span style="background:#f59e0b;color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;font-weight:700;font-family:Cairo,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,0.08);">زوار</span>
-                            ${guestsUnsavedHtml}
+            let guestsCardHtml = '';
+            if (guestsCount > 0 || guestsUnsaved > 0) {
+                guestsCardHtml = `
+                    <div class="class-card" onclick="showClassView('الزوار')" style="--cls-color:#f59e0b; border:2px solid #f59e0b; position:relative;">
+                        <div class="class-card-badges">
+                            <div style="display:flex; align-items:center; gap:4px;">
+                                <span style="background:#f59e0b;color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;font-weight:700;font-family:Cairo,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,0.08);">زوار</span>
+                                ${guestsUnsavedHtml}
+                            </div>
+                            <div></div>
                         </div>
-                        <div></div>
+                        <div class="class-icon" style="background:color-mix(in srgb,#f59e0b 15%,white);color:#f59e0b"><i class="fas fa-user-tag"></i></div>
+                        <div class="class-name">الزوار <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${guestsCount})</span></div>
                     </div>
-                    <div class="class-icon" style="background:color-mix(in srgb,#f59e0b 15%,white);color:#f59e0b"><i class="fas fa-user-tag"></i></div>
-                    <div class="class-name">الزوار <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${guestsCount})</span></div>
-                </div>
-            `;
+                `;
+            }
 
             const visibleCombined = showClassCards ? combinedHtml : '';
             const visibleRegular = showClassCards ? regularHtml : '';
