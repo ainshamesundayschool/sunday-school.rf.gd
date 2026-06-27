@@ -19175,7 +19175,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     // Check if there is an existing fee for this month (paid or unpaid)
                     const exists = fees.some(f => {
                         const fTitle = (f.title || '').trim();
-                        return fTitle.includes(monthName) && fTitle.includes(String(year));
+                        const titleMatch = fTitle.includes(monthName) && fTitle.includes(String(year));
+                        
+                        let dateMatch = false;
+                        if (f.date && typeof f.date === 'string') {
+                            const parts = f.date.split('-');
+                            if (parts.length >= 2) {
+                                const fYear = parseInt(parts[0], 10);
+                                const fMonth = parseInt(parts[1], 10);
+                                if (fYear === year && fMonth === (m + 1)) {
+                                    dateMatch = true;
+                                }
+                            }
+                        }
+                        return titleMatch || dateMatch;
                     });
 
                     if (!exists) {
@@ -19184,7 +19197,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             title: titleToCheck,
                             amount: 0,
                             status: 'unpaid',
-                            description: 'توليد تلقائي لعدم السداد',
+                            description: '',
                             is_virtual: true,
                             date: `${year}-${String(m + 1).padStart(2, '0')}-01`
                         });
