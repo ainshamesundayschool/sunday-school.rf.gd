@@ -12760,6 +12760,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         let devOrigChurchId = <?php echo json_encode($_SESSION['church_id'] ?? 0); ?>;
         let allChurchesCache = [];
         let currentClass = '', currentFriday = '';
+        let _wasOffline = false;
         let attendanceData = {}, couponData = {}, absentData = {};
         let originalAttendanceData = {}, originalCouponData = {};
         let changedStudents = new Set(), savedStudents = new Set();

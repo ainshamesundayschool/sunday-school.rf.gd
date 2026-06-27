@@ -247,17 +247,11 @@ function autoMigrateLegacyGuests(mysqli $conn): void
             // Insert into students
 
             $stmt = $conn->prepare("
-
                 INSERT INTO students 
-
                 (church_id, name, class_id, class, address, phone, emergency_phone, medical_notes, image_url, gender, added_by, is_guest)
-
                 VALUES (?, ?, ?, ?, '', ?, ?, ?, ?, ?, 'legacy_guest_migration', 1)
-
             ");
-
-            $stmt->bind_param("isisssssss", $churchId, $name, $classId, $className, $phone, $guardianName, $notes, $photoUrl, $gender);
-
+            $stmt->bind_param("isissssss", $churchId, $name, $classId, $className, $phone, $guardianName, $notes, $photoUrl, $gender);
             $stmt->execute();
 
             
