@@ -19346,13 +19346,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (matchedOption) cs.value = matchedOption.value;
             document.getElementById('editStudentAddress').value = s.address || s['العنوان'] || '';
             document.getElementById('editStudentPhone').value = s.phone || s['رقم التليفون'] || '';
-            const emergEl = document.getElementById('editStudentEmergencyPhone');
-            const medEl = document.getElementById('editStudentMedicalNotes');
-            if (emergEl) {
-                emergEl.value = s._isGuest ? (s.guardian_name || '') : (s.emergency_phone || s['تليفون الطوارئ'] || '');
+            const studentEmergEl = document.getElementById('editStudentEmergencyPhone');
+            const studentMedEl = document.getElementById('editStudentMedicalNotes');
+            if (studentEmergEl) {
+                studentEmergEl.value = s._isGuest ? (s.guardian_name || '') : (s.emergency_phone || s['تليفون الطوارئ'] || '');
             }
-            if (medEl) {
-                medEl.value = s._isGuest ? (s.notes || '') : (s.medical_notes || s['ملاحظات طبية'] || '');
+            if (studentMedEl) {
+                studentMedEl.value = s._isGuest ? (s.notes || '') : (s.medical_notes || s['ملاحظات طبية'] || '');
             }
             const bd = s.birthday || s['عيد الميلاد'] || '';
             document.getElementById('editStudentBirthday').value = bd.match(/^\d{4}-\d{2}-\d{2}$/) ? bd.split('-').reverse().join('/') : bd;
