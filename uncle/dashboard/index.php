@@ -11902,7 +11902,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <button class="close-btn" id="closeAddPersonModal">&times;</button>
             </div>
             <form id="addPersonForm">
-                <div class="form-group">
+                <div class="form-group" id="newStudentPhotoGroup">
                     <label class="form-label">الصورة الشخصية</label>
                     <div class="photo-editor-section">
                         <div class="photo-circle-wrap" id="newStudentPhotoUploadArea"
@@ -14031,6 +14031,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             });
                         } catch (e) { }
                     }
+                    const cachedGuests = localStorage.getItem('lastGuestsData');
+                    if (cachedGuests) {
+                        try {
+                            window.allGuestsData = JSON.parse(cachedGuests);
+                            window.allGuestsData.forEach(g => {
+                                g._isGuest = true;
+                                g['الاسم'] = g.name;
+                                g['الفصل'] = 'الزوار';
+                                g['رقم التليفون'] = g.phone || '';
+                                g['عيد الميلاد'] = '';
+                                g['النوع'] = g.gender || 'male';
+                                g['صورة'] = '';
+                                g._customInfo = {};
+                            });
+                        } catch (e) { }
+                    }
                     updateDashboardStats();
                     loadDashboardTrips();
                     if (!currentClass) {
@@ -14146,6 +14162,29 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             if (currentClass === 'الخدام') {
                                 loadAttendanceDataForClass('الخدام');
                                 renderAttendanceList('الخدام');
+                                updateClassStats();
+                            }
+                        }
+                    });
+                    makeApiCall({ action: 'getGuests' }, rg => {
+                        if (rg.success && Array.isArray(rg.data)) {
+                            window.allGuestsData = rg.data;
+                            window.allGuestsData.forEach(g => {
+                                g._isGuest = true;
+                                g['الاسم'] = g.name;
+                                g['الفصل'] = 'الزوار';
+                                g['رقم التليفون'] = g.phone || '';
+                                g['عيد الميلاد'] = '';
+                                g['النوع'] = g.gender || 'male';
+                                g['صورة'] = '';
+                                g._customInfo = {};
+                            });
+                            try {
+                                localStorage.setItem('lastGuestsData', JSON.stringify(rg.data));
+                            } catch (e) { }
+                            displayClasses();
+                            if (currentClass === 'الزوار') {
+                                renderAttendanceList('الزوار');
                                 updateClassStats();
                             }
                         }
@@ -14691,9 +14730,30 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 `;
             }
 
+            const guestsCount = (window.allGuestsData || []).length;
+            const guestsUnsaved = getUnsavedChangesCount('الزوار');
+            const guestsUnsavedHtml = guestsUnsaved > 0 ? `
+                <div class="class-unsaved-badge" title="${guestsUnsaved} تغييرات غير محفوظة">
+                    <i class="fas fa-save" style="font-size: .75rem;"></i> ${guestsUnsaved}
+                </div>
+            ` : '';
+            const guestsCardHtml = `
+                <div class="class-card" onclick="showClassView('الزوار')" style="--cls-color:#f59e0b; border:2px solid #f59e0b; position:relative;">
+                    <div class="class-card-badges">
+                        <div style="display:flex; align-items:center; gap:4px;">
+                            <span style="background:#f59e0b;color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;font-weight:700;font-family:Cairo,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,0.08);">زوار</span>
+                            ${guestsUnsavedHtml}
+                        </div>
+                        <div></div>
+                    </div>
+                    <div class="class-icon" style="background:color-mix(in srgb,#f59e0b 15%,white);color:#f59e0b"><i class="fas fa-user-tag"></i></div>
+                    <div class="class-name">الزوار <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${guestsCount})</span></div>
+                </div>
+            `;
+
             const visibleCombined = showClassCards ? combinedHtml : '';
             const visibleRegular = showClassCards ? regularHtml : '';
-            grid.innerHTML = allTogetherHtml + servantsCardHtml + visibleCombined + visibleRegular;
+            grid.innerHTML = allTogetherHtml + servantsCardHtml + visibleCombined + visibleRegular + guestsCardHtml;
             renderTodayBirthdayBanner();
         }
 
@@ -17695,21 +17755,68 @@ if ($hasUncleId && $uncleRole === 'uncle')
             window.open(url, '_blank');
         }
 
+        // ── GUEST DETAILS ─────────────────────────────────────────────
+        function buildGuestDetails(g) {
+            const gender = (g.gender === 'female' || g['النوع'] === 'female') ? 'female' : 'male';
+            const img = `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user-tag"></i></div><div class="detail-student-name">${escStr(g.name || '')}</div><div class="detail-student-class">زائر</div></div>`;
+
+            let rowsList = [
+                ['معرّف الزائر (ID)', String(g.id || g.guest_id || ''), 'blue', 'fa-fingerprint', String(g.id || g.guest_id || '')],
+                ['الاسم الكامل', g.name || '---', 'blue', 'fa-id-card', g.name || '---'],
+                ['النوع', formatGenderLabel(g.gender || g['النوع']), 'purple', 'fa-venus-mars', formatGenderLabel(g.gender || g['النوع'])],
+                ['رقم التليفون', g.phone || '---', 'green', 'fa-phone', g.phone || '---'],
+                ['اسم ولي الأمر', g.guardian_name || '---', 'green', 'fa-user-friends', g.guardian_name || '---'],
+                ['ملاحظات', g.notes || '---', 'red', 'fa-comment-alt', g.notes || '---']
+            ];
+
+            let rowHtml = rowsList.map(item => {
+                const label = item[0];
+                const val = item[1];
+                const color = item[2];
+                const icon = item[3];
+                const rawVal = item[4];
+                const isPhone = label.includes('تليفون') || label.includes('Phone') || label.includes('الهاتف');
+                const viewCallIcon = isPhone && rawVal && rawVal !== '---'
+                    ? `<a href="tel:${escHtml(rawVal)}" class="btn btn-ghost phone-call-btn" style="color:var(--brand);margin-right:auto;"><i class="fas fa-phone-alt"></i></a>`
+                    : '';
+                return `
+                    <div class="student-info-row" style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);position:relative;">
+                        <span class="info-icon ${color}"><i class="fas ${icon}"></i></span>
+                        <div class="info-label" style="font-weight:700;color:var(--text);margin-left:8px;font-size:0.88rem;">${escHtml(label)}</div>
+                        <div class="info-val" style="margin-right:auto;font-weight:600;color:var(--text-3);font-size:0.88rem;display:flex;align-items:center;">${val}</div>
+                        ${viewCallIcon}
+                    </div>
+                `;
+            }).join('');
+
+            const content = `
+                <div class="student-details-scrollable">
+                    ${img}
+                    <div style="padding:16px;">
+                        ${rowHtml}
+                    </div>
+                </div>
+            `;
+            document.getElementById('studentDetails').innerHTML = content;
+        }
+
         // ── STUDENT DETAILS ───────────────────────────────────────────
         function showStudentDetails(name) {
             const s = (currentClass === 'الخدام')
                 ? (window.allUnclesData || []).find(u => u['الاسم'] === name)
-                : (isCombinedView
-                    ? (combinedStudents.find(s => s['الاسم'] === name) || students.find(s => s['الاسم'] === name))
-                    : students.find(s => s['الاسم'] === name));
+                : (currentClass === 'الزوار'
+                    ? (window.allGuestsData || []).find(g => g['الاسم'] === name)
+                    : (isCombinedView
+                        ? (combinedStudents.find(s => s['الاسم'] === name) || students.find(s => s['الاسم'] === name))
+                        : students.find(s => s['الاسم'] === name)));
             if (!s) { showToast('لم يتم العثور على الشخص', 'error'); return; }
             currentStudentForEdit = s;
-            document.getElementById('studentModalTitle').textContent = s._isUncle ? 'معلومات الخادم: ' + name : 'معلومات: ' + name;
+            document.getElementById('studentModalTitle').textContent = s._isUncle ? 'معلومات الخادم: ' + name : (s._isGuest ? 'معلومات الزائر: ' + name : 'معلومات: ' + name);
             const gender = (s['النوع'] === 'female' || s['gender'] === 'female') ? 'female' : 'male';
             // Basic avatar + header (kept from local cache)
             const img = s['صورة']
                 ? `<div class="detail-avatar-wrap"><img src="${window.photoUrl(s['صورة'])}" class="detail-avatar" onclick="showImageModal('${s['صورة']}')" onerror="this.style.display='none';var el=document.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-student-name">${s['الاسم'] || ''}</div><div class="detail-student-class">${s['الفصل'] || ''}</div></div>`
-                : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${s['الاسم'] || ''}</div><div class="detail-student-class">${s['الفصل'] || ''}</div></div>`;
+                : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user${s._isGuest ? '-tag' : ''}"></i></div><div class="detail-student-name">${s['الاسم'] || ''}</div><div class="detail-student-class">${s['الفصل'] || ''}</div></div>`;
 
             // Reset edit/delete buttons visibility to default
             const editBtn = document.getElementById('editStudentBtn');
@@ -17717,7 +17824,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const viewProfileBtn = document.getElementById('viewProfileBtn');
             if (editBtn) editBtn.style.display = '';
             if (deleteBtn) deleteBtn.style.display = '';
-            if (viewProfileBtn) viewProfileBtn.style.display = s._isUncle ? 'none' : '';
+            if (viewProfileBtn) viewProfileBtn.style.display = (s._isUncle || s._isGuest) ? 'none' : '';
 
             if (s._isUncle) {
                 if (editBtn) editBtn.style.display = '';
@@ -17729,6 +17836,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const full = (window.allUnclesData || []).find(u => u.id === s.id) || s;
                 currentStudentForEdit = full;
                 buildUncleDetailsFromProfile(full);
+                return;
+            }
+
+            if (s._isGuest) {
+                if (editBtn) editBtn.style.display = '';
+                if (deleteBtn) deleteBtn.style.display = '';
+
+                document.getElementById('studentDetails').innerHTML = img + '<div style="padding:14px;text-align:center;color:var(--text-3)">جارٍ التحميل…</div>';
+                document.getElementById('studentModal').classList.add('active');
+                stopAutoRefresh();
+                buildGuestDetails(s);
                 return;
             }
 
@@ -19058,26 +19176,50 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (!currentStudentForEdit) return;
             const s = currentStudentForEdit;
             const isUncle = !!s._isUncle;
+            const isGuest = !!s._isGuest;
 
             // Set modal title
             const titleEl = document.getElementById('editStudentModalTitle');
             if (titleEl) {
-                titleEl.textContent = isUncle ? 'تعديل بيانات الخادم' : 'تعديل بيانات الطفل';
+                if (isUncle) titleEl.textContent = 'تعديل بيانات الخادم';
+                else if (isGuest) titleEl.textContent = 'تعديل بيانات الزائر';
+                else titleEl.textContent = 'تعديل بيانات الطفل';
             }
 
-            // Toggle field visibility
-            const studentGroupIds = [
-                'editClassGroup',
-                'editEmergencyPhoneGroup',
-                'editMedicalNotesGroup',
-                'editBirthdayGroup',
-                'editCommitmentCouponsGroup',
-                'editCustomFieldsContainer'
-            ];
-            studentGroupIds.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.style.display = isUncle ? 'none' : '';
-            });
+            // Adjust labels for guest mode
+            const emergLabel = document.querySelector('#editEmergencyPhoneGroup .form-label');
+            if (emergLabel) {
+                emergLabel.textContent = isGuest ? 'اسم ولي الأمر' : 'تليفون الطوارئ';
+            }
+            const medLabel = document.querySelector('#editMedicalNotesGroup .form-label');
+            if (medLabel) {
+                medLabel.textContent = isGuest ? 'ملاحظات' : 'ملاحظات طبية';
+            }
+
+            // Define which groups should be visible
+            const photoEl = document.getElementById('editPhotoGroup');
+            if (photoEl) photoEl.style.display = (isUncle || isGuest) ? 'none' : '';
+
+            const addressEl = document.getElementById('editAddressGroup');
+            if (addressEl) addressEl.style.display = (isUncle || isGuest) ? 'none' : '';
+
+            const classEl = document.getElementById('editClassGroup');
+            if (classEl) classEl.style.display = (isUncle || isGuest) ? 'none' : '';
+
+            const birthdayEl = document.getElementById('editBirthdayGroup');
+            if (birthdayEl) birthdayEl.style.display = (isUncle || isGuest) ? 'none' : '';
+
+            const couponsEl = document.getElementById('editCommitmentCouponsGroup');
+            if (couponsEl) couponsEl.style.display = (isUncle || isGuest) ? 'none' : '';
+
+            const emergEl = document.getElementById('editEmergencyPhoneGroup');
+            if (emergEl) emergEl.style.display = isUncle ? 'none' : '';
+
+            const medEl = document.getElementById('editMedicalNotesGroup');
+            if (medEl) medEl.style.display = isUncle ? 'none' : '';
+
+            const customFieldsEl = document.getElementById('editCustomFieldsContainer');
+            if (customFieldsEl) customFieldsEl.style.display = (isUncle || isGuest) ? 'none' : '';
 
             const uncleEditFields = document.getElementById('uncleEditFields');
             if (uncleEditFields) {
@@ -19126,8 +19268,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             document.getElementById('editStudentPhone').value = s.phone || s['رقم التليفون'] || '';
             const emergEl = document.getElementById('editStudentEmergencyPhone');
             const medEl = document.getElementById('editStudentMedicalNotes');
-            if (emergEl) emergEl.value = s.emergency_phone || s['تليفون الطوارئ'] || '';
-            if (medEl) medEl.value = s.medical_notes || s['ملاحظات طبية'] || '';
+            if (emergEl) {
+                emergEl.value = s._isGuest ? (s.guardian_name || '') : (s.emergency_phone || s['تليفون الطوارئ'] || '');
+            }
+            if (medEl) {
+                medEl.value = s._isGuest ? (s.notes || '') : (s.medical_notes || s['ملاحظات طبية'] || '');
+            }
             const bd = s.birthday || s['عيد الميلاد'] || '';
             document.getElementById('editStudentBirthday').value = bd.match(/^\d{4}-\d{2}-\d{2}$/) ? bd.split('-').reverse().join('/') : bd;
             document.getElementById('editStudentCommitmentCoupons').value = s.commitment_coupons !== undefined ? s.commitment_coupons : (s['كوبونات الالتزام'] || '0');
@@ -19173,6 +19319,34 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const id = getStudentDbId(currentStudentForEdit); if (!id) { showToast('خطأ في البيانات', 'error'); return; }
             const name = document.getElementById('editStudentName').value.trim();
             if (!name) { showToast('الاسم مطلوب', 'error'); return; }
+
+            const isGuest = !!currentStudentForEdit._isGuest;
+            if (isGuest) {
+                const phone = document.getElementById('editStudentPhone').value.trim();
+                const guardianName = (document.getElementById('editStudentEmergencyPhone')?.value || '').trim();
+                const notes = (document.getElementById('editStudentMedicalNotes')?.value || '').trim();
+                const gender = document.getElementById('editStudentGender').value;
+
+                const updatePayload = {
+                    action: 'updateGuest',
+                    guest_id: id,
+                    name: name,
+                    phone: phone,
+                    guardian_name: guardianName,
+                    class: '',
+                    gender: gender,
+                    notes: notes
+                };
+
+                showLoading('جاري التحديث...');
+                makeApiCall(updatePayload, r => {
+                    showToast('تم تحديث بيانات الزائر بنجاح', 'success');
+                    hideEditForm();
+                    hideStudentModal();
+                    setTimeout(loadData, 1000);
+                }, e => showToast('فشل: ' + e, 'error'));
+                return;
+            }
 
             const isUncle = !!currentStudentForEdit._isUncle;
             if (isUncle) {
@@ -19243,6 +19417,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             e.preventDefault();
             const name = document.getElementById('studentName').value.trim();
             const isUncleClass = (currentClass === 'الخدام');
+            const isGuestClass = (currentClass === 'الزوار');
 
             if (isUncleClass) {
                 // Add Uncle/Servant
@@ -19278,6 +19453,39 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         hideAddPersonModal();
                         document.getElementById('addPersonForm').reset();
                         cancelNewStudentPhotoUpload();
+                        currentCroppedBlob = null;
+                        setTimeout(loadData, 1000);
+                    } else {
+                        showToast('فشل: ' + (d.message || 'خطأ'), 'error');
+                    }
+                }).catch(() => showToast('خطأ في الاتصال', 'error'));
+
+            } else if (isGuestClass) {
+                const gender = document.getElementById('studentGender').value;
+                const phone = document.getElementById('studentPhone').value.trim();
+                const guardianName = (document.getElementById('studentEmergencyPhone')?.value || '').trim();
+                const notes = (document.getElementById('studentMedicalNotes')?.value || '').trim();
+
+                if (!name) {
+                    showToast('اسم الزائر مطلوب', 'error');
+                    return;
+                }
+
+                showLoading('جاري إضافة الزائر...');
+                const fd = new FormData();
+                fd.append('action', 'addGuest');
+                fd.append('name', name);
+                fd.append('phone', phone);
+                fd.append('guardian_name', guardianName);
+                fd.append('class', '');
+                fd.append('gender', gender);
+                fd.append('notes', notes);
+
+                fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).then(d => {
+                    if (d.success) {
+                        showToast('تم إضافة الزائر بنجاح', 'success');
+                        hideAddPersonModal();
+                        document.getElementById('addPersonForm').reset();
                         currentCroppedBlob = null;
                         setTimeout(loadData, 1000);
                     } else {
@@ -19325,9 +19533,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const id = getStudentDbId(studentToDelete); if (!id) { showToast('المعرف غير موجود', 'error'); return; }
             showLoading('جاري الحذف...');
             const isUncle = !!studentToDelete._isUncle;
+            const isGuest = !!studentToDelete._isGuest;
             const deletePayload = isUncle
                 ? { action: 'deleteUncle', uncle_id: id }
-                : { action: 'deleteStudent', studentId: id };
+                : (isGuest ? { action: 'deleteGuest', guest_id: id } : { action: 'deleteStudent', studentId: id });
             makeApiCall(deletePayload, r => { showToast('تم الحذف بنجاح', 'success'); hideDeleteStudentModal(); hideStudentModal(); setTimeout(loadData, 1000); }, e => { showToast('فشل: ' + e, 'error'); hideDeleteStudentModal(); });
         }
 
@@ -19341,9 +19550,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (ph2) ph2.style.display = 'flex';
 
             const isUncleClass = (currentClass === 'الخدام');
+            const isGuestClass = (currentClass === 'الزوار');
             const modalHeader = document.querySelector('#addPersonModal .modal-header h3');
             if (modalHeader) {
-                modalHeader.textContent = isUncleClass ? 'إضافة خادم جديد' : 'إضافة طفل جديد';
+                if (isUncleClass) modalHeader.textContent = 'إضافة خادم جديد';
+                else if (isGuestClass) modalHeader.textContent = 'إضافة زائر جديد';
+                else modalHeader.textContent = 'إضافة طفل جديد';
+            }
+
+            // Adjust labels for guest mode
+            const addEmergLabel = document.querySelector('#studentEmergencyPhoneGroup .form-label');
+            if (addEmergLabel) {
+                addEmergLabel.textContent = isGuestClass ? 'اسم ولي الأمر' : 'تليفون الطوارئ';
+            }
+            const addMedLabel = document.querySelector('#studentMedicalNotesGroup .form-label');
+            if (addMedLabel) {
+                addMedLabel.textContent = isGuestClass ? 'ملاحظات' : 'ملاحظات طبية';
             }
 
             // Uncle fields visibility and requirements
@@ -19352,6 +19574,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const classField = document.getElementById('studentClass');
 
             if (isUncleClass) {
+                document.getElementById('newStudentPhotoGroup').style.display = '';
                 document.getElementById('uncleUsernameGroup').style.display = '';
                 document.getElementById('unclePasswordGroup').style.display = '';
                 document.getElementById('uncleRoleGroup').style.display = '';
@@ -19371,7 +19594,29 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     cfCont.innerHTML = '';
                     cfCont.style.display = 'none';
                 }
+            } else if (isGuestClass) {
+                document.getElementById('newStudentPhotoGroup').style.display = 'none';
+                document.getElementById('uncleUsernameGroup').style.display = 'none';
+                document.getElementById('unclePasswordGroup').style.display = 'none';
+                document.getElementById('uncleRoleGroup').style.display = 'none';
+                if (usernameField) usernameField.required = false;
+                if (passwordField) passwordField.required = false;
+
+                document.getElementById('studentClassGroup').style.display = 'none';
+                if (classField) classField.required = false;
+                document.getElementById('studentAddressGroup').style.display = 'none';
+                document.getElementById('studentEmergencyPhoneGroup').style.display = '';
+                document.getElementById('studentMedicalNotesGroup').style.display = '';
+                document.getElementById('studentBirthdayGroup').style.display = 'none';
+                document.getElementById('studentCouponsGroup').style.display = 'none';
+
+                const cfCont = document.getElementById('addCustomFieldsContainer');
+                if (cfCont) {
+                    cfCont.innerHTML = '';
+                    cfCont.style.display = 'none';
+                }
             } else {
+                document.getElementById('newStudentPhotoGroup').style.display = '';
                 document.getElementById('uncleUsernameGroup').style.display = 'none';
                 document.getElementById('unclePasswordGroup').style.display = 'none';
                 document.getElementById('uncleRoleGroup').style.display = 'none';
@@ -20233,6 +20478,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         function getActiveViewStudents() {
             if (currentClass === 'الخدام') return window.allUnclesData || [];
+            if (currentClass === 'الزوار') return window.allGuestsData || [];
             if (isCombinedView) return combinedStudents || [];
             if (currentClass && currentClass !== '__ALL__') return students.filter(s => s['الفصل'] === currentClass);
             return (allStudentsData && allStudentsData.length) ? allStudentsData : students;
