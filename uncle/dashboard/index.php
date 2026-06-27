@@ -13666,21 +13666,43 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     const arabicMonths = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
                     const curMonthName = arabicMonths[new Date().getMonth()];
                     const curYearNum = new Date().getFullYear();
-                    const isCurrentPaid = fees.some(f => f.title && f.title.includes(curMonthName) && f.title.includes(String(curYearNum)));
-                    const unpaidAlert = !isCurrentPaid ? `
+                    
+                    // Check if current month fee is paid (must exist and not be unpaid)
+                    const isCurrentPaid = fees.some(f => f.title && f.title.includes(curMonthName) && f.title.includes(String(curYearNum)) && f.status !== 'unpaid');
+                    
+                    let unpaidAlert = '';
+                    if (!isCurrentPaid) {
+                        unpaidAlert = `
+                            <div class="glass-card" style="padding:14px 16px; border:1px solid var(--danger); border-radius:10px; background:rgba(239, 68, 68, 0.08); color:var(--danger); display:flex; align-items:center; gap:8px; margin-bottom:12px; font-weight:700; font-size:0.82rem; direction:rtl; text-align:right;">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <span>اشتراك شهر ${curMonthName} ${curYearNum} غير مدفوع</span>
+                            </div>
+                        `;
+                    }
+
+                    // Also search for any specific older fees that are marked unpaid
+                    const unpaidOldAlerts = fees.filter(f => f.status === 'unpaid' && !(f.title && f.title.includes(curMonthName) && f.title.includes(String(curYearNum)))).map(fee => `
                         <div class="glass-card" style="padding:14px 16px; border:1px solid var(--danger); border-radius:10px; background:rgba(239, 68, 68, 0.08); color:var(--danger); display:flex; align-items:center; gap:8px; margin-bottom:12px; font-weight:700; font-size:0.82rem; direction:rtl; text-align:right;">
                             <i class="fas fa-exclamation-circle"></i>
-                            <span>اشتراك شهر ${curMonthName} ${curYearNum} غير مدفوع</span>
+                            <span>تنبيه: الاشتراك "${escHtml(fee.title)}" غير مسدد بعد</span>
                         </div>
-                    ` : '';
+                    `).join('');
+
+                    const finalAlert = unpaidAlert + unpaidOldAlerts;
 
                     if (fees.length > 0) {
-                        ownFeesList.innerHTML = unpaidAlert + fees.map(fee => `
+                        ownFeesList.innerHTML = finalAlert + fees.map(fee => {
+                            const isPaid = fee.status !== 'unpaid';
+                            const statusBadge = isPaid
+                                ? `<span style="background:#10b981; color:white; font-size:0.65rem; font-weight:700; padding:2px 6px; border-radius:6px; margin-inline-start:6px;">مدفوع</span>`
+                                : `<span style="background:#ef4444; color:white; font-size:0.65rem; font-weight:700; padding:2px 6px; border-radius:6px; margin-inline-start:6px;">غير مدفوع</span>`;
+                            return `
                             <div class="glass-card" style="padding:14px 16px; display:flex; align-items:center; justify-content:space-between; gap:8px; direction:rtl; text-align:right;">
                                 <div style="flex:1;">
                                     <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                                         <span style="font-weight:700; font-size:0.85rem; color:var(--text);">${escHtml(fee.title)}</span>
                                         <span style="background:var(--brand); color:white; font-size:0.7rem; font-weight:800; padding:2px 6px; border-radius:10px;">${fee.amount} ج.م</span>
+                                        ${statusBadge}
                                     </div>
                                     <div style="font-size:0.75rem; color:var(--text-3); margin-top:2px;">
                                         <span>التاريخ: ${fee.date}</span>
@@ -13691,9 +13713,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                     </div>
                                 </div>
                             </div>
-                        `).reverse().join('');
+                            `;
+                        }).reverse().join('');
                     } else {
-                        ownFeesList.innerHTML = unpaidAlert + `<div style="text-align:center;padding:2rem;color:var(--text-3)">لا توجد اشتراكات مالية مسجلة بعد</div>`;
+                        ownFeesList.innerHTML = finalAlert + `<div style="text-align:center;padding:2rem;color:var(--text-3)">لا توجد اشتراكات مالية مسجلة بعد</div>`;
                     }
                 } else {
                     ownFeesList.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text-3)">لا توجد اشتراكات مالية مسجلة بعد</div>`;
@@ -18964,6 +18987,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <label style="font-size:0.7rem; font-weight:700; color:var(--text-3);">ملاحظات (اختياري)</label>
                                 <input type="text" id="newFeeDesc" class="form-input" style="height:36px; font-size:0.8rem; padding:4px 10px;" placeholder="اكتب أي تفاصيل أخرى...">
                             </div>
+                            <div style="width:120px; display:flex; flex-direction:column; gap:4px;">
+                                <label style="font-size:0.7rem; font-weight:700; color:var(--text-3);">حالة الدفع</label>
+                                <select id="newFeeStatus" class="form-input" style="height:36px; font-size:0.8rem; padding:4px 8px; font-family:Cairo,sans-serif;">
+                                    <option value="paid" selected>مدفوع</option>
+                                    <option value="unpaid">غير مدفوع</option>
+                                </select>
+                            </div>
                         </div>
                         <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:4px;">
                             <button class="btn btn-ghost" onclick="toggleAddFeeArea(false)" style="font-size:0.75rem; padding:4px 10px; height:32px;">إلغاء</button>
@@ -19000,7 +19030,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const curMonthIdx = d.getMonth();
                 const curMonthName = arabicMonths[curMonthIdx];
 
-                const isCurrentPaid = fees.some(f => f.title && f.title.includes(curMonthName) && f.title.includes(String(curYear)));
+                const isCurrentPaid = fees.some(f => f.title && f.title.includes(curMonthName) && f.title.includes(String(curYear)) && f.status !== 'unpaid');
                 const unpaidAlert = !isCurrentPaid ? `
                     <div class="glass-card" style="padding:10px 12px; border:1px solid var(--danger); border-radius:10px; background:rgba(239, 68, 68, 0.08); color:var(--danger); display:flex; align-items:center; gap:8px; margin-bottom:12px; font-weight:700; font-size:0.8rem;">
                         <i class="fas fa-exclamation-circle"></i>
@@ -19031,6 +19061,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 لا توجد اشتراكات مسجلة.
                             </div>
                         ` : fees.map(fee => {
+                    const isPaid = fee.status !== 'unpaid';
+                    const statusBadge = isPaid
+                        ? `<span style="background:#10b981; color:white; font-size:0.65rem; font-weight:700; padding:1px 6px; border-radius:6px; margin-inline-start:6px;">مدفوع</span>`
+                        : `<span style="background:#ef4444; color:white; font-size:0.65rem; font-weight:700; padding:1px 6px; border-radius:6px; margin-inline-start:6px;">غير مدفوع</span>`;
+
+                    const payBtn = (canManageFees && !isPaid) ? `
+                                <button class="btn btn-ghost" style="padding:6px; color:#10b981; font-size:0.85rem;" onclick="payUncleFee(${full.id}, '${fee.id}')" title="تسديد الاشتراك">
+                                    <i class="fas fa-check-circle"></i>
+                                </button>
+                            ` : '';
                     const deleteBtn = canManageFees ? `
                                 <button class="btn btn-ghost" style="padding:6px; color:var(--danger); font-size:0.8rem;" onclick="deleteUncleFee(${full.id}, '${fee.id}')" title="حذف الاشتراك">
                                     <i class="fas fa-trash-alt"></i>
@@ -19039,9 +19079,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     return `
                             <div class="glass-card" style="padding:10px 12px; border:1px solid var(--border-solid); border-radius:10px; display:flex; align-items:center; justify-content:space-between; gap:8px; background:rgba(255,255,255,0.01);">
                                 <div style="flex:1;">
-                                    <div style="display:flex; align-items:center; gap:6px;">
+                                    <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                                         <span style="font-weight:700; font-size:0.82rem; color:var(--text);">${escHtml(fee.title)}</span>
                                         <span style="background:var(--brand); color:white; font-size:0.7rem; font-weight:800; padding:2px 6px; border-radius:10px;">${fee.amount} ج.م</span>
+                                        ${statusBadge}
                                     </div>
                                     <div style="font-size:0.72rem; color:var(--text-3); margin-top:2px;">
                                         <span>التاريخ: ${fee.date}</span>
@@ -19051,7 +19092,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                         المستلم: ${escHtml(fee.created_by || '---')} (${fee.created_at || ''})
                                     </div>
                                 </div>
-                                ${deleteBtn}
+                                <div style="display:flex; align-items:center; gap:4px;">
+                                    ${payBtn}
+                                    ${deleteBtn}
+                                </div>
                             </div>
                             `;
                 }).reverse().join('')}
@@ -19069,6 +19113,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const title = `اشتراك شهر ${month} ${year}`;
             const amount = parseFloat(document.getElementById('newFeeAmount').value);
             const description = document.getElementById('newFeeDesc').value.trim();
+            const status = document.getElementById('newFeeStatus').value;
             const date = new Date().toISOString().split('T')[0];
 
             if (isNaN(amount) || amount <= 0) {
@@ -19082,6 +19127,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             fd.append('title', title);
             fd.append('amount', amount);
             fd.append('description', description);
+            fd.append('status', status);
             fd.append('date', date);
 
             try {
@@ -19099,6 +19145,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             amount: amount,
                             description: description,
                             date: date,
+                            status: status,
                             created_by: window.currentUncle?.name || 'أدمن',
                             created_at: new Date().toISOString().replace('T', ' ').substr(0, 19)
                         });
@@ -19136,6 +19183,39 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     setTimeout(loadData, 500);
                 } else {
                     showToast(r.message || 'فشل الحذف', 'error');
+                }
+            } catch (e) {
+                showToast('خطأ في الاتصال بالسيرفر', 'error');
+            }
+        }
+
+        async function payUncleFee(uncleId, feeId) {
+            if (!confirm('هل أنت متأكد من تسديد هذا الاشتراك؟')) return;
+
+            const fd = new FormData();
+            fd.append('action', 'payUncleFee');
+            fd.append('uncleId', uncleId);
+            fd.append('feeId', feeId);
+
+            try {
+                const r = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(res => res.json());
+                if (r.success) {
+                    showToast(r.message || 'تم تسديد الاشتراك بنجاح', 'success');
+
+                    const uncle = (window.allUnclesData || []).find(u => u.id === uncleId);
+                    if (uncle && uncle._customInfo && Array.isArray(uncle._customInfo._fees)) {
+                        const fee = uncle._customInfo._fees.find(f => f.id === feeId);
+                        if (fee) {
+                            fee.status = 'paid';
+                            fee.paid_at = new Date().toISOString().replace('T', ' ').substr(0, 19);
+                            fee.paid_by = window.currentUncle?.name || 'أدمن';
+                        }
+                        uncle.custom_info = JSON.stringify(uncle._customInfo);
+                        buildUncleDetailsFromProfile(uncle);
+                    }
+                    setTimeout(loadData, 500);
+                } else {
+                    showToast(r.message || 'فشل تسديد الاشتراك', 'error');
                 }
             } catch (e) {
                 showToast('خطأ في الاتصال بالسيرفر', 'error');

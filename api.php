@@ -3485,6 +3485,14 @@ try {
 
             break;
 
+        case 'payUncleFee':
+
+            checkAuth();
+
+            payUncleFee();
+
+            break;
+
 
 
         case 'updateChurchAdminEmail':
@@ -14919,6 +14927,11 @@ function addUncleFee()
             $customInfo['_fees'] = [];
         }
 
+        $status = trim($_POST['status'] ?? 'paid');
+        if ($status !== 'unpaid') {
+            $status = 'paid';
+        }
+
         $feeId = uniqid('fee_', true);
         $newFee = [
             'id' => $feeId,
@@ -14926,6 +14939,7 @@ function addUncleFee()
             'amount' => $amount,
             'description' => sanitize($description),
             'date' => sanitize($date),
+            'status' => $status,
             'created_by' => $_SESSION['uncle_name'] ?? 'أدمن',
             'created_at' => date('Y-m-d H:i:s')
         ];
@@ -15030,6 +15044,96 @@ function deleteUncleFee()
             sendJSON(['success' => true, 'message' => 'تم حذف الاشتراك بنجاح']);
         } else {
             sendJSON(['success' => false, 'message' => 'فشل في حذف الاشتراك']);
+        }
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => 'خطأ: ' . $e->getMessage()]);
+    }
+}
+
+function payUncleFee()
+{
+    try {
+        $callerUsername = $_SESSION['uncle_username'] ?? '';
+        $isChurchAdmin = !isset($_SESSION['uncle_id']) && isset($_SESSION['church_id']);
+
+        $churchId = getChurchId();
+        $conn = getDBConnection();
+        ensureUnclesTableCustomInfoColumn($conn);
+
+        // Fetch allowed_view_uncles from database
+        $settingsStmt = $conn->prepare("SELECT allowed_view_uncles FROM church_settings WHERE church_id = ? LIMIT 1");
+        $settingsStmt->bind_param("i", $churchId);
+        $settingsStmt->execute();
+        $settingsRow = $settingsStmt->get_result()->fetch_assoc();
+        $allowedViewUncles = $settingsRow['allowed_view_uncles'] ?? '';
+
+        $isAssignedManager = false;
+        if (!empty($callerUsername) && !empty($allowedViewUncles)) {
+            $allowedList = array_map('trim', explode(',', strtolower($allowedViewUncles)));
+            if (in_array(strtolower(trim($callerUsername)), $allowedList)) {
+                $isAssignedManager = true;
+            }
+        }
+
+        if (!$isChurchAdmin && !$isAssignedManager) {
+            sendJSON(['success' => false, 'message' => 'غير مصرح لك بإجراء هذه العملية']);
+            return;
+        }
+
+        $churchId = getChurchId();
+        $uncleId = intval($_POST['uncleId'] ?? 0);
+        $feeId = trim($_POST['feeId'] ?? '');
+
+        if (!$uncleId || empty($feeId)) {
+            sendJSON(['success' => false, 'message' => 'بيانات غير كاملة']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        
+        $stmt = $conn->prepare("SELECT name, custom_info FROM uncles WHERE id = ? AND church_id = ?");
+        $stmt->bind_param("ii", $uncleId, $churchId);
+        $stmt->execute();
+        $uncle = $stmt->get_result()->fetch_assoc();
+
+        if (!$uncle) {
+            sendJSON(['success' => false, 'message' => 'الخادم غير موجود']);
+            return;
+        }
+
+        $customInfo = !empty($uncle['custom_info']) ? json_decode($uncle['custom_info'], true) : [];
+        if (!is_array($customInfo) || !isset($customInfo['_fees']) || !is_array($customInfo['_fees'])) {
+            sendJSON(['success' => false, 'message' => 'لا توجد اشتراكات']);
+            return;
+        }
+
+        $foundIdx = -1;
+        foreach ($customInfo['_fees'] as $idx => $fee) {
+            if (($fee['id'] ?? '') === $feeId) {
+                $foundIdx = $idx;
+                break;
+            }
+        }
+
+        if ($foundIdx === -1) {
+            sendJSON(['success' => false, 'message' => 'الاشتراك غير موجود']);
+            return;
+        }
+
+        $customInfo['_fees'][$foundIdx]['status'] = 'paid';
+        $customInfo['_fees'][$foundIdx]['paid_at'] = date('Y-m-d H:i:s');
+        $customInfo['_fees'][$foundIdx]['paid_by'] = $_SESSION['uncle_name'] ?? 'أدمن';
+        
+        $customInfoJson = json_encode($customInfo, JSON_UNESCAPED_UNICODE);
+
+        $upd = $conn->prepare("UPDATE uncles SET custom_info = ?, updated_at = NOW() WHERE id = ? AND church_id = ?");
+        $upd->bind_param("sii", $customInfoJson, $uncleId, $churchId);
+
+        if ($upd->execute()) {
+            writeAuditLog('fee_pay', 'uncle', $uncleId, $uncle['name'], null, $customInfo['_fees'][$foundIdx], "تسديد اشتراك: " . ($customInfo['_fees'][$foundIdx]['title'] ?? ''));
+            sendJSON(['success' => true, 'message' => 'تم تسديد الاشتراك بنجاح']);
+        } else {
+            sendJSON(['success' => false, 'message' => 'فشل في تسديد الاشتراك']);
         }
     } catch (Exception $e) {
         sendJSON(['success' => false, 'message' => 'خطأ: ' . $e->getMessage()]);
