@@ -14062,7 +14062,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 g['رقم التليفون'] = g.phone || '';
                                 g['عيد الميلاد'] = '';
                                 g['النوع'] = g.gender || 'male';
-                                g['صورة'] = '';
+                                g['صورة'] = g.image_url || '';
                                 g._customInfo = {};
                             });
                         } catch (e) { }
@@ -14196,7 +14196,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 g['رقم التليفون'] = g.phone || '';
                                 g['عيد الميلاد'] = '';
                                 g['النوع'] = g.gender || 'male';
-                                g['صورة'] = '';
+                                g['صورة'] = g.image_url || '';
                                 g._customInfo = {};
                             });
                             try {
@@ -17778,7 +17778,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
         // ── GUEST DETAILS ─────────────────────────────────────────────
         function buildGuestDetails(g) {
             const gender = (g.gender === 'female' || g['النوع'] === 'female') ? 'female' : 'male';
-            const img = `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user-tag"></i></div><div class="detail-student-name">${escStr(g.name || '')}</div><div class="detail-student-class">زائر</div></div>`;
+            const imageUrl = g.image_url || g['صورة'] || '';
+            const img = imageUrl
+                ? `<div class="detail-avatar-wrap"><img src="${window.photoUrl(imageUrl)}" class="detail-avatar" onclick="showImageModal('${escStr(imageUrl)}')" onerror="this.style.display='none';var el=document.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-student-name">${escStr(g.name || '')}</div><div class="detail-student-class">زائر</div></div>`
+                : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user-tag"></i></div><div class="detail-student-name">${escStr(g.name || '')}</div><div class="detail-student-class">زائر</div></div>`;
 
             let rowsList = [
                 ['معرّف الزائر (ID)', String(g.id || g.guest_id || ''), 'blue', 'fa-fingerprint', String(g.id || g.guest_id || '')],
@@ -19386,7 +19389,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             // Define which groups should be visible
             const photoEl = document.getElementById('editPhotoGroup');
-            if (photoEl) photoEl.style.display = (isUncle || isGuest) ? 'none' : '';
+            if (photoEl) photoEl.style.display = isUncle ? 'none' : '';
 
             const addressEl = document.getElementById('editAddressGroup');
             if (addressEl) addressEl.style.display = (isUncle || isGuest) ? 'none' : '';
@@ -19669,11 +19672,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 fd.append('gender', gender);
                 fd.append('notes', notes);
 
+                // Add photo if cropped photo exists
+                if (currentCroppedBlob && currentPhotoEditorType === 'new') {
+                    fd.append('photo', new File([currentCroppedBlob], `profile_${Date.now()}.jpg`, { type: 'image/jpeg' }));
+                }
+
                 fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).then(d => {
                     if (d.success) {
                         showToast('تم إضافة الزائر بنجاح', 'success');
                         hideAddPersonModal();
                         document.getElementById('addPersonForm').reset();
+                        cancelNewStudentPhotoUpload();
                         currentCroppedBlob = null;
                         setTimeout(loadData, 1000);
                     } else {
@@ -19783,7 +19792,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     cfCont.style.display = 'none';
                 }
             } else if (isGuestClass) {
-                document.getElementById('newStudentPhotoGroup').style.display = 'none';
+                document.getElementById('newStudentPhotoGroup').style.display = '';
                 document.getElementById('uncleUsernameGroup').style.display = 'none';
                 document.getElementById('unclePasswordGroup').style.display = 'none';
                 document.getElementById('uncleRoleGroup').style.display = 'none';
@@ -21503,9 +21512,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     fetch('/upload.php', { method: 'POST', body: fd }).then(r => r.json()).then(d => {
                         if (d.success) {
                             const isUncle = !!currentStudentForEdit._isUncle;
+                            const isGuest = !!currentStudentForEdit._isGuest;
                             const updatePayload = isUncle
                                 ? { action: 'updateUncleImage', uncle_id: getStudentDbId(currentStudentForEdit), imageUrl: d.imageUrl }
-                                : { action: 'updateStudentImage', studentId: getStudentDbId(currentStudentForEdit), studentName: currentStudentForEdit['الاسم'], imageUrl: d.imageUrl };
+                                : (isGuest
+                                    ? { action: 'updateGuestImage', guest_id: getStudentDbId(currentStudentForEdit), imageUrl: d.imageUrl }
+                                    : { action: 'updateStudentImage', studentId: getStudentDbId(currentStudentForEdit), studentName: currentStudentForEdit['الاسم'], imageUrl: d.imageUrl });
                             makeApiCall(updatePayload, () => { showToast('تم حفظ الصورة', 'success'); const deleteBtn = document.getElementById('deleteStudentPhotoBtn'); if (deleteBtn) deleteBtn.style.display = 'flex'; setTimeout(loadData, 500); }, () => showToast('رُفعت ولكن فشل التحديث', 'warning'));
                         } else showToast('فشل الرفع: ' + (d.message || ''), 'error');
                     }).catch(() => showToast('خطأ في الاتصال', 'error'));
@@ -21530,9 +21542,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             fetch('/upload.php', { method: 'POST', body: fd }).then(r => r.json()).then(d => {
                 if (d.success) {
                     const isUncle = !!currentStudentForEdit._isUncle;
+                    const isGuest = !!currentStudentForEdit._isGuest;
                     const updatePayload = isUncle
                         ? { action: 'updateUncleImage', uncle_id: getStudentDbId(currentStudentForEdit), imageUrl: d.imageUrl }
-                        : { action: 'updateStudentImage', studentId: getStudentDbId(currentStudentForEdit), studentName: currentStudentForEdit['الاسم'], imageUrl: d.imageUrl };
+                        : (isGuest
+                            ? { action: 'updateGuestImage', guest_id: getStudentDbId(currentStudentForEdit), imageUrl: d.imageUrl }
+                            : { action: 'updateStudentImage', studentId: getStudentDbId(currentStudentForEdit), studentName: currentStudentForEdit['الاسم'], imageUrl: d.imageUrl });
                     makeApiCall(updatePayload, () => { showToast('تم الرفع', 'success'); const deleteBtn = document.getElementById('deleteStudentPhotoBtn'); if (deleteBtn) deleteBtn.style.display = 'flex'; cancelPhotoUpload(); setTimeout(loadData, 500); }, () => showToast('رُفعت ولكن فشل التحديث', 'warning'));
                 } else showToast('فشل الرفع: ' + (d.message || ''), 'error');
             }).catch(() => showToast('خطأ في الاتصال', 'error'));
@@ -21689,14 +21704,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
         async function deleteStudentPhoto(event) {
             if (event) event.stopPropagation();
             const isUncle = !!currentStudentForEdit?._isUncle;
-            if (!confirm(isUncle ? 'هل أنت متأكد من حذف صورة الخادم؟' : 'هل أنت متأكد من حذف صورة الطفل؟')) return;
+            const isGuest = !!currentStudentForEdit?._isGuest;
+            if (!confirm(isUncle ? 'هل أنت متأكد من حذف صورة الخادم؟' : (isGuest ? 'هل أنت متأكد من حذف صورة الزائر؟' : 'هل أنت متأكد من حذف صورة الطفل؟'))) return;
             if (!currentStudentForEdit) return;
             const studentId = getStudentDbId(currentStudentForEdit);
             if (!studentId) return;
             showLoading('جاري حذف الصورة...');
             const updatePayload = isUncle
                 ? { action: 'updateUncleImage', uncle_id: studentId, imageUrl: '' }
-                : { action: 'updateStudentImage', studentId: studentId, imageUrl: '' };
+                : (isGuest
+                    ? { action: 'updateGuestImage', guest_id: studentId, imageUrl: '' }
+                    : { action: 'updateStudentImage', studentId: studentId, imageUrl: '' });
             makeApiCall(updatePayload, () => {
                 showToast('تم حذف الصورة بنجاح', 'success');
                 const prev = document.getElementById('uploadPreview');

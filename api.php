@@ -4083,9 +4083,11 @@ try {
             break;
 
         case 'transferGuestToStudent':
-
             transferGuestToStudent();
+            break;
 
+        case 'updateGuestImage':
+            updateGuestImage();
             break;
 
         case 'addTrip':
@@ -33127,9 +33129,11 @@ try {
             break;
 
         case 'transferGuestToStudent':
-
             transferGuestToStudent();
+            break;
 
+        case 'updateGuestImage':
+            updateGuestImage();
             break;
 
 
@@ -45956,6 +45960,12 @@ function ensureGuestsTable($conn)
 
     ");
 
+    // Add image_url to guests if missing
+    $resImage = $conn->query("SHOW COLUMNS FROM `guests` LIKE 'image_url'");
+    if ($resImage && $resImage->num_rows === 0) {
+        $conn->query("ALTER TABLE `guests` ADD COLUMN `image_url` VARCHAR(500) DEFAULT NULL AFTER `notes`");
+    }
+
 
 
     // Step 2: Add registration_type to trip_registrations if missing
@@ -46212,209 +46222,146 @@ function getGuests()
 
 
 function addGuest()
-
 {
-
     try {
-
         checkAuth();
-
         $churchId = getChurchId();
-
-        $uncleId = getUncleId();
-
+        $uncleId = $_SESSION['uncle_id'] ?? null;
         $conn = getDBConnection();
-
         ensureGuestsTable($conn);
 
-
-
         $name = sanitize($_POST['name'] ?? '');
-
         $phone = sanitize($_POST['phone'] ?? '');
-
         $guardianName = sanitize($_POST['guardian_name'] ?? '');
-
         $guestClass = sanitize($_POST['class'] ?? '');
-
         $gender = sanitize($_POST['gender'] ?? '');
-
         $notes = sanitize($_POST['notes'] ?? '');
 
-
-
         if (empty($name)) {
-
             sendJSON(['success' => false, 'message' => 'اسم الزائر مطلوب']);
-
             return;
-
         }
-
-
 
         if (!in_array($gender, ['male', 'female', ''])) {
-
             $gender = null;
-
         }
-
         if ($gender === '') $gender = null;
-
         if ($phone === '') $phone = null;
-
         if ($guardianName === '') $guardianName = null;
-
         if ($guestClass === '') $guestClass = null;
-
         if ($notes === '') $notes = null;
 
+        // Handle photo upload
+        $photoUrl = '';
+        if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
+            $photoFilename = "profile_" . preg_replace('/[^a-zA-Z0-9]/', '_', $name) . "_" . time() . ".jpg";
+            $uploadDir = __DIR__ . '/uploads/students/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+            $uploadPath = $uploadDir . $photoFilename;
+            $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+            $fileType = mime_content_type($_FILES['photo']['tmp_name']);
 
-
-        $stmt = $conn->prepare("
-
-            INSERT INTO guests (church_id, name, phone, guardian_name, `class`, gender, notes, created_by)
-
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-
-        ");
-
-        $stmt->bind_param("issssssi", $churchId, $name, $phone, $guardianName, $guestClass, $gender, $notes, $uncleId);
-
-
-
-        if ($stmt->execute()) {
-
-            $guestId = $conn->insert_id;
-
-            sendJSON(['success' => true, 'guest_id' => $guestId, 'message' => 'تم إضافة الزائر بنجاح']);
-
-        } else {
-
-            sendJSON(['success' => false, 'message' => 'فشل في إضافة الزائر: ' . $stmt->error]);
-
+            if (in_array($fileType, $allowedTypes)) {
+                if (move_uploaded_file($_FILES['photo']['tmp_name'], $uploadPath)) {
+                    $photoUrl = "https://" . ($_SERVER['HTTP_HOST'] ?? 'sunday-school.online') . "/uploads/students/" . $photoFilename;
+                }
+            }
         }
 
+        $stmt = $conn->prepare("
+            INSERT INTO guests (church_id, name, phone, guardian_name, `class`, gender, notes, image_url, created_by)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ");
+        $stmt->bind_param("isssssssi", $churchId, $name, $phone, $guardianName, $guestClass, $gender, $notes, $photoUrl, $uncleId);
+
+        if ($stmt->execute()) {
+            $guestId = $conn->insert_id;
+            sendJSON(['success' => true, 'guest_id' => $guestId, 'message' => 'تم إضافة الزائر بنجاح']);
+        } else {
+            sendJSON(['success' => false, 'message' => 'فشل في إضافة الزائر: ' . $stmt->error]);
+        }
     } catch (Exception $e) {
-
         error_log("addGuest error: " . $e->getMessage());
-
         sendJSON(['success' => false, 'message' => 'خطأ في إضافة الزائر: ' . $e->getMessage()]);
-
     }
-
 }
 
-
-
 function updateGuest()
-
 {
-
     try {
-
         checkAuth();
-
         $churchId = getChurchId();
-
         $conn = getDBConnection();
-
         ensureGuestsTable($conn);
 
-
-
         $guestId = intval($_POST['guest_id'] ?? 0);
-
         if ($guestId === 0) {
-
             sendJSON(['success' => false, 'message' => 'معرف الزائر مطلوب']);
-
             return;
-
         }
-
-
 
         // Verify guest belongs to this church
-
-        $check = $conn->prepare("SELECT id FROM guests WHERE id = ? AND church_id = ?");
-
+        $check = $conn->prepare("SELECT id, image_url FROM guests WHERE id = ? AND church_id = ?");
         $check->bind_param("ii", $guestId, $churchId);
-
         $check->execute();
-
-        if ($check->get_result()->num_rows === 0) {
-
+        $existing = $check->get_result()->fetch_assoc();
+        if (!$existing) {
             sendJSON(['success' => false, 'message' => 'الزائر غير موجود']);
-
             return;
-
         }
-
-
 
         $name = sanitize($_POST['name'] ?? '');
-
         $phone = sanitize($_POST['phone'] ?? '');
-
         $guardianName = sanitize($_POST['guardian_name'] ?? '');
-
         $guestClass = sanitize($_POST['class'] ?? '');
-
         $gender = sanitize($_POST['gender'] ?? '');
-
         $notes = sanitize($_POST['notes'] ?? '');
 
-
-
         if (empty($name)) {
-
             sendJSON(['success' => false, 'message' => 'اسم الزائر مطلوب']);
-
             return;
-
         }
-
-
 
         if (!in_array($gender, ['male', 'female', ''])) $gender = null;
-
         if ($gender === '') $gender = null;
-
         if ($phone === '') $phone = null;
-
         if ($guardianName === '') $guardianName = null;
-
         if ($guestClass === '') $guestClass = null;
-
         if ($notes === '') $notes = null;
 
+        // Handle photo upload
+        $photoUrl = $existing['image_url'] ?? '';
+        if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
+            $photoFilename = "profile_" . preg_replace('/[^a-zA-Z0-9]/', '_', $name) . "_" . time() . ".jpg";
+            $uploadDir = __DIR__ . '/uploads/students/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+            $uploadPath = $uploadDir . $photoFilename;
+            $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+            $fileType = mime_content_type($_FILES['photo']['tmp_name']);
 
-
-        $stmt = $conn->prepare("
-
-            UPDATE guests SET name = ?, phone = ?, guardian_name = ?, `class` = ?, gender = ?, notes = ?
-
-            WHERE id = ? AND church_id = ?
-
-        ");
-
-        $stmt->bind_param("ssssssii", $name, $phone, $guardianName, $guestClass, $gender, $notes, $guestId, $churchId);
-
-
-
-        if ($stmt->execute()) {
-
-            sendJSON(['success' => true, 'message' => 'تم تحديث بيانات الزائر بنجاح']);
-
-        } else {
-
-            sendJSON(['success' => false, 'message' => 'فشل في تحديث الزائر: ' . $stmt->error]);
-
+            if (in_array($fileType, $allowedTypes)) {
+                if (move_uploaded_file($_FILES['photo']['tmp_name'], $uploadPath)) {
+                    $photoUrl = "https://" . ($_SERVER['HTTP_HOST'] ?? 'sunday-school.online') . "/uploads/students/" . $photoFilename;
+                }
+            }
         }
 
-    } catch (Exception $e) {
+        $stmt = $conn->prepare("
+            UPDATE guests SET name = ?, phone = ?, guardian_name = ?, `class` = ?, gender = ?, notes = ?, image_url = ?
+            WHERE id = ? AND church_id = ?
+        ");
+        $stmt->bind_param("sssssssii", $name, $phone, $guardianName, $guestClass, $gender, $notes, $photoUrl, $guestId, $churchId);
 
+        if ($stmt->execute()) {
+            sendJSON(['success' => true, 'message' => 'تم تحديث بيانات الزائر بنجاح']);
+        } else {
+            sendJSON(['success' => false, 'message' => 'فشل في تحديث الزائر: ' . $stmt->error]);
+        }
+    } catch (Exception $e) {
         error_log("updateGuest error: " . $e->getMessage());
 
         sendJSON(['success' => false, 'message' => 'خطأ في تحديث الزائر: ' . $e->getMessage()]);
@@ -46507,6 +46454,45 @@ function deleteGuest()
 
     }
 
+}
+
+function updateGuestImage()
+{
+    checkUncleAuth();
+    try {
+        $guestId = intval($_POST['guest_id'] ?? 0);
+        $imageUrl = sanitize($_POST['imageUrl'] ?? '');
+
+        if ($guestId === 0 || !isset($_POST['imageUrl'])) {
+            sendJSON(['success' => false, 'message' => 'بيانات غير كاملة']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        ensureGuestsTable($conn);
+
+        $oldQuery = $conn->prepare("SELECT name, image_url FROM guests WHERE id = ? LIMIT 1");
+        $oldQuery->bind_param("i", $guestId);
+        $oldQuery->execute();
+        $oldRow = $oldQuery->get_result()->fetch_assoc();
+        $oldImageUrl = $oldRow['image_url'] ?? '';
+        $guestName = $oldRow['name'] ?? '';
+
+        $stmt = $conn->prepare("UPDATE guests SET image_url = ? WHERE id = ?");
+        $stmt->bind_param("si", $imageUrl, $guestId);
+
+        if ($stmt->execute()) {
+            if (!empty($oldImageUrl)) {
+                deleteUploadedFile($oldImageUrl);
+            }
+            sendJSON(['success' => true, 'message' => 'تم حفظ الصورة بنجاح']);
+        } else {
+            sendJSON(['success' => false, 'message' => 'فشل حفظ الصورة: ' . $stmt->error]);
+        }
+    } catch (Exception $e) {
+        error_log("updateGuestImage error: " . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'حدث خطأ: ' . $e->getMessage()]);
+    }
 }
 
 
@@ -46626,50 +46612,31 @@ function transferGuestToStudent()
 
 
         // Insert into students table
-
         $name = $guest['name'];
-
         $gender = $guest['gender'];
-
         $phone = $guest['phone'];
-
         $guardianName = $guest['guardian_name'];
-
         $notes = $guest['notes'];
-
-
+        $photoUrl = $guest['image_url'] ?? '';
 
         $addedByType = 'guest_convert';
         $ins = $conn->prepare("
-
             INSERT INTO students
-
-                (church_id, name, gender, class_id, class, phone, emergency_phone, enrollment_status, added_by)
-
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'active', ?)
-
+                (church_id, name, gender, class_id, class, phone, emergency_phone, medical_notes, image_url, enrollment_status, added_by)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?)
         ");
-
         $ins->bind_param(
-
-            "ississss",
-
+            "ississssss",
             $churchId,
-
             $name,
-
             $gender,
-
             $classId,
-
             $className,
-
             $phone,
-
             $guardianName,
-
+            $notes, // Map notes to medical_notes if needed
+            $photoUrl,
             $addedByType
-
         );
 
 
