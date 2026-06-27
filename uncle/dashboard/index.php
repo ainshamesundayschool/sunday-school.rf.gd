@@ -19553,7 +19553,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
         // ── Attendance stats cache ─────────────────────────────────────
         // Key: 'DD/MM/YYYY', value: {present:N, absent:N} — populated lazily from student data
         function _getAttendanceStatsForDate(dateStr) {
-            const srcList = isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === currentClass);
+            let srcList = [];
+            if (currentClass === 'الخدام') {
+                srcList = window.allUnclesData || [];
+            } else {
+                srcList = isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === currentClass);
+            }
             let present = 0, absent = 0;
             srcList.forEach(s => {
                 const id = getStudentId(s);
@@ -19563,7 +19568,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     if (st === 'present') present++;
                     else if (st === 'absent') absent++;
                 } else {
-                    // Check server-side data stored in student object
+                    // Check server-side data stored in student or uncle object
                     const srv = getServerAttendanceStatus(s, dateStr);
                     if (srv === 'present') present++;
                     else if (srv === 'absent') absent++;
