@@ -12753,6 +12753,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         // Class navigation permission: 'all' = can see all classes, 'own' = only assigned
         let uncleClassNavPermission = 'all';
         let allowedViewUncles = '';
+        let churchUncleFeesEnabled = 1;
         let _uncleAssignedClassesLoaded = false;
         let kidQrScanner = null;
         let kidQrLastScanTime = 0;
@@ -12773,6 +12774,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const defaultIdx = couponPresetValues.indexOf(50) !== -1 ? couponPresetValues.indexOf(50) : 0;
                 select.selectedIndex = defaultIdx;
                 kidQrScanAmount = couponPresetValues[defaultIdx];
+            }
+        }
+
+        function updateUncleFeesVisibility() {
+            const enabled = (churchUncleFeesEnabled !== 0);
+            
+            // 1. Tool card button in "all tools modal"
+            const toolCard = document.querySelector('button[onclick*="showUncleFees"]');
+            if (toolCard) {
+                toolCard.style.display = enabled ? 'flex' : 'none';
+            }
+            
+            // 2. Button in profile settings panel
+            const profileBtn = document.querySelector('button[onclick*="openUncleAccountPage"][onclick*="fees"]');
+            if (profileBtn) {
+                profileBtn.style.display = enabled ? 'flex' : 'none';
             }
         }
 
@@ -13202,12 +13219,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
 
             // Restore cached settings first so offline mode has combined groups / day info
+            // Restore cached settings first so offline mode has combined groups / day info
             try {
                 const cached = localStorage.getItem('churchSettings');
                 if (cached) {
                     const r = JSON.parse(cached);
                     uncleClassNavPermission = r.uncle_class_navigation || 'all';
                     allowedViewUncles = r.allowed_view_uncles || '';
+                    churchUncleFeesEnabled = r.uncle_fees_enabled !== undefined ? parseInt(r.uncle_fees_enabled) : 1;
                     churchAttendanceDay = parseInt(r.attendance_day || 5);
                     combinedClassGroups = Array.isArray(r.combined_class_groups) ? r.combined_class_groups : [];
                     churchViewMode = r.view_mode || 'classes';
@@ -13224,6 +13243,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         }
                     }
                     populateKidQrCouponSelect();
+                    updateUncleFeesVisibility();
                     updateCurrentDateDisplay();
                     _applyDayNameToUI();
                 }
@@ -13235,6 +13255,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (r.settings) {
                     uncleClassNavPermission = r.settings.uncle_class_navigation || 'all';
                     allowedViewUncles = r.settings.allowed_view_uncles || '';
+                    churchUncleFeesEnabled = r.settings.uncle_fees_enabled !== undefined ? parseInt(r.settings.uncle_fees_enabled) : 1;
                     churchAttendanceDay = parseInt(r.settings.attendance_day || 5);
                     combinedClassGroups = Array.isArray(r.settings.combined_class_groups)
                         ? r.settings.combined_class_groups : [];
@@ -13256,6 +13277,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         }
                     }
                     populateKidQrCouponSelect();
+                    updateUncleFeesVisibility();
                     // Cache settings for offline use
                     try { localStorage.setItem('churchSettings', JSON.stringify(r.settings)); } catch (e) { }
                 }
@@ -13265,11 +13287,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }, () => {
                 uncleClassNavPermission = 'all';
                 allowedViewUncles = '';
+                churchUncleFeesEnabled = 1;
                 churchAttendanceDay = 5;
                 combinedClassGroups = [];
                 churchCustomFields = [];
                 churchCustomField = null;
                 churchViewMode = 'classes';
+                updateUncleFeesVisibility();
                 updateCurrentDateDisplay();
                 _applyDayNameToUI();
             });
@@ -13638,24 +13662,39 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 } catch (e) { fees = []; }
 
                 const isUncleLoggedIn = localStorage.getItem('uncleLoggedIn') === 'true';
-                if (isUncleLoggedIn && fees.length > 0) {
-                    ownFeesList.innerHTML = fees.map(fee => `
-                        <div class="glass-card" style="padding:14px 16px; display:flex; align-items:center; justify-content:space-between; gap:8px; direction:rtl; text-align:right;">
-                            <div style="flex:1;">
-                                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                                    <span style="font-weight:700; font-size:0.85rem; color:var(--text);">${escHtml(fee.title)}</span>
-                                    <span style="background:var(--brand); color:white; font-size:0.7rem; font-weight:800; padding:2px 6px; border-radius:10px;">${fee.amount} ج.م</span>
-                                </div>
-                                <div style="font-size:0.75rem; color:var(--text-3); margin-top:2px;">
-                                    <span>التاريخ: ${fee.date}</span>
-                                    ${fee.description ? `<span style="margin-inline-start:8px; color:var(--text-2);">| ${escHtml(fee.description)}</span>` : ''}
-                                </div>
-                                <div style="font-size:0.68rem; color:var(--muted); margin-top:2px; opacity:0.8;">
-                                    المستلم: ${escHtml(fee.created_by || '---')} (${fee.created_at || ''})
+                if (isUncleLoggedIn) {
+                    const arabicMonths = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+                    const curMonthName = arabicMonths[new Date().getMonth()];
+                    const curYearNum = new Date().getFullYear();
+                    const isCurrentPaid = fees.some(f => f.title && f.title.includes(curMonthName) && f.title.includes(String(curYearNum)));
+                    const unpaidAlert = !isCurrentPaid ? `
+                        <div class="glass-card" style="padding:14px 16px; border:1px solid var(--danger); border-radius:10px; background:rgba(239, 68, 68, 0.08); color:var(--danger); display:flex; align-items:center; gap:8px; margin-bottom:12px; font-weight:700; font-size:0.82rem; direction:rtl; text-align:right;">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span>اشتراك شهر ${curMonthName} ${curYearNum} غير مدفوع</span>
+                        </div>
+                    ` : '';
+
+                    if (fees.length > 0) {
+                        ownFeesList.innerHTML = unpaidAlert + fees.map(fee => `
+                            <div class="glass-card" style="padding:14px 16px; display:flex; align-items:center; justify-content:space-between; gap:8px; direction:rtl; text-align:right;">
+                                <div style="flex:1;">
+                                    <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                                        <span style="font-weight:700; font-size:0.85rem; color:var(--text);">${escHtml(fee.title)}</span>
+                                        <span style="background:var(--brand); color:white; font-size:0.7rem; font-weight:800; padding:2px 6px; border-radius:10px;">${fee.amount} ج.م</span>
+                                    </div>
+                                    <div style="font-size:0.75rem; color:var(--text-3); margin-top:2px;">
+                                        <span>التاريخ: ${fee.date}</span>
+                                        ${fee.description ? `<span style="margin-inline-start:8px; color:var(--text-2);">| ${escHtml(fee.description)}</span>` : ''}
+                                    </div>
+                                    <div style="font-size:0.68rem; color:var(--muted); margin-top:2px; opacity:0.8;">
+                                        المستلم: ${escHtml(fee.created_by || '---')} (${fee.created_at || ''})
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    `).reverse().join('');
+                        `).reverse().join('');
+                    } else {
+                        ownFeesList.innerHTML = unpaidAlert + `<div style="text-align:center;padding:2rem;color:var(--text-3)">لا توجد اشتراكات مالية مسجلة بعد</div>`;
+                    }
                 } else {
                     ownFeesList.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text-3)">لا توجد اشتراكات مالية مسجلة بعد</div>`;
                 }
@@ -18818,14 +18857,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
             `;
 
-            const isUncleLoggedIn = localStorage.getItem('uncleLoggedIn') === 'true';
-            const currentUncleId = window.currentUncle?.id || localStorage.getItem('uncleId');
-            const loggedInUsername = (localStorage.getItem('uncleUsername') || '').trim().toLowerCase();
-            const allowedList = (allowedViewUncles || '').split(',').map(x => x.trim().toLowerCase());
-            const isAssignedManager = loggedInUsername && allowedList.includes(loggedInUsername);
-
-            let canViewFees = true;
-            if (isUncleLoggedIn) {
+            let canViewFees = (churchUncleFeesEnabled !== 0);
+            if (canViewFees && isUncleLoggedIn) {
                 if (currentUncleId && String(currentUncleId) === String(full.id)) {
                     canViewFees = true;
                 } else if (isAssignedManager) {
@@ -18833,12 +18866,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 } else {
                     canViewFees = false;
                 }
-            } else {
-                canViewFees = true;
             }
 
             let feesHtml = '';
             if (canViewFees) {
+                const arabicMonths = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+                const d = new Date();
+                const curYear = d.getFullYear();
+                const curMonthIdx = d.getMonth();
+                const curMonthName = arabicMonths[curMonthIdx];
+
+                const isCurrentPaid = fees.some(f => f.title && f.title.includes(curMonthName) && f.title.includes(String(curYear)));
+                const unpaidAlert = !isCurrentPaid ? `
+                    <div class="glass-card" style="padding:10px 12px; border:1px solid var(--danger); border-radius:10px; background:rgba(239, 68, 68, 0.08); color:var(--danger); display:flex; align-items:center; gap:8px; margin-bottom:12px; font-weight:700; font-size:0.8rem;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>اشتراك شهر ${curMonthName} ${curYear} غير مدفوع</span>
+                    </div>
+                ` : '';
+
                 const canManageFees = !isUncleLoggedIn || isAssignedManager;
                 const addFeeBtn = canManageFees ? `
                     <button type="button" class="btn btn-ghost sibling-link-btn" title="إضافة اشتراك" onclick="toggleAddFeeArea()"><i class="fas fa-money-bill-wave"></i> <i class="fas fa-plus"></i></button>
@@ -18854,6 +18899,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
                     
                     ${canManageFees ? feeForm : ''}
+                    ${unpaidAlert}
 
                     <div style="display:flex; flex-direction:column; gap:8px; max-height:250px; overflow-y:auto; padding-inline-end:4px;">
                         ${fees.length === 0 ? `

@@ -7871,6 +7871,31 @@
                             </div>
                         </div>
 
+                        <!-- [section_uncleFeesSettings] -->
+                        <div id="section_uncleFeesSettings">
+                            <div class="settings-section-divider">إعدادات اشتراكات الخدام</div>
+                            <div class="settings-field-box">
+                                <label class="settings-toggle-row" id="uncleFeesEnabledLabel" style="border:1px solid var(--border);padding:12px;border-radius:8px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all 0.2s;">
+                                    <div style="position:relative;width:48px;height:26px;flex-shrink:0;">
+                                        <input type="checkbox" id="settingUncleFeesEnabled"
+                                            style="opacity:0;width:0;height:0;position:absolute;"
+                                            onchange="_updateUncleFeesEnabledStyle(); triggerAutoSave()">
+                                        <span id="uncleFeesEnabledTrack"
+                                            style="position:absolute;inset:0;border-radius:13px;background:var(--border-solid,#e0e0e0);transition:background .2s;"></span>
+                                        <span id="uncleFeesEnabledThumb"
+                                            style="position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:white;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:transform .2s;"></span>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight:700;font-size:0.9rem;" id="uncleFeesEnabledLabelText">
+                                            <i class="fas fa-times-circle" style="color:var(--muted);margin-left:5px;"></i>
+                                            اشتراكات الخدام معطلة
+                                        </div>
+                                        <div style="font-size:0.74rem;color:var(--muted);margin-top:2px;">تفعيل إدارة وعرض الاشتراكات الشهرية للخدمة للخدام</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
                         <!-- [section_kidsGradeUp] -->
                         <div id="section_kidsGradeUp">
                             <div class="settings-section-divider">نقل السنة الدراسية</div>
@@ -12722,6 +12747,11 @@
                     couponsEnabledEl.checked = s.coupons_enabled !== 0;
                     _updateCouponsEnabledStyle();
                 }
+                const uncleFeesEnabledEl = document.getElementById('settingUncleFeesEnabled');
+                if (uncleFeesEnabledEl) {
+                    uncleFeesEnabledEl.checked = s.uncle_fees_enabled !== 0;
+                    _updateUncleFeesEnabledStyle();
+                }
                 const couponsCountEl = document.getElementById('settingCouponsCount');
                 if (couponsCountEl) {
                     couponsCountEl.value = s.coupons_count !== undefined ? String(s.coupons_count) : '100';
@@ -12960,6 +12990,8 @@
             fd.append('auto_kids_approval', (autoKidsEl && autoKidsEl.checked) ? '1' : '0');
             const couponsEnabledEl = document.getElementById('settingCouponsEnabled');
             fd.append('coupons_enabled', (couponsEnabledEl && couponsEnabledEl.checked) ? '1' : '0');
+            const uncleFeesEnabledEl = document.getElementById('settingUncleFeesEnabled');
+            fd.append('uncle_fees_enabled', (uncleFeesEnabledEl && uncleFeesEnabledEl.checked) ? '1' : '0');
             const couponsCountEl = document.getElementById('settingCouponsCount');
             fd.append('coupons_count', couponsCountEl ? couponsCountEl.value : '100');
             const couponPresetsEl = document.getElementById('settingCouponPresets');
@@ -13042,6 +13074,7 @@
             fd.append('view_mode', viewMode);
             fd.append('auto_kids_approval', document.getElementById('settingAutoKidsApproval')?.checked ? '1' : '0');
             fd.append('coupons_enabled', document.getElementById('settingCouponsEnabled')?.checked ? '1' : '0');
+            fd.append('uncle_fees_enabled', document.getElementById('settingUncleFeesEnabled')?.checked ? '1' : '0');
             fd.append('coupons_count', document.getElementById('settingCouponsCount')?.value || '100');
             fd.append('coupon_presets', document.getElementById('settingCouponPresets')?.value || '10,30,50,100');
             fd.append('allowed_view_uncles', document.getElementById('settingAllowedViewUncles')?.value || '');
@@ -13417,6 +13450,8 @@
             
             const couponsEnabledEl = document.getElementById('settingCouponsEnabled');
             fd.append('coupons_enabled', (couponsEnabledEl && couponsEnabledEl.checked) ? '1' : '0');
+            const uncleFeesEnabledEl = document.getElementById('settingUncleFeesEnabled');
+            fd.append('uncle_fees_enabled', (uncleFeesEnabledEl && uncleFeesEnabledEl.checked) ? '1' : '0');
             const couponsCountEl = document.getElementById('settingCouponsCount');
             fd.append('coupons_count', couponsCountEl ? couponsCountEl.value : '100');
             const couponPresetsEl = document.getElementById('settingCouponPresets');
@@ -13454,6 +13489,23 @@
             if (wrap) wrap.style.borderColor = on ? 'var(--primary)' : 'var(--border)';
             if (wrap) wrap.style.background = on ? 'var(--brand-bg)' : '';
             if (countWrap) countWrap.style.display = on ? '' : 'none';
+        }
+
+        function _updateUncleFeesEnabledStyle() {
+            const el = document.getElementById('settingUncleFeesEnabled');
+            const track = document.getElementById('uncleFeesEnabledTrack');
+            const thumb = document.getElementById('uncleFeesEnabledThumb');
+            const lbl = document.getElementById('uncleFeesEnabledLabelText');
+            const wrap = document.getElementById('uncleFeesEnabledLabel');
+            if (!el) return;
+            const on = el.checked;
+            if (track) track.style.background = on ? 'var(--primary,#4f46e5)' : 'var(--border-solid,#e0e0e0)';
+            if (thumb) thumb.style.transform = on ? 'translateX(-22px)' : 'translateX(0)';
+            if (lbl) lbl.innerHTML = on
+                ? '<i class="fas fa-check-circle" style="color:var(--primary);margin-left:5px;"></i> اشتراكات الخدام مفعلة'
+                : '<i class="fas fa-times-circle" style="color:var(--muted);margin-left:5px;"></i> اشتراكات الخدام معطلة';
+            if (wrap) wrap.style.borderColor = on ? 'var(--primary)' : 'var(--border)';
+            if (wrap) wrap.style.background = on ? 'var(--brand-bg)' : '';
         }
 
         // Highlight the active checkbox labels

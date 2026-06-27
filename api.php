@@ -35773,6 +35773,14 @@ function ensureChurchSettingsTable($conn)
 
                                      COMMENT 'comma separated quick coupon adjustment values',
 
+            `allowed_view_uncles`    TEXT DEFAULT NULL
+
+                                     COMMENT 'comma separated usernames allowed to view uncles view',
+
+            `uncle_fees_enabled`     TINYINT NOT NULL DEFAULT 1
+
+                                     COMMENT '0=disabled, 1=enabled',
+
             `updated_at`             TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
@@ -35816,6 +35824,12 @@ function ensureChurchSettingsTable($conn)
         `allowed_view_uncles` TEXT DEFAULT NULL
 
         COMMENT 'comma separated usernames allowed to view uncles view'");
+
+    $conn->query("ALTER TABLE church_settings ADD COLUMN IF NOT EXISTS
+
+        `uncle_fees_enabled` TINYINT NOT NULL DEFAULT 1
+
+        COMMENT '0=disabled, 1=enabled'");
 
     ensureChurchSettingsAutoGradeColumns($conn);
 
@@ -35927,6 +35941,8 @@ function getChurchSettings()
 
             'allowed_view_uncles' => $row['allowed_view_uncles'] ?? '',
 
+            'uncle_fees_enabled' => isset($row['uncle_fees_enabled']) ? (int) $row['uncle_fees_enabled'] : 1,
+
         ];
 
 
@@ -35999,6 +36015,8 @@ function getDefaultChurchSettings(): array
         'coupon_presets' => '10,30,50,100',
 
         'allowed_view_uncles' => '',
+
+        'uncle_fees_enabled' => 1,
 
     ];
 
@@ -36170,6 +36188,8 @@ function saveChurchSettings()
 
         $allowedViewUncles = sanitize($_POST['allowed_view_uncles'] ?? '');
 
+        $uncleFeesEnabled = isset($_POST['uncle_fees_enabled']) ? intval($_POST['uncle_fees_enabled']) : 1;
+
         if ($hasAutoGradeFields) {
 
             $stmt = $conn->prepare("
@@ -36178,9 +36198,9 @@ function saveChurchSettings()
 
                     (church_id, attendance_day, uncle_class_navigation, combined_class_groups, custom_field, view_mode,
 
-                     auto_grade_month, auto_grade_day, coupons_enabled, coupons_count, coupon_presets, allowed_view_uncles)
+                     auto_grade_month, auto_grade_day, coupons_enabled, coupons_count, coupon_presets, allowed_view_uncles, uncle_fees_enabled)
 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 
                 ON DUPLICATE KEY UPDATE
 
@@ -36206,13 +36226,15 @@ function saveChurchSettings()
 
                     allowed_view_uncles    = VALUES(allowed_view_uncles),
 
+                    uncle_fees_enabled     = VALUES(uncle_fees_enabled),
+
                     updated_at             = NOW()
 
             ");
 
             $stmt->bind_param(
 
-                "iissssiiiiss",
+                "iissssiiiissi",
 
                 $churchId,
 
@@ -36236,7 +36258,9 @@ function saveChurchSettings()
 
                 $couponPresets,
 
-                $allowedViewUncles
+                $allowedViewUncles,
+
+                $uncleFeesEnabled
 
             );
 
@@ -36248,9 +36272,9 @@ function saveChurchSettings()
 
                     (church_id, attendance_day, uncle_class_navigation, combined_class_groups, custom_field, view_mode,
 
-                     coupons_enabled, coupons_count, coupon_presets, allowed_view_uncles)
+                     coupons_enabled, coupons_count, coupon_presets, allowed_view_uncles, uncle_fees_enabled)
 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 
                 ON DUPLICATE KEY UPDATE
 
@@ -36272,13 +36296,15 @@ function saveChurchSettings()
 
                     allowed_view_uncles    = VALUES(allowed_view_uncles),
 
+                    uncle_fees_enabled     = VALUES(uncle_fees_enabled),
+
                     updated_at             = NOW()
 
             ");
 
             $stmt->bind_param(
 
-                "iissssiiss",
+                "iissssiissi",
 
                 $churchId,
 
@@ -36298,7 +36324,9 @@ function saveChurchSettings()
 
                 $couponPresets,
 
-                $allowedViewUncles
+                $allowedViewUncles,
+
+                $uncleFeesEnabled
 
             );
 
