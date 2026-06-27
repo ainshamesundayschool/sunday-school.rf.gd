@@ -11860,6 +11860,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             style="color:var(--coupon)"></i><input type="number" id="editStudentCommitmentCoupons"
                             class="form-input" value="0" min="0"></div>
                 </div>
+                <div class="form-group" id="editStudentIsGuestGroup" style="display:flex; align-items:center; gap:8px;">
+                    <input type="checkbox" id="editPersonIsGuest" style="width:20px; height:20px; cursor:pointer;">
+                    <label class="form-label" for="editPersonIsGuest" style="margin-bottom:0; cursor:pointer; font-weight:700;">زائر (Guest)</label>
+                </div>
                 <!-- Multiple custom fields container (filled dynamically) -->
                 <div id="editCustomFieldsContainer" style="display:none"></div>
 
@@ -11986,6 +11990,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="input-icon-wrap"><i class="fas fa-star input-icon"
                             style="color:var(--coupon)"></i><input type="number" id="studentCoupons" class="form-input"
                             value="0" min="0"></div>
+                </div>
+                <div class="form-group" id="studentIsGuestGroup" style="display:flex; align-items:center; gap:8px;">
+                    <input type="checkbox" id="addPersonIsGuest" style="width:20px; height:20px; cursor:pointer;">
+                    <label class="form-label" for="addPersonIsGuest" style="margin-bottom:0; cursor:pointer; font-weight:700;">زائر (Guest)</label>
                 </div>
                 <!-- Multiple custom fields container (filled dynamically) -->
                 <div id="addCustomFieldsContainer" style="display:none"></div>
@@ -13551,6 +13559,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const gender = (s['النوع'] === 'female' || s['gender'] === 'female') ? 'female' : 'male';
                 let name = s['الاسم'] || '---';
                 if (searchQuery) name = name.replace(new RegExp(`(${searchQuery})`, 'gi'), '<mark style="background:#fde047;border-radius:3px;padding:0 2px;color:#000">$1</mark>');
+                if (s._isGuest) {
+                    name += ' <span class="guest-badge" style="font-size:0.65rem; background:#f59e0b; color:#fff; padding:2px 6px; border-radius:4px; margin-right:4px; vertical-align:middle; display:inline-block;">زائر</span>';
+                }
                 const safeImg2 = (s['صورة'] || '').replace(/'/g, "\\'");
                 const safeName2 = (s['الاسم'] || '').replace(/'/g, "\\'");
                 const img = s['صورة'] ? `<img src="${window.photoUrl(s['صورة'])}" alt="" class="student-avatar ${gender}" onclick="showImageModal('${safeImg2}',event)" onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex'">` : '';
@@ -14067,6 +14078,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             });
                         } catch (e) { }
                     }
+                    if (!window.allGuestsData || !window.allGuestsData.length) {
+                        window.allGuestsData = students.filter(s => s._isGuest === 1 || s['الفصل'] === 'الزوار');
+                        window.allGuestsData.forEach(g => {
+                            g._isGuest = true;
+                            g['الاسم'] = g.name || g['الاسم'];
+                            g['الفصل'] = g['الفصل'] || 'الزوار';
+                            g['رقم التليفون'] = g.phone || g['رقم التليفون'] || '';
+                            g['عيد الميلاد'] = g['عيد الميلاد'] || '';
+                            g['النوع'] = g.gender || g['النوع'] || 'male';
+                            g['صورة'] = g.image_url || g['صورة'] || '';
+                            g._customInfo = g._customInfo || {};
+                        });
+                    }
                     updateDashboardStats();
                     loadDashboardTrips();
                     if (!currentClass) {
@@ -14186,29 +14210,26 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             }
                         }
                     });
-                    makeApiCall({ action: 'getGuests' }, rg => {
-                        if (rg.success && Array.isArray(rg.data)) {
-                            window.allGuestsData = rg.data;
-                            window.allGuestsData.forEach(g => {
-                                g._isGuest = true;
-                                g['الاسم'] = g.name;
-                                g['الفصل'] = 'الزوار';
-                                g['رقم التليفون'] = g.phone || '';
-                                g['عيد الميلاد'] = '';
-                                g['النوع'] = g.gender || 'male';
-                                g['صورة'] = g.image_url || '';
-                                g._customInfo = {};
-                            });
-                            try {
-                                localStorage.setItem('lastGuestsData', JSON.stringify(rg.data));
-                            } catch (e) { }
-                            displayClasses();
-                            if (currentClass === 'الزوار') {
-                                renderAttendanceList('الزوار');
-                                updateClassStats();
-                            }
-                        }
+                    // Derive guests data from students
+                    window.allGuestsData = students.filter(s => s._isGuest === 1 || s['الفصل'] === 'الزوار');
+                    window.allGuestsData.forEach(g => {
+                        g._isGuest = true;
+                        g['الاسم'] = g.name || g['الاسم'];
+                        g['الفصل'] = g['الفصل'] || 'الزوار';
+                        g['رقم التليفون'] = g.phone || g['رقم التليفون'] || '';
+                        g['عيد الميلاد'] = g['عيد الميلاد'] || '';
+                        g['النوع'] = g.gender || g['النوع'] || 'male';
+                        g['صورة'] = g.image_url || g['صورة'] || '';
+                        g._customInfo = g._customInfo || {};
                     });
+                    try {
+                        localStorage.setItem('lastGuestsData', JSON.stringify(window.allGuestsData));
+                    } catch (e) { }
+                    displayClasses();
+                    if (currentClass === 'الزوار') {
+                        renderAttendanceList('الزوار');
+                        updateClassStats();
+                    }
                 }
 
                 if (window._pendingHashRestore) {
@@ -15424,6 +15445,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const gender = (s['النوع'] === 'female' || s['gender'] === 'female') ? 'female' : 'male';
                 let name = s['الاسم'] || '---';
                 if (searchQuery) name = name.replace(new RegExp(`(${searchQuery})`, 'gi'), '<mark style="background:#fde047;border-radius:3px;padding:0 2px;color:#000">$1</mark>');
+                if (s._isGuest) {
+                    name += ' <span class="guest-badge" style="font-size:0.65rem; background:#f59e0b; color:#fff; padding:2px 6px; border-radius:4px; margin-right:4px; vertical-align:middle; display:inline-block;">زائر</span>';
+                }
                 const safeImg = (s['صورة'] || '').replace(/'/g, "\\'");
                 const safeName = (s['الاسم'] || '').replace(/'/g, "\\'");
                 const img = s['صورة']
@@ -17840,9 +17864,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             document.getElementById('studentModalTitle').textContent = s._isUncle ? 'معلومات الخادم: ' + name : (s._isGuest ? 'معلومات الزائر: ' + name : 'معلومات: ' + name);
             const gender = (s['النوع'] === 'female' || s['gender'] === 'female') ? 'female' : 'male';
             // Basic avatar + header (kept from local cache)
+            const detailNameStr = (s['الاسم'] || '') + (s._isGuest ? ' <span class="guest-badge" style="font-size:0.65rem; background:#f59e0b; color:#fff; padding:2px 6px; border-radius:4px; margin-right:4px; vertical-align:middle; display:inline-block;">زائر</span>' : '');
             const img = s['صورة']
-                ? `<div class="detail-avatar-wrap"><img src="${window.photoUrl(s['صورة'])}" class="detail-avatar" onclick="showImageModal('${s['صورة']}')" onerror="this.style.display='none';var el=document.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-student-name">${s['الاسم'] || ''}</div><div class="detail-student-class">${s['الفصل'] || ''}</div></div>`
-                : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user${s._isGuest ? '-tag' : ''}"></i></div><div class="detail-student-name">${s['الاسم'] || ''}</div><div class="detail-student-class">${s['الفصل'] || ''}</div></div>`;
+                ? `<div class="detail-avatar-wrap"><img src="${window.photoUrl(s['صورة'])}" class="detail-avatar" onclick="showImageModal('${s['صورة']}')" onerror="this.style.display='none';var el=document.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${s['الفصل'] || ''}</div></div>`
+                : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user${s._isGuest ? '-tag' : ''}"></i></div><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${s['الفصل'] || ''}</div></div>`;
 
             // Reset edit/delete buttons visibility to default
             const editBtn = document.getElementById('editStudentBtn');
@@ -17850,7 +17875,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const viewProfileBtn = document.getElementById('viewProfileBtn');
             if (editBtn) editBtn.style.display = '';
             if (deleteBtn) deleteBtn.style.display = '';
-            if (viewProfileBtn) viewProfileBtn.style.display = (s._isUncle || s._isGuest) ? 'none' : '';
+            const dbId = getStudentDbId(s);
+            const isLegacyGuest = s._isGuest && !dbId;
+            if (viewProfileBtn) viewProfileBtn.style.display = (s._isUncle || isLegacyGuest) ? 'none' : '';
 
             if (s._isUncle) {
                 if (editBtn) editBtn.style.display = '';
@@ -17865,7 +17892,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 return;
             }
 
-            if (s._isGuest) {
+            if (s._isGuest && !dbId) {
                 if (editBtn) editBtn.style.display = '';
                 if (deleteBtn) deleteBtn.style.display = '';
 
@@ -18706,9 +18733,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
 
             const gender = getStudentGender(s);
+            const detailNameStr = escStr(s['الاسم'] || '') + (s._isGuest ? ' <span class="guest-badge" style="font-size:0.65rem; background:#f59e0b; color:#fff; padding:2px 6px; border-radius:4px; margin-right:4px; vertical-align:middle; display:inline-block;">زائر</span>' : '');
             const avatar = s['صورة']
-                ? `<div class="detail-avatar-wrap" onclick="showImageModal('${escJs(s['صورة'])}', event)"> <img src="${s['صورة']}" class="detail-avatar"><div class="detail-student-name">${escStr(s['الاسم'] || '')}</div></div>`
-                : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${s['الاسم'] || ''}</div></div>`;
+                ? `<div class="detail-avatar-wrap" onclick="showImageModal('${escJs(s['صورة'])}', event)"> <img src="${s['صورة']}" class="detail-avatar"><div class="detail-student-name">${detailNameStr}</div></div>`
+                : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${detailNameStr}</div></div>`;
 
             // Render Notes Section for Cache (Offline fallback)
             const notesList = info._notes || [];
@@ -18779,9 +18807,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const gender = (full.gender === 'female' || full['النوع'] === 'female') ? 'female' : 'male';
             const siblingHtml = buildSiblingPanel(full);
             const showImgClick = full.image_url ? `onclick="showImageModal('${escJs(full.image_url)}', event)"` : '';
+            const detailNameStr = escStr(full.name || '') + (full._isGuest ? ' <span class="guest-badge" style="font-size:0.65rem; background:#f59e0b; color:#fff; padding:2px 6px; border-radius:4px; margin-right:4px; vertical-align:middle; display:inline-block;">زائر</span>' : '');
             const img = full.image_url
-                ? `<div class="detail-avatar-wrap" ${showImgClick}><img src="${full.image_url}" class="detail-avatar"><div class="detail-student-name">${escStr(full.name || '')}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div>`
-                : `<div class="detail-avatar-wrap" ${showImgClick}><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${escStr(full.name || '')}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div>`;
+                ? `<div class="detail-avatar-wrap" ${showImgClick}><img src="${full.image_url}" class="detail-avatar"><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div>`
+                : `<div class="detail-avatar-wrap" ${showImgClick}><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div>`;
 
             let rowsList = [
                 ['معرّف الطفل (ID)', String(full.id), 'blue', 'fa-fingerprint', String(full.id)],
@@ -19395,16 +19424,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (photoEl) photoEl.style.display = isUncle ? 'none' : '';
 
             const addressEl = document.getElementById('editAddressGroup');
-            if (addressEl) addressEl.style.display = (isUncle || isGuest) ? 'none' : '';
+            if (addressEl) addressEl.style.display = isUncle ? 'none' : '';
 
             const classEl = document.getElementById('editClassGroup');
-            if (classEl) classEl.style.display = (isUncle || isGuest) ? 'none' : '';
+            if (classEl) classEl.style.display = isUncle ? 'none' : '';
 
             const birthdayEl = document.getElementById('editBirthdayGroup');
-            if (birthdayEl) birthdayEl.style.display = (isUncle || isGuest) ? 'none' : '';
+            if (birthdayEl) birthdayEl.style.display = isUncle ? 'none' : '';
 
             const couponsEl = document.getElementById('editCommitmentCouponsGroup');
-            if (couponsEl) couponsEl.style.display = (isUncle || isGuest) ? 'none' : '';
+            if (couponsEl) couponsEl.style.display = isUncle ? 'none' : '';
 
             const emergEl = document.getElementById('editEmergencyPhoneGroup');
             if (emergEl) emergEl.style.display = isUncle ? 'none' : '';
@@ -19413,7 +19442,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (medEl) medEl.style.display = isUncle ? 'none' : '';
 
             const customFieldsEl = document.getElementById('editCustomFieldsContainer');
-            if (customFieldsEl) customFieldsEl.style.display = (isUncle || isGuest) ? 'none' : '';
+            if (customFieldsEl) customFieldsEl.style.display = isUncle ? 'none' : '';
+
+            const guestToggleEl = document.getElementById('editStudentIsGuestGroup');
+            if (guestToggleEl) {
+                guestToggleEl.style.display = isUncle ? 'none' : '';
+                const editPersonIsGuest = document.getElementById('editPersonIsGuest');
+                if (editPersonIsGuest) {
+                    editPersonIsGuest.checked = !!s._isGuest;
+                }
+            }
 
             const uncleEditFields = document.getElementById('uncleEditFields');
             if (uncleEditFields) {
@@ -19463,10 +19501,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const studentEmergEl = document.getElementById('editStudentEmergencyPhone');
             const studentMedEl = document.getElementById('editStudentMedicalNotes');
             if (studentEmergEl) {
-                studentEmergEl.value = s._isGuest ? (s.guardian_name || '') : (s.emergency_phone || s['تليفون الطوارئ'] || '');
+                studentEmergEl.value = s.emergency_phone || s['تليفون الطوارئ'] || s.guardian_name || '';
             }
             if (studentMedEl) {
-                studentMedEl.value = s._isGuest ? (s.notes || '') : (s.medical_notes || s['ملاحظات طبية'] || '');
+                studentMedEl.value = s.medical_notes || s['ملاحظات طبية'] || s.notes || '';
             }
             const bd = s.birthday || s['عيد الميلاد'] || '';
             document.getElementById('editStudentBirthday').value = bd.match(/^\d{4}-\d{2}-\d{2}$/) ? bd.split('-').reverse().join('/') : bd;
@@ -19513,34 +19551,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const id = getStudentDbId(currentStudentForEdit); if (!id) { showToast('خطأ في البيانات', 'error'); return; }
             const name = document.getElementById('editStudentName').value.trim();
             if (!name) { showToast('الاسم مطلوب', 'error'); return; }
-
-            const isGuest = !!currentStudentForEdit._isGuest;
-            if (isGuest) {
-                const phone = document.getElementById('editStudentPhone').value.trim();
-                const guardianName = (document.getElementById('editStudentEmergencyPhone')?.value || '').trim();
-                const notes = (document.getElementById('editStudentMedicalNotes')?.value || '').trim();
-                const gender = document.getElementById('editStudentGender').value;
-
-                const updatePayload = {
-                    action: 'updateGuest',
-                    guest_id: id,
-                    name: name,
-                    phone: phone,
-                    guardian_name: guardianName,
-                    class: '',
-                    gender: gender,
-                    notes: notes
-                };
-
-                showLoading('جاري التحديث...');
-                makeApiCall(updatePayload, r => {
-                    showToast('تم تحديث بيانات الزائر بنجاح', 'success');
-                    hideEditForm();
-                    hideStudentModal();
-                    setTimeout(loadData, 1000);
-                }, e => showToast('فشل: ' + e, 'error'));
-                return;
-            }
 
             const isUncle = !!currentStudentForEdit._isUncle;
             if (isUncle) {
@@ -19598,7 +19608,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 emergency_phone: (document.getElementById('editStudentEmergencyPhone')?.value || '').trim(),
                 medical_notes: (document.getElementById('editStudentMedicalNotes')?.value || '').trim(),
                 birthday: document.getElementById('editStudentBirthday').value.trim(),
-                coupons: parseInt(document.getElementById('editStudentCommitmentCoupons').value) || 0
+                coupons: parseInt(document.getElementById('editStudentCommitmentCoupons').value) || 0,
+                is_guest: document.getElementById('editPersonIsGuest').checked ? '1' : '0'
             };
             if (customInfoPayload !== null) updatePayload.custom_info = customInfoPayload;
 
@@ -19654,45 +19665,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     }
                 }).catch(() => showToast('خطأ في الاتصال', 'error'));
 
-            } else if (isGuestClass) {
-                const gender = document.getElementById('studentGender').value;
-                const phone = document.getElementById('studentPhone').value.trim();
-                const guardianName = (document.getElementById('studentEmergencyPhone')?.value || '').trim();
-                const notes = (document.getElementById('studentMedicalNotes')?.value || '').trim();
-
-                if (!name) {
-                    showToast('اسم الزائر مطلوب', 'error');
-                    return;
-                }
-
-                showLoading('جاري إضافة الزائر...');
-                const fd = new FormData();
-                fd.append('action', 'addGuest');
-                fd.append('name', name);
-                fd.append('phone', phone);
-                fd.append('guardian_name', guardianName);
-                fd.append('class', '');
-                fd.append('gender', gender);
-                fd.append('notes', notes);
-
-                // Add photo if cropped photo exists
-                if (currentCroppedBlob && currentPhotoEditorType === 'new') {
-                    fd.append('photo', new File([currentCroppedBlob], `profile_${Date.now()}.jpg`, { type: 'image/jpeg' }));
-                }
-
-                fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).then(d => {
-                    if (d.success) {
-                        showToast('تم إضافة الزائر بنجاح', 'success');
-                        hideAddPersonModal();
-                        document.getElementById('addPersonForm').reset();
-                        cancelNewStudentPhotoUpload();
-                        currentCroppedBlob = null;
-                        setTimeout(loadData, 1000);
-                    } else {
-                        showToast('فشل: ' + (d.message || 'خطأ'), 'error');
-                    }
-                }).catch(() => showToast('خطأ في الاتصال', 'error'));
-
             } else {
                 // Add Student (standard logic)
                 const cls = document.getElementById('studentClass').value;
@@ -19707,6 +19679,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 fd.append('medical_notes', (document.getElementById('studentMedicalNotes')?.value || '').trim());
                 fd.append('birthday', document.getElementById('studentBirthday').value.trim() || '');
                 fd.append('coupons', parseInt(document.getElementById('studentCoupons').value) || 0);
+                fd.append('is_guest', document.getElementById('addPersonIsGuest').checked ? '1' : '0');
                 // Multiple custom fields
                 const cfContainer = document.getElementById('addCustomFieldsContainer');
                 if (cfContainer && churchCustomFields.length) {
@@ -19733,10 +19706,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const id = getStudentDbId(studentToDelete); if (!id) { showToast('المعرف غير موجود', 'error'); return; }
             showLoading('جاري الحذف...');
             const isUncle = !!studentToDelete._isUncle;
-            const isGuest = !!studentToDelete._isGuest;
+            const isLegacyGuest = !!studentToDelete._isGuest && !studentToDelete._studentId;
             const deletePayload = isUncle
                 ? { action: 'deleteUncle', uncle_id: id }
-                : (isGuest ? { action: 'deleteGuest', guest_id: id } : { action: 'deleteStudent', studentId: id });
+                : (isLegacyGuest ? { action: 'deleteGuest', guest_id: id } : { action: 'deleteStudent', studentId: id });
             makeApiCall(deletePayload, r => { showToast('تم الحذف بنجاح', 'success'); hideDeleteStudentModal(); hideStudentModal(); setTimeout(loadData, 1000); }, e => { showToast('فشل: ' + e, 'error'); hideDeleteStudentModal(); });
         }
 
@@ -19788,27 +19761,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 document.getElementById('studentMedicalNotesGroup').style.display = 'none';
                 document.getElementById('studentBirthdayGroup').style.display = 'none';
                 document.getElementById('studentCouponsGroup').style.display = 'none';
-
-                const cfCont = document.getElementById('addCustomFieldsContainer');
-                if (cfCont) {
-                    cfCont.innerHTML = '';
-                    cfCont.style.display = 'none';
-                }
-            } else if (isGuestClass) {
-                document.getElementById('newStudentPhotoGroup').style.display = '';
-                document.getElementById('uncleUsernameGroup').style.display = 'none';
-                document.getElementById('unclePasswordGroup').style.display = 'none';
-                document.getElementById('uncleRoleGroup').style.display = 'none';
-                if (usernameField) usernameField.required = false;
-                if (passwordField) passwordField.required = false;
-
-                document.getElementById('studentClassGroup').style.display = 'none';
-                if (classField) classField.required = false;
-                document.getElementById('studentAddressGroup').style.display = 'none';
-                document.getElementById('studentEmergencyPhoneGroup').style.display = '';
-                document.getElementById('studentMedicalNotesGroup').style.display = '';
-                document.getElementById('studentBirthdayGroup').style.display = 'none';
-                document.getElementById('studentCouponsGroup').style.display = 'none';
+                document.getElementById('studentIsGuestGroup').style.display = 'none';
 
                 const cfCont = document.getElementById('addCustomFieldsContainer');
                 if (cfCont) {
@@ -19830,11 +19783,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 document.getElementById('studentMedicalNotesGroup').style.display = '';
                 document.getElementById('studentBirthdayGroup').style.display = '';
                 document.getElementById('studentCouponsGroup').style.display = '';
+                document.getElementById('studentIsGuestGroup').style.display = '';
+
+                const isGuestCheckbox = document.getElementById('addPersonIsGuest');
+                if (isGuestCheckbox) {
+                    isGuestCheckbox.checked = isGuestClass;
+                }
 
                 const cs = document.getElementById('studentClass');
                 cs.innerHTML = '<option value="">اختر الفصل</option>';
                 (classes.length ? classes : [...new Set(students.map(s => s['الفصل']))].map((n, i) => ({ id: i + 1, code: n, arabic_name: n }))).forEach(c => { const o = document.createElement('option'); o.value = c.id || c.code; o.textContent = c.arabic_name || c.code; cs.appendChild(o); });
-                if (currentClass) { const f = classes.find(c => c.arabic_name === currentClass || c.code === currentClass); if (f) cs.value = f.id || f.code; }
+                if (currentClass && currentClass !== 'الزوار') { const f = classes.find(c => c.arabic_name === currentClass || c.code === currentClass); if (f) cs.value = f.id || f.code; }
 
                 // Build multiple custom fields dynamically
                 const cfCont = document.getElementById('addCustomFieldsContainer');
@@ -20655,7 +20614,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 return `<tr data-student-name="${escHtml(s['الاسم'] || '')}">
             <td style="padding:6px 8px;width:44px;text-align:center">${photo}</td>
             <td style="font-weight:700;cursor:pointer;color:var(--brand)" onclick="showStudentDetails('${escJs(s['الاسم'] || '')}')">
-                ${nameHl}
+                ${nameHl}${s._isGuest ? ' <span class="guest-badge" style="font-size:0.65rem; background:#f59e0b; color:#fff; padding:2px 6px; border-radius:4px; margin-right:4px; vertical-align:middle; display:inline-block;">زائر</span>' : ''}
             </td>
             <td><span style="background:var(--brand-bg);color:var(--brand);padding:2px 8px;border-radius:var(--r-full);font-size:.75rem;font-weight:700">${s['الفصل'] || '---'}</span></td>
             <td style="color:var(--text-2);font-size:.82rem">${s['العنوان'] || '---'}</td>

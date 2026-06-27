@@ -5941,10 +5941,11 @@
       }
 
       function getCustomExportCellValue(r, field, forCsv = false) {
-        const isGuest = r.guest_id ? true : false;
+        const isLegacyGuest = r.guest_id ? true : false;
+        const isGuest = (r.guest_id || r.student_is_guest == 1) ? true : false;
 
         if (field.type === 'student_id') {
-          return isGuest ? (r.guest_id || '') : getStudentDbId(r);
+          return isLegacyGuest ? (r.guest_id || '') : getStudentDbId(r);
         }
 
         if (field.type === 'church') {
@@ -5952,7 +5953,7 @@
         }
 
         if (field.type === 'qrcode') {
-          if (isGuest) return '';
+          if (isLegacyGuest) return '';
           const studentId = getStudentDbId(r);
           if (!studentId) return '';
           const text = `${window.location.origin}/user/profile/?id=${encodeURIComponent(studentId)}`;
@@ -5964,7 +5965,7 @@
         }
 
         if (field.type === 'photo') {
-          const url = isGuest ? '' : getAbsolutePhotoUrl(r.student_image || '');
+          const url = getAbsolutePhotoUrl(r.student_image || r.guest_image || r.image_url || '');
           if (forCsv) return url ? `=IMAGE("${url.replace(/"/g, '""')}")` : '';
           return url
             ? `<img class="custom-export-photo" src="${url}" crossorigin="anonymous" referrerpolicy="no-referrer" alt="" onerror="this.outerHTML='<div class=&quot;custom-export-photo-fallback&quot;><i class=&quot;fas fa-user&quot;></i></div>'">`
@@ -5972,7 +5973,7 @@
         }
 
         if (field.type === 'age') {
-          if (isGuest || !r.student_birthday) return '';
+          if (isLegacyGuest || !r.student_birthday) return '';
           return _calcAge(r.student_birthday) || '';
         }
 
@@ -5984,7 +5985,7 @@
         }
 
         if (field.type === 'siblings') {
-          if (isGuest) return '';
+          if (isLegacyGuest) return '';
           const studentId = parseInt(r.student_id);
           const info = parseStudentCustomInfo(r);
           const group = info.sibling_group && typeof info.sibling_group === 'object' ? info.sibling_group : null;
@@ -6079,7 +6080,7 @@
         const filterRegType = document.getElementById('customExportFilterRegType')?.value || 'all';
         if (filterRegType !== 'all') {
           filtered = filtered.filter(p => {
-            const isGuest = p.guest_id ? true : false;
+            const isGuest = (p.guest_id || p.student_is_guest == 1) ? true : false;
             const type = isGuest ? 'guest' : 'student';
             return type === filterRegType;
           });

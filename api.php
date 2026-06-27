@@ -5672,7 +5672,7 @@ function getData()
 
             s.emergency_phone, s.medical_notes, s.custom_info,
 
-            s.image_url, s.class_id, s.gender,
+            s.image_url, s.class_id, s.gender, s.is_guest,
 
             COALESCE(cc.arabic_name, gc.arabic_name, s.class) as class,
 
@@ -5739,6 +5739,8 @@ function getData()
                     '_studentId' => intval($row['id']),
 
                     'النوع' => $row['gender'] ?? 'male',
+
+                    '_isGuest' => intval($row['is_guest'] ?? 0),
 
                     '_allAttendance' => [],
 
@@ -5940,6 +5942,8 @@ function getData()
 
                 s.gender,
 
+                s.is_guest,
+
                 c.church_name,
 
                 COALESCE(cc.id, gc.id) as class_id,
@@ -6115,6 +6119,8 @@ function getData()
                 '_studentId' => intval($row['id']),
 
                 'النوع' => $row['gender'] ?? 'male',
+
+                '_isGuest' => intval($row['is_guest'] ?? 0),
 
                 '_customInfo' => !empty($row['custom_info'])
 
@@ -7771,6 +7777,7 @@ function addStudent()
 
 
 
+        $isGuest = isset($_POST['is_guest']) && $_POST['is_guest'] === '1' ? 1 : 0;
         $addedByType = 'normal_add';
         
         $tempid = sanitize($_POST['tempid'] ?? '');
@@ -7799,8 +7806,8 @@ function addStudent()
             $stmt = $conn->prepare("
                 INSERT INTO students 
                 (church_id, name, class_id, class, address, phone, emergency_phone, medical_notes,
-                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, added_by)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
+                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, added_by, is_guest)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)
             ");
             safeBindParam(
                 $stmt,
@@ -7817,14 +7824,15 @@ function addStudent()
                 $photoUrl,
                 $customInfoJson,
                 $gender,
-                $addedByType
+                $addedByType,
+                $isGuest
             );
         } else {
             $stmt = $conn->prepare("
                 INSERT INTO students 
                 (church_id, name, class_id, class, address, phone, emergency_phone, medical_notes, birthday, 
-                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, added_by)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
+                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, added_by, is_guest)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)
             ");
             safeBindParam(
                 $stmt,
@@ -7842,7 +7850,8 @@ function addStudent()
                 $photoUrl,
                 $customInfoJson,
                 $gender,
-                $addedByType
+                $addedByType,
+                $isGuest
             );
         }
 
@@ -8159,6 +8168,8 @@ function updateStudent()
 
         $coupons = max(0, intval($_POST['coupons'] ?? 0));
 
+        $isGuest = isset($_POST['is_guest']) && $_POST['is_guest'] === '1' ? 1 : 0;
+
 
 
         if ($studentId === 0 || empty($name) || $classId === 0) {
@@ -8435,7 +8446,7 @@ function updateStudent()
 
                 SET name = ?, class_id = ?, class = ?, address = ?, phone = ?, emergency_phone = ?, medical_notes = ?, birthday = ?, 
 
-                    commitment_coupons = ?, coupons = ?, custom_info = ?, gender = ?, updated_at = NOW()
+                    commitment_coupons = ?, coupons = ?, custom_info = ?, gender = ?, is_guest = ?, updated_at = NOW()
 
                 WHERE id = ? AND church_id = ?
 
@@ -8469,6 +8480,8 @@ function updateStudent()
 
                 $gender,
 
+                $isGuest,
+
                 $studentId,
 
                 $churchId
@@ -8483,7 +8496,7 @@ function updateStudent()
 
                 SET name = ?, class_id = ?, class = ?, address = ?, phone = ?, emergency_phone = ?, medical_notes = ?, birthday = ?, 
 
-                    commitment_coupons = ?, coupons = ?, gender = ?, updated_at = NOW()
+                    commitment_coupons = ?, coupons = ?, gender = ?, is_guest = ?, updated_at = NOW()
 
                 WHERE id = ? AND church_id = ?
 
@@ -8514,6 +8527,8 @@ function updateStudent()
                 $totalCoupons,
 
                 $gender,
+
+                $isGuest,
 
                 $studentId,
 
@@ -25432,7 +25447,7 @@ function getTripDetails()
 
                 COALESCE(s.phone, g.phone) as student_phone,
 
-                s.image_url as student_image,
+                COALESCE(s.image_url, g.image_url) as student_image,
 
                 s.trip_points as student_trip_points,
 
@@ -25465,6 +25480,8 @@ function getTripDetails()
                 s.task_coupons as student_task_coupons,
 
                 s.custom_info as student_custom_info,
+
+                s.is_guest as student_is_guest,
 
                 COALESCE(s.church_id, g.church_id) as student_church_id,
 
@@ -30610,6 +30627,8 @@ function updateStudentFull()
 
         $birthday = sanitize($_POST['birthday'] ?? '');
 
+        $isGuest = isset($_POST['is_guest']) && $_POST['is_guest'] === '1' ? 1 : 0;
+
 
 
         if (empty($name) || $classId === 0) {
@@ -30780,7 +30799,7 @@ function updateStudentFull()
 
                     phone = ?, emergency_phone = ?, medical_notes = ?, 
 
-                    birthday = ?, image_url = ?, custom_info = ?, gender = ?, updated_at = NOW()
+                    birthday = ?, image_url = ?, custom_info = ?, gender = ?, is_guest = ?, updated_at = NOW()
 
                 WHERE id = ? AND church_id = ?
 
@@ -30812,6 +30831,8 @@ function updateStudentFull()
 
                 $gender,
 
+                $isGuest,
+
                 $studentId,
 
                 $churchId
@@ -30828,7 +30849,7 @@ function updateStudentFull()
 
                     phone = ?, emergency_phone = ?, medical_notes = ?, 
 
-                    birthday = ?, custom_info = ?, gender = ?, updated_at = NOW()
+                    birthday = ?, custom_info = ?, gender = ?, is_guest = ?, updated_at = NOW()
 
                 WHERE id = ? AND church_id = ?
 
@@ -30857,6 +30878,8 @@ function updateStudentFull()
                 $customInfoJson,
 
                 $gender,
+
+                $isGuest,
 
                 $studentId,
 
