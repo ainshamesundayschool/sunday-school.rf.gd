@@ -19204,7 +19204,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         async function payUncleFee(uncleId, feeId) {
-            const amountInput = prompt('الرجاء إدخال قيمة المبلغ المدفوع للاشتراك (ج.م):', '2000');
+            const amountInput = prompt('الرجاء إدخال قيمة المبلغ المدفوع للاشتراك (ج.م):', '');
             if (amountInput === null) return;
             const amount = parseFloat(amountInput);
             if (isNaN(amount) || amount <= 0) {
