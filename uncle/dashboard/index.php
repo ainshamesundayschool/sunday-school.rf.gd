@@ -12475,6 +12475,26 @@ if ($hasUncleId && $uncleRole === 'uncle')
         </div>
     </div>
 
+    <!-- Pay Uncle Fee Custom Modal -->
+    <div class="modal-overlay" id="payUncleFeeModal" style="z-index:20000005">
+        <div class="modal modal-sm" style="max-width:380px; border: 1.5px solid var(--border-solid); text-align: right; direction: rtl;">
+            <div class="modal-header" style="gap:8px; align-items:center; justify-content:space-between; padding: 16px 20px 10px;">
+                <h3 style="font-weight: 800; color: var(--text); font-size: 1.1rem; margin: 0;"><i class="fas fa-coins" style="color:var(--brand); margin-inline-end:8px;"></i>تسديد الاشتراك</h3>
+                <button class="close-btn" onclick="closeModal('payUncleFeeModal')">&times;</button>
+            </div>
+            <div style="padding: 10px 20px 20px;">
+                <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-2); margin-bottom: 8px;">الرجاء إدخال قيمة المبلغ المدفوع للاشتراك (ج.م):</div>
+                <div style="margin-bottom: 20px;">
+                    <input type="number" id="payFeeAmountInput" class="form-input no-spinner" style="width:100%; height:42px; font-size:1rem; text-align:center; direction:ltr; font-family:Cairo,sans-serif;" placeholder="أدخل القيمة...">
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button type="button" id="payUncleFeeSubmitBtn" class="btn btn-primary" style="flex:1; background:var(--brand); color:#fff; border:none; height:38px; display:flex; align-items:center; justify-content:center; gap:6px; font-weight:700;"><i class="fas fa-check"></i> تأكيد الدفع</button>
+                    <button type="button" class="btn btn-secondary" style="flex:1; height:38px;" onclick="closeModal('payUncleFeeModal')">إلغاء</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bulk Note Modal -->
     <div class="modal-overlay" id="bulkNoteModal" style="z-index:1000007">
         <div class="modal" style="max-width:500px">
@@ -19204,44 +19224,61 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         async function payUncleFee(uncleId, feeId) {
-            const amountInput = prompt('الرجاء إدخال قيمة المبلغ المدفوع للاشتراك (ج.م):', '');
-            if (amountInput === null) return;
-            const amount = parseFloat(amountInput);
-            if (isNaN(amount) || amount <= 0) {
-                showToast('الرجاء إدخال مبلغ صحيح أكبر من الصفر للاشتراك', 'error');
-                return;
-            }
+            openModal('payUncleFeeModal');
+            const amountInputEl = document.getElementById('payFeeAmountInput');
+            amountInputEl.value = '';
+            setTimeout(() => amountInputEl.focus(), 150);
 
-            const fd = new FormData();
-            fd.append('action', 'payUncleFee');
-            fd.append('uncleId', uncleId);
-            fd.append('feeId', feeId);
-            fd.append('amount', amount);
-
-            try {
-                const r = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(res => res.json());
-                if (r.success) {
-                    showToast(r.message || 'تم تسديد الاشتراك بنجاح', 'success');
-
-                    const uncle = (window.allUnclesData || []).find(u => u.id === uncleId);
-                    if (uncle && uncle._customInfo && Array.isArray(uncle._customInfo._fees)) {
-                        const fee = uncle._customInfo._fees.find(f => f.id === feeId);
-                        if (fee) {
-                            fee.status = 'paid';
-                            fee.amount = amount;
-                            fee.paid_at = new Date().toISOString().replace('T', ' ').substr(0, 19);
-                            fee.paid_by = window.currentUncle?.name || 'أدمن';
-                        }
-                        uncle.custom_info = JSON.stringify(uncle._customInfo);
-                        buildUncleDetailsFromProfile(uncle);
-                    }
-                    setTimeout(loadData, 500);
-                } else {
-                    showToast(r.message || 'فشل تسديد الاشتراك', 'error');
+            amountInputEl.onkeydown = function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('payUncleFeeSubmitBtn').click();
                 }
-            } catch (e) {
-                showToast('خطأ في الاتصال بالسيرفر', 'error');
-            }
+            };
+
+            document.getElementById('payUncleFeeSubmitBtn').onclick = async function() {
+                const amountInput = amountInputEl.value.trim();
+                if (!amountInput) {
+                    showToast('الرجاء إدخال قيمة الاشتراك', 'error');
+                    return;
+                }
+                const amount = parseFloat(amountInput);
+                if (isNaN(amount) || amount <= 0) {
+                    showToast('الرجاء إدخال مبلغ صحيح أكبر من الصفر للاشتراك', 'error');
+                    return;
+                }
+
+                const fd = new FormData();
+                fd.append('action', 'payUncleFee');
+                fd.append('uncleId', uncleId);
+                fd.append('feeId', feeId);
+                fd.append('amount', amount);
+
+                try {
+                    const r = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(res => res.json());
+                    if (r.success) {
+                        showToast(r.message || 'تم تسديد الاشتراك بنجاح', 'success');
+                        closeModal('payUncleFeeModal');
+
+                        const uncle = (window.allUnclesData || []).find(u => u.id === uncleId);
+                        if (uncle && uncle._customInfo && Array.isArray(uncle._customInfo._fees)) {
+                            const fee = uncle._customInfo._fees.find(f => f.id === feeId);
+                            if (fee) {
+                                fee.status = 'paid';
+                                fee.amount = amount;
+                                fee.paid_at = new Date().toISOString().replace('T', ' ').substr(0, 19);
+                                fee.paid_by = window.currentUncle?.name || 'أدمن';
+                            }
+                            uncle.custom_info = JSON.stringify(uncle._customInfo);
+                            buildUncleDetailsFromProfile(uncle);
+                        }
+                        setTimeout(loadData, 500);
+                    } else {
+                        showToast(r.message || 'فشل تسديد الاشتراك', 'error');
+                    }
+                } catch (e) {
+                    showToast('خطأ في الاتصال بالسيرفر', 'error');
+                }
+            };
         }
 
         // Open a small prompt to update points for a given trip and student
