@@ -13683,35 +13683,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 const isUncleLoggedIn = localStorage.getItem('uncleLoggedIn') === 'true';
                 if (isUncleLoggedIn) {
-                    const arabicMonths = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
-                    const curMonthName = arabicMonths[new Date().getMonth()];
-                    const curYearNum = new Date().getFullYear();
-                    
-                    // Check if current month fee is paid (must exist and not be unpaid)
-                    const isCurrentPaid = fees.some(f => f.title && f.title.includes(curMonthName) && f.title.includes(String(curYearNum)) && f.status !== 'unpaid');
-                    
-                    let unpaidAlert = '';
-                    if (!isCurrentPaid) {
-                        unpaidAlert = `
-                            <div class="glass-card" style="padding:14px 16px; border:1px solid var(--danger); border-radius:10px; background:rgba(239, 68, 68, 0.08); color:var(--danger); display:flex; align-items:center; gap:8px; margin-bottom:12px; font-weight:700; font-size:0.82rem; direction:rtl; text-align:right;">
-                                <i class="fas fa-exclamation-circle"></i>
-                                <span>اشتراك شهر ${curMonthName} ${curYearNum} غير مدفوع</span>
-                            </div>
-                        `;
-                    }
-
-                    // Also search for any specific older fees that are marked unpaid
-                    const unpaidOldAlerts = fees.filter(f => f.status === 'unpaid' && !(f.title && f.title.includes(curMonthName) && f.title.includes(String(curYearNum)))).map(fee => `
-                        <div class="glass-card" style="padding:14px 16px; border:1px solid var(--danger); border-radius:10px; background:rgba(239, 68, 68, 0.08); color:var(--danger); display:flex; align-items:center; gap:8px; margin-bottom:12px; font-weight:700; font-size:0.82rem; direction:rtl; text-align:right;">
-                            <i class="fas fa-exclamation-circle"></i>
-                            <span>تنبيه: الاشتراك "${escHtml(fee.title)}" غير مسدد بعد</span>
-                        </div>
-                    `).join('');
-
-                    const finalAlert = unpaidAlert + unpaidOldAlerts;
-
-                    if (fees.length > 0) {
-                        ownFeesList.innerHTML = finalAlert + fees.map(fee => {
+                    const extFees = getExtendedFeesList(fees);
+                    if (extFees.length > 0) {
+                        ownFeesList.innerHTML = extFees.map(fee => {
                             const isPaid = fee.status !== 'unpaid';
                             const statusBadge = isPaid
                                 ? `<span style="background:#10b981; color:white; font-size:0.65rem; font-weight:700; padding:2px 6px; border-radius:6px; margin-inline-start:6px;">مدفوع</span>`
@@ -13737,9 +13711,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 </div>
                             </div>
                             `;
-                        }).reverse().join('');
+                        }).join('');
                     } else {
-                        ownFeesList.innerHTML = finalAlert + `<div style="text-align:center;padding:2rem;color:var(--text-3)">لا توجد اشتراكات مالية مسجلة بعد</div>`;
+                        ownFeesList.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text-3)">لا توجد اشتراكات مالية مسجلة بعد</div>`;
                     }
                 } else {
                     ownFeesList.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text-3)">لا توجد اشتراكات مالية مسجلة بعد</div>`;
@@ -19047,20 +19021,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             let feesHtml = '';
             if (canViewFees) {
-                const arabicMonths = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
-                const d = new Date();
-                const curYear = d.getFullYear();
-                const curMonthIdx = d.getMonth();
-                const curMonthName = arabicMonths[curMonthIdx];
-
-                const isCurrentPaid = fees.some(f => f.title && f.title.includes(curMonthName) && f.title.includes(String(curYear)) && f.status !== 'unpaid');
-                const unpaidAlert = !isCurrentPaid ? `
-                    <div class="glass-card" style="padding:10px 12px; border:1px solid var(--danger); border-radius:10px; background:rgba(239, 68, 68, 0.08); color:var(--danger); display:flex; align-items:center; gap:8px; margin-bottom:12px; font-weight:700; font-size:0.8rem;">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <span>اشتراك شهر ${curMonthName} ${curYear} غير مدفوع</span>
-                    </div>
-                ` : '';
-
+                const extFees = getExtendedFeesList(fees);
                 const canManageFees = !isUncleLoggedIn || isAssignedManager;
                 const addFeeBtn = canManageFees ? `
                     <button type="button" class="btn btn-ghost sibling-link-btn" title="إضافة اشتراك" onclick="toggleAddFeeArea()"><i class="fas fa-money-bill-wave"></i> <i class="fas fa-plus"></i></button>
@@ -19070,20 +19031,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="uncle-fees-section" style="margin-top:16px; border-top:1px solid var(--border); padding-top:16px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
                         <h4 style="font-size:0.95rem; font-weight:700; color:var(--primary); margin:0; display:flex; align-items:center; gap:6px;">
-                            <i class="fas fa-money-bill-wave"></i> الاشتراكات الشهرية للخدمة (${fees.length})
+                            <i class="fas fa-money-bill-wave"></i> الاشتراكات الشهرية للخدمة (${extFees.length})
                         </h4>
                         ${addFeeBtn}
                     </div>
                     
                     ${canManageFees ? feeForm : ''}
-                    ${unpaidAlert}
 
                     <div style="display:flex; flex-direction:column; gap:8px; max-height:250px; overflow-y:auto; padding-inline-end:4px;">
-                        ${fees.length === 0 ? `
+                        ${extFees.length === 0 ? `
                             <div style="text-align:center; padding:20px; color:var(--muted); font-size:0.78rem; font-style:italic;">
                                 لا توجد اشتراكات مسجلة.
                             </div>
-                        ` : fees.map(fee => {
+                        ` : extFees.map(fee => {
                     const isPaid = fee.status !== 'unpaid';
                     const statusBadge = isPaid
                         ? `<span style="background:#10b981; color:white; font-size:0.65rem; font-weight:700; padding:1px 6px; border-radius:6px; margin-inline-start:6px;">مدفوع</span>`
@@ -19097,7 +19057,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                     <i class="fas fa-check-circle"></i>
                                 </button>
                             ` : '';
-                    const deleteBtn = canManageFees ? `
+                    const deleteBtn = (canManageFees && !fee.is_virtual) ? `
                                 <button class="btn btn-ghost" style="padding:6px; color:var(--danger); font-size:0.8rem;" onclick="deleteUncleFee(${full.id}, '${fee.id}')" title="حذف الاشتراك">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
@@ -19124,7 +19084,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 </div>
                             </div>
                             `;
-                }).reverse().join('')}
+                }).join('')}
                     </div>
                 </div>
                 `;
@@ -19195,6 +19155,49 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
 
+        function getExtendedFeesList(feesList) {
+            const fees = Array.isArray(feesList) ? feesList : [];
+            const arabicMonths = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+            const now = new Date();
+            const curYear = now.getFullYear();
+            const curMonthIdx = now.getMonth(); // 0 to 11
+
+            const extended = [...fees];
+
+            // Auto-generate virtual unpaid fees for all months of the current year up to the current month.
+            for (let m = 0; m <= curMonthIdx; m++) {
+                const monthName = arabicMonths[m];
+                const titleToCheck = `اشتراك شهر ${monthName} ${curYear}`;
+                
+                // Check if there is an existing fee for this month (paid or unpaid)
+                const exists = fees.some(f => {
+                    const fTitle = (f.title || '').trim();
+                    return fTitle.includes(monthName) && fTitle.includes(String(curYear));
+                });
+
+                if (!exists) {
+                    extended.push({
+                        id: `virtual_${monthName}_${curYear}`,
+                        title: titleToCheck,
+                        amount: 0,
+                        status: 'unpaid',
+                        description: 'توليد تلقائي لعدم السداد',
+                        is_virtual: true,
+                        date: `${curYear}-${String(m + 1).padStart(2, '0')}-01`
+                    });
+                }
+            }
+
+            // Sort fees reverse chronologically by date
+            extended.sort((a, b) => {
+                const dateA = a.date || '';
+                const dateB = b.date || '';
+                return dateB.localeCompare(dateA);
+            });
+
+            return extended;
+        }
+
         async function deleteUncleFee(uncleId, feeId) {
             if (!confirm('هل أنت متأكد من حذف هذا الاشتراك؟')) return;
 
@@ -19248,9 +19251,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 }
 
                 const fd = new FormData();
-                fd.append('action', 'payUncleFee');
+                let isVirtual = String(feeId).startsWith('virtual_');
+                if (isVirtual) {
+                    fd.append('action', 'addUncleFee');
+                    const parts = String(feeId).split('_');
+                    const month = parts[1];
+                    const year = parts[2];
+                    fd.append('title', `اشتراك شهر ${month} ${year}`);
+                    fd.append('status', 'paid');
+                    fd.append('date', new Date().toISOString().split('T')[0]);
+                } else {
+                    fd.append('action', 'payUncleFee');
+                    fd.append('feeId', feeId);
+                }
                 fd.append('uncleId', uncleId);
-                fd.append('feeId', feeId);
                 fd.append('amount', amount);
 
                 try {
@@ -19260,13 +19274,31 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         closeModal('payUncleFeeModal');
 
                         const uncle = (window.allUnclesData || []).find(u => u.id === uncleId);
-                        if (uncle && uncle._customInfo && Array.isArray(uncle._customInfo._fees)) {
-                            const fee = uncle._customInfo._fees.find(f => f.id === feeId);
-                            if (fee) {
-                                fee.status = 'paid';
-                                fee.amount = amount;
-                                fee.paid_at = new Date().toISOString().replace('T', ' ').substr(0, 19);
-                                fee.paid_by = window.currentUncle?.name || 'أدمن';
+                        if (uncle) {
+                            if (!uncle._customInfo) uncle._customInfo = {};
+                            if (!Array.isArray(uncle._customInfo._fees)) uncle._customInfo._fees = [];
+
+                            if (isVirtual) {
+                                const parts = String(feeId).split('_');
+                                const month = parts[1];
+                                const year = parts[2];
+                                uncle._customInfo._fees.push({
+                                    id: r.feeId || ('fee_' + Math.random().toString(36).substr(2, 9)),
+                                    title: `اشتراك شهر ${month} ${year}`,
+                                    amount: amount,
+                                    status: 'paid',
+                                    date: new Date().toISOString().split('T')[0],
+                                    created_by: window.currentUncle?.name || 'أدمن',
+                                    created_at: new Date().toISOString().replace('T', ' ').substr(0, 19)
+                                });
+                            } else {
+                                const fee = uncle._customInfo._fees.find(f => f.id === feeId);
+                                if (fee) {
+                                    fee.status = 'paid';
+                                    fee.amount = amount;
+                                    fee.paid_at = new Date().toISOString().replace('T', ' ').substr(0, 19);
+                                    fee.paid_by = window.currentUncle?.name || 'أدمن';
+                                }
                             }
                             uncle.custom_info = JSON.stringify(uncle._customInfo);
                             buildUncleDetailsFromProfile(uncle);
