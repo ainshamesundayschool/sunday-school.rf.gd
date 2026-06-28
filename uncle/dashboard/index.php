@@ -342,11 +342,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
          below — this means: use Cairo if already cached, otherwise keep
          the fallback for THIS paint and cache for next load. ── -->
     <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&family=Cairo:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap"
         media="print" onload="this.media='all'">
     <noscript>
         <link rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap">
+            href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&family=Cairo:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap">
     </noscript>
 
     <!-- ── Font Awesome: async load so icons don't block first paint ── -->
@@ -2284,28 +2284,59 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .sort-layer-select {
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+            background-repeat: no-repeat !important;
+            background-position: left 10px center !important;
+            background-size: 14px !important;
+            padding-left: 30px !important;
+            padding-right: 12px !important;
             border: 1px solid var(--border-solid) !important;
-            border-radius: 8px !important;
-            background: var(--surface-2) !important;
+            border-radius: var(--radius-sm) !important;
+            background-color: var(--surface-2) !important;
             font-family: 'Cairo', 'Baloo Bhaijaan 2', sans-serif !important;
             font-size: 0.78rem !important;
             font-weight: 700 !important;
             color: var(--text) !important;
             outline: none !important;
             cursor: pointer !important;
-            padding: 4px 8px !important;
             height: 32px !important;
             transition: all var(--t-fast) var(--ease) !important;
+            direction: rtl !important;
         }
 
         .sort-layer-select:hover {
             border-color: var(--brand) !important;
-            background: var(--brand-bg) !important;
+            background-color: var(--brand-bg) !important;
         }
 
         .sort-layer-select:focus {
             border-color: var(--primary) !important;
             box-shadow: 0 0 0 2px var(--primary-glow) !important;
+        }
+
+        .sort-layer-delete-btn {
+            width: 32px !important;
+            height: 32px !important;
+            border-radius: 50% !important;
+            border: 1px solid rgba(239, 68, 68, 0.2) !important;
+            background: rgba(239, 68, 68, 0.08) !important;
+            color: var(--danger) !important;
+            cursor: pointer !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 0.8rem !important;
+            transition: all var(--t-fast) var(--ease) !important;
+            padding: 0 !important;
+        }
+
+        .sort-layer-delete-btn:hover {
+            background: var(--danger) !important;
+            color: #fff !important;
+            border-color: var(--danger) !important;
         }
 
         .export-date-options {
@@ -20946,7 +20977,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <option value="asc" ${layer.order === 'asc' ? 'selected' : ''}>تصاعدي</option>
                             <option value="desc" ${layer.order === 'desc' ? 'selected' : ''}>تنازلي</option>
                         </select>
-                        <button type="button" class="export-mini-btn" onclick="removeCustomExportSortLayer(${idx})" style="color:var(--danger); border:none; padding:4px;" title="حذف"><i class="fas fa-trash"></i></button>
+                        <button type="button" class="sort-layer-delete-btn" onclick="removeCustomExportSortLayer(${idx})" title="حذف"><i class="fas fa-trash"></i></button>
                     </div>
                 `;
             }).join('');
