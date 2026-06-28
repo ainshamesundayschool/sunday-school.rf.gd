@@ -2321,6 +2321,8 @@
             let currentStudentId = null;
             let currentFilterField = null;
             let currentFilterValue = null;
+            let currentFilterParentField = null;
+            let currentFilterParentValue = null;
 
             // Points selection state
             let currentSelectedPoint = 30;
@@ -2475,6 +2477,8 @@
                 const studentIdParam = urlParams.get('student_id');
                 const fieldParam = urlParams.get('field');
                 const valueParam = urlParams.get('value');
+                const parentFieldParam = urlParams.get('parentField');
+                const parentValueParam = urlParams.get('parentValue');
 
                 if (studentIdParam) {
                     currentView = 'student_profile';
@@ -2483,6 +2487,8 @@
                     currentView = 'group_filter';
                     currentFilterField = fieldParam;
                     currentFilterValue = valueParam || '';
+                    currentFilterParentField = parentFieldParam || null;
+                    currentFilterParentValue = parentValueParam || null;
                 } else if (viewParam === 'fast_scan') {
                     currentView = 'fast_scan';
                 } else {
@@ -2504,6 +2510,8 @@
                 currentStudentId = params.student_id || null;
                 currentFilterField = params.field || null;
                 currentFilterValue = params.value || null;
+                currentFilterParentField = params.parentField || null;
+                currentFilterParentValue = params.parentValue || null;
 
                 const url = new URL(window.location.href);
                 url.searchParams.set('trip_id', tripId);
@@ -2511,6 +2519,8 @@
                 url.searchParams.delete('student_id');
                 url.searchParams.delete('field');
                 url.searchParams.delete('value');
+                url.searchParams.delete('parentField');
+                url.searchParams.delete('parentValue');
                 url.searchParams.delete('view');
 
                 if (view === 'student_profile') {
@@ -2518,6 +2528,10 @@
                 } else if (view === 'group_filter') {
                     url.searchParams.set('field', currentFilterField);
                     url.searchParams.set('value', currentFilterValue);
+                    if (currentFilterParentField) {
+                        url.searchParams.set('parentField', currentFilterParentField);
+                        url.searchParams.set('parentValue', currentFilterParentValue);
+                    }
                 } else if (view === 'fast_scan') {
                     url.searchParams.set('view', 'fast_scan');
                 }
@@ -2528,7 +2542,12 @@
 
             function goBackFromProfile() {
                 if (currentFilterField) {
-                    navigateTo('group_filter', { field: currentFilterField, value: currentFilterValue });
+                    navigateTo('group_filter', { 
+                        field: currentFilterField, 
+                        value: currentFilterValue,
+                        parentField: currentFilterParentField,
+                        parentValue: currentFilterParentValue
+                    });
                 } else {
                     navigateTo('dashboard');
                 }
@@ -2583,9 +2602,23 @@
                 const countEl = document.getElementById('kidsCountLabel');
                 const listEl = document.getElementById('kidsList');
 
-                const label = currentFilterValue
-                    ? (currentFilterField === '__class__' ? `فصل: ${currentFilterValue}` : (currentFilterField === '__church__' ? `كنيسة: ${currentFilterValue}` : `${currentFilterField.replace(/.*__sf__/, '')}: ${currentFilterValue}`))
-                    : (currentFilterField ? (currentFilterField === '__church__' ? 'الكنيسة' : currentFilterField.replace(/.*__sf__/, '')) : 'جميع الأطفال');
+                let label = '';
+                if (currentFilterValue) {
+                    if (currentFilterField === '__class__') {
+                        label = `فصل: ${currentFilterValue}`;
+                    } else if (currentFilterField === '__church__') {
+                        label = `كنيسة: ${currentFilterValue}`;
+                    } else {
+                        const cleanField = currentFilterField.replace(/.*__sf__/, '');
+                        if (currentFilterParentValue) {
+                            label = `${currentFilterParentValue} • ${cleanField}: ${currentFilterValue}`;
+                        } else {
+                            label = `${cleanField}: ${currentFilterValue}`;
+                        }
+                    }
+                } else {
+                    label = currentFilterField ? (currentFilterField === '__church__' ? 'الكنيسة' : currentFilterField.replace(/.*__sf__/, '')) : 'جميع الأطفال';
+                }
 
                 titleEl.textContent = label;
 
@@ -2603,6 +2636,15 @@
                         }
                         try {
                             const cd = JSON.parse(r.custom_data);
+
+                            // Check parent filter if it exists
+                            if (currentFilterParentField && currentFilterParentValue) {
+                                const parentVal = cd[currentFilterParentField];
+                                if (parentVal !== currentFilterParentValue && !(parentVal === undefined && currentFilterParentValue === 'بدون تحديد')) {
+                                    return false;
+                                }
+                            }
+
                             const kidValue = cd[currentFilterField];
                             if (kidValue === undefined || kidValue === null || kidValue === '') {
                                 return currentFilterValue === 'بدون تحديد';
@@ -4276,8 +4318,27 @@
 
                 if (last.type === 'subfield') {
                     const sfKey = last.fieldName;
+                    
+                    // Find the parent choice to filter by (e.g. Building name)
+                    const choiceItem = filterPath.length >= 2 ? filterPath[filterPath.length - 2] : null;
+                    const parentField = choiceItem ? choiceItem.fieldName : null;
+                    const parentValue = choiceItem ? choiceItem.choiceVal : null;
+
                     const groups = {};
                     regsList.forEach(r => {
+                        // If there is a parent field/value constraint, ignore kids that don't match it
+                        if (parentField && parentValue) {
+                            try {
+                                const cd = JSON.parse(r.custom_data || '{}');
+                                const actualParentVal = cd[parentField];
+                                if (actualParentVal !== parentValue && !(actualParentVal === undefined && parentValue === 'بدون تحديد')) {
+                                    return;
+                                }
+                            } catch (e) {
+                                if (parentValue !== 'بدون تحديد') return;
+                            }
+                        }
+
                         let val = 'بدون تحديد';
                         try {
                             const cd = JSON.parse(r.custom_data || '{}');
@@ -4291,7 +4352,7 @@
                         const kids = groups[val];
                         const card = document.createElement('div');
                         card.className = 'field-card';
-                        card.onclick = () => openFilterKids(sfKey, val);
+                        card.onclick = () => openFilterKids(sfKey, val, parentField, parentValue);
 
                         card.innerHTML = `
                         <div class="field-card-header">
@@ -4337,8 +4398,8 @@
                 });
             }
 
-            function openFilterKids(field, value) {
-                navigateTo('group_filter', { field: field, value: value });
+            function openFilterKids(field, value, parentField = null, parentValue = null) {
+                navigateTo('group_filter', { field: field, value: value, parentField: parentField, parentValue: parentValue });
             }
 
             // Search Bar Handlers
