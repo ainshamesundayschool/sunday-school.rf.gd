@@ -4502,6 +4502,41 @@
       background: var(--brand-bg);
     }
 
+    .sort-layer-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--border-solid);
+      border-radius: var(--r-md);
+      padding: 6px 8px;
+    }
+
+    .sort-layer-select {
+      border: 1px solid var(--border-solid) !important;
+      border-radius: 8px !important;
+      background: var(--surface-2) !important;
+      font-family: 'Cairo', 'Baloo Bhaijaan 2', sans-serif !important;
+      font-size: 0.78rem !important;
+      font-weight: 700 !important;
+      color: var(--text) !important;
+      outline: none !important;
+      cursor: pointer !important;
+      padding: 4px 8px !important;
+      height: 32px !important;
+      transition: all var(--t-fast) var(--ease) !important;
+    }
+
+    .sort-layer-select:hover {
+      border-color: var(--brand) !important;
+      background: var(--brand-bg) !important;
+    }
+
+    .sort-layer-select:focus {
+      border-color: var(--primary) !important;
+      box-shadow: 0 0 0 2px var(--primary-glow) !important;
+    }
+
     .export-date-options {
       display: grid;
       gap: 7px;
@@ -5857,15 +5892,15 @@
           ).join('');
           
           return `
-            <div class="sort-layer-row" style="display:flex; gap:6px; align-items:center;">
-              <select class="form-input sort-layer-field" style="flex:1.5; padding: 4px 8px; font-size:0.8rem; height: 32px;" onchange="updateCustomExportSortLayerField(${idx}, this.value)">
+            <div class="sort-layer-row">
+              <select class="sort-layer-select sort-layer-field" style="flex:1.5;" onchange="updateCustomExportSortLayerField(${idx}, this.value)">
                 ${optionsHtml}
               </select>
-              <select class="form-input sort-layer-order" style="flex:1; padding: 4px 8px; font-size:0.8rem; height: 32px;" onchange="updateCustomExportSortLayerOrder(${idx}, this.value)">
+              <select class="sort-layer-select sort-layer-order" style="flex:1;" onchange="updateCustomExportSortLayerOrder(${idx}, this.value)">
                 <option value="asc" ${layer.order === 'asc' ? 'selected' : ''}>تصاعدي</option>
                 <option value="desc" ${layer.order === 'desc' ? 'selected' : ''}>تنازلي</option>
               </select>
-              <button type="button" class="export-mini-btn" onclick="removeCustomExportSortLayer(${idx})" style="color:var(--danger); background:transparent; border:none; padding:4px; cursor:pointer;" title="حذف"><i class="fas fa-trash"></i></button>
+              <button type="button" class="export-mini-btn" onclick="removeCustomExportSortLayer(${idx})" style="color:var(--danger); border:none; padding:4px;" title="حذف"><i class="fas fa-trash"></i></button>
             </div>
           `;
         }).join('');
@@ -6979,8 +7014,8 @@
               </div>
               <div class="export-panel">
                 <div class="export-panel-title" style="display:flex; justify-content:space-between; align-items:center;">
-                  <span><i class="fas fa-sort-alpha-down"></i> ترتيب النتائج (طبقات)</span>
-                  <button type="button" class="export-mini-btn" onclick="addCustomExportSortLayer()" title="إضافة طبقة ترتيب" style="padding:2px 8px; font-size:0.75rem; border-radius:10px; background:var(--brand-bg); color:var(--brand); border:none; cursor:pointer; font-weight:700;"><i class="fas fa-plus"></i> إضافة طبقة</button>
+                  <span><i class="fas fa-sort-alpha-down"></i> ترتيب النتائج</span>
+                  <button type="button" class="export-mini-btn" onclick="addCustomExportSortLayer()" title="إضافة ترتيب" style="padding:2px 8px; font-size:0.75rem; border-radius:10px; background:var(--brand-bg); color:var(--brand); border:none; cursor:pointer; font-weight:700;"><i class="fas fa-plus"></i> إضافة</button>
                 </div>
                 <div id="customExportSortLayersContainer" style="display:flex; flex-direction:column; gap:8px; margin-top:8px;"></div>
               </div>
