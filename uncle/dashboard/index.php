@@ -12033,29 +12033,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <input type="text" class="form-input" id="customExportTitle" placeholder="مثلاً: حضور فصل أولى">
                     </div>
                     <div class="export-panel">
-                        <div class="export-panel-title"><i class="fas fa-sort-alpha-down"></i> ترتيب النتائج</div>
-                        <div style="display:flex;gap:6px">
-                            <select class="form-input" id="customExportSortBy" style="flex:1.5"
-                                onchange="renderCustomExportPreview()">
-                                <option value="الاسم">الاسم</option>
-                                <option value="الفصل">الفصل</option>
-                                <option value="النوع">النوع</option>
-                                <option value="الإخوات">الإخوات</option>
-                                <option value="كوبونات">إجمالي الكوبونات</option>
-                                <option value="كوبونات الحضور">كوبونات الحضور</option>
-                                <option value="كوبونات الالتزام">كوبونات الالتزام</option>
-                                <option value="كوبونات المهام">كوبونات المهام</option>
-                                <option value="رقم التليفون">رقم التليفون</option>
-                                <option value="تليفون الطوارئ">تليفون الطوارئ</option>
-                                <option value="عيد الميلاد">عيد الميلاد</option>
-                                <option value="العنوان">العنوان</option>
-                            </select>
-                            <select class="form-input" id="customExportSortOrder" style="flex:1"
-                                onchange="renderCustomExportPreview()">
-                                <option value="asc">تصاعدي</option>
-                                <option value="desc">تنازلي</option>
-                            </select>
+                        <div class="export-panel-title" style="display:flex; justify-content:space-between; align-items:center;">
+                            <span><i class="fas fa-sort-alpha-down"></i> ترتيب النتائج (طبقات)</span>
+                            <button type="button" class="export-mini-btn" onclick="addCustomExportSortLayer()" title="إضافة طبقة ترتيب" style="padding:2px 8px; font-size:0.75rem; border-radius:10px; background:var(--brand-bg); color:var(--brand); border:none; cursor:pointer; font-weight:700;"><i class="fas fa-plus"></i> إضافة طبقة</button>
                         </div>
+                        <div id="customExportSortLayersContainer" style="display:flex; flex-direction:column; gap:8px; margin-top:8px;"></div>
                     </div>
                     <div class="export-panel">
                         <div class="export-panel-title"><i class="fas fa-table-columns"></i> البيانات والترتيب</div>
@@ -12778,6 +12760,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         let sheetDateFrom = '';
         let sheetDateTo = '';
         let customExportFields = [];
+        let customExportSortLayers = [];
         let isDashboardDataLoading = false;
         // Class navigation permission: 'all' = can see all classes, 'own' = only assigned
         let uncleClassNavPermission = 'all';
@@ -20903,8 +20886,63 @@ if ($hasUncleId && $uncleRole === 'uncle')
             customExportFields = customExportFields.filter(f =>
                 f.key !== 'custom_info' && f.source !== 'معلومات إضافية' && f.type !== 'custom_info'
             );
+            if (force || !customExportSortLayers.length) {
+                customExportSortLayers = [{ field: 'name', order: 'asc' }];
+            }
             renderCustomExportFields();
+            renderCustomExportSortLayers();
         }
+
+        function renderCustomExportSortLayers() {
+            const container = document.getElementById('customExportSortLayersContainer');
+            if (!container) return;
+            
+            container.innerHTML = customExportSortLayers.map((layer, idx) => {
+                const optionsHtml = customExportFields.map(f => 
+                    `<option value="${f.key}" ${f.key === layer.field ? 'selected' : ''}>${f.label}</option>`
+                ).join('');
+                
+                return `
+                    <div class="sort-layer-row" style="display:flex; gap:6px; align-items:center;">
+                        <select class="form-input sort-layer-field" style="flex:1.5; padding: 4px 8px; font-size:0.8rem; height: 32px;" onchange="updateCustomExportSortLayerField(${idx}, this.value)">
+                            ${optionsHtml}
+                        </select>
+                        <select class="form-input sort-layer-order" style="flex:1; padding: 4px 8px; font-size:0.8rem; height: 32px;" onchange="updateCustomExportSortLayerOrder(${idx}, this.value)">
+                            <option value="asc" ${layer.order === 'asc' ? 'selected' : ''}>تصاعدي</option>
+                            <option value="desc" ${layer.order === 'desc' ? 'selected' : ''}>تنازلي</option>
+                        </select>
+                        <button type="button" class="export-mini-btn" onclick="removeCustomExportSortLayer(${idx})" style="color:var(--danger); background:transparent; border:none; padding:4px; cursor:pointer;" title="حذف"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function addCustomExportSortLayer() {
+            customExportSortLayers.push({ field: 'name', order: 'asc' });
+            renderCustomExportSortLayers();
+            renderCustomExportPreview();
+        }
+
+        function removeCustomExportSortLayer(idx) {
+            customExportSortLayers.splice(idx, 1);
+            renderCustomExportSortLayers();
+            renderCustomExportPreview();
+        }
+
+        function updateCustomExportSortLayerField(idx, value) {
+            if (customExportSortLayers[idx]) customExportSortLayers[idx].field = value;
+            renderCustomExportPreview();
+        }
+
+        function updateCustomExportSortLayerOrder(idx, value) {
+            if (customExportSortLayers[idx]) customExportSortLayers[idx].order = value;
+            renderCustomExportPreview();
+        }
+
+        window.addCustomExportSortLayer = addCustomExportSortLayer;
+        window.removeCustomExportSortLayer = removeCustomExportSortLayer;
+        window.updateCustomExportSortLayerField = updateCustomExportSortLayerField;
+        window.updateCustomExportSortLayerOrder = updateCustomExportSortLayerOrder;
         function renderCustomExportFields() {
             const box = document.getElementById('customExportFields');
             if (!box) return;
@@ -21042,9 +21080,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const fields = customExportFields.filter(f => f.selected);
             const dates = parseCustomExportDates();
             const title = (document.getElementById('customExportTitle')?.value || '').trim() || ('تقرير ' + getActiveViewLabel());
-            const sortBy = document.getElementById('customExportSortBy')?.value || 'الاسم';
-            const sortOrder = document.getElementById('customExportSortOrder')?.value || 'asc';
-            return { fields, dates, title, sortBy, sortOrder };
+            return { fields, dates, title, sortRules: customExportSortLayers };
         }
         function getCustomExportSortedStudents() {
             const cfg = getCustomExportConfig();
@@ -21052,35 +21088,54 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const collator = new Intl.Collator('ar', { sensitivity: 'base', numeric: true });
             const arr = [...(list || [])];
             arr.sort((a, b) => {
-                let vA = a[cfg.sortBy] || '', vB = b[cfg.sortBy] || '';
-                let res = 0;
-                const numericFields = ['كوبونات', 'كوبونات الحضور', 'كوبونات الالتزام', 'كوبونات المهام'];
-                if (numericFields.includes(cfg.sortBy)) {
-                    res = (parseInt(vA) || 0) - (parseInt(vB) || 0);
-                } else if (cfg.sortBy === 'عيد الميلاد') {
-                    const pA = vA.split('/'), pB = vB.split('/');
-                    if (pA.length === 3 && pB.length === 3) res = new Date(pA[2], pA[1] - 1, pA[0]) - new Date(pB[2], pB[1] - 1, pB[0]);
-                    else res = collator.compare(vA, vB);
-                } else if (cfg.sortBy === 'النوع') {
-                    const gA = (a['النوع'] === 'female' || a['gender'] === 'female') ? '2' : '1';
-                    const gB = (b['النوع'] === 'female' || b['gender'] === 'female') ? '2' : '1';
-                    res = collator.compare(gA, gB);
-                } else if (cfg.sortBy === 'الإخوات') {
-                    const studentIdA = getStudentDbId(a);
-                    const infoA = parseStudentCustomInfo(a);
-                    const groupA = infoA.sibling_group && typeof infoA.sibling_group === 'object' ? infoA.sibling_group : null;
-                    const membersA = (groupA && groupA.id) ? getSiblingMembersByGroupId(groupA.id, studentIdA) : [];
-                    const studentIdB = getStudentDbId(b);
-                    const infoB = parseStudentCustomInfo(b);
-                    const groupB = infoB.sibling_group && typeof infoB.sibling_group === 'object' ? infoB.sibling_group : null;
-                    const membersB = (groupB && groupB.id) ? getSiblingMembersByGroupId(groupB.id, studentIdB) : [];
-                    res = membersA.length - membersB.length;
-                } else {
-                    res = collator.compare(vA, vB);
+                for (let rule of cfg.sortRules) {
+                    const fieldCfg = customExportFields.find(f => f.key === rule.field || f.label === rule.field);
+                    if (!fieldCfg) continue;
+                    
+                    let vA = getCustomExportCellValue(a, fieldCfg, true);
+                    let vB = getCustomExportCellValue(b, fieldCfg, true);
+                    
+                    let res = 0;
+                    const isNumeric = ['paid_amount', 'donation', 'remaining_amount', 'coupons', 'attendance_coupons', 'commitment_coupons', 'task_coupons', 'age', 'attendance_count'].includes(fieldCfg.type || fieldCfg.key || fieldCfg.source);
+                    
+                    if (isNumeric) {
+                        res = (parseFloat(vA) || 0) - (parseFloat(vB) || 0);
+                    } else if (fieldCfg.key === 'birthday' || fieldCfg.label === 'عيد الميلاد') {
+                        const pA = String(vA).split('/'), pB = String(vB).split('/');
+                        if (pA.length === 3 && pB.length === 3) {
+                            res = new Date(pA[2], pA[1] - 1, pA[0]) - new Date(pB[2], pB[1] - 1, pB[0]);
+                        } else {
+                            res = collator.compare(String(vA), String(vB));
+                        }
+                    } else if (fieldCfg.type === 'gender') {
+                        const gA = (a['النوع'] === 'female' || a['gender'] === 'female') ? '2' : '1';
+                        const gB = (b['النوع'] === 'female' || b['gender'] === 'female') ? '2' : '1';
+                        res = collator.compare(gA, gB);
+                    } else if (fieldCfg.type === 'photo' || fieldCfg.key === 'photo' || fieldCfg.label === 'الصورة الشخصية') {
+                        const hasPicA = (a['صورة'] || a.student_image || a.guest_image || a.image_url) ? 1 : 0;
+                        const hasPicB = (b['صورة'] || b.student_image || b.guest_image || b.image_url) ? 1 : 0;
+                        res = hasPicB - hasPicA;
+                    } else if (fieldCfg.type === 'siblings') {
+                        const studentIdA = getStudentDbId(a);
+                        const infoA = parseStudentCustomInfo(a);
+                        const groupA = infoA.sibling_group && typeof infoA.sibling_group === 'object' ? infoA.sibling_group : null;
+                        const membersA = (groupA && groupA.id) ? getSiblingMembersByGroupId(groupA.id, studentIdA) : [];
+                        const studentIdB = getStudentDbId(b);
+                        const infoB = parseStudentCustomInfo(b);
+                        const groupB = infoB.sibling_group && typeof infoB.sibling_group === 'object' ? infoB.sibling_group : null;
+                        const membersB = (groupB && groupB.id) ? getSiblingMembersByGroupId(groupB.id, studentIdB) : [];
+                        res = membersA.length - membersB.length;
+                    } else {
+                        res = collator.compare(String(vA), String(vB));
+                    }
+                    
+                    if (rule.order === 'desc') res = -res;
+                    
+                    if (res !== 0) return res;
                 }
-                if (cfg.sortOrder === 'desc') res = -res;
-                if (res === 0) return collator.compare(a['الاسم'] || '', b['الاسم'] || '');
-                return res;
+                
+                // Fallback default sort by name
+                return collator.compare(a['الاسم'] || '', b['الاسم'] || '');
             });
             return arr;
         }
