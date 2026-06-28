@@ -4549,6 +4549,10 @@
     .sort-layer-delete-btn {
       width: 32px !important;
       height: 32px !important;
+      min-width: 32px !important;
+      min-height: 32px !important;
+      max-width: 32px !important;
+      max-height: 32px !important;
       border-radius: 50% !important;
       border: 1px solid rgba(239, 68, 68, 0.2) !important;
       background: rgba(239, 68, 68, 0.08) !important;
@@ -4560,12 +4564,41 @@
       font-size: 0.8rem !important;
       transition: all var(--t-fast) var(--ease) !important;
       padding: 0 !important;
+      margin: 0 !important;
+      box-sizing: border-box !important;
+      line-height: 0 !important;
+      flex-shrink: 0 !important;
+      align-self: center !important;
     }
 
     .sort-layer-delete-btn:hover {
       background: var(--danger) !important;
       color: #fff !important;
       border-color: var(--danger) !important;
+    }
+
+    .sort-layer-add-btn {
+      padding: 4px 10px !important;
+      font-size: 0.72rem !important;
+      font-weight: 700 !important;
+      border-radius: 12px !important;
+      background: var(--brand-bg) !important;
+      color: var(--brand) !important;
+      border: 1px solid rgba(12, 175, 160, 0.15) !important;
+      cursor: pointer !important;
+      font-family: 'Cairo', 'Baloo Bhaijaan 2', sans-serif !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 4px !important;
+      transition: all var(--t-fast) var(--ease) !important;
+      outline: none !important;
+    }
+
+    .sort-layer-add-btn:hover {
+      background: var(--brand) !important;
+      color: #fff !important;
+      border-color: var(--brand) !important;
+      transform: translateY(-1px);
     }
 
     .export-date-options {
@@ -7046,7 +7079,7 @@
               <div class="export-panel">
                 <div class="export-panel-title" style="display:flex; justify-content:space-between; align-items:center;">
                   <span><i class="fas fa-sort-alpha-down"></i> ترتيب النتائج</span>
-                  <button type="button" class="export-mini-btn" onclick="addCustomExportSortLayer()" title="إضافة ترتيب" style="padding:2px 8px; font-size:0.75rem; border-radius:10px; background:var(--brand-bg); color:var(--brand); border:none; cursor:pointer; font-weight:700;"><i class="fas fa-plus"></i> إضافة</button>
+                  <button type="button" class="sort-layer-add-btn" onclick="addCustomExportSortLayer()" title="إضافة ترتيب"><i class="fas fa-plus"></i> إضافة</button>
                 </div>
                 <div id="customExportSortLayersContainer" style="display:flex; flex-direction:column; gap:8px; margin-top:8px;"></div>
               </div>
