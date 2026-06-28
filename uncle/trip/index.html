@@ -1732,7 +1732,7 @@
                 </button>
                 <div class="hero-greeting" id="filterLabel">جاري التحميل...</div>
                 <span id="kidsCountLabel"
-                    style="font-size:0.75rem; color:var(--text-3); font-weight:700; margin-right: auto; padding: 4px 8px; background:var(--surface-3); border-radius: var(--r-sm);"></span>
+                    style="font-size:0.72rem; color:var(--brand); background:var(--brand-bg); padding: 2px 8px; border-radius: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; height: fit-content; align-self: center;"></span>
             </div>
             <div class="kids-list" id="kidsList"></div>
         </div>
@@ -2323,6 +2323,14 @@
             let currentFilterValue = null;
             let currentFilterParentField = null;
             let currentFilterParentValue = null;
+
+            function naturalSort(a, b) {
+                const aUnspecified = a === 'بدون تحديد' || a === 'بدون فصل';
+                const bUnspecified = b === 'بدون تحديد' || b === 'بدون فصل';
+                if (aUnspecified && !bUnspecified) return 1;
+                if (!aUnspecified && bUnspecified) return -1;
+                return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+            }
 
             // Points selection state
             let currentSelectedPoint = 30;
@@ -4262,7 +4270,7 @@
                         groups[val].push(r);
                     });
 
-                    Object.keys(groups).sort().forEach(val => {
+                    Object.keys(groups).sort(naturalSort).forEach(val => {
                         const kids = groups[val];
                         const card = document.createElement('div');
                         card.className = 'field-card';
@@ -4348,7 +4356,7 @@
                         groups[val].push(r);
                     });
 
-                    Object.keys(groups).sort().forEach(val => {
+                    Object.keys(groups).sort(naturalSort).forEach(val => {
                         const kids = groups[val];
                         const card = document.createElement('div');
                         card.className = 'field-card';
@@ -4378,7 +4386,7 @@
                     byClass[cls].push(r);
                 });
 
-                const sorted = Object.keys(byClass).sort();
+                const sorted = Object.keys(byClass).sort(naturalSort);
                 sorted.forEach(cls => {
                     const kids = byClass[cls];
                     const card = document.createElement('div');
