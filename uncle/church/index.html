@@ -22805,6 +22805,77 @@
         // ══════════════════════════════════════════════════════════════
         // TEMPLATES & LOGOS CUSTOMIZER ADDITIONS
         // ══════════════════════════════════════════════════════════════
+                const PRESET_TEMPLATES = {
+            'preset_sundayschool': {
+                scale: 100,
+                width: 7,
+                height: 10,
+                gapX: 0,
+                gapY: 0,
+                padding: 15,
+                outlineStyle: 'solid',
+                dashLength: 12,
+                dashGap: 8,
+                showAvatarFallback: true,
+                cardRounded: true,
+                printBackCard: true,
+                textReadability: 'rect',
+                readabilityBgColor: '#ffffff',
+                readabilityBgOpacity: 92,
+                readabilityPadding: 6,
+                readabilityWidth: 'fitted',
+                readabilityShadow: true,
+                fontColor: '#000000',
+                strokeColor: '#dddddd',
+                nameBold: true,
+                nameFontSize: 0,
+                infoFontSize: 0,
+                qrYOffset: 0,
+                customLogos: [],
+                extraFields: [
+                    { key: 'church_header', label: 'اسم الكنيسة والشعار', placement: 'front', icon: 'fas fa-church' },
+                    { key: 'student_image', label: 'صورة الطفل', placement: 'front', icon: 'fas fa-user-circle' },
+                    { key: 'student_name', label: 'اسم الطفل', placement: 'front', icon: 'fas fa-user' },
+                    { key: 'class', label: 'الفصل', placement: 'front', icon: 'fas fa-graduation-cap' },
+                    { key: 'student_id', label: 'كود الطفل ID', placement: 'front', icon: 'fas fa-id-badge' }
+                ]
+            },
+            'preset_classic_trips': {
+                scale: 100,
+                width: 7,
+                height: 10,
+                gapX: 0,
+                gapY: 0,
+                padding: 15,
+                outlineStyle: 'solid',
+                dashLength: 12,
+                dashGap: 8,
+                showAvatarFallback: true,
+                cardRounded: true,
+                printBackCard: true,
+                textReadability: 'rect',
+                readabilityBgColor: '#ffffff',
+                readabilityBgOpacity: 92,
+                readabilityPadding: 6,
+                readabilityWidth: 'fitted',
+                readabilityShadow: true,
+                fontColor: '#000000',
+                strokeColor: '#dddddd',
+                nameBold: true,
+                nameFontSize: 0,
+                infoFontSize: 0,
+                qrYOffset: 0,
+                customLogos: [],
+                extraFields: [
+                    { key: 'church_header', label: 'اسم الكنيسة والشعار', placement: 'front', icon: 'fas fa-church' },
+                    { key: 'student_image', label: 'صورة الطفل', placement: 'front', icon: 'fas fa-user-circle' },
+                    { key: 'student_name', label: 'اسم الطفل', placement: 'front', icon: 'fas fa-user' },
+                    { key: 'trip_title', label: 'اسم الرحلة', placement: 'front', icon: 'fas fa-route' },
+                    { key: 'student_id', label: 'كود الطفل ID', placement: 'front', icon: 'fas fa-id-badge' }
+                ]
+            }
+        };
+
         let allTemplatesCache = {};
 
         async function fetchTemplatesFromServer(tripId = 0) {
@@ -22828,6 +22899,22 @@
             const select = document.getElementById('printTemplateSelect');
             if (!select) return;
             select.innerHTML = '<option value="">-- اختر قالب للتحميل --</option>';
+            
+            // Add default preset layouts
+            const presetGroup = document.createElement('optgroup');
+            presetGroup.label = 'قوالب جاهزة افتراضية';
+            
+            const optSS = document.createElement('option');
+            optSS.value = 'preset_sundayschool';
+            optSS.textContent = 'كارت مدارس الأحد الافتراضي';
+            presetGroup.appendChild(optSS);
+
+            const optTrip = document.createElement('option');
+            optTrip.value = 'preset_classic_trips';
+            optTrip.textContent = 'كارت الرحلات الكلاسيكي';
+            presetGroup.appendChild(optTrip);
+
+            select.appendChild(presetGroup);
             
             if (allTemplatesCache.church_template) {
                 const opt = document.createElement('option');
@@ -22856,7 +22943,9 @@
         function loadQRTemplateFromSelect(val) {
             if (!val) return;
             let templateData = null;
-            if (val === 'church') {
+            if (val.startsWith('preset_')) {
+                templateData = PRESET_TEMPLATES[val];
+            } else if (val === 'church') {
                 templateData = allTemplatesCache.church_template;
             } else if (val.startsWith('trip_')) {
                 const tid = parseInt(val.split('_')[1]);
