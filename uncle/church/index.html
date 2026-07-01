@@ -21136,14 +21136,14 @@
                     churchHeaderHtml = `
                         <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${6 * scale}px; ${infoBlockWidthStyle} box-sizing:border-box; margin-bottom:4px; box-shadow:${boxShadowValue};">
                                 <img src="${window.pdfLogoBase64 || '/logo.png'}" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
-                                <span style="font-size:${fChurch}px; font-weight:${nameWeight}; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${churchName}</span>
+                                <span style="font-size:${fChurch}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${churchName}</span>
                         </div>
                     `;
                 } else {
                     churchHeaderHtml = `
                         <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; border-bottom:1px solid #000; padding-bottom:4px; width:100%; flex-wrap:wrap; margin-bottom:4px;">
                                 <img src="${window.pdfLogoBase64 || '/logo.png'}" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
-                                <span style="font-size:${fChurch}px; font-weight:${nameWeight}; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${churchName}</span>
+                                <span style="font-size:${fChurch}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${churchName}</span>
                         </div>
                     `;
                 }
@@ -21222,7 +21222,7 @@
                 if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only') {
                     showStudentIdHtml = `
                     <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${6 * scale}px; ${infoBlockWidthStyle} box-sizing:border-box; margin-top:${4 * scale}px; box-shadow:${boxShadowValue}; display:inline-flex; justify-content:center; align-items:center;">
-                        <span style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:${nameWeight}; color:${fontColor}; text-shadow:var(--text-shadow, none); direction:ltr;">ID: ${displayId}</span>
+                        <span style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); direction:ltr;">ID: ${displayId}</span>
                     </div>
                     `;
                 } else {
@@ -21259,7 +21259,7 @@
                     <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:0.8; height:100%; min-width:0; min-height:0; width:100%;">
                         <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-sizing:border-box; box-shadow:${boxShadowValue}; overflow:visible; width:100%; flex:1; min-height:0; gap:${4 * scale}px;">
                             <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible; ${qrOffsetStyle}"></div>
-                            ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:${nameWeight}; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
+                            ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
                         </div>
                     </div>
                     `;
@@ -21268,7 +21268,7 @@
                     <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:0.8; height:100%; min-width:0; min-height:0; width:100%;">
                         <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-shadow:${boxShadowValue}; overflow:visible; width:fit-content; gap:${4 * scale}px;">
                             <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible; ${qrOffsetStyle}"></div>
-                            ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:${nameWeight}; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
+                            ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
                         </div>
                     </div>
                     `;
@@ -21319,7 +21319,7 @@
                     <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; flex:0.8; min-height:0;">
                         <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-sizing:border-box; box-shadow:${boxShadowValue}; overflow:visible; width:100%; flex:1; min-height:0; gap:${4 * scale}px;">
                             <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible; ${qrOffsetStyle}"></div>
-                            ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:${nameWeight}; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
+                            ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
                         </div>
                     </div>
                     `;
@@ -21328,7 +21328,7 @@
                     <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; flex:0.8; min-height:0;">
                         <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-shadow:${boxShadowValue}; overflow:visible; width:fit-content; gap:${4 * scale}px;">
                             <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible; ${qrOffsetStyle}"></div>
-                            ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:${nameWeight}; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
+                            ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
                         </div>
                     </div>
                     `;
@@ -21460,7 +21460,7 @@
                     headerHtml = `
                       <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; border-bottom:1px solid ${fontColor}22; padding-bottom:6px; width:100%; flex-wrap:wrap; margin-bottom:4px;">
                           <img src="${window.pdfLogoBase64 || '/logo.png'}" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">
-                          <span style="font-size:${fChurch}px; font-weight:${nameWeight}; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${churchName}</span>
+                          <span style="font-size:${fChurch}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${churchName}</span>
                       </div>
                     `;
                 }

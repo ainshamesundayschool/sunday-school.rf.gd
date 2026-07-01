@@ -10829,6 +10829,15 @@
           field.placement = placement;
           updatePrintPreview();
         }
+
+      function updateExtraFieldFontSize(key, val) {
+        const field = cardExtraFields.find(f => f.key === key);
+        if (field) {
+            const fs = parseInt(val);
+            field.fontSize = isNaN(fs) || fs <= 0 ? null : fs;
+            updatePrintPreview();
+        }
+      }
       }
 
       function removePrintExtraField(key) {
@@ -10839,25 +10848,28 @@
       }
 
       function renderPrintExtraFieldsList() {
-        const container = document.getElementById('printExtraFieldsList');
-        if (!container) return;
-        container.innerHTML = '';
-        cardExtraFields.forEach(f => {
-          const row = document.createElement('div');
-          row.style.cssText = 'display:flex; align-items:center; justify-content:space-between; background:var(--bg, #f8fafc); padding:6px 10px; border-radius:6px; border:1px solid var(--border); font-size:0.8rem; direction:rtl; gap:8px;';
-          row.innerHTML = `
-            <span><i class="${f.icon || 'fas fa-tag'}" style="color:var(--primary); margin-left:6px; width:16px; text-align:center;"></i> ${f.label}</span>
-            <div style="display:flex; align-items:center; gap:6px;">
-              <span style="font-size:0.75rem; color:var(--muted);">الموضع:</span>
-              <select onchange="updateExtraFieldPlacement('${f.key}', this.value)" style="height:26px; font-size:0.75rem; padding:0 4px; border:1px solid var(--border); border-radius:4px; font-family:'Cairo';">
-                <option value="front" ${f.placement === 'front' ? 'selected' : ''}>الوجه (Front)</option>
-                <option value="back" ${f.placement === 'back' ? 'selected' : ''}>الظهر (Back)</option>
-              </select>
-              <button type="button" onclick="removePrintExtraField('${f.key}')" style="background:none; border:none; color:#dc2626; cursor:pointer; font-size:0.9rem; padding:0 4px; display:inline-flex; align-items:center;"><i class="fas fa-trash-alt"></i></button>
-            </div>
-          `;
-          container.appendChild(row);
-        });
+          const container = document.getElementById('printExtraFieldsList');
+          if (!container) return;
+          container.innerHTML = '';
+          cardExtraFields.forEach(f => {
+              const row = document.createElement('div');
+              row.style.cssText = 'display:flex; align-items:center; justify-content:space-between; background:var(--bg, #f8fafc); padding:6px 10px; border-radius:6px; border:1px solid var(--border); font-size:0.8rem; direction:rtl; gap:8px;';
+              row.innerHTML = `
+                  <span><i class="${f.icon || 'fas fa-tag'}" style="color:var(--primary); margin-left:6px; width:16px; text-align:center;"></i> ${f.label}</span>
+                  <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                      <span style="font-size:0.7rem; color:var(--muted);">حجم الخط:</span>
+                      <input type="number" placeholder="تلقائي" min="0" max="40" value="${f.fontSize || ''}" oninput="updateExtraFieldFontSize('${f.key}', this.value)" style="width:48px; height:24px; font-size:0.75rem; text-align:center; border:1px solid var(--border); border-radius:4px; font-family:'Cairo';">
+                      
+                      <span style="font-size:0.7rem; color:var(--muted); margin-right:4px;">الموضع:</span>
+                      <select onchange="updateExtraFieldPlacement('${f.key}', this.value)" style="height:24px; font-size:0.75rem; padding:0 2px; border:1px solid var(--border); border-radius:4px; font-family:'Cairo';">
+                          <option value="front" ${f.placement === 'front' ? 'selected' : ''}>الوجه</option>
+                          <option value="back" ${f.placement === 'back' ? 'selected' : ''}>الظهر</option>
+                      </select>
+                      <button type="button" onclick="removePrintExtraField('${f.key}')" style="background:none; border:none; color:#dc2626; cursor:pointer; font-size:0.9rem; padding:0 4px; display:inline-flex; align-items:center;"><i class="fas fa-trash-alt"></i></button>
+                  </div>
+              `;
+              container.appendChild(row);
+          });
       }
 
       function syncPrintSettingsUI() {
@@ -11037,7 +11049,27 @@
           const availW = scaledWidth - 2 * scaledPadding;
           const availH = scaledHeight - 2 * scaledPadding;
 
-          const fH2_final = nameFontSizeOver > 0 ? nameFontSizeOver * scale : fH2;
+          const studentNameField = extraFields.find(f => f.key === 'student_name');
+          const nameFieldFontSize = studentNameField && studentNameField.fontSize ? studentNameField.fontSize * scale : null;
+          const fH2_final = nameFieldFontSize || (nameFontSizeOver > 0 ? nameFontSizeOver * scale : fH2);
+          const nameWeight = (document.getElementById('printNameBold')?.checked ?? true) ? '800' : '400';
+
+          const classField = extraFields.find(f => f.key === 'student_class' || f.key === 'class');
+          const classFieldFontSize = classField && classField.fontSize ? classField.fontSize * scale : null;
+          const fH3_final_class = classFieldFontSize || (infoFontSizeOver > 0 ? infoFontSizeOver * scale : fH3);
+
+          const tripTitleField = extraFields.find(f => f.key === 'trip_title');
+          const tripTitleFontSize = tripTitleField && tripTitleField.fontSize ? tripTitleField.fontSize * scale : null;
+          const fH3_final_trip = tripTitleFontSize || (infoFontSizeOver > 0 ? infoFontSizeOver * scale : fH3);
+
+          const idField = extraFields.find(f => f.key === 'student_id');
+          const idFieldFontSize = idField && idField.fontSize ? idField.fontSize * scale : null;
+          const fH3_final_id = idFieldFontSize || (infoFontSizeOver > 0 ? infoFontSizeOver * scale : Math.max(7, Math.min(10 * scale, scaledHeight * 0.05)));
+
+          const churchHeaderField = extraFields.find(f => f.key === 'church_header' || f.key === 'church_name_only');
+          const churchHeaderFontSize = churchHeaderField && churchHeaderField.fontSize ? churchHeaderField.fontSize * scale : null;
+          const fChurch_final = churchHeaderFontSize || fChurch;
+
           const fH3_final = infoFontSizeOver > 0 ? infoFontSizeOver * scale : fH3;
           const fCustom_final = infoFontSizeOver > 0 ? infoFontSizeOver * scale : Math.max(7, Math.min(availW * (isLandscape ? 0.04 : 0.06), availH * (isLandscape ? 0.055 : 0.038)));
           const qrOffsetStyle = qrYOffset !== 0 ? `transform: translateY(${qrYOffset * scale}px);` : '';
@@ -11159,11 +11191,11 @@
               if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only') {
                   tripTitleHtml = `
                       <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${6 * scale}px; display:flex; flex-direction:column; align-items:center; ${infoBlockWidthStyle} box-sizing:border-box; margin-bottom:4px; box-shadow:${boxShadowValue};">
-                              <h3 style="font-size:${fH3_final}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${tripTitleText}</h3>
+                              <h3 style="font-size:${fH3_final_trip}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${tripTitleText}</h3>
                       </div>
                   `;
               } else {
-                  tripTitleHtml = `<h3 style="font-size:${fH3_final}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${tripTitleText}</h3>`;
+                  tripTitleHtml = `<h3 style="font-size:${fH3_final_trip}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${tripTitleText}</h3>`;
               }
           }
 
@@ -11172,17 +11204,17 @@
               if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only') {
                   classGroupHtml = `
                       <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${6 * scale}px; display:flex; flex-direction:column; align-items:center; ${infoBlockWidthStyle} box-sizing:border-box; margin-bottom:4px; box-shadow:${boxShadowValue};">
-                              <h3 style="font-size:${fH3_final}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeClass}</h3>
+                              <h3 style="font-size:${fH3_final_class}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeClass}</h3>
                       </div>
                   `;
               } else {
-                  classGroupHtml = `<h3 style="font-size:${fH3_final}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeClass}</h3>`;
+                  classGroupHtml = `<h3 style="font-size:${fH3_final_class}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeClass}</h3>`;
               }
           }
 
           let studentInfoGroupHtml = '';
           if (showStudentImg || showStudentName || (extraFields && extraFields.length > 0)) {
-              const nameTag = showStudentName ? `<h2 style="font-size:${fH2_final}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeStudentName}</h2>` : '';
+              const nameTag = showStudentName ? `<h2 style="font-size:${fH2_final}px; font-weight:${nameWeight}; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeStudentName}</h2>` : '';
               
               let extraInfoHtml = '';
               if (extraFields && extraFields.length > 0) {
@@ -11210,7 +11242,7 @@
                       }).filter(Boolean).join(' | ');
                       
                       if (itemsHtml) {
-                          extraInfoHtml = `<div class="extra-info" style="font-size:${fCustom_final}px; font-weight:bold; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-wrap:wrap; justify-content:center; gap:6px; width:100%; margin-top:4px;">${itemsHtml}</div>`;
+                          extraInfoHtml = `<div class="extra-info" style="font-size:${fieldFontSize}px; font-weight:bold; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-wrap:wrap; justify-content:center; gap:6px; width:100%; margin-top:4px;">${itemsHtml}</div>`;
                       }
                   }
               }
@@ -11244,7 +11276,7 @@
                   </div>
                   `;
               } else {
-                  showStudentIdHtml = `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; margin-top:${4 * scale}px; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr;">ID: ${displayId}</div>`;
+                  showStudentIdHtml = `<div style="font-size:${fH3_final_id}px; font-weight:800; margin-top:${4 * scale}px; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr;">ID: ${displayId}</div>`;
               }
           }
 
@@ -11406,7 +11438,27 @@
           const layout = calculateCardLayout(baseWidth, baseHeight, scale, padding);
           const { isLandscape, scaledWidth, scaledHeight, scaledPadding, fChurch, fH3, fH2, sLogo, sAvatar } = layout;
 
-          const fH2_final = nameFontSizeOver > 0 ? nameFontSizeOver * scale : fH2;
+          const studentNameField = extraFields.find(f => f.key === 'student_name');
+          const nameFieldFontSize = studentNameField && studentNameField.fontSize ? studentNameField.fontSize * scale : null;
+          const fH2_final = nameFieldFontSize || (nameFontSizeOver > 0 ? nameFontSizeOver * scale : fH2);
+          const nameWeight = (document.getElementById('printNameBold')?.checked ?? true) ? '800' : '400';
+
+          const classField = extraFields.find(f => f.key === 'student_class' || f.key === 'class');
+          const classFieldFontSize = classField && classField.fontSize ? classField.fontSize * scale : null;
+          const fH3_final_class = classFieldFontSize || (infoFontSizeOver > 0 ? infoFontSizeOver * scale : fH3);
+
+          const tripTitleField = extraFields.find(f => f.key === 'trip_title');
+          const tripTitleFontSize = tripTitleField && tripTitleField.fontSize ? tripTitleField.fontSize * scale : null;
+          const fH3_final_trip = tripTitleFontSize || (infoFontSizeOver > 0 ? infoFontSizeOver * scale : fH3);
+
+          const idField = extraFields.find(f => f.key === 'student_id');
+          const idFieldFontSize = idField && idField.fontSize ? idField.fontSize * scale : null;
+          const fH3_final_id = idFieldFontSize || (infoFontSizeOver > 0 ? idFieldFontSize : (infoFontSizeOver > 0 ? infoFontSizeOver * scale : Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))));
+
+          const churchHeaderField = extraFields.find(f => f.key === 'church_header' || f.key === 'church_name_only');
+          const churchHeaderFontSize = churchHeaderField && churchHeaderField.fontSize ? churchHeaderField.fontSize * scale : null;
+          const fChurch_final = churchHeaderFontSize || fChurch;
+
           const fH3_final = infoFontSizeOver > 0 ? infoFontSizeOver * scale : fH3;
 
           const isCardRounded = document.getElementById('printCardRounded')?.checked ?? true;
@@ -11473,7 +11525,7 @@
               let tripHtml = '';
               const tripTitleText = window.currentTripObj?.title || 'رحلة مخصصة';
               if (showTripTitle && tripTitleText) {
-                  tripHtml = `<div style="font-size:${fH3_final}px; font-weight:700; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; margin-bottom:6px;">${escHtml(tripTitleText)}</div>`;
+                  tripHtml = `<div style="font-size:${fH3_final_trip}px; font-weight:700; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; margin-bottom:6px;">${escHtml(tripTitleText)}</div>`;
               }
 
               let studentHtml = '';
@@ -11498,7 +11550,7 @@
                       }
                   }
                   const safeStudentName = escHtml(student['الاسم'] || student.name || 'طفل');
-                  const nameHtml = showStudentName ? `<h2 style="font-size:${fH2_final}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeStudentName}</h2>` : '';
+                  const nameHtml = showStudentName ? `<h2 style="font-size:${fH2_final}px; font-weight:${nameWeight}; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeStudentName}</h2>` : '';
                   studentHtml = `<div style="display:flex; flex-direction:column; align-items:center; margin-bottom:6px;">${avatarHtml}${nameHtml}</div>`;
               }
 
@@ -11506,14 +11558,14 @@
               if (showClass) {
                   const cls = student['الفصل'] || student.class || '';
                   if (cls) {
-                      classHtml = `<div style="font-size:${fH3_final}px; font-weight:700; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; margin-bottom:6px;">${escHtml(cls)}</div>`;
+                      classHtml = `<div style="font-size:${fH3_final_class}px; font-weight:700; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; margin-bottom:6px;">${escHtml(cls)}</div>`;
                   }
               }
 
               let idHtml = '';
               if (showStudentId) {
                   const sid = student['_studentId'] || student.id || student.student_id || '';
-                  idHtml = `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; margin-bottom:6px; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr;">ID: ${sid}</div>`;
+                  idHtml = `<div style="font-size:${fH3_final_id}px; font-weight:800; margin-bottom:6px; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr;">ID: ${sid}</div>`;
               }
 
               let textFieldsHtml = '';
@@ -11523,7 +11575,8 @@
                       const val = getStudentFieldValue(student, field.key);
                       if (val === null || val === undefined || String(val).trim() === '') return '';
                       const iconClass = field.icon || 'fas fa-info-circle';
-                      return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="${iconClass}" style="opacity:0.75;"></i> ${field.label}: <strong>${escHtml(val)}</strong></span>`;
+                      const fieldFontSize = field.fontSize ? field.fontSize * scale : dynamicFontSize;
+                      return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700; font-size:${fieldFontSize}px;"><i class="${iconClass}" style="opacity:0.75;"></i> ${field.label}: <strong>${escHtml(val)}</strong></span>`;
                   }).filter(Boolean).join(' | ');
 
                   if (itemsHtml) {
@@ -13258,7 +13311,9 @@
             qrYOffsetEl.value = 0;
             document.getElementById('printQrYOffsetVal').textContent = '0px';
         }
-        window.customLogos = [];
+        const nameBold = document.getElementById('printNameBold');
+          if (nameBold) nameBold.checked = true;
+          window.customLogos = [];
         renderPrintLogosList();
 
         // Reset template dropdown select value
@@ -13381,6 +13436,7 @@
               customBgOverlayOpacityUncle: document.getElementById('printCustomBgOverlayOpacityUncle')?.value || '0',
               customBgOverlayColorUncleBack: document.getElementById('printCustomBgOverlayColorUncleBack')?.value || '#ffffff',
               customBgOverlayOpacityUncleBack: document.getElementById('printCustomBgOverlayOpacityUncleBack')?.value || '0',
+              nameBold: document.getElementById('printNameBold')?.checked ?? true,
               nameFontSize: document.getElementById('printNameFontSize')?.value || '0',
               infoFontSize: document.getElementById('printInfoFontSize')?.value || '0',
               qrYOffset: document.getElementById('printQrYOffset')?.value || '0',
@@ -13605,7 +13661,10 @@
                       document.getElementById('printCustomBgOverlayOpacityValUncleBack').textContent = data.customBgOverlayOpacityUncleBack + '%';
                   }
               }
-              if (data.nameFontSize !== undefined) {
+              if (data.nameBold !== undefined) {
+                  const el = document.getElementById('printNameBold');
+                  if (el) el.checked = !!data.nameBold;
+              }              if (data.nameFontSize !== undefined) {
                   const el = document.getElementById('printNameFontSize');
                   if (el) {
                       el.value = data.nameFontSize;
@@ -18375,6 +18434,10 @@
                     <input type="range" id="printNameFontSize" min="0" max="40" value="0" style="padding:0; flex:1;" oninput="updatePrintPreview(); document.getElementById('printNameFontSizeVal').textContent = this.value == '0' ? 'تلقائي' : this.value + 'px'">
                     <span id="printNameFontSizeVal" style="font-weight:bold; font-size:0.75rem; min-width:45px; text-align:center;">تلقائي</span>
                   </div>
+                  <label style="display:inline-flex; align-items:center; gap:6px; font-size:0.75rem; cursor:pointer; color:var(--text); margin-top:2px;">
+                    <input type="checkbox" id="printNameBold" checked onchange="updatePrintPreview()" style="accent-color:var(--primary); width:14px; height:14px;">
+                    <span>خط الاسم عريض (Bold Name)</span>
+                  </label>
                 </div>
 
                 <div style="display:flex; flex-direction:column; gap:2px; color:var(--text);">
