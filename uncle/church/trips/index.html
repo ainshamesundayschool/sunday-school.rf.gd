@@ -11003,699 +11003,569 @@
       }
 
       function generateCardMarkup({
-        trip, r, scale, padding, showCustom, customHtml, churchName, cardId,
-        tripImgAsBg, tripImgOverlayColor, tripImgOverlayOpacity, tripImgRounded, textReadability,
-        fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto,
-        baseWidth, baseHeight,
-        readabilityBgColor = '#ffffff', readabilityBgOpacity = '92', readabilityPadding = 6, readabilityWidth = 'fitted',
-        readabilityBgShadow = true,
-        extraFields = []
+          s, scale, padding, churchName, cardId,
+          textReadability, fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto,
+          baseWidth, baseHeight,
+          readabilityBgColor = '#ffffff', readabilityBgOpacity = '92', readabilityPadding = 6, readabilityWidth = 'fitted',
+          readabilityBgShadow = true,
+          extraFields = []
       }) {
-        const showChurch = extraFields.some(f => f.key === 'church_header' && f.placement === 'front');
-        const showTripImage = extraFields.some(f => f.key === 'trip_image' && f.placement === 'front');
-        const showTripTitle = extraFields.some(f => f.key === 'trip_title' && f.placement === 'front');
-        let showStudentImg = extraFields.some(f => f.key === 'student_image' && f.placement === 'front');
-        let showStudentName = extraFields.some(f => f.key === 'student_name' && f.placement === 'front');
-        let showStudentId = extraFields.some(f => f.key === 'student_id' && f.placement === 'front');
+          const nameFontSizeOver = parseInt(document.getElementById('printNameFontSize')?.value || 0);
+          const infoFontSizeOver = parseInt(document.getElementById('printInfoFontSize')?.value || 0);
+          const qrYOffset = parseFloat(document.getElementById('printQrYOffset')?.value || 0);
 
-        const isEmp = !!r.isEmptyCopy;
-        if (isEmp) {
-          showStudentImg = true;
-          showStudentName = true;
-          showStudentId = true;
-        }
-        if (r.isUncle) {
-          showStudentImg = true;
-          showStudentName = true;
-          showStudentId = false;
-        }
+          const showChurch = extraFields.some(f => f.key === 'church_header' && f.placement === 'front');
+          const showChurchNameOnly = extraFields.some(f => f.key === 'church_name_only' && f.placement === 'front');
+          const showTripTitle = extraFields.some(f => f.key === 'trip_title' && f.placement === 'front');
+          let showStudentImg = extraFields.some(f => f.key === 'student_image' && f.placement === 'front');
+          let showStudentName = extraFields.some(f => f.key === 'student_name' && f.placement === 'front');
+          let showClass = extraFields.some(f => f.key === 'student_class' && f.placement === 'front');
+          let showStudentId = extraFields.some(f => f.key === 'student_id' && f.placement === 'front');
 
-        const {
-          isLandscape,
-          scaledWidth,
-          scaledHeight,
-          scaledPadding,
-          qrSize,
-          sAvatar,
-          sTripImg,
-          sLogo,
-          fH2,
-          fH3,
-          fCustom,
-          fChurch
-        } = calculateCardLayout(baseWidth || 260, baseHeight || 360, scale, padding);
-
-        const sid = isEmp ? '................' : (r.student_id || r.guest_id || r.id || '');
-        const hasRawImg = !isEmp && r.student_image && r.student_image.trim() !== '' && !r.student_image.includes('placeholder.com') && !r.student_image.includes('via.placeholder');
-        const imgUrl = hasRawImg ? r.student_image : '/profile_default..webp';
-        // showAvatarFallback: show avatar even if no photo (with a default icon avatar)
-        const showAvatarFallback = !isEmp && showStudentImg && showAvatarWhenNoPhoto;
-        let avatarHtml = '';
-        if (showStudentImg) {
-          if (isEmp) {
-            avatarHtml = `
-            <div style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; border:2px dashed ${strokeColor}; background:rgba(255,255,255,0.7); display:flex; flex-shrink:0; align-self:center; box-sizing:border-box;"></div>`;
-          } else if (showAvatarFallback) {
-            avatarHtml = `
-            <div style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; background:linear-gradient(135deg,#c7d2fe,#a5b4fc); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; align-self:center; position:relative;">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="${sAvatar * 0.7}px" height="${sAvatar * 0.7}px" style="position:absolute; inset:0; margin:auto; z-index:1;">
-                <circle cx="40" cy="30" r="18" fill="rgba(255,255,255,0.85)"/>
-                <ellipse cx="40" cy="72" rx="26" ry="18" fill="rgba(255,255,255,0.85)"/>
-              </svg>
-            </div>`;
-          } else {
-            avatarHtml = `<img src="${imgUrl}" class="avatar" style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; object-fit:cover; align-self:center;" onerror="this.style.display='none'">`;
+          if (s && s.is_empty_copy) {
+              showStudentImg = true;
+              showStudentName = true;
+              showClass = true;
+              showStudentId = true;
           }
-        }
 
-        const safeStudentName = isEmp ? 'الاسم: ................................................' : escHtml(r.student_name || r.guest_name || '؟');
-        const safeTripTitle = escHtml(trip.title || '');
-        const hasCustomContent = !isEmp && showCustom && !!String(customHtml || '').trim();
+          const layout = calculateCardLayout(baseWidth, baseHeight, scale, padding);
+          const { isLandscape, scaledWidth, scaledHeight, scaledPadding, qrSize, sAvatar, sLogo, fH2, fH3, fChurch } = layout;
 
-        const readBgColor = hexToRgba(readabilityBgColor, parseFloat(readabilityBgOpacity) / 100);
-        const readPadding = `${readabilityPadding * scale}px`;
-        const isUnified = readabilityWidth === 'unified';
-        const isFullWidth = readabilityWidth === 'full';
-        const isSameFitted = readabilityWidth === 'same-fitted';
+          const availW = scaledWidth - 2 * scaledPadding;
+          const availH = scaledHeight - 2 * scaledPadding;
 
-        let infoBlockWidthStyle = 'width: fit-content; margin: 0 auto;';
-        if (isFullWidth || isSameFitted) {
-          infoBlockWidthStyle = 'width: 100%;';
-        }
+          const fH2_final = nameFontSizeOver > 0 ? nameFontSizeOver * scale : fH2;
+          const fH3_final = infoFontSizeOver > 0 ? infoFontSizeOver * scale : fH3;
+          const fCustom_final = infoFontSizeOver > 0 ? infoFontSizeOver * scale : Math.max(7, Math.min(availW * (isLandscape ? 0.04 : 0.06), availH * (isLandscape ? 0.055 : 0.038)));
+          const qrOffsetStyle = qrYOffset !== 0 ? `transform: translateY(${qrYOffset * scale}px);` : '';
 
-        const infoWrapperWidthStyle = isSameFitted ? 'width: fit-content; max-width: 100%;' : 'width: 100%;';
-
-        let qrWidthStyle = 'width: fit-content;';
-        if (isFullWidth) {
-          qrWidthStyle = 'width: 100%; box-sizing: border-box;';
-        }
-
-        const boxShadowValue = readabilityBgShadow ? '0 2px 4px rgba(0,0,0,0.05)' : 'none';
-
-        const qrWrapperStyles = textReadability === 'rect' && !isUnified
-          ? `background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; box-shadow:${boxShadowValue}; ${qrWidthStyle}`
-          : '';
-
-        // Inline small trip image rounding & dimensions
-        const inlineRadius = tripImgRounded ? `${8 * scale}px` : '0px';
-        const tripImageHtml = (showTripImage && !tripImgAsBg && trip.image_url)
-          ? `<img src="${trip.image_url}" style="width:${sTripImg * 1.45}px; height:${sTripImg}px; object-fit:cover; border-radius:${inlineRadius}; border:1px solid ${strokeColor}; margin-bottom:4px;" onerror="this.style.display='none'">`
-          : '';
-
-        // Set CSS Variables for the entire card
-        let textShadowStyle = 'none';
-        if (textReadability === 'stroke') {
-          textShadowStyle = `
-          -1.5px -1.5px 0 ${strokeColor}, 
-           1.5px -1.5px 0 ${strokeColor}, 
-          -1.5px  1.5px 0 ${strokeColor}, 
-           1.5px  1.5px 0 ${strokeColor},
-          -1.5px  0px 0 ${strokeColor},
-           1.5px  0px 0 ${strokeColor},
-           0px   -1.5px 0 ${strokeColor},
-           0px    1.5px 0 ${strokeColor}
-        `.replace(/\s+/g, ' ').trim();
-        }
-
-        const { cardBorderStyle, outlineOverlayHtml } = buildPrintCardOutline(scale, outlineStyle, dashLength, dashGap, baseWidth || 260, baseHeight || 360);
-
-        let qrContainerHtml = '';
-        if (r.isUncle) {
-          qrContainerHtml = `
-            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; box-sizing:border-box; gap:${6 * scale}px; padding:${4 * scale}px; margin:0 auto; width:100%;">
-              ${avatarHtml}
-              <h2 style="font-size:${fH2}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeStudentName}</h2>
-            </div>
-          `;
-        } else {
-          qrContainerHtml = `<div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div>`;
-        }
-
-        // Card Background & Image Overlay HTML
-        const isCardRounded = document.getElementById('printCardRounded')?.checked ?? true;
-        const cardRadius = isCardRounded ? 10 : 0;
-        let bgStyles = `width:${scaledWidth}px; height:${scaledHeight}px; padding:${scaledPadding}px; ${cardBorderStyle} border-radius:${cardRadius}px; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; box-sizing:border-box; background:#fff; position:relative; overflow:hidden; --text-color:${fontColor}; --text-shadow:${textShadowStyle}; --qr-size:${qrSize}px;`;
-        let bgHtml = '';
-
-        if (customCardBackgroundDataUrl) {
-          const customBgOverlayColor = document.getElementById('printCustomBgOverlayColor')?.value || '#ffffff';
-          const customBgOverlayOpacity = parseFloat(document.getElementById('printCustomBgOverlayOpacity')?.value || '0') / 100;
-          bgHtml = `
-          <img src="${customCardBackgroundDataUrl}" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1;" onerror="this.style.display='none'">
-          <div style="position:absolute; inset:0; background-color:${customBgOverlayColor}; opacity:${customBgOverlayOpacity}; z-index:2; pointer-events:none;"></div>
-        `;
-        } else if (showTripImage && tripImgAsBg && trip.image_url) {
-          bgHtml = `
-          <img src="${trip.image_url}" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1;" onerror="this.style.display='none'">
-          <div style="position:absolute; inset:0; background-color:${tripImgOverlayColor}; opacity:${tripImgOverlayOpacity}; z-index:2; pointer-events:none;"></div>
-        `;
-        }
-
-        // Church Header Group
-        let churchHeaderHtml = '';
-        if (showChurch) {
-          const displayChurchName = r._churchName || r.church_name || churchName;
-          if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only') {
-            churchHeaderHtml = `
-            <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${6 * scale}px; ${infoBlockWidthStyle} box-sizing:border-box; margin-bottom:4px; box-shadow:${boxShadowValue};">
-                ${r.isUncle ? '' : `<img src="${window.pdfLogoBase64 || '/logo.png'}" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">`}
-                <span style="font-size:${fChurch}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${displayChurchName}</span>
-            </div>
-          `;
-          } else {
-            churchHeaderHtml = `
-            <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; border-bottom:1px solid ${tripImgAsBg && trip.image_url ? 'rgba(255,255,255,0.3)' : '#000'}; padding-bottom:4px; width:100%; flex-wrap:wrap; margin-bottom:4px;">
-                ${r.isUncle ? '' : `<img src="${window.pdfLogoBase64 || '/logo.png'}" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">`}
-                <span style="font-size:${fChurch}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${displayChurchName}</span>
-            </div>
-          `;
-          }
-        }
-
-        // Trip Title + Inline Image Group
-        let tripInfoGroupHtml = '';
-        if (showTripImage || showTripTitle) {
-          const titleTag = showTripTitle && safeTripTitle ? `<h3 style="font-size:${fH3}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeTripTitle}</h3>` : '';
-          const hasTripImgContent = showTripImage && !tripImgAsBg && trip.image_url;
-          const hasAnyTripContent = hasTripImgContent || !!titleTag;
-          if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only' && hasAnyTripContent) {
-            tripInfoGroupHtml = `
-            <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${6 * scale}px; display:flex; flex-direction:column; align-items:center; ${infoBlockWidthStyle} box-sizing:border-box; margin-bottom:4px; box-shadow:${boxShadowValue};">
-                ${tripImageHtml}
-                ${titleTag}
-            </div>
-          `;
-          } else {
-            tripInfoGroupHtml = `
-            ${tripImageHtml}
-            ${titleTag}
-          `;
-          }
-        }
-
-        // Student Avatar + Name + Custom Info Group
-        let studentInfoGroupHtml = '';
-        if (r.isUncle) {
-          const roomsConfig = trip && trip.rooms_config 
-            ? (typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config) : trip.rooms_config)
-            : [];
-          const showFloorSetting = document.getElementById('printShowFloorInRoom')?.checked !== false;
-          const roomText = getUncleRoomAssignmentText(r.id.replace('uncle_', ''), roomsConfig, showFloorSetting);
-          const extraInfoHtml = (roomText && roomText !== 'غير مسكن') ? `
-            <div class="extra-info" style="font-size:${fCustom}px; font-weight:bold; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-wrap:wrap; justify-content:center; gap:6px; width:100%; direction:rtl; text-align:center;">
-              <span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="fas fa-bed" style="opacity:0.85;"></i> <strong>${escHtml(roomText)}</strong></span>
-            </div>
-          ` : '';
-
-          if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only') {
-            studentInfoGroupHtml = `
-            <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; align-items:center; gap:6px; ${infoBlockWidthStyle} box-sizing:border-box; margin-bottom:4px; box-shadow:${boxShadowValue};">
-                ${extraInfoHtml}
-            </div>
-            `;
-          } else {
-            studentInfoGroupHtml = `
-            ${extraInfoHtml}
-            `;
-          }
-        } else if (showStudentImg || showStudentName || showCustom || (extraFields && extraFields.length > 0) || isEmp) {
-          const nameTag = showStudentName ? `<h2 style="font-size:${fH2}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeStudentName}</h2>` : '';
-          const customTag = hasCustomContent ? `<div class="custom-info" style="font-size:${fCustom}px; font-weight:bold; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-wrap:wrap; justify-content:center; gap:6px; width:100%;">${customHtml}</div>` : '';
-
-          let extraInfoHtml = '';
-          if (extraFields && extraFields.length > 0) {
-            const frontFields = extraFields.filter(f => f.placement === 'front');
-            if (frontFields.length > 0) {
-              const itemsHtml = frontFields.map(field => {
-                if (['church_header', 'trip_title', 'trip_image', 'student_image', 'student_name', 'student_id'].includes(field.key)) {
-                  return '';
-                }
-                let val = getStudentFieldValue(r, field.key, trip);
-                if (isEmp) {
-                  val = '.....................';
-                }
-                if (!isEmp && (val === null || val === undefined || String(val).trim() === '')) return '';
-                let iconClass = field.icon || 'fas fa-info-circle';
-                
-                if (field.key.startsWith('custom_field_') && trip && trip.custom_field_icons) {
-                  const fName = field.key.replace('custom_field_', '');
-                  const meta = trip.custom_field_icons[fName];
-                  if (meta) {
-                    iconClass = (typeof meta === 'string') ? meta : (meta.icon || 'fas fa-tag');
-                  }
-                }
-                if (field.key === 'church_name_only' || field.key === 'custom_field_السكن' || field.key === 'السكن' || field.label === 'السكن' || field.key === 'class' || field.key === 'student_class' || field.label === 'الفصل') {
-                  return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="${iconClass}" style="opacity:0.75;"></i> <strong>${escHtml(val)}</strong></span>`;
-                }
-                return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="${iconClass}" style="opacity:0.75;"></i> ${field.label}: <strong>${escHtml(val)}</strong></span>`;
-              }).filter(Boolean).join('');
-              if (itemsHtml) {
-                extraInfoHtml = `<div class="extra-info" style="font-size:${fCustom}px; font-weight:bold; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-direction:column; align-items:flex-start; gap:${4 * scale}px; width:100%; margin-top:${6 * scale}px; direction:rtl; text-align:right; padding:0 ${8 * scale}px; box-sizing:border-box;">${itemsHtml}</div>`;
+          const sid = s['_studentId'] || s.id || s.student_id;
+          const rawImg = s['صورة'] || s.image_url || s.photo || '';
+          const hasRawImg = rawImg && rawImg.trim() !== '' && !rawImg.includes('placeholder.com') && !rawImg.includes('via.placeholder');
+          const imgUrl = hasRawImg ? rawImg : '/profile_default..webp';
+          const showAvatarFallback = showStudentImg && showAvatarWhenNoPhoto;
+          
+          let avatarHtml = '';
+          if (showStudentImg) {
+              if (s.is_empty_copy) {
+                  avatarHtml = `
+                  <div style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; border:2px dashed ${strokeColor}; background:rgba(255,255,255,0.7); display:flex; flex-shrink:0; align-self:center; box-sizing:border-box;"></div>`;
+              } else if (showAvatarFallback) {
+                  avatarHtml = `
+                  <div style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; background:linear-gradient(135deg,#c7d2fe,#a5b4fc); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; align-self:center; position:relative;">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="${sAvatar * 0.7}px" height="${sAvatar * 0.7}px" style="position:absolute; inset:0; margin:auto; z-index:1;">
+                          <circle cx="40" cy="30" r="18" fill="rgba(255,255,255,0.85)"/>
+                          <ellipse cx="40" cy="72" rx="26" ry="18" fill="rgba(255,255,255,0.85)"/>
+                      </svg>
+                      <img src="${imgUrl}" class="avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover; position:absolute; inset:0; z-index:2;" onerror="this.style.display='none'">
+                  </div>`;
+              } else {
+                  avatarHtml = `<img src="${imgUrl}" class="avatar" style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; object-fit:cover; align-self:center;" onerror="this.style.display='none'">`;
               }
-            }
           }
 
-          // Check if there's any actual content to show
-          const hasAvatarContent = !!avatarHtml;
-          const hasNameContent = showStudentName;
-          const hasAnyStudentContent = hasAvatarContent || hasNameContent || hasCustomContent || !!extraInfoHtml;
+          const safeStudentName = s.is_empty_copy 
+              ? 'الاسم: ................................................' 
+              : escHtml(s['الاسم'] || s.name || 'طفل');
+          const cls = s.is_empty_copy 
+              ? 'الفصل: ................................................' 
+              : (s['الفصل'] || s.class || '');
+          const safeClass = escHtml(cls || '');
 
-          if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only' && hasAnyStudentContent) {
-            studentInfoGroupHtml = `
-            <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; align-items:center; gap:6px; ${infoBlockWidthStyle} box-sizing:border-box; margin-bottom:4px; box-shadow:${boxShadowValue};">
-                ${avatarHtml}
-                ${nameTag}
-                ${customTag}
-                ${extraInfoHtml}
-            </div>
-          `;
-          } else {
-            studentInfoGroupHtml = `
-            ${avatarHtml}
-            ${nameTag}
-            ${customTag}
-            ${extraInfoHtml}
-          `;
+          const readBgColor = hexToRgba(readabilityBgColor, parseFloat(readabilityBgOpacity) / 100);
+          const readPadding = `${readabilityPadding * scale}px`;
+          const isUnified = readabilityWidth === 'unified';
+          const isFullWidth = readabilityWidth === 'full';
+          const isSameFitted = readabilityWidth === 'same-fitted';
+
+          let infoBlockWidthStyle = 'width: fit-content; margin: 0 auto;';
+          if (isFullWidth || isSameFitted) {
+              infoBlockWidthStyle = 'width: 100%;';
           }
-        }
 
-        let showStudentIdHtml = '';
-        if (showStudentId) {
-          if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only') {
-            showStudentIdHtml = `
-            <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${6 * scale}px; ${infoBlockWidthStyle} box-sizing:border-box; margin-top:${4 * scale}px; box-shadow:${boxShadowValue}; display:inline-flex; justify-content:center; align-items:center;">
-                <span style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); direction:ltr;">ID: ${sid}</span>
-            </div>
-            `;
-          } else {
-            showStudentIdHtml = `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; margin-top:${4 * scale}px; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr;">ID: ${sid}</div>`;
+          const infoWrapperWidthStyle = isSameFitted ? 'width: fit-content; max-width: 100%;' : 'width: 100%;';
+
+          let qrWidthStyle = 'width: fit-content;';
+          if (isFullWidth) {
+              qrWidthStyle = 'width: 100%; box-sizing: border-box;';
           }
-        }
 
-        let innerContentHtml = '';
-        if (r.isUncle) {
-          const roomsConfig = trip && trip.rooms_config 
-            ? (typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config) : trip.rooms_config)
-            : [];
-          const showFloorSetting = document.getElementById('printShowFloorInRoom')?.checked !== false;
-          const roomText = getUncleRoomAssignmentText(r.id.replace('uncle_', ''), roomsConfig, showFloorSetting);
-          const displayChurchName = r._churchName || r.church_name || churchName;
+          const boxShadowValue = readabilityBgShadow ? '0 2px 4px rgba(0,0,0,0.05)' : 'none';
 
-          const leftColumnHtml = `
-            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:${4 * scale}px; flex-shrink:0; width:${sAvatar * 1.7}px;">
-              ${avatarHtml}
-              <h2 style="font-size:${fH2 * 0.95}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); margin:0; text-align:center; word-break:break-word; line-height:1.15; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; width:100%;">${safeStudentName}</h2>
-            </div>
-          `;
+          const qrWrapperStyles = textReadability === 'rect' && !isUnified
+              ? `background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; box-shadow:${boxShadowValue}; ${qrWidthStyle}`
+              : '';
 
-          const rightColumnHtml = `
-            <div style="display:flex; flex-direction:column; gap:${8 * scale}px; flex:1; direction:rtl; text-align:right; min-width:0; justify-content:center;">
-              <!-- Church Name -->
-              <div style="display:flex; align-items:center; gap:${4 * scale}px; font-weight:800; font-size:${fChurch * 1.15}px; color:${fontColor}; border-bottom:1.5px solid ${fontColor}22; padding-bottom:6px; margin-bottom:2px; flex-wrap:wrap;">
-                <span style="line-height:1.2; word-break:break-word;">${displayChurchName}</span>
+          let textShadowStyle = 'none';
+          if (textReadability === 'stroke') {
+              textShadowStyle = `
+                  -1.5px -1.5px 0 ${strokeColor}, 
+                   1.5px -1.5px 0 ${strokeColor}, 
+                  -1.5px  1.5px 0 ${strokeColor}, 
+                   1.5px  1.5px 0 ${strokeColor},
+                  -1.5px  0px 0 ${strokeColor},
+                   1.5px  0px 0 ${strokeColor},
+                   0px   -1.5px 0 ${strokeColor},
+                   0px    1.5px 0 ${strokeColor}
+              `.replace(/\s+/g, ' ').trim();
+          }
+
+          const { cardBorderStyle, outlineOverlayHtml } = buildPrintCardOutline(scale, outlineStyle, dashLength, dashGap, baseWidth, baseHeight);
+
+          const isCardRounded = document.getElementById('printCardRounded')?.checked ?? true;
+          const cardRadius = isCardRounded ? 10 : 0;
+          let bgStyles = `width:${scaledWidth}px; height:${scaledHeight}px; padding:${scaledPadding}px; ${cardBorderStyle} border-radius:${cardRadius}px; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; box-sizing:border-box; background:#fff; position:relative; overflow:hidden; --text-color:${fontColor}; --text-shadow:${textShadowStyle}; --qr-size:${qrSize}px;`;
+          let bgHtml = '';
+          if (typeof customCardBackgroundDataUrl !== 'undefined' && customCardBackgroundDataUrl) {
+              const customBgOverlayColor = document.getElementById('printCustomBgOverlayColor')?.value || '#ffffff';
+              const customBgOverlayOpacity = parseFloat(document.getElementById('printCustomBgOverlayOpacity')?.value || '0') / 100;
+              bgHtml = `
+              <img src="${customCardBackgroundDataUrl}" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1;" onerror="this.style.display='none'">
+              <div style="position:absolute; inset:0; background-color:${customBgOverlayColor}; opacity:${customBgOverlayOpacity}; z-index:2; pointer-events:none;"></div>
+              `;
+          }
+
+          let churchHeaderHtml = '';
+          if (showChurch || showChurchNameOnly) {
+              const showLogo = showChurch;
+              if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only') {
+                  churchHeaderHtml = `
+                      <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${6 * scale}px; ${infoBlockWidthStyle} box-sizing:border-box; margin-bottom:4px; box-shadow:${boxShadowValue};">
+                              ${showLogo ? `<img src="${window.pdfLogoBase64 || '/logo.png'}" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">` : ''}
+                              <span style="font-size:${fChurch}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${churchName}</span>
+                      </div>
+                  `;
+              } else {
+                  churchHeaderHtml = `
+                      <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; border-bottom:1px solid #000; padding-bottom:4px; width:100%; flex-wrap:wrap; margin-bottom:4px;">
+                              ${showLogo ? `<img src="${window.pdfLogoBase64 || '/logo.png'}" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">` : ''}
+                              <span style="font-size:${fChurch}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${churchName}</span>
+                      </div>
+                  `;
+              }
+          }
+
+          let tripTitleHtml = '';
+          const tripTitleText = s.is_empty_copy ? 'اسم الرحلة' : (window.currentTripObj?.title || 'رحلة مخصصة');
+          if (showTripTitle && tripTitleText) {
+              if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only') {
+                  tripTitleHtml = `
+                      <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${6 * scale}px; display:flex; flex-direction:column; align-items:center; ${infoBlockWidthStyle} box-sizing:border-box; margin-bottom:4px; box-shadow:${boxShadowValue};">
+                              <h3 style="font-size:${fH3_final}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${tripTitleText}</h3>
+                      </div>
+                  `;
+              } else {
+                  tripTitleHtml = `<h3 style="font-size:${fH3_final}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${tripTitleText}</h3>`;
+              }
+          }
+
+          let classGroupHtml = '';
+          if (showClass && safeClass) {
+              if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only') {
+                  classGroupHtml = `
+                      <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${6 * scale}px; display:flex; flex-direction:column; align-items:center; ${infoBlockWidthStyle} box-sizing:border-box; margin-bottom:4px; box-shadow:${boxShadowValue};">
+                              <h3 style="font-size:${fH3_final}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeClass}</h3>
+                      </div>
+                  `;
+              } else {
+                  classGroupHtml = `<h3 style="font-size:${fH3_final}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeClass}</h3>`;
+              }
+          }
+
+          let studentInfoGroupHtml = '';
+          if (showStudentImg || showStudentName || (extraFields && extraFields.length > 0)) {
+              const nameTag = showStudentName ? `<h2 style="font-size:${fH2_final}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeStudentName}</h2>` : '';
+              
+              let extraInfoHtml = '';
+              if (extraFields && extraFields.length > 0) {
+                  const frontFields = extraFields.filter(f => f.placement === 'front');
+                  if (frontFields.length > 0) {
+                      const itemsHtml = frontFields.map(field => {
+                          if (['church_header', 'church_name_only', 'trip_title', 'student_image', 'student_name', 'student_class', 'student_id'].includes(field.key)) {
+                              return '';
+                          }
+                          let val = getStudentFieldValue(s, field.key);
+                          if (s.is_empty_copy) {
+                              val = '.....................';
+                          }
+                          if (!s.is_empty_copy && (val === null || val === undefined || String(val).trim() === '')) return '';
+                          let iconClass = field.icon || 'fas fa-info-circle';
+                          
+                          if (field.key.startsWith('custom_field_')) {
+                              const customIdx = field.key.replace('custom_field_', '');
+                              if (window._currentCustomFields && window._currentCustomFields[customIdx]) {
+                                  const icon = window._currentCustomFields[customIdx].icon;
+                                  if (icon) iconClass = icon.startsWith('fa-') ? 'fas ' + icon : icon;
+                              }
+                          }
+                          return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="${iconClass}" style="opacity:0.75;"></i> ${field.label}: <strong>${escHtml(val)}</strong></span>`;
+                      }).filter(Boolean).join(' | ');
+                      
+                      if (itemsHtml) {
+                          extraInfoHtml = `<div class="extra-info" style="font-size:${fCustom_final}px; font-weight:bold; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-wrap:wrap; justify-content:center; gap:6px; width:100%; margin-top:4px;">${itemsHtml}</div>`;
+                      }
+                  }
+              }
+
+              const hasAnyStudentContent = !!avatarHtml || showStudentName || !!extraInfoHtml;
+
+              if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only' && hasAnyStudentContent) {
+                  studentInfoGroupHtml = `
+                      <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; align-items:center; gap:6px; ${infoBlockWidthStyle} box-sizing:border-box; margin-bottom:4px; box-shadow:${boxShadowValue};">
+                              ${avatarHtml}
+                              ${nameTag}
+                              ${extraInfoHtml}
+                      </div>
+                  `;
+              } else {
+                  studentInfoGroupHtml = `
+                      ${avatarHtml}
+                      ${nameTag}
+                      ${extraInfoHtml}
+                  `;
+              }
+          }
+
+          let showStudentIdHtml = '';
+          if (showStudentId) {
+              const displayId = s.is_empty_copy ? '.....................' : sid;
+              if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only') {
+                  showStudentIdHtml = `
+                  <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${6 * scale}px; ${infoBlockWidthStyle} box-sizing:border-box; margin-top:${4 * scale}px; box-shadow:${boxShadowValue}; display:inline-flex; justify-content:center; align-items:center;">
+                      <span style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); direction:ltr;">ID: ${displayId}</span>
+                  </div>
+                  `;
+              } else {
+                  showStudentIdHtml = `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; margin-top:${4 * scale}px; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr;">ID: ${displayId}</div>`;
+              }
+          }
+
+          let innerContentHtml = '';
+          if (isLandscape) {
+              let detailsHtml = '';
+              if (textReadability === 'rect' && (isUnified || readabilityWidth === 'unified-qr-only')) {
+                  detailsHtml = `
+                  <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; flex:1.2; height:100%; width:100%; box-sizing:border-box; gap:${6 * scale}px; box-shadow:${boxShadowValue}; min-width:0; min-height:0;">
+                      ${churchHeaderHtml}
+                      ${tripTitleHtml}
+                      ${studentInfoGroupHtml}
+                      ${classGroupHtml}
+                  </div>
+                  `;
+              } else {
+                  detailsHtml = `
+                  <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:1.2; height:100%; width:100%; min-width:0; min-height:0;">
+                      <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; ${infoWrapperWidthStyle} gap:${6 * scale}px;">
+                          ${churchHeaderHtml}
+                          ${tripTitleHtml}
+                          ${studentInfoGroupHtml}
+                          ${classGroupHtml}
+                      </div>
+                  </div>
+                  `;
+              }
+
+              let qrHalfHtml = '';
+              if (textReadability === 'rect' && isUnified) {
+                  qrHalfHtml = `
+                  <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:0.8; height:100%; min-width:0; min-height:0; width:100%;">
+                      <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-sizing:border-box; box-shadow:${boxShadowValue}; overflow:visible; width:100%; flex:1; min-height:0; gap:${4 * scale}px;">
+                          <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible; ${qrOffsetStyle}"></div>
+                          ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
+                      </div>
+                  </div>
+                  `;
+              } else if (textReadability === 'rect' && readabilityWidth === 'unified-qr-only') {
+                  qrHalfHtml = `
+                  <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:0.8; height:100%; min-width:0; min-height:0; width:100%;">
+                      <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-shadow:${boxShadowValue}; overflow:visible; width:fit-content; gap:${4 * scale}px;">
+                          <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible; ${qrOffsetStyle}"></div>
+                          ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
+                      </div>
+                  </div>
+                  `;
+              } else {
+                  qrHalfHtml = `
+                  <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:0.8; height:100%; min-width:0; min-height:0; width:100%;">
+                      <div style="${qrWrapperStyles} display:flex; justify-content:center; align-items:center; overflow:visible;">
+                          <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible; ${qrOffsetStyle}"></div>
+                      </div>
+                      ${showStudentIdHtml}
+                  </div>
+                  `;
+              }
+
+              innerContentHtml = `
+              <div style="position:relative; z-index:5; width:100%; height:100%; display:flex; flex-direction:row; justify-content:center; align-items:center; gap:${12 * scale}px; direction:rtl; text-align:center;">
+                  <!-- Details Column -->
+                  ${detailsHtml}
+                  <!-- QR Column -->
+                  ${qrHalfHtml}
               </div>
-              <!-- Trip Title -->
-              ${showTripTitle && safeTripTitle ? `
-                <div style="font-size:${fH3 * 1.1}px; font-weight:700; color:${fontColor}; text-shadow:var(--text-shadow, none); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                  <i class="fas fa-route" style="opacity:0.75; margin-left:4px;"></i> ${safeTripTitle}
-                </div>
-              ` : ''}
-               <!-- Room Assignment (Sakan) -->
-               ${roomText && roomText !== 'غير مسكن' ? `
-               <div style="font-size:${fCustom * 1.2}px; font-weight:bold; color:${fontColor}; text-shadow:var(--text-shadow, none);">
-                 <span style="display:inline-flex; align-items:center; gap:4px; font-weight:800;">
-                   <i class="fas fa-bed" style="opacity:0.85; margin-left:4px;"></i> <strong>${escHtml(roomText)}</strong>
-                 </span>
-               </div>
-               ` : ''}
-            </div>
-          `;
-
-          innerContentHtml = `
-            <div style="position:relative; z-index:5; background:${readBgColor}; border:1px solid ${strokeColor}; padding:${12 * scale}px; border-radius:${10 * scale}px; box-shadow:${boxShadowValue}; display:flex; flex-direction:row; align-items:center; width:100%; height:100%; box-sizing:border-box; gap:${16 * scale}px; direction:ltr; text-align:left;">
-              ${leftColumnHtml}
-              ${rightColumnHtml}
-            </div>
-          `;
-        } else if (isLandscape) {
-          let detailsHtml = '';
-          if (textReadability === 'rect' && (isUnified || readabilityWidth === 'unified-qr-only')) {
-            detailsHtml = `
-            <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; flex:1.2; height:100%; width:100%; box-sizing:border-box; gap:${6 * scale}px; box-shadow:${boxShadowValue}; min-width:0; min-height:0;">
-                ${churchHeaderHtml}
-                ${tripInfoGroupHtml}
-                ${studentInfoGroupHtml}
-            </div>
-            `;
+              `;
           } else {
-            detailsHtml = `
-            <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:1.2; height:100%; width:100%; min-width:0; min-height:0;">
-                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; ${infoWrapperWidthStyle} gap:${6 * scale}px;">
-                    ${churchHeaderHtml}
-                    ${tripInfoGroupHtml}
-                    ${studentInfoGroupHtml}
-                </div>
-            </div>
-            `;
+              let detailsHtml = '';
+              if (textReadability === 'rect' && (isUnified || readabilityWidth === 'unified-qr-only')) {
+                  detailsHtml = `
+                  <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; flex:1.2; box-sizing:border-box; gap:${6 * scale}px; box-shadow:${boxShadowValue}; min-height:0;">
+                      ${churchHeaderHtml}
+                      ${tripTitleHtml}
+                      ${studentInfoGroupHtml}
+                      ${classGroupHtml}
+                  </div>
+                  `;
+              } else {
+                  detailsHtml = `
+                  <div style="flex:1.2; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; min-height:0;">
+                      <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; ${infoWrapperWidthStyle} gap:${6 * scale}px;">
+                          ${churchHeaderHtml}
+                          ${tripTitleHtml}
+                          ${studentInfoGroupHtml}
+                          ${classGroupHtml}
+                      </div>
+                  </div>
+                  `;
+              }
+
+              let qrHalfHtml = '';
+              if (textReadability === 'rect' && isUnified) {
+                  qrHalfHtml = `
+                  <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; flex:0.8; min-height:0;">
+                      <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-sizing:border-box; box-shadow:${boxShadowValue}; overflow:visible; width:100%; flex:1; min-height:0; gap:${4 * scale}px;">
+                          <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible; ${qrOffsetStyle}"></div>
+                          ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
+                      </div>
+                  </div>
+                  `;
+              } else if (textReadability === 'rect' && readabilityWidth === 'unified-qr-only') {
+                  qrHalfHtml = `
+                  <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; flex:0.8; min-height:0;">
+                      <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-shadow:${boxShadowValue}; overflow:visible; width:fit-content; gap:${4 * scale}px;">
+                          <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible; ${qrOffsetStyle}"></div>
+                          ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
+                      </div>
+                  </div>
+                  `;
+              } else {
+                  qrHalfHtml = `
+                  <div style="flex:0.8; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; min-height:0;">
+                      <div style="${qrWrapperStyles} display:flex; justify-content:center; align-items:center; overflow:visible;">
+                          <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible; ${qrOffsetStyle}"></div>
+                      </div>
+                      ${showStudentIdHtml}
+                  </div>
+                  `;
+              }
+
+              innerContentHtml = `
+              <div style="position:relative; z-index:5; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:${8 * scale}px;">
+                  <!-- Details Row -->
+                  ${detailsHtml}
+                  <!-- QR Row -->
+                  ${qrHalfHtml}
+              </div>
+              `;
           }
 
-          let qrHalfHtml = '';
-          if (textReadability === 'rect' && isUnified) {
-            qrHalfHtml = `
-            <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:0.8; height:100%; min-width:0; min-height:0; width:100%;">
-                <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-sizing:border-box; box-shadow:${boxShadowValue}; overflow:visible; width:100%; flex:1; min-height:0; gap:${4 * scale}px;">
-                    ${qrContainerHtml}
-                    ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
-                </div>
-            </div>
-            `;
-          } else if (textReadability === 'rect' && readabilityWidth === 'unified-qr-only') {
-            qrHalfHtml = `
-            <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:0.8; height:100%; min-width:0; min-height:0; width:100%;">
-                <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-shadow:${boxShadowValue}; overflow:visible; width:fit-content; gap:${4 * scale}px;">
-                    ${qrContainerHtml}
-                    ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
-                </div>
-            </div>
-            `;
-          } else {
-            qrHalfHtml = `
-            <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:0.8; height:100%; min-width:0; min-height:0; width:100%;">
-                <div style="${qrWrapperStyles} display:flex; justify-content:center; align-items:center; overflow:visible;">
-                    ${qrContainerHtml}
-                </div>
-                ${showStudentIdHtml}
-            </div>
-            `;
+          let logoHtml = '';
+          if (Array.isArray(window.customLogos) && window.customLogos.length > 0) {
+              logoHtml = window.customLogos.map(logo => {
+                  return `<img src="${logo.src}" style="position:absolute; left:${logo.x}%; top:${logo.y}%; width:${logo.width}%; height:auto; z-index:10; pointer-events:none; object-fit:contain;">`;
+              }).join('');
           }
 
-          innerContentHtml = `
-          <div style="position:relative; z-index:5; width:100%; height:100%; display:flex; flex-direction:row; justify-content:center; align-items:center; gap:${12 * scale}px; direction:rtl; text-align:center;">
-              <!-- Details Column -->
-              ${detailsHtml}
-              <!-- QR Column -->
-              ${qrHalfHtml}
+          return `
+          <div class="print-card" style="${bgStyles}">
+              ${bgHtml}
+              ${outlineOverlayHtml}
+              ${logoHtml}
+              ${innerContentHtml}
           </div>
           `;
-        } else {
-          let detailsHtml = '';
-          if (textReadability === 'rect' && (isUnified || readabilityWidth === 'unified-qr-only')) {
-            detailsHtml = `
-            <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; flex:1.2; box-sizing:border-box; gap:${6 * scale}px; box-shadow:${boxShadowValue}; min-height:0;">
-                ${churchHeaderHtml}
-                ${tripInfoGroupHtml}
-                ${studentInfoGroupHtml}
-            </div>
-            `;
-          } else {
-            detailsHtml = `
-            <div style="flex:1.2; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; min-height:0;">
-                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; ${infoWrapperWidthStyle} gap:${6 * scale}px;">
-                    ${churchHeaderHtml}
-                    ${tripInfoGroupHtml}
-                    ${studentInfoGroupHtml}
-                </div>
-            </div>
-            `;
-          }
-
-          let qrHalfHtml = '';
-          if (textReadability === 'rect' && isUnified) {
-            qrHalfHtml = `
-            <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; flex:0.8; min-height:0;">
-                <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-sizing:border-box; box-shadow:${boxShadowValue}; overflow:visible; width:100%; flex:1; min-height:0; gap:${4 * scale}px;">
-                    ${qrContainerHtml}
-                    ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
-                </div>
-            </div>
-            `;
-          } else if (textReadability === 'rect' && readabilityWidth === 'unified-qr-only') {
-            qrHalfHtml = `
-            <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; flex:0.8; min-height:0;">
-                <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-shadow:${boxShadowValue}; overflow:visible; width:fit-content; gap:${4 * scale}px;">
-                    ${qrContainerHtml}
-                    ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
-                </div>
-            </div>
-            `;
-          } else {
-            qrHalfHtml = `
-            <div style="flex:0.8; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; min-height:0;">
-                <div style="${qrWrapperStyles} display:flex; justify-content:center; align-items:center; overflow:visible;">
-                    ${qrContainerHtml}
-                </div>
-                ${showStudentIdHtml}
-            </div>
-            `;
-          }
-
-          innerContentHtml = `
-          <div style="position:relative; z-index:5; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:${8 * scale}px;">
-              <!-- Details Row -->
-              ${detailsHtml}
-              <!-- QR Row -->
-              ${qrHalfHtml}
-          </div>
-          `;
-        }
-
-        return `
-      <div class="print-card" style="${bgStyles}">
-          ${bgHtml}
-          ${outlineOverlayHtml}
-          ${innerContentHtml}
-      </div>
-      `;
-
       }
 
       function generateBackCardMarkup(opts) {
-        const {
-          r, scale, padding, churchName, fontColor, strokeColor, outlineStyle, dashLength, dashGap,
-          baseWidth, baseHeight, textReadability, extraFields = [], trip = null, showAvatarWhenNoPhoto = true
-        } = opts;
+          const {
+              r, scale, padding, churchName, fontColor, strokeColor, outlineStyle, dashLength, dashGap,
+              baseWidth, baseHeight, textReadability, extraFields = [], showAvatarWhenNoPhoto = true
+          } = opts;
 
-        const layout = calculateCardLayout(baseWidth, baseHeight, scale, padding);
-        const { isLandscape, scaledWidth, scaledHeight, scaledPadding, fChurch, fH3, fH2, fCustom, sLogo, sAvatar, sTripImg } = layout;
+          const nameFontSizeOver = parseInt(document.getElementById('printNameFontSize')?.value || 0);
+          const infoFontSizeOver = parseInt(document.getElementById('printInfoFontSize')?.value || 0);
 
-        const isCardRounded = document.getElementById('printCardRounded')?.checked ?? true;
-        const cardRadius = isCardRounded ? 10 : 0;
+          const layout = calculateCardLayout(baseWidth, baseHeight, scale, padding);
+          const { isLandscape, scaledWidth, scaledHeight, scaledPadding, fChurch, fH3, fH2, sLogo, sAvatar } = layout;
 
-        const availW = scaledWidth - 2 * scaledPadding;
-        const availH = scaledHeight - 2 * scaledPadding;
+          const fH2_final = nameFontSizeOver > 0 ? nameFontSizeOver * scale : fH2;
+          const fH3_final = infoFontSizeOver > 0 ? infoFontSizeOver * scale : fH3;
 
-        let textShadowStyle = 'none';
-        if (textReadability === 'stroke') {
-          textShadowStyle = `
-                -1.5px -1.5px 0 ${strokeColor}, 
-                 1.5px -1.5px 0 ${strokeColor}, 
-                -1.5px  1.5px 0 ${strokeColor}, 
-                 1.5px  1.5px 0 ${strokeColor},
-                -1.5px  0px 0 ${strokeColor},
-                 1.5px  0px 0 ${strokeColor},
-                 0px   -1.5px 0 ${strokeColor},
-                 0px    1.5px 0 ${strokeColor}
-            `.replace(/\s+/g, ' ').trim();
-        }
+          const isCardRounded = document.getElementById('printCardRounded')?.checked ?? true;
+          const cardRadius = isCardRounded ? 10 : 0;
+          
+          const availW = scaledWidth - 2 * scaledPadding;
+          const availH = scaledHeight - 2 * scaledPadding;
 
-        const { cardBorderStyle, outlineOverlayHtml } = buildPrintCardOutline(scale, outlineStyle, dashLength, dashGap, baseWidth, baseHeight);
-
-        let bgStyles = `width:${scaledWidth}px; height:${scaledHeight}px; padding:${scaledPadding}px; ${cardBorderStyle} border-radius:${cardRadius}px; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; box-sizing:border-box; background:#fff; position:relative; overflow:hidden; --text-color:${fontColor}; --text-shadow:${textShadowStyle};`;
-
-        let bgHtml = '';
-        if (typeof customCardBackgroundDataUrl !== 'undefined' && customCardBackgroundDataUrl) {
-          const customBgOverlayColor = document.getElementById('printCustomBgOverlayColor')?.value || '#ffffff';
-          const customBgOverlayOpacity = parseFloat(document.getElementById('printCustomBgOverlayOpacity')?.value || '0') / 100;
-          bgHtml = `
-            <img src="${customCardBackgroundDataUrl}" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1;" onerror="this.style.display='none'">
-            <div style="position:absolute; inset:0; background-color:${customBgOverlayColor}; opacity:${customBgOverlayOpacity}; z-index:2; pointer-events:none;"></div>
-            `;
-        }
-
-        let innerContentHtml = '';
-
-        if (extraFields && extraFields.length > 0 && r) {
-          const isEmp = r && !!r.isEmptyCopy;
-          const showChurch = extraFields.some(f => f.key === 'church_header');
-          const showTripImage = extraFields.some(f => f.key === 'trip_image');
-          const showTripTitle = extraFields.some(f => f.key === 'trip_title');
-          let showStudentImg = extraFields.some(f => f.key === 'student_image');
-          let showStudentName = extraFields.some(f => f.key === 'student_name');
-          let showStudentId = extraFields.some(f => f.key === 'student_id');
-
-          if (isEmp) {
-            showStudentImg = true;
-            showStudentName = true;
-            showStudentId = true;
-          }
-          if (r.isUncle) {
-            showStudentImg = true;
-            showStudentName = true;
-            showStudentId = false;
+          let textShadowStyle = 'none';
+          if (textReadability === 'stroke') {
+              textShadowStyle = `
+                  -1.5px -1.5px 0 ${strokeColor}, 
+                   1.5px -1.5px 0 ${strokeColor}, 
+                  -1.5px  1.5px 0 ${strokeColor}, 
+                   1.5px  1.5px 0 ${strokeColor},
+                  -1.5px  0px 0 ${strokeColor},
+                   1.5px  0px 0 ${strokeColor},
+                   0px   -1.5px 0 ${strokeColor},
+                   0px    1.5px 0 ${strokeColor}
+              `.replace(/\s+/g, ' ').trim();
           }
 
-          let headerHtml = '';
-          if (showChurch) {
-            const displayChurchName = r._churchName || r.church_name || churchName;
-            headerHtml = `
-              <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; border-bottom:1px solid ${fontColor}22; padding-bottom:6px; width:100%; flex-wrap:wrap; margin-bottom:4px;">
-                  ${r.isUncle ? '' : `<img src="${window.pdfLogoBase64 || '/logo.png'}" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">`}
-                  <span style="font-size:${fChurch}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${displayChurchName}</span>
-              </div>
-            `;
+          const { cardBorderStyle, outlineOverlayHtml } = buildPrintCardOutline(scale, outlineStyle, dashLength, dashGap, baseWidth, baseHeight);
+
+          let bgStyles = `width:${scaledWidth}px; height:${scaledHeight}px; padding:${scaledPadding}px; ${cardBorderStyle} border-radius:${cardRadius}px; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; box-sizing:border-box; background:#fff; position:relative; overflow:hidden; --text-color:${fontColor}; --text-shadow:${textShadowStyle};`;
+          
+          let bgHtml = '';
+          if (typeof customCardBackgroundDataUrl !== 'undefined' && customCardBackgroundDataUrl) {
+              const customBgOverlayColor = document.getElementById('printCustomBgOverlayColor')?.value || '#ffffff';
+              const customBgOverlayOpacity = parseFloat(document.getElementById('printCustomBgOverlayOpacity')?.value || '0') / 100;
+              bgHtml = `
+              <img src="${customCardBackgroundDataUrl}" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1;" onerror="this.style.display='none'">
+              <div style="position:absolute; inset:0; background-color:${customBgOverlayColor}; opacity:${customBgOverlayOpacity}; z-index:2; pointer-events:none;"></div>
+              `;
           }
 
-          let tripHtml = '';
-          if (showTripImage || showTripTitle) {
-            const inlineRadius = (typeof tripImgRounded !== 'undefined' && tripImgRounded) ? `${8 * scale}px` : '0px';
-            const imgHtml = (showTripImage && trip && trip.image_url) ? `<img src="${trip.image_url}" style="width:${sTripImg * 1.45}px; height:${sTripImg}px; object-fit:cover; border-radius:${inlineRadius}; border:1px solid ${strokeColor}; margin-bottom:4px;" onerror="this.style.display='none'">` : '';
-            const titleHtml = (showTripTitle && trip && trip.title) ? `<h3 style="font-size:${fH3}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${escHtml(trip.title)}</h3>` : '';
-            tripHtml = `<div style="display:flex; flex-direction:column; align-items:center; margin-bottom:6px;">${imgHtml}${titleHtml}</div>`;
-          }
+          let innerContentHtml = '';
 
-          let studentHtml = '';
-          if (showStudentImg || showStudentName) {
-            let avatarHtml = '';
-            if (showStudentImg) {
-              const hasRawImg = !isEmp && r.student_image && r.student_image.trim() !== '' && !r.student_image.includes('placeholder.com') && !r.student_image.includes('via.placeholder');
-              const imgUrl = hasRawImg ? r.student_image : '/profile_default..webp';
-              const showAvatarFallback = !isEmp && showStudentImg && showAvatarWhenNoPhoto;
-              if (isEmp) {
-                avatarHtml = `
-                  <div style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; border:2px dashed ${strokeColor}; background:rgba(255,255,255,0.7); display:flex; flex-shrink:0; align-self:center; box-sizing:border-box; margin-bottom:4px;"></div>`;
-              } else if (showAvatarFallback) {
-                avatarHtml = `
-                  <div style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; background:linear-gradient(135deg,#c7d2fe,#a5b4fc); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; align-self:center; position:relative; margin-bottom:4px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="${sAvatar * 0.7}px" height="${sAvatar * 0.7}px" style="position:absolute; inset:0; margin:auto; z-index:1;">
-                      <circle cx="40" cy="30" r="18" fill="rgba(255,255,255,0.85)"/>
-                      <ellipse cx="40" cy="72" rx="26" ry="18" fill="rgba(255,255,255,0.85)"/>
-                    </svg>
-                  </div>`;
-              } else {
-                avatarHtml = `<img src="${imgUrl}" class="avatar" style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; object-fit:cover; align-self:center; margin-bottom:4px;" onerror="this.style.display='none'">`;
+          if (extraFields && extraFields.length > 0 && r) {
+              const showChurch = extraFields.some(f => f.key === 'church_header');
+              const showChurchNameOnly = extraFields.some(f => f.key === 'church_name_only');
+              const showTripTitle = extraFields.some(f => f.key === 'trip_title');
+              const showStudentImg = extraFields.some(f => f.key === 'student_image');
+              const showStudentName = extraFields.some(f => f.key === 'student_name');
+              const showClass = extraFields.some(f => f.key === 'student_class');
+              const showStudentId = extraFields.some(f => f.key === 'student_id');
+
+              let headerHtml = '';
+              if (showChurch || showChurchNameOnly) {
+                  const showLogo = showChurch;
+                  headerHtml = `
+                    <div class="print-card-header" style="display:flex; align-items:center; justify-content:center; gap:6px; border-bottom:1px solid ${fontColor}22; padding-bottom:6px; width:100%; flex-wrap:wrap; margin-bottom:4px;">
+                        ${showLogo ? `<img src="${window.pdfLogoBase64 || '/logo.png'}" style="height:${sLogo}px; width:auto; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none'">` : ''}
+                        <span style="font-size:${fChurch}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); text-align:center; line-height:1.2; word-break:break-word;">${churchName}</span>
+                    </div>
+                  `;
               }
-            }
-            const nameHtml = showStudentName ? `<h2 style="font-size:${fH2}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${isEmp ? '....................................' : escHtml(r.student_name || r.guest_name || 'طفل')}</h2>` : '';
-            studentHtml = `<div style="display:flex; flex-direction:column; align-items:center; margin-bottom:6px;">${avatarHtml}${nameHtml}</div>`;
-          }
 
-          let idHtml = '';
-          if (showStudentId) {
-            const sid = isEmp ? '................' : (r.student_id || r.guest_id || r.id || '');
-            idHtml = `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; margin-bottom:6px; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr;">ID: ${sid}</div>`;
-          }
+              let tripHtml = '';
+              const tripTitleText = window.currentTripObj?.title || 'رحلة مخصصة';
+              if (showTripTitle && tripTitleText) {
+                  tripHtml = `<div style="font-size:${fH3_final}px; font-weight:700; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; margin-bottom:6px;">${escHtml(tripTitleText)}</div>`;
+              }
 
-          let textFieldsHtml = '';
-          const textFields = extraFields.filter(f => !['church_header', 'trip_title', 'trip_image', 'student_image', 'student_name', 'student_id'].includes(f.key));
-          if (r.isUncle) {
-            const roomsConfig = trip && trip.rooms_config 
-              ? (typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config) : trip.rooms_config)
-              : [];
-            const showFloorSetting = document.getElementById('printShowFloorInRoom')?.checked !== false;
-            const roomText = getUncleRoomAssignmentText(r.id.replace('uncle_', ''), roomsConfig, showFloorSetting);
-            
-            const readBgColor = hexToRgba(opts.readabilityBgColor || '#ffffff', parseFloat(opts.readabilityBgOpacity || '92') / 100);
-            const readabilityPadding = parseFloat(opts.readabilityPadding || '6');
-            const readPadding = `${readabilityPadding * scale}px`;
-            const readabilityBgShadow = opts.readabilityBgShadow !== false;
-            const boxShadowValue = readabilityBgShadow ? '0 2px 4px rgba(0,0,0,0.05)' : 'none';
+              let studentHtml = '';
+              if (showStudentImg || showStudentName) {
+                  let avatarHtml = '';
+                  if (showStudentImg) {
+                      const rawImg = r['صورة'] || r.image_url || r.photo || '';
+                      const hasRawImg = rawImg && rawImg.trim() !== '' && !rawImg.includes('placeholder.com') && !rawImg.includes('via.placeholder');
+                      const imgUrl = hasRawImg ? rawImg : '/profile_default..webp';
+                      const showAvatarFallback = showStudentImg && showAvatarWhenNoPhoto;
+                      if (showAvatarFallback) {
+                          avatarHtml = `
+                            <div style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; background:linear-gradient(135deg,#c7d2fe,#a5b4fc); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; align-self:center; position:relative; margin-bottom:4px;">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="${sAvatar * 0.7}px" height="${sAvatar * 0.7}px" style="position:absolute; inset:0; margin:auto; z-index:1;">
+                                <circle cx="40" cy="30" r="18" fill="rgba(255,255,255,0.85)"/>
+                                <ellipse cx="40" cy="72" rx="26" ry="18" fill="rgba(255,255,255,0.85)"/>
+                              </svg>
+                              <img src="${imgUrl}" class="avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover; position:absolute; inset:0; z-index:2;" onerror="this.style.display='none'">
+                            </div>`;
+                      } else {
+                          avatarHtml = `<img src="${imgUrl}" class="avatar" style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; object-fit:cover; align-self:center; margin-bottom:4px;" onerror="this.style.display='none'">`;
+                      }
+                  }
+                  const safeStudentName = escHtml(r['الاسم'] || r.name || 'طفل');
+                  const nameHtml = showStudentName ? `<h2 style="font-size:${fH2_final}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeStudentName}</h2>` : '';
+                  studentHtml = `<div style="display:flex; flex-direction:column; align-items:center; margin-bottom:6px;">${avatarHtml}${nameHtml}</div>`;
+              }
 
-            if (textReadability === 'rect') {
-              textFieldsHtml = `
-                <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; align-items:center; box-shadow:${boxShadowValue}; width: 100%; text-align:center; justify-content:center; box-sizing:border-box;">
-                    <span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="fas fa-bed" style="opacity:0.75;"></i> <strong>${escHtml(roomText)}</strong></span>
+              let classHtml = '';
+              if (showClass) {
+                  const cls = r['الفصل'] || r.class || '';
+                  if (cls) {
+                      classHtml = `<div style="font-size:${fH3_final}px; font-weight:700; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; margin-bottom:6px;">${escHtml(cls)}</div>`;
+                  }
+              }
+
+              let idHtml = '';
+              if (showStudentId) {
+                  const sid = r['_studentId'] || r.id || r.student_id || '';
+                  idHtml = `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; margin-bottom:6px; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr;">ID: ${sid}</div>`;
+              }
+
+              let textFieldsHtml = '';
+              const textFields = extraFields.filter(f => !['church_header', 'church_name_only', 'trip_title', 'student_image', 'student_name', 'student_class', 'student_id'].includes(f.key));
+              if (textFields.length > 0) {
+                  const itemsHtml = textFields.map(field => {
+                      const val = getStudentFieldValue(r, field.key);
+                      if (val === null || val === undefined || String(val).trim() === '') return '';
+                      const iconClass = field.icon || 'fas fa-info-circle';
+                      return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="${iconClass}" style="opacity:0.75;"></i> ${field.label}: <strong>${escHtml(val)}</strong></span>`;
+                  }).filter(Boolean).join(' | ');
+
+                  if (itemsHtml) {
+                      const numItems = textFields.length;
+                      const dynamicFontSize = numItems <= 2 ? fH3_final : fChurch;
+                      const dynamicGap = numItems <= 2 ? `${8 * scale}px` : `${4 * scale}px`;
+
+                      const readBgColor = hexToRgba(opts.readabilityBgColor || '#ffffff', parseFloat(opts.readabilityBgOpacity || '92') / 100);
+                      const readabilityPadding = parseFloat(opts.readabilityPadding || '6');
+                      const readPadding = `${readabilityPadding * scale}px`;
+                      const readabilityBgShadow = opts.readabilityBgShadow !== false;
+                      const boxShadowValue = readabilityBgShadow ? '0 2px 4px rgba(0,0,0,0.05)' : 'none';
+
+                      if (textReadability === 'rect') {
+                          textFieldsHtml = `
+                            <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; align-items:center; gap:${dynamicGap}; box-shadow:${boxShadowValue}; width: 100%; text-align:center; justify-content:center; box-sizing:border-box;">
+                              ${itemsHtml}
+                            </div>`;
+                      } else {
+                          textFieldsHtml = `
+                            <div style="display:flex; flex-direction:column; align-items:center; gap:${dynamicGap}; width: 100%; text-align:center; justify-content:center; font-size:${dynamicFontSize}px; color:${fontColor}; text-shadow:var(--text-shadow, none);">
+                              ${itemsHtml}
+                            </div>`;
+                      }
+                  }
+              }
+
+              innerContentHtml = `
+                <div style="position:relative; z-index:5; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+                    ${headerHtml}
+                    ${tripHtml}
+                    ${studentHtml}
+                    ${classHtml}
+                    ${idHtml}
+                    ${textFieldsHtml}
                 </div>
               `;
-            } else {
-              textFieldsHtml = `
-                <div style="display:flex; flex-direction:column; align-items:center; width:100%; text-align:center; justify-content:center; color:${fontColor}; text-shadow: var(--text-shadow, none); font-size:${fH3}px; font-weight:bold;">
-                    <span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="fas fa-bed" style="opacity:0.75;"></i> <strong>${escHtml(roomText)}</strong></span>
-                </div>
-              `;
-            }
-          } else if (textFields.length > 0) {
-            const itemsHtml = textFields.map(field => {
-              if (isEmp) {
-                const iconClass = field.icon || 'fas fa-info-circle';
-                return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="${iconClass}" style="opacity:0.75;"></i> ${field.label}: <strong>........................</strong></span>`;
-              }
-              const val = getStudentFieldValue(r, field.key, trip);
-              if (val === null || val === undefined || String(val).trim() === '') return '';
-              const iconClass = field.icon || 'fas fa-info-circle';
-              if (field.key === 'church_name_only' || field.key === 'custom_field_السكن' || field.key === 'السكن' || field.label === 'السكن' || field.key === 'class' || field.key === 'student_class' || field.label === 'الفصل') {
-                return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="${iconClass}" style="opacity:0.75;"></i> <strong>${escHtml(val)}</strong></span>`;
-              }
-              return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="${iconClass}" style="opacity:0.75;"></i> ${field.label}: <strong>${escHtml(val)}</strong></span>`;
-            }).filter(Boolean).join('');
-
-            if (itemsHtml) {
-              const numItems = textFields.length;
-              const dynamicFontSize = numItems <= 2 ? fH3 : fChurch;
-              const dynamicGap = numItems <= 2 ? `${8 * scale}px` : `${4 * scale}px`;
-
-              const readBgColor = hexToRgba(opts.readabilityBgColor || '#ffffff', parseFloat(opts.readabilityBgOpacity || '92') / 100);
-              const readabilityPadding = parseFloat(opts.readabilityPadding || '6');
-              const readPadding = `${readabilityPadding * scale}px`;
-              const readabilityBgShadow = opts.readabilityBgShadow !== false;
-              const boxShadowValue = readabilityBgShadow ? '0 2px 4px rgba(0,0,0,0.05)' : 'none';
-
-              if (textReadability === 'rect') {
-                textFieldsHtml = `
-                  <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; align-items:flex-start; gap:${dynamicGap}; box-shadow:${boxShadowValue}; width: 100%; text-align:right; direction:rtl; padding-left:${10 * scale}px; padding-right:${10 * scale}px; box-sizing:border-box;">
-                      ${itemsHtml}
-                  </div>
-                `;
-              } else {
-                textFieldsHtml = `
-                  <div style="display:flex; flex-direction:column; align-items:flex-start; gap:${dynamicGap}; width:100%; text-align:right; direction:rtl; padding-left:${10 * scale}px; padding-right:${10 * scale}px; box-sizing:border-box; color:${fontColor}; text-shadow: var(--text-shadow, none); font-size:${dynamicFontSize}px; font-weight:bold;">
-                      ${itemsHtml}
-                  </div>
-                `;
-              }
-            }
           }
 
-          innerContentHtml = `
-          <div style="position:relative; z-index:5; width:100%; height:100%; display:flex; flex-direction:column; justify-content:space-between; align-items:center; text-align:center; box-sizing:border-box; padding:${4 * scale}px 0;">
-              ${headerHtml}
-              <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; gap:${6 * scale}px; overflow:hidden;">
-                  ${tripHtml}
-                  ${studentHtml}
-                  ${idHtml}
-                  ${textFieldsHtml}
-              </div>
-              <div style="margin-top:auto; font-weight:700; color:${fontColor}; font-size:${Math.max(6.5, 8 * scale)}px; font-family:'Outfit', 'Segoe UI', sans-serif; opacity:0.6; text-align:center; width:100%;">
-                  sunday-school.online
-              </div>
-          </div>
-          `;
-        } else {
-          const logoHeight = Math.max(22, Math.min(availW * 0.32, availH * 0.28));
-          innerContentHtml = `
-          <div style="position:relative; z-index:5; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:${12 * scale}px; text-align:center; box-sizing:border-box;">
-              <div style="display:flex; justify-content:center; align-items:center; width:100%;">
-                  <img src="${'/logo.png'}" style="height:${logoHeight}px; width:auto; object-fit:contain; border-radius:${12 * scale}px; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.04));" onerror="this.style.display='none'">
-              </div>
-              <div style="background:rgba(255,255,255,0.9); border:1px solid ${fontColor}22; border-radius:50px; padding:${4 * scale}px ${12 * scale}px; display:inline-flex; align-items:center; gap:${5 * scale}px; max-width:85%; box-sizing:border-box;">
-                  <i class="fas fa-search" style="color:${fontColor}; opacity:0.5; font-size:${Math.max(6.5, 8 * scale)}px;"></i>
-                  <span style="font-weight:700; color:${fontColor}; font-size:${Math.max(7.5, 9 * scale)}px; font-family:'Outfit', 'Segoe UI', sans-serif; letter-spacing:0.02em; white-space:nowrap;">
-                      sunday-school.online
-                  </span>
-              </div>
-          </div>
-          `;
-        }
+          let logoHtml = '';
+          if (Array.isArray(window.customLogos) && window.customLogos.length > 0) {
+              logoHtml = window.customLogos.map(logo => {
+                  return `<img src="${logo.src}" style="position:absolute; left:${logo.x}%; top:${logo.y}%; width:${logo.width}%; height:auto; z-index:10; pointer-events:none; object-fit:contain;">`;
+              }).join('');
+          }
 
-        return `
-        <div class="print-card" style="${bgStyles}">
-            ${bgHtml}
-            ${outlineOverlayHtml}
-            ${innerContentHtml}
-        </div>
-        `;
+          return `
+            <div class="print-card" style="${bgStyles}">
+                ${bgHtml}
+                ${outlineOverlayHtml}
+                ${logoHtml}
+                ${innerContentHtml}
+            </div>
+          `;
       }
-
-      function updatePrintPreview() {
+            function updatePrintPreview() {
         const tripId = document.getElementById('printTripId').value;
         if (!tripId) return;
 
@@ -12179,9 +12049,12 @@
           { key: 'student_class', label: 'الفصل', placement: 'front', icon: 'fas fa-graduation-cap' },
           { key: 'custom_field_السكن', label: 'السكن', placement: 'front', icon: 'fas fa-tag' }
         ];
+        window.currentTripId = tripId;
         renderPrintExtraFieldsList();
         openModal('printSettingsModal');
         document.getElementById('printPreviewContent').innerHTML = '<div style="color:var(--muted);font-size:0.9rem;"><i class="fas fa-circle-notch fa-spin"></i> جاري تحميل المعاينة...</div>';
+        
+        fetchTemplatesFromServer(tripId);
 
         let trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
         let rawRegs = tripRegistrationsCache[tripId] || (trip ? trip.registrations : []) || [];
@@ -13262,9 +13135,399 @@
         document.getElementById('printCustomBgSubSettings').style.display = 'none';
         document.getElementById('printRemoveCustomBgBtn').style.display = 'none';
 
+        // Reset font sizes & Y offset
+        const nameFontSize = document.getElementById('printNameFontSize');
+        if (nameFontSize) {
+            nameFontSize.value = 0;
+            document.getElementById('printNameFontSizeVal').textContent = 'تلقائي';
+        }
+        const infoFontSize = document.getElementById('printInfoFontSize');
+        if (infoFontSize) {
+            infoFontSize.value = 0;
+            document.getElementById('printInfoFontSizeVal').textContent = 'تلقائي';
+        }
+        const qrYOffsetEl = document.getElementById('printQrYOffset');
+        if (qrYOffsetEl) {
+            qrYOffsetEl.value = 0;
+            document.getElementById('printQrYOffsetVal').textContent = '0px';
+        }
+        window.customLogos = [];
+        renderPrintLogosList();
+
+        // Reset template dropdown select value
+        const templateSelect = document.getElementById('printTemplateSelect');
+        if (templateSelect) templateSelect.value = '';
+
         // Sync UI and Update Preview
         syncPrintSettingsUI();
         updatePrintPreview();
+      }
+
+      // ══════════════════════════════════════════════════════════════
+      // TEMPLATES & LOGOS CUSTOMIZER ADDITIONS
+      // ══════════════════════════════════════════════════════════════
+      let allTemplatesCache = {};
+
+      async function fetchTemplatesFromServer(tripId = 0) {
+          try {
+              const fd = new FormData();
+              fd.append('action', 'getQRTemplates');
+              if (tripId > 0) {
+                  fd.append('trip_id', tripId);
+              }
+              const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+              if (res && res.success) {
+                  allTemplatesCache = res;
+                  populateTemplatesDropdown(tripId);
+              }
+          } catch (e) {
+              console.error("Error loading templates from server", e);
+          }
+      }
+
+      function populateTemplatesDropdown(currentTripId = 0) {
+          const select = document.getElementById('printTemplateSelect');
+          if (!select) return;
+          select.innerHTML = '<option value="">-- اختر قالب للتحميل --</option>';
+          
+          if (allTemplatesCache.church_template) {
+              const opt = document.createElement('option');
+              opt.value = 'church';
+              opt.textContent = 'قالب الكنيسة الرئيسي';
+              select.appendChild(opt);
+          }
+          
+          if (currentTripId > 0 && allTemplatesCache.trip_template) {
+              const opt = document.createElement('option');
+              opt.value = 'trip_' + currentTripId;
+              opt.textContent = 'قالب هذه الرحلة الحالي';
+              select.appendChild(opt);
+          }
+          
+          if (Array.isArray(allTemplatesCache.other_trips)) {
+              allTemplatesCache.other_trips.forEach(trip => {
+                  const opt = document.createElement('option');
+                  opt.value = 'trip_' + trip.id;
+                  opt.textContent = `قالب رحلة: ${trip.title}`;
+                  select.appendChild(opt);
+              });
+          }
+      }
+
+      function loadQRTemplateFromSelect(val) {
+          if (!val) return;
+          let templateData = null;
+          if (val === 'church') {
+              templateData = allTemplatesCache.church_template;
+          } else if (val.startsWith('trip_')) {
+              const tid = parseInt(val.split('_')[1]);
+              const currentTripId = window.currentTripId || 0;
+              if (allTemplatesCache.trip_template && val === 'trip_' + currentTripId) {
+                  templateData = allTemplatesCache.trip_template;
+              } else if (Array.isArray(allTemplatesCache.other_trips)) {
+                  const t = allTemplatesCache.other_trips.find(x => x.id == tid);
+                  if (t) {
+                      templateData = typeof t.template === 'string' ? JSON.parse(t.template || '{}') : t.template;
+                  }
+              }
+          }
+          
+          if (templateData) {
+              deserializeQRTemplate(templateData);
+              showToast('تم تحميل القالب بنجاح', 'success');
+          } else {
+              showToast('فشل تحميل بيانات القالب', 'warning');
+          }
+      }
+
+      function serializeQRTemplate() {
+          const data = {
+              scale: document.getElementById('printScale')?.value || '100',
+              width: document.getElementById('printCardWidth')?.value || '7',
+              height: document.getElementById('printCardHeight')?.value || '10',
+              gapX: document.getElementById('printGapX')?.value || '0',
+              gapY: document.getElementById('printGapY')?.value || '0',
+              padding: document.getElementById('printPadding')?.value || '15',
+              outlineStyle: document.getElementById('printCardOutlineStyle')?.value || 'solid',
+              dashLength: document.getElementById('printCardDashLength')?.value || '12',
+              dashGap: document.getElementById('printCardDashGap')?.value || '8',
+              showAvatarFallback: document.getElementById('printShowAvatarFallback')?.checked ?? true,
+              cardRounded: document.getElementById('printCardRounded')?.checked ?? true,
+              printBackCard: document.getElementById('printBackCard')?.checked ?? true,
+              textReadability: document.getElementById('printTextReadability')?.value || 'none',
+              readabilityBgColor: document.getElementById('printTextReadabilityBgColor')?.value || '#ffffff',
+              readabilityBgOpacity: document.getElementById('printTextReadabilityBgOpacity')?.value || '92',
+              readabilityPadding: document.getElementById('printTextReadabilityPadding')?.value || '6',
+              readabilityWidth: document.getElementById('printTextReadabilityWidth')?.value || 'fitted',
+              readabilityShadow: document.getElementById('printTextReadabilityShadow')?.checked ?? true,
+              fontColor: document.getElementById('printFontColor')?.value || '#000000',
+              strokeColor: document.getElementById('printStrokeColor')?.value || '#dddddd',
+              customCardBackgroundDataUrl: window.customCardBackgroundDataUrl || null,
+              nameFontSize: document.getElementById('printNameFontSize')?.value || '0',
+              infoFontSize: document.getElementById('printInfoFontSize')?.value || '0',
+              qrYOffset: document.getElementById('printQrYOffset')?.value || '0',
+              customLogos: window.customLogos || [],
+              extraFields: window.cardExtraFields || []
+          };
+          return JSON.stringify(data);
+      }
+
+      function deserializeQRTemplate(template) {
+          try {
+              const data = typeof template === 'string' ? JSON.parse(template) : template;
+              if (!data) return;
+              
+              if (data.scale !== undefined) {
+                  const el = document.getElementById('printScale');
+                  if (el) {
+                      el.value = data.scale;
+                      document.getElementById('printScaleVal').textContent = data.scale + '%';
+                  }
+              }
+              if (data.width !== undefined) {
+                  const el = document.getElementById('printCardWidth');
+                  if (el) el.value = data.width;
+              }
+              if (data.height !== undefined) {
+                  const el = document.getElementById('printCardHeight');
+                  if (el) el.value = data.height;
+              }
+              if (data.gapX !== undefined) {
+                  const el = document.getElementById('printGapX');
+                  if (el) el.value = data.gapX;
+              }
+              if (data.gapY !== undefined) {
+                  const el = document.getElementById('printGapY');
+                  if (el) el.value = data.gapY;
+              }
+              if (data.padding !== undefined) {
+                  const el = document.getElementById('printPadding');
+                  if (el) el.value = data.padding;
+              }
+              if (data.outlineStyle !== undefined) {
+                  const el = document.getElementById('printCardOutlineStyle');
+                  if (el) el.value = data.outlineStyle;
+              }
+              if (data.dashLength !== undefined) {
+                  const el = document.getElementById('printCardDashLength');
+                  if (el) el.value = data.dashLength;
+              }
+              if (data.dashGap !== undefined) {
+                  const el = document.getElementById('printCardDashGap');
+                  if (el) el.value = data.dashGap;
+              }
+              if (data.showAvatarFallback !== undefined) {
+                  const el = document.getElementById('printShowAvatarFallback');
+                  if (el) el.checked = !!data.showAvatarFallback;
+              }
+              if (data.cardRounded !== undefined) {
+                  const el = document.getElementById('printCardRounded');
+                  if (el) el.checked = !!data.cardRounded;
+              }
+              if (data.printBackCard !== undefined) {
+                  const el = document.getElementById('printBackCard');
+                  if (el) el.checked = !!data.printBackCard;
+              }
+              if (data.textReadability !== undefined) {
+                  const el = document.getElementById('printTextReadability');
+                  if (el) el.value = data.textReadability;
+              }
+              if (data.readabilityBgColor !== undefined) {
+                  const el = document.getElementById('printTextReadabilityBgColor');
+                  if (el) el.value = data.readabilityBgColor;
+              }
+              if (data.readabilityBgOpacity !== undefined) {
+                  const el = document.getElementById('printTextReadabilityBgOpacity');
+                  if (el) {
+                      el.value = data.readabilityBgOpacity;
+                      document.getElementById('printTextReadabilityBgOpacityVal').textContent = data.readabilityBgOpacity + '%';
+                  }
+              }
+              if (data.readabilityPadding !== undefined) {
+                  const el = document.getElementById('printTextReadabilityPadding');
+                  if (el) el.value = data.readabilityPadding;
+              }
+              if (data.readabilityWidth !== undefined) {
+                  const el = document.getElementById('printTextReadabilityWidth');
+                  if (el) el.value = data.readabilityWidth;
+              }
+              if (data.readabilityShadow !== undefined) {
+                  const el = document.getElementById('printTextReadabilityShadow');
+                  if (el) el.checked = !!data.readabilityShadow;
+              }
+              if (data.fontColor !== undefined) {
+                  const el = document.getElementById('printFontColor');
+                  if (el) el.value = data.fontColor;
+              }
+              if (data.strokeColor !== undefined) {
+                  const el = document.getElementById('printStrokeColor');
+                  if (el) el.value = data.strokeColor;
+              }
+              if (data.customCardBackgroundDataUrl !== undefined) {
+                  window.customCardBackgroundDataUrl = data.customCardBackgroundDataUrl;
+                  const thumb = document.getElementById('printCustomBgThumbnail');
+                  const thumbWrap = document.getElementById('printCustomBgThumbnailWrap');
+                  const removeBtn = document.getElementById('printRemoveCustomBgBtn');
+                  const subSettings = document.getElementById('printCustomBgSubSettings');
+                  if (thumb && thumbWrap) {
+                      if (data.customCardBackgroundDataUrl) {
+                          thumb.src = data.customCardBackgroundDataUrl;
+                          thumbWrap.style.display = 'block';
+                          if (removeBtn) removeBtn.style.display = 'inline-flex';
+                          if (subSettings) subSettings.style.display = 'flex';
+                      } else {
+                          thumb.src = '';
+                          thumbWrap.style.display = 'none';
+                          if (removeBtn) removeBtn.style.display = 'none';
+                          if (subSettings) subSettings.style.display = 'none';
+                      }
+                  }
+              }
+              if (data.nameFontSize !== undefined) {
+                  const el = document.getElementById('printNameFontSize');
+                  if (el) {
+                      el.value = data.nameFontSize;
+                      document.getElementById('printNameFontSizeVal').textContent = data.nameFontSize == '0' ? 'تلقائي' : data.nameFontSize + 'px';
+                  }
+              }
+              if (data.infoFontSize !== undefined) {
+                  const el = document.getElementById('printInfoFontSize');
+                  if (el) {
+                      el.value = data.infoFontSize;
+                      document.getElementById('printInfoFontSizeVal').textContent = data.infoFontSize == '0' ? 'تلقائي' : data.infoFontSize + 'px';
+                  }
+              }
+              if (data.qrYOffset !== undefined) {
+                  const el = document.getElementById('printQrYOffset');
+                  if (el) {
+                      el.value = data.qrYOffset;
+                      document.getElementById('printQrYOffsetVal').textContent = data.qrYOffset + 'px';
+                  }
+              }
+              if (data.customLogos !== undefined) {
+                  window.customLogos = Array.isArray(data.customLogos) ? data.customLogos : [];
+                  renderPrintLogosList();
+              }
+              if (Array.isArray(data.extraFields)) {
+                  window.cardExtraFields = data.extraFields;
+                  renderPrintExtraFieldsList();
+                  populatePrintExtraFieldsDropdown();
+              }
+              
+              syncPrintSettingsUI();
+              updatePrintPreview();
+          } catch (e) {
+              console.error("Error deserializing QR Template", e);
+          }
+      }
+
+      async function saveQRTemplateDialog() {
+          const currentTripId = window.currentTripId || 0;
+          const hasTrip = currentTripId > 0;
+          let target = 'church';
+          if (hasTrip) {
+              const conf = confirm("هل تريد حفظ التصميم كقالب لهذه الرحلة الحالية فقط؟\n\n(اضغط OK لحفظه للرحلة، أو Cancel لحفظه كقالب عام للكنيسة)");
+              if (conf) {
+                  target = 'trip';
+              }
+          } else {
+              const conf = confirm("هل تريد حفظ هذا التصميم كقالب افتراضي عام للكنيسة؟");
+              if (!conf) return;
+          }
+          
+          const templateStr = serializeQRTemplate();
+          try {
+              const fd = new FormData();
+              fd.append('action', 'saveQRTemplate');
+              fd.append('target', target);
+              if (target === 'trip') {
+                  fd.append('trip_id', currentTripId);
+              }
+              fd.append('template', templateStr);
+              
+              const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+              if (res && res.success) {
+                  showToast(res.message || 'تم حفظ القالب بنجاح', 'success');
+                  fetchTemplatesFromServer(hasTrip ? currentTripId : 0);
+              } else {
+                  showToast(res.message || 'فشل حفظ القالب', 'error');
+              }
+          } catch (e) {
+              console.error("Error saving template", e);
+              showToast('حدث خطأ أثناء الاتصال بالخادم', 'error');
+          }
+      }
+
+      window.customLogos = [];
+
+      function handleLogoUpload(event) {
+          const file = event.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = function(e) {
+              const logo = {
+                  src: e.target.result,
+                  x: 5,
+                  y: 5,
+                  width: 20
+              };
+              window.customLogos.push(logo);
+              renderPrintLogosList();
+              updatePrintPreview();
+          };
+          reader.readAsDataUrl(file);
+          event.target.value = ''; // Reset input
+      }
+
+      function renderPrintLogosList() {
+          const list = document.getElementById('printLogosList');
+          if (!list) return;
+          list.innerHTML = '';
+          if (window.customLogos.length === 0) {
+              list.innerHTML = '<span style="font-size:0.75rem; color:var(--muted); text-align:center;">لا توجد شعارات مضافة حالياً.</span>';
+              return;
+          }
+          
+          window.customLogos.forEach((logo, idx) => {
+              const row = document.createElement('div');
+              row.style = 'border: 1px solid var(--border); padding: 8px; border-radius: 6px; display: flex; flex-direction: column; gap: 8px; background: rgba(0,0,0,0.01);';
+              row.innerHTML = `
+                  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                      <img src="${logo.src}" style="height:30px; width:auto; max-width:60px; object-fit:contain; border-radius:3px;">
+                      <button type="button" class="btn btn-outline btn-sm" onclick="removePrintLogo(${idx})" style="color:var(--danger); border-color:rgba(220,38,38,0.2); padding:2px 6px; font-size:0.7rem; height:24px;">حذف</button>
+                  </div>
+                  <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px;">
+                      <div>
+                          <label style="font-size:0.65rem; font-weight:700;">الموضع X (%):</label>
+                          <input type="number" value="${logo.x}" style="width:100%; height:26px; font-size:0.75rem; padding: 2px 4px; border: 1px solid var(--border); border-radius:4px;" oninput="updatePrintLogoAttr(${idx}, 'x', this.value)">
+                      </div>
+                      <div>
+                          <label style="font-size:0.65rem; font-weight:700;">الموضع Y (%):</label>
+                          <input type="number" value="${logo.y}" style="width:100%; height:26px; font-size:0.75rem; padding: 2px 4px; border: 1px solid var(--border); border-radius:4px;" oninput="updatePrintLogoAttr(${idx}, 'y', this.value)">
+                      </div>
+                      <div>
+                          <label style="font-size:0.65rem; font-weight:700;">العرض (%):</label>
+                          <input type="number" value="${logo.width}" style="width:100%; height:26px; font-size:0.75rem; padding: 2px 4px; border: 1px solid var(--border); border-radius:4px;" oninput="updatePrintLogoAttr(${idx}, 'width', this.value)">
+                      </div>
+                  </div>
+              `;
+              list.appendChild(row);
+          });
+      }
+
+      function updatePrintLogoAttr(idx, attr, val) {
+          const v = parseFloat(val);
+          if (isNaN(v)) return;
+          if (window.customLogos[idx]) {
+              window.customLogos[idx][attr] = v;
+              updatePrintPreview();
+          }
+      }
+
+      function removePrintLogo(idx) {
+          window.customLogos.splice(idx, 1);
+          renderPrintLogosList();
+          updatePrintPreview();
       }
 
       // =========================================================================
@@ -17511,16 +17774,19 @@
               style="background:var(--card, #fff); border:1.5px solid var(--primary); padding:14px; border-radius:10px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
               <h4
                 style="margin:0 0 4px 0; font-size:0.85rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
-                القالب Sunday School
+                <i class="fas fa-file-invoice"></i> قوالب تصميم كارت الـ QR
               </h4>
-              <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                <button type="button" class="btn btn-primary btn-sm recommended-btn-glow"
-                  onclick="applyRecommendedQRTemplate()"
-                  style="flex:2; justify-content:center; gap:6px; font-weight:800; font-size:0.8rem; height:34px; border:none;">
-                  <i class="fas fa-magic"></i> تطبيق القالب
+              <div class="form-group" style="margin:0;">
+                <label class="form-label" style="font-size:0.75rem; font-weight:700;">تحميل قالب جاهز</label>
+                <select id="printTemplateSelect" class="form-select" style="width:100%; height:34px; border:1px solid var(--border); padding:0 8px; border-radius:6px; background:#fff; font-family:'Cairo', sans-serif; font-size:0.8rem;" onchange="loadQRTemplateFromSelect(this.value)">
+                  <option value="">-- اختر قالب للتحميل --</option>
+                </select>
+              </div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button type="button" class="btn btn-primary btn-sm recommended-btn-glow" onclick="saveQRTemplateDialog()" style="flex:1; justify-content:center; gap:4px; font-weight:800; font-size:0.8rem; height:34px; border:none; padding: 0 6px;">
+                  <i class="fas fa-save"></i> حفظ كقالب
                 </button>
-                <button type="button" class="btn btn-outline btn-sm" onclick="resetQRPrintSettings()"
-                  style="flex:1; justify-content:center; gap:4px; font-weight:700; font-size:0.8rem; height:34px; color:var(--muted); border-color:var(--border);">
+                <button type="button" class="btn btn-outline btn-sm" onclick="resetQRPrintSettings()" style="justify-content:center; gap:4px; font-weight:700; font-size:0.8rem; height:34px; color:var(--muted); border-color:var(--border); padding: 0 8px;">
                   <i class="fas fa-undo"></i> إعادة تعيين
                 </button>
               </div>
@@ -17877,6 +18143,34 @@
                     for="printStrokeColor">لون إطار النصوص (Stroke)</label>
                 </div>
               </div>
+
+              <div style="margin-top:12px; border-top:1px dashed var(--border); padding-top:10px; display:flex; flex-direction:column; gap:10px;">
+                <span style="font-size:0.8rem; font-weight:800; color:var(--primary);"><i class="fas fa-text-height"></i> حجم الخطوط وموضع الـ QR</span>
+                
+                <div style="display:flex; flex-direction:column; gap:2px; color:var(--text);">
+                  <span style="font-size:0.75rem; font-weight:700;">حجم خط الاسم (Name Font Size):</span>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <input type="range" id="printNameFontSize" min="0" max="40" value="0" style="padding:0; flex:1;" oninput="updatePrintPreview(); document.getElementById('printNameFontSizeVal').textContent = this.value == '0' ? 'تلقائي' : this.value + 'px'">
+                    <span id="printNameFontSizeVal" style="font-weight:bold; font-size:0.75rem; min-width:45px; text-align:center;">تلقائي</span>
+                  </div>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:2px; color:var(--text);">
+                  <span style="font-size:0.75rem; font-weight:700;">حجم خط البيانات (Info Font Size):</span>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <input type="range" id="printInfoFontSize" min="0" max="30" value="0" style="padding:0; flex:1;" oninput="updatePrintPreview(); document.getElementById('printInfoFontSizeVal').textContent = this.value == '0' ? 'تلقائي' : this.value + 'px'">
+                    <span id="printInfoFontSizeVal" style="font-weight:bold; font-size:0.75rem; min-width:45px; text-align:center;">تلقائي</span>
+                  </div>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:2px; color:var(--text);">
+                  <span style="font-size:0.75rem; font-weight:700;">موضع الـ QR الرأسي (Y Offset):</span>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <input type="range" id="printQrYOffset" min="-100" max="100" value="0" style="padding:0; flex:1;" oninput="updatePrintPreview(); document.getElementById('printQrYOffsetVal').textContent = this.value + 'px'">
+                    <span id="printQrYOffsetVal" style="font-weight:bold; font-size:0.75rem; min-width:45px; text-align:center;">0px</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
 
@@ -17924,6 +18218,23 @@
                       style="font-weight:bold; font-size:0.75rem; min-width:30px;">0%</span>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            <!-- Section 5: Custom Logos -->
+            <div style="background:var(--card, #fff); border:1px solid var(--border); padding:14px; border-radius:10px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+              <h4 style="margin:0 0 4px 0; font-size:0.85rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
+                <i class="fas fa-icons"></i> إضافة شعارات مخصصة PNG
+              </h4>
+              
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <input type="file" id="printLogoInput" accept="image/*" style="display:none;" onchange="handleLogoUpload(event)">
+                <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('printLogoInput').click()"><i class="fas fa-plus"></i> اختر شعار جديد</button>
+              </div>
+              
+              <!-- List of active custom logos -->
+              <div id="printLogosList" style="display:flex; flex-direction:column; gap:10px; margin-top:8px;">
+                <!-- Populated dynamically -->
               </div>
             </div>
 

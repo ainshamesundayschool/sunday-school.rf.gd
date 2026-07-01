@@ -9508,13 +9508,19 @@
                     </style>
                     <div style="background:var(--card, #fff); border:1.5px solid var(--primary); padding:14px; border-radius:10px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
                         <h4 style="margin:0 0 4px 0; font-size:0.85rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
-                            القالب Sunday School
+                            <i class="fas fa-file-invoice"></i> قوالب تصميم كارت الـ QR
                         </h4>
-                        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                            <button type="button" class="btn btn-primary btn-sm recommended-btn-glow" onclick="applyRecommendedQRTemplate()" style="flex:2; justify-content:center; gap:6px; font-weight:800; font-size:0.8rem; height:34px; border:none;">
-                                <i class="fas fa-magic"></i> تطبيق القالب
+                        <div class="form-group" style="margin:0;">
+                            <label class="form-label" style="font-size:0.75rem; font-weight:700;">تحميل قالب جاهز</label>
+                            <select id="printTemplateSelect" class="form-select" style="width:100%; height:34px; border:1px solid var(--border); padding:0 8px; border-radius:6px; background:#fff; font-family:'Cairo', sans-serif; font-size:0.8rem;" onchange="loadQRTemplateFromSelect(this.value)">
+                                <option value="">-- اختر قالب للتحميل --</option>
+                            </select>
+                        </div>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            <button type="button" class="btn btn-primary btn-sm recommended-btn-glow" onclick="saveQRTemplateDialog()" style="flex:1; justify-content:center; gap:4px; font-weight:800; font-size:0.8rem; height:34px; border:none; padding: 0 6px;">
+                                <i class="fas fa-save"></i> حفظ كقالب
                             </button>
-                            <button type="button" class="btn btn-outline btn-sm" onclick="resetQRPrintSettings()" style="flex:1; justify-content:center; gap:4px; font-weight:700; font-size:0.8rem; height:34px; color:var(--muted); border-color:var(--border);">
+                            <button type="button" class="btn btn-outline btn-sm" onclick="resetQRPrintSettings()" style="justify-content:center; gap:4px; font-weight:700; font-size:0.8rem; height:34px; color:var(--muted); border-color:var(--border); padding: 0 8px;">
                                 <i class="fas fa-undo"></i> إعادة تعيين
                             </button>
                         </div>
@@ -9775,6 +9781,34 @@
                                 <label class="form-label" style="font-weight:700; margin:0; cursor:pointer;" for="printStrokeColor">لون إطار النصوص (Stroke)</label>
                             </div>
                         </div>
+
+                        <div style="margin-top:12px; border-top:1px dashed var(--border); padding-top:10px; display:flex; flex-direction:column; gap:10px;">
+                            <span style="font-size:0.8rem; font-weight:800; color:var(--primary);"><i class="fas fa-text-height"></i> حجم الخطوط وموضع الـ QR</span>
+                            
+                            <div style="display:flex; flex-direction:column; gap:2px; color:var(--text);">
+                                <span style="font-size:0.75rem; font-weight:700;">حجم خط الاسم (Name Font Size):</span>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <input type="range" id="printNameFontSize" min="0" max="40" value="0" style="padding:0; flex:1;" oninput="updatePrintPreview(); document.getElementById('printNameFontSizeVal').textContent = this.value == '0' ? 'تلقائي' : this.value + 'px'">
+                                    <span id="printNameFontSizeVal" style="font-weight:bold; font-size:0.75rem; min-width:45px; text-align:center;">تلقائي</span>
+                                </div>
+                            </div>
+
+                            <div style="display:flex; flex-direction:column; gap:2px; color:var(--text);">
+                                <span style="font-size:0.75rem; font-weight:700;">حجم خط البيانات (Info Font Size):</span>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <input type="range" id="printInfoFontSize" min="0" max="30" value="0" style="padding:0; flex:1;" oninput="updatePrintPreview(); document.getElementById('printInfoFontSizeVal').textContent = this.value == '0' ? 'تلقائي' : this.value + 'px'">
+                                    <span id="printInfoFontSizeVal" style="font-weight:bold; font-size:0.75rem; min-width:45px; text-align:center;">تلقائي</span>
+                                </div>
+                            </div>
+
+                            <div style="display:flex; flex-direction:column; gap:2px; color:var(--text);">
+                                <span style="font-size:0.75rem; font-weight:700;">موضع الـ QR الرأسي (Y Offset):</span>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <input type="range" id="printQrYOffset" min="-100" max="100" value="0" style="padding:0; flex:1;" oninput="updatePrintPreview(); document.getElementById('printQrYOffsetVal').textContent = this.value + 'px'">
+                                    <span id="printQrYOffsetVal" style="font-weight:bold; font-size:0.75rem; min-width:45px; text-align:center;">0px</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
 
@@ -9807,6 +9841,23 @@
                                     <span id="printCustomBgOverlayOpacityVal" style="font-weight:bold; font-size:0.75rem; min-width:30px;">0%</span>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 5: Custom Logos -->
+                    <div style="background:var(--card, #fff); border:1px solid var(--border); padding:14px; border-radius:10px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+                        <h4 style="margin:0 0 4px 0; font-size:0.85rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
+                            <i class="fas fa-icons"></i> إضافة شعارات مخصصة PNG
+                        </h4>
+                        
+                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                            <input type="file" id="printLogoInput" accept="image/*" style="display:none;" onchange="handleLogoUpload(event)">
+                            <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('printLogoInput').click()"><i class="fas fa-plus"></i> اختر شعار جديد</button>
+                        </div>
+                        
+                        <!-- List of active custom logos -->
+                        <div id="printLogosList" style="display:flex; flex-direction:column; gap:10px; margin-top:8px;">
+                            <!-- Populated dynamically -->
                         </div>
                     </div>
                     
@@ -20830,6 +20881,10 @@
             readabilityBgShadow = true,
             extraFields = []
         }) {
+            const nameFontSizeOver = parseInt(document.getElementById('printNameFontSize')?.value || 0);
+            const infoFontSizeOver = parseInt(document.getElementById('printInfoFontSize')?.value || 0);
+            const qrYOffset = parseFloat(document.getElementById('printQrYOffset')?.value || 0);
+
             const showChurch = extraFields.some(f => f.key === 'church_header' && f.placement === 'front');
             let showStudentImg = extraFields.some(f => f.key === 'student_image' && f.placement === 'front');
             let showStudentName = extraFields.some(f => f.key === 'student_name' && f.placement === 'front');
@@ -20845,6 +20900,14 @@
 
             const layout = calculateCardLayout(baseWidth, baseHeight, scale, padding);
             const { isLandscape, scaledWidth, scaledHeight, scaledPadding, qrSize, sAvatar, sLogo, fH2, fH3, fChurch } = layout;
+
+            const availW = scaledWidth - 2 * scaledPadding;
+            const availH = scaledHeight - 2 * scaledPadding;
+
+            const fH2_final = nameFontSizeOver > 0 ? nameFontSizeOver * scale : fH2;
+            const fH3_final = infoFontSizeOver > 0 ? infoFontSizeOver * scale : fH3;
+            const fCustom_final = infoFontSizeOver > 0 ? infoFontSizeOver * scale : Math.max(7, Math.min(availW * (isLandscape ? 0.04 : 0.06), availH * (isLandscape ? 0.055 : 0.038)));
+            const qrOffsetStyle = qrYOffset !== 0 ? `transform: translateY(${qrYOffset * scale}px);` : '';
 
             const sid = s['_studentId'] || s.id || s.student_id;
             const rawImg = s['صورة'] || s.image_url || s.photo || '';
@@ -20956,20 +21019,18 @@
                 if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only') {
                     classGroupHtml = `
                         <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${6 * scale}px; display:flex; flex-direction:column; align-items:center; ${infoBlockWidthStyle} box-sizing:border-box; margin-bottom:4px; box-shadow:${boxShadowValue};">
-                                <h3 style="font-size:${fH3}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeClass}</h3>
+                                <h3 style="font-size:${fH3_final}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeClass}</h3>
                         </div>
                     `;
                 } else {
-                    classGroupHtml = `<h3 style="font-size:${fH3}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeClass}</h3>`;
+                    classGroupHtml = `<h3 style="font-size:${fH3_final}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeClass}</h3>`;
                 }
             }
 
             let studentInfoGroupHtml = '';
             if (showStudentImg || showStudentName || (extraFields && extraFields.length > 0)) {
-                const nameTag = showStudentName ? `<h2 style="font-size:${fH2}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeStudentName}</h2>` : '';
+                const nameTag = showStudentName ? `<h2 style="font-size:${fH2_final}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeStudentName}</h2>` : '';
                 
-                const availW = scaledWidth - 2 * scaledPadding;
-                const availH = scaledHeight - 2 * scaledPadding;
                 let extraInfoHtml = '';
                 if (extraFields && extraFields.length > 0) {
                     const frontFields = extraFields.filter(f => f.placement === 'front');
@@ -20996,8 +21057,7 @@
                         }).filter(Boolean).join(' | ');
                         
                         if (itemsHtml) {
-                            const fCustom = Math.max(7, Math.min(availW * (isLandscape ? 0.04 : 0.06), availH * (isLandscape ? 0.055 : 0.038)));
-                            extraInfoHtml = `<div class="extra-info" style="font-size:${fCustom}px; font-weight:bold; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-wrap:wrap; justify-content:center; gap:6px; width:100%; margin-top:4px;">${itemsHtml}</div>`;
+                            extraInfoHtml = `<div class="extra-info" style="font-size:${fCustom_final}px; font-weight:bold; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-wrap:wrap; justify-content:center; gap:6px; width:100%; margin-top:4px;">${itemsHtml}</div>`;
                         }
                     }
                 }
@@ -21063,7 +21123,7 @@
                     qrHalfHtml = `
                     <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:0.8; height:100%; min-width:0; min-height:0; width:100%;">
                         <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-sizing:border-box; box-shadow:${boxShadowValue}; overflow:visible; width:100%; flex:1; min-height:0; gap:${4 * scale}px;">
-                            <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div>
+                            <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible; ${qrOffsetStyle}"></div>
                             ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
                         </div>
                     </div>
@@ -21072,7 +21132,7 @@
                     qrHalfHtml = `
                     <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:0.8; height:100%; min-width:0; min-height:0; width:100%;">
                         <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-shadow:${boxShadowValue}; overflow:visible; width:fit-content; gap:${4 * scale}px;">
-                            <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div>
+                            <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible; ${qrOffsetStyle}"></div>
                             ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
                         </div>
                     </div>
@@ -21081,7 +21141,7 @@
                     qrHalfHtml = `
                     <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:0.8; height:100%; min-width:0; min-height:0; width:100%;">
                         <div style="${qrWrapperStyles} display:flex; justify-content:center; align-items:center; overflow:visible;">
-                            <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div>
+                            <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible; ${qrOffsetStyle}"></div>
                         </div>
                         ${showStudentIdHtml}
                     </div>
@@ -21123,7 +21183,7 @@
                     qrHalfHtml = `
                     <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; flex:0.8; min-height:0;">
                         <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-sizing:border-box; box-shadow:${boxShadowValue}; overflow:visible; width:100%; flex:1; min-height:0; gap:${4 * scale}px;">
-                            <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div>
+                            <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible; ${qrOffsetStyle}"></div>
                             ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
                         </div>
                     </div>
@@ -21132,7 +21192,7 @@
                     qrHalfHtml = `
                     <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; flex:0.8; min-height:0;">
                         <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-shadow:${boxShadowValue}; overflow:visible; width:fit-content; gap:${4 * scale}px;">
-                            <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div>
+                            <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible; ${qrOffsetStyle}"></div>
                             ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
                         </div>
                     </div>
@@ -21141,7 +21201,7 @@
                     qrHalfHtml = `
                     <div style="flex:0.8; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; min-height:0;">
                         <div style="${qrWrapperStyles} display:flex; justify-content:center; align-items:center; overflow:visible;">
-                            <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible;"></div>
+                            <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible; ${qrOffsetStyle}"></div>
                         </div>
                         ${showStudentIdHtml}
                     </div>
@@ -21158,10 +21218,18 @@
                 `;
             }
 
+            let logoHtml = '';
+            if (Array.isArray(window.customLogos) && window.customLogos.length > 0) {
+                logoHtml = window.customLogos.map(logo => {
+                    return `<img src="${logo.src}" style="position:absolute; left:${logo.x}%; top:${logo.y}%; width:${logo.width}%; height:auto; z-index:10; pointer-events:none; object-fit:contain;">`;
+                }).join('');
+            }
+
             return `
             <div class="print-card" style="${bgStyles}">
                 ${bgHtml}
                 ${outlineOverlayHtml}
+                ${logoHtml}
                 ${innerContentHtml}
             </div>
             `;
@@ -21173,8 +21241,14 @@
                 baseWidth, baseHeight, textReadability, extraFields = [], showAvatarWhenNoPhoto = true
             } = opts;
 
+            const nameFontSizeOver = parseInt(document.getElementById('printNameFontSize')?.value || 0);
+            const infoFontSizeOver = parseInt(document.getElementById('printInfoFontSize')?.value || 0);
+
             const layout = calculateCardLayout(baseWidth, baseHeight, scale, padding);
             const { isLandscape, scaledWidth, scaledHeight, scaledPadding, fChurch, fH3, fH2, sLogo, sAvatar } = layout;
+
+            const fH2_final = nameFontSizeOver > 0 ? nameFontSizeOver * scale : fH2;
+            const fH3_final = infoFontSizeOver > 0 ? infoFontSizeOver * scale : fH3;
 
             const isCardRounded = document.getElementById('printCardRounded')?.checked ?? true;
             const cardRadius = isCardRounded ? 10 : 0;
@@ -21251,7 +21325,7 @@
                         }
                     }
                     const safeStudentName = escHtml(r['الاسم'] || r.name || 'طفل');
-                    const nameHtml = showStudentName ? `<h2 style="font-size:${fH2}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeStudentName}</h2>` : '';
+                    const nameHtml = showStudentName ? `<h2 style="font-size:${fH2_final}px; font-weight:800; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeStudentName}</h2>` : '';
                     studentHtml = `<div style="display:flex; flex-direction:column; align-items:center; margin-bottom:6px;">${avatarHtml}${nameHtml}</div>`;
                 }
 
@@ -21259,7 +21333,7 @@
                 if (showClass) {
                     const cls = r['الفصل'] || r.class || '';
                     if (cls) {
-                        classHtml = `<div style="font-size:${fH3}px; font-weight:700; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; margin-bottom:6px;">${escHtml(cls)}</div>`;
+                        classHtml = `<div style="font-size:${fH3_final}px; font-weight:700; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; margin-bottom:6px;">${escHtml(cls)}</div>`;
                     }
                 }
 
@@ -21281,7 +21355,7 @@
 
                     if (itemsHtml) {
                         const numItems = textFields.length;
-                        const dynamicFontSize = numItems <= 2 ? fH3 : fChurch;
+                        const dynamicFontSize = numItems <= 2 ? fH3_final : fChurch;
                         const dynamicGap = numItems <= 2 ? `${8 * scale}px` : `${4 * scale}px`;
 
                         const readBgColor = hexToRgba(opts.readabilityBgColor || '#ffffff', parseFloat(opts.readabilityBgOpacity || '92') / 100);
@@ -21293,60 +21367,45 @@
                         if (textReadability === 'rect') {
                             textFieldsHtml = `
                               <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; align-items:center; gap:${dynamicGap}; box-shadow:${boxShadowValue}; width: 100%; text-align:center; justify-content:center; box-sizing:border-box;">
-                                  ${itemsHtml}
-                              </div>
-                            `;
+                                ${itemsHtml}
+                              </div>`;
                         } else {
                             textFieldsHtml = `
-                              <div style="display:flex; flex-direction:column; align-items:center; gap:${dynamicGap}; width:100%; text-align:center; justify-content:center; color:${fontColor}; text-shadow: var(--text-shadow, none); font-size:${dynamicFontSize}px; font-weight:bold;">
-                                  ${itemsHtml}
-                              </div>
-                            `;
+                              <div style="display:flex; flex-direction:column; align-items:center; gap:${dynamicGap}; width: 100%; text-align:center; justify-content:center; font-size:${dynamicFontSize}px; color:${fontColor}; text-shadow:var(--text-shadow, none);">
+                                ${itemsHtml}
+                              </div>`;
                         }
                     }
                 }
 
                 innerContentHtml = `
-                <div style="position:relative; z-index:5; width:100%; height:100%; display:flex; flex-direction:column; justify-content:space-between; align-items:center; text-align:center; box-sizing:border-box; padding:${4 * scale}px 0;">
-                    ${headerHtml}
-                    <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; gap:${6 * scale}px; overflow:hidden;">
-                        ${studentHtml}
-                        ${classHtml}
-                        ${idHtml}
-                        ${textFieldsHtml}
-                    </div>
-                    <div style="margin-top:auto; font-weight:700; color:${fontColor}; font-size:${Math.max(6.5, 8 * scale)}px; font-family:'Outfit', 'Segoe UI', sans-serif; opacity:0.6; text-align:center; width:100%;">
-                        sunday-school.online
-                    </div>
-                </div>
-                `;
-            } else {
-                const logoHeight = Math.max(22, Math.min(availW * 0.32, availH * 0.28));
-                innerContentHtml = `
-                <div style="position:relative; z-index:5; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:${12 * scale}px; text-align:center; box-sizing:border-box;">
-                    <div style="display:flex; justify-content:center; align-items:center; width:100%;">
-                        <img src="${window.pdfLogoBase64 || '/logo.png'}" style="height:${logoHeight}px; width:auto; object-fit:contain; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.04));" onerror="this.style.display='none'">
-                    </div>
-                    <div style="background:rgba(255,255,255,0.9); border:1px solid ${fontColor}22; border-radius:50px; padding:${4 * scale}px ${12 * scale}px; display:inline-flex; align-items:center; gap:${5 * scale}px; max-width:85%; box-sizing:border-box;">
-                        <i class="fas fa-search" style="color:${fontColor}; opacity:0.5; font-size:${Math.max(6.5, 8 * scale)}px;"></i>
-                        <span style="font-weight:700; color:${fontColor}; font-size:${Math.max(7.5, 9 * scale)}px; font-family:'Outfit', 'Segoe UI', sans-serif; letter-spacing:0.02em; white-space:nowrap;">
-                            sunday-school.online
-                        </span>
-                    </div>
-                </div>
+                  <div style="position:relative; z-index:5; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+                      ${headerHtml}
+                      ${studentHtml}
+                      ${classHtml}
+                      ${idHtml}
+                      ${textFieldsHtml}
+                  </div>
                 `;
             }
 
+            let logoHtml = '';
+            if (Array.isArray(window.customLogos) && window.customLogos.length > 0) {
+                logoHtml = window.customLogos.map(logo => {
+                    return `<img src="${logo.src}" style="position:absolute; left:${logo.x}%; top:${logo.y}%; width:${logo.width}%; height:auto; z-index:10; pointer-events:none; object-fit:contain;">`;
+                }).join('');
+            }
+
             return `
-            <div class="print-card" style="${bgStyles}">
-                ${bgHtml}
-                ${outlineOverlayHtml}
-                ${innerContentHtml}
-            </div>
+              <div class="print-card" style="${bgStyles}">
+                  ${bgHtml}
+                  ${outlineOverlayHtml}
+                  ${logoHtml}
+                  ${innerContentHtml}
+              </div>
             `;
         }
-
-        function updatePrintPreview() {
+                function updatePrintPreview() {
             syncPrintSettingsUI();
 
             const previewWrapper = document.getElementById('printPreviewContent');
@@ -21655,6 +21714,7 @@
             openModal('printSettingsModal');
             document.getElementById('printPreviewContent').innerHTML = '<div style="color:var(--muted);font-size:0.9rem;"><i class="fas fa-circle-notch fa-spin"></i> جاري تحميل المعاينة...</div>';
             
+            fetchTemplatesFromServer(window.currentTripId || 0);
             populatePrintExtraFieldsDropdown();
             syncPrintSettingsUI();
             updatePrintPreview();
@@ -22455,8 +22515,398 @@
             document.getElementById('printCustomBgSubSettings').style.display = 'none';
             document.getElementById('printRemoveCustomBgBtn').style.display = 'none';
 
+            // Reset font sizes & Y offset
+            const nameFontSize = document.getElementById('printNameFontSize');
+            if (nameFontSize) {
+                nameFontSize.value = 0;
+                document.getElementById('printNameFontSizeVal').textContent = 'تلقائي';
+            }
+            const infoFontSize = document.getElementById('printInfoFontSize');
+            if (infoFontSize) {
+                infoFontSize.value = 0;
+                document.getElementById('printInfoFontSizeVal').textContent = 'تلقائي';
+            }
+            const qrYOffsetEl = document.getElementById('printQrYOffset');
+            if (qrYOffsetEl) {
+                qrYOffsetEl.value = 0;
+                document.getElementById('printQrYOffsetVal').textContent = '0px';
+            }
+            window.customLogos = [];
+            renderPrintLogosList();
+
+            // Reset template dropdown select value
+            const templateSelect = document.getElementById('printTemplateSelect');
+            if (templateSelect) templateSelect.value = '';
+
             // Sync UI and Update Preview
             syncPrintSettingsUI();
+            updatePrintPreview();
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        // TEMPLATES & LOGOS CUSTOMIZER ADDITIONS
+        // ══════════════════════════════════════════════════════════════
+        let allTemplatesCache = {};
+
+        async function fetchTemplatesFromServer(tripId = 0) {
+            try {
+                const fd = new FormData();
+                fd.append('action', 'getQRTemplates');
+                if (tripId > 0) {
+                    fd.append('trip_id', tripId);
+                }
+                const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                if (res && res.success) {
+                    allTemplatesCache = res;
+                    populateTemplatesDropdown(tripId);
+                }
+            } catch (e) {
+                console.error("Error loading templates from server", e);
+            }
+        }
+
+        function populateTemplatesDropdown(currentTripId = 0) {
+            const select = document.getElementById('printTemplateSelect');
+            if (!select) return;
+            select.innerHTML = '<option value="">-- اختر قالب للتحميل --</option>';
+            
+            if (allTemplatesCache.church_template) {
+                const opt = document.createElement('option');
+                opt.value = 'church';
+                opt.textContent = 'قالب الكنيسة الرئيسي';
+                select.appendChild(opt);
+            }
+            
+            if (currentTripId > 0 && allTemplatesCache.trip_template) {
+                const opt = document.createElement('option');
+                opt.value = 'trip_' + currentTripId;
+                opt.textContent = 'قالب هذه الرحلة الحالي';
+                select.appendChild(opt);
+            }
+            
+            if (Array.isArray(allTemplatesCache.other_trips)) {
+                allTemplatesCache.other_trips.forEach(trip => {
+                    const opt = document.createElement('option');
+                    opt.value = 'trip_' + trip.id;
+                    opt.textContent = `قالب رحلة: ${trip.title}`;
+                    select.appendChild(opt);
+                });
+            }
+        }
+
+        function loadQRTemplateFromSelect(val) {
+            if (!val) return;
+            let templateData = null;
+            if (val === 'church') {
+                templateData = allTemplatesCache.church_template;
+            } else if (val.startsWith('trip_')) {
+                const tid = parseInt(val.split('_')[1]);
+                const currentTripId = window.currentTripId || 0;
+                if (allTemplatesCache.trip_template && val === 'trip_' + currentTripId) {
+                    templateData = allTemplatesCache.trip_template;
+                } else if (Array.isArray(allTemplatesCache.other_trips)) {
+                    const t = allTemplatesCache.other_trips.find(x => x.id == tid);
+                    if (t) {
+                        templateData = typeof t.template === 'string' ? JSON.parse(t.template || '{}') : t.template;
+                    }
+                }
+            }
+            
+            if (templateData) {
+                deserializeQRTemplate(templateData);
+                showToast('تم تحميل القالب بنجاح', 'success');
+            } else {
+                showToast('فشل تحميل بيانات القالب', 'warning');
+            }
+        }
+
+        function serializeQRTemplate() {
+            const data = {
+                scale: document.getElementById('printScale')?.value || '100',
+                width: document.getElementById('printCardWidth')?.value || '7',
+                height: document.getElementById('printCardHeight')?.value || '10',
+                gapX: document.getElementById('printGapX')?.value || '0',
+                gapY: document.getElementById('printGapY')?.value || '0',
+                padding: document.getElementById('printPadding')?.value || '15',
+                outlineStyle: document.getElementById('printCardOutlineStyle')?.value || 'solid',
+                dashLength: document.getElementById('printCardDashLength')?.value || '12',
+                dashGap: document.getElementById('printCardDashGap')?.value || '8',
+                showAvatarFallback: document.getElementById('printShowAvatarFallback')?.checked ?? true,
+                cardRounded: document.getElementById('printCardRounded')?.checked ?? true,
+                printBackCard: document.getElementById('printBackCard')?.checked ?? true,
+                textReadability: document.getElementById('printTextReadability')?.value || 'none',
+                readabilityBgColor: document.getElementById('printTextReadabilityBgColor')?.value || '#ffffff',
+                readabilityBgOpacity: document.getElementById('printTextReadabilityBgOpacity')?.value || '92',
+                readabilityPadding: document.getElementById('printTextReadabilityPadding')?.value || '6',
+                readabilityWidth: document.getElementById('printTextReadabilityWidth')?.value || 'fitted',
+                readabilityShadow: document.getElementById('printTextReadabilityShadow')?.checked ?? true,
+                fontColor: document.getElementById('printFontColor')?.value || '#000000',
+                strokeColor: document.getElementById('printStrokeColor')?.value || '#dddddd',
+                customCardBackgroundDataUrl: window.customCardBackgroundDataUrl || null,
+                nameFontSize: document.getElementById('printNameFontSize')?.value || '0',
+                infoFontSize: document.getElementById('printInfoFontSize')?.value || '0',
+                qrYOffset: document.getElementById('printQrYOffset')?.value || '0',
+                customLogos: window.customLogos || [],
+                extraFields: window.cardExtraFields || []
+            };
+            return JSON.stringify(data);
+        }
+
+        function deserializeQRTemplate(template) {
+            try {
+                const data = typeof template === 'string' ? JSON.parse(template) : template;
+                if (!data) return;
+                
+                if (data.scale !== undefined) {
+                    const el = document.getElementById('printScale');
+                    if (el) {
+                        el.value = data.scale;
+                        document.getElementById('printScaleVal').textContent = data.scale + '%';
+                    }
+                }
+                if (data.width !== undefined) {
+                    const el = document.getElementById('printCardWidth');
+                    if (el) el.value = data.width;
+                }
+                if (data.height !== undefined) {
+                    const el = document.getElementById('printCardHeight');
+                    if (el) el.value = data.height;
+                }
+                if (data.gapX !== undefined) {
+                    const el = document.getElementById('printGapX');
+                    if (el) el.value = data.gapX;
+                }
+                if (data.gapY !== undefined) {
+                    const el = document.getElementById('printGapY');
+                    if (el) el.value = data.gapY;
+                }
+                if (data.padding !== undefined) {
+                    const el = document.getElementById('printPadding');
+                    if (el) el.value = data.padding;
+                }
+                if (data.outlineStyle !== undefined) {
+                    const el = document.getElementById('printCardOutlineStyle');
+                    if (el) el.value = data.outlineStyle;
+                }
+                if (data.dashLength !== undefined) {
+                    const el = document.getElementById('printCardDashLength');
+                    if (el) el.value = data.dashLength;
+                }
+                if (data.dashGap !== undefined) {
+                    const el = document.getElementById('printCardDashGap');
+                    if (el) el.value = data.dashGap;
+                }
+                if (data.showAvatarFallback !== undefined) {
+                    const el = document.getElementById('printShowAvatarFallback');
+                    if (el) el.checked = !!data.showAvatarFallback;
+                }
+                if (data.cardRounded !== undefined) {
+                    const el = document.getElementById('printCardRounded');
+                    if (el) el.checked = !!data.cardRounded;
+                }
+                if (data.printBackCard !== undefined) {
+                    const el = document.getElementById('printBackCard');
+                    if (el) el.checked = !!data.printBackCard;
+                }
+                if (data.textReadability !== undefined) {
+                    const el = document.getElementById('printTextReadability');
+                    if (el) el.value = data.textReadability;
+                }
+                if (data.readabilityBgColor !== undefined) {
+                    const el = document.getElementById('printTextReadabilityBgColor');
+                    if (el) el.value = data.readabilityBgColor;
+                }
+                if (data.readabilityBgOpacity !== undefined) {
+                    const el = document.getElementById('printTextReadabilityBgOpacity');
+                    if (el) {
+                        el.value = data.readabilityBgOpacity;
+                        document.getElementById('printTextReadabilityBgOpacityVal').textContent = data.readabilityBgOpacity + '%';
+                    }
+                }
+                if (data.readabilityPadding !== undefined) {
+                    const el = document.getElementById('printTextReadabilityPadding');
+                    if (el) el.value = data.readabilityPadding;
+                }
+                if (data.readabilityWidth !== undefined) {
+                    const el = document.getElementById('printTextReadabilityWidth');
+                    if (el) el.value = data.readabilityWidth;
+                }
+                if (data.readabilityShadow !== undefined) {
+                    const el = document.getElementById('printTextReadabilityShadow');
+                    if (el) el.checked = !!data.readabilityShadow;
+                }
+                if (data.fontColor !== undefined) {
+                    const el = document.getElementById('printFontColor');
+                    if (el) el.value = data.fontColor;
+                }
+                if (data.strokeColor !== undefined) {
+                    const el = document.getElementById('printStrokeColor');
+                    if (el) el.value = data.strokeColor;
+                }
+                if (data.customCardBackgroundDataUrl !== undefined) {
+                    window.customCardBackgroundDataUrl = data.customCardBackgroundDataUrl;
+                    const thumb = document.getElementById('printCustomBgThumbnail');
+                    const thumbWrap = document.getElementById('printCustomBgThumbnailWrap');
+                    const removeBtn = document.getElementById('printRemoveCustomBgBtn');
+                    const subSettings = document.getElementById('printCustomBgSubSettings');
+                    if (thumb && thumbWrap) {
+                        if (data.customCardBackgroundDataUrl) {
+                            thumb.src = data.customCardBackgroundDataUrl;
+                            thumbWrap.style.display = 'block';
+                            if (removeBtn) removeBtn.style.display = 'inline-flex';
+                            if (subSettings) subSettings.style.display = 'flex';
+                        } else {
+                            thumb.src = '';
+                            thumbWrap.style.display = 'none';
+                            if (removeBtn) removeBtn.style.display = 'none';
+                            if (subSettings) subSettings.style.display = 'none';
+                        }
+                    }
+                }
+                if (data.nameFontSize !== undefined) {
+                    const el = document.getElementById('printNameFontSize');
+                    if (el) {
+                        el.value = data.nameFontSize;
+                        document.getElementById('printNameFontSizeVal').textContent = data.nameFontSize == '0' ? 'تلقائي' : data.nameFontSize + 'px';
+                    }
+                }
+                if (data.infoFontSize !== undefined) {
+                    const el = document.getElementById('printInfoFontSize');
+                    if (el) {
+                        el.value = data.infoFontSize;
+                        document.getElementById('printInfoFontSizeVal').textContent = data.infoFontSize == '0' ? 'تلقائي' : data.infoFontSize + 'px';
+                    }
+                }
+                if (data.qrYOffset !== undefined) {
+                    const el = document.getElementById('printQrYOffset');
+                    if (el) {
+                        el.value = data.qrYOffset;
+                        document.getElementById('printQrYOffsetVal').textContent = data.qrYOffset + 'px';
+                    }
+                }
+                if (data.customLogos !== undefined) {
+                    window.customLogos = Array.isArray(data.customLogos) ? data.customLogos : [];
+                    renderPrintLogosList();
+                }
+                if (Array.isArray(data.extraFields)) {
+                    window.cardExtraFields = data.extraFields;
+                    renderPrintExtraFieldsList();
+                    populatePrintExtraFieldsDropdown();
+                }
+                
+                syncPrintSettingsUI();
+                updatePrintPreview();
+            } catch (e) {
+                console.error("Error deserializing QR Template", e);
+            }
+        }
+
+        async function saveQRTemplateDialog() {
+            const currentTripId = window.currentTripId || 0;
+            const hasTrip = currentTripId > 0;
+            let target = 'church';
+            if (hasTrip) {
+                const conf = confirm("هل تريد حفظ التصميم كقالب لهذه الرحلة الحالية فقط؟\n\n(اضغط OK لحفظه للرحلة، أو Cancel لحفظه كقالب عام للكنيسة)");
+                if (conf) {
+                    target = 'trip';
+                }
+            } else {
+                const conf = confirm("هل تريد حفظ هذا التصميم كقالب افتراضي عام للكنيسة؟");
+                if (!conf) return;
+            }
+            
+            const templateStr = serializeQRTemplate();
+            try {
+                const fd = new FormData();
+                fd.append('action', 'saveQRTemplate');
+                fd.append('target', target);
+                if (target === 'trip') {
+                    fd.append('trip_id', currentTripId);
+                }
+                fd.append('template', templateStr);
+                
+                const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                if (res && res.success) {
+                    showToast(res.message || 'تم حفظ القالب بنجاح', 'success');
+                    fetchTemplatesFromServer(hasTrip ? currentTripId : 0);
+                } else {
+                    showToast(res.message || 'فشل حفظ القالب', 'error');
+                }
+            } catch (e) {
+                console.error("Error saving template", e);
+                showToast('حدث خطأ أثناء الاتصال بالخادم', 'error');
+            }
+        }
+
+        window.customLogos = [];
+
+        function handleLogoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const logo = {
+                    src: e.target.result,
+                    x: 5,
+                    y: 5,
+                    width: 20
+                };
+                window.customLogos.push(logo);
+                renderPrintLogosList();
+                updatePrintPreview();
+            };
+            reader.readAsDataUrl(file);
+            event.target.value = ''; // Reset input
+        }
+
+        function renderPrintLogosList() {
+            const list = document.getElementById('printLogosList');
+            if (!list) return;
+            list.innerHTML = '';
+            if (window.customLogos.length === 0) {
+                list.innerHTML = '<span style="font-size:0.75rem; color:var(--muted); text-align:center;">لا توجد شعارات مضافة حالياً.</span>';
+                return;
+            }
+            
+            window.customLogos.forEach((logo, idx) => {
+                const row = document.createElement('div');
+                row.style = 'border: 1px solid var(--border); padding: 8px; border-radius: 6px; display: flex; flex-direction: column; gap: 8px; background: rgba(0,0,0,0.01);';
+                row.innerHTML = `
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                        <img src="${logo.src}" style="height:30px; width:auto; max-width:60px; object-fit:contain; border-radius:3px;">
+                        <button type="button" class="btn btn-outline btn-sm" onclick="removePrintLogo(${idx})" style="color:var(--danger); border-color:rgba(220,38,38,0.2); padding:2px 6px; font-size:0.7rem; height:24px;">حذف</button>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px;">
+                        <div>
+                            <label style="font-size:0.65rem; font-weight:700;">الموضع X (%):</label>
+                            <input type="number" value="${logo.x}" style="width:100%; height:26px; font-size:0.75rem; padding: 2px 4px; border: 1px solid var(--border); border-radius:4px;" oninput="updatePrintLogoAttr(${idx}, 'x', this.value)">
+                        </div>
+                        <div>
+                            <label style="font-size:0.65rem; font-weight:700;">الموضع Y (%):</label>
+                            <input type="number" value="${logo.y}" style="width:100%; height:26px; font-size:0.75rem; padding: 2px 4px; border: 1px solid var(--border); border-radius:4px;" oninput="updatePrintLogoAttr(${idx}, 'y', this.value)">
+                        </div>
+                        <div>
+                            <label style="font-size:0.65rem; font-weight:700;">العرض (%):</label>
+                            <input type="number" value="${logo.width}" style="width:100%; height:26px; font-size:0.75rem; padding: 2px 4px; border: 1px solid var(--border); border-radius:4px;" oninput="updatePrintLogoAttr(${idx}, 'width', this.value)">
+                        </div>
+                    </div>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        function updatePrintLogoAttr(idx, attr, val) {
+            const v = parseFloat(val);
+            if (isNaN(v)) return;
+            if (window.customLogos[idx]) {
+                window.customLogos[idx][attr] = v;
+                updatePrintPreview();
+            }
+        }
+
+        function removePrintLogo(idx) {
+            window.customLogos.splice(idx, 1);
+            renderPrintLogosList();
             updatePrintPreview();
         }
     </script>

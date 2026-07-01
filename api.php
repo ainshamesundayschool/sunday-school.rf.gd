@@ -4636,6 +4636,18 @@ try {
 
             break;
 
+        case 'saveQRTemplate':
+
+            saveQRTemplate();
+
+            break;
+
+        case 'getQRTemplates':
+
+            getQRTemplates();
+
+            break;
+
 
 
         case 'saveChurchSettings':
@@ -36174,6 +36186,9 @@ function ensureChurchSettingsTable($conn)
 
     ensureChurchSettingsAutoGradeColumns($conn);
 
+    $conn->query("ALTER TABLE church_settings ADD COLUMN IF NOT EXISTS `qr_template` LONGTEXT DEFAULT NULL COMMENT 'JSON string of QR card design template'");
+    $conn->query("ALTER TABLE trips ADD COLUMN IF NOT EXISTS `qr_template` LONGTEXT DEFAULT NULL COMMENT 'JSON string of QR card design template'");
+
 }
 
 
@@ -36284,6 +36299,8 @@ function getChurchSettings()
 
             'uncle_fees_enabled' => isset($row['uncle_fees_enabled']) ? (int) $row['uncle_fees_enabled'] : 1,
 
+            'qr_template' => $row['qr_template'] ?? null,
+
         ];
 
 
@@ -36361,6 +36378,99 @@ function getDefaultChurchSettings(): array
 
     ];
 
+}
+
+function saveQRTemplate()
+{
+    try {
+        checkUncleAuth();
+        $churchId = getChurchId();
+        $tripId = intval($_POST['trip_id'] ?? 0);
+        $target = $_POST['target'] ?? ''; // 'church' or 'trip'
+        $template = $_POST['template'] ?? '';
+
+        if (empty($template)) {
+            sendJSON(['success' => false, 'message' => 'بيانات القالب مطلوبة']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        ensureChurchSettingsTable($conn);
+        $conn->query("ALTER TABLE trips ADD COLUMN IF NOT EXISTS qr_template LONGTEXT DEFAULT NULL");
+
+        if ($target === 'trip' && $tripId > 0) {
+            $stmt = $conn->prepare("UPDATE trips SET qr_template = ? WHERE id = ?");
+            $stmt->bind_param("si", $template, $tripId);
+            if ($stmt->execute()) {
+                sendJSON(['success' => true, 'message' => 'تم حفظ قالب الرحلة بنجاح']);
+            } else {
+                sendJSON(['success' => false, 'message' => 'فشل حفظ قالب الرحلة']);
+            }
+        } else {
+            $stmt = $conn->prepare("UPDATE church_settings SET qr_template = ? WHERE church_id = ?");
+            $stmt->bind_param("si", $template, $churchId);
+            if ($stmt->execute()) {
+                sendJSON(['success' => true, 'message' => 'تم حفظ قالب الكنيسة بنجاح']);
+            } else {
+                sendJSON(['success' => false, 'message' => 'فشل حفظ قالب الكنيسة']);
+            }
+        }
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+
+function getQRTemplates()
+{
+    try {
+        checkUncleAuth();
+        $churchId = getChurchId();
+        $tripId = intval($_POST['trip_id'] ?? $_GET['trip_id'] ?? 0);
+
+        $conn = getDBConnection();
+        ensureChurchSettingsTable($conn);
+        $conn->query("ALTER TABLE trips ADD COLUMN IF NOT EXISTS qr_template LONGTEXT DEFAULT NULL");
+
+        // 1. Church template
+        $churchStmt = $conn->prepare("SELECT qr_template FROM church_settings WHERE church_id = ?");
+        $churchStmt->bind_param("i", $churchId);
+        $churchStmt->execute();
+        $churchRow = $churchStmt->get_result()->fetch_assoc();
+        $churchTemplate = $churchRow['qr_template'] ?? null;
+
+        // 2. Trip template
+        $tripTemplate = null;
+        if ($tripId > 0) {
+            $tripStmt = $conn->prepare("SELECT qr_template FROM trips WHERE id = ?");
+            $tripStmt->bind_param("i", $tripId);
+            $tripStmt->execute();
+            $tripRow = $tripStmt->get_result()->fetch_assoc();
+            $tripTemplate = $tripRow['qr_template'] ?? null;
+        }
+
+        // 3. Other trips templates
+        $otherTrips = [];
+        $othersStmt = $conn->prepare("SELECT id, title, qr_template FROM trips WHERE church_id = ? AND qr_template IS NOT NULL AND id != ?");
+        $othersStmt->bind_param("ii", $churchId, $tripId);
+        $othersStmt->execute();
+        $res = $othersStmt->get_result();
+        while ($row = $res->fetch_assoc()) {
+            $otherTrips[] = [
+                'id' => $row['id'],
+                'title' => $row['title'],
+                'template' => $row['qr_template']
+            ];
+        }
+
+        sendJSON([
+            'success' => true,
+            'church_template' => $churchTemplate,
+            'trip_template' => $tripTemplate,
+            'other_trips' => $otherTrips
+        ]);
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => $e->getMessage()]);
+    }
 }
 
 
