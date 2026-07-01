@@ -1600,6 +1600,39 @@
                 object-fit: cover !important;
             }
         }
+
+        .sync-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: var(--r-md);
+            font-size: 0.8rem;
+            font-weight: 700;
+            background: var(--warning-bg);
+            color: var(--warning-dark);
+            border: 1px solid var(--warning);
+            transition: all var(--t) var(--ease);
+            cursor: pointer;
+        }
+        .sync-badge.success {
+            background: var(--success-bg);
+            color: var(--success-dark);
+            border: 1px solid var(--success);
+        }
+        .sync-badge.offline {
+            background: var(--danger-bg);
+            color: var(--danger-dark);
+            border: 1px solid var(--danger);
+        }
+        @media (max-width: 450px) {
+            .sync-badge {
+                padding: 6px 8px;
+            }
+            .sync-badge .sync-text {
+                display: none;
+            }
+        }
     </style>
     <script src="/js/og-meta.js"></script>
 </head>
@@ -1617,6 +1650,12 @@
             </div>
         </a>
         <div class="topbar-actions">
+            <!-- Sync Status Badge -->
+            <div id="syncBadge" class="sync-badge success" onclick="retrySyncOfflineActionsManual()" title="حالة المزامنة">
+                <i class="fas fa-check-circle"></i>
+                <span class="sync-text">تم الحفظ</span>
+            </div>
+
             <!-- Trip history button at the top -->
             <button class="topbar-btn" onclick="showTripHistoryModal()" title="سجل النقاط بالرحلة"
                 style="height:36px; padding:0 12px; border-radius:var(--r-md); cursor:pointer;">
@@ -2192,7 +2231,15 @@
                         const reg = await navigator.serviceWorker.ready;
                         if (reg.active) reg.active.postMessage({ type: 'FLUSH_QUEUE' });
                     } catch (e) { }
+                    
+                    if (typeof updateSyncBadge === 'function') updateSyncBadge();
+                    if (typeof triggerBackgroundSync === 'function') triggerBackgroundSync();
+                    
                     setTimeout(() => { if (navigator.onLine && tripId) openTrip(tripId); }, 1000);
+                });
+
+                window.addEventListener('offline', () => {
+                    if (typeof updateSyncBadge === 'function') updateSyncBadge();
                 });
             });
 
@@ -2283,6 +2330,339 @@
                     console.error("API Call error:", e);
                     return { success: false, message: "Network connection error" };
                 }
+            }
+
+            // ── Client-side Queue for Offline/Low-Data Syncing ──
+            let isSyncingOffline = false;
+            let syncRetryTimeout = null;
+
+            function generateClientTxId() {
+                return 'tx_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            }
+
+            function getOfflineActionsQueue() {
+                try {
+                    const data = localStorage.getItem('trip_offline_actions_queue');
+                    return data ? JSON.parse(data) : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function saveOfflineActionsQueue(queue) {
+                try {
+                    localStorage.setItem('trip_offline_actions_queue', JSON.stringify(queue));
+                } catch (e) {
+                    console.error("Failed to save offline actions queue:", e);
+                }
+            }
+
+            function updateSyncBadge() {
+                const badge = document.getElementById('syncBadge');
+                if (!badge) return;
+
+                const queue = getOfflineActionsQueue();
+                const pendingCount = queue.length;
+
+                if (!navigator.onLine) {
+                    badge.className = 'sync-badge offline';
+                    badge.innerHTML = `<i class="fas fa-wifi-slash"></i> <span class="sync-text">وضع عدم الاتصال (${pendingCount})</span>`;
+                    badge.title = "غير متصل بالإنترنت. سيتم إرسال العمليات عند استعادة الاتصال.";
+                } else if (pendingCount > 0) {
+                    badge.className = 'sync-badge';
+                    badge.innerHTML = `<i class="fas fa-sync fa-spin"></i> <span class="sync-text">جاري مزامنة ${pendingCount}...</span>`;
+                    badge.title = `هناك ${pendingCount} عملية معلقة قيد الحفظ والمزامنة بالخلفية.`;
+                } else {
+                    badge.className = 'sync-badge success';
+                    badge.innerHTML = `<i class="fas fa-check-circle"></i> <span class="sync-text">تم الحفظ</span>`;
+                    badge.title = "تمت مزامنة وحفظ جميع العمليات بنجاح.";
+                }
+            }
+
+            async function triggerBackgroundSync() {
+                if (isSyncingOffline) return;
+                isSyncingOffline = true;
+                updateSyncBadge();
+
+                try {
+                    while (true) {
+                        const queue = getOfflineActionsQueue();
+                        if (queue.length === 0) {
+                            break;
+                        }
+
+                        const item = queue[0];
+                        item.status = 'syncing';
+                        saveOfflineActionsQueue(queue);
+
+                        const logIdx = scansLog.findIndex(s => String(s.id) === String(item.txId));
+                        if (logIdx > -1) {
+                            scansLog[logIdx].status = 'processing';
+                            renderScansList();
+                        }
+
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+                        try {
+                            const fd = new FormData();
+                            fd.append('action', item.action);
+                            Object.entries(item.params).forEach(([k, v]) => fd.append(k, v));
+
+                            const response = await fetch(API_URL, {
+                                method: 'POST',
+                                body: fd,
+                                signal: controller.signal
+                            });
+
+                            clearTimeout(timeoutId);
+
+                            if (!response.ok) {
+                                throw new Error("HTTP error " + response.status);
+                            }
+
+                            const res = await response.json();
+
+                            if (res.success || res.already_processed) {
+                                const freshQueue = getOfflineActionsQueue();
+                                const newQueue = freshQueue.filter(q => q.txId !== item.txId);
+                                saveOfflineActionsQueue(newQueue);
+
+                                const idx = scansLog.findIndex(s => String(s.id) === String(item.txId));
+                                if (idx > -1) {
+                                    scansLog[idx].status = 'success';
+                                    if (res.log_id) {
+                                        scansLog[idx].id = res.log_id;
+                                    }
+                                    if (res.new_points !== undefined) {
+                                        const matchIdx = regsList.findIndex(r => String(r.student_id) === String(item.params.student_id));
+                                        if (matchIdx > -1) {
+                                            let pts = {};
+                                            try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch (e) { }
+                                            pts[tripId] = res.new_points;
+                                            regsList[matchIdx].trip_points = JSON.stringify(pts);
+                                            regsList[matchIdx].trip_points_val = res.new_points;
+                                            if (currentView === 'student_profile' && String(item.params.student_id) === String(currentStudentId)) {
+                                                const isNaughtyNow = document.getElementById('pointsDisplay')?.classList.contains('naughty') || false;
+                                                updatePointsDisplay(res.new_points, isNaughtyNow);
+                                            }
+                                        }
+                                    }
+                                }
+
+                                renderScansList();
+                                if (currentTrip) {
+                                    currentTrip.registrations = regsList;
+                                    saveTripLocal(tripId, currentTrip);
+                                }
+                            } else {
+                                console.error("Permanent sync error:", res.message);
+                                showToast(`خطأ مزامنة: ${res.message || 'فشل الحفظ'}`, 'error');
+
+                                const matchIdx = regsList.findIndex(r => String(r.student_id) === String(item.params.student_id));
+                                if (matchIdx > -1) {
+                                    const student = regsList[matchIdx];
+                                    let pts = {};
+                                    try { pts = JSON.parse(student.trip_points || '{}'); } catch (e) { }
+                                    const oldVal = parseInt(student.trip_points_val) || 0;
+                                    const revVal = Math.max(0, oldVal - item.changeVal);
+                                    pts[tripId] = revVal;
+                                    student.trip_points = JSON.stringify(pts);
+                                    student.trip_points_val = revVal;
+                                    
+                                    if (currentView === 'student_profile' && String(item.params.student_id) === String(currentStudentId)) {
+                                        const isNaughtyNow = document.getElementById('pointsDisplay')?.classList.contains('naughty') || false;
+                                        updatePointsDisplay(revVal, isNaughtyNow);
+                                    }
+                                    if (currentTrip) {
+                                        currentTrip.registrations = regsList;
+                                        saveTripLocal(tripId, currentTrip);
+                                    }
+                                }
+
+                                const freshQueue = getOfflineActionsQueue();
+                                const newQueue = freshQueue.filter(q => q.txId !== item.txId);
+                                saveOfflineActionsQueue(newQueue);
+
+                                const idx = scansLog.findIndex(s => String(s.id) === String(item.txId));
+                                if (idx > -1) {
+                                    scansLog[idx].status = 'error';
+                                    scansLog[idx].errorMsg = res.message || 'خطأ';
+                                }
+                                renderScansList();
+                            }
+                        } catch (err) {
+                            clearTimeout(timeoutId);
+                            console.warn("Connection failure during sync, will retry:", err);
+
+                            const idx = scansLog.findIndex(s => String(s.id) === String(item.txId));
+                            if (idx > -1) {
+                                scansLog[idx].status = 'pending';
+                                renderScansList();
+                            }
+
+                            const freshQueue = getOfflineActionsQueue();
+                            if (freshQueue.length > 0) {
+                                freshQueue[0].status = 'pending';
+                                saveOfflineActionsQueue(freshQueue);
+                            }
+
+                            scheduleSyncRetry();
+                            break;
+                        }
+                    }
+                } finally {
+                    isSyncingOffline = false;
+                    updateSyncBadge();
+                }
+            }
+
+            function scheduleSyncRetry() {
+                if (syncRetryTimeout) clearTimeout(syncRetryTimeout);
+                syncRetryTimeout = setTimeout(() => {
+                    triggerBackgroundSync();
+                }, 5000);
+            }
+
+            window.retrySyncOfflineActionsManual = function() {
+                showToast("جاري إعادة محاولة المزامنة...", "success", 1500);
+                triggerBackgroundSync();
+            };
+
+            function applyPendingQueueToRegs(regs) {
+                if (!regs || regs.length === 0) return regs;
+                const queue = getOfflineActionsQueue();
+                queue.forEach(item => {
+                    const studentId = item.params.student_id;
+                    const matchIdx = regs.findIndex(r => String(r.student_id) === String(studentId));
+                    if (matchIdx > -1) {
+                        const student = regs[matchIdx];
+                        let pts = {};
+                        try { pts = JSON.parse(student.trip_points || '{}'); } catch (e) { }
+                        const oldVal = parseInt(student.trip_points_val) || 0;
+                        let isNaughtyNow = student.trip_points_naughty === 1 || false;
+                        let newVal = oldVal;
+
+                        if (item.action === 'processFastScanPoints') {
+                            newVal = Math.max(0, oldVal + item.params.amount);
+                        } else if (item.action === 'processGameQRCode') {
+                            const gameAction = item.params.game_action;
+                            const amount = item.params.amount;
+                            if (gameAction === 'increment') {
+                                newVal = oldVal + amount;
+                            } else if (gameAction === 'decrement') {
+                                newVal = Math.max(0, oldVal - amount);
+                            } else if (gameAction === 'set') {
+                                newVal = amount;
+                            } else if (gameAction === 'naughty') {
+                                isNaughtyNow = !isNaughtyNow;
+                            }
+                        }
+
+                        pts[tripId] = newVal;
+                        pts["n_" + tripId] = isNaughtyNow ? 1 : 0;
+                        student.trip_points = JSON.stringify(pts);
+                        student.trip_points_val = newVal;
+                        student.trip_points_naughty = isNaughtyNow ? 1 : 0;
+                    }
+                });
+                return regs;
+            }
+
+            function queuePointsAction(action, studentId, amount, actionName, gameAction = null, undoingLogId = 0, txId = null) {
+                const clientTxId = txId || generateClientTxId();
+                const matchIdx = regsList.findIndex(r => String(r.student_id) === String(studentId));
+                if (matchIdx === -1) {
+                    console.error("Student not found in regsList:", studentId);
+                    return;
+                }
+                const student = regsList[matchIdx];
+                
+                let pts = {};
+                try { pts = JSON.parse(student.trip_points || '{}'); } catch (e) { }
+                const oldVal = parseInt(student.trip_points_val) || 0;
+                let isNaughtyNow = student.trip_points_naughty === 1 || false;
+                let newVal = oldVal;
+                
+                if (action === 'processFastScanPoints') {
+                    newVal = Math.max(0, oldVal + amount);
+                } else if (action === 'processGameQRCode') {
+                    if (gameAction === 'increment') {
+                        newVal = oldVal + amount;
+                    } else if (gameAction === 'decrement') {
+                        newVal = Math.max(0, oldVal - amount);
+                    } else if (gameAction === 'set') {
+                        newVal = amount;
+                    } else if (gameAction === 'naughty') {
+                        isNaughtyNow = !isNaughtyNow;
+                    }
+                }
+                
+                pts[tripId] = newVal;
+                pts["n_" + tripId] = isNaughtyNow ? 1 : 0;
+                student.trip_points = JSON.stringify(pts);
+                student.trip_points_val = newVal;
+                student.trip_points_naughty = isNaughtyNow ? 1 : 0;
+                
+                if (currentView === 'student_profile' && String(studentId) === String(currentStudentId)) {
+                    updatePointsDisplay(newVal, isNaughtyNow);
+                }
+                if (currentTrip) {
+                    currentTrip.registrations = regsList;
+                    saveTripLocal(tripId, currentTrip);
+                }
+                
+                const shouldAddLog = (action === 'processFastScanPoints' && amount !== 0) ||
+                                     (action === 'processGameQRCode' && (gameAction === 'naughty' || amount !== 0));
+                                     
+                if (shouldAddLog) {
+                    const studentName = student.name || `طالب ${studentId}`;
+                    const changeVal = (action === 'processFastScanPoints') 
+                        ? amount 
+                        : (gameAction === 'increment' ? amount : (gameAction === 'decrement' ? -amount : 0));
+                        
+                    if (undoingLogId === 0) {
+                        scansLog.unshift({
+                            id: clientTxId,
+                            studentId: studentId,
+                            studentName: studentName,
+                            change: changeVal,
+                            status: 'pending',
+                            profilePhoto: student.photo || '',
+                            uncleId: currentUncleId,
+                            uncleName: 'أنا',
+                            actionNote: actionName,
+                            createdAt: new Date().toISOString(),
+                            churchName: student.church_name || student.student_church_name || ''
+                        });
+                    }
+                }
+                
+                const queue = getOfflineActionsQueue();
+                queue.push({
+                    txId: clientTxId,
+                    action: action,
+                    params: {
+                        trip_id: tripId,
+                        student_id: studentId,
+                        amount: amount,
+                        action_name: actionName || '',
+                        game_action: gameAction || '',
+                        undoing_log_id: undoingLogId || 0,
+                        client_tx_id: clientTxId
+                    },
+                    timestamp: Date.now(),
+                    studentName: student.name || `طالب ${studentId}`,
+                    changeVal: (action === 'processFastScanPoints') 
+                        ? amount 
+                        : (gameAction === 'increment' ? amount : (gameAction === 'decrement' ? -amount : 0)),
+                    status: 'pending'
+                });
+                saveOfflineActionsQueue(queue);
+                
+                renderScansList();
+                updateSyncBadge();
+                triggerBackgroundSync();
             }
             function updatePointsDisplay(points, isNaughty) {
                 const display = document.getElementById('pointsDisplay');
@@ -2388,7 +2768,8 @@
                         const btnTripSettings = document.getElementById('btnTripSettings');
                         if (btnTripSettings) btnTripSettings.style.display = 'none';
                     }
-                    regsList = localTrip.registrations || [];
+                    regsList = applyPendingQueueToRegs(localTrip.registrations || []);
+                    currentTrip.registrations = regsList;
                     document.getElementById('detailTripTitle').textContent = currentTrip.title;
                     document.getElementById('topbarTripTitle').textContent = currentTrip.title;
 
@@ -2421,7 +2802,8 @@
 
                         if (localString !== freshString) {
                             currentTrip = res.trip;
-                            regsList = res.trip.registrations || [];
+                            regsList = applyPendingQueueToRegs(res.trip.registrations || []);
+                            currentTrip.registrations = regsList;
                             document.getElementById('detailTripTitle').textContent = currentTrip.title;
                             document.getElementById('topbarTripTitle').textContent = currentTrip.title;
 
@@ -2436,7 +2818,7 @@
                             }
 
                             // Save to local cache
-                            await saveTripLocal(tripId, res.trip);
+                            await saveTripLocal(tripId, currentTrip);
 
                             // Trigger prefetching of new photos
                             prefetchStudentPhotos(regsList);
@@ -2476,6 +2858,10 @@
                         document.getElementById('fieldsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-3);">حدث خطأ في تحميل البيانات</div>';
                     }
                 }
+
+                // Start background sync loop and update badge on load
+                updateSyncBadge();
+                triggerBackgroundSync();
             }
 
             // SPA Router logic
@@ -3433,86 +3819,18 @@
                     }
                 }
 
-                if (isUpdating) return;
-                isUpdating = true;
+                playSuccessSound();
+                showToast('تم تعديل النقاط بنجاح', 'success');
 
-                const display = document.getElementById('pointsDisplay');
-                const oldHtml = display ? display.innerHTML : '';
-                if (display) display.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                queuePointsAction('processGameQRCode', currentStudentId, val, '', action);
 
-                try {
-                    const res = await apiCall('processGameQRCode', {
-                        trip_id: tripId,
-                        student_id: currentStudentId,
-                        game_action: action,
-                        amount: val
-                    });
-
-                    if (res.success || res.offline) {
-                        playSuccessSound();
-                        if (res.offline) {
-                            showToast(res.message || 'محفوظ محلياً — سيُرفع عند الاتصال', 'warning');
-                            const matchIdx = regsList.findIndex(r => String(r.student_id) === String(currentStudentId));
-                            if (matchIdx > -1) {
-                                let pts = {};
-                                try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch (e) { }
-                                const oldVal = parseInt(regsList[matchIdx].trip_points_val) || 0;
-                                let isNaughtyNow = regsList[matchIdx].trip_points_naughty === 1 || false;
-                                let newVal = oldVal;
-                                if (action === 'increment') {
-                                    newVal = oldVal + val;
-                                } else if (action === 'decrement') {
-                                    newVal = Math.max(0, oldVal - val);
-                                } else if (action === 'naughty') {
-                                    isNaughtyNow = !isNaughtyNow;
-                                }
-                                pts[tripId] = newVal;
-                                pts["n_" + tripId] = isNaughtyNow ? 1 : 0;
-                                regsList[matchIdx].trip_points = JSON.stringify(pts);
-                                regsList[matchIdx].trip_points_val = newVal;
-                                regsList[matchIdx].trip_points_naughty = isNaughtyNow ? 1 : 0;
-                                updatePointsDisplay(newVal, isNaughtyNow);
-                                saveTripLocal(tripId, currentTrip);
-                            }
-                        } else {
-                            showToast('تم تعديل النقاط بنجاح', 'success');
-                            updatePointsDisplay(res.points, res.is_naughty);
-
-                            // Update local cache
-                            const matchIdx = regsList.findIndex(r => String(r.student_id) === String(currentStudentId));
-                            if (matchIdx > -1) {
-                                let pts = {};
-                                try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch (e) { }
-                                pts[tripId] = res.points;
-                                pts["n_" + tripId] = res.is_naughty ? 1 : 0;
-                                regsList[matchIdx].trip_points = JSON.stringify(pts);
-                                regsList[matchIdx].trip_points_val = res.points;
-                                regsList[matchIdx].trip_points_naughty = res.is_naughty ? 1 : 0;
-                            }
-                        }
-
-                        if (window.activePointsInputMode === 'custom') {
-                            const input = document.getElementById('customPointsInputVal');
-                            if (input) input.value = '';
-                        }
-                        await loadRecentScans();
-                    } else {
-                        playErrorSound();
-                        showToast(res.message || 'فشل تعديل النقاط', 'error');
-                        if (display) display.innerHTML = oldHtml;
-                    }
-                } catch (e) {
-                    playErrorSound();
-                    showToast('حدث خطأ في الاتصال بالخادم', 'error');
-                    if (display) display.innerHTML = oldHtml;
-                } finally {
-                    isUpdating = false;
+                if (window.activePointsInputMode === 'custom') {
+                    const input = document.getElementById('customPointsInputVal');
+                    if (input) input.value = '';
                 }
             }
 
             async function executeShortcutAction(idx, event) {
-                if (isUpdating) return;
-
                 let pointsConfig = null;
                 if (currentTrip && currentTrip.points_config) {
                     try {
@@ -3528,137 +3846,23 @@
                 const action = sh.points >= 0 ? 'increment' : 'decrement';
                 const amount = Math.abs(sh.points);
 
-                isUpdating = true;
-                const display = document.getElementById('pointsDisplay');
-                const oldHtml = display ? display.innerHTML : '';
-                if (display) display.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                playSuccessSound();
+                showToast(`تم تسجيل: ${sh.name}`, 'success');
 
-                try {
-                    const res = await apiCall('processGameQRCode', {
-                        trip_id: tripId,
-                        student_id: currentStudentId,
-                        game_action: action,
-                        amount: amount,
-                        action_name: sh.name
-                    });
-
-                    if (res.success || res.offline) {
-                        playSuccessSound();
-                        if (res.offline) {
-                            showToast(res.message || 'محفوظ محلياً — سيُرفع عند الاتصال', 'warning');
-                            const matchIdx = regsList.findIndex(r => String(r.student_id) === String(currentStudentId));
-                            if (matchIdx > -1) {
-                                let pts = {};
-                                try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch (e) { }
-                                const oldVal = parseInt(regsList[matchIdx].trip_points_val) || 0;
-                                let newVal = oldVal;
-                                if (action === 'increment') {
-                                    newVal = oldVal + amount;
-                                } else if (action === 'decrement') {
-                                    newVal = Math.max(0, oldVal - amount);
-                                }
-                                pts[tripId] = newVal;
-                                regsList[matchIdx].trip_points = JSON.stringify(pts);
-                                regsList[matchIdx].trip_points_val = newVal;
-                                if (currentView === 'student_profile' && String(currentStudentId) === String(currentStudentId)) {
-                                    const isNaughtyNow = document.getElementById('pointsDisplay')?.classList.contains('naughty') || false;
-                                    updatePointsDisplay(newVal, isNaughtyNow);
-                                }
-                                saveTripLocal(tripId, currentTrip);
-                            }
-                        } else {
-                            showToast(`تم تسجيل: ${sh.name}`, 'success');
-                            updatePointsDisplay(res.points, res.is_naughty);
-
-                            // Update local cache
-                            const matchIdx = regsList.findIndex(r => String(r.student_id) === String(currentStudentId));
-                            if (matchIdx > -1) {
-                                let pts = {};
-                                try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch (e) { }
-                                pts[tripId] = res.points;
-                                pts["n_" + tripId] = res.is_naughty ? 1 : 0;
-                                regsList[matchIdx].trip_points = JSON.stringify(pts);
-                                regsList[matchIdx].trip_points_val = res.points;
-                                regsList[matchIdx].trip_points_naughty = res.is_naughty ? 1 : 0;
-                            }
-                        }
-
-                        await loadRecentScans();
-                    } else {
-                        playErrorSound();
-                        showToast(res.message || 'فشل تعديل النقاط', 'error');
-                        if (display) display.innerHTML = oldHtml;
-                    }
-                } catch (e) {
-                    playErrorSound();
-                    showToast('حدث خطأ في الاتصال بالخادم', 'error');
-                    if (display) display.innerHTML = oldHtml;
-                } finally {
-                    isUpdating = false;
-                }
+                queuePointsAction('processGameQRCode', currentStudentId, amount, sh.name, action);
             }
 
             async function markNaughty(event) {
-                if (isUpdating) return;
-                isUpdating = true;
-
-                const display = document.getElementById('pointsDisplay');
-                const oldHtml = display ? display.innerHTML : '';
-                if (display) display.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-
-                try {
-                    const res = await apiCall('processGameQRCode', {
-                        trip_id: tripId,
-                        student_id: currentStudentId,
-                        game_action: 'naughty'
-                    });
-
-                    if (res.success || res.offline) {
-                        playSuccessSound();
-                        if (res.offline) {
-                            showToast(res.message || 'محفوظ محلياً — سيُرفع عند الاتصال', 'warning');
-                            const matchIdx = regsList.findIndex(r => String(r.student_id) === String(currentStudentId));
-                            if (matchIdx > -1) {
-                                let pts = {};
-                                try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch (e) { }
-                                let isNaughtyNow = regsList[matchIdx].trip_points_naughty === 1 || false;
-                                isNaughtyNow = !isNaughtyNow;
-                                pts["n_" + tripId] = isNaughtyNow ? 1 : 0;
-                                regsList[matchIdx].trip_points = JSON.stringify(pts);
-                                regsList[matchIdx].trip_points_naughty = isNaughtyNow ? 1 : 0;
-                                updatePointsDisplay(parseInt(regsList[matchIdx].trip_points_val) || 0, isNaughtyNow);
-                                saveTripLocal(tripId, currentTrip);
-                            }
-                        } else {
-                            showToast(res.is_naughty ? 'تم تعيين شغب للطفل' : 'تم إلغاء شغب الطفل', 'success');
-                            updatePointsDisplay(res.points, res.is_naughty);
-
-                            // Update local cache
-                            const matchIdx = regsList.findIndex(r => String(r.student_id) === String(currentStudentId));
-                            if (matchIdx > -1) {
-                                let pts = {};
-                                try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch (e) { }
-                                pts[tripId] = res.points;
-                                pts["n_" + tripId] = res.is_naughty ? 1 : 0;
-                                regsList[matchIdx].trip_points = JSON.stringify(pts);
-                                regsList[matchIdx].trip_points_val = res.points;
-                                regsList[matchIdx].trip_points_naughty = res.is_naughty ? 1 : 0;
-                            }
-                        }
-
-                        await loadRecentScans();
-                    } else {
-                        playErrorSound();
-                        showToast(res.message || 'فشل تعديل شغب الطفل', 'error');
-                        if (display) display.innerHTML = oldHtml;
-                    }
-                } catch (e) {
-                    playErrorSound();
-                    showToast('حدث خطأ في الاتصال بالخادم', 'error');
-                    if (display) display.innerHTML = oldHtml;
-                } finally {
-                    isUpdating = false;
+                playSuccessSound();
+                
+                const matchIdx = regsList.findIndex(r => String(r.student_id) === String(currentStudentId));
+                let isNaughtyNow = false;
+                if (matchIdx > -1) {
+                    isNaughtyNow = regsList[matchIdx].trip_points_naughty === 1 || false;
                 }
+                showToast(!isNaughtyNow ? 'تم تعيين شغب للطفل' : 'تم إلغاء شغب الطفل', 'success');
+
+                queuePointsAction('processGameQRCode', currentStudentId, 0, '', 'naughty');
             }
 
             // Fast Scan View logic
@@ -4061,97 +4265,30 @@
             }
 
             async function executeFastScanAction(scannedStudentId, changeAmount, actionName) {
-                const activeTripId = currentTrip?.id || '';
-                const fd = new FormData();
-                fd.append('action', 'processFastScanPoints');
-                fd.append('trip_id', activeTripId);
-                fd.append('student_id', scannedStudentId);
-                fd.append('amount', changeAmount);
-                if (actionName) {
-                    fd.append('action_name', actionName);
+                playSuccessSound();
+
+                fastScanCooldowns[scannedStudentId] = {
+                    time: Date.now(),
+                    change: changeAmount,
+                    actionNote: actionName
+                };
+
+                const reader = document.getElementById('fastReader');
+                if (reader && fastScanSource === 'usb') {
+                    reader.style.setProperty('border', '3px solid #10b981', 'important');
+                    reader.style.setProperty('box-shadow', '0 0 25px rgba(16, 185, 129, 0.7)', 'important');
+                    setTimeout(() => {
+                        reader.style.removeProperty('border');
+                        reader.style.removeProperty('box-shadow');
+                    }, 500);
                 }
 
-                try {
-                    const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
-                    if (res.success || res.offline) {
-                        playSuccessSound();
+                const localStudent = regsList.find(r => String(r.student_id) === String(scannedStudentId));
+                const studentName = localStudent ? localStudent.name : `طالب ${scannedStudentId}`;
+                let msg = `تم تسجيل ${changeAmount > 0 ? '+' : ''}${changeAmount} لـ ${studentName}`;
+                showToast(msg, 'success');
 
-                        fastScanCooldowns[scannedStudentId] = {
-                            time: Date.now(),
-                            change: changeAmount,
-                            actionNote: actionName
-                        };
-
-                        const reader = document.getElementById('fastReader');
-                        if (reader && fastScanSource === 'usb') {
-                            reader.style.setProperty('border', '3px solid #10b981', 'important');
-                            reader.style.setProperty('box-shadow', '0 0 25px rgba(16, 185, 129, 0.7)', 'important');
-                            setTimeout(() => {
-                                reader.style.removeProperty('border');
-                                reader.style.removeProperty('box-shadow');
-                            }, 500);
-                        }
-
-                        if (res.offline) {
-                            const localStudent = regsList.find(r => String(r.student_id) === String(scannedStudentId));
-                            const studentName = localStudent ? localStudent.name : `طالب ${scannedStudentId}`;
-                            let msg = `محفوظ محلياً — تم تسجيل ${changeAmount > 0 ? '+' : ''}${changeAmount} لـ ${studentName}`;
-                            showToast(msg, 'warning');
-
-                            // Let's add a temporary scan log item locally!
-                            const tempLogId = 'temp_' + Date.now();
-                            scansLog.unshift({
-                                id: tempLogId,
-                                studentId: scannedStudentId,
-                                studentName: studentName,
-                                change: changeAmount,
-                                status: 'pending',
-                                profilePhoto: localStudent ? localStudent.photo : '',
-                                uncleId: currentUncleId,
-                                uncleName: 'أنا',
-                                actionNote: actionName,
-                                createdAt: new Date().toISOString(),
-                                churchName: localStudent ? (localStudent.church_name || localStudent.student_church_name || '') : ''
-                            });
-
-                            const matchIdx = regsList.findIndex(r => String(r.student_id) === String(scannedStudentId));
-                            if (matchIdx > -1) {
-                                let pts = {};
-                                try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch (e) { }
-                                const oldVal = parseInt(regsList[matchIdx].trip_points_val) || 0;
-                                const newVal = Math.max(0, oldVal + changeAmount);
-                                pts[tripId] = newVal;
-                                regsList[matchIdx].trip_points = JSON.stringify(pts);
-                                regsList[matchIdx].trip_points_val = newVal;
-                                if (currentView === 'student_profile' && String(scannedStudentId) === String(currentStudentId)) {
-                                    const isNaughtyNow = document.getElementById('pointsDisplay')?.classList.contains('naughty') || false;
-                                    updatePointsDisplay(newVal, isNaughtyNow);
-                                }
-                                saveTripLocal(tripId, currentTrip);
-                            }
-                        } else {
-                            let msg = `تم تسجيل ${changeAmount > 0 ? '+' : ''}${changeAmount} لـ ${res.student_name}`;
-                            showToast(msg, 'success');
-
-                            const matchIdx = regsList.findIndex(r => String(r.student_id) === String(scannedStudentId));
-                            if (matchIdx > -1) {
-                                let pts = {};
-                                try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch (e) { }
-                                pts[tripId] = res.new_points;
-                                regsList[matchIdx].trip_points = JSON.stringify(pts);
-                                regsList[matchIdx].trip_points_val = res.new_points;
-                            }
-                        }
-
-                        loadRecentScans();
-                    } else {
-                        playErrorSound();
-                        showToast('فشل التسجيل: ' + res.message, 'error');
-                    }
-                } catch (err) {
-                    playErrorSound();
-                    showToast('حدث خطأ في الاتصال بالسيرفر', 'error');
-                }
+                queuePointsAction('processFastScanPoints', scannedStudentId, changeAmount, actionName);
             }
 
             window.bypassFastScanCooldown = function (studentId) {
@@ -5164,6 +5301,29 @@
                 } catch (e) {
                     console.error("Error loading recent scans:", e);
                 }
+
+                // Merge pending local actions from the offline queue to scansLog!
+                const queue = getOfflineActionsQueue();
+                queue.forEach(item => {
+                    const alreadyExists = scansLog.some(s => String(s.id) === String(item.txId));
+                    if (!alreadyExists) {
+                        const localStudent = regsList.find(r => String(r.student_id) === String(item.params.student_id));
+                        scansLog.unshift({
+                            id: item.txId,
+                            studentId: item.params.student_id,
+                            studentName: item.studentName || (localStudent ? localStudent.name : `طالب ${item.params.student_id}`),
+                            change: item.changeVal,
+                            status: item.status || 'pending',
+                            profilePhoto: localStudent ? localStudent.photo : '',
+                            uncleId: currentUncleId,
+                            uncleName: 'أنا',
+                            actionNote: item.params.action_name,
+                            createdAt: new Date(item.timestamp).toISOString(),
+                            churchName: localStudent ? (localStudent.church_name || localStudent.student_church_name || '') : ''
+                        });
+                    }
+                });
+
                 renderScansList();
             }
 
@@ -5253,7 +5413,7 @@
 
                 let actionButtons = '';
                 if (item.uncleId === currentUncleId || currentUncleId === null) {
-                    if (item.status === 'success') {
+                    if (item.status === 'success' || item.status === 'pending') {
                         actionButtons += `
                         <button class="scan-action-btn undo" data-id="${item.id}" onclick="undoScan('${item.id}', '${item.studentId}', ${item.change}, event)" title="Tراجع عن هذه العملية">
                             <i class="fas fa-undo"></i> تراجع
@@ -5307,73 +5467,69 @@
                     clickedBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
                 }
 
-                const undoAmount = -1 * amount;
-
-                const fd = new FormData();
-                fd.append('action', 'processFastScanPoints');
-                fd.append('trip_id', tripId);
-                fd.append('student_id', studentId);
-                fd.append('amount', undoAmount);
-                fd.append('undoing_log_id', logId);
-
-                try {
-                    const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
-                    if (clickedBtn) {
-                        clickedBtn.innerHTML = originalBtnHtml;
-                    }
-                    if (res.success || res.offline) {
-                        if (res.offline) {
-                            showToast(`محفوظ محلياً — تم التراجع بنجاح!`, 'warning');
-                            scansLog = scansLog.filter(item => String(item.id) !== String(logId));
-                            renderScansList();
-
-                            const matchIdx = regsList.findIndex(r => String(r.student_id) === String(studentId));
-                            if (matchIdx > -1) {
-                                let pts = {};
-                                try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch (e) { }
-                                const oldVal = parseInt(regsList[matchIdx].trip_points_val) || 0;
-                                const newVal = Math.max(0, oldVal + undoAmount);
-                                pts[tripId] = newVal;
-                                regsList[matchIdx].trip_points = JSON.stringify(pts);
-                                regsList[matchIdx].trip_points_val = newVal;
-                                if (currentView === 'student_profile' && String(studentId) === String(currentStudentId)) {
-                                    const isNaughtyNow = document.getElementById('pointsDisplay')?.classList.contains('naughty') || false;
-                                    updatePointsDisplay(newVal, isNaughtyNow);
-                                }
-                                saveTripLocal(tripId, currentTrip);
-                            }
-                        } else {
-                            showToast(`تم التراجع بنجاح!`, 'success');
-                            scansLog = scansLog.filter(item => String(item.id) !== String(logId));
-                            renderScansList();
-
-                            const resolvedPoints = (res.new_points !== undefined) ? res.new_points : res.student_points;
-
-                            if (currentView === 'student_profile' && String(studentId) === String(currentStudentId)) {
-                                const isNaughtyNow = document.getElementById('pointsDisplay')?.classList.contains('naughty') || false;
-                                updatePointsDisplay(resolvedPoints, isNaughtyNow);
-                            }
-
-                            const matchIdx = regsList.findIndex(r => String(r.student_id) === String(studentId));
-                            if (matchIdx > -1) {
-                                let pts = {};
-                                try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch (e) { }
-                                pts[tripId] = resolvedPoints;
-                                regsList[matchIdx].trip_points = JSON.stringify(pts);
-                                regsList[matchIdx].trip_points_val = resolvedPoints;
-                            }
+                // If it is a local offline scan (starts with tx_)
+                if (String(logId).startsWith('tx_')) {
+                    const matchIdx = regsList.findIndex(r => String(r.student_id) === String(studentId));
+                    if (matchIdx > -1) {
+                        const student = regsList[matchIdx];
+                        let pts = {};
+                        try { pts = JSON.parse(student.trip_points || '{}'); } catch (e) { }
+                        const oldVal = parseInt(student.trip_points_val) || 0;
+                        const newVal = Math.max(0, oldVal - amount);
+                        pts[tripId] = newVal;
+                        student.trip_points = JSON.stringify(pts);
+                        student.trip_points_val = newVal;
+                        
+                        if (currentView === 'student_profile' && String(studentId) === String(currentStudentId)) {
+                            const isNaughtyNow = document.getElementById('pointsDisplay')?.classList.contains('naughty') || false;
+                            updatePointsDisplay(newVal, isNaughtyNow);
                         }
-                    } else {
-                        showToast("فشل التراجع: " + res.message, 'error');
-                        btns.forEach(btn => btn.disabled = false);
+                        if (currentTrip) {
+                            currentTrip.registrations = regsList;
+                            saveTripLocal(tripId, currentTrip);
+                        }
                     }
-                } catch (e) {
-                    if (clickedBtn) {
-                        clickedBtn.innerHTML = originalBtnHtml;
-                    }
-                    showToast("حدث خطأ أثناء الاتصال بالسيرفر للتراجع", 'error');
-                    btns.forEach(btn => btn.disabled = false);
+
+                    const queue = getOfflineActionsQueue();
+                    const newQueue = queue.filter(q => q.txId !== logId);
+                    saveOfflineActionsQueue(newQueue);
+
+                    scansLog = scansLog.filter(item => String(item.id) !== String(logId));
+
+                    showToast(`محفوظ محلياً — تم التراجع بنجاح!`, 'warning');
+                    renderScansList();
+                    updateSyncBadge();
+                    return;
                 }
+
+                playSuccessSound();
+                showToast(`تم التراجع بنجاح!`, 'success');
+                
+                const matchIdx = regsList.findIndex(r => String(r.student_id) === String(studentId));
+                if (matchIdx > -1) {
+                    const student = regsList[matchIdx];
+                    let pts = {};
+                    try { pts = JSON.parse(student.trip_points || '{}'); } catch (e) { }
+                    const oldVal = parseInt(student.trip_points_val) || 0;
+                    const newVal = Math.max(0, oldVal - amount);
+                    pts[tripId] = newVal;
+                    student.trip_points = JSON.stringify(pts);
+                    student.trip_points_val = newVal;
+                    
+                    if (currentView === 'student_profile' && String(studentId) === String(currentStudentId)) {
+                        const isNaughtyNow = document.getElementById('pointsDisplay')?.classList.contains('naughty') || false;
+                        updatePointsDisplay(newVal, isNaughtyNow);
+                    }
+                    if (currentTrip) {
+                        currentTrip.registrations = regsList;
+                        saveTripLocal(tripId, currentTrip);
+                    }
+                }
+                
+                scansLog = scansLog.filter(item => String(item.id) !== String(logId));
+                renderScansList();
+
+                queuePointsAction('processFastScanPoints', studentId, -amount, '', null, logId);
             }
 
             // Time calculations for scan history

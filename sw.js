@@ -8,7 +8,7 @@ const PERIODIC_SYNC_TAG = 'check-registrations';
 
 // Only these API actions should be queued for background sync.
 // Everything else (login, photo upload, settings) should fail normally when offline.
-const QUEUEABLE_ACTIONS = ['submitAttendance', 'updateCoupons', 'processGameQRCode', 'processFastScanPoints'];
+const QUEUEABLE_ACTIONS = ['submitAttendance', 'updateCoupons'];
 
 const SHELL_URLS = [
     '/favicon.ico','/logo.png',

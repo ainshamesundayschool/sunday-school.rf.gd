@@ -483,28 +483,48 @@ function processGameQRCode()
 
 
         $tripId = intval($_REQUEST['trip'] ?? $_REQUEST['trip_id'] ?? 0);
-
         $studentId = intval($_REQUEST['id'] ?? $_REQUEST['student_id'] ?? 0);
-
         $game_action = strtolower(trim($_REQUEST['game_action'] ?? 'increment'));
-
         $amount = intval($_REQUEST['amount'] ?? 1);
-
         $actionName = sanitize($_REQUEST['action_name'] ?? '');
-
-
+        $clientTxId = sanitize($_REQUEST['client_tx_id'] ?? '');
 
         if ($tripId <= 0 || $studentId <= 0) {
-
             sendJSON(['success' => false, 'message' => 'trip and id are required']);
-
             return;
-
         }
 
-
-
         $conn = getDBConnection();
+
+        // Check for duplicate transaction
+        if (!empty($clientTxId)) {
+            $checkStmt = $conn->prepare("SELECT id, old_count, new_count, change_amount FROM coupon_logs WHERE student_id = ? AND reason LIKE ? LIMIT 1");
+            $likeTx = "%" . $clientTxId;
+            $checkStmt->bind_param("is", $studentId, $likeTx);
+            $checkStmt->execute();
+            $checkRes = $checkStmt->get_result();
+            if ($checkRes->num_rows > 0) {
+                $existingLog = $checkRes->fetch_assoc();
+                // Fetch student details
+                $sstmt = $conn->prepare("SELECT name, class, trip_points FROM students WHERE id = ? LIMIT 1");
+                $sstmt->bind_param("i", $studentId);
+                $sstmt->execute();
+                $sres = $sstmt->get_result();
+                $studentData = $sres->fetch_assoc();
+                $points = json_decode($studentData['trip_points'] ?? '{}', true) ?? [];
+
+                sendJSON([
+                    'success' => true,
+                    'already_processed' => true,
+                    'log_id' => $existingLog['id'],
+                    'student_name' => $studentData['name'] ?? '',
+                    'student_class' => $studentData['class'] ?? '',
+                    'points' => $existingLog['new_count'],
+                    'is_naughty' => !empty($points["n_{$tripId}"])
+                ]);
+                return;
+            }
+        }
 
 
 
@@ -744,6 +764,9 @@ function processGameQRCode()
                 if (!empty($actionName)) {
                     $reason .= ":" . $actionName;
                 }
+                if (!empty($clientTxId)) {
+                    $reason .= ":" . $clientTxId;
+                }
                 $logStmt = $conn->prepare("
                     INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason)
                     VALUES (?, ?, ?, ?, ?, 'manual', ?)
@@ -916,6 +939,7 @@ function processFastScanPoints()
         $tripId = intval($_REQUEST['trip_id'] ?? 0);
         $studentId = intval($_REQUEST['student_id'] ?? 0);
         $amount = intval($_REQUEST['amount'] ?? 0);
+        $clientTxId = sanitize($_REQUEST['client_tx_id'] ?? '');
 
         if ($tripId <= 0 || $studentId <= 0 || $amount === 0) {
             sendJSON(['success' => false, 'message' => 'trip_id, student_id, and non-zero amount are required']);
@@ -934,6 +958,29 @@ function processFastScanPoints()
             return;
         }
         $student = $res->fetch_assoc();
+
+        // Check for duplicate transaction
+        if (!empty($clientTxId)) {
+            $checkStmt = $conn->prepare("SELECT id, old_count, new_count, change_amount FROM coupon_logs WHERE student_id = ? AND reason LIKE ? LIMIT 1");
+            $likeTx = "%" . $clientTxId;
+            $checkStmt->bind_param("is", $studentId, $likeTx);
+            $checkStmt->execute();
+            $checkRes = $checkStmt->get_result();
+            if ($checkRes->num_rows > 0) {
+                $existingLog = $checkRes->fetch_assoc();
+                sendJSON([
+                    'success' => true,
+                    'already_processed' => true,
+                    'log_id' => $existingLog['id'],
+                    'student_name' => $student['name'],
+                    'student_class' => $student['class'],
+                    'new_points' => $existingLog['new_count'],
+                    'change' => $existingLog['change_amount'],
+                    'profile_photo' => $student['image_url']
+                ]);
+                return;
+            }
+        }
 
         // 2. Load trip to check collaborating churches
         $tstmt = $conn->prepare("SELECT id, church_id, collaborating_churches, points_config FROM trips WHERE id = ? LIMIT 1");
@@ -1050,6 +1097,9 @@ function processFastScanPoints()
             $reason = "trip_points_scan:" . $tripId;
             if (!empty($actionName)) {
                 $reason .= ":" . $actionName;
+            }
+            if (!empty($clientTxId)) {
+                $reason .= ":" . $clientTxId;
             }
             $logStmt = $conn->prepare("
                 INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason)
