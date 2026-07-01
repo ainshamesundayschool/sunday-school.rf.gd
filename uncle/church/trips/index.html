@@ -11015,8 +11015,6 @@
       }
 
       function generateCardMarkup({
-          const student = s || r || {};
-          const isUncle = student && (student.isUncle === true || (student.id && String(student.id).startsWith('uncle_')));
           s, r, scale, padding, churchName, cardId,
           textReadability, fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto,
           baseWidth, baseHeight,
@@ -11024,6 +11022,8 @@
           readabilityBgShadow = true,
           extraFields = []
       }) {
+          const student = s || r || {};
+          const isUncle = student && (student.isUncle === true || (student.id && String(student.id).startsWith('uncle_')));
           const nameFontSizeOver = parseInt(document.getElementById('printNameFontSize')?.value || 0);
           const infoFontSizeOver = parseInt(document.getElementById('printInfoFontSize')?.value || 0);
           const qrYOffset = parseFloat(document.getElementById('printQrYOffset')?.value || 0);
