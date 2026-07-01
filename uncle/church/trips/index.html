@@ -11230,6 +11230,7 @@
                           }
                           if (!student.is_empty_copy && (val === null || val === undefined || String(val).trim() === '')) return '';
                           let iconClass = field.icon || 'fas fa-info-circle';
+                            const fieldFontSize = field.fontSize ? field.fontSize * scale : fCustom_final;
                           
                           if (field.key.startsWith('custom_field_')) {
                               const customIdx = field.key.replace('custom_field_', '');
@@ -11238,11 +11239,11 @@
                                   if (icon) iconClass = icon.startsWith('fa-') ? 'fas ' + icon : icon;
                               }
                           }
-                          return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="${iconClass}" style="opacity:0.75;"></i> ${field.label}: <strong>${escHtml(val)}</strong></span>`;
+                          return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700; font-size:${fieldFontSize}px;"><i class="${iconClass}" style="opacity:0.75;"></i> ${field.label}: <strong>${escHtml(val)}</strong></span>`;
                       }).filter(Boolean).join(' | ');
                       
                       if (itemsHtml) {
-                          extraInfoHtml = `<div class="extra-info" style="font-size:${fieldFontSize}px; font-weight:bold; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-wrap:wrap; justify-content:center; gap:6px; width:100%; margin-top:4px;">${itemsHtml}</div>`;
+                          extraInfoHtml = `<div class="extra-info" style="font-size:${fCustom_final}px; font-weight:bold; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-wrap:wrap; justify-content:center; gap:6px; width:100%; margin-top:4px;">${itemsHtml}</div>`;
                       }
                   }
               }
