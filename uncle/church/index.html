@@ -21218,7 +21218,7 @@
 
             let showStudentIdHtml = '';
             if (showStudentId) {
-                const displayId = s.is_empty_copy ? '.....................' : sid;
+                const displayId = student.is_empty_copy ? '.....................' : sid;
                 if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only') {
                     showStudentIdHtml = `
                     <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${6 * scale}px; ${infoBlockWidthStyle} box-sizing:border-box; margin-top:${4 * scale}px; box-shadow:${boxShadowValue}; display:inline-flex; justify-content:center; align-items:center;">
