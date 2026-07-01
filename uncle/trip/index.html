@@ -2467,11 +2467,17 @@
                                     const oldVal = parseInt(student.trip_points_val) || 0;
                                     const revVal = Math.max(0, oldVal - item.changeVal);
                                     pts[tripId] = revVal;
+                                    let isNaughtyNow = student.trip_points_naughty === 1 || false;
+                                    if (item.params.game_action === 'naughty') {
+                                        isNaughtyNow = !isNaughtyNow;
+                                        pts["n_" + tripId] = isNaughtyNow ? 1 : 0;
+                                        student.trip_points_naughty = isNaughtyNow ? 1 : 0;
+                                    }
                                     student.trip_points = JSON.stringify(pts);
                                     student.trip_points_val = revVal;
                                     
                                     if (currentView === 'student_profile' && String(item.params.student_id) === String(currentStudentId)) {
-                                        const isNaughtyNow = document.getElementById('pointsDisplay')?.classList.contains('naughty') || false;
+                                        // Use outer isNaughtyNow
                                         updatePointsDisplay(revVal, isNaughtyNow);
                                     }
                                     if (currentTrip) {
@@ -2754,6 +2760,8 @@
 
             async function openTrip(tripId) {
                 document.getElementById('fieldsGrid').innerHTML = '';
+                regsList = [];
+                currentTrip = null;
 
                 // Try to load and show cached local data immediately
                 const localTrip = await getTripLocal(tripId);
@@ -3807,6 +3815,12 @@
             }
 
             async function executePointsAction(action, event) {
+                const matchIdx = regsList.findIndex(r => String(r.student_id) === String(currentStudentId));
+                if (matchIdx === -1 || !currentStudentId || currentStudentId === '0' || currentStudentId === 'null') {
+                    showToast('هذا الطفل غير مسجل في هذه الرحلة أو زائر', 'warning');
+                    return;
+                }
+
                 let val = 0;
                 if (window.activePointsInputMode === 'direct') {
                     val = currentSelectedPoint;
@@ -3831,6 +3845,12 @@
             }
 
             async function executeShortcutAction(idx, event) {
+                const matchIdx = regsList.findIndex(r => String(r.student_id) === String(currentStudentId));
+                if (matchIdx === -1 || !currentStudentId || currentStudentId === '0' || currentStudentId === 'null') {
+                    showToast('هذا الطفل غير مسجل في هذه الرحلة أو زائر', 'warning');
+                    return;
+                }
+
                 let pointsConfig = null;
                 if (currentTrip && currentTrip.points_config) {
                     try {
@@ -3853,13 +3873,15 @@
             }
 
             async function markNaughty(event) {
+                const matchIdx = regsList.findIndex(r => String(r.student_id) === String(currentStudentId));
+                if (matchIdx === -1 || !currentStudentId || currentStudentId === '0' || currentStudentId === 'null') {
+                    showToast('هذا الطفل غير مسجل في هذه الرحلة أو زائر', 'warning');
+                    return;
+                }
+
                 playSuccessSound();
                 
-                const matchIdx = regsList.findIndex(r => String(r.student_id) === String(currentStudentId));
-                let isNaughtyNow = false;
-                if (matchIdx > -1) {
-                    isNaughtyNow = regsList[matchIdx].trip_points_naughty === 1 || false;
-                }
+                let isNaughtyNow = regsList[matchIdx].trip_points_naughty === 1 || false;
                 showToast(!isNaughtyNow ? 'تم تعيين شغب للطفل' : 'تم إلغاء شغب الطفل', 'success');
 
                 queuePointsAction('processGameQRCode', currentStudentId, 0, '', 'naughty');
@@ -4265,6 +4287,13 @@
             }
 
             async function executeFastScanAction(scannedStudentId, changeAmount, actionName) {
+                const localStudent = regsList.find(r => String(r.student_id) === String(scannedStudentId));
+                if (!localStudent || !localStudent.student_id || localStudent.student_id === '0') {
+                    playErrorSound();
+                    showToast('هذا الطفل غير مسجل في هذه الرحلة أو زائر', 'error');
+                    return;
+                }
+
                 playSuccessSound();
 
                 fastScanCooldowns[scannedStudentId] = {
@@ -4283,8 +4312,7 @@
                     }, 500);
                 }
 
-                const localStudent = regsList.find(r => String(r.student_id) === String(scannedStudentId));
-                const studentName = localStudent ? localStudent.name : `طالب ${scannedStudentId}`;
+                const studentName = localStudent.name;
                 let msg = `تم تسجيل ${changeAmount > 0 ? '+' : ''}${changeAmount} لـ ${studentName}`;
                 showToast(msg, 'success');
 
