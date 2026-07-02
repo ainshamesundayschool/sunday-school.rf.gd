@@ -13574,7 +13574,7 @@
 
       function deserializeQRTemplate(template) {
                       try {
-                resetPrintSettings();
+                resetQRPrintSettings();
 
                 let data = typeof template === 'string' ? JSON.parse(template) : template;
                 if (!data) return;
