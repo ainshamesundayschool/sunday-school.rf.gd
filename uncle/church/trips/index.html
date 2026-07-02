@@ -13574,6 +13574,8 @@
 
       function deserializeQRTemplate(template) {
                       try {
+                resetPrintSettings();
+
                 let data = typeof template === 'string' ? JSON.parse(template) : template;
                 if (!data) return;
                 // Backward compatibility fallback for templates saved before the front/back background update
