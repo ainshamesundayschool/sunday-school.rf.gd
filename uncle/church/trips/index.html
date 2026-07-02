@@ -13510,7 +13510,7 @@
               infoFontSize: document.getElementById('printInfoFontSize')?.value || '0',
               qrYOffset: document.getElementById('printQrYOffset')?.value || '0',
               customLogos: window.customLogos || [],
-              extraFields: window.cardExtraFields || []
+              extraFields: cardExtraFields || []
           };
           return JSON.stringify(data);
       }
@@ -13772,7 +13772,7 @@
                   renderPrintLogosList();
               }
               if (Array.isArray(data.extraFields)) {
-                  window.cardExtraFields = data.extraFields;
+                  cardExtraFields = data.extraFields;
                   renderPrintExtraFieldsList();
                   populatePrintExtraFieldsDropdown();
               }
