@@ -22639,13 +22639,14 @@
             const borderInput = document.getElementById('printCardOutlineStyle');
             if (borderInput) borderInput.value = 'none';
 
-            // Contents Checklist Reset
+            // Contents Checklist Reset (including back card)
             cardExtraFields = [
                 { key: 'church_header', label: 'اسم الكنيسة والشعار', placement: 'front', icon: 'fas fa-church' },
                 { key: 'student_image', label: 'صورة الطفل', placement: 'front', icon: 'fas fa-user-circle' },
                 { key: 'student_name', label: 'اسم الطفل', placement: 'front', icon: 'fas fa-user' },
                 { key: 'class', label: 'الفصل', placement: 'front', icon: 'fas fa-graduation-cap' },
-                { key: 'student_id', label: 'كود الطفل ID', placement: 'front', icon: 'fas fa-id-badge' }
+                { key: 'student_id', label: 'كود الطفل ID', placement: 'front', icon: 'fas fa-id-badge' },
+                { key: 'church_header', label: 'اسم الكنيسة والشعار', placement: 'back', icon: 'fas fa-church' }
             ];
             renderPrintExtraFieldsList();
             populatePrintExtraFieldsDropdown();
@@ -22655,6 +22656,9 @@
             
             const cardRounded = document.getElementById('printCardRounded');
             if (cardRounded) cardRounded.checked = false;
+
+            const printBackCard = document.getElementById('printBackCard');
+            if (printBackCard) printBackCard.checked = true;
 
             // Colors & Readability
             const readability = document.getElementById('printTextReadability');
@@ -22684,14 +22688,22 @@
             const strokeColor = document.getElementById('printStrokeColor');
             if (strokeColor) strokeColor.value = '#ffffff';
 
-            // Background Image
+            // Background Image Front & Back
             customCardBackgroundDataUrl = '/imgs/Card-Back.png';
             document.getElementById('printCustomBgThumbnail').src = customCardBackgroundDataUrl;
             document.getElementById('printCustomBgThumbnailWrap').style.display = 'flex';
             document.getElementById('printCustomBgSubSettings').style.display = 'flex';
             document.getElementById('printRemoveCustomBgBtn').style.display = 'inline-block';
 
-            // Overlay Color & Opacity
+            customCardBackgroundDataUrlBack = '/imgs/Card-Back.png';
+            if (document.getElementById('printCustomBgThumbnailBack')) {
+                document.getElementById('printCustomBgThumbnailBack').src = '/imgs/Card-Back.png';
+                document.getElementById('printCustomBgThumbnailWrapBack').style.display = 'flex';
+                document.getElementById('printCustomBgSubSettingsBack').style.display = 'flex';
+                document.getElementById('printRemoveCustomBgBtnBack').style.display = 'inline-block';
+            }
+
+            // Overlay Color & Opacity Front & Back
             const overlayColor = document.getElementById('printCustomBgOverlayColor');
             if (overlayColor) overlayColor.value = '#ffffff';
 
@@ -22699,6 +22711,15 @@
             if (overlayOpacity) {
                 overlayOpacity.value = 35;
                 document.getElementById('printCustomBgOverlayOpacityVal').textContent = '35%';
+            }
+
+            const overlayColorBack = document.getElementById('printCustomBgOverlayColorBack');
+            if (overlayColorBack) overlayColorBack.value = '#ffffff';
+
+            const overlayOpacityBack = document.getElementById('printCustomBgOverlayOpacityBack');
+            if (overlayOpacityBack) {
+                overlayOpacityBack.value = 35;
+                document.getElementById('printCustomBgOverlayOpacityValBack').textContent = '35%';
             }
 
             // Sync UI and Update Preview

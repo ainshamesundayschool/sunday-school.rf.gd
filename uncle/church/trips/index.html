@@ -13134,36 +13134,26 @@
         const borderInput = document.getElementById('printCardOutlineStyle');
         if (borderInput) borderInput.value = 'none';
 
-        // Contents Checklist
-        const showChurch = document.getElementById('printShowChurch');
-        if (showChurch) showChurch.checked = true;
-
-        const showTripImage = document.getElementById('printShowTripImage');
-        if (showTripImage) {
-          showTripImage.checked = false;
-          document.getElementById('printTripImageSubSettings').style.display = 'none';
-        }
-
-        const showTripTitle = document.getElementById('printShowTripTitle');
-        if (showTripTitle) showTripTitle.checked = true;
-
-        const showStudentImg = document.getElementById('printShowStudentImg');
-        if (showStudentImg) showStudentImg.checked = true;
+        // Contents Checklist (including back card)
+        cardExtraFields = [
+            { key: 'church_name_only', label: 'اسم الكنيسة فقط', placement: 'front', icon: 'fas fa-church' },
+            { key: 'student_image', label: 'صورة الطفل', placement: 'front', icon: 'fas fa-user-circle' },
+            { key: 'student_name', label: 'اسم الطفل', placement: 'front', icon: 'fas fa-user' },
+            { key: 'student_class', label: 'الفصل', placement: 'front', icon: 'fas fa-graduation-cap' },
+            { key: 'student_id', label: 'كود الطفل ID', placement: 'front', icon: 'fas fa-id-badge' },
+            { key: 'church_name_only', label: 'اسم الكنيسة فقط', placement: 'back', icon: 'fas fa-church' }
+        ];
+        renderPrintExtraFieldsList();
+        populatePrintExtraFieldsDropdown();
 
         const showAvatarFallback = document.getElementById('printShowAvatarFallback');
         if (showAvatarFallback) showAvatarFallback.checked = false;
 
-        const showStudentName = document.getElementById('printShowStudentName');
-        if (showStudentName) showStudentName.checked = true;
-
-        const showStudentId = document.getElementById('printShowStudentId');
-        if (showStudentId) showStudentId.checked = true;
-
-        const showCustom = document.getElementById('printShowCustom');
-        if (showCustom) showCustom.checked = true;
-
         const cardRounded = document.getElementById('printCardRounded');
         if (cardRounded) cardRounded.checked = false;
+
+        const printBackCard = document.getElementById('printBackCard');
+        if (printBackCard) printBackCard.checked = true;
 
         // Colors & Readability
         const readability = document.getElementById('printTextReadability');
@@ -13193,27 +13183,39 @@
         const strokeColor = document.getElementById('printStrokeColor');
         if (strokeColor) strokeColor.value = '#ffffff';
 
-        // Background Image
+        // Background Image Front & Back
         customCardBackgroundDataUrl = '/imgs/Card-Back.png';
         document.getElementById('printCustomBgThumbnail').src = customCardBackgroundDataUrl;
         document.getElementById('printCustomBgThumbnailWrap').style.display = 'flex';
         document.getElementById('printCustomBgSubSettings').style.display = 'flex';
         document.getElementById('printRemoveCustomBgBtn').style.display = 'inline-block';
 
-        // Overlay Color & Opacity
+        customCardBackgroundDataUrlBack = '/imgs/Card-Back.png';
+        if (document.getElementById('printCustomBgThumbnailBack')) {
+            document.getElementById('printCustomBgThumbnailBack').src = '/imgs/Card-Back.png';
+            document.getElementById('printCustomBgThumbnailWrapBack').style.display = 'flex';
+            document.getElementById('printCustomBgSubSettingsBack').style.display = 'flex';
+            document.getElementById('printRemoveCustomBgBtnBack').style.display = 'inline-block';
+        }
+
+        // Overlay Color & Opacity Front & Back
         const overlayColor = document.getElementById('printCustomBgOverlayColor');
         if (overlayColor) overlayColor.value = '#ffffff';
 
         const overlayOpacity = document.getElementById('printCustomBgOverlayOpacity');
         if (overlayOpacity) {
-          overlayOpacity.value = 35;
-          document.getElementById('printCustomBgOverlayOpacityVal').textContent = '35%';
+            overlayOpacity.value = 35;
+            document.getElementById('printCustomBgOverlayOpacityVal').textContent = '35%';
         }
 
-        // Sync UI and Update Preview
-        syncPrintSettingsUI();
-        updatePrintPreview();
-      }
+        const overlayColorBack = document.getElementById('printCustomBgOverlayColorBack');
+        if (overlayColorBack) overlayColorBack.value = '#ffffff';
+
+        const overlayOpacityBack = document.getElementById('printCustomBgOverlayOpacityBack');
+        if (overlayOpacityBack) {
+            overlayOpacityBack.value = 35;
+            document.getElementById('printCustomBgOverlayOpacityValBack').textContent = '35%';
+        }
 
       function resetQRPrintSettings() {
         const scaleInput = document.getElementById('printScale');
