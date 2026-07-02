@@ -11050,7 +11050,25 @@
         return `rgba(${r}, ${g}, ${b}, ${opacity})`;
       }
 
-      function generateCardMarkup({
+
+        function getSafeStudentName(student) {
+            if (!student) return '';
+            return student['الاسم'] || student.student_name || student.guest_name || student.name || 'طفل';
+        }
+        function getSafeStudentImage(student) {
+            if (!student) return '';
+            return student['صورة'] || student.student_image || student.image_url || student.photo || '';
+        }
+        function getSafeStudentClass(student) {
+            if (!student) return '';
+            return student['الفصل'] || student.student_class || student.class || student['الفصل الدراسى'] || '';
+        }
+        function getSafeStudentID(student) {
+            if (!student) return '';
+            return student.student_id || student.id || student['_studentId'] || student.guest_id || '';
+        }
+        
+        function generateCardMarkup({
           s, r, scale, padding, churchName, cardId,
           textReadability, fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto,
           baseWidth, baseHeight,
@@ -11110,8 +11128,8 @@
           const fCustom_final = infoFontSizeOver > 0 ? infoFontSizeOver * scale : Math.max(7, Math.min(availW * (isLandscape ? 0.04 : 0.06), availH * (isLandscape ? 0.055 : 0.038)));
           const qrOffsetStyle = qrYOffset !== 0 ? `transform: translateY(${qrYOffset * scale}px);` : '';
 
-          const sid = student['_studentId'] || student.id || student.student_id;
-          const rawImg = student['صورة'] || student.image_url || student.photo || '';
+          const sid = getSafeStudentID(student);
+          const rawImg = getSafeStudentImage(student);
           const hasRawImg = rawImg && rawImg.trim() !== '' && !rawImg.includes('placeholder.com') && !rawImg.includes('via.placeholder');
           const imgUrl = hasRawImg ? rawImg : '/profile_default..webp';
           const showAvatarFallback = showStudentImg && showAvatarWhenNoPhoto;
@@ -11137,10 +11155,10 @@
 
           const safeStudentName = student.is_empty_copy 
               ? 'الاسم: ................................................' 
-              : escHtml(student['الاسم'] || student.name || 'طفل');
+              : escHtml(getSafeStudentName(student));
           const cls = student.is_empty_copy 
               ? 'الفصل: ................................................' 
-              : (student['الفصل'] || student.class || '');
+              : getSafeStudentClass(student);
           const safeClass = escHtml(cls || '');
 
           const readBgColor = hexToRgba(readabilityBgColor, parseFloat(readabilityBgOpacity) / 100);
@@ -11569,7 +11587,7 @@
               if (showStudentImg || showStudentName) {
                   let avatarHtml = '';
                   if (showStudentImg) {
-                      const rawImg = student['صورة'] || student.image_url || student.photo || '';
+                      const rawImg = getSafeStudentImage(student);
                       const hasRawImg = rawImg && rawImg.trim() !== '' && !rawImg.includes('placeholder.com') && !rawImg.includes('via.placeholder');
                       const imgUrl = hasRawImg ? rawImg : '/profile_default..webp';
                       const showAvatarFallback = showStudentImg && showAvatarWhenNoPhoto;
@@ -11586,14 +11604,14 @@
                           avatarHtml = `<img src="${imgUrl}" class="avatar" style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; object-fit:cover; align-self:center; margin-bottom:4px;" onerror="this.style.display='none'">`;
                       }
                   }
-                  const safeStudentName = escHtml(student['الاسم'] || student.name || 'طفل');
+                  const safeStudentName = escHtml(getSafeStudentName(student));
                   const nameHtml = showStudentName ? `<h2 style="font-size:${fH2_final}px; font-weight:${nameWeight}; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeStudentName}</h2>` : '';
                   studentHtml = `<div style="display:flex; flex-direction:column; align-items:center; margin-bottom:6px;">${avatarHtml}${nameHtml}</div>`;
               }
 
               let classHtml = '';
               if (showClass) {
-                  const cls = student['الفصل'] || student.class || '';
+                  const cls = getSafeStudentClass(student);
                   if (cls) {
                       classHtml = `<div style="font-size:${fH3_final_class}px; font-weight:700; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; margin-bottom:6px;">${escHtml(cls)}</div>`;
                   }
@@ -13542,11 +13560,19 @@
               }
               if (data.width !== undefined) {
                   const el = document.getElementById('printCardWidth');
-                  if (el) el.value = data.width;
+                  if (el) {
+                      let w = parseFloat(data.width);
+                      if (w > 50) w = w / 37.795;
+                      el.value = Math.round(w * 10) / 10;
+                  }
               }
               if (data.height !== undefined) {
                   const el = document.getElementById('printCardHeight');
-                  if (el) el.value = data.height;
+                  if (el) {
+                      let h = parseFloat(data.height);
+                      if (h > 50) h = h / 37.795;
+                      el.value = Math.round(h * 10) / 10;
+                  }
               }
               if (data.gapX !== undefined) {
                   const el = document.getElementById('printGapX');
@@ -13770,6 +13796,17 @@
               if (data.customLogos !== undefined) {
                   window.customLogos = Array.isArray(data.customLogos) ? data.customLogos : [];
                   renderPrintLogosList();
+              }
+              if (!Array.isArray(data.extraFields) || data.extraFields.length === 0) {
+                  data.extraFields = [
+                      { key: 'trip_title', label: 'عنوان الرحلة', placement: 'front', icon: 'fas fa-route' },
+                      { key: 'student_image', label: 'صورة الطفل', placement: 'front', icon: 'fas fa-user-circle' },
+                      { key: 'student_name', label: 'اسم الطفل', placement: 'front', icon: 'fas fa-user' },
+                      { key: 'student_id', label: 'كود الطفل ID', placement: 'front', icon: 'fas fa-id-badge' },
+                      { key: 'church_name_only', label: 'اسم الكنيسة فقط', placement: 'front', icon: 'fas fa-church' },
+                      { key: 'student_class', label: 'الفصل', placement: 'front', icon: 'fas fa-graduation-cap' },
+                      { key: 'custom_field_السكن', label: 'السكن', placement: 'front', icon: 'fas fa-tag' }
+                  ];
               }
               if (Array.isArray(data.extraFields)) {
                   cardExtraFields = data.extraFields;
