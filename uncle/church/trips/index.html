@@ -13453,7 +13453,15 @@
           if (!val) return;
           let templateData = null;
           if (val === 'preset_sundayschool') {
-                resetQRPrintSettings();
+                applyRecommendedQRTemplate();
+                // Ensure back background is also loaded
+                customCardBackgroundDataUrlBack = '/imgs/Card-Back.png';
+                if (document.getElementById('printCustomBgThumbnailBack')) {
+                    document.getElementById('printCustomBgThumbnailBack').src = '/imgs/Card-Back.png';
+                    document.getElementById('printCustomBgThumbnailWrapBack').style.display = 'flex';
+                    document.getElementById('printCustomBgSubSettingsBack').style.display = 'flex';
+                    document.getElementById('printRemoveCustomBgBtnBack').style.display = 'inline-block';
+                }
                 cardExtraFields = [
                     { key: 'church_name_only', label: 'اسم الكنيسة فقط', placement: 'front', icon: 'fas fa-church' },
                     { key: 'student_image', label: 'صورة الطفل', placement: 'front', icon: 'fas fa-user-circle' },
