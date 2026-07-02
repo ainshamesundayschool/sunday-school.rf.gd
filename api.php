@@ -29240,7 +29240,12 @@ function removeAllTripRegistrations()
         try {
 
             // Get registration IDs for the trip belonging to this church only
-            $getRegs = $conn->prepare("SELECT id FROM trip_registrations WHERE trip_id = ? AND church_id = ?");
+            $getRegs = $conn->prepare("
+                SELECT tr.id 
+                FROM trip_registrations tr
+                JOIN students s ON tr.student_id = s.id
+                WHERE tr.trip_id = ? AND s.church_id = ?
+            ");
             $getRegs->bind_param("ii", $tripId, $churchId);
             $getRegs->execute();
             $regRes = $getRegs->get_result();

@@ -5737,7 +5737,10 @@
                   <span style="color:var(--danger);">المتبقي <strong>${registrationRemaining} ج</strong></span>
                 </div>
               </div>
-              <button class="btn btn-primary btn-sm" onclick="showRegisterStudentModal(${trip.id})"><i class="fas fa-user-plus"></i> تسجيل جديد</button>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn btn-danger btn-sm" onclick="confirmRemoveAllRegistered(${trip.id})" style="background-color:var(--danger,#ef4444);border-color:var(--danger,#ef4444);color:#fff;"><i class="fas fa-trash-alt"></i> مسح جميع المسجلين</button>
+                <button class="btn btn-primary btn-sm" onclick="showRegisterStudentModal(${trip.id})"><i class="fas fa-user-plus"></i> تسجيل جديد</button>
+              </div>
             </div>
             <div class="trip-list-stack">
               ${regs.map((r) => {
@@ -10662,21 +10665,21 @@
         }
       }
 
-      async function confirmRemoveAllRegistered() {
-        const tripId = document.getElementById('editTripId').value;
-        if (!tripId) return;
+      async function confirmRemoveAllRegistered(tripId) {
+        const id = tripId || document.getElementById('editTripId').value;
+        if (!id) return;
 
-        if (!confirm('⚠️ تحذير: هل أنت متأكد من مسح جميع الأطفال المسجلين وقائمة الانتظار في هذه الرحلة؟\nسيؤدي هذا الإجراء إلى حذف جميع سجلات التسجيل والدفعات الخاصة بهذه الرحلة بشكل نهائي ولا يمكن التراجع عنه.')) {
+        if (!confirm('⚠️ تحذير: هل أنت متأكد من مسح جميع الأطفال المسجلين وقائمة الانتظار التابعين لكنيستك في هذه الرحلة؟\nسيؤدي هذا الإجراء إلى حذف جميع سجلات التسجيل والدفعات الخاصة بكنيستك بشكل نهائي ولا يمكن التراجع عنه.')) {
           return;
         }
 
-        if (!confirm('هل أنت متأكد تماماً؟ سيتم حذف كافة البيانات الدفعية والتسجيلات للرحلة.')) {
+        if (!confirm('هل أنت متأكد تماماً؟ سيتم حذف كافة البيانات الدفعية والتسجيلات للرحلة الخاصة بكنيستك.')) {
           return;
         }
 
         const fd = new FormData();
         fd.append('action', 'removeAllTripRegistrations');
-        fd.append('trip_id', tripId);
+        fd.append('trip_id', id);
 
         try {
           const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
@@ -10685,7 +10688,7 @@
             closeModal('editTripModal');
             loadTrips();
             if (typeof showTripDetails === 'function') {
-              showTripDetails(tripId).catch(() => {});
+              showTripDetails(id).catch(() => {});
             }
           } else {
             showToast(res.message || 'حدث خطأ أثناء إزالة المسجلين', 'error');
