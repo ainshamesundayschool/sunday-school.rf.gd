@@ -21246,12 +21246,12 @@
                             }
                             const isLabelOmitted = ['church_name_only', 'custom_field_السكن', 'السكن', 'class', 'student_class'].includes(field.key) || field.label === 'السكن' || field.label === 'الفصل';
                             if (isLabelOmitted) {
-                                return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700; font-size:${fieldFontSize}px;"><i class="${iconClass}" style="opacity:0.75;"></i> <strong>${escHtml(val)}</strong></span>`;
+                                return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700; font-size:${fieldFontSize}px;"><i class="${iconClass}" style="opacity:0.75;"></i> <strong>${escHtml(String(val))}</strong></span>`;
                             }
                             if (field.key === 'student_id' || field.key === 'id') {
-                                return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700; font-size:${fieldFontSize}px;"><i class="${iconClass}" style="opacity:0.75;"></i> ID: <strong>${escHtml(val)}</strong></span>`;
+                                return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700; font-size:${fieldFontSize}px;"><i class="${iconClass}" style="opacity:0.75;"></i> ID: <strong>${escHtml(String(val))}</strong></span>`;
                             }
-                            return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700; font-size:${fieldFontSize}px;"><i class="${iconClass}" style="opacity:0.75;"></i> ${field.label}: <strong>${escHtml(val)}</strong></span>`;
+                            return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700; font-size:${fieldFontSize}px;"><i class="${iconClass}" style="opacity:0.75;"></i> ${field.label}: <strong>${escHtml(String(val))}</strong></span>`;
                         }).filter(Boolean).join('');
                         
                         if (itemsHtml) {
