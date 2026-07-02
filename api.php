@@ -4402,6 +4402,12 @@ try {
 
             break;
 
+        case 'removeAllTripRegistrations':
+
+            removeAllTripRegistrations();
+
+            break;
+
         case 'exportTripData':
 
             exportTripData();
@@ -5513,6 +5519,12 @@ try {
         case 'cancelTripRegistration':
 
             cancelTripRegistration();
+
+            break;
+
+        case 'removeAllTripRegistrations':
+
+            removeAllTripRegistrations();
 
             break;
 
@@ -29187,6 +29199,110 @@ function cancelTripRegistration()
 
 
 
+function removeAllTripRegistrations()
+
+{
+
+    try {
+
+        checkAuth();
+
+        $churchId = getChurchId();
+
+        $tripId = intval($_POST['trip_id'] ?? 0);
+
+
+
+        if ($tripId === 0) {
+
+            sendJSON(['success' => false, 'message' => 'معرف الرحلة مطلوب']);
+
+            return;
+
+        }
+
+
+
+        $conn = getDBConnection();
+
+
+
+        // Verify trip participant access
+        if (!verifyTripParticipant($conn, $tripId, $churchId)) {
+            sendJSON(['success' => false, 'message' => 'غير مصرح لك بتعديل هذه الرحلة']);
+            return;
+        }
+
+
+
+        $conn->begin_transaction();
+
+        try {
+
+            // Get registration IDs for the trip belonging to this church only
+            $getRegs = $conn->prepare("SELECT id FROM trip_registrations WHERE trip_id = ? AND church_id = ?");
+            $getRegs->bind_param("ii", $tripId, $churchId);
+            $getRegs->execute();
+            $regRes = $getRegs->get_result();
+            $regIds = [];
+            while ($r = $regRes->fetch_assoc()) {
+                $regIds[] = intval($r['id']);
+            }
+
+
+
+            if (!empty($regIds)) {
+                $regIdsStr = implode(',', $regIds);
+                // Delete payments
+                $conn->query("DELETE FROM trip_payments WHERE registration_id IN ($regIdsStr)");
+                // Delete registrations
+                $conn->query("DELETE FROM trip_registrations WHERE id IN ($regIdsStr)");
+            }
+
+
+
+            // Delete waitlist entries for this church only
+            $conn->query("DELETE FROM trip_waitlist WHERE trip_id = $tripId AND church_id = $churchId");
+
+
+
+            // ► AUDIT
+            writeAuditLog(
+                'trip_remove_all_registered',
+                'trips',
+                $tripId,
+                '',
+                null,
+                null,
+                "إزالة جميع المسجلين وقائمة الانتظار في الرحلة — trip ID: $tripId"
+            );
+
+
+
+            $conn->commit();
+
+            sendJSON(['success' => true, 'message' => 'تم إزالة جميع المسجلين وقائمة الانتظار بنجاح']);
+
+        } catch (Exception $e) {
+
+            $conn->rollback();
+
+            throw $e;
+
+        }
+
+    } catch (Exception $e) {
+
+        error_log("removeAllTripRegistrations error: " . $e->getMessage());
+
+        sendJSON(['success' => false, 'message' => 'خطأ في إزالة المسجلين: ' . $e->getMessage()]);
+
+    }
+
+}
+
+
+
 function deleteTripPayment()
 
 {
@@ -33554,6 +33670,12 @@ try {
         case 'cancelTripRegistration':
 
             cancelTripRegistration();
+
+            break;
+
+        case 'removeAllTripRegistrations':
+
+            removeAllTripRegistrations();
 
             break;
 

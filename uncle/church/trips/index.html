@@ -10662,6 +10662,39 @@
         }
       }
 
+      async function confirmRemoveAllRegistered() {
+        const tripId = document.getElementById('editTripId').value;
+        if (!tripId) return;
+
+        if (!confirm('⚠️ تحذير: هل أنت متأكد من مسح جميع الأطفال المسجلين وقائمة الانتظار في هذه الرحلة؟\nسيؤدي هذا الإجراء إلى حذف جميع سجلات التسجيل والدفعات الخاصة بهذه الرحلة بشكل نهائي ولا يمكن التراجع عنه.')) {
+          return;
+        }
+
+        if (!confirm('هل أنت متأكد تماماً؟ سيتم حذف كافة البيانات الدفعية والتسجيلات للرحلة.')) {
+          return;
+        }
+
+        const fd = new FormData();
+        fd.append('action', 'removeAllTripRegistrations');
+        fd.append('trip_id', tripId);
+
+        try {
+          const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+          if (res.success) {
+            showToast(res.message || 'تم إزالة جميع المسجلين بنجاح', 'success');
+            closeModal('editTripModal');
+            loadTrips();
+            if (typeof showTripDetails === 'function') {
+              showTripDetails(tripId).catch(() => {});
+            }
+          } else {
+            showToast(res.message || 'حدث خطأ أثناء إزالة المسجلين', 'error');
+          }
+        } catch (e) {
+          showToast('فشل الاتصال بالخادم', 'error');
+        }
+      }
+
       function togglePrintPreview() {
         const panel = document.getElementById('printPreviewPanel');
         const btn = document.getElementById('togglePreviewBtn');
@@ -13537,9 +13570,20 @@
       }
 
       function deserializeQRTemplate(template) {
-          try {
-              const data = typeof template === 'string' ? JSON.parse(template) : template;
-              if (!data) return;
+                      try {
+                let data = typeof template === 'string' ? JSON.parse(template) : template;
+                if (!data) return;
+                // Backward compatibility fallback for templates saved before the front/back background update
+                if (data.customCardBackgroundDataUrl !== undefined && data.customCardBackgroundDataUrlBack === undefined) {
+                    data.customCardBackgroundDataUrlBack = data.customCardBackgroundDataUrl;
+                    data.customBgOverlayColorBack = data.customBgOverlayColor || '#ffffff';
+                    data.customBgOverlayOpacityBack = data.customBgOverlayOpacity || '0';
+                }
+                if (data.customCardBackgroundDataUrlUncle !== undefined && data.customCardBackgroundDataUrlUncleBack === undefined) {
+                    data.customCardBackgroundDataUrlUncleBack = data.customCardBackgroundDataUrlUncle;
+                    data.customBgOverlayColorUncleBack = data.customBgOverlayColorUncle || '#ffffff';
+                    data.customBgOverlayOpacityUncleBack = data.customBgOverlayOpacityUncle || '0';
+                }
               
               if (data.scale !== undefined) {
                   const el = document.getElementById('printScale');
@@ -18087,10 +18131,13 @@
                 </div>
               </div>
             </div>
-            <div style="display:flex;gap:10px;margin-top:16px;">
-              <button type="submit" class="btn btn-primary" style="flex:2;"><i class="fas fa-save"></i> حفظ
+            <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+              <button type="submit" class="btn btn-primary" style="flex:2; min-width:150px;"><i class="fas fa-save"></i> حفظ
                 التعديلات</button>
-              <button type="button" class="btn btn-outline" style="flex:1;"
+              <button type="button" class="btn btn-danger" style="flex:1; min-width:120px; background-color:var(--danger,#ef4444); border-color:var(--danger,#ef4444); color:#fff;" onclick="confirmRemoveAllRegistered()">
+                <i class="fas fa-trash-alt"></i> مسح جميع المسجلين
+              </button>
+              <button type="button" class="btn btn-outline" style="flex:1; min-width:80px;"
                 onclick="closeModal('editTripModal')">إلغاء</button>
             </div>
           </form>
