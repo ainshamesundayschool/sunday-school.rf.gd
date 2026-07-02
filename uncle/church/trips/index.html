@@ -13217,6 +13217,11 @@
             document.getElementById('printCustomBgOverlayOpacityValBack').textContent = '35%';
         }
 
+        // Sync UI and Update Preview
+        syncPrintSettingsUI();
+        updatePrintPreview();
+      }
+
       function resetQRPrintSettings() {
         const scaleInput = document.getElementById('printScale');
         if (scaleInput) {
