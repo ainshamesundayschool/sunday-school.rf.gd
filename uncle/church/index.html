@@ -21205,7 +21205,7 @@
             }
 
             let classGroupHtml = '';
-            if (showClass && safeClass) {
+            if (showClass && safeClass && !extraFields.some(f => (f.key === 'class' || f.key === 'student_class') && f.placement === 'front')) {
                 if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only') {
                     classGroupHtml = `
                         <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${6 * scale}px; display:flex; flex-direction:column; align-items:center; ${infoBlockWidthStyle} box-sizing:border-box; margin-bottom:4px; box-shadow:${boxShadowValue};">
@@ -21226,7 +21226,7 @@
                     const frontFields = extraFields.filter(f => f.placement === 'front');
                     if (frontFields.length > 0) {
                         const itemsHtml = frontFields.map(field => {
-                            if (['church_header', 'student_image', 'student_name', 'class', 'student_id'].includes(field.key)) {
+                            if (['church_header', 'student_image', 'student_name'].includes(field.key)) {
                                 return '';
                             }
                             let val = getStudentFieldValue(student, field.key);
@@ -21237,18 +21237,25 @@
                             let iconClass = field.icon || 'fas fa-info-circle';
                             const fieldFontSize = field.fontSize ? field.fontSize * scale : fCustom_final;
                             
-                            if (field.key.startsWith('church_custom_')) {
-                                const customIdx = field.key.replace('church_custom_', '');
+                            if (field.key.startsWith('church_custom_') || field.key.startsWith('custom_field_')) {
+                                const customIdx = field.key.replace('church_custom_', '').replace('custom_field_', '');
                                 if (window._currentCustomFields && window._currentCustomFields[customIdx]) {
                                     const icon = window._currentCustomFields[customIdx].icon;
                                     if (icon) iconClass = icon.startsWith('fa-') ? 'fas ' + icon : icon;
                                 }
                             }
+                            const isLabelOmitted = ['church_name_only', 'custom_field_السكن', 'السكن', 'class', 'student_class'].includes(field.key) || field.label === 'السكن' || field.label === 'الفصل';
+                            if (isLabelOmitted) {
+                                return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700; font-size:${fieldFontSize}px;"><i class="${iconClass}" style="opacity:0.75;"></i> <strong>${escHtml(val)}</strong></span>`;
+                            }
+                            if (field.key === 'student_id' || field.key === 'id') {
+                                return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700; font-size:${fieldFontSize}px;"><i class="${iconClass}" style="opacity:0.75;"></i> ID: <strong>${escHtml(val)}</strong></span>`;
+                            }
                             return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700; font-size:${fieldFontSize}px;"><i class="${iconClass}" style="opacity:0.75;"></i> ${field.label}: <strong>${escHtml(val)}</strong></span>`;
-                        }).filter(Boolean).join(' | ');
+                        }).filter(Boolean).join('');
                         
                         if (itemsHtml) {
-                            extraInfoHtml = `<div class="extra-info" style="font-size:${fCustom_final}px; font-weight:bold; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-wrap:wrap; justify-content:center; gap:6px; width:100%; margin-top:4px;">${itemsHtml}</div>`;
+                            extraInfoHtml = `<div class="extra-info" style="font-size:${fCustom_final}px; font-weight:bold; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-direction:column; align-items:flex-start; gap:${4 * scale}px; width:100%; margin-top:${6 * scale}px; direction:rtl; text-align:right; padding:0 ${8 * scale}px; box-sizing:border-box;">${itemsHtml}</div>`;
                         }
                     }
                 }
@@ -21273,7 +21280,7 @@
             }
 
             let showStudentIdHtml = '';
-            if (showStudentId) {
+            if (showStudentId && !extraFields.some(f => f.key === 'student_id' && f.placement === 'front')) {
                 const displayId = student.is_empty_copy ? '.....................' : sid;
                 if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only') {
                     showStudentIdHtml = `
@@ -21935,7 +21942,7 @@
             updatePrintSelectedCount();
 
             cardExtraFields = [
-                { key: 'church_header', label: 'اسم الكنيسة والشعار', placement: 'front', icon: 'fas fa-church' },
+                { key: 'church_name_only', label: 'اسم الكنيسة فقط', placement: 'front', icon: 'fas fa-church' },
                 { key: 'student_image', label: 'صورة الطفل', placement: 'front', icon: 'fas fa-user-circle' },
                 { key: 'student_name', label: 'اسم الطفل', placement: 'front', icon: 'fas fa-user' },
                 { key: 'class', label: 'الفصل', placement: 'front', icon: 'fas fa-graduation-cap' },
@@ -22653,7 +22660,7 @@
 
             // Contents Checklist Reset (including back card)
             cardExtraFields = [
-                { key: 'church_header', label: 'اسم الكنيسة والشعار', placement: 'front', icon: 'fas fa-church' },
+                { key: 'church_name_only', label: 'اسم الكنيسة فقط', placement: 'front', icon: 'fas fa-church' },
                 { key: 'student_image', label: 'صورة الطفل', placement: 'front', icon: 'fas fa-user-circle' },
                 { key: 'student_name', label: 'اسم الطفل', placement: 'front', icon: 'fas fa-user' },
                 { key: 'class', label: 'الفصل', placement: 'front', icon: 'fas fa-graduation-cap' },
@@ -22762,7 +22769,7 @@
             if (borderInput) borderInput.value = 'solid';
 
             cardExtraFields = [
-                { key: 'church_header', label: 'اسم الكنيسة والشعار', placement: 'front', icon: 'fas fa-church' },
+                { key: 'church_name_only', label: 'اسم الكنيسة فقط', placement: 'front', icon: 'fas fa-church' },
                 { key: 'student_image', label: 'صورة الطفل', placement: 'front', icon: 'fas fa-user-circle' },
                 { key: 'student_name', label: 'اسم الطفل', placement: 'front', icon: 'fas fa-user' },
                 { key: 'class', label: 'الفصل', placement: 'front', icon: 'fas fa-graduation-cap' },
