@@ -13493,14 +13493,14 @@
               readabilityShadow: document.getElementById('printTextReadabilityShadow')?.checked ?? true,
               fontColor: document.getElementById('printFontColor')?.value || '#000000',
               strokeColor: document.getElementById('printStrokeColor')?.value || '#dddddd',
-              customCardBackgroundDataUrl: window.customCardBackgroundDataUrl || null,
-              customCardBackgroundDataUrlBack: window.customCardBackgroundDataUrlBack || null,
+              customCardBackgroundDataUrl: customCardBackgroundDataUrl || null,
+              customCardBackgroundDataUrlBack: customCardBackgroundDataUrlBack || null,
               customBgOverlayColor: document.getElementById('printCustomBgOverlayColor')?.value || '#ffffff',
               customBgOverlayOpacity: document.getElementById('printCustomBgOverlayOpacity')?.value || '0',
               customBgOverlayColorBack: document.getElementById('printCustomBgOverlayColorBack')?.value || '#ffffff',
               customBgOverlayOpacityBack: document.getElementById('printCustomBgOverlayOpacityBack')?.value || '0',
-              customCardBackgroundDataUrlUncle: window.customCardBackgroundDataUrlUncle || null,
-              customCardBackgroundDataUrlUncleBack: window.customCardBackgroundDataUrlUncleBack || null,
+              customCardBackgroundDataUrlUncle: customCardBackgroundDataUrlUncle || null,
+              customCardBackgroundDataUrlUncleBack: customCardBackgroundDataUrlUncleBack || null,
               customBgOverlayColorUncle: document.getElementById('printCustomBgOverlayColorUncle')?.value || '#ffffff',
               customBgOverlayOpacityUncle: document.getElementById('printCustomBgOverlayOpacityUncle')?.value || '0',
               customBgOverlayColorUncleBack: document.getElementById('printCustomBgOverlayColorUncleBack')?.value || '#ffffff',
@@ -13620,7 +13620,7 @@
                   if (el) el.value = data.strokeColor;
               }
               if (data.customCardBackgroundDataUrl !== undefined) {
-                  window.customCardBackgroundDataUrl = data.customCardBackgroundDataUrl;
+                  customCardBackgroundDataUrl = data.customCardBackgroundDataUrl;
                   const thumb = document.getElementById('printCustomBgThumbnail');
                   const thumbWrap = document.getElementById('printCustomBgThumbnailWrap');
                   const removeBtn = document.getElementById('printRemoveCustomBgBtn');
@@ -13651,7 +13651,7 @@
                   }
               }
               if (data.customCardBackgroundDataUrlBack !== undefined) {
-                  window.customCardBackgroundDataUrlBack = data.customCardBackgroundDataUrlBack;
+                  customCardBackgroundDataUrlBack = data.customCardBackgroundDataUrlBack;
                   const thumb = document.getElementById('printCustomBgThumbnailBack');
                   const thumbWrap = document.getElementById('printCustomBgThumbnailWrapBack');
                   const removeBtn = document.getElementById('printRemoveCustomBgBtnBack');
@@ -13682,7 +13682,7 @@
                   }
               }
               if (data.customCardBackgroundDataUrlUncle !== undefined) {
-                  window.customCardBackgroundDataUrlUncle = data.customCardBackgroundDataUrlUncle;
+                  customCardBackgroundDataUrlUncle = data.customCardBackgroundDataUrlUncle;
                   const thumb = document.getElementById('printCustomBgThumbnailUncle');
                   const thumbWrap = document.getElementById('printCustomBgThumbnailWrapUncle');
                   const removeBtn = document.getElementById('printRemoveCustomBgBtnUncle');
@@ -13713,7 +13713,7 @@
                   }
               }
               if (data.customCardBackgroundDataUrlUncleBack !== undefined) {
-                  window.customCardBackgroundDataUrlUncleBack = data.customCardBackgroundDataUrlUncleBack;
+                  customCardBackgroundDataUrlUncleBack = data.customCardBackgroundDataUrlUncleBack;
                   const thumb = document.getElementById('printCustomBgThumbnailUncleBack');
                   const thumbWrap = document.getElementById('printCustomBgThumbnailWrapUncleBack');
                   const removeBtn = document.getElementById('printRemoveCustomBgBtnUncleBack');
