@@ -10964,6 +10964,9 @@
         if (readabilitySubSettings) readabilitySubSettings.style.display = (readabilityVal === 'rect') ? 'flex' : 'none';
 
         togglePrintDashControls();
+        const showBackCard = document.getElementById('printBackCard')?.checked || false;
+        const backCardSubOptions = document.getElementById('backCardSubOptions');
+        if (backCardSubOptions) backCardSubOptions.style.display = showBackCard ? 'flex' : 'none';
       }
 
 
@@ -11143,6 +11146,8 @@
           const nameFieldFontSize = studentNameField && studentNameField.fontSize ? studentNameField.fontSize * scale : null;
           const fH2_final = nameFieldFontSize || (nameFontSizeOver > 0 ? nameFontSizeOver * scale : fH2);
           const nameWeight = (document.getElementById('printNameBold')?.checked ?? true) ? '800' : '400';
+          const infoWeight = (document.getElementById('printInfoBold')?.checked ?? false) ? '700' : '400';
+          const infoWeightHtml = (document.getElementById('printInfoBold')?.checked ?? false) ? 'strong' : 'span';
 
           const classField = extraFields.find(f => f.key === 'student_class' || f.key === 'class');
           const classFieldFontSize = classField && classField.fontSize ? classField.fontSize * scale : null;
@@ -11281,11 +11286,11 @@
               if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only') {
                   tripTitleHtml = `
                       <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${6 * scale}px; display:flex; flex-direction:column; align-items:center; ${infoBlockWidthStyle} box-sizing:border-box; margin-bottom:4px; box-shadow:${boxShadowValue};">
-                              <h3 style="font-size:${fH3_final_trip}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${tripTitleText}</h3>
+                              <h3 style="font-size:${fH3_final_trip}px; font-weight:${infoWeight}; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${tripTitleText}</h3>
                       </div>
                   `;
               } else {
-                  tripTitleHtml = `<h3 style="font-size:${fH3_final_trip}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${tripTitleText}</h3>`;
+                  tripTitleHtml = `<h3 style="font-size:${fH3_final_trip}px; font-weight:${infoWeight}; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${tripTitleText}</h3>`;
               }
           }
 
@@ -11294,11 +11299,11 @@
               if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only') {
                   classGroupHtml = `
                       <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${6 * scale}px; display:flex; flex-direction:column; align-items:center; ${infoBlockWidthStyle} box-sizing:border-box; margin-bottom:4px; box-shadow:${boxShadowValue};">
-                              <h3 style="font-size:${fH3_final_class}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeClass}</h3>
+                              <h3 style="font-size:${fH3_final_class}px; font-weight:${infoWeight}; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeClass}</h3>
                       </div>
                   `;
               } else {
-                  classGroupHtml = `<h3 style="font-size:${fH3_final_class}px; font-weight:700; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeClass}</h3>`;
+                  classGroupHtml = `<h3 style="font-size:${fH3_final_class}px; font-weight:${infoWeight}; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeClass}</h3>`;
               }
           }
 
@@ -11331,16 +11336,16 @@
                           }
                           const isLabelOmitted = ['church_name_only', 'custom_field_السكن', 'السكن', 'class', 'student_class'].includes(field.key) || field.label === 'السكن' || field.label === 'الفصل';
                           if (isLabelOmitted) {
-                              return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700; font-size:${fieldFontSize}px;"><i class="${iconClass}" style="opacity:0.75;"></i> <strong>${escHtml(String(val))}</strong></span>`;
+                              return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:${infoWeight}; font-size:${fieldFontSize}px;"><i class="${iconClass}" style="opacity:0.75;"></i> <${infoWeightHtml}>${escHtml(String(val))}</${infoWeightHtml}></span>`;
                           }
                           if (field.key === 'student_id' || field.key === 'id') {
-                              return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700; font-size:${fieldFontSize}px;"><i class="${iconClass}" style="opacity:0.75;"></i> ID: <strong>${escHtml(String(val))}</strong></span>`;
+                              return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:${infoWeight}; font-size:${fieldFontSize}px;"><i class="${iconClass}" style="opacity:0.75;"></i> ID: <${infoWeightHtml}>${escHtml(String(val))}</${infoWeightHtml}></span>`;
                           }
-                          return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700; font-size:${fieldFontSize}px;"><i class="${iconClass}" style="opacity:0.75;"></i> ${field.label}: <strong>${escHtml(String(val))}</strong></span>`;
+                          return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:${infoWeight}; font-size:${fieldFontSize}px;"><i class="${iconClass}" style="opacity:0.75;"></i> ${field.label}: <${infoWeightHtml}>${escHtml(String(val))}</${infoWeightHtml}></span>`;
                       }).filter(Boolean).join('');
                       
                       if (itemsHtml) {
-                          extraInfoHtml = `<div class="extra-info" style="font-size:${fCustom_final}px; font-weight:bold; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-direction:column; align-items:flex-start; gap:${4 * scale}px; width:100%; margin-top:${6 * scale}px; direction:rtl; text-align:right; padding:0 ${8 * scale}px; box-sizing:border-box;">${itemsHtml}</div>`;
+                          extraInfoHtml = `<div class="extra-info" style="font-size:${fCustom_final}px; font-weight:${infoWeight === '700' ? 'bold' : 'normal'}; color:${fontColor}; text-shadow: var(--text-shadow, none); display:flex; flex-direction:column; align-items:flex-start; gap:${4 * scale}px; width:100%; margin-top:${6 * scale}px; direction:rtl; text-align:right; padding:0 ${8 * scale}px; box-sizing:border-box;">${itemsHtml}</div>`;
                       }
                   }
               }
@@ -11540,6 +11545,8 @@
           const nameFieldFontSize = studentNameField && studentNameField.fontSize ? studentNameField.fontSize * scale : null;
           const fH2_final = nameFieldFontSize || (nameFontSizeOver > 0 ? nameFontSizeOver * scale : fH2);
           const nameWeight = (document.getElementById('printNameBold')?.checked ?? true) ? '800' : '400';
+          const infoWeight = (document.getElementById('printInfoBold')?.checked ?? false) ? '700' : '400';
+          const infoWeightHtml = (document.getElementById('printInfoBold')?.checked ?? false) ? 'strong' : 'span';
 
           const classField = extraFields.find(f => f.key === 'student_class' || f.key === 'class');
           const classFieldFontSize = classField && classField.fontSize ? classField.fontSize * scale : null;
@@ -11623,7 +11630,7 @@
               let tripHtml = '';
               const tripTitleText = window.currentTripObj?.title || 'رحلة مخصصة';
               if (showTripTitle && tripTitleText) {
-                  tripHtml = `<div style="font-size:${fH3_final_trip}px; font-weight:700; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; margin-bottom:6px;">${escHtml(tripTitleText)}</div>`;
+                  tripHtml = `<div style="font-size:${fH3_final_trip}px; font-weight:${infoWeight}; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; margin-bottom:6px;">${escHtml(tripTitleText)}</div>`;
               }
 
               let studentHtml = '';
@@ -11656,14 +11663,14 @@
               if (showClass) {
                   const cls = getSafeStudentClass(student);
                   if (cls) {
-                      classHtml = `<div style="font-size:${fH3_final_class}px; font-weight:700; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; margin-bottom:6px;">${escHtml(cls)}</div>`;
+                      classHtml = `<div style="font-size:${fH3_final_class}px; font-weight:${infoWeight}; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; margin-bottom:6px;">${escHtml(cls)}</div>`;
                   }
               }
 
               let idHtml = '';
               if (showStudentId) {
                   const sid = student['_studentId'] || student.id || student.student_id || '';
-                  idHtml = `<div style="font-size:${fH3_final_id}px; font-weight:800; margin-bottom:6px; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr;">ID: ${sid}</div>`;
+                  idHtml = `<div style="font-size:${fH3_final_id}px; font-weight:${infoWeight === '700' ? '800' : '400'}; margin-bottom:6px; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr;">ID: ${sid}</div>`;
               }
 
               let textFieldsHtml = '';
@@ -11674,7 +11681,7 @@
                       if (val === null || val === undefined || String(val).trim() === '') return '';
                       const iconClass = field.icon || 'fas fa-info-circle';
                       const fieldFontSize = field.fontSize ? field.fontSize * scale : dynamicFontSize;
-                      return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:700; font-size:${fieldFontSize}px;"><i class="${iconClass}" style="opacity:0.75;"></i> ${field.label}: <strong>${escHtml(val)}</strong></span>`;
+                      return `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:${infoWeight}; font-size:${fieldFontSize}px;"><i class="${iconClass}" style="opacity:0.75;"></i> ${field.label}: <${infoWeightHtml}>${escHtml(val)}</${infoWeightHtml}></span>`;
                   }).filter(Boolean).join(' | ');
 
                   if (itemsHtml) {
@@ -11695,7 +11702,7 @@
                             </div>`;
                       } else {
                           textFieldsHtml = `
-                            <div style="display:flex; flex-direction:column; align-items:center; gap:${dynamicGap}; width: 100%; text-align:center; justify-content:center; font-size:${dynamicFontSize}px; color:${fontColor}; text-shadow:var(--text-shadow, none);">
+                            <div style="display:flex; flex-direction:column; align-items:center; gap:${dynamicGap}; width: 100%; text-align:center; justify-content:center; font-size:${dynamicFontSize}px; color:${fontColor}; text-shadow:var(--text-shadow, none); font-weight:${infoWeight};">
                               ${itemsHtml}
                             </div>`;
                       }
@@ -11714,14 +11721,29 @@
               `;
           } else if (bgUrlToUseBack === '/imgs/Card-Back.png') {
               // Sunday School Template Branding only (No church name)
-              innerContentHtml = `
-              <div style="position:relative; z-index:5; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:${12 * scale}px; text-align:center; box-sizing:border-box;">
+              const showBackLogo = document.getElementById('printShowBackLogo')?.checked ?? true;
+              const showBackLink = document.getElementById('printShowBackLink')?.checked ?? true;
+              
+              let backLogoHtml = '';
+              if (showBackLogo) {
+                  backLogoHtml = `
                   <div style="display:flex; justify-content:center; align-items:center; width:100%;">
                       <img src="/logo.png" style="height:${Math.max(22, Math.min(availW * 0.24, availH * 0.24))}px; width:auto; object-fit:contain;" onerror="this.style.display='none'">
-                  </div>
+                  </div>`;
+              }
+              
+              let backLinkHtml = '';
+              if (showBackLink) {
+                  backLinkHtml = `
                   <div style="font-size:${Math.max(8, Math.min(10.5 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; opacity:0.8; letter-spacing:0.02em; font-family:'Outfit', 'Segoe UI', sans-serif;">
                       sunday-school.online
-                  </div>
+                  </div>`;
+              }
+              
+              innerContentHtml = `
+              <div style="position:relative; z-index:5; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:${12 * scale}px; text-align:center; box-sizing:border-box;">
+                  ${backLogoHtml}
+                  ${backLinkHtml}
               </div>
               `;
           }
@@ -13272,6 +13294,13 @@
             document.getElementById('printCustomBgOverlayOpacityValBack').textContent = '35%';
         }
 
+        const showBackLogo = document.getElementById('printShowBackLogo');
+        if (showBackLogo) showBackLogo.checked = true;
+        const showBackLink = document.getElementById('printShowBackLink');
+        if (showBackLink) showBackLink.checked = true;
+        const infoBold = document.getElementById('printInfoBold');
+        if (infoBold) infoBold.checked = false;
+
         // Sync UI and Update Preview
         syncPrintSettingsUI();
         updatePrintPreview();
@@ -13429,8 +13458,14 @@
             document.getElementById('printQrYOffsetVal').textContent = '0px';
         }
         const nameBold = document.getElementById('printNameBold');
-          if (nameBold) nameBold.checked = true;
-          window.customLogos = [];
+        if (nameBold) nameBold.checked = true;
+        const infoBold = document.getElementById('printInfoBold');
+        if (infoBold) infoBold.checked = false;
+        const showBackLogo = document.getElementById('printShowBackLogo');
+        if (showBackLogo) showBackLogo.checked = true;
+        const showBackLink = document.getElementById('printShowBackLink');
+        if (showBackLink) showBackLink.checked = true;
+        window.customLogos = [];
         renderPrintLogosList();
 
         // Reset template dropdown select value
@@ -13594,6 +13629,9 @@
               customBgOverlayColorUncleBack: document.getElementById('printCustomBgOverlayColorUncleBack')?.value || '#ffffff',
               customBgOverlayOpacityUncleBack: document.getElementById('printCustomBgOverlayOpacityUncleBack')?.value || '0',
               nameBold: document.getElementById('printNameBold')?.checked ?? true,
+              printInfoBold: document.getElementById('printInfoBold')?.checked ?? false,
+              printShowBackLogo: document.getElementById('printShowBackLogo')?.checked ?? true,
+              printShowBackLink: document.getElementById('printShowBackLink')?.checked ?? true,
               nameFontSize: document.getElementById('printNameFontSize')?.value || '0',
               infoFontSize: document.getElementById('printInfoFontSize')?.value || '0',
               qrYOffset: document.getElementById('printQrYOffset')?.value || '0',
@@ -13842,7 +13880,20 @@
               if (data.nameBold !== undefined) {
                   const el = document.getElementById('printNameBold');
                   if (el) el.checked = !!data.nameBold;
-              }              if (data.nameFontSize !== undefined) {
+              }
+              if (data.printInfoBold !== undefined) {
+                  const el = document.getElementById('printInfoBold');
+                  if (el) el.checked = !!data.printInfoBold;
+              }
+              if (data.printShowBackLogo !== undefined) {
+                  const el = document.getElementById('printShowBackLogo');
+                  if (el) el.checked = !!data.printShowBackLogo;
+              }
+              if (data.printShowBackLink !== undefined) {
+                  const el = document.getElementById('printShowBackLink');
+                  if (el) el.checked = !!data.printShowBackLink;
+              }
+              if (data.nameFontSize !== undefined) {
                   const el = document.getElementById('printNameFontSize');
                   if (el) {
                       el.value = data.nameFontSize;
@@ -18513,6 +18564,21 @@
                   <span>توليد ظهر الكارت (Generate Back Card)</span>
                 </label>
 
+                <div id="backCardSubOptions" style="display:flex; flex-direction:column; gap:8px; margin-right:15px; border-right:2px solid var(--border); padding-right:10px;">
+                  <label
+                    style="display:flex; align-items:center; gap:8px; font-size:0.8rem; cursor:pointer; color:var(--text);">
+                    <input type="checkbox" id="printShowBackLogo" checked
+                      style="accent-color:var(--primary); width:14px; height:14px;" onchange="updatePrintPreview()">
+                    <span>عرض شعار الخلفية (Show Back Logo)</span>
+                  </label>
+                  <label
+                    style="display:flex; align-items:center; gap:8px; font-size:0.8rem; cursor:pointer; color:var(--text);">
+                    <input type="checkbox" id="printShowBackLink" checked
+                      style="accent-color:var(--primary); width:14px; height:14px;" onchange="updatePrintPreview()">
+                    <span>عرض رابط الموقع بالخلفية (Show School Link)</span>
+                  </label>
+                </div>
+
                 <label
                   style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text); margin-top:4px;">
                   <input type="checkbox" id="printShowFloorInRoom"
@@ -18644,6 +18710,10 @@
                   <label style="display:inline-flex; align-items:center; gap:6px; font-size:0.75rem; cursor:pointer; color:var(--text); margin-top:2px;">
                     <input type="checkbox" id="printNameBold" checked onchange="updatePrintPreview()" style="accent-color:var(--primary); width:14px; height:14px;">
                     <span>خط الاسم عريض (Bold Name)</span>
+                  </label>
+                  <label style="display:inline-flex; align-items:center; gap:6px; font-size:0.75rem; cursor:pointer; color:var(--text); margin-top:2px;">
+                    <input type="checkbox" id="printInfoBold" onchange="updatePrintPreview()" style="accent-color:var(--primary); width:14px; height:14px;">
+                    <span>خط البيانات عريض (Bold Info)</span>
                   </label>
                 </div>
 
