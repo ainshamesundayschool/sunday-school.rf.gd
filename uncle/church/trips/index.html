@@ -11220,7 +11220,7 @@
               `;
           }
           let churchHeaderHtml = '';
-          if (showChurch || showChurchNameOnly) {
+          if (showChurch) {
               const showLogo = showChurch;
               if (textReadability === 'rect' && !isUnified && readabilityWidth !== 'unified-qr-only') {
                   churchHeaderHtml = `
@@ -11373,7 +11373,7 @@
                   <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:0.8; height:100%; min-width:0; min-height:0; width:100%;">
                       <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-sizing:border-box; box-shadow:${boxShadowValue}; overflow:visible; width:100%; flex:1; min-height:0; gap:${4 * scale}px;">
                           <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible; ${qrOffsetStyle}"></div>
-                          ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
+                          ${(showStudentId && !extraFields.some(f => f.key === 'student_id' && f.placement === 'front')) ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
                       </div>
                   </div>
                   `;
@@ -11382,7 +11382,7 @@
                   <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:0.8; height:100%; min-width:0; min-height:0; width:100%;">
                       <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-shadow:${boxShadowValue}; overflow:visible; width:fit-content; gap:${4 * scale}px;">
                           <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible; ${qrOffsetStyle}"></div>
-                          ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
+                          ${(showStudentId && !extraFields.some(f => f.key === 'student_id' && f.placement === 'front')) ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
                       </div>
                   </div>
                   `;
@@ -11435,7 +11435,7 @@
                   <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; flex:0.8; min-height:0;">
                       <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-sizing:border-box; box-shadow:${boxShadowValue}; overflow:visible; width:100%; flex:1; min-height:0; gap:${4 * scale}px;">
                           <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible; ${qrOffsetStyle}"></div>
-                          ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
+                          ${(showStudentId && !extraFields.some(f => f.key === 'student_id' && f.placement === 'front')) ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
                       </div>
                   </div>
                   `;
@@ -11444,7 +11444,7 @@
                   <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; flex:0.8; min-height:0;">
                       <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-shadow:${boxShadowValue}; overflow:visible; width:fit-content; gap:${4 * scale}px;">
                           <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible; ${qrOffsetStyle}"></div>
-                          ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
+                          ${(showStudentId && !extraFields.some(f => f.key === 'student_id' && f.placement === 'front')) ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
                       </div>
                   </div>
                   `;
