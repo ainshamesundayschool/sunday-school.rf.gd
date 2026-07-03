@@ -2917,10 +2917,12 @@
       display: block !important;
       position: static !important;
       width: 100%;
+      height: 100vh;
+      max-height: 100vh;
+      overflow: hidden;
       margin: 0;
       padding: 0;
       background: var(--bg);
-      min-height: 100vh;
       z-index: auto !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
@@ -2930,20 +2932,24 @@
       display: block;
       width: 100%;
       max-width: 100% !important;
+      height: 100vh !important;
+      max-height: 100vh !important;
       margin: 0;
       padding: 0;
       background: transparent !important;
       box-shadow: none !important;
       border-radius: 0 !important;
-      height: auto !important;
-      max-height: none !important;
       animation: none !important;
+      overflow: hidden;
     }
 
     #tripDetailsScroll {
-      overflow-y: visible !important;
-      height: auto !important;
-      max-height: none !important;
+      display: block;
+      width: 100%;
+      height: 100vh !important;
+      max-height: 100vh !important;
+      overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch;
       flex: none !important;
     }
 
@@ -3033,8 +3039,8 @@
       top: 0;
       z-index: 10;
       background: var(--card) !important;
-      padding: 10px 16px !important;
-      margin: 0 -16px 14px;
+      padding: 10px 28px !important;
+      margin: 0 -28px 14px;
       border-bottom: 1px solid var(--border);
       box-shadow: 0 4px 12px rgba(15, 14, 26, 0.03);
     }
@@ -4798,18 +4804,18 @@
     }
 
     .td-scroll-body {
-      padding: 24px 28px;
+      padding: 0 28px 24px;
     }
 
     @media (min-width: 1000px) {
       .td-scroll-body {
-        padding: 18px 28px 24px !important;
+        padding: 0 28px 24px !important;
       }
     }
 
     @media (max-width: 999px) {
       .td-scroll-body {
-        padding: 18px 16px 24px !important;
+        padding: 0 16px 24px !important;
       }
     }
   </style>
@@ -4886,9 +4892,8 @@
                         الغرف والسكن</div>
                     </div>
                     <button class="trip-tabs-close" type="button" onclick="window.location.href='/uncle/church/#trips'"
-                      title="العودة للرحلات" style="display:flex; align-items:center; gap:6px; width:auto; padding:0 12px; font-weight:800; font-size:0.82rem; border-radius:12px;">
-                      <i class="fas fa-arrow-right"></i>
-                      <span>رجوع</span>
+                      title="إغلاق">
+                      <i class="fas fa-times"></i>
                     </button>
                   </div>
                 </div>
