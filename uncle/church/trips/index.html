@@ -205,11 +205,11 @@
       --sidebar-w: 272px;
       --sidebar-collapsed: 70px;
       --topbar-h: 64px;
-      --radius-xs: 6px;
-      --radius-sm: 8px;
-      --radius: 12px;
-      --radius-lg: 16px;
-      --radius-xl: 20px;
+      --radius-xs: 10px;
+      --radius-sm: 12px;
+      --radius: 16px;
+      --radius-lg: 24px;
+      --radius-xl: 32px;
       --radius-pill: 999px;
 
       /* Shadow */
@@ -1020,7 +1020,7 @@
     .btn {
       padding: 9px 18px;
       border: none;
-      border-radius: var(--radius-sm);
+      border-radius: var(--radius-pill);
       cursor: pointer;
       font-family: 'Cairo', sans-serif;
       font-weight: 700;
@@ -1112,7 +1112,7 @@
     .btn-sm {
       padding: 6px 12px;
       font-size: 0.78rem;
-      border-radius: var(--radius-xs);
+      border-radius: var(--radius-pill);
     }
 
     .btn-icon {
@@ -2879,8 +2879,8 @@
       -webkit-backdrop-filter: blur(6px);
       z-index: 1000;
       justify-content: center;
-      align-items: flex-end;
-      padding: 0;
+      align-items: center;
+      padding: 16px;
     }
 
     .modal.open {
@@ -2900,16 +2900,16 @@
 
     .modal-box {
       background: white;
-      border-radius: 20px 20px 0 0 !important;
+      border-radius: var(--radius-lg) !important;
       width: 100% !important;
       max-width: 700px !important;
       height: auto !important;
-      max-height: 92vh !important;
+      max-height: 90vh !important;
       overflow: hidden;
       display: flex;
       flex-direction: column;
       box-shadow: var(--shadow-xl);
-      animation: slideUp 0.28s var(--ease-out);
+      animation: fadeIn 0.22s var(--ease-out);
     }
 
     /* Standalone trip details page container (replaces modal overlays) */
@@ -3036,7 +3036,7 @@
 
     .trip-tabs-bar {
       position: sticky;
-      top: 0;
+      top: calc(var(--topbar-h) + env(safe-area-inset-top, 0px));
       z-index: 10;
       background: var(--card) !important;
       padding: 10px 28px !important;
@@ -3227,7 +3227,7 @@
     .trip-shell-page {
       display: none;
       min-height: auto;
-      padding: 24px 28px 32px;
+      padding: 12px 16px 20px;
     }
 
     .trip-shell-page.active {
@@ -4328,19 +4328,9 @@
 
     @media (min-width: 1000px) {
 
-      /* Premium Dashboard Header Styling */
+      /* Hide Header completely on desktop */
       #tdHeader {
-        display: grid !important;
-        grid-template-columns: 80px 1fr auto;
-        grid-template-rows: auto auto;
-        gap: 12px 18px;
-        align-items: center;
-        padding: 24px 28px 20px;
-        background: linear-gradient(135deg, var(--sidebar-bg), var(--sidebar-mid));
-        color: white;
-        border-bottom: 1px solid var(--border-sidebar);
-        position: relative;
-        overflow: hidden;
+        display: none !important;
       }
 
       #tdHeader::before {
@@ -5135,9 +5125,10 @@
       }
 
       function buildTripBreadcrumb(extra = []) {
+        const tripWord = window.currentTripObj?.type === 'one_day' ? 'الرحلة' : 'المؤتمر';
         const root = [
           { label: 'الرحلات' },
-          { label: 'تفاصيل الرحلة', action: () => closeAllShellPages() },
+          { label: window.currentTripObj?.title || ('تفاصيل ' + tripWord), action: () => closeAllShellPages() },
           { label: document.getElementById('tdtab-' + currentTripTab)?.dataset?.title || 'الملخص', action: () => { closeAllShellPages(); switchTripTab(currentTripTab); } }
         ];
         return root.concat(extra);
@@ -5737,40 +5728,26 @@
 
         ${trip.description ? `<div style="background:var(--bg);border-radius:10px;padding:14px;font-size:0.88rem;color:var(--muted);margin-bottom:16px;line-height:1.7;">${trip.description}</div>` : ''}
         <div class="trip-actions-grid">
+          ${isOwner ? `
+          <button class="trip-action-btn" onclick="openEditTrip(${trip.id})">
+            <i class="fas fa-edit" style="color:var(--primary);"></i>تعديل ${tripWordDef}
+          </button>
+          ` : ''}
           <button class="trip-action-btn primary" onclick="showRegisterStudentModal?.(${trip.id})">
             <i class="fas fa-user-plus"></i>تسجيل طفل
           </button>
-          <button class="trip-action-btn" onclick="switchTripTab('regs')">
-            <i class="fas fa-users"></i>المسجلون<br><span style="font-weight:800;font-size:0.9rem;">${regs.length}</span>
-          </button>
           <button type="button" class="trip-action-btn" onclick="openCustomExportModal(${trip.id})">
-            <i class="fas fa-sliders-h"></i>تصدير مخصص
-          </button>
-          <button class="trip-action-btn" onclick="copyTripLink(${trip.id})">
-            <i class="fas fa-link"></i>نسخ الرابط
+            <i class="fas fa-file-export" style="color:var(--warning-dark);"></i>تصدير مخصص
           </button>
           <button class="trip-action-btn" onclick="showTripCollaborationModal(${trip.id})">
-            <i class="fas fa-handshake"></i>دعوة كنيسة أخرى
+            <i class="fas fa-handshake" style="color:var(--primary);"></i>دعوة كنيسة أخرى
           </button>
           ${isOwner ? `
           <button class="trip-action-btn" onclick="openCustomFieldEditor(${trip.id})">
-            <i class="fas fa-sliders-h"></i>البيانات الإضافية
-          </button>
-          <button class="trip-action-btn" onclick="openEditTrip(${trip.id})">
-            <i class="fas fa-edit"></i>تعديل ${tripWordDef}
+            <i class="fas fa-sliders-h" style="color:var(--brand);"></i>البيانات الإضافية
           </button>
           ` : ''}
-          <button class="trip-action-btn" onclick="tripShowBulkAddModal(${trip.id})" style="background:var(--success-light);color:#065f46;border-color:#a7f3d0;">
-            <i class="fas fa-file-import"></i>إضافة جماعي للأطفال
-          </button>
-          ${(trip.custom_fields && trip.custom_fields.trim()) ? `
-          <button class="trip-action-btn" onclick="openBulkCustomDataModal(${trip.id})">
-            <i class="fas fa-table"></i>تعديل البيانات الإضافية
-          </button>` : ''}
           ${trip.has_points_game == 1 ? `
-          <a href="/uncle/trip/?trip_id=${trip.id}" class="trip-action-btn" style="background:linear-gradient(135deg,#5b6cf5,#818cf8);color:white;border-color:#5b6cf5;">
-            <i class="fas fa-qrcode" style="background:rgba(255,255,255,0.2);color:white;"></i>إدارة المسابقة
-          </a>
           <button class="trip-action-btn success" onclick="printQRCards(${trip.id})">
             <i class="fas fa-print"></i>طباعة QR
           </button>` : ''}
@@ -5790,6 +5767,7 @@
               </div>
               <div style="display:flex;gap:8px;flex-wrap:wrap;">
                 <button class="btn btn-danger btn-sm" onclick="confirmRemoveAllRegistered(${trip.id})" style="background-color:var(--danger,#ef4444);border-color:var(--danger,#ef4444);color:#fff;"><i class="fas fa-trash-alt"></i> مسح جميع المسجلين</button>
+                <button class="btn btn-success btn-sm" onclick="tripShowBulkAddModal(${trip.id})" style="background-color:var(--success,#10b981);border-color:var(--success,#10b981);color:#fff;"><i class="fas fa-file-import"></i> إضافة جماعي</button>
                 <button class="btn btn-primary btn-sm" onclick="showRegisterStudentModal(${trip.id})"><i class="fas fa-user-plus"></i> تسجيل جديد</button>
               </div>
             </div>
@@ -5827,7 +5805,14 @@
           }).join('')}
             </div>
           </div>`
-          : `<div class="empty-state trip-empty-card"><i class="fas fa-user-slash"></i><h3>لا يوجد مسجلون بعد</h3><button class="btn btn-primary btn-sm" style="margin-top:14px;" onclick="showRegisterStudentModal(${trip.id})"><i class="fas fa-user-plus"></i> سجّل أول طفل</button></div>`;
+          : `<div class="empty-state trip-empty-card">
+              <i class="fas fa-user-slash"></i>
+              <h3>لا يوجد مسجلون بعد</h3>
+              <div style="display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap;">
+                <button class="btn btn-success btn-sm" onclick="tripShowBulkAddModal(${trip.id})"><i class="fas fa-file-import"></i> إضافة جماعي</button>
+                <button class="btn btn-primary btn-sm" onclick="showRegisterStudentModal(${trip.id})"><i class="fas fa-user-plus"></i> سجّل أول طفل</button>
+              </div>
+            </div>`;
         document.getElementById('expTripId').value = trip.id;
         document.getElementById('addExpenseForm').reset();
         document.getElementById('expCalcResult').textContent = 'أدخل المبلغ لحساب النصيب';
@@ -17970,7 +17955,8 @@
     <div id="bulkCustomDataModal" class="modal">
       <div class="modal-box wide">
         <div class="modal-head">
-          <div id="bulkCustomDataHeader" style="font-weight:800;font-size:1rem;color:var(--text);"></div>
+          <div id="bulkCustomDataHeader" style="font-weight:800;font-size:1rem;color:var(--text);flex:1;"></div>
+          <button class="modal-close" type="button" onclick="closeModal('bulkCustomDataModal')"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body">
           <input type="hidden" id="bulkCustomDataTripId">
@@ -18037,6 +18023,7 @@
                 class="fas fa-save"></i>
               حفظ التغييرات</button>
             <button type="button" class="btn btn-outline" onclick="closeModal('customFieldEditorModal')">إلغاء</button>
+            <button type="button" class="btn btn-success" onclick="closeModal('customFieldEditorModal'); openBulkCustomDataModal(_cfeState.tripId);" style="margin-right:auto;"><i class="fas fa-table"></i> تعديل بيانات الأطفال</button>
           </div>
         </div>
       </div>
