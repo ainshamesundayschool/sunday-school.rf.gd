@@ -2912,27 +2912,32 @@
       animation: slideUp 0.28s var(--ease-out);
     }
 
-    /* Full-screen trip detail is styled as a native standalone page */
-    #tripDetailsModal {
-      position: static !important;
+    /* Standalone trip details page container (replaces modal overlays) */
+    .trip-details-page-container {
       display: block !important;
-      background: transparent !important;
+      position: static !important;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      min-height: 100vh;
+      z-index: auto !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
-      z-index: auto !important;
-      padding: 0 !important;
     }
 
-    #tripDetailsModal .modal-box {
+    .trip-details-page-box {
+      display: block;
+      width: 100%;
       max-width: 100% !important;
-      width: 100% !important;
+      margin: 0;
+      padding: 0;
+      background: transparent !important;
+      box-shadow: none !important;
+      border-radius: 0 !important;
       height: auto !important;
       max-height: none !important;
-      border-radius: 0 !important;
-      box-shadow: none !important;
-      background: transparent !important;
       animation: none !important;
-      display: block !important;
     }
 
     #tripDetailsScroll {
@@ -4266,82 +4271,9 @@
     }
 
     @media (max-width: 999px) {
-      /* Responsive Header for Mobile */
+      /* Hide Header completely on Mobile/Tablet as requested */
       #tdHeader {
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        text-align: center !important;
-        padding: 20px 16px 16px !important;
-        gap: 12px !important;
-        background: linear-gradient(135deg, var(--sidebar-bg), var(--sidebar-mid)) !important;
-        color: white !important;
-        border-bottom: 1px solid var(--border-sidebar) !important;
-      }
-
-      #tdCoverThumb {
-        grid-column: auto !important;
-        grid-row: auto !important;
-        width: 64px !important;
-        height: 64px !important;
-        font-size: 1.4rem !important;
-        margin: 0 auto !important;
-      }
-
-      .td-title-badge-wrap {
-        grid-column: auto !important;
-        grid-row: auto !important;
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        gap: 6px !important;
-      }
-
-      #tdModalTitle {
-        font-size: 1.2rem !important;
-        font-weight: 800 !important;
-        margin: 0 !important;
-      }
-
-      #tdSubtitle {
-        grid-column: auto !important;
-        grid-row: auto !important;
-        font-size: 0.8rem !important;
-        color: rgba(255, 255, 255, 0.7) !important;
-        margin-top: 2px !important;
-      }
-
-      .price-pills-wrap {
-        grid-column: auto !important;
-        grid-row: auto !important;
-        display: flex !important;
-        flex-direction: row !important;
-        align-items: center !important;
-        justify-content: center !important;
-        gap: 8px !important;
-        margin-top: 4px !important;
-      }
-
-      #tdTotalPricePill {
-        font-size: 1.4rem !important;
-      }
-
-      #tdQuickStats {
-        grid-column: auto !important;
-        grid-row: auto !important;
-        width: 100% !important;
-        margin-top: 8px !important;
-        border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
-        padding-top: 10px !important;
-      }
-
-      #tdQuickStats > div {
-        flex-wrap: wrap !important;
-      }
-
-      #tdQuickStats > div > div {
-        flex: 1 1 30% !important;
-        padding: 4px 2px !important;
+        display: none !important;
       }
 
       .trip-tabs-bar {
@@ -4888,11 +4820,10 @@
     <!-- Minimal trips page content (keeps the page self-contained) -->
     <div class="main-wrapper">
       <main class="main-content">
-        <!-- Trip Details modal copied from canonical dashboard (simplified integration) -->
-        <div id="tripDetailsModal" class="modal" style="padding:0;">
-          <div class="modal-box"
-            style="max-width:100%;width:100%;height:100%;max-height:100vh;border-radius:0;display:flex;flex-direction:column;">
-            <div id="tripDetailsScroll" style="flex:1;overflow-y:auto;padding:0;">
+        <!-- Trip Details page container -->
+        <div id="tripDetailsModal" class="trip-details-page-container open">
+          <div class="trip-details-page-box">
+            <div id="tripDetailsScroll">
               <div id="tdHeader">
                 <div id="tdCoverThumb"></div>
                 <div class="td-title-badge-wrap">
@@ -14221,8 +14152,9 @@
             .rooms-sidebar {
               position: fixed;
               top: 0;
-              right: -320px;
-              width: 300px;
+              right: -400px;
+              width: 85vw;
+              max-width: 380px;
               height: 100vh;
               max-height: 100vh;
               z-index: 10000;
@@ -14233,8 +14165,10 @@
               border-left: 1.5px solid var(--border);
               margin: 0;
               background: var(--surface);
+              -webkit-overflow-scrolling: touch;
             }
             .rooms-sidebar.open { right: 0; }
+            .rooms-sidebar-close-btn { display: block !important; }
             .rooms-sidebar-overlay {
               position: fixed;
               top: 0;
