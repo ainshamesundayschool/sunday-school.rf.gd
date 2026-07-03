@@ -2912,13 +2912,34 @@
       animation: slideUp 0.28s var(--ease-out);
     }
 
-    /* Full-screen trip detail stays full-screen */
+    /* Full-screen trip detail is styled as a native standalone page */
+    #tripDetailsModal {
+      position: static !important;
+      display: block !important;
+      background: transparent !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      z-index: auto !important;
+      padding: 0 !important;
+    }
+
     #tripDetailsModal .modal-box {
       max-width: 100% !important;
-      height: 100% !important;
-      max-height: 100vh !important;
+      width: 100% !important;
+      height: auto !important;
+      max-height: none !important;
       border-radius: 0 !important;
-      animation: fadeIn 0.22s var(--ease-out);
+      box-shadow: none !important;
+      background: transparent !important;
+      animation: none !important;
+      display: block !important;
+    }
+
+    #tripDetailsScroll {
+      overflow-y: visible !important;
+      height: auto !important;
+      max-height: none !important;
+      flex: none !important;
     }
 
     .trip-workspace {
@@ -2938,7 +2959,7 @@
     }
 
     .trip-folder-header {
-      display: none;
+      display: flex;
       align-items: flex-start;
       justify-content: space-between;
       gap: 16px;
@@ -3004,16 +3025,19 @@
 
     .trip-tabs-bar {
       position: sticky;
-      top: -18;
-      z-index: 8;
-      background: transparent;
-      padding-bottom: 10px;
-      margin-bottom: 10px;
+      top: 0;
+      z-index: 10;
+      background: var(--card) !important;
+      padding: 10px 16px !important;
+      margin: 0 -16px 14px;
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 4px 12px rgba(15, 14, 26, 0.03);
     }
 
     .trip-tabs-bar-inner {
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 10px;
       padding: 0;
       border: none;
@@ -4236,45 +4260,135 @@
       color: var(--warning);
     }
 
+    .main-content {
+      display: block !important;
+      padding: 0 !important;
+    }
+
     @media (max-width: 999px) {
+      /* Responsive Header for Mobile */
       #tdHeader {
-        display: none !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        padding: 20px 16px 16px !important;
+        gap: 12px !important;
+        background: linear-gradient(135deg, var(--sidebar-bg), var(--sidebar-mid)) !important;
+        color: white !important;
+        border-bottom: 1px solid var(--border-sidebar) !important;
+      }
+
+      #tdCoverThumb {
+        grid-column: auto !important;
+        grid-row: auto !important;
+        width: 64px !important;
+        height: 64px !important;
+        font-size: 1.4rem !important;
+        margin: 0 auto !important;
+      }
+
+      .td-title-badge-wrap {
+        grid-column: auto !important;
+        grid-row: auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 6px !important;
+      }
+
+      #tdModalTitle {
+        font-size: 1.2rem !important;
+        font-weight: 800 !important;
+        margin: 0 !important;
+      }
+
+      #tdSubtitle {
+        grid-column: auto !important;
+        grid-row: auto !important;
+        font-size: 0.8rem !important;
+        color: rgba(255, 255, 255, 0.7) !important;
+        margin-top: 2px !important;
+      }
+
+      .price-pills-wrap {
+        grid-column: auto !important;
+        grid-row: auto !important;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 8px !important;
+        margin-top: 4px !important;
+      }
+
+      #tdTotalPricePill {
+        font-size: 1.4rem !important;
+      }
+
+      #tdQuickStats {
+        grid-column: auto !important;
+        grid-row: auto !important;
+        width: 100% !important;
+        margin-top: 8px !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+        padding-top: 10px !important;
+      }
+
+      #tdQuickStats > div {
+        flex-wrap: wrap !important;
+      }
+
+      #tdQuickStats > div > div {
+        flex: 1 1 30% !important;
+        padding: 4px 2px !important;
       }
 
       .trip-tabs-bar {
         padding: 8px 16px !important;
         margin: 0 -16px 14px;
+        position: sticky !important;
+        top: 0 !important;
+        background: var(--card) !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05) !important;
+        border-bottom: 1px solid var(--border) !important;
+        z-index: 100 !important;
+      }
+
+      .trip-folder-header {
+        padding: 12px 16px !important;
+        gap: 8px !important;
+      }
+
+      .trip-folder-header h3 {
+        font-size: 1rem !important;
+      }
+
+      .trip-folder-header p {
+        font-size: 0.78rem !important;
+        margin-top: 2px !important;
+      }
+
+      .trip-folder-breadcrumb {
+        font-size: 0.72rem !important;
+        gap: 6px !important;
+        margin-bottom: 4px !important;
+        overflow-x: auto;
+        white-space: nowrap;
+        padding-bottom: 2px;
+        scrollbar-width: none;
+      }
+
+      .trip-folder-breadcrumb::-webkit-scrollbar {
+        display: none;
+      }
+
+      .trip-folder-body {
+        padding: 16px 0 0 !important;
       }
     }
 
     @media (min-width: 1000px) {
-
-      /* Make main-content and the inner modal container appear as a native page layout */
-      .main-content {
-        display: block !important;
-        padding: 0 !important;
-      }
-
-      #tripDetailsModal {
-        position: static !important;
-        display: block !important;
-        background: transparent !important;
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
-        z-index: auto !important;
-        padding: 0 !important;
-      }
-
-      #tripDetailsModal .modal-box {
-        max-width: 100% !important;
-        width: 100% !important;
-        height: 100vh !important;
-        max-height: 100vh !important;
-        border-radius: 0 !important;
-        box-shadow: none !important;
-        background: transparent !important;
-        animation: none !important;
-      }
 
       /* Premium Dashboard Header Styling */
       #tdHeader {
@@ -4841,8 +4955,9 @@
                         الغرف والسكن</div>
                     </div>
                     <button class="trip-tabs-close" type="button" onclick="window.location.href='/uncle/church/#trips'"
-                      title="إغلاق">
-                      <i class="fas fa-times"></i>
+                      title="العودة للرحلات" style="display:flex; align-items:center; gap:6px; width:auto; padding:0 12px; font-weight:800; font-size:0.82rem; border-radius:12px;">
+                      <i class="fas fa-arrow-right"></i>
+                      <span>رجوع</span>
                     </button>
                   </div>
                 </div>
@@ -13974,6 +14089,16 @@
         style.textContent = `
           .rooms-ws-container { display: grid; grid-template-columns: 300px 1fr; gap: 20px; direction: rtl; margin-top: 15px; }
           .rooms-sidebar { background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; max-height: 75vh; overflow-y: auto; }
+          @media (min-width: 992px) {
+            .rooms-sidebar {
+              position: sticky !important;
+              top: 70px !important;
+              max-height: calc(100vh - 90px) !important;
+              overflow-y: auto !important;
+              z-index: 5;
+              scrollbar-width: thin;
+            }
+          }
           .rooms-sidebar-overlay { display: none; }
           .rooms-mobile-toggle-btn { display: none; }
           .rooms-main { display: flex; flex-direction: column; gap: 15px; }
