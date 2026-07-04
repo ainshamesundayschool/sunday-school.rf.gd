@@ -12011,8 +12011,19 @@
                       }
                   }
                   const safeStudentName = escHtml(getSafeStudentName(student));
-                  const nameHtml = showStudentName ? `<h2 style="font-size:${fH2_final}px; font-weight:${nameWeight}; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeStudentName}</h2>` : '';
-                  studentHtml = `<div style="display:flex; flex-direction:column; align-items:center; margin-bottom:6px;">${avatarHtml}${nameHtml}</div>`;
+                  const rawName = getSafeStudentName(student) || '';
+                  let backNameFontSize = fH2_final;
+                  if (rawName.length > 35) {
+                      backNameFontSize = fH2_final * 0.50;
+                  } else if (rawName.length > 28) {
+                      backNameFontSize = fH2_final * 0.60;
+                  } else if (rawName.length > 22) {
+                      backNameFontSize = fH2_final * 0.70;
+                  } else if (rawName.length > 15) {
+                      backNameFontSize = fH2_final * 0.82;
+                  }
+                  const nameHtml = showStudentName ? `<h2 style="font-size:${backNameFontSize}px; font-weight:${nameWeight}; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; word-wrap:break-word; word-break:keep-all; line-height:1.25; text-align:center; direction:rtl !important;">${safeStudentName}</h2>` : '';
+                  studentHtml = `<div style="display:flex; flex-direction:column; align-items:center; margin-bottom:6px; width:100%;">${avatarHtml}${nameHtml}</div>`;
               }
 
               let classHtml = '';
