@@ -10414,8 +10414,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <span class="tool-card-desc">إدارة درجات ورصد الامتحانات الورقية للأطفال.</span>
                 </button>
                 <button class="tool-card" onclick="hideAllToolsModal();showAllKidsCustomExport()">
-                    <span class="tool-card-icon"><i class="fas fa-file-export"></i></span>
-                    <span class="tool-card-name">تصدير مخصص</span>
+                    <span class="tool-card-icon" style="color:var(--brand);"><i class="fas fa-table"></i></span>
+                    <span class="tool-card-name">حفظ كجدول</span>
                     <span class="tool-card-desc">صدّر البيانات بالطريقة المناسبة لك.</span>
                 </button>
                 <button class="tool-card" onclick="hideAllToolsModal();showAnnouncementsModal()">
@@ -11079,8 +11079,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/tasks?class='+encodeURIComponent(currentClass);closeAllDropdowns()"><i
                                     class="fas fa-tasks"></i> مهام الفصل</button>
                             <button class="dropdown-item coupon"
-                                onclick="showCustomExportModal();closeAllDropdowns()"><i class="fas fa-sliders-h"></i>
-                                تصدير مخصص</button>
+                                onclick="showCustomExportModal();closeAllDropdowns()"><i class="fas fa-table"></i>
+                                حفظ كجدول</button>
                             <button class="dropdown-item" onclick="showPastFridaysModal();closeAllDropdowns()"><i
                                     class="fas fa-calendar-alt"></i> سجل الأيام السابقة</button>
                             <button class="dropdown-item success"
@@ -12111,7 +12111,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <div class="modal-overlay" id="customExportModal" style="z-index:1000012">
         <div class="modal modal-lg" style="z-index:1000013">
             <div class="modal-header" style="gap:8px;flex-wrap:wrap">
-                <h3><i class="fas fa-sliders-h" style="color:var(--coupon)"></i> تصدير مخصص</h3>
+                <h3><i class="fas fa-table" style="color:var(--coupon)"></i> حفظ كجدول</h3>
                 <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
                     <button class="btn btn-sm btn-outline" id="mobileExportToggleBtn" onclick="toggleMobileExportView()"
                         style="display:none; font-size:0.75rem; padding:4px 8px; border-radius:8px; height:30px;"><i
@@ -12130,6 +12130,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="export-panel">
                         <div class="export-panel-title"><i class="fas fa-heading"></i> اسم التقرير</div>
                         <input type="text" class="form-input" id="customExportTitle" placeholder="مثلاً: حضور فصل أولى">
+                    </div>
+                    <div class="export-panel">
+                        <div class="export-panel-title" style="display:flex; justify-content:space-between; align-items:center;">
+                            <span><i class="fas fa-user-check"></i> تحديد الأعضاء</span>
+                            <span id="customExportSelectedCount" style="font-size:0.7rem; font-weight:700; color:var(--brand); background:var(--brand-bg); padding:2px 6px; border-radius:4px;">0 / 0</span>
+                        </div>
+                        <div style="position:relative; margin-bottom:8px;">
+                            <input type="text" id="customExportPeopleSearch" class="form-input" placeholder="بحث ذكي عن الأعضاء..." oninput="onCustomExportPeopleSearch(this.value)" style="font-size:0.75rem; padding: 4px 28px 4px 8px; height: 32px; width: 100%;">
+                            <i class="fas fa-search" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:0.75rem;"></i>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:0.7rem;">
+                            <button type="button" class="btn btn-sm btn-outline" onclick="selectAllCustomExportPeople(true)" style="padding:2px 6px; font-size:0.7rem; height:24px; border-radius:4px; font-weight:bold;">تحديد الكل</button>
+                            <button type="button" class="btn btn-sm btn-outline" onclick="selectAllCustomExportPeople(false)" style="padding:2px 6px; font-size:0.7rem; height:24px; border-radius:4px; font-weight:bold;">إلغاء تحديد الكل</button>
+                        </div>
+                        <div id="customExportPeopleList" class="export-field-list" style="max-height: 20vh; overflow-y: auto; border: 1px solid var(--border-solid); border-radius: var(--r-md); padding: 4px; background:var(--surface);">
+                        </div>
                     </div>
                     <div class="export-panel">
                         <div class="export-panel-title" style="display:flex; justify-content:space-between; align-items:center;">
@@ -12860,6 +12876,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
         let sheetDateTo = '';
         let customExportFields = [];
         let customExportSortLayers = [];
+        let customExportSelectedKeys = new Set();
+        let customExportSearchQuery = '';
+        let lastFiltersState = '';
         let isDashboardDataLoading = false;
         // Class navigation permission: 'all' = can see all classes, 'own' = only assigned
         let uncleClassNavPermission = 'all';
@@ -21181,9 +21200,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const title = (document.getElementById('customExportTitle')?.value || '').trim() || ('تقرير ' + getActiveViewLabel());
             return { fields, dates, title, sortRules: customExportSortLayers };
         }
+        function getCustomExportFilteredStudents() {
+            const list = getActiveViewStudents();
+            return list.filter(s => {
+                const key = getStudentId(s);
+                return customExportSelectedKeys.has(key);
+            });
+        }
         function getCustomExportSortedStudents() {
             const cfg = getCustomExportConfig();
-            const list = getActiveViewStudents();
+            const list = getCustomExportFilteredStudents();
             const collator = new Intl.Collator('ar', { sensitivity: 'base', numeric: true });
             const arr = [...(list || [])];
             arr.sort((a, b) => {
@@ -21241,6 +21267,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function renderCustomExportPreview() {
             const preview = document.getElementById('customExportPreview');
             if (!preview) return;
+
+            // Check if filters changed to refresh candidate list
+            const currentFiltersState = [
+                currentClass,
+                document.getElementById('customExportDateMode')?.value
+            ].join('|');
+
+            if (currentFiltersState !== lastFiltersState) {
+                lastFiltersState = currentFiltersState;
+                renderCustomExportPeopleList();
+            }
+
             const cfg = getCustomExportConfig();
             const fs = getCustomExportSortedStudents();
             if (!cfg.fields.length && !cfg.dates.length) {
@@ -21284,7 +21322,118 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 btn.innerHTML = '<i class="fas fa-eye"></i> <span>معاينة الجدول</span>';
             }
         }
+        function renderCustomExportPeopleList() {
+            const box = document.getElementById('customExportPeopleList');
+            if (!box) return;
+
+            const baseCandidates = getActiveViewStudents();
+            
+            // Apply intelligent search if there is a query
+            let displayList = [...baseCandidates];
+            const q = (customExportSearchQuery || '').trim();
+            if (q) {
+                displayList = baseCandidates.map(s => {
+                    const score = typeof getMatchScore === 'function' ? getMatchScore(s, q) : 0;
+                    return { ...s, _searchScore: score };
+                }).filter(s => s._searchScore > 0)
+                  .sort((a, b) => b._searchScore - a._searchScore);
+            } else {
+                // Sort alphabetically by default
+                const collator = new Intl.Collator('ar', { sensitivity: 'base', numeric: true });
+                displayList.sort((a, b) => {
+                    const nameA = a['الاسم'] || '';
+                    const nameB = b['الاسم'] || '';
+                    return collator.compare(nameA, nameB);
+                });
+            }
+
+            // Render HTML
+            if (displayList.length === 0) {
+                box.innerHTML = '<div style="text-align:center;padding:12px;color:var(--muted);font-size:0.75rem;">لا توجد نتائج مطابقة</div>';
+            } else {
+                box.innerHTML = displayList.map(s => {
+                    const name = s['الاسم'] || '';
+                    const key = getStudentId(s);
+                    const checked = customExportSelectedKeys.has(key);
+                    const pClass = s['الفصل'] || '';
+                    
+                    return `
+                        <div class="export-field-row" style="padding: 5px 6px; gap: 6px; font-size: 0.72rem; border-radius: 8px;">
+                            <input type="checkbox" id="cep_${key}" ${checked ? 'checked' : ''} onchange="toggleCustomExportPerson('${key}', this.checked)" style="width:14px; height:14px; margin:0; cursor:pointer;">
+                            <label for="cep_${key}" style="margin:0; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;" title="${escHtml(name)}">${escHtml(name)}</label>
+                            ${pClass ? `<span style="font-size:0.6rem; color:var(--muted); font-weight:bold; background:var(--surface-2); padding:1px 4px; border-radius:4px; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escHtml(pClass)}">${escHtml(pClass)}</span>` : ''}
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Update selected count badge
+            const totalCount = baseCandidates.length;
+            const selectedCount = baseCandidates.filter(s => customExportSelectedKeys.has(getStudentId(s))).length;
+            const countBadge = document.getElementById('customExportSelectedCount');
+            if (countBadge) {
+                countBadge.textContent = `${selectedCount} / ${totalCount}`;
+            }
+        }
+
+        window.toggleCustomExportPerson = function(key, checked) {
+            if (checked) {
+                customExportSelectedKeys.add(key);
+            } else {
+                customExportSelectedKeys.delete(key);
+            }
+            // Update selected count badge (fast update)
+            const baseCandidates = getActiveViewStudents();
+            const totalCount = baseCandidates.length;
+            const selectedCount = baseCandidates.filter(s => customExportSelectedKeys.has(getStudentId(s))).length;
+            const countBadge = document.getElementById('customExportSelectedCount');
+            if (countBadge) {
+                countBadge.textContent = `${selectedCount} / ${totalCount}`;
+            }
+            renderCustomExportPreview();
+        };
+
+        window.onCustomExportPeopleSearch = function(val) {
+            customExportSearchQuery = val;
+            renderCustomExportPeopleList();
+        };
+
+        window.selectAllCustomExportPeople = function(checked) {
+            const box = document.getElementById('customExportPeopleList');
+            if (!box) return;
+            
+            const visibleCbs = box.querySelectorAll('input[type="checkbox"]');
+            visibleCbs.forEach(cb => {
+                const key = cb.id.replace('cep_', '');
+                cb.checked = checked;
+                if (checked) {
+                    customExportSelectedKeys.add(key);
+                } else {
+                    customExportSelectedKeys.delete(key);
+                }
+            });
+
+            // Update count badge
+            const baseCandidates = getActiveViewStudents();
+            const totalCount = baseCandidates.length;
+            const selectedCount = baseCandidates.filter(s => customExportSelectedKeys.has(getStudentId(s))).length;
+            const countBadge = document.getElementById('customExportSelectedCount');
+            if (countBadge) {
+                countBadge.textContent = `${selectedCount} / ${totalCount}`;
+            }
+            
+            renderCustomExportPreview();
+        };
         function showCustomExportModal() {
+            // Reset selection state
+            customExportSearchQuery = '';
+            const searchInput = document.getElementById('customExportPeopleSearch');
+            if (searchInput) searchInput.value = '';
+            
+            const baseStudents = getActiveViewStudents();
+            customExportSelectedKeys = new Set(baseStudents.map(s => getStudentId(s)));
+            lastFiltersState = ''; // force update
+
             initCustomExportFields();
             const title = document.getElementById('customExportTitle');
             if (title && !title.value) title.value = 'تقرير ' + getActiveViewLabel();
