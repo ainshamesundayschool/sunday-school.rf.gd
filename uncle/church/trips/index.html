@@ -12757,7 +12757,8 @@
 
         const filtered = selectedChurchesRegs.filter(r => {
           const name = (getSafeStudentName(r) || '').toLowerCase();
-          const matchSearch = name.includes(search);
+          const kidId = String(getSafeStudentID(r) || '').toLowerCase();
+          const matchSearch = name.includes(search) || kidId.includes(search);
           if (!matchSearch) return false;
           if (scope === 'assigned') {
             const roomText = getStudentFieldValue(r, 'السكن');
@@ -12779,7 +12780,7 @@
             <label style="display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:0.8rem; cursor:pointer; color:var(--text); padding:4px 0; border-bottom:1px solid rgba(0,0,0,0.03);">
               <div style="display:flex; align-items:center; gap:8px;">
                 <input type="checkbox" class="print-kid-cb" value="${kidId}" ${isChecked} style="accent-color:var(--primary); width:15px; height:15px;" onchange="onPrintKidCheckboxChange('${kidId}', this.checked)">
-                <span>${escHtml(name)}</span>
+                <span>${escHtml(name)} ${kidId ? `<small style="color:var(--muted); font-size:0.7rem; margin-right:4px;">(ID: ${escHtml(kidId)})</small>` : ''}</span>
               </div>
               ${roomBadge}
             </label>
