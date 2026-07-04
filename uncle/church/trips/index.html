@@ -11327,6 +11327,7 @@
         function formatNameToTwoLines(name) {
             if (!name) return '';
             name = name.trim();
+            if (name.length <= 15) return name;
             const spaceIdx = name.indexOf(' ');
             if (spaceIdx === -1) return name;
             const firstName = name.substring(0, spaceIdx);
@@ -11440,7 +11441,7 @@
           }
 
           const safeStudentName = student.is_empty_copy 
-              ? 'الاسم: ................................................' 
+              ? 'الاسم:<br>........................................' 
               : escHtml(getSafeStudentName(student));
           const formattedStudentName = student.is_empty_copy 
               ? safeStudentName 
@@ -11558,19 +11559,23 @@
           let studentInfoGroupHtml = '';
           if (showStudentImg || showStudentName || (extraFields && extraFields.length > 0)) {
               let nameFontSizeStyle = fH2_final;
-              if (safeStudentName && !student.is_empty_copy) {
+              if (student.is_empty_copy) {
+                  nameFontSizeStyle = fH2_final * 0.82;
+              } else if (safeStudentName) {
                   const rawName = getSafeStudentName(student) || '';
                   if (rawName.length > 35) {
-                      nameFontSizeStyle = fH2_final * 0.50;
+                      nameFontSizeStyle = fH2_final * 0.42;
                   } else if (rawName.length > 28) {
-                      nameFontSizeStyle = fH2_final * 0.60;
+                      nameFontSizeStyle = fH2_final * 0.50;
                   } else if (rawName.length > 22) {
-                      nameFontSizeStyle = fH2_final * 0.70;
+                      nameFontSizeStyle = fH2_final * 0.60;
                   } else if (rawName.length > 15) {
-                      nameFontSizeStyle = fH2_final * 0.82;
+                      nameFontSizeStyle = fH2_final * 0.72;
                   }
               }
-              const nameTag = showStudentName ? `<h2 style="font-size:${nameFontSizeStyle}px; font-weight:${nameWeight}; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; word-wrap:break-word; word-break:keep-all; line-height:1.25; text-align:center; direction:rtl !important;">${formattedStudentName}</h2>` : '';
+              const isNameLong = (getSafeStudentName(student) || '').length > 15 || student.is_empty_copy;
+              const nameLineHeight = isNameLong ? 1.05 : 1.2;
+              const nameTag = showStudentName ? `<h2 style="font-size:${nameFontSizeStyle}px; font-weight:${nameWeight}; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; word-wrap:break-word; word-break:keep-all; line-height:${nameLineHeight}; text-align:center; direction:rtl !important;">${formattedStudentName}</h2>` : '';
               
               let extraInfoHtml = '';
               if (extraFields && extraFields.length > 0) {
@@ -11658,17 +11663,20 @@
               if (avatarHtml) {
                   const rawName = getSafeStudentName(student) || '';
                   let leftNameFontSize = fH2_final * 0.95;
-                  if (rawName.length > 22) {
-                      leftNameFontSize = fH2_final * 0.62;
-                  } else if (rawName.length > 16) {
-                      leftNameFontSize = fH2_final * 0.72;
+                  if (student.is_empty_copy) {
+                      leftNameFontSize = fH2_final * 0.78;
+                  } else if (rawName.length > 22) {
+                      leftNameFontSize = fH2_final * 0.52;
+                  } else if (rawName.length > 15) {
+                      leftNameFontSize = fH2_final * 0.65;
                   } else if (rawName.length > 11) {
-                      leftNameFontSize = fH2_final * 0.82;
+                      leftNameFontSize = fH2_final * 0.78;
                   }
+                  const leftLineHeight = (rawName.length > 15 || student.is_empty_copy) ? 1.05 : 1.15;
                   const leftColumnHtml = `
                     <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:${4 * scale}px; flex-shrink:0; width:${sAvatar * 1.95}px; direction:rtl !important; text-align:center !important;">
                       ${avatarHtml}
-                      <h2 style="font-size:${leftNameFontSize}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); margin:0; text-align:center !important; word-wrap:break-word; word-break:keep-all; line-height:1.15; display:block; overflow:visible; width:100%; direction:rtl !important;">${formattedStudentName}</h2>
+                      <h2 style="font-size:${leftNameFontSize}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); margin:0; text-align:center !important; word-wrap:break-word; word-break:keep-all; line-height:${leftLineHeight}; display:block; overflow:visible; width:100%; direction:rtl !important;">${formattedStudentName}</h2>
                     </div>
                   `;
 
@@ -11702,6 +11710,19 @@
                     </div>
                   `;
               } else {
+                  const rawName = getSafeStudentName(student) || '';
+                  let centerNameFontSize = fH2_final * 1.1;
+                  if (student.is_empty_copy) {
+                      centerNameFontSize = fH2_final * 0.85;
+                  } else if (rawName.length > 22) {
+                      centerNameFontSize = fH2_final * 0.65;
+                  } else if (rawName.length > 15) {
+                      centerNameFontSize = fH2_final * 0.78;
+                  } else if (rawName.length > 11) {
+                      centerNameFontSize = fH2_final * 0.95;
+                  }
+                  const centerLineHeight = (rawName.length > 15 || student.is_empty_copy) ? 1.05 : 1.2;
+
                   innerContentHtml = `
                     <div style="position:relative; z-index:5; background:${readBgColor}; border:1px solid ${strokeColor}; padding:${12 * scale}px; border-radius:${10 * scale}px; box-shadow:${boxShadowValue}; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; height:100%; box-sizing:border-box; gap:${8 * scale}px; direction:rtl; text-align:center; transform: scale(${infoColumnScale}); transform-origin: center;">
                       <!-- Church Name -->
@@ -11710,7 +11731,7 @@
                       </div>
                       
                       <!-- Center Uncle Name -->
-                      <h2 style="font-size:${(getSafeStudentName(student) || '').length > 22 ? fH2_final * 0.75 : ((getSafeStudentName(student) || '').length > 16 ? fH2_final * 0.9 : fH2_final * 1.1)}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); margin:0; text-align:center; word-wrap:break-word; word-break:keep-all; line-height:1.2; width:100%; direction:rtl !important;">${formattedStudentName}</h2>
+                      <h2 style="font-size:${centerNameFontSize}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); margin:0; text-align:center; word-wrap:break-word; word-break:keep-all; line-height:${centerLineHeight}; width:100%; direction:rtl !important;">${formattedStudentName}</h2>
                       
                       <!-- Trip Title -->
                       ${showTripTitle && safeTripTitle ? `
@@ -12022,19 +12043,26 @@
                           avatarHtml = '';
                       }
                   }
-                  const safeStudentName = escHtml(getSafeStudentName(student));
+                  student.is_empty_copy = !!(student.is_empty_copy || student.isEmptyCopy);
+                  const safeStudentName = student.is_empty_copy 
+                      ? 'الاسم:<br>........................................' 
+                      : escHtml(getSafeStudentName(student));
                   const rawName = getSafeStudentName(student) || '';
                   let backNameFontSize = fH2_final;
-                  if (rawName.length > 35) {
-                      backNameFontSize = fH2_final * 0.50;
-                  } else if (rawName.length > 28) {
-                      backNameFontSize = fH2_final * 0.60;
-                  } else if (rawName.length > 22) {
-                      backNameFontSize = fH2_final * 0.70;
-                  } else if (rawName.length > 15) {
+                  if (student.is_empty_copy) {
                       backNameFontSize = fH2_final * 0.82;
+                  } else if (rawName.length > 35) {
+                      backNameFontSize = fH2_final * 0.42;
+                  } else if (rawName.length > 28) {
+                      backNameFontSize = fH2_final * 0.50;
+                  } else if (rawName.length > 22) {
+                      backNameFontSize = fH2_final * 0.60;
+                  } else if (rawName.length > 15) {
+                      backNameFontSize = fH2_final * 0.72;
                   }
-                  const nameHtml = showStudentName ? `<h2 style="font-size:${backNameFontSize}px; font-weight:${nameWeight}; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; word-wrap:break-word; word-break:keep-all; line-height:1.25; text-align:center; direction:rtl !important;">${formatNameToTwoLines(safeStudentName)}</h2>` : '';
+                  const backNameLong = (getSafeStudentName(student) || '').length > 15 || student.is_empty_copy;
+                  const backNameLineHeight = backNameLong ? 1.05 : 1.2;
+                  const nameHtml = showStudentName ? `<h2 style="font-size:${backNameFontSize}px; font-weight:${nameWeight}; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; word-wrap:break-word; word-break:keep-all; line-height:${backNameLineHeight}; text-align:center; direction:rtl !important;">${formatNameToTwoLines(safeStudentName)}</h2>` : '';
                   studentHtml = `<div style="display:flex; flex-direction:column; align-items:center; margin-bottom:6px; width:100%;">${avatarHtml}${nameHtml}</div>`;
               }
 
@@ -12657,6 +12685,7 @@
       function toggleSelectAllPrintChurches(checked) {
         const checkboxes = document.querySelectorAll('.print-church-cb');
         checkboxes.forEach(cb => cb.checked = checked);
+        updatePrintKidFilter();
         updatePrintPreview();
       }
 
@@ -12668,10 +12697,11 @@
           allCb.checked = (checkedCount === checkboxes.length);
           allCb.indeterminate = (checkedCount > 0 && checkedCount < checkboxes.length);
         }
+        updatePrintKidFilter();
         updatePrintPreview();
       }
 
-      function getSelectedPrintRegistrations(rawRegs) {
+      function getSelectedPrintRegistrationsFilteredByChurch(rawRegs) {
         const checkboxes = document.querySelectorAll('.print-church-cb');
         if (checkboxes.length === 0) {
           const tripId = document.getElementById('printTripId').value;
@@ -12690,6 +12720,127 @@
           return selectedIds.has(cId);
         });
       }
+
+      function getSelectedPrintRegistrations(rawRegs) {
+        const printKids = document.getElementById('printKidsOption')?.checked ?? true;
+        if (!printKids) return [];
+
+        const byChurch = getSelectedPrintRegistrationsFilteredByChurch(rawRegs);
+        return byChurch.filter(r => {
+          const kidId = getSafeStudentId(r);
+          return printSelectedKidIds.has(String(kidId));
+        });
+      }
+
+      let printSelectedKidIds = new Set();
+
+      window.togglePrintKidsSection = function() {
+        const sub = document.getElementById('printKidsSubSection');
+        if (!sub) return;
+        const checked = document.getElementById('printKidsOption').checked;
+        sub.style.display = checked ? 'flex' : 'none';
+      };
+
+      window.updatePrintKidFilter = function() {
+        const listDiv = document.getElementById('printKidsList');
+        if (!listDiv) return;
+
+        const tripId = document.getElementById('printTripId').value;
+        const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+        if (!trip) return;
+
+        const rawRegs = tripRegistrationsCache[tripId] || trip.registrations || [];
+        const selectedChurchesRegs = getSelectedPrintRegistrationsFilteredByChurch(rawRegs);
+
+        const search = (document.getElementById('printKidSearchInput')?.value || '').toLowerCase().trim();
+        const scope = document.getElementById('printKidScope')?.value || 'all';
+
+        const filtered = selectedChurchesRegs.filter(r => {
+          const name = (getSafeStudentName(r) || '').toLowerCase();
+          const matchSearch = name.includes(search);
+          if (!matchSearch) return false;
+          if (scope === 'assigned') {
+            const roomText = getStudentFieldValue(r, 'السكن');
+            return roomText && roomText !== 'غير مسكن' && roomText.trim() !== '';
+          }
+          return true;
+        });
+
+        listDiv.innerHTML = filtered.map(r => {
+          const kidId = getSafeStudentId(r);
+          const isChecked = printSelectedKidIds.has(String(kidId)) ? 'checked' : '';
+          const name = getSafeStudentName(r);
+          const roomText = getStudentFieldValue(r, 'السكن');
+          const roomBadge = roomText && roomText !== 'غير مسكن' && roomText.trim() !== ''
+            ? `<span style="font-size:0.7rem; background:#dcfce7; color:#15803d; padding:2px 6px; border-radius:4px; font-weight:800; margin-right:8px;"><i class="fas fa-bed"></i> ${escHtml(roomText)}</span>`
+            : `<span style="font-size:0.7rem; background:#fee2e2; color:#b91c1c; padding:2px 6px; border-radius:4px; font-weight:800; margin-right:8px;">غير مسكن</span>`;
+
+          return `
+            <label style="display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:0.8rem; cursor:pointer; color:var(--text); padding:4px 0; border-bottom:1px solid rgba(0,0,0,0.03);">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <input type="checkbox" class="print-kid-cb" value="${kidId}" ${isChecked} style="accent-color:var(--primary); width:15px; height:15px;" onchange="onPrintKidCheckboxChange('${kidId}', this.checked)">
+                <span>${escHtml(name)}</span>
+              </div>
+              ${roomBadge}
+            </label>
+          `;
+        }).join('');
+
+        if (filtered.length === 0) {
+          listDiv.innerHTML = `<div style="text-align:center; color:var(--muted); font-size:0.8rem; padding:10px;">لا يوجد أطفال متطابقة</div>`;
+        }
+
+        updatePrintSelectedKidsCount();
+      };
+
+      window.onPrintKidCheckboxChange = function(kidId, checked) {
+        if (checked) {
+          printSelectedKidIds.add(String(kidId));
+        } else {
+          printSelectedKidIds.delete(String(kidId));
+        }
+        updatePrintSelectedKidsCount();
+        updatePrintPreview();
+      };
+
+      function updatePrintSelectedKidsCount() {
+        const countSpan = document.getElementById('printSelectedKidsCount');
+        if (countSpan) {
+          countSpan.textContent = printSelectedKidIds.size;
+        }
+        
+        const checkboxes = document.querySelectorAll('.print-kid-cb');
+        const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+        const allCb = document.getElementById('printSelectAllKids');
+        if (allCb) {
+          allCb.checked = (checkboxes.length > 0 && checkedCount === checkboxes.length);
+          allCb.indeterminate = (checkedCount > 0 && checkedCount < checkboxes.length);
+        }
+      }
+
+      window.togglePrintSelectAllKids = function(checked) {
+        const checkboxes = document.querySelectorAll('.print-kid-cb');
+        checkboxes.forEach(cb => {
+          cb.checked = checked;
+          if (checked) {
+            printSelectedKidIds.add(String(cb.value));
+          } else {
+            printSelectedKidIds.delete(String(cb.value));
+          }
+        });
+        updatePrintSelectedKidsCount();
+        updatePrintPreview();
+      };
+
+      window.populatePrintKids = function(rawRegs) {
+        if (printSelectedKidIds.size === 0) {
+          rawRegs.forEach(r => {
+            const kidId = getSafeStudentId(r);
+            if (kidId) printSelectedKidIds.add(String(kidId));
+          });
+        }
+        updatePrintKidFilter();
+      };
 
       async function printQRCards(tripId) {
         document.getElementById('printTripId').value = tripId;
@@ -12735,11 +12886,30 @@
               const idx = allTripsCache.findIndex(t => t.id == tripId);
               if (idx > -1) allTripsCache[idx] = res.trip;
               else allTripsCache.push(res.trip);
+
+              // Re-initialize kids set
+              printSelectedKidIds = new Set();
+              rawRegs.forEach(r => {
+                const kidId = getSafeStudentId(r);
+                if (kidId) printSelectedKidIds.add(String(kidId));
+              });
             }
           } catch (e) { }
         }
 
         printSelectedUncleIds = new Set();
+        printSelectedKidIds = new Set();
+        rawRegs.forEach(r => {
+          const kidId = getSafeStudentId(r);
+          if (kidId) printSelectedKidIds.add(String(kidId));
+        });
+
+        const kidsOption = document.getElementById('printKidsOption');
+        if (kidsOption) {
+          kidsOption.checked = true;
+          togglePrintKidsSection();
+        }
+
         const unclesOption = document.getElementById('printUnclesOption');
         if (unclesOption) {
           unclesOption.checked = true;
@@ -12753,8 +12923,9 @@
         if (fillEmptyOption) {
           fillEmptyOption.checked = true;
         }
-        populatePrintUncles(trip);
 
+        populatePrintKids(rawRegs);
+        populatePrintUncles(trip);
         populatePrintChurches(rawRegs);
 
         populatePrintExtraFieldsDropdown();
@@ -19661,6 +19832,42 @@
                 </label>
                 <div id="printChurchesList" style="display:flex; flex-direction:column; gap:6px; margin-right:12px; max-height:150px; overflow-y:auto; padding:4px;">
                   <!-- Dynamic checklists of churches -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Section: Kids Printing Option -->
+            <div style="background:var(--card, #fff); border:1px solid var(--border); padding:14px; border-radius:10px; display:flex; flex-direction:column; gap:12px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+              <h4
+                style="margin:0 0 4px 0; font-size:0.85rem; font-weight:800; color:var(--primary); display:flex; align-items:center; gap:8px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
+                <i class="fas fa-child"></i> كروت الأطفال (Kids Cards)
+              </h4>
+              
+              <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer; color:var(--text); font-weight:700;">
+                <input type="checkbox" id="printKidsOption" style="accent-color:var(--primary); width:16px; height:16px;" onchange="togglePrintKidsSection(); updatePrintPreview();" checked>
+                <span>طباعة كروت الأطفال (مع الـ QR)</span>
+              </label>
+
+              <div id="printKidsSubSection" style="display:none; flex-direction:column; gap:8px; border-top:1px dashed rgba(79,70,229,0.2); padding-top:10px; margin-top:4px;">
+                <div style="display:flex; gap:8px;">
+                  <input type="text" id="printKidSearchInput" class="form-input" placeholder="بحث عن طفل..." style="flex:1; height:34px; font-size:0.8rem; padding:0 10px;" oninput="updatePrintKidFilter()">
+                  <select id="printKidScope" class="form-select" style="width:120px; height:34px; border:1px solid var(--border); padding:0 5px; border-radius:6px; background:#fff; font-family:'Cairo', sans-serif; font-size:0.8rem;" onchange="updatePrintKidFilter()">
+                    <option value="all" selected>جميع الأطفال</option>
+                    <option value="assigned">المسكنين فقط</option>
+                  </select>
+                </div>
+                
+                <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; color:var(--text-3); font-weight:700; direction:rtl;">
+                  <label style="display:inline-flex; align-items:center; gap:4px; cursor:pointer;">
+                    <input type="checkbox" id="printSelectAllKids" checked style="accent-color:var(--primary);" onchange="togglePrintSelectAllKids(this.checked)">
+                    <span>تحديد الكل</span>
+                  </label>
+                  <span>المحدد: <span id="printSelectedKidsCount">0</span> طفل</span>
+                </div>
+
+                <!-- Kids list scrollable box -->
+                <div id="printKidsList" class="scrollbar" style="max-height:150px; overflow-y:auto; border:1px solid var(--border); border-radius:6px; padding:8px; display:flex; flex-direction:column; gap:6px; background:var(--bg, #f8fafc); text-align:right; direction:rtl;">
+                  <!-- Dynamically populated -->
                 </div>
               </div>
             </div>
