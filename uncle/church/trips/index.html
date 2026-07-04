@@ -13405,7 +13405,7 @@
           document.head.appendChild(pageStyleEl);
         }
         pageStyleEl.innerHTML = `
-          #printArea .print-page {
+          #pdfPrintArea .print-page {
             display: flex !important;
             flex-wrap: wrap !important;
             justify-content: flex-start !important;
@@ -13421,18 +13421,19 @@
             margin: 0 auto !important;
             overflow: hidden !important;
           }
-          #printArea .print-card,
-          #printArea .print-card-placeholder {
+          #pdfPrintArea .print-card,
+          #pdfPrintArea .print-card-placeholder {
             margin: 0 !important;
             flex-shrink: 0 !important;
           }
         `;
 
-        const printArea = document.getElementById('printArea');
-        printArea.innerHTML = '';
-        printArea.style.setProperty('--print-gap-x', gapX);
-        printArea.style.setProperty('--print-gap-y', gapY);
-        printArea.style.setProperty('--card-print-width', (finalBaseWidth * finalScale) + 'px');
+        const tempPdfArea = document.createElement('div');
+        tempPdfArea.id = 'pdfPrintArea';
+        tempPdfArea.style.setProperty('--print-gap-x', gapX);
+        tempPdfArea.style.setProperty('--print-gap-y', gapY);
+        tempPdfArea.style.setProperty('--card-print-width', (finalBaseWidth * finalScale) + 'px');
+        document.body.appendChild(tempPdfArea);
 
         const scaledWidth = finalBaseWidth * finalScale;
         const scaledHeight = finalBaseHeight * finalScale;
@@ -13502,7 +13503,7 @@
           }
         });
 
-        printArea.innerHTML = html;
+        tempPdfArea.innerHTML = html;
 
         customCardBackgroundDataUrl = originalKidsBg;
         customCardBackgroundDataUrlBack = originalKidsBgBack;
@@ -13534,22 +13535,22 @@
           loader.style.display = 'block';
         }
 
-        printArea.style.setProperty('position', 'fixed', 'important');
-        printArea.style.setProperty('left', '0', 'important');
-        printArea.style.setProperty('top', '0', 'important');
-        printArea.style.setProperty('width', '100%', 'important');
-        printArea.style.setProperty('height', '100%', 'important');
-        printArea.style.setProperty('z-index', '9999998', 'important');
-        printArea.style.setProperty('background', '#ffffff', 'important');
-        printArea.style.setProperty('overflow', 'auto', 'important');
-        printArea.style.setProperty('display', 'block', 'important');
-        printArea.style.setProperty('visibility', 'visible', 'important');
+        tempPdfArea.style.setProperty('position', 'fixed', 'important');
+        tempPdfArea.style.setProperty('left', '0', 'important');
+        tempPdfArea.style.setProperty('top', '0', 'important');
+        tempPdfArea.style.setProperty('width', '100%', 'important');
+        tempPdfArea.style.setProperty('height', '100%', 'important');
+        tempPdfArea.style.setProperty('z-index', '9999998', 'important');
+        tempPdfArea.style.setProperty('background', '#ffffff', 'important');
+        tempPdfArea.style.setProperty('overflow', 'auto', 'important');
+        tempPdfArea.style.setProperty('display', 'block', 'important');
+        tempPdfArea.style.setProperty('visibility', 'visible', 'important');
 
         await new Promise(resolve => setTimeout(resolve, 800));
-        await waitForImages(printArea);
+        await waitForImages(tempPdfArea);
 
         try {
-          const pdfPages = [...printArea.querySelectorAll('.pdf-page-target')];
+          const pdfPages = [...tempPdfArea.querySelectorAll('.pdf-page-target')];
           if (pdfPages.length === 0) {
             showToast('لا توجد صفحات لحفظها', 'error');
             return;
@@ -13590,17 +13591,7 @@
           console.error(e);
           showToast('حدث خطأ أثناء حفظ الـ PDF: ' + e.message, 'error');
         } finally {
-          printArea.style.removeProperty('position');
-          printArea.style.removeProperty('left');
-          printArea.style.removeProperty('top');
-          printArea.style.removeProperty('width');
-          printArea.style.removeProperty('height');
-          printArea.style.removeProperty('z-index');
-          printArea.style.removeProperty('background');
-          printArea.style.removeProperty('overflow');
-          printArea.style.removeProperty('display');
-          printArea.style.removeProperty('visibility');
-          printArea.innerHTML = '';
+          if (tempPdfArea) tempPdfArea.remove();
           if (pageStyleEl) pageStyleEl.remove();
           if (loader) loader.style.display = 'none';
         }
