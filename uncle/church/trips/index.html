@@ -5105,7 +5105,7 @@
       }
 
       function isDesktopShellMode() {
-        return window.innerWidth >= 1100;
+        return window.innerWidth >= 1000;
       }
 
       function isShellMounted(id) {
@@ -7347,7 +7347,7 @@
                   <button type="button" class="btn btn-sm btn-outline" onclick="selectAllCustomExportPeople(true)" style="padding:2px 6px; font-size:0.7rem; height:24px; border-radius:4px; font-weight:bold;">تحديد الكل</button>
                   <button type="button" class="btn btn-sm btn-outline" onclick="selectAllCustomExportPeople(false)" style="padding:2px 6px; font-size:0.7rem; height:24px; border-radius:4px; font-weight:bold;">إلغاء تحديد الكل</button>
                 </div>
-                <div id="customExportPeopleList" class="export-field-list" style="max-height: 20vh; overflow-y: auto; border: 1px solid var(--border-solid); border-radius: var(--r-md); padding: 4px; background:var(--surface);">
+                <div id="customExportPeopleList" class="export-field-list" style="max-height: 280px; overflow-y: auto; border: 1px solid var(--border-solid); border-radius: var(--r-md); padding: 4px; background:var(--surface);">
                 </div>
               </div>
               <div class="export-panel">
@@ -7359,7 +7359,7 @@
               </div>
               <div class="export-panel">
                 <div class="export-panel-title"><i class="fas fa-table-columns"></i> البيانات والترتيب</div>
-                <div class="export-field-list" id="customExportFields" style="max-height: 25vh; overflow-y: auto;">
+                <div class="export-field-list" id="customExportFields" style="max-height: 300px; overflow-y: auto;">
                 </div>
               </div>
               <button class="btn btn-primary" id="customExportPreviewBtn" onclick="renderCustomExportPreview()"
