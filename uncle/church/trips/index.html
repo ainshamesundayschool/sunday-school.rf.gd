@@ -12868,11 +12868,32 @@
           document.head.appendChild(pageStyleEl);
         }
         let sizeCss = 'auto';
-        if (paperSize === 'a4-portrait') sizeCss = 'A4 portrait';
-        else if (paperSize === 'a4-landscape') sizeCss = 'A4 landscape';
-        else if (paperSize === 'a3-portrait') sizeCss = 'A3 portrait';
-        else if (paperSize === 'a3-landscape') sizeCss = 'A3 landscape';
-        pageStyleEl.innerHTML = `@media print { @page { size: ${sizeCss} !important; margin: 4mm !important; } }`;
+        let pageW_cm = 29.7, pageH_cm = 21.0;
+        if (paperSize === 'a4-portrait') { sizeCss = 'A4 portrait'; pageW_cm = 21.0; pageH_cm = 29.7; }
+        else if (paperSize === 'a4-landscape') { sizeCss = 'A4 landscape'; pageW_cm = 29.7; pageH_cm = 21.0; }
+        else if (paperSize === 'a3-portrait') { sizeCss = 'A3 portrait'; pageW_cm = 29.7; pageH_cm = 42.0; }
+        else if (paperSize === 'a3-landscape') { sizeCss = 'A3 landscape'; pageW_cm = 42.0; pageH_cm = 29.7; }
+
+        // With 4mm margins on each side (total 8mm = 0.8cm), subtract slightly more (e.g. 0.9cm) as safety buffer to avoid rounding page breaks
+        const contentW_cm = pageW_cm - 0.9;
+        const contentH_cm = pageH_cm - 0.9;
+
+        pageStyleEl.innerHTML = `
+          @media print {
+            @page {
+              size: ${sizeCss} !important;
+              margin: 4mm !important;
+            }
+            .print-page {
+              width: ${contentW_cm}cm !important;
+              height: ${contentH_cm}cm !important;
+              max-width: ${contentW_cm}cm !important;
+              max-height: ${contentH_cm}cm !important;
+              box-sizing: border-box !important;
+              align-content: center !important;
+            }
+          }
+        `;
 
         const printArea = document.getElementById('printArea');
         printArea.innerHTML = '';
