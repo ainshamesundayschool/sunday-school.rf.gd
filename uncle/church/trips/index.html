@@ -12715,6 +12715,40 @@
           return padded;
         });
 
+        function base64ToObjectURL(b64) {
+          if (!b64 || !b64.startsWith('data:')) return b64;
+          try {
+            const parts = b64.split(',');
+            const mime = parts[0].match(/:(.*?);/)[1];
+            const bstr = atob(parts[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while (n--) {
+              u8arr[n] = bstr.charCodeAt(n);
+            }
+            const blob = new Blob([u8arr], { type: mime });
+            return URL.createObjectURL(blob);
+          } catch(e) {
+            return b64;
+          }
+        }
+
+        const originalKidsBg = customCardBackgroundDataUrl;
+        const originalKidsBgBack = customCardBackgroundDataUrlBack;
+        const originalUncleBg = customCardBackgroundDataUrlUncle;
+        const originalUncleBgBack = customCardBackgroundDataUrlUncleBack;
+        const originalLogos = window.customLogos;
+
+        // Convert to Object URLs to prevent RangeError: Invalid string length
+        customCardBackgroundDataUrl = base64ToObjectURL(customCardBackgroundDataUrl);
+        customCardBackgroundDataUrlBack = base64ToObjectURL(customCardBackgroundDataUrlBack);
+        customCardBackgroundDataUrlUncle = base64ToObjectURL(customCardBackgroundDataUrlUncle);
+        customCardBackgroundDataUrlUncleBack = base64ToObjectURL(customCardBackgroundDataUrlUncleBack);
+        window.customLogos = (window.customLogos || []).map(logo => ({
+          ...logo,
+          src: base64ToObjectURL(logo.src)
+        }));
+
         const printArea = document.getElementById('printArea');
         printArea.innerHTML = '';
         printArea.style.setProperty('--print-gap-x', gapX);
@@ -12802,6 +12836,13 @@
         });
 
         printArea.innerHTML = html;
+
+        // Restore original base64 values
+        customCardBackgroundDataUrl = originalKidsBg;
+        customCardBackgroundDataUrlBack = originalKidsBgBack;
+        customCardBackgroundDataUrlUncle = originalUncleBg;
+        customCardBackgroundDataUrlUncleBack = originalUncleBgBack;
+        window.customLogos = originalLogos;
 
         const layout = calculateCardLayout(baseWidth, baseHeight, scale, padding);
         const qrSize = layout.qrSize;
