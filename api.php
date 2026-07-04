@@ -46736,6 +46736,14 @@ function ensureGuestsTable($conn)
         if (strpos($row['Type'], 'uncle') === false) {
             $conn->query("ALTER TABLE `trip_registrations` MODIFY COLUMN `registration_type` ENUM('student', 'other_church_student', 'guest', 'uncle') DEFAULT 'student'");
         }
+        // Also ensure student_id is nullable (to support guest/uncle registrations)
+        $resStudent = $conn->query("SHOW COLUMNS FROM `trip_registrations` LIKE 'student_id'");
+        if ($resStudent && $resStudent->num_rows > 0) {
+            $rowStudent = $resStudent->fetch_assoc();
+            if (strtoupper($rowStudent['Null']) === 'NO') {
+                $conn->query("ALTER TABLE `trip_registrations` MODIFY COLUMN `student_id` INT DEFAULT NULL");
+            }
+        }
     }
 
     // Step 2.5: Add uncle_id to trip_registrations if missing
