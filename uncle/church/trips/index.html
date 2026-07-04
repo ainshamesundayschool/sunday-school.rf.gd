@@ -11542,7 +11542,16 @@
 
           let studentInfoGroupHtml = '';
           if (showStudentImg || showStudentName || (extraFields && extraFields.length > 0)) {
-              const nameTag = showStudentName ? `<h2 style="font-size:${fH2_final}px; font-weight:${nameWeight}; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center;">${safeStudentName}</h2>` : '';
+              let nameFontSizeStyle = fH2_final;
+              if (safeStudentName && !student.is_empty_copy) {
+                  const rawName = getSafeStudentName(student) || '';
+                  if (rawName.length > 22) {
+                      nameFontSizeStyle = fH2_final * 0.72;
+                  } else if (rawName.length > 15) {
+                      nameFontSizeStyle = fH2_final * 0.85;
+                  }
+              }
+              const nameTag = showStudentName ? `<h2 style="font-size:${nameFontSizeStyle}px; font-weight:${nameWeight}; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; word-wrap:break-word; word-break:keep-all; line-height:1.25; text-align:center;">${safeStudentName}</h2>` : '';
               
               let extraInfoHtml = '';
               if (extraFields && extraFields.length > 0) {
@@ -13488,18 +13497,26 @@
 
         paddedPages.forEach((pageElements, pageIdx) => {
           if (mode === 'front' || mode === 'combined') {
-            html += `<div class="print-page pdf-page-target">`;
+            html += `
+              <div class="pdf-paper-page" style="width:${pageW_cm}cm; height:${pageH_cm}cm; display:flex; align-items:flex-start; justify-content:center; box-sizing:border-box; background:#ffffff; overflow:hidden;">
+                <div class="print-page" style="margin:0 !important;">`;
             pageElements.forEach(r => {
               html += renderFrontCard(r);
             });
-            html += `</div>`;
+            html += `
+                </div>
+              </div>`;
           }
           if (mode === 'back' || mode === 'combined') {
-            html += `<div class="print-page pdf-page-target" style="direction:${backPageDir} !important;">`;
+            html += `
+              <div class="pdf-paper-page" style="width:${pageW_cm}cm; height:${pageH_cm}cm; display:flex; align-items:flex-start; justify-content:center; box-sizing:border-box; background:#ffffff; overflow:hidden;">
+                <div class="print-page" style="direction:${backPageDir} !important; margin:0 !important;">`;
             pageElements.forEach(r => {
               html += renderBackCard(r);
             });
-            html += `</div>`;
+            html += `
+                </div>
+              </div>`;
           }
         });
 
@@ -13550,7 +13567,7 @@
         await waitForImages(tempPdfArea);
 
         try {
-          const pdfPages = [...tempPdfArea.querySelectorAll('.pdf-page-target')];
+          const pdfPages = [...tempPdfArea.querySelectorAll('.pdf-paper-page')];
           if (pdfPages.length === 0) {
             showToast('لا توجد صفحات لحفظها', 'error');
             return;
@@ -14513,6 +14530,14 @@
         renderPrintExtraFieldsList();
         populatePrintExtraFieldsDropdown();
 
+        // Reset paper size settings
+        const paperSizeEl = document.getElementById('printPaperSize');
+        if (paperSizeEl) paperSizeEl.value = 'a4';
+        const customWidthEl = document.getElementById('printPaperCustomWidth');
+        if (customWidthEl) customWidthEl.value = '21';
+        const customHeightEl = document.getElementById('printPaperCustomHeight');
+        if (customHeightEl) customHeightEl.value = '29.7';
+
         // Sync UI and Update Preview
         syncPrintSettingsUI();
         updatePrintPreview();
@@ -14686,7 +14711,10 @@
               infoColumnScale: document.getElementById('printInfoColumnScale')?.value || '1.0',
               qrColumnScale: document.getElementById('printQrColumnScale')?.value || '1.0',
               customLogos: window.customLogos || [],
-              extraFields: cardExtraFields || []
+              extraFields: cardExtraFields || [],
+              paperSize: document.getElementById('printPaperSize')?.value || 'a4',
+              paperCustomWidth: document.getElementById('printPaperCustomWidth')?.value || '21',
+              paperCustomHeight: document.getElementById('printPaperCustomHeight')?.value || '29.7'
           };
           return JSON.stringify(data);
       }
@@ -15020,6 +15048,19 @@
                   populatePrintExtraFieldsDropdown();
               }
               
+              if (data.paperSize !== undefined) {
+                  const el = document.getElementById('printPaperSize');
+                  if (el) el.value = data.paperSize;
+              }
+              if (data.paperCustomWidth !== undefined) {
+                  const el = document.getElementById('printPaperCustomWidth');
+                  if (el) el.value = data.paperCustomWidth;
+              }
+              if (data.paperCustomHeight !== undefined) {
+                  const el = document.getElementById('printPaperCustomHeight');
+                  if (el) el.value = data.paperCustomHeight;
+              }
+
               syncPrintSettingsUI();
               updatePrintPreview();
           } catch (e) {
