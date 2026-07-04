@@ -15342,7 +15342,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         // ── SWIPE TO CLOSE ────────────────────────────────────────────
         function initSwipeToClose(overlay) {
-            if (overlay.id === 'kidQrScannerModal') return;
+            if (overlay.id === 'kidQrScannerModal' || overlay.id === 'customExportModal') return;
             const modal = overlay.querySelector('.modal');
             if (!modal) return;
 
@@ -21489,6 +21489,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
         async function exportCustomPreviewAsImage() {
             const preview = document.getElementById('customExportPreview');
             if (!preview) return;
+            
+            const builder = document.querySelector('#customExportModal .export-builder');
+            const wasPreviewHidden = builder && !builder.classList.contains('show-preview-mobile');
+            if (wasPreviewHidden) {
+                builder.classList.add('show-preview-mobile');
+                void preview.offsetHeight; // Force layout reflow
+            }
+
             showToast('جاري تجهيز الصورة...', 'info');
             try {
                 await waitForCustomExportImages(preview);
@@ -21498,11 +21506,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 a.href = canvas.toDataURL('image/png');
                 a.click();
                 showToast('تم حفظ الصورة', 'success');
-            } catch (e) { showToast('فشل حفظ الصورة: ' + e.message, 'error'); }
+            } catch (e) { 
+                showToast('فشل حفظ الصورة: ' + e.message, 'error'); 
+            } finally {
+                if (wasPreviewHidden) {
+                    builder.classList.remove('show-preview-mobile');
+                }
+            }
         }
         async function exportCustomPreviewAsPdf() {
             const preview = document.getElementById('customExportPreview');
             if (!preview) return;
+
+            const builder = document.querySelector('#customExportModal .export-builder');
+            const wasPreviewHidden = builder && !builder.classList.contains('show-preview-mobile');
+            if (wasPreviewHidden) {
+                builder.classList.add('show-preview-mobile');
+                void preview.offsetHeight; // Force layout reflow
+            }
+
             showToast('جاري إنشاء PDF...', 'info');
             try {
                 const { jsPDF } = window.jspdf;
@@ -21525,7 +21547,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 }
                 pdf.save((getCustomExportConfig().title || 'custom-export').replace(/[\/\s]+/g, '-') + '.pdf');
                 showToast('تم حفظ PDF', 'success');
-            } catch (e) { showToast('فشل PDF: ' + e.message, 'error'); }
+            } catch (e) { 
+                showToast('فشل PDF: ' + e.message, 'error'); 
+            } finally {
+                if (wasPreviewHidden) {
+                    builder.classList.remove('show-preview-mobile');
+                }
+            }
         }
         function saveSheetAsCSV() {
             const fs = sortStudentsForCurrentView(getActiveViewStudents());
