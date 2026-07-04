@@ -3850,7 +3850,7 @@
         max-width: 100% !important;
         height: 100% !important;
         max-height: 100% !important;
-        margin: 0 !important;
+        margin: 0 auto !important;
         padding: 0 !important;
         box-sizing: border-box !important;
         page-break-after: always !important;
@@ -11179,6 +11179,12 @@
         const showBackCard = document.getElementById('printBackCard')?.checked || false;
         const backCardSubOptions = document.getElementById('backCardSubOptions');
         if (backCardSubOptions) backCardSubOptions.style.display = showBackCard ? 'flex' : 'none';
+
+        const paperSizeVal = document.getElementById('printPaperSize')?.value || 'a4-landscape';
+        const customPaperGroup = document.getElementById('printCustomPaperSizeGroup');
+        if (customPaperGroup) {
+          customPaperGroup.style.display = (paperSizeVal === 'custom') ? 'grid' : 'none';
+        }
       }
 
 
@@ -12205,6 +12211,10 @@
           else if (paperSize === 'a4-landscape') { pw = 29.7; ph = 21.0; }
           else if (paperSize === 'a3-portrait') { pw = 29.7; ph = 42.0; }
           else if (paperSize === 'a3-landscape') { pw = 42.0; ph = 29.7; }
+          else if (paperSize === 'custom') {
+            pw = parseFloat(document.getElementById('printPaperCustomWidth')?.value || 21.0);
+            ph = parseFloat(document.getElementById('printPaperCustomHeight')?.value || 29.7);
+          }
           const pxPerCm = 37.795;
           const pageW = pw * pxPerCm;
           const pageH = ph * pxPerCm;
@@ -12711,6 +12721,10 @@
         else if (paperSize === 'a4-landscape') { pw = 29.7; ph = 21.0; }
         else if (paperSize === 'a3-portrait') { pw = 29.7; ph = 42.0; }
         else if (paperSize === 'a3-landscape') { pw = 42.0; ph = 29.7; }
+        else if (paperSize === 'custom') {
+          pw = parseFloat(document.getElementById('printPaperCustomWidth')?.value || 21.0);
+          ph = parseFloat(document.getElementById('printPaperCustomHeight')?.value || 29.7);
+        }
 
         const pxPerCm = 37.795;
         const pageW = pw * pxPerCm;
@@ -12766,11 +12780,14 @@
           const paperSizeSelect = document.getElementById('printPaperSize');
           if (paperSizeSelect) {
             const selectedVal = paperSizeSelect.value;
+            const customW = parseFloat(document.getElementById('printPaperCustomWidth')?.value || 21.0);
+            const customH = parseFloat(document.getElementById('printPaperCustomHeight')?.value || 29.7);
             const sizeMap = {
               'a4-portrait': { ar: 'A4 بالوضع الرأسي (Portrait)', en: 'A4 Portrait Mode' },
               'a4-landscape': { ar: 'A4 بالوضع الأفقي (Landscape)', en: 'A4 Landscape Mode' },
               'a3-portrait': { ar: 'A3 بالوضع الرأسي (Portrait)', en: 'A3 Portrait Mode' },
-              'a3-landscape': { ar: 'A3 بالوضع الأفقي (Landscape)', en: 'A3 Landscape Mode' }
+              'a3-landscape': { ar: 'A3 بالوضع الأفقي (Landscape)', en: 'A3 Landscape Mode' },
+              'custom': { ar: `حجم مخصص (${customW} × ${customH} سم)`, en: `Custom Size (${customW} x ${customH} cm)` }
             };
             const info = sizeMap[selectedVal] || { ar: 'A3 بالوضع الأفقي (Landscape)', en: 'A3 Landscape Mode' };
             const arSizeEl = document.getElementById('printWarningArSize');
@@ -12886,6 +12903,10 @@
           else if (paperSize === 'a4-landscape') { pw = 29.7; ph = 21.0; }
           else if (paperSize === 'a3-portrait') { pw = 29.7; ph = 42.0; }
           else if (paperSize === 'a3-landscape') { pw = 42.0; ph = 29.7; }
+          else if (paperSize === 'custom') {
+            pw = parseFloat(document.getElementById('printPaperCustomWidth')?.value || 21.0);
+            ph = parseFloat(document.getElementById('printPaperCustomHeight')?.value || 29.7);
+          }
           const pxPerCm = 37.795;
           const pageW = pw * pxPerCm;
           const pageH = ph * pxPerCm;
@@ -12983,6 +13004,11 @@
         else if (paperSize === 'a4-landscape') { sizeCss = 'A4 landscape'; pageW_cm = 29.7; pageH_cm = 21.0; }
         else if (paperSize === 'a3-portrait') { sizeCss = 'A3 portrait'; pageW_cm = 29.7; pageH_cm = 42.0; }
         else if (paperSize === 'a3-landscape') { sizeCss = 'A3 landscape'; pageW_cm = 42.0; pageH_cm = 29.7; }
+        else if (paperSize === 'custom') {
+          pageW_cm = parseFloat(document.getElementById('printPaperCustomWidth')?.value || 21.0);
+          pageH_cm = parseFloat(document.getElementById('printPaperCustomHeight')?.value || 29.7);
+          sizeCss = `${pageW_cm}cm ${pageH_cm}cm`;
+        }
 
         // Calculate exact pixel dimensions of the card grid so the @page area matches perfectly with zero gaps
         const pxPerCm_print = 37.795;
@@ -13005,6 +13031,7 @@
               box-sizing: border-box !important;
               align-content: flex-start !important;
               padding: 0 !important;
+              margin: 0 auto !important;
             }
           }
         `;
@@ -19166,7 +19193,21 @@
                   <option value="a4-landscape">A4 بالعرض (29.7 × 21.0 سم)</option>
                   <option value="a3-portrait">A3 بالطول (29.7 × 42.0 سم)</option>
                   <option value="a3-landscape" selected>A3 بالعرض (42.0 × 29.7 سم)</option>
+                  <option value="custom">مخصص (Custom Size)</option>
                 </select>
+              </div>
+
+              <div id="printCustomPaperSizeGroup" style="display:none; grid-template-columns:1fr 1fr; gap:12px; margin-top: -4px;">
+                <div class="form-group">
+                  <label class="form-label">عرض الورقة (سم)</label>
+                  <input type="number" id="printPaperCustomWidth" class="form-input" value="21" min="5" max="200" step="0.1"
+                    onchange="updatePrintPreview()" oninput="updatePrintPreview()">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ارتفاع الورقة (سم)</label>
+                  <input type="number" id="printPaperCustomHeight" class="form-input" value="29.7" min="5" max="200" step="0.1"
+                    onchange="updatePrintPreview()" oninput="updatePrintPreview()">
+                </div>
               </div>
 
               <div class="form-group">
