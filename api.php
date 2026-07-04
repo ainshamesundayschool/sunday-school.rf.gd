@@ -36534,6 +36534,16 @@ function saveQRTemplate()
                 sendJSON(['success' => false, 'message' => 'فشل حفظ قالب الرحلة']);
             }
         } else {
+            // Ensure the church_settings row exists
+            $check = $conn->prepare("SELECT 1 FROM church_settings WHERE church_id = ? LIMIT 1");
+            $check->bind_param("i", $churchId);
+            $check->execute();
+            if ($check->get_result()->num_rows === 0) {
+                $ins = $conn->prepare("INSERT IGNORE INTO church_settings (church_id) VALUES (?)");
+                $ins->bind_param("i", $churchId);
+                $ins->execute();
+            }
+
             $stmt = $conn->prepare("UPDATE church_settings SET qr_template = ? WHERE church_id = ?");
             $stmt->bind_param("si", $template, $churchId);
             if ($stmt->execute()) {
