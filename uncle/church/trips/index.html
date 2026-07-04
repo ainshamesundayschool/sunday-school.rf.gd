@@ -11389,6 +11389,8 @@
           const fCustom_final = infoFontSizeOver > 0 ? infoFontSizeOver * scale : Math.max(7, Math.min(availW * (isLandscape ? 0.04 : 0.06), availH * (isLandscape ? 0.055 : 0.038)));
           const infoGapOver = parseInt(document.getElementById('printInfoGap')?.value ?? 6);
           const infoGap = infoGapOver * scale;
+          const infoPartSize = document.getElementById('printInfoPartSize')?.value || '1.2';
+          const qrPartSize = document.getElementById('printQrPartSize')?.value || '0.8';
           const qrOffsetStyle = qrYOffset !== 0 ? `transform: translateY(${qrYOffset * scale}px);` : '';
 
           const sid = getSafeStudentID(student);
@@ -11656,7 +11658,7 @@
               let detailsHtml = '';
               if (textReadability === 'rect' && (isUnified || readabilityWidth === 'unified-qr-only')) {
                   detailsHtml = `
-                  <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; flex:1.2; height:100%; width:100%; box-sizing:border-box; gap:${infoGap}px; box-shadow:${boxShadowValue}; min-width:0; min-height:0;">
+                  <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; flex:${infoPartSize}; height:100%; width:100%; box-sizing:border-box; gap:${infoGap}px; box-shadow:${boxShadowValue}; min-width:0; min-height:0;">
                       ${churchHeaderHtml}
                       ${tripTitleHtml}
                       ${studentInfoGroupHtml}
@@ -11665,7 +11667,7 @@
                   `;
               } else {
                   detailsHtml = `
-                  <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:1.2; height:100%; width:100%; min-width:0; min-height:0;">
+                  <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:${infoPartSize}; height:100%; width:100%; min-width:0; min-height:0;">
                       <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; ${infoWrapperWidthStyle} gap:${infoGap}px;">
                           ${churchHeaderHtml}
                           ${tripTitleHtml}
@@ -11679,7 +11681,7 @@
               let qrHalfHtml = '';
               if (textReadability === 'rect' && isUnified) {
                   qrHalfHtml = `
-                  <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:0.8; height:100%; min-width:0; min-height:0; width:100%;">
+                  <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:${qrPartSize}; height:100%; min-width:0; min-height:0; width:100%;">
                       <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-sizing:border-box; box-shadow:${boxShadowValue}; overflow:visible; width:100%; flex:1; min-height:0; gap:${4 * scale}px; ${qrOffsetStyle}">
                             <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible"></div>
                           ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
@@ -11688,7 +11690,7 @@
                   `;
               } else if (textReadability === 'rect' && readabilityWidth === 'unified-qr-only') {
                   qrHalfHtml = `
-                  <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:0.8; height:100%; min-width:0; min-height:0; width:100%;">
+                  <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:${qrPartSize}; height:100%; min-width:0; min-height:0; width:100%;">
                       <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-shadow:${boxShadowValue}; overflow:visible; width:fit-content; gap:${4 * scale}px; ${qrOffsetStyle}">
                             <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible"></div>
                           ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
@@ -11697,7 +11699,7 @@
                   `;
               } else {
                   qrHalfHtml = `
-                  <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:0.8; height:100%; min-width:0; min-height:0; width:100%; ${qrOffsetStyle}">
+                  <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:${qrPartSize}; height:100%; min-width:0; min-height:0; width:100%; ${qrOffsetStyle}">
                         <div style="${qrWrapperStyles} display:flex; justify-content:center; align-items:center; overflow:visible;">
                             <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible"></div>
                       </div>
@@ -11718,7 +11720,7 @@
               let detailsHtml = '';
               if (textReadability === 'rect' && (isUnified || readabilityWidth === 'unified-qr-only')) {
                   detailsHtml = `
-                  <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; flex:1.2; box-sizing:border-box; gap:${infoGap}px; box-shadow:${boxShadowValue}; min-height:0;">
+                  <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; flex:${infoPartSize}; box-sizing:border-box; gap:${infoGap}px; box-shadow:${boxShadowValue}; min-height:0;">
                       ${churchHeaderHtml}
                       ${tripTitleHtml}
                       ${studentInfoGroupHtml}
@@ -11727,7 +11729,7 @@
                   `;
               } else {
                   detailsHtml = `
-                  <div style="flex:1.2; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; min-height:0;">
+                  <div style="flex:${infoPartSize}; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; min-height:0;">
                       <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; ${infoWrapperWidthStyle} gap:${infoGap}px;">
                           ${churchHeaderHtml}
                           ${tripTitleHtml}
@@ -11741,7 +11743,7 @@
               let qrHalfHtml = '';
               if (textReadability === 'rect' && isUnified) {
                   qrHalfHtml = `
-                  <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; flex:0.8; min-height:0;">
+                  <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; flex:${qrPartSize}; min-height:0;">
                       <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-sizing:border-box; box-shadow:${boxShadowValue}; overflow:visible; width:100%; flex:1; min-height:0; gap:${4 * scale}px; ${qrOffsetStyle}">
                             <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible"></div>
                           ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
@@ -11750,7 +11752,7 @@
                   `;
               } else if (textReadability === 'rect' && readabilityWidth === 'unified-qr-only') {
                   qrHalfHtml = `
-                  <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; flex:0.8; min-height:0;">
+                  <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; flex:${qrPartSize}; min-height:0;">
                       <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-shadow:${boxShadowValue}; overflow:visible; width:fit-content; gap:${4 * scale}px; ${qrOffsetStyle}">
                             <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible"></div>
                           ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
@@ -11759,7 +11761,7 @@
                   `;
               } else {
                   qrHalfHtml = `
-                  <div style="flex:0.8; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; min-height:0; ${qrOffsetStyle}">
+                  <div style="flex:${qrPartSize}; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; min-height:0; ${qrOffsetStyle}">
                         <div style="${qrWrapperStyles} display:flex; justify-content:center; align-items:center; overflow:visible;">
                             <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible"></div>
                       </div>
@@ -13830,6 +13832,16 @@
             infoGapEl.value = 6;
             document.getElementById('printInfoGapVal').textContent = '6px';
         }
+        const infoPartSizeEl = document.getElementById('printInfoPartSize');
+        if (infoPartSizeEl) {
+            infoPartSizeEl.value = 1.2;
+            document.getElementById('printInfoPartSizeVal').textContent = '1.2';
+        }
+        const qrPartSizeEl = document.getElementById('printQrPartSize');
+        if (qrPartSizeEl) {
+            qrPartSizeEl.value = 0.8;
+            document.getElementById('printQrPartSizeVal').textContent = '0.8';
+        }
         const qrYOffsetEl = document.getElementById('printQrYOffset');
         if (qrYOffsetEl) {
             qrYOffsetEl.value = 0;
@@ -14030,6 +14042,8 @@
               infoFontSize: document.getElementById('printInfoFontSize')?.value || '0',
               qrYOffset: document.getElementById('printQrYOffset')?.value || '0',
               infoGap: document.getElementById('printInfoGap')?.value || '6',
+              infoPartSize: document.getElementById('printInfoPartSize')?.value || '1.2',
+              qrPartSize: document.getElementById('printQrPartSize')?.value || '0.8',
               customLogos: window.customLogos || [],
               extraFields: cardExtraFields || []
           };
@@ -14314,6 +14328,20 @@
                   if (el) {
                       el.value = data.infoGap;
                       document.getElementById('printInfoGapVal').textContent = data.infoGap + 'px';
+                  }
+              }
+              if (data.infoPartSize !== undefined) {
+                  const el = document.getElementById('printInfoPartSize');
+                  if (el) {
+                      el.value = data.infoPartSize;
+                      document.getElementById('printInfoPartSizeVal').textContent = data.infoPartSize;
+                  }
+              }
+              if (data.qrPartSize !== undefined) {
+                  const el = document.getElementById('printQrPartSize');
+                  if (el) {
+                      el.value = data.qrPartSize;
+                      document.getElementById('printQrPartSizeVal').textContent = data.qrPartSize;
                   }
               }
               if (data.customLogos !== undefined) {
@@ -19204,6 +19232,22 @@
                   <div style="display:flex; align-items:center; gap:8px;">
                     <input type="range" id="printInfoGap" min="0" max="30" value="6" style="padding:0; flex:1;" oninput="updatePrintPreview(); document.getElementById('printInfoGapVal').textContent = this.value + 'px'">
                     <span id="printInfoGapVal" style="font-weight:bold; font-size:0.75rem; min-width:45px; text-align:center;">6px</span>
+                  </div>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:2px; color:var(--text);">
+                  <span style="font-size:0.75rem; font-weight:700;">نسبة حجم قسم البيانات (Info Part Flex Ratio):</span>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <input type="range" id="printInfoPartSize" min="0.2" max="3" step="0.1" value="1.2" style="padding:0; flex:1;" oninput="updatePrintPreview(); document.getElementById('printInfoPartSizeVal').textContent = this.value">
+                    <span id="printInfoPartSizeVal" style="font-weight:bold; font-size:0.75rem; min-width:45px; text-align:center;">1.2</span>
+                  </div>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:2px; color:var(--text);">
+                  <span style="font-size:0.75rem; font-weight:700;">نسبة حجم قسم الـ QR (QR Part Flex Ratio):</span>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <input type="range" id="printQrPartSize" min="0.2" max="3" step="0.1" value="0.8" style="padding:0; flex:1;" oninput="updatePrintPreview(); document.getElementById('printQrPartSizeVal').textContent = this.value">
+                    <span id="printQrPartSizeVal" style="font-weight:bold; font-size:0.75rem; min-width:45px; text-align:center;">0.8</span>
                   </div>
                 </div>
 
