@@ -46724,31 +46724,31 @@ function ensureGuestsTable($conn)
 
 
     // Step 2: Add registration_type to trip_registrations if missing
-
     $res = $conn->query("SHOW COLUMNS FROM `trip_registrations` LIKE 'registration_type'");
-
     if ($res && $res->num_rows === 0) {
-
         $conn->query("ALTER TABLE `trip_registrations`
-
-            ADD COLUMN `registration_type` ENUM('student', 'other_church_student', 'guest') DEFAULT 'student',
-
+            ADD COLUMN `registration_type` ENUM('student', 'other_church_student', 'guest', 'uncle') DEFAULT 'student',
             MODIFY `student_id` INT DEFAULT NULL");
-
         $conn->query("CREATE INDEX idx_trip_reg_type ON trip_registrations(registration_type)");
-
+    } else if ($res && $res->num_rows > 0) {
+        // Ensure 'uncle' is in enum
+        $row = $res->fetch_assoc();
+        if (strpos($row['Type'], 'uncle') === false) {
+            $conn->query("ALTER TABLE `trip_registrations` MODIFY COLUMN `registration_type` ENUM('student', 'other_church_student', 'guest', 'uncle') DEFAULT 'student'");
+        }
     }
 
-
+    // Step 2.5: Add uncle_id to trip_registrations if missing
+    $resUncle = $conn->query("SHOW COLUMNS FROM `trip_registrations` LIKE 'uncle_id'");
+    if ($resUncle && $resUncle->num_rows === 0) {
+        $conn->query("ALTER TABLE `trip_registrations` ADD COLUMN `uncle_id` INT DEFAULT NULL AFTER `student_id`");
+        $conn->query("CREATE INDEX idx_trip_reg_uncle ON trip_registrations(uncle_id)");
+    }
 
     // Step 3: Add guest_id column to trip_registrations if missing
-
     $res2 = $conn->query("SHOW COLUMNS FROM `trip_registrations` LIKE 'guest_id'");
-
     if ($res2 && $res2->num_rows === 0) {
-
         $conn->query("ALTER TABLE `trip_registrations` ADD COLUMN `guest_id` INT DEFAULT NULL");
-
         $conn->query("CREATE INDEX idx_trip_reg_guest ON trip_registrations(guest_id)");
 
 
