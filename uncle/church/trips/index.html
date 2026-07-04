@@ -3845,13 +3845,13 @@
         flex-wrap: wrap !important;
         justify-content: flex-start !important;
         align-content: flex-start !important;
-        gap: var(--print-gap-y, 10mm) var(--print-gap-x, 10mm) !important;
+        gap: var(--print-gap-y, 0px) var(--print-gap-x, 0px) !important;
         width: 100% !important;
         max-width: 100% !important;
         height: 100% !important;
         max-height: 100% !important;
         margin: 0 !important;
-        padding: 2mm !important;
+        padding: 0 !important;
         box-sizing: border-box !important;
         page-break-after: always !important;
         break-after: page !important;
@@ -12984,23 +12984,27 @@
         else if (paperSize === 'a3-portrait') { sizeCss = 'A3 portrait'; pageW_cm = 29.7; pageH_cm = 42.0; }
         else if (paperSize === 'a3-landscape') { sizeCss = 'A3 landscape'; pageW_cm = 42.0; pageH_cm = 29.7; }
 
-        // With 4mm margins on each side (total 8mm = 0.8cm), subtract slightly more (e.g. 0.9cm) as safety buffer to avoid rounding page breaks
-        const contentW_cm = pageW_cm - 0.9;
-        const contentH_cm = pageH_cm - 0.9;
+        // Calculate exact pixel dimensions of the card grid so the @page area matches perfectly with zero gaps
+        const pxPerCm_print = 37.795;
+        const scaledCardW = finalBaseWidth * finalScale;
+        const scaledCardH = finalBaseHeight * finalScale;
+        const exactGridW_cm = (cols * scaledCardW + Math.max(0, cols - 1) * gapXVal) / pxPerCm_print;
+        const exactGridH_cm = (rows * scaledCardH + Math.max(0, rows - 1) * gapYVal) / pxPerCm_print;
 
         pageStyleEl.innerHTML = `
           @media print {
             @page {
               size: ${sizeCss} !important;
-              margin: 4mm !important;
+              margin: 0mm !important;
             }
             .print-page {
-              width: ${contentW_cm}cm !important;
-              height: ${contentH_cm}cm !important;
-              max-width: ${contentW_cm}cm !important;
-              max-height: ${contentH_cm}cm !important;
+              width: ${exactGridW_cm}cm !important;
+              height: ${exactGridH_cm}cm !important;
+              max-width: ${exactGridW_cm}cm !important;
+              max-height: ${exactGridH_cm}cm !important;
               box-sizing: border-box !important;
               align-content: flex-start !important;
+              padding: 0 !important;
             }
           }
         `;
