@@ -11393,7 +11393,7 @@
           const infoGap = infoGapOver * scale;
           const infoPartSize = document.getElementById('printInfoPartSize')?.value || '1.2';
           const qrPartSize = document.getElementById('printQrPartSize')?.value || '0.8';
-          const qrOffsetStyle = qrYOffset !== 0 ? `transform: translateY(${qrYOffset * scale}px);` : '';
+          const qrOffsetStyle = `transform: translateY(${qrYOffset * scale}px) scale(${qrColumnScale}); transform-origin: center;`;
 
           const sid = getSafeStudentID(student);
           const rawImg = getSafeStudentImage(student);
@@ -11717,7 +11717,7 @@
               if (textReadability === 'rect' && isUnified) {
                   qrHalfHtml = `
                   <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:${qrPartSize}; height:100%; min-width:0; min-height:0; width:100%;">
-                      <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-sizing:border-box; box-shadow:${boxShadowValue}; overflow:visible; width:100%; flex:1; min-height:0; gap:${4 * scale}px; ${qrOffsetStyle} transform: scale(${qrColumnScale}); transform-origin: center;">
+                      <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-sizing:border-box; box-shadow:${boxShadowValue}; overflow:visible; width:100%; flex:1; min-height:0; gap:${4 * scale}px; ${qrOffsetStyle}">
                             <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible"></div>
                           ${showStudentId ? `<div style="font-size:${fH3_final_id}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
                       </div>
@@ -11726,7 +11726,7 @@
               } else if (textReadability === 'rect' && readabilityWidth === 'unified-qr-only') {
                   qrHalfHtml = `
                   <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:${qrPartSize}; height:100%; min-width:0; min-height:0; width:100%;">
-                      <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-shadow:${boxShadowValue}; overflow:visible; width:fit-content; gap:${4 * scale}px; ${qrOffsetStyle} transform: scale(${qrColumnScale}); transform-origin: center;">
+                      <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-shadow:${boxShadowValue}; overflow:visible; width:fit-content; gap:${4 * scale}px; ${qrOffsetStyle}">
                             <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible"></div>
                           ${showStudentId ? `<div style="font-size:${fH3_final_id}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
                       </div>
@@ -11735,7 +11735,7 @@
               } else {
                   qrHalfHtml = `
                   <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:${qrPartSize}; height:100%; min-width:0; min-height:0; width:100%;">
-                      <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; height:100%; ${qrOffsetStyle} transform: scale(${qrColumnScale}); transform-origin: center;">
+                      <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; height:100%; ${qrOffsetStyle}">
                           <div style="${qrWrapperStyles} display:flex; justify-content:center; align-items:center; overflow:visible;">
                               <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible"></div>
                           </div>
@@ -11783,7 +11783,7 @@
               if (textReadability === 'rect' && isUnified) {
                   qrHalfHtml = `
                   <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; flex:${qrPartSize}; min-height:0;">
-                      <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-sizing:border-box; box-shadow:${boxShadowValue}; overflow:visible; width:100%; flex:1; min-height:0; gap:${4 * scale}px; ${qrOffsetStyle} transform: scale(${qrColumnScale}); transform-origin: center;">
+                      <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-sizing:border-box; box-shadow:${boxShadowValue}; overflow:visible; width:100%; flex:1; min-height:0; gap:${4 * scale}px; ${qrOffsetStyle}">
                             <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible"></div>
                           ${showStudentId ? `<div style="font-size:${fH3_final_id}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
                       </div>
@@ -11792,7 +11792,7 @@
               } else if (textReadability === 'rect' && readabilityWidth === 'unified-qr-only') {
                   qrHalfHtml = `
                   <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; flex:${qrPartSize}; min-height:0;">
-                      <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-shadow:${boxShadowValue}; overflow:visible; width:fit-content; gap:${4 * scale}px; ${qrOffsetStyle} transform: scale(${qrColumnScale}); transform-origin: center;">
+                      <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-shadow:${boxShadowValue}; overflow:visible; width:fit-content; gap:${4 * scale}px; ${qrOffsetStyle}">
                             <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible"></div>
                           ${showStudentId ? `<div style="font-size:${fH3_final_id}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
                       </div>
@@ -11801,7 +11801,7 @@
               } else {
                   qrHalfHtml = `
                   <div style="flex:${qrPartSize}; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; min-height:0;">
-                      <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; height:100%; ${qrOffsetStyle} transform: scale(${qrColumnScale}); transform-origin: center;">
+                      <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; height:100%; ${qrOffsetStyle}">
                           <div style="${qrWrapperStyles} display:flex; justify-content:center; align-items:center; overflow:visible;">
                               <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible"></div>
                           </div>

@@ -9843,6 +9843,46 @@
                                     <span id="printQrYOffsetVal" style="font-weight:bold; font-size:0.75rem; min-width:45px; text-align:center;">0px</span>
                                 </div>
                             </div>
+
+                            <div style="display:flex; flex-direction:column; gap:2px; color:var(--text);">
+                                <span style="font-size:0.75rem; font-weight:700;">تباعد عناصر البيانات (Info Elements Gap):</span>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <input type="range" id="printInfoGap" min="0" max="30" value="6" style="padding:0; flex:1;" oninput="updatePrintPreview(); document.getElementById('printInfoGapVal').textContent = this.value + 'px'">
+                                    <span id="printInfoGapVal" style="font-weight:bold; font-size:0.75rem; min-width:45px; text-align:center;">6px</span>
+                                </div>
+                            </div>
+
+                            <div style="display:flex; flex-direction:column; gap:2px; color:var(--text);">
+                                <span style="font-size:0.75rem; font-weight:700;">نسبة حجم قسم البيانات (Info Part Flex Ratio):</span>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <input type="range" id="printInfoPartSize" min="0.2" max="3" step="0.1" value="1.2" style="padding:0; flex:1;" oninput="updatePrintPreview(); document.getElementById('printInfoPartSizeVal').textContent = this.value">
+                                    <span id="printInfoPartSizeVal" style="font-weight:bold; font-size:0.75rem; min-width:45px; text-align:center;">1.2</span>
+                                </div>
+                            </div>
+
+                            <div style="display:flex; flex-direction:column; gap:2px; color:var(--text);">
+                                <span style="font-size:0.75rem; font-weight:700;">نسبة حجم قسم الـ QR (QR Part Flex Ratio):</span>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <input type="range" id="printQrPartSize" min="0.2" max="3" step="0.1" value="0.8" style="padding:0; flex:1;" oninput="updatePrintPreview(); document.getElementById('printQrPartSizeVal').textContent = this.value">
+                                    <span id="printQrPartSizeVal" style="font-weight:bold; font-size:0.75rem; min-width:45px; text-align:center;">0.8</span>
+                                </div>
+                            </div>
+
+                            <div style="display:flex; flex-direction:column; gap:2px; color:var(--text);">
+                                <span style="font-size:0.75rem; font-weight:700;">حجم محتويات قسم البيانات (Info Scale):</span>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <input type="range" id="printInfoColumnScale" min="0.5" max="2.0" step="0.05" value="1.0" style="padding:0; flex:1;" oninput="updatePrintPreview(); document.getElementById('printInfoColumnScaleVal').textContent = this.value">
+                                    <span id="printInfoColumnScaleVal" style="font-weight:bold; font-size:0.75rem; min-width:45px; text-align:center;">1.0</span>
+                                </div>
+                            </div>
+
+                            <div style="display:flex; flex-direction:column; gap:2px; color:var(--text);">
+                                <span style="font-size:0.75rem; font-weight:700;">حجم الـ QR كود (QR Scale):</span>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <input type="range" id="printQrColumnScale" min="0.5" max="2.0" step="0.05" value="1.0" style="padding:0; flex:1;" oninput="updatePrintPreview(); document.getElementById('printQrColumnScaleVal').textContent = this.value">
+                                    <span id="printQrColumnScaleVal" style="font-weight:bold; font-size:0.75rem; min-width:45px; text-align:center;">1.0</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -23059,6 +23099,31 @@
                 qrYOffsetEl.value = 0;
                 document.getElementById('printQrYOffsetVal').textContent = '0px';
             }
+            const infoGapEl = document.getElementById('printInfoGap');
+            if (infoGapEl) {
+                infoGapEl.value = 6;
+                document.getElementById('printInfoGapVal').textContent = '6px';
+            }
+            const infoPartSizeEl = document.getElementById('printInfoPartSize');
+            if (infoPartSizeEl) {
+                infoPartSizeEl.value = 1.2;
+                document.getElementById('printInfoPartSizeVal').textContent = '1.2';
+            }
+            const qrPartSizeEl = document.getElementById('printQrPartSize');
+            if (qrPartSizeEl) {
+                qrPartSizeEl.value = 0.8;
+                document.getElementById('printQrPartSizeVal').textContent = '0.8';
+            }
+            const infoColumnScaleEl = document.getElementById('printInfoColumnScale');
+            if (infoColumnScaleEl) {
+                infoColumnScaleEl.value = 1.0;
+                document.getElementById('printInfoColumnScaleVal').textContent = '1.0';
+            }
+            const qrColumnScaleEl = document.getElementById('printQrColumnScale');
+            if (qrColumnScaleEl) {
+                qrColumnScaleEl.value = 1.0;
+                document.getElementById('printQrColumnScaleVal').textContent = '1.0';
+            }
             const nameBold = document.getElementById('printNameBold');
             if (nameBold) nameBold.checked = true;
             const infoBold = document.getElementById('printInfoBold');
@@ -23225,6 +23290,11 @@
                 nameFontSize: document.getElementById('printNameFontSize')?.value || '0',
                 infoFontSize: document.getElementById('printInfoFontSize')?.value || '0',
                 qrYOffset: document.getElementById('printQrYOffset')?.value || '0',
+                infoGap: document.getElementById('printInfoGap')?.value || '6',
+                infoPartSize: document.getElementById('printInfoPartSize')?.value || '1.2',
+                qrPartSize: document.getElementById('printQrPartSize')?.value || '0.8',
+                infoColumnScale: document.getElementById('printInfoColumnScale')?.value || '1.0',
+                qrColumnScale: document.getElementById('printQrColumnScale')?.value || '1.0',
                 customLogos: window.customLogos || [],
                 extraFields: cardExtraFields || []
             };
@@ -23502,6 +23572,41 @@
                     if (el) {
                         el.value = data.qrYOffset;
                         document.getElementById('printQrYOffsetVal').textContent = data.qrYOffset + 'px';
+                    }
+                }
+                if (data.infoGap !== undefined) {
+                    const el = document.getElementById('printInfoGap');
+                    if (el) {
+                        el.value = data.infoGap;
+                        document.getElementById('printInfoGapVal').textContent = data.infoGap + 'px';
+                    }
+                }
+                if (data.infoPartSize !== undefined) {
+                    const el = document.getElementById('printInfoPartSize');
+                    if (el) {
+                        el.value = data.infoPartSize;
+                        document.getElementById('printInfoPartSizeVal').textContent = data.infoPartSize;
+                    }
+                }
+                if (data.qrPartSize !== undefined) {
+                    const el = document.getElementById('printQrPartSize');
+                    if (el) {
+                        el.value = data.qrPartSize;
+                        document.getElementById('printQrPartSizeVal').textContent = data.qrPartSize;
+                    }
+                }
+                if (data.infoColumnScale !== undefined) {
+                    const el = document.getElementById('printInfoColumnScale');
+                    if (el) {
+                        el.value = data.infoColumnScale;
+                        document.getElementById('printInfoColumnScaleVal').textContent = data.infoColumnScale;
+                    }
+                }
+                if (data.qrColumnScale !== undefined) {
+                    const el = document.getElementById('printQrColumnScale');
+                    if (el) {
+                        el.value = data.qrColumnScale;
+                        document.getElementById('printQrColumnScaleVal').textContent = data.qrColumnScale;
                     }
                 }
                 if (data.customLogos !== undefined) {
