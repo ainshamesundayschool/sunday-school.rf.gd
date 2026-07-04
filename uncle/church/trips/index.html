@@ -13148,6 +13148,438 @@
         }, 1200);
       }
 
+      async function executeSaveQRCardsAsPDF(mode = 'combined', force = false) {
+        currentPrintMode = mode;
+        const tripId = document.getElementById('printTripId').value;
+        if (!tripId) return;
+
+        const wValInput = parseFloat(document.getElementById('printCardWidth')?.value || 7);
+        const hValInput = parseFloat(document.getElementById('printCardHeight')?.value || 10);
+        if (!force && wValInput === 10 && hValInput === 7) {
+          const paperSizeSelect = document.getElementById('printPaperSize');
+          if (paperSizeSelect) {
+            const selectedVal = paperSizeSelect.value;
+            const customW = parseFloat(document.getElementById('printPaperCustomWidth')?.value || 21.0);
+            const customH = parseFloat(document.getElementById('printPaperCustomHeight')?.value || 29.7);
+            const sizeMap = {
+              'a4-portrait': { ar: 'A4 بالوضع الرأسي (Portrait)', en: 'A4 Portrait Mode' },
+              'a4-landscape': { ar: 'A4 بالوضع الأفقي (Landscape)', en: 'A4 Landscape Mode' },
+              'a3-portrait': { ar: 'A3 بالوضع الرأسي (Portrait)', en: 'A3 Portrait Mode' },
+              'a3-landscape': { ar: 'A3 بالوضع الأفقي (Landscape)', en: 'A3 Landscape Mode' },
+              'custom': { ar: `حجم مخصص (${customW} × ${customH} سم)`, en: `Custom Size (${customW} x ${customH} cm)` }
+            };
+            const info = sizeMap[selectedVal] || { ar: 'A3 بالوضع الأفقي (Landscape)', en: 'A3 Landscape Mode' };
+            const arSizeEl = document.getElementById('printWarningArSize');
+            const enSizeEl = document.getElementById('printWarningEnSize');
+            if (arSizeEl) arSizeEl.textContent = info.ar;
+            if (enSizeEl) enSizeEl.textContent = info.en;
+          }
+
+          const confirmBtn = document.querySelector('#printWarningModal .btn-primary');
+          if (confirmBtn) {
+            confirmBtn.setAttribute('onclick', `executeSaveQRCardsAsPDF('${mode}', true)`);
+          }
+          openModal('printWarningModal');
+          return;
+        }
+
+        closeModal('printWarningModal');
+        closeModal('printSettingsModal');
+
+        let trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+        let rawRegs = tripRegistrationsCache[tripId] || (trip ? trip.registrations : []) || [];
+        if (!trip || rawRegs.length === 0) {
+          try {
+            const fd = mkFd('getTripDetails'); fd.append('trip_id', tripId);
+            const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+            if (res && res.success && res.trip) {
+              trip = res.trip; rawRegs = res.trip.registrations || [];
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        }
+
+        showToast('جاري تحضير الكروت لملف PDF...', 'info');
+
+        // Dynamically load html2canvas & jsPDF if not loaded
+        if (!window.html2canvas) {
+          await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+        }
+        if (!window.jspdf) {
+          await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+        }
+        const { jsPDF } = window.jspdf;
+        if (!jsPDF) {
+          showToast('فشل تحميل مكتبة PDF', 'error');
+          return;
+        }
+
+        const scaleVal = parseFloat(document.getElementById('printScale')?.value || 100) / 100;
+        let wValVal = parseFloat(document.getElementById('printCardWidth')?.value || 7);
+        let hValVal = parseFloat(document.getElementById('printCardHeight')?.value || 10);
+        if (wValVal > 50) wValVal = wValVal / 37.795;
+        if (hValVal > 50) hValVal = hValVal / 37.795;
+        const scale = scaleVal;
+        const baseWidth = wValVal * 37.795;
+        const baseHeight = hValVal * 37.795;
+        const gapXVal = parseFloat(document.getElementById('printGapX')?.value || 0);
+        const gapYVal = parseFloat(document.getElementById('printGapY')?.value || 0);
+        const gapX = gapXVal + 'px';
+        const gapY = gapYVal + 'px';
+
+        let regs = [...getSelectedPrintRegistrations(rawRegs)];
+        const printUncles = document.getElementById('printUnclesOption')?.checked || false;
+        if (printUncles) {
+          const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+          const selectedUncles = (window.allUnclesCache || []).filter(u => printSelectedUncleIds.has(String(u.id)));
+          selectedUncles.forEach(u => {
+            regs.push(mapUncleToReg(u, roomsConfig));
+          });
+        }
+
+        const extraCount = parseInt(document.getElementById('printExtraEmptyCopiesCount')?.value || 0);
+        for (let k = 0; k < extraCount; k++) {
+          const customData = window.customExtraCardsData[k] || { name: '', phone: '' };
+          const randId = 'PRINT_' + (k + 1);
+          regs.push({
+            id: 'empty_copy_' + randId,
+            student_id: '',
+            student_name: customData.name || '',
+            student_image: '',
+            custom_data: null,
+            phone: customData.phone || '',
+            isEmptyCopy: true,
+            tempId: 'TEMP_' + randId
+          });
+        }
+
+        const padding = document.getElementById('printPadding')?.value || '15px';
+        const showChurch = cardExtraFields.some(f => f.key === 'church_header' && f.placement === 'front');
+        const showTripImage = cardExtraFields.some(f => f.key === 'trip_image' && f.placement === 'front');
+        const showTripTitle = cardExtraFields.some(f => f.key === 'trip_title' && f.placement === 'front');
+        const showStudentImg = cardExtraFields.some(f => f.key === 'student_image' && f.placement === 'front');
+        const showStudentName = cardExtraFields.some(f => f.key === 'student_name' && f.placement === 'front');
+        const showStudentId = cardExtraFields.some(f => f.key === 'student_id' && f.placement === 'front');
+        const showCustom = false;
+
+        const tripImgAsBg = document.getElementById('printTripImgAsBg')?.checked || false;
+        const tripImgOverlayColor = document.getElementById('printTripImgOverlayColor')?.value || '#000000';
+        const tripImgOverlayOpacity = parseFloat(document.getElementById('printTripImgOverlayOpacity')?.value || '50') / 100;
+        const tripImgRounded = document.getElementById('printTripImgRounded')?.checked || false;
+        const textReadability = document.getElementById('printTextReadability')?.value || 'none';
+
+        const readabilityBgColor = document.getElementById('printTextReadabilityBgColor')?.value || '#ffffff';
+        const readabilityBgOpacity = document.getElementById('printTextReadabilityBgOpacity')?.value || '92';
+        const readabilityPadding = parseFloat(document.getElementById('printTextReadabilityPadding')?.value || '6');
+        const readabilityWidth = document.getElementById('printTextReadabilityWidth')?.value || 'fitted';
+        const readabilityBgShadow = document.getElementById('printTextReadabilityShadow')?.checked !== false;
+
+        const fontColor = document.getElementById('printFontColor')?.value || '#000000';
+        const strokeColor = document.getElementById('printStrokeColor')?.value || '#dddddd';
+        const { outlineStyle, dashLength, dashGap } = getPrintBorderSettings();
+        const showAvatarWhenNoPhoto = document.getElementById('printShowAvatarFallback')?.checked || false;
+
+        const paperSize = document.getElementById('printPaperSize')?.value || 'a4-landscape';
+        const grid = getPageGridDimensions(paperSize, baseWidth, baseHeight, gapXVal, gapYVal, scale);
+        const cardsPerPage = grid.cardsPerPage;
+        const cols = grid.cols;
+        const rows = grid.rows;
+
+        const autoFit = document.getElementById('printAutoFitPage')?.checked || false;
+        let finalBaseWidth = baseWidth;
+        let finalBaseHeight = baseHeight;
+        let finalScale = scale;
+
+        if (autoFit) {
+          let pw = 29.7, ph = 21.0;
+          if (paperSize === 'a4-portrait') { pw = 21.0; ph = 29.7; }
+          else if (paperSize === 'a4-landscape') { pw = 29.7; ph = 21.0; }
+          else if (paperSize === 'a3-portrait') { pw = 29.7; ph = 42.0; }
+          else if (paperSize === 'a3-landscape') { pw = 42.0; ph = 29.7; }
+          else if (paperSize === 'custom') {
+            pw = parseFloat(document.getElementById('printPaperCustomWidth')?.value || 21.0);
+            ph = parseFloat(document.getElementById('printPaperCustomHeight')?.value || 29.7);
+          }
+          const pxPerCm = 37.795;
+          const pageW = pw * pxPerCm;
+          const pageH = ph * pxPerCm;
+          const margin = 0.6 * pxPerCm;
+          const availW = pageW - 2 * margin;
+          const availH = pageH - 2 * margin;
+
+          const cardW = baseWidth * scale;
+          const cardH = baseHeight * scale;
+
+          const cardW_px = (availW - (cols - 1) * gapXVal) / cols;
+          const cardH_px = (availH - (rows - 1) * gapYVal) / rows;
+
+          const scaleMultX = cardW_px / cardW;
+          const scaleMultY = cardH_px / cardH;
+
+          finalScale = scale * Math.min(scaleMultX, scaleMultY);
+        }
+
+        const pages = [];
+        for (let i = 0; i < regs.length; i += cardsPerPage) {
+          pages.push(regs.slice(i, i + cardsPerPage));
+        }
+
+        const fillWithEmptyCopies = document.getElementById('printFillEmptyCopies')?.checked || false;
+        const paddedPages = pages.map(pRegs => {
+          const padded = [...pRegs];
+          while (padded.length < cardsPerPage) {
+            if (fillWithEmptyCopies) {
+              const randId = Math.random().toString(36).substr(2, 8).toUpperCase();
+              padded.push({
+                id: 'empty_copy_PAD_' + randId,
+                student_id: '',
+                student_name: '',
+                student_image: '',
+                custom_data: null,
+                isEmptyCopy: true,
+                tempId: 'T_PAD_' + randId
+              });
+            } else {
+              padded.push(null);
+            }
+          }
+          return padded;
+        });
+
+        const originalKidsBg = customCardBackgroundDataUrl;
+        const originalKidsBgBack = customCardBackgroundDataUrlBack;
+        const originalUncleBg = customCardBackgroundDataUrlUncle;
+        const originalUncleBgBack = customCardBackgroundDataUrlUncleBack;
+        const originalLogos = window.customLogos;
+
+        function base64ToObjectURL(b64) {
+          if (!b64 || !b64.startsWith('data:')) return b64;
+          try {
+            const parts = b64.split(',');
+            const mime = parts[0].match(/:(.*?);/)[1];
+            const bstr = atob(parts[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while (n--) {
+              u8arr[n] = bstr.charCodeAt(n);
+            }
+            const blob = new Blob([u8arr], { type: mime });
+            return URL.createObjectURL(blob);
+          } catch(e) {
+            return b64;
+          }
+        }
+
+        customCardBackgroundDataUrl = base64ToObjectURL(customCardBackgroundDataUrl);
+        customCardBackgroundDataUrlBack = base64ToObjectURL(customCardBackgroundDataUrlBack);
+        customCardBackgroundDataUrlUncle = base64ToObjectURL(customCardBackgroundDataUrlUncle);
+        customCardBackgroundDataUrlUncleBack = base64ToObjectURL(customCardBackgroundDataUrlUncleBack);
+        window.customLogos = (window.customLogos || []).map(logo => ({
+          ...logo,
+          src: base64ToObjectURL(logo.src)
+        }));
+
+        let sizeCss = 'auto';
+        let pageW_cm = 29.7, pageH_cm = 21.0;
+        if (paperSize === 'a4-portrait') { sizeCss = 'A4 portrait'; pageW_cm = 21.0; pageH_cm = 29.7; }
+        else if (paperSize === 'a4-landscape') { sizeCss = 'A4 landscape'; pageW_cm = 29.7; pageH_cm = 21.0; }
+        else if (paperSize === 'a3-portrait') { sizeCss = 'A3 portrait'; pageW_cm = 29.7; pageH_cm = 42.0; }
+        else if (paperSize === 'a3-landscape') { sizeCss = 'A3 landscape'; pageW_cm = 42.0; pageH_cm = 29.7; }
+        else if (paperSize === 'custom') {
+          pageW_cm = parseFloat(document.getElementById('printPaperCustomWidth')?.value || 21.0);
+          pageH_cm = parseFloat(document.getElementById('printPaperCustomHeight')?.value || 29.7);
+          sizeCss = `${pageW_cm}cm ${pageH_cm}cm`;
+        }
+
+        const pxPerCm_print = 37.795;
+        const scaledCardW = finalBaseWidth * finalScale;
+        const scaledCardH = finalBaseHeight * finalScale;
+        const exactGridW_cm = (cols * scaledCardW + Math.max(0, cols - 1) * gapXVal) / pxPerCm_print;
+        const exactGridH_cm = (rows * scaledCardH + Math.max(0, rows - 1) * gapYVal) / pxPerCm_print;
+
+        let pageStyleEl = document.getElementById('print-dynamic-page-size');
+        if (!pageStyleEl) {
+          pageStyleEl = document.createElement('style');
+          pageStyleEl.id = 'print-dynamic-page-size';
+          document.head.appendChild(pageStyleEl);
+        }
+        pageStyleEl.innerHTML = `
+          #printArea .print-page {
+            width: ${exactGridW_cm}cm !important;
+            height: ${exactGridH_cm}cm !important;
+            max-width: ${exactGridW_cm}cm !important;
+            max-height: ${exactGridH_cm}cm !important;
+            box-sizing: border-box !important;
+            align-content: flex-start !important;
+            padding: 0 !important;
+            margin: 0 auto !important;
+          }
+        `;
+
+        const printArea = document.getElementById('printArea');
+        printArea.innerHTML = '';
+        printArea.style.setProperty('--print-gap-x', gapX);
+        printArea.style.setProperty('--print-gap-y', gapY);
+        printArea.style.setProperty('--card-print-width', (finalBaseWidth * finalScale) + 'px');
+
+        const scaledWidth = finalBaseWidth * finalScale;
+        const scaledHeight = finalBaseHeight * finalScale;
+        const placeholderHtml = `<div class="print-card-placeholder" style="width:${scaledWidth}px; height:${scaledHeight}px; visibility:hidden; flex-shrink:0;"></div>`;
+
+        let html = '';
+        const qrTasks = [];
+        const churchName = localStorage.getItem('churchName') || localStorage.getItem('uncle_church_name') || 'مدارس الأحد';
+
+        const docDir = document.documentElement.dir || 'ltr';
+        const backPageDir = (docDir === 'rtl') ? 'ltr' : 'rtl';
+
+        function renderFrontCard(r) {
+          if (!r) return placeholderHtml;
+          const isEmp = !!r.isEmptyCopy;
+          const cardId = 'qrcode_pdf_' + r.id;
+          const link = isEmp
+            ? `${window.location.origin}/user/profile/?tempid=${encodeURIComponent(r.tempId || '')}&trip_id=${tripId}`
+            : (r.student_id
+                ? `${window.location.origin}/user/profile/?id=${encodeURIComponent(r.student_id)}`
+                : `${window.location.origin}/uncle/trip/points/?trip_id=${tripId}&guest_id=${encodeURIComponent(r.guest_id || r.id)}`
+              );
+          const customHtml = showCustom ? buildCustomDataMarkup(r.custom_data, trip) : '';
+
+          if (!r.isUncle) {
+            qrTasks.push({ id: cardId, text: link });
+          }
+
+          return generateCardMarkup({
+            trip, r, scale: finalScale, padding, showChurch, showTripImage, showTripTitle,
+            showStudentImg, showStudentName, showStudentId, showCustom, customHtml, churchName, cardId,
+            tripImgAsBg, tripImgOverlayColor, tripImgOverlayOpacity, tripImgRounded, textReadability,
+            fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto,
+            baseWidth: finalBaseWidth, baseHeight: finalBaseHeight,
+            readabilityBgColor, readabilityBgOpacity, readabilityPadding, readabilityWidth,
+            readabilityBgShadow,
+            extraFields: cardExtraFields
+          });
+        }
+
+        function renderBackCard(r) {
+          if (!r) return placeholderHtml;
+          return generateBackCardMarkup({
+            r, scale: finalScale, padding, churchName, fontColor, strokeColor, outlineStyle, dashLength, dashGap,
+            baseWidth: finalBaseWidth, baseHeight: finalBaseHeight, textReadability,
+            extraFields: cardExtraFields.filter(f => f.placement === 'back'),
+            trip,
+            readabilityBgColor, readabilityBgOpacity, readabilityPadding, readabilityWidth,
+            readabilityBgShadow
+          });
+        }
+
+        paddedPages.forEach((pageElements, pageIdx) => {
+          if (mode === 'front' || mode === 'combined') {
+            html += `<div class="print-page pdf-page-target">`;
+            pageElements.forEach(r => {
+              html += renderFrontCard(r);
+            });
+            html += `</div>`;
+          }
+          if (mode === 'back' || mode === 'combined') {
+            html += `<div class="print-page pdf-page-target" style="direction:${backPageDir} !important;">`;
+            pageElements.forEach(r => {
+              html += renderBackCard(r);
+            });
+            html += `</div>`;
+          }
+        });
+
+        printArea.innerHTML = html;
+
+        customCardBackgroundDataUrl = originalKidsBg;
+        customCardBackgroundDataUrlBack = originalKidsBgBack;
+        customCardBackgroundDataUrlUncle = originalUncleBg;
+        customCardBackgroundDataUrlUncleBack = originalUncleBgBack;
+        window.customLogos = originalLogos;
+
+        const layout = calculateCardLayout(baseWidth, baseHeight, scale, padding);
+        const qrSize = layout.qrSize;
+
+        qrTasks.forEach(task => {
+          new QRCode(document.getElementById(task.id), { text: task.text, width: qrSize, height: qrSize, colorDark: "#000000", colorLight: textReadability === 'rect' ? "transparent" : "#ffffff", correctLevel: QRCode.CorrectLevel.M });
+        });
+
+        printArea.style.position = 'fixed';
+        printArea.style.left = '-99999px';
+        printArea.style.top = '0';
+        printArea.style.display = 'block';
+        printArea.style.visibility = 'visible';
+
+        await new Promise(resolve => setTimeout(resolve, 800));
+        await waitForImages(printArea);
+
+        try {
+          const pdfPages = [...printArea.querySelectorAll('.pdf-page-target')];
+          if (pdfPages.length === 0) {
+            showToast('لا توجد صفحات لحفظها', 'error');
+            return;
+          }
+
+          const pw_mm = pageW_cm * 10;
+          const ph_mm = pageH_cm * 10;
+          const orientation = pw_mm > ph_mm ? 'landscape' : 'portrait';
+
+          const pdf = new jsPDF({
+            orientation: orientation,
+            unit: 'mm',
+            format: [pw_mm, ph_mm]
+          });
+
+          showToast('جاري إنشاء الصفحات...', 'info');
+
+          for (let i = 0; i < pdfPages.length; i++) {
+            const pageEl = pdfPages[i];
+            const canvas = await html2canvas(pageEl, {
+              scale: 2,
+              backgroundColor: '#ffffff',
+              logging: false,
+              useCORS: true,
+              allowTaint: false
+            });
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            if (i > 0) {
+              pdf.addPage([pw_mm, ph_mm], orientation);
+            }
+            pdf.addImage(imgData, 'JPEG', 0, 0, pw_mm, ph_mm);
+          }
+
+          const tripTitle = trip?.title || 'trip';
+          pdf.save(`cards-${tripTitle.replace(/[\/\s]+/g, '-')}-${mode}.pdf`);
+          showToast('تم تحميل ملف PDF بنجاح', 'success');
+        } catch (e) {
+          console.error(e);
+          showToast('حدث خطأ أثناء حفظ الـ PDF: ' + e.message, 'error');
+        } finally {
+          printArea.style.position = '';
+          printArea.style.left = '';
+          printArea.style.top = '';
+          printArea.style.display = 'none';
+          printArea.style.visibility = '';
+          printArea.innerHTML = '';
+          if (pageStyleEl) pageStyleEl.remove();
+        }
+      }
+
+      function waitForImages(root) {
+        const imgs = [...root.querySelectorAll('img')];
+        if (!imgs.length) return Promise.resolve();
+        return Promise.all(imgs.map(img => {
+          if (img.complete) return Promise.resolve();
+          return new Promise(resolve => {
+            img.onload = resolve;
+            img.onerror = resolve;
+            setTimeout(resolve, 3000);
+          });
+        }));
+      }
+
       function loadScript(src) {
         return new Promise((resolve, reject) => {
           const script = document.createElement('script');
@@ -19715,6 +20147,9 @@
 
 
             <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 12px; width: 100%;">
+              <div style="font-size: 0.8rem; font-weight: bold; color: var(--muted); text-align: right; margin-bottom: 2px;">
+                <i class="fas fa-print"></i> خيارات الطباعة المباشرة (عبر المتصفح)
+              </div>
               <div style="display: flex; gap: 8px; width: 100%;">
                 <button type="button" class="btn btn-outline" onclick="executePrintQRCards('front')"
                   style="flex: 1; height: 40px; font-size: 0.85rem; font-weight: 800; border-color: var(--primary); color: var(--primary); justify-content: center; gap: 6px;">
@@ -19726,10 +20161,10 @@
                 </button>
               </div>
 
-              <div style="position: relative; width: 100%;" id="printCombinedDropdownContainer">
+              <div style="position: relative; width: 100%; margin-bottom: 8px;" id="printCombinedDropdownContainer">
                 <button type="button" class="btn btn-primary" onclick="togglePrintDropdown(event)"
                   style="width: 100%; height: 44px; font-size: 0.95rem; font-weight: 800; justify-content: center; gap: 8px;">
-                  <i class="fas fa-print"></i> خيارات الطباعة المتقدمة <i class="fas fa-chevron-down" style="font-size: 0.8rem;"></i>
+                  <i class="fas fa-print"></i> طباعة الوجه والظهر معاً <i class="fas fa-chevron-down" style="font-size: 0.8rem;"></i>
                 </button>
                 <div id="printDropdownMenu" style="display: none; position: absolute; bottom: 48px; left: 0; right: 0; background: var(--card, #fff); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; overflow: hidden; flex-direction: column;">
                   <a href="javascript:void(0)" onclick="executePrintQRCards('front'); closePrintDropdown();" style="padding: 12px 16px; font-size: 0.9rem; font-weight: 700; color: var(--text); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; text-decoration: none; direction: rtl; text-align: right;" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='none'">
@@ -19741,6 +20176,29 @@
                   <a href="javascript:void(0)" onclick="executePrintQRCards('combined'); closePrintDropdown();" style="padding: 12px 16px; font-size: 0.9rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 10px; text-decoration: none; direction: rtl; text-align: right;" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='none'">
                     <i class="fas fa-copy" style="color: var(--primary); width: 20px;"></i> طباعة الوجه والظهر معاً (Combined)
                   </a>
+                </div>
+              </div>
+
+              <!-- Save directly as PDF section -->
+              <div style="border-top: 1px dashed var(--border); padding-top: 10px; margin-top: 4px;">
+                <div style="font-size: 0.8rem; font-weight: bold; color: var(--muted); text-align: right; margin-bottom: 6px;">
+                  <i class="fas fa-file-pdf"></i> حفظ كـ PDF مباشرة من الموقع
+                </div>
+                <div style="display: flex; gap: 8px; width: 100%;">
+                  <button type="button" class="btn btn-outline" onclick="executeSaveQRCardsAsPDF('front')"
+                    style="flex: 1; height: 40px; font-size: 0.85rem; font-weight: 800; border-color: var(--success); color: var(--success); justify-content: center; gap: 6px;"
+                    onmouseover="this.style.background='rgba(46, 204, 113, 0.05)'" onmouseout="this.style.background='none'">
+                    <i class="fas fa-id-card"></i> PDF للوجه
+                  </button>
+                  <button type="button" class="btn btn-outline" onclick="executeSaveQRCardsAsPDF('back')"
+                    style="flex: 1; height: 40px; font-size: 0.85rem; font-weight: 800; border-color: var(--success); color: var(--success); justify-content: center; gap: 6px;"
+                    onmouseover="this.style.background='rgba(46, 204, 113, 0.05)'" onmouseout="this.style.background='none'">
+                    <i class="fas fa-undo"></i> PDF للظهر
+                  </button>
+                  <button type="button" class="btn btn-success" onclick="executeSaveQRCardsAsPDF('combined')"
+                    style="flex: 1.2; height: 40px; font-size: 0.85rem; font-weight: 800; justify-content: center; gap: 6px; background: var(--success); border-color: var(--success);">
+                    <i class="fas fa-copy"></i> PDF كامل
+                  </button>
                 </div>
               </div>
             </div>
