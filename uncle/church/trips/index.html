@@ -12901,10 +12901,10 @@
 
           const scaleMultX = cardW_px / cardW;
           const scaleMultY = cardH_px / cardH;
-          
+
+          // Only adjust scale — keep finalBaseWidth/Height as the user-entered card size
           finalScale = scale * Math.min(scaleMultX, scaleMultY);
-          finalBaseWidth = cardW_px / finalScale;
-          finalBaseHeight = cardH_px / finalScale;
+          // finalBaseWidth and finalBaseHeight remain unchanged so the card cm size stays the same
         }
 
         // Chunk registrations into pages
@@ -13078,17 +13078,12 @@
             html += `</div>`;
           }
 
-          // 2. BACK PAGE (with mirrored columns)
+          // 2. BACK PAGE
+          // The direction flip (RTL→LTR or LTR→RTL) already mirrors columns horizontally.
+          // Do NOT also reverse each row — that would double-mirror and misalign.
           if (mode === 'back' || mode === 'combined') {
-            const rowsOfPage = [];
-            for (let rIdx = 0; rIdx < pageElements.length; rIdx += cols) {
-              rowsOfPage.push(pageElements.slice(rIdx, rIdx + cols));
-            }
-            // Reverse columns of each row horizontally
-            const backPageElements = rowsOfPage.map(row => [...row].reverse()).flat();
-
             html += `<div class="print-page" style="direction:${backPageDir} !important;">`;
-            backPageElements.forEach(r => {
+            pageElements.forEach(r => {
               html += renderBackCard(r);
             });
             html += `</div>`;
