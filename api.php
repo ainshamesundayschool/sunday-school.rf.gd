@@ -25693,17 +25693,17 @@ function getTripDetails()
 
                 tr.*,
 
-                COALESCE(s.name, g.name) as student_name,
+                COALESCE(s.name, g.name, unc.name) as student_name,
 
-                COALESCE(cc.arabic_name, gc.arabic_name, s.class, g.class) as student_class,
+                COALESCE(cc.arabic_name, gc.arabic_name, s.class, g.class, CASE WHEN tr.registration_type = 'uncle' THEN 'خادم' ELSE NULL END) as student_class,
 
-                COALESCE(s.phone, g.phone) as student_phone,
+                COALESCE(s.phone, g.phone, unc.phone) as student_phone,
 
-                COALESCE(s.image_url, g.image_url) as student_image,
+                COALESCE(s.image_url, g.image_url, unc.image_url) as student_image,
 
                 s.trip_points as student_trip_points,
 
-                COALESCE(s.gender, g.gender) as student_gender,
+                COALESCE(s.gender, g.gender, unc.gender) as student_gender,
 
                 COALESCE(s.emergency_phone, g.guardian_name) as guest_guardian_name,
 
@@ -25735,7 +25735,7 @@ function getTripDetails()
 
                 s.is_guest as student_is_guest,
 
-                COALESCE(s.church_id, g.church_id) as student_church_id,
+                COALESCE(s.church_id, g.church_id, unc.church_id) as student_church_id,
 
                 ch.church_name as student_church_name,
 
@@ -25747,13 +25747,15 @@ function getTripDetails()
 
             LEFT JOIN guests g ON tr.guest_id = g.id
 
+            LEFT JOIN uncles unc ON tr.uncle_id = unc.id
+
             LEFT JOIN church_classes cc ON cc.id = s.class_id AND cc.church_id = s.church_id AND cc.is_active = 1
 
             LEFT JOIN classes gc ON gc.id = s.class_id
 
             LEFT JOIN uncles u ON tr.registered_by = u.id
 
-            LEFT JOIN churches ch ON ch.id = COALESCE(s.church_id, g.church_id)
+            LEFT JOIN churches ch ON ch.id = COALESCE(s.church_id, g.church_id, unc.church_id)
 
             WHERE tr.trip_id = ? AND tr.cancelled = 0
 
