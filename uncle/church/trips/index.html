@@ -14429,6 +14429,80 @@
           }
       }
 
+      async function updateCurrentTemplate() {
+          const select = document.getElementById('printTemplateSelect');
+          if (!select) return;
+          const val = select.value;
+          
+          if (!val) {
+              showToast('يرجى اختيار قالب أولاً لتحديثه', 'warning');
+              return;
+          }
+          
+          if (val === 'preset_sundayschool') {
+              showToast('لا يمكن تعديل القالب الافتراضي لمدارس الأحد. يمكنك حفظه كقالب جديد لكنيستك.', 'warning');
+              return;
+          }
+          
+          let target = '';
+          let tripId = 0;
+          let existingName = 'قالب معدل';
+          
+          if (val === 'church') {
+              target = 'church';
+              try {
+                  const tData = typeof allTemplatesCache.church_template === 'string' ? JSON.parse(allTemplatesCache.church_template) : allTemplatesCache.church_template;
+                  if (tData && tData.templateName) existingName = tData.templateName;
+              } catch(e){}
+          } else if (val.startsWith('trip_')) {
+              target = 'trip';
+              tripId = parseInt(val.split('_')[1]);
+              
+              const currentTripId = window.currentTripId || 0;
+              if (allTemplatesCache.trip_template && tripId === currentTripId) {
+                  try {
+                      const tData = typeof allTemplatesCache.trip_template === 'string' ? JSON.parse(allTemplatesCache.trip_template) : allTemplatesCache.trip_template;
+                      if (tData && tData.templateName) existingName = tData.templateName;
+                  } catch(e){}
+              } else if (Array.isArray(allTemplatesCache.other_trips)) {
+                  const t = allTemplatesCache.other_trips.find(x => x.id == tripId);
+                  if (t) {
+                      try {
+                          const tData = typeof t.template === 'string' ? JSON.parse(t.template || '{}') : t.template;
+                          if (tData && tData.templateName) existingName = tData.templateName;
+                      } catch(e){}
+                  }
+              }
+          }
+          
+          if (!target) {
+              showToast('فشل تحديد القالب المطلوب تحديثه', 'error');
+              return;
+          }
+          
+          const templateStr = serializeQRTemplate(existingName);
+          
+          try {
+              const fd = mkFd('saveQRTemplate');
+              fd.append('target', target);
+              if (target === 'trip') {
+                  fd.append('trip_id', tripId);
+              }
+              fd.append('template', templateStr);
+              
+              const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+              if (res && res.success) {
+                  showToast(res.message || 'تم تحديث القالب بنجاح', 'success');
+                  fetchTemplatesFromServer(window.currentTripId || 0);
+              } else {
+                  showToast(res.message || 'فشل تحديث القالب', 'error');
+              }
+          } catch (e) {
+              console.error("Error updating template", e);
+              showToast('حدث خطأ أثناء تحديث القالب', 'error');
+          }
+      }
+
       window.customLogos = [];
 
       function handleLogoUpload(event) {
@@ -18826,6 +18900,9 @@
               <div style="display:flex; gap:8px; flex-wrap:wrap;">
                 <button type="button" class="btn btn-primary btn-sm recommended-btn-glow" onclick="saveQRTemplateDialog()" style="flex:1; justify-content:center; gap:4px; font-weight:800; font-size:0.8rem; height:34px; border:none; padding: 0 6px;">
                   <i class="fas fa-save"></i> حفظ كقالب
+                </button>
+                <button type="button" id="updateTemplateBtn" class="btn btn-sm" onclick="updateCurrentTemplate()" style="display:none; justify-content:center; align-items:center; gap:4px; font-weight:800; font-size:0.8rem; height:34px; background:#10B981; color:#fff; border:none; padding:0 8px; flex:1;">
+                  <i class="fas fa-sync-alt"></i> تحديث القالب
                 </button>
                 <button type="button" class="btn btn-outline btn-sm" onclick="resetQRPrintSettings()" style="justify-content:center; gap:4px; font-weight:700; font-size:0.8rem; height:34px; color:var(--muted); border-color:var(--border); padding: 0 8px;">
                   <i class="fas fa-undo"></i> إعادة تعيين
