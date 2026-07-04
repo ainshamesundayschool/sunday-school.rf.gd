@@ -89,6 +89,7 @@ function safeBindParam($stmt, ...$params) {
 function ensureChurchTypeColumn(mysqli $conn): void
 
 {
+    if (defined('SCHEMA_MIGRATED')) { return; }
 
     $check = $conn->query("SHOW COLUMNS FROM churches LIKE 'church_type'");
 
@@ -113,6 +114,7 @@ function ensureChurchTypeColumn(mysqli $conn): void
 function ensureStudentsAddedByColumn(mysqli $conn): void
 
 {
+    if (defined('SCHEMA_MIGRATED')) { return; }
 
     $check = $conn->query("SHOW COLUMNS FROM students LIKE 'added_by'");
 
@@ -131,6 +133,7 @@ function ensureStudentsAddedByColumn(mysqli $conn): void
 function ensureStudentsIsGuestColumn(mysqli $conn): void
 
 {
+    if (defined('SCHEMA_MIGRATED')) { return; }
 
     $check = $conn->query("SHOW COLUMNS FROM students LIKE 'is_guest'");
 
@@ -2576,6 +2579,7 @@ function updateCollaborationLimit()
 
 function ensureTripCollaborationRequestsTable($conn)
 {
+    if (defined('SCHEMA_MIGRATED')) { return; }
     $sql = "CREATE TABLE IF NOT EXISTS `trip_collaboration_requests` (
         `id` int(11) NOT NULL AUTO_INCREMENT,
         `trip_id` int(11) NOT NULL,
@@ -7411,6 +7415,7 @@ function submitAttendance()
 
 function ensureStudentTempIdColumn(mysqli $conn): void
 {
+    if (defined('SCHEMA_MIGRATED')) { return; }
     // 1. Create the new mapping table
     $conn->query("
         CREATE TABLE IF NOT EXISTS student_temp_ids (
@@ -11815,6 +11820,7 @@ function debugRegistrationData($registrationId)
 function ensureClassesTable()
 
 {
+    if (defined('SCHEMA_MIGRATED')) { return; }
 
     try {
 
@@ -15122,6 +15128,7 @@ function sendRegistrationEmails($churchId, $userEmail, $registrationData)
 
 function ensureUnclesTableCustomInfoColumn($conn)
 {
+    if (defined('SCHEMA_MIGRATED')) { return; }
     $res = $conn->query("SHOW COLUMNS FROM `uncles` LIKE 'custom_info'");
     if ($res->num_rows === 0) {
         $conn->query("ALTER TABLE `uncles` ADD COLUMN `custom_info` TEXT DEFAULT NULL");
@@ -20919,6 +20926,7 @@ function getStudentProfile()
 }
 
 function ensurePaperExamTables($conn) {
+    if (defined('SCHEMA_MIGRATED')) { return; }
     $conn->query("CREATE TABLE IF NOT EXISTS `paper_exams` (
         `id` int(11) NOT NULL AUTO_INCREMENT,
         `church_id` int(11) NOT NULL,
@@ -26216,6 +26224,7 @@ function bulkUpdateCustomData()
 function ensureWaitlistTable($conn)
 
 {
+    if (defined('SCHEMA_MIGRATED')) { return; }
 
     $conn->query("
 
@@ -31271,6 +31280,7 @@ function updateStudentFull()
 function ensureStudentSiblingGroupTables($conn)
 
 {
+    if (defined('SCHEMA_MIGRATED')) { return; }
 
     $conn->query("CREATE TABLE IF NOT EXISTS `student_sibling_groups` (
 
@@ -34471,6 +34481,7 @@ function saveUncleClasses($uncleId, $churchId, $classes)
 function ensureChurchClassesOrderColumn($conn): void
 
 {
+    if (defined('SCHEMA_MIGRATED')) { return; }
 
     $conn->query("
 
@@ -34491,6 +34502,7 @@ function ensureChurchClassesOrderColumn($conn): void
 function ensureChurchSettingsAutoGradeColumns($conn): void
 
 {
+    if (defined('SCHEMA_MIGRATED')) { return; }
 
     $conn->query("ALTER TABLE church_settings ADD COLUMN IF NOT EXISTS
 
@@ -35017,6 +35029,7 @@ function gradeUpAllKids()
 function ensureStudentGraduateSchema($conn): void
 
 {
+    if (defined('SCHEMA_MIGRATED')) { return; }
 
     $conn->query("ALTER TABLE students ADD COLUMN IF NOT EXISTS
 
@@ -36214,6 +36227,7 @@ function respondGraduateTransfer()
 function ensureChurchSettingsTable($conn)
 
 {
+    if (defined('SCHEMA_MIGRATED')) { return; }
 
     $conn->query("
 
@@ -39429,6 +39443,7 @@ function getUncleActivityLogs()
 function ensureRegKeyTable($conn)
 
 {
+    if (defined('SCHEMA_MIGRATED')) { return; }
 
     $conn->query("
 
@@ -43392,6 +43407,7 @@ function debugKidProfile()
 function ensureNotificationsTable($conn)
 
 {
+    if (defined('SCHEMA_MIGRATED')) { return; }
 
     $conn->query("
 
@@ -43649,6 +43665,7 @@ function pushNotification($conn, $churchId, $type, $title, $body = '', $entityTy
 function ensureDevMessagesTable($conn)
 
 {
+    if (defined('SCHEMA_MIGRATED')) { return; }
 
     $conn->query("
 
@@ -43739,6 +43756,7 @@ function ensureDevMessagesTable($conn)
 function ensureAnnouncementsTable($conn)
 
 {
+    if (defined('SCHEMA_MIGRATED')) { return; }
 
     $conn->query("
 
@@ -45216,6 +45234,7 @@ function gradeOpenAnswer()
 function ensureUncleAttendanceTable($conn)
 
 {
+    if (defined('SCHEMA_MIGRATED')) { return; }
 
     $conn->query("
 
@@ -46154,6 +46173,7 @@ function deleteCustomFieldTemplate()
 function ensureRoomsSchema($conn)
 
 {
+    if (defined('SCHEMA_MIGRATED')) { return; }
 
     // 1. Add has_rooms and rooms_config to trips if missing
 
@@ -46478,6 +46498,7 @@ function deleteRoomsTemplate()
 function ensureGuestsTable($conn)
 
 {
+    if (defined('SCHEMA_MIGRATED')) { return; }
 
     // Step 1: Create guests table if it doesn't exist
 
@@ -46644,6 +46665,7 @@ function ensureGuestsTable($conn)
 function ensureGuestTripColumns($conn)
 
 {
+    if (defined('SCHEMA_MIGRATED')) { return; }
 
     ensureGuestsTable($conn);
 
