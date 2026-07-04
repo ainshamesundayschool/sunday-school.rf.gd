@@ -11324,6 +11324,15 @@
             if (!student) return '';
             return student.student_id || student.id || student['_studentId'] || student.guest_id || '';
         }
+        function formatNameToTwoLines(name) {
+            if (!name) return '';
+            name = name.trim();
+            const spaceIdx = name.indexOf(' ');
+            if (spaceIdx === -1) return name;
+            const firstName = name.substring(0, spaceIdx);
+            const restName = name.substring(spaceIdx + 1);
+            return `${firstName}<br>${restName}`;
+        }
         
         function generateCardMarkup({
           trip, s, r, scale, padding, churchName, cardId,
@@ -11433,6 +11442,9 @@
           const safeStudentName = student.is_empty_copy 
               ? 'الاسم: ................................................' 
               : escHtml(getSafeStudentName(student));
+          const formattedStudentName = student.is_empty_copy 
+              ? safeStudentName 
+              : formatNameToTwoLines(safeStudentName);
           const cls = student.is_empty_copy 
               ? 'الفصل: ................................................' 
               : getSafeStudentClass(student);
@@ -11558,7 +11570,7 @@
                       nameFontSizeStyle = fH2_final * 0.82;
                   }
               }
-              const nameTag = showStudentName ? `<h2 style="font-size:${nameFontSizeStyle}px; font-weight:${nameWeight}; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; word-wrap:break-word; word-break:keep-all; line-height:1.25; text-align:center; direction:rtl !important;">${safeStudentName}</h2>` : '';
+              const nameTag = showStudentName ? `<h2 style="font-size:${nameFontSizeStyle}px; font-weight:${nameWeight}; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; word-wrap:break-word; word-break:keep-all; line-height:1.25; text-align:center; direction:rtl !important;">${formattedStudentName}</h2>` : '';
               
               let extraInfoHtml = '';
               if (extraFields && extraFields.length > 0) {
@@ -11656,7 +11668,7 @@
                   const leftColumnHtml = `
                     <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:${4 * scale}px; flex-shrink:0; width:${sAvatar * 1.95}px; direction:rtl !important; text-align:center !important;">
                       ${avatarHtml}
-                      <h2 style="font-size:${leftNameFontSize}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); margin:0; text-align:center !important; word-wrap:break-word; word-break:keep-all; line-height:1.15; display:block; overflow:visible; width:100%; direction:rtl !important;">${safeStudentName}</h2>
+                      <h2 style="font-size:${leftNameFontSize}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); margin:0; text-align:center !important; word-wrap:break-word; word-break:keep-all; line-height:1.15; display:block; overflow:visible; width:100%; direction:rtl !important;">${formattedStudentName}</h2>
                     </div>
                   `;
 
@@ -11698,7 +11710,7 @@
                       </div>
                       
                       <!-- Center Uncle Name -->
-                      <h2 style="font-size:${(getSafeStudentName(student) || '').length > 22 ? fH2_final * 0.75 : ((getSafeStudentName(student) || '').length > 16 ? fH2_final * 0.9 : fH2_final * 1.1)}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); margin:0; text-align:center; word-wrap:break-word; word-break:keep-all; line-height:1.2; width:100%; direction:rtl !important;">${safeStudentName}</h2>
+                      <h2 style="font-size:${(getSafeStudentName(student) || '').length > 22 ? fH2_final * 0.75 : ((getSafeStudentName(student) || '').length > 16 ? fH2_final * 0.9 : fH2_final * 1.1)}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); margin:0; text-align:center; word-wrap:break-word; word-break:keep-all; line-height:1.2; width:100%; direction:rtl !important;">${formattedStudentName}</h2>
                       
                       <!-- Trip Title -->
                       ${showTripTitle && safeTripTitle ? `
@@ -12022,7 +12034,7 @@
                   } else if (rawName.length > 15) {
                       backNameFontSize = fH2_final * 0.82;
                   }
-                  const nameHtml = showStudentName ? `<h2 style="font-size:${backNameFontSize}px; font-weight:${nameWeight}; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; word-wrap:break-word; word-break:keep-all; line-height:1.25; text-align:center; direction:rtl !important;">${safeStudentName}</h2>` : '';
+                  const nameHtml = showStudentName ? `<h2 style="font-size:${backNameFontSize}px; font-weight:${nameWeight}; color:${fontColor}; text-shadow: var(--text-shadow, none); margin:0; width:100%; word-wrap:break-word; word-break:keep-all; line-height:1.25; text-align:center; direction:rtl !important;">${formatNameToTwoLines(safeStudentName)}</h2>` : '';
                   studentHtml = `<div style="display:flex; flex-direction:column; align-items:center; margin-bottom:6px; width:100%;">${avatarHtml}${nameHtml}</div>`;
               }
 
