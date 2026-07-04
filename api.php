@@ -24188,9 +24188,9 @@ function getTrips()
 
                     (t.church_id = ?) as is_owner,
 
-                    (SELECT COUNT(*) FROM trip_registrations WHERE trip_id = t.id AND cancelled = 0 AND registration_type != 'uncle') as registered_count,
+                    (SELECT COUNT(*) FROM trip_registrations WHERE trip_id = t.id AND cancelled = 0) as registered_count,
 
-                    (SELECT COUNT(*) FROM trip_registrations WHERE trip_id = t.id AND cancelled = 0 AND payment_status = 'paid' AND registration_type != 'uncle') as paid_count
+                    (SELECT COUNT(*) FROM trip_registrations WHERE trip_id = t.id AND cancelled = 0 AND payment_status = 'paid') as paid_count
 
                 FROM trips t
 
@@ -25693,17 +25693,17 @@ function getTripDetails()
 
                 tr.*,
 
-                COALESCE(s.name, g.name, unc.name) as student_name,
+                COALESCE(s.name, g.name) as student_name,
 
-                COALESCE(cc.arabic_name, gc.arabic_name, s.class, g.class, CASE WHEN tr.registration_type = 'uncle' THEN 'خادم' ELSE NULL END) as student_class,
+                COALESCE(cc.arabic_name, gc.arabic_name, s.class, g.class) as student_class,
 
-                COALESCE(s.phone, g.phone, unc.phone) as student_phone,
+                COALESCE(s.phone, g.phone) as student_phone,
 
-                COALESCE(s.image_url, g.image_url, unc.image_url) as student_image,
+                COALESCE(s.image_url, g.image_url) as student_image,
 
                 s.trip_points as student_trip_points,
 
-                COALESCE(s.gender, g.gender, unc.gender) as student_gender,
+                COALESCE(s.gender, g.gender) as student_gender,
 
                 COALESCE(s.emergency_phone, g.guardian_name) as guest_guardian_name,
 
@@ -25735,7 +25735,7 @@ function getTripDetails()
 
                 s.is_guest as student_is_guest,
 
-                COALESCE(s.church_id, g.church_id, unc.church_id) as student_church_id,
+                COALESCE(s.church_id, g.church_id) as student_church_id,
 
                 ch.church_name as student_church_name,
 
@@ -25747,15 +25747,13 @@ function getTripDetails()
 
             LEFT JOIN guests g ON tr.guest_id = g.id
 
-            LEFT JOIN uncles unc ON tr.uncle_id = unc.id
-
             LEFT JOIN church_classes cc ON cc.id = s.class_id AND cc.church_id = s.church_id AND cc.is_active = 1
 
             LEFT JOIN classes gc ON gc.id = s.class_id
 
             LEFT JOIN uncles u ON tr.registered_by = u.id
 
-            LEFT JOIN churches ch ON ch.id = COALESCE(s.church_id, g.church_id, unc.church_id)
+            LEFT JOIN churches ch ON ch.id = COALESCE(s.church_id, g.church_id)
 
             WHERE tr.trip_id = ? AND tr.cancelled = 0
 
@@ -28170,7 +28168,7 @@ function registerStudentForTrip()
 
         $regType = sanitize($_POST['registration_type'] ?? 'student');
 
-        if (!in_array($regType, ['student', 'other_church_student', 'guest', 'uncle'])) {
+        if (!in_array($regType, ['student', 'other_church_student', 'guest'])) {
 
             $regType = 'student';
 
@@ -28180,7 +28178,7 @@ function registerStudentForTrip()
 
         if ($tripId === 0 || ($regType !== 'guest' && $studentId === 0)) {
 
-            sendJSON(['success' => false, 'message' => $regType === 'uncle' ? 'الرحلة والخادم مطلوبان' : 'الرحلة والطفل مطلوبان']);
+            sendJSON(['success' => false, 'message' => 'الرحلة والطفل مطلوبان']);
 
             return;
 
@@ -28198,7 +28196,7 @@ function registerStudentForTrip()
 
         // Validations for student registrations (either local or other-church)
 
-        if ($regType !== 'guest' && $regType !== 'uncle') {
+        if ($regType !== 'guest') {
 
             // التحقق من وجود الطفل وأن كنيسته تشارك في هذه الرحلة
 
@@ -28293,58 +28291,6 @@ function registerStudentForTrip()
 
 
 
-        // Validations for uncle registration
-
-        if ($regType === 'uncle') {
-
-            $uncleToRegId = $studentId; // studentId parameter holds the selected uncle's ID in this case
-
-            // check if uncle exists
-
-            $checkUncle = $conn->prepare("SELECT id, church_id FROM uncles WHERE id = ? AND (deleted IS NULL OR deleted = 0)");
-
-            $checkUncle->bind_param("i", $uncleToRegId);
-
-            $checkUncle->execute();
-
-            $uncleRes = $checkUncle->get_result()->fetch_assoc();
-
-            if (!$uncleRes) {
-
-                sendJSON(['success' => false, 'message' => 'الخادم غير موجود']);
-
-                return;
-
-            }
-
-            // Check if already registered
-
-            $checkReg = $conn->prepare("SELECT id, cancelled FROM trip_registrations WHERE trip_id = ? AND uncle_id = ?");
-
-            $checkReg->bind_param("ii", $tripId, $uncleToRegId);
-
-            $checkReg->execute();
-
-            $regResult = $checkReg->get_result();
-
-            if ($regResult->num_rows > 0) {
-
-                $existing = $regResult->fetch_assoc();
-
-                if ($existing['cancelled'] == 0) {
-
-                    sendJSON(['success' => false, 'message' => 'الخادم مسجل بالفعل في هذه الرحلة']);
-
-                    return;
-
-                }
-
-            }
-
-        }
-
-
-
         // تحقق من الحد الأقصى للمشاركين
 
         if (!verifyTripParticipant($conn, $tripId, $churchId)) {
@@ -28395,143 +28341,71 @@ function registerStudentForTrip()
 
 
         $isWaitlist = false;
-
-        if ($regType !== 'guest' && $regType !== 'uncle') {
-
+        if ($regType !== 'guest') {
             if ($churchId === $ownerChurchId) {
-
                 $ownerCountStmt = $conn->prepare("
-
                     SELECT COUNT(*) as cnt
-
                     FROM trip_registrations tr
-
                     LEFT JOIN students s ON tr.student_id = s.id AND tr.registration_type != 'guest'
-
                     LEFT JOIN guests g ON tr.guest_id = g.id AND tr.registration_type = 'guest'
-
                     WHERE tr.trip_id = ? 
-
                       AND tr.cancelled = 0
-
-                      AND tr.registration_type != 'uncle'
-
                       AND COALESCE(s.church_id, g.church_id) = ?
-
                 ");
-
                 $ownerCountStmt->bind_param("ii", $tripId, $ownerChurchId);
-
                 $ownerCountStmt->execute();
-
                 $ownerCount = (int) $ownerCountStmt->get_result()->fetch_assoc()['cnt'];
-
                 if ($maxParticipants > 0 && $ownerCount >= $maxParticipants) {
-
                     $isWaitlist = true;
-
                 }
-
             } else {
-
                 // A. Check individual collaborator limit
-
                 $limits = [];
-
                 if (!empty($trip['collaboration_limits'])) {
-
                     $limits = json_decode($trip['collaboration_limits'], true);
-
                 }
-
                 if (is_array($limits) && isset($limits[strval($churchId)])) {
-
                     $churchLimit = intval($limits[strval($churchId)]);
-
                     $cntStmt = $conn->prepare("
-
                         SELECT COUNT(*) as cnt
-
                         FROM trip_registrations tr
-
                         LEFT JOIN students s ON tr.student_id = s.id AND tr.registration_type != 'guest'
-
                         LEFT JOIN guests g ON tr.guest_id = g.id AND tr.registration_type = 'guest'
-
                         WHERE tr.trip_id = ? 
-
                           AND tr.cancelled = 0
-
-                          AND tr.registration_type != 'uncle'
-
                           AND COALESCE(s.church_id, g.church_id) = ?
-
                     ");
-
                     $cntStmt->bind_param("ii", $tripId, $churchId);
-
                     $cntStmt->execute();
-
                     $churchActiveCount = (int) $cntStmt->get_result()->fetch_assoc()['cnt'];
-
                     if ($churchActiveCount >= $churchLimit) {
-
                         $isWaitlist = true;
-
                     }
-
                 }
-
-
 
                 // B. Check collab limit mode if not already waitlisted
-
                 if (!$isWaitlist) {
-
                     $collabLimitMode = $trip['collab_limit_mode'] ?? 'open';
-
                     if ($collabLimitMode === 'limited') {
-
                         $collabMax = intval($trip['collab_max_participants'] ?? 0);
-
                         $collabCountStmt = $conn->prepare("
-
                             SELECT COUNT(*) as cnt
-
                             FROM trip_registrations tr
-
                             LEFT JOIN students s ON tr.student_id = s.id AND tr.registration_type != 'guest'
-
                             LEFT JOIN guests g ON tr.guest_id = g.id AND tr.registration_type = 'guest'
-
                             WHERE tr.trip_id = ? 
-
                               AND tr.cancelled = 0
-
-                              AND tr.registration_type != 'uncle'
-
                               AND COALESCE(s.church_id, g.church_id) != ?
-
                         ");
-
                         $collabCountStmt->bind_param("ii", $tripId, $ownerChurchId);
-
                         $collabCountStmt->execute();
-
                         $collabCount = (int) $collabCountStmt->get_result()->fetch_assoc()['cnt'];
-
                         if ($collabMax > 0 && $collabCount >= $collabMax) {
-
                             $isWaitlist = true;
-
                         }
-
                     }
-
                 }
-
             }
-
         }
 
         // إذا الرحلة ممتلئة → أضفه لقائمة الانتظار (فقط للطلاب وليس للزوار)
@@ -28627,23 +28501,13 @@ function registerStudentForTrip()
 
 
 
-        // إلغاء أي تسجيل سابق ملغي (فقط للطلاب والخادم)
+        // إلغاء أي تسجيل سابق ملغي (فقط للطلاب)
 
         if ($regType !== 'guest') {
 
-            if ($regType === 'uncle') {
+            $deleteStmt = $conn->prepare("DELETE FROM trip_registrations WHERE trip_id = ? AND student_id = ? AND cancelled = 1");
 
-                $deleteStmt = $conn->prepare("DELETE FROM trip_registrations WHERE trip_id = ? AND uncle_id = ? AND cancelled = 1");
-
-                $deleteStmt->bind_param("ii", $tripId, $uncleToRegId);
-
-            } else {
-
-                $deleteStmt = $conn->prepare("DELETE FROM trip_registrations WHERE trip_id = ? AND student_id = ? AND cancelled = 1");
-
-                $deleteStmt->bind_param("ii", $tripId, $studentId);
-
-            }
+            $deleteStmt->bind_param("ii", $tripId, $studentId);
 
             $deleteStmt->execute();
 
@@ -28659,154 +28523,78 @@ function registerStudentForTrip()
 
                 trip_id, student_id, registered_by, deposit, notes, custom_data,
 
-                registration_type, guest_id, uncle_id
+                registration_type, guest_id
 
             )
 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 
         ");
 
 
 
         if ($regType === 'guest') {
-
             $dbGuestIdVal = intval($_POST['guest_id'] ?? 0);
-
             if ($dbGuestIdVal === 0) {
-
                 $guestName = sanitize($_POST['guest_name'] ?? '');
-
                 $guestPhone = sanitize($_POST['guest_phone'] ?? '');
-
                 $guestGuardianName = sanitize($_POST['guest_guardian_name'] ?? '');
-
                 $guestClass = sanitize($_POST['guest_class'] ?? '');
-
                 $guestGender = sanitize($_POST['guest_gender'] ?? '');
 
-
-
                 if (empty($guestName)) {
-
                     sendJSON(['success' => false, 'message' => 'اسم الزائر مطلوب']);
-
                     return;
-
                 }
-
-
 
                 $gGender = in_array($guestGender, ['male', 'female']) ? $guestGender : detectGenderFromName($guestName);
-
                 $className = !empty($guestClass) ? $guestClass : 'الزوار';
-
                 $classId = 0;
-
                 
-
                 if (!empty($className)) {
-
                     $classStmt = $conn->prepare("
-
                         SELECT id FROM church_classes 
-
                         WHERE church_id = ? AND arabic_name = ? AND is_active = 1
-
                         UNION
-
                         SELECT id FROM classes 
-
                         WHERE arabic_name = ?
-
                         LIMIT 1
-
                     ");
-
                     $classStmt->bind_param("iss", $churchId, $className, $className);
-
                     $classStmt->execute();
-
                     $classRes = $classStmt->get_result()->fetch_assoc();
-
                     if ($classRes) {
-
                         $classId = intval($classRes['id']);
-
                     }
-
                 }
 
-
-
                 $gInsert = $conn->prepare("
-
                     INSERT INTO students (church_id, name, class_id, class, address, phone, emergency_phone, gender, added_by, is_guest)
-
                     VALUES (?, ?, ?, ?, '', ?, ?, ?, ?, 1)
-
                 ");
-
                 $addedByStr = $uncleId ? strval($uncleId) : 'church_admin';
-
                 $gInsert->bind_param("isisssss", $churchId, $guestName, $classId, $className, $guestPhone, $guestGuardianName, $gGender, $addedByStr);
-
                 $gInsert->execute();
-
                 $dbStudentId = $conn->insert_id;
-
             } else {
-
                 $dbStudentId = $dbGuestIdVal;
-
             }
-
             $dbGuestId = null;
-
-            $dbUncleId = null;
-
-        } else if ($regType === 'uncle') {
-
-            $dbStudentId = null;
-
-            $dbGuestId = null;
-
-            $dbUncleId = $uncleToRegId;
-
         } else {
-
             $dbStudentId = $studentId;
-
             $dbGuestId = null;
-
-            $dbUncleId = null;
-
         }
 
-
-
         $stmt->bind_param(
-
-            "iiidsssii",
-
+            "iiidsssi",
             $tripId,
-
             $dbStudentId,
-
             $uncleId,
-
             $deposit,
-
             $notes,
-
             $customData,
-
             $regType,
-
-            $dbGuestId,
-
-            $dbUncleId
-
+            $dbGuestId
         );
 
 
@@ -43131,7 +42919,7 @@ function getStudentTrips()
 
 
 
-            $cStmt = $conn->prepare("SELECT COUNT(*) AS cnt FROM trip_registrations WHERE trip_id = ? AND cancelled = 0 AND registration_type != 'uncle'");
+            $cStmt = $conn->prepare("SELECT COUNT(*) AS cnt FROM trip_registrations WHERE trip_id = ? AND cancelled = 0");
 
             $cStmt->bind_param('i', $row['id']);
 
