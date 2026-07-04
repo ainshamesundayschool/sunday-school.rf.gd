@@ -11322,7 +11322,12 @@
           extraFields = []
       }) {
           const student = s || r || {};
-          const isUncle = student && (student.isUncle === true || (student.id && String(student.id).startsWith('uncle_')));
+          const isUncle = student && (
+              student.isUncle === true || 
+              (student.id && String(student.id).startsWith('uncle_')) ||
+              student.registration_type === 'uncle' ||
+              student.student_class === 'خادم'
+          );
           const nameFontSizeOver = parseInt(document.getElementById('printNameFontSize')?.value || 0);
           const infoFontSizeOver = parseInt(document.getElementById('printInfoFontSize')?.value || 0);
           const qrYOffset = parseFloat(document.getElementById('printQrYOffset')?.value || 0);
@@ -11720,6 +11725,10 @@
           if (Array.isArray(window.customLogos) && window.customLogos.length > 0) {
               logoHtml = window.customLogos.map(logo => {
                   if (logo.side && logo.side !== 'front' && logo.side !== 'both') return '';
+                  if (logo.target) {
+                      if (logo.target === 'student' && isUncle) return '';
+                      if (logo.target === 'uncle' && !isUncle) return '';
+                  }
                   return `<img src="${logo.src}" style="position:absolute; left:${logo.x}%; top:${logo.y}%; width:${logo.width}%; height:auto; z-index:${logo.zIndex || 10}; pointer-events:none; object-fit:contain;">`;
               }).join('');
           }
@@ -11740,7 +11749,12 @@
               baseWidth, baseHeight, textReadability, extraFields = [], showAvatarWhenNoPhoto = true
           } = opts;
           const student = r || s || {};
-          const isUncle = student && (student.isUncle === true || (student.id && String(student.id).startsWith('uncle_')));
+          const isUncle = student && (
+              student.isUncle === true || 
+              (student.id && String(student.id).startsWith('uncle_')) ||
+              student.registration_type === 'uncle' ||
+              student.student_class === 'خادم'
+          );
 
           const nameFontSizeOver = parseInt(document.getElementById('printNameFontSize')?.value || 0);
           const infoFontSizeOver = parseInt(document.getElementById('printInfoFontSize')?.value || 0);
@@ -11959,6 +11973,10 @@
           if (Array.isArray(window.customLogos) && window.customLogos.length > 0) {
               logoHtml = window.customLogos.map(logo => {
                   if (logo.side && logo.side !== 'back' && logo.side !== 'both') return '';
+                  if (logo.target) {
+                      if (logo.target === 'student' && isUncle) return '';
+                      if (logo.target === 'uncle' && !isUncle) return '';
+                  }
                   return `<img src="${logo.src}" style="position:absolute; left:${logo.x}%; top:${logo.y}%; width:${logo.width}%; height:auto; z-index:${logo.zIndex || 10}; pointer-events:none; object-fit:contain;">`;
               }).join('');
           }
@@ -12093,7 +12111,8 @@
 
         const churchName = localStorage.getItem('churchName') || localStorage.getItem('uncle_church_name') || 'مدارس الأحد';
         const previewRegs = (regs.length ? regs : [{}]).slice(0, 4).map((sourceReg, idx) => {
-          if (sourceReg.isUncle) {
+          const isUncleReg = sourceReg.isUncle || sourceReg.registration_type === 'uncle' || sourceReg.student_class === 'خادم';
+          if (isUncleReg) {
             return {
               ...sourceReg,
               id: sourceReg.id || `preview_demo_${idx}`,
@@ -14276,7 +14295,8 @@
                   y: 5,
                   width: 20,
                   zIndex: 10,
-                  side: 'front' // defaults to Front only
+                  side: 'front', // defaults to Front only
+                  target: 'all'
               };
               window.customLogos.push(logo);
               renderPrintLogosList();
@@ -14307,7 +14327,7 @@
                           <button type="button" class="btn btn-outline btn-sm" onclick="removePrintLogo(${idx})" style="color:var(--danger); border-color:rgba(220,38,38,0.2); padding:2px 6px; font-size:0.7rem; height:24px;">حذف</button>
                       </div>
                   </div>
-                  <div style="display:grid; grid-template-columns:0.8fr 0.8fr 0.8fr 1.2fr 1.2fr; gap:6px;">
+                  <div style="display:grid; grid-template-columns:0.8fr 0.8fr 0.8fr 1fr 1fr 1fr; gap:6px;">
                       <div>
                           <label style="font-size:0.65rem; font-weight:700;">الموضع X (%):</label>
                           <input type="number" value="${logo.x}" style="width:100%; height:26px; font-size:0.75rem; padding: 2px 4px; border: 1px solid var(--border); border-radius:4px;" oninput="updatePrintLogoAttr(${idx}, 'x', this.value)">
@@ -14328,6 +14348,14 @@
                           </select>
                       </div>
                       <div>
+                          <label style="font-size:0.65rem; font-weight:700;">نوع الحامل:</label>
+                          <select style="width:100%; height:26px; font-size:0.75rem; padding: 2px 4px; border: 1px solid var(--border); border-radius:4px;" onchange="updatePrintLogoAttr(${idx}, 'target', this.value)">
+                              <option value="all" ${(logo.target || 'all') == 'all' ? 'selected' : ''}>الجميع</option>
+                              <option value="student" ${logo.target == 'student' ? 'selected' : ''}>الطلاب فقط</option>
+                              <option value="uncle" ${logo.target == 'uncle' ? 'selected' : ''}>الخدام فقط</option>
+                          </select>
+                      </div>
+                      <div>
                           <label style="font-size:0.65rem; font-weight:700;">جانب البطاقة:</label>
                           <select style="width:100%; height:26px; font-size:0.75rem; padding: 2px 4px; border: 1px solid var(--border); border-radius:4px;" onchange="updatePrintLogoAttr(${idx}, 'side', this.value)">
                               <option value="front" ${(logo.side || 'front') == 'front' ? 'selected' : ''}>الوجه فقط</option>
@@ -14342,7 +14370,7 @@
       }
 
       function updatePrintLogoAttr(idx, attr, val) {
-          if (attr === 'side') {
+          if (attr === 'side' || attr === 'target') {
               if (window.customLogos[idx]) {
                   window.customLogos[idx][attr] = val;
                   updatePrintPreview();
