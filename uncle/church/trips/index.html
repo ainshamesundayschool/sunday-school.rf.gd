@@ -12768,6 +12768,20 @@
           src: base64ToObjectURL(logo.src)
         }));
 
+        // Create style tag for @page size
+        let pageStyleEl = document.getElementById('print-dynamic-page-size');
+        if (!pageStyleEl) {
+          pageStyleEl = document.createElement('style');
+          pageStyleEl.id = 'print-dynamic-page-size';
+          document.head.appendChild(pageStyleEl);
+        }
+        let sizeCss = 'auto';
+        if (paperSize === 'a4-portrait') sizeCss = 'A4 portrait';
+        else if (paperSize === 'a4-landscape') sizeCss = 'A4 landscape';
+        else if (paperSize === 'a3-portrait') sizeCss = 'A3 portrait';
+        else if (paperSize === 'a3-landscape') sizeCss = 'A3 landscape';
+        pageStyleEl.innerHTML = `@media print { @page { size: ${sizeCss} !important; margin: 4mm !important; } }`;
+
         const printArea = document.getElementById('printArea');
         printArea.innerHTML = '';
         printArea.style.setProperty('--print-gap-x', gapX);
@@ -12870,7 +12884,19 @@
           new QRCode(document.getElementById(task.id), { text: task.text, width: qrSize, height: qrSize, colorDark: "#000000", colorLight: textReadability === 'rect' ? "transparent" : "#ffffff", correctLevel: QRCode.CorrectLevel.M });
         });
 
-        setTimeout(() => { window.print(); setTimeout(() => { printArea.innerHTML = ''; printArea.style.columnGap = ''; printArea.style.rowGap = ''; printArea.style.removeProperty('--print-gap-x'); printArea.style.removeProperty('--print-gap-y'); printArea.style.removeProperty('--card-print-width'); }, 1000); }, 1200);
+        setTimeout(() => {
+          window.print();
+          setTimeout(() => {
+            printArea.innerHTML = '';
+            printArea.style.columnGap = '';
+            printArea.style.rowGap = '';
+            printArea.style.removeProperty('--print-gap-x');
+            printArea.style.removeProperty('--print-gap-y');
+            printArea.style.removeProperty('--card-print-width');
+            const dynStyle = document.getElementById('print-dynamic-page-size');
+            if (dynStyle) dynStyle.remove();
+          }, 1000);
+        }, 1200);
       }
 
       function loadScript(src) {
