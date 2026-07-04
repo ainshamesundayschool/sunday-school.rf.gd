@@ -2957,7 +2957,7 @@ function getTripStudents()
 
         $sStmt = $conn->prepare("
 
-            SELECT DISTINCT s.id, s.name, s.church_id, s.gender, s.birthday,
+            SELECT DISTINCT s.id, s.name, s.church_id, s.gender, s.birthday, s.trip_points,
 
                    COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS class,
 
@@ -2991,15 +2991,7 @@ function getTripStudents()
 
         foreach ($students as &$s) {
 
-            $pStmt = $conn->prepare("SELECT trip_points FROM students WHERE id = ? LIMIT 1");
-
-            $pStmt->bind_param('i', $s['id']);
-
-            $pStmt->execute();
-
-            $pRes = $pStmt->get_result()->fetch_assoc();
-
-            $tp = $pRes['trip_points'] ?? '';
+            $tp = $s['trip_points'] ?? '';
 
             $pointsMap = json_decode($tp, true);
 
@@ -6306,7 +6298,31 @@ function getData()
 
         $studentsWithNullClass = 0;
 
-
+        // Fetch attendance records for all active students in allowed churches in one batch query to avoid N+1 query loops
+        $studentAttendance = [];
+        $attQuery = "
+            SELECT a.student_id, a.attendance_date, a.status
+            FROM attendance a
+            JOIN students s ON a.student_id = s.id
+            WHERE s.church_id IN ($inPlaceholder)
+              AND COALESCE(s.enrollment_status, 'active') = 'active'
+            ORDER BY a.student_id, a.attendance_date DESC
+        ";
+        $attRes = $conn->query($attQuery);
+        if ($attRes) {
+            while ($attRow = $attRes->fetch_assoc()) {
+                $sid = (int) $attRow['student_id'];
+                if (!isset($studentAttendance[$sid])) {
+                    $studentAttendance[$sid] = [];
+                }
+                if (count($studentAttendance[$sid]) < 50) {
+                    $studentAttendance[$sid][] = [
+                        'date' => $attRow['attendance_date'],
+                        'status' => $attRow['status']
+                    ];
+                }
+            }
+        }
 
         error_log("Processing student records...");
 
@@ -6388,55 +6404,15 @@ function getData()
 
             appendSiblingGroupToStudentPayload($studentData, $row);
 
-
-
-            // Get attendance records for this student
-
-            $attendanceStmt = $conn->prepare("
-
-                SELECT attendance_date, status 
-
-                FROM attendance 
-
-                WHERE student_id = ? 
-
-                ORDER BY attendance_date DESC
-
-                LIMIT 50
-
-            ");
-
-
-
-            if ($attendanceStmt) {
-
-                $attendanceStmt->bind_param("i", $row['id']);
-
-                $attendanceStmt->execute();
-
-                $attendanceResult = $attendanceStmt->get_result();
-
-
-
-                $studentData['_allAttendance'] = [];
-
-
-
-                while ($attRow = $attendanceResult->fetch_assoc()) {
-
-                    $date = formatDateFromDB($attRow['attendance_date']);
-
-                    $status = $attRow['status'] === 'present' ? 'ح' : 'غ';
-
+            $studentData['_allAttendance'] = [];
+            if (isset($studentAttendance[$row['id']])) {
+                foreach ($studentAttendance[$row['id']] as $att) {
+                    $date = formatDateFromDB($att['date']);
+                    $status = $att['status'] === 'present' ? 'ح' : 'غ';
                     $studentData[$date] = $status;
-
                     $studentData['_allAttendance'][$date] = $status;
-
                 }
-
             }
-
-
 
             $students[] = $studentData;
 
