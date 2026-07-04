@@ -9641,6 +9641,13 @@
                             </div>
                         </div>
 
+                        <div style="display:flex; align-items:center; gap:8px; padding:6px 12px; background:var(--bg, #f8fafc); border-radius:6px; margin-bottom:4px;">
+                            <label style="display:flex; align-items:center; gap:8px; font-size:0.8rem; cursor:pointer; color:var(--text); width:100%;">
+                                <input type="checkbox" id="printAutoFitPage" style="accent-color:var(--primary); width:14px; height:14px;" onchange="updatePrintPreview()">
+                                <span>تمديد تلقائي لملء كامل ورقة الطباعة (Auto-stretch to fill page)</span>
+                            </label>
+                        </div>
+
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
                             <div class="form-group">
                                 <label class="form-label">المسافات الداخلية (الهامش)</label>
@@ -21724,8 +21731,53 @@
             const baseWidth = (parseFloat(document.getElementById('printCardWidth')?.value) || 7) * 37.795;
             const baseHeight = (parseFloat(document.getElementById('printCardHeight')?.value) || 10) * 37.795;
 
-            const gapX = document.getElementById('printGapX').value + 'px';
-            const gapY = document.getElementById('printGapY').value + 'px';
+            const gapXVal = parseFloat(document.getElementById('printGapX').value) || 0;
+            const gapYVal = parseFloat(document.getElementById('printGapY').value) || 0;
+            const gapX = gapXVal + 'px';
+            const gapY = gapYVal + 'px';
+
+            const autoFit = document.getElementById('printAutoFitPage')?.checked || false;
+            let finalBaseWidth = baseWidth;
+            let finalBaseHeight = baseHeight;
+            let finalScale = scale;
+            let finalPreviewScale = previewScale;
+            let finalPreviewBaseWidth = baseWidth;
+            let finalPreviewBaseHeight = baseHeight;
+
+            if (autoFit) {
+                const paperSize = document.getElementById('printPaperSize')?.value || 'a4-landscape';
+                let pw = 29.7, ph = 21.0;
+                if (paperSize === 'a4-portrait') { pw = 21.0; ph = 29.7; }
+                else if (paperSize === 'a4-landscape') { pw = 29.7; ph = 21.0; }
+                else if (paperSize === 'a3-portrait') { pw = 29.7; ph = 42.0; }
+                else if (paperSize === 'a3-landscape') { pw = 42.0; ph = 29.7; }
+                const pxPerCm = 37.795;
+                const pageW = pw * pxPerCm;
+                const pageH = ph * pxPerCm;
+                const margin = 0.6 * pxPerCm;
+                const availW = pageW - 2 * margin;
+                const availH = pageH - 2 * margin;
+
+                const cardW = baseWidth * scale;
+                const cardH = baseHeight * scale;
+                const cols = Math.max(1, Math.floor((availW + gapXVal) / (cardW + gapXVal)));
+                const rows = Math.max(1, Math.floor((availH + gapYVal) / (cardH + gapYVal)));
+
+                const cardW_px = (availW - (cols - 1) * gapXVal) / cols;
+                const cardH_px = (availH - (rows - 1) * gapYVal) / rows;
+
+                const scaleMultX = cardW_px / cardW;
+                const scaleMultY = cardH_px / cardH;
+                
+                finalScale = scale * Math.min(scaleMultX, scaleMultY);
+                finalBaseWidth = cardW_px / finalScale;
+                finalBaseHeight = cardH_px / finalScale;
+
+                finalPreviewScale = previewScale * Math.min(scaleMultX, scaleMultY);
+                finalPreviewBaseWidth = cardW_px / finalPreviewScale;
+                finalPreviewBaseHeight = cardH_px / finalPreviewScale;
+            }
+
             const padding = document.getElementById('printPadding').value + 'px';
             const showChurch = cardExtraFields.some(f => f.key === 'church_header' && f.placement === 'front');
             const showStudentImg = cardExtraFields.some(f => f.key === 'student_image' && f.placement === 'front');
@@ -21756,9 +21808,9 @@
 
             let previewHtml = previewKids.map((s, idx) => {
                 return generateCardMarkup({
-                    s, scale: previewScale, padding, showChurch, showStudentImg, showStudentName, showStudentId, showClass, churchName, cardId: `prev_qrcode_sample_${idx}`,
+                    s, scale: finalPreviewScale, padding, showChurch, showStudentImg, showStudentName, showStudentId, showClass, churchName, cardId: `prev_qrcode_sample_${idx}`,
                     textReadability, fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto,
-                    baseWidth, baseHeight,
+                    baseWidth: finalPreviewBaseWidth, baseHeight: finalPreviewBaseHeight,
                     readabilityBgColor, readabilityBgOpacity, readabilityPadding, readabilityWidth,
                     readabilityBgShadow,
                     extraFields: cardExtraFields
@@ -21768,8 +21820,8 @@
             const showBackCard = document.getElementById('printBackCard')?.checked || false;
             if (showBackCard) {
                 previewHtml += generateBackCardMarkup({
-                    r: previewKids[0], scale: previewScale, padding, churchName, fontColor, strokeColor, outlineStyle, dashLength, dashGap,
-                    baseWidth, baseHeight, textReadability,
+                    r: previewKids[0], scale: finalPreviewScale, padding, churchName, fontColor, strokeColor, outlineStyle, dashLength, dashGap,
+                    baseWidth: finalPreviewBaseWidth, baseHeight: finalPreviewBaseHeight, textReadability,
                     extraFields: cardExtraFields.filter(f => f.placement === 'back'),
                     readabilityBgColor, readabilityBgOpacity, readabilityPadding, readabilityWidth,
                     readabilityBgShadow
@@ -22139,6 +22191,39 @@
             const grid = getPageGridDimensions(paperSize, baseWidth, baseHeight, gapXVal, gapYVal, scale);
             const cardsPerPage = grid.cardsPerPage;
             const cols = grid.cols;
+            const rows = grid.rows;
+
+            const autoFit = document.getElementById('printAutoFitPage')?.checked || false;
+            let finalBaseWidth = baseWidth;
+            let finalBaseHeight = baseHeight;
+            let finalScale = scale;
+
+            if (autoFit) {
+                let pw = 29.7, ph = 21.0;
+                if (paperSize === 'a4-portrait') { pw = 21.0; ph = 29.7; }
+                else if (paperSize === 'a4-landscape') { pw = 29.7; ph = 21.0; }
+                else if (paperSize === 'a3-portrait') { pw = 29.7; ph = 42.0; }
+                else if (paperSize === 'a3-landscape') { pw = 42.0; ph = 29.7; }
+                const pxPerCm = 37.795;
+                const pageW = pw * pxPerCm;
+                const pageH = ph * pxPerCm;
+                const margin = 0.6 * pxPerCm;
+                const availW = pageW - 2 * margin;
+                const availH = pageH - 2 * margin;
+
+                const cardW = baseWidth * scale;
+                const cardH = baseHeight * scale;
+
+                const cardW_px = (availW - (cols - 1) * gapXVal) / cols;
+                const cardH_px = (availH - (rows - 1) * gapYVal) / rows;
+
+                const scaleMultX = cardW_px / cardW;
+                const scaleMultY = cardH_px / cardH;
+                
+                finalScale = scale * Math.min(scaleMultX, scaleMultY);
+                finalBaseWidth = cardW_px / finalScale;
+                finalBaseHeight = cardH_px / finalScale;
+            }
 
             // Chunk kids into pages
             const pages = [];
@@ -22194,10 +22279,10 @@
             printArea.innerHTML = '';
             printArea.style.setProperty('--print-gap-x', gapX);
             printArea.style.setProperty('--print-gap-y', gapY);
-            printArea.style.setProperty('--card-print-width', `${baseWidth * scale}px`);
+            printArea.style.setProperty('--card-print-width', `${finalBaseWidth * finalScale}px`);
             
-            const scaledWidth = baseWidth * scale;
-            const scaledHeight = baseHeight * scale;
+            const scaledWidth = finalBaseWidth * finalScale;
+            const scaledHeight = finalBaseHeight * finalScale;
             const placeholderHtml = `<div class="print-card-placeholder" style="width:${scaledWidth}px; height:${scaledHeight}px; visibility:hidden; flex-shrink:0;"></div>`;
 
             let html = '';
@@ -22219,9 +22304,9 @@
                 qrTasks.push({ id: cardId, text: link });
 
                 return generateCardMarkup({
-                    s, scale, padding, showChurch, showStudentImg, showStudentName, showStudentId, showClass, churchName, cardId,
+                    s, scale: finalScale, padding, showChurch, showStudentImg, showStudentName, showStudentId, showClass, churchName, cardId,
                     textReadability, fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto,
-                    baseWidth, baseHeight,
+                    baseWidth: finalBaseWidth, baseHeight: finalBaseHeight,
                     readabilityBgColor, readabilityBgOpacity, readabilityPadding, readabilityWidth,
                     readabilityBgShadow,
                     extraFields: cardExtraFields
@@ -22232,8 +22317,8 @@
             function renderBackCard(s) {
                 if (!s) return placeholderHtml;
                 return generateBackCardMarkup({
-                    r: s, scale, padding, churchName, fontColor, strokeColor, outlineStyle, dashLength, dashGap,
-                    baseWidth, baseHeight, textReadability,
+                    r: s, scale: finalScale, padding, churchName, fontColor, strokeColor, outlineStyle, dashLength, dashGap,
+                    baseWidth: finalBaseWidth, baseHeight: finalBaseHeight, textReadability,
                     extraFields: cardExtraFields.filter(f => f.placement === 'back'),
                     readabilityBgColor, readabilityBgOpacity, readabilityPadding, readabilityWidth,
                     readabilityBgShadow
