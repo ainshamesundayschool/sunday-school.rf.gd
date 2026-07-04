@@ -11215,31 +11215,34 @@
         const availW = scaledWidth - 2 * padding;
         const availH = scaledHeight - 2 * padding;
 
+        const infoColumnScale = parseFloat(document.getElementById('printInfoColumnScale')?.value || '1.0');
+        const qrColumnScale = parseFloat(document.getElementById('printQrColumnScale')?.value || '1.0');
+
         let qrSize, sAvatar, sTripImg, sLogo;
         let fH2, fH3, fCustom, fChurch;
 
         if (isLandscape) {
           // Landscape scaling
-          qrSize = Math.max(40, Math.min(availW * 0.42, availH * 0.82));
-          sAvatar = Math.max(25, Math.min(availW * 0.25, availH * 0.35));
-          sTripImg = Math.max(20, Math.min(availW * 0.22, availH * 0.25));
-          sLogo = Math.max(10, Math.min(availW * 0.08, availH * 0.1));
+          qrSize = Math.max(40, Math.min(availW * 0.42, availH * 0.82)) * qrColumnScale;
+          sAvatar = Math.max(25, Math.min(availW * 0.25, availH * 0.35)) * infoColumnScale;
+          sTripImg = Math.max(20, Math.min(availW * 0.22, availH * 0.25)) * infoColumnScale;
+          sLogo = Math.max(10, Math.min(availW * 0.08, availH * 0.1)) * infoColumnScale;
 
-          fH2 = Math.max(9, Math.min(availW * 0.06, availH * 0.085));
-          fH3 = Math.max(8, Math.min(availW * 0.05, availH * 0.065));
-          fCustom = Math.max(7, Math.min(availW * 0.04, availH * 0.055));
-          fChurch = Math.max(7, Math.min(availW * 0.04, availH * 0.055));
+          fH2 = Math.max(9, Math.min(availW * 0.06, availH * 0.085)) * infoColumnScale;
+          fH3 = Math.max(8, Math.min(availW * 0.05, availH * 0.065)) * infoColumnScale;
+          fCustom = Math.max(7, Math.min(availW * 0.04, availH * 0.055)) * infoColumnScale;
+          fChurch = Math.max(7, Math.min(availW * 0.04, availH * 0.055)) * infoColumnScale;
         } else {
           // Portrait scaling
-          qrSize = Math.max(40, Math.min(availW * 0.7, availH * 0.38));
-          sAvatar = Math.max(25, Math.min(availW * 0.32, availH * 0.22));
-          sTripImg = Math.max(20, Math.min(availW * 0.32, availH * 0.16));
-          sLogo = Math.max(10, Math.min(availW * 0.12, availH * 0.06));
+          qrSize = Math.max(40, Math.min(availW * 0.7, availH * 0.38)) * qrColumnScale;
+          sAvatar = Math.max(25, Math.min(availW * 0.32, availH * 0.22)) * infoColumnScale;
+          sTripImg = Math.max(20, Math.min(availW * 0.32, availH * 0.16)) * infoColumnScale;
+          sLogo = Math.max(10, Math.min(availW * 0.12, availH * 0.06)) * infoColumnScale;
 
-          fH2 = Math.max(9, Math.min(availW * 0.09, availH * 0.055));
-          fH3 = Math.max(8, Math.min(availW * 0.07, availH * 0.045));
-          fCustom = Math.max(7, Math.min(availW * 0.06, availH * 0.038));
-          fChurch = Math.max(7, Math.min(availW * 0.06, availH * 0.038));
+          fH2 = Math.max(9, Math.min(availW * 0.09, availH * 0.055)) * infoColumnScale;
+          fH3 = Math.max(8, Math.min(availW * 0.07, availH * 0.045)) * infoColumnScale;
+          fCustom = Math.max(7, Math.min(availW * 0.06, availH * 0.038)) * infoColumnScale;
+          fChurch = Math.max(7, Math.min(availW * 0.06, availH * 0.038)) * infoColumnScale;
         }
 
         return {
@@ -11379,7 +11382,8 @@
 
           const idField = extraFields.find(f => f.key === 'student_id');
           const idFieldFontSize = idField && idField.fontSize ? idField.fontSize * scale : null;
-          const fH3_final_id = idFieldFontSize || (infoFontSizeOver > 0 ? infoFontSizeOver * scale : Math.max(7, Math.min(10 * scale, scaledHeight * 0.05)));
+          const qrColumnScale = parseFloat(document.getElementById('printQrColumnScale')?.value || '1.0');
+          const fH3_final_id = (idFieldFontSize || (infoFontSizeOver > 0 ? infoFontSizeOver * scale : Math.max(7, Math.min(10 * scale, scaledHeight * 0.05)))) * qrColumnScale;
 
           const churchHeaderField = extraFields.find(f => f.key === 'church_header' || f.key === 'church_name_only');
           const churchHeaderFontSize = churchHeaderField && churchHeaderField.fontSize ? churchHeaderField.fontSize * scale : null;
@@ -11684,7 +11688,7 @@
                   <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:${qrPartSize}; height:100%; min-width:0; min-height:0; width:100%;">
                       <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-sizing:border-box; box-shadow:${boxShadowValue}; overflow:visible; width:100%; flex:1; min-height:0; gap:${4 * scale}px; ${qrOffsetStyle}">
                             <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible"></div>
-                          ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
+                          ${showStudentId ? `<div style="font-size:${fH3_final_id}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
                       </div>
                   </div>
                   `;
@@ -11693,7 +11697,7 @@
                   <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; flex:${qrPartSize}; height:100%; min-width:0; min-height:0; width:100%;">
                       <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-shadow:${boxShadowValue}; overflow:visible; width:fit-content; gap:${4 * scale}px; ${qrOffsetStyle}">
                             <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible"></div>
-                          ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
+                          ${showStudentId ? `<div style="font-size:${fH3_final_id}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
                       </div>
                   </div>
                   `;
@@ -11746,7 +11750,7 @@
                   <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; flex:${qrPartSize}; min-height:0;">
                       <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${10 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-sizing:border-box; box-shadow:${boxShadowValue}; overflow:visible; width:100%; flex:1; min-height:0; gap:${4 * scale}px; ${qrOffsetStyle}">
                             <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible"></div>
-                          ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
+                          ${showStudentId ? `<div style="font-size:${fH3_final_id}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
                       </div>
                   </div>
                   `;
@@ -11755,7 +11759,7 @@
                   <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; flex:${qrPartSize}; min-height:0;">
                       <div style="background:${readBgColor}; border:1px solid ${strokeColor}; padding:${readPadding}; border-radius:${8 * scale}px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-shadow:${boxShadowValue}; overflow:visible; width:fit-content; gap:${4 * scale}px; ${qrOffsetStyle}">
                             <div id="${cardId}" style="display:flex; justify-content:center; align-items:center; overflow:visible"></div>
-                          ${showStudentId ? `<div style="font-size:${Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
+                          ${showStudentId ? `<div style="font-size:${fH3_final_id}px; font-weight:800; color:${fontColor}; text-shadow:var(--text-shadow, none); text-align:center; direction:ltr; margin-top:${2 * scale}px;">ID: ${sid}</div>` : ''}
                       </div>
                   </div>
                   `;
@@ -11838,7 +11842,8 @@
 
           const idField = extraFields.find(f => f.key === 'student_id');
           const idFieldFontSize = idField && idField.fontSize ? idField.fontSize * scale : null;
-          const fH3_final_id = idFieldFontSize || (infoFontSizeOver > 0 ? idFieldFontSize : (infoFontSizeOver > 0 ? infoFontSizeOver * scale : Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))));
+          const qrColumnScale = parseFloat(document.getElementById('printQrColumnScale')?.value || '1.0');
+          const fH3_final_id = (idFieldFontSize || (infoFontSizeOver > 0 ? idFieldFontSize : (infoFontSizeOver > 0 ? infoFontSizeOver * scale : Math.max(7, Math.min(10 * scale, scaledHeight * 0.05))))) * qrColumnScale;
 
           const churchHeaderField = extraFields.find(f => f.key === 'church_header' || f.key === 'church_name_only');
           const churchHeaderFontSize = churchHeaderField && churchHeaderField.fontSize ? churchHeaderField.fontSize * scale : null;
@@ -13847,6 +13852,16 @@
             qrYOffsetEl.value = 0;
             document.getElementById('printQrYOffsetVal').textContent = '0px';
         }
+        const infoColumnScaleEl = document.getElementById('printInfoColumnScale');
+        if (infoColumnScaleEl) {
+            infoColumnScaleEl.value = 1.0;
+            document.getElementById('printInfoColumnScaleVal').textContent = '1.0';
+        }
+        const qrColumnScaleEl = document.getElementById('printQrColumnScale');
+        if (qrColumnScaleEl) {
+            qrColumnScaleEl.value = 1.0;
+            document.getElementById('printQrColumnScaleVal').textContent = '1.0';
+        }
         const nameBold = document.getElementById('printNameBold');
         if (nameBold) nameBold.checked = true;
         const infoBold = document.getElementById('printInfoBold');
@@ -14044,6 +14059,8 @@
               infoGap: document.getElementById('printInfoGap')?.value || '6',
               infoPartSize: document.getElementById('printInfoPartSize')?.value || '1.2',
               qrPartSize: document.getElementById('printQrPartSize')?.value || '0.8',
+              infoColumnScale: document.getElementById('printInfoColumnScale')?.value || '1.0',
+              qrColumnScale: document.getElementById('printQrColumnScale')?.value || '1.0',
               customLogos: window.customLogos || [],
               extraFields: cardExtraFields || []
           };
@@ -14342,6 +14359,20 @@
                   if (el) {
                       el.value = data.qrPartSize;
                       document.getElementById('printQrPartSizeVal').textContent = data.qrPartSize;
+                  }
+              }
+              if (data.infoColumnScale !== undefined) {
+                  const el = document.getElementById('printInfoColumnScale');
+                  if (el) {
+                      el.value = data.infoColumnScale;
+                      document.getElementById('printInfoColumnScaleVal').textContent = data.infoColumnScale;
+                  }
+              }
+              if (data.qrColumnScale !== undefined) {
+                  const el = document.getElementById('printQrColumnScale');
+                  if (el) {
+                      el.value = data.qrColumnScale;
+                      document.getElementById('printQrColumnScaleVal').textContent = data.qrColumnScale;
                   }
               }
               if (data.customLogos !== undefined) {
@@ -19333,6 +19364,22 @@
                   <div style="display:flex; align-items:center; gap:8px;">
                     <input type="range" id="printQrYOffset" min="-100" max="100" value="0" style="padding:0; flex:1;" oninput="updatePrintPreview(); document.getElementById('printQrYOffsetVal').textContent = this.value + 'px'">
                     <span id="printQrYOffsetVal" style="font-weight:bold; font-size:0.75rem; min-width:45px; text-align:center;">0px</span>
+                  </div>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:2px; color:var(--text);">
+                  <span style="font-size:0.75rem; font-weight:700;">حجم محتويات قسم البيانات (Info Scale):</span>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <input type="range" id="printInfoColumnScale" min="0.5" max="2.0" step="0.05" value="1.0" style="padding:0; flex:1;" oninput="updatePrintPreview(); document.getElementById('printInfoColumnScaleVal').textContent = this.value">
+                    <span id="printInfoColumnScaleVal" style="font-weight:bold; font-size:0.75rem; min-width:45px; text-align:center;">1.0</span>
+                  </div>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:2px; color:var(--text);">
+                  <span style="font-size:0.75rem; font-weight:700;">حجم الـ QR كود (QR Scale):</span>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <input type="range" id="printQrColumnScale" min="0.5" max="2.0" step="0.05" value="1.0" style="padding:0; flex:1;" oninput="updatePrintPreview(); document.getElementById('printQrColumnScaleVal').textContent = this.value">
+                    <span id="printQrColumnScaleVal" style="font-weight:bold; font-size:0.75rem; min-width:45px; text-align:center;">1.0</span>
                   </div>
                 </div>
               </div>
