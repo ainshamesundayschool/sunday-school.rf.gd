@@ -7494,6 +7494,39 @@
       </div>
     </div>
 
+    <!-- Save QR Template Modal -->
+    <div id="saveQRTemplateModal" class="modal" style="z-index: 2200;">
+      <div class="modal-box" style="max-width: 480px;">
+        <div class="modal-head">
+          <h2><i class="fas fa-save"></i> حفظ تصميم بطاقات QR</h2>
+          <button class="modal-close" onclick="closeModal('saveQRTemplateModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group" style="margin-bottom:16px;">
+            <label class="form-label">اسم القالب</label>
+            <input type="text" id="saveQRTemplateName" class="form-input" placeholder="مثال: قالب الرحلات الشتوية">
+          </div>
+          <div class="form-group" style="margin-bottom:20px;">
+            <label class="form-label" style="margin-bottom:8px; display:block;">حفظ كـ</label>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              <label id="saveQRTargetTripOption" style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.88rem;">
+                <input type="radio" name="saveQRTarget" value="trip" style="width:16px; height:16px; margin:0;">
+                <span>قالب خاص بهذه الرحلة الحالية فقط</span>
+              </label>
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.88rem;">
+                <input type="radio" name="saveQRTarget" value="church" checked style="width:16px; height:16px; margin:0;">
+                <span>قالب عام افتراضي للكنيسة</span>
+              </label>
+            </div>
+          </div>
+          <div style="display:flex; gap:10px; margin-top:24px;">
+            <button type="button" class="btn btn-primary" style="flex:2; justify-content:center;" onclick="executeSaveQRTemplate()"><i class="fas fa-save"></i> حفظ التصميم</button>
+            <button type="button" class="btn btn-outline" style="flex:1; justify-content:center;" onclick="closeModal('saveQRTemplateModal')">إلغاء</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Student Details -->
     <div id="studentDetailsModal" class="modal">
       <div class="modal-box">
@@ -11834,7 +11867,8 @@
           let logoHtml = '';
           if (Array.isArray(window.customLogos) && window.customLogos.length > 0) {
               logoHtml = window.customLogos.map(logo => {
-                  return `<img src="${logo.src}" style="position:absolute; left:${logo.x}%; top:${logo.y}%; width:${logo.width}%; height:auto; z-index:10; pointer-events:none; object-fit:contain;">`;
+                  if (logo.side && logo.side !== 'front' && logo.side !== 'both') return '';
+                  return `<img src="${logo.src}" style="position:absolute; left:${logo.x}%; top:${logo.y}%; width:${logo.width}%; height:auto; z-index:${logo.zIndex || 10}; pointer-events:none; object-fit:contain;">`;
               }).join('');
           }
 
@@ -12072,7 +12106,8 @@
           let logoHtml = '';
           if (Array.isArray(window.customLogos) && window.customLogos.length > 0) {
               logoHtml = window.customLogos.map(logo => {
-                  return `<img src="${logo.src}" style="position:absolute; left:${logo.x}%; top:${logo.y}%; width:${logo.width}%; height:auto; z-index:10; pointer-events:none; object-fit:contain;">`;
+                  if (logo.side && logo.side !== 'back' && logo.side !== 'both') return '';
+                  return `<img src="${logo.src}" style="position:absolute; left:${logo.x}%; top:${logo.y}%; width:${logo.width}%; height:auto; z-index:${logo.zIndex || 10}; pointer-events:none; object-fit:contain;">`;
               }).join('');
           }
 
@@ -13835,32 +13870,47 @@
           const select = document.getElementById('printTemplateSelect');
           if (!select) return;
           select.innerHTML = '<option value="">-- اختر قالب للتحميل --</option>';
-            
-            // Add default Sunday School Template preset
-            const optSS = document.createElement('option');
-            optSS.value = 'preset_sundayschool';
-            optSS.textContent = 'قالب مدارس الأحد (Sunday School Template)';
-            select.appendChild(optSS);
-            
-            if (allTemplatesCache.church_template) {
-              const opt = document.createElement('option');
-              opt.value = 'church';
-              opt.textContent = 'قالب الكنيسة الرئيسي';
-              select.appendChild(opt);
-          }
-          
-          if (currentTripId > 0 && allTemplatesCache.trip_template) {
-              const opt = document.createElement('option');
-              opt.value = 'trip_' + currentTripId;
-              opt.textContent = 'قالب هذه الرحلة الحالي';
-              select.appendChild(opt);
-          }
-          
+             
+             // Add default Sunday School Template preset
+             const optSS = document.createElement('option');
+             optSS.value = 'preset_sundayschool';
+             optSS.textContent = 'قالب مدارس الأحد (Sunday School Template)';
+             select.appendChild(optSS);
+             
+             if (allTemplatesCache.church_template) {
+               let tName = 'قالب الكنيسة الرئيسي';
+               try {
+                   const tData = typeof allTemplatesCache.church_template === 'string' ? JSON.parse(allTemplatesCache.church_template) : allTemplatesCache.church_template;
+                   if (tData && tData.templateName) tName = tData.templateName;
+               } catch(e){}
+               const opt = document.createElement('option');
+               opt.value = 'church';
+               opt.textContent = tName;
+               select.appendChild(opt);
+           }
+           
+           if (currentTripId > 0 && allTemplatesCache.trip_template) {
+               let tName = 'قالب هذه الرحلة الحالي';
+               try {
+                   const tData = typeof allTemplatesCache.trip_template === 'string' ? JSON.parse(allTemplatesCache.trip_template) : allTemplatesCache.trip_template;
+                   if (tData && tData.templateName) tName = tData.templateName;
+               } catch(e){}
+               const opt = document.createElement('option');
+               opt.value = 'trip_' + currentTripId;
+               opt.textContent = tName;
+               select.appendChild(opt);
+           }
+           
           if (Array.isArray(allTemplatesCache.other_trips)) {
               allTemplatesCache.other_trips.forEach(trip => {
+                  let tName = `قالب رحلة: ${trip.title}`;
+                  try {
+                      const tData = typeof trip.template === 'string' ? JSON.parse(trip.template) : trip.template;
+                      if (tData && tData.templateName) tName = `${tName} (${tData.templateName})`;
+                  } catch(e){}
                   const opt = document.createElement('option');
                   opt.value = 'trip_' + trip.id;
-                  opt.textContent = `قالب رحلة: ${trip.title}`;
+                  opt.textContent = tName;
                   select.appendChild(opt);
               });
           }
@@ -13914,8 +13964,9 @@
           }
       }
 
-      function serializeQRTemplate() {
+      function serializeQRTemplate(name = '') {
           const data = {
+              templateName: name,
               scale: document.getElementById('printScale')?.value || '100',
               width: document.getElementById('printCardWidth')?.value || '7',
               height: document.getElementById('printCardHeight')?.value || '10',
@@ -14262,24 +14313,43 @@
           }
       }
 
-      async function saveQRTemplateDialog() {
+      function saveQRTemplateDialog() {
           const currentTripId = window.currentTripId || 0;
           const hasTrip = currentTripId > 0;
-          let target = 'church';
+          
+          // Clear name input
+          document.getElementById('saveQRTemplateName').value = '';
+          
+          // Toggle trip option visibility
+          const tripOpt = document.getElementById('saveQRTargetTripOption');
+          const churchRadio = document.querySelector('input[name="saveQRTarget"][value="church"]');
+          const tripRadio = document.querySelector('input[name="saveQRTarget"][value="trip"]');
+          
           if (hasTrip) {
-              const conf = confirm("هل تريد حفظ التصميم كقالب لهذه الرحلة الحالية فقط؟\n\n(اضغط OK لحفظه للرحلة، أو Cancel لحفظه كقالب عام للكنيسة)");
-              if (conf) {
-                  target = 'trip';
-              }
+              if (tripOpt) tripOpt.style.display = 'flex';
+              if (tripRadio) tripRadio.checked = true;
           } else {
-              const conf = confirm("هل تريد حفظ هذا التصميم كقالب افتراضي عام للكنيسة؟");
-              if (!conf) return;
+              if (tripOpt) tripOpt.style.display = 'none';
+              if (churchRadio) churchRadio.checked = true;
           }
           
-          const templateStr = serializeQRTemplate();
+          openModal('saveQRTemplateModal');
+      }
+
+      async function executeSaveQRTemplate() {
+          const currentTripId = window.currentTripId || 0;
+          const target = document.querySelector('input[name="saveQRTarget"]:checked')?.value || 'church';
+          const templateName = document.getElementById('saveQRTemplateName').value.trim();
+          
+          if (!templateName) {
+              showToast('يرجى إدخال اسم للقالب أولاً', 'warning');
+              return;
+          }
+          
+          const templateStr = serializeQRTemplate(templateName);
+          
           try {
-              const fd = new FormData();
-              fd.append('action', 'saveQRTemplate');
+              const fd = mkFd('saveQRTemplate');
               fd.append('target', target);
               if (target === 'trip') {
                   fd.append('trip_id', currentTripId);
@@ -14289,13 +14359,14 @@
               const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
               if (res && res.success) {
                   showToast(res.message || 'تم حفظ القالب بنجاح', 'success');
-                  fetchTemplatesFromServer(hasTrip ? currentTripId : 0);
+                  closeModal('saveQRTemplateModal');
+                  fetchTemplatesFromServer(currentTripId);
               } else {
                   showToast(res.message || 'فشل حفظ القالب', 'error');
               }
           } catch (e) {
               console.error("Error saving template", e);
-              showToast('حدث خطأ أثناء الاتصال بالخادم', 'error');
+              showToast('حدث خطأ أثناء حفظ القالب', 'error');
           }
       }
 
@@ -14310,7 +14381,9 @@
                   src: e.target.result,
                   x: 5,
                   y: 5,
-                  width: 20
+                  width: 20,
+                  zIndex: 10,
+                  side: 'front' // defaults to Front only
               };
               window.customLogos.push(logo);
               renderPrintLogosList();
@@ -14335,9 +14408,13 @@
               row.innerHTML = `
                   <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
                       <img src="${logo.src}" style="height:30px; width:auto; max-width:60px; object-fit:contain; border-radius:3px;">
-                      <button type="button" class="btn btn-outline btn-sm" onclick="removePrintLogo(${idx})" style="color:var(--danger); border-color:rgba(220,38,38,0.2); padding:2px 6px; font-size:0.7rem; height:24px;">حذف</button>
+                      <div style="display:flex; gap:4px; align-items:center;">
+                          <button type="button" class="btn btn-outline btn-xs" onclick="sendLogoBackward(${idx})" title="إرسال للخلف (تحت النصوص والـ QR)" style="padding:2px 6px; font-size:0.65rem; height:24px; display:flex; align-items:center; gap:2px;"><i class="fas fa-arrow-down"></i> للخلف</button>
+                          <button type="button" class="btn btn-outline btn-xs" onclick="bringLogoForward(${idx})" title="إحضار للمقدمة (فوق الكل)" style="padding:2px 6px; font-size:0.65rem; height:24px; display:flex; align-items:center; gap:2px;"><i class="fas fa-arrow-up"></i> للأمام</button>
+                          <button type="button" class="btn btn-outline btn-sm" onclick="removePrintLogo(${idx})" style="color:var(--danger); border-color:rgba(220,38,38,0.2); padding:2px 6px; font-size:0.7rem; height:24px;">حذف</button>
+                      </div>
                   </div>
-                  <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px;">
+                  <div style="display:grid; grid-template-columns:0.8fr 0.8fr 0.8fr 1.2fr 1.2fr; gap:6px;">
                       <div>
                           <label style="font-size:0.65rem; font-weight:700;">الموضع X (%):</label>
                           <input type="number" value="${logo.x}" style="width:100%; height:26px; font-size:0.75rem; padding: 2px 4px; border: 1px solid var(--border); border-radius:4px;" oninput="updatePrintLogoAttr(${idx}, 'x', this.value)">
@@ -14350,6 +14427,21 @@
                           <label style="font-size:0.65rem; font-weight:700;">العرض (%):</label>
                           <input type="number" value="${logo.width}" style="width:100%; height:26px; font-size:0.75rem; padding: 2px 4px; border: 1px solid var(--border); border-radius:4px;" oninput="updatePrintLogoAttr(${idx}, 'width', this.value)">
                       </div>
+                      <div>
+                          <label style="font-size:0.65rem; font-weight:700;">الترتيب (الطبقة):</label>
+                          <select style="width:100%; height:26px; font-size:0.75rem; padding: 2px 4px; border: 1px solid var(--border); border-radius:4px;" onchange="updatePrintLogoAttr(${idx}, 'zIndex', this.value)">
+                              <option value="10" ${(logo.zIndex || 10) == 10 ? 'selected' : ''}>فوق النصوص</option>
+                              <option value="3" ${(logo.zIndex || 10) == 3 ? 'selected' : ''}>تحت النصوص (خلفية)</option>
+                          </select>
+                      </div>
+                      <div>
+                          <label style="font-size:0.65rem; font-weight:700;">جانب البطاقة:</label>
+                          <select style="width:100%; height:26px; font-size:0.75rem; padding: 2px 4px; border: 1px solid var(--border); border-radius:4px;" onchange="updatePrintLogoAttr(${idx}, 'side', this.value)">
+                              <option value="front" ${(logo.side || 'front') == 'front' ? 'selected' : ''}>الوجه فقط</option>
+                              <option value="back" ${logo.side == 'back' ? 'selected' : ''}>الظهر فقط</option>
+                              <option value="both" ${logo.side == 'both' ? 'selected' : ''}>الوجهين</option>
+                          </select>
+                      </div>
                   </div>
               `;
               list.appendChild(row);
@@ -14357,10 +14449,33 @@
       }
 
       function updatePrintLogoAttr(idx, attr, val) {
+          if (attr === 'side') {
+              if (window.customLogos[idx]) {
+                  window.customLogos[idx][attr] = val;
+                  updatePrintPreview();
+              }
+              return;
+          }
           const v = parseFloat(val);
           if (isNaN(v)) return;
           if (window.customLogos[idx]) {
               window.customLogos[idx][attr] = v;
+              updatePrintPreview();
+          }
+      }
+
+      function sendLogoBackward(idx) {
+          if (window.customLogos[idx]) {
+              window.customLogos[idx].zIndex = 3;
+              renderPrintLogosList();
+              updatePrintPreview();
+          }
+      }
+
+      function bringLogoForward(idx) {
+          if (window.customLogos[idx]) {
+              window.customLogos[idx].zIndex = 10;
+              renderPrintLogosList();
               updatePrintPreview();
           }
       }
