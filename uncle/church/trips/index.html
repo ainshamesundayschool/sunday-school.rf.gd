@@ -13506,9 +13506,31 @@
           new QRCode(document.getElementById(task.id), { text: task.text, width: qrSize, height: qrSize, colorDark: "#000000", colorLight: textReadability === 'rect' ? "transparent" : "#ffffff", correctLevel: QRCode.CorrectLevel.M });
         });
 
+        // Show loading overlay
+        let loader = document.getElementById('pdf-render-loader');
+        if (!loader) {
+          loader = document.createElement('div');
+          loader.id = 'pdf-render-loader';
+          loader.innerHTML = `
+            <div style="position:fixed; left:0; top:0; width:100%; height:100%; background:rgba(255,255,255,0.95); z-index:9999999; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:'Cairo', sans-serif;">
+              <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: var(--primary, #6366f1); margin-bottom: 20px;"></i>
+              <h3 style="margin:0; color:#1e293b;">جاري إنشاء ملف PDF...</h3>
+              <p style="margin:8px 0 0 0; color:#64748b; font-size:0.9rem;">الرجاء الانتظار وعدم إغلاق الصفحة</p>
+            </div>
+          `;
+          document.body.appendChild(loader);
+        } else {
+          loader.style.display = 'block';
+        }
+
         printArea.style.position = 'fixed';
-        printArea.style.left = '-99999px';
+        printArea.style.left = '0';
         printArea.style.top = '0';
+        printArea.style.width = '100%';
+        printArea.style.height = '100%';
+        printArea.style.zIndex = '9999998';
+        printArea.style.background = '#ffffff';
+        printArea.style.overflow = 'auto';
         printArea.style.display = 'block';
         printArea.style.visibility = 'visible';
 
@@ -13560,10 +13582,16 @@
           printArea.style.position = '';
           printArea.style.left = '';
           printArea.style.top = '';
+          printArea.style.width = '';
+          printArea.style.height = '';
+          printArea.style.zIndex = '';
+          printArea.style.background = '';
+          printArea.style.overflow = '';
           printArea.style.display = 'none';
           printArea.style.visibility = '';
           printArea.innerHTML = '';
           if (pageStyleEl) pageStyleEl.remove();
+          if (loader) loader.style.display = 'none';
         }
       }
 
