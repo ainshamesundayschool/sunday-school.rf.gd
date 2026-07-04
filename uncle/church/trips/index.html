@@ -7880,7 +7880,7 @@
         fetch(API_URL, { method: 'POST', body: fdU })
           .then(r => r.json())
           .then(res => {
-            tripUnclesCache = res.success ? res.data || [] : [];
+            tripUnclesCache = res.success ? (res.uncles || res.data || []) : [];
             filterRegisterUncles();
           })
           .catch(() => {
