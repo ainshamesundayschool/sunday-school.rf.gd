@@ -12727,7 +12727,7 @@
 
         const byChurch = getSelectedPrintRegistrationsFilteredByChurch(rawRegs);
         return byChurch.filter(r => {
-          const kidId = getSafeStudentId(r);
+          const kidId = getSafeStudentID(r);
           return printSelectedKidIds.has(String(kidId));
         });
       }
@@ -12767,7 +12767,7 @@
         });
 
         listDiv.innerHTML = filtered.map(r => {
-          const kidId = getSafeStudentId(r);
+          const kidId = getSafeStudentID(r);
           const isChecked = printSelectedKidIds.has(String(kidId)) ? 'checked' : '';
           const name = getSafeStudentName(r);
           const roomText = getStudentFieldValue(r, 'السكن');
@@ -12835,7 +12835,7 @@
       window.populatePrintKids = function(rawRegs) {
         if (printSelectedKidIds.size === 0) {
           rawRegs.forEach(r => {
-            const kidId = getSafeStudentId(r);
+            const kidId = getSafeStudentID(r);
             if (kidId) printSelectedKidIds.add(String(kidId));
           });
         }
@@ -12890,7 +12890,7 @@
               // Re-initialize kids set
               printSelectedKidIds = new Set();
               rawRegs.forEach(r => {
-                const kidId = getSafeStudentId(r);
+                const kidId = getSafeStudentID(r);
                 if (kidId) printSelectedKidIds.add(String(kidId));
               });
             }
@@ -12900,7 +12900,7 @@
         printSelectedUncleIds = new Set();
         printSelectedKidIds = new Set();
         rawRegs.forEach(r => {
-          const kidId = getSafeStudentId(r);
+          const kidId = getSafeStudentID(r);
           if (kidId) printSelectedKidIds.add(String(kidId));
         });
 
