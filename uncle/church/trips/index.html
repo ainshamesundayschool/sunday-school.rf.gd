@@ -3825,6 +3825,8 @@
 
       html,
       body {
+        width: 100% !important;
+        height: 100% !important;
         margin: 0 !important;
         padding: 0 !important;
       }
@@ -3833,6 +3835,7 @@
         display: block !important;
         width: 100% !important;
         max-width: 100% !important;
+        height: 100% !important;
         margin: 0 !important;
         padding: 0 !important;
       }
@@ -3845,11 +3848,14 @@
         gap: var(--print-gap-y, 10mm) var(--print-gap-x, 10mm) !important;
         width: 100% !important;
         max-width: 100% !important;
-        margin: 0 auto !important;
+        height: 100% !important;
+        max-height: 100% !important;
+        margin: 0 !important;
         padding: 2mm !important;
         box-sizing: border-box !important;
         page-break-after: always !important;
         break-after: page !important;
+        overflow: hidden !important;
       }
 
       .print-page:last-child {
@@ -11346,6 +11352,9 @@
               showClass = true;
               showStudentId = true;
           }
+          if (isUncle) {
+              showStudentId = false;
+          }
 
           const layout = calculateCardLayout(baseWidth, baseHeight, scale, padding);
           const { isLandscape, scaledWidth, scaledHeight, scaledPadding, qrSize, sAvatar, sLogo, fH2, fH3, fChurch } = layout;
@@ -11835,7 +11844,10 @@
               const showStudentImg = extraFields.some(f => f.key === 'student_image');
               const showStudentName = extraFields.some(f => f.key === 'student_name');
               const showClass = extraFields.some(f => f.key === 'student_class');
-              const showStudentId = extraFields.some(f => f.key === 'student_id');
+              let showStudentId = extraFields.some(f => f.key === 'student_id');
+              if (isUncle) {
+                  showStudentId = false;
+              }
 
               let headerHtml = '';
               if (showChurch || showChurchNameOnly) {
@@ -12110,7 +12122,26 @@
         const readabilityBgShadow = document.getElementById('printTextReadabilityShadow')?.checked !== false;
 
         const churchName = localStorage.getItem('churchName') || localStorage.getItem('uncle_church_name') || 'مدارس الأحد';
-        const previewRegs = (regs.length ? regs : [{}]).slice(0, 4).map((sourceReg, idx) => {
+        let previewRegsRaw = [];
+        if (regs.length > 0) {
+          const kidsOnly = regs.filter(r => !r.isUncle);
+          const unclesOnly = regs.filter(r => r.isUncle);
+          if (unclesOnly.length > 0) {
+            previewRegsRaw = [...kidsOnly.slice(0, 2), ...unclesOnly.slice(0, 2)];
+            if (previewRegsRaw.length < 4 && kidsOnly.length > 2) {
+              previewRegsRaw = [...previewRegsRaw, ...kidsOnly.slice(2, 4 - previewRegsRaw.length + 2)];
+            }
+            if (previewRegsRaw.length < 4 && unclesOnly.length > 2) {
+              previewRegsRaw = [...previewRegsRaw, ...unclesOnly.slice(2, 4 - previewRegsRaw.length + 2)];
+            }
+          } else {
+            previewRegsRaw = regs.slice(0, 4);
+          }
+        } else {
+          previewRegsRaw = [{}];
+        }
+
+        const previewRegs = previewRegsRaw.map((sourceReg, idx) => {
           const isUncleReg = sourceReg.isUncle || sourceReg.registration_type === 'uncle' || sourceReg.student_class === 'خادم';
           if (isUncleReg) {
             return {
@@ -12119,7 +12150,7 @@
               student_id: '',
               student_name: sourceReg.name || sourceReg.student_name,
               student_image: sourceReg.image_url || sourceReg.student_image || '',
-              custom_data: null,
+              custom_data: sourceReg.custom_data || null,
               isUncle: true
             };
           }
@@ -12253,12 +12284,13 @@
       }
 
       function mapUncleToReg(u, roomsConfig) {
+        const roomAssignmentText = getUncleRoomAssignmentText(u.id, roomsConfig, document.getElementById('printShowFloorInRoom')?.checked !== false);
         return {
           id: 'uncle_' + u.id,
           student_id: '',
           student_name: u.name,
           student_image: u.image_url,
-          custom_data: null,
+          custom_data: { 'السكن': roomAssignmentText },
           isUncle: true,
           role: u.role,
           church_name: u.church_name

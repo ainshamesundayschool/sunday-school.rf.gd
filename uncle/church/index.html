@@ -6126,6 +6126,8 @@
             }
 
             html, body {
+                width: 100% !important;
+                height: 100% !important;
                 background: #fff !important;
                 color: #000 !important;
                 margin: 0 !important;
@@ -6136,6 +6138,7 @@
                 display: block !important;
                 width: 100% !important;
                 max-width: 100% !important;
+                height: 100% !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 background: #fff !important;
@@ -6149,12 +6152,15 @@
                 gap: var(--print-gap-y, 10mm) var(--print-gap-x, 10mm) !important;
                 width: 100% !important;
                 max-width: 100% !important;
-                margin: 0 auto !important;
+                height: 100% !important;
+                max-height: 100% !important;
+                margin: 0 !important;
                 padding: 2mm !important;
                 box-sizing: border-box !important;
                 page-break-after: always !important;
                 break-after: page !important;
                 background: #fff !important;
+                overflow: hidden !important;
             }
 
             .print-page:last-child {
