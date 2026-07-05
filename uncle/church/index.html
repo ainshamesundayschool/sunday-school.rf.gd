@@ -14278,6 +14278,81 @@
             }
         }
 
+        function mergeRoomsConfigs(newConfig, oldConfig) {
+            if (!newConfig || !oldConfig) return newConfig;
+            
+            const existingRoomsMap = new Map();
+            let oldConfigArr = [];
+            try {
+                oldConfigArr = typeof oldConfig === 'string' ? JSON.parse(oldConfig) : oldConfig;
+            } catch (e) {
+                console.error("Error parsing oldConfig in mergeRoomsConfigs", e);
+                return newConfig;
+            }
+            
+            if (Array.isArray(oldConfigArr)) {
+                oldConfigArr.forEach(bld => {
+                    const bldName = (bld.name || '').trim();
+                    if (bld.has_floors && Array.isArray(bld.floors)) {
+                        bld.floors.forEach(floor => {
+                            const floorName = (floor.name || '').trim();
+                            if (Array.isArray(floor.rooms)) {
+                                floor.rooms.forEach(room => {
+                                    const roomName = (room.name || '').trim();
+                                    const key = `${bldName}|${floorName}|${roomName}`;
+                                    existingRoomsMap.set(key, room);
+                                });
+                            }
+                        });
+                    } else if (Array.isArray(bld.rooms)) {
+                        bld.rooms.forEach(room => {
+                            const roomName = (room.name || '').trim();
+                            const key = `${bldName}||${roomName}`;
+                            existingRoomsMap.set(key, room);
+                        });
+                    }
+                });
+            }
+
+            if (Array.isArray(newConfig)) {
+                newConfig.forEach(bld => {
+                    const bldName = (bld.name || '').trim();
+                    if (bld.has_floors && Array.isArray(bld.floors)) {
+                        bld.floors.forEach(floor => {
+                            const floorName = (floor.name || '').trim();
+                            if (Array.isArray(floor.rooms)) {
+                                floor.rooms.forEach(room => {
+                                    const roomName = (room.name || '').trim();
+                                    const key = `${bldName}|${floorName}|${roomName}`;
+                                    if (existingRoomsMap.has(key)) {
+                                        const oldRoom = existingRoomsMap.get(key);
+                                        room.uncles = oldRoom.uncles || [];
+                                        room.is_excluded = oldRoom.is_excluded !== undefined ? oldRoom.is_excluded : false;
+                                        room.gender_filter = oldRoom.gender_filter !== undefined ? oldRoom.gender_filter : null;
+                                        room.church_filter = oldRoom.church_filter !== undefined ? oldRoom.church_filter : null;
+                                    }
+                                });
+                            }
+                        });
+                    } else if (Array.isArray(bld.rooms)) {
+                        bld.rooms.forEach(room => {
+                            const roomName = (room.name || '').trim();
+                            const key = `${bldName}||${roomName}`;
+                            if (existingRoomsMap.has(key)) {
+                                const oldRoom = existingRoomsMap.get(key);
+                                room.uncles = oldRoom.uncles || [];
+                                room.is_excluded = oldRoom.is_excluded !== undefined ? oldRoom.is_excluded : false;
+                                room.gender_filter = oldRoom.gender_filter !== undefined ? oldRoom.gender_filter : null;
+                                room.church_filter = oldRoom.church_filter !== undefined ? oldRoom.church_filter : null;
+                            }
+                        });
+                    }
+                });
+            }
+
+            return newConfig;
+        }
+
         async function updateTrip(e) {
             e.preventDefault();
             const fd = new FormData(); fd.append('action', 'updateTrip');
