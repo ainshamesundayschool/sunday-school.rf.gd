@@ -1440,7 +1440,6 @@
 
         #fastReader {
             width: 100%;
-            min-height: 200px;
             background: #000;
             border-radius: var(--r-md);
             overflow: hidden;
@@ -1451,19 +1450,28 @@
         #fastReader {
             width: 100% !important;
             max-width: 100% !important;
+            max-height: 180px !important;
+            aspect-ratio: 4 / 3 !important;
             overflow: hidden !important;
+            background: #000;
+            margin: 0 auto;
         }
 
         #reader video,
+        #fastReader video {
+            width: 100% !important;
+            height: 100% !important;
+            max-height: 180px !important;
+            object-fit: cover !important;
+        }
+
         #reader canvas,
         #reader img,
-        #fastReader video,
         #fastReader canvas,
         #fastReader img {
             width: 100% !important;
             max-width: 100% !important;
             height: auto !important;
-            object-fit: cover !important;
         }
 
         /* Toast notification */
@@ -2110,7 +2118,7 @@
                 </div>
 
                 <div id="reader"
-                    style="width:100%; min-height:220px; background:#000; border-radius: var(--r-lg); overflow: hidden;">
+                    style="width:100%; background:#000; border-radius: var(--r-lg); overflow: hidden;">
                 </div>
                 <button class="topbar-btn" onclick="stopScanner()"
                     style="margin:16px auto 0; width:100%; justify-content:center; background:var(--danger); color:white; border-color:var(--danger);"><i
@@ -5050,7 +5058,7 @@
                     }
                 } else {
                     if (readerEl) {
-                        readerEl.style.minHeight = '220px';
+                        readerEl.style.minHeight = 'unset';
                         readerEl.style.background = '#000';
                         readerEl.style.border = 'none';
                         readerEl.innerHTML = '';

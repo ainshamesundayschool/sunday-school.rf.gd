@@ -9737,10 +9737,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             #kidQrReader {
                 width: 100% !important;
-                max-width: 280px !important;
+                max-width: 240px !important;
                 height: auto !important;
                 min-height: unset !important;
-                aspect-ratio: 1 / 1 !important;
+                aspect-ratio: 4 / 3 !important;
                 margin: 0 auto 12px !important;
             }
         }
@@ -12327,7 +12327,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
 
                 <div id="kidQrReader"
-                    style="width:100%;min-height:200px;border-radius:16px;overflow:hidden;background:#000"></div>
+                    style="width:100%;border-radius:16px;overflow:hidden;background:#000"></div>
 
                 <!-- Scanner source selector (Camera vs. USB) — icon only, positioned under camera -->
                 <div style="display: flex; justify-content: center; margin-top: 10px; margin-bottom: 6px;">
@@ -17147,7 +17147,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 } else {
                     // Source is camera
                     if (readerEl) {
-                        readerEl.style.minHeight = '200px';
+                        readerEl.style.minHeight = 'unset';
                         readerEl.style.background = '#000';
                         readerEl.style.border = 'none';
                         readerEl.innerHTML = '';
