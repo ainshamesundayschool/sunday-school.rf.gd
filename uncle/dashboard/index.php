@@ -17069,6 +17069,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             kidQrLastScanTime = 0;
             kidQrLastScanText = '';
             const modal = document.getElementById('kidQrScannerModal');
+            const oldContainer = document.getElementById('kidQrReader-zoom-container');
+            if (oldContainer) oldContainer.remove();
             if (kidQrScanner) {
                 try {
                     const scanner = kidQrScanner;
@@ -17156,6 +17158,90 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
 
+        function setupZoomControl(scannerInstance, readerId) {
+            const oldContainer = document.getElementById(readerId + '-zoom-container');
+            if (oldContainer) oldContainer.remove();
+
+            try {
+                setTimeout(() => {
+                    if (!scannerInstance) return;
+                    
+                    let capabilities = null;
+                    try {
+                        capabilities = scannerInstance.getRunningTrackCapabilities();
+                    } catch (e) {
+                        console.warn("Failed to get track capabilities", e);
+                        return;
+                    }
+
+                    if (capabilities && capabilities.zoom) {
+                        const minZoom = capabilities.zoom.min || 1;
+                        const maxZoom = capabilities.zoom.max || 5;
+                        const step = capabilities.zoom.step || 0.1;
+
+                        const zoomContainer = document.createElement('div');
+                        zoomContainer.id = readerId + '-zoom-container';
+                        zoomContainer.style.cssText = 'display:flex; align-items:center; justify-content:center; gap:12px; margin-top:12px; padding: 10px 16px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 12px; border: 1.5px solid rgba(255, 255, 255, 0.15); direction: rtl;';
+                        
+                        const label = document.createElement('span');
+                        label.style.cssText = 'font-family: "Baloo Bhaijaan 2", "Cairo", sans-serif; font-size: 0.8rem; font-weight: 700; color: var(--text-1, #333); min-width: 70px; text-align: left;';
+                        label.innerText = 'التكبير: 1.0x';
+
+                        const minusIcon = document.createElement('i');
+                        minusIcon.className = 'fas fa-search-minus';
+                        minusIcon.style.cssText = 'color: var(--brand, #5b6cf5); font-size: 0.95rem; cursor: pointer; transition: transform 0.2s;';
+                        minusIcon.onmouseover = () => minusIcon.style.transform = 'scale(1.15)';
+                        minusIcon.onmouseout = () => minusIcon.style.transform = 'scale(1)';
+
+                        const plusIcon = document.createElement('i');
+                        plusIcon.className = 'fas fa-search-plus';
+                        plusIcon.style.cssText = 'color: var(--brand, #5b6cf5); font-size: 0.95rem; cursor: pointer; transition: transform 0.2s;';
+                        plusIcon.onmouseover = () => plusIcon.style.transform = 'scale(1.15)';
+                        plusIcon.onmouseout = () => plusIcon.style.transform = 'scale(1)';
+
+                        const slider = document.createElement('input');
+                        slider.type = 'range';
+                        slider.min = minZoom;
+                        slider.max = maxZoom;
+                        slider.step = step;
+                        slider.value = 1;
+                        slider.style.cssText = 'flex: 1; accent-color: var(--brand, #5b6cf5); cursor: pointer; height: 6px; border-radius: 3px; background: rgba(0,0,0,0.1);';
+
+                        const updateZoom = (val) => {
+                            label.innerText = 'التكبير: ' + parseFloat(val).toFixed(1) + 'x';
+                            scannerInstance.applyVideoConstraints({
+                                advanced: [{ zoom: parseFloat(val) }]
+                            }).catch(err => console.warn("Failed to apply zoom:", err));
+                        };
+
+                        slider.oninput = (e) => updateZoom(e.target.value);
+                        minusIcon.onclick = () => {
+                            const newVal = Math.max(minZoom, parseFloat(slider.value) - step * 5);
+                            slider.value = newVal;
+                            updateZoom(newVal);
+                        };
+                        plusIcon.onclick = () => {
+                            const newVal = Math.min(maxZoom, parseFloat(slider.value) + step * 5);
+                            slider.value = newVal;
+                            updateZoom(newVal);
+                        };
+
+                        zoomContainer.appendChild(minusIcon);
+                        zoomContainer.appendChild(slider);
+                        zoomContainer.appendChild(plusIcon);
+                        zoomContainer.appendChild(label);
+
+                        const readerEl = document.getElementById(readerId);
+                        if (readerEl && readerEl.parentNode) {
+                            readerEl.parentNode.insertBefore(zoomContainer, readerEl.nextSibling);
+                        }
+                    }
+                }, 800);
+            } catch (e) {
+                console.error("Error setting up zoom control:", e);
+            }
+        }
+
         async function restartCameraOnly() {
             if (kidQrScanner) return;
             const modal = document.getElementById('kidQrScannerModal');
@@ -17166,7 +17252,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
             try {
                 await kidQrScanner.start(
                     { facingMode: 'environment' },
-                    { fps: 10, qrbox: (w, h) => { const min = Math.min(w, h); return { width: Math.max(160, min - 60), height: Math.max(160, min - 60) }; } },
+                    { 
+                        fps: 15, 
+                        qrbox: (w, h) => { const min = Math.min(w, h); return { width: Math.max(160, min - 60), height: Math.max(160, min - 60) }; },
+                        videoConstraints: {
+                            width: { ideal: 1920 },
+                            height: { ideal: 1080 },
+                            facingMode: 'environment'
+                        }
+                    },
                     async (decodedText) => {
                         if (kidQrScanInProgress) return;
                         kidQrScanInProgress = true;
@@ -17196,6 +17290,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     },
                     () => { }
                 );
+
+                // Setup zoom controls if supported
+                setupZoomControl(kidQrScanner, 'kidQrReader');
 
                 // Unmirror webcam
                 let forceCount = 0;
