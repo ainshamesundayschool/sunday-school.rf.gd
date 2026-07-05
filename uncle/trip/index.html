@@ -2476,8 +2476,7 @@
                                     const student = regsList[matchIdx];
                                     let pts = {};
                                     try { pts = JSON.parse(student.trip_points || '{}'); } catch (e) { }
-                                    const oldVal = parseInt(student.trip_points_val) || 0;
-                                    const revVal = Math.max(0, oldVal - item.changeVal);
+                                    const revVal = oldVal - item.changeVal;
                                     pts[tripId] = revVal;
                                     let isNaughtyNow = student.trip_points_naughty === 1 || false;
                                     if (item.params.game_action === 'naughty') {
@@ -2562,14 +2561,14 @@
                         let newVal = oldVal;
 
                         if (item.action === 'processFastScanPoints') {
-                            newVal = Math.max(0, oldVal + item.params.amount);
+                            newVal = oldVal + item.params.amount;
                         } else if (item.action === 'processGameQRCode') {
                             const gameAction = item.params.game_action;
                             const amount = item.params.amount;
                             if (gameAction === 'increment') {
                                 newVal = oldVal + amount;
                             } else if (gameAction === 'decrement') {
-                                newVal = Math.max(0, oldVal - amount);
+                                newVal = oldVal - amount;
                             } else if (gameAction === 'set') {
                                 newVal = amount;
                             } else if (gameAction === 'naughty') {
@@ -2603,12 +2602,12 @@
                 let newVal = oldVal;
                 
                 if (action === 'processFastScanPoints') {
-                    newVal = Math.max(0, oldVal + amount);
+                    newVal = oldVal + amount;
                 } else if (action === 'processGameQRCode') {
                     if (gameAction === 'increment') {
                         newVal = oldVal + amount;
                     } else if (gameAction === 'decrement') {
-                        newVal = Math.max(0, oldVal - amount);
+                        newVal = oldVal - amount;
                     } else if (gameAction === 'set') {
                         newVal = amount;
                     } else if (gameAction === 'naughty') {
@@ -5659,7 +5658,7 @@
                         let pts = {};
                         try { pts = JSON.parse(student.trip_points || '{}'); } catch (e) { }
                         const oldVal = parseInt(student.trip_points_val) || 0;
-                        const newVal = Math.max(0, oldVal - amount);
+                        const newVal = oldVal - amount;
                         pts[tripId] = newVal;
                         student.trip_points = JSON.stringify(pts);
                         student.trip_points_val = newVal;
@@ -5695,7 +5694,7 @@
                     let pts = {};
                     try { pts = JSON.parse(student.trip_points || '{}'); } catch (e) { }
                     const oldVal = parseInt(student.trip_points_val) || 0;
-                    const newVal = Math.max(0, oldVal - amount);
+                    const newVal = oldVal - amount;
                     pts[tripId] = newVal;
                     student.trip_points = JSON.stringify(pts);
                     student.trip_points_val = newVal;
