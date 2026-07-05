@@ -12122,7 +12122,7 @@
                     ${textFieldsHtml}
                 </div>
               `;
-          } else if (bgUrlToUseBack === '/imgs/Card-Back.png') {
+          } else if (bgUrlToUseBack === '/imgs/Card-Back.webp') {
               // Sunday School Template Branding only (No church name)
               const showBackLogo = document.getElementById('printShowBackLogo')?.checked ?? true;
               const showBackLink = document.getElementById('printShowBackLink')?.checked ?? true;
@@ -14491,15 +14491,15 @@
         if (strokeColor) strokeColor.value = '#ffffff';
 
         // Background Image Front & Back
-        customCardBackgroundDataUrl = '/imgs/Card-Back.png';
+        customCardBackgroundDataUrl = '/imgs/Card-Back.webp';
         document.getElementById('printCustomBgThumbnail').src = customCardBackgroundDataUrl;
         document.getElementById('printCustomBgThumbnailWrap').style.display = 'flex';
         document.getElementById('printCustomBgSubSettings').style.display = 'flex';
         document.getElementById('printRemoveCustomBgBtn').style.display = 'inline-block';
 
-        customCardBackgroundDataUrlBack = '/imgs/Card-Back.png';
+        customCardBackgroundDataUrlBack = '/imgs/Card-Back.webp';
         if (document.getElementById('printCustomBgThumbnailBack')) {
-            document.getElementById('printCustomBgThumbnailBack').src = '/imgs/Card-Back.png';
+            document.getElementById('printCustomBgThumbnailBack').src = '/imgs/Card-Back.webp';
             document.getElementById('printCustomBgThumbnailWrapBack').style.display = 'flex';
             document.getElementById('printCustomBgSubSettingsBack').style.display = 'flex';
             document.getElementById('printRemoveCustomBgBtnBack').style.display = 'inline-block';
@@ -14830,9 +14830,9 @@
           if (val === 'preset_sundayschool') {
                 applyRecommendedQRTemplate();
                 // Ensure back background is also loaded
-                customCardBackgroundDataUrlBack = '/imgs/Card-Back.png';
+                customCardBackgroundDataUrlBack = '/imgs/Card-Back.webp';
                 if (document.getElementById('printCustomBgThumbnailBack')) {
-                    document.getElementById('printCustomBgThumbnailBack').src = '/imgs/Card-Back.png';
+                    document.getElementById('printCustomBgThumbnailBack').src = '/imgs/Card-Back.webp';
                     document.getElementById('printCustomBgThumbnailWrapBack').style.display = 'flex';
                     document.getElementById('printCustomBgSubSettingsBack').style.display = 'flex';
                     document.getElementById('printRemoveCustomBgBtnBack').style.display = 'inline-block';

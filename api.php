@@ -153,6 +153,8 @@ function autoMigrateLegacyGuests(mysqli $conn): void
 
 {
 
+    if (defined('SCHEMA_MIGRATED')) { return; }
+
     // Check if guests table exists
 
     $tableCheck = $conn->query("SHOW TABLES LIKE 'guests'");
@@ -1472,15 +1474,17 @@ if (file_exists($configRoot . '/' . $configName)) {
     require_once $configRoot . '/config.php';
 }
 
-// Run dynamic schema checks on startup
-try {
-    $conn = getDBConnection();
-    ensureStudentsAddedByColumn($conn);
-    ensureStudentTempIdColumn($conn);
-    ensureStudentsIsGuestColumn($conn);
-    autoMigrateLegacyGuests($conn);
-} catch (Exception $e) {
-    error_log("Failed to run startup migrations: " . $e->getMessage());
+// Run dynamic schema checks on startup if lock file doesn't bypass them
+if (!defined('SCHEMA_MIGRATED')) {
+    try {
+        $conn = getDBConnection();
+        ensureStudentsAddedByColumn($conn);
+        ensureStudentTempIdColumn($conn);
+        ensureStudentsIsGuestColumn($conn);
+        autoMigrateLegacyGuests($conn);
+    } catch (Exception $e) {
+        error_log("Failed to run startup migrations: " . $e->getMessage());
+    }
 }
 
 require_once 'audit.php';
@@ -6331,8 +6335,7 @@ function getData()
         while ($row = $result->fetch_assoc()) {
 
             // Debug each student
-
-            error_log("Student found - ID: " . $row['id'] . ", Name: " . $row['name'] . ", Class ID: " . ($row['class_id'] ?? 'NULL') . ", Class: " . ($row['class'] ?? 'NULL'));
+            // error_log("Student found - ID: " . $row['id'] . ", Name: " . $row['name'] . ", Class ID: " . ($row['class_id'] ?? 'NULL') . ", Class: " . ($row['class'] ?? 'NULL'));
 
 
 
