@@ -631,15 +631,7 @@ function processGameQRCode()
 
         }
 
-        $studentChurchId = intval($student['church_id'] ?? 0);
 
-        if (!in_array($studentChurchId, $participants, true)) {
-
-            sendJSON(['success' => false, 'message' => 'هذا الطفل غير مسجل في رحلة مشتركة مع كنيستك']);
-
-            return;
-
-        }
 
         // Check if student is registered for this trip
         $regStmt = $conn->prepare("SELECT id FROM trip_registrations WHERE trip_id = ? AND student_id = ? AND cancelled = 0 LIMIT 1");
@@ -1031,11 +1023,7 @@ function processFastScanPoints()
             return;
         }
 
-        $studentChurchId = intval($student['church_id'] ?? 0);
-        if (!in_array($studentChurchId, $participants, true)) {
-            sendJSON(['success' => false, 'message' => 'هذا الطفل غير مسجل في رحلة مشتركة مع كنيستك']);
-            return;
-        }
+
 
         // Check if student is registered for this trip
         $regStmt = $conn->prepare("SELECT id FROM trip_registrations WHERE trip_id = ? AND student_id = ? AND cancelled = 0 LIMIT 1");
