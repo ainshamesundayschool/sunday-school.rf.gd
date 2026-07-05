@@ -1659,7 +1659,7 @@
         </a>
         <div class="topbar-actions">
             <!-- Sync Status Badge -->
-            <div id="syncBadge" class="sync-badge success" onclick="retrySyncOfflineActionsManual()" title="حالة المزامنة">
+            <div id="syncBadge" class="sync-badge success" onclick="retrySyncOfflineActionsManual()" title="حالة المزامنة" style="display: none;">
                 <i class="fas fa-check-circle"></i>
                 <span class="sync-text">تم الحفظ</span>
             </div>
@@ -2374,14 +2374,17 @@
                 const pendingCount = queue.length;
 
                 if (!navigator.onLine) {
+                    badge.style.display = 'inline-flex';
                     badge.className = 'sync-badge offline';
                     badge.innerHTML = `<i class="fas fa-wifi-slash"></i> <span class="sync-text">وضع عدم الاتصال (${pendingCount})</span>`;
                     badge.title = "غير متصل بالإنترنت. سيتم إرسال العمليات عند استعادة الاتصال.";
                 } else if (pendingCount > 0) {
+                    badge.style.display = 'inline-flex';
                     badge.className = 'sync-badge';
                     badge.innerHTML = `<i class="fas fa-sync fa-spin"></i> <span class="sync-text">جاري مزامنة ${pendingCount}...</span>`;
                     badge.title = `هناك ${pendingCount} عملية معلقة قيد الحفظ والمزامنة بالخلفية.`;
                 } else {
+                    badge.style.display = 'none';
                     badge.className = 'sync-badge success';
                     badge.innerHTML = `<i class="fas fa-check-circle"></i> <span class="sync-text">تم الحفظ</span>`;
                     badge.title = "تمت مزامنة وحفظ جميع العمليات بنجاح.";
