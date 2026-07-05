@@ -603,7 +603,7 @@ function processGameQRCode()
 
         // Determine participating churches for this trip (owner + collaborators)
 
-        $participants = [$trip['church_id']];
+        $participants = [intval($trip['church_id'])];
 
         $collabRaw = $trip['collaborating_churches'] ?? '';
 
@@ -1015,7 +1015,7 @@ function processFastScanPoints()
         }
 
         // Check participating churches
-        $participants = [$trip['church_id']];
+        $participants = [intval($trip['church_id'])];
         $collabRaw = $trip['collaborating_churches'] ?? '';
         $collab = [];
         if (!empty($collabRaw)) {
