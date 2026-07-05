@@ -14305,7 +14305,10 @@
             const hasRooms = document.getElementById('editTripHasRooms').value === '1';
             let roomsConfig = null;
             if (hasRooms) {
-                const config = compileRoomsConfig('edit');
+                let config = compileRoomsConfig('edit');
+                if (t && t.rooms_config) {
+                    config = mergeRoomsConfigs(config, t.rooms_config);
+                }
                 roomsConfig = JSON.stringify(config);
                 const fieldsList = customFields.split(',').map(x => x.trim()).filter(Boolean);
                 if (!fieldsList.includes('السكن')) {
