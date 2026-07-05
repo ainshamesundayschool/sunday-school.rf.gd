@@ -12278,7 +12278,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
     <!-- Kid QR Scanner -->
     <div class="modal-overlay" id="kidQrScannerModal" style="z-index:1000010">
-        <div class="modal" style="max-width:520px;width:92vw;">
+        <div class="modal" style="max-width:360px;width:92vw;">
             <div class="modal-header" style="gap:8px;align-items:flex-start">
                 <div>
                     <h3 id="kidQrScannerTitle"><i class="fas fa-qrcode"></i> مسح QR</h3>
@@ -12327,7 +12327,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
 
                 <div id="kidQrReader"
-                    style="width:100%;min-height:280px;border-radius:16px;overflow:hidden;background:#000"></div>
+                    style="width:100%;min-height:200px;border-radius:16px;overflow:hidden;background:#000"></div>
 
                 <!-- Scanner source selector (Camera vs. USB) — icon only, positioned under camera -->
                 <div style="display: flex; justify-content: center; margin-top: 10px; margin-bottom: 6px;">
@@ -17147,7 +17147,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 } else {
                     // Source is camera
                     if (readerEl) {
-                        readerEl.style.minHeight = '280px';
+                        readerEl.style.minHeight = '200px';
                         readerEl.style.background = '#000';
                         readerEl.style.border = 'none';
                         readerEl.innerHTML = '';
@@ -17255,9 +17255,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     { 
                         fps: 15, 
                         qrbox: (w, h) => { const min = Math.min(w, h); return { width: Math.max(160, min - 60), height: Math.max(160, min - 60) }; },
+                        experimentalFeatures: {
+                            useBarCodeDetectorIfSupported: true
+                        },
+                        formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ],
                         videoConstraints: {
-                            width: { ideal: 1920 },
-                            height: { ideal: 1080 },
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 },
                             facingMode: 'environment'
                         }
                     },
