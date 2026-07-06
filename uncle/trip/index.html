@@ -2948,6 +2948,9 @@
             function navigateTo(view, params = {}) {
                 stopFastScanCamera();
                 stopScanner(); // modal scanner
+                closeTripHistoryModal();
+                closeShortcutsInfoModal();
+                closeTripSettingsModal();
 
                 currentView = view;
                 currentStudentId = params.student_id || null;
