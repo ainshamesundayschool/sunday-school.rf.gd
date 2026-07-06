@@ -1452,6 +1452,12 @@ while ($configRoot && !file_exists($configRoot . '/api.php')) {
     $configRoot = $configParent;
 }
 $isTesting = (strpos($configRoot, '/testing') !== false);
+
+// Define SCHEMA_MIGRATED on production to prevent dynamic DDL migration checks on every request
+if (!$isTesting && !defined('SCHEMA_MIGRATED')) {
+    define('SCHEMA_MIGRATED', true);
+}
+
 $configName = $isTesting ? 'config-testing.php' : 'config.php';
 
 if (file_exists($configRoot . '/' . $configName)) {
