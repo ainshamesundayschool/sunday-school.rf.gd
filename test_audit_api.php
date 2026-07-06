@@ -7,6 +7,18 @@ $_SESSION['church_id'] = 1;
 $_SESSION['uncle_id'] = 1;
 $_SESSION['uncle_role'] = 'developer';
 
+// Mock checkAuth if not defined
+if (!function_exists('checkAuth')) {
+    function checkAuth() {
+        return true;
+    }
+}
+if (!function_exists('getChurchId')) {
+    function getChurchId() {
+        return 1;
+    }
+}
+
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/audit.php';
 
