@@ -4123,24 +4123,23 @@
                             const minZoom = capabilities.zoom.min || 1;
                             const maxZoom = capabilities.zoom.max || 5;
                             const step = capabilities.zoom.step || 0.1;
-
                             const zoomContainer = document.createElement('div');
                             zoomContainer.id = readerId + '-zoom-container';
-                            zoomContainer.style.cssText = 'display:flex; align-items:center; justify-content:center; gap:12px; margin-top:12px; padding: 10px 16px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 12px; border: 1.5px solid rgba(255, 255, 255, 0.15); direction: rtl;';
+                            zoomContainer.style.cssText = 'display:flex; align-items:center; justify-content:center; gap:8px; margin-top:8px; padding: 6px 12px; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); direction: rtl;';
                             
                             const label = document.createElement('span');
-                            label.style.cssText = 'font-family: "Baloo Bhaijaan 2", "Cairo", sans-serif; font-size: 0.8rem; font-weight: 700; color: var(--text-1, #333); min-width: 70px; text-align: left;';
+                            label.style.cssText = 'font-family: "Baloo Bhaijaan 2", "Cairo", sans-serif; font-size: 0.72rem; font-weight: 700; color: var(--text-2, #888); min-width: 55px; text-align: left;';
                             label.innerText = 'التكبير: 1.0x';
 
                             const minusIcon = document.createElement('i');
                             minusIcon.className = 'fas fa-search-minus';
-                            minusIcon.style.cssText = 'color: var(--brand, #5b6cf5); font-size: 0.95rem; cursor: pointer; transition: transform 0.2s;';
+                            minusIcon.style.cssText = 'color: var(--brand, #5b6cf5); font-size: 0.8rem; cursor: pointer; transition: transform 0.2s;';
                             minusIcon.onmouseover = () => minusIcon.style.transform = 'scale(1.15)';
                             minusIcon.onmouseout = () => minusIcon.style.transform = 'scale(1)';
 
                             const plusIcon = document.createElement('i');
                             plusIcon.className = 'fas fa-search-plus';
-                            plusIcon.style.cssText = 'color: var(--brand, #5b6cf5); font-size: 0.95rem; cursor: pointer; transition: transform 0.2s;';
+                            plusIcon.style.cssText = 'color: var(--brand, #5b6cf5); font-size: 0.8rem; cursor: pointer; transition: transform 0.2s;';
                             plusIcon.onmouseover = () => plusIcon.style.transform = 'scale(1.15)';
                             plusIcon.onmouseout = () => plusIcon.style.transform = 'scale(1)';
 
@@ -4150,7 +4149,7 @@
                             slider.max = maxZoom;
                             slider.step = step;
                             slider.value = 1;
-                            slider.style.cssText = 'flex: 1; accent-color: var(--brand, #5b6cf5); cursor: pointer; height: 6px; border-radius: 3px; background: rgba(0,0,0,0.1);';
+                            slider.style.cssText = 'flex: 1; accent-color: var(--brand, #5b6cf5); cursor: pointer; height: 4px; border-radius: 2px; background: rgba(0,0,0,0.1); margin: 0;';
 
                             const updateZoom = (val) => {
                                 label.innerText = 'التكبير: ' + parseFloat(val).toFixed(1) + 'x';
