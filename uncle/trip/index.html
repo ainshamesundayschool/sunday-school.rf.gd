@@ -2804,6 +2804,8 @@
                 regsList = [];
                 currentTrip = null;
 
+                let urlParamsHandled = false;
+
                 // Try to load and show cached local data immediately
                 const localTrip = await getTripLocal(tripId);
                 if (localTrip) {
@@ -2825,6 +2827,7 @@
                     // Render UI from cache instantly
                     renderFieldCards();
                     handleUrlParams();
+                    urlParamsHandled = true;
                     document.getElementById('loadingDetails').style.display = 'none';
                 } else {
                     // Show loading spinner only if we don't have local cache
@@ -2873,20 +2876,32 @@
                             prefetchStudentPhotos(regsList);
 
                             // Smart UI updates depending on the active view
-                            if (currentView === 'dashboard') {
+                            if (!urlParamsHandled) {
                                 renderFieldCards();
-                            } else if (currentView === 'group_filter') {
-                                renderGroupFilterView();
-                            } else if (currentView === 'student_profile') {
-                                const updatedStudent = regsList.find(r => String(r.student_id) === String(currentStudentId));
-                                if (updatedStudent) {
-                                    studentData = updatedStudent;
-                                    const ptsObj = typeof studentData.trip_points === 'string' ? JSON.parse(studentData.trip_points || '{}') : studentData.trip_points;
-                                    const pointsVal = ptsObj[tripId] || 0;
-                                    const isNaughty = studentData.trip_points_naughty === 1 || (ptsObj["n_" + tripId] === 1);
-                                    updatePointsDisplay(pointsVal, isNaughty);
-                                    renderStudentProfileControlPanel();
+                                handleUrlParams();
+                                urlParamsHandled = true;
+                            } else {
+                                if (currentView === 'dashboard') {
+                                    renderFieldCards();
+                                } else if (currentView === 'group_filter') {
+                                    renderGroupFilterView();
+                                } else if (currentView === 'student_profile') {
+                                    const updatedStudent = regsList.find(r => String(r.student_id) === String(currentStudentId));
+                                    if (updatedStudent) {
+                                        studentData = updatedStudent;
+                                        const ptsObj = typeof studentData.trip_points === 'string' ? JSON.parse(studentData.trip_points || '{}') : studentData.trip_points;
+                                        const pointsVal = ptsObj[tripId] || 0;
+                                        const isNaughty = studentData.trip_points_naughty === 1 || (ptsObj["n_" + tripId] === 1);
+                                        updatePointsDisplay(pointsVal, isNaughty);
+                                        renderStudentProfileControlPanel();
+                                    }
                                 }
+                            }
+                        } else {
+                            if (!urlParamsHandled) {
+                                renderFieldCards();
+                                handleUrlParams();
+                                urlParamsHandled = true;
                             }
                         }
 
@@ -5494,7 +5509,11 @@
             // Recent Scans history layout
             async function loadRecentScans() {
                 try {
-                    const res = await fetch(`${API_URL}?action=getRecentTripPointsScans&trip_id=${tripId}`).then(r => r.json());
+                    let url = `${API_URL}?action=getRecentTripPointsScans&trip_id=${tripId}`;
+                    if (currentView === 'student_profile' && currentStudentId) {
+                        url += `&student_id=${currentStudentId}`;
+                    }
+                    const res = await fetch(url).then(r => r.json());
                     if (res.success && res.scans) {
                         currentUncleId = res.current_uncle_id;
 
@@ -5526,7 +5545,11 @@
                             if (s.reason) {
                                 const parts = s.reason.split(':');
                                 if (parts.length >= 3) {
-                                    actionNote = parts.slice(2).join(':');
+                                    let actionParts = parts.slice(2);
+                                    if (actionParts.length > 0 && actionParts[actionParts.length - 1].startsWith('tx_')) {
+                                        actionParts.pop();
+                                    }
+                                    actionNote = actionParts.join(':');
                                 }
                             }
                             return {
