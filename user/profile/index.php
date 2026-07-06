@@ -5218,6 +5218,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     const TARGET_TRIP_ID = <?php echo json_encode($targetTripId); ?>;
     const _creds = localStorage.getItem('rememberMe') === 'true' && !!localStorage.getItem('savedUsername') && !!localStorage.getItem('savedPassword');
     const IS_PUBLIC = !!(URL_ID && !_creds);
+    if (IS_PUBLIC) {
+      window.location.replace('/uncle/trip/open_kid.php' + window.location.search);
+    }
     const API_URL = (() => {
       const segs = location.pathname.replace(/\/[^/]*$/, '').split('/').filter(Boolean);
       return segs.map(() => '../').join('') + 'api.php';
