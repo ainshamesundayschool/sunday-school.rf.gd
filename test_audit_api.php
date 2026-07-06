@@ -35,7 +35,7 @@ try {
     }
     
     echo "<h3>2. Calling getAuditLogs()</h3>";
-    $_POST['limit'] = 10;
+    $_POST['limit'] = 500;
     $_POST['offset'] = 0;
     
     getAuditLogs();
