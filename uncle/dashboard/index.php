@@ -17180,7 +17180,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                         const zoomContainer = document.createElement('div');
                         zoomContainer.id = readerId + '-zoom-container';
-                        zoomContainer.style.cssText = 'display:flex; align-items:center; justify-content:center; gap:8px; margin-top:8px; padding: 6px 12px; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); direction: rtl;';
+                        zoomContainer.style.cssText = 'display:flex; align-items:center; justify-content:center; gap:8px; margin-top:8px; padding: 6px 12px; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); direction: rtl; width: 100%; max-width: 220px; box-sizing: border-box;';
                         
                         const label = document.createElement('span');
                         label.style.cssText = 'font-family: "Baloo Bhaijaan 2", "Cairo", sans-serif; font-size: 0.72rem; font-weight: 700; color: var(--text-2, #888); min-width: 55px; text-align: left;';
