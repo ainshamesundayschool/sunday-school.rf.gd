@@ -24948,66 +24948,50 @@ function updateTrip()
 
 
 
-        $title = sanitize($_POST['title'] ?? '');
+        $conn = getDBConnection();
+        $oldTrip = getTripSnapshot($tripId);
+        if (!$oldTrip) {
+            sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة']);
+            return;
+        }
 
-        $description = sanitize($_POST['description'] ?? '');
+        $title = isset($_POST['title']) ? sanitize($_POST['title']) : ($oldTrip['title'] ?? '');
+        $description = isset($_POST['description']) ? sanitize($_POST['description']) : ($oldTrip['description'] ?? '');
+        $type = isset($_POST['type']) ? sanitize($_POST['type']) : ($oldTrip['type'] ?? 'one_day');
+        $startDate = isset($_POST['start_date']) ? sanitize($_POST['start_date']) : ($oldTrip['start_date'] ?? '');
+        $endDate = isset($_POST['end_date']) ? sanitize($_POST['end_date']) : ($oldTrip['end_date'] ?? '');
 
-        $type = sanitize($_POST['type'] ?? 'one_day');
+        $price = isset($_POST['price']) ? floatval($_POST['price']) : floatval($oldTrip['price'] ?? 0);
+        $discount = isset($_POST['discount']) ? floatval($_POST['discount']) : floatval($oldTrip['discount'] ?? 0);
+        $discountType = isset($_POST['discount_type']) ? sanitize($_POST['discount_type']) : ($oldTrip['discount_type'] ?? 'percentage');
+        $maxParticipants = isset($_POST['max_participants']) ? intval($_POST['max_participants']) : intval($oldTrip['max_participants'] ?? 0);
+        $status = isset($_POST['status']) ? sanitize($_POST['status']) : ($oldTrip['status'] ?? 'planned');
 
-        $startDate = sanitize($_POST['start_date'] ?? '');
-
-        $endDate = sanitize($_POST['end_date'] ?? '');
-
-        $price = floatval($_POST['price'] ?? 0);
-
-        $discount = floatval($_POST['discount'] ?? 0);
-
-        $discountType = sanitize($_POST['discount_type'] ?? 'percentage');
-
-        $maxParticipants = intval($_POST['max_participants'] ?? 0);
-
-        $status = sanitize($_POST['status'] ?? 'planned');
-
-        $showRegisteredKids = isset($_POST['show_registered_kids']) ? intval($_POST['show_registered_kids']) : 1;
-
+        $showRegisteredKids = isset($_POST['show_registered_kids']) ? intval($_POST['show_registered_kids']) : intval($oldTrip['show_registered_kids'] ?? 1);
         $showRegisteredKids = $showRegisteredKids ? 1 : 0;
 
-        $hasPointsGame = isset($_POST['has_points_game']) ? intval($_POST['has_points_game']) : 0;
-
+        $hasPointsGame = isset($_POST['has_points_game']) ? intval($_POST['has_points_game']) : intval($oldTrip['has_points_game'] ?? 0);
         $hasPointsGame = $hasPointsGame ? 1 : 0;
 
-        $hasRooms = isset($_POST['has_rooms']) ? intval($_POST['has_rooms']) : 0;
-
+        $hasRooms = isset($_POST['has_rooms']) ? intval($_POST['has_rooms']) : intval($oldTrip['has_rooms'] ?? 0);
         $hasRooms = $hasRooms ? 1 : 0;
 
-        $roomsConfig = $_POST['rooms_config'] ?? null;
-
+        $roomsConfig = isset($_POST['rooms_config']) ? $_POST['rooms_config'] : ($oldTrip['rooms_config'] ?? null);
         if ($roomsConfig === '' || $roomsConfig === 'null') {
-
             $roomsConfig = null;
-
         }
 
-        $pointsConfig = $_POST['points_config'] ?? null;
-
+        $pointsConfig = isset($_POST['points_config']) ? $_POST['points_config'] : ($oldTrip['points_config'] ?? null);
         if ($pointsConfig === '' || $pointsConfig === 'null') {
-
             $pointsConfig = null;
-
         }
 
-        $customFields = strip_tags(trim($_POST['custom_fields'] ?? ''));
-
+        $customFields = isset($_POST['custom_fields']) ? strip_tags(trim($_POST['custom_fields'])) : ($oldTrip['custom_fields'] ?? '');
         if (in_array(strtolower($customFields), ['0', 'null', 'undefined'], true)) {
-
             $customFields = '';
-
         }
-
         $customFields = implode(',', array_filter(array_map('trim', explode(',', $customFields)), function ($field) {
-
             return $field !== '';
-
         }));
 
         // custom_field_icons — includes nested sub_fields; sanitize scalars but preserve structure
@@ -25234,14 +25218,7 @@ function updateTrip()
 
 
 
-        // BEFORE update, get old trip data
 
-        $oldTrip = getTripSnapshot($tripId);
-
-        if (!$oldTrip) {
-            sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة']);
-            return;
-        }
 
         $ownerChurchId = intval($oldTrip['church_id']);
         $isOwner = ($churchId === $ownerChurchId);
@@ -26126,35 +26103,32 @@ function bulkUpdateCustomData()
 
 
 
-            $normalized = [];
+            $getStmt = $conn->prepare("SELECT custom_data FROM trip_registrations WHERE id = ?");
+            $getStmt->bind_param("i", $registrationId);
+            $getStmt->execute();
+            $currResult = $getStmt->get_result();
+            $existing = [];
+            if ($currResult && $rowObj = $currResult->fetch_assoc()) {
+                $existing = json_decode($rowObj['custom_data'] ?? '[]', true) ?: [];
+            }
+            $getStmt->close();
 
             foreach ($customData as $key => $value) {
-
                 // Preserve key structure — Arabic field names + __sub__ separators
-
                 $fieldKey = strip_tags(trim((string) $key));
-
                 if ($fieldKey === '') {
-
                     continue;
-
                 }
-
                 $cleanVal = strip_tags(trim((string) $value));
-
-                // Only store if a value was selected
-
+                // Only store if a value was selected, delete if explicitly cleared
                 if ($cleanVal !== '') {
-
-                    $normalized[$fieldKey] = $cleanVal;
-
+                    $existing[$fieldKey] = $cleanVal;
+                } else {
+                    unset($existing[$fieldKey]);
                 }
-
             }
 
-
-
-            $json = !empty($normalized) ? json_encode($normalized, JSON_UNESCAPED_UNICODE) : null;
+            $json = !empty($existing) ? json_encode($existing, JSON_UNESCAPED_UNICODE) : null;
 
             $updateStmt->bind_param('sis', $json, $registrationId, $tripId);
 

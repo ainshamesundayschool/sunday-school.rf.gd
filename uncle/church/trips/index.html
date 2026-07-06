@@ -9604,6 +9604,20 @@
       }
     </script>
     <script>
+      function getTripCustomFieldIcons(trip) {
+        let icons = {};
+        if (trip && trip.custom_field_icons) {
+          icons = (typeof trip.custom_field_icons === 'object') ? { ...trip.custom_field_icons } : JSON.parse(trip.custom_field_icons || '{}');
+        }
+        if (trip && trip.has_rooms == 1 && trip.rooms_config && typeof buildAccommodationCustomFieldMeta === 'function') {
+          try {
+            const config = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config) : trip.rooms_config;
+            icons['السكن'] = buildAccommodationCustomFieldMeta(config);
+          } catch (e) { console.error("Error populating rooms meta:", e); }
+        }
+        return icons;
+      }
+
       function _getAllSubFieldColumns(fields, icons) {
         const allColumns = [];
         fields.forEach(field => {
@@ -9638,7 +9652,7 @@
         const trip = allTripsCache.find(t => t.id == tripId);
         const regs = getFilteredTripRegistrations(trip, tripRegistrationsCache[tripId] || []);
         const fields = parseCustomFieldsString(trip?.custom_fields);
-        const icons = (trip && typeof trip.custom_field_icons === 'object') ? trip.custom_field_icons : {};
+        const icons = getTripCustomFieldIcons(trip);
         if (!trip || !fields.length) return;
 
         const allColumns = _getAllSubFieldColumns(fields, icons);
@@ -9668,7 +9682,7 @@
         if (!file) return;
         const trip = allTripsCache.find(t => t.id == tripId);
         const fields = parseCustomFieldsString(trip?.custom_fields);
-        const icons = (trip && typeof trip.custom_field_icons === 'object') ? trip.custom_field_icons : {};
+        const icons = getTripCustomFieldIcons(trip);
         if (!trip || !fields.length) return;
 
         const allColumns = _getAllSubFieldColumns(fields, icons);
@@ -9766,7 +9780,7 @@
         const tripId = document.getElementById('bulkCustomDataTripId').value;
         const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
         const fields = parseCustomFieldsString(trip?.custom_fields);
-        const icons = (trip && typeof trip.custom_field_icons === 'object') ? trip.custom_field_icons : {};
+        const icons = getTripCustomFieldIcons(trip);
         const allColumns = _getAllSubFieldColumns(fields, icons);
         const validFields = allColumns.map(c => c.field);
 
@@ -10594,13 +10608,6 @@
 
         const fd = new FormData();
         fd.append('action', 'updateTrip'); fd.append('trip_id', tripId);
-        fd.append('title', trip.title || ''); fd.append('description', trip.description || '');
-        fd.append('type', trip.type || 'one_day'); fd.append('start_date', trip.start_date || '');
-        fd.append('end_date', trip.end_date || ''); fd.append('price', trip.price || 0);
-        fd.append('discount', trip.discount || 0); fd.append('discount_type', trip.discount_type || 'percentage');
-        fd.append('max_participants', trip.max_participants || 0); fd.append('status', trip.status || 'planned');
-        fd.append('show_registered_kids', trip.show_registered_kids ?? 1);
-        fd.append('has_points_game', trip.has_points_game ?? 0);
         fd.append('custom_fields', customFields);
         fd.append('custom_field_icons', JSON.stringify(customFieldIcons));
 
@@ -18341,29 +18348,43 @@
       async function saveRoomsConfig(tripId, config) {
         const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
         if (!trip) return false;
+
+        let customFieldIcons = {};
+        try {
+          customFieldIcons = (trip.custom_field_icons && typeof trip.custom_field_icons === 'object')
+            ? { ...trip.custom_field_icons }
+            : JSON.parse(trip.custom_field_icons || '{}');
+        } catch (e) { }
+
+        if (typeof buildAccommodationCustomFieldMeta === 'function') {
+          customFieldIcons['السكن'] = buildAccommodationCustomFieldMeta(config);
+        }
+
+        let customFields = trip.custom_fields || '';
+        const fieldsList = customFields.split(',').map(x => x.trim()).filter(Boolean);
+        if (!fieldsList.includes('السكن')) {
+          fieldsList.push('السكن');
+        }
+        customFields = fieldsList.join(',');
+
         const fd = new FormData();
         fd.append('action', 'updateTrip');
         fd.append('trip_id', tripId);
-        fd.append('title', trip.title);
-        fd.append('type', trip.type);
-        fd.append('start_date', trip.start_date?.split('T')[0] || trip.start_date || '');
-        fd.append('end_date', trip.end_date?.split('T')[0] || trip.end_date || '');
-        fd.append('price', Math.round(trip.price));
-        fd.append('discount', Math.round(trip.discount || 0));
-        fd.append('discount_type', trip.discount_type || 'percentage');
-        fd.append('max_participants', trip.max_participants || 0);
-        fd.append('status', trip.status);
-        fd.append('description', trip.description || '');
-        fd.append('show_registered_kids', String(trip.show_registered_kids ?? 1));
-        fd.append('has_points_game', String(trip.has_points_game ?? 0));
-        fd.append('custom_fields', trip.custom_fields || '');
-        fd.append('custom_field_icons', typeof trip.custom_field_icons === 'object' ? JSON.stringify(trip.custom_field_icons) : (trip.custom_field_icons || '{}'));
+        fd.append('custom_fields', customFields);
+        fd.append('custom_field_icons', JSON.stringify(customFieldIcons));
         fd.append('has_rooms', '1');
         fd.append('rooms_config', JSON.stringify(config));
 
         const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
         if (res.success) {
+          trip.custom_fields = customFields;
+          trip.custom_field_icons = customFieldIcons;
           trip.rooms_config = config; // Update cache
+          if (window.currentTripObj && window.currentTripObj.id == tripId) {
+            window.currentTripObj.custom_fields = customFields;
+            window.currentTripObj.custom_field_icons = customFieldIcons;
+            window.currentTripObj.rooms_config = config;
+          }
           return true;
         }
         return false;
