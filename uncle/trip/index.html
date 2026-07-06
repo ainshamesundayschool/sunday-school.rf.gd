@@ -2633,7 +2633,7 @@
                                      (action === 'processGameQRCode' && (gameAction === 'naughty' || amount !== 0));
                                      
                 if (shouldAddLog) {
-                    const studentName = student.name || `طالب ${studentId}`;
+                    const studentName = student.student_name || student.name || `طالب ${studentId}`;
                     const changeVal = (action === 'processFastScanPoints') 
                         ? amount 
                         : (gameAction === 'increment' ? amount : (gameAction === 'decrement' ? -amount : 0));
@@ -2669,7 +2669,7 @@
                         client_tx_id: clientTxId
                     },
                     timestamp: Date.now(),
-                    studentName: student.name || `طالب ${studentId}`,
+                    studentName: student.student_name || student.name || `طالب ${studentId}`,
                     changeVal: (action === 'processFastScanPoints') 
                         ? amount 
                         : (gameAction === 'increment' ? amount : (gameAction === 'decrement' ? -amount : 0)),
@@ -4435,7 +4435,7 @@
                     }, 500);
                 }
 
-                const studentName = localStudent.name;
+                const studentName = localStudent.student_name || localStudent.name || `طالب ${scannedStudentId}`;
                 let msg = `تم تسجيل ${changeAmount > 0 ? '+' : ''}${changeAmount} لـ ${studentName}`;
                 showToast(msg, 'success');
 
@@ -5511,7 +5511,7 @@
                         scansLog.unshift({
                             id: item.txId,
                             studentId: item.params.student_id,
-                            studentName: item.studentName || (localStudent ? localStudent.name : `طالب ${item.params.student_id}`),
+                            studentName: item.studentName || (localStudent ? (localStudent.student_name || localStudent.name) : `طالب ${item.params.student_id}`),
                             change: item.changeVal,
                             status: item.status || 'pending',
                             profilePhoto: localStudent ? localStudent.photo : '',
