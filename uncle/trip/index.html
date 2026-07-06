@@ -1665,6 +1665,13 @@
                 <span class="sync-text">تم الحفظ</span>
             </div>
 
+            <!-- Excel Export Button -->
+            <button class="topbar-btn" onclick="exportTripToExcel()" title="تصدير كشيت إكسيل"
+                style="height:36px; padding:0 12px; border-radius:var(--r-md); cursor:pointer;">
+                <i class="fas fa-file-excel" style="color: #10b981;"></i>
+                <span style="font-family:'Cairo',sans-serif; font-weight:700;">تصدير Excel</span>
+            </button>
+
             <!-- Trip history button at the top -->
             <button class="topbar-btn" onclick="showTripHistoryModal()" title="سجل النقاط بالرحلة"
                 style="height:36px; padding:0 12px; border-radius:var(--r-md); cursor:pointer;">
@@ -5936,6 +5943,127 @@
                 if (currentTrip && currentTrip.id) {
                     window.location.href = pathPrefix + `/uncle/trip/leaderboard/?trip_id=${currentTrip.id}`;
                 }
+            }
+
+            function exportTripToExcel() {
+                if (!currentTrip || !regsList || regsList.length === 0) {
+                    showToast('لا توجد بيانات طلاب لتصديرها كشيت إكسيل', 'error');
+                    return;
+                }
+
+                // 1. Sort registrations by highest points descending
+                const sortedRegs = [...regsList].sort((a, b) => {
+                    const ptsA = parseInt(a.trip_points_val) || 0;
+                    const ptsB = parseInt(b.trip_points_val) || 0;
+                    return ptsB - ptsA;
+                });
+
+                // 2. Identify the other custom fields (excluding "السكن" which goes to column 1)
+                const JUNK = new Set(['0', 'null', 'undefined', 'none', '']);
+                const fields = currentTrip.custom_fields
+                    ? currentTrip.custom_fields.split(',').map(f => f.trim()).filter(f => f && !JUNK.has(f.toLowerCase()))
+                    : [];
+                const exportFields = fields.filter(f => f !== 'السكن');
+
+                // 3. Prepare CSV contents
+                let csvContent = "\uFEFF"; // UTF-8 BOM for Excel Arabic support
+
+                const escapeCSV = (str) => {
+                    if (str === null || str === undefined) return '""';
+                    return `"${str.toString().replace(/"/g, '""')}"`;
+                };
+
+                // Header Row
+                const headers = [
+                    "بيانات الطفل (الكود - الاسم - الكنيسة - التسكين - معلومات)",
+                    ...exportFields,
+                    "النقاط"
+                ];
+                csvContent += headers.map(h => escapeCSV(h)).join(',') + '\n';
+
+                // Student Rows
+                sortedRegs.forEach(r => {
+                    const cd = JSON.parse(r.custom_data || '{}');
+
+                    // Column 1: Combined child info
+                    const combinedParts = [];
+                    combinedParts.push(`كود: ${r.student_id || r.guest_id || ''}`);
+                    combinedParts.push(r.student_name || r.name || '');
+
+                    // Church Name
+                    const chName = r.church_name || r.student_church_name || '';
+                    if (chName) {
+                        combinedParts.push(`كنيسة: ${chName}`);
+                    }
+
+                    // Accommodation / Rooms
+                    const roomParts = [];
+                    if (cd['السكن']) roomParts.push(cd['السكن']);
+                    if (cd['السكن__sf__الدور']) roomParts.push(cd['السكن__sf__الدور']);
+                    if (cd['السكن__sf__الغرفة']) roomParts.push(`غرفة ${cd['السكن__sf__الغرفة']}`);
+                    
+                    // Fallback search for any other room keys in custom_data
+                    Object.entries(cd).forEach(([k, v]) => {
+                        if (k !== 'السكن' && k !== 'السكن__sf__الدور' && k !== 'السكن__sf__الغرفة') {
+                            const lowerK = k.toLowerCase();
+                            if (lowerK.includes('غرفة') || lowerK.includes('غرف') || lowerK.includes('مبيت') || lowerK.includes('تسكين') || lowerK.includes('room') || lowerK.includes('building') || lowerK.includes('مبنى') || lowerK.includes('سكن')) {
+                                roomParts.push(`${k}: ${v}`);
+                            }
+                        }
+                    });
+
+                    if (roomParts.length > 0) {
+                        combinedParts.push(`تسكين: ${roomParts.join(' - ')}`);
+                    }
+
+                    // General student custom info
+                    if (r.student_custom_info && r.student_custom_info !== 'null' && r.student_custom_info !== 'undefined') {
+                        combinedParts.push(`معلومات: ${r.student_custom_info}`);
+                    }
+
+                    const colA = combinedParts.join(' | ');
+
+                    // Middle Columns: other custom fields (like teams)
+                    const middleCols = exportFields.map(field => {
+                        let val = cd[field] || '';
+                        const subVals = [];
+                        Object.entries(cd).forEach(([k, v]) => {
+                            if (k.startsWith(field + '__sf__')) {
+                                subVals.push(v);
+                            }
+                        });
+                        if (subVals.length > 0) {
+                            if (val) val = `${val} (${subVals.join(', ')})`;
+                            else val = subVals.join(', ');
+                        }
+                        return val;
+                    });
+
+                    // Column N: Points
+                    const colPoints = r.trip_points_val || 0;
+
+                    // Combine and add row
+                    const rowData = [
+                        colA,
+                        ...middleCols,
+                        colPoints
+                    ];
+
+                    csvContent += rowData.map(val => escapeCSV(val)).join(',') + '\n';
+                });
+
+                // 4. Download file
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.setAttribute("href", url);
+
+                const cleanTripTitle = (currentTrip.title || 'trip').trim().replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, '_');
+                link.setAttribute("download", `تقرير_رحلة_${cleanTripTitle}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
             }
 
             function escHtml(str) {
