@@ -17,9 +17,31 @@
  * @param array|null  $newData     Snapshot AFTER  the change (null for deletes)
  * @param string|null $notes       Any extra context you want to store
  */
+function ensureAuditLogsTable($conn) {
+    $conn->query("
+        CREATE TABLE IF NOT EXISTS `audit_logs` (
+          `id` INT AUTO_INCREMENT PRIMARY KEY,
+          `church_id` INT NOT NULL,
+          `uncle_id` INT DEFAULT NULL,
+          `uncle_name` VARCHAR(100) DEFAULT NULL,
+          `action` VARCHAR(50) NOT NULL,
+          `entity` VARCHAR(30) NOT NULL,
+          `entity_id` INT DEFAULT NULL,
+          `entity_name` VARCHAR(200) DEFAULT NULL,
+          `old_data` LONGTEXT DEFAULT NULL,
+          `new_data` LONGTEXT DEFAULT NULL,
+          `ip_address` VARCHAR(45) DEFAULT NULL,
+          `user_agent` VARCHAR(500) DEFAULT NULL,
+          `notes` TEXT DEFAULT NULL,
+          `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+}
+
 function writeAuditLog($action, $entity, $entity_id = null, $entity_name = '', $old_data = null, $new_data = null, $notes = '') {
     try {
         $conn = getDBConnection();
+        ensureAuditLogsTable($conn);
         
         $church_id = getChurchId();
         $uncle_id = $_SESSION['uncle_id'] ?? null;
@@ -37,6 +59,10 @@ function writeAuditLog($action, $entity, $entity_id = null, $entity_name = '', $
              old_data, new_data, ip_address, user_agent, notes, created_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
         ");
+        
+        if (!$stmt) {
+            throw new Exception("Failed to prepare audit log statement: " . $conn->error);
+        }
         
         $stmt->bind_param(
             "iisssissssss",
@@ -56,7 +82,7 @@ function writeAuditLog($action, $entity, $entity_id = null, $entity_name = '', $
         
         return $stmt->execute();
         
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         error_log("writeAuditLog error: " . $e->getMessage());
         return false;
     }
@@ -168,6 +194,7 @@ function getAuditLogs() {
         $offset = intval($_POST['offset'] ?? $_GET['offset'] ?? 0);
         
         $conn = getDBConnection();
+        ensureAuditLogsTable($conn);
         
         $isAll = (!empty($_POST['all_churches']) && $_POST['all_churches'] === '1') || 
                  (isset($_SESSION['uncle_role']) && $_SESSION['uncle_role'] === 'developer');
@@ -193,6 +220,9 @@ function getAuditLogs() {
         $types .= "ii";
         
         $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            throw new Exception("Failed to prepare getAuditLogs statement: " . $conn->error);
+        }
         
         if (!empty($params)) {
             $stmt->bind_param($types, ...$params);
@@ -221,6 +251,9 @@ function getAuditLogs() {
         }
         
         $countStmt = $conn->prepare($countSql);
+        if (!$countStmt) {
+            throw new Exception("Failed to prepare countAuditLogs statement: " . $conn->error);
+        }
         if (!$isAll) {
             $countStmt->bind_param("i", $churchId);
         }
@@ -236,7 +269,7 @@ function getAuditLogs() {
             'has_more' => ($offset + $limit) < $totalCount
         ]);
         
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         error_log("getAuditLogs error: " . $e->getMessage());
         sendJSON(['success' => false, 'message' => 'خطأ في تحميل سجل العمليات: ' . $e->getMessage()]);
     }
@@ -259,6 +292,8 @@ function getEntityAuditHistory(): void {
         }
 
         $conn = getDBConnection();
+        ensureAuditLogsTable($conn);
+        
         $sql = "
             SELECT al.*, u.image_url as uncle_image
             FROM audit_logs al
@@ -276,6 +311,10 @@ function getEntityAuditHistory(): void {
         $sql .= " ORDER BY al.created_at DESC LIMIT 200";
         
         $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            throw new Exception("Failed to prepare getEntityAuditHistory statement: " . $conn->error);
+        }
+        
         if ($entity === 'student' || $entity === 'coupon') {
             $stmt->bind_param("ii", $churchId, $entityId);
         } else {
@@ -295,9 +334,9 @@ function getEntityAuditHistory(): void {
 
         sendJSON(['success' => true, 'logs' => $logs, 'count' => count($logs)]);
 
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         error_log("getEntityAuditHistory error: " . $e->getMessage());
-        sendJSON(['success' => false, 'message' => 'خطأ في جلب السجل']);
+        sendJSON(['success' => false, 'message' => 'خطأ في جلب السجل: ' . $e->getMessage()]);
     }
 }
 
