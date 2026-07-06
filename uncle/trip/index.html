@@ -1810,8 +1810,32 @@
                         placeholder="ابحث عن طفل بالاسم..."
                         oninput="topbarSearchHandler('topbarSearchProfile', 'topbarSearchResultsProfile')"
                         style="padding: 10px 14px 10px 40px; font-size: 0.95rem; border-radius: 24px; border: 1.5px solid var(--border-solid); width: 100%; box-sizing: border-box; text-align: right; background: var(--surface); transition: all 0.2s; outline: none;">
-                    <i class="fas fa-search"
-                        style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-3); pointer-events: none; font-size: 0.95rem;"></i>
+                    <!-- Scan QR Icon (Left, instead of search icon) -->
+                    <button type="button" onclick="toggleScanDropdownProfile(event)" 
+                        style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); border: none; background: none; color: var(--brand); cursor: pointer; padding: 4px; font-size: 1.15rem; display: flex; align-items: center; justify-content: center; outline: none; transition: transform 0.2s; z-index: 15;"
+                        onmouseover="this.style.transform='translateY(-50%) scale(1.15)'"
+                        onmouseout="this.style.transform='translateY(-50%) scale(1)'"
+                        title="مسح كود QR">
+                        <i class="fas fa-qrcode"></i>
+                    </button>
+                </div>
+                <!-- Scan Dropdown Menu (Aligned Left) -->
+                <div id="scanDropdownMenuProfile" class="glass-card" 
+                    style="display: none; position: absolute; left: 8px; top: 100%; margin-top: 6px; width: 200px; border-radius: var(--r-md, 12px); border: 1.5px solid var(--border-solid); background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: var(--shadow-lg); z-index: 10000; overflow: hidden; direction: rtl;">
+                    <a href="javascript:void(0)" onclick="selectScanOption('profile')" 
+                        onmouseover="this.style.background='var(--surface-3)'" 
+                        onmouseout="this.style.background='transparent'"
+                        style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; font-size: 0.85rem; font-weight: 700; color: var(--text-1); text-decoration: none; border-bottom: 1px solid var(--border-solid); transition: background 0.2s;">
+                        <i class="fas fa-user" style="color: var(--success); font-size: 0.95rem; width: 18px; text-align: center;"></i>
+                        <span>مسح ملف الطفل</span>
+                    </a>
+                    <a href="javascript:void(0)" onclick="selectScanOption('fast')" 
+                        onmouseover="this.style.background='var(--surface-3)'" 
+                        onmouseout="this.style.background='transparent'"
+                        style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; font-size: 0.85rem; font-weight: 700; color: var(--text-1); text-decoration: none; transition: background 0.2s;">
+                        <i class="fas fa-bolt" style="color: var(--brand); font-size: 0.95rem; width: 18px; text-align: center;"></i>
+                        <span>مسح إضافة فورية</span>
+                    </a>
                 </div>
                 <div class="topbar-search-results" id="topbarSearchResultsProfile"
                     style="border-radius: 16px; margin-top: 8px;"></div>
@@ -4920,9 +4944,19 @@
                 }
             }
 
+            function toggleScanDropdownProfile(event) {
+                event.stopPropagation();
+                const menu = document.getElementById('scanDropdownMenuProfile');
+                if (menu) {
+                    menu.style.display = (menu.style.display === 'none' || menu.style.display === '') ? 'block' : 'none';
+                }
+            }
+
             function selectScanOption(option) {
                 const menu = document.getElementById('scanDropdownMenu');
                 if (menu) menu.style.display = 'none';
+                const profileMenu = document.getElementById('scanDropdownMenuProfile');
+                if (profileMenu) profileMenu.style.display = 'none';
 
                 if (option === 'profile') {
                     startScannerV2();
@@ -4935,6 +4969,10 @@
                 const menu = document.getElementById('scanDropdownMenu');
                 if (menu && !menu.contains(e.target)) {
                     menu.style.display = 'none';
+                }
+                const profileMenu = document.getElementById('scanDropdownMenuProfile');
+                if (profileMenu && !profileMenu.contains(e.target)) {
+                    profileMenu.style.display = 'none';
                 }
             });
 
