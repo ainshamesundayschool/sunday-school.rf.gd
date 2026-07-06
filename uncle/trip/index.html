@@ -5978,7 +5978,7 @@
                     "الكنيسة",
                     "التسكين",
                     ...exportFields,
-                    "معلومات إضافية",
+                    "بيانات الرحلة",
                     "النقاط"
                 ];
                 csvContent += headers.map(h => escapeCSV(h)).join(',') + '\n';
@@ -6024,8 +6024,30 @@
                         return val;
                     });
 
-                    // General student custom info
-                    const colInfo = (r.student_custom_info && r.student_custom_info !== 'null' && r.student_custom_info !== 'undefined') ? r.student_custom_info : '';
+                    // Format trip custom data as a clean readable string (excluding room fields which are in rooms column)
+                    const formattedTripCustom = [];
+                    Object.entries(cd).forEach(([k, v]) => {
+                        if (v && v !== 'null' && v !== 'undefined') {
+                            if (k !== 'السكن' && !k.startsWith('السكن__sf__')) {
+                                if (!k.includes('__sf__')) {
+                                    // Check if there are sub-fields
+                                    const subParts = [];
+                                    Object.entries(cd).forEach(([subK, subV]) => {
+                                        if (subK.startsWith(k + '__sf__') && subV) {
+                                            const subName = subK.replace(k + '__sf__', '');
+                                            subParts.push(`${subName}: ${subV}`);
+                                        }
+                                    });
+                                    if (subParts.length > 0) {
+                                        formattedTripCustom.push(`${k}: ${v} (${subParts.join(' - ')})`);
+                                    } else {
+                                        formattedTripCustom.push(`${k}: ${v}`);
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    const colInfo = formattedTripCustom.join(' | ');
 
                     // Column N: Points
                     const colPoints = r.trip_points_val || 0;
