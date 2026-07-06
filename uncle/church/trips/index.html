@@ -6992,7 +6992,7 @@
           </div>
           <div class="kid-ov-actions">
             <button class="btn btn-success btn-sm" onclick="this.closest('.kid-overview-panel').remove(); showAddPaymentModal(${r.id},'${escHtml(r.student_name)}',${totalPerKid},${paid})"><i class="fas fa-money-bill"></i> دفعة</button>
-            <button class="btn btn-outline btn-sm" onclick="this.closest('.kid-overview-panel').remove(); showPaymentHistoryModal(${r.id},'${escHtml(r.student_name)}')"><i class="fas fa-history"></i> السجل</button>
+            <button class="btn btn-outline btn-sm" title="السجل" onclick="this.closest('.kid-overview-panel').remove(); showPaymentHistoryModal(${r.id},'${escHtml(r.student_name)}')"><i class="fas fa-history"></i></button>
             <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger);" onclick="this.closest('.kid-overview-panel').remove(); showAddDonationModal(${r.id},'${escHtml(r.student_name)}')"><i class="fas fa-heart"></i> تبرع</button>
             <button class="btn btn-outline btn-sm" style="color:var(--danger);" onclick="if(confirm('إلغاء تسجيل هذا الطفل؟')){this.closest('.kid-overview-panel').remove(); cancelRegistration(${r.id},${tripId});}"><i class="fas fa-user-times"></i> إلغاء</button>
           </div>
@@ -8692,7 +8692,7 @@
                 <div class="sub" style="color:var(--muted);">انضم ${new Date(w.added_at).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' })}</div>
                 <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
                   <button class="btn btn-success btn-sm" onclick='showAddPaymentModal(${w.id}, ${JSON.stringify(w.student_name || "")}, ${totalPerKid}, ${paid}, ${JSON.stringify(getWaitlistEntryMeta(w, tripId))})'><i class="fas fa-money-bill"></i> دفعة</button>
-                  <button class="btn btn-outline btn-sm" onclick='showPaymentHistoryModal(${w.id}, ${JSON.stringify(w.student_name || "")}, ${JSON.stringify(getWaitlistEntryMeta(w, tripId))})'><i class="fas fa-history"></i> السجل</button>
+                  <button class="btn btn-outline btn-sm" title="السجل" onclick='showPaymentHistoryModal(${w.id}, ${JSON.stringify(w.student_name || "")}, ${JSON.stringify(getWaitlistEntryMeta(w, tripId))})'><i class="fas fa-history"></i></button>
                   <button class="btn btn-primary btn-sm" style="background:var(--primary);border-color:var(--primary);color:#fff;" onclick='promoteFromWaitlist(${tripId}, ${w.id})' title="ترقية للتسجيل الرئيسي"><i class="fas fa-arrow-up"></i> ترقية</button>
                 </div>
               </div>

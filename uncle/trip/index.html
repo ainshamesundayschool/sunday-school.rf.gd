@@ -5958,7 +5958,7 @@
                     return ptsB - ptsA;
                 });
 
-                // 2. Identify the other custom fields (excluding "السكن" which goes to column 1)
+                // 2. Identify the other custom fields (excluding "السكن" which is combined in one cell)
                 const JUNK = new Set(['0', 'null', 'undefined', 'none', '']);
                 const fields = currentTrip.custom_fields
                     ? currentTrip.custom_fields.split(',').map(f => f.trim()).filter(f => f && !JUNK.has(f.toLowerCase()))
@@ -5975,8 +5975,12 @@
 
                 // Header Row
                 const headers = [
-                    "بيانات الطفل (الكود - الاسم - الكنيسة - التسكين - معلومات)",
+                    "كود الطفل",
+                    "الاسم",
+                    "الكنيسة",
+                    "التسكين",
                     ...exportFields,
+                    "معلومات إضافية",
                     "النقاط"
                 ];
                 csvContent += headers.map(h => escapeCSV(h)).join(',') + '\n';
@@ -5985,18 +5989,11 @@
                 sortedRegs.forEach(r => {
                     const cd = JSON.parse(r.custom_data || '{}');
 
-                    // Column 1: Combined child info
-                    const combinedParts = [];
-                    combinedParts.push(`كود: ${r.student_id || r.guest_id || ''}`);
-                    combinedParts.push(r.student_name || r.name || '');
+                    const colId = r.student_id || r.guest_id || '';
+                    const colName = r.student_name || r.name || '';
+                    const colChurch = r.church_name || r.student_church_name || '';
 
-                    // Church Name
-                    const chName = r.church_name || r.student_church_name || '';
-                    if (chName) {
-                        combinedParts.push(`كنيسة: ${chName}`);
-                    }
-
-                    // Accommodation / Rooms
+                    // Accommodation / Rooms (combined in one cell)
                     const roomParts = [];
                     if (cd['السكن']) roomParts.push(cd['السكن']);
                     if (cd['السكن__sf__الدور']) roomParts.push(cd['السكن__sf__الدور']);
@@ -6011,17 +6008,7 @@
                             }
                         }
                     });
-
-                    if (roomParts.length > 0) {
-                        combinedParts.push(`تسكين: ${roomParts.join(' - ')}`);
-                    }
-
-                    // General student custom info
-                    if (r.student_custom_info && r.student_custom_info !== 'null' && r.student_custom_info !== 'undefined') {
-                        combinedParts.push(`معلومات: ${r.student_custom_info}`);
-                    }
-
-                    const colA = combinedParts.join(' | ');
+                    const colRooms = roomParts.join(' - ');
 
                     // Middle Columns: other custom fields (like teams)
                     const middleCols = exportFields.map(field => {
@@ -6039,13 +6026,20 @@
                         return val;
                     });
 
+                    // General student custom info
+                    const colInfo = (r.student_custom_info && r.student_custom_info !== 'null' && r.student_custom_info !== 'undefined') ? r.student_custom_info : '';
+
                     // Column N: Points
                     const colPoints = r.trip_points_val || 0;
 
                     // Combine and add row
                     const rowData = [
-                        colA,
+                        colId,
+                        colName,
+                        colChurch,
+                        colRooms,
                         ...middleCols,
+                        colInfo,
                         colPoints
                     ];
 
