@@ -361,7 +361,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" media="print"
         onload="this.media='all'">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-    <script src="<?php echo $pathPrefix; ?>/js/html5-qrcode.min.js" type="text/javascript"></script>
+    <script src="<?php echo $pathPrefix; ?>/js/qr-scanner.umd.min.js" type="text/javascript"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script defer
         src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
@@ -17072,20 +17072,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const oldContainer = document.getElementById('kidQrReader-zoom-container');
             if (oldContainer) oldContainer.remove();
             if (kidQrScanner) {
+                const scanner = kidQrScanner;
+                kidQrScanner = null;
                 try {
-                    const scanner = kidQrScanner;
-                    kidQrScanner = null;
-                    scanner.stop().then(() => {
-                        scanner.clear?.();
-                        if (modal) modal.classList.remove('active');
-                    }).catch(() => {
-                        if (modal) modal.classList.remove('active');
-                    });
-                } catch (e) {
-                    if (modal) modal.classList.remove('active');
-                }
-            } else if (modal) {
-                modal.classList.remove('active');
+                    scanner.destroy();
+                } catch (e) {}
+            }
+            if (modal) modal.classList.remove('active');
+            const reader = document.getElementById('kidQrReader');
+            if (reader) {
+                reader.innerHTML = '';
             }
         }
 
@@ -17122,9 +17118,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     if (kidQrScanner) {
                         const scanner = kidQrScanner;
                         kidQrScanner = null;
-                        scanner.stop().then(() => {
-                            scanner.clear?.();
-                        }).catch(() => { });
+                        try {
+                            scanner.destroy();
+                        } catch (e) {}
                     }
                     // Show a clean placeholder in readerEl
                     if (readerEl) {
@@ -17158,17 +17154,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
 
-        function setupZoomControl(scannerInstance, readerId) {
+        function setupZoomControl(scannerInstance, readerId, videoElement) {
             const oldContainer = document.getElementById(readerId + '-zoom-container');
             if (oldContainer) oldContainer.remove();
 
             try {
                 setTimeout(() => {
-                    if (!scannerInstance) return;
+                    if (!scannerInstance || !videoElement) return;
                     
                     let capabilities = null;
+                    let track = null;
                     try {
-                        capabilities = scannerInstance.getRunningTrackCapabilities();
+                        const stream = videoElement.srcObject;
+                        track = stream ? stream.getVideoTracks()[0] : null;
+                        capabilities = track ? track.getCapabilities() : null;
                     } catch (e) {
                         console.warn("Failed to get track capabilities", e);
                         return;
@@ -17209,9 +17208,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                         const updateZoom = (val) => {
                             label.innerText = 'التكبير: ' + parseFloat(val).toFixed(1) + 'x';
-                            scannerInstance.applyVideoConstraints({
-                                advanced: [{ zoom: parseFloat(val) }]
-                            }).catch(err => console.warn("Failed to apply zoom:", err));
+                            if (track) {
+                                track.applyConstraints({
+                                    advanced: [{ zoom: parseFloat(val) }]
+                                }).catch(err => console.warn("Failed to apply zoom:", err));
+                            }
                         };
 
                         slider.oninput = (e) => updateZoom(e.target.value);
@@ -17248,29 +17249,27 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (!modal || !modal.classList.contains('active')) return;
             if (scannerSource !== 'camera') return;
 
-            kidQrScanner = new Html5Qrcode('kidQrReader');
+            const reader = document.getElementById('kidQrReader');
+            if (!reader) return;
+            reader.innerHTML = '';
+
+            const video = document.createElement('video');
+            video.id = 'kidQrVideo';
+            video.playsInline = true;
+            video.style.width = '100%';
+            video.style.height = '100%';
+            video.style.objectFit = 'cover';
+            reader.appendChild(video);
+
             try {
-                await kidQrScanner.start(
-                    { facingMode: 'environment' },
-                    { 
-                        fps: 15, 
-                        qrbox: (w, h) => { const min = Math.min(w, h); return { width: Math.max(160, min - 60), height: Math.max(160, min - 60) }; },
-                        experimentalFeatures: {
-                            useBarCodeDetectorIfSupported: true
-                        },
-                        formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ],
-                        videoConstraints: {
-                            width: { ideal: 1280 },
-                            height: { ideal: 720 },
-                            facingMode: 'environment'
-                        }
-                    },
-                    async (decodedText) => {
+                kidQrScanner = new QrScanner(
+                    video,
+                    async (result) => {
                         if (kidQrScanInProgress) return;
                         kidQrScanInProgress = true;
 
                         const now = Date.now();
-                        const kidId = getKidIdFromQrText(decodedText);
+                        const kidId = getKidIdFromQrText(result.data);
                         if (!kidId) {
                             showToast('QR غير صالح', 'error');
                             kidQrScanInProgress = false;
@@ -17292,11 +17291,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             }, 1500);
                         }
                     },
-                    () => { }
+                    {
+                        onDecodeError: (errorMessage) => { },
+                        highlightScanRegion: true,
+                        highlightCodeOutline: true,
+                        preferredCamera: 'environment'
+                    }
                 );
 
-                // Setup zoom controls if supported
-                setupZoomControl(kidQrScanner, 'kidQrReader');
+                await kidQrScanner.start();
+                setupZoomControl(kidQrScanner, 'kidQrReader', video);
 
                 // Unmirror webcam
                 let forceCount = 0;

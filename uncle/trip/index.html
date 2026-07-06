@@ -2198,7 +2198,7 @@
         </div>
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-        <script src="/js/html5-qrcode.min.js" type="text/javascript"></script>
+        <script src="/js/qr-scanner.umd.min.js" type="text/javascript"></script>
 
         <script>
             const API_URL = window.location.pathname.indexOf('/testing/') !== -1 ? '/testing/api.php' : '/api.php';
@@ -4100,17 +4100,20 @@
                 }
             }
 
-            function setupZoomControl(scannerInstance, readerId) {
+            function setupZoomControl(scannerInstance, readerId, videoElement) {
                 const oldContainer = document.getElementById(readerId + '-zoom-container');
                 if (oldContainer) oldContainer.remove();
 
                 try {
                     setTimeout(() => {
-                        if (!scannerInstance) return;
+                        if (!scannerInstance || !videoElement) return;
                         
                         let capabilities = null;
+                        let track = null;
                         try {
-                            capabilities = scannerInstance.getRunningTrackCapabilities();
+                            const stream = videoElement.srcObject;
+                            track = stream ? stream.getVideoTracks()[0] : null;
+                            capabilities = track ? track.getCapabilities() : null;
                         } catch (e) {
                             console.warn("Failed to get track capabilities", e);
                             return;
@@ -4151,9 +4154,11 @@
 
                             const updateZoom = (val) => {
                                 label.innerText = 'التكبير: ' + parseFloat(val).toFixed(1) + 'x';
-                                scannerInstance.applyVideoConstraints({
-                                    advanced: [{ zoom: parseFloat(val) }]
-                                }).catch(err => console.warn("Failed to apply zoom:", err));
+                                if (track) {
+                                    track.applyConstraints({
+                                        advanced: [{ zoom: parseFloat(val) }]
+                                    }).catch(err => console.warn("Failed to apply zoom:", err));
+                                }
                             };
 
                             slider.oninput = (e) => updateZoom(e.target.value);
@@ -4188,55 +4193,56 @@
                 if (fastScanScanner) return;
                 if (currentView !== 'fast_scan' || fastScanSource !== 'camera') return;
 
-                fastScanScanner = new Html5Qrcode("fastReader");
-                fastScanScanner.start(
-                    { facingMode: "environment" },
-                    { 
-                        fps: 15, 
-                        qrbox: { width: 200, height: 200 },
-                        experimentalFeatures: {
-                            useBarCodeDetectorIfSupported: true
-                        },
-                        formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ],
-                        videoConstraints: {
-                            width: { ideal: 1280 },
-                            height: { ideal: 720 },
-                            facingMode: "environment"
-                        }
-                    },
-                    async (decodedText, decodedResult) => {
-                        if (fastScanInProgress) return;
-                        fastScanInProgress = true;
+                const reader = document.getElementById('fastReader');
+                if (!reader) return;
+                reader.innerHTML = '';
 
-                        const reader = document.getElementById('fastReader');
-                        if (reader) {
+                const video = document.createElement('video');
+                video.id = 'fastReaderVideo';
+                video.playsInline = true;
+                video.style.width = '100%';
+                video.style.height = '100%';
+                video.style.objectFit = 'cover';
+                reader.appendChild(video);
+
+                try {
+                    fastScanScanner = new QrScanner(
+                        video,
+                        async (result) => {
+                            if (fastScanInProgress) return;
+                            fastScanInProgress = true;
+
                             reader.style.setProperty('border', '3px solid #10b981', 'important');
                             reader.style.setProperty('box-shadow', '0 0 25px rgba(16, 185, 129, 0.7)', 'important');
-                        }
 
-                        // Local animation feedback duration (600ms)
-                        setTimeout(() => {
-                            if (reader) {
+                            // Local animation feedback duration (600ms)
+                            setTimeout(() => {
                                 reader.style.removeProperty('border');
                                 reader.style.removeProperty('box-shadow');
-                            }
-                        }, 600);
+                            }, 600);
 
-                        // Process scanned text immediately
-                        handleFastScanText(decodedText);
+                            // Process scanned text immediately
+                            handleFastScanText(result.data);
 
-                        // Cooldown to prevent multiple scans within 1.5 seconds
-                        setTimeout(() => {
-                            fastScanInProgress = false;
-                        }, 1500);
-                    },
-                    (errorMessage) => { }
-                ).then(() => {
-                    setupZoomControl(fastScanScanner, 'fastReader');
-                }).catch((err) => {
+                            // Cooldown to prevent multiple scans within 1.5 seconds
+                            setTimeout(() => {
+                                fastScanInProgress = false;
+                            }, 1500);
+                        },
+                        {
+                            onDecodeError: (errorMessage) => { },
+                            highlightScanRegion: true,
+                            highlightCodeOutline: true,
+                            preferredCamera: 'environment'
+                        }
+                    );
+
+                    await fastScanScanner.start();
+                    setupZoomControl(fastScanScanner, 'fastReader', video);
+                } catch (err) {
                     alert("حدث خطأ في الوصول للكاميرا: " + err);
                     switchFastScanSource('usb');
-                });
+                }
             }
 
             function stopFastScanCamera() {
@@ -4246,7 +4252,13 @@
                 if (fastScanScanner) {
                     const scanner = fastScanScanner;
                     fastScanScanner = null;
-                    scanner.stop().then(() => { }).catch(() => { });
+                    try {
+                        scanner.destroy();
+                    } catch (e) {}
+                }
+                const reader = document.getElementById('fastReader');
+                if (reader) {
+                    reader.innerHTML = '';
                 }
             }
 
@@ -5066,7 +5078,7 @@
                     if (htmlQrcodeScannerModal) {
                         const scanner = htmlQrcodeScannerModal;
                         htmlQrcodeScannerModal = null;
-                        scanner.stop().then(() => { }).catch(() => { });
+                        try { scanner.destroy(); } catch (e) { }
                     }
                     if (readerEl) {
                         readerEl.style.minHeight = '140px';
@@ -5102,48 +5114,49 @@
                 if (!modal || modal.style.display === 'none') return;
                 if (scannerSourceModal !== 'camera') return;
 
-                htmlQrcodeScannerModal = new Html5Qrcode("reader");
+                const reader = document.getElementById('reader');
+                if (!reader) return;
+                reader.innerHTML = '';
 
-                htmlQrcodeScannerModal.start(
-                    { facingMode: "environment" },
-                    { 
-                        fps: 15, 
-                        qrbox: { width: 200, height: 200 },
-                        experimentalFeatures: {
-                            useBarCodeDetectorIfSupported: true
-                        },
-                        formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ],
-                        videoConstraints: {
-                            width: { ideal: 1280 },
-                            height: { ideal: 720 },
-                            facingMode: "environment"
-                        }
-                    },
-                    async (decodedText, decodedResult) => {
-                        if (modalScanInProgress) return;
-                        modalScanInProgress = true;
+                const video = document.createElement('video');
+                video.id = 'readerVideo';
+                video.playsInline = true;
+                video.style.width = '100%';
+                video.style.height = '100%';
+                video.style.objectFit = 'cover';
+                reader.appendChild(video);
 
-                        const reader = document.getElementById('reader');
-                        if (reader) {
+                try {
+                    htmlQrcodeScannerModal = new QrScanner(
+                        video,
+                        async (result) => {
+                            if (modalScanInProgress) return;
+                            modalScanInProgress = true;
+
                             reader.style.setProperty('border', '3px solid #10b981', 'important');
                             reader.style.setProperty('box-shadow', '0 0 25px rgba(16, 185, 129, 0.7)', 'important');
-                        }
-                        setTimeout(() => {
-                            if (reader) {
+
+                            setTimeout(() => {
                                 reader.style.removeProperty('border');
                                 reader.style.removeProperty('box-shadow');
-                            }
-                        }, 500);
+                            }, 500);
 
-                        handleScannedText(decodedText);
-                    },
-                    (errorMessage) => { }
-                ).then(() => {
-                    setupZoomControl(htmlQrcodeScannerModal, 'reader');
-                }).catch((err) => {
+                            handleScannedText(result.data);
+                        },
+                        {
+                            onDecodeError: (errorMessage) => { },
+                            highlightScanRegion: true,
+                            highlightCodeOutline: true,
+                            preferredCamera: 'environment'
+                        }
+                    );
+
+                    await htmlQrcodeScannerModal.start();
+                    setupZoomControl(htmlQrcodeScannerModal, 'reader', video);
+                } catch (err) {
                     alert("حدث خطأ في الوصول للكاميرا: " + err);
                     stopScanner();
-                });
+                }
             }
 
             async function handleScannedText(decodedText) {
@@ -5151,8 +5164,10 @@
                 if (htmlQrcodeScannerModal) {
                     const scanner = htmlQrcodeScannerModal;
                     htmlQrcodeScannerModal = null;
-                    try { await scanner.stop(); } catch (e) { }
+                    try { scanner.destroy(); } catch (e) { }
                 }
+                const reader = document.getElementById('reader');
+                if (reader) reader.innerHTML = '';
                 const oldContainer = document.getElementById('reader-zoom-container');
                 if (oldContainer) oldContainer.remove();
                 document.getElementById('scannerModal').style.display = 'none';
@@ -5220,14 +5235,16 @@
                 const oldContainer = document.getElementById('reader-zoom-container');
                 if (oldContainer) oldContainer.remove();
                 if (htmlQrcodeScannerModal) {
-                    htmlQrcodeScannerModal.stop().then(() => {
-                        document.getElementById('scannerModal').style.display = 'none';
-                    }).catch(e => {
-                        document.getElementById('scannerModal').style.display = 'none';
-                    });
+                    const scanner = htmlQrcodeScannerModal;
                     htmlQrcodeScannerModal = null;
-                } else {
-                    document.getElementById('scannerModal').style.display = 'none';
+                    try {
+                        scanner.destroy();
+                    } catch (e) {}
+                }
+                document.getElementById('scannerModal').style.display = 'none';
+                const reader = document.getElementById('reader');
+                if (reader) {
+                    reader.innerHTML = '';
                 }
             }
 
