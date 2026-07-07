@@ -2481,12 +2481,13 @@
                                         if (matchIdx > -1) {
                                             let pts = {};
                                             try { pts = JSON.parse(regsList[matchIdx].trip_points || '{}'); } catch (e) { }
-                                            pts[tripId] = res.new_points;
+                                            const ptsVal = parseInt(res.new_points, 10) || 0;
+                                            pts[tripId] = ptsVal;
                                             regsList[matchIdx].trip_points = JSON.stringify(pts);
-                                            regsList[matchIdx].trip_points_val = res.new_points;
+                                            regsList[matchIdx].trip_points_val = ptsVal;
                                             if (currentView === 'student_profile' && String(item.params.student_id) === String(currentStudentId)) {
                                                 const isNaughtyNow = document.getElementById('pointsDisplay')?.classList.contains('naughty') || false;
-                                                updatePointsDisplay(res.new_points, isNaughtyNow);
+                                                updatePointsDisplay(ptsVal, isNaughtyNow);
                                             }
                                         }
                                     }
@@ -2497,6 +2498,7 @@
                                     currentTrip.registrations = regsList;
                                     saveTripLocal(tripId, currentTrip);
                                 }
+                                refreshActiveView();
                             } else {
                                 console.error("Permanent sync error:", res.message);
                                 showToast(`خطأ مزامنة: ${res.message || 'فشل الحفظ'}`, 'error');
@@ -2506,7 +2508,9 @@
                                     const student = regsList[matchIdx];
                                     let pts = {};
                                     try { pts = JSON.parse(student.trip_points || '{}'); } catch (e) { }
-                                    const revVal = oldVal - item.changeVal;
+                                    const oldVal = parseInt(student.trip_points_val, 10) || 0;
+                                    const changeVal = parseInt(item.changeVal, 10) || 0;
+                                    const revVal = oldVal - changeVal;
                                     pts[tripId] = revVal;
                                     let isNaughtyNow = student.trip_points_naughty === 1 || false;
                                     if (item.params.game_action === 'naughty') {
@@ -2525,6 +2529,7 @@
                                         currentTrip.registrations = regsList;
                                         saveTripLocal(tripId, currentTrip);
                                     }
+                                    refreshActiveView();
                                 }
 
                                 const freshQueue = getOfflineActionsQueue();
@@ -2586,21 +2591,21 @@
                         const student = regs[matchIdx];
                         let pts = {};
                         try { pts = JSON.parse(student.trip_points || '{}'); } catch (e) { }
-                        const oldVal = parseInt(student.trip_points_val) || 0;
+                        const oldVal = parseInt(student.trip_points_val, 10) || 0;
                         let isNaughtyNow = student.trip_points_naughty === 1 || false;
                         let newVal = oldVal;
 
+                        const numericAmount = parseInt(item.params.amount, 10) || 0;
                         if (item.action === 'processFastScanPoints') {
-                            newVal = oldVal + item.params.amount;
+                            newVal = oldVal + numericAmount;
                         } else if (item.action === 'processGameQRCode') {
                             const gameAction = item.params.game_action;
-                            const amount = item.params.amount;
                             if (gameAction === 'increment') {
-                                newVal = oldVal + amount;
+                                newVal = oldVal + numericAmount;
                             } else if (gameAction === 'decrement') {
-                                newVal = oldVal - amount;
+                                newVal = oldVal - numericAmount;
                             } else if (gameAction === 'set') {
-                                newVal = amount;
+                                newVal = numericAmount;
                             } else if (gameAction === 'naughty') {
                                 isNaughtyNow = !isNaughtyNow;
                             }
@@ -2624,22 +2629,45 @@
                     return;
                 }
                 const student = regsList[matchIdx];
+
+                if (actionName && !undoingLogId) {
+                    const trimmedAction = actionName.trim().toLowerCase();
+                    const thirtyMinsAgo = Date.now() - 30 * 60 * 1000;
+                    
+                    // Check scansLog for duplicate shortcut in last 30 minutes
+                    const hasRecentScan = scansLog.some(item => {
+                        if (String(item.studentId) !== String(studentId)) return false;
+                        if (!item.actionNote) return false;
+                        if (item.actionNote.trim().toLowerCase() !== trimmedAction) return false;
+                        
+                        const itemTime = new Date(item.createdAt).getTime();
+                        return !isNaN(itemTime) && itemTime > thirtyMinsAgo;
+                    });
+                    
+                    if (hasRecentScan) {
+                        playErrorSound();
+                        showToast(`عذراً، هذا الاختصار (${actionName}) تم تسجيله بالفعل لهذا الطفل خلال الـ 30 دقيقة الماضية!`, 'warning');
+                        if (typeof fastScanInProgress !== 'undefined') fastScanInProgress = false;
+                        return;
+                    }
+                }
                 
                 let pts = {};
                 try { pts = JSON.parse(student.trip_points || '{}'); } catch (e) { }
-                const oldVal = parseInt(student.trip_points_val) || 0;
+                const oldVal = parseInt(student.trip_points_val, 10) || 0;
                 let isNaughtyNow = student.trip_points_naughty === 1 || false;
                 let newVal = oldVal;
                 
+                const numericAmount = parseInt(amount, 10) || 0;
                 if (action === 'processFastScanPoints') {
-                    newVal = oldVal + amount;
+                    newVal = oldVal + numericAmount;
                 } else if (action === 'processGameQRCode') {
                     if (gameAction === 'increment') {
-                        newVal = oldVal + amount;
+                        newVal = oldVal + numericAmount;
                     } else if (gameAction === 'decrement') {
-                        newVal = oldVal - amount;
+                        newVal = oldVal - numericAmount;
                     } else if (gameAction === 'set') {
-                        newVal = amount;
+                        newVal = numericAmount;
                     } else if (gameAction === 'naughty') {
                         isNaughtyNow = !isNaughtyNow;
                     }
@@ -2710,6 +2738,27 @@
                 renderScansList();
                 updateSyncBadge();
                 triggerBackgroundSync();
+                refreshActiveView();
+            }
+
+            function refreshActiveView() {
+                if (currentView === 'dashboard') {
+                    renderFieldCards();
+                } else if (currentView === 'group_filter') {
+                    renderGroupFilterView();
+                } else if (currentView === 'student_profile') {
+                    const matchIdx = regsList.findIndex(r => String(r.student_id) === String(currentStudentId));
+                    if (matchIdx > -1) {
+                        const studentData = regsList[matchIdx];
+                        let ptsObj = {};
+                        try {
+                            ptsObj = typeof studentData.trip_points === 'string' ? JSON.parse(studentData.trip_points || '{}') : (studentData.trip_points || {});
+                        } catch(e) {}
+                        const pointsVal = ptsObj[tripId] || 0;
+                        const isNaughty = studentData.trip_points_naughty === 1 || (ptsObj["n_" + tripId] === 1);
+                        updatePointsDisplay(pointsVal, isNaughty);
+                    }
+                }
             }
             function updatePointsDisplay(points, isNaughty) {
                 const display = document.getElementById('pointsDisplay');
@@ -5738,6 +5787,8 @@
                     clickedBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
                 }
 
+                const numericAmount = parseInt(amount, 10) || 0;
+
                 // If it is a local offline scan (starts with tx_)
                 if (String(logId).startsWith('tx_')) {
                     const matchIdx = regsList.findIndex(r => String(r.student_id) === String(studentId));
@@ -5745,8 +5796,8 @@
                         const student = regsList[matchIdx];
                         let pts = {};
                         try { pts = JSON.parse(student.trip_points || '{}'); } catch (e) { }
-                        const oldVal = parseInt(student.trip_points_val) || 0;
-                        const newVal = oldVal - amount;
+                        const oldVal = parseInt(student.trip_points_val, 10) || 0;
+                        const newVal = oldVal - numericAmount;
                         pts[tripId] = newVal;
                         student.trip_points = JSON.stringify(pts);
                         student.trip_points_val = newVal;
@@ -5770,6 +5821,7 @@
                     showToast(`محفوظ محلياً — تم التراجع بنجاح!`, 'warning');
                     renderScansList();
                     updateSyncBadge();
+                    refreshActiveView();
                     return;
                 }
 
@@ -5781,8 +5833,8 @@
                     const student = regsList[matchIdx];
                     let pts = {};
                     try { pts = JSON.parse(student.trip_points || '{}'); } catch (e) { }
-                    const oldVal = parseInt(student.trip_points_val) || 0;
-                    const newVal = oldVal - amount;
+                    const oldVal = parseInt(student.trip_points_val, 10) || 0;
+                    const newVal = oldVal - numericAmount;
                     pts[tripId] = newVal;
                     student.trip_points = JSON.stringify(pts);
                     student.trip_points_val = newVal;
@@ -5800,7 +5852,7 @@
                 scansLog = scansLog.filter(item => String(item.id) !== String(logId));
                 renderScansList();
 
-                queuePointsAction('processFastScanPoints', studentId, -amount, '', null, logId);
+                queuePointsAction('processFastScanPoints', studentId, -numericAmount, '', null, logId);
             }
 
             // Time calculations for scan history
