@@ -1287,7 +1287,7 @@ function getRecentTripPointsScans()
             $stmt = $conn->prepare("
                 SELECT cl.id, cl.student_id, cl.change_amount, cl.created_at, cl.reason, cl.uncle_id,
                        s.name as student_name, s.image_url as profile_photo,
-                       u.name as uncle_name,
+                       u.name as uncle_name, u.image_url as uncle_photo,
                        c.church_name
                 FROM coupon_logs cl
                 JOIN students s ON cl.student_id = s.id
@@ -1306,7 +1306,7 @@ function getRecentTripPointsScans()
             $stmt = $conn->prepare("
                 SELECT cl.id, cl.student_id, cl.change_amount, cl.created_at, cl.reason, cl.uncle_id,
                        s.name as student_name, s.image_url as profile_photo,
-                       u.name as uncle_name,
+                       u.name as uncle_name, u.image_url as uncle_photo,
                        c.church_name
                 FROM coupon_logs cl
                 JOIN students s ON cl.student_id = s.id
@@ -1336,6 +1336,7 @@ function getRecentTripPointsScans()
                 'reason' => $row['reason'],
                 'uncle_id' => $row['uncle_id'] !== null ? intval($row['uncle_id']) : null,
                 'uncle_name' => $row['uncle_name'] ?? 'أدمن الكنيسة',
+                'uncle_photo' => $row['uncle_photo'] ?? '',
                 'created_at' => $row['created_at'],
                 'church_name' => $row['church_name'] ?? ''
             ];
@@ -26083,27 +26084,16 @@ function getTripDetails()
 
         $trip['is_owner'] = ($churchId > 0 && intval($trip['church_id']) === $churchId) ? 1 : 0;
 
-        $trip['my_registration_limit'] = null;
-
-        if (intval($trip['church_id']) !== $churchId) {
-
-            $limits = [];
-
-            if (!empty($trip['collaboration_limits'])) {
-
-                $limits = json_decode($trip['collaboration_limits'], true);
-
+        $unclePhoto = null;
+        if (!empty($_SESSION['uncle_id'])) {
+            $uStmt = $conn->prepare("SELECT image_url FROM uncles WHERE id = ? LIMIT 1");
+            $uStmt->bind_param("i", $_SESSION['uncle_id']);
+            $uStmt->execute();
+            $uRes = $uStmt->get_result();
+            if ($uRes && $uRow = $uRes->fetch_assoc()) {
+                $unclePhoto = $uRow['image_url'];
             }
-
-            if (is_array($limits) && isset($limits[strval($churchId)])) {
-
-                $trip['my_registration_limit'] = intval($limits[strval($churchId)]);
-
-            }
-
         }
-
-
 
         sendJSON([
 
@@ -26115,7 +26105,9 @@ function getTripDetails()
 
             'uncle_id' => $_SESSION['uncle_id'] ?? null,
 
-            'uncle_name' => $_SESSION['uncle_name'] ?? null
+            'uncle_name' => $_SESSION['uncle_name'] ?? null,
+
+            'uncle_photo' => $unclePhoto
 
         ]);
 

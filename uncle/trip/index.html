@@ -1683,6 +1683,11 @@
                 title="إعدادات الرحلة">
                 <i class="fas fa-cog" style="font-size: 1.05rem;"></i>
             </button>
+
+            <!-- Uncle Profile Avatar -->
+            <div id="topbarUncleAvatar" style="display: none; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; overflow: hidden; border: 1.5px solid var(--border-solid); background: var(--surface-3); cursor: pointer;" title="بروفايل الخادم" onclick="location.href='/user/profile/'">
+                <img src="" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.parentElement.style.display='none'">
+            </div>
         </div>
     </div>
 
@@ -2706,6 +2711,7 @@
                             profilePhoto: student.photo || '',
                             uncleId: currentUncleId,
                             uncleName: 'أنا',
+                            unclePhoto: currentUnclePhoto || '',
                             actionNote: actionName,
                             createdAt: new Date().toISOString(),
                             churchName: student.church_name || student.student_church_name || ''
@@ -2781,6 +2787,18 @@
                     if (naughtyTag) naughtyTag.classList.remove('show');
                 }
             }
+
+            function updateTopbarUncleAvatar(photoUrl) {
+                const container = document.getElementById('topbarUncleAvatar');
+                if (!container) return;
+                const img = container.querySelector('img');
+                if (photoUrl) {
+                    img.src = photoUrl;
+                    container.style.display = 'flex';
+                } else {
+                    container.style.display = 'none';
+                }
+            }
             let tripId = null;
             let currentTrip = null;
             let regsList = [];
@@ -2790,6 +2808,7 @@
             // Scan history state
             let scansLog = [];
             let currentUncleId = null;
+            let currentUnclePhoto = null;
             let searchQuery = "";
 
             // SPA Router state
@@ -2848,7 +2867,7 @@
                 }
             });
 
-            async function openTrip(tripId) {
+             async function openTrip(tripId) {
                 document.getElementById('fieldsGrid').innerHTML = '';
                 regsList = [];
                 currentTrip = null;
@@ -2859,6 +2878,9 @@
                 const localTrip = await getTripLocal(tripId);
                 if (localTrip) {
                     currentTrip = localTrip;
+                    currentUnclePhoto = localTrip.uncle_photo || null;
+                    updateTopbarUncleAvatar(currentUnclePhoto);
+
                     if (['admin', 'developer', 'dev'].includes(localTrip.user_role)) {
                         const adminActions = document.getElementById('adminActions');
                         if (adminActions) adminActions.style.display = 'flex';
@@ -2896,6 +2918,10 @@
                         res.trip.user_role = res.user_role;
                         res.trip.uncle_name = res.uncle_name;
                         res.trip.uncle_id = res.uncle_id;
+                        res.trip.uncle_photo = res.uncle_photo;
+
+                        currentUnclePhoto = res.uncle_photo || null;
+                        updateTopbarUncleAvatar(currentUnclePhoto);
 
                         // Perform smart replace if different from local
                         const localString = localTrip ? JSON.stringify(localTrip) : '';
@@ -5610,6 +5636,7 @@
                                 profilePhoto: s.profile_photo,
                                 uncleId: s.uncle_id,
                                 uncleName: s.uncle_name,
+                                unclePhoto: s.uncle_photo || '',
                                 actionNote: actionNote,
                                 createdAt: s.created_at,
                                 churchName: s.church_name || ''
@@ -5635,6 +5662,7 @@
                             profilePhoto: localStudent ? localStudent.photo : '',
                             uncleId: currentUncleId,
                             uncleName: 'أنا',
+                            unclePhoto: currentUnclePhoto || '',
                             actionNote: item.params.action_name,
                             createdAt: new Date(item.timestamp).toISOString(),
                             churchName: localStudent ? (localStudent.church_name || localStudent.student_church_name || '') : ''
@@ -5715,8 +5743,14 @@
                         : '';
                     statusHtml = `<span style="color:var(--warning);"><i class="fas fa-clock"></i> محفوظ محلياً — سيُرفع عند الاتصال</span>${noteSuffix}`;
                 } else {
+                    let unclePhotoHtml = '';
+                    if (item.unclePhoto) {
+                        unclePhotoHtml = `<img src="${item.unclePhoto}" style="width:14px;height:14px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-left:4px;" onerror="this.outerHTML='<i class=\\'fas fa-user-tie\\'></i>'">`;
+                    } else {
+                        unclePhotoHtml = `<i class="fas fa-user-tie"></i>`;
+                    }
                     const uncleSuffix = item.uncleName
-                        ? ` <span style="font-size:0.7rem;color:var(--text-3);background:var(--surface-3);padding:2px 6px;border-radius:var(--r-xs);margin-right:6px;"><i class="fas fa-user-tie"></i> ${item.uncleName}</span>`
+                        ? ` <span style="font-size:0.7rem;color:var(--text-3);background:var(--surface-3);padding:2px 6px;border-radius:var(--r-xs);margin-right:6px;display:inline-flex;align-items:center;gap:4px;">${unclePhotoHtml} ${item.uncleName}</span>`
                         : '';
                     const noteSuffix = item.actionNote
                         ? ` <span style="font-size:0.7rem;color:var(--brand);background:var(--brand-bg);padding:2px 6px;border-radius:var(--r-xs);margin-right:6px;"><i class="fas fa-info-circle"></i> ${item.actionNote}</span>`
