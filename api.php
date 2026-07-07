@@ -656,7 +656,7 @@ function processGameQRCode()
 
         $undoingLogId = intval($_REQUEST['undoing_log_id'] ?? 0);
         if ($undoingLogId > 0) {
-            $logCheck = $conn->prepare("SELECT id, change_amount FROM coupon_logs WHERE id = ? LIMIT 1");
+            $logCheck = $conn->prepare("SELECT id, change_amount, uncle_id FROM coupon_logs WHERE id = ? LIMIT 1");
             $logCheck->bind_param("i", $undoingLogId);
             $logCheck->execute();
             $logRes = $logCheck->get_result();
@@ -672,7 +672,29 @@ function processGameQRCode()
             }
             $logRow = $logRes->fetch_assoc();
             $origChange = intval($logRow['change_amount']);
-            
+            $logUncleId = $logRow['uncle_id'] !== null ? intval($logRow['uncle_id']) : null;
+
+            // Check authorization to undo:
+            // Allow if:
+            // 1. Current user is logged in as church admin (i.e. $uncleId is null / not set in session)
+            // 2. Current user is the owner of the scan (i.e. $uncleId === $logUncleId)
+            // 3. Current user is an admin/developer/dev (i.e. role is admin, developer, dev)
+            $isAuthorized = false;
+            if ($uncleId === null) {
+                $isAuthorized = true;
+            } else {
+                $userRole = strtolower($_SESSION['uncle_role'] ?? '');
+                $isAdmin = in_array($userRole, ['admin', 'developer', 'dev']);
+                if ($isAdmin || intval($uncleId) === intval($logUncleId)) {
+                    $isAuthorized = true;
+                }
+            }
+
+            if (!$isAuthorized) {
+                sendJSON(['success' => false, 'message' => 'غير مصرح لك بالتراجع عن هذه العملية']);
+                return;
+            }
+
             $amount = abs($origChange);
             $game_action = ($origChange > 0) ? 'decrement' : 'increment';
         }
@@ -1046,7 +1068,7 @@ function processFastScanPoints()
 
         $undoingLogId = intval($_REQUEST['undoing_log_id'] ?? 0);
         if ($undoingLogId > 0) {
-            $logCheck = $conn->prepare("SELECT id, change_amount FROM coupon_logs WHERE id = ? LIMIT 1");
+            $logCheck = $conn->prepare("SELECT id, change_amount, uncle_id FROM coupon_logs WHERE id = ? LIMIT 1");
             $logCheck->bind_param("i", $undoingLogId);
             $logCheck->execute();
             $logRes = $logCheck->get_result();
@@ -1063,7 +1085,29 @@ function processFastScanPoints()
             }
             $logRow = $logRes->fetch_assoc();
             $origChange = intval($logRow['change_amount']);
-            
+            $logUncleId = $logRow['uncle_id'] !== null ? intval($logRow['uncle_id']) : null;
+
+            // Check authorization to undo:
+            // Allow if:
+            // 1. Current user is logged in as church admin (i.e. $uncleId is null / not set in session)
+            // 2. Current user is the owner of the scan (i.e. $uncleId === $logUncleId)
+            // 3. Current user is an admin/developer/dev (i.e. role is admin, developer, dev)
+            $isAuthorized = false;
+            if ($uncleId === null) {
+                $isAuthorized = true;
+            } else {
+                $userRole = strtolower($_SESSION['uncle_role'] ?? '');
+                $isAdmin = in_array($userRole, ['admin', 'developer', 'dev']);
+                if ($isAdmin || intval($uncleId) === intval($logUncleId)) {
+                    $isAuthorized = true;
+                }
+            }
+
+            if (!$isAuthorized) {
+                sendJSON(['success' => false, 'message' => 'غير مصرح لك بالتراجع عن هذه العملية']);
+                return;
+            }
+
             $amount = -1 * $origChange;
         }
 

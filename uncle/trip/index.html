@@ -5681,7 +5681,9 @@
                     : `<div class="scan-photo"><i class="fas fa-user"></i></div>`;
 
                 let actionButtons = '';
-                if (item.uncleId === currentUncleId || currentUncleId === null) {
+                const userRole = currentTrip ? currentTrip.user_role : 'uncle';
+                const isAdmin = ['admin', 'developer', 'dev'].includes(userRole);
+                if (item.uncleId === currentUncleId || currentUncleId === null || isAdmin) {
                     if (item.status === 'success' || item.status === 'pending') {
                         actionButtons += `
                         <button class="scan-action-btn undo" data-id="${item.id}" onclick="undoScan('${item.id}', '${item.studentId}', ${item.change}, event)" title="Tراجع عن هذه العملية">
