@@ -1354,6 +1354,65 @@ function getRecentTripPointsScans()
     }
 }
 
+function getUncleProfileInfo() {
+    try {
+        checkUncleAuth();
+        $uncleId = intval($_REQUEST['uncle_id'] ?? 0);
+        if ($uncleId <= 0) {
+            sendJSON(['success' => false, 'message' => 'uncle_id is required']);
+            return;
+        }
+        $conn = getDBConnection();
+        // Load uncle info
+        $stmt = $conn->prepare("
+            SELECT u.id, u.name, u.username, u.image_url, u.role, u.email, u.phone, u.gender, c.church_name
+            FROM uncles u
+            JOIN churches c ON u.church_id = c.id
+            WHERE u.id = ? AND (u.deleted IS NULL OR u.deleted = 0)
+            LIMIT 1
+        ");
+        $stmt->bind_param("i", $uncleId);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        if ($res->num_rows === 0) {
+            sendJSON(['success' => false, 'message' => 'الخادم غير موجود']);
+            return;
+        }
+        $uncle = $res->fetch_assoc();
+
+        // Get class assignments
+        $classStmt = $conn->prepare("SELECT class_name FROM uncle_class_assignments WHERE uncle_id = ?");
+        $classStmt->bind_param("i", $uncleId);
+        $classStmt->execute();
+        $classRes = $classStmt->get_result();
+        $classes = [];
+        while ($row = $classRes->fetch_assoc()) {
+            $classes[] = $row['class_name'];
+        }
+
+        // Return details
+        sendJSON([
+            'success' => true,
+            'uncle' => [
+                'id' => intval($uncle['id']),
+                'name' => $uncle['name'],
+                'username' => $uncle['username'],
+                'image_url' => $uncle['image_url'],
+                'role' => $uncle['role'],
+                'email' => $uncle['email'],
+                'phone' => $uncle['phone'],
+                'gender' => $uncle['gender'],
+                'church_name' => $uncle['church_name'],
+                'classes' => $classes
+            ]
+        ]);
+
+    } catch (Exception $e) {
+        error_log('getUncleProfileInfo error: ' . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    }
+}
+
 function getTripLeaderboard()
 {
     try {
@@ -5480,6 +5539,12 @@ try {
         case 'getRecentTripPointsScans':
 
             getRecentTripPointsScans();
+
+            break;
+
+        case 'getUncleProfileInfo':
+
+            getUncleProfileInfo();
 
             break;
 

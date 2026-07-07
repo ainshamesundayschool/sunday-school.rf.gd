@@ -1685,7 +1685,7 @@
             </button>
 
             <!-- Uncle Profile Avatar -->
-            <div id="topbarUncleAvatar" style="display: none; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; overflow: hidden; border: 1.5px solid var(--border-solid); background: var(--surface-3); cursor: pointer;" title="بروفايل الخادم" onclick="location.href='/user/profile/'">
+            <div id="topbarUncleAvatar" style="display: none; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; overflow: hidden; border: 1.5px solid var(--border-solid); background: var(--surface-3); cursor: pointer;" title="بروفايل الخادم" onclick="if(currentUncleId) navigateTo('uncle_profile', { uncle_id: currentUncleId })">
                 <img src="" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.parentElement.style.display='none'">
             </div>
         </div>
@@ -1915,6 +1915,57 @@
                             <div class="scans-list" id="myScansList"></div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: UNCLE PROFILE -->
+        <div id="viewUncleProfile" class="view-section">
+            <div class="hero-strip"
+                style="justify-content: flex-start; gap: 12px; margin-bottom: 15px; direction: rtl;">
+                <button class="topbar-btn" onclick="goBackFromUncleProfile()"
+                    style="border:none;background:var(--border-solid);color:var(--text-2);padding:8px 12px;border-radius:var(--r-md);margin:0;">
+                    <i class="fas fa-arrow-right"></i> عودة
+                </button>
+                <div class="hero-greeting">ملف الخادم</div>
+            </div>
+
+            <div class="profile-card" style="width:100%; max-width:480px; margin: 0 auto; background:var(--surface); border:1px solid var(--border-solid); border-radius:var(--r-xl); padding:24px; box-sizing:border-box; text-align:center; box-shadow:var(--shadow-lg); direction:rtl;">
+                <!-- Avatar -->
+                <div style="position:relative; width:100px; height:100px; margin:0 auto 16px auto; border-radius:50%; overflow:hidden; border:3px solid var(--brand); background:var(--surface-3);">
+                    <img id="uncleProfilePhoto" src="" style="width:100%; height:100%; object-fit:cover;" onerror="this.outerHTML='<div style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2.5rem;color:var(--text-3);\'><i class=\'fas fa-user-tie\'></i></div>'">
+                </div>
+
+                <!-- Name & Role -->
+                <h2 id="uncleProfileName" style="font-size:1.4rem; font-weight:800; color:var(--text); margin-bottom:6px;"></h2>
+                <div style="display:flex; justify-content:center; gap:8px; margin-bottom:20px; align-items:center;">
+                    <span id="uncleProfileRole" class="badge-role" style="font-size:0.75rem; font-weight:700; color:white; background:var(--brand); padding:2px 8px; border-radius:var(--r-sm);"></span>
+                    <span id="uncleProfileChurch" style="font-size:0.75rem; font-weight:700; color:var(--text-2); background:var(--surface-3); padding:2px 8px; border-radius:var(--r-sm);"><i class="fas fa-church"></i> </span>
+                </div>
+
+                <!-- Info Grid -->
+                <div style="display:flex; flex-direction:column; gap:12px; text-align:right; border-top:1px solid var(--border-solid); padding-top:16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.9rem;">
+                        <span style="color:var(--text-3); font-weight:700;"><i class="fas fa-user"></i> اسم المستخدم:</span>
+                        <span id="uncleProfileUsername" style="color:var(--text); font-weight:800;"></span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.9rem;">
+                        <span style="color:var(--text-3); font-weight:700;"><i class="fas fa-phone"></i> رقم الموبايل:</span>
+                        <span id="uncleProfilePhone" style="color:var(--text); font-weight:800;"></span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.9rem;">
+                        <span style="color:var(--text-3); font-weight:700;"><i class="fas fa-envelope"></i> البريد الإلكتروني:</span>
+                        <span id="uncleProfileEmail" style="color:var(--text); font-weight:800;"></span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.9rem;">
+                        <span style="color:var(--text-3); font-weight:700;"><i class="fas fa-venus-mars"></i> النوع:</span>
+                        <span id="uncleProfileGender" style="color:var(--text); font-weight:800;"></span>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:6px; font-size:0.9rem; margin-top:8px;">
+                        <span style="color:var(--text-3); font-weight:700;"><i class="fas fa-chalkboard-teacher"></i> الفصول المسندة:</span>
+                        <div id="uncleProfileClasses" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:4px;"></div>
+                    </div>
+                    <div id="uncleProfileEditLink" style="text-align:center;"></div>
                 </div>
             </div>
         </div>
@@ -2814,6 +2865,8 @@
             // SPA Router state
             let currentView = 'dashboard';
             let currentStudentId = null;
+            let currentUncleProfileId = null;
+            let lastViewBeforeUncleProfile = 'dashboard';
             let currentFilterField = null;
             let currentFilterValue = null;
             let currentFilterParentField = null;
@@ -3008,6 +3061,7 @@
                 const urlParams = new URLSearchParams(window.location.search);
                 const viewParam = urlParams.get('view');
                 const studentIdParam = urlParams.get('student_id');
+                const uncleIdParam = urlParams.get('uncle_id');
                 const fieldParam = urlParams.get('field');
                 const valueParam = urlParams.get('value');
                 const parentFieldParam = urlParams.get('parentField');
@@ -3016,6 +3070,9 @@
                 if (studentIdParam) {
                     currentView = 'student_profile';
                     currentStudentId = studentIdParam;
+                } else if (uncleIdParam) {
+                    currentView = 'uncle_profile';
+                    currentUncleProfileId = uncleIdParam;
                 } else if (fieldParam) {
                     currentView = 'group_filter';
                     currentFilterField = fieldParam;
@@ -3042,8 +3099,12 @@
                 closeShortcutsInfoModal();
                 closeTripSettingsModal();
 
+                if (view !== 'uncle_profile') {
+                    lastViewBeforeUncleProfile = currentView;
+                }
                 currentView = view;
                 currentStudentId = params.student_id || null;
+                currentUncleProfileId = params.uncle_id || null;
                 currentFilterField = params.field || null;
                 currentFilterValue = params.value || null;
                 currentFilterParentField = params.parentField || null;
@@ -3053,6 +3114,7 @@
                 url.searchParams.set('trip_id', tripId);
 
                 url.searchParams.delete('student_id');
+                url.searchParams.delete('uncle_id');
                 url.searchParams.delete('field');
                 url.searchParams.delete('value');
                 url.searchParams.delete('parentField');
@@ -3061,6 +3123,8 @@
 
                 if (view === 'student_profile') {
                     url.searchParams.set('student_id', currentStudentId);
+                } else if (view === 'uncle_profile') {
+                    url.searchParams.set('uncle_id', currentUncleProfileId);
                 } else if (view === 'group_filter') {
                     url.searchParams.set('field', currentFilterField);
                     url.searchParams.set('value', currentFilterValue);
@@ -3085,6 +3149,101 @@
                         parentValue: currentFilterParentValue
                     });
                 } else {
+                    navigateTo('dashboard');
+                }
+            }
+
+            function goBackFromUncleProfile() {
+                if (lastViewBeforeUncleProfile && lastViewBeforeUncleProfile !== 'uncle_profile') {
+                    navigateTo(lastViewBeforeUncleProfile, {
+                        student_id: currentStudentId,
+                        field: currentFilterField,
+                        value: currentFilterValue,
+                        parentField: currentFilterParentField,
+                        parentValue: currentFilterParentValue
+                    });
+                } else {
+                    navigateTo('dashboard');
+                }
+            }
+
+            async function renderUncleProfileView() {
+                const uncleId = currentUncleProfileId;
+                if (!uncleId) {
+                    navigateTo('dashboard');
+                    return;
+                }
+
+                // Reset layout
+                document.getElementById('uncleProfilePhoto').src = '';
+                document.getElementById('uncleProfilePhoto').style.display = 'block';
+                document.getElementById('uncleProfileName').textContent = 'جاري التحميل...';
+                document.getElementById('uncleProfileRole').textContent = '';
+                document.getElementById('uncleProfileChurch').textContent = '';
+                document.getElementById('uncleProfileUsername').textContent = '';
+                document.getElementById('uncleProfilePhone').textContent = '';
+                document.getElementById('uncleProfileEmail').textContent = '';
+                document.getElementById('uncleProfileGender').textContent = '';
+                document.getElementById('uncleProfileClasses').innerHTML = '';
+                document.getElementById('uncleProfileEditLink').innerHTML = '';
+
+                try {
+                    const res = await fetch(`${API_URL}?action=getUncleProfileInfo&uncle_id=${uncleId}`).then(r => r.json());
+                    if (res.success && res.uncle) {
+                        const unc = res.uncle;
+                        if (unc.image_url) {
+                            document.getElementById('uncleProfilePhoto').src = unc.image_url;
+                        } else {
+                            document.getElementById('uncleProfilePhoto').style.display = 'none';
+                        }
+                        document.getElementById('uncleProfileName').textContent = unc.name || '';
+                        
+                        // Set translated role
+                        let roleAr = unc.role;
+                        if (unc.role === 'admin') roleAr = 'أدمن الكنيسة';
+                        else if (unc.role === 'developer' || unc.role === 'dev') roleAr = 'مطور البرنامج';
+                        else if (unc.role === 'uncle') roleAr = 'خادم';
+                        
+                        document.getElementById('uncleProfileRole').textContent = roleAr;
+                        document.getElementById('uncleProfileChurch').innerHTML = `<i class="fas fa-church"></i> ${unc.church_name || ''}`;
+                        document.getElementById('uncleProfileUsername').textContent = unc.username || '';
+                        document.getElementById('uncleProfilePhone').textContent = unc.phone || 'غير مسجل';
+                        document.getElementById('uncleProfileEmail').textContent = unc.email || 'غير مسجل';
+                        document.getElementById('uncleProfileGender').textContent = unc.gender === 'male' ? 'ذكر' : (unc.gender === 'female' ? 'أنثى' : 'غير مسجل');
+                        
+                        // Classes
+                        const classesWrap = document.getElementById('uncleProfileClasses');
+                        if (unc.classes && unc.classes.length > 0) {
+                            classesWrap.innerHTML = unc.classes.map(c => `
+                                <span style="font-size: 0.8rem; background: var(--brand-bg); color: var(--brand); padding: 4px 10px; border-radius: var(--r-md); font-weight: 700;">
+                                    ${c}
+                                </span>
+                            `).join('');
+                        } else {
+                            classesWrap.innerHTML = `<span style="color:var(--text-3); font-size:0.85rem; font-style:italic;">لا توجد فصول مسندة</span>`;
+                        }
+
+                        // Show edit link if it is the current logged-in uncle
+                        const isSelf = String(unc.id) === String(currentUncleId);
+                        const editLinkWrap = document.getElementById('uncleProfileEditLink');
+                        if (editLinkWrap) {
+                            if (isSelf) {
+                                editLinkWrap.innerHTML = `
+                                    <a href="/user/profile/" style="display:inline-flex; align-items:center; gap:6px; margin-top:16px; font-size:0.85rem; color:var(--brand); font-weight:700; text-decoration:none; background:var(--brand-bg); padding:6px 12px; border-radius:var(--r-md); transition:all 0.2s;">
+                                        <i class="fas fa-edit"></i> تعديل بيانات الحساب
+                                    </a>
+                                `;
+                            } else {
+                                editLinkWrap.innerHTML = '';
+                            }
+                        }
+                    } else {
+                        showToast(res.message || 'فشل تحميل بيانات الخادم', 'error');
+                        navigateTo('dashboard');
+                    }
+                } catch (e) {
+                    console.error(e);
+                    showToast('خطأ في الاتصال بالخادم', 'error');
                     navigateTo('dashboard');
                 }
             }
@@ -3126,6 +3285,9 @@
                 } else if (currentView === 'student_profile') {
                     document.getElementById('viewStudentProfile').classList.add('active');
                     renderStudentProfileView();
+                } else if (currentView === 'uncle_profile') {
+                    document.getElementById('viewUncleProfile').classList.add('active');
+                    renderUncleProfileView();
                 } else if (currentView === 'fast_scan') {
                     document.getElementById('viewFastScan').classList.add('active');
                     renderFastScanView();
@@ -5749,8 +5911,12 @@
                     } else {
                         unclePhotoHtml = `<i class="fas fa-user-tie"></i>`;
                     }
+                    let onclickAttr = '';
+                    if (item.uncleId) {
+                        onclickAttr = `onclick="event.stopPropagation(); navigateTo('uncle_profile', { uncle_id: '${item.uncleId}' })"`;
+                    }
                     const uncleSuffix = item.uncleName
-                        ? ` <span style="font-size:0.7rem;color:var(--text-3);background:var(--surface-3);padding:2px 6px;border-radius:var(--r-xs);margin-right:6px;display:inline-flex;align-items:center;gap:4px;">${unclePhotoHtml} ${item.uncleName}</span>`
+                        ? ` <span ${onclickAttr} style="font-size:0.7rem;color:var(--text-3);background:var(--surface-3);padding:2px 6px;border-radius:var(--r-xs);margin-right:6px;display:inline-flex;align-items:center;gap:4px;cursor:pointer;">${unclePhotoHtml} ${item.uncleName}</span>`
                         : '';
                     const noteSuffix = item.actionNote
                         ? ` <span style="font-size:0.7rem;color:var(--brand);background:var(--brand-bg);padding:2px 6px;border-radius:var(--r-xs);margin-right:6px;"><i class="fas fa-info-circle"></i> ${item.actionNote}</span>`
