@@ -1367,7 +1367,7 @@ function getUncleProfileInfo() {
         $stmt = $conn->prepare("
             SELECT u.id, u.name, u.username, u.image_url, u.role, u.email, u.phone, u.gender, c.church_name
             FROM uncles u
-            JOIN churches c ON u.church_id = c.id
+            LEFT JOIN churches c ON u.church_id = c.id
             WHERE u.id = ? AND (u.deleted IS NULL OR u.deleted = 0)
             LIMIT 1
         ");
