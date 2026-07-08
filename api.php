@@ -699,25 +699,26 @@ function processGameQRCode()
             $game_action = ($origChange > 0) ? 'decrement' : 'increment';
         } else {
             // Check 30-minute cooldown for duplicate shortcut
-            if (!empty($actionName)) {
-                $likeScanPattern = "trip_points_scan:" . $tripId . ":" . $actionName . "%";
-                $likeNormalPattern = "trip_points_normal:" . $tripId . ":" . $actionName . "%";
-                
-                $cooldownStmt = $conn->prepare("
-                    SELECT id 
-                    FROM coupon_logs 
-                    WHERE student_id = ? 
-                      AND (reason LIKE ? OR reason LIKE ?)
-                      AND created_at > DATE_SUB(NOW(), INTERVAL 30 MINUTE)
-                    LIMIT 1
-                ");
-                $cooldownStmt->bind_param("iss", $studentId, $likeScanPattern, $likeNormalPattern);
-                $cooldownStmt->execute();
-                if ($cooldownStmt->get_result()->num_rows > 0) {
-                    sendJSON(['success' => false, 'message' => 'عذراً، تم تسجيل هذا الاختصار بالفعل (' . $actionName . ') لهذا الطفل خلال الـ 30 دقيقة الماضية']);
-                    return;
-                }
+        $isShortcut = intval($_REQUEST['is_shortcut'] ?? 0);
+        if ($isShortcut === 1 && !empty($actionName)) {
+            $likeScanPattern = "trip_points_scan:" . $tripId . ":" . $actionName . "%";
+            $likeNormalPattern = "trip_points_normal:" . $tripId . ":" . $actionName . "%";
+            
+            $cooldownStmt = $conn->prepare("
+                SELECT id 
+                FROM coupon_logs 
+                WHERE student_id = ? 
+                  AND (reason LIKE ? OR reason LIKE ?)
+                  AND created_at > DATE_SUB(NOW(), INTERVAL 30 MINUTE)
+                LIMIT 1
+            ");
+            $cooldownStmt->bind_param("iss", $studentId, $likeScanPattern, $likeNormalPattern);
+            $cooldownStmt->execute();
+            if ($cooldownStmt->get_result()->num_rows > 0) {
+                sendJSON(['success' => false, 'message' => 'عذراً، تم تسجيل (' . $actionName . ') مؤخراً خلال 30 دقيقة!']);
+                return;
             }
+        }
         }
 
 
@@ -1132,7 +1133,8 @@ function processFastScanPoints()
             $amount = -1 * $origChange;
         } else {
             // Check 30-minute cooldown for duplicate shortcut
-            if (!empty($actionName)) {
+            $isShortcut = intval($_REQUEST['is_shortcut'] ?? 0);
+            if ($isShortcut === 1 && !empty($actionName)) {
                 $likeScanPattern = "trip_points_scan:" . $tripId . ":" . $actionName . "%";
                 $likeNormalPattern = "trip_points_normal:" . $tripId . ":" . $actionName . "%";
                 
@@ -1147,7 +1149,7 @@ function processFastScanPoints()
                 $cooldownStmt->bind_param("iss", $studentId, $likeScanPattern, $likeNormalPattern);
                 $cooldownStmt->execute();
                 if ($cooldownStmt->get_result()->num_rows > 0) {
-                    sendJSON(['success' => false, 'message' => 'عذراً، تم تسجيل هذا الاختصار بالفعل (' . $actionName . ') لهذا الطفل خلال الـ 30 دقيقة الماضية']);
+                    sendJSON(['success' => false, 'message' => 'عذراً، تم تسجيل (' . $actionName . ') مؤخراً خلال 30 دقيقة!']);
                     return;
                 }
             }

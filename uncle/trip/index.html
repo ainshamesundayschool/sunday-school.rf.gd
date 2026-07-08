@@ -2172,6 +2172,20 @@
                         </select>
                     </div>
 
+                    <!-- Form Control: Custom Note Requirement -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px;">
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <span style="font-weight: 800; font-size: 0.88rem; color: var(--text);">ملاحظة النقاط المخصصة</span>
+                            <span style="font-size: 0.72rem; color: var(--text-3);">تحديد ما إذا كانت كتابة سبب النقاط المخصصة إجبارية</span>
+                        </div>
+                        <label class="switch-toggle"
+                            style="position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;">
+                            <input type="checkbox" id="settingCustomNoteRequired" style="opacity: 0; width: 0; height: 0;">
+                            <span class="switch-slider"
+                                style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--surface-3); transition: .3s; border-radius: 24px; border: 1.5px solid var(--border-solid);"></span>
+                        </label>
+                    </div>
+
                     <!-- Save Button -->
                     <button id="btnSaveTripSettings" onclick="saveTripSettings()" class="btn-action"
                         style="width: 100%; height: 40px; border-radius: 20px; font-weight: 800; font-size: 0.9rem; background: var(--brand); color: white; border: none; cursor: pointer; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 6px;">
@@ -2676,7 +2690,7 @@
                 return regs;
             }
 
-            function queuePointsAction(action, studentId, amount, actionName, gameAction = null, undoingLogId = 0, txId = null) {
+            function queuePointsAction(action, studentId, amount, actionName, gameAction = null, undoingLogId = 0, txId = null, isShortcut = false) {
                 const clientTxId = txId || generateClientTxId();
                 const matchIdx = regsList.findIndex(r => String(r.student_id) === String(studentId));
                 if (matchIdx === -1) {
@@ -2685,7 +2699,7 @@
                 }
                 const student = regsList[matchIdx];
 
-                if (actionName && !undoingLogId) {
+                if (isShortcut && actionName && !undoingLogId) {
                     const trimmedAction = actionName.trim().toLowerCase();
                     const thirtyMinsAgo = Date.now() - 30 * 60 * 1000;
                     
@@ -2701,7 +2715,7 @@
                     
                     if (hasRecentScan) {
                         playErrorSound();
-                        showToast(`عذراً، هذا الاختصار (${actionName}) تم تسجيله بالفعل لهذا الطفل خلال الـ 30 دقيقة الماضية!`, 'warning');
+                        showToast(`عذراً، تم تسجيل (${actionName}) مؤخراً خلال 30 دقيقة!`, 'warning');
                         if (typeof fastScanInProgress !== 'undefined') fastScanInProgress = false;
                         return;
                     }
@@ -2780,7 +2794,8 @@
                         action_name: actionName || '',
                         game_action: gameAction || '',
                         undoing_log_id: undoingLogId || 0,
-                        client_tx_id: clientTxId
+                        client_tx_id: clientTxId,
+                        is_shortcut: isShortcut ? 1 : 0
                     },
                     timestamp: Date.now(),
                     studentName: student.student_name || student.name || `طالب ${studentId}`,
@@ -3660,6 +3675,7 @@
                     html += `
                         <div id="customPointsContainer" style="display: ${customDisp}; width: 100%;">
                             <input type="number" id="customPointsInputVal" class="form-input" placeholder="نقاط مخصصة..." style="width: 100%; font-size: 0.9rem; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--border-solid); height: 38px; text-align: center; box-sizing: border-box; margin-bottom: 8px; outline: none; background: var(--surface); color: var(--text);">
+                            <input type="text" id="customPointsInputNote" class="form-input" placeholder="سبب النقاط (ملاحظة)..." style="width: 100%; font-size: 0.9rem; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--border-solid); height: 38px; text-align: right; box-sizing: border-box; margin-bottom: 8px; outline: none; background: var(--surface); color: var(--text);">
                         </div>
                     `;
 
@@ -3743,6 +3759,9 @@
                 document.getElementById('settingNaughtyNotifs').checked = naughtyNotifs;
                 document.getElementById('settingPointsPermission').value = pointsPermission;
 
+                const customNoteRequired = pointsConfig && typeof pointsConfig.custom_note_required !== 'undefined' ? !!pointsConfig.custom_note_required : false;
+                document.getElementById('settingCustomNoteRequired').checked = customNoteRequired;
+
                 const pointsPermContainer = document.getElementById('settingPointsPermissionContainer');
                 if (pointsPermContainer) {
                     if (currentTrip && currentTrip.is_owner === 1) {
@@ -3779,6 +3798,7 @@
                 pointsConfig.notifications.leaderboard = document.getElementById('settingLeaderboardNotifs').checked;
                 pointsConfig.notifications.naughty = document.getElementById('settingNaughtyNotifs').checked;
                 pointsConfig.points_permission = document.getElementById('settingPointsPermission').value;
+                pointsConfig.custom_note_required = document.getElementById('settingCustomNoteRequired').checked;
 
                 const btn = document.getElementById('btnSaveTripSettings');
                 const oldHtml = btn.innerHTML;
@@ -4120,6 +4140,7 @@
                 }
 
                 let val = 0;
+                let note = '';
                 if (window.activePointsInputMode === 'direct') {
                     val = currentSelectedPoint;
                 } else if (window.activePointsInputMode === 'custom') {
@@ -4129,16 +4150,33 @@
                         showToast('يرجى إدخال قيمة نقاط صالحة أكبر من الصفر', 'warning');
                         return;
                     }
+                    const noteInput = document.getElementById('customPointsInputNote');
+                    note = (noteInput?.value || '').trim();
+
+                    // Check if note is required
+                    let pointsConfig = null;
+                    if (currentTrip && currentTrip.points_config) {
+                        try {
+                            pointsConfig = typeof currentTrip.points_config === 'string' ? JSON.parse(currentTrip.points_config) : currentTrip.points_config;
+                        } catch (err) { }
+                    }
+                    const noteRequired = pointsConfig && pointsConfig.custom_note_required === true;
+                    if (noteRequired && !note) {
+                        showToast('يرجى إدخال سبب النقاط (الملاحظة)', 'warning');
+                        return;
+                    }
                 }
 
                 playSuccessSound();
                 showToast('تم تعديل النقاط بنجاح', 'success');
 
-                queuePointsAction('processGameQRCode', currentStudentId, val, '', action);
+                queuePointsAction('processGameQRCode', currentStudentId, val, note, action, 0, null, false);
 
                 if (window.activePointsInputMode === 'custom') {
                     const input = document.getElementById('customPointsInputVal');
                     if (input) input.value = '';
+                    const noteInput = document.getElementById('customPointsInputNote');
+                    if (noteInput) noteInput.value = '';
                 }
             }
 
@@ -4167,7 +4205,7 @@
                 playSuccessSound();
                 showToast(`تم تسجيل: ${sh.name}`, 'success');
 
-                queuePointsAction('processGameQRCode', currentStudentId, amount, sh.name, action);
+                queuePointsAction('processGameQRCode', currentStudentId, amount, sh.name, action, 0, null, true);
             }
 
             async function markNaughty(event) {
@@ -4725,7 +4763,7 @@
                 let msg = `تم تسجيل ${changeAmount > 0 ? '+' : ''}${changeAmount} لـ ${studentName}`;
                 showToast(msg, 'success');
 
-                queuePointsAction('processFastScanPoints', scannedStudentId, changeAmount, actionName);
+                queuePointsAction('processFastScanPoints', scannedStudentId, changeAmount, actionName, null, 0, null, true);
             }
 
             window.bypassFastScanCooldown = function (studentId) {
