@@ -2787,6 +2787,11 @@ function ensureTripCollaborationRequestsTable($conn)
     $res5 = $conn->query("SHOW COLUMNS FROM `trips` LIKE 'hide_from_uncles'");
     if ($res5 && $res5->num_rows === 0) {
         $conn->query("ALTER TABLE `trips` ADD COLUMN `hide_from_uncles` TINYINT(1) NOT NULL DEFAULT 0");
+    } else {
+        $row = $res5->fetch_assoc();
+        if (strpos(strtolower($row['Type'] ?? ''), 'tinyint') === false) {
+            $conn->query("ALTER TABLE `trips` MODIFY COLUMN `hide_from_uncles` TINYINT(1) NOT NULL DEFAULT 0");
+        }
     }
 }
 
