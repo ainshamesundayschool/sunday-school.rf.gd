@@ -15022,6 +15022,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             try {
                 const fd = new FormData();
                 fd.append('action', 'getTrips');
+                fd.append('uncles_view', '1');
                 const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
 
                 if (!d.success || !d.trips || !d.trips.length) {

@@ -24327,6 +24327,10 @@ function getTrips()
 
         $isAdmin = in_array($role, ['developer', 'dev', 'admin', 'administrator'], true) || ($_SESSION['login_type'] ?? '') === 'church';
 
+        $unclesViewRaw = $_POST['uncles_view'] ?? $_GET['uncles_view'] ?? '';
+
+        $unclesView = in_array(strtolower((string) $unclesViewRaw), ['1', 'true', 'yes'], true);
+
 
 
         $status = sanitize($_POST['status'] ?? $_GET['status'] ?? '');
@@ -24454,7 +24458,7 @@ function getTrips()
 
             }
 
-            if (!$isAdmin && intval($row['hide_from_uncles'] ?? 0) === 1) {
+            if (($unclesView || !$isAdmin) && intval($row['hide_from_uncles'] ?? 0) === 1) {
 
                 continue;
 
