@@ -1,7 +1,7 @@
 // ╔══════════════════════════════════════════════════════════════╗
-// ║  Sunday School PWA — Service Worker v23                     ║
+// ║  Sunday School PWA — Service Worker v24                     ║
 // ╚══════════════════════════════════════════════════════════════╝
-const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v23';
+const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v24';
 const CACHE_NAME        = `sunday-school-${SW_VERSION}`;
 const SYNC_TAG          = 'sync-attendance';
 const PERIODIC_SYNC_TAG = 'check-registrations';
@@ -35,6 +35,9 @@ const SHELL_URLS = [
     '/uncle/trip/points/','/uncle/trip/points/index.html',
     '/js/qr-scanner.umd.min.js',
     '/js/qr-scanner-worker.min.js',
+    '/fonts/cairo.css',
+    '/fonts/cairo-arabic-wght-normal.woff2',
+    '/fonts/cairo-latin-wght-normal.woff2',
     'https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2',

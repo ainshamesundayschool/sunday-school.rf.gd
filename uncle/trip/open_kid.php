@@ -100,6 +100,7 @@ if (count($trips) === 1) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>فتح ملف الطفل - Sunday School</title>
     <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@500;700;800&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/fonts/cairo.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         :root {

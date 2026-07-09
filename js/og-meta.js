@@ -1,4 +1,10 @@
 (function () {
+  // Inject local offline Cairo font stylesheet
+  var fontLink = document.createElement('link');
+  fontLink.rel = 'stylesheet';
+  fontLink.href = '/fonts/cairo.css';
+  document.head.appendChild(fontLink);
+
   var DEFAULT_ORIGIN = 'https://sunday-school.online';
   var SQUARE_IMAGE = DEFAULT_ORIGIN + '/imgs/Sunday-School-Og.png';
   var WIDE_IMAGE = DEFAULT_ORIGIN + '/imgs/Sunday%20School%20App.png';
