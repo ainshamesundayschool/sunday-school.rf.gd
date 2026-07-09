@@ -2783,6 +2783,11 @@ function ensureTripCollaborationRequestsTable($conn)
     if ($res4 && $res4->num_rows === 0) {
         $conn->query("ALTER TABLE `trips` ADD COLUMN `collab_max_participants` INT(11) DEFAULT NULL");
     }
+
+    $res5 = $conn->query("SHOW COLUMNS FROM `trips` LIKE 'hide_from_uncles'");
+    if ($res5 && $res5->num_rows === 0) {
+        $conn->query("ALTER TABLE `trips` ADD COLUMN `hide_from_uncles` TINYINT(1) NOT NULL DEFAULT 0");
+    }
 }
 
 
@@ -24318,6 +24323,10 @@ function getTrips()
 
         }
 
+        $role = strtolower($_SESSION['uncle_role'] ?? $_SESSION['role'] ?? 'uncle');
+
+        $isAdmin = in_array($role, ['developer', 'dev', 'admin', 'administrator'], true) || ($_SESSION['login_type'] ?? '') === 'church';
+
 
 
         $status = sanitize($_POST['status'] ?? $_GET['status'] ?? '');
@@ -24440,6 +24449,12 @@ function getTrips()
         while ($row = $result->fetch_assoc()) {
 
             if (!$ownOnly && !churchIsTripParticipant($row, $churchId)) {
+
+                continue;
+
+            }
+
+            if (!$isAdmin && intval($row['hide_from_uncles'] ?? 0) === 1) {
 
                 continue;
 
@@ -24650,6 +24665,10 @@ function addTrip()
         $showRegisteredKids = isset($_POST['show_registered_kids']) ? intval($_POST['show_registered_kids']) : 1;
 
         $showRegisteredKids = $showRegisteredKids ? 1 : 0;
+
+        $hideFromUncles = isset($_POST['hide_from_uncles']) ? intval($_POST['hide_from_uncles']) : 0;
+
+        $hideFromUncles = $hideFromUncles ? 1 : 0;
 
         $hasPointsGame = isset($_POST['has_points_game']) ? intval($_POST['has_points_game']) : 0;
 
@@ -24975,9 +24994,9 @@ function addTrip()
 
                 has_points_game, custom_fields, custom_field_icons,
 
-                has_rooms, rooms_config
+                has_rooms, rooms_config, hide_from_uncles
 
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 
         ");
 
@@ -24985,7 +25004,7 @@ function addTrip()
 
         $stmt->bind_param(
 
-            "isssssddsissiiissis",
+            "isssssddsissiiissisi",
 
             $churchId,
 
@@ -25023,7 +25042,9 @@ function addTrip()
 
             $hasRooms,
 
-            $roomsConfig
+            $roomsConfig,
+
+            $hideFromUncles
 
         );
 
@@ -25151,6 +25172,9 @@ function updateTrip()
 
         $showRegisteredKids = isset($_POST['show_registered_kids']) ? intval($_POST['show_registered_kids']) : intval($oldTrip['show_registered_kids'] ?? 1);
         $showRegisteredKids = $showRegisteredKids ? 1 : 0;
+
+        $hideFromUncles = isset($_POST['hide_from_uncles']) ? intval($_POST['hide_from_uncles']) : intval($oldTrip['hide_from_uncles'] ?? 0);
+        $hideFromUncles = $hideFromUncles ? 1 : 0;
 
         $hasPointsGame = isset($_POST['has_points_game']) ? intval($_POST['has_points_game']) : intval($oldTrip['has_points_game'] ?? 0);
         $hasPointsGame = $hasPointsGame ? 1 : 0;
@@ -25425,12 +25449,12 @@ function updateTrip()
                     start_date = ?, end_date = ?, price = ?, 
                     discount = ?, discount_type = ?, max_participants = ?, 
                     status = ?, show_registered_kids = ?, has_points_game = ?, custom_fields = ?, custom_field_icons = ?,
-                    has_rooms = ?, rooms_config = ?, points_config = ?, updated_at = NOW()
+                    has_rooms = ?, rooms_config = ?, points_config = ?, hide_from_uncles = ?, updated_at = NOW()
                 WHERE id = ? AND church_id = ?
             ");
             // Corrected type specifier string: index 15 (has_rooms) is i, index 16 (rooms_config) is s
             $stmt->bind_param(
-                "sssssddsisiiisissii",
+                "sssssddsisiiisissiii",
                 $title,
                 $description,
                 $type,
@@ -25448,6 +25472,7 @@ function updateTrip()
                 $hasRooms,
                 $roomsConfig,
                 $pointsConfig,
+                $hideFromUncles,
                 $tripId,
                 $churchId
             );

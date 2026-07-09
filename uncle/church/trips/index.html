@@ -10802,6 +10802,7 @@
         document.getElementById('editTripStatus').value = t.status;
         document.getElementById('editTripDescription').value = t.description || '';
         document.getElementById('editTripShowRegisteredKids').value = String(t.show_registered_kids ?? 1);
+        document.getElementById('editTripHideFromUncles').value = String(t.hide_from_uncles ?? 0);
         document.getElementById('editTripHasPointsGame').value = String(t.has_points_game ?? 0);
 
         // Load points config
@@ -11042,6 +11043,7 @@
         fd.append('status', document.getElementById('editTripStatus').value);
         fd.append('description', document.getElementById('editTripDescription').value);
         fd.append('show_registered_kids', document.getElementById('editTripShowRegisteredKids').value);
+        fd.append('hide_from_uncles', document.getElementById('editTripHideFromUncles').value);
         fd.append('has_points_game', document.getElementById('editTripHasPointsGame').value);
         let customFields = t ? (t.custom_fields || '') : '';
         let customFieldIcons = {};
@@ -19908,6 +19910,13 @@
                 <select id="editTripShowRegisteredKids" class="form-select" style="width:100%;">
                   <option value="1">يظهر للأطفال من سجل في الرحلة</option>
                   <option value="0">لا يظهر إلا بيانات الطفل نفسه</option>
+                </select>
+              </div>
+              <div class="form-group" style="grid-column:1/-1;">
+                <label class="form-label">ظهور الرحلة في صفحة الخدام (الأمناء)</label>
+                <select id="editTripHideFromUncles" class="form-select" style="width:100%;">
+                  <option value="0">تظهر في قائمة الرحلات للخدام</option>
+                  <option value="1">إخفاء من قائمة الرحلات للخدام</option>
                 </select>
               </div>
               <div class="form-group" style="grid-column:1/-1;">
