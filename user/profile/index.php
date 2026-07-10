@@ -5264,7 +5264,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           student = matchedAccount;
           localStorage.setItem('activeKidAccountId', String(matchedAccount.id));
           renderPrivate(student);
-          switchTab('home');
+          switchTab(getInitialTab());
           loadSiblings();
           document.getElementById('bottomNavBar').style.display = 'flex';
           syncPassOverlay();
@@ -5272,7 +5272,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
             document.getElementById('switchBtnTop').style.display = 'flex';
           }
         } else {
-          await openFriendProfile(URL_ID);
+          await openFriendProfile(URL_ID, false);
         }
       }
       else if (IS_PUBLIC && URL_ID) await initPublic(URL_ID);
@@ -5987,7 +5987,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         if (d.success && (d.student || d.user)) {
           student = norm(d.student || d.user);
           await loadChurchSettings();
-          renderPublic(student); switchTab('home'); loadSiblings(); document.getElementById('bottomNavBar').style.display = 'flex'; switchTab('home'); loadSiblings(); document.getElementById('bottomNavBar').style.display = 'flex';
+          renderPublic(student); switchTab(getInitialTab()); loadSiblings(); document.getElementById('bottomNavBar').style.display = 'flex';
         } else noProfile('لم يُعثر على الملف الشخصي');
       } catch (e) { hideLoad(); noProfile('خطأ في الاتصال'); }
     }
@@ -6006,7 +6006,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           student = saved || allAccounts[0];
           await loadChurchSettings();
           renderPrivate(student);
-          switchTab('home');
+          switchTab(getInitialTab());
           loadSiblings();
           document.getElementById('bottomNavBar').style.display = 'flex';
           syncPassOverlay();
@@ -6545,7 +6545,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       }
     }
 
-    async function openFriendProfile(friendId) {
+    async function openFriendProfile(friendId, pushState = true) {
       showLoad('جارٍ تحميل الملف…');
       try {
         const [profD, attD] = await Promise.all([
@@ -6554,6 +6554,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         ]);
         hideLoad();
         if (!profD.success || !(profD.student || profD.user)) return; // friend not found — stay on own profile
+
+        if (pushState) {
+          const newUrl = location.pathname + '?id=' + friendId + location.hash;
+          window.history.pushState({ friendId: friendId }, '', newUrl);
+        }
+
         const f = norm(profD.student || profD.user);
         f._friendAtt = attD.success ? (attD.attendance || []) : [];
         renderFriend(f);
@@ -6640,14 +6646,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       syncViewMode();
     }
 
-    function returnToMyProfile() {
+    function returnToMyProfile(pushState = true) {
       if (!_myStudent) return;
       const s = _myStudent;
       _myStudent = null;
 
-      // Clean the ?id= from the URL without reloading
-      const clean = location.pathname;
-      window.history.replaceState({}, '', clean);
+      // Clean the ?id= from the URL
+      const clean = location.pathname + location.hash;
+      if (pushState) {
+        window.history.pushState({}, '', clean);
+      } else {
+        window.history.replaceState({}, '', clean);
+      }
 
       // Restore student global first
       student = s;
@@ -6706,8 +6716,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       loadSiblings();
       syncPassOverlay();
 
-      // Switch to home tab — this handles all section show/hide
-      switchTab('home');
+      // Switch to home/initial tab — this handles all section show/hide
+      switchTab(getInitialTab());
       window.scrollTo({ top: 0, behavior: 'smooth' });
       syncViewMode();
     }
@@ -8151,7 +8161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       student = acc;
       localStorage.setItem('activeKidAccountId', String(acc.id));
       renderPrivate(student);
-      switchTab('home');
+      switchTab(getInitialTab());
       loadSiblings();
       syncPassOverlay();
       document.getElementById('bottomNavBar').style.display = 'flex';
@@ -8380,12 +8390,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     let wizardCurrentStep = 1;
     let hasSiblingsLoaded = false;
 
+    function getInitialTab() {
+      const initialTab = location.hash.replace('#', '') || 'home';
+      const allowedTabs = IS_PUBLIC ? ['home', 'attendance'] : ['home', 'attendance', 'send', 'tasks', 'family'];
+      return allowedTabs.includes(initialTab) ? initialTab : 'home';
+    }
+
+    window.addEventListener('popstate', async (event) => {
+      if (!student) return;
+
+      // 1. Handle tab switching based on hash
+      const targetTab = getInitialTab();
+      const activeItem = document.querySelector('.bottom-nav-item.active');
+      const currentTab = activeItem ? activeItem.getAttribute('data-tab') : 'home';
+      if (targetTab !== currentTab) {
+        switchTab(targetTab);
+      }
+
+      // 2. Handle profile changes based on query param id
+      const m = location.search.match(/[?&]id=(\d+)/);
+      const targetId = m ? parseInt(m[1]) : null;
+
+      if (targetId) {
+        if (student && student.id === targetId) {
+          // Already on this student's profile (either own or friend)
+          // If we were viewing friend but the ID matches own account, switch back to own
+          const isOwn = allAccounts.some(a => Number(a.id) === targetId);
+          if (isOwn && isViewingOther()) {
+            returnToMyProfile(false);
+          }
+        } else {
+          const matched = allAccounts.find(a => Number(a.id) === targetId);
+          if (matched) {
+            if (isViewingOther()) {
+              returnToMyProfile(false);
+            }
+            student = matched;
+            localStorage.setItem('activeKidAccountId', String(matched.id));
+            renderPrivate(student);
+            loadSiblings();
+            document.getElementById('bottomNavBar').style.display = 'flex';
+          } else {
+            await openFriendProfile(targetId, false);
+          }
+        }
+      } else {
+        // No ID in URL, return to my profile
+        if (isViewingOther() && _myStudent) {
+          returnToMyProfile(false);
+        }
+      }
+    });
+
     function switchTab(tabName) {
+      const allowedTabs = IS_PUBLIC ? ['home', 'attendance'] : ['home', 'attendance', 'send', 'tasks', 'family'];
+      if (!allowedTabs.includes(tabName)) {
+        tabName = 'home';
+      }
+
       document.querySelectorAll('.bottom-nav-item').forEach(item => {
         item.classList.remove('active');
       });
       const activeItem = document.querySelector(`.bottom-nav-item[data-tab="${tabName}"]`);
       if (activeItem) activeItem.classList.add('active');
+
+      // Update hash in URL
+      if (location.hash.replace('#', '') !== tabName) {
+        if (!location.hash && tabName === 'home') {
+          history.replaceState(null, '', '#home');
+        } else {
+          location.hash = tabName;
+        }
+      }
 
       const hero = document.querySelector('.hero');
       const statsBar = document.getElementById('statsBar');
