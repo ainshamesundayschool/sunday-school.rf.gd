@@ -12535,6 +12535,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
             .bulk-cell:active {
                 transform: scale(0.92);
             }
+            @media (max-width: 580px) {
+                #bulkAttendanceModal .modal {
+                    width: 100vw !important;
+                    height: 100vh !important;
+                    max-height: 100vh !important;
+                    border-radius: 0 !important;
+                    margin: 0 !important;
+                }
+                #bulkAttendanceModal .table-responsive {
+                    max-height: calc(100vh - 140px) !important;
+                }
+            }
         </style>
         <div class="modal modal-lg" style="width: min(95vw, 1200px); max-height: 90vh; display: flex; flex-direction: column;">
             <div class="modal-header">
@@ -12542,9 +12554,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <button class="close-btn" onclick="hideBulkAttendanceModal()">&times;</button>
             </div>
             <div class="modal-body" style="flex: 1; overflow: auto; padding: 14px 22px;">
-                <div style="font-size: 0.8rem; color: var(--text-3); margin-bottom: 12px; font-weight: bold;">
-                    💡 اضغط على الخلايا للتبديل بين الحضور (ح) والغياب (غ). سيتم تمييز التعديلات بإطار منقط، واضغط حفظ عند الانتهاء.
-                </div>
                 <div class="table-responsive" style="overflow-x: auto; max-height: calc(90vh - 240px); border-radius: var(--r-md); border: 1px solid var(--bdr);">
                     <table class="bulk-att-table" id="bulkAttTable">
                         <!-- Will be populated dynamically -->
@@ -20288,7 +20297,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             list.forEach(s => {
                 const id = getStudentId(s);
                 const name = s['الاسم'] || s.name || '';
-                html += `<tr><td>${name}</td>`;
+                const gender = (s['النوع'] === 'female' || s['gender'] === 'female') ? 'female' : 'male';
+                const avatarImg = s['صورة']
+                    ? `<img src="${window.photoUrl(s['صورة'])}" class="bulk-avatar" style="width:28px; height:28px; border-radius:50%; object-fit:cover; display:inline-block; vertical-align:middle; margin-left:8px;" onerror="this.outerHTML='<i class=\\'fas fa-user\\' style=\\'margin-left:8px; width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center; border-radius:50%; background:var(--border);\\'></i>'">`
+                    : `<i class="fas fa-user" style="margin-left: 8px; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--border); color: var(--text-3); vertical-align:middle;"></i>`;
+
+                html += `<tr style="vertical-align:middle;"><td style="text-align:right; display:flex; align-items:center; border-left: 2px solid var(--bdr);">${avatarImg}<span>${name}</span></td>`;
                 
                 allDates.forEach(d => {
                     // Get current status in memory/server
@@ -20326,9 +20340,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function toggleBulkCell(el) {
             const studentId = el.getAttribute('data-id');
             const date = el.getAttribute('data-date');
-            const key = `${studentId}_${date}`;
+            const key = `${studentId}:::${date}`;
 
-            // Cycle: pending/absent -> present -> absent
+            // Cycle: pending -> present -> absent -> pending
             let cur = 'pending';
             if (el.classList.contains('present')) {
                 cur = 'present';
@@ -20338,12 +20352,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             let nextStatus;
             let nextLabel;
-            if (cur === 'present') {
+            if (cur === 'pending') {
+                nextStatus = 'present';
+                nextLabel = 'ح';
+            } else if (cur === 'present') {
                 nextStatus = 'absent';
                 nextLabel = 'غ';
             } else {
-                nextStatus = 'present';
-                nextLabel = 'ح';
+                nextStatus = 'pending';
+                nextLabel = '-';
             }
 
             // Update DOM class and text
@@ -20374,7 +20391,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             // Group edits by date
             const editsByDate = {};
             for (const [key, status] of edits) {
-                const [studentId, dateKey] = key.split('_');
+                const [studentId, dateKey] = key.split(':::');
                 if (!editsByDate[dateKey]) editsByDate[dateKey] = [];
                 editsByDate[dateKey].push({ id: studentId, status });
             }
@@ -20390,11 +20407,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     
                     let records;
                     if (currentClass === 'الخدام') {
-                        records = groupEdits.map(e => ({ uncle_id: parseInt(e.id), status: e.status }));
+                        records = groupEdits.map(e => ({ uncle_id: parseInt(e.id.replace('uncle_', '')), status: e.status }));
                     } else {
                         records = groupEdits.map(e => {
                             const s = students.find(x => getStudentId(x) == e.id);
-                            return { studentName: s['الاسم'].trim(), status: e.status };
+                            return { studentName: s ? s['الاسم'].trim() : '', status: e.status };
                         });
                     }
 
