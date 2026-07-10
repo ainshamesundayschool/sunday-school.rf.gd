@@ -2747,7 +2747,6 @@ function updateCollaborationLimit()
 
 function ensureTripCollaborationRequestsTable($conn)
 {
-    if (defined('SCHEMA_MIGRATED')) { return; }
     $sql = "CREATE TABLE IF NOT EXISTS `trip_collaboration_requests` (
         `id` int(11) NOT NULL AUTO_INCREMENT,
         `trip_id` int(11) NOT NULL,

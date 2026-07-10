@@ -14375,6 +14375,51 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     if (d.classes && d.classes.length) {
                         classes = d.classes.sort((a, b) => getClassOrderWeight(a.arabic_name || a.code) - getClassOrderWeight(b.arabic_name || b.code));
                     }
+                    const cachedUncles = localStorage.getItem('lastUnclesData');
+                    if (cachedUncles) {
+                        try {
+                            window.allUnclesData = JSON.parse(cachedUncles);
+                            window.allUnclesData.forEach(u => {
+                                u._isUncle = true;
+                                u['الاسم'] = u.name;
+                                u['الفصل'] = 'الخدام';
+                                u['رقم التليفون'] = u.phone || '';
+                                u['عيد الميلاد'] = '';
+                                u['النوع'] = u.gender || 'male';
+                                u['صورة'] = u.image_url || '';
+                                u._customInfo = u.custom_info ? (typeof u.custom_info === 'string' ? JSON.parse(u.custom_info) : u.custom_info) : {};
+                            });
+                        } catch (e) { }
+                    }
+                    const cachedGuests = localStorage.getItem('lastGuestsData');
+                    if (cachedGuests) {
+                        try {
+                            window.allGuestsData = JSON.parse(cachedGuests);
+                            window.allGuestsData.forEach(g => {
+                                g._isGuest = true;
+                                g['الاسم'] = g.name;
+                                g['الفصل'] = 'الزوار';
+                                g['رقم التليفون'] = g.phone || '';
+                                g['عيد الميلاد'] = '';
+                                g['النوع'] = g.gender || 'male';
+                                g['صورة'] = g.image_url || '';
+                                g._customInfo = {};
+                            });
+                        } catch (e) { }
+                    }
+                    if (!window.allGuestsData || !window.allGuestsData.length) {
+                        window.allGuestsData = students.filter(s => s._isGuest == 1 || s._isGuest === true || s['الفصل'] === 'الزوار');
+                        window.allGuestsData.forEach(g => {
+                            g._isGuest = true;
+                            g['الاسم'] = g.name || g['الاسم'];
+                            g['الفصل'] = g['الفصل'] || 'الزوار';
+                            g['رقم التليفون'] = g.phone || g['رقم التليفون'] || '';
+                            g['عيد الميلاد'] = g['عيد الميلاد'] || '';
+                            g['النوع'] = g.gender || g['النوع'] || 'male';
+                            g['صورة'] = g.image_url || g['صورة'] || '';
+                            g._customInfo = g._customInfo || {};
+                        });
+                    }
                     updateDashboardStats();
                     loadDashboardTrips();
                     if (!currentClass) {
