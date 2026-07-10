@@ -44760,7 +44760,9 @@ function checkDailyUnclesNotifications()
 
 
 
-        $todayStr = date('Y-m-d');
+        $cairoTime = new DateTime('now', new DateTimeZone('Africa/Cairo'));
+
+        $todayStr = $cairoTime->format('Y-m-d');
 
 
 
@@ -44775,9 +44777,9 @@ function checkDailyUnclesNotifications()
 
             if ($conn->affected_rows > 0) {
 
-                $dayNow = (int)date('d');
+                $dayNow = (int)$cairoTime->format('d');
 
-                $monthNow = (int)date('m');
+                $monthNow = (int)$cairoTime->format('m');
 
                 $bdayStudents = [];
 
@@ -44837,9 +44839,11 @@ function checkDailyUnclesNotifications()
 
             
 
-            $todayDayOfWeek = (int)date('N');
+            $todayDayOfWeek = (int)$cairoTime->format('N');
 
-            if ($todayDayOfWeek === $attDay) {
+            $currentHour = (int)$cairoTime->format('H');
+
+            if ($todayDayOfWeek === $attDay && $currentHour >= 14) {
 
                 // Attempt to insert immediately to lock this task and prevent concurrent runs
                 $conn->query("INSERT IGNORE INTO daily_notification_logs (church_id, check_date, notification_type) VALUES ($churchId, '$todayStr', 'attendance')");

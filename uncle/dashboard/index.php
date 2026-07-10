@@ -14100,6 +14100,33 @@ if ($hasUncleId && $uncleRole === 'uncle')
             // Trigger once-daily checks for birthdays and unsaved attendance
             makeApiCall({ action: 'checkDailyUnclesNotifications' }, console.log, console.error);
 
+            // Check for unsaved/unsynced changes on startup/revisit
+            setTimeout(async () => {
+                try {
+                    const queueCount = await getIndexedDbQueueCount();
+                    const pendingLocalCount = typeof _countAllPendingLocalChanges === 'function' ? _countAllPendingLocalChanges() : 0;
+                    const totalUnsaved = queueCount + pendingLocalCount;
+
+                    if (totalUnsaved > 0) {
+                        showToast(
+                            `⚠️ لديك ${totalUnsaved} تعديل غير محفوظ محلياً! يرجى حفظ التغييرات لمزامنتها مع الخادم.`,
+                            'warning',
+                            {
+                                dur: 10000,
+                                action: {
+                                    label: '<i class="fas fa-sync-alt"></i> مزامنة الآن',
+                                    fn: () => {
+                                        triggerManualSync();
+                                    }
+                                }
+                            }
+                        );
+                    }
+                } catch (e) {
+                    console.error('Error checking for unsaved changes on boot:', e);
+                }
+            }, 3000);
+
             // Remove the pre-boot style hide tag to restore normal render flexibility
             const preBoot = document.getElementById('pre-boot-hide');
             if (preBoot) preBoot.remove();
