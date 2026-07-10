@@ -12496,17 +12496,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 top: 0;
                 z-index: 10;
             }
-            .bulk-att-table th:first-child, .bulk-att-table td:first-child {
+            .bulk-att-table th:first-child, .bulk-att-table td:first-child, .sticky-col {
                 position: sticky !important;
                 right: 0 !important;
                 background: var(--surface) !important;
-                z-index: 5;
+                z-index: 5 !important;
                 font-weight: bold;
                 text-align: right;
-                border-left: 2px solid var(--bdr);
+                border-left: 2px solid var(--bdr) !important;
                 box-shadow: -2px 0 5px rgba(0,0,0,0.05);
             }
-            .bulk-att-table th:first-child {
+            .bulk-att-table th:first-child, th.sticky-col {
                 z-index: 15 !important;
                 background: var(--surface-2) !important;
             }
@@ -12555,7 +12555,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <button class="close-btn" onclick="hideBulkAttendanceModal()">&times;</button>
             </div>
             <div class="modal-body" style="flex: 1; overflow: auto; padding: 14px 22px;">
-                <div class="table-responsive" style="overflow-x: auto; max-height: calc(90vh - 240px); border-radius: var(--r-md); border: 1px solid var(--bdr);">
+                <div class="table-responsive" style="direction: rtl; overflow-x: auto; max-height: calc(90vh - 240px); border-radius: var(--r-md); border: 1px solid var(--bdr);">
                     <table class="bulk-att-table" id="bulkAttTable">
                         <!-- Will be populated dynamically -->
                     </table>
@@ -15520,7 +15520,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         // ── SWIPE TO CLOSE ────────────────────────────────────────────
         function initSwipeToClose(overlay) {
-            if (overlay.id === 'kidQrScannerModal' || overlay.id === 'customExportModal') return;
+            if (overlay.id === 'kidQrScannerModal' || overlay.id === 'customExportModal' || overlay.id === 'bulkAttendanceModal') return;
             const modal = overlay.querySelector('.modal');
             if (!modal) return;
 
@@ -20285,7 +20285,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
 
             // Build Table Header
-            let html = `<thead><tr><th>الاسم</th>`;
+            let html = `<thead><tr><th class="sticky-col">الاسم</th>`;
             allDates.forEach(d => {
                 // Show short date format (DD/MM) for space
                 const p = d.split('/');
@@ -20303,7 +20303,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     ? `<img src="${window.photoUrl(s['صورة'])}" class="bulk-avatar" style="width:24px; height:24px; border-radius:50%; object-fit:cover; display:inline-block; vertical-align:middle; margin-left:6px;" onerror="this.outerHTML='<i class=\\'fas fa-user\\' style=\\'margin-left:6px; width:24px; height:24px; display:inline-flex; align-items:center; justify-content:center; border-radius:50%; background:var(--border);\\'></i>'">`
                     : `<i class="fas fa-user" style="margin-left: 6px; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--border); color: var(--text-3); vertical-align:middle; font-size: 0.75rem;"></i>`;
 
-                html += `<tr style="vertical-align:middle;"><td style="text-align:right; border-left: 2px solid var(--bdr);"><div style="display:flex; align-items:center; gap:6px;">${avatarImg}<span>${name}</span></div></td>`;
+                html += `<tr style="vertical-align:middle;"><td class="sticky-col"><div style="display:flex; align-items:center; gap:6px;">${avatarImg}<span>${name}</span></div></td>`;
                 
                 allDates.forEach(d => {
                     // Get current status in memory/server
