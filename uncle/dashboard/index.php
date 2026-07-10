@@ -12476,14 +12476,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 border-spacing: 0;
                 text-align: center;
                 direction: rtl;
-                font-size: 0.85rem;
+                font-size: 0.76rem;
                 background: var(--surface);
                 border: 1px solid var(--bdr);
                 border-radius: var(--r-md);
                 overflow: hidden;
             }
             .bulk-att-table th, .bulk-att-table td {
-                padding: 10px 12px;
+                padding: 6px 8px;
                 border-bottom: 1px solid var(--bdr);
                 border-left: 1px solid var(--bdr);
                 white-space: nowrap;
@@ -12518,7 +12518,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 transition: all var(--fast);
                 font-weight: 800;
                 user-select: none;
-                font-size: 0.95rem;
+                font-size: 0.86rem;
             }
             .bulk-cell.present {
                 background: rgba(16, 185, 129, 0.15) !important;
@@ -12538,13 +12538,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
             @media (max-width: 580px) {
                 #bulkAttendanceModal .modal {
                     width: 100vw !important;
-                    height: 100vh !important;
-                    max-height: 100vh !important;
-                    border-radius: 0 !important;
-                    margin: 0 !important;
+                    max-width: 100vw !important;
+                    height: auto !important;
+                    max-height: 85vh !important;
+                    border-radius: 20px 20px 0 0 !important;
+                    margin: auto 0 0 0 !important;
                 }
                 #bulkAttendanceModal .table-responsive {
-                    max-height: calc(100vh - 140px) !important;
+                    max-height: calc(85vh - 145px) !important;
                 }
             }
         </style>
@@ -20299,10 +20300,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const name = s['الاسم'] || s.name || '';
                 const gender = (s['النوع'] === 'female' || s['gender'] === 'female') ? 'female' : 'male';
                 const avatarImg = s['صورة']
-                    ? `<img src="${window.photoUrl(s['صورة'])}" class="bulk-avatar" style="width:28px; height:28px; border-radius:50%; object-fit:cover; display:inline-block; vertical-align:middle; margin-left:8px;" onerror="this.outerHTML='<i class=\\'fas fa-user\\' style=\\'margin-left:8px; width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center; border-radius:50%; background:var(--border);\\'></i>'">`
-                    : `<i class="fas fa-user" style="margin-left: 8px; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--border); color: var(--text-3); vertical-align:middle;"></i>`;
+                    ? `<img src="${window.photoUrl(s['صورة'])}" class="bulk-avatar" style="width:24px; height:24px; border-radius:50%; object-fit:cover; display:inline-block; vertical-align:middle; margin-left:6px;" onerror="this.outerHTML='<i class=\\'fas fa-user\\' style=\\'margin-left:6px; width:24px; height:24px; display:inline-flex; align-items:center; justify-content:center; border-radius:50%; background:var(--border);\\'></i>'">`
+                    : `<i class="fas fa-user" style="margin-left: 6px; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--border); color: var(--text-3); vertical-align:middle; font-size: 0.75rem;"></i>`;
 
-                html += `<tr style="vertical-align:middle;"><td style="text-align:right; display:flex; align-items:center; border-left: 2px solid var(--bdr);">${avatarImg}<span>${name}</span></td>`;
+                html += `<tr style="vertical-align:middle;"><td style="text-align:right; border-left: 2px solid var(--bdr);"><div style="display:flex; align-items:center; gap:6px;">${avatarImg}<span>${name}</span></div></td>`;
                 
                 allDates.forEach(d => {
                     // Get current status in memory/server
