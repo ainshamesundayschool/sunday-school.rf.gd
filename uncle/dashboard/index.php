@@ -12489,17 +12489,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 white-space: nowrap;
             }
             .bulk-att-table th {
-                background: var(--s2);
+                background: var(--surface-2);
                 font-weight: 800;
-                color: var(--t1);
+                color: var(--text);
                 position: sticky;
                 top: 0;
                 z-index: 10;
             }
             .bulk-att-table th:first-child, .bulk-att-table td:first-child {
-                position: sticky;
-                right: 0;
-                background: var(--surf);
+                position: sticky !important;
+                right: 0 !important;
+                background: var(--surface) !important;
                 z-index: 5;
                 font-weight: bold;
                 text-align: right;
@@ -12507,8 +12507,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 box-shadow: -2px 0 5px rgba(0,0,0,0.05);
             }
             .bulk-att-table th:first-child {
-                z-index: 15;
-                background: var(--s2);
+                z-index: 15 !important;
+                background: var(--surface-2) !important;
             }
             .bulk-att-table tr:hover td {
                 background: rgba(124, 58, 237, 0.05);
