@@ -1364,6 +1364,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     }
 
     @media (max-width: 480px) {
+      .hero-top {
+        padding: 10px 10px 0;
+        gap: 8px;
+      }
+
+      .hero-church-chip {
+        max-width: 110px;
+        font-size: .7rem;
+        padding: 4px 8px;
+      }
+
+      .hero-ico-btn {
+        width: 30px;
+        height: 30px;
+        font-size: .8rem;
+      }
+
+      .hero-actions-top {
+        gap: 6px;
+      }
+
       #tripList {
         grid-template-columns: repeat(2, 1fr);
         gap: 8px;
@@ -3104,12 +3125,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     }
 
     /* ══ ATTENDANCE NARROWER ══════════════════════════════ */
-    .cal-day {
-      padding: 7px 5px !important;
-    }
+    @media(max-width:480px) {
+      .cal-day {
+        padding: 7px 5px !important;
+      }
 
-    .cd-num {
-      font-size: 1rem !important;
+      .cd-num {
+        font-size: 1rem !important;
+      }
     }
 
     /* ══ RESPONSIVE ══════════════════════════════════════ */
@@ -3145,6 +3168,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
       .stats-bar {
         grid-template-columns: repeat(2, 1fr);
+      }
+
+      .sb-cell {
+        border-left: none;
+      }
+
+      .sb-cell:nth-child(odd) {
+        border-left: 1px solid var(--bdr);
       }
 
       .ann-summary {
@@ -3931,7 +3962,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       background: rgba(255, 255, 255, 0.2);
     }
 
-    .send-cat-btn {
+    .send-coupons-page .send-cat-btn {
       background: rgba(255, 255, 255, 0.12);
       border: 1.5px solid rgba(255, 255, 255, 0.2);
       border-radius: var(--r-sm);
@@ -3945,13 +3976,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       outline: none;
     }
 
-    .send-cat-btn.active {
+    .send-coupons-page .send-cat-btn.active {
       background: #fff;
       color: var(--brand);
       border-color: #fff;
     }
 
-    .send-recipient-chip {
+    .send-coupons-page .send-recipient-chip {
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -3969,7 +4000,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       color: #fff;
     }
 
-    .send-recipient-chip.active {
+    .send-coupons-page .send-recipient-chip.active {
       border-color: #fff;
       background: #fff;
       color: var(--brand);
