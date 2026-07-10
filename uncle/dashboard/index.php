@@ -12465,6 +12465,99 @@ if ($hasUncleId && $uncleRole === 'uncle')
         </div>
     </div>
 
+    <!-- Bulk Attendance Modal -->
+    <div class="modal-overlay" id="bulkAttendanceModal" style="z-index:1000007">
+        <style>
+            .bulk-att-table {
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 0;
+                text-align: center;
+                direction: rtl;
+                font-size: 0.85rem;
+                background: var(--surface);
+                border: 1px solid var(--bdr);
+                border-radius: var(--r-md);
+                overflow: hidden;
+            }
+            .bulk-att-table th, .bulk-att-table td {
+                padding: 10px 12px;
+                border-bottom: 1px solid var(--bdr);
+                border-left: 1px solid var(--bdr);
+                white-space: nowrap;
+            }
+            .bulk-att-table th {
+                background: var(--s2);
+                font-weight: 800;
+                color: var(--t1);
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+            .bulk-att-table th:first-child, .bulk-att-table td:first-child {
+                position: sticky;
+                right: 0;
+                background: var(--surf);
+                z-index: 5;
+                font-weight: bold;
+                text-align: right;
+                border-left: 2px solid var(--bdr);
+                box-shadow: -2px 0 5px rgba(0,0,0,0.05);
+            }
+            .bulk-att-table th:first-child {
+                z-index: 15;
+                background: var(--s2);
+            }
+            .bulk-att-table tr:hover td {
+                background: rgba(124, 58, 237, 0.05);
+            }
+            .bulk-cell {
+                cursor: pointer;
+                transition: all var(--fast);
+                font-weight: 800;
+                user-select: none;
+                font-size: 0.95rem;
+            }
+            .bulk-cell.present {
+                background: rgba(16, 185, 129, 0.15) !important;
+                color: #10b981 !important;
+            }
+            .bulk-cell.absent {
+                background: rgba(239, 68, 68, 0.15) !important;
+                color: #ef4444 !important;
+            }
+            .bulk-cell.pending {
+                background: transparent;
+                color: var(--text-3);
+            }
+            .bulk-cell:active {
+                transform: scale(0.92);
+            }
+        </style>
+        <div class="modal modal-lg" style="width: min(95vw, 1200px); max-height: 90vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <h3><i class="fas fa-table-cells"></i> تعديل جماعي للحضور (كشف الشيت)</h3>
+                <button class="close-btn" onclick="hideBulkAttendanceModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="flex: 1; overflow: auto; padding: 14px 22px;">
+                <div style="font-size: 0.8rem; color: var(--text-3); margin-bottom: 12px; font-weight: bold;">
+                    💡 اضغط على الخلايا للتبديل بين الحضور (ح) والغياب (غ). سيتم تمييز التعديلات بإطار منقط، واضغط حفظ عند الانتهاء.
+                </div>
+                <div class="table-responsive" style="overflow-x: auto; max-height: calc(90vh - 240px); border-radius: var(--r-md); border: 1px solid var(--bdr);">
+                    <table class="bulk-att-table" id="bulkAttTable">
+                        <!-- Will be populated dynamically -->
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 14px 22px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--bdr); background: var(--s2); border-bottom-left-radius: var(--r-lg); border-bottom-right-radius: var(--r-lg);">
+                <button class="btn btn-ghost" onclick="hideBulkAttendanceModal()">إلغاء</button>
+                <button class="btn btn-warning" id="saveBulkAttBtn" onclick="saveBulkAttendanceSheet()">
+                    <i class="fas fa-save"></i> حفظ التغييرات
+                </button>
+            </div>
+        </div>
+    </div>
+
 
 
     <!-- Bulk Edit Class Modal -->
@@ -20116,6 +20209,239 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
         function showPastFridaysModal() { document.getElementById('pastFridaysModal').classList.add('active'); renderPastFridays(); stopAutoRefresh(); }
         function hidePastFridaysModal() { document.getElementById('pastFridaysModal').classList.remove('active'); startAutoRefresh(); }
+
+        let bulkEdits = {};
+        function showBulkAttendanceModal() {
+            if (!currentClass) {
+                showToast('يرجى اختيار فصل أولاً', 'info');
+                return;
+            }
+            bulkEdits = {};
+            const modal = document.getElementById('bulkAttendanceModal');
+            if (modal) {
+                modal.classList.add('active');
+                renderBulkAttendanceTable();
+                stopAutoRefresh();
+            }
+        }
+
+        function hideBulkAttendanceModal() {
+            const modal = document.getElementById('bulkAttendanceModal');
+            if (modal) {
+                modal.classList.remove('active');
+                startAutoRefresh();
+            }
+        }
+
+        function renderBulkAttendanceTable() {
+            const table = document.getElementById('bulkAttTable');
+            if (!table) return;
+
+            // Generate past Fridays dates
+            const jsDay = dbDayToJsDay(churchAttendanceDay);
+            const today = new Date();
+            const start = new Date(today.getFullYear() - 1, 8, 1);
+
+            let f = new Date(start);
+            while (f.getDay() !== jsDay) f.setDate(f.getDate() + 1);
+
+            const days = [];
+            while (f <= today) {
+                days.push(formatDateDDMMYYYY(f));
+                f.setDate(f.getDate() + 7);
+            }
+            days.reverse(); // Newest first
+
+            // Include custom dates
+            const customDates = _getCustomDates().map(cd => cd.date);
+            // Combine and filter duplicates, sorted chronologically reverse
+            let allDates = [...new Set([...customDates, ...days])];
+            
+            // Limit to last 12 dates for optimal rendering performance and display width
+            if (allDates.length > 12) {
+                allDates = allDates.slice(0, 12);
+            }
+
+            // Get active list of kids/uncles
+            const list = currentClass === 'الخدام' 
+                ? (window.allUnclesData || []) 
+                : students.filter(s => s['الفصل'] === currentClass);
+
+            if (!list.length) {
+                table.innerHTML = `<tr><td style="padding:2rem;color:var(--text-3);text-align:center;">لا توجد أسماء في هذا الفصل</td></tr>`;
+                return;
+            }
+
+            // Build Table Header
+            let html = `<thead><tr><th>الاسم</th>`;
+            allDates.forEach(d => {
+                // Show short date format (DD/MM) for space
+                const p = d.split('/');
+                const shortDate = p.length >= 2 ? `${p[0]}/${p[1]}` : d;
+                html += `<th title="${d}">${shortDate}</th>`;
+            });
+            html += `</tr></thead><tbody>`;
+
+            // Build Rows
+            list.forEach(s => {
+                const id = getStudentId(s);
+                const name = s['الاسم'] || s.name || '';
+                html += `<tr><td>${name}</td>`;
+                
+                allDates.forEach(d => {
+                    // Get current status in memory/server
+                    const srv = getServerAttendanceStatus(s, d);
+                    let status = srv || 'pending';
+                    
+                    // If offline saved, reflect it
+                    const cls = isCombinedView ? (combinedGroupLabel || currentClass) : currentClass;
+                    const offAttList = JSON.parse(localStorage.getItem(`offlineSavedAttendance_${cls}_${d}`) || '[]');
+                    if (offAttList.includes(id)) {
+                        status = 'present';
+                    }
+
+                    let label = '';
+                    let cellClass = 'pending';
+                    if (status === 'present') {
+                        label = 'ح';
+                        cellClass = 'present';
+                    } else if (status === 'absent') {
+                        label = 'غ';
+                        cellClass = 'absent';
+                    } else {
+                        label = '-';
+                        cellClass = 'pending';
+                    }
+
+                    html += `<td class="bulk-cell ${cellClass}" data-id="${id}" data-date="${d}" onclick="toggleBulkCell(this)">${label}</td>`;
+                });
+                html += `</tr>`;
+            });
+            html += `</tbody>`;
+            table.innerHTML = html;
+        }
+
+        function toggleBulkCell(el) {
+            const studentId = el.getAttribute('data-id');
+            const date = el.getAttribute('data-date');
+            const key = `${studentId}_${date}`;
+
+            // Cycle: pending/absent -> present -> absent
+            let cur = 'pending';
+            if (el.classList.contains('present')) {
+                cur = 'present';
+            } else if (el.classList.contains('absent')) {
+                cur = 'absent';
+            }
+
+            let nextStatus;
+            let nextLabel;
+            if (cur === 'present') {
+                nextStatus = 'absent';
+                nextLabel = 'غ';
+            } else {
+                nextStatus = 'present';
+                nextLabel = 'ح';
+            }
+
+            // Update DOM class and text
+            el.className = `bulk-cell ${nextStatus}`;
+            el.textContent = nextLabel;
+
+            // Highlight modified cell
+            el.style.outline = '2px dashed var(--warning-dark)';
+
+            // Save edit
+            bulkEdits[key] = nextStatus;
+        }
+
+        async function saveBulkAttendanceSheet() {
+            const edits = Object.entries(bulkEdits);
+            if (!edits.length) {
+                showToast('لا توجد تعديلات لحفظها', 'info');
+                return;
+            }
+
+            const btn = document.getElementById('saveBulkAttBtn');
+            const originalHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+            }
+
+            // Group edits by date
+            const editsByDate = {};
+            for (const [key, status] of edits) {
+                const [studentId, dateKey] = key.split('_');
+                if (!editsByDate[dateKey]) editsByDate[dateKey] = [];
+                editsByDate[dateKey].push({ id: studentId, status });
+            }
+
+            const dateKeys = Object.keys(editsByDate);
+            let successCount = 0;
+            let errorCount = 0;
+
+            const savePromises = dateKeys.map(dateKey => {
+                return new Promise((resolve) => {
+                    const groupEdits = editsByDate[dateKey];
+                    const actionName = (currentClass === 'الخدام') ? 'submitUncleAttendance' : 'submitAttendance';
+                    
+                    let records;
+                    if (currentClass === 'الخدام') {
+                        records = groupEdits.map(e => ({ uncle_id: parseInt(e.id), status: e.status }));
+                    } else {
+                        records = groupEdits.map(e => {
+                            const s = students.find(x => getStudentId(x) == e.id);
+                            return { studentName: s['الاسم'].trim(), status: e.status };
+                        });
+                    }
+
+                    makeApiCall({
+                        action: actionName,
+                        className: currentClass,
+                        attendanceData: JSON.stringify(records),
+                        date: dateKey
+                    }, r => {
+                        if (r.success) {
+                            // Update local states so UI reflects new changes immediately
+                            groupEdits.forEach(e => {
+                                const s = (currentClass === 'الخدام')
+                                    ? (window.allUnclesData || []).find(x => getStudentId(x) == e.id)
+                                    : students.find(x => getStudentId(x) == e.id);
+                                if (s) {
+                                    if (!s._allAttendance) s._allAttendance = {};
+                                    s._allAttendance[dateKey] = e.status;
+                                }
+                            });
+                            successCount++;
+                        } else {
+                            errorCount++;
+                        }
+                        resolve();
+                    }, () => {
+                        errorCount++;
+                        resolve();
+                    });
+                });
+            });
+
+            await Promise.all(savePromises);
+
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+
+            if (errorCount === 0) {
+                showToast('تم حفظ جميع التواريخ بنجاح ✅', 'success', { dur: 6000 });
+                hideBulkAttendanceModal();
+                loadData(); // reload data to sync everything
+            } else {
+                showToast(`تم حفظ بعض التواريخ وفشل البعض الآخر (ناجح: ${successCount}، فشل: ${errorCount})`, 'warning', { dur: 8000 });
+                loadData();
+            }
+        }
+
         function showAnnouncementsModal() { document.getElementById('announcementsModal').classList.add('active'); loadAnnouncements(); renderAnnouncementStudentGrid(); renderAnnouncementSelectedCards(); stopAutoRefresh(); }
         function hideAnnouncementsModal() { document.getElementById('announcementsModal').classList.remove('active'); startAutoRefresh(); }
         function showImageModal(src, e) {
