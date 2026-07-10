@@ -6492,7 +6492,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       <div class="uncle-card-name">${esc(u.name)}</div>
       <div class="uncle-card-role">${roleLbl[u.role] || u.role}</div>
     </div>`).join('');
-      sec.style.display = 'block';
+      const currentTab = document.querySelector('.bottom-nav-item.active')?.getAttribute('data-tab') || 'home';
+      if (currentTab === 'family') {
+        sec.style.display = 'block';
+      } else {
+        sec.style.display = 'none';
+      }
     }
 
     function openUncleDrawer(uid) {
@@ -7697,7 +7702,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         if (d.success && d.trips && d.trips.length) {
           allTrips = d.trips;
           renderTrips(d.trips);
-          document.getElementById('scTrips').style.display = 'block';
+          const currentTab = document.querySelector('.bottom-nav-item.active')?.getAttribute('data-tab') || 'home';
+          if (currentTab === 'home') {
+            document.getElementById('scTrips').style.display = 'block';
+          }
         } else {
           // No trips — keep section hidden
           document.getElementById('scTrips').style.display = 'none';
@@ -8475,6 +8483,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       const scUncles = document.getElementById('scUncles');
       const scSiblings = document.getElementById('scSiblings');
       const scSendCoupons = document.getElementById('scSendCoupons');
+      const scPaperExams = document.getElementById('scPaperExams');
       const mainPage = document.getElementById('mainPage');
 
       // Adjust mainPage padding/width for fullscreen tabs (send coupons & tasks)
@@ -8503,12 +8512,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       if (scUncles) scUncles.style.display = 'none';
       if (scSiblings) scSiblings.style.display = 'none';
       if (scSendCoupons) scSendCoupons.style.display = 'none';
+      if (scPaperExams) scPaperExams.style.display = 'none';
 
       // Load correct tab contents
       if (tabName === 'home') {
         if (hero) hero.style.display = 'flex';
         if (scInfo) scInfo.style.display = 'block';
-        if (scTrips) scTrips.style.display = 'block';
+        if (allTrips && allTrips.length && scTrips) scTrips.style.display = 'block';
 
         if (!IS_PUBLIC) {
           if (statsBar) statsBar.style.display = 'flex';
@@ -8529,6 +8539,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           scTasks.classList.add('fullscreen-tab');
           scTasks.style.display = 'block';
         }
+        const activeStudent = student || _myStudent;
+        if (activeStudent && activeStudent.paper_exams && activeStudent.paper_exams.length && scPaperExams) {
+          scPaperExams.style.display = 'block';
+        }
         const badge = document.getElementById('tasksBadge');
         if (badge) badge.style.display = 'none';
         if (maxFetchedTaskAnnId > 0 && student) {
@@ -8539,7 +8553,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         if (hasSiblingsLoaded && scSiblings) {
           scSiblings.style.display = 'block';
         }
-        if (scUncles) scUncles.style.display = 'block';
+        if (classUncles && classUncles.length && scUncles) {
+          scUncles.style.display = 'block';
+        }
         if (!IS_PUBLIC && homeSearchBar) {
           homeSearchBar.style.display = 'block';
         }
@@ -9087,7 +9103,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         return;
       }
 
-      container.style.display = 'block';
+      const currentTab = document.querySelector('.bottom-nav-item.active')?.getAttribute('data-tab') || 'home';
+      if (currentTab === 'tasks') {
+        container.style.display = 'block';
+      } else {
+        container.style.display = 'none';
+      }
 
       el.innerHTML = list.map(exam => {
         const degreeText = exam.degree !== null ? `${exam.degree} / ${exam.total_degree}` : 'غير مرصود بعد';
