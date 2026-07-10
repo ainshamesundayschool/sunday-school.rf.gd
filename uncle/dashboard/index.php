@@ -11083,6 +11083,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 حفظ كجدول</button>
                             <button class="dropdown-item" onclick="showPastFridaysModal();closeAllDropdowns()"><i
                                     class="fas fa-calendar-alt"></i> سجل الأيام السابقة</button>
+                            <button class="dropdown-item" onclick="showBulkAttendanceModal();closeAllDropdowns()"><i
+                                    class="fas fa-table-cells"></i> تعديل جماعي للحضور</button>
                             <button class="dropdown-item success"
                                 onclick="showShareAttendanceModal();closeAllDropdowns()"><i
                                     class="fa-solid fa-share-nodes"></i> مشاركة كشف الحضور</button>
