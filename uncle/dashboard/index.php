@@ -6639,7 +6639,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             gap: 10px;
             padding: 10px 14px;
             border-radius: var(--r-lg);
-            color: #fff;
+            color: var(--text);
+            background: var(--surface);
+            border: 1px solid var(--border-solid);
             font-family: 'Cairo', sans-serif;
             font-size: .84rem;
             font-weight: 600;
@@ -6656,6 +6658,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             align-self: flex-end;
         }
 
+        [data-theme="dark"] .toast-item {
+            background: var(--surface-2);
+        }
+
         .toast-item.removing {
             animation: toastSlideOut .22s var(--ease) forwards;
         }
@@ -6667,10 +6673,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             bottom: 0;
             left: 0;
             height: 3px;
-            background: rgba(255, 255, 255, .4);
             border-radius: 0 0 var(--r-lg) var(--r-lg);
             animation: toastProgress var(--toast-dur, 4.5s) linear forwards;
         }
+        .toast-item.success::after { background: var(--success); }
+        .toast-item.error::after { background: var(--danger); }
+        .toast-item.info::after { background: var(--brand); }
+        .toast-item.warning::after { background: var(--warning); }
 
         @keyframes toastSlideIn {
             from {
@@ -6711,6 +6720,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             flex-shrink: 0;
             margin-top: 1px;
         }
+        .toast-item.success .toast-icon { color: var(--success); }
+        .toast-item.error .toast-icon { color: var(--danger); }
+        .toast-item.info .toast-icon { color: var(--brand); }
+        .toast-item.warning .toast-icon { color: var(--warning); }
 
         .toast-body {
             flex: 1;
@@ -6724,27 +6737,43 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .toast-action {
             margin-top: 5px;
-            background: rgba(255, 255, 255, .22);
-            border: 1px solid rgba(255, 255, 255, .35);
-            color: #fff;
+            background: var(--brand-bg);
+            border: 1px solid var(--border);
+            color: var(--brand);
             padding: 3px 10px;
             border-radius: var(--r-full);
             font-size: .74rem;
             font-weight: 700;
             font-family: 'Cairo', sans-serif;
             cursor: pointer;
-            transition: background .15s;
+            transition: all .15s;
+            display: inline-block;
+        }
+        .toast-item.success .toast-action {
+            background: var(--success-bg);
+            border-color: rgba(16, 185, 129, 0.18);
+            color: var(--success-dark);
+        }
+        .toast-item.error .toast-action {
+            background: var(--danger-bg);
+            border-color: rgba(239, 68, 68, 0.18);
+            color: var(--danger-dark);
+        }
+        .toast-item.warning .toast-action {
+            background: var(--warning-bg);
+            border-color: rgba(245, 158, 11, 0.18);
+            color: var(--warning-dark);
         }
 
         .toast-action:hover {
-            background: rgba(255, 255, 255, .38);
+            opacity: 0.85;
         }
 
         .toast-close {
             flex-shrink: 0;
-            background: rgba(255, 255, 255, .18);
+            background: rgba(0, 0, 0, 0.05);
             border: none;
-            color: #fff;
+            color: var(--text-3);
             width: 22px;
             height: 22px;
             border-radius: 50%;
@@ -6756,25 +6785,31 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transition: background .15s;
             margin-top: 1px;
         }
+        [data-theme="dark"] .toast-close {
+            background: rgba(255, 255, 255, 0.08);
+        }
 
         .toast-close:hover {
-            background: rgba(255, 255, 255, .38);
+            background: rgba(0, 0, 0, 0.1);
+        }
+        [data-theme="dark"] .toast-close:hover {
+            background: rgba(255, 255, 255, 0.15);
         }
 
         .toast-item.success {
-            background: linear-gradient(135deg, var(--success), var(--success-dark));
+            border-right: 4px solid var(--success);
         }
 
         .toast-item.error {
-            background: linear-gradient(135deg, var(--danger), var(--danger-dark));
+            border-right: 4px solid var(--danger);
         }
 
         .toast-item.info {
-            background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+            border-right: 4px solid var(--brand);
         }
 
         .toast-item.warning {
-            background: linear-gradient(135deg, var(--warning), var(--warning-dark));
+            border-right: 4px solid var(--warning);
         }
 
         /* keep old #toast for any legacy code that touches it directly */
