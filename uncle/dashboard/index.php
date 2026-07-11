@@ -13280,7 +13280,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' })
                 .then(r => r.json())
                 .then(d => {
-                    if (d.success || d.offline) {
+                    if (d.success || (d.offline && d.queued)) {
                         if (ok) ok(d);
 
                         // Check if this was a critical restorable action

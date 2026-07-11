@@ -197,7 +197,7 @@ self.addEventListener('fetch', e => {
                         const queued = await _maybeQueueRequest(e.request.clone());
                         if (queued) {
                             return new Response(JSON.stringify({
-                                success: false, offline: true,
+                                success: false, offline: true, queued: true,
                                 message: 'محفوظ محلياً — سيُرفع عند الاتصال'
                             }), { headers: { 'Content-Type': 'application/json' } });
                         }
