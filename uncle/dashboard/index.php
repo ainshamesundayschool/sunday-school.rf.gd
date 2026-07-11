@@ -12563,7 +12563,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     margin: auto 0 0 0 !important;
                 }
                 #bulkAttendanceModal .table-responsive {
-                    max-height: calc(85vh - 145px) !important;
+                    max-height: none !important;
                 }
             }
         </style>
@@ -12572,8 +12572,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <h3><i class="fas fa-table-cells"></i> تعديل جماعي للحضور (كشف الشيت)</h3>
                 <button class="close-btn" onclick="hideBulkAttendanceModal()">&times;</button>
             </div>
-            <div class="modal-body" style="flex: 1; overflow: auto; padding: 14px 22px;">
-                <div class="table-responsive" style="direction: rtl; overflow-x: auto; max-height: calc(90vh - 240px); border-radius: var(--r-md); border: 1px solid var(--bdr);">
+            <div class="modal-body" style="flex: 1; overflow: hidden; display: flex; flex-direction: column; padding: 14px 22px;">
+                <div class="table-responsive" style="direction: rtl; overflow: auto; width: 100%; flex: 1; border-radius: var(--r-md); border: 1px solid var(--bdr);">
                     <table class="bulk-att-table" id="bulkAttTable">
                         <!-- Will be populated dynamically -->
                     </table>
