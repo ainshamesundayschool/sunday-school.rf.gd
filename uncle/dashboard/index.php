@@ -14236,15 +14236,73 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     const totalUnsaved = queueCount + pendingLocalCount;
 
                     if (totalUnsaved > 0) {
+                        let unsavedClass = '';
+                        const unsavedClasses = [];
+                        if (typeof classes !== 'undefined' && classes && classes.length) {
+                            classes.forEach(cls => {
+                                const name = cls.arabic_name || cls.code;
+                                if (name && getUnsavedChangesCount(name) > 0) {
+                                    unsavedClasses.push(name);
+                                    if (!unsavedClass) unsavedClass = name;
+                                }
+                            });
+                        }
+                        if (getUnsavedChangesCount('الخدام') > 0) {
+                            unsavedClasses.push('الخدام');
+                            if (!unsavedClass) unsavedClass = 'الخدام';
+                        }
+                        if (getUnsavedChangesCount('الزوار') > 0) {
+                            unsavedClasses.push('الزوار');
+                            if (!unsavedClass) unsavedClass = 'الزوار';
+                        }
+                        if (typeof combinedClassGroups !== 'undefined' && combinedClassGroups && combinedClassGroups.length) {
+                            combinedClassGroups.forEach(g => {
+                                if (g.label && getUnsavedChangesCount(g.label, true, g.classes) > 0) {
+                                    unsavedClasses.push(g.label);
+                                    if (!unsavedClass) unsavedClass = g.label;
+                                }
+                            });
+                        }
+
+                        let badgesHtml = '';
+                        unsavedClasses.forEach(name => {
+                            let count = 0;
+                            if (name === 'الخدام') count = getUnsavedChangesCount('الخدام');
+                            else if (name === 'الزوار') count = getUnsavedChangesCount('الزوار');
+                            else {
+                                const g = typeof combinedClassGroups !== 'undefined' && combinedClassGroups && combinedClassGroups.find(x => x.label === name);
+                                if (g) {
+                                    count = getUnsavedChangesCount(g.label, true, g.classes);
+                                } else {
+                                    count = getUnsavedChangesCount(name);
+                                }
+                            }
+                            badgesHtml += `<span class="class-unsaved-badge" style="position:static; margin-right:4px; margin-left:4px; display:inline-flex; align-items:center; gap:4px; vertical-align:middle; font-size:0.65rem; padding:2px 6px;"><i class="fas fa-save" style="font-size:.65rem;"></i> ${name} (${count})</span>`;
+                        });
+
+                        let msg = `يوجد ${totalUnsaved} تعديل غير محفوظ`;
+                        if (badgesHtml) {
+                            msg = `يوجد ${totalUnsaved} تعديل غير محفوظ في ${badgesHtml}`;
+                        }
+
                         showToast(
-                            `⚠️ لديك ${totalUnsaved} تعديل غير محفوظ محلياً! يرجى حفظ التغييرات لمزامنتها مع الخادم.`,
+                            msg,
                             'warning',
                             {
                                 dur: 10000,
                                 action: {
-                                    label: '<i class="fas fa-sync-alt"></i> مزامنة الآن',
+                                    label: 'عرض الفصل',
                                     fn: () => {
-                                        triggerManualSync();
+                                        if (unsavedClass) {
+                                            const isCombined = typeof combinedClassGroups !== 'undefined' && combinedClassGroups && combinedClassGroups.some(g => g.label === unsavedClass);
+                                            if (isCombined) {
+                                                showCombinedClassView(unsavedClass);
+                                            } else {
+                                                showClassView(unsavedClass);
+                                            }
+                                        } else {
+                                            triggerManualSync();
+                                        }
                                     }
                                 }
                             }
