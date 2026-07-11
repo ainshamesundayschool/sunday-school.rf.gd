@@ -14926,61 +14926,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         function getAttendanceProgressHtml(classStudents, color) {
-            if (!classStudents || !classStudents.length) return '';
+            if (!classStudents || !classStudents.length || !currentFriday) return '';
             
-            const dates = new Set();
-            classStudents.forEach(s => {
-                if (s._allAttendance) {
-                    Object.keys(s._allAttendance).forEach(d => {
-                        if (d) dates.add(d);
-                    });
-                }
-            });
-            
-            try {
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (key && key.startsWith('attendanceData_')) {
-                        const parts = key.split('_');
-                        if (parts.length >= 3) {
-                            const datePart = parts[parts.length - 1];
-                            if (/^\d{2}\/\d{2}\/\d{4}$/.test(datePart)) {
-                                const isMatch = classStudents.some(s => {
-                                    const cls = s['الفصل'] || 'بدون فصل';
-                                    if (key === `attendanceData_${cls}_${datePart}`) return true;
-                                    if (typeof combinedClassGroups !== 'undefined' && combinedClassGroups && combinedClassGroups.length) {
-                                        for (const g of combinedClassGroups) {
-                                            if (g.classes && g.classes.includes(cls)) {
-                                                if (key === `attendanceData_${g.label}_${datePart}`) return true;
-                                            }
-                                        }
-                                    }
-                                    return false;
-                                });
-                                if (isMatch) {
-                                    dates.add(datePart);
-                                }
-                            }
-                        }
-                    }
-                }
-            } catch (e) { }
-            
-            if (dates.size === 0) return '';
-            
-            const sortedDates = Array.from(dates).sort((a, b) => {
-                const partsA = a.split('/');
-                const partsB = b.split('/');
-                const dateA = new Date(partsA[2], partsA[1] - 1, partsA[0]);
-                const dateB = new Date(partsB[2], partsB[1] - 1, partsB[0]);
-                return dateB - dateA;
-            });
-            
-            const latestDate = sortedDates[0];
+            const targetDate = currentFriday;
             
             let markedCount = 0;
             classStudents.forEach(s => {
-                const status = getStudentAttendanceStatusForDate(s, latestDate);
+                const status = getStudentAttendanceStatusForDate(s, targetDate);
                 const v = status ? status.toString().trim() : '';
                 if (v === 'ح' || v === 'حاضر' || v === 'present' || v === 'غ' || v === 'غائب' || v === 'absent') {
                     markedCount++;
