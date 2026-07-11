@@ -1161,18 +1161,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
         /* Attendance Progress Bar in Class Cards */
         .class-progress-bar {
             position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 6px;
-            background: rgba(0, 0, 0, 0.05);
+            bottom: 10px;
+            left: 14px;
+            right: 14px;
+            height: 5px;
+            background: rgba(0, 0, 0, 0.08);
+            border-radius: 999px;
+            overflow: hidden;
             z-index: 10;
         }
         [data-theme="dark"] .class-progress-bar {
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.12);
         }
         .class-progress-fill {
             height: 100%;
+            border-radius: 999px;
             transition: width 0.3s var(--ease);
         }
 
