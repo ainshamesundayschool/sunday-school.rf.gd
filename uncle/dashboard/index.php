@@ -17364,8 +17364,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 return false;
             }
 
-            // If in class view, restrict to children in the class
-            if (currentClass) {
+            // If in class view, restrict to children in the class (only for attendance or coupons)
+            if (currentClass && (kidQrScanMode === 'attendance' || kidQrScanMode === 'coupons')) {
                 const activePool = isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === currentClass);
                 const inCurrentView = activePool.some(s => getStudentId(s) === studentCompositeId);
                 if (!inCurrentView) {
@@ -17959,17 +17959,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             if (isStudentModalOpen) {
                                 const student = findStudentById(kidId);
                                 if (student) {
-                                    const studentCompositeId = getStudentId(student);
-                                    if (currentClass) {
-                                        const activePool = isCombinedView ? combinedStudents : students.filter(s => s['الفصل'] === currentClass);
-                                        const inCurrentView = activePool.some(s => getStudentId(s) === studentCompositeId);
-                                        if (!inCurrentView) {
-                                            playErrorSound();
-                                            showToast('هذا الطفل ليس داخل الفصل الحالي', 'warning');
-                                            scanBuffer = '';
-                                            return;
-                                        }
-                                    }
                                     playSuccessSound();
                                     hideStudentModal();
                                     showStudentDetails(student['الاسم']);
@@ -17979,14 +17968,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 }
                             } else {
                                 if (!isModalActive) {
-                                    const savedMode = currentClass
-                                        ? (localStorage.getItem('scanner_mode_preference') || 'attendance')
-                                        : 'profile';
-                                    startKidQrScan(savedMode).then((success) => {
-                                        if (success) {
-                                            recordKidQrScan(kidId);
-                                        }
-                                    });
+                                    const student = findStudentById(kidId);
+                                    if (student) {
+                                        playSuccessSound();
+                                        showStudentDetails(student['الاسم']);
+                                    } else {
+                                        playErrorSound();
+                                        showToast('لم يتم العثور على الطفل', 'warning');
+                                    }
                                 } else {
                                     recordKidQrScan(kidId);
                                 }
