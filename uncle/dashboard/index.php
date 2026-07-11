@@ -13822,9 +13822,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 
                 return `
                     <div class="task-pill-item" onclick="openTasksModal(${t.id})" 
-                        style="display: flex; align-items: center; justify-content: space-between; background: var(--surface-3); border: 1px solid var(--border-solid); padding: 8px 12px; border-radius: var(--r-md); cursor: pointer; transition: all 0.2s; gap: 8px;"
-                        onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='var(--shadow-sm)';this.style.borderColor='var(--brand)';"
-                        onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='var(--border-solid)';"
+                        style="display: flex; align-items: center; justify-content: space-between; background: var(--surface-3); border: 1px solid var(--border-solid); padding: 8px 12px; border-radius: var(--r-md); cursor: pointer; transition: all 0.2s; gap: 8px; position: relative; z-index: 1;"
+                        onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow-sm)';this.style.borderColor='var(--brand)';this.style.zIndex='2';"
+                        onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='var(--border-solid)';this.style.zIndex='1';"
                     >
                         <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1;">
                             <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escHtml(t.title)}</div>
