@@ -13539,6 +13539,12 @@ document.addEventListener('DOMContentLoaded', async () => {
           openDetail(parseInt(taskId, 10));
       }, 300);
   }
+  const action = urlParams.get('action');
+  if (action === 'create') {
+      setTimeout(() => {
+          openCreate();
+      }, 300);
+  }
 
   overlayOnBg();
 

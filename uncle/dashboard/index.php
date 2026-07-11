@@ -11122,10 +11122,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-2); display: inline-flex; align-items: center; gap: 6px; font-family: 'Cairo', sans-serif;">
                                 <i class="fas fa-tasks" style="color: var(--brand);"></i> المهام المتاحة (<span id="collapsedTasksCount">0</span>)
                             </span>
-                            <span id="tasksToggleBtn" style="font-size: 0.72rem; font-weight: 700; color: var(--brand); background: var(--brand-bg); padding: 2px 8px; border-radius: var(--r-sm); display: inline-flex; align-items: center; gap: 4px;">
-                                <span id="tasksToggleText">عرض</span>
-                                <i class="fas fa-chevron-down" id="tasksCollapseIcon" style="transition: transform 0.2s;"></i>
-                            </span>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <button class="btn btn-ghost" onclick="event.stopPropagation(); openTasksModal(null, 'create');" 
+                                    style="width: 24px; height: 24px; border-radius: var(--r-sm); padding: 0; min-width: unset; display: flex; align-items: center; justify-content: center; background: var(--brand-bg); color: var(--brand); border: none; cursor: pointer;"
+                                    title="إضافة مهمة جديدة">
+                                    <i class="fas fa-plus" style="font-size: 0.7rem;"></i>
+                                </button>
+                                <span id="tasksToggleBtn" style="font-size: 0.72rem; font-weight: 700; color: var(--brand); background: var(--brand-bg); padding: 2px 8px; border-radius: var(--r-sm); display: inline-flex; align-items: center; gap: 4px;">
+                                    <span id="tasksToggleText">عرض</span>
+                                    <i class="fas fa-chevron-down" id="tasksCollapseIcon" style="transition: transform 0.2s;"></i>
+                                </span>
+                            </div>
                         </div>
                         <div id="collapsedTasksList" style="display: none; flex-direction: column; gap: 8px; margin-top: 4px; max-height: 180px; overflow-y: auto; padding-inline-start: 2px; padding-inline-end: 4px;">
                             <!-- Dynamically loaded task pills -->
@@ -13718,20 +13725,29 @@ if ($hasUncleId && $uncleRole === 'uncle')
         let classTasks = [];
         let isTasksCollapsed = true;
 
-        function openTasksModal(taskId = null) {
+        function openTasksModal(taskId = null, action = null) {
             const iframe = document.getElementById('tasksIframe');
             const pathPrefix = '<?php echo $pathPrefix; ?>';
             let url = `${pathPrefix}/uncle/dashboard/tasks/?class=${encodeURIComponent(currentClass)}`;
             if (taskId) {
                 url += `&taskId=${taskId}`;
             }
+            if (action) {
+                url += `&action=${action}`;
+            }
+            // Remove active class when loading a task
+            document.getElementById('tasksModal').classList.remove('active');
+            showToast('جاري التحميل...', 'info');
+            iframe.onload = () => {
+                document.getElementById('tasksModal').classList.add('active');
+            };
             iframe.src = url;
-            document.getElementById('tasksModal').classList.add('active');
         }
 
         function closeTasksModal() {
             document.getElementById('tasksModal').classList.remove('active');
             const iframe = document.getElementById('tasksIframe');
+            iframe.onload = null;
             iframe.src = '';
             // Reload dashboard data in case tasks changed or were graded
             loadData();
