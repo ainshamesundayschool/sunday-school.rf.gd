@@ -10459,7 +10459,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <span class="tool-card-desc">اسحب جوائز الكوبونات بسرعة.</span>
                 </button>
                 <button class="tool-card"
-                    onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/tasks/'">
+                    onclick="openTasksModal();hideAllToolsModal()">
                     <span class="tool-card-icon"><i class="fas fa-tasks"></i></span>
                     <span class="tool-card-name">المهام</span>
                     <span class="tool-card-desc">إدارة الاختبارات والواجبات والتسليمات.</span>
@@ -11112,7 +11112,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 onmouseout="this.style.background='var(--brand-bg)';this.style.color='var(--brand)';this.querySelector('i').style.color='var(--brand)'">
                                 <i class="fas fa-calendar-alt" style="font-size: 0.82rem; color: var(--brand);"></i>
                                 <span id="currentDateText">جاري...</span>
-                            </div>
+                    </div>
+
+                    <!-- Collapsible Tasks Panel -->
+                    <div id="classTasksCollapsible" style="display: none; width: 100%; margin-top: 12px; border-top: 1px dashed var(--border); padding-top: 10px; flex-direction: column; gap: 8px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;" onclick="toggleTasksCollapse()">
+                            <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-2); display: inline-flex; align-items: center; gap: 6px; font-family: 'Cairo', sans-serif;">
+                                <i class="fas fa-tasks" style="color: var(--brand);"></i> المهام المتاحة (<span id="collapsedTasksCount">0</span>)
+                            </span>
+                            <span id="tasksToggleBtn" style="font-size: 0.72rem; font-weight: 700; color: var(--brand); background: var(--brand-bg); padding: 2px 8px; border-radius: var(--r-sm); display: inline-flex; align-items: center; gap: 4px;">
+                                <span id="tasksToggleText">عرض</span>
+                                <i class="fas fa-chevron-down" id="tasksCollapseIcon" style="transition: transform 0.2s;"></i>
+                            </span>
+                        </div>
+                        <div id="collapsedTasksList" style="display: none; flex-direction: column; gap: 8px; margin-top: 4px; max-height: 180px; overflow-y: auto; padding-inline-start: 2px; padding-inline-end: 4px;">
+                            <!-- Dynamically loaded task pills -->
                         </div>
                     </div>
                 </div>
@@ -11132,7 +11146,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             style="left: 0; right: auto; min-width: 220px;">
                             <div class="dropdown-group-label">الفصل</div>
                             <button class="dropdown-item" id="classTasksMenuItem"
-                                onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/dashboard/tasks?class='+encodeURIComponent(currentClass);closeAllDropdowns()"><i
+                                onclick="openTasksModal();closeAllDropdowns()"><i
                                     class="fas fa-tasks"></i> مهام الفصل</button>
                             <button class="dropdown-item coupon"
                                 onclick="showCustomExportModal();closeAllDropdowns()"><i class="fas fa-table"></i>
@@ -11816,6 +11830,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     onclick="document.getElementById('unsavedModal').classList.remove('active')">&times;</button>
             </div>
             <div id="unsavedModalContent" style="margin-bottom:0"></div>
+        </div>
+    </div>
+
+    <!-- Tasks Fullscreen Modal Container -->
+    <div class="modal-overlay" id="tasksModal" style="z-index: 1000020; padding: 0;">
+        <div class="modal" style="width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; border-radius: 0 !important; margin: 0 !important; padding: 0 !important; display: flex; flex-direction: column; background: var(--bg2);">
+            <iframe id="tasksIframe" src="" style="width: 100%; height: 100%; border: none; flex: 1;"></iframe>
         </div>
     </div>
 
@@ -13609,6 +13630,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
         window.addEventListener('hashchange', () => {
+            const tasksModal = document.getElementById('tasksModal');
+            if (tasksModal && tasksModal.classList.contains('active')) {
+                closeTasksModal();
+            }
             const h = location.hash.replace('#', '');
             if (h.startsWith('class=')) {
                 const cn = decodeURIComponent(h.replace('class=', ''));
@@ -13680,11 +13705,153 @@ if ($hasUncleId && $uncleRole === 'uncle')
             setupLiveSearch();
             updateSaveBtns();
             loadClassUncles(className);
+            fetchClassTasks(className); // Fetch tasks for selected class
             // Keep back button always visible so uncles can navigate back to their classes list
             const backBtn = document.getElementById('backBtn');
             if (backBtn) backBtn.style.display = 'inline-flex';
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
+
+        // ── TASKS PWA COLLAPSIBLE & MODAL SYSTEM ─────────────────────────
+        let classTasks = [];
+        let isTasksCollapsed = true;
+
+        function openTasksModal(taskId = null) {
+            const iframe = document.getElementById('tasksIframe');
+            const pathPrefix = '<?php echo $pathPrefix; ?>';
+            let url = `${pathPrefix}/uncle/dashboard/tasks/?class=${encodeURIComponent(currentClass)}`;
+            if (taskId) {
+                url += `&taskId=${taskId}`;
+            }
+            iframe.src = url;
+            document.getElementById('tasksModal').classList.add('active');
+        }
+
+        function closeTasksModal() {
+            document.getElementById('tasksModal').classList.remove('active');
+            const iframe = document.getElementById('tasksIframe');
+            iframe.src = '';
+            // Reload dashboard data in case tasks changed or were graded
+            loadData();
+            if (currentClass) {
+                fetchClassTasks(currentClass);
+            }
+        }
+
+        async function fetchClassTasks(className) {
+            const container = document.getElementById('classTasksCollapsible');
+            if (!container) return;
+            if (!className || className === 'الخدام' || className === 'الزوار') {
+                container.style.display = 'none';
+                return;
+            }
+
+            try {
+                // If combined view, check group
+                const grp = typeof combinedClassGroups !== 'undefined' && combinedClassGroups && combinedClassGroups.find(g => g.label === className);
+                let tasksList = [];
+                if (grp && grp.classes && grp.classes.length) {
+                    const promises = grp.classes.map(cn => makeApiCallRaw({ action: 'getTasks', class_name: cn }));
+                    const results = await Promise.all(promises);
+                    results.forEach(r => {
+                        if (r && r.success && Array.isArray(r.tasks)) {
+                            tasksList = tasksList.concat(r.tasks);
+                        }
+                    });
+                } else {
+                    const r = await makeApiCallRaw({ action: 'getTasks', class_name: className });
+                    if (r && r.success && Array.isArray(r.tasks)) {
+                        tasksList = r.tasks;
+                    }
+                }
+
+                const seenIds = new Set();
+                classTasks = tasksList.filter(t => {
+                    if (t.status === 'published' && !seenIds.has(t.id)) {
+                        seenIds.add(t.id);
+                        return true;
+                    }
+                    return false;
+                });
+
+                document.getElementById('collapsedTasksCount').textContent = classTasks.length;
+                
+                if (classTasks.length > 0) {
+                    container.style.display = 'flex';
+                    renderCollapsedTasks();
+                } else {
+                    container.style.display = 'none';
+                }
+            } catch (e) {
+                console.error("Error fetching class tasks:", e);
+                container.style.display = 'none';
+            }
+        }
+
+        function renderCollapsedTasks() {
+            const list = document.getElementById('collapsedTasksList');
+            if (!list) return;
+
+            if (!classTasks.length) {
+                list.innerHTML = `<div style="text-align:center;font-size:0.78rem;color:var(--text-3);padding:8px 0;">لا توجد مهام نشطة حالياً</div>`;
+                return;
+            }
+
+            list.innerHTML = classTasks.map(t => {
+                const qCount = (t.questions || []).length;
+                const totalDegree = t.total_degree || 0;
+                const deadlineText = t.no_deadline == 1 ? 'مستمر' : (t.end_date ? new Date(t.end_date).toLocaleDateString('ar-EG', {month: 'short', day: 'numeric'}) : 'مستمر');
+                
+                return `
+                    <div class="task-pill-item" onclick="openTasksModal(${t.id})" 
+                        style="display: flex; align-items: center; justify-content: space-between; background: var(--surface-3); border: 1px solid var(--border-solid); padding: 8px 12px; border-radius: var(--r-md); cursor: pointer; transition: all 0.2s; gap: 8px;"
+                        onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='var(--shadow-sm)';this.style.borderColor='var(--brand)';"
+                        onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='var(--border-solid)';"
+                    >
+                        <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1;">
+                            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escHtml(t.title)}</div>
+                            <div style="font-size: 0.7rem; color: var(--text-3); display: flex; align-items: center; gap: 4px;">
+                                <i class="fas fa-flag-checkered" style="font-size: 0.65rem;"></i> آخر موعد: ${deadlineText}
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                            <span style="font-size: 0.72rem; font-weight: 700; color: var(--brand); background: var(--brand-bg); padding: 2px 6px; border-radius: var(--r-sm); display: inline-flex; align-items: center; gap: 4px;">
+                                <i class="fas fa-question-circle" style="font-size:0.65rem;"></i> ${qCount} أسئلة
+                            </span>
+                            <span style="font-size: 0.72rem; font-weight: 700; color: var(--warning); background: var(--warning-bg); padding: 2px 6px; border-radius: var(--r-sm); display: inline-flex; align-items: center; gap: 4px;">
+                                <i class="fas fa-star" style="font-size:0.65rem;"></i> ${totalDegree} درجة
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleTasksCollapse() {
+            isTasksCollapsed = !isTasksCollapsed;
+            const list = document.getElementById('collapsedTasksList');
+            const icon = document.getElementById('tasksCollapseIcon');
+            const toggleText = document.getElementById('tasksToggleText');
+
+            if (list && icon && toggleText) {
+                if (isTasksCollapsed) {
+                    list.style.display = 'none';
+                    icon.style.transform = 'rotate(0deg)';
+                    toggleText.textContent = 'عرض';
+                } else {
+                    list.style.display = 'flex';
+                    icon.style.transform = 'rotate(180deg)';
+                    toggleText.textContent = 'إخفاء';
+                }
+            }
+        }
+
+        // Listen for postMessage from tasks iframe
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.action === 'closeTasksModal') {
+                closeTasksModal();
+            }
+        });
 
         // ── COMBINED CLASS VIEW ───────────────────────────────────────
         let combinedGroupLabel = '';
@@ -13755,6 +13922,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
          </span>`;
 
             updateHash('combined', groupLabel);
+            fetchClassTasks(groupLabel);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -15700,7 +15868,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         // ── SWIPE TO CLOSE ────────────────────────────────────────────
         function initSwipeToClose(overlay) {
-            if (overlay.id === 'kidQrScannerModal' || overlay.id === 'customExportModal' || overlay.id === 'bulkAttendanceModal') return;
+            if (overlay.id === 'kidQrScannerModal' || overlay.id === 'customExportModal' || overlay.id === 'bulkAttendanceModal' || overlay.id === 'tasksModal') return;
             const modal = overlay.querySelector('.modal');
             if (!modal) return;
 
@@ -25823,6 +25991,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 setTimeout(() => {
                     document.getElementById('pendingRegistrationsSection')?.scrollIntoView({ behavior: 'smooth' });
                 }, 100);
+            } else if (url && url.includes('/tasks')) {
+                const match = url.match(/[?&](?:task_id|taskId)=(\d+)/);
+                const taskId = match ? match[1] : null;
+                setTimeout(() => openTasksModal(taskId), 200);
             } else if (url) {
                 setTimeout(() => window.location.href = url, 200);
             }
@@ -26551,7 +26723,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 how_it_works: "اعمل مهمة جديدة زي حفظ أو واجب، وبعدين سجل درجات الولاد وتقييماتهم.",
                 location: "الصفحة الرئيسية > شريط الأدوات > المهام",
                 keywords: ["مهمة", "مهام", "واجب", "اختبار", "حفظ", "تسميع", "تسليم", "درجات"],
-                action: "window.location.href='/uncle/dashboard/tasks/'"
+                action: "closeHelpModal(); openTasksModal();"
             },
             {
                 title: "تصدير البيانات المخصص",

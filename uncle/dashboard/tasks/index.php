@@ -13514,7 +13514,31 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   await loadTasks();
 
+  // If inside an iframe, configure postMessage integration
+  if (window.self !== window.top) {
+      const backBtn = document.querySelector('.tb-back');
+      if (backBtn) {
+          backBtn.removeAttribute('href');
+          backBtn.style.cursor = 'pointer';
+          backBtn.onclick = (e) => {
+              e.preventDefault();
+              window.parent.postMessage({ action: 'closeTasksModal' }, '*');
+          };
+      }
+      const heroLink = document.querySelector('.hero-link');
+      if (heroLink) {
+          heroLink.style.display = 'none';
+      }
+  }
 
+  // Auto-open specific task details if passed in query param
+  const urlParams = new URLSearchParams(window.location.search);
+  const taskId = urlParams.get('taskId');
+  if (taskId) {
+      setTimeout(() => {
+          openDetail(parseInt(taskId, 10));
+      }, 300);
+  }
 
   overlayOnBg();
 
