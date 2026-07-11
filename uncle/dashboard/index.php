@@ -1158,6 +1158,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transform: scale(.97)
         }
 
+        /* Attendance Progress Bar in Class Cards */
+        .class-progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: rgba(0, 0, 0, 0.05);
+            z-index: 10;
+        }
+        [data-theme="dark"] .class-progress-bar {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .class-progress-fill {
+            height: 100%;
+            transition: width 0.3s var(--ease);
+        }
+
         .class-card-badges {
             position: absolute;
             top: 6px;
@@ -14879,6 +14897,106 @@ if ($hasUncleId && $uncleRole === 'uncle')
             return false;
         }
 
+        function getStudentAttendanceStatusForDate(s, d) {
+            const sid = getStudentId(s);
+            const cls = s['الفصل'] || 'بدون فصل';
+            try {
+                const local = JSON.parse(localStorage.getItem(`attendanceData_${cls}_${d}`) || '{}');
+                if (local && local[sid]) return local[sid];
+            } catch (e) { }
+
+            if (typeof combinedClassGroups !== 'undefined' && combinedClassGroups && combinedClassGroups.length) {
+                for (const g of combinedClassGroups) {
+                    if (g.classes && g.classes.includes(cls)) {
+                        try {
+                            const local = JSON.parse(localStorage.getItem(`attendanceData_${g.label}_${d}`) || '{}');
+                            if (local && local[sid]) return local[sid];
+                        } catch (e) { }
+                    }
+                }
+            }
+
+            if (s._allAttendance && s._allAttendance[d]) {
+                return s._allAttendance[d];
+            }
+            return '';
+        }
+
+        function getAttendanceProgressHtml(classStudents, color) {
+            if (!classStudents || !classStudents.length) return '';
+            
+            const dates = new Set();
+            classStudents.forEach(s => {
+                if (s._allAttendance) {
+                    Object.keys(s._allAttendance).forEach(d => {
+                        if (d) dates.add(d);
+                    });
+                }
+            });
+            
+            try {
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('attendanceData_')) {
+                        const parts = key.split('_');
+                        if (parts.length >= 3) {
+                            const datePart = parts[parts.length - 1];
+                            if (/^\d{2}\/\d{2}\/\d{4}$/.test(datePart)) {
+                                const isMatch = classStudents.some(s => {
+                                    const cls = s['الفصل'] || 'بدون فصل';
+                                    if (key === `attendanceData_${cls}_${datePart}`) return true;
+                                    if (typeof combinedClassGroups !== 'undefined' && combinedClassGroups && combinedClassGroups.length) {
+                                        for (const g of combinedClassGroups) {
+                                            if (g.classes && g.classes.includes(cls)) {
+                                                if (key === `attendanceData_${g.label}_${datePart}`) return true;
+                                            }
+                                        }
+                                    }
+                                    return false;
+                                });
+                                if (isMatch) {
+                                    dates.add(datePart);
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (e) { }
+            
+            if (dates.size === 0) return '';
+            
+            const sortedDates = Array.from(dates).sort((a, b) => {
+                const partsA = a.split('/');
+                const partsB = b.split('/');
+                const dateA = new Date(partsA[2], partsA[1] - 1, partsA[0]);
+                const dateB = new Date(partsB[2], partsB[1] - 1, partsB[0]);
+                return dateB - dateA;
+            });
+            
+            const latestDate = sortedDates[0];
+            
+            let markedCount = 0;
+            classStudents.forEach(s => {
+                const status = getStudentAttendanceStatusForDate(s, latestDate);
+                const v = status ? status.toString().trim() : '';
+                if (v === 'ح' || v === 'حاضر' || v === 'present' || v === 'غ' || v === 'غائب' || v === 'absent') {
+                    markedCount++;
+                }
+            });
+            
+            if (markedCount === 0 || markedCount === classStudents.length) {
+                return '';
+            }
+            
+            const percentage = Math.round((markedCount / classStudents.length) * 100);
+            
+            return `
+                <div class="class-progress-bar" title="حالة الحضور: تم تسجيل ${markedCount} من ${classStudents.length} (${percentage}%)">
+                    <div class="class-progress-fill" style="width: ${percentage}%; background: ${color || 'var(--brand)'};"></div>
+                </div>
+            `;
+        }
+
         function displayClasses() {
             const grid = document.getElementById('classesGrid');
             if (!grid) return;
@@ -14956,6 +15074,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <i class="fas fa-save" style="font-size: .75rem;"></i> ${allUnsaved}
                 </div>
             ` : '';
+            const allTogetherProgress = getAttendanceProgressHtml(students, allColor);
             const allTogetherHtml = showAllCard ? `<div class="class-card" onclick="showAllTogetherView()"
         style="--cls-color:${allColor};border:2px solid ${allColor};position:relative;">
         <div class="class-card-badges">
@@ -14967,6 +15086,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         </div>
         <div class="class-icon" style="background:${allBg}"><i class="fas ${allIcon}" style="color:white"></i></div>
         <div class="class-name">${allLabel} <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${allCount})</span></div>
+        ${allTogetherProgress}
     </div>` : '';
 
             // ── Combined class group cards ────────────────────────────
@@ -14984,6 +15104,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     ` : '';
                     const isCombHighlighted = grpClasses.some(c => isUncleAssignedClass(c));
                     const combHighlightClass = isCombHighlighted ? ' highlighted' : '';
+                    const combStudents = students.filter(s => grpClasses.includes(s['الفصل']));
+                    const combProgress = getAttendanceProgressHtml(combStudents, 'var(--brand)');
                     return `<div class="class-card combined-class-card${combHighlightClass}" onclick="showCombinedClassView('${escJs(label)}')" style="border:2px solid var(--brand);position:relative;">
                 <div class="class-card-badges">
                     <div style="display:flex; align-items:center; gap:4px;">
@@ -14995,6 +15117,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="class-icon" style="background:linear-gradient(135deg,var(--brand),var(--brand-dark))"><i class="fas fa-layer-group" style="color:white"></i></div>
                 <div class="class-name">${label} <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${count})</span></div>
                 <div style="font-size:.68rem;color:var(--text-3);margin-top:4px">${grpClasses.slice(0, 3).join(' + ')}${grpClasses.length > 3 ? '...' : ''}</div>
+                ${combProgress}
             </div>`;
                 }).join('');
             }
@@ -15012,6 +15135,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 ` : '';
                 const isClsHighlighted = isUncleAssignedClass(name);
                 const clsHighlightClass = isClsHighlighted ? ' highlighted' : '';
+                const classStudents = students.filter(s => s['الفصل'] === name);
+                const classProgress = getAttendanceProgressHtml(classStudents, color);
                 return `<div class="class-card${clsHighlightClass}" onclick="showClassView('${name}')"
             style="--cls-color:${color}">
             <div class="class-card-badges">
@@ -15022,6 +15147,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             </div>
             <div class="class-icon" style="background:color-mix(in srgb,${color} 15%,white);color:${color}">${iconHtml}</div>
             <div class="class-name">${name} <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${count})</span></div>
+            ${classProgress}
         </div>`;
             }).join('');
 
@@ -15035,6 +15161,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <i class="fas fa-save" style="font-size: .75rem;"></i> ${unsaved}
                     </div>
                 ` : '';
+                const servantsProgress = getAttendanceProgressHtml(window.allUnclesData || [], '#4f46e5');
                 servantsCardHtml = `
                     <div class="class-card" onclick="showClassView('الخدام')" style="--cls-color:#4f46e5; border:2px solid #4f46e5; position:relative;">
                         <div class="class-card-badges">
@@ -15046,6 +15173,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         </div>
                         <div class="class-icon" style="background:color-mix(in srgb,#4f46e5 15%,white);color:#4f46e5"><i class="fas fa-user"></i></div>
                         <div class="class-name">الخدام <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${servantsCount})</span></div>
+                        ${servantsProgress}
                     </div>
                 `;
             }
@@ -15057,6 +15185,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <i class="fas fa-save" style="font-size: .75rem;"></i> ${guestsUnsaved}
                 </div>
             ` : '';
+            const guestsProgress = getAttendanceProgressHtml(window.allGuestsData || [], '#f59e0b');
             let guestsCardHtml = '';
             if (guestsCount > 0 || guestsUnsaved > 0) {
                 guestsCardHtml = `
@@ -15070,6 +15199,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         </div>
                         <div class="class-icon" style="background:color-mix(in srgb,#f59e0b 15%,white);color:#f59e0b"><i class="fas fa-user-tag"></i></div>
                         <div class="class-name">الزوار <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${guestsCount})</span></div>
+                        ${guestsProgress}
                     </div>
                 `;
             }
