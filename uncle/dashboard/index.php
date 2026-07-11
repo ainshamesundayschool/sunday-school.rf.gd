@@ -12513,11 +12513,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 background: var(--surface-2);
                 font-weight: 800;
                 color: var(--text);
+                position: -webkit-sticky;
                 position: sticky;
                 top: 0;
                 z-index: 10;
             }
             .bulk-att-table th:first-child, .bulk-att-table td:first-child, .sticky-col {
+                position: -webkit-sticky !important;
                 position: sticky !important;
                 right: 0 !important;
                 background: var(--surface) !important;
@@ -12560,7 +12562,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 #bulkAttendanceModal .modal {
                     width: 100vw !important;
                     max-width: 100vw !important;
-                    height: auto !important;
+                    height: 85vh !important;
                     max-height: 85vh !important;
                     border-radius: 20px 20px 0 0 !important;
                     margin: auto 0 0 0 !important;
@@ -12576,7 +12578,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <button class="close-btn" onclick="hideBulkAttendanceModal()">&times;</button>
             </div>
             <div class="modal-body" style="flex: 1; overflow: hidden; display: flex; flex-direction: column; padding: 14px 22px;">
-                <div class="table-responsive" style="direction: rtl; overflow: auto; width: 100%; flex: 1; border-radius: var(--r-md); border: 1px solid var(--bdr);">
+                <div class="table-responsive" style="direction: rtl; overflow: auto; -webkit-overflow-scrolling: touch; width: 100%; flex: 1; border-radius: var(--r-md); border: 1px solid var(--bdr);">
                     <table class="bulk-att-table" id="bulkAttTable">
                         <!-- Will be populated dynamically -->
                     </table>
