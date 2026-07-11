@@ -12556,6 +12556,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <!-- Bulk Attendance Modal -->
     <div class="modal-overlay" id="bulkAttendanceModal" style="z-index:1000007">
         <style>
+            #bulkAttendanceModal .table-responsive {
+                max-height: 60vh;
+                overflow: auto;
+                position: relative;
+            }
             .bulk-att-table {
                 width: 100%;
                 border-collapse: separate;
@@ -12566,7 +12571,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 background: var(--surface);
                 border: 1px solid var(--bdr);
                 border-radius: var(--r-md);
-                overflow: hidden;
             }
             .bulk-att-table th, .bulk-att-table td {
                 padding: 6px 8px;
@@ -12583,20 +12587,23 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 top: 0;
                 z-index: 10;
             }
-            .bulk-att-table th:first-child, .bulk-att-table td:first-child, .sticky-col {
+            .bulk-att-table th:first-child, .bulk-att-table td:first-child, .bulk-att-table .sticky-col {
                 position: -webkit-sticky !important;
                 position: sticky !important;
                 right: 0 !important;
+                left: auto !important;
                 background: var(--surface) !important;
-                z-index: 5 !important;
+                z-index: 12 !important;
                 font-weight: bold;
                 text-align: right;
                 border-left: 2px solid var(--bdr) !important;
                 box-shadow: -2px 0 5px rgba(0,0,0,0.05);
             }
-            .bulk-att-table th:first-child, th.sticky-col {
-                z-index: 15 !important;
+            .bulk-att-table th:first-child, .bulk-att-table th.sticky-col {
+                z-index: 20 !important;
                 background: var(--surface-2) !important;
+                right: 0 !important;
+                left: auto !important;
             }
             .bulk-att-table tr:hover td {
                 background: rgba(124, 58, 237, 0.05);
@@ -12633,7 +12640,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     margin: auto 0 0 0 !important;
                 }
                 #bulkAttendanceModal .table-responsive {
-                    max-height: none !important;
+                    max-height: calc(85vh - 120px) !important;
                 }
             }
         </style>
