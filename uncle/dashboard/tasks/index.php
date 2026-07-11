@@ -14086,7 +14086,7 @@ async function loadStudents(cls) {
 
 
 
-        const student = {id: s._studentId, name: s['الاسم']||s.name||''};
+        const student = {id: s._studentId, name: s['الاسم']||s.name||'', photo: s['صورة']||s.image_url||s.photo||''};
 
 
 
@@ -14118,6 +14118,14 @@ async function loadStudents(cls) {
 
 
 
+}
+
+function getStudentAvatarHtml(photo, name, size = '28px') {
+    if (photo) {
+        return `<img src="${esc(photo)}" style="width:${size};height:${size};border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid var(--bdr);" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />` +
+               `<span style="display:none;width:${size};height:${size};border-radius:50%;background:var(--brand-bg);color:var(--brand);align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;"><i class="fas fa-user"></i></span>`;
+    }
+    return `<span style="display:inline-flex;width:${size};height:${size};border-radius:50%;background:var(--brand-bg);color:var(--brand);align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;"><i class="fas fa-user"></i></span>`;
 }
 
 
@@ -16260,11 +16268,11 @@ async function populateSpec(){
 
 
 
-  c.innerHTML=st.map(s=>`<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.78rem;color:var(--t1);">
-
-
-
-    <input type="checkbox" name="spec_ids" value="${s.id}" style="accent-color:var(--brand);">${esc(s.name)}</label>`).join('');
+  c.innerHTML=st.map(s=>{
+    const avatar = getStudentAvatarHtml(s.photo, s.name, '24px');
+    return `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.78rem;color:var(--t1);padding:4px 0;">
+      <input type="checkbox" name="spec_ids" value="${s.id}" style="accent-color:var(--brand);">${avatar}<span style="font-weight:600;">${esc(s.name)}</span></label>`;
+  }).join('');
 
 
 
@@ -16924,35 +16932,20 @@ async function openDetail(id){
 
 
 
-            s=>`<div style="display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid rgba(0,0,0,.07);">
-
-
-
-              <span style="font-size:.8rem;font-weight:700;color:var(--t1);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.student_name||'—')}</span>
-
-
-
-              <span style="font-size:.68rem;background:var(--brand-bg);color:var(--brand);border-radius:var(--r-full);padding:1px 7px;font-weight:700;flex-shrink:0;">${s.score||0}/${t.total_degree}</span>
-
-
-
-              <button onclick="event.stopPropagation();viewAnswers(${t.id},${s.student_id})"
-
-
-
-                style="background:var(--info-bg);border:1px solid #bfdbfe;color:var(--info);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:.65rem;font-weight:700;font-family:'Cairo',sans-serif;flex-shrink:0;white-space:nowrap;"><i class="fas fa-eye"></i></button>
-
-
-
-              <button onclick="event.stopPropagation();showDeleteSubConfirm(${s.id},'${esc(s.student_name||'')}',${s.coupons_awarded||0},${t.id})"
-
-
-
-                style="background:none;border:1px solid #fca5a5;color:var(--err);border-radius:5px;padding:4px 6px;cursor:pointer;font-size:.63rem;flex-shrink:0;"><i class="fas fa-trash"></i></button>
-
-
-
-            </div>`,
+            s=>{
+              const stud = classStudents.find(x => x.id === parseInt(s.student_id));
+              const photo = stud ? stud.photo : '';
+              const avatar = getStudentAvatarHtml(photo, s.student_name, '28px');
+              return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(0,0,0,.07);">
+                ${avatar}
+                <span style="font-size:.8rem;font-weight:700;color:var(--t1);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.student_name||'—')}</span>
+                <span style="font-size:.68rem;background:var(--brand-bg);color:var(--brand);border-radius:var(--r-full);padding:1px 7px;font-weight:700;flex-shrink:0;">${s.score||0}/${t.total_degree}</span>
+                <button onclick="event.stopPropagation();viewAnswers(${t.id},${s.student_id})"
+                  style="background:var(--info-bg);border:1px solid #bfdbfe;color:var(--info);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:.65rem;font-weight:700;font-family:'Cairo',sans-serif;flex-shrink:0;white-space:nowrap;"><i class="fas fa-eye"></i></button>
+                <button onclick="event.stopPropagation();showDeleteSubConfirm(${s.id},'${esc(s.student_name||'')}',${s.coupons_awarded||0},${t.id})"
+                  style="background:none;border:1px solid #fca5a5;color:var(--err);border-radius:5px;padding:4px 6px;cursor:pointer;font-size:.63rem;flex-shrink:0;"><i class="fas fa-trash"></i></button>
+              </div>`;
+            },
 
 
 
@@ -16992,15 +16985,13 @@ async function openDetail(id){
 
 
 
-            s=>`<div style="padding:5px 0;border-bottom:1px solid rgba(0,0,0,.07);">
-
-
-
-              <span style="font-size:.8rem;font-weight:700;color:var(--t1);">${esc(s.name)}</span>
-
-
-
-            </div>`,
+            s=>{
+              const avatar = getStudentAvatarHtml(s.photo, s.name, '28px');
+              return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.07);">
+                ${avatar}
+                <span style="font-size:.8rem;font-weight:700;color:var(--t1);">${esc(s.name)}</span>
+              </div>`;
+            },
 
 
 
@@ -17618,7 +17609,9 @@ async function openGradePanel(taskId) {
 
     gradeSubs = d.submissions || [];
 
-
+    if (gradeTaskData) {
+        await loadStudents(gradeTaskData.class_name || 'كل الفصول');
+    }
 
     renderGradePanel();
 
@@ -18176,6 +18169,11 @@ function renderGradePanel() {
 
 
 
+    const activeClass = gradeTaskData ? gradeTaskData.class_name : 'كل الفصول';
+    const stud = classStuCache[activeClass || 'كل الفصول']?.find(x => x.id == sub.student_id);
+    const photo = stud ? stud.photo : '';
+    const avatar = getStudentAvatarHtml(photo, sub.student_name, '28px');
+
     return `<div class="grade-sub-card" id="gradecard_${sub.id}">
 
 
@@ -18184,7 +18182,7 @@ function renderGradePanel() {
 
 
 
-        <i class="fas fa-user-circle" style="color:var(--brand);"></i>
+        ${avatar}
 
 
 
@@ -18685,20 +18683,18 @@ function viewAnswers(taskId, studentId) {
   const scoreBg   = pct >= 80 ? 'var(--ok-bg)' : pct >= 50 ? 'var(--warn-bg)' : 'var(--err-bg)';
 
 
-
-
-
-
+  const activeClass = t.class_name || 'كل الفصول';
+  const stud = classStuCache[activeClass]?.find(x => x.id == studentId);
+  const photo = stud ? stud.photo : '';
+  const avatar = getStudentAvatarHtml(photo, sub.student_name, '40px');
 
   let html = `<div class="ans-shell">
-
-
 
     <div class="ans-head">
 
 
 
-      <div class="ans-avatar"><i class="fas fa-user-check"></i></div>
+      <div class="ans-avatar" style="background:none;border:none;display:flex;align-items:center;justify-content:center;padding:0;">${avatar}</div>
 
 
 
