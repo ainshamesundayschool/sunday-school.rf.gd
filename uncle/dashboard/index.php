@@ -11112,6 +11112,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 onmouseout="this.style.background='var(--brand-bg)';this.style.color='var(--brand)';this.querySelector('i').style.color='var(--brand)'">
                                 <i class="fas fa-calendar-alt" style="font-size: 0.82rem; color: var(--brand);"></i>
                                 <span id="currentDateText">جاري...</span>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Collapsible Tasks Panel -->
