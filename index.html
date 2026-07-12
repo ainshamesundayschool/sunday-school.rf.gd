@@ -1330,20 +1330,11 @@
             width: 100%;
         }
 
-        /* Combined header block (cover + big play button side-by-side) */
-        .player-header-block {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-lg);
-            flex-shrink: 0;
-        }
-
         .song-cover-container {
             flex-shrink: 0;
             width: 180px;
             height: 180px;
             border-radius: var(--radius-md);
-            overflow: hidden;
             box-shadow: var(--shadow-md);
             background: white; /* White spacing over the cover */
             padding: 8px;      /* White spacing size */
@@ -1358,7 +1349,7 @@
         }
 
         .song-cover-container:hover {
-            transform: scale(1.04) rotate(1deg);
+            transform: scale(1.02);
             box-shadow: var(--shadow-lg);
         }
 
@@ -1389,27 +1380,33 @@
             color: var(--primary-light);
         }
 
-        /* Big Play Button next to Cover */
+        /* Big Play Button absolute centered overlaying Cover */
         .big-play-btn {
-            width: 68px;
-            height: 68px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 58px;
+            height: 58px;
             border-radius: 50%;
             border: none;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            font-size: 1.5rem;
+            background: white; /* white space under the play button over the cover */
+            color: var(--primary); /* play button icon color */
+            font-size: 1.3rem;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             transition: var(--transition-normal);
-            flex-shrink: 0;
+            z-index: 5;
         }
 
         .big-play-btn:hover {
-            transform: scale(1.08) translateY(-2px);
-            box-shadow: 0 8px 22px rgba(99, 102, 241, 0.55);
+            transform: translate(-50%, -50%) scale(1.1);
+            background: #f8fafc;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+            color: var(--primary-dark);
         }
 
         .progress-container {
@@ -1633,23 +1630,16 @@
                 text-align: center;
                 gap: var(--spacing-md);
             }
-            .player-header-block {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: var(--spacing-md);
-                width: 100%;
-            }
             .song-cover-container {
-                margin: 0;
+                margin: 0 auto;
                 width: 130px;
                 height: 130px;
                 padding: 6px;
             }
             .big-play-btn {
-                width: 58px;
-                height: 58px;
-                font-size: 1.25rem;
+                width: 48px;
+                height: 48px;
+                font-size: 1.1rem;
             }
             .song-player-details {
                 gap: var(--spacing-sm);
@@ -1748,11 +1738,9 @@
         <section class="exclusive-song-section">
             <div class="song-card-container">
                 <div class="song-card">
-                    <!-- Left Side (RTL: right side): Large Cover + Big Play Button side-by-side -->
-                    <div class="player-header-block">
-                        <div class="song-cover-container">
-                            <img src="/exclusive/song/2026/cover/cover.png" alt="غلاف ترنيمة صحي النايمين شبهك اكون" class="song-cover">
-                        </div>
+                    <!-- Cover image + Play Button combined -->
+                    <div class="song-cover-container">
+                        <img src="/exclusive/song/2026/cover/cover.png" alt="غلاف ترنيمة صحي النايمين شبهك اكون" class="song-cover">
                         <button id="play-pause-btn" class="big-play-btn" aria-label="تشغيل">
                             <i class="fas fa-play"></i>
                         </button>
