@@ -3440,6 +3440,14 @@ try {
 
     switch ($action) {
 
+        case 'trackSongDownload':
+            trackSongDownload();
+            break;
+
+        case 'getSongDownloadStats':
+            getSongDownloadStats();
+            break;
+
         case 'getAuditLogs':
 
             checkAuth();
@@ -47656,4 +47664,145 @@ function _checkAndNotifyTripRankUpgrade($conn, $tripId, $studentId, $oldRank, $s
             }
         }
     }
+}
+
+function trackSongDownload() {
+    $conn = getDBConnection();
+    
+    // Ensure table exists
+    $conn->query("CREATE TABLE IF NOT EXISTS `song_download_logs` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `tracker_uuid` VARCHAR(64) NOT NULL,
+        `format` VARCHAR(10) NOT NULL,
+        `user_id` INT DEFAULT NULL,
+        `user_type` VARCHAR(20) DEFAULT NULL,
+        `ip_address` VARCHAR(45) NOT NULL,
+        `user_agent` TEXT NOT NULL,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_song_tracker (`tracker_uuid`),
+        INDEX idx_song_format (`format`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
+    $format = sanitize($_POST['format'] ?? '');
+    $trackerUuid = sanitize($_POST['tracker_uuid'] ?? '');
+    
+    if (empty($format) || empty($trackerUuid)) {
+        sendJSON(['success' => false, 'message' => 'بيانات ناقصة']);
+    }
+
+    // Determine if logged in
+    $userId = null;
+    $userType = null;
+    
+    if (isset($_SESSION['uncle_id'])) {
+        $userId = $_SESSION['uncle_id'];
+        $userType = 'uncle';
+    } elseif (isset($_SESSION['student_id'])) {
+        $userId = $_SESSION['student_id'];
+        $userType = 'student';
+    }
+
+    $ipAddress = $_SERVER['REMOTE_ADDR'] ?? '';
+    $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+
+    $stmt = $conn->prepare("INSERT INTO song_download_logs (tracker_uuid, format, user_id, user_type, ip_address, user_agent) VALUES (?, ?, ?, ?, ?, ?)");
+    if (!$stmt) {
+        sendJSON(['success' => false, 'message' => 'فشل الاستعداد للكتابة']);
+    }
+    $stmt->bind_param('ssssss', $trackerUuid, $format, $userId, $userType, $ipAddress, $userAgent);
+    if ($stmt->execute()) {
+        sendJSON(['success' => true]);
+    } else {
+        sendJSON(['success' => false, 'message' => 'فشل تسجيل التحميل']);
+    }
+    $stmt->close();
+}
+
+function getSongDownloadStats() {
+    if (!isset($_SESSION['uncle_role']) || !in_array(strtolower($_SESSION['uncle_role']), ['developer', 'dev'])) {
+        sendJSON(['success' => false, 'message' => 'غير مصرح للمطورين فقط']);
+    }
+
+    $conn = getDBConnection();
+
+    // Ensure table exists
+    $conn->query("CREATE TABLE IF NOT EXISTS `song_download_logs` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `tracker_uuid` VARCHAR(64) NOT NULL,
+        `format` VARCHAR(10) NOT NULL,
+        `user_id` INT DEFAULT NULL,
+        `user_type` VARCHAR(20) DEFAULT NULL,
+        `ip_address` VARCHAR(45) NOT NULL,
+        `user_agent` TEXT NOT NULL,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_song_tracker (`tracker_uuid`),
+        INDEX idx_song_format (`format`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
+    // Helper function for quick count
+    $getVal = function($sql) use ($conn) {
+        $res = $conn->query($sql);
+        return ($res) ? (int)$res->fetch_assoc()['val'] : 0;
+    };
+
+    // Clicks (Downloads)
+    $totalClicks = $getVal("SELECT COUNT(*) as val FROM song_download_logs WHERE format IN ('mp3', 'wav')");
+    $uniqueUsers = $getVal("SELECT COUNT(DISTINCT tracker_uuid) as val FROM song_download_logs WHERE format IN ('mp3', 'wav')");
+
+    // Plays
+    $totalPlays = $getVal("SELECT COUNT(*) as val FROM song_download_logs WHERE format = 'play'");
+    $uniquePlays = $getVal("SELECT COUNT(DISTINCT tracker_uuid) as val FROM song_download_logs WHERE format = 'play'");
+
+    // Shares
+    $totalShares = $getVal("SELECT COUNT(*) as val FROM song_download_logs WHERE format = 'share'");
+    $uniqueShares = $getVal("SELECT COUNT(DISTINCT tracker_uuid) as val FROM song_download_logs WHERE format = 'share'");
+
+    // Format stats breakdown
+    $resFormats = $conn->query("SELECT format, COUNT(*) as count FROM song_download_logs GROUP BY format");
+    $formatStats = [];
+    if ($resFormats) {
+        while ($row = $resFormats->fetch_assoc()) {
+            $formatStats[$row['format']] = (int)$row['count'];
+        }
+    }
+
+    // Detailed Log
+    $sql = "SELECT l.*, 
+                   CASE 
+                     WHEN l.user_type = 'uncle' THEN u.name 
+                     WHEN l.user_type = 'student' THEN s.name 
+                     ELSE NULL 
+                   END as user_display_name,
+                   CASE 
+                     WHEN l.user_type = 'uncle' THEN u.username 
+                     WHEN l.user_type = 'student' THEN s.username 
+                     ELSE NULL 
+                   END as user_username
+            FROM song_download_logs l
+            LEFT JOIN uncles u ON l.user_type = 'uncle' AND l.user_id = u.id
+            LEFT JOIN students s ON l.user_type = 'student' AND l.user_id = s.id
+            ORDER BY l.created_at DESC
+            LIMIT 1000";
+            
+    $resLogs = $conn->query($sql);
+    $logs = [];
+    if ($resLogs) {
+        while ($row = $resLogs->fetch_assoc()) {
+            $logs[] = $row;
+        }
+    }
+
+    sendJSON([
+        'success' => true,
+        'stats' => [
+            'total_clicks' => $totalClicks,
+            'unique_users' => $uniqueUsers,
+            'total_plays' => $totalPlays,
+            'unique_plays' => $uniquePlays,
+            'total_shares' => $totalShares,
+            'unique_shares' => $uniqueShares,
+            'action_stats' => $formatStats
+        ],
+        'logs' => $logs
+    ]);
 }

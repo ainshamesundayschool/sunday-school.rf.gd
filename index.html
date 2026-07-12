@@ -1573,6 +1573,25 @@
             transform: translateY(-2px);
         }
 
+        .share-btn {
+            background: rgba(99, 102, 241, 0.08);
+            color: var(--primary-dark);
+            border: 1px solid rgba(99, 102, 241, 0.18);
+        }
+
+        [data-theme="dark"] .share-btn {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--primary-light);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .share-btn:hover {
+            background: var(--primary-bg);
+            color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.1);
+        }
+
         [data-theme="dark"] .info-btn:hover {
             background: rgba(255, 255, 255, 0.08);
             color: white;
@@ -1737,7 +1756,7 @@
             .download-dropdown-wrapper {
                 width: 100%;
             }
-            .download-btn, .info-btn {
+            .download-btn, .info-btn, .share-btn {
                 width: 100%;
                 justify-content: center;
                 padding: 13px 22px;
@@ -1864,6 +1883,11 @@
                                     </button>
                                 </div>
                             </div>
+                            
+                            <button id="share-btn" class="action-btn share-btn">
+                                <i class="fas fa-share-alt"></i>
+                                مشاركة
+                            </button>
                             
                             <button onclick="scrollToSelection()" class="action-btn info-btn">
                                 <i class="fas fa-arrow-down"></i>
@@ -2605,6 +2629,13 @@
 
             if (!audio || !playPauseBtn) return;
 
+            // الحصول على أو إنشاء معرّف فريد للمتصفح لمنع التكرار حتى لو تشاركوا نفس شبكة الواي فاي
+            let trackerUuid = localStorage.getItem('song_tracker_uuid');
+            if (!trackerUuid) {
+                trackerUuid = 'tr_' + Math.random().toString(36).substring(2, 15) + '_' + Date.now().toString(36);
+                localStorage.setItem('song_tracker_uuid', trackerUuid);
+            }
+
             // دالة تنسيق الوقت (ثواني -> د:ث)
             function formatTime(secs) {
                 if (isNaN(secs)) return '0:00';
@@ -2758,7 +2789,7 @@
                 e.stopPropagation();
             });
 
-            // دالة بدء التحميل
+            // دالة بدء التحميل والتتبع
             function triggerDownload(format, url, filename) {
                 const a = document.createElement('a');
                 a.href = url;
@@ -2769,6 +2800,17 @@
                 
                 // إخفاء القائمة المنسدلة
                 downloadDropdown.classList.remove('show');
+
+                // إرسال طلب تتبع التحميل للخلفية
+                const fd = new FormData();
+                fd.append('action', 'trackSongDownload');
+                fd.append('format', format);
+                fd.append('tracker_uuid', trackerUuid);
+
+                fetch('/api.php', {
+                    method: 'POST',
+                    body: fd
+                }).catch(err => console.error('Tracking failed:', err));
             }
 
             downloadMp3Btn.addEventListener('click', function() {
@@ -2778,6 +2820,43 @@
             downloadWavBtn.addEventListener('click', function() {
                 triggerDownload('wav', '/exclusive/song/2026/files/song.wav', 'صحي النايمين شبهك اكون ٢٠٢٦.wav');
             });
+
+            // الاستماع لزر المشاركة وتتبع مشاركة الرابط
+            const shareBtn = document.getElementById('share-btn');
+            if (shareBtn) {
+                shareBtn.addEventListener('click', function() {
+                    const shareTitle = 'ترنيمة صحي النايمين - شبهك أكون ٢٠٢٦';
+                    const shareText = 'استمع وحمّل الترنيمة الحصرية لعام ٢٠٢٦ لمدارس الأحد 🎵';
+                    const shareUrl = window.location.origin;
+
+                    if (navigator.share) {
+                        navigator.share({
+                            title: shareTitle,
+                            text: shareText,
+                            url: shareUrl
+                        }).then(() => {
+                            // تتبع المشاركة الناجحة
+                            const fd = new FormData();
+                            fd.append('action', 'trackSongDownload');
+                            fd.append('format', 'share');
+                            fd.append('tracker_uuid', trackerUuid);
+                            fetch('/api.php', { method: 'POST', body: fd }).catch(err => console.error(err));
+                        }).catch(err => console.log('Share canceled:', err));
+                    } else {
+                        // Fallback: نسخ للكلاب بورد
+                        navigator.clipboard.writeText(shareUrl + '/#exclusive-song-section').then(() => {
+                            alert('تم نسخ رابط الترنيمة بنجاح! شاركها الآن.');
+                            
+                            // تتبع نسخ الرابط كمشاركة
+                            const fd = new FormData();
+                            fd.append('action', 'trackSongDownload');
+                            fd.append('format', 'share');
+                            fd.append('tracker_uuid', trackerUuid);
+                            fetch('/api.php', { method: 'POST', body: fd }).catch(err => console.error(err));
+                        }).catch(err => console.error('Copy failed:', err));
+                    }
+                });
+            }
         }
 
         // تهيئة الصفحة
