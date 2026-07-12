@@ -1334,16 +1334,21 @@
             flex-shrink: 0;
             width: 180px;
             height: 180px;
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-md);
-            transition: var(--transition-normal);
             position: relative;
-            overflow: hidden;
+            cursor: pointer;
+            transition: var(--transition-normal);
+            margin-left: 20px; /* Leave space on the left for the sliding button */
         }
 
-        .song-cover-container:hover {
-            transform: scale(1.02);
-            box-shadow: var(--shadow-lg);
+        .cover-sleeve {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            z-index: 2;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .song-cover {
@@ -1372,32 +1377,41 @@
             color: var(--primary-light);
         }
 
-        /* Big Play Button absolute corner overlaying Cover */
+        /* CD/Vinyl sliding play button */
         .big-play-btn {
             position: absolute;
-            bottom: 12px;
+            top: 50%;
             left: 12px;
-            width: 50px;
-            height: 50px;
+            transform: translateY(-50%) scale(0.9);
+            width: 62px;
+            height: 62px;
             border-radius: 50%;
             border: none;
-            background: white; /* white space under the play button over the cover */
-            color: var(--primary); /* play button icon color */
-            font-size: 1.2rem;
+            background: white;
+            color: var(--primary);
+            font-size: 1.3rem;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            transition: var(--transition-normal);
-            z-index: 5;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                        left 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                        opacity 0.4s ease;
+            z-index: 1;
+            opacity: 0.5;
         }
 
-        .big-play-btn:hover {
-            transform: scale(1.1);
-            background: #f8fafc;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
-            color: var(--primary-dark);
+        /* Hover reveals cool slide-out style */
+        .song-cover-container:hover .cover-sleeve {
+            transform: translateX(8px);
+        }
+
+        .song-cover-container:hover .big-play-btn {
+            left: -36px;
+            transform: translateY(-50%) scale(1.05) rotate(360deg);
+            opacity: 1;
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
         }
 
         .progress-container {
@@ -1416,6 +1430,37 @@
         [data-theme="dark"] .progress-container {
             background: rgba(255, 255, 255, 0.02);
             border-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .small-play-btn {
+            background: none;
+            border: none;
+            color: var(--primary-dark);
+            font-size: 1rem;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            flex-shrink: 0;
+        }
+
+        [data-theme="dark"] .small-play-btn {
+            color: var(--primary-light);
+        }
+
+        .small-play-btn:hover {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        [data-theme="dark"] .small-play-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
         }
 
         .time-label {
@@ -1622,16 +1667,29 @@
                 gap: var(--spacing-md);
             }
             .song-cover-container {
-                margin: 0 auto;
+                margin: 0 auto 0 calc(auto + 14px); /* Shift cover slightly right on mobile so slide-out has room on the left */
                 width: 130px;
                 height: 130px;
+                position: relative;
+                cursor: pointer;
             }
             .big-play-btn {
-                bottom: 8px;
-                left: 8px;
-                width: 42px;
-                height: 42px;
-                font-size: 1rem;
+                position: absolute;
+                top: 50%;
+                left: 10px;
+                transform: translateY(-50%) scale(0.9);
+                width: 50px;
+                height: 50px;
+                font-size: 1.1rem;
+                opacity: 0.5;
+            }
+            .song-cover-container:hover .cover-sleeve {
+                transform: translateX(6px);
+            }
+            .song-cover-container:hover .big-play-btn {
+                left: -28px;
+                transform: translateY(-50%) scale(1.05) rotate(360deg);
+                opacity: 1;
             }
             .song-player-details {
                 gap: var(--spacing-sm);
@@ -1730,9 +1788,11 @@
         <section class="exclusive-song-section">
             <div class="song-card-container">
                 <div class="song-card">
-                    <!-- Cover image + Play Button combined -->
+                    <!-- Cover image + Play Button combined (CD sleeve style) -->
                     <div class="song-cover-container">
-                        <img src="/exclusive/song/2026/cover/cover.png" alt="غلاف ترنيمة صحي النايمين شبهك اكون" class="song-cover">
+                        <div class="cover-sleeve">
+                            <img src="/exclusive/song/2026/cover/cover.png" alt="غلاف ترنيمة صحي النايمين شبهك اكون" class="song-cover">
+                        </div>
                         <button id="play-pause-btn" class="big-play-btn" aria-label="تشغيل">
                             <i class="fas fa-play"></i>
                         </button>
@@ -1747,6 +1807,9 @@
                         
                         <!-- Progress container -->
                         <div class="progress-container">
+                            <button id="small-play-btn" class="small-play-btn" aria-label="تشغيل">
+                                <i class="fas fa-play"></i>
+                            </button>
                             <span id="current-time" class="time-label">0:00</span>
                             <div id="progress-bar" class="progress-bar-wrapper">
                                 <div id="progress-filled" class="progress-bar-filled"></div>
@@ -2498,6 +2561,8 @@
         function initExclusivePlayer() {
             const audio = document.getElementById('exclusive-audio');
             const playPauseBtn = document.getElementById('play-pause-btn');
+            const smallPlayBtn = document.getElementById('small-play-btn');
+            const coverContainer = document.querySelector('.song-cover-container');
             const progressBar = document.getElementById('progress-bar');
             const progressFilled = document.getElementById('progress-filled');
             const progressKnob = document.getElementById('progress-knob');
@@ -2528,18 +2593,54 @@
                 durationTimeEl.textContent = formatTime(audio.duration);
             }
 
-            // تشغيل / إيقاف مؤقت
-            playPauseBtn.addEventListener('click', function() {
+            // دالة مشتركة لتشغيل وإيقاف الصوت
+            function togglePlay() {
                 if (audio.paused) {
                     audio.play();
-                    playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-                    playPauseBtn.setAttribute('aria-label', 'إيقاف مؤقت');
                 } else {
                     audio.pause();
-                    playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-                    playPauseBtn.setAttribute('aria-label', 'تشغيل');
+                }
+            }
+
+            // الاستماع لأحداث تشغيل وإيقاف الصوت لتحديث الواجهة بشكل موحد
+            audio.addEventListener('play', function() {
+                const pauseIcon = '<i class="fas fa-pause"></i>';
+                playPauseBtn.innerHTML = pauseIcon;
+                playPauseBtn.setAttribute('aria-label', 'إيقاف مؤقت');
+                if (smallPlayBtn) {
+                    smallPlayBtn.innerHTML = pauseIcon;
+                    smallPlayBtn.setAttribute('aria-label', 'إيقاف مؤقت');
                 }
             });
+
+            audio.addEventListener('pause', function() {
+                const playIcon = '<i class="fas fa-play"></i>';
+                playPauseBtn.innerHTML = playIcon;
+                playPauseBtn.setAttribute('aria-label', 'تشغيل');
+                if (smallPlayBtn) {
+                    smallPlayBtn.innerHTML = playIcon;
+                    smallPlayBtn.setAttribute('aria-label', 'تشغيل');
+                }
+            });
+
+            // تشغيل / إيقاف عند النقر على الأزرار أو الغلاف
+            playPauseBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                togglePlay();
+            });
+
+            if (smallPlayBtn) {
+                smallPlayBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    togglePlay();
+                });
+            }
+
+            if (coverContainer) {
+                coverContainer.addEventListener('click', function() {
+                    togglePlay();
+                });
+            }
 
             // تحديث شريط التقدم والوقت الحالي
             audio.addEventListener('timeupdate', function() {
@@ -2551,8 +2652,13 @@
 
             // إعادة تعيين المشغل عند انتهاء الترنيمة
             audio.addEventListener('ended', function() {
-                playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                const playIcon = '<i class="fas fa-play"></i>';
+                playPauseBtn.innerHTML = playIcon;
                 playPauseBtn.setAttribute('aria-label', 'تشغيل');
+                if (smallPlayBtn) {
+                    smallPlayBtn.innerHTML = playIcon;
+                    smallPlayBtn.setAttribute('aria-label', 'تشغيل');
+                }
                 progressFilled.style.width = '0%';
                 progressKnob.style.right = '0%';
                 currentTimeEl.textContent = '0:00';
