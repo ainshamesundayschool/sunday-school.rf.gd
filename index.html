@@ -169,35 +169,6 @@
             height: 100%;
         }
 
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg,
-                    var(--primary) 0%,
-                    var(--success) 25%,
-                    var(--coupon) 50%,
-                    var(--warning) 75%,
-                    var(--primary) 100%);
-            background-size: 200% 100%;
-            animation: shimmer 3s ease-in-out infinite;
-        }
-
-        @keyframes shimmer {
-
-            0%,
-            100% {
-                background-position: -200% 0;
-            }
-
-            50% {
-                background-position: 200% 0;
-            }
-        }
-
         .title {
             font-size: 1.8rem;
             font-weight: 800;
@@ -213,6 +184,7 @@
 
         .title.main {
             font-size: 3rem;
+            font-family: 'Baloo Bhaijaan 2', 'Cairo', sans-serif;
         }
 
         @keyframes gradientShift {
@@ -253,69 +225,6 @@
             border-radius: var(--radius-lg);
         }
 
-        .cover-overlay {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to top, rgba(15, 17, 23, 0.85) 0%, rgba(15, 17, 23, 0.4) 60%, transparent 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: var(--spacing-xl);
-            text-align: center;
-        }
-
-        .cover-title {
-            font-size: 2.8rem;
-            font-weight: 800;
-            color: white;
-            margin-bottom: var(--spacing-sm);
-            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-        }
-
-        .cover-subtitle {
-            font-size: 1.2rem;
-            color: rgba(255, 255, 255, 0.9);
-            margin-bottom: var(--spacing-lg);
-            max-width: 600px;
-            line-height: 1.7;
-            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-        }
-
-        .cover-more-btn {
-            background: rgba(255, 255, 255, 0.18);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 10px 24px;
-            border-radius: var(--radius-md);
-            font-size: 0.95rem;
-            font-weight: 700;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-            transition: var(--transition-normal);
-            cursor: pointer;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .cover-more-btn:hover {
-            background: white;
-            color: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .cover-more-btn i {
-            font-size: 0.85rem;
-            transition: var(--transition-fast);
-        }
-
-        .cover-more-btn:hover i {
-            transform: translateX(-4px);
-        }
 
         /* ===== START BUTTON ===== */
         .start-btn {
@@ -865,6 +774,8 @@
             padding: 14px 32px 28px;
             cursor: grab;
             user-select: none;
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
         }
 
         .ss-track::-webkit-scrollbar {
@@ -873,27 +784,6 @@
 
         .ss-track.is-dragging {
             cursor: grabbing;
-        }
-
-        .ss-outer::before,
-        .ss-outer::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 50px;
-            z-index: 3;
-            pointer-events: none;
-        }
-
-        .ss-outer::before {
-            right: 0;
-            background: linear-gradient(to left, var(--light), transparent);
-        }
-
-        .ss-outer::after {
-            left: 0;
-            background: linear-gradient(to right, var(--light), transparent);
         }
 
         /* Phone card */
@@ -942,10 +832,6 @@
                 margin-bottom: 20px;
             }
 
-            .ss-outer::before,
-            .ss-outer::after {
-                width: 80px;
-            }
 
             .ss-track {
                 gap: 24px;
@@ -1409,7 +1295,7 @@
             padding: var(--spacing-xl);
             box-shadow: var(--shadow-md);
             position: relative;
-            overflow: hidden;
+            overflow: visible;
             transition: var(--transition-normal);
         }
 
@@ -1419,18 +1305,9 @@
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
-        .song-card-container::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary) 0%, var(--coupon) 50%, var(--success) 100%);
-        }
+
 
         .song-card-container .section-title {
-            font-family: 'Baloo Bhaijaan 2', 'Cairo', sans-serif;
             font-size: 1.5rem;
             font-weight: 800;
             margin-bottom: var(--spacing-lg);
@@ -1487,7 +1364,6 @@
         }
 
         .song-player-details .song-title {
-            font-family: 'Baloo Bhaijaan 2', 'Cairo', sans-serif;
             font-size: 1.6rem;
             font-weight: 800;
             color: var(--primary-dark);
@@ -1624,7 +1500,6 @@
             gap: var(--spacing-xs);
             padding: 10px 22px;
             border-radius: var(--radius-md);
-            font-family: 'Baloo Bhaijaan 2', 'Cairo', sans-serif;
             font-size: 0.95rem;
             font-weight: 700;
             cursor: pointer;
@@ -1676,7 +1551,7 @@
 
         .download-dropdown-menu {
             position: absolute;
-            bottom: calc(100% + 8px);
+            top: calc(100% + 4px);
             right: 0;
             background: white;
             border: 1px solid var(--border);
@@ -1685,7 +1560,7 @@
             display: none;
             flex-direction: column;
             min-width: 220px;
-            z-index: 10;
+            z-index: 999;
             overflow: hidden;
             animation: slideUp 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -1869,13 +1744,9 @@
             <!-- Cover Section -->
             <section class="cover-section" id="cover">
                 <img src="imgs/Sunday-School-App.webp" alt="Sunday School Cover" class="cover-image">
-                <div class="cover-overlay">
-                    <h1 class="cover-title" style="font-family: 'Baloo Bhaijaan 2', 'Cairo', sans-serif;">Sunday School</h1>
+                <div class="cover-overlay" style="display: none;">
+                    <h1 class="cover-title">Sunday School</h1>
                     <p class="cover-subtitle">نظام متكامل لإدارة وتتبع نشاط الأطفال والاناكل في مدارس الأحد</p>
-                    <a href="/about" class="cover-more-btn" style="font-family: 'Baloo Bhaijaan 2', 'Cairo', sans-serif;">
-                        اعرف المزيد
-                        <i class="fas fa-arrow-left"></i>
-                    </a>
                 </div>
             </section>
 
@@ -1884,7 +1755,6 @@
         <!-- Exclusive Song Section -->
         <section class="exclusive-song-section">
             <div class="song-card-container">
-                <h2 class="section-title"><i class="fas fa-music"></i> ترنيمتنا الحصرية لعام ٢٠٢٦ 🎵</h2>
                 <div class="song-card">
                     <!-- Cover image (square, rounded corners) -->
                     <div class="song-cover-container">
@@ -1894,7 +1764,6 @@
                     <!-- Song Info & Player Controls -->
                     <div class="song-player-details">
                         <h3 class="song-title">صحي النايمين - شبهك أكون ٢٠٢٦</h3>
-                        <p class="song-description">استمع وحمل الترنيمة الحصرية لعام ٢٠٢٦ لمدارس الأحد.</p>
                         
                         <!-- Audio Element (hidden) -->
                         <audio id="exclusive-audio" src="/exclusive/song/2026/files/song.mp3" preload="metadata"></audio>
@@ -1932,10 +1801,10 @@
                                 </div>
                             </div>
                             
-                            <a href="/about" class="action-btn info-btn">
-                                <i class="fas fa-info-circle"></i>
-                                اعرف المزيد
-                            </a>
+                            <button onclick="scrollToSelection()" class="action-btn info-btn">
+                                <i class="fas fa-arrow-down"></i>
+                                ابدأ الآن
+                            </button>
                         </div>
 
                         <!-- Thanks Message Container -->
