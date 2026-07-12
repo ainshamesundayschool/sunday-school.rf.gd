@@ -50,7 +50,7 @@
     <meta property="fb:app_id" content="422015245890190">
 
     <!-- Stylesheets -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&family=Cairo:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -266,30 +266,66 @@
 
         .cover-overlay {
             position: absolute;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            inset: 0;
+            background: linear-gradient(to top, rgba(15, 17, 23, 0.85) 0%, rgba(15, 17, 23, 0.4) 60%, transparent 100%);
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-end;
+            justify-content: center;
+            padding: var(--spacing-xl);
             text-align: center;
         }
 
         .cover-title {
-            font-size: 2.5rem;
+            font-size: 2.8rem;
             font-weight: 800;
             color: white;
-            margin-bottom: var(--spacing-md);
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            margin-bottom: var(--spacing-sm);
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
         }
 
         .cover-subtitle {
             font-size: 1.2rem;
-            color: rgba(255, 255, 255, 0.95);
-            margin-bottom: var(--spacing-xl);
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: var(--spacing-lg);
             max-width: 600px;
-            line-height: 1.6;
+            line-height: 1.7;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .cover-more-btn {
+            background: rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px 24px;
+            border-radius: var(--radius-md);
+            font-size: 0.95rem;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            transition: var(--transition-normal);
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .cover-more-btn:hover {
+            background: white;
+            color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .cover-more-btn i {
+            font-size: 0.85rem;
+            transition: var(--transition-fast);
+        }
+
+        .cover-more-btn:hover i {
+            transform: translateX(-4px);
         }
 
         /* ===== START BUTTON ===== */
@@ -1369,6 +1405,424 @@
                 font-size: .95rem;
             }
         }
+
+        /* ===== EXCLUSIVE SONG SECTION ===== */
+        .exclusive-song-section {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .song-card-container {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.95) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-xl);
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition-normal);
+        }
+
+        [data-theme="dark"] .song-card-container {
+            background: linear-gradient(135deg, rgba(24, 27, 38, 0.85) 0%, rgba(24, 27, 38, 0.95) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .song-card-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--coupon) 50%, var(--success) 100%);
+        }
+
+        .song-card-container .section-title {
+            font-family: 'Baloo Bhaijaan 2', 'Cairo', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: var(--spacing-lg);
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        [data-theme="dark"] .song-card-container .section-title {
+            color: #fff;
+        }
+
+        .song-card {
+            display: flex;
+            gap: var(--spacing-xl);
+            align-items: center;
+        }
+
+        .song-cover-container {
+            flex-shrink: 0;
+            width: 160px;
+            height: 160px;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            border: 3.5px solid white;
+            transition: var(--transition-normal);
+            position: relative;
+        }
+
+        [data-theme="dark"] .song-cover-container {
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .song-cover-container:hover {
+            transform: scale(1.04) rotate(1deg);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .song-cover {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .song-player-details {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+            min-width: 0;
+        }
+
+        .song-player-details .song-title {
+            font-family: 'Baloo Bhaijaan 2', 'Cairo', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin: 0;
+        }
+
+        [data-theme="dark"] .song-player-details .song-title {
+            color: var(--primary-light);
+        }
+
+        .song-player-details .song-description {
+            color: var(--secondary);
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        [data-theme="dark"] .song-player-details .song-description {
+            color: #94a3b8;
+        }
+
+        /* Player Controls */
+        .player-controls {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            background: rgba(99, 102, 241, 0.05);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+        }
+
+        [data-theme="dark"] .player-controls {
+            background: rgba(255, 255, 255, 0.02);
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .control-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            font-size: 1.05rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+            transition: var(--transition-normal);
+            flex-shrink: 0;
+        }
+
+        .control-btn:hover {
+            transform: scale(1.08) translateY(-1px);
+            box-shadow: 0 6px 14px rgba(99, 102, 241, 0.45);
+        }
+
+        .progress-container {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            flex: 1;
+            direction: rtl;
+        }
+
+        .time-label {
+            font-size: 0.8rem;
+            color: var(--secondary);
+            min-width: 38px;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        [data-theme="dark"] .time-label {
+            color: #94a3b8;
+        }
+
+        .progress-bar-wrapper {
+            flex: 1;
+            height: 6px;
+            background: rgba(99, 102, 241, 0.15);
+            border-radius: 3px;
+            position: relative;
+            cursor: pointer;
+            overflow: visible;
+        }
+
+        [data-theme="dark"] .progress-bar-wrapper {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-bar-filled {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 3px;
+            width: 0%;
+            position: absolute;
+            top: 0;
+            right: 0;
+        }
+
+        .progress-bar-knob {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--primary-dark);
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%) translateX(50%);
+            right: 0%;
+            border: 2px solid white;
+            box-shadow: var(--shadow-sm);
+            display: none;
+            transition: transform 0.1s ease;
+        }
+
+        .progress-bar-wrapper:hover .progress-bar-knob {
+            display: block;
+        }
+
+        /* Actions */
+        .song-actions {
+            display: flex;
+            gap: var(--spacing-md);
+            flex-wrap: wrap;
+            margin-top: 2px;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            padding: 10px 22px;
+            border-radius: var(--radius-md);
+            font-family: 'Baloo Bhaijaan 2', 'Cairo', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: var(--transition-normal);
+            text-decoration: none;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, var(--success) 0%, #0da271 100%);
+            color: white;
+            position: relative;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.25);
+        }
+
+        .info-btn {
+            background: rgba(99, 102, 241, 0.08);
+            color: var(--primary-dark);
+            border: 1px solid rgba(99, 102, 241, 0.18);
+        }
+
+        [data-theme="dark"] .info-btn {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--primary-light);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .info-btn:hover {
+            background: var(--primary-bg);
+            color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        [data-theme="dark"] .info-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+        }
+
+        /* Dropdown styling */
+        .download-dropdown-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .download-dropdown-menu {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            right: 0;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            display: none;
+            flex-direction: column;
+            min-width: 220px;
+            z-index: 10;
+            overflow: hidden;
+            animation: slideUp 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="dark"] .download-dropdown-menu {
+            background: #181b26;
+            border-color: var(--border);
+        }
+
+        .download-dropdown-menu.show {
+            display: flex;
+        }
+
+        .dropdown-item {
+            padding: 12px 16px;
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: right;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.9rem;
+            color: var(--dark);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            transition: var(--transition-fast);
+        }
+
+        [data-theme="dark"] .dropdown-item {
+            color: #e2e8f0;
+        }
+
+        .dropdown-item:hover {
+            background: var(--light);
+            color: var(--primary-dark);
+        }
+
+        [data-theme="dark"] .dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        /* Thanks Message Alert */
+        .thanks-message-alert {
+            display: none;
+            align-items: center;
+            gap: var(--spacing-sm);
+            background: #ecfdf5;
+            border: 1px solid #10b981;
+            color: #065f46;
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: var(--spacing-xs);
+            animation: fadeIn 0.4s ease-out;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        [data-theme="dark"] .thanks-message-alert {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+        }
+
+        .thanks-message-alert.show {
+            display: flex;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsive adjustment */
+        @media(max-width: 768px) {
+            .song-card {
+                flex-direction: column;
+                text-align: center;
+            }
+            .song-cover-container {
+                margin: 0 auto;
+                width: 140px;
+                height: 140px;
+            }
+            .player-controls {
+                flex-direction: column;
+                gap: var(--spacing-md);
+                padding: var(--spacing-md);
+            }
+            .progress-container {
+                width: 100%;
+            }
+            .song-actions {
+                justify-content: center;
+                width: 100%;
+            }
+            .download-dropdown-wrapper {
+                width: 100%;
+            }
+            .download-btn, .info-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            .download-dropdown-menu {
+                right: 50%;
+                transform: translateX(50%);
+                width: 100%;
+            }
+            .thanks-message-alert {
+                justify-content: center;
+            }
+        }
     </style>
     <script src="/js/og-meta.js"></script>
 </head>
@@ -1426,13 +1880,85 @@
             <!-- Cover Section -->
             <section class="cover-section" id="cover">
                 <img src="imgs/Sunday-School-App.webp" alt="Sunday School Cover" class="cover-image">
-                <div class="cover-overlay" style="display: none;">
-                    <h1 class="cover-title">Sunday School</h1>
+                <div class="cover-overlay">
+                    <h1 class="cover-title" style="font-family: 'Baloo Bhaijaan 2', 'Cairo', sans-serif;">Sunday School</h1>
                     <p class="cover-subtitle">نظام متكامل لإدارة وتتبع نشاط الأطفال والاناكل في مدارس الأحد</p>
+                    <a href="/about" class="cover-more-btn" style="font-family: 'Baloo Bhaijaan 2', 'Cairo', sans-serif;">
+                        اعرف المزيد
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
                 </div>
             </section>
 
         </div>
+
+        <!-- Exclusive Song Section -->
+        <section class="exclusive-song-section">
+            <div class="song-card-container">
+                <h2 class="section-title"><i class="fas fa-music"></i> ترنيمتنا الحصرية لعام ٢٠٢٦ 🎵</h2>
+                <div class="song-card">
+                    <!-- Cover image (square, rounded corners) -->
+                    <div class="song-cover-container">
+                        <img src="/exclusive/song/2026/cover/cover.png" alt="غلاف ترنيمة صحي النايمين شبهك اكون" class="song-cover">
+                    </div>
+                    
+                    <!-- Song Info & Player Controls -->
+                    <div class="song-player-details">
+                        <h3 class="song-title">صحي النايمين - شبهك أكون ٢٠٢٦</h3>
+                        <p class="song-description">استمع وحمل الترنيمة الحصرية لعام ٢٠٢٦ لمدارس الأحد.</p>
+                        
+                        <!-- Audio Element (hidden) -->
+                        <audio id="exclusive-audio" src="/exclusive/song/2026/files/song.mp3" preload="metadata"></audio>
+                        
+                        <!-- Player controls -->
+                        <div class="player-controls">
+                            <button id="play-pause-btn" class="control-btn" aria-label="تشغيل">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            
+                            <div class="progress-container">
+                                <span id="current-time" class="time-label">0:00</span>
+                                <div id="progress-bar" class="progress-bar-wrapper">
+                                    <div id="progress-filled" class="progress-bar-filled"></div>
+                                    <div id="progress-knob" class="progress-bar-knob"></div>
+                                </div>
+                                <span id="duration-time" class="time-label">0:00</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Actions: Download & Info -->
+                        <div class="song-actions">
+                            <div class="download-dropdown-wrapper">
+                                <button id="download-btn" class="action-btn download-btn">
+                                    <i class="fas fa-download"></i>
+                                    تحميل الترنيمة
+                                </button>
+                                <div id="download-dropdown" class="download-dropdown-menu">
+                                    <button id="download-mp3-btn" class="dropdown-item">
+                                        <i class="far fa-file-audio"></i> تحميل بصيغة MP3
+                                    </button>
+                                    <button id="download-wav-btn" class="dropdown-item">
+                                        <i class="far fa-file-code"></i> تحميل بصيغة WAV
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <a href="/about" class="action-btn info-btn">
+                                <i class="fas fa-info-circle"></i>
+                                اعرف المزيد
+                            </a>
+                        </div>
+
+                        <!-- Thanks Message Container -->
+                        <div id="thanks-message" class="thanks-message-alert">
+                            <i class="fas fa-heart"></i>
+                            <span>شكراً لك على تحميل الترنيمة الحصرية! نتمنى لك استماعاً ممتعاً. ❤️</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- ═══ SCREENSHOTS SHOWCASE ═══ -->
 
 
@@ -2144,9 +2670,163 @@
             });
         }
 
+        // تهيئة مشغل الترنيمة الحصرية
+        function initExclusivePlayer() {
+            const audio = document.getElementById('exclusive-audio');
+            const playPauseBtn = document.getElementById('play-pause-btn');
+            const progressBar = document.getElementById('progress-bar');
+            const progressFilled = document.getElementById('progress-filled');
+            const progressKnob = document.getElementById('progress-knob');
+            const currentTimeEl = document.getElementById('current-time');
+            const durationTimeEl = document.getElementById('duration-time');
+            const downloadBtn = document.getElementById('download-btn');
+            const downloadDropdown = document.getElementById('download-dropdown');
+            const downloadMp3Btn = document.getElementById('download-mp3-btn');
+            const downloadWavBtn = document.getElementById('download-wav-btn');
+            const thanksMessage = document.getElementById('thanks-message');
+
+            if (!audio || !playPauseBtn) return;
+
+            // دالة تنسيق الوقت (ثواني -> د:ث)
+            function formatTime(secs) {
+                if (isNaN(secs)) return '0:00';
+                const minutes = Math.floor(secs / 60);
+                const seconds = Math.floor(secs % 60);
+                return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            }
+
+            // تحديث مدة الترنيمة بمجرد تحميل الميتاداتا
+            audio.addEventListener('loadedmetadata', function() {
+                durationTimeEl.textContent = formatTime(audio.duration);
+            });
+
+            // في حال تم تحميل الصفحة وكان الملف جاهزاً بالفعل
+            if (audio.readyState >= 1) {
+                durationTimeEl.textContent = formatTime(audio.duration);
+            }
+
+            // تشغيل / إيقاف مؤقت
+            playPauseBtn.addEventListener('click', function() {
+                if (audio.paused) {
+                    audio.play();
+                    playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                    playPauseBtn.setAttribute('aria-label', 'إيقاف مؤقت');
+                } else {
+                    audio.pause();
+                    playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                    playPauseBtn.setAttribute('aria-label', 'تشغيل');
+                }
+            });
+
+            // تحديث شريط التقدم والوقت الحالي
+            audio.addEventListener('timeupdate', function() {
+                const percent = (audio.currentTime / audio.duration) * 100;
+                progressFilled.style.width = `${percent}%`;
+                progressKnob.style.right = `${percent}%`;
+                currentTimeEl.textContent = formatTime(audio.currentTime);
+            });
+
+            // إعادة تعيين المشغل عند انتهاء الترنيمة
+            audio.addEventListener('ended', function() {
+                playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                playPauseBtn.setAttribute('aria-label', 'تشغيل');
+                progressFilled.style.width = '0%';
+                progressKnob.style.right = '0%';
+                currentTimeEl.textContent = '0:00';
+            });
+
+            // دالة تغيير موضع التشغيل (Click / Drag)
+            function setProgress(e) {
+                const rect = progressBar.getBoundingClientRect();
+                // بما أن الصفحة بالكامل RTL، التقدم يملأ من اليمين إلى اليسار.
+                // بالتالي، المسافة من اليمين هي: rect.right - e.clientX
+                let clickX = rect.right - e.clientX;
+                if (clickX < 0) clickX = 0;
+                if (clickX > rect.width) clickX = rect.width;
+                
+                const percentage = clickX / rect.width;
+                audio.currentTime = percentage * audio.duration;
+            }
+
+            let isDragging = false;
+
+            progressBar.addEventListener('mousedown', function(e) {
+                isDragging = true;
+                setProgress(e);
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (isDragging) {
+                    setProgress(e);
+                }
+            });
+
+            document.addEventListener('mouseup', function() {
+                isDragging = false;
+            });
+
+            // دعم الأجهزة اللمسية (Mobile Touch Events)
+            progressBar.addEventListener('touchstart', function(e) {
+                isDragging = true;
+                setProgress(e.touches[0]);
+            });
+
+            progressBar.addEventListener('touchmove', function(e) {
+                if (isDragging) {
+                    setProgress(e.touches[0]);
+                    e.preventDefault(); // منع التمرير الافتراضي أثناء السحب
+                }
+            });
+
+            progressBar.addEventListener('touchend', function() {
+                isDragging = false;
+            });
+
+            // فتح/إغلاق قائمة التحميل
+            downloadBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                downloadDropdown.classList.toggle('show');
+            });
+
+            // إغلاق قائمة التحميل عند النقر في أي مكان آخر
+            document.addEventListener('click', function() {
+                downloadDropdown.classList.remove('show');
+            });
+
+            // منع إغلاق القائمة عند النقر داخلها
+            downloadDropdown.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+
+            // دالة بدء التحميل وإظهار رسالة الشكر
+            function triggerDownload(format, url, filename) {
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
+                // إظهار رسالة الشكر
+                thanksMessage.classList.add('show');
+                
+                // إخفاء القائمة المنسدلة
+                downloadDropdown.classList.remove('show');
+            }
+
+            downloadMp3Btn.addEventListener('click', function() {
+                triggerDownload('mp3', '/exclusive/song/2026/files/song.mp3', 'صحي النايمين شبهك اكون ٢٠٢٦.mp3');
+            });
+
+            downloadWavBtn.addEventListener('click', function() {
+                triggerDownload('wav', '/exclusive/song/2026/files/song.wav', 'صحي النايمين شبهك اكون ٢٠٢٦.wav');
+            });
+        }
+
         // تهيئة الصفحة
         document.addEventListener('DOMContentLoaded', function () {
             updateStats();
+            initExclusivePlayer();
 
             // إضافة تأثيرات عند التمرير
             const observerOptions = {
@@ -2164,7 +2844,7 @@
             }, observerOptions);
 
             // مراقبة العناصر لإضافة تأثيرات التمرير
-            document.querySelectorAll('.stat-card, .user-card, .feature-item').forEach(el => {
+            document.querySelectorAll('.stat-card, .user-card, .feature-item, .song-card-container').forEach(el => {
                 el.style.opacity = '0';
                 el.style.transform = 'translateY(20px)';
                 el.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
