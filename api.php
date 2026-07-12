@@ -47775,7 +47775,7 @@ function getSongDownloadStats() {
                    END as user_display_name,
                    CASE 
                      WHEN l.user_type = 'uncle' THEN u.username 
-                     WHEN l.user_type = 'student' THEN s.username 
+                     WHEN l.user_type = 'student' THEN s.phone 
                      ELSE NULL 
                    END as user_username
             FROM song_download_logs l
