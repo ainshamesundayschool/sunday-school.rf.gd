@@ -185,6 +185,7 @@
         .title.main {
             font-size: 3rem;
             font-family: 'Baloo Bhaijaan 2', 'Cairo', sans-serif;
+            margin-bottom: 2px;
         }
 
         @keyframes gradientShift {
@@ -602,6 +603,7 @@
 
             .title.main {
                 font-size: 2rem;
+                margin-bottom: 2px;
             }
 
             .subtitle {
@@ -1498,15 +1500,16 @@
             display: inline-flex;
             align-items: center;
             gap: var(--spacing-xs);
-            padding: 10px 22px;
+            padding: 12px 22px;
             border-radius: var(--radius-md);
-            font-size: 0.95rem;
+            font-size: 1rem;
             font-weight: 700;
             cursor: pointer;
             border: none;
             transition: var(--transition-normal);
             text-decoration: none;
             box-shadow: var(--shadow-sm);
+            font-family: 'Cairo', sans-serif;
         }
 
         .download-btn {
@@ -1650,19 +1653,26 @@
 
         /* Responsive adjustment */
         @media(max-width: 768px) {
+            .song-card-container {
+                padding: var(--spacing-md);
+            }
             .song-card {
                 flex-direction: column;
                 text-align: center;
+                gap: var(--spacing-md);
             }
             .song-cover-container {
                 margin: 0 auto;
-                width: 140px;
-                height: 140px;
+                width: 110px;
+                height: 110px;
+            }
+            .song-player-details {
+                gap: var(--spacing-sm);
+                width: 100%;
             }
             .player-controls {
-                flex-direction: column;
-                gap: var(--spacing-md);
-                padding: var(--spacing-md);
+                padding: var(--spacing-xs) var(--spacing-sm);
+                gap: var(--spacing-sm);
             }
             .progress-container {
                 width: 100%;
@@ -1677,6 +1687,7 @@
             .download-btn, .info-btn {
                 width: 100%;
                 justify-content: center;
+                padding: 13px 22px;
             }
             .download-dropdown-menu {
                 right: 50%;
