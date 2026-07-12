@@ -1614,15 +1614,47 @@
             background: none;
             border: none;
             width: 100%;
-            text-align: right;
             font-family: 'Cairo', sans-serif;
             font-size: 0.9rem;
             color: var(--dark);
             cursor: pointer;
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: var(--spacing-sm);
             transition: var(--transition-fast);
+        }
+
+        .dropdown-item-text {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .file-size-badge {
+            font-size: 0.75rem;
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--primary-dark);
+            padding: 2px 8px;
+            border-radius: var(--radius-sm);
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            transition: var(--transition-fast);
+        }
+
+        [data-theme="dark"] .file-size-badge {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--primary-light);
+        }
+
+        .dropdown-item:hover .file-size-badge {
+            background: var(--primary);
+            color: white;
+        }
+
+        [data-theme="dark"] .dropdown-item:hover .file-size-badge {
+            background: var(--primary-light);
+            color: #1e293b;
         }
 
         [data-theme="dark"] .dropdown-item {
@@ -1819,10 +1851,12 @@
                                 </button>
                                 <div id="download-dropdown" class="download-dropdown-menu">
                                     <button id="download-mp3-btn" class="dropdown-item">
-                                        <i class="far fa-file-audio"></i> تحميل بصيغة MP3
+                                        <span class="dropdown-item-text"><i class="far fa-file-audio"></i> تحميل بصيغة MP3</span>
+                                        <span class="file-size-badge">6.0 MB</span>
                                     </button>
                                     <button id="download-wav-btn" class="dropdown-item">
-                                        <i class="far fa-file-code"></i> تحميل بصيغة WAV
+                                        <span class="dropdown-item-text"><i class="far fa-file-code"></i> تحميل بصيغة WAV</span>
+                                        <span class="file-size-badge">44 MB</span>
                                     </button>
                                 </div>
                             </div>
