@@ -8306,31 +8306,31 @@
             <div id="devSongDownloads" class="tab-panel">
                 <div class="stats-row" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px;">
                     <div class="stat-card">
-                        <div class="stat-icon" style="background:#e0e7ff;color:#4f46e5;"><i class="fas fa-mouse-pointer"></i></div>
+                        <div class="stat-icon" style="background:#e0e7ff;color:#4f46e5;"><i class="fas fa-download"></i></div>
                         <div class="stat-info">
                             <h3 id="devSongTotalClicks">0</h3>
-                            <p>إجمالي نقرات التحميل</p>
+                            <p>إجمالي تحميلات الترنيمة</p>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon" style="background:#dcfce7;color:#15803d;"><i class="fas fa-users"></i></div>
+                        <div class="stat-icon" style="background:#dcfce7;color:#15803d;"><i class="fas fa-play"></i></div>
                         <div class="stat-info">
                             <h3 id="devSongUniqueDownloads">0</h3>
-                            <p>المستخدمين الفريدين (أجهزة مستقلة)</p>
+                            <p>التشغيل بالمتصفح (Plays)</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:#fee2e2;color:#dc2626;"><i class="fas fa-share-alt"></i></div>
+                        <div class="stat-info">
+                            <h3 id="devSongWavClicks">0</h3>
+                            <p>مشاركات الرابط (Shares)</p>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon" style="background:#fef3c7;color:#d97706;"><i class="far fa-file-audio"></i></div>
                         <div class="stat-info">
-                            <h3 id="devSongMp3Clicks">0</h3>
-                            <p>تحميلات بصيغة MP3</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background:#fee2e2;color:#dc2626;"><i class="far fa-file-code"></i></div>
-                        <div class="stat-info">
-                            <h3 id="devSongWavClicks">0</h3>
-                            <p>تحميلات بصيغة WAV</p>
+                            <h3 id="devSongMp3Clicks">MP3: 0 | WAV: 0</h3>
+                            <p>تفصيل صيغ التحميل</p>
                         </div>
                     </div>
                 </div>
@@ -17248,8 +17248,8 @@
                 document.getElementById('devSongWavClicks').innerHTML = 
                     `${stats.total_shares} <span style="font-size:0.75rem; color:var(--muted); font-weight:normal; margin-right:4px;">(${stats.unique_shares} مستخدم)</span>`;
 
-                const mp3Count = stats.action_stats.download_mp3 || 0;
-                const wavCount = stats.action_stats.download_wav || 0;
+                const mp3Count = stats.action_stats.mp3 || 0;
+                const wavCount = stats.action_stats.wav || 0;
                 document.getElementById('devSongMp3Clicks').textContent = `MP3: ${mp3Count} | WAV: ${wavCount}`;
 
                 // Populate logs list
