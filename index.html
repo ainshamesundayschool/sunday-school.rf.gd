@@ -2664,6 +2664,7 @@
             }
 
             // الاستماع لأحداث تشغيل وإيقاف الصوت لتحديث الواجهة بشكل موحد
+            let playTrackedThisSession = false;
             audio.addEventListener('play', function() {
                 const pauseIcon = '<i class="fas fa-pause"></i>';
                 playPauseBtn.innerHTML = pauseIcon;
@@ -2672,6 +2673,16 @@
                     smallPlayBtn.innerHTML = pauseIcon;
                     smallPlayBtn.setAttribute('aria-label', 'إيقاف مؤقت');
                     smallPlayBtn.classList.add('show'); // show smoothly
+                }
+
+                // تتبع أول عملية تشغيل في الجلسة لمنع التكرار المزعج
+                if (!playTrackedThisSession) {
+                    playTrackedThisSession = true;
+                    const fd = new FormData();
+                    fd.append('action', 'trackSongDownload');
+                    fd.append('format', 'play');
+                    fd.append('tracker_uuid', trackerUuid);
+                    fetch('/api.php', { method: 'POST', body: fd }).catch(err => console.error(err));
                 }
             });
 
