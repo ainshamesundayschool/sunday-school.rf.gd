@@ -1336,16 +1336,9 @@
             height: 180px;
             border-radius: var(--radius-md);
             box-shadow: var(--shadow-md);
-            background: white; /* White spacing over the cover */
-            padding: 8px;      /* White spacing size */
-            border: 1px solid rgba(0, 0, 0, 0.08);
             transition: var(--transition-normal);
             position: relative;
-        }
-
-        [data-theme="dark"] .song-cover-container {
-            background: #232736;
-            border-color: rgba(255, 255, 255, 0.08);
+            overflow: hidden;
         }
 
         .song-cover-container:hover {
@@ -1358,7 +1351,6 @@
             height: 100%;
             object-fit: cover;
             display: block;
-            border-radius: calc(var(--radius-md) - 6px);
         }
 
         .song-player-details {
@@ -1380,19 +1372,18 @@
             color: var(--primary-light);
         }
 
-        /* Big Play Button absolute centered overlaying Cover */
+        /* Big Play Button absolute corner overlaying Cover */
         .big-play-btn {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 58px;
-            height: 58px;
+            bottom: 12px;
+            left: 12px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             border: none;
             background: white; /* white space under the play button over the cover */
             color: var(--primary); /* play button icon color */
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1403,7 +1394,7 @@
         }
 
         .big-play-btn:hover {
-            transform: translate(-50%, -50%) scale(1.1);
+            transform: scale(1.1);
             background: #f8fafc;
             box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
             color: var(--primary-dark);
@@ -1634,12 +1625,13 @@
                 margin: 0 auto;
                 width: 130px;
                 height: 130px;
-                padding: 6px;
             }
             .big-play-btn {
-                width: 48px;
-                height: 48px;
-                font-size: 1.1rem;
+                bottom: 8px;
+                left: 8px;
+                width: 42px;
+                height: 42px;
+                font-size: 1rem;
             }
             .song-player-details {
                 gap: var(--spacing-sm);
