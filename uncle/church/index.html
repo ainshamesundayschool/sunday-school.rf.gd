@@ -8304,12 +8304,19 @@
 
             <!-- ── DEVELOPER: EXCLUSIVE SONG DOWNLOADS ── -->
             <div id="devSongDownloads" class="tab-panel">
-                <div class="stats-row" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px;">
+                <div class="stats-row" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px;">
                     <div class="stat-card">
-                        <div class="stat-icon" style="background:#e0e7ff;color:#4f46e5;"><i class="fas fa-download"></i></div>
+                        <div class="stat-icon" style="background:#e0f2fe;color:#0284c7;"><i class="far fa-file-audio"></i></div>
                         <div class="stat-info">
-                            <h3 id="devSongTotalClicks">0</h3>
-                            <p>إجمالي تحميلات الترنيمة</p>
+                            <h3 id="devSongMp3Clicks">0</h3>
+                            <p>تحميلات MP3</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:#fee2e2;color:#dc2626;"><i class="far fa-file-code"></i></div>
+                        <div class="stat-info">
+                            <h3 id="devSongWavClicks">0</h3>
+                            <p>تحميلات WAV</p>
                         </div>
                     </div>
                     <div class="stat-card">
@@ -8320,17 +8327,17 @@
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon" style="background:#fee2e2;color:#dc2626;"><i class="fas fa-share-alt"></i></div>
+                        <div class="stat-icon" style="background:#fef3c7;color:#d97706;"><i class="fas fa-share-alt"></i></div>
                         <div class="stat-info">
-                            <h3 id="devSongWavClicks">0</h3>
+                            <h3 id="devSongSharesClicks">0</h3>
                             <p>مشاركات الرابط (Shares)</p>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon" style="background:#fef3c7;color:#d97706;"><i class="far fa-file-audio"></i></div>
+                        <div class="stat-icon" style="background:#f3e8ff;color:#9333ea;"><i class="fas fa-chart-line"></i></div>
                         <div class="stat-info">
-                            <h3 id="devSongMp3Clicks">MP3: 0 | WAV: 0</h3>
-                            <p>تفصيل صيغ التحميل</p>
+                            <h3 id="devSongTotalClicks">0</h3>
+                            <p>إجمالي التفاعلات</p>
                         </div>
                     </div>
                 </div>
@@ -8344,27 +8351,29 @@
                             <button class="btn btn-success btn-sm" onclick="shareDevSongStats()"><i class="fas fa-share-alt"></i> مشاركة الإحصائيات</button>
                         </div>
                     </div>
-                    <div class="card-body" style="padding:0; overflow-x:auto;">
-                        <table class="table" style="width:100%; border-collapse:collapse; min-width:800px;">
-                            <thead>
-                                <tr>
-                                    <th>اسم المستخدم / الحساب</th>
-                                    <th>نوع الحساب</th>
-                                    <th>صيغة الملف</th>
-                                    <th>عنوان IP</th>
-                                    <th>مُعرّف الجهاز (UUID)</th>
-                                    <th>تاريخ ووقت التحميل</th>
-                                    <th>بيانات المتصفح (User Agent)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="devSongDownloadsList">
-                                <tr>
-                                    <td colspan="7" style="text-align:center; padding:32px; color:var(--muted);">
-                                        <i class="fas fa-spinner fa-spin" style="margin-left:8px;"></i> جاري تحميل البيانات...
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="card-body" style="padding:0;">
+                        <div class="table-wrap" style="border:none; border-radius:0; overflow-x:auto;">
+                            <table class="table" style="width:100%; border-collapse:collapse; min-width:800px;">
+                                <thead>
+                                    <tr>
+                                        <th style="padding: 12px 14px; text-align: right;">اسم المستخدم / الحساب</th>
+                                        <th style="padding: 12px 14px; text-align: right;">نوع الحساب</th>
+                                        <th style="padding: 12px 14px; text-align: right;">نوع التفاعل (صيغة الملف)</th>
+                                        <th style="padding: 12px 14px; text-align: right;">عنوان IP</th>
+                                        <th style="padding: 12px 14px; text-align: right;">مُعرّف الجهاز (UUID)</th>
+                                        <th style="padding: 12px 14px; text-align: right;">تاريخ ووقت التحميل</th>
+                                        <th style="padding: 12px 14px; text-align: right;">بيانات المتصفح (User Agent)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="devSongDownloadsList">
+                                    <tr>
+                                        <td colspan="7" style="text-align:center; padding:32px; color:var(--muted);">
+                                            <i class="fas fa-spinner fa-spin" style="margin-left:8px;"></i> جاري تحميل البيانات...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -11047,7 +11056,7 @@
             const parts = hash.split('?');
             const tab = parts[0];
             const params = new URLSearchParams(parts[1] || '');
-            const valid = ['overview', 'uncles', 'students', 'attendance', 'uncleAttendance', 'trips', 'classes', 'pending', 'devChurches', 'history', 'churchSettings'];
+            const valid = ['overview', 'uncles', 'students', 'attendance', 'uncleAttendance', 'trips', 'classes', 'pending', 'devChurches', 'devSongDownloads', 'history', 'churchSettings'];
             return {
                 tab: valid.includes(tab) ? tab : 'overview',
                 params: params
@@ -11179,7 +11188,7 @@
         (function () {
             const hash = window.location.hash.substring(1);
             const tab = hash.split('?')[0];
-            const valid = ['overview', 'uncles', 'students', 'attendance', 'uncleAttendance', 'trips', 'classes', 'pending', 'devChurches', 'history', 'churchSettings'];
+            const valid = ['overview', 'uncles', 'students', 'attendance', 'uncleAttendance', 'trips', 'classes', 'pending', 'devChurches', 'devSongDownloads', 'history', 'churchSettings'];
             if (valid.includes(tab)) {
                 window._initialTab = tab;
             }
@@ -17242,15 +17251,17 @@
                 document.getElementById('devSongTotalClicks').innerHTML = 
                     `${stats.total_clicks} <span style="font-size:0.75rem; color:var(--muted); font-weight:normal; margin-right:4px;">(${stats.unique_users} مستخدم)</span>`;
                 
+                document.getElementById('devSongMp3Clicks').innerHTML = 
+                    `${stats.total_mp3} <span style="font-size:0.75rem; color:var(--muted); font-weight:normal; margin-right:4px;">(${stats.unique_mp3} مستخدم)</span>`;
+
+                document.getElementById('devSongWavClicks').innerHTML = 
+                    `${stats.total_wav} <span style="font-size:0.75rem; color:var(--muted); font-weight:normal; margin-right:4px;">(${stats.unique_wav} مستخدم)</span>`;
+
                 document.getElementById('devSongUniqueDownloads').innerHTML = 
                     `${stats.total_plays} <span style="font-size:0.75rem; color:var(--muted); font-weight:normal; margin-right:4px;">(${stats.unique_plays} مستخدم)</span>`;
                 
-                document.getElementById('devSongWavClicks').innerHTML = 
+                document.getElementById('devSongSharesClicks').innerHTML = 
                     `${stats.total_shares} <span style="font-size:0.75rem; color:var(--muted); font-weight:normal; margin-right:4px;">(${stats.unique_shares} مستخدم)</span>`;
-
-                const mp3Count = stats.action_stats.mp3 || 0;
-                const wavCount = stats.action_stats.wav || 0;
-                document.getElementById('devSongMp3Clicks').textContent = `MP3: ${mp3Count} | WAV: ${wavCount}`;
 
                 // Populate logs list
                 devSongLogsCache = res.logs || [];
@@ -17272,21 +17283,41 @@
             }
 
             const actionMap = {
-                'download_mp3': '<span class="badge badge-success"><i class="far fa-file-audio"></i> تحميل MP3</span>',
-                'download_wav': '<span class="badge badge-info"><i class="far fa-file-code"></i> تحميل WAV</span>',
+                'mp3': '<span class="badge badge-success"><i class="far fa-file-audio"></i> تحميل MP3</span>',
+                'wav': '<span class="badge badge-info"><i class="far fa-file-code"></i> تحميل WAV</span>',
                 'play': '<span class="badge badge-primary"><i class="fas fa-play"></i> تشغيل بالمتصفح</span>',
                 'share': '<span class="badge badge-warning"><i class="fas fa-share-alt"></i> مشاركة</span>'
             };
 
             tbody.innerHTML = logs.map(l => {
-                const userDisplayName = l.user_display_name ? `${l.user_display_name} (${l.user_username})` : '<span style="color:var(--muted);">زائر (Guest)</span>';
+                let avatarHtml = '';
+                if (l.user_image_url) {
+                    avatarHtml = `<div class="avatar-text"><img src="${l.user_image_url}" alt=""></div>`;
+                } else {
+                    const firstChar = l.user_display_name ? l.user_display_name.charAt(0) : '?';
+                    avatarHtml = `<div class="avatar-text">${firstChar}</div>`;
+                }
+
+                const nameText = l.user_display_name ? l.user_display_name : '<span style="color:var(--muted);">زائر (Guest)</span>';
+                const subText = l.user_username ? l.user_username : '';
+                
+                const nameCellHtml = `
+                    <div class="td-name-cell">
+                        ${avatarHtml}
+                        <div>
+                            <div class="td-name-text">${nameText}</div>
+                            ${subText ? `<div class="td-name-sub">${subText}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+
                 const userTypeLabel = l.user_type === 'uncle' ? '<span class="badge badge-info">خادم</span>' : l.user_type === 'student' ? '<span class="badge badge-success">طفل</span>' : '<span style="color:var(--muted);">-</span>';
-                const actionBadge = actionMap[l.action_type] || l.action_type;
+                const actionBadge = actionMap[l.format] || l.format || '-';
                 const formattedDate = new Date(l.created_at).toLocaleString('ar-EG');
 
                 return `
                     <tr>
-                        <td style="font-weight:700;">${userDisplayName}</td>
+                        <td>${nameCellHtml}</td>
                         <td>${userTypeLabel}</td>
                         <td>${actionBadge}</td>
                         <td style="font-variant-numeric: tabular-nums;">${l.ip_address}</td>
@@ -17311,24 +17342,27 @@
                 const ip = (l.ip_address || '').toLowerCase();
                 const uuid = (l.tracker_uuid || '').toLowerCase();
                 const ua = (l.user_agent || '').toLowerCase();
+                const fmt = (l.format || '').toLowerCase();
                 
-                return name.includes(query) || username.includes(query) || ip.includes(query) || uuid.includes(query) || ua.includes(query);
+                return name.includes(query) || username.includes(query) || ip.includes(query) || uuid.includes(query) || ua.includes(query) || fmt.includes(query);
             });
 
             renderDevSongLogs(filtered);
         }
 
         function shareDevSongStats() {
-            const totalClicks = document.getElementById('devSongTotalClicks').innerText || '0';
-            const browserPlays = document.getElementById('devSongUniqueDownloads').innerText || '0';
-            const linkShares = document.getElementById('devSongWavClicks').innerText || '0';
-            const formatsText = document.getElementById('devSongMp3Clicks').innerText || '0';
+            const mp3Text = document.getElementById('devSongMp3Clicks').innerText || '0';
+            const wavText = document.getElementById('devSongWavClicks').innerText || '0';
+            const playsText = document.getElementById('devSongUniqueDownloads').innerText || '0';
+            const sharesText = document.getElementById('devSongSharesClicks').innerText || '0';
+            const totalText = document.getElementById('devSongTotalClicks').innerText || '0';
 
-            const shareMsg = `📊 إحصائيات تفاعلات الترنيمة الحصرية ٢٠٢٦:
-🎵 تحميل الملفات: ${totalClicks}
-🎬 تشغيل بالمتصفح: ${browserPlays}
-🔗 مشاركات الرابط: ${linkShares}
-💿 تفصيل صيغ التحميل: ${formatsText}
+            const shareMsg = `📊 إحصائيات تفاعلات الترنيمة الحصرية:
+🎵 تحميل MP3: ${mp3Text}
+💿 تحميل WAV: ${wavText}
+🎬 تشغيل بالمتصفح: ${playsText}
+🔗 مشاركات الرابط: ${sharesText}
+📈 إجمالي التفاعلات: ${totalText}
 
 تم الجلب بتاريخ: ${new Date().toLocaleString('ar-EG')}`;
 

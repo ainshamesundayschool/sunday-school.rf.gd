@@ -47749,6 +47749,14 @@ function getSongDownloadStats() {
     $totalClicks = $getVal("SELECT COUNT(*) as val FROM song_download_logs WHERE format IN ('mp3', 'wav')");
     $uniqueUsers = $getVal("SELECT COUNT(DISTINCT tracker_uuid) as val FROM song_download_logs WHERE format IN ('mp3', 'wav')");
 
+    // MP3 Clicks
+    $totalMp3 = $getVal("SELECT COUNT(*) as val FROM song_download_logs WHERE format = 'mp3'");
+    $uniqueMp3 = $getVal("SELECT COUNT(DISTINCT tracker_uuid) as val FROM song_download_logs WHERE format = 'mp3'");
+
+    // WAV Clicks
+    $totalWav = $getVal("SELECT COUNT(*) as val FROM song_download_logs WHERE format = 'wav'");
+    $uniqueWav = $getVal("SELECT COUNT(DISTINCT tracker_uuid) as val FROM song_download_logs WHERE format = 'wav'");
+
     // Plays
     $totalPlays = $getVal("SELECT COUNT(*) as val FROM song_download_logs WHERE format = 'play'");
     $uniquePlays = $getVal("SELECT COUNT(DISTINCT tracker_uuid) as val FROM song_download_logs WHERE format = 'play'");
@@ -47777,7 +47785,12 @@ function getSongDownloadStats() {
                      WHEN l.user_type = 'uncle' THEN u.username 
                      WHEN l.user_type = 'student' THEN s.phone 
                      ELSE NULL 
-                   END as user_username
+                   END as user_username,
+                   CASE 
+                     WHEN l.user_type = 'uncle' THEN u.image_url 
+                     WHEN l.user_type = 'student' THEN s.image_url 
+                     ELSE NULL 
+                   END as user_image_url
             FROM song_download_logs l
             LEFT JOIN uncles u ON l.user_type = 'uncle' AND l.user_id = u.id
             LEFT JOIN students s ON l.user_type = 'student' AND l.user_id = s.id
@@ -47797,6 +47810,10 @@ function getSongDownloadStats() {
         'stats' => [
             'total_clicks' => $totalClicks,
             'unique_users' => $uniqueUsers,
+            'total_mp3' => $totalMp3,
+            'unique_mp3' => $uniqueMp3,
+            'total_wav' => $totalWav,
+            'unique_wav' => $uniqueWav,
             'total_plays' => $totalPlays,
             'unique_plays' => $uniquePlays,
             'total_shares' => $totalShares,
