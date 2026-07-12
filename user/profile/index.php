@@ -28,6 +28,9 @@ if (file_exists($rootPath . '/config.php')) {
   require_once $rootPath . '/config.php';
 }
 $studentIdFromUrl = isset($_GET['id']) ? intval($_GET['id']) : null;
+if ($studentIdFromUrl) {
+    $_SESSION['student_id'] = $studentIdFromUrl;
+}
 $tempIdFromUrl = isset($_GET['tempid']) ? $_GET['tempid'] : null;
 
 if ($tempIdFromUrl && !$studentIdFromUrl) {

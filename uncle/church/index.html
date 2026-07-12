@@ -8341,6 +8341,7 @@
                         <div style="display:flex; gap:8px; align-items:center;">
                             <input type="text" id="devSongSearchInput" class="form-input form-input-sm" placeholder="بحث بالاسم أو الـ IP أو الـ UUID..." style="width:250px;" oninput="filterDevSongDownloads()">
                             <button class="btn btn-dev btn-sm" onclick="loadSongDownloadStats()"><i class="fas fa-sync-alt"></i> تحديث</button>
+                            <button class="btn btn-success btn-sm" onclick="shareDevSongStats()"><i class="fas fa-share-alt"></i> مشاركة الإحصائيات</button>
                         </div>
                     </div>
                     <div class="card-body" style="padding:0; overflow-x:auto;">
@@ -17315,6 +17316,35 @@
             });
 
             renderDevSongLogs(filtered);
+        }
+
+        function shareDevSongStats() {
+            const totalClicks = document.getElementById('devSongTotalClicks').innerText || '0';
+            const browserPlays = document.getElementById('devSongUniqueDownloads').innerText || '0';
+            const linkShares = document.getElementById('devSongWavClicks').innerText || '0';
+            const formatsText = document.getElementById('devSongMp3Clicks').innerText || '0';
+
+            const shareMsg = `📊 إحصائيات تفاعلات الترنيمة الحصرية ٢٠٢٦:
+🎵 تحميل الملفات: ${totalClicks}
+🎬 تشغيل بالمتصفح: ${browserPlays}
+🔗 مشاركات الرابط: ${linkShares}
+💿 تفصيل صيغ التحميل: ${formatsText}
+
+تم الجلب بتاريخ: ${new Date().toLocaleString('ar-EG')}`;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: 'إحصائيات الترنيمة الحصرية',
+                    text: shareMsg
+                }).catch(err => console.log('Share canceled:', err));
+            } else {
+                navigator.clipboard.writeText(shareMsg).then(() => {
+                    showToast('تم نسخ إحصائيات الترنيمة إلى الحافظة بنجاح!', 'success');
+                }).catch(err => {
+                    console.error(err);
+                    showToast('فشل نسخ الإحصائيات للحافظة', 'danger');
+                });
+            }
         }
 
         // ── Developer: Churches ────────────────────────────────────────
