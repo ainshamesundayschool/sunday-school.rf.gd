@@ -1594,7 +1594,7 @@
             box-shadow: var(--shadow-lg);
             display: none;
             flex-direction: column;
-            min-width: 220px;
+            min-width: 240px;
             z-index: 999;
             overflow: hidden;
             animation: slideUp 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1623,12 +1623,14 @@
             justify-content: space-between;
             gap: var(--spacing-sm);
             transition: var(--transition-fast);
+            white-space: nowrap;
         }
 
         .dropdown-item-text {
             display: flex;
             align-items: center;
             gap: var(--spacing-sm);
+            white-space: nowrap;
         }
 
         .file-size-badge {
@@ -1640,6 +1642,8 @@
             font-weight: 700;
             font-variant-numeric: tabular-nums;
             transition: var(--transition-fast);
+            direction: ltr;
+            display: inline-block;
         }
 
         [data-theme="dark"] .file-size-badge {
