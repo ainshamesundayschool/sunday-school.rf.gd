@@ -936,7 +936,7 @@ position: absolute;
         const ATTEMPT_KEY = '_loginRestoreAttempted'; // sessionStorage — resets per tab
 
         // ── Redirect immediately if logged in locally ──────
-        if (loggedIn) {
+        if (loggedIn && !urlParams.has('redirect')) {
             redirectToDashboard(loginType, role);
             return;
         }

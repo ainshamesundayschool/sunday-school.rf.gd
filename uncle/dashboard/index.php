@@ -93,8 +93,8 @@ if (!$hasSession && !$isLoginPage) { ?>
                         }
                         // Session cookie is now set — plain reload, no query string
                         window.location.reload();
-                    } else if (navigator.onLine && d.message && (d.message.indexOf('not found') !== -1 || d.message.indexOf('No credentials') !== -1)) {
-                        // Server confirmed user/church does not exist → truly invalid, clear and redirect
+                    } else if (navigator.onLine && d.message && (d.message.indexOf('not found') !== -1 || d.message.indexOf('No credentials') !== -1 || d.message.indexOf('معلقة') !== -1 || d.message.indexOf('انتظار موافقة') !== -1)) {
+                        // Server confirmed user/church does not exist or is pending → truly invalid, clear and redirect
                         sessionStorage.removeItem(KEY);
                         ['loggedIn', 'uncleLoggedIn', 'churchCode', 'uncleUsername', 'churchName', 'uncleName']
                             .forEach(function (k) { localStorage.removeItem(k); });

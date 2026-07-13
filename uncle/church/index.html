@@ -11168,8 +11168,8 @@
                     window.location.reload();
                     return true;
                 }
-                // Only clear credentials if server explicitly says the user doesn't exist
-                if (d.message && (d.message.includes('not found') || d.message.includes('No credentials'))) {
+                // Only clear credentials if server explicitly says the user doesn't exist or is unapproved
+                if (d.message && (d.message.includes('not found') || d.message.includes('No credentials') || d.message.includes('معلقة') || d.message.includes('انتظار موافقة'))) {
                     ['loggedIn', 'uncleLoggedIn', 'churchCode', 'uncleUsername', 'churchName', 'uncleName']
                         .forEach(k => localStorage.removeItem(k));
                     window.location.href = '/login/';
@@ -11221,12 +11221,11 @@
                 !!localStorage.getItem('churchCode');
 
             // 2. Silent restoration
-            if (!sess.ok && hasLocalSession) {
-                if (navigator.onLine) {
+            if (!sess.ok) {
+                if (hasLocalSession && navigator.onLine) {
                     const restored = await restoreSessionAndReload();
                     if (restored) return;
                 }
-            } else if (!sess.ok) {
                 const dest = encodeURIComponent(window.location.href);
                 window.location.href = '/login/?redirect=' + dest;
                 return;
