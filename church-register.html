@@ -357,6 +357,15 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
           </div>
         </div>
 
+        <!-- Admin Phone -->
+        <div class="fr full">
+          <div class="ff">
+            <label><i class="fas fa-phone"></i> رقم الهاتف <span class="req">*</span></label>
+            <input type="text" id="adminPhone" placeholder="01xxxxxxxxx" autocomplete="off" oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
+            <small>رقم الهاتف للتواصل مع المسؤول</small>
+          </div>
+        </div>
+
         <!-- Admin Username -->
         <div class="fr full">
           <div class="ff">
@@ -416,6 +425,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       <div class="rv-block">
         <div class="rv-head"><i class="fas fa-user-shield"></i> حساب المسؤول</div>
         <div class="rv-row"><span class="rv-lbl">الاسم الكامل</span><span class="rv-val" id="rv-adminName">—</span></div>
+        <div class="rv-row"><span class="rv-lbl">رقم الهاتف</span><span class="rv-val" id="rv-adminPhone" style="font-family:monospace;">—</span></div>
         <div class="rv-row"><span class="rv-lbl">اسم المستخدم</span><span class="rv-val" id="rv-adminUsername" style="font-family:monospace;color:var(--brand);">—</span></div>
         <div class="rv-row">
           <span class="rv-lbl">كلمة مرور المسؤول</span>
@@ -539,6 +549,8 @@ function v1() {
 }
 function v2() {
   if (!val('adminName'))     { showErr(2, 'الرجاء إدخال اسم المسؤول');       focusErr('adminName');     return false; }
+  if (!val('adminPhone'))    { showErr(2, 'الرجاء إدخال رقم الهاتف');        focusErr('adminPhone');    return false; }
+  if (val('adminPhone').length < 10) { showErr(2, 'رقم الهاتف غير صحيح');    focusErr('adminPhone');    return false; }
   if (!val('adminUsername')) { showErr(2, 'الرجاء إدخال اسم المستخدم');      focusErr('adminUsername'); return false; }
   if (val('adminUsername').includes(' ')) { showErr(2, 'اسم المستخدم لا يحتوي على مسافات'); focusErr('adminUsername'); return false; }
   if (!val('adminPassword')) { showErr(2, 'الرجاء إدخال كلمة المرور');       focusErr('adminPassword'); return false; }
@@ -554,6 +566,7 @@ function fillReview() {
   document.getElementById('rv-churchEmail').textContent   = val('churchEmail')   || '—';
   document.getElementById('rv-churchType').textContent    = typeVal === 'kids' ? 'مدارس الأحد' : 'اجتماع شباب';
   document.getElementById('rv-adminName').textContent     = val('adminName')     || '—';
+  document.getElementById('rv-adminPhone').textContent    = val('adminPhone')    || '—';
   document.getElementById('rv-adminUsername').textContent = val('adminUsername') || '—';
   // Reset password display to masked
   const cp = document.getElementById('rv-churchPassword');
@@ -618,6 +631,7 @@ async function submitForm() {
   fd.append('church_email',     val('churchEmail'));
   fd.append('church_type',      document.querySelector('input[name="churchType"]:checked')?.value || 'kids');
   fd.append('admin_name',       adminName);
+  fd.append('admin_phone',      val('adminPhone'));
   fd.append('admin_username',   val('adminUsername'));
   fd.append('admin_password',   val('adminPassword'));
 
@@ -629,7 +643,7 @@ async function submitForm() {
     await new Promise(r => setTimeout(r, 300));
 
     if (data.success) {
-      showSuccess(churchName, adminName, val('adminUsername'));
+      showSuccess(churchName, adminName, val('adminUsername'), data.pending);
     } else {
       showErr(3, data.message || 'حدث خطأ، يرجى المحاولة مرة أخرى');
       btn.disabled = false;
@@ -648,12 +662,13 @@ async function submitForm() {
 
 let _successData = {};
 
-function showSuccess(churchName, adminName, adminUsername) {
+function showSuccess(churchName, adminName, adminUsername, isPending) {
   const churchCode     = val('churchCode');
   const churchPassword = val('churchPassword');
   const adminPassword  = val('adminPassword');
+  const adminPhone     = val('adminPhone');
 
-  _successData = { churchName, churchCode, churchPassword, adminName, adminUsername, adminPassword };
+  _successData = { churchName, churchCode, churchPassword, adminName, adminUsername, adminPassword, adminPhone };
 
   document.getElementById('mainContent').classList.remove('show');
   document.getElementById('stepRail').style.display   = 'none';
@@ -661,6 +676,15 @@ function showSuccess(churchName, adminName, adminUsername) {
   document.getElementById('keyBadge').style.display   = 'none';
   document.querySelector('.topbar-sub').textContent   = '';
   document.querySelector('.topbar-title').textContent = 'مرحباً بك!';
+
+  const successDesc = document.getElementById('successDesc');
+  if (successDesc) {
+    if (isPending) {
+      successDesc.innerHTML = 'تم إنشاء الكنيسة وحساب المسؤول بنجاح! <strong style="color:var(--danger); display:block; margin-top:5px;"><i class="fas fa-exclamation-triangle"></i> الحساب حالياً معلق لحين تفعيل المطور.</strong> يرجى حفظ بيانات الدخول التالية لاستخدامها فور التفعيل:';
+    } else {
+      successDesc.textContent = 'تم إنشاء الكنيسة وحساب المسؤول — احفظ بيانات الدخول التالية في مكان آمن.';
+    }
+  }
 
   // Build credentials grid
   const creds = document.getElementById('successCredentials');
@@ -670,6 +694,7 @@ function showSuccess(churchName, adminName, adminUsername) {
       { label: 'اسم مستخدم الكنيسة',    icon: 'fa-at',           value: churchCode,     mono: true,  copy: churchCode },
       { label: 'كلمة مرور الكنيسة',     icon: 'fa-lock',         value: churchPassword, mono: true,  copy: churchPassword, secret: true },
       { label: 'اسم المسؤول',           icon: 'fa-user-shield',  value: adminName,      mono: false, copy: adminName },
+      { label: 'رقم هاتف المسؤول',      icon: 'fa-phone',        value: adminPhone,     mono: true,  copy: adminPhone },
       { label: 'اسم مستخدم المسؤول',    icon: 'fa-user',         value: adminUsername,  mono: true,  copy: adminUsername },
       { label: 'كلمة مرور المسؤول',     icon: 'fa-key',          value: adminPassword,  mono: true,  copy: adminPassword, secret: true },
     ];
@@ -722,6 +747,7 @@ function copyAllCredentials() {
     'اسم مستخدم الكنيسة: ' + d.churchCode,
     'كلمة مرور الكنيسة: ' + d.churchPassword,
     'اسم المسؤول: ' + d.adminName,
+    'رقم هاتف المسؤول: ' + d.adminPhone,
     'اسم مستخدم المسؤول: ' + d.adminUsername,
     'كلمة مرور المسؤول: ' + d.adminPassword,
   ].join('\n');
@@ -747,7 +773,17 @@ function showSuccessToast(msg) {
 
 /* ── key validation ── */
 async function validateKey() {
-  if (!regKey) { showInvalid('missing'); return; }
+  if (!regKey) {
+    document.getElementById('keyBadge').style.background = 'var(--brand-bg)';
+    document.getElementById('keyBadge').style.color = 'var(--brand)';
+    document.getElementById('keyText').textContent = 'تسجيل مباشر';
+    const noteEl = document.querySelector('.sec-note');
+    if (noteEl) {
+      noteEl.innerHTML = '<i class="fas fa-info-circle"></i> هذا الحساب سيكون معلقاً لحين تفعيل المطور له';
+    }
+    showForm();
+    return;
+  }
   document.getElementById('keyText').textContent = regKey.substring(0, 8) + '...';
   try {
     const fd = new FormData();

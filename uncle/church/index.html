@@ -17413,6 +17413,10 @@
                 const typeBadge = isYouth
                     ? `<span class="badge" style="background:#ede9fe;color:#5b21b6;font-size:0.7rem;"><i class="fas fa-user-friends"></i> شباب</span>`
                     : `<span class="badge badge-info" style="font-size:0.7rem;"><i class="fas fa-child"></i> أطفال</span>`;
+                const isApproved = parseInt(ch.is_approved !== undefined ? ch.is_approved : 1) !== 0;
+                const approvedBadge = isApproved
+                    ? `<span class="badge" style="background:#d1fae5;color:#065f46;font-size:0.7rem;margin-right:6px;"><i class="fas fa-check-circle"></i> مفعلة</span>`
+                    : `<span class="badge" style="background:#fee2e2;color:#991b1b;font-size:0.7rem;margin-right:6px;"><i class="fas fa-clock"></i> معلقة (Pending)</span>`;
                 const typeColor = isYouth ? '#8b5cf6' : 'var(--primary)';
                 const kidRegUrl = baseUrl + '/user/registration?church=' + encodeURIComponent(ch.church_code);
                 const uncleRegUrl = baseUrl + '/uncle/registration?church=' + encodeURIComponent(ch.church_code);
@@ -17425,12 +17429,19 @@
             <div class="church-card-header">
                 <div class="church-icon" style="background:${isYouth ? '#ede9fe' : 'var(--primary-light)'};color:${typeColor};"><i class="fas ${isYouth ? 'fa-user-friends' : 'fa-church'}"></i></div>
                 <div class="church-card-info"><h3>${nameEsc}</h3><span><i class="fas fa-tag"></i> ${escHtml(ch.church_code)}</span></div>
-                <div class="actions" style="margin-right:auto;">
+                <div class="actions" style="margin-right:auto;display:flex;gap:4px;align-items:center;">
+                    ${isApproved 
+                        ? `<button class="act-btn" onclick="setChurchApprovalStatus(${ch.id}, 0)" title="إلغاء التفعيل" style="background:#ef4444;"><i class="fas fa-ban"></i></button>`
+                        : `<button class="act-btn" onclick="setChurchApprovalStatus(${ch.id}, 1)" title="تفعيل الكنيسة" style="background:#10b981;"><i class="fas fa-check"></i></button>`
+                    }
                     <button class="act-btn act-edit" onclick="openEditChurchModal(${ch.id},'${escHtml(ch.church_name)}','${escHtml(ch.church_code)}','${escHtml(ch.admin_email || '')}','${ch.church_type || 'kids'}')" title="تعديل"><i class="fas fa-edit"></i></button>
                     <button class="act-btn act-delete" onclick="deleteChurchConfirm(${ch.id},'${escHtml(ch.church_code)}')" title="حذف"><i class="fas fa-trash"></i></button>
                 </div>
             </div>
-            <div style="margin-bottom:8px;">${typeBadge}</div>
+            <div style="margin-bottom:8px;display:flex;gap:4px;">
+                ${typeBadge}
+                ${approvedBadge}
+            </div>
             <div class="church-card-stats">
                 <div class="church-stat"><div class="cv">${ch.student_count || 0}</div><div class="cl">${isYouth ? 'شاب' : 'طفل'}</div></div>
                 <div class="church-stat"><div class="cv">${ch.uncle_count || 0}</div><div class="cl">خادم</div></div>
@@ -17473,6 +17484,20 @@
             </div>
         </div>`;
             }).join('');
+        }
+
+        async function setChurchApprovalStatus(churchId, isApproved) {
+            if (!confirm(isApproved ? 'هل أنت متأكد من تفعيل هذه الكنيسة؟' : 'هل أنت متأكد من إلغاء تفعيل هذه الكنيسة؟')) return;
+            const fd = mkFd('toggleChurchApproval');
+            fd.append('church_id', churchId);
+            fd.append('is_approved', isApproved);
+            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+            if (d.success) {
+                showToast(d.message, 'success');
+                loadAllChurches();
+            } else {
+                showToast(d.message || 'حدث خطأ أثناء تحديث حالة التفعيل', 'error');
+            }
         }
 
 

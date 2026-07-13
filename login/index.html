@@ -653,6 +653,12 @@ position: absolute;
                 <button type="submit" class="login-btn">
                     <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
                 </button>
+
+                <div style="text-align: center; margin-top: 15px;">
+                    <a href="/church-register.html" style="color: var(--primary); font-weight: 700; text-decoration: none; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 6px; transition: var(--transition);" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
+                        <i class="fas fa-church"></i> تسجيل كنيسة جديدة (تسجيل مباشر)
+                    </a>
+                </div>
             </form>
         </div>
 
@@ -812,8 +818,7 @@ position: absolute;
         btn.addEventListener('click', function () {
             document.querySelectorAll('.login-type-btn').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
-            document.querySelectorAll('.form-container').forEach(f => f.classList.remove('active'));
-            document.getElementById(this.dataset.type === 'church' ? 'churchLoginForm' : 'uncleLoginForm').classList.add('active');
+            showForms();
             document.getElementById('errorMessage').style.display = 'none';
         });
     });

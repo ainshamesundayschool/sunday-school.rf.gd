@@ -111,6 +111,30 @@ function ensureChurchTypeColumn(mysqli $conn): void
 
 
 
+function ensureChurchApprovedColumn(mysqli $conn): void
+
+{
+
+    if (defined('SCHEMA_MIGRATED')) { return; }
+
+    $check = $conn->query("SHOW COLUMNS FROM churches LIKE 'is_approved'");
+
+    if ($check && $check->num_rows > 0) {
+
+        return;
+
+    }
+
+    if (!$conn->query("ALTER TABLE churches ADD COLUMN is_approved TINYINT(1) NOT NULL DEFAULT 1")) {
+
+        throw new Exception('Failed to ensure is_approved column: ' . $conn->error);
+
+    }
+
+}
+
+
+
 function ensureStudentsAddedByColumn(mysqli $conn): void
 
 {
@@ -3682,6 +3706,14 @@ try {
 
 
 
+        case 'toggleChurchApproval':
+
+            toggleChurchApproval();
+
+            break;
+
+
+
         // ── Uncle Registration (plain church code link) ─────────────
 
         case 'registerUncleWithChurchCode':
@@ -5093,7 +5125,9 @@ try {
 
                     ensureChurchTypeColumn($conn);
 
-                    $stmt = $conn->prepare("SELECT id, church_name, church_code, COALESCE(church_type,'kids') AS church_type FROM churches WHERE church_code = ?");
+                    ensureChurchApprovedColumn($conn);
+
+                    $stmt = $conn->prepare("SELECT id, church_name, church_code, COALESCE(church_type,'kids') AS church_type, COALESCE(is_approved, 1) AS is_approved FROM churches WHERE church_code = ?");
 
                     $stmt->bind_param("s", $church_code);
 
@@ -5110,6 +5144,14 @@ try {
 
 
                 if ($row) {
+
+                    if (isset($row['is_approved']) && intval($row['is_approved']) === 0) {
+
+                        echo json_encode(['success' => false, 'message' => 'هذه الكنيسة معلقة وفي انتظار موافقة المطور للتفعيل']);
+
+                        exit;
+
+                    }
 
                     $_SESSION['church_id'] = $row['id'];
 
@@ -5157,13 +5199,17 @@ try {
 
                     ensureChurchTypeColumn($conn);
 
+                    ensureChurchApprovedColumn($conn);
+
                     $stmt = $conn->prepare("
 
                 SELECT u.id, u.name, u.username, u.role, u.church_id,
 
                        c.church_name, c.church_code,
 
-                       COALESCE(c.church_type, 'kids') AS church_type
+                       COALESCE(c.church_type, 'kids') AS church_type,
+
+                       COALESCE(c.is_approved, 1) AS is_approved
 
                 FROM uncles u
 
@@ -5188,6 +5234,14 @@ try {
 
 
                 if ($row) {
+
+                    if (isset($row['is_approved']) && intval($row['is_approved']) === 0) {
+
+                        echo json_encode(['success' => false, 'message' => 'هذه الكنيسة معلقة وفي انتظار موافقة المطور للتفعيل']);
+
+                        exit;
+
+                    }
 
                     $_SESSION['uncle_id'] = $row['id'];
 
@@ -5881,7 +5935,9 @@ function handleLogin()
 
             ensureChurchTypeColumn($conn);
 
-            $stmt = $conn->prepare("SELECT id, church_name, password_hash, COALESCE(church_type,'kids') AS church_type FROM churches WHERE church_code = ?");
+            ensureChurchApprovedColumn($conn);
+
+            $stmt = $conn->prepare("SELECT id, church_name, password_hash, COALESCE(church_type,'kids') AS church_type, COALESCE(is_approved, 1) AS is_approved FROM churches WHERE church_code = ?");
 
             $stmt->bind_param("s", $churchCode);
 
@@ -5892,6 +5948,16 @@ function handleLogin()
 
 
             if ($row && $passwordHash === $row['password_hash']) {
+
+                if (isset($row['is_approved']) && intval($row['is_approved']) === 0) {
+
+                    sendJSON(['success' => false, 'message' => 'هذه الكنيسة معلقة وفي انتظار موافقة المطور للتفعيل']);
+
+                    return;
+
+                }
+
+
 
                 $_SESSION['church_id'] = $row['id'];
 
@@ -13722,6 +13788,8 @@ function getAllChurchesForAdmin()
 
             ensureChurchTypeColumn($conn);
 
+            ensureChurchApprovedColumn($conn);
+
 
 
             $stmt = $conn->prepare("
@@ -13731,6 +13799,8 @@ function getAllChurchesForAdmin()
                     c.id, c.church_name, c.church_code, c.admin_email, c.created_at,
 
                     COALESCE(c.church_type, 'kids') AS church_type,
+
+                    COALESCE(c.is_approved, 1) AS is_approved,
 
                     (SELECT COUNT(*) FROM students WHERE church_id = c.id) as student_count,
 
@@ -15880,6 +15950,8 @@ function handleUncleLogin()
 
             ensureChurchTypeColumn($conn);
 
+            ensureChurchApprovedColumn($conn);
+
 
 
             $stmt = $conn->prepare("
@@ -15888,7 +15960,9 @@ function handleUncleLogin()
 
                        u.image_url, u.role, c.church_name, c.church_code,
 
-                       COALESCE(c.church_type, 'kids') AS church_type
+                       COALESCE(c.church_type, 'kids') AS church_type,
+
+                       COALESCE(c.is_approved, 1) AS is_approved
 
                 FROM uncles u
 
@@ -15907,6 +15981,16 @@ function handleUncleLogin()
 
 
             if ($row && $passwordHash === $row['password_hash']) {
+
+                if (isset($row['is_approved']) && intval($row['is_approved']) === 0) {
+
+                    sendJSON(['success' => false, 'message' => 'هذه الكنيسة معلقة وفي انتظار موافقة المطور للتفعيل']);
+
+                    return;
+
+                }
+
+
 
                 $_SESSION['uncle_id'] = $row['id'];
 
@@ -39860,43 +39944,41 @@ function createChurchWithAdmin()
 
     $key = sanitize($_POST['reg_key'] ?? '');
 
-    if (empty($key)) {
-
-        sendJSON(['success' => false, 'message' => 'مفتاح التسجيل مطلوب']);
-
-        return;
-
-    }
+    $isApproved = empty($key) ? 0 : 1;
 
     $conn = getDBConnection();
 
-    ensureRegKeyTable($conn);
+    ensureChurchApprovedColumn($conn);
 
     $conn->begin_transaction();
 
     try {
 
-        // Lock & validate
+        if (!empty($key)) {
 
-        $stmt = $conn->prepare("SELECT id, is_revoked, used_at FROM church_reg_keys WHERE reg_key = ? LIMIT 1 FOR UPDATE");
+            // Lock & validate
 
-        $stmt->bind_param("s", $key);
+            $stmt = $conn->prepare("SELECT id, is_revoked, used_at FROM church_reg_keys WHERE reg_key = ? LIMIT 1 FOR UPDATE");
 
-        $stmt->execute();
+            $stmt->bind_param("s", $key);
 
-        $keyRow = $stmt->get_result()->fetch_assoc();
+            $stmt->execute();
 
-        if (!$keyRow)
+            $keyRow = $stmt->get_result()->fetch_assoc();
 
-            throw new Exception('مفتاح التسجيل غير صالح');
+            if (!$keyRow)
 
-        if ($keyRow['is_revoked'])
+                throw new Exception('مفتاح التسجيل غير صالح');
 
-            throw new Exception('تم إلغاء هذا الرابط');
+            if ($keyRow['is_revoked'])
 
-        if ($keyRow['used_at'])
+                throw new Exception('تم إلغاء هذا الرابط');
 
-            throw new Exception('تم استخدام هذا الرابط مسبقاً');
+            if ($keyRow['used_at'])
+
+                throw new Exception('تم استخدام هذا الرابط مسبقاً');
+
+        }
 
 
 
@@ -39982,13 +40064,13 @@ function createChurchWithAdmin()
 
         $insChurch = $conn->prepare("
 
-            INSERT INTO churches (church_name, church_code, admin_email, password, church_type, created_at)
+            INSERT INTO churches (church_name, church_code, admin_email, password, church_type, is_approved, created_at)
 
-            VALUES (?, ?, ?, ?, ?, NOW())
+            VALUES (?, ?, ?, ?, ?, ?, NOW())
 
         ");
 
-        $insChurch->bind_param("sssss", $churchName, $churchCode, $churchEmail, $hashedChurchPw, $churchType);
+        $insChurch->bind_param("sssssi", $churchName, $churchCode, $churchEmail, $hashedChurchPw, $churchType, $isApproved);
 
         if (!$insChurch->execute())
 
@@ -40020,11 +40102,15 @@ function createChurchWithAdmin()
 
         // Mark key used
 
-        $useStmt = $conn->prepare("UPDATE church_reg_keys SET used_at = NOW(), church_id = ? WHERE reg_key = ?");
+        if (!empty($key)) {
 
-        $useStmt->bind_param("is", $newChurchId, $key);
+            $useStmt = $conn->prepare("UPDATE church_reg_keys SET used_at = NOW(), church_id = ? WHERE reg_key = ?");
 
-        $useStmt->execute();
+            $useStmt->bind_param("is", $newChurchId, $key);
+
+            $useStmt->execute();
+
+        }
 
 
 
@@ -40048,6 +40134,8 @@ function createChurchWithAdmin()
 
             'church_name' => $churchName,
 
+            'pending' => !$isApproved
+
         ]);
 
     } catch (Exception $e) {
@@ -40055,6 +40143,58 @@ function createChurchWithAdmin()
         $conn->rollback();
 
         error_log("createChurchWithAdmin error: " . $e->getMessage());
+
+        sendJSON(['success' => false, 'message' => $e->getMessage()]);
+
+    }
+
+}
+
+
+
+function toggleChurchApproval()
+
+{
+
+    checkAuth();
+
+    try {
+
+        $role = $_SESSION['uncle_role'] ?? 'uncle';
+
+        if ($role !== 'developer' && $role !== 'dev') {
+
+            sendJSON(['success' => false, 'message' => 'غير مصرح']);
+
+            return;
+
+        }
+
+        $churchId = (int)($_POST['church_id'] ?? 0);
+
+        $isApproved = (int)($_POST['is_approved'] ?? 0);
+
+        
+
+        $conn = getDBConnection();
+
+        ensureChurchApprovedColumn($conn);
+
+        $stmt = $conn->prepare("UPDATE churches SET is_approved = ? WHERE id = ?");
+
+        $stmt->bind_param("ii", $isApproved, $churchId);
+
+        if ($stmt->execute()) {
+
+            sendJSON(['success' => true, 'message' => 'تم تحديث حالة تفعيل الكنيسة بنجاح']);
+
+        } else {
+
+            sendJSON(['success' => false, 'message' => 'فشل في تحديث حالة تفعيل الكنيسة']);
+
+        }
+
+    } catch (Exception $e) {
 
         sendJSON(['success' => false, 'message' => $e->getMessage()]);
 
