@@ -40120,6 +40120,26 @@ function createChurchWithAdmin()
 
 
 
+        // Initialize church_settings for this church and set the admin uncle as allowed to manage uncles
+
+        $adminUsernameLower = strtolower($adminUsername);
+
+        $insSettings = $conn->prepare("
+
+            INSERT INTO church_settings (church_id, allowed_view_uncles)
+
+            VALUES (?, ?)
+
+            ON DUPLICATE KEY UPDATE allowed_view_uncles = VALUES(allowed_view_uncles)
+
+        ");
+
+        $insSettings->bind_param("is", $newChurchId, $adminUsernameLower);
+
+        $insSettings->execute();
+
+
+
         // Mark key used
 
         if (!empty($key)) {
