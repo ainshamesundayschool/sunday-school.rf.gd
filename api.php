@@ -5145,9 +5145,7 @@ try {
 
                     if (isset($row['is_approved']) && intval($row['is_approved']) === 0) {
 
-                        echo json_encode(['success' => false, 'message' => 'هذه الكنيسة معلقة وفي انتظار موافقة المطور للتفعيل']);
-
-                        exit;
+                        sendJSON(['success' => false, 'message' => 'هذه الكنيسة معلقة وفي انتظار موافقة المطور للتفعيل']);
 
                     }
 
@@ -5165,7 +5163,7 @@ try {
 
                     error_log("Session restored for church: " . $row['church_name']);
 
-                    echo json_encode([
+                    sendJSON([
 
                         'success' => true,
 
@@ -5179,7 +5177,7 @@ try {
 
                     error_log("Church not found with code: " . $church_code);
 
-                    echo json_encode(['success' => false, 'message' => 'Church not found']);
+                    sendJSON(['success' => false, 'message' => 'Church not found']);
 
                 }
 
@@ -5235,9 +5233,7 @@ try {
 
                     if (isset($row['is_approved']) && intval($row['is_approved']) === 0) {
 
-                        echo json_encode(['success' => false, 'message' => 'هذه الكنيسة معلقة وفي انتظار موافقة المطور للتفعيل']);
-
-                        exit;
+                        sendJSON(['success' => false, 'message' => 'هذه الكنيسة معلقة وفي انتظار موافقة المطور للتفعيل']);
 
                     }
 
@@ -5263,7 +5259,7 @@ try {
 
                     error_log("Session restored for uncle: " . $row['username']);
 
-                    echo json_encode([
+                    sendJSON([
 
                         'success' => true,
 
@@ -5283,13 +5279,13 @@ try {
 
                     error_log("Uncle not found with username: " . $username);
 
-                    echo json_encode(['success' => false, 'message' => 'User not found']);
+                    sendJSON(['success' => false, 'message' => 'User not found']);
 
                 }
 
             } else {
 
-                echo json_encode(['success' => false, 'message' => 'No credentials provided']);
+                sendJSON(['success' => false, 'message' => 'No credentials provided']);
 
             }
 

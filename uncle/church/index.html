@@ -11121,7 +11121,7 @@
             try {
                 const fd = new FormData();
                 fd.append('action', 'getSessionInfo');
-                const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
 
                 if (d.success) {
                     sessionChurchId = parseInt(d.church_id) || 0;
