@@ -21852,6 +21852,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     { key: 'gender', label: 'النوع', type: 'gender', source: 'النوع', selected: false },
                     { key: 'phone', label: 'رقم التليفون', source: 'رقم التليفون', selected: true },
                     { key: 'fees', label: 'الاشتراكات الشهرية', type: 'fees', selected: true },
+                    { key: 'attended_count', label: 'إجمالي الحضور', type: 'attendance_count', selected: false },
                 ];
             }
             const fields = [
