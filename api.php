@@ -40058,17 +40058,17 @@ function createChurchWithAdmin()
 
         // Create church — password for direct church login (same hashing as addChurch)
 
-        $hashedChurchPw = password_hash($adminPassword, PASSWORD_DEFAULT);
+        $hashedChurchPw = hash('sha256', $adminPassword);
 
         $insChurch = $conn->prepare("
 
-            INSERT INTO churches (church_name, church_code, admin_email, password, church_type, is_approved, created_at)
+            INSERT INTO churches (church_name, church_code, admin_email, password, password_hash, church_type, is_approved, created_at)
 
-            VALUES (?, ?, ?, ?, ?, ?, NOW())
+            VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
 
         ");
 
-        $insChurch->bind_param("sssssi", $churchName, $churchCode, $churchEmail, $hashedChurchPw, $churchType, $isApproved);
+        $insChurch->bind_param("ssssssi", $churchName, $churchCode, $churchEmail, $hashedChurchPw, $hashedChurchPw, $churchType, $isApproved);
 
         if (!$insChurch->execute())
 
@@ -40080,7 +40080,7 @@ function createChurchWithAdmin()
 
         // Create admin uncle
 
-        $hashedUnclePw = password_hash($adminPassword, PASSWORD_DEFAULT);
+        $hashedUnclePw = hash('sha256', $adminPassword);
 
         $adminUsername = sanitize($_POST['admin_username'] ?? '') ?: $adminPhone;
 
