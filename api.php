@@ -115,8 +115,6 @@ function ensureChurchApprovedColumn(mysqli $conn): void
 
 {
 
-    if (defined('SCHEMA_MIGRATED')) { return; }
-
     $check = $conn->query("SHOW COLUMNS FROM churches LIKE 'is_approved'");
 
     if ($check && $check->num_rows > 0) {
@@ -40084,19 +40082,41 @@ function createChurchWithAdmin()
 
         $hashedUnclePw = password_hash($adminPassword, PASSWORD_DEFAULT);
 
+        $adminUsername = sanitize($_POST['admin_username'] ?? '') ?: $adminPhone;
+
+
+
         $insUncle = $conn->prepare("
 
-            INSERT INTO uncles (church_id, name, phone, password, email, class, role, is_active, created_at)
+            INSERT INTO uncles (church_id, name, phone, username, password, password_hash, email, class, role, is_active, created_at)
 
-            VALUES (?, ?, ?, ?, ?, ?, 'admin', 1, NOW())
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'admin', 1, NOW())
 
         ");
 
-        $insUncle->bind_param("isssss", $newChurchId, $adminName, $adminPhone, $hashedUnclePw, $adminEmail, $adminClass);
+        $insUncle->bind_param("isssssss", $newChurchId, $adminName, $adminPhone, $adminUsername, $hashedUnclePw, $hashedUnclePw, $adminEmail, $adminClass);
 
         if (!$insUncle->execute())
 
             throw new Exception('فشل إنشاء حساب المسؤول: ' . $conn->error);
+
+        $newUncleId = $conn->insert_id;
+
+
+
+        // Assign default class to the admin uncle
+
+        $insAssign = $conn->prepare("
+
+            INSERT INTO uncle_class_assignments (uncle_id, church_id, class_name)
+
+            VALUES (?, ?, ?)
+
+        ");
+
+        $insAssign->bind_param("iis", $newUncleId, $newChurchId, $adminClass);
+
+        $insAssign->execute();
 
 
 

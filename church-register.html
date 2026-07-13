@@ -457,8 +457,8 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   <div class="fs-state" id="successScreen">
     <div class="state-card" style="max-width:580px;">
       <div class="state-icon success"><i class="fas fa-check"></i></div>
-      <h2>تم التسجيل بنجاح!</h2>
-      <p>تم إنشاء الكنيسة وحساب المسؤول — احفظ بيانات الدخول التالية في مكان آمن.</p>
+      <h2 id="successTitle">تم التسجيل بنجاح!</h2>
+      <p id="successDesc">تم إنشاء الكنيسة وحساب المسؤول — احفظ بيانات الدخول التالية في مكان آمن.</p>
       <!-- Credentials Grid -->
       <div id="successCredentials" style="margin-top:20px;text-align:right;display:grid;gap:10px;"></div>
       <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
@@ -677,10 +677,14 @@ function showSuccess(churchName, adminName, adminUsername, isPending) {
   document.querySelector('.topbar-sub').textContent   = '';
   document.querySelector('.topbar-title').textContent = 'مرحباً بك!';
 
+  const successTitle = document.getElementById('successTitle');
   const successDesc = document.getElementById('successDesc');
+  if (successTitle && isPending) {
+    successTitle.textContent = 'في انتظار التأكيد (Waiting for confirm)';
+  }
   if (successDesc) {
     if (isPending) {
-      successDesc.innerHTML = 'تم إنشاء الكنيسة وحساب المسؤول بنجاح! <strong style="color:var(--danger); display:block; margin-top:5px;"><i class="fas fa-exclamation-triangle"></i> الحساب حالياً معلق لحين تفعيل المطور.</strong> يرجى حفظ بيانات الدخول التالية لاستخدامها فور التفعيل:';
+      successDesc.innerHTML = 'تم إنشاء الكنيسة وحساب المسؤول بنجاح! يرجى حفظ بيانات الدخول التالية للاستخدام فور التفعيل والاعتماد من قِبل المطور.';
     } else {
       successDesc.textContent = 'تم إنشاء الكنيسة وحساب المسؤول — احفظ بيانات الدخول التالية في مكان آمن.';
     }
@@ -774,9 +778,7 @@ function showSuccessToast(msg) {
 /* ── key validation ── */
 async function validateKey() {
   if (!regKey) {
-    document.getElementById('keyBadge').style.background = 'var(--brand-bg)';
-    document.getElementById('keyBadge').style.color = 'var(--brand)';
-    document.getElementById('keyText').textContent = 'تسجيل مباشر';
+    document.getElementById('keyBadge').style.display = 'none';
     const noteEl = document.querySelector('.sec-note');
     if (noteEl) {
       noteEl.innerHTML = '<i class="fas fa-info-circle"></i> هذا الحساب سيكون معلقاً لحين تفعيل المطور له';

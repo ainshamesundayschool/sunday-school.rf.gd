@@ -549,6 +549,12 @@ position: absolute;
             <p class="login-subtitle">الرجاء تسجيل الدخول للمتابعة</p>
         </div>
 
+        <div style="text-align: center; margin-bottom: 20px;">
+            <a href="/church-register.html" style="color: var(--primary); font-weight: 700; text-decoration: none; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 6px; transition: var(--transition);" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
+                <i class="fas fa-church"></i> تسجيل كنيسة جديدة
+            </a>
+        </div>
+
         <!-- Error Message -->
         <div class="error-message" id="errorMessage"></div>
 
@@ -653,12 +659,6 @@ position: absolute;
                 <button type="submit" class="login-btn">
                     <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
                 </button>
-
-                <div style="text-align: center; margin-top: 15px;">
-                    <a href="/church-register.html" style="color: var(--primary); font-weight: 700; text-decoration: none; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 6px; transition: var(--transition);" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
-                        <i class="fas fa-church"></i> تسجيل كنيسة جديدة (تسجيل مباشر)
-                    </a>
-                </div>
             </form>
         </div>
 
@@ -721,10 +721,14 @@ position: absolute;
     }
 
     // ── Helpers ───────────────────────────────────────────────
-    function showError(message) {
+    function showError(message, hasHtml = false) {
         const el = document.getElementById('errorMessage');
         el.style.cssText = 'background:linear-gradient(135deg,#fef2f2,#fee2e2);border:2px solid #fecaca;color:var(--danger);padding:16px;border-radius:var(--radius-md);margin-bottom:20px;display:block;font-weight:600;text-align:center;animation:shake .5s;';
-        el.textContent = message;
+        if (hasHtml) {
+            el.innerHTML = message;
+        } else {
+            el.textContent = message;
+        }
     }
 
     function showSuccess(message) {
@@ -893,7 +897,14 @@ position: absolute;
                     const role = data.uncle?.role || localStorage.getItem('uncleRole') || 'uncle';
                     setTimeout(() => redirectToDashboard(loginType, role), 500);
                 } else {
-                    showError(data.message || 'فشل في تسجيل الدخول');
+                    const msg = data.message || 'فشل في تسجيل الدخول';
+                    const isPending = msg.includes('معلقة') || msg.includes('انتظار موافقة');
+                    if (isPending) {
+                        const contactMsg = `هذه الكنيسة معلقة وفي انتظار موافقة المطور للتفعيل.<br>إذا كانت هناك مشكلة، يرجى التواصل معنا عبر الواتساب: <a href="https://api.whatsapp.com/send?phone=201037011355" target="_blank" style="color:var(--primary);text-decoration:underline;margin-top:5px;display:inline-block;"><i class="fab fa-whatsapp"></i> تواصل معنا</a>`;
+                        showError(contactMsg, true);
+                    } else {
+                        showError(msg);
+                    }
                     showForms();
                 }
             } catch (err) {
@@ -974,6 +985,15 @@ position: absolute;
                     redirectToDashboard(loginType, role);
                     return;
                 }
+                if (d.message && (d.message.includes('معلقة') || d.message.includes('انتظار موافقة'))) {
+                    localStorage.removeItem('loggedIn');
+                    localStorage.removeItem('uncleLoggedIn');
+                    preFillForm();
+                    showForms();
+                    const contactMsg = `هذه الكنيسة معلقة وفي انتظار موافقة المطور للتفعيل.<br>إذا كانت هناك مشكلة، يرجى التواصل معنا عبر الواتساب: <a href="https://api.whatsapp.com/send?phone=201037011355" target="_blank" style="color:var(--primary);text-decoration:underline;margin-top:5px;display:inline-block;"><i class="fab fa-whatsapp"></i> تواصل معنا</a>`;
+                    showError(contactMsg, true);
+                    return;
+                }
                 // restore_session returned success:false means user not in DB — truly invalid
                 // Only in this specific case do we clear credentials
                 if (d.message && (d.message.includes('not found') || d.message.includes('No credentials'))) {
@@ -1000,6 +1020,14 @@ position: absolute;
                         saveCredentials(loginType, data, identifier, identifier);
                         if (data.uncle?.role) localStorage.setItem('uncleRole', data.uncle.role);
                         redirectToDashboard(loginType, data.uncle?.role || localStorage.getItem('uncleRole') || 'uncle');
+                        return;
+                    } else if (data.message && (data.message.includes('معلقة') || data.message.includes('انتظار موافقة'))) {
+                        localStorage.removeItem('loggedIn');
+                        localStorage.removeItem('uncleLoggedIn');
+                        preFillForm();
+                        showForms();
+                        const contactMsg = `هذه الكنيسة معلقة وفي انتظار موافقة المطور للتفعيل.<br>إذا كانت هناك مشكلة، يرجى التواصل معنا عبر الواتساب: <a href="https://api.whatsapp.com/send?phone=201037011355" target="_blank" style="color:var(--primary);text-decoration:underline;margin-top:5px;display:inline-block;"><i class="fab fa-whatsapp"></i> تواصل معنا</a>`;
+                        showError(contactMsg, true);
                         return;
                     }
                 } catch (e) { /* network error */ }
