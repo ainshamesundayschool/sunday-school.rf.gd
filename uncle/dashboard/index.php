@@ -1170,9 +1170,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             overflow: hidden;
             z-index: 10;
         }
+
         [data-theme="dark"] .class-progress-bar {
             background: rgba(255, 255, 255, 0.12);
         }
+
         .class-progress-fill {
             height: 100%;
             border-radius: 999px;
@@ -6676,10 +6678,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border-radius: 0 0 var(--r-lg) var(--r-lg);
             animation: toastProgress var(--toast-dur, 4.5s) linear forwards;
         }
-        .toast-item.success::after { background: var(--success); }
-        .toast-item.error::after { background: var(--danger); }
-        .toast-item.info::after { background: var(--brand); }
-        .toast-item.warning::after { background: var(--warning); }
+
+        .toast-item.success::after {
+            background: var(--success);
+        }
+
+        .toast-item.error::after {
+            background: var(--danger);
+        }
+
+        .toast-item.info::after {
+            background: var(--brand);
+        }
+
+        .toast-item.warning::after {
+            background: var(--warning);
+        }
 
         @keyframes toastSlideIn {
             from {
@@ -6720,10 +6734,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
             flex-shrink: 0;
             margin-top: 1px;
         }
-        .toast-item.success .toast-icon { color: var(--success); }
-        .toast-item.error .toast-icon { color: var(--danger); }
-        .toast-item.info .toast-icon { color: var(--brand); }
-        .toast-item.warning .toast-icon { color: var(--warning); }
+
+        .toast-item.success .toast-icon {
+            color: var(--success);
+        }
+
+        .toast-item.error .toast-icon {
+            color: var(--danger);
+        }
+
+        .toast-item.info .toast-icon {
+            color: var(--brand);
+        }
+
+        .toast-item.warning .toast-icon {
+            color: var(--warning);
+        }
 
         .toast-body {
             flex: 1;
@@ -6749,16 +6775,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transition: all .15s;
             display: inline-block;
         }
+
         .toast-item.success .toast-action {
             background: var(--success-bg);
             border-color: rgba(16, 185, 129, 0.18);
             color: var(--success-dark);
         }
+
         .toast-item.error .toast-action {
             background: var(--danger-bg);
             border-color: rgba(239, 68, 68, 0.18);
             color: var(--danger-dark);
         }
+
         .toast-item.warning .toast-action {
             background: var(--warning-bg);
             border-color: rgba(245, 158, 11, 0.18);
@@ -6785,6 +6814,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transition: background .15s;
             margin-top: 1px;
         }
+
         [data-theme="dark"] .toast-close {
             background: rgba(255, 255, 255, 0.08);
         }
@@ -6792,6 +6822,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .toast-close:hover {
             background: rgba(0, 0, 0, 0.1);
         }
+
         [data-theme="dark"] .toast-close:hover {
             background: rgba(255, 255, 255, 0.15);
         }
@@ -10458,8 +10489,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <span class="tool-card-name">سحب كوبونات</span>
                     <span class="tool-card-desc">اسحب جوائز الكوبونات بسرعة.</span>
                 </button>
-                <button class="tool-card"
-                    onclick="openTasksModal();hideAllToolsModal()">
+                <button class="tool-card" onclick="openTasksModal();hideAllToolsModal()">
                     <span class="tool-card-icon"><i class="fas fa-tasks"></i></span>
                     <span class="tool-card-name">المهام</span>
                     <span class="tool-card-desc">إدارة الاختبارات والواجبات والتسليمات.</span>
@@ -11117,24 +11147,32 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
 
                     <!-- Collapsible Tasks Panel -->
-                    <div id="classTasksCollapsible" style="display: none; width: 100%; margin-top: 12px; border-top: 1px dashed var(--border); padding-top: 10px; flex-direction: column; gap: 8px;">
-                        <div style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;" onclick="toggleTasksCollapse()">
-                            <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-2); display: inline-flex; align-items: center; gap: 6px; font-family: 'Cairo', sans-serif;">
-                                <i class="fas fa-tasks" style="color: var(--brand);"></i> المهام المتاحة (<span id="collapsedTasksCount">0</span>)
+                    <div id="classTasksCollapsible"
+                        style="display: none; width: 100%; margin-top: 12px; border-top: 1px dashed var(--border); padding-top: 10px; flex-direction: column; gap: 8px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;"
+                            onclick="toggleTasksCollapse()">
+                            <span
+                                style="font-size: 0.82rem; font-weight: 700; color: var(--text-2); display: inline-flex; align-items: center; gap: 6px; font-family: 'Cairo', sans-serif;">
+                                <i class="fas fa-tasks" style="color: var(--brand);"></i> المهام المتاحة (<span
+                                    id="collapsedTasksCount">0</span>)
                             </span>
                             <div style="display: flex; align-items: center; gap: 6px;">
-                                <button class="btn btn-ghost" onclick="event.stopPropagation(); openTasksModal(null, 'create');" 
+                                <button class="btn btn-ghost"
+                                    onclick="event.stopPropagation(); openTasksModal(null, 'create');"
                                     style="width: 24px; height: 24px; border-radius: var(--r-sm); padding: 0; min-width: unset; display: flex; align-items: center; justify-content: center; background: var(--brand-bg); color: var(--brand); border: none; cursor: pointer;"
                                     title="إضافة مهمة جديدة">
                                     <i class="fas fa-plus" style="font-size: 0.7rem;"></i>
                                 </button>
-                                <span id="tasksToggleBtn" style="font-size: 0.72rem; font-weight: 700; color: var(--brand); background: var(--brand-bg); padding: 2px 8px; border-radius: var(--r-sm); display: inline-flex; align-items: center; gap: 4px;">
+                                <span id="tasksToggleBtn"
+                                    style="font-size: 0.72rem; font-weight: 700; color: var(--brand); background: var(--brand-bg); padding: 2px 8px; border-radius: var(--r-sm); display: inline-flex; align-items: center; gap: 4px;">
                                     <span id="tasksToggleText">عرض</span>
-                                    <i class="fas fa-chevron-down" id="tasksCollapseIcon" style="transition: transform 0.2s;"></i>
+                                    <i class="fas fa-chevron-down" id="tasksCollapseIcon"
+                                        style="transition: transform 0.2s;"></i>
                                 </span>
                             </div>
                         </div>
-                        <div id="collapsedTasksList" style="display: none; flex-direction: column; gap: 8px; margin-top: 4px; max-height: 180px; overflow-y: auto; padding-inline-start: 2px; padding-inline-end: 4px;">
+                        <div id="collapsedTasksList"
+                            style="display: none; flex-direction: column; gap: 8px; margin-top: 4px; max-height: 180px; overflow-y: auto; padding-inline-start: 2px; padding-inline-end: 4px;">
                             <!-- Dynamically loaded task pills -->
                         </div>
                     </div>
@@ -11155,8 +11193,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             style="left: 0; right: auto; min-width: 220px;">
                             <div class="dropdown-group-label">الفصل</div>
                             <button class="dropdown-item" id="classTasksMenuItem"
-                                onclick="openTasksModal();closeAllDropdowns()"><i
-                                    class="fas fa-tasks"></i> مهام الفصل</button>
+                                onclick="openTasksModal();closeAllDropdowns()"><i class="fas fa-tasks"></i> مهام
+                                الفصل</button>
                             <button class="dropdown-item coupon"
                                 onclick="showCustomExportModal();closeAllDropdowns()"><i class="fas fa-table"></i>
                                 حفظ كجدول</button>
@@ -11844,7 +11882,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
     <!-- Tasks Fullscreen Modal Container -->
     <div class="modal-overlay" id="tasksModal" style="z-index: 1000020; padding: 0;">
-        <div class="modal" style="width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; border-radius: 0 !important; margin: 0 !important; padding: 0 !important; display: flex; flex-direction: column; background: var(--bg2);">
+        <div class="modal"
+            style="width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; border-radius: 0 !important; margin: 0 !important; padding: 0 !important; display: flex; flex-direction: column; background: var(--bg2);">
             <iframe id="tasksIframe" src="" style="width: 100%; height: 100%; border: none; flex: 1;"></iframe>
         </div>
     </div>
@@ -12049,7 +12088,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
                 <div class="form-group" id="editStudentIsGuestGroup" style="display:flex; align-items:center; gap:8px;">
                     <input type="checkbox" id="editPersonIsGuest" style="width:20px; height:20px; cursor:pointer;">
-                    <label class="form-label" for="editPersonIsGuest" style="margin-bottom:0; cursor:pointer; font-weight:700;">زائر (Guest)</label>
+                    <label class="form-label" for="editPersonIsGuest"
+                        style="margin-bottom:0; cursor:pointer; font-weight:700;">زائر (Guest)</label>
                 </div>
                 <!-- Multiple custom fields container (filled dynamically) -->
                 <div id="editCustomFieldsContainer" style="display:none"></div>
@@ -12180,7 +12220,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
                 <div class="form-group" id="studentIsGuestGroup" style="display:flex; align-items:center; gap:8px;">
                     <input type="checkbox" id="addPersonIsGuest" style="width:20px; height:20px; cursor:pointer;">
-                    <label class="form-label" for="addPersonIsGuest" style="margin-bottom:0; cursor:pointer; font-weight:700;">زائر (Guest)</label>
+                    <label class="form-label" for="addPersonIsGuest"
+                        style="margin-bottom:0; cursor:pointer; font-weight:700;">زائر (Guest)</label>
                 </div>
                 <!-- Multiple custom fields container (filled dynamically) -->
                 <div id="addCustomFieldsContainer" style="display:none"></div>
@@ -12220,27 +12261,44 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <input type="text" class="form-input" id="customExportTitle" placeholder="مثلاً: حضور فصل أولى">
                     </div>
                     <div class="export-panel">
-                        <div class="export-panel-title" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div class="export-panel-title"
+                            style="display:flex; justify-content:space-between; align-items:center;">
                             <span><i class="fas fa-user-check"></i> تحديد الأعضاء</span>
-                            <span id="customExportSelectedCount" style="font-size:0.7rem; font-weight:700; color:var(--brand); background:var(--brand-bg); padding:2px 6px; border-radius:4px;">0 / 0</span>
+                            <span id="customExportSelectedCount"
+                                style="font-size:0.7rem; font-weight:700; color:var(--brand); background:var(--brand-bg); padding:2px 6px; border-radius:4px;">0
+                                / 0</span>
                         </div>
                         <div style="position:relative; margin-bottom:8px;">
-                            <input type="text" id="customExportPeopleSearch" class="form-input" placeholder="بحث ذكي عن الأعضاء..." oninput="onCustomExportPeopleSearch(this.value)" style="font-size:0.75rem; padding: 4px 28px 4px 8px; height: 32px; width: 100%;">
-                            <i class="fas fa-search" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:0.75rem;"></i>
+                            <input type="text" id="customExportPeopleSearch" class="form-input"
+                                placeholder="بحث ذكي عن الأعضاء..." oninput="onCustomExportPeopleSearch(this.value)"
+                                style="font-size:0.75rem; padding: 4px 28px 4px 8px; height: 32px; width: 100%;">
+                            <i class="fas fa-search"
+                                style="position:absolute; right:8px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:0.75rem;"></i>
                         </div>
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:0.7rem;">
-                            <button type="button" class="btn btn-sm btn-outline" onclick="selectAllCustomExportPeople(true)" style="padding:2px 6px; font-size:0.7rem; height:24px; border-radius:4px; font-weight:bold;">تحديد الكل</button>
-                            <button type="button" class="btn btn-sm btn-outline" onclick="selectAllCustomExportPeople(false)" style="padding:2px 6px; font-size:0.7rem; height:24px; border-radius:4px; font-weight:bold;">إلغاء تحديد الكل</button>
+                        <div
+                            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:0.7rem;">
+                            <button type="button" class="btn btn-sm btn-outline"
+                                onclick="selectAllCustomExportPeople(true)"
+                                style="padding:2px 6px; font-size:0.7rem; height:24px; border-radius:4px; font-weight:bold;">تحديد
+                                الكل</button>
+                            <button type="button" class="btn btn-sm btn-outline"
+                                onclick="selectAllCustomExportPeople(false)"
+                                style="padding:2px 6px; font-size:0.7rem; height:24px; border-radius:4px; font-weight:bold;">إلغاء
+                                تحديد الكل</button>
                         </div>
-                        <div id="customExportPeopleList" class="export-field-list" style="max-height: 20vh; overflow-y: auto; border: 1px solid var(--border-solid); border-radius: var(--r-md); padding: 4px; background:var(--surface);">
+                        <div id="customExportPeopleList" class="export-field-list"
+                            style="max-height: 20vh; overflow-y: auto; border: 1px solid var(--border-solid); border-radius: var(--r-md); padding: 4px; background:var(--surface);">
                         </div>
                     </div>
                     <div class="export-panel">
-                        <div class="export-panel-title" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div class="export-panel-title"
+                            style="display:flex; justify-content:space-between; align-items:center;">
                             <span><i class="fas fa-sort-alpha-down"></i> ترتيب النتائج</span>
-                            <button type="button" class="sort-layer-add-btn" onclick="addCustomExportSortLayer()" title="إضافة ترتيب"><i class="fas fa-plus"></i> إضافة</button>
+                            <button type="button" class="sort-layer-add-btn" onclick="addCustomExportSortLayer()"
+                                title="إضافة ترتيب"><i class="fas fa-plus"></i> إضافة</button>
                         </div>
-                        <div id="customExportSortLayersContainer" style="display:flex; flex-direction:column; gap:8px; margin-top:8px;"></div>
+                        <div id="customExportSortLayersContainer"
+                            style="display:flex; flex-direction:column; gap:8px; margin-top:8px;"></div>
                     </div>
                     <div class="export-panel">
                         <div class="export-panel-title"><i class="fas fa-table-columns"></i> البيانات والترتيب</div>
@@ -12366,7 +12424,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
     <!-- Kid QR Scanner -->
     <div class="modal-overlay" id="kidQrScannerModal" style="z-index:1000010">
-        <div class="modal" style="max-width:360px;width:92vw;">
+        <div class="modal" style="width:92vw;">
             <div class="modal-header" style="gap:8px;align-items:flex-start">
                 <div>
                     <h3 id="kidQrScannerTitle"><i class="fas fa-qrcode"></i> مسح QR</h3>
@@ -12414,8 +12472,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </select>
                 </div>
 
-                <div id="kidQrReader"
-                    style="width:100%;border-radius:16px;overflow:hidden;background:#000"></div>
+                <div id="kidQrReader" style="width:100%;border-radius:16px;overflow:hidden;background:#000"></div>
 
                 <!-- Scanner source selector (Camera vs. USB) — icon only, positioned under camera -->
                 <div style="display: flex; justify-content: center; margin-top: 10px; margin-bottom: 6px;">
@@ -12561,6 +12618,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 overflow: auto;
                 position: relative;
             }
+
             .bulk-att-table {
                 width: 100%;
                 border-collapse: separate;
@@ -12572,12 +12630,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 border: 1px solid var(--bdr);
                 border-radius: var(--r-md);
             }
-            .bulk-att-table th, .bulk-att-table td {
+
+            .bulk-att-table th,
+            .bulk-att-table td {
                 padding: 6px 8px;
                 border-bottom: 1px solid var(--bdr);
                 border-left: 1px solid var(--bdr);
                 white-space: nowrap;
             }
+
             .bulk-att-table th {
                 background: var(--surface-2);
                 font-weight: 800;
@@ -12587,7 +12648,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 top: 0;
                 z-index: 10;
             }
-            .bulk-att-table th:first-child, .bulk-att-table td:first-child, .bulk-att-table .sticky-col {
+
+            .bulk-att-table th:first-child,
+            .bulk-att-table td:first-child,
+            .bulk-att-table .sticky-col {
                 position: -webkit-sticky !important;
                 position: sticky !important;
                 right: 0 !important;
@@ -12597,17 +12661,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 font-weight: bold;
                 text-align: right;
                 border-left: 2px solid var(--bdr) !important;
-                box-shadow: -2px 0 5px rgba(0,0,0,0.05);
+                box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
             }
-            .bulk-att-table th:first-child, .bulk-att-table th.sticky-col {
+
+            .bulk-att-table th:first-child,
+            .bulk-att-table th.sticky-col {
                 z-index: 20 !important;
                 background: var(--surface-2) !important;
                 right: 0 !important;
                 left: auto !important;
             }
+
             .bulk-att-table tr:hover td {
                 background: rgba(124, 58, 237, 0.05);
             }
+
             .bulk-cell {
                 cursor: pointer;
                 transition: all var(--fast);
@@ -12615,21 +12683,26 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 user-select: none;
                 font-size: 0.86rem;
             }
+
             .bulk-cell.present {
                 background: rgba(16, 185, 129, 0.15) !important;
                 color: #10b981 !important;
             }
+
             .bulk-cell.absent {
                 background: rgba(239, 68, 68, 0.15) !important;
                 color: #ef4444 !important;
             }
+
             .bulk-cell.pending {
                 background: transparent;
                 color: var(--text-3);
             }
+
             .bulk-cell:active {
                 transform: scale(0.92);
             }
+
             @media (max-width: 580px) {
                 #bulkAttendanceModal .modal {
                     width: 100vw !important;
@@ -12639,24 +12712,29 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     border-radius: 20px 20px 0 0 !important;
                     margin: auto 0 0 0 !important;
                 }
+
                 #bulkAttendanceModal .table-responsive {
                     max-height: calc(85vh - 120px) !important;
                 }
             }
         </style>
-        <div class="modal modal-lg" style="width: min(95vw, 1200px); max-height: 90vh; display: flex; flex-direction: column;">
+        <div class="modal modal-lg"
+            style="width: min(95vw, 1200px); max-height: 90vh; display: flex; flex-direction: column;">
             <div class="modal-header">
                 <h3><i class="fas fa-table-cells"></i> تعديل جماعي للحضور (كشف الشيت)</h3>
                 <button class="close-btn" onclick="hideBulkAttendanceModal()">&times;</button>
             </div>
-            <div class="modal-body" style="flex: 1; overflow: hidden; display: flex; flex-direction: column; padding: 14px 22px;">
-                <div class="table-responsive" style="direction: rtl; overflow: auto; -webkit-overflow-scrolling: touch; width: 100%; flex: 1; border-radius: var(--r-md); border: 1px solid var(--bdr);">
+            <div class="modal-body"
+                style="flex: 1; overflow: hidden; display: flex; flex-direction: column; padding: 14px 22px;">
+                <div class="table-responsive"
+                    style="direction: rtl; overflow: auto; -webkit-overflow-scrolling: touch; width: 100%; flex: 1; border-radius: var(--r-md); border: 1px solid var(--bdr);">
                     <table class="bulk-att-table" id="bulkAttTable">
                         <!-- Will be populated dynamically -->
                     </table>
                 </div>
             </div>
-            <div class="modal-footer" style="padding: 14px 22px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--bdr); background: var(--s2); border-bottom-left-radius: var(--r-lg); border-bottom-right-radius: var(--r-lg);">
+            <div class="modal-footer"
+                style="padding: 14px 22px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--bdr); background: var(--s2); border-bottom-left-radius: var(--r-lg); border-bottom-right-radius: var(--r-lg);">
                 <button class="btn btn-ghost" onclick="hideBulkAttendanceModal()">إلغاء</button>
                 <button class="btn btn-warning" id="saveBulkAttBtn" onclick="saveBulkAttendanceSheet()">
                     <i class="fas fa-save"></i> حفظ التغييرات
@@ -12782,19 +12860,28 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
     <!-- Pay Uncle Fee Custom Modal -->
     <div class="modal-overlay" id="payUncleFeeModal" style="z-index:20000005">
-        <div class="modal modal-sm" style="max-width:380px; border: 1.5px solid var(--border-solid); text-align: right; direction: rtl;">
-            <div class="modal-header" style="gap:8px; align-items:center; justify-content:space-between; padding: 16px 20px 10px;">
-                <h3 style="font-weight: 800; color: var(--text); font-size: 1.1rem; margin: 0;"><i class="fas fa-coins" style="color:var(--brand); margin-inline-end:8px;"></i>تسديد الاشتراك</h3>
+        <div class="modal modal-sm"
+            style="max-width:380px; border: 1.5px solid var(--border-solid); text-align: right; direction: rtl;">
+            <div class="modal-header"
+                style="gap:8px; align-items:center; justify-content:space-between; padding: 16px 20px 10px;">
+                <h3 style="font-weight: 800; color: var(--text); font-size: 1.1rem; margin: 0;"><i class="fas fa-coins"
+                        style="color:var(--brand); margin-inline-end:8px;"></i>تسديد الاشتراك</h3>
                 <button class="close-btn" onclick="closeModal('payUncleFeeModal')">&times;</button>
             </div>
             <div style="padding: 10px 20px 20px;">
-                <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-2); margin-bottom: 8px;">الرجاء إدخال قيمة المبلغ المدفوع للاشتراك (ج.م):</div>
+                <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-2); margin-bottom: 8px;">الرجاء
+                    إدخال قيمة المبلغ المدفوع للاشتراك (ج.م):</div>
                 <div style="margin-bottom: 20px;">
-                    <input type="number" id="payFeeAmountInput" class="form-input no-spinner" style="width:100%; height:42px; font-size:1rem; text-align:center; direction:ltr; font-family:Cairo,sans-serif;" placeholder="أدخل القيمة...">
+                    <input type="number" id="payFeeAmountInput" class="form-input no-spinner"
+                        style="width:100%; height:42px; font-size:1rem; text-align:center; direction:ltr; font-family:Cairo,sans-serif;"
+                        placeholder="أدخل القيمة...">
                 </div>
                 <div style="display:flex; gap:10px;">
-                    <button type="button" id="payUncleFeeSubmitBtn" class="btn btn-primary" style="flex:1; background:var(--brand); color:#fff; border:none; height:38px; display:flex; align-items:center; justify-content:center; gap:6px; font-weight:700;"><i class="fas fa-check"></i> تأكيد الدفع</button>
-                    <button type="button" class="btn btn-secondary" style="flex:1; height:38px;" onclick="closeModal('payUncleFeeModal')">إلغاء</button>
+                    <button type="button" id="payUncleFeeSubmitBtn" class="btn btn-primary"
+                        style="flex:1; background:var(--brand); color:#fff; border:none; height:38px; display:flex; align-items:center; justify-content:center; gap:6px; font-weight:700;"><i
+                            class="fas fa-check"></i> تأكيد الدفع</button>
+                    <button type="button" class="btn btn-secondary" style="flex:1; height:38px;"
+                        onclick="closeModal('payUncleFeeModal')">إلغاء</button>
                 </div>
             </div>
         </div>
@@ -13109,13 +13196,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         function updateUncleFeesVisibility() {
             const enabled = (churchUncleFeesEnabled !== 0);
-            
+
             // 1. Tool card button in "all tools modal"
             const toolCard = document.querySelector('button[onclick*="showUncleFees"]');
             if (toolCard) {
                 toolCard.style.display = enabled ? 'flex' : 'none';
             }
-            
+
             // 2. Button in profile settings panel
             const profileBtn = document.querySelector('button[onclick*="openUncleAccountPage"][onclick*="fees"]');
             if (profileBtn) {
@@ -13800,7 +13887,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 });
 
                 document.getElementById('collapsedTasksCount').textContent = classTasks.length;
-                
+
                 if (classTasks.length > 0) {
                     container.style.display = 'flex';
                     renderCollapsedTasks();
@@ -13825,8 +13912,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             list.innerHTML = classTasks.map(t => {
                 const qCount = (t.questions || []).length;
                 const totalDegree = t.total_degree || 0;
-                const deadlineText = t.no_deadline == 1 ? 'مستمر' : (t.end_date ? new Date(t.end_date).toLocaleDateString('ar-EG', {month: 'short', day: 'numeric'}) : 'مستمر');
-                
+                const deadlineText = t.no_deadline == 1 ? 'مستمر' : (t.end_date ? new Date(t.end_date).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' }) : 'مستمر');
+
                 return `
                     <div class="task-pill-item" onclick="openTasksModal(${t.id})" 
                         style="display: flex; align-items: center; justify-content: space-between; background: var(--surface-3); border: 1px solid var(--border-solid); padding: 8px 12px; border-radius: var(--r-md); cursor: pointer; transition: all 0.2s; gap: 8px; position: relative; z-index: 1;"
@@ -15215,9 +15302,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         function getAttendanceProgressHtml(classStudents, color) {
             if (!classStudents || !classStudents.length || !currentFriday) return '';
-            
+
             const targetDate = currentFriday;
-            
+
             let markedCount = 0;
             classStudents.forEach(s => {
                 const status = getStudentAttendanceStatusForDate(s, targetDate);
@@ -15226,13 +15313,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     markedCount++;
                 }
             });
-            
+
             if (markedCount === 0 || markedCount === classStudents.length) {
                 return '';
             }
-            
+
             const percentage = Math.round((markedCount / classStudents.length) * 100);
-            
+
             return `
                 <div class="class-progress-bar" title="حالة الحضور: تم تسجيل ${markedCount} من ${classStudents.length} (${percentage}%)">
                     <div class="class-progress-fill" style="width: ${percentage}%; background: ${color || 'var(--brand)'};"></div>
@@ -17627,7 +17714,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 kidQrScanner = null;
                 try {
                     scanner.destroy();
-                } catch (e) {}
+                } catch (e) { }
             }
             if (modal) modal.classList.remove('active');
             const reader = document.getElementById('kidQrReader');
@@ -17671,7 +17758,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         kidQrScanner = null;
                         try {
                             scanner.destroy();
-                        } catch (e) {}
+                        } catch (e) { }
                     }
                     // Show a clean placeholder in readerEl
                     if (readerEl) {
@@ -17712,7 +17799,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             try {
                 setTimeout(() => {
                     if (!scannerInstance || !videoElement) return;
-                    
+
                     let capabilities = null;
                     let track = null;
                     try {
@@ -17732,7 +17819,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         const zoomContainer = document.createElement('div');
                         zoomContainer.id = readerId + '-zoom-container';
                         zoomContainer.style.cssText = 'display:flex; align-items:center; justify-content:center; gap:8px; margin-top:8px; padding: 6px 12px; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); direction: rtl; width: 100%; max-width: 220px; box-sizing: border-box;';
-                        
+
                         const label = document.createElement('span');
                         label.style.cssText = 'font-family: "Baloo Bhaijaan 2", "Cairo", sans-serif; font-size: 0.72rem; font-weight: 700; color: var(--text-2, #888); min-width: 55px; text-align: left;';
                         label.innerText = 'التكبير: 1.0x';
@@ -19953,12 +20040,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 for (let m = 0; m <= maxMonthIdx; m++) {
                     const monthName = arabicMonths[m];
                     const titleToCheck = `اشتراك شهر ${monthName} ${year}`;
-                    
+
                     // Check if there is an existing fee for this month (paid or unpaid)
                     const exists = fees.some(f => {
                         const fTitle = (f.title || '').trim();
                         const titleMatch = fTitle.includes(monthName) && fTitle.includes(String(year));
-                        
+
                         let dateMatch = false;
                         if (f.date && typeof f.date === 'string') {
                             const parts = f.date.split('-');
@@ -20031,13 +20118,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             amountInputEl.value = '';
             setTimeout(() => amountInputEl.focus(), 150);
 
-            amountInputEl.onkeydown = function(e) {
+            amountInputEl.onkeydown = function (e) {
                 if (e.key === 'Enter') {
                     document.getElementById('payUncleFeeSubmitBtn').click();
                 }
             };
 
-            document.getElementById('payUncleFeeSubmitBtn').onclick = async function() {
+            document.getElementById('payUncleFeeSubmitBtn').onclick = async function () {
                 const amountInput = amountInputEl.value.trim();
                 if (!amountInput) {
                     showToast('الرجاء إدخال قيمة الاشتراك', 'error');
@@ -20630,15 +20717,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const customDates = _getCustomDates().map(cd => cd.date);
             // Combine and filter duplicates, sorted chronologically reverse
             let allDates = [...new Set([...customDates, ...days])];
-            
+
             // Limit to last 12 dates for optimal rendering performance and display width
             if (allDates.length > 12) {
                 allDates = allDates.slice(0, 12);
             }
 
             // Get active list of kids/uncles
-            const list = currentClass === 'الخدام' 
-                ? (window.allUnclesData || []) 
+            const list = currentClass === 'الخدام'
+                ? (window.allUnclesData || [])
                 : students.filter(s => s['الفصل'] === currentClass);
 
             if (!list.length) {
@@ -20666,12 +20753,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     : `<i class="fas fa-user" style="margin-left: 6px; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--border); color: var(--text-3); vertical-align:middle; font-size: 0.75rem;"></i>`;
 
                 html += `<tr style="vertical-align:middle;"><td class="sticky-col"><div style="display:flex; align-items:center; gap:6px;">${avatarImg}<span>${name}</span></div></td>`;
-                
+
                 allDates.forEach(d => {
                     // Get current status in memory/server
                     const srv = getServerAttendanceStatus(s, d);
                     let status = srv || 'pending';
-                    
+
                     // If offline saved, reflect it
                     const cls = isCombinedView ? (combinedGroupLabel || currentClass) : currentClass;
                     const offAttList = JSON.parse(localStorage.getItem(`offlineSavedAttendance_${cls}_${d}`) || '[]');
@@ -20767,7 +20854,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 return new Promise((resolve) => {
                     const groupEdits = editsByDate[dateKey];
                     const actionName = (currentClass === 'الخدام') ? 'submitUncleAttendance' : 'submitAttendance';
-                    
+
                     let records;
                     if (currentClass === 'الخدام') {
                         records = groupEdits.map(e => ({ uncle_id: parseInt(e.id.replace('uncle_', '')), status: e.status }));
@@ -21901,12 +21988,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function renderCustomExportSortLayers() {
             const container = document.getElementById('customExportSortLayersContainer');
             if (!container) return;
-            
+
             container.innerHTML = customExportSortLayers.map((layer, idx) => {
-                const optionsHtml = customExportFields.map(f => 
+                const optionsHtml = customExportFields.map(f =>
                     `<option value="${f.key}" ${f.key === layer.field ? 'selected' : ''}>${f.label}</option>`
                 ).join('');
-                
+
                 return `
                     <div class="sort-layer-row">
                         <select class="sort-layer-select sort-layer-field" style="flex:1.5;" onchange="updateCustomExportSortLayerField(${idx}, this.value)">
@@ -22103,13 +22190,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 for (let rule of cfg.sortRules) {
                     const fieldCfg = customExportFields.find(f => f.key === rule.field || f.label === rule.field);
                     if (!fieldCfg) continue;
-                    
+
                     let vA = getCustomExportCellValue(a, fieldCfg, true);
                     let vB = getCustomExportCellValue(b, fieldCfg, true);
-                    
+
                     let res = 0;
                     const isNumeric = ['paid_amount', 'donation', 'remaining_amount', 'coupons', 'attendance_coupons', 'commitment_coupons', 'task_coupons', 'age', 'attendance_count'].includes(fieldCfg.type || fieldCfg.key || fieldCfg.source);
-                    
+
                     if (isNumeric) {
                         res = (parseFloat(vA) || 0) - (parseFloat(vB) || 0);
                     } else if (fieldCfg.key === 'birthday' || fieldCfg.label === 'عيد الميلاد') {
@@ -22140,12 +22227,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     } else {
                         res = collator.compare(String(vA), String(vB));
                     }
-                    
+
                     if (rule.order === 'desc') res = -res;
-                    
+
                     if (res !== 0) return res;
                 }
-                
+
                 // Fallback default sort by name
                 return collator.compare(a['الاسم'] || '', b['الاسم'] || '');
             });
@@ -22214,7 +22301,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (!box) return;
 
             const baseCandidates = getActiveViewStudents();
-            
+
             // Apply intelligent search if there is a query
             let displayList = [...baseCandidates];
             const q = (customExportSearchQuery || '').trim();
@@ -22223,7 +22310,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     const score = typeof getMatchScore === 'function' ? getMatchScore(s, q) : 0;
                     return { ...s, _searchScore: score };
                 }).filter(s => s._searchScore > 0)
-                  .sort((a, b) => b._searchScore - a._searchScore);
+                    .sort((a, b) => b._searchScore - a._searchScore);
             } else {
                 // Sort alphabetically by default
                 const collator = new Intl.Collator('ar', { sensitivity: 'base', numeric: true });
@@ -22243,7 +22330,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     const key = getStudentId(s);
                     const checked = customExportSelectedKeys.has(key);
                     const pClass = s['الفصل'] || '';
-                    
+
                     return `
                         <div class="export-field-row" style="padding: 5px 6px; gap: 6px; font-size: 0.72rem; border-radius: 8px;">
                             <input type="checkbox" id="cep_${key}" ${checked ? 'checked' : ''} onchange="toggleCustomExportPerson('${key}', this.checked)" style="width:14px; height:14px; margin:0; cursor:pointer;">
@@ -22263,7 +22350,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
 
-        window.toggleCustomExportPerson = function(key, checked) {
+        window.toggleCustomExportPerson = function (key, checked) {
             if (checked) {
                 customExportSelectedKeys.add(key);
             } else {
@@ -22280,15 +22367,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
             renderCustomExportPreview();
         };
 
-        window.onCustomExportPeopleSearch = function(val) {
+        window.onCustomExportPeopleSearch = function (val) {
             customExportSearchQuery = val;
             renderCustomExportPeopleList();
         };
 
-        window.selectAllCustomExportPeople = function(checked) {
+        window.selectAllCustomExportPeople = function (checked) {
             const box = document.getElementById('customExportPeopleList');
             if (!box) return;
-            
+
             const visibleCbs = box.querySelectorAll('input[type="checkbox"]');
             visibleCbs.forEach(cb => {
                 const key = cb.id.replace('cep_', '');
@@ -22308,7 +22395,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (countBadge) {
                 countBadge.textContent = `${selectedCount} / ${totalCount}`;
             }
-            
+
             renderCustomExportPreview();
         };
         function showCustomExportModal() {
@@ -22316,7 +22403,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             customExportSearchQuery = '';
             const searchInput = document.getElementById('customExportPeopleSearch');
             if (searchInput) searchInput.value = '';
-            
+
             const baseStudents = getActiveViewStudents();
             customExportSelectedKeys = new Set(baseStudents.map(s => getStudentId(s)));
             lastFiltersState = ''; // force update
@@ -22376,7 +22463,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         async function exportCustomPreviewAsImage() {
             const preview = document.getElementById('customExportPreview');
             if (!preview) return;
-            
+
             const builder = document.querySelector('#customExportModal .export-builder');
             const wasPreviewHidden = builder && !builder.classList.contains('show-preview-mobile');
             if (wasPreviewHidden) {
@@ -22393,8 +22480,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 a.href = canvas.toDataURL('image/png');
                 a.click();
                 showToast('تم حفظ الصورة', 'success');
-            } catch (e) { 
-                showToast('فشل حفظ الصورة: ' + e.message, 'error'); 
+            } catch (e) {
+                showToast('فشل حفظ الصورة: ' + e.message, 'error');
             } finally {
                 if (wasPreviewHidden) {
                     builder.classList.remove('show-preview-mobile');
@@ -22434,8 +22521,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 }
                 pdf.save((getCustomExportConfig().title || 'custom-export').replace(/[\/\s]+/g, '-') + '.pdf');
                 showToast('تم حفظ PDF', 'success');
-            } catch (e) { 
-                showToast('فشل PDF: ' + e.message, 'error'); 
+            } catch (e) {
+                showToast('فشل PDF: ' + e.message, 'error');
             } finally {
                 if (wasPreviewHidden) {
                     builder.classList.remove('show-preview-mobile');
