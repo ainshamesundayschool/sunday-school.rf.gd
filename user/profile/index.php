@@ -2742,32 +2742,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
     .no-profile {
       text-align: center;
-      padding: 60px 20px;
-      background: var(--surf);
-      border-radius: var(--r-xl);
+      padding: 40px 24px;
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 20px;
       box-shadow: var(--sh-md);
-      border: 1px solid var(--bdr);
-      max-width: 430px;
-      margin: 40px auto;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      max-width: 400px;
+      margin: 60px auto;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
     }
 
     .no-profile i {
-      font-size: 3.2rem;
-      color: var(--t4);
-      display: block;
-      margin-bottom: 14px;
+      font-size: 3rem;
+      color: var(--brand);
+      background: rgba(79, 70, 229, 0.12);
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 8px;
+      border: 1px solid rgba(79, 70, 229, 0.25);
     }
 
     .no-profile h2 {
-      font-size: 1.05rem;
+      font-size: 1.25rem;
+      font-weight: 800;
       color: var(--t1);
-      margin-bottom: 7px;
+      margin: 0;
     }
 
     .no-profile p {
-      font-size: .82rem;
-      color: var(--t4);
-      margin-bottom: 20px;
+      font-size: 0.9rem;
+      color: var(--t3);
+      margin: 0 0 8px 0;
+      line-height: 1.6;
+    }
+
+    .no-profile a.btn {
+      text-decoration: none !important;
+      width: 100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 12px 24px;
+      border-radius: 14px;
+      font-weight: 700;
+      border: none;
+      box-shadow: var(--sh-brand);
+      transition: all var(--fast);
+    }
+
+    .no-profile a.btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(79, 70, 229, 0.4);
     }
 
     .public-banner {
@@ -3890,10 +3925,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       z-index: 1;
     }
 
-    #scTasks.fullscreen-tab {
-      background: var(--surf) !important;
-      padding: 20px 20px 80px !important;
-    }
+
 
     .wizard-step-container {
       background: var(--bg);
@@ -4162,7 +4194,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       /* Main side-by-side grid layout */
       body {
         display: grid;
-        grid-template-columns: 1fr 280px;
+        grid-template-columns: 280px 1fr;
         grid-template-rows: auto 1fr;
         min-height: 100vh;
         background: var(--bg);
@@ -4172,7 +4204,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
       /* Sticky Right Sidebar (holds Profile and Converted Nav) */
       .hero {
-        grid-column: 2;
+        grid-column: 1;
         grid-row: 1;
         display: flex !important; /* Keep it always visible on desktop */
         flex-direction: column !important;
@@ -4215,7 +4247,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
       /* Converted Bottom Navigation Sidebar */
       .bottom-nav {
-        grid-column: 2;
+        grid-column: 1;
         grid-row: 2;
         position: sticky !important;
         top: 0;
@@ -4289,28 +4321,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
       /* Main Page Content Container */
       .page {
-        grid-column: 1;
-        grid-row: 1 / span 2;
-        padding: 40px 32px 80px !important;
+        grid-column: 2;
+        grid-row: 2;
+        padding: 24px 32px 80px !important;
         max-width: 960px !important;
-        margin: 0 auto 0 0 !important;
+        margin: 0 !important;
         width: 100% !important;
         box-sizing: border-box !important;
       }
 
       /* Stats bar placed horizontally at the top of page content */
       .stats-bar {
-        grid-column: 1;
+        grid-column: 2;
         grid-row: 1;
         position: relative !important;
-        margin: 40px 32px 24px !important;
+        margin: 40px 32px 0px !important;
         max-width: 960px !important;
         width: calc(100% - 64px) !important;
         box-shadow: var(--sh-sm) !important;
         border-radius: var(--radius-lg) !important;
         background: var(--surf) !important;
         border: 1px solid var(--bdr2) !important;
-        display: flex !important;
       }
 
       /* Hide app download floating / top buttons and place in profile */
@@ -4395,20 +4426,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
   <!-- stats bar -->
   <div class="stats-bar" id="statsBar" style="display:none">
     <div class="sb-cell ok">
-      <div class="sb-val" id="sbP">0</div>
+      <div style="display:flex; align-items:center; justify-content:center; gap:6px;">
+        <i class="fas fa-check-circle" style="font-size:1.05rem; color:var(--ok-l);"></i>
+        <div class="sb-val" id="sbP">0</div>
+      </div>
       <div class="sb-lbl">حضر</div>
     </div>
     <div class="sb-cell err">
-      <div class="sb-val" id="sbA">0</div>
+      <div style="display:flex; align-items:center; justify-content:center; gap:6px;">
+        <i class="fas fa-times-circle" style="font-size:1.05rem; color:var(--err-l);"></i>
+        <div class="sb-val" id="sbA">0</div>
+      </div>
       <div class="sb-lbl">غاب</div>
     </div>
     <div class="sb-cell neu">
-      <div class="sb-val" id="sbR">0%</div>
-      <div class="sb-lbl">نسبة</div>
+      <div style="display:flex; align-items:center; justify-content:center; gap:6px;">
+        <i class="fas fa-chart-line" style="font-size:1.05rem; color:var(--brand-l);"></i>
+        <div class="sb-val" id="sbR">0%</div>
+      </div>
+      <div class="sb-lbl">نسبة الحضور</div>
     </div>
     <div class="sb-cell cou">
-      <div class="sb-val" id="sbC">0</div>
-      <div class="sb-lbl">كوبون</div>
+      <div style="display:flex; align-items:center; justify-content:center; gap:6px;">
+        <i class="fas fa-star" style="font-size:1.05rem; color:var(--cou-l);"></i>
+        <div class="sb-val" id="sbC">0</div>
+      </div>
+      <div class="sb-lbl">كوبونات</div>
     </div>
   </div>
 
@@ -4687,7 +4730,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     </div>
 
     <!-- Tasks -->
-    <div class="sc fullscreen-tab" id="scTasks" style="display:none">
+    <div class="sc" id="scTasks" style="display:none">
       <div class="sc-head">
         <div class="sc-ico" style="background:var(--brand-bg);color:var(--brand);"><i class="fas fa-tasks"></i></div>
         <div class="sc-label">
@@ -8347,10 +8390,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         if (e.key === 'Escape') document.querySelectorAll('.overlay.open').forEach(ov => closeOv(ov.id));
       });
     }
-    function showMain() { document.getElementById('mainPage').style.display = 'block'; }
+    function showMain() {
+      document.getElementById('mainPage').style.display = 'block';
+      document.getElementById('noProfile').style.setProperty('display', 'none', 'important');
+    }
     function showLoad(m = 'جارٍ التحميل…') { document.getElementById('lt').textContent = m; document.getElementById('ls').classList.remove('hidden'); }
     function hideLoad() { document.getElementById('ls').classList.add('hidden'); }
-    function noProfile(m) { hideLoad(); document.getElementById('noMsg').textContent = m; document.getElementById('noProfile').style.display = 'block'; }
+    function noProfile(m) { hideLoad(); document.getElementById('noMsg').textContent = m; document.getElementById('noProfile').style.setProperty('display', 'flex', 'important'); }
     function toast(m, t = 'info') {
       const tc = document.getElementById('tc');
       const el = document.createElement('div'); el.className = `toast ${t}`;
@@ -8618,9 +8664,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       const scPaperExams = document.getElementById('scPaperExams');
       const mainPage = document.getElementById('mainPage');
 
-      // Adjust mainPage padding/width for fullscreen tabs (send coupons & tasks)
+      // Adjust mainPage padding/width for fullscreen tabs (send coupons)
       if (mainPage) {
-        if (tabName === 'send' || tabName === 'tasks') {
+        if (tabName === 'send') {
           mainPage.style.padding = '0';
           mainPage.style.maxWidth = 'none';
         } else {
@@ -8631,7 +8677,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
       if (hero) hero.style.display = 'none';
       if (statsBar) {
-        statsBar.style.display = 'none';
+        statsBar.style.setProperty('display', 'none', 'important');
         statsBar.style.marginTop = '0';
       }
       if (scInfo) scInfo.style.display = 'none';
@@ -8656,7 +8702,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         if (allTrips && allTrips.length && scTrips) scTrips.style.display = 'block';
 
         if (!IS_PUBLIC) {
-          if (statsBar) statsBar.style.display = 'flex';
+          if (statsBar) statsBar.style.setProperty('display', 'grid', 'important');
         }
         const activeStudent = student || _myStudent;
         if (pPicBanner && activeStudent && !activeStudent.image_url && isPrivate && localStorage.getItem('dismissProfilePicSuggestion') !== 'true') {
@@ -8665,7 +8711,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       } else if (tabName === 'attendance') {
         if (scAtt) scAtt.style.display = 'block';
         if (statsBar) {
-          statsBar.style.display = 'flex';
+          statsBar.style.setProperty('display', 'grid', 'important');
           statsBar.style.marginTop = '18px';
         }
       } else if (tabName === 'send') {
@@ -8675,7 +8721,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         }
       } else if (tabName === 'tasks') {
         if (scTasks) {
-          scTasks.classList.add('fullscreen-tab');
           scTasks.style.display = 'block';
         }
         const activeStudent = student || _myStudent;
