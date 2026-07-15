@@ -6826,19 +6826,17 @@
                                     class="fas fa-external-link-alt"></i> فتح</button>
                         </div>
                     </div>
-
-                    <!-- 1. Global Search Card at the top -->
-                    <div class="card" style="margin-bottom: 20px; border-radius: 16px; border: 1.5px solid var(--border);">
-                        <div class="card-body" style="padding: 20px;">
-                            <div class="input-icon-wrap" style="position:relative;">
-                                <i class="fas fa-search input-icon" style="color:var(--primary); font-size:1.1rem; position:absolute; right:15px; top:50%; transform:translateY(-50%);"></i>
-                                <input type="text" id="globalSearchInput" class="form-input" placeholder="ابحث عن أطفال، خدام، إعدادات، وظائف أو سجل العمليات..." oninput="performGlobalSearch(this.value)" style="height: 48px; font-size: 1.02rem; border-radius: 12px; padding-right: 45px; background: var(--surface-2); border: 1.5px solid var(--border);">
-                            </div>
-                            <!-- Search Results Container -->
-                            <div id="globalSearchResults" style="display:none; margin-top: 15px; max-height: 400px; overflow-y: auto; border: 1.5px solid var(--border); border-radius: 12px; padding: 12px; background: var(--surface); box-shadow: 0 4px 20px rgba(0,0,0,0.08);"></div>
+ 
+                    <!-- 1. Centered Global Search Input at the top (no rectangle bg) -->
+                    <div style="max-width: 800px; margin: 0 auto 24px auto; position: relative; width: 100%;">
+                        <div class="input-icon-wrap" style="position:relative;">
+                            <i class="fas fa-search input-icon" style="color:var(--primary); font-size:1.1rem; position:absolute; right:15px; top:50%; transform:translateY(-50%);"></i>
+                            <input type="text" id="globalSearchInput" class="form-input" placeholder="ابحث عن أطفال، خدام، إعدادات، وظائف أو سجل العمليات..." oninput="performGlobalSearch(this.value)" style="height: 48px; font-size: 1.02rem; border-radius: 12px; padding-right: 45px; background: var(--surface-1); border: 1.5px solid var(--border); box-shadow: var(--shadow-sm); width: 100%;">
                         </div>
+                        <!-- Search Results Container -->
+                        <div id="globalSearchResults" style="display:none; position: absolute; top: 100%; left: 0; right: 0; z-index: 99; margin-top: 8px; max-height: 400px; overflow-y: auto; border: 1.5px solid var(--border); border-radius: 12px; padding: 12px; background: var(--surface); box-shadow: 0 10px 25px rgba(0,0,0,0.15);"></div>
                     </div>
-
+ 
                     <!-- 2. Statistics Row immediately below the search -->
                     <div class="stats-row overview-stats" style="margin-bottom: 20px;">
                         <div class="stat-card">
@@ -6891,110 +6889,11 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- 3. Grid for main sections (tabs preview and dynamic classes list) vs sidebar (recent audit logs and actions) -->
+ 
+                    <!-- 3. Grid for Recent Activities (Main) vs Quick Actions (Sidebar) -->
                     <div class="overview-grid" style="display:grid; grid-template-columns: 2fr 1.2fr; gap:20px; align-items: start;">
-                        <!-- Right Column (Main content) -->
+                        <!-- Right Column (Recent Activities) -->
                         <div style="display:flex; flex-direction:column; gap:20px;">
-                            <!-- Premium Available Tabs Preview -->
-                            <div class="card">
-                                <div class="card-header">
-                                    <div class="card-title"><i class="fas fa-cubes"></i> أقسام الخدمة الرئيسية</div>
-                                </div>
-                                <div class="card-body" style="padding:16px;">
-                                    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap:12px;">
-                                        <div class="tab-preview-card" onclick="switchTabByName('students')" style="display:flex; align-items:center; gap:10px; padding:10px; border-radius:10px; border:1.5px solid var(--border); background:var(--surface-1); cursor:pointer; transition:all .15s;">
-                                            <div style="display:flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; background:var(--primary-bg); color:var(--primary); font-size:1.1rem; flex-shrink:0;">
-                                                <i class="fas fa-child"></i>
-                                            </div>
-                                            <div style="display:flex; flex-direction:column; gap:1px; overflow:hidden;">
-                                                <span style="font-weight:700; font-size:0.84rem; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">الأطفال</span>
-                                                <span style="font-size:0.68rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">بيانات الأطفال والكوبونات</span>
-                                            </div>
-                                        </div>
-                                        <div class="tab-preview-card" onclick="switchTabByName('uncles')" style="display:flex; align-items:center; gap:10px; padding:10px; border-radius:10px; border:1.5px solid var(--border); background:var(--surface-1); cursor:pointer; transition:all .15s;">
-                                            <div style="display:flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; background:var(--warning-light); color:var(--warning-dark); font-size:1.1rem; flex-shrink:0;">
-                                                <i class="fas fa-user-tie"></i>
-                                            </div>
-                                            <div style="display:flex; flex-direction:column; gap:1px; overflow:hidden;">
-                                                <span style="font-weight:700; font-size:0.84rem; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">الخدام</span>
-                                                <span style="font-size:0.68rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">الصلاحيات والاشتراكات</span>
-                                            </div>
-                                        </div>
-                                        <div class="tab-preview-card" onclick="switchTabByName('attendance')" style="display:flex; align-items:center; gap:10px; padding:10px; border-radius:10px; border:1.5px solid var(--border); background:var(--surface-1); cursor:pointer; transition:all .15s;">
-                                            <div style="display:flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; background:var(--success-light); color:var(--success); font-size:1.1rem; flex-shrink:0;">
-                                                <i class="fas fa-calendar-check"></i>
-                                            </div>
-                                            <div style="display:flex; flex-direction:column; gap:1px; overflow:hidden;">
-                                                <span style="font-weight:700; font-size:0.84rem; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">تسجيل الحضور</span>
-                                                <span style="font-size:0.68rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">الحضور والغياب الأسبوعي</span>
-                                            </div>
-                                        </div>
-                                        <div class="tab-preview-card" onclick="switchTabByName('uncleAttendance')" style="display:flex; align-items:center; gap:10px; padding:10px; border-radius:10px; border:1.5px solid var(--border); background:var(--surface-1); cursor:pointer; transition:all .15s;">
-                                            <div style="display:flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; background:var(--info-light); color:var(--info); font-size:1.1rem; flex-shrink:0;">
-                                                <i class="fas fa-user-check"></i>
-                                            </div>
-                                            <div style="display:flex; flex-direction:column; gap:1px; overflow:hidden;">
-                                                <span style="font-weight:700; font-size:0.84rem; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">حضور الخدام</span>
-                                                <span style="font-size:0.68rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">اجتماعات الخدمة والتحضير</span>
-                                            </div>
-                                        </div>
-                                        <div class="tab-preview-card" onclick="switchTabByName('trips')" style="display:flex; align-items:center; gap:10px; padding:10px; border-radius:10px; border:1.5px solid var(--border); background:var(--surface-1); cursor:pointer; transition:all .15s;">
-                                            <div style="display:flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; background:var(--danger-light); color:var(--danger); font-size:1.1rem; flex-shrink:0;">
-                                                <i class="fas fa-bus"></i>
-                                            </div>
-                                            <div style="display:flex; flex-direction:column; gap:1px; overflow:hidden;">
-                                                <span style="font-weight:700; font-size:0.84rem; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">الرحلات</span>
-                                                <span style="font-size:0.68rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">حجز الرحلات والاتوبيسات</span>
-                                            </div>
-                                        </div>
-                                        <div class="tab-preview-card" onclick="switchTabByName('classes')" style="display:flex; align-items:center; gap:10px; padding:10px; border-radius:10px; border:1.5px solid var(--border); background:var(--surface-1); cursor:pointer; transition:all .15s;">
-                                            <div style="display:flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; background:var(--secondary-bg); color:var(--secondary); font-size:1.1rem; flex-shrink:0;">
-                                                <i class="fas fa-chalkboard"></i>
-                                            </div>
-                                            <div style="display:flex; flex-direction:column; gap:1px; overflow:hidden;">
-                                                <span style="font-weight:700; font-size:0.84rem; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">الفصول</span>
-                                                <span style="font-size:0.68rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">تخصيص الفصول والمراحل</span>
-                                            </div>
-                                        </div>
-                                        <div class="tab-preview-card" onclick="switchTabByName('graduates')" style="display:flex; align-items:center; gap:10px; padding:10px; border-radius:10px; border:1.5px solid var(--border); background:var(--surface-1); cursor:pointer; transition:all .15s;">
-                                            <div style="display:flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; background:var(--brand-bg); color:var(--primary); font-size:1.1rem; flex-shrink:0;">
-                                                <i class="fas fa-graduation-cap"></i>
-                                            </div>
-                                            <div style="display:flex; flex-direction:column; gap:1px; overflow:hidden;">
-                                                <span style="font-weight:700; font-size:0.84rem; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">الخريجين</span>
-                                                <span style="font-size:0.68rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">متابعة الخريجين وتكريمهم</span>
-                                            </div>
-                                        </div>
-                                        <div class="tab-preview-card" onclick="switchTabByName('history')" style="display:flex; align-items:center; gap:10px; padding:10px; border-radius:10px; border:1.5px solid var(--border); background:var(--surface-1); cursor:pointer; transition:all .15s;">
-                                            <div style="display:flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; background:var(--muted-bg); color:var(--muted); font-size:1.1rem; flex-shrink:0;">
-                                                <i class="fas fa-history"></i>
-                                            </div>
-                                            <div style="display:flex; flex-direction:column; gap:1px; overflow:hidden;">
-                                                <span style="font-weight:700; font-size:0.84rem; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">سجل العمليات</span>
-                                                <span style="font-size:0.68rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">متابعة التغييرات والعمليات</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Classes overview -->
-                            <div class="card">
-                                <div class="card-header">
-                                    <div class="card-title"><i class="fas fa-chalkboard"></i> الفصول</div>
-                                    <button class="btn btn-primary btn-sm" onclick="switchTabByName('attendance')"><i
-                                            class="fas fa-calendar-check"></i> الحضور</button>
-                                </div>
-                                <div class="card-body">
-                                    <div class="classes-grid" id="classesOverview"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Left Column (Sidebar / Quick Actions & Recent Activities) -->
-                        <div style="display:flex; flex-direction:column; gap:20px;">
-                            <!-- Recent activity grouped by categories -->
                             <div class="card">
                                 <div class="card-header">
                                     <div class="card-title"><i class="fas fa-history"></i> الأنشطة الأخيرة</div>
@@ -7007,8 +6906,10 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- Quick actions -->
+                        </div>
+ 
+                        <!-- Left Column (Quick Actions) -->
+                        <div style="display:flex; flex-direction:column; gap:20px;">
                             <div class="card">
                                 <div class="card-header">
                                     <div class="card-title"><i class="fas fa-bolt"></i> إجراءات سريعة</div>
@@ -7188,116 +7089,174 @@
             </div>
 
             <!-- ── STUDENTS ── -->
+            <!-- ── STUDENTS ── -->
             <div id="students" class="tab-panel">
-                <!-- ── KID REG LINK ── -->
-                <div class="link-chip-center" id="studentsKidRegCardWrap" style="display:none;">
-                    <div id="studentsKidRegCard" class="link-chip">
-                        <div class="link-chip-label"><i class="fas fa-link"></i> رابط تسجيل الأطفال</div>
-                        <p style="font-size:0.76rem;color:var(--text-3);margin:0;">شارك الرابط مع أولياء الأمور لتسجيل
-                            الأطفال مباشرة.</p>
-                        <div class="link-chip-url" id="studentsKidRegUrl"></div>
-                        <div class="link-chip-actions">
-                            <button type="button" class="btn btn-primary btn-sm"
-                                onclick="copyKidRegLink(document.getElementById('studentsKidRegUrl').textContent,'الكنيسة')"><i
-                                    class="fas fa-copy"></i> نسخ</button>
-                            <button type="button" class="btn btn-sm" style="background:#25D366;color:#fff;border:none;"
-                                onclick="shareWhatsApp(document.getElementById('studentsKidRegUrl').textContent,'رابط تسجيل الأطفال في الكنيسة')"><i
-                                    class="fab fa-whatsapp"></i> واتساب</button>
-                            <button type="button" class="btn btn-outline btn-sm"
-                                onclick="window.open(document.getElementById('studentsKidRegUrl').textContent,'_blank')"><i
-                                    class="fas fa-external-link-alt"></i> فتح</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card" style="margin-bottom:20px;">
-                    <div class="card-header">
-                        <div class="card-title"><i class="fas fa-graduation-cap" style="color:var(--primary);"></i> نقل
-                            الفصول للسنة الدراسية الجديدة</div>
-                    </div>
-                    <div class="card-body" style="display:flex;flex-direction:column;gap:12px;">
-                        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
-                            <button class="btn btn-warning btn-sm" onclick="confirmGradeUpAllKids()">
-                                <i class="fas fa-level-up-alt"></i> نقل الجميع للسنة الجديدة
-                            </button>
-                            <button class="btn btn-outline btn-sm"
-                                onclick="switchTabByName('churchSettings'); openSettingsPage('kidsGradeUp');">
-                                <i class="fas fa-calendar-alt"></i> موعد النقل السنوي
-                            </button>
-                        </div>
-                        <p style="font-size:0.82rem;color:var(--muted);margin:0;">
-                            ينقل كل طفل إلى الفصل التالي حسب ترتيب الفصول. من كان في أعلى فصل يُنقل إلى قسم
-                            <strong>خريجين</strong>.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title"><i class="fas fa-child"></i> قائمة الأطفال</div>
-                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-                            <button class="btn btn-outline btn-sm" onclick="printAllKidsQRCards()"><i
-                                    class="fas fa-qrcode"></i> طباعة QR الكل</button>
-                            <button class="btn btn-success btn-sm" onclick="showBulkAddModal()"><i
-                                    class="fas fa-upload"></i> إضافة مجموعة</button>
-                            <button class="btn btn-outline btn-sm" id="bulkSelectToggleBtn"
-                                onclick="toggleBulkSelectMode()"><i class="fas fa-tasks"></i> تحديد متعدد</button>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <!-- Bulk Actions Bar -->
-                        <div class="bulk-actions-bar" id="bulkActionsBar">
-                            <div style="display:flex; align-items:center; gap:12px;">
-                                <div class="bulk-check-wrap" onclick="toggleSelectAllBulk()" style="display: flex;">
-                                    <div class="bulk-check-circle" id="bulkBarSelectAllCircle"><i
-                                            class="fas fa-check"></i></div>
+                <div class="admin-split-layout">
+                    <!-- Sidebar -->
+                    <div class="split-sidebar">
+                        <!-- KID REG LINK -->
+                        <div class="link-chip-center" id="studentsKidRegCardWrap" style="display:none; margin-bottom:12px; width:100%;">
+                            <div id="studentsKidRegCard" class="link-chip" style="width:100%; max-width:none; margin:0;">
+                                <div class="link-chip-label" style="font-size:0.8rem;"><i class="fas fa-link"></i> رابط تسجيل الأطفال</div>
+                                <p style="font-size:0.72rem;color:var(--text-3);margin:0 0 8px 0;">شارك الرابط مع أولياء الأمور لتسجيل الأطفال مباشرة.</p>
+                                <div class="link-chip-url" id="studentsKidRegUrl" style="font-size:0.7rem; word-break:break-all;">جاري التحميل...</div>
+                                <div class="link-chip-actions" style="margin-top:8px; gap:4px;">
+                                    <button type="button" class="btn btn-primary btn-sm" style="font-size:0.72rem; padding:4px 8px;"
+                                        onclick="copyKidRegLink(document.getElementById('studentsKidRegUrl').textContent,'الكنيسة')"><i
+                                            class="fas fa-copy"></i> نسخ</button>
+                                    <button type="button" class="btn btn-sm" style="background:#25D366;color:#fff;border:none;font-size:0.72rem; padding:4px 8px;"
+                                        onclick="shareWhatsApp(document.getElementById('studentsKidRegUrl').textContent,'رابط تسجيل الأطفال في الكنيسة')"><i
+                                            class="fab fa-whatsapp"></i> واتساب</button>
+                                    <button type="button" class="btn btn-outline btn-sm" style="font-size:0.72rem; padding:4px 8px;"
+                                        onclick="window.open(document.getElementById('studentsKidRegUrl').textContent,'_blank')"><i
+                                            class="fas fa-external-link-alt"></i> فتح</button>
                                 </div>
-                                <span style="font-weight:700; font-size:0.9rem;" id="bulkSelectedCount">تم تحديد 0
-                                    أطفال</span>
-                            </div>
-                            <div class="bulk-actions-btns">
-                                <button class="btn btn-warning btn-sm" onclick="triggerBulkCoupons()"
-                                    style="display:flex; align-items:center; gap:6px;">
-                                    <i class="fas fa-coins"></i> تعديل الكوبونات
-                                </button>
-                                <button class="btn btn-primary btn-sm" onclick="triggerBulkClass()"
-                                    style="display:flex; align-items:center; gap:6px;">
-                                    <i class="fas fa-edit"></i> تغيير الفصل
-                                </button>
-                                <button class="btn btn-danger btn-sm" onclick="triggerBulkDelete()"
-                                    style="display:flex; align-items:center; gap:6px;">
-                                    <i class="fas fa-trash"></i> حذف
-                                </button>
-                                <button class="btn btn-outline btn-sm" onclick="disableBulkSelectMode()"
-                                    style="color:#ffffff; border-color:rgba(255,255,255,0.4); font-size:0.8rem;">
-                                    إلغاء
-                                </button>
                             </div>
                         </div>
 
-                        <div class="toolbar">
-                            <div class="search-wrap"><i class="fas fa-search"></i><input type="text" id="studentSearch"
-                                    placeholder="بحث بالاسم أو الهاتف..." oninput="searchStudents()"></div>
-                            <select id="classFilter" class="form-select" onchange="searchStudents()">
-                                <option value="">جميع الفصول</option>
-                            </select>
-                            <select id="sortStudents" class="form-select" onchange="searchStudents()">
-                                <option value="name">ترتيب بالاسم</option>
-                                <option value="class">ترتيب بالفصل</option>
-                                <option value="coupons_desc">كوبونات (الأعلى)</option>
-                                <option value="coupons_asc">كوبونات (الأقل)</option>
-                                <option value="attendance">نسبة الحضور</option>
-                            </select>
-                        </div>
-                        <div class="data-list" id="studentsDataListContainer">
-                            <div class="data-list-head data-cols-students" id="studentsListHead">
-                                <div class="bulk-check-wrap" onclick="toggleSelectAllBulk()">
-                                    <div class="bulk-check-circle" id="bulkSelectAllHeadCircle"><i
-                                            class="fas fa-check"></i></div>
-                                </div>
-                                <span>الاسم</span><span>الفصل</span><span>الهاتف</span><span>كوبونات</span><span>حضور</span><span></span>
+                        <!-- ADD KID CARD -->
+                        <div class="card" style="margin-bottom:12px;">
+                            <div class="card-header">
+                                <div class="card-title"><i class="fas fa-user-plus"></i> إضافة طفل جديد</div>
                             </div>
-                            <div class="data-list-body" id="studentsTable"></div>
+                            <div class="card-body" style="background:var(--surface-2); padding:16px;">
+                                <form id="addKidForm" onsubmit="addStudent(event)" novalidate autocomplete="off" style="display:flex;flex-direction:column;gap:12px;">
+                                    <div class="form-group">
+                                        <label class="form-label" style="font-size:0.8rem;">الاسم الكامل *</label>
+                                        <input type="text" id="addKidName" class="form-input" required placeholder="اسم الطفل كاملاً" style="font-size:0.8rem;height:34px;">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" style="font-size:0.8rem;">الفصل *</label>
+                                        <select id="addKidClass" class="form-select" style="width:100%;font-size:0.8rem;height:34px;" required>
+                                            <option value="">اختر الفصل</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" style="font-size:0.8rem;">رقم الهاتف</label>
+                                        <input type="text" id="addKidPhone" class="form-input" placeholder="مثال: 01xxxxxxxxx" style="font-size:0.8rem;height:34px;">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" style="font-size:0.8rem;">تليفون الطوارئ</label>
+                                        <input type="text" id="addKidEmergencyPhone" class="form-input" placeholder="مثال: 01xxxxxxxxx" style="font-size:0.8rem;height:34px;">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" style="font-size:0.8rem;">تاريخ الميلاد</label>
+                                        <input type="text" id="addKidBirthday" class="form-input" placeholder="DD/MM/YYYY" style="font-size:0.8rem;height:34px;">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" style="font-size:0.8rem;">العنوان</label>
+                                        <input type="text" id="addKidAddress" class="form-input" placeholder="العنوان بالتفصيل" style="font-size:0.8rem;height:34px;">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" style="font-size:0.8rem;">اسم الأب / ولي الأمر</label>
+                                        <input type="text" id="addKidGuardianName" class="form-input" placeholder="اسم ولي الأمر" style="font-size:0.8rem;height:34px;">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" style="font-size:0.8rem;">ملاحظات طبية</label>
+                                        <textarea id="addKidMedicalNotes" class="form-textarea" placeholder="أي ملاحظات طبية خاصة بالطفل" style="font-size:0.8rem;min-height:60px;"></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" style="font-size:0.8rem;">صورة الطفل</label>
+                                        <input type="file" id="addKidImage" accept="image/*" class="form-input" style="font-size:0.8rem;height:auto;padding:4px;">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary" id="addKidSubmitBtn" style="font-size:0.85rem;height:36px;margin-top:4px;">
+                                        <i class="fas fa-plus"></i> إضافة الطفل
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- GRADE UP CARD -->
+                        <div class="card" style="margin-bottom:0;">
+                            <div class="card-header">
+                                <div class="card-title"><i class="fas fa-graduation-cap" style="color:var(--primary);"></i> نقل السنة الجديدة</div>
+                            </div>
+                            <div class="card-body" style="background:var(--surface-2); padding:16px; display:flex; flex-direction:column; gap:12px;">
+                                <div style="display:flex; flex-direction:column; gap:8px;">
+                                    <button class="btn btn-warning btn-sm" onclick="confirmGradeUpAllKids()" style="width:100%;">
+                                        <i class="fas fa-level-up-alt"></i> نقل الجميع للسنة الجديدة
+                                    </button>
+                                    <button class="btn btn-outline btn-sm" onclick="switchTabByName('churchSettings'); openSettingsPage('kidsGradeUp');" style="width:100%;">
+                                        <i class="fas fa-calendar-alt"></i> موعد النقل السنوي
+                                    </button>
+                                </div>
+                                <p style="font-size:0.76rem; color:var(--muted); margin:0; line-height:1.5;">
+                                    ينقل كل طفل إلى الفصل التالي حسب ترتيب الفصول. من كان في أعلى فصل يُنقل إلى قسم <strong>خريجين</strong>.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Content -->
+                    <div class="split-main">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title"><i class="fas fa-child"></i> قائمة الأطفال</div>
+                                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                                    <button class="btn btn-outline btn-sm" onclick="printAllKidsQRCards()"><i
+                                            class="fas fa-qrcode"></i> طباعة QR الكل</button>
+                                    <button class="btn btn-success btn-sm" onclick="showBulkAddModal()"><i
+                                            class="fas fa-upload"></i> إضافة مجموعة</button>
+                                    <button class="btn btn-outline btn-sm" id="bulkSelectToggleBtn"
+                                        onclick="toggleBulkSelectMode()"><i class="fas fa-tasks"></i> تحديد متعدد</button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <!-- Bulk Actions Bar -->
+                                <div class="bulk-actions-bar" id="bulkActionsBar">
+                                    <div style="display:flex; align-items:center; gap:12px;">
+                                        <div class="bulk-check-wrap" onclick="toggleSelectAllBulk()" style="display: flex;">
+                                            <div class="bulk-check-circle" id="bulkBarSelectAllCircle"><i
+                                                    class="fas fa-check"></i></div>
+                                        </div>
+                                        <span style="font-weight:700; font-size:0.9rem;" id="bulkSelectedCount">تم تحديد 0
+                                            أطفال</span>
+                                    </div>
+                                    <div class="bulk-actions-btns">
+                                        <button class="btn btn-warning btn-sm" onclick="triggerBulkCoupons()"
+                                            style="display:flex; align-items:center; gap:6px;">
+                                            <i class="fas fa-coins"></i> تعديل الكوبونات
+                                        </button>
+                                        <button class="btn btn-primary btn-sm" onclick="triggerBulkClass()"
+                                            style="display:flex; align-items:center; gap:6px;">
+                                            <i class="fas fa-edit"></i> تغيير الفصل
+                                        </button>
+                                        <button class="btn btn-danger btn-sm" onclick="triggerBulkDelete()"
+                                            style="display:flex; align-items:center; gap:6px;">
+                                            <i class="fas fa-trash"></i> حذف
+                                        </button>
+                                        <button class="btn btn-outline btn-sm" onclick="disableBulkSelectMode()"
+                                            style="color:#ffffff; border-color:rgba(255,255,255,0.4); font-size:0.8rem;">
+                                            إلغاء
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="toolbar">
+                                    <div class="search-wrap"><i class="fas fa-search"></i><input type="text" id="studentSearch"
+                                            placeholder="بحث بالاسم أو الهاتف..." oninput="searchStudents()"></div>
+                                    <select id="classFilter" class="form-select" onchange="searchStudents()">
+                                        <option value="">جميع الفصول</option>
+                                    </select>
+                                    <select id="sortStudents" class="form-select" onchange="searchStudents()">
+                                        <option value="name">ترتيب بالاسم</option>
+                                        <option value="class">ترتيب بالفصل</option>
+                                        <option value="coupons_desc">كوبونات (الأعلى)</option>
+                                        <option value="coupons_asc">كوبونات (الأقل)</option>
+                                        <option value="attendance">نسبة الحضور</option>
+                                    </select>
+                                </div>
+                                <div class="data-list" id="studentsDataListContainer">
+                                    <div class="data-list-head data-cols-students" id="studentsListHead">
+                                        <div class="bulk-check-wrap" onclick="toggleSelectAllBulk()">
+                                            <div class="bulk-check-circle" id="bulkSelectAllHeadCircle"><i
+                                                    class="fas fa-check"></i></div>
+                                        </div>
+                                        <span>الاسم</span><span>الفصل</span><span>الهاتف</span><span>كوبونات</span><span>حضور</span><span></span>
+                                    </div>
+                                    <div class="data-list-body" id="studentsTable"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -12909,6 +12868,7 @@
                     allStudents = d.data || []; classes = d.classes || [];
                     _saveLocalCache('students', { data: allStudents, classes });
                     renderStudentsTable(allStudents); populateClassFilters(); calculateTotalCoupons();
+                    populateAddKidClassSelect();
                 } else {
                     const cached = _readLocalCache('students');
                     if (cached?.data) {
@@ -12917,6 +12877,7 @@
                         renderStudentsTable(allStudents);
                         populateClassFilters();
                         calculateTotalCoupons();
+                        populateAddKidClassSelect();
                         if (_offlineSessionMode || d.offline) _showOfflineCacheToast();
                         return;
                     }
@@ -12930,6 +12891,7 @@
                     renderStudentsTable(allStudents);
                     populateClassFilters();
                     calculateTotalCoupons();
+                    populateAddKidClassSelect();
                     if (_offlineSessionMode) _showOfflineCacheToast();
                     return;
                 }
@@ -13018,6 +12980,74 @@
                 const keep = el.options[0]?.text || '';
                 el.innerHTML = (keep ? `<option value="">${keep}</option>` : '') + uq.map(c => `<option value="${c}">${c}</option>`).join('');
             });
+        }
+
+        function populateAddKidClassSelect() {
+            const sel = document.getElementById('addKidClass'); if (!sel) return;
+            sel.innerHTML = '<option value="">اختر الفصل</option>';
+            if (classes && classes.length) {
+                classes.forEach(c => {
+                    const o = document.createElement('option');
+                    o.value = c.id;
+                    o.textContent = c.arabic_name;
+                    sel.appendChild(o);
+                });
+            }
+        }
+
+        async function addStudent(e) {
+            e.preventDefault();
+            let churchId = getChurchId();
+            if (!churchId) {
+                const fd0 = new FormData(); fd0.append('action', 'getSessionInfo');
+                const d0 = await fetch(API_URL, { method: 'POST', body: fd0 }).then(r => r.json()).catch(() => ({ success: false }));
+                if (d0.success && d0.church_id) { sessionChurchId = d0.church_id; churchId = d0.church_id; localStorage.setItem('churchId', churchId); }
+            }
+            if (!churchId) { showToast('لم يتم العثور على معرف الكنيسة – الرجاء تسجيل الدخول مجدداً', 'error'); return; }
+            
+            const name = document.getElementById('addKidName').value.trim();
+            const classId = document.getElementById('addKidClass').value;
+            if (!name || !classId) { showToast('الاسم والفصل مطلوبان', 'warning'); return; }
+
+            const btn = document.getElementById('addKidSubmitBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; btn.disabled = true;
+
+            const fd = new FormData();
+            fd.append('action', 'addStudent');
+            fd.append('name', name);
+            fd.append('classId', classId);
+            fd.append('phone', document.getElementById('addKidPhone').value.trim());
+            fd.append('emergency_phone', document.getElementById('addKidEmergencyPhone').value.trim());
+            fd.append('birthday', document.getElementById('addKidBirthday').value.trim());
+            fd.append('address', document.getElementById('addKidAddress').value.trim());
+            fd.append('medical_notes', document.getElementById('addKidMedicalNotes').value.trim());
+            
+            const guardianName = document.getElementById('addKidGuardianName').value.trim();
+            if (guardianName) {
+                fd.append('custom_info', JSON.stringify({ guardian_name: guardianName }));
+            }
+            
+            const img = document.getElementById('addKidImage')?.files[0];
+            if (img) fd.append('photo', img);
+
+            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+            if (d.success) { 
+                showToast('تمت إضافة الطفل بنجاح', 'success'); 
+                document.getElementById('addKidForm').reset(); 
+                loadStudents(); 
+                loadStatistics();
+            } else {
+                showToast(d.message || 'فشل في الإضافة', 'error');
+            }
+            btn.innerHTML = '<i class="fas fa-plus"></i> إضافة الطفل'; btn.disabled = false;
+        }
+
+        function toggleAddForm() {
+            const input = document.getElementById('addKidName');
+            if (input) {
+                input.focus();
+                input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
         }
 
         function searchStudents() {
