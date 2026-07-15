@@ -4210,15 +4210,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         flex-direction: column !important;
         align-items: center !important;
         background: linear-gradient(145deg, #312e81 0%, #4f46e5 35%, #7c3aed 70%, #5b21b6 100%) !important;
-        border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        border-radius: var(--r-xl) !important;
         position: sticky !important;
-        top: 0;
-        height: 100vh !important;
-        min-height: 100vh !important;
-        margin: 0 !important;
+        top: 24px !important;
+        height: calc(100vh - 48px) !important;
+        margin: 24px 24px 24px 0 !important;
         overflow-y: auto;
         z-index: 500;
         box-sizing: border-box !important;
+        box-shadow: 0 12px 32px rgba(49, 46, 129, 0.25) !important;
         animation: sidebarSlideIn 0.5s var(--spring) both;
       }
 
@@ -4239,7 +4240,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       /* Main side-by-side grid layout */
       body {
         display: grid;
-        grid-template-columns: 360px 1fr;
+        grid-template-columns: 380px 1fr;
         grid-template-rows: auto 1fr;
         min-height: 100vh;
         background: var(--bg);
