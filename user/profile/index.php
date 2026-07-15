@@ -88,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
   <title id="pageTitle">بوابة الطفل</title>
   <meta name="theme-color" content="#4f46e5">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&family=Cairo:wght@300;400;600;700;800&display=swap"
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
@@ -196,7 +196,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     }
 
     body {
-      font-family: 'Baloo Bhaijaan 2', sans-serif;
+      font-family: 'Cairo', sans-serif;
       background: var(--bg);
       color: var(--t1);
       min-height: 100vh;
@@ -913,7 +913,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       padding: 9px 14px;
       border: 1.5px solid var(--bdr);
       border-radius: var(--r-sm);
-      font-family: 'Baloo Bhaijaan 2', sans-serif;
+      font-family: 'Cairo', sans-serif;
       font-size: .88rem;
       background: var(--surf);
       color: var(--t1);
@@ -972,7 +972,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       padding: 7px 12px;
       border: 1.5px solid var(--bdr);
       border-radius: var(--r-sm);
-      font-family: 'Baloo Bhaijaan 2', sans-serif;
+      font-family: 'Cairo', sans-serif;
       font-size: .8rem;
       background: var(--surf);
       color: var(--t2);
@@ -1832,7 +1832,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       text-decoration: none;
       border: none;
       cursor: pointer;
-      font-family: 'Baloo Bhaijaan 2', sans-serif;
+      font-family: 'Cairo', sans-serif;
       transition: var(--fast);
       box-shadow:
         0 1px 0 rgba(255, 255, 255, .22) inset,
@@ -2129,7 +2129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       padding: 11px 13px;
       border: 1.5px solid var(--bdr);
       border-radius: var(--r-md);
-      font-family: 'Baloo Bhaijaan 2', sans-serif;
+      font-family: 'Cairo', sans-serif;
       font-size: .9rem;
       color: var(--t1);
       background: var(--surf);
@@ -2411,7 +2411,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       border-radius: var(--r-md);
       border: 1.5px solid var(--bdr);
       background: var(--surf);
-      font-family: 'Baloo Bhaijaan 2', sans-serif;
+      font-family: 'Cairo', sans-serif;
       font-weight: 700;
       font-size: .88rem;
       color: var(--t1);
@@ -2464,7 +2464,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       padding: 10px 12px;
       border: 1.5px solid var(--bdr);
       border-radius: var(--r-md);
-      font-family: 'Baloo Bhaijaan 2', sans-serif;
+      font-family: 'Cairo', sans-serif;
       font-size: .87rem;
       color: var(--t1);
       background: var(--surf);
@@ -2505,7 +2505,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       gap: 5px;
       padding: 8px 17px;
       border-radius: var(--r-full);
-      font-family: 'Baloo Bhaijaan 2', sans-serif;
+      font-family: 'Cairo', sans-serif;
       font-size: .84rem;
       font-weight: 700;
       border: 1.5px solid transparent;
@@ -3080,7 +3080,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       border-radius: var(--r-md);
       background: var(--s2);
       border: 1.5px solid var(--bdr);
-      font-family: 'Baloo Bhaijaan 2', sans-serif;
+      font-family: 'Cairo', sans-serif;
       font-size: .9rem;
       font-weight: 700;
       color: var(--t2);
@@ -3377,7 +3377,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       cursor: pointer;
       transition: var(--fast);
       width: 100%;
-      font-family: 'Baloo Bhaijaan 2', sans-serif;
+      font-family: 'Cairo', sans-serif;
       font-size: .93rem;
       font-weight: 700;
       color: var(--t1);
@@ -3416,7 +3416,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
     /* ══ EXAM SCREEN ════════════════════════════════════════ */
     #examScreen {
-      font-family: 'Baloo Bhaijaan 2', sans-serif;
+      font-family: 'Cairo', sans-serif;
     }
 
     /* ── Start card ── */
@@ -3577,7 +3577,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       background: var(--warn-bg);
       border: 1.5px solid #fde68a;
       color: var(--warn);
-      font-family: 'Baloo Bhaijaan 2', sans-serif;
+      font-family: 'Cairo', sans-serif;
       transition: background var(--fast), color var(--fast), border-color var(--fast);
     }
 
@@ -4445,7 +4445,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     <div class="spin"></div><span id="lt">جارٍ التحميل…</span>
   </div>
 
-  <div id="tempIdAssignContainer" style="display:none; padding:20px; max-width:600px; margin:0 auto; direction:rtl; text-align:right; font-family:'Baloo Bhaijaan 2', sans-serif;"></div>
+  <div id="tempIdAssignContainer" style="display:none; padding:20px; max-width:600px; margin:0 auto; direction:rtl; text-align:right; font-family:'Cairo', sans-serif;"></div>
 
   <!-- ══ SIDEBAR (DESKTOP) ══ -->
   <aside class="sidebar-desktop" id="sidebarDesktop">
@@ -4993,10 +4993,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       <div
         style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--bdr2);background:var(--s2);">
         <input id="attHistSearch" type="text" placeholder="ابحث بالتاريخ…"
-          style="flex:1;min-width:120px;padding:8px 12px;border:1.5px solid var(--bdr);border-radius:var(--r-sm);font-family:'Baloo Bhaijaan 2',sans-serif;font-size:.86rem;background:var(--surf);color:var(--t1);outline:none;"
+          style="flex:1;min-width:120px;padding:8px 12px;border:1.5px solid var(--bdr);border-radius:var(--r-sm);font-family:'Cairo',sans-serif;font-size:.86rem;background:var(--surf);color:var(--t1);outline:none;"
           oninput="renderAttHist()" />
         <select id="attHistSort" onchange="renderAttHist()"
-          style="padding:7px 10px;border:1.5px solid var(--bdr);border-radius:var(--r-sm);font-family:'Baloo Bhaijaan 2',sans-serif;font-size:.8rem;background:var(--surf);color:var(--t2);outline:none;">
+          style="padding:7px 10px;border:1.5px solid var(--bdr);border-radius:var(--r-sm);font-family:'Cairo',sans-serif;font-size:.8rem;background:var(--surf);color:var(--t2);outline:none;">
           <option value="newest">الأحدث أولاً</option>
           <option value="oldest">الأقدم أولاً</option>
         </select>
@@ -5047,11 +5047,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         <div style="font-size:.74rem;font-weight:700;color:var(--t3);margin-bottom:10px;">المفروض أنا كنت</div>
         <div style="display:flex;gap:10px;">
           <button id="reportShouldPresent" onclick="setReportShould('present')"
-            style="flex:1;padding:14px 8px;border-radius:var(--r-md);border:2px solid var(--bdr);background:var(--surf);color:var(--t2);font-family:'Baloo Bhaijaan 2',sans-serif;font-size:.95rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:var(--fast);">
+            style="flex:1;padding:14px 8px;border-radius:var(--r-md);border:2px solid var(--bdr);background:var(--surf);color:var(--t2);font-family:'Cairo',sans-serif;font-size:.95rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:var(--fast);">
             <i class="fas fa-check-circle"></i> <span>حضر</span>
           </button>
           <button id="reportShouldAbsent" onclick="setReportShould('absent')"
-            style="flex:1;padding:14px 8px;border-radius:var(--r-md);border:2px solid var(--bdr);background:var(--surf);color:var(--t2);font-family:'Baloo Bhaijaan 2',sans-serif;font-size:.95rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:var(--fast);">
+            style="flex:1;padding:14px 8px;border-radius:var(--r-md);border:2px solid var(--bdr);background:var(--surf);color:var(--t2);font-family:'Cairo',sans-serif;font-size:.95rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:var(--fast);">
             <i class="fas fa-times-circle"></i> <span>غاب</span>
           </button>
         </div>
@@ -5765,7 +5765,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         container.innerHTML = `
           <div style="background:#fff; padding:24px; border-radius:16px; box-shadow:var(--sh-md); text-align:center; max-width:450px; margin:40px auto; border: 1.5px solid var(--bdr);">
             <div style="font-size:3.5rem; color:var(--brand); margin-bottom:16px;"><i class="fas fa-qrcode"></i></div>
-            <h2 style="font-size:1.4rem; font-weight:800; color:var(--t1); margin-bottom:12px; font-family:'Baloo Bhaijaan 2', sans-serif;">كارت غير مسجل</h2>
+            <h2 style="font-size:1.4rem; font-weight:800; color:var(--t1); margin-bottom:12px; font-family:'Cairo', sans-serif;">كارت غير مسجل</h2>
             <p style="font-size:0.95rem; color:var(--t3); line-height:1.6; margin-bottom:24px;">هذا الكود (ID: <strong>${esc(tempid)}</strong>) غير مرتبط بأي طفل حالياً. يرجى تسجيل الدخول كخادم للتمكن من ربطه بطفل.</p>
             <a href="/login/?redirect=${encodeURIComponent(location.href)}" class="btn" style="display:inline-flex; align-items:center; gap:8px; width:100%; justify-content:center; padding:12px; background:var(--brand); color:#fff; border-radius:10px; text-decoration:none; font-weight:700; box-shadow:var(--sh-brand); font-family:inherit;">
               <i class="fas fa-sign-in-alt"></i> تسجيل دخول الخادم
@@ -7261,7 +7261,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         const roleLbl = { admin: 'مشرف', developer: 'مطوّر', uncle: 'مدرّس' };
         ul.innerHTML = unclesWithPhone.map(u => `
       <button onclick="sendRowReport(${u.id})"
-        style="width:100%;display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:var(--r-md);border:1.5px solid var(--bdr);background:var(--surf);cursor:pointer;font-family:'Baloo Bhaijaan 2',sans-serif;transition:var(--fast);"
+        style="width:100%;display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:var(--r-md);border:1.5px solid var(--bdr);background:var(--surf);cursor:pointer;font-family:'Cairo',sans-serif;transition:var(--fast);"
         onmouseover="this.style.borderColor='#d97706';this.style.background='#fef3c7'"
         onmouseout="this.style.borderColor='var(--bdr)';this.style.background='var(--surf)'">
         <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--brand-bg),#c7d2fe);color:var(--brand);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.88rem;flex-shrink:0;overflow:hidden;">
@@ -7363,7 +7363,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           <i class="fas fa-star" style="color:var(--cou-l);font-size:.75rem;"></i>
           <strong style="color:var(--cou);font-size:.82rem;">${sub.coupons_awarded}</strong>
           <span style="font-size:.7rem;color:var(--t3);margin-left:5px;">كوبون</span>
-          ${t.show_answers ? `<button onclick="event.stopPropagation();viewMyAnswers(${t.id})" style="margin-right:5px;background:var(--s2);border:1px solid var(--brand-l);color:var(--brand);border-radius:5px;padding:3px 8px;font-size:.7rem;font-family:'Baloo Bhaijaan 2',sans-serif;font-weight:700;cursor:pointer;"><i class="fas fa-eye"></i> الإجابات</button>` : ''}
+          ${t.show_answers ? `<button onclick="event.stopPropagation();viewMyAnswers(${t.id})" style="margin-right:5px;background:var(--s2);border:1px solid var(--brand-l);color:var(--brand);border-radius:5px;padding:3px 8px;font-size:.7rem;font-family:'Cairo',sans-serif;font-weight:700;cursor:pointer;"><i class="fas fa-eye"></i> الإجابات</button>` : ''}
         </span>
       </div>`;
         } else if (maxCoupon > 0) {

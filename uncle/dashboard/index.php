@@ -342,11 +342,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
          below — this means: use Cairo if already cached, otherwise keep
          the fallback for THIS paint and cache for next load. ── -->
     <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&family=Cairo:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap"
         media="print" onload="this.media='all'">
     <noscript>
         <link rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&family=Cairo:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap">
+            href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;600&display=swap">
     </noscript>
 
     <!-- ── Font Awesome: async load so icons don't block first paint ── -->

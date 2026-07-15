@@ -99,7 +99,7 @@ if (count($trips) === 1) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>فتح ملف الطفل - Sunday School</title>
-    <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@500;700;800&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/fonts/cairo.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
@@ -123,7 +123,7 @@ if (count($trips) === 1) {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Baloo Bhaijaan 2', 'Cairo', sans-serif;
+            font-family: 'Cairo', 'Cairo', sans-serif;
         }
 
         body {

@@ -78,7 +78,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400..800&family=Cairo:wght@200..1000&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -86,7 +86,7 @@
             visibility: hidden !important;
         }
 
-        @import url('https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400..800&family=Cairo:wght@200..1000&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap');
 
 
         #printSettingsModal input[type="color"] {
@@ -283,7 +283,7 @@
         h6,
         .title-font,
         .brand-logo-text {
-            font-family: 'Baloo Bhaijaan 2', 'Cairo', sans-serif !important;
+            font-family: 'Cairo', sans-serif !important;
             font-weight: 700;
         }
 
@@ -1435,7 +1435,9 @@
 
         /* ── SELECT ─────────────────────────────────────────────────────── */
         select.form-select {
-            padding: 9px 12px;
+            padding: 6px 12px !important;
+            height: 36px !important;
+            line-height: normal !important;
             border: 1.5px solid var(--border-solid);
             border-radius: var(--radius);
             font-family: 'Cairo', sans-serif;
@@ -3055,15 +3057,57 @@
             }
             .split-main {
                 grid-column: 1;
+                grid-row: 1;
             }
             .split-sidebar {
                 grid-column: 2;
+                grid-row: 1;
                 position: sticky !important;
                 top: 20px !important;
                 max-height: calc(100vh - 40px) !important;
                 overflow-y: auto !important;
                 padding-bottom: 10px !important;
+                display: flex !important;
             }
+            /* On desktop, hide mobile-only controls */
+            .mobile-add-trigger { display: none !important; }
+            .mobile-close-btn { display: none !important; }
+        }
+
+        /* On mobile, hide the sidebar and show it as a fixed overlay */
+        @media (max-width: 1023px) {
+            .split-sidebar {
+                display: none;
+                position: fixed;
+                bottom: 0;
+                right: 0;
+                left: 0;
+                z-index: 900;
+                background: var(--surface, #fff);
+                border-radius: 20px 20px 0 0;
+                box-shadow: 0 -8px 32px rgba(0,0,0,0.18);
+                max-height: 88vh;
+                overflow-y: auto;
+                padding: 16px;
+                gap: 16px;
+                flex-direction: column;
+                padding-bottom: calc(16px + env(safe-area-inset-bottom));
+            }
+            .split-sidebar.open-mobile {
+                display: flex;
+            }
+            /* Overlay backdrop when sidebar is open */
+            body.modal-open::before {
+                content: '';
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.45);
+                z-index: 899;
+                backdrop-filter: blur(2px);
+            }
+            /* Show mobile controls */
+            .mobile-add-trigger { display: inline-flex !important; }
+            .mobile-close-btn { display: inline-flex !important; align-items: center; justify-content: center; }
         }
 
         .split-sidebar {
@@ -6979,7 +7023,7 @@
             <div id="uncles" class="tab-panel">
                 <div class="admin-split-layout">
                     <!-- Sidebar -->
-                    <div class="split-sidebar">
+                    <div class="split-sidebar" id="unclesSidebar">
                         <!-- UNCLE REG LINK CARD -->
                         <div id="uncleRegLinkCard" class="link-chip" style="width:100%; max-width:none; margin:0;">
                             <div class="link-chip-label" style="font-size:0.8rem;"><i class="fas fa-link"></i> رابط تسجيل الخدام</div>
@@ -6998,9 +7042,10 @@
                         </div>
 
                         <!-- ADD UNCLE CARD -->
-                        <div class="card" style="margin-bottom:0;">
-                            <div class="card-header">
+                        <div class="card add-card" style="margin-bottom:0;">
+                            <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
                                 <div class="card-title"><i class="fas fa-user-plus"></i> إضافة خادم جديد</div>
+                                <button type="button" class="mobile-close-btn" onclick="closeMobileAddModal(this)" style="display:none; background:none; border:none; color:var(--text-3); font-size:1.2rem; cursor:pointer; padding:4px;"><i class="fas fa-times"></i></button>
                             </div>
                             <div class="card-body" style="background:var(--surface-2); padding:16px;">
                                 <form id="addUncleForm" onsubmit="addUncle(event)" novalidate autocomplete="off" style="display:flex;flex-direction:column;gap:12px;">
@@ -7066,6 +7111,7 @@
                             <div class="card-header">
                                 <div class="card-title"><i class="fas fa-users"></i> الخُدام المسجلون</div>
                                 <div class="export-row" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                                    <button class="btn btn-primary btn-sm mobile-add-trigger" onclick="openMobileAddModal('unclesSidebar')" style="display:none;"><i class="fas fa-plus"></i> إضافة خادم</button>
                                     <button class="btn btn-success btn-sm" type="button" onclick="showBulkAddUnclesModal()">
                                         <i class="fas fa-upload"></i> استيراد مجموعة
                                     </button>
@@ -7108,7 +7154,7 @@
             <div id="students" class="tab-panel">
                 <div class="admin-split-layout">
                     <!-- Sidebar -->
-                    <div class="split-sidebar">
+                    <div class="split-sidebar" id="studentsSidebar">
                         <!-- KID REG LINK -->
                         <div class="link-chip-center" id="studentsKidRegCardWrap" style="display:none; margin-bottom:12px; width:100%;">
                             <div id="studentsKidRegCard" class="link-chip" style="width:100%; max-width:none; margin:0;">
@@ -7130,9 +7176,10 @@
                         </div>
 
                         <!-- ADD KID CARD -->
-                        <div class="card" style="margin-bottom:12px;">
-                            <div class="card-header">
+                        <div class="card add-card" style="margin-bottom:12px;">
+                            <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
                                 <div class="card-title"><i class="fas fa-user-plus"></i> إضافة طفل جديد</div>
+                                <button type="button" class="mobile-close-btn" onclick="closeMobileAddModal(this)" style="display:none; background:none; border:none; color:var(--text-3); font-size:1.2rem; cursor:pointer; padding:4px;"><i class="fas fa-times"></i></button>
                             </div>
                             <div class="card-body" style="background:var(--surface-2); padding:16px;">
                                 <form id="addKidForm" onsubmit="addStudent(event)" novalidate autocomplete="off" style="display:flex;flex-direction:column;gap:12px;">
@@ -7142,7 +7189,7 @@
                                     </div>
                                     <div class="form-group">
                                         <label class="form-label" style="font-size:0.8rem;">الفصل *</label>
-                                        <select id="addKidClass" class="form-select" style="width:100%;font-size:0.8rem;height:34px;" required>
+                                        <select id="addKidClass" class="form-select" style="width:100%;font-size:0.8rem;height:auto;min-height:36px;" required>
                                             <option value="">اختر الفصل</option>
                                         </select>
                                     </div>
@@ -7208,6 +7255,7 @@
                             <div class="card-header">
                                 <div class="card-title"><i class="fas fa-child"></i> قائمة الأطفال</div>
                                 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                                    <button class="btn btn-primary btn-sm mobile-add-trigger" onclick="openMobileAddModal('studentsSidebar')" style="display:none;"><i class="fas fa-plus"></i> إضافة طفل</button>
                                     <button class="btn btn-outline btn-sm" onclick="printAllKidsQRCards()"><i
                                             class="fas fa-qrcode"></i> طباعة QR الكل</button>
                                     <button class="btn btn-success btn-sm" onclick="showBulkAddModal()"><i
@@ -7332,15 +7380,16 @@
             <div id="guests" class="tab-panel">
                 <div class="admin-split-layout">
                     <!-- Sidebar (Adding & Buttons) -->
-                    <div class="split-sidebar">
-                        <div class="card">
-                            <div class="card-header" onclick="toggleAddGuestForm()" style="cursor:pointer;">
+                    <div class="split-sidebar" id="guestsSidebar">
+                        <div class="card add-card">
+                            <div class="card-header" onclick="toggleAddGuestForm()" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
                                 <div class="card-title">
                                     <i class="fas fa-user-tag"></i> 
                                     <span id="addGuestToggleLbl">إضافة زائر</span>
                                 </div>
-                                <div class="card-actions">
+                                <div class="card-actions" style="display:flex; align-items:center; gap:8px;">
                                     <i class="fas fa-plus" id="addGuestChevron"></i>
+                                    <button type="button" class="mobile-close-btn" onclick="event.stopPropagation(); closeMobileAddModal(this)" style="display:none; background:none; border:none; color:var(--text-3); font-size:1.2rem; cursor:pointer; padding:4px;"><i class="fas fa-times"></i></button>
                                 </div>
                             </div>
                             <div id="addGuestFormWrap" style="display:none;border-top:1px solid var(--border);">
@@ -7401,9 +7450,10 @@
                     <div class="split-main">
                         <!-- ── GUESTS LIST CARD ── -->
                         <div class="card">
-                            <div class="card-header">
+                            <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
                                 <div class="card-title"><i class="fas fa-users"></i> الزوار المسجلون</div>
-                                <div class="export-row">
+                                <div class="export-row" style="display:flex; gap:8px; align-items:center;">
+                                    <button class="btn btn-primary btn-sm mobile-add-trigger" onclick="openMobileAddModal('guestsSidebar')" style="display:none;"><i class="fas fa-plus"></i> إضافة زائر</button>
                                     <button class="exp-btn exp-csv" onclick="exportGuestsToCSV()"><i
                                             class="fas fa-file-csv"></i> CSV</button>
                                 </div>
@@ -7575,15 +7625,16 @@
             <div id="trips" class="tab-panel">
                 <div class="admin-split-layout">
                     <!-- Sidebar (Adding & Buttons) -->
-                    <div class="split-sidebar">
-                        <div class="card" style="margin-bottom:20px;">
-                            <div class="card-header" onclick="toggleAddTripForm()" style="cursor:pointer;">
+                    <div class="split-sidebar" id="tripsSidebar">
+                        <div class="card add-card" style="margin-bottom:20px;">
+                            <div class="card-header" onclick="toggleAddTripForm()" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
                                 <div class="card-title">
                                     <i class="fas fa-route"></i> 
-                                    <span id="addTripToggleLbl">إلغاء</span>
+                                    <span id="addTripToggleLbl">إضافة رحلة جديدة</span>
                                 </div>
-                                <div class="card-actions">
+                                <div class="card-actions" style="display:flex; align-items:center; gap:8px;">
                                     <i class="fas fa-times" id="addTripChevron"></i>
+                                    <button type="button" class="mobile-close-btn" onclick="event.stopPropagation(); closeMobileAddModal(this)" style="display:none; background:none; border:none; color:var(--text-3); font-size:1.2rem; cursor:pointer; padding:4px;"><i class="fas fa-times"></i></button>
                                 </div>
                             </div>
                     <div id="addTripFormWrap" style="display:block;border-top:1px solid var(--border);">
@@ -7782,11 +7833,12 @@
 
                         <!-- Trips List Card -->
                         <div class="card">
-                            <div class="card-header">
-                        <div class="card-title"><i class="fas fa-list"></i> قائمة الرحلات / المؤتمرات</div>
-                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-                            <div class="search-wrap" style="min-width:180px;"><i class="fas fa-search"></i><input
-                                    type="text" id="tripSearch" placeholder="بحث عن رحلة..." oninput="filterTrips()">
+                            <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                                <div class="card-title"><i class="fas fa-list"></i> قائمة الرحلات / المؤتمرات</div>
+                                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                                    <button class="btn btn-primary btn-sm mobile-add-trigger" onclick="openMobileAddModal('tripsSidebar')" style="display:none;"><i class="fas fa-plus"></i> إضافة رحلة</button>
+                                    <div class="search-wrap" style="min-width:180px;"><i class="fas fa-search"></i><input
+                                            type="text" id="tripSearch" placeholder="بحث عن رحلة..." oninput="filterTrips()">
                             </div>
                             <select id="tripStatusFilter" class="form-select" onchange="filterTrips()">
                                 <option value="all">جميع الحالات</option>
@@ -10991,6 +11043,69 @@
     <!-- ══════════════════ SCRIPT ══════════════════ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
+        function openMobileAddModal(sidebarId) {
+            const sidebar = document.getElementById(sidebarId);
+            if (!sidebar) return;
+            document.querySelectorAll('.split-sidebar.open-mobile').forEach(sb => {
+                sb.classList.remove('open-mobile');
+            });
+            sidebar.classList.add('open-mobile');
+            document.body.classList.add('modal-open');
+            
+            // Auto expand internal forms on mobile
+            if (sidebarId === 'studentsSidebar') {
+                const wrap = document.getElementById('addKidFormWrap') || document.getElementById('addStudentFormWrap');
+                if (wrap) wrap.style.display = 'block';
+                const chev = document.getElementById('addKidChevron') || document.getElementById('addStudentChevron');
+                if (chev) chev.className = 'fas fa-chevron-up';
+            } else if (sidebarId === 'unclesSidebar') {
+                const wrap = document.getElementById('addUncleFormWrap');
+                if (wrap) wrap.style.display = 'block';
+                const chev = document.getElementById('addUncleChevron');
+                if (chev) chev.className = 'fas fa-chevron-up';
+            } else if (sidebarId === 'guestsSidebar') {
+                const wrap = document.getElementById('addGuestFormWrap');
+                if (wrap) wrap.style.display = 'block';
+                const chev = document.getElementById('addGuestChevron');
+                if (chev) chev.className = 'fas fa-chevron-up';
+            } else if (sidebarId === 'tripsSidebar') {
+                const wrap = document.getElementById('addTripFormWrap');
+                if (wrap) wrap.style.display = 'block';
+                const chev = document.getElementById('addTripChevron');
+                if (chev) chev.className = 'fas fa-chevron-up';
+            }
+        }
+        function closeMobileAddModal(btn) {
+            const sidebar = btn.closest('.split-sidebar');
+            if (sidebar) {
+                sidebar.classList.remove('open-mobile');
+            }
+            if (!document.querySelector('.split-sidebar.open-mobile')) {
+                document.body.classList.remove('modal-open');
+            }
+        }
+        function closeAllMobileAddModals() {
+            document.querySelectorAll('.split-sidebar.open-mobile').forEach(sb => {
+                sb.classList.remove('open-mobile');
+            });
+            document.body.classList.remove('modal-open');
+        }
+
+        // Close mobile sidebar when user taps the backdrop (::before pseudo-element)
+        document.addEventListener('click', function(e) {
+            if (!document.body.classList.contains('modal-open')) return;
+            // If a sidebar is open and the click is outside all open sidebars
+            const openSidebars = document.querySelectorAll('.split-sidebar.open-mobile');
+            if (!openSidebars.length) return;
+            let insideSidebar = false;
+            openSidebars.forEach(sb => {
+                if (sb.contains(e.target)) insideSidebar = true;
+            });
+            if (!insideSidebar) {
+                closeAllMobileAddModals();
+            }
+        });
+
         function _getAllSubFieldColumns(fields, icons) {
             const allColumns = [];
             fields.forEach(field => {
@@ -13050,9 +13165,24 @@
             fd.append('medical_notes', document.getElementById('addKidMedicalNotes').value.trim());
             
             const guardianName = document.getElementById('addKidGuardianName').value.trim();
+            const customInfo = {};
             if (guardianName) {
-                fd.append('custom_info', JSON.stringify({ guardian_name: guardianName }));
+                customInfo.guardian_name = guardianName;
+                if (window._currentCustomFields && window._currentCustomFields.length) {
+                    const guardianField = window._currentCustomFields.find(f => {
+                        const n = (f.name || '').trim();
+                        return n === 'اسم ولي الأمر' || n === 'ولي الأمر' || n === 'اسم الأب';
+                    });
+                    if (guardianField) {
+                        customInfo[guardianField.key] = guardianName;
+                    } else {
+                        customInfo['field_0'] = guardianName;
+                    }
+                } else {
+                    customInfo['field_0'] = guardianName;
+                }
             }
+            fd.append('custom_info', JSON.stringify(customInfo));
             
             const img = document.getElementById('addKidImage')?.files[0];
             if (img) fd.append('photo', img);
@@ -13061,6 +13191,7 @@
             if (d.success) { 
                 showToast('تمت إضافة الطفل بنجاح', 'success'); 
                 document.getElementById('addKidForm').reset(); 
+                document.getElementById('studentsSidebar')?.classList.remove('open-mobile');
                 loadStudents(); 
                 loadStatistics();
             } else {
@@ -13123,6 +13254,14 @@
             const init = s['الاسم'].charAt(0);
             const medNotes = s['ملاحظات طبية'] || s['medical_notes'] || '';
             const emergPhone = s['هاتف الطوارئ'] || s['emergency_phone'] || '';
+            const address = s['العنوان'] || s['address'] || '';
+            // Resolve guardian name from custom_info or top-level field
+            let guardianName = '';
+            try {
+                const ci = typeof s.custom_info === 'string' ? JSON.parse(s.custom_info) : (s.custom_info || {});
+                guardianName = ci.guardian_name || ci.father_name || ci.parent_name || ci.mother_name || ci.field_0 || '';
+            } catch(e) {}
+            if (!guardianName) guardianName = s['اسم ولي الأمر'] || s['ولي الأمر'] || '';
             document.getElementById('studentDetails').innerHTML = `
         <div style="text-align:center;margin-bottom:20px;">
             <div style="width:90px;height:90px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;margin:0 auto 12px;border:3px solid var(--primary);overflow:hidden;">
@@ -13135,6 +13274,8 @@
             <div class="info-box"><small>رقم الهاتف</small><div>${s['رقم التليفون'] || '---'}</div></div>
             <div class="info-box"><small>هاتف الطوارئ</small><div>${emergPhone || '---'}</div></div>
             <div class="info-box"><small>تاريخ الميلاد</small><div>${s['عيد الميلاد'] || '---'}</div></div>
+            <div class="info-box"><small>ولي الأمر</small><div>${escHtml(guardianName || '---')}</div></div>
+            <div class="info-box"><small>العنوان</small><div>${escHtml(address || '---')}</div></div>
             <div class="info-box"><small>الكوبونات</small><div style="color:var(--warning);font-size:1.2rem;">${s['كوبونات'] || 0}</div></div>
         </div>
         ${medNotes ? `<div style="background:var(--warning-light);color:#92400e;padding:12px;border-radius:10px;margin-bottom:16px;font-size:0.88rem;"><i class="fas fa-notes-medical"></i> <strong>ملاحظات طبية:</strong> ${medNotes}</div>` : ''}
@@ -13325,9 +13466,9 @@
                         document.getElementById('dashboardGuestClassCustom').style.display = 'none';
                         document.getElementById('dashboardGuestClassCustom').value = '';
                         document.getElementById('addGuestSubmitBtn').innerHTML = '<i class="fas fa-plus"></i> إضافة الزائر';
-                        document.getElementById('addGuestToggleLbl').textContent = 'إضافة زائر';
-                        document.getElementById('addGuestFormWrap').style.display = 'none';
+                         document.getElementById('addGuestFormWrap').style.display = 'none';
                         document.getElementById('addGuestChevron').className = 'fas fa-plus';
+                        closeAllMobileAddModals();
                         loadGuests();
                     } else {
                         showToast(d.message || 'خطأ في حفظ الزائر', 'error');
@@ -15209,6 +15350,7 @@
                 const tl = document.getElementById('addTripToggleLbl');
                 if (ti) ti.className = 'fas fa-plus';
                 if (tl) tl.textContent = 'رحلة جديدة';
+                closeAllMobileAddModals();
 
                 await loadTrips();
 
@@ -17825,7 +17967,20 @@
             document.body.appendChild(wrap);
             loadClassesForDropdown('editStudentClass', s.class_id);
             const editCustomInfo = parseJSON(s.custom_info || '') || {};
-            document.getElementById('editStudentGuardianName').value = editCustomInfo.guardian_name || editCustomInfo.father_name || editCustomInfo.parent_name || editCustomInfo.mother_name || '';
+            let resolvedGuardian = editCustomInfo.guardian_name || editCustomInfo.father_name || editCustomInfo.parent_name || editCustomInfo.mother_name || '';
+            if (!resolvedGuardian && window._currentCustomFields && window._currentCustomFields.length) {
+                const guardianField = window._currentCustomFields.find(f => {
+                    const n = (f.name || '').trim();
+                    return n === 'اسم ولي الأمر' || n === 'ولي الأمر' || n === 'اسم الأب';
+                });
+                if (guardianField && editCustomInfo[guardianField.key]) {
+                    resolvedGuardian = editCustomInfo[guardianField.key];
+                }
+            }
+            if (!resolvedGuardian) {
+                resolvedGuardian = editCustomInfo.field_0 || '';
+            }
+            document.getElementById('editStudentGuardianName').value = resolvedGuardian;
             document.getElementById('editStudentFamilyStatus').value = editCustomInfo.sibling_group ? `${editCustomInfo.sibling_group.label || 'مجموعة أخوة'} (${editCustomInfo.sibling_group.status || 'قيد المراجعة'})` : '';
             document.getElementById('editStudentCustomInfo').value = s.custom_info || '';
             document.getElementById('editStudentModal').addEventListener('click', e => { if (e.target === document.getElementById('editStudentModal')) document.getElementById('editStudentModal').remove(); });
@@ -17855,7 +18010,22 @@
             const rawCustomInfo = document.getElementById('editStudentCustomInfo')?.value || '';
             const customInfo = parseJSON(rawCustomInfo) || {};
             const guardianName = document.getElementById('editStudentGuardianName')?.value.trim();
-            if (guardianName) customInfo.guardian_name = guardianName;
+            if (guardianName) {
+                customInfo.guardian_name = guardianName;
+                if (window._currentCustomFields && window._currentCustomFields.length) {
+                    const guardianField = window._currentCustomFields.find(f => {
+                        const n = (f.name || '').trim();
+                        return n === 'اسم ولي الأمر' || n === 'ولي الأمر' || n === 'اسم الأب';
+                    });
+                    if (guardianField) {
+                        customInfo[guardianField.key] = guardianName;
+                    } else {
+                        customInfo['field_0'] = guardianName;
+                    }
+                } else {
+                    customInfo['field_0'] = guardianName;
+                }
+            }
             fd.append('custom_info', JSON.stringify(customInfo));
             fd.append('medical_notes', document.getElementById('editStudentMedicalNotes').value);
             const img = document.getElementById('editStudentImage').files[0];
@@ -20748,9 +20918,10 @@
 
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
 
-            if (d.success) {
+             if (d.success) {
                 showToast('تم إضافة الخادم بنجاح ✅', 'success');
                 document.getElementById('addUncleForm').reset();
+                closeAllMobileAddModals();
                 document.getElementById('uncleUsernameStatus').textContent = '';
                 document.getElementById('uncleUsernameHint').textContent = 'يُستخدم لتسجيل الدخول — لا يمكن تكراره';
                 document.getElementById('uncleUsernameHint').style.color = 'var(--muted)';
