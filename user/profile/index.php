@@ -2798,6 +2798,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       border: none;
       box-shadow: var(--sh-brand);
       transition: all var(--fast);
+      background: var(--brand) !important;
+      color: #fff !important;
     }
 
     .no-profile a.btn:hover {
@@ -4190,7 +4192,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       }
     }
 
+    .sidebar-desktop {
+      display: contents;
+    }
+
     @media (min-width: 900px) {
+      .sidebar-desktop {
+        grid-column: 1;
+        grid-row: 1 / 3;
+        display: flex !important;
+        flex-direction: column !important;
+        background: var(--surf) !important;
+        border-left: 1px solid var(--bdr2) !important;
+        position: sticky !important;
+        top: 0;
+        height: 100vh !important;
+        overflow-y: auto;
+        z-index: 500;
+        box-sizing: border-box !important;
+      }
+
       /* Main side-by-side grid layout */
       body {
         display: grid;
@@ -4202,16 +4223,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         margin: 0;
       }
 
-      /* Sticky Right Sidebar (holds Profile and Converted Nav) */
+      /* Hero panel inside sticky desktop sidebar */
       .hero {
-        grid-column: 1;
-        grid-row: 1;
         display: flex !important; /* Keep it always visible on desktop */
         flex-direction: column !important;
         align-items: center !important;
-        background: var(--surf) !important;
-        border-bottom: 1px solid var(--bdr2) !important;
-        border-left: 1px solid var(--bdr2) !important;
+        background: transparent !important;
+        border: none !important;
         padding: 40px 24px 20px !important;
         height: auto !important;
         min-height: auto !important;
@@ -4219,6 +4237,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         border-radius: 0 !important;
         position: static !important;
         background-image: none !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
       }
 
       .hero::before {
@@ -4245,24 +4265,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         color: var(--brand) !important;
       }
 
-      /* Converted Bottom Navigation Sidebar */
+      /* Converted Bottom Navigation Sidebar inside desktop sidebar wrapper */
       .bottom-nav {
-        grid-column: 1;
-        grid-row: 2;
-        position: sticky !important;
-        top: 0;
-        height: calc(100vh - 260px) !important;
-        width: 280px !important;
-        background: var(--surf) !important;
-        border-top: none !important;
-        border-left: 1px solid var(--bdr2) !important;
+        position: static !important;
+        height: auto !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        background: transparent !important;
+        border: none !important;
         box-shadow: none !important;
         display: flex !important;
         flex-direction: column !important;
         justify-content: flex-start !important;
         align-items: stretch !important;
-        padding: 20px 16px !important;
-        z-index: 490;
+        padding: 10px 16px 40px !important;
+        z-index: auto !important;
       }
 
       .bottom-nav-item {
@@ -4339,9 +4356,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         max-width: 960px !important;
         width: calc(100% - 64px) !important;
         box-shadow: var(--sh-sm) !important;
-        border-radius: var(--radius-lg) !important;
+        border-radius: var(--r-lg) !important;
         background: var(--surf) !important;
         border: 1px solid var(--bdr2) !important;
+        align-self: start !important;
+        grid-template-columns: repeat(4, 1fr) !important;
       }
 
       /* Hide app download floating / top buttons and place in profile */
@@ -4358,6 +4377,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         background: var(--brand-bg) !important;
         color: var(--brand) !important;
       }
+
+      /* Desktop premium styling for coupon hero card */
+      .coupon-hero {
+        background: linear-gradient(135deg, var(--brand), var(--cou)) !important;
+        border: none !important;
+        box-shadow: var(--sh-brand) !important;
+        width: calc(100% - 32px) !important;
+        margin: 20px auto 0 !important;
+        border-radius: var(--r-lg) !important;
+      }
+      .ch-total-label {
+        color: rgba(255, 255, 255, 0.85) !important;
+      }
+      .ch-total-val {
+        color: #fff !important;
+      }
+      .ch-total-unit {
+        color: rgba(255, 255, 255, 0.9) !important;
+      }
+      .ch-row {
+        background: rgba(255, 255, 255, 0.15) !important;
+        color: #fff !important;
+      }
     }
   </style>
   <script src="/js/og-meta.js"></script>
@@ -4371,57 +4413,88 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
   <div id="tempIdAssignContainer" style="display:none; padding:20px; max-width:600px; margin:0 auto; direction:rtl; text-align:right; font-family:'Baloo Bhaijaan 2', sans-serif;"></div>
 
-  <!-- ══ HERO ══ -->
-  <div class="hero" id="hero" style="display:none">
-    <div class="hero-top">
-      <div class="hero-church-chip" id="churchChip" style="display:none">
-        <i class="fas fa-church"></i><span id="churchName"></span>
-      </div>
-      <div class="hero-actions-top">
-        <div class="hero-ico-btn" id="topbarDownloadBtn" style="display:none" onclick="triggerPwaInstall()"
-          title="تنزيل التطبيق"><i class="fas fa-download"></i></div>
-        <div class="hero-ico-btn" id="notifBtnTop" style="display:none; position:relative;" onclick="openOv('notifOv')"
-          title="الإشعارات">
-          <i class="fas fa-bell"></i>
-          <span id="notifBadgeTop"
-            style="display:none; position:absolute; top:-4px; right:-4px; min-width:16px; height:16px; padding:0 4px; background:var(--err); color:#fff; font-size:.62rem; font-weight:800; border-radius:10px; display:flex; align-items:center; justify-content:center; border:1.5px solid #fff; box-sizing:border-box;">0</span>
+  <!-- ══ SIDEBAR (DESKTOP) ══ -->
+  <aside class="sidebar-desktop" id="sidebarDesktop">
+    <!-- ══ HERO ══ -->
+    <div class="hero" id="hero" style="display:none">
+      <div class="hero-top">
+        <div class="hero-church-chip" id="churchChip" style="display:none">
+          <i class="fas fa-church"></i><span id="churchName"></span>
         </div>
-        <div class="hero-ico-btn" id="switchBtnTop" style="display:none" onclick="openOv('switchOv')"
-          title="تبديل الحساب"><i class="fas fa-exchange-alt"></i></div>
-        <div class="hero-ico-btn" id="settingsTop" style="display:none" onclick="openOv('settingsOv')"
-          title="الإعدادات"><i class="fas fa-cog"></i></div>
-      </div>
-    </div>
-    <div class="hero-body">
-      <div style="position:relative; display:inline-block;">
-        <div class="avatar-ring" id="avatarRing">
-          <div class="avatar-inner" id="avatarInner"><i class="fas fa-user"></i></div>
-          <div class="avatar-edit-fab" id="avatarEdit" onclick="openOv('photoOv')"><i class="fas fa-camera"></i></div>
+        <div class="hero-actions-top">
+          <div class="hero-ico-btn" id="topbarDownloadBtn" style="display:none" onclick="triggerPwaInstall()"
+            title="تنزيل التطبيق"><i class="fas fa-download"></i></div>
+          <div class="hero-ico-btn" id="notifBtnTop" style="display:none; position:relative;" onclick="openOv('notifOv')"
+            title="الإشعارات">
+            <i class="fas fa-bell"></i>
+            <span id="notifBadgeTop"
+              style="display:none; position:absolute; top:-4px; right:-4px; min-width:16px; height:16px; padding:0 4px; background:var(--err); color:#fff; font-size:.62rem; font-weight:800; border-radius:10px; display:flex; align-items:center; justify-content:center; border:1.5px solid #fff; box-sizing:border-box;">0</span>
+          </div>
+          <div class="hero-ico-btn" id="switchBtnTop" style="display:none" onclick="openOv('switchOv')"
+            title="تبديل الحساب"><i class="fas fa-exchange-alt"></i></div>
+          <div class="hero-ico-btn" id="settingsTop" style="display:none" onclick="openOv('settingsOv')"
+            title="الإعدادات"><i class="fas fa-cog"></i></div>
         </div>
-        <button type="button" id="deleteStudentPhotoBtn" onclick="deleteStudentPhoto(event)" style="display:none; position:absolute; top:-4px; right:-4px; background:var(--err); color:white; border:none; border-radius:50%; width:28px; height:28px; cursor:pointer; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;"><i class="fas fa-trash-alt" style="font-size:0.8rem;"></i></button>
       </div>
-      <div class="hero-name" id="heroName">—</div>
-      <div class="hero-tags" id="heroTags">
-        <span class="htag class-tag" id="heroClass"><i class="fas fa-graduation-cap"></i><span
-            id="heroClassTxt">—</span></span>
-        <div class="uncle-strip" id="uncleStrip" style="display:none"></div>
+      <div class="hero-body">
+        <div style="position:relative; display:inline-block;">
+          <div class="avatar-ring" id="avatarRing">
+            <div class="avatar-inner" id="avatarInner"><i class="fas fa-user"></i></div>
+            <div class="avatar-edit-fab" id="avatarEdit" onclick="openOv('photoOv')"><i class="fas fa-camera"></i></div>
+          </div>
+          <button type="button" id="deleteStudentPhotoBtn" onclick="deleteStudentPhoto(event)" style="display:none; position:absolute; top:-4px; right:-4px; background:var(--err); color:white; border:none; border-radius:50%; width:28px; height:28px; cursor:pointer; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;"><i class="fas fa-trash-alt" style="font-size:0.8rem;"></i></button>
+        </div>
+        <div class="hero-name" id="heroName">—</div>
+        <div class="hero-tags" id="heroTags">
+          <span class="htag class-tag" id="heroClass"><i class="fas fa-graduation-cap"></i><span
+              id="heroClassTxt">—</span></span>
+          <div class="uncle-strip" id="uncleStrip" style="display:none"></div>
+        </div>
+        <button class="birthday-greeting-btn" id="birthdayGreetingBtn" type="button" onclick="openBirthdayGreeting()">
+          <i class="fas fa-cake-candles"></i>
+          <span>صورة عيد الميلاد</span>
+        </button>
       </div>
-      <button class="birthday-greeting-btn" id="birthdayGreetingBtn" type="button" onclick="openBirthdayGreeting()">
-        <i class="fas fa-cake-candles"></i>
-        <span>صورة عيد الميلاد</span>
-      </button>
+      <!-- Coupon hero card (private only) -->
+      <div class="coupon-hero" id="couponHero" style="display:none">
+        <div>
+          <div class="ch-total-label"><i class="fas fa-star"></i> <span>إجمالي كوبوناتك</span></div>
+          <div class="ch-total-val" id="chTotal">0</div>
+          <div class="ch-total-unit">كوبون</div>
+        </div>
+        <div class="ch-breakdown" id="chBreakdown"></div>
+      </div>
+      <div class="hero-wave"></div>
     </div>
-    <!-- Coupon hero card (private only) -->
-    <div class="coupon-hero" id="couponHero" style="display:none">
-      <div>
-        <div class="ch-total-label"><i class="fas fa-star"></i> <span>إجمالي كوبوناتك</span></div>
-        <div class="ch-total-val" id="chTotal">0</div>
-        <div class="ch-total-unit">كوبون</div>
+
+    <!-- Converted bottom-nav placed inside sidebar-desktop -->
+    <nav class="bottom-nav" id="bottomNavBar" style="display:none;">
+      <div class="bottom-nav-item active" data-tab="home" onclick="switchTab('home')">
+        <i class="fas fa-home"></i>
+        <span>الرئيسية</span>
       </div>
-      <div class="ch-breakdown" id="chBreakdown"></div>
-    </div>
-    <div class="hero-wave"></div>
-  </div>
+      <div class="bottom-nav-item" data-tab="attendance" onclick="switchTab('attendance')">
+        <i class="fas fa-calendar-check"></i>
+        <span>الحضور</span>
+      </div>
+      <div class="bottom-nav-item center-fab" data-tab="send" onclick="switchTab('send')">
+        <div class="fab-btn">
+          <i class="fas fa-star"></i>
+        </div>
+        <span>إرسال</span>
+      </div>
+      <div class="bottom-nav-item" data-tab="tasks" onclick="switchTab('tasks')" style="position: relative;">
+        <i class="fas fa-tasks"></i>
+        <span>المهام</span>
+        <span id="tasksBadge"
+          style="display:none; position:absolute; top:6px; right:calc(50% - 18px); width:8px; height:8px; background:var(--err); border-radius:50%; border:1px solid #fff;"></span>
+      </div>
+      <div class="bottom-nav-item" data-tab="family" onclick="switchTab('family')">
+        <i class="fas fa-comments"></i>
+        <span>التواصل</span>
+      </div>
+    </nav>
+  </aside>
 
   <!-- stats bar -->
   <div class="stats-bar" id="statsBar" style="display:none">
@@ -5164,33 +5237,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
   </div>
 
 
-  <!-- Bottom Mobile Navigation Bar -->
-  <nav class="bottom-nav" id="bottomNavBar" style="display:none;">
-    <div class="bottom-nav-item active" data-tab="home" onclick="switchTab('home')">
-      <i class="fas fa-home"></i>
-      <span>الرئيسية</span>
-    </div>
-    <div class="bottom-nav-item" data-tab="attendance" onclick="switchTab('attendance')">
-      <i class="fas fa-calendar-check"></i>
-      <span>الحضور</span>
-    </div>
-    <div class="bottom-nav-item center-fab" data-tab="send" onclick="switchTab('send')">
-      <div class="fab-btn">
-        <i class="fas fa-star"></i>
-      </div>
-      <span>إرسال</span>
-    </div>
-    <div class="bottom-nav-item" data-tab="tasks" onclick="switchTab('tasks')" style="position: relative;">
-      <i class="fas fa-tasks"></i>
-      <span>المهام</span>
-      <span id="tasksBadge"
-        style="display:none; position:absolute; top:6px; right:calc(50% - 18px); width:8px; height:8px; background:var(--err); border-radius:50%; border:1px solid #fff;"></span>
-    </div>
-    <div class="bottom-nav-item" data-tab="family" onclick="switchTab('family')">
-      <i class="fas fa-comments"></i>
-      <span>التواصل</span>
-    </div>
-  </nav>
+  <!-- Bottom Mobile Navigation Bar was moved inside sidebar wrapper -->
 
   <!-- Notifications Drawer -->
   <div class="overlay settings-overlay" id="notifOv">
@@ -8705,7 +8752,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           if (statsBar) statsBar.style.setProperty('display', 'grid', 'important');
         }
         const activeStudent = student || _myStudent;
-        if (pPicBanner && activeStudent && !activeStudent.image_url && isPrivate && localStorage.getItem('dismissProfilePicSuggestion') !== 'true') {
+        if (pPicBanner && activeStudent && !activeStudent.image_url && !isViewingOther() && localStorage.getItem('dismissProfilePicSuggestion') !== 'true') {
           pPicBanner.style.display = 'flex';
         }
       } else if (tabName === 'attendance') {
