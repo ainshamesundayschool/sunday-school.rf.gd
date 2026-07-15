@@ -190,6 +190,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       overflow: visible;
     }
 
+    html {
+      scrollbar-gutter: stable;
+    }
+
     body {
       font-family: 'Baloo Bhaijaan 2', sans-serif;
       background: var(--bg);
@@ -4192,7 +4196,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       }
     }
 
-    .sidebar-desktop {
+    .sidebar-desktop,
+    .main-content-desktop {
       display: contents;
     }
 
@@ -4288,7 +4293,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         align-items: center !important;
         gap: 12px !important;
         padding: 12px 18px !important;
-        border-radius: var(--radius-sm) !important;
+        border-radius: var(--r-md) !important;
         height: auto !important;
         flex: 0 0 auto !important;
         margin-bottom: 6px !important;
@@ -4336,36 +4341,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         transform: none !important;
       }
 
-      /* Main Page Content Container */
-      .page {
+      /* Main Content Desktop Wrapper */
+      .main-content-desktop {
         grid-column: 2;
-        grid-row: 2;
-        padding: 24px 32px 80px !important;
-        max-width: 960px !important;
-        margin: 0 !important;
+        grid-row: 1 / 3;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
         width: 100% !important;
         box-sizing: border-box !important;
+        padding: 40px 32px 80px !important;
+        max-width: 1000px !important;
+        margin: 0 auto !important;
+        min-height: 100vh !important;
+      }
+
+      /* Main Page Content Container */
+      .page {
+        width: 100% !important;
+        max-width: 960px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+        flex: 1 !important;
+        display: flex !important;
+        flex-direction: column !important;
       }
 
       /* Stats bar placed horizontally at the top of page content */
       .stats-bar {
-        grid-column: 2;
-        grid-row: 1;
-        position: relative !important;
-        margin: 40px 32px 0px !important;
+        width: 100% !important;
         max-width: 960px !important;
-        width: calc(100% - 64px) !important;
+        margin: 0 0 24px 0 !important;
         box-shadow: var(--sh-sm) !important;
         border-radius: var(--r-lg) !important;
         background: var(--surf) !important;
         border: 1px solid var(--bdr2) !important;
-        align-self: start !important;
+        align-self: stretch !important;
         grid-template-columns: repeat(4, 1fr) !important;
+        position: relative !important;
+      }
+
+      /* Desktop hero-top elements stacked vertically to prevent clipping */
+      .hero-top {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 12px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        padding: 0 16px !important;
+      }
+
+      .hero-church-chip {
+        background: var(--brand-bg) !important;
+        color: var(--brand) !important;
+        border: 1px solid rgba(79, 70, 229, 0.15) !important;
+        max-width: none !important;
+        width: fit-content !important;
       }
 
       /* Hide app download floating / top buttons and place in profile */
       .hero-actions-top {
-        margin-top: 14px !important;
+        margin-top: 0 !important;
         gap: 12px !important;
       }
       .hero-ico-btn {
@@ -4386,6 +4424,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         width: calc(100% - 32px) !important;
         margin: 20px auto 0 !important;
         border-radius: var(--r-lg) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        gap: 12px !important;
+        padding: 20px 16px !important;
+      }
+      .ch-breakdown {
+        width: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
       }
       .ch-total-label {
         color: rgba(255, 255, 255, 0.85) !important;
@@ -4496,8 +4546,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     </nav>
   </aside>
 
-  <!-- stats bar -->
-  <div class="stats-bar" id="statsBar" style="display:none">
+  <div class="main-content-desktop" id="mainContentDesktop">
+    <!-- stats bar -->
+    <div class="stats-bar" id="statsBar" style="display:none">
     <div class="sb-cell ok">
       <div style="display:flex; align-items:center; justify-content:center; gap:6px;">
         <i class="fas fa-check-circle" style="font-size:1.05rem; color:var(--ok-l);"></i>
@@ -4883,11 +4934,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
 
 
-    <div style="text-align:center;padding:18px 0 0;font-size:.72rem;color:var(--t4);">
+    <div style="text-align:center;padding:18px 0 0;font-size:.72rem;color:var(--t4);margin-top:auto !important;">
       <span style="font-weight:700;">Sunday School 2026</span><br>
       <!-- مُكْثِرِينَ فِي عَمَلِ الرَّبِّ كُلَّ حِينٍ-->
     </div>
   </div>
+</div>
 
   <div class="no-profile" id="noProfile" style="display:none">
     <i class="fas fa-user-slash"></i>
