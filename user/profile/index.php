@@ -4239,7 +4239,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       /* Main side-by-side grid layout */
       body {
         display: grid;
-        grid-template-columns: 320px 1fr;
+        grid-template-columns: 360px 1fr;
         grid-template-rows: auto 1fr;
         min-height: 100vh;
         background: var(--bg);
@@ -4252,10 +4252,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         display: flex !important;
         flex-direction: column !important;
         align-items: center !important;
+        justify-content: center !important;
         text-align: center !important;
         background: transparent !important;
         border: none !important;
-        padding: 40px 24px 30px !important;
+        padding: 40px 28px 30px !important;
         height: auto !important;
         min-height: auto !important;
         box-shadow: none !important;
@@ -4339,18 +4340,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         color: #fff !important;
       }
 
+      /* Send tab: hide the fab-btn wrapper on desktop — use normal pill styling */
       .bottom-nav-item.center-fab {
-        padding-bottom: 0 !important;
+        padding: 10px 20px !important;
+        padding-bottom: 10px !important;
         order: 0 !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 8px !important;
+        position: static !important;
       }
 
+      /* Hide the circular fab-btn wrapper, show its icon inline */
       .fab-btn {
         display: contents !important;
+        width: auto !important;
+        height: auto !important;
+        background: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        transform: none !important;
       }
 
       .fab-btn i {
         font-size: 1.15rem !important;
         color: inherit !important;
+      }
+
+      /* Show the إرسال label next to the icon */
+      .bottom-nav-item.center-fab > span {
+        display: inline !important;
+        font-size: 0.95rem !important;
+        font-weight: 700 !important;
       }
 
       .bottom-nav-item.center-fab:hover .fab-btn {
@@ -4433,7 +4455,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         color: #fff !important;
       }
 
-      /* Desktop premium styling for coupon hero card */
+      /* Desktop coupon-hero: use horizontal grid layout same as mobile */
       .coupon-hero {
         background: rgba(255, 255, 255, .1) !important;
         backdrop-filter: blur(14px) !important;
@@ -4442,18 +4464,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         width: calc(100% - 32px) !important;
         margin: 20px auto 0 !important;
         border-radius: var(--r-lg) !important;
-        display: flex !important;
-        flex-direction: column !important;
+        display: grid !important;
+        grid-template-columns: 1fr auto !important;
         align-items: center !important;
-        text-align: center !important;
-        gap: 12px !important;
-        padding: 20px 16px !important;
+        text-align: right !important;
+        gap: 16px !important;
+        padding: 18px 20px 16px !important;
       }
       .ch-breakdown {
-        width: 100% !important;
         display: flex !important;
         flex-direction: column !important;
-        align-items: center !important;
+        gap: 5px !important;
+        align-items: flex-start !important;
       }
       .ch-total-label {
         color: rgba(255, 255, 255, 0.85) !important;
