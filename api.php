@@ -5311,6 +5311,14 @@ try {
 
 
 
+        case 'getPublicClassMembers':
+
+            getPublicClassMembers();
+
+            break;
+
+
+
         case 'debugKidProfile':
 
             debugKidProfile();
@@ -43570,6 +43578,98 @@ function getPublicClassUncles()
     } catch (Exception $e) {
 
         sendJSON(['success' => true, 'uncles' => []]);
+
+    }
+
+}
+
+
+
+// ─── getPublicClassMembers (no auth — by church_id + class_name / class_id) ───
+
+function getPublicClassMembers()
+
+{
+
+    try {
+
+        $conn = getDBConnection();
+
+        $churchId = (int) ($_POST['church_id'] ?? $_GET['church_id'] ?? 0);
+
+        $className = sanitize($_POST['class_name'] ?? $_GET['class_name'] ?? '');
+
+        $classId = (int) ($_POST['class_id'] ?? $_GET['class_id'] ?? 0);
+
+
+
+        if (!$churchId) {
+
+            sendJSON(['success' => true, 'members' => []]);
+
+            return;
+
+        }
+
+
+
+        // Resolve class name if not present
+
+        if (empty($className) && $classId > 0) {
+
+            $nStmt = $conn->prepare("SELECT arabic_name FROM church_classes WHERE id=? AND church_id=? LIMIT 1");
+
+            $nStmt->bind_param('ii', $classId, $churchId);
+
+            $nStmt->execute();
+
+            $nRow = $nStmt->get_result()->fetch_assoc();
+
+            if ($nRow) {
+
+                $className = $nRow['arabic_name'];
+
+            }
+
+        }
+
+
+
+        if (empty($className)) {
+
+            sendJSON(['success' => true, 'members' => []]);
+
+            return;
+
+        }
+
+
+
+        $stmt = $conn->prepare("
+
+            SELECT id, name, image_url, class, class_id, coupons
+
+            FROM students
+
+            WHERE church_id = ? AND (class = ? OR class_id = ?)
+
+            ORDER BY name
+
+        ");
+
+        $stmt->bind_param('isi', $churchId, $className, $classId);
+
+        $stmt->execute();
+
+        $members = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+
+
+        sendJSON(['success' => true, 'members' => $members]);
+
+    } catch (Exception $e) {
+
+        sendJSON(['success' => true, 'members' => []]);
 
     }
 

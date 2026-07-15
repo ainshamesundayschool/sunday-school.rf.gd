@@ -7069,6 +7069,8 @@ button, input, select, textarea, a {
 
   .hero, .step1-grid, .detail-columns, .detail-overview { grid-template-columns: 1fr; }
 
+  .page { margin-top: 15px !important; padding-top: 20px !important; }
+
 
 
   .hero-side, .field-grid, .timer-grid, .preset-grid, .tmeta, .tinfo-grid { grid-template-columns: 1fr 1fr; }

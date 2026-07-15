@@ -105,6 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     .view-other-mode #scAnn,
     .view-other-mode #scSiblings,
     .view-other-mode #scUncles,
+    .view-other-mode #scClassFriends,
     .view-other-mode #scTasks,
     .view-other-mode #scPaperExams,
     .view-other-mode .stats-bar {
@@ -4233,41 +4234,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         display: flex !important; /* Keep it always visible on desktop */
         flex-direction: column !important;
         align-items: center !important;
-        background: transparent !important;
         border: none !important;
-        padding: 40px 24px 20px !important;
+        padding: 40px 24px 30px !important;
         height: auto !important;
         min-height: auto !important;
         box-shadow: none !important;
         border-radius: 0 !important;
-        position: static !important;
-        background-image: none !important;
+        position: relative !important;
         width: 100% !important;
         box-sizing: border-box !important;
       }
 
-      .hero::before {
-        display: none !important;
-      }
-      .hero::after {
-        display: none !important;
-      }
-
-      /* Hide wave on desktop hero */
-      .hero-wave {
-        display: none !important;
-      }
-
       /* Adjust text colors in sidebar profile */
       .hero-name {
-        color: var(--t1) !important;
+        color: #fff !important;
         font-size: 1.15rem !important;
         margin-top: 12px !important;
-      }
-      
-      .hero-tags .htag.class-tag {
-        background: var(--brand-bg) !important;
-        color: var(--brand) !important;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, .2) !important;
       }
 
       /* Converted Bottom Navigation Sidebar inside desktop sidebar wrapper */
@@ -4418,9 +4401,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
       /* Desktop premium styling for coupon hero card */
       .coupon-hero {
-        background: linear-gradient(135deg, var(--brand), var(--cou)) !important;
-        border: none !important;
-        box-shadow: var(--sh-brand) !important;
+        background: rgba(255, 255, 255, .1) !important;
+        backdrop-filter: blur(14px) !important;
+        border: 1px solid rgba(255, 255, 255, .22) !important;
+        box-shadow: none !important;
         width: calc(100% - 32px) !important;
         margin: 20px auto 0 !important;
         border-radius: var(--r-lg) !important;
@@ -4928,6 +4912,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       </div>
       <div class="sc-body">
         <div id="uncleCardGrid"
+          style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:14px;"></div>
+      </div>
+    </div>
+
+    <!-- Class Friends section -->
+    <div class="sc" id="scClassFriends" style="display:none;">
+      <div class="sc-head">
+        <div class="sc-ico" style="background:var(--ok-bg);color:var(--ok);"><i class="fas fa-user-friends"></i></div>
+        <div class="sc-label">
+          <div class="sc-title">أصدقائي في الفصل</div>
+          <div class="sc-sub" id="friendsSub">زملاء فصلك بمدارس الأحد</div>
+        </div>
+      </div>
+      <div class="sc-body">
+        <div id="friendsCardGrid"
           style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:14px;"></div>
       </div>
     </div>
@@ -8788,6 +8787,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       if (scTrips) scTrips.style.display = 'none';
       if (scUncles) scUncles.style.display = 'none';
       if (scSiblings) scSiblings.style.display = 'none';
+      const scClassFriends = document.getElementById('scClassFriends');
+      if (scClassFriends) scClassFriends.style.display = 'none';
       if (scSendCoupons) scSendCoupons.style.display = 'none';
       if (scPaperExams) scPaperExams.style.display = 'none';
 
@@ -8839,6 +8840,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         if (classUncles && classUncles.length && scUncles) {
           scUncles.style.display = 'block';
         }
+        loadClassFriends();
         if (!IS_PUBLIC && homeSearchBar) {
           homeSearchBar.style.display = 'block';
         }
@@ -9183,6 +9185,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       } catch (e) {
         hasSiblingsLoaded = false;
         if (scSiblings) scSiblings.style.display = 'none';
+      }
+    }
+
+    async function loadClassFriends() {
+      const container = document.getElementById('friendsCardGrid');
+      const scClassFriends = document.getElementById('scClassFriends');
+      if (!container || !scClassFriends) return;
+      if (!student || !student.church_id || (!student.class && !student.class_id)) {
+        scClassFriends.style.display = 'none';
+        return;
+      }
+      try {
+        const d = await api({
+          action: 'getPublicClassMembers',
+          church_id: student.church_id,
+          class_name: student.class || '',
+          class_id: student.class_id || 0
+        });
+        if (d.success && d.members && d.members.length > 0) {
+          const others = d.members.filter(s => s.id != student.id);
+          if (others.length === 0) {
+            scClassFriends.style.display = 'none';
+            return;
+          }
+          container.innerHTML = others.map(s => {
+            const photo = s.image_url
+              ? `<img src="${esc(s.image_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:var(--r-md);" alt="${esc(s.name)}">`
+              : `<i class="fas fa-user" style="font-size:1.8rem;color:var(--t4);"></i>`;
+            return `
+              <div class="sibling-card" onclick="openFriendProfile(${s.id})" style="background:var(--surf);border:1.5px solid var(--bdr);border-radius:var(--r-md);padding:14px 10px;text-align:center;cursor:pointer;transition:all var(--fast);display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:var(--sh-sm);">
+                <div style="width:56px;height:56px;border-radius:var(--r-md);background:var(--bg);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">
+                  ${photo}
+                </div>
+                <div style="font-size:.82rem;font-weight:800;color:var(--t1);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;" title="${esc(s.name)}">${esc(s.name)}</div>
+                <div style="font-size:.68rem;color:var(--t4);font-weight:700;">${esc(s.class || '—')}</div>
+                <div style="display:inline-flex;align-items:center;gap:4px;background:var(--brand-bg);color:var(--brand);padding:2px 8px;border-radius:99px;font-size:.7rem;font-weight:800;">
+                  <i class="fas fa-star" style="font-size:.65rem;"></i> ${s.coupons || 0}
+                </div>
+              </div>
+            `;
+          }).join('');
+          scClassFriends.style.display = 'block';
+        } else {
+          scClassFriends.style.display = 'none';
+        }
+      } catch (e) {
+        scClassFriends.style.display = 'none';
       }
     }
 
