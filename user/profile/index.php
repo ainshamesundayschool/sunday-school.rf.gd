@@ -4197,6 +4197,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       }
     }
 
+    /* Glassmorphic styling for info inside hero (mobile & desktop) */
+    .hero #scInfo {
+      background: rgba(255, 255, 255, 0.1) !important;
+      backdrop-filter: blur(14px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.22) !important;
+      border-radius: var(--r-xl) !important;
+      box-shadow: none !important;
+      margin: 20px auto 0 !important;
+      width: calc(100% - 32px) !important;
+      box-sizing: border-box !important;
+      padding: 16px 20px !important;
+    }
+    
+    .hero #scInfo .sc-head {
+      margin-bottom: 12px !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+      padding-bottom: 8px !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 10px !important;
+    }
+    
+    .hero #scInfo .sc-ico {
+      background: rgba(255, 255, 255, 0.15) !important;
+      color: #fff !important;
+      width: 30px !important;
+      height: 30px !important;
+      border-radius: var(--r-xs) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-size: .85rem !important;
+    }
+    
+    .hero #scInfo .sc-title {
+      color: #fff !important;
+      font-weight: 800 !important;
+      font-size: 0.88rem !important;
+    }
+    
+    .hero #scInfo .ip {
+      background: rgba(255, 255, 255, 0.08) !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      transition: all var(--fast) !important;
+    }
+    
+    .hero #scInfo .ip:hover {
+      background: rgba(255, 255, 255, 0.16) !important;
+      border-color: rgba(255, 255, 255, 0.25) !important;
+      transform: translateY(-1px) !important;
+    }
+    
+    .hero #scInfo .ip-ico {
+      background: rgba(255, 255, 255, 0.15) !important;
+      color: #fff !important;
+    }
+    
+    .hero #scInfo .ip-lbl {
+      color: rgba(255, 255, 255, 0.75) !important;
+    }
+    
+    .hero #scInfo .ip-val {
+      color: #fff !important;
+    }
+
     .sidebar-desktop,
     .main-content-desktop {
       display: contents;
@@ -4214,8 +4279,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         border-radius: var(--r-xl) !important;
         position: sticky !important;
         top: 24px !important;
-        height: calc(100vh - 48px) !important;
-        margin: 24px 24px 24px 0 !important;
+        height: fit-content !important;
+        margin: 24px 24px 24px 12px !important;
         overflow-y: auto;
         z-index: 500;
         box-sizing: border-box !important;
@@ -4240,8 +4305,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       /* Main side-by-side grid layout */
       body {
         display: grid;
-        grid-template-columns: 380px 1fr;
+        grid-template-columns: 380px minmax(auto, 1000px);
         grid-template-rows: auto 1fr;
+        justify-content: center;
         min-height: 100vh;
         background: var(--bg);
         direction: rtl;
@@ -4272,7 +4338,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       .avatar-ring    { animation: fadeUp 0.5s var(--spring) 0.2s  both !important; }
       .hero-name      { animation: fadeUp 0.5s var(--spring) 0.3s  both !important; }
       .hero-tags      { animation: fadeUp 0.5s var(--spring) 0.35s both !important; }
+      #scInfo         { animation: fadeUp 0.5s var(--spring) 0.4s  both !important; }
       .coupon-hero    { animation: fadeUp 0.5s var(--spring) 0.45s both !important; }
+
+      /* Always show personal info in sidebar on desktop view */
+      .hero #scInfo {
+        display: block !important;
+      }
 
       /* Adjust text colors in sidebar profile */
       .hero-name {
@@ -4362,6 +4434,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         box-shadow: none !important;
         border-radius: 0 !important;
         transform: none !important;
+        color: inherit !important;
       }
 
       .fab-btn i {
@@ -4389,9 +4462,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         align-items: center !important;
         width: 100% !important;
         box-sizing: border-box !important;
-        padding: 40px 32px 80px !important;
+        padding: 40px 12px 80px 24px !important;
         max-width: 1000px !important;
-        margin: 0 auto !important;
+        margin: 0 !important;
         min-height: 100vh !important;
         animation: fadeIn 0.5s var(--ease) 0.05s both;
       }
@@ -4546,6 +4619,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           <span>صورة عيد الميلاد</span>
         </button>
       </div>
+      <!-- Info -->
+      <div class="sc" id="scInfo">
+        <div class="sc-head">
+          <div class="sc-ico" style="background:#e0e7ff;color:var(--brand);"><i class="fas fa-id-card"></i></div>
+          <div class="sc-label">
+            <div class="sc-title">المعلومات الشخصية</div>
+          </div>
+        </div>
+        <div class="sc-body">
+          <div class="info-grid" id="infoGrid"></div>
+        </div>
+      </div>
+
       <!-- Coupon hero card (private only) -->
       <div class="coupon-hero" id="couponHero" style="display:none">
         <div>
@@ -4832,18 +4918,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           class="fas fa-arrow-right"></i> <span>رجوع</span></button>
     </div>
 
-    <!-- Info -->
-    <div class="sc" id="scInfo">
-      <div class="sc-head">
-        <div class="sc-ico" style="background:#e0e7ff;color:var(--brand);"><i class="fas fa-id-card"></i></div>
-        <div class="sc-label">
-          <div class="sc-title">المعلومات الشخصية</div>
-        </div>
-      </div>
-      <div class="sc-body">
-        <div class="info-grid" id="infoGrid"></div>
-      </div>
-    </div>
+
 
 
     <!-- Trips -->
