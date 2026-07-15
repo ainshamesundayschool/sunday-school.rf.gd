@@ -4208,6 +4208,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         grid-row: 1 / 3;
         display: flex !important;
         flex-direction: column !important;
+        align-items: center !important;
         background: linear-gradient(145deg, #312e81 0%, #4f46e5 35%, #7c3aed 70%, #5b21b6 100%) !important;
         border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
         position: sticky !important;
@@ -4218,12 +4219,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         overflow-y: auto;
         z-index: 500;
         box-sizing: border-box !important;
+        animation: sidebarSlideIn 0.5s var(--spring) both;
+      }
+
+      /* ── Desktop entrance animations ── */
+      @keyframes sidebarSlideIn {
+        from { transform: translateX(40px); opacity: 0; }
+        to   { transform: translateX(0);   opacity: 1; }
+      }
+      @keyframes fadeUp {
+        from { transform: translateY(18px); opacity: 0; }
+        to   { transform: translateY(0);    opacity: 1; }
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to   { opacity: 1; }
       }
 
       /* Main side-by-side grid layout */
       body {
         display: grid;
-        grid-template-columns: 280px 1fr;
+        grid-template-columns: 320px 1fr;
         grid-template-rows: auto 1fr;
         min-height: 100vh;
         background: var(--bg);
@@ -4233,9 +4249,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
       /* Hero panel inside sticky desktop sidebar */
       .hero {
-        display: flex !important; /* Keep it always visible on desktop */
+        display: flex !important;
         flex-direction: column !important;
         align-items: center !important;
+        text-align: center !important;
         background: transparent !important;
         border: none !important;
         padding: 40px 24px 30px !important;
@@ -4246,7 +4263,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         position: relative !important;
         width: 100% !important;
         box-sizing: border-box !important;
+        animation: fadeIn 0.6s var(--ease) 0.15s both;
       }
+
+      /* Stagger sidebar children for polish */
+      .avatar-ring    { animation: fadeUp 0.5s var(--spring) 0.2s  both !important; }
+      .hero-name      { animation: fadeUp 0.5s var(--spring) 0.3s  both !important; }
+      .hero-tags      { animation: fadeUp 0.5s var(--spring) 0.35s both !important; }
+      .coupon-hero    { animation: fadeUp 0.5s var(--spring) 0.45s both !important; }
 
       /* Adjust text colors in sidebar profile */
       .hero-name {
@@ -4274,6 +4298,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         margin: 0 auto 30px auto !important;
         gap: 6px !important;
         z-index: 10 !important;
+        animation: fadeUp 0.5s var(--spring) 0.1s both;
       }
 
       .bottom-nav-item {
@@ -4345,6 +4370,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         max-width: 1000px !important;
         margin: 0 auto !important;
         min-height: 100vh !important;
+        animation: fadeIn 0.5s var(--ease) 0.05s both;
       }
 
       /* Main Page Content Container */
