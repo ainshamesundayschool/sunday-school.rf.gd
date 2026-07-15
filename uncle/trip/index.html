@@ -87,6 +87,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="/js/search_intelligent.js"></script>
     <style>
         :root {
             /* Brand */
@@ -5022,201 +5023,7 @@
                 navigateTo('group_filter', { field: field, value: value, parentField: parentField, parentValue: parentValue });
             }
 
-            // Search Bar Handlers
-            function normalizeArabic(text) {
-                if (!text) return '';
-                let s = String(text).trim().toLowerCase();
-                s = s.replace(/[\u064b-\u0652]/g, '');
-                s = s.replace(/[أإآا]/g, 'ا');
-                s = s.replace(/ة/g, 'ه');
-                s = s.replace(/[ىي]/g, 'ي');
-                s = s.replace(/ؤ/g, 'ء');
-                s = s.replace(/ئ/g, 'ء');
-                s = s.replace(/گ/g, 'ك');
-                s = s.replace(/پ/g, 'ب');
-                s = s.replace(/ژ/g, 'ز');
-                s = s.replace(/چ/g, 'ج');
-                s = s.replace(/ڤ/g, 'ف');
-                return s;
-            }
 
-            function francoToArabic(text) {
-                if (!text) return '';
-                let raw = String(text).trim().toLowerCase();
-                if (!/^[a-z0-9\s]+$/i.test(raw)) return '';
-
-                let res = raw;
-                res = res.replace(/3/g, 'ع');
-                res = res.replace(/2/g, 'ء');
-                res = res.replace(/7/g, 'ح');
-                res = res.replace(/5/g, 'خ');
-                res = res.replace(/6/g, 'ط');
-                res = res.replace(/9/g, 'ص');
-                res = res.replace(/4/g, 'ش');
-                res = res.replace(/8/g, 'ق');
-                res = res.replace(/ou/g, 'و');
-                res = res.replace(/oo/g, 'و');
-                res = res.replace(/ee/g, 'ي');
-                res = res.replace(/ea/g, 'ي');
-                res = res.replace(/kh/g, 'خ');
-                res = res.replace(/sh/g, 'ش');
-                res = res.replace(/th/g, 'ث');
-                res = res.replace(/gh/g, 'غ');
-                res = res.replace(/ph/g, 'ف');
-                res = res.replace(/ch/g, 'ش');
-
-                res = res.replace(/a/g, 'ا');
-                res = res.replace(/b/g, 'ب');
-                res = res.replace(/t/g, 'ت');
-                res = res.replace(/s/g, 'س');
-                res = res.replace(/j/g, 'ج');
-                res = res.replace(/h/g, 'ه');
-                res = res.replace(/d/g, 'د');
-                res = res.replace(/r/g, 'ر');
-                res = res.replace(/z/g, 'ز');
-                res = res.replace(/f/g, 'ف');
-                res = res.replace(/k/g, 'ك');
-                res = res.replace(/l/g, 'ل');
-                res = res.replace(/m/g, 'م');
-                res = res.replace(/n/g, 'ن');
-                res = res.replace(/w/g, 'و');
-                res = res.replace(/y/g, 'ي');
-                res = res.replace(/e/g, 'ي');
-                res = res.replace(/i/g, 'ي');
-                res = res.replace(/o/g, 'و');
-                res = res.replace(/u/g, 'و');
-                res = res.replace(/g/g, 'ج');
-                res = res.replace(/p/g, 'ب');
-                res = res.replace(/v/g, 'ف');
-                res = res.replace(/x/g, 'كس');
-                res = res.replace(/q/g, 'ق');
-
-                return normalizeArabic(res);
-            }
-
-            function arabicToLatin(text) {
-                if (!text) return "";
-                let s = text.toLowerCase().trim();
-                if (!/[\u0600-\u06FF]/.test(s)) return "";
-                s = normalizeArabic(s);
-                const multiMap = [
-                    ['ش', 'sh'], ['خ', 'kh'], ['غ', 'gh'], ['ث', 'th'],
-                    ['ذ', 'dh'], ['ج', 'g'], ['ف', 'f'], ['ع', '3'],
-                    ['ط', '6'], ['ح', '7']
-                ];
-                for (const [from, to] of multiMap) {
-                    s = s.split(from).join(to);
-                }
-                const singleMap = {
-                    'ا': 'a', 'ب': 'b', 'ت': 't', 'ة': 'a',
-                    'د': 'd', 'ر': 'r', 'ز': 'z', 'س': 's', 'ص': 's', 'ض': 'd',
-                    'ق': 'q', 'ك': 'k', 'ل': 'l', 'م': 'm', 'ن': 'n',
-                    'ه': 'h', 'و': 'w', 'ي': 'y', 'ى': 'y', 'ئ': 'e', 'ء': '2', 'ؤ': 'o'
-                };
-                let result = '';
-                for (let i = 0; i < s.length; i++) {
-                    const ch = s[i];
-                    if (singleMap[ch]) {
-                        result += singleMap[ch];
-                    } else if (ch === ' ' || ch === '-' || ch === '_') {
-                        result += ' ';
-                    } else {
-                        result += ch;
-                    }
-                }
-                return result;
-            }
-
-            function phoneticClean(str) {
-                if (!str) return "";
-                let s = str.toLowerCase().trim();
-                s = s.replace(/p/g, 'b');
-                s = s.replace(/v/g, 'f');
-                s = s.replace(/c/g, 'k');
-                s = s.replace(/q/g, 'k');
-                s = s.replace(/j/g, 'g');
-                s = s.replace(/z/g, 's');
-                s = s.replace(/x/g, 'ks');
-                s = s.replace(/[aeiouywh]/g, '');
-                return s;
-            }
-
-            function getMatchScore(student, query) {
-                const dbId = String(student.student_id || student.id || '');
-                const queryClean = query.trim();
-                if (dbId && queryClean && dbId === queryClean) {
-                    return 10000;
-                }
-
-                const qNormalized = normalizeArabic(query);
-                const qRaw = query.trim().toLowerCase();
-                const qFranco = francoToArabic(query);
-                const qLatin = arabicToLatin(query);
-                const qPhonetic = phoneticClean(query.includes(' ') ? query : (qLatin || qRaw));
-
-                let maxScore = 0;
-                const fields = [
-                    { val: student.student_name, weight: 1.0 },
-                    { val: student.student_class, weight: 0.7 },
-                    { val: student.student_id, weight: 1.1 },
-                    { val: student.student_phone, weight: 1.1 },
-                    { val: student.student_emergency_phone, weight: 1.1 }
-                ];
-
-                fields.forEach(field => {
-                    if (!field.val) return;
-                    const target = String(field.val);
-                    const tNormalized = normalizeArabic(target);
-                    const tRaw = target.toLowerCase();
-                    const tLatin = arabicToLatin(target);
-                    const tPhonetic = phoneticClean(tLatin || tRaw);
-                    let currentScore = 0;
-
-                    if (tRaw === qRaw || tNormalized === qNormalized) currentScore = 100;
-                    else if (tRaw.startsWith(qRaw) || tNormalized.startsWith(qNormalized)) currentScore = 80;
-                    else if (tRaw.includes(qRaw) || tNormalized.includes(qNormalized)) currentScore = 60;
-                    else if (qFranco && tNormalized === qFranco) currentScore = 92;
-                    else if (qFranco && tNormalized.startsWith(qFranco)) currentScore = 72;
-                    else if (qFranco && tNormalized.includes(qFranco)) currentScore = 52;
-                    else if (qLatin && tRaw === qLatin) currentScore = 92;
-                    else if (qLatin && tRaw.startsWith(qLatin)) currentScore = 72;
-                    else if (qLatin && tRaw.includes(qLatin)) currentScore = 52;
-                    else if (tLatin && tLatin === qRaw) currentScore = 90;
-                    else if (tLatin && tLatin.startsWith(qRaw)) currentScore = 70;
-                    else if (tLatin && tLatin.includes(qRaw)) currentScore = 50;
-                    else if (qPhonetic && tPhonetic && tPhonetic === qPhonetic) currentScore = 88;
-                    else if (qPhonetic && tPhonetic && tPhonetic.startsWith(qPhonetic)) currentScore = 68;
-                    else if (qPhonetic && tPhonetic && tPhonetic.includes(qPhonetic)) currentScore = 48;
-                    else {
-                        let score = 0, queryIdx = 0;
-                        for (let i = 0; i < tNormalized.length && queryIdx < qNormalized.length; i++) {
-                            if (tNormalized[i] === qNormalized[queryIdx]) { queryIdx++; score++; }
-                        }
-                        if (queryIdx === qNormalized.length) currentScore = (score / tNormalized.length) * 40;
-
-                        if (qFranco) {
-                            let fScore = 0, fIdx = 0;
-                            for (let i = 0; i < tNormalized.length && fIdx < qFranco.length; i++) {
-                                if (tNormalized[i] === qFranco[fIdx]) { fIdx++; fScore++; }
-                            }
-                            if (fIdx === qFranco.length) {
-                                currentScore = Math.max(currentScore, (fScore / tNormalized.length) * 38);
-                            }
-
-                            let rScore = 0, rIdx = 0;
-                            for (let i = 0; i < qFranco.length && rIdx < tNormalized.length; i++) {
-                                if (qFranco[i] === tNormalized[rIdx]) { rIdx++; rScore++; }
-                            }
-                            if (rIdx === tNormalized.length) {
-                                const ratio = tNormalized.length / qFranco.length;
-                                currentScore = Math.max(currentScore, ratio * 70);
-                            }
-                        }
-                    }
-                    maxScore = Math.max(maxScore, currentScore * field.weight);
-                });
-                return maxScore;
-            }
 
             document.addEventListener('click', function (e) {
                 const mainContainer = document.querySelector('.main-search-wrap');
@@ -5280,10 +5087,18 @@
                     return;
                 }
 
-                let results = regsList.map(r => ({ ...r, _searchScore: getMatchScore(r, searchTerm) }))
-                    .filter(r => r._searchScore > 0)
-                    .sort((a, b) => b._searchScore - a._searchScore)
-                    .slice(0, 15);
+                let results = regsList.map(r => ({
+                    ...r,
+                    _searchScore: getMatchScore(r, searchTerm, [
+                        { val: r.student_name, weight: 1.0 },
+                        { val: r.student_class, weight: 0.7 },
+                        { val: r.student_id, weight: 1.1 },
+                        { val: r.student_phone, weight: 1.1 },
+                        { val: r.student_emergency_phone, weight: 1.1 }
+                    ])
+                })).filter(r => r._searchScore > 0)
+                   .sort((a, b) => b._searchScore - a._searchScore)
+                   .slice(0, 15);
 
                 if (results.length === 0) {
                     resultsDiv.innerHTML = '<div class="search-result-item" style="cursor:default; text-align:center; padding:12px; color:var(--text-3);">لا توجد نتائج</div>';
@@ -5894,14 +5709,20 @@
 
                 if (!myListEl || !allListEl) return;
 
-                const filtered = scansLog.filter(item => {
-                    if (!isModalOpen && currentView === 'student_profile' && String(item.studentId) !== String(currentStudentId)) {
-                        return false;
-                    }
-                    if (!searchQuery) return true;
-                    return item.studentName.toLowerCase().includes(searchQuery) ||
-                        String(item.studentId).includes(searchQuery);
-                });
+                let filtered = scansLog;
+                if (!isModalOpen && currentView === 'student_profile') {
+                    filtered = filtered.filter(item => String(item.studentId) === String(currentStudentId));
+                }
+                if (searchQuery) {
+                    filtered = filtered.map(item => ({
+                        ...item,
+                        _score: getMatchScore(item, searchQuery, [
+                            { val: item.studentName, weight: 1.0 },
+                            { val: item.studentId, weight: 1.1 }
+                        ])
+                    })).filter(item => item._score > 0)
+                       .sort((a, b) => b._score - a._score);
+                }
 
                 const myScans = filtered.filter(item => item.uncleId === currentUncleId);
                 const allScans = filtered;
@@ -6012,7 +5833,7 @@
                 } else {
                     input = document.querySelector('.active #scanSearchInput');
                 }
-                searchQuery = input ? input.value.trim().toLowerCase() : '';
+                searchQuery = input ? input.value.trim() : '';
                 renderScansList();
             }
 

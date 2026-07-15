@@ -362,6 +362,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         onload="this.media='all'">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script src="<?php echo $pathPrefix; ?>/js/qr-scanner.umd.min.js" type="text/javascript"></script>
+    <script src="<?php echo $pathPrefix; ?>/js/search_intelligent.js" type="text/javascript"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script defer
         src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
@@ -2319,7 +2320,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border: 1px solid var(--border-solid) !important;
             border-radius: var(--radius-sm) !important;
             background-color: var(--surface-2) !important;
-            font-family: 'Cairo', 'Baloo Bhaijaan 2', sans-serif !important;
+            font-family: 'Cairo', sans-serif !important;
             font-size: 0.78rem !important;
             font-weight: 700 !important;
             color: var(--text) !important;
@@ -2380,7 +2381,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             color: var(--brand) !important;
             border: 1px solid rgba(12, 175, 160, 0.15) !important;
             cursor: pointer !important;
-            font-family: 'Cairo', 'Baloo Bhaijaan 2', sans-serif !important;
+            font-family: 'Cairo', sans-serif !important;
             display: inline-flex !important;
             align-items: center !important;
             gap: 4px !important;
@@ -17821,7 +17822,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         zoomContainer.style.cssText = 'display:flex; align-items:center; justify-content:center; gap:8px; margin-top:8px; padding: 6px 12px; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); direction: rtl; width: 100%; max-width: 220px; box-sizing: border-box;';
 
                         const label = document.createElement('span');
-                        label.style.cssText = 'font-family: "Baloo Bhaijaan 2", "Cairo", sans-serif; font-size: 0.72rem; font-weight: 700; color: var(--text-2, #888); min-width: 55px; text-align: left;';
+                        label.style.cssText = 'font-family: "Cairo", sans-serif; font-size: 0.72rem; font-weight: 700; color: var(--text-2, #888); min-width: 55px; text-align: left;';
                         label.innerText = 'التكبير: 1.0x';
 
                         const minusIcon = document.createElement('i');
@@ -21453,7 +21454,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         function renderShareAttendanceTable() {
-            const q = (document.getElementById('shareAttendanceSearchInput')?.value || '').trim().toLowerCase();
+            const q = (document.getElementById('shareAttendanceSearchInput')?.value || '').trim();
             let list = [];
             if (currentShareTab === 'present') {
                 list = getAttendanceStatusStudents('present');
@@ -21463,7 +21464,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 list = sortStudentsForCurrentView(getActiveViewStudents());
             }
 
-            const filtered = list.filter(s => !q || ['الاسم', 'الفصل', 'رقم التليفون', 'العنوان'].some(k => (s[k] || '').toLowerCase().includes(q)));
+            let filtered = list;
+            if (q) {
+                filtered = list.map(s => ({
+                    ...s,
+                    _score: getMatchScore(s, q, [
+                        { val: s['الاسم'] || '', weight: 1.0 },
+                        { val: s['الفصل'] || '', weight: 0.8 },
+                        { val: s['رقم التليفون'] || '', weight: 1.1 },
+                        { val: s['العنوان'] || '', weight: 0.6 }
+                    ])
+                })).filter(s => s._score > 0)
+                   .sort((a, b) => b._score - a._score);
+            }
             const body = document.getElementById('shareAttendanceTableBody');
             if (!body) return;
 
@@ -21915,10 +21928,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
             si.addEventListener('input', () => { clearTimeout(allStudentsSearchTimeout); if (!si.value.trim()) { clearAllStudentsSearch(); return; } allStudentsSearchTimeout = setTimeout(() => { allStudentsSearchQuery = si.value.trim(); performAllStudentsSearch(); }, 280); });
             si.addEventListener('keyup', e => { if (e.key === 'Enter') { clearTimeout(allStudentsSearchTimeout); allStudentsSearchQuery = si.value.trim(); performAllStudentsSearch(); } });
         }
-        function performAllStudentsSearch() {
+         function performAllStudentsSearch() {
             if (!allStudentsSearchQuery) { clearAllStudentsSearch(); return; }
-            const q = allStudentsSearchQuery.toLowerCase();
-            filteredAllStudents = allStudentsData.filter(s => ['الاسم', 'الفصل', 'رقم التليفون', 'العنوان', 'عيد الميلاد'].some(k => (s[k] || '').toLowerCase().includes(q)));
+            const q = allStudentsSearchQuery;
+            filteredAllStudents = allStudentsData.map(s => ({
+                ...s,
+                _score: getMatchScore(s, q, [
+                    { val: s['الاسم'] || '', weight: 1.0 },
+                    { val: s['الفصل'] || '', weight: 0.8 },
+                    { val: s['رقم التليفون'] || '', weight: 1.1 },
+                    { val: s['العنوان'] || '', weight: 0.6 },
+                    { val: s['عيد الميلاد'] || '', weight: 0.5 }
+                ])
+            })).filter(s => s._score > 0)
+               .sort((a, b) => b._score - a._score);
             renderAllStudentsTable();
         }
         function clearAllStudentsSearch() { allStudentsSearchQuery = ''; filteredAllStudents = []; const si = document.getElementById('allStudentsSearch'); if (si) si.value = ''; clearTimeout(allStudentsSearchTimeout); allStudentsSearchTimeout = null; renderAllStudentsTable(); }
@@ -23206,13 +23229,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
             );
         }
         function searchPendingRegistrations() {
-            const q = (document.getElementById('pendingSearchInput')?.value || '').toLowerCase().trim();
+            const q = (document.getElementById('pendingSearchInput')?.value || '').trim();
             if (!q) { renderPendingRegistrations(currentClass); return; }
-            const filtered = pendingRegistrations.filter(r =>
-                (r['الاسم'] || r.name || '').toLowerCase().includes(q) ||
-                (r['الهاتف'] || r.phone || '').includes(q) ||
-                (r['العنوان'] || r.address || '').toLowerCase().includes(q)
-            );
+            const filtered = pendingRegistrations.map(r => ({
+                ...r,
+                _score: getMatchScore(r, q, [
+                    { val: r['الاسم'] || r.name, weight: 1.0 },
+                    { val: r['الهاتف'] || r.phone, weight: 1.1 },
+                    { val: r['العنوان'] || r.address, weight: 0.8 }
+                ])
+            })).filter(r => r._score > 0)
+               .sort((a, b) => b._score - a._score);
             renderPendingRegistrations(currentClass, filtered);
         }
 
@@ -23289,11 +23316,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
             });
             if (hasPhotoOnly) pool = pool.filter(s => !!(s['صورة'] || s.image_url || s['الصورة']));
             if (q) {
-                pool = pool.filter(s => {
-                    const name = (s['الاسم'] || s.name || '').toString().toLowerCase();
-                    const phone = (s['رقم التليفون'] || s.phone || '').toString().toLowerCase();
-                    return name.includes(q) || phone.includes(q) || (s['الفصل'] || '').toString().toLowerCase().includes(q);
-                });
+                pool = pool.map(s => ({
+                    ...s,
+                    _score: getMatchScore(s, q, [
+                        { val: s['الاسم'] || s.name || '', weight: 1.0 },
+                        { val: s['رقم التليفون'] || s.phone || '', weight: 1.1 },
+                        { val: s['الفصل'] || '', weight: 0.8 }
+                    ])
+                })).filter(s => s._score > 0)
+                   .sort((a, b) => b._score - a._score);
             }
             return pool;
         }
@@ -23765,7 +23796,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         function filterHistory() {
             _historyFilter = document.getElementById('historyFilter')?.value || '';
-            _historySearch = (document.getElementById('historySearch')?.value || '').trim().toLowerCase();
+            _historySearch = (document.getElementById('historySearch')?.value || '').trim();
             renderHistoryList();
         }
 
@@ -23786,11 +23817,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             // Text search
             if (_historySearch) {
-                logs = logs.filter(l => {
-                    const hay = [l.action, l.entity_name, l.entity, l.notes, l.uncle_name, l.created_at]
-                        .filter(Boolean).join(' ').toLowerCase();
-                    return hay.includes(_historySearch);
-                });
+                logs = logs.map(l => ({
+                    ...l,
+                    _score: getMatchScore(l, _historySearch, [
+                        { val: l.entity_name, weight: 1.2 },
+                        { val: l.notes, weight: 1.0 },
+                        { val: l.uncle_name, weight: 1.1 },
+                        { val: l.action, weight: 0.8 }
+                    ])
+                })).filter(l => l._score > 0)
+                   .sort((a, b) => b._score - a._score);
             }
 
             if (!logs.length) {
@@ -25663,7 +25699,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
               padding: 12px 24px;
               font-weight: 800;
               font-size: 0.85rem;
-              font-family: 'Cairo', 'Baloo Bhaijaan 2', sans-serif;
+              font-family: 'Cairo', sans-serif;
               background: var(--primary);
               color: #fff;
               border: none;

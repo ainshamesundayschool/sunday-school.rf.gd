@@ -611,6 +611,7 @@
         }
     </style>
     <script src="/js/og-meta.js"></script>
+    <script src="/js/search_intelligent.js"></script>
 </head>
 <body>
 
@@ -1022,13 +1023,20 @@ function renderChurchList(churches){
 
 /* Church search filter */
 document.getElementById('churchSearchInput').addEventListener('input', function(){
-    const q = this.value.trim().toLowerCase();
-    document.getElementById('churchEmptyQuery').textContent = this.value.trim();
+    const q = this.value.trim();
+    document.getElementById('churchEmptyQuery').textContent = q;
     if (!q) {
         renderChurchList(allChurches);
         return;
     }
-    const filtered = allChurches.filter(ch => ch.name.toLowerCase().includes(q));
+    const filtered = allChurches.map(ch => ({
+        ...ch,
+        _score: getMatchScore(ch, q, [
+            { val: ch.name, weight: 1.0 },
+            { val: ch.code, weight: 1.1 }
+        ])
+    })).filter(ch => ch._score > 0)
+       .sort((a, b) => b._score - a._score);
     renderChurchList(filtered);
 });
 

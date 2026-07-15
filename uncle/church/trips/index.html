@@ -7945,7 +7945,7 @@
       }
 
       function filterRegisterStudents() {
-        const q = document.getElementById('registerStudentSearch').value.toLowerCase();
+        const q = document.getElementById('registerStudentSearch').value.trim();
         let list = tripStudentsCache;
         if (_kidPickerChurchFilter) {
           list = list.filter(s => s._churchId == _kidPickerChurchFilter);
@@ -7954,7 +7954,13 @@
           list = list.filter(s => (s['الفصل'] || s['class'] || '') === _kidPickerClassFilter);
         }
         if (q) {
-          list = list.filter(s => (s['الاسم'] || s['name'] || '').toLowerCase().includes(q));
+          list = list.map(s => ({
+            ...s,
+            _score: getMatchScore(s, q, [
+              { val: s['الاسم'] || s['name'], weight: 1.0 }
+            ])
+          })).filter(s => s._score > 0)
+             .sort((a, b) => b._score - a._score);
         }
         renderKidPickerGrid(list);
       }
@@ -8166,15 +8172,21 @@
       }
 
       function filterRegisterGuests() {
-        const q = document.getElementById('registerGuestSearch').value.toLowerCase();
+        const q = document.getElementById('registerGuestSearch').value.trim();
         const grid = document.getElementById('guestPickerGrid');
         if (!grid) return;
 
-        const filtered = allGuestsCache.filter(g =>
-          !q ||
-          g.name.toLowerCase().includes(q) ||
-          (g.phone || '').includes(q)
-        );
+        let filtered = allGuestsCache;
+        if (q) {
+          filtered = allGuestsCache.map(g => ({
+            ...g,
+            _score: getMatchScore(g, q, [
+              { val: g.name, weight: 1.0 },
+              { val: g.phone, weight: 1.1 }
+            ])
+          })).filter(g => g._score > 0)
+             .sort((a, b) => b._score - a._score);
+        }
 
         if (filtered.length === 0) {
           grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--muted);">لا يوجد زوار تطابق البحث</div>`;
@@ -9416,7 +9428,7 @@
 
       function filterReviewTable() {
         const searchInput = document.getElementById('reviewSearchInput');
-        const search = searchInput ? searchInput.value.toLowerCase().trim() : '';
+        const search = searchInput ? searchInput.value.trim() : '';
         const body = document.getElementById('bulkReviewTableBody');
         if (!body) return;
 
@@ -9442,12 +9454,22 @@
         // Sort tripStudentsCache alphabetically for remaining options
         const allStudentsSorted = [...(tripStudentsCache || [])].sort((a, b) => (a['الاسم'] || '').localeCompare(b['الاسم'] || '', 'ar'));
 
-        let html = '';
-        currentReviewRows.forEach((r, idx) => {
-          const sName = r.name.toLowerCase();
-          const sClass = r.class.toLowerCase();
-          if (search && !sName.includes(search) && !sClass.includes(search)) return;
+        const rowsWithIndex = currentReviewRows.map((r, idx) => ({ ...r, originalIndex: idx }));
+        let filteredRows = rowsWithIndex;
+        if (search) {
+          filteredRows = rowsWithIndex.map(r => ({
+            ...r,
+            _score: getMatchScore(r, search, [
+              { val: r.name, weight: 1.0 },
+              { val: r.class, weight: 0.7 }
+            ])
+          })).filter(r => r._score > 0)
+             .sort((a, b) => b._score - a._score);
+        }
 
+        let html = '';
+        filteredRows.forEach((r) => {
+          const idx = r.originalIndex;
           let badgeHtml = '';
           if (r.targetId === 0) {
             badgeHtml = `<span class="badge" style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;">طفل جديد بالكنيسة</span>`;
@@ -12785,14 +12807,19 @@
           return assigned;
         };
 
-        const filtered = uncles.filter(u => {
-          const matchSearch = u.name.toLowerCase().includes(search);
-          if (!matchSearch) return false;
-          if (scope === 'assigned') {
-            return isUncleAssigned(u.id);
-          }
-          return true;
-        });
+        let filtered = uncles;
+        if (scope === 'assigned') {
+          filtered = filtered.filter(u => isUncleAssigned(u.id));
+        }
+        if (search) {
+          filtered = filtered.map(u => ({
+            ...u,
+            _score: getMatchScore(u, search, [
+              { val: u.name, weight: 1.0 }
+            ])
+          })).filter(u => u._score > 0)
+             .sort((a, b) => b._score - a._score);
+        }
 
         // Initialize: if printSelectedUncleIds is empty, select all filtered ones by default
         if (printSelectedUncleIds.size === 0) {
@@ -14098,7 +14125,8 @@
         const resultsDiv = document.getElementById('collabChurchSearchResults');
         if (!resultsDiv) return;
 
-        if (!query.trim()) {
+        const q = query.trim();
+        if (!q) {
           resultsDiv.style.display = 'none';
           return;
         }
@@ -14111,11 +14139,20 @@
 
         const cid = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
 
-        const filtered = systemChurches.filter(c => {
+        let filtered = systemChurches.filter(c => {
           if (c.id == cid || (trip && c.id == trip.church_id)) return false;
           if (collaborators.includes(c.id) || collaborators.includes(String(c.id))) return false;
-          return c.name.toLowerCase().includes(query.toLowerCase());
+          return true;
         });
+
+        filtered = filtered.map(c => ({
+          ...c,
+          _score: getMatchScore(c, q, [
+            { val: c.name, weight: 1.0 },
+            { val: c.code, weight: 1.1 }
+          ])
+        })).filter(c => c._score > 0)
+           .sort((a, b) => b._score - a._score);
 
         if (filtered.length === 0) {
           resultsDiv.innerHTML = `<div style="padding:10px;color:var(--muted);font-size:0.8rem;text-align:center;">لا توجد كنائس متطابقة</div>`;
@@ -16316,9 +16353,8 @@
         // Search highlight
         let isSearchMatch = false;
         if (query) {
-          const qNormalized = normalizeArabic(query);
-          const rNormalized = normalizeArabic(room.name);
-          if (rNormalized.includes(qNormalized) || room.name.toLowerCase().includes(query.toLowerCase())) {
+          const scoreRoomName = getMatchScore({ name: room.name }, query, [{ val: room.name, weight: 1.0 }]);
+          if (scoreRoomName > 0) {
             isSearchMatch = true;
           } else {
             isSearchMatch = roomKids.some(k => {
