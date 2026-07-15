@@ -4213,6 +4213,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         position: sticky !important;
         top: 0;
         height: 100vh !important;
+        min-height: 100vh !important;
+        margin: 0 !important;
         overflow-y: auto;
         z-index: 500;
         box-sizing: border-box !important;
@@ -4253,71 +4255,85 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         text-shadow: 0 2px 10px rgba(0, 0, 0, .2) !important;
       }
 
-      /* Converted Bottom Navigation Sidebar inside desktop sidebar wrapper */
+      /* Converted Bottom Navigation Sidebar inside desktop main-content-desktop wrapper */
       .bottom-nav {
-        position: static !important;
+        position: relative !important;
         height: auto !important;
-        width: 100% !important;
+        width: auto !important;
         box-sizing: border-box !important;
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
+        background: var(--surf) !important;
+        border: 1px solid var(--bdr2) !important;
+        box-shadow: var(--sh-sm) !important;
         display: flex !important;
-        flex-direction: column !important;
-        justify-content: flex-start !important;
-        align-items: stretch !important;
-        padding: 10px 16px 40px !important;
-        z-index: auto !important;
+        flex-direction: row !important;
+        justify-content: center !important;
+        align-items: center !important;
+        padding: 6px !important;
+        border-radius: var(--r-full) !important;
+        margin: 0 auto 30px auto !important;
+        gap: 6px !important;
+        z-index: 10 !important;
       }
 
       .bottom-nav-item {
         flex-direction: row !important;
-        justify-content: flex-start !important;
+        justify-content: center !important;
         align-items: center !important;
-        gap: 12px !important;
-        padding: 12px 18px !important;
-        border-radius: var(--r-md) !important;
+        gap: 8px !important;
+        padding: 10px 20px !important;
+        border-radius: var(--r-full) !important;
         height: auto !important;
         flex: 0 0 auto !important;
-        margin-bottom: 6px !important;
+        margin-bottom: 0 !important;
         font-size: 0.95rem !important;
         color: var(--t3) !important;
         transition: all var(--fast) !important;
         background: transparent !important;
+        cursor: pointer !important;
       }
 
       .bottom-nav-item i {
-        font-size: 1.25rem !important;
+        font-size: 1.15rem !important;
         transform: none !important;
       }
 
-      .bottom-nav-item.active {
-        background: var(--brand-bg) !important;
+      .bottom-nav-item:hover:not(.active) {
+        background: var(--s2) !important;
         color: var(--brand) !important;
+      }
+
+      .bottom-nav-item.active {
+        background: var(--brand) !important;
+        color: #fff !important;
+        box-shadow: var(--sh-brand) !important;
       }
 
       .bottom-nav-item.active i {
         transform: none !important;
+        color: #fff !important;
       }
 
       .bottom-nav-item.center-fab {
         padding-bottom: 0 !important;
-        order: 2 !important;
+        order: 0 !important;
       }
 
       .fab-btn {
-        width: 38px !important;
-        height: 38px !important;
-        border-radius: 50% !important;
-        background: var(--brand) !important;
-        color: #fff !important;
+        width: auto !important;
+        height: auto !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        color: inherit !important;
         box-shadow: none !important;
         transform: none !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
       }
 
       .fab-btn i {
-        font-size: 1.1rem !important;
-        color: #fff !important;
+        font-size: 1.15rem !important;
+        color: inherit !important;
       }
 
       .bottom-nav-item.center-fab:hover .fab-btn {
@@ -4501,7 +4517,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       <div class="hero-wave"></div>
     </div>
 
-    <!-- Converted bottom-nav placed inside sidebar-desktop -->
+  </aside>
+
+  <div class="main-content-desktop" id="mainContentDesktop">
+    <!-- Converted bottom-nav placed inside main-content-desktop -->
     <nav class="bottom-nav" id="bottomNavBar" style="display:none;">
       <div class="bottom-nav-item active" data-tab="home" onclick="switchTab('home')">
         <i class="fas fa-home"></i>
@@ -4528,9 +4547,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         <span>التواصل</span>
       </div>
     </nav>
-  </aside>
 
-  <div class="main-content-desktop" id="mainContentDesktop">
     <!-- stats bar -->
     <div class="stats-bar" id="statsBar" style="display:none">
     <div class="sb-cell ok">
