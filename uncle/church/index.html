@@ -175,6 +175,8 @@
             --bg-2: #eef0f8;
             --card: #ffffff;
             --card-hover: #f8f9ff;
+            --surface: #ffffff;
+            --surface-1: #ffffff;
             --surface-2: #f7f8fc;
             --surface-3: #eef0f8;
             --sidebar-bg: rgba(255, 255, 255, 0.97);
@@ -231,6 +233,8 @@
             --bg-2: #161922;
             --card: #181b26;
             --card-hover: #1e2132;
+            --surface: #181b26;
+            --surface-1: #1e2132;
             --surface-2: #1e2132;
             --surface-3: #252840;
             --sidebar-bg: rgba(24, 27, 38, 0.98);
@@ -3054,6 +3058,11 @@
             }
             .split-sidebar {
                 grid-column: 2;
+                position: sticky !important;
+                top: 20px !important;
+                max-height: calc(100vh - 40px) !important;
+                overflow-y: auto !important;
+                padding-bottom: 10px !important;
             }
         }
 
@@ -7423,7 +7432,6 @@
                         </div>
                     </div>
                 </div>
-                </div>
             </div>
 
             <!-- ── ATTENDANCE ── -->
@@ -7572,13 +7580,13 @@
                             <div class="card-header" onclick="toggleAddTripForm()" style="cursor:pointer;">
                                 <div class="card-title">
                                     <i class="fas fa-route"></i> 
-                                    <span id="addTripToggleLbl">رحلة جديدة</span>
+                                    <span id="addTripToggleLbl">إلغاء</span>
                                 </div>
                                 <div class="card-actions">
-                                    <i class="fas fa-plus" id="addTripChevron"></i>
+                                    <i class="fas fa-times" id="addTripChevron"></i>
                                 </div>
                             </div>
-                    <div id="addTripFormWrap" style="display:none;border-top:1px solid var(--border);">
+                    <div id="addTripFormWrap" style="display:block;border-top:1px solid var(--border);">
                         <div class="card-body" style="background:var(--surface-2);">
                             <form id="addTripForm" onsubmit="addTrip(event)">
                                 <div class="form-grid">
@@ -7868,6 +7876,8 @@
 
                         <!-- Classes List -->
                         <div id="customClassesList" style="margin-bottom:14px;"></div>
+                        <!-- Bottom Class Actions -->
+                        <div id="classActionButtonsBottom" style="display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; border-top:1px solid var(--border); padding-top:16px;"></div>
                     </div>
                 </div>
             </div>
@@ -12492,7 +12502,7 @@
                 document.getElementById('todayAttendance').textContent = cachedTodayAttendance.text;
             }
 
-            renderRecentActivity(s.recentActivity || []);
+            // renderRecentActivity(s.recentActivity || []);
             renderClassesOverview(s.classDistribution || []);
         }
 
@@ -13654,10 +13664,15 @@
                     </div>
                 `;
                 buttonsContainer.innerHTML = `
-                    <button class="btn btn-primary btn-sm" style="width:100%;margin-bottom:4px;" onclick="addCustomClass()"><i class="fas fa-plus"></i> إضافة فصل</button>
-                    ${hasCustom ? '<button class="btn btn-outline btn-sm" style="width:100%;margin-bottom:4px;" onclick="resetToDefaultClasses()"><i class="fas fa-undo"></i> إعادة للافتراضي</button>' : ''}
-                    <button class="btn btn-success btn-sm" style="width:100%;" onclick="saveClassSettings()"><i class="fas fa-save"></i> حفظ الفصول</button>
+                    <button class="btn btn-primary btn-sm" style="width:100%;" onclick="addCustomClass()"><i class="fas fa-plus"></i> إضافة فصل</button>
                 `;
+                const bottomContainer = document.getElementById('classActionButtonsBottom');
+                if (bottomContainer) {
+                    bottomContainer.innerHTML = `
+                        <button class="btn btn-success" style="padding:10px 24px; font-weight:800; font-size:0.9rem;" onclick="saveClassSettings()"><i class="fas fa-save"></i> حفظ الفصول</button>
+                        ${hasCustom ? '<button class="btn btn-outline" style="padding:10px 24px; font-weight:800; font-size:0.9rem;" onclick="resetToDefaultClasses()"><i class="fas fa-undo"></i> إعادة للافتراضي</button>' : ''}
+                    `;
+                }
                 renderCustomClassesList(cls);
                 return;
             }
