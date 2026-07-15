@@ -274,7 +274,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       font-weight: 600;
       padding: 5px 13px;
       border-radius: var(--r-full);
-      border: 1px solid rgba(255, 255, 255, .22);
+      border: none;
       max-width: 180px;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -292,7 +292,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       border-radius: 50%;
       background: rgba(255, 255, 255, .15);
       backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, .25);
+      border: none;
       color: #fff;
       font-size: .9rem;
       cursor: pointer;
@@ -440,8 +440,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     }
 
     .htag.switch-tag {
-      background: transparent;
-      border-color: rgba(255, 255, 255, .4);
+      background: rgba(255, 255, 255, .15);
+      border: none;
       cursor: pointer;
     }
 
@@ -1455,7 +1455,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       gap: 5px;
       padding: 4px 11px;
       border-radius: var(--r-full);
-      background: var(--brand);
+      background: #d97706;
       color: #fff;
       font-size: .72rem;
       font-weight: 700;
@@ -1463,7 +1463,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     }
 
     .trip-contact-bar:hover .trip-contact-action {
-      background: var(--brand-d);
+      background: #92400e;
     }
 
     /* avatars strip */
@@ -3141,7 +3141,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     /* ══ RESPONSIVE ══════════════════════════════════════ */
     @media(max-width:580px) {
       .coupon-hero {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr auto;
+        padding: 12px 14px;
+        gap: 12px;
       }
 
       .sc {
@@ -3154,11 +3156,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
       .sc-body {
         padding: 15px;
-      }
-
-      .ch-breakdown {
-        flex-direction: row;
-        flex-wrap: wrap;
       }
 
       .cal-grid {
@@ -3689,7 +3686,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       margin-top: 12px;
       padding: 8px 16px;
       border-radius: var(--r-full);
-      border: 1px solid rgba(255, 255, 255, .34);
+      border: none;
       background: rgba(255, 255, 255, .18);
       color: #fff;
       font-family: inherit;
@@ -3869,15 +3866,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
     /* ══ V3 TABS AND SEARCH STYLE ══════════════════════════════ */
     .send-coupons-page {
-      min-height: calc(100vh - 120px);
-      margin: 0 !important;
-      border-radius: 0 !important;
-      border: none !important;
-      background: linear-gradient(145deg, #312e81 0%, #4f46e5 35%, #7c3aed 70%, #5b21b6 100%) !important;
+      background: var(--surf);
       position: relative;
       overflow: hidden;
-      color: #fff;
-      padding: 24px 18px 80px !important;
+      color: var(--t1);
+      padding: 24px 20px 80px !important;
     }
 
     .send-coupons-page::before {
@@ -3885,20 +3878,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       position: absolute;
       inset: 0;
       background:
-        radial-gradient(circle at 20% 30%, rgba(255, 255, 255, .07) 0%, transparent 40%),
-        radial-gradient(circle at 80% 70%, rgba(255, 255, 255, .05) 0%, transparent 35%);
+        radial-gradient(circle at 20% 30%, rgba(99, 102, 241, .03) 0%, transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(99, 102, 241, .02) 0%, transparent 35%);
       animation: hero-pulse 6s ease-in-out infinite;
       pointer-events: none;
-      z-index: 0;
-    }
-
-    .send-coupons-page::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background-image: radial-gradient(circle, rgba(255, 255, 255, .08) 1px, transparent 1px);
-      background-size: 28px 28px;
       z-index: 0;
     }
 
@@ -3908,28 +3891,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     }
 
     #scTasks.fullscreen-tab {
-      min-height: calc(100vh - 120px);
-      margin: 0 !important;
-      border-radius: 0 !important;
-      border: none !important;
       background: var(--surf) !important;
-      padding: 20px 16px 80px !important;
+      padding: 20px 20px 80px !important;
     }
 
     .wizard-step-container {
-      background: rgba(255, 255, 255, 0.12);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: none;
-      border-radius: var(--r-lg);
+      background: var(--bg);
+      border: 1.5px solid var(--bdr2);
+      border-radius: var(--radius-lg);
       padding: 20px 16px;
       margin-top: 14px;
+      box-shadow: var(--sh-sm);
     }
 
     .wizard-step-title {
       font-size: 1.05rem;
       font-weight: 800;
-      color: #fff;
+      color: var(--t1);
       margin-bottom: 12px;
       display: flex;
       align-items: center;
@@ -3945,10 +3923,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     .send-wizard-input {
       width: 100%;
       padding: 12px;
-      border: 1.5px solid rgba(255, 255, 255, 0.3);
-      background: rgba(255, 255, 255, 0.1);
+      border: 1.5px solid var(--bdr);
+      background: var(--surf);
       border-radius: var(--r-sm);
-      color: #fff;
+      color: var(--t1);
       font-family: inherit;
       font-size: 1rem;
       text-align: center;
@@ -3957,56 +3935,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     }
 
     .send-wizard-input::placeholder {
-      color: rgba(255, 255, 255, 0.6);
+      color: var(--t4);
     }
 
     .send-wizard-input:focus {
-      border-color: #fff;
-      background: rgba(255, 255, 255, 0.2);
-    }
-
-    .send-coupons-page .send-cat-btn {
-      background: rgba(255, 255, 255, 0.12);
-      border: 1.5px solid rgba(255, 255, 255, 0.2);
-      border-radius: var(--r-sm);
-      padding: 8px 4px;
-      font-size: .75rem;
-      font-weight: 800;
-      color: #fff;
-      cursor: pointer;
-      font-family: inherit;
-      transition: all var(--fast);
-      outline: none;
-    }
-
-    .send-coupons-page .send-cat-btn.active {
-      background: #fff;
-      color: var(--brand);
-      border-color: #fff;
-    }
-
-    .send-coupons-page .send-recipient-chip {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 8px 12px;
-      background: rgba(255, 255, 255, 0.12);
-      border: 1.5px solid rgba(255, 255, 255, 0.2);
-      border-radius: var(--r-md);
-      font-size: .75rem;
-      font-weight: 800;
-      cursor: pointer;
-      min-width: 80px;
-      flex-shrink: 0;
-      gap: 4px;
-      transition: all var(--fast);
-      color: #fff;
-    }
-
-    .send-coupons-page .send-recipient-chip.active {
-      border-color: #fff;
-      background: #fff;
-      color: var(--brand);
+      border-color: var(--brand);
+      background: var(--surf);
+      box-shadow: 0 0 0 3px var(--brand-glow);
     }
 
     /* Sleek Home Search Bar */
@@ -4032,12 +3967,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.3);
+      background: var(--bdr);
       transition: all var(--fast);
     }
 
     .wizard-dot.active {
-      background: #fff;
+      background: var(--brand);
       transform: scale(1.2);
     }
 
@@ -4222,6 +4157,177 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         transform: translateY(0);
       }
     }
+
+    @media (min-width: 900px) {
+      /* Main side-by-side grid layout */
+      body {
+        display: grid;
+        grid-template-columns: 1fr 280px;
+        grid-template-rows: auto 1fr;
+        min-height: 100vh;
+        background: var(--bg);
+        direction: rtl;
+        margin: 0;
+      }
+
+      /* Sticky Right Sidebar (holds Profile and Converted Nav) */
+      .hero {
+        grid-column: 2;
+        grid-row: 1;
+        display: flex !important; /* Keep it always visible on desktop */
+        flex-direction: column !important;
+        align-items: center !important;
+        background: var(--surf) !important;
+        border-bottom: 1px solid var(--bdr2) !important;
+        border-left: 1px solid var(--bdr2) !important;
+        padding: 40px 24px 20px !important;
+        height: auto !important;
+        min-height: auto !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        position: static !important;
+        background-image: none !important;
+      }
+
+      .hero::before {
+        display: none !important;
+      }
+      .hero::after {
+        display: none !important;
+      }
+
+      /* Hide wave on desktop hero */
+      .hero-wave {
+        display: none !important;
+      }
+
+      /* Adjust text colors in sidebar profile */
+      .hero-name {
+        color: var(--t1) !important;
+        font-size: 1.15rem !important;
+        margin-top: 12px !important;
+      }
+      
+      .hero-tags .htag.class-tag {
+        background: var(--brand-bg) !important;
+        color: var(--brand) !important;
+      }
+
+      /* Converted Bottom Navigation Sidebar */
+      .bottom-nav {
+        grid-column: 2;
+        grid-row: 2;
+        position: sticky !important;
+        top: 0;
+        height: calc(100vh - 260px) !important;
+        width: 280px !important;
+        background: var(--surf) !important;
+        border-top: none !important;
+        border-left: 1px solid var(--bdr2) !important;
+        box-shadow: none !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important;
+        align-items: stretch !important;
+        padding: 20px 16px !important;
+        z-index: 490;
+      }
+
+      .bottom-nav-item {
+        flex-direction: row !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        gap: 12px !important;
+        padding: 12px 18px !important;
+        border-radius: var(--radius-sm) !important;
+        height: auto !important;
+        flex: 0 0 auto !important;
+        margin-bottom: 6px !important;
+        font-size: 0.95rem !important;
+        color: var(--t3) !important;
+        transition: all var(--fast) !important;
+        background: transparent !important;
+      }
+
+      .bottom-nav-item i {
+        font-size: 1.25rem !important;
+        transform: none !important;
+      }
+
+      .bottom-nav-item.active {
+        background: var(--brand-bg) !important;
+        color: var(--brand) !important;
+      }
+
+      .bottom-nav-item.active i {
+        transform: none !important;
+      }
+
+      .bottom-nav-item.center-fab {
+        padding-bottom: 0 !important;
+        order: 2 !important;
+      }
+
+      .fab-btn {
+        width: 38px !important;
+        height: 38px !important;
+        border-radius: 50% !important;
+        background: var(--brand) !important;
+        color: #fff !important;
+        box-shadow: none !important;
+        transform: none !important;
+      }
+
+      .fab-btn i {
+        font-size: 1.1rem !important;
+        color: #fff !important;
+      }
+
+      .bottom-nav-item.center-fab:hover .fab-btn {
+        transform: none !important;
+      }
+
+      /* Main Page Content Container */
+      .page {
+        grid-column: 1;
+        grid-row: 1 / span 2;
+        padding: 40px 32px 80px !important;
+        max-width: 960px !important;
+        margin: 0 auto 0 0 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      /* Stats bar placed horizontally at the top of page content */
+      .stats-bar {
+        grid-column: 1;
+        grid-row: 1;
+        position: relative !important;
+        margin: 40px 32px 24px !important;
+        max-width: 960px !important;
+        width: calc(100% - 64px) !important;
+        box-shadow: var(--sh-sm) !important;
+        border-radius: var(--radius-lg) !important;
+        background: var(--surf) !important;
+        border: 1px solid var(--bdr2) !important;
+        display: flex !important;
+      }
+
+      /* Hide app download floating / top buttons and place in profile */
+      .hero-actions-top {
+        margin-top: 14px !important;
+        gap: 12px !important;
+      }
+      .hero-ico-btn {
+        background: var(--s2) !important;
+        color: var(--t2) !important;
+        border: 1px solid var(--bdr) !important;
+      }
+      .hero-ico-btn:hover {
+        background: var(--brand-bg) !important;
+        color: var(--brand) !important;
+      }
+    }
   </style>
   <script src="/js/og-meta.js"></script>
 </head>
@@ -4359,16 +4465,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     </div>
 
     <!-- ══ FULL PAGE SEND COUPONS WIZARD ══ -->
-    <div class="send-coupons-page" id="scSendCoupons" style="display:none">
+    <div class="sc send-coupons-page" id="scSendCoupons" style="display:none">
       <!-- Tab Header -->
       <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
         <div
-          style="width:50px; height:50px; border-radius:50%; background:rgba(255,255,255,0.15); color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.35rem; flex-shrink:0; box-shadow: var(--sh-md);">
+          style="width:50px; height:50px; border-radius:50%; background:var(--brand-bg); color:var(--brand); display:flex; align-items:center; justify-content:center; font-size:1.35rem; flex-shrink:0; box-shadow: var(--sh-sm);">
           <i class="fas fa-star"></i>
         </div>
         <div>
-          <div style="font-size:1.15rem; font-weight:800; color:#fff;">إرسال كوبونات</div>
-          <div style="font-size:.78rem; color:rgba(255,255,255,0.75);">شارك كوبوناتك مع إخوتك وصديقك المقرب</div>
+          <div style="font-size:1.15rem; font-weight:800; color:var(--t1);">إرسال كوبونات</div>
+          <div style="font-size:.78rem; color:var(--t3);">شارك كوبوناتك مع إخوتك وصديقك المقرب</div>
         </div>
       </div>
 
@@ -4384,27 +4490,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         <div class="wizard-step-title"><i class="fas fa-user-plus"></i> اختر المستلم</div>
 
         <div id="siblingChipsContainer" style="display:none; margin-bottom:12px;">
-          <div style="font-size:.72rem; color:rgba(255,255,255,0.8); margin-bottom:6px; font-weight:700;">إخوتك:</div>
+          <div style="font-size:.72rem; color:var(--t3); margin-bottom:6px; font-weight:700;">إخوتك:</div>
           <div id="sendSiblingChips"
             style="display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; scrollbar-width:none; -webkit-overflow-scrolling:touch;">
           </div>
         </div>
 
-        <div style="font-size:.72rem; color:rgba(255,255,255,0.8); margin-bottom:6px; font-weight:700;">ابحث عن صديق
-          بالاسم:</div>
+        <div style="font-size:.72rem; color:var(--t3); margin-bottom:6px; font-weight:700;">ابحث عن صديق بالاسم:</div>
         <div style="position:relative;">
           <i class="fas fa-search"
-            style="position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:.82rem; color:rgba(255,255,255,0.6); pointer-events:none;"></i>
+            style="position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:.82rem; color:var(--t4); pointer-events:none;"></i>
           <input type="text" id="sendFriendSearch" placeholder="اكتب اسم صديقك..." class="send-wizard-input"
             style="padding-right:36px; text-align:right;" oninput="onSendFriendSearch(this.value)" autocomplete="off">
         </div>
         <div id="sendFriendSearchResults"
-          style="max-height:160px; overflow-y:auto; background:rgba(255,255,255,0.95); border-radius:var(--r-sm); margin-top:6px; display:none; color:var(--t1); z-index: 10; position: relative;">
+          style="max-height:160px; overflow-y:auto; background:var(--surf); border:1px solid var(--bdr); border-radius:var(--r-sm); margin-top:6px; display:none; color:var(--t1); z-index: 10; position: relative;">
         </div>
 
         <!-- Selected Tag -->
         <div id="selectedRecipientTag"
-          style="display:none; align-items:center; gap:8px; background:#fff; color:var(--brand); padding:10px 14px; border-radius:var(--r-sm); margin-top:14px; font-size:.85rem; font-weight:800; box-shadow:var(--sh-md);">
+          style="display:none; align-items:center; gap:8px; background:var(--brand-bg); color:var(--brand); padding:10px 14px; border-radius:var(--r-sm); margin-top:14px; font-size:.85rem; font-weight:800; border:1px solid var(--brand-l); box-shadow:var(--sh-md);">
           <i class="fas fa-user-check"></i>
           <span id="selectedRecipientName">صديق محدد</span>
           <button onclick="clearSelectedRecipient()"
@@ -4414,7 +4519,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
         <div class="wizard-btn-row">
           <button class="btn btn-p" id="toStep2Btn"
-            style="width:100%; padding:12px; background:#fff; color:var(--brand); font-weight:800;"
+            style="width:100%; padding:12px; font-weight:800;"
             onclick="goToStep(2)" disabled>متابعة <i class="fas fa-chevron-left"
               style="margin-right:4px; font-size:.75rem;"></i></button>
         </div>
@@ -4426,33 +4531,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
         <!-- Available breakdown -->
         <div
-          style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:var(--r-md); padding:12px; margin-bottom:14px;">
+          style="background:var(--s2); border:1px solid var(--bdr); border-radius:var(--r-md); padding:12px; margin-bottom:14px;">
           <div
-            style="font-size:.74rem; color:rgba(255,255,255,0.7); margin-bottom:8px; text-align:center; font-weight:700;">
+            style="font-size:.74rem; color:var(--t3); margin-bottom:8px; text-align:center; font-weight:700;">
             <i class="fas fa-wallet"></i> رصيدك المتاح
           </div>
-          <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:6px; text-align:center;">
-            <div style="background:rgba(255,255,255,0.1); padding:6px; border-radius:var(--r-sm);">
-              <div style="font-size:.62rem; color:rgba(255,255,255,0.8);">حضور</div>
+          <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:6px; text-align:center; color:var(--t1);">
+            <div style="background:var(--surf); padding:6px; border-radius:var(--r-sm); border:1px solid var(--bdr);">
+              <div style="font-size:.62rem; color:var(--t4);">حضور</div>
               <div style="font-size:.9rem; font-weight:900;" id="sendAvailAtt">0</div>
             </div>
-            <div style="background:rgba(255,255,255,0.1); padding:6px; border-radius:var(--r-sm);">
-              <div style="font-size:.62rem; color:rgba(255,255,255,0.8);">التزام</div>
+            <div style="background:var(--surf); padding:6px; border-radius:var(--r-sm); border:1px solid var(--bdr);">
+              <div style="font-size:.62rem; color:var(--t4);">التزام</div>
               <div style="font-size:.9rem; font-weight:900;" id="sendAvailCom">0</div>
             </div>
-            <div style="background:rgba(255,255,255,0.1); padding:6px; border-radius:var(--r-sm);">
-              <div style="font-size:.62rem; color:rgba(255,255,255,0.8);">مهام</div>
+            <div style="background:var(--surf); padding:6px; border-radius:var(--r-sm); border:1px solid var(--bdr);">
+              <div style="font-size:.62rem; color:var(--t4);">مهام</div>
               <div style="font-size:.9rem; font-weight:900;" id="sendAvailTsk">0</div>
             </div>
           </div>
-          <div style="text-align:center; font-size:.78rem; font-weight:800; margin-top:8px;">إجمالي رصيدك الكلي: <span
+          <div style="text-align:center; font-size:.78rem; font-weight:800; margin-top:8px; color:var(--t1);">إجمالي رصيدك الكلي: <span
               id="sendAvailTotal" style="font-weight:900;">0</span></div>
         </div>
 
         <!-- Choose Category -->
         <div style="margin-bottom:14px;">
-          <div style="font-size:.72rem; color:rgba(255,255,255,0.8); margin-bottom:6px; font-weight:700;">أرسل من تصنيف:
-          </div>
+          <div style="font-size:.72rem; color:var(--t3); margin-bottom:6px; font-weight:700;">أرسل من تصنيف:</div>
           <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:6px;">
             <button class="send-cat-btn active" data-cat="all" onclick="selectSendCat(this)">الكل</button>
             <button class="send-cat-btn" data-cat="att" onclick="selectSendCat(this)">حضور</button>
@@ -4463,19 +4567,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
         <!-- Enter Amount -->
         <div style="margin-bottom:14px;">
-          <div style="font-size:.72rem; color:rgba(255,255,255,0.8); margin-bottom:6px; font-weight:700;">عدد الكوبونات:
-          </div>
+          <div style="font-size:.72rem; color:var(--t3); margin-bottom:6px; font-weight:700;">عدد الكوبونات:</div>
           <input type="number" id="sendAmount" placeholder="أدخل العدد..." class="send-wizard-input" min="1"
             oninput="checkStep2Valid()">
         </div>
 
         <div class="wizard-btn-row">
-          <button class="btn btn-g"
-            style="flex:1; padding:12px; background:rgba(255,255,255,0.2); border:none; color:#fff;"
-            onclick="goToStep(1)"><i class="fas fa-chevron-right"></i> رجوع</button>
-          <button class="btn btn-p" id="toStep3Btn"
-            style="flex:2; padding:12px; background:#fff; color:var(--brand); font-weight:800;" onclick="goToStep(3)"
-            disabled>التالي <i class="fas fa-chevron-left"></i></button>
+          <button class="btn btn-g" style="flex:1; padding:12px;" onclick="goToStep(1)"><i class="fas fa-chevron-right"></i> رجوع</button>
+          <button class="btn btn-p" id="toStep3Btn" style="flex:2; padding:12px; font-weight:800;" onclick="goToStep(3)" disabled>التالي <i class="fas fa-chevron-left"></i></button>
         </div>
       </div>
 
@@ -4484,24 +4583,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         <div class="wizard-step-title"><i class="fas fa-shield-alt"></i> تأكيد الهوية والإرسال</div>
 
         <div
-          style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:var(--r-md); padding:14px; text-align:center; font-size:.85rem; line-height:1.5; margin-bottom:14px;"
+          style="background:var(--brand-bg); border:1px solid var(--brand-l); color:var(--brand); border-radius:var(--r-md); padding:14px; text-align:center; font-size:.85rem; line-height:1.5; margin-bottom:14px; font-weight:800;"
           id="sendSummaryMsg">
           سوف تقوم بإرسال 0 كوبون إلى صديقك.
         </div>
 
         <div style="margin-bottom:14px;">
-          <div style="font-size:.72rem; color:rgba(255,255,255,0.8); margin-bottom:6px; font-weight:700;">اكتب كلمة مرور
-            حسابك لتأكيد العملية:</div>
+          <div style="font-size:.72rem; color:var(--t3); margin-bottom:6px; font-weight:700;">اكتب كلمة مرور حسابك لتأكيد العملية:</div>
           <input type="password" id="sendPassword" placeholder="كلمة المرور الخاصة بك..." class="send-wizard-input"
             oninput="checkStep3Valid()">
         </div>
 
         <div class="wizard-btn-row" style="align-items: center; justify-content: center; gap: 16px;">
           <button class="btn btn-g"
-            style="padding: 12px 20px; background:rgba(255,255,255,0.2); border:none; color:#fff; border-radius: var(--r-md); height: 48px; display: flex; align-items: center; justify-content: center; font-weight: 800;"
+            style="padding: 12px 20px; height: 48px; display: flex; align-items: center; justify-content: center; font-weight: 800;"
             onclick="goToStep(2)"><i class="fas fa-chevron-right" style="margin-left: 6px;"></i> رجوع</button>
           <button class="btn btn-p" id="sendWizardSubmitBtn"
-            style="width: 50px; height: 50px; border-radius: 50%; background:#fff; color:var(--brand); border: none; display: flex; align-items: center; justify-content: center; box-shadow: var(--sh-md); font-size: 1.3rem; flex-shrink: 0; padding: 0; margin: 0 auto;"
+            style="width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; padding: 0; margin: 0 auto;"
             onclick="trySendCoupons()" disabled><i class="fas fa-star"></i></button>
         </div>
       </div>
@@ -8548,6 +8646,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       if (scSendCoupons) scSendCoupons.style.display = 'none';
       if (scPaperExams) scPaperExams.style.display = 'none';
 
+      const pPicBanner = document.getElementById('profilePicSuggestionBanner');
+      if (pPicBanner) pPicBanner.style.display = 'none';
+
       // Load correct tab contents
       if (tabName === 'home') {
         if (hero) hero.style.display = 'flex';
@@ -8556,6 +8657,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
         if (!IS_PUBLIC) {
           if (statsBar) statsBar.style.display = 'flex';
+        }
+        const activeStudent = student || _myStudent;
+        if (pPicBanner && activeStudent && !activeStudent.image_url && isPrivate && localStorage.getItem('dismissProfilePicSuggestion') !== 'true') {
+          pPicBanner.style.display = 'flex';
         }
       } else if (tabName === 'attendance') {
         if (scAtt) scAtt.style.display = 'block';
