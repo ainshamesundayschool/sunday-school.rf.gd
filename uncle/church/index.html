@@ -3092,7 +3092,7 @@
         /* On mobile, style sidebars with IDs as premium bottom sheets */
         @media (max-width: 1023px) {
             .split-sidebar {
-                display: flex;
+                display: block !important;
                 position: fixed;
                 bottom: 0;
                 right: 0;
@@ -3106,13 +3106,23 @@
                 -webkit-overflow-scrolling: touch;
                 touch-action: pan-y;
                 padding: 44px 20px 24px 20px;
-                gap: 16px;
-                flex-direction: column;
                 transform: translateY(100%);
-                opacity: 0;
                 pointer-events: none;
-                transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+                transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
                 padding-bottom: calc(24px + env(safe-area-inset-bottom));
+                box-sizing: border-box;
+            }
+
+            .split-sidebar > * {
+                margin-bottom: 16px !important;
+            }
+
+            .split-sidebar > .mobile-sidebar-close-btn {
+                margin-bottom: 0 !important;
+            }
+
+            .split-sidebar > *:last-child {
+                margin-bottom: 0 !important;
             }
             
             /* Add mobile grab handle */
@@ -3132,7 +3142,6 @@
 
             .split-sidebar.open-mobile {
                 transform: translateY(0);
-                opacity: 1;
                 pointer-events: auto;
             }
 
@@ -4160,40 +4169,93 @@
    YEAR / MONTH SELECTORS
 ═══════════════════════════════════════════════════════════════════ */
         .year-selector {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-alpha, rgba(99, 102, 241, 0.05));
+            border: 1px solid var(--border-solid, #e2e8f0);
+            border-radius: 50px;
+            padding: 4px 6px;
+            gap: 6px;
+            margin-bottom: 20px;
+            transition: all var(--t-fast) var(--ease);
+        }
+
+        .year-selector:hover {
+            border-color: var(--primary-light, #818cf8);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.06);
+        }
+
+        .year-selector button {
+            background: transparent !important;
+            border: none !important;
+            color: var(--text-2, #4b5563) !important;
+            width: 32px;
+            height: 32px;
+            border-radius: 50% !important;
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 18px;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--t-fast) var(--ease);
+            padding: 0 !important;
+        }
+
+        .year-selector button:hover {
+            background: var(--primary-light, rgba(99, 102, 241, 0.1)) !important;
+            color: var(--primary, #4f46e5) !important;
+            transform: scale(1.08);
+        }
+
+        .year-selector button:active {
+            transform: scale(0.95);
+        }
+
+        .year-selector span {
+            font-size: 0.95rem !important;
+            font-weight: 800 !important;
+            color: var(--text-1, #1f2937);
+            min-width: 65px !important;
+            user-select: none;
         }
 
         .month-tabs {
             display: flex;
             gap: 6px;
             flex-wrap: wrap;
-            margin-bottom: 14px;
+            margin-bottom: 20px;
+            padding: 4px;
+            background: var(--bg-alpha, rgba(241, 245, 249, 0.6));
+            border: 1px solid var(--border-solid, #e2e8f0);
+            border-radius: 14px;
+            width: fit-content;
         }
 
         .month-tab {
-            padding: 5px 12px;
-            border: 1px solid var(--border-solid);
-            border-radius: var(--radius);
+            padding: 6px 16px;
+            border: none !important;
+            border-radius: 10px !important;
             cursor: pointer;
             font-size: 0.78rem;
             font-weight: 700;
             transition: all var(--t-fast) var(--ease);
-            background: white;
-            color: var(--text-2);
+            background: transparent !important;
+            color: var(--text-2, #4b5563);
+            user-select: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .month-tab:hover {
-            border-color: var(--primary);
-            color: var(--primary);
+            color: var(--primary, #4f46e5);
+            background: rgba(99, 102, 241, 0.06) !important;
         }
 
         .month-tab.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
+            background: var(--primary, #4f46e5) !important;
+            color: white !important;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
         }
 
         /* ═══════════════════════════════════════════════════════════════════
@@ -5158,10 +5220,24 @@
             .year-selector {
                 justify-content: center;
                 flex-wrap: wrap;
+                margin: 0 auto 16px auto !important;
             }
 
             .month-tabs {
-                justify-content: center;
+                width: 100% !important;
+                flex-wrap: nowrap !important;
+                overflow-x: auto !important;
+                justify-content: flex-start !important;
+                padding: 4px 8px !important;
+                /* Hide scrollbar but keep functionality */
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+            .month-tabs::-webkit-scrollbar {
+                display: none;
+            }
+            .month-tab {
+                flex-shrink: 0 !important;
             }
 
             /* Uncle */
