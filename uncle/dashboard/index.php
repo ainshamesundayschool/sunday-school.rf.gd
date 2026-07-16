@@ -7821,7 +7821,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         /* ── Today's Birthday Banner (homepage) ── */
         .bday-banner-wrapper {
-            margin: 0 auto 4px auto !important;
+            margin: 0 auto 15px auto !important;
             border-radius: var(--r-xl);
             border: none !important;
             background: 
@@ -20331,9 +20331,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (!tpList.length) tpHtml += 'لا توجد نقاط مسجّلة';
             else tpHtml += tpList.map(item => `
                 <div onclick="window.location.href='<?php echo $pathPrefix; ?>/uncle/trip/points/?trip_id=${item.id}&student_id=${full.id}'" 
-                     style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--surface-3);border:1px solid var(--border-solid);border-radius:var(--r-sm);cursor:pointer;transition:all 0.2s;" 
-                     onmouseover="this.style.background='var(--surface-4)';this.style.borderColor='var(--brand)'" 
-                     onmouseout="this.style.background='var(--surface-3)';this.style.borderColor='var(--border-solid)'">
+                     style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--surface);border:1px solid var(--border-solid);border-radius:var(--r-sm);cursor:pointer;transition:all 0.2s;" 
+                     onmouseover="this.style.background='var(--surface-2)';this.style.borderColor='var(--brand)'" 
+                     onmouseout="this.style.background='var(--surface)';this.style.borderColor='var(--border-solid)'">
                     <div style="font-weight:700;color:var(--text);font-size:0.82rem;">${escHtml(item.title)}</div>
                     <div style="font-weight:800;color:var(--brand);font-size:0.85rem;display:flex;align-items:center;gap:4px;">
                         ${item.points} <i class="fas fa-star" style="color:var(--coupon);font-size:0.8rem;"></i>
