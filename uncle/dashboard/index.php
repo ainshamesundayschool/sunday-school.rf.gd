@@ -12053,8 +12053,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             </div>
             <div id="studentDetailsHeader"></div>
             <div id="studentModalFooter" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;margin-bottom:10px;">
-                <button class="btn btn-xs btn-outline" id="editStudentBtn" style="padding:4px 8px;font-size:0.72rem;"><i class="fas fa-edit"></i> تعديل</button>
                 <button class="btn btn-xs btn-outline btn-secondary" id="viewProfileBtn" style="padding:4px 8px;font-size:0.72rem;"><i class="fas fa-user"></i> ملف الطفل</button>
+                <button class="btn btn-xs btn-outline" id="editStudentBtn" style="padding:4px 8px;font-size:0.72rem;"><i class="fas fa-edit"></i> تعديل</button>
             </div>
             <div id="studentDetails" style="margin-bottom:14px"></div>
             <div id="studentModalDeleteFooter" style="display:flex;justify-content:center;margin-top:14px;">
