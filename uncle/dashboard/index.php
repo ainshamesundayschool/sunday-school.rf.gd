@@ -20036,7 +20036,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div class="navigation-row" onclick="redirectToKidProfile()">
                 <div style="display:flex; align-items:center; gap:10px;">
                     <div class="navigation-icon purple"><i class="fas fa-external-link-alt"></i></div>
-                    <div class="navigation-label">الملف العام (دون توجيه)</div>
+                    <div class="navigation-label">الملف العام</div>
                 </div>
                 <div>
                     <i class="fas fa-chevron-left navigation-arrow"></i>
@@ -20162,7 +20162,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div class="navigation-row" onclick="redirectToKidProfile()">
                 <div style="display:flex; align-items:center; gap:10px;">
                     <div class="navigation-icon purple"><i class="fas fa-external-link-alt"></i></div>
-                    <div class="navigation-label">الملف العام (دون توجيه)</div>
+                    <div class="navigation-label">الملف العام</div>
                 </div>
                 <div>
                     <i class="fas fa-chevron-left navigation-arrow"></i>
@@ -29314,7 +29314,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <!-- 2. Actions (Edit Info, View Profile Link) -->
                 <div id="standaloneDetailsActions" style="display:flex; gap:10px; justify-content:center; margin-bottom: 20px; flex-wrap:wrap; padding: 0 16px;">
                     <button class="btn btn-sm btn-outline" onclick="editStandaloneKidInfo()" style="flex:1;"><i class="fas fa-edit"></i> تعديل البيانات</button>
-                    <a id="standalonePublicProfileLink" href="#" target="_blank" class="btn btn-sm btn-ghost" style="flex:1; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:6px;"><i class="fas fa-external-link-alt"></i> الملف العام (دون توجيه)</a>
+                    <a id="standalonePublicProfileLink" href="#" target="_blank" class="btn btn-sm btn-ghost" style="flex:1; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:6px;"><i class="fas fa-external-link-alt"></i> الملف العام</a>
                 </div>
                 
                 <!-- 3. Standalone Management Panel (Attendance, Coupons, Trips) -->
