@@ -3,10 +3,9 @@
 <head>
     <script>
         (function() {
+            // Only redirect to Uncle portals if they were previously in Uncle portal
             var lastPortal = localStorage.getItem('lastVisitedPortal');
-            if (lastPortal === 'kid') {
-                window.location.replace('/user/profile/');
-            } else if (lastPortal === 'uncle_dashboard') {
+            if (lastPortal === 'uncle_dashboard') {
                 window.location.replace('/uncle/dashboard/');
             } else if (lastPortal === 'uncle_church') {
                 window.location.replace('/uncle/church/');

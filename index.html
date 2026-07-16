@@ -6,6 +6,18 @@
         (function () {
             const saved = localStorage.getItem('app_theme') || 'light';
             document.documentElement.setAttribute('data-theme', saved);
+
+            // Auto-redirect PWA opens to the last active portal
+            if (!window.location.search.includes('bypass=true')) {
+                const lastPortal = localStorage.getItem('lastVisitedPortal');
+                if (lastPortal === 'kid') {
+                    window.location.replace('/user/profile/');
+                } else if (lastPortal === 'uncle_dashboard') {
+                    window.location.replace('/uncle/dashboard/');
+                } else if (lastPortal === 'uncle_church') {
+                    window.location.replace('/uncle/church/');
+                }
+            }
         })();
     </script>
 

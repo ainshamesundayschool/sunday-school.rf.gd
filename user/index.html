@@ -3,13 +3,10 @@
 <head>
     <script>
         (function() {
+            // Only redirect to Kid portals if they were previously in Kid portal
             var lastPortal = localStorage.getItem('lastVisitedPortal');
             if (lastPortal === 'kid') {
                 window.location.replace('/user/profile/');
-            } else if (lastPortal === 'uncle_dashboard') {
-                window.location.replace('/uncle/dashboard/');
-            } else if (lastPortal === 'uncle_church') {
-                window.location.replace('/uncle/church/');
             }
         })();
     </script>
