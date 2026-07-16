@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /config/
+Disallow: /private/
+
+Sitemap: https://sunday-school.online/sitemap.xml
