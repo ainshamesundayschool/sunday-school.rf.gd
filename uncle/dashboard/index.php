@@ -4920,6 +4920,31 @@ if ($hasUncleId && $uncleRole === 'uncle')
             box-shadow: none !important;
         }
 
+        .sibling-stack-avatar-wrap {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 1.5px solid var(--surface-1);
+            margin-left: -6px;
+            position: relative;
+            background: var(--surface-3);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+
+        .sibling-stack-avatar-wrap .sibling-mini-avatar,
+        .sibling-stack-avatar-wrap .sibling-mini-avatar-fallback {
+            width: 100% !important;
+            height: 100% !important;
+            font-size: 0.65rem !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
         .sibling-unlink-btn {
             display: inline-flex;
             align-items: center;
@@ -19158,14 +19183,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
             let previewHtml = '';
             if (members.length > 0) {
                 previewHtml = `
-                <div class="sibling-preview-list" style="display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; margin-inline-start:34px;" onclick="event.stopPropagation()">
-                    ${members.map(m => {
+                <div class="sibling-avatar-stack" style="display:flex; align-items:center; direction:ltr; margin-inline-end:8px;" onclick="event.stopPropagation()">
+                    ${members.map((m, idx) => {
                         return `
-                        <div class="sibling-preview-tag" onclick="showStudentDetails('${escJs(m.name || m['الاسم'] || '')}')" style="display:inline-flex; align-items:center; gap:6px; background:var(--surface-3); border:1px solid var(--border-solid); padding:2px 8px 2px 4px; border-radius:16px; font-size:0.72rem; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='var(--surface-4)'" onmouseout="this.style.background='var(--surface-3)'">
-                            <div class="sibling-preview-avatar-wrap" style="width:20px; height:20px; border-radius:50%; overflow:hidden; position:relative; flex-shrink:0;">
-                                ${buildSiblingMiniAvatar(m)}
-                            </div>
-                            <span style="color:var(--text); font-weight:700; font-size:0.72rem;">${escHtml(getStudentDisplayName(m))}</span>
+                        <div class="sibling-stack-avatar-wrap" 
+                             onclick="showStudentDetails('${escJs(m.name || m['الاسم'] || '')}')" 
+                             title="${escAttr(getStudentDisplayName(m))}"
+                             onmouseover="this.style.transform='scale(1.15)';this.style.zIndex='20';"
+                             onmouseout="this.style.transform='';this.style.zIndex='${10 - idx}';"
+                             style="z-index:${10 - idx};">
+                            ${buildSiblingMiniAvatar(m)}
                         </div>
                         `;
                     }).join('')}
@@ -19174,18 +19201,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
 
             return `
-            <div class="navigation-row" onclick="showSiblingsSubPage()" style="display:flex; flex-direction:column; align-items:stretch; gap:0;">
-                <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <div class="navigation-icon blue"><i class="fas fa-people-roof"></i></div>
-                        <div class="navigation-label">${escHtml(words.panelLabel)}</div>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:6px;">
-                        <span class="navigation-count">${members.length}</span>
-                        <i class="fas fa-chevron-left navigation-arrow"></i>
-                    </div>
+            <div class="navigation-row" onclick="showSiblingsSubPage()" style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div class="navigation-icon blue"><i class="fas fa-user-friends"></i></div>
+                    <div class="navigation-label">${escHtml(words.panelLabel)}</div>
                 </div>
-                ${previewHtml}
+                <div style="display:flex; align-items:center; gap:6px;">
+                    ${previewHtml}
+                    <span class="navigation-count">${members.length}</span>
+                    <i class="fas fa-chevron-left navigation-arrow"></i>
+                </div>
             </div>
             `;
         }
