@@ -194,24 +194,15 @@
             font-size: 1.8rem;
             font-weight: 800;
             margin-bottom: var(--spacing-sm);
-            background: linear-gradient(135deg, #d4ebff, var(--primary-dark), #c0a4ff);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-size: 200% 200%;
-            animation: gradientShift 4s ease infinite;
+            color: var(--primary);
             letter-spacing: -0.02em;
         }
 
         .title.main {
             font-size: 3rem;
-            font-family: 'Cairo', 'Cairo', sans-serif;
+            font-family: 'Cairo', sans-serif;
             margin-bottom: 2px;
-        }
-
-        @keyframes gradientShift {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
+            color: var(--primary-dark);
         }
 
         .subtitle {
@@ -484,8 +475,9 @@
             border: none;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
-        [data-theme="dark"] .title {
-            color: #fff;
+        [data-theme="dark"] .title,
+        [data-theme="dark"] .title.main {
+            color: #fff !important;
         }
         [data-theme="dark"] .user-title,
         [data-theme="dark"] .stat-label,
