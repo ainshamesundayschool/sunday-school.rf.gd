@@ -12414,15 +12414,26 @@
             const btn = document.getElementById('nav-' + savedTab) || document.querySelector(`.nav-item[onclick*="'${savedTab}'"]`);
             await switchTab(savedTab, btn);
 
-            // Warm secondary data after the first screen is usable.
-            runWhenIdle(() => {
-                const warmups = [];
-                if (savedTab !== 'students') warmups.push(runDataLoad('students', loadStudents).then(() => loadedTabs.add('students')));
-                if (savedTab !== 'trips') warmups.push(runDataLoad('trips', loadTrips).then(() => loadedTabs.add('trips')));
-                if (savedTab !== 'pending') warmups.push(runDataLoad('pending', loadPendingRegistrations).then(() => loadedTabs.add('pending')));
-                Promise.allSettled(warmups).then(() => loadStatistics());
-                if (isDeveloper) loadAllChurches();
-            }, 1200);
+            // Warm secondary data sequentially after the first screen is usable.
+            runWhenIdle(async () => {
+                try {
+                    if (savedTab !== 'students') {
+                        await runDataLoad('students', loadStudents);
+                        loadedTabs.add('students');
+                    }
+                    if (savedTab !== 'trips') {
+                        await runDataLoad('trips', loadTrips);
+                        loadedTabs.add('trips');
+                    }
+                    if (savedTab !== 'pending') {
+                        await runDataLoad('pending', loadPendingRegistrations);
+                        loadedTabs.add('pending');
+                    }
+                    if (isDeveloper) loadAllChurches();
+                } catch (e) {
+                    console.error("Error warming up idle caches:", e);
+                }
+            }, 1500);
 
             // Handle deep links (modals)
             if (savedTab === 'trips' && hashData.params.get('trip_id')) {
@@ -12581,10 +12592,25 @@
                 overview: async () => {
                     await loadStatistics();
                     renderKidRegLinks();
-                    if (!allStudents.length) runDataLoad('students', loadStudents).then(calculateTotalCoupons);
-                    if (!allTripsCache.length) runDataLoad('trips', loadTrips);
-                    if (!allUncles.length) runDataLoad('uncles', loadUncles);
-                    loadAuditLogs();
+                    
+                    // Stagger secondary preloads sequentially to prevent database/network throttling
+                    (async () => {
+                        try {
+                            if (!allStudents.length) {
+                                await runDataLoad('students', loadStudents);
+                                calculateTotalCoupons();
+                            }
+                            if (!allTripsCache.length) {
+                                await runDataLoad('trips', loadTrips);
+                            }
+                            if (!allUncles.length) {
+                                await runDataLoad('uncles', loadUncles);
+                            }
+                            loadAuditLogs();
+                        } catch (e) {
+                            console.error("Error in overview preloads:", e);
+                        }
+                    })();
                 },
                 uncles: () => runDataLoad('uncles', loadUncles),
                 students: async () => { await runDataLoad('students', loadStudents); renderKidRegLinks(); },
@@ -13267,7 +13293,9 @@
             });
         }
 
+        let _renderStudentsTimeout = null;
         function renderStudentsTable(students) {
+            if (_renderStudentsTimeout) clearTimeout(_renderStudentsTimeout);
             const tb = document.getElementById('studentsTable');
             const head = document.getElementById('studentsListHead');
             const showChurch = devViewChurchId === -1;
@@ -13301,38 +13329,56 @@
                 tb.innerHTML = `<div class="empty-state" style="padding:28px;"><i class="fas fa-child"></i><h3>لا يوجد أطفال</h3></div>`;
                 return;
             }
-            tb.innerHTML = students.map(s => {
-                const rate = calcRate(s);
-                const sid = s['_studentId'];
-                const avatarHtml = s['صورة']
-                    ? `<div class="avatar-text"><img src="${s['صورة']}" alt=""></div>`
-                    : `<div class="avatar-text">${s['الاسم'].charAt(0)}</div>`;
-                const churchCell = showChurch ? `<span class="badge badge-primary" style="font-size:0.72rem;">${escHtml(s['_churchName'] || '')}</span>` : '';
-                const actKey = stashRowActions(s['الاسم'], [
-                    { label: 'عرض التفاصيل', icon: 'fa-eye', handler: () => showStudentDetails(sid) },
-                    { label: 'تعديل', icon: 'fa-edit', handler: () => editStudentFull(sid) },
-                    { label: 'الكوبونات', icon: 'fa-coins', handler: () => editCoupons(sid, s['الاسم'], s['كوبونات'] || 0) },
-                    { label: 'سجل الكوبونات', icon: 'fa-history', handler: () => showCouponLogs(sid) },
-                    { label: 'حذف', icon: 'fa-trash', danger: true, handler: () => deleteStudentConfirm(sid, s['الاسم']) },
-                ]);
-                const isSelected = selectedStudentIds.has(sid);
-                return `<div class="data-row ${showChurch ? 'data-cols-students dev' : 'data-cols-students'} ${isSelected ? 'selected' : ''}" data-student-id="${sid}" role="button" tabindex="0"
-                    onclick="handleStudentRowClick(event, ${sid}, '${actKey}')" onkeydown="if(event.key==='Enter')this.click()">
-                    <div class="bulk-check-wrap" data-student-id="${sid}">
-                        <div class="bulk-check-circle"><i class="fas fa-check"></i></div>
-                    </div>
-                    <div class="td-name-cell">${avatarHtml}<div><div class="td-name-text">${escHtml(s['الاسم'])}</div></div></div>
-                    ${showChurch ? churchCell : ''}
-                    <span class="badge badge-primary">${escHtml(s['الفصل'] || '')}</span>
-                    <span style="color:var(--text-3);">${escHtml(s['رقم التليفون'] || '—')}</span>
-                    <strong style="color:var(--primary);">${s['كوبونات'] || 0}</strong>
-                    <div style="display:flex;align-items:center;gap:6px;"><div class="progress" style="width:52px;"><div class="progress-fill" style="width:${rate}%"></div></div><small style="color:var(--text-3);font-size:0.7rem;">${rate}%</small></div>
-                    <div class="data-row-actions-cell">
-                        <i class="fas fa-chevron-left data-row-chevron"></i>
-                        ${renderInlineRowActions(actKey)}
-                    </div>
-                </div>`;
-            }).join('');
+
+            const CHUNK_SIZE = 100;
+            let offset = 0;
+            tb.innerHTML = ''; // Clear table before starting chunked rendering
+
+            function renderChunk() {
+                const limit = Math.min(offset + CHUNK_SIZE, students.length);
+                const htmlArray = [];
+                for (let i = offset; i < limit; i++) {
+                    const s = students[i];
+                    const rate = calcRate(s);
+                    const sid = s['_studentId'];
+                    const avatarHtml = s['صورة']
+                        ? `<div class="avatar-text"><img src="${s['صورة']}" alt=""></div>`
+                        : `<div class="avatar-text">${s['الاسم'].charAt(0)}</div>`;
+                    const churchCell = showChurch ? `<span class="badge badge-primary" style="font-size:0.72rem;">${escHtml(s['_churchName'] || '')}</span>` : '';
+                    const actKey = stashRowActions(s['الاسم'], [
+                        { label: 'عرض التفاصيل', icon: 'fa-eye', handler: () => showStudentDetails(sid) },
+                        { label: 'تعديل', icon: 'fa-edit', handler: () => editStudentFull(sid) },
+                        { label: 'الكوبونات', icon: 'fa-coins', handler: () => editCoupons(sid, s['الاسم'], s['كوبونات'] || 0) },
+                        { label: 'سجل الكوبونات', icon: 'fa-history', handler: () => showCouponLogs(sid) },
+                        { label: 'حذف', icon: 'fa-trash', danger: true, handler: () => deleteStudentConfirm(sid, s['الاسم']) },
+                    ]);
+                    const isSelected = selectedStudentIds.has(sid);
+                    
+                    htmlArray.push(`<div class="data-row ${showChurch ? 'data-cols-students dev' : 'data-cols-students'} ${isSelected ? 'selected' : ''}" data-student-id="${sid}" role="button" tabindex="0"
+                        onclick="handleStudentRowClick(event, ${sid}, '${actKey}')" onkeydown="if(event.key==='Enter')this.click()">
+                        <div class="bulk-check-wrap" data-student-id="${sid}">
+                            <div class="bulk-check-circle"><i class="fas fa-check"></i></div>
+                        </div>
+                        <div class="td-name-cell">${avatarHtml}<div><div class="td-name-text">${escHtml(s['الاسم'])}</div></div></div>
+                        ${showChurch ? churchCell : ''}
+                        <span class="badge badge-primary">${escHtml(s['الفصل'] || '')}</span>
+                        <span style="color:var(--text-3);">${escHtml(s['رقم التليفون'] || '—')}</span>
+                        <strong style="color:var(--primary);">${s['كوبونات'] || 0}</strong>
+                        <div style="display:flex;align-items:center;gap:6px;"><div class="progress" style="width:52px;"><div class="progress-fill" style="width:${rate}%"></div></div><small style="color:var(--text-3);font-size:0.7rem;">${rate}%</small></div>
+                        <div class="data-row-actions-cell">
+                            <i class="fas fa-chevron-left data-row-chevron"></i>
+                            ${renderInlineRowActions(actKey)}
+                        </div>
+                    </div>`);
+                }
+                tb.insertAdjacentHTML('beforeend', htmlArray.join(''));
+                offset = limit;
+                if (offset < students.length) {
+                    _renderStudentsTimeout = setTimeout(renderChunk, 30);
+                }
+            }
+
+            renderChunk();
         }
 
         function calcRate(s) {
