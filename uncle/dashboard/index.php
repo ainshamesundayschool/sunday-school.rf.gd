@@ -12051,14 +12051,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <h3 id="studentModalTitle">معلومات الطفل</h3>
                 <button class="close-btn" id="closeStudentModal">&times;</button>
             </div>
-            <div id="studentDetails" style="margin-bottom:14px"></div>
-            <div id="studentModalFooter" style="display:flex;gap:8px;flex-wrap:wrap">
-                <button class="btn" id="editStudentBtn" style="flex:1"><i class="fas fa-edit"></i> تعديل</button>
-                <button class="btn btn-secondary" id="viewProfileBtn" style="flex:1"><i class="fas fa-user"></i> ملف
-                    الطفل</button>
-                <button class="btn btn-danger" id="deleteStudentBtn" style="flex:1"><i class="fas fa-trash"></i>
-                    حذف</button>
+            <div id="studentDetailsHeader"></div>
+            <div id="studentModalFooter" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-bottom:14px;padding-bottom:10px;border-bottom:1.5px solid var(--border-solid);">
+                <button class="btn btn-sm" id="editStudentBtn" style="padding:6px 12px;font-size:0.8rem;"><i class="fas fa-edit"></i> تعديل</button>
+                <button class="btn btn-sm btn-secondary" id="viewProfileBtn" style="padding:6px 12px;font-size:0.8rem;"><i class="fas fa-user"></i> ملف الطفل</button>
+                <button class="btn btn-sm btn-danger" id="deleteStudentBtn" style="padding:6px 12px;font-size:0.8rem;"><i class="fas fa-trash"></i> حذف</button>
             </div>
+            <div id="studentDetails" style="margin-bottom:14px"></div>
         </div>
     </div>
 
@@ -18851,6 +18850,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (footer) footer.style.display = 'none';
             const standaloneActions = document.getElementById('standaloneDetailsActions');
             if (standaloneActions) standaloneActions.style.display = 'none';
+            const headerEl = document.getElementById('studentDetailsHeader');
+            if (headerEl) headerEl.style.display = 'none';
         }
 
         function scrollToDetailsTop() {
@@ -18865,6 +18866,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (footer) footer.style.display = '';
             const standaloneActions = document.getElementById('standaloneDetailsActions');
             if (standaloneActions) standaloneActions.style.display = 'flex';
+            const headerEl = document.getElementById('studentDetailsHeader');
+            if (headerEl) headerEl.style.display = '';
         }
 
         function setModalHeader(title, showBack = false) {
@@ -23851,6 +23854,31 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         // ── EVENT LISTENERS ───────────────────────────────────────────
         function setupEventListeners() {
+            // Setup innerHTML interceptor on studentDetails to split avatar header and detail info rows
+            const studentDetailsEl = document.getElementById('studentDetails');
+            if (studentDetailsEl) {
+                const descriptor = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+                Object.defineProperty(studentDetailsEl, 'innerHTML', {
+                    set: function(val) {
+                        const temp = document.createElement('div');
+                        temp.innerHTML = val;
+                        const avatarWrap = temp.querySelector('.detail-avatar-wrap');
+                        if (avatarWrap) {
+                            const headerEl = document.getElementById('studentDetailsHeader');
+                            if (headerEl) headerEl.innerHTML = avatarWrap.outerHTML;
+                            avatarWrap.remove();
+                            descriptor.set.call(this, temp.innerHTML);
+                        } else {
+                            descriptor.set.call(this, val);
+                        }
+                    },
+                    get: function() {
+                        return descriptor.get.call(this);
+                    },
+                    configurable: true
+                });
+            }
+
             const on = (id, ev, fn) => { const el = document.getElementById(id); if (el) el.addEventListener(ev, fn); };
             on('backBtn', 'click', showClassesView);
             on('showBirthdayModalBtn', 'click', showBirthdayModal);
