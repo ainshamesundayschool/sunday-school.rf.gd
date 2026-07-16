@@ -18846,6 +18846,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
             document.getElementById('studentDetails').innerHTML = content;
         }
 
+        function hideDetailsFooter() {
+            const footer = document.getElementById('studentModalFooter');
+            if (footer) footer.style.display = 'none';
+            const standaloneActions = document.getElementById('standaloneDetailsActions');
+            if (standaloneActions) standaloneActions.style.display = 'none';
+        }
+
+        function showDetailsFooter() {
+            const footer = document.getElementById('studentModalFooter');
+            if (footer) footer.style.display = '';
+            const standaloneActions = document.getElementById('standaloneDetailsActions');
+            if (standaloneActions) standaloneActions.style.display = 'flex';
+        }
+
         function setModalHeader(title, showBack = false) {
             const titleEl = document.getElementById('studentModalTitle');
             if (!titleEl) return;
@@ -18861,8 +18875,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         function goBackToMainDetails() {
             if (!currentStudentForEdit) return;
-            const footer = document.getElementById('studentModalFooter');
-            if (footer) footer.style.display = '';
+
+            // Move editForm back to editStudentForm if it is inside studentDetails
+            const editFormEl = document.getElementById('editForm');
+            const staticModal = document.getElementById('editStudentForm');
+            if (editFormEl && staticModal && editFormEl.parentElement !== staticModal) {
+                staticModal.appendChild(editFormEl);
+            }
+
+            showDetailsFooter();
 
             const isUncle = !!currentStudentForEdit._isUncle;
             if (isUncle) {
@@ -19279,8 +19300,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const groupId = group?.id;
 
             setModalHeader(words.panelLabel, true);
-            const footer = document.getElementById('studentModalFooter');
-            if (footer) footer.style.display = 'none';
+            hideDetailsFooter();
 
             const membersHtml = members.length
                 ? members.map(m => {
@@ -19323,8 +19343,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const paperExamsList = full.paper_exams || [];
 
             setModalHeader('الدرجات والامتحانات الورقية', true);
-            const footer = document.getElementById('studentModalFooter');
-            if (footer) footer.style.display = 'none';
+            hideDetailsFooter();
 
             const examsHtml = paperExamsList.length === 0 ? `
                 <div style="text-align:center; padding:30px 20px; color:var(--muted); font-size:0.82rem; font-style:italic;">
@@ -19382,8 +19401,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const notesList = info._notes || [];
 
             setModalHeader('الملاحظات', true);
-            const footer = document.getElementById('studentModalFooter');
-            if (footer) footer.style.display = 'none';
+            hideDetailsFooter();
 
             const notesHtml = `
             <div class="student-notes-section" style="margin-top:8px;">
@@ -20193,8 +20211,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const full = currentStudentForEdit;
 
             setModalHeader('الاشتراكات الشهرية للخدمة', true);
-            const footer = document.getElementById('studentModalFooter');
-            if (footer) footer.style.display = 'none';
+            hideDetailsFooter();
 
             let fees = [];
             try {
@@ -20616,19 +20633,31 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 }
             } catch (e) { showToast('خطأ في الاتصال', 'error'); }
         }
-        function hideStudentModal() { document.getElementById('studentModal').classList.remove('active'); currentStudentForEdit = null; startAutoRefresh(); }
+        function hideStudentModal() {
+            document.getElementById('studentModal').classList.remove('active');
+            if (!window.currentStandaloneKidId) {
+                currentStudentForEdit = null;
+                startAutoRefresh();
+            }
+        }
         function showEditForm() {
             if (!currentStudentForEdit) return;
             const s = currentStudentForEdit;
             const isUncle = !!s._isUncle;
             const isGuest = !!s._isGuest;
 
-            // Set modal title
-            const titleEl = document.getElementById('editStudentModalTitle');
-            if (titleEl) {
-                if (isUncle) titleEl.textContent = 'تعديل بيانات الخادم';
-                else if (isGuest) titleEl.textContent = 'تعديل بيانات الزائر';
-                else titleEl.textContent = 'تعديل بيانات الطفل';
+            // Set modal header
+            const title = isUncle ? 'تعديل بيانات الخادم' : (isGuest ? 'تعديل بيانات الزائر' : 'تعديل بيانات الطفل');
+            setModalHeader(title, true);
+
+            hideDetailsFooter();
+
+            // Append editForm to studentDetails container
+            const editFormEl = document.getElementById('editForm');
+            const detailsContainer = document.getElementById('studentDetails');
+            if (editFormEl && detailsContainer) {
+                detailsContainer.innerHTML = '';
+                detailsContainer.appendChild(editFormEl);
             }
 
             // Adjust labels for guest mode
@@ -20765,9 +20794,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     cfContainer.style.display = 'none';
                 }
             }
-            document.getElementById('editStudentForm').classList.add('active');
         }
-        function hideEditForm() { document.getElementById('editStudentForm').classList.remove('active'); }
+        function hideEditForm() {
+            goBackToMainDetails();
+        }
         function updateStudentInfo(e) {
             e.preventDefault(); if (!currentStudentForEdit) return;
             const id = getStudentDbId(currentStudentForEdit); if (!id) { showToast('خطأ في البيانات', 'error'); return; }
