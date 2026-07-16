@@ -49,6 +49,10 @@ if ($tempIdFromUrl && !$studentIdFromUrl) {
   }
 }
 $isUncleLoggedIn = isset($_SESSION['uncle_id']) || isset($_SESSION['church_id']);
+if ($isUncleLoggedIn && $studentIdFromUrl && !(isset($_GET['noredirect']) && ($_GET['noredirect'] === 'true' || $_GET['noredirect'] === '1'))) {
+    header("Location: /uncle/church/index.html?kid_id=" . $studentIdFromUrl);
+    exit;
+}
 $targetTripId = isset($_GET['trip_id']) ? intval($_GET['trip_id']) : null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logout') {
   session_destroy();
@@ -4733,6 +4737,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
   <!-- Page -->
   <div class="page" id="mainPage" style="display:none">
 
+    <!-- Guest Login Prompt -->
+    <div id="guestLoginPrompt" style="display:none; text-align:center; padding:40px 20px; background:rgba(255,255,255,0.85); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border:2px dashed var(--brand-l); border-radius:var(--r-md); margin:20px 0; box-shadow:var(--sh-md); font-family:'Cairo','Baloo Bhaijaan 2',sans-serif;">
+        <div style="background:var(--brand-bg); color:var(--brand); width:70px; height:70px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 18px; font-size:2rem; box-shadow:var(--brand-glow);">
+            <i class="fas fa-lock"></i>
+        </div>
+        <h3 style="margin-bottom:10px; font-weight:800; font-size:1.15rem; color:var(--t1);">تفاصيل هذا الملف الشخصي محمية</h3>
+        <p style="margin-bottom:24px; font-size:0.85rem; color:var(--t3); line-height:1.6; max-width:400px; margin-left:auto; margin-right:auto;">
+            عذراً، هذه البيانات تظهر فقط للأعضاء المسجلين في مدارس الأحد. يرجى تسجيل الدخول للتحقق من تفاصيل الطفل.
+        </p>
+        <a id="guestLoginBtn" href="/user/login" class="btn" style="display:inline-flex; align-items:center; gap:8px; justify-content:center; padding:12px 32px; background:var(--brand); color:#fff; border-radius:var(--r-sm); text-decoration:none; font-weight:700; box-shadow:var(--sh-brand); font-family:inherit; transition:transform var(--fast);">
+            <i class="fas fa-sign-in-alt"></i> تسجيل الدخول للمتابعة
+        </a>
+    </div>
+
     <!-- Profile picture suggestion banner -->
     <div id="profilePicSuggestionBanner" style="display:none; background: linear-gradient(135deg, var(--brand-bg), rgba(79, 70, 229, 0.15)); border: 1px solid var(--brand); padding: 12px 16px; border-radius: 12px; margin-bottom: 12px; align-items: center; justify-content: space-between; gap: 12px; direction: rtl; text-align: right; position: relative;">
         <div style="display:flex; align-items:center; gap:10px; min-width:0; flex:1;">
@@ -5647,9 +5665,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     const TARGET_TRIP_ID = <?php echo json_encode($targetTripId); ?>;
     const _creds = localStorage.getItem('rememberMe') === 'true' && !!localStorage.getItem('savedUsername') && !!localStorage.getItem('savedPassword');
     const IS_PUBLIC = !!(URL_ID && !_creds);
-    if (IS_PUBLIC) {
-      window.location.replace('/uncle/trip/open_kid.php' + window.location.search);
-    }
+    const IS_GUEST = !!(URL_ID && !_creds && !IS_UNCLE_LOGGED_IN);
     const API_URL = (() => {
       const segs = location.pathname.replace(/\/[^/]*$/, '').split('/').filter(Boolean);
       return segs.map(() => '../').join('') + 'api.php';
@@ -6491,6 +6507,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     // ── Render public ─────────────────────────────────────────────────
     function renderPublic(s) {
       renderHero(s, false);
+      if (IS_GUEST) {
+        if (document.getElementById('scInfo')) document.getElementById('scInfo').style.display = 'none';
+        if (document.getElementById('pubBanner')) document.getElementById('pubBanner').style.display = 'none';
+        if (document.getElementById('statsBar')) document.getElementById('statsBar').style.setProperty('display', 'none', 'important');
+        const bNav = document.getElementById('bottomNavBar');
+        if (bNav) bNav.style.setProperty('display', 'none', 'important');
+        if (document.getElementById('scTrips')) document.getElementById('scTrips').style.display = 'none';
+        if (document.getElementById('scAtt')) document.getElementById('scAtt').style.display = 'none';
+        if (document.getElementById('scAnn')) document.getElementById('scAnn').style.display = 'none';
+        if (document.getElementById('scPaperExams')) document.getElementById('scPaperExams').style.display = 'none';
+        const prompt = document.getElementById('guestLoginPrompt');
+        if (prompt) {
+          prompt.style.display = 'block';
+          const btn = document.getElementById('guestLoginBtn');
+          if (btn) btn.href = '/user/login?redirect=' + encodeURIComponent(window.location.href);
+        }
+        showMain();
+        syncViewMode();
+        return;
+      }
       renderInfo(s, true);
       document.getElementById('pubBanner').style.display = 'flex';
       document.getElementById('sbC').textContent = s.coupons;

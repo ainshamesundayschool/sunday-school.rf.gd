@@ -4707,6 +4707,12 @@ try {
 
             break;
 
+        case 'deleteStudentAttendanceByDate':
+
+            deleteStudentAttendanceByDate();
+
+            break;
+
 
 
         // دوال إعدادات الفصول
@@ -24105,6 +24111,42 @@ function deleteAttendance()
 
 }
 
+function deleteStudentAttendanceByDate()
+{
+    try {
+        checkAuth();
+        $churchId = getChurchId();
+        $studentId = intval($_POST['studentId'] ?? 0);
+        $date = sanitize($_POST['date'] ?? '');
+        if ($studentId === 0 || empty($date)) {
+            sendJSON(['success' => false, 'message' => 'بيانات غير كاملة']);
+            return;
+        }
+        $conn = getDBConnection();
+        $snapshotStmt = $conn->prepare("SELECT id, student_id, church_id, attendance_date, status, uncle_id FROM attendance WHERE student_id = ? AND attendance_date = ? AND church_id = ?");
+        $snapshotStmt->bind_param("isi", $studentId, $date, $churchId);
+        $snapshotStmt->execute();
+        $res = $snapshotStmt->get_result();
+        $oldAtt = $res->fetch_assoc();
+
+        if ($oldAtt) {
+            $attendanceId = $oldAtt['id'];
+            $stmt = $conn->prepare("DELETE FROM attendance WHERE id = ?");
+            $stmt->bind_param("i", $attendanceId);
+            if ($stmt->execute()) {
+                auditAttendanceDelete($attendanceId, $oldAtt);
+                sendJSON(['success' => true, 'message' => 'تم حذف سجل الحضور بنجاح']);
+                return;
+            }
+        }
+        sendJSON(['success' => true, 'message' => 'لا يوجد سجل حضور لحذفه']);
+    } catch (Exception $e) {
+        error_log("deleteStudentAttendanceByDate error: " . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في حذف سجل الحضور']);
+    }
+}
+
+
 // ── DELETE a single custom class ─────────────────────────────
 
 function deleteChurchClass()
@@ -34044,6 +34086,12 @@ try {
         case 'deleteAttendance':
 
             deleteAttendance();
+
+            break;
+
+        case 'deleteStudentAttendanceByDate':
+
+            deleteStudentAttendanceByDate();
 
             break;
 
