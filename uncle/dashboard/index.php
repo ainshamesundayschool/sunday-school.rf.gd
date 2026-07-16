@@ -4945,6 +4945,32 @@ if ($hasUncleId && $uncleRole === 'uncle')
             box-shadow: none !important;
         }
 
+        .sibling-scroll-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .sibling-scroll-avatar-wrap {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 1px solid var(--border-solid);
+            box-shadow: var(--shadow-sm);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sibling-scroll-avatar-wrap .sibling-mini-avatar,
+        .sibling-scroll-avatar-wrap .sibling-mini-avatar-fallback {
+            width: 100% !important;
+            height: 100% !important;
+            font-size: 0.75rem !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
         .sibling-unlink-btn {
             display: inline-flex;
             align-items: center;
@@ -18952,6 +18978,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
             return (student && (student['الاسم'] || student.name)) || '---';
         }
 
+        function getStudentFirstName(student) {
+            const fullName = getStudentDisplayName(student);
+            const firstWord = fullName.trim().split(/\s+/)[0];
+            if (firstWord === 'عبد' || firstWord === 'ابو' || firstWord === 'أبو') {
+                const parts = fullName.trim().split(/\s+/);
+                if (parts.length >= 2) {
+                    return parts[0] + ' ' + parts[1];
+                }
+            }
+            return firstWord;
+        }
+
         function getStudentClassName(student) {
             return (student && (student['الفصل'] || student.class)) || '---';
         }
@@ -19183,16 +19221,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
             let previewHtml = '';
             if (members.length > 0) {
                 previewHtml = `
-                <div class="sibling-avatar-stack" style="display:flex; align-items:center; direction:ltr; margin-inline-end:8px;" onclick="event.stopPropagation()">
-                    ${members.map((m, idx) => {
+                <div class="sibling-scroll-container" 
+                     style="display:flex; gap:10px; overflow-x:auto; padding:8px 0 2px 0; margin-top:8px; margin-inline-start:42px; scrollbar-width:none; -ms-overflow-style:none;" 
+                     onclick="event.stopPropagation()">
+                    ${members.map(m => {
+                        const firstName = getStudentFirstName(m);
                         return `
-                        <div class="sibling-stack-avatar-wrap" 
-                             onclick="showStudentDetails('${escJs(m.name || m['الاسم'] || '')}')" 
-                             title="${escAttr(getStudentDisplayName(m))}"
-                             onmouseover="this.style.transform='scale(1.15)';this.style.zIndex='20';"
-                             onmouseout="this.style.transform='';this.style.zIndex='${10 - idx}';"
-                             style="z-index:${10 - idx};">
-                            ${buildSiblingMiniAvatar(m)}
+                        <div onclick="showStudentDetails('${escJs(m.name || m['الاسم'] || '')}')" 
+                             style="display:flex; flex-direction:column; align-items:center; gap:4px; min-width:48px; max-width:52px; cursor:pointer; text-align:center; transition:transform 0.15s;"
+                             onmouseover="this.style.transform='scale(1.06)';"
+                             onmouseout="this.style.transform='';"
+                             title="${escAttr(getStudentDisplayName(m))}">
+                            <div class="sibling-scroll-avatar-wrap">
+                                ${buildSiblingMiniAvatar(m)}
+                            </div>
+                            <span style="font-size:0.62rem; color:var(--text-2); font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; width:100%; display:block;">${escHtml(firstName)}</span>
                         </div>
                         `;
                     }).join('')}
@@ -19200,26 +19243,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 `;
             }
 
-            let subtitleHtml = '';
-            if (members.length > 0) {
-                const names = members.map(m => getStudentDisplayName(m)).join('، ');
-                subtitleHtml = `<div style="font-size:0.7rem; color:var(--text-3); font-weight:500; margin-top:2px;">${escHtml(names)}</div>`;
-            }
-
             return `
-            <div class="navigation-row" onclick="showSiblingsSubPage()" style="display:flex; justify-content:space-between; align-items:center;">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <div class="navigation-icon blue"><i class="fas fa-user-friends"></i></div>
-                    <div style="display:flex; flex-direction:column; gap:1px;">
+            <div class="navigation-row" onclick="showSiblingsSubPage()" style="display:flex; flex-direction:column; align-items:stretch; gap:0;">
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div class="navigation-icon blue"><i class="fas fa-user-friends"></i></div>
                         <div class="navigation-label">${escHtml(words.panelLabel)}</div>
-                        ${subtitleHtml}
+                    </div>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span class="navigation-count">${members.length}</span>
+                        <i class="fas fa-chevron-left navigation-arrow"></i>
                     </div>
                 </div>
-                <div style="display:flex; align-items:center; gap:6px;">
-                    ${previewHtml}
-                    <span class="navigation-count">${members.length}</span>
-                    <i class="fas fa-chevron-left navigation-arrow"></i>
-                </div>
+                ${previewHtml}
             </div>
             `;
         }
