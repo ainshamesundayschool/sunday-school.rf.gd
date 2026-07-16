@@ -7367,25 +7367,23 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .home-tools-link {
             flex: 0 0 auto;
             background: var(--surface);
-            border: 1px solid var(--border-solid);
+            border: none;
             color: var(--text-2);
             font-family: inherit;
             cursor: pointer;
             display: inline-flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 1px;
-            padding: 10px 18px;
-            border-radius: var(--r-md, 10px);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
             transition: all var(--t) var(--ease);
             white-space: nowrap;
             box-shadow: var(--shadow-sm);
         }
 
         .home-tools-link:hover {
-            transform: translateY(-1px) scale(.995);
-            border-color: var(--brand);
+            transform: translateY(-1px) scale(1.05);
             color: var(--brand);
             background: var(--brand-bg);
             box-shadow: 0 5px 12px var(--brand-glow);
@@ -7515,11 +7513,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .tool-card:hover {
-            transform: translateY(-2px);
-            border-color: var(--brand);
-            box-shadow:
-                0 1px 0 rgba(255, 255, 255, .82) inset,
-                0 16px 28px rgba(91, 108, 245, .10);
+            transform: translateY(-1px);
+            background: var(--brand-bg, rgba(99, 102, 241, 0.05)) !important;
         }
 
         .tool-card-icon {
@@ -9797,9 +9792,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
 
             .home-tools-link {
-                height: 48px;
-                padding: 0 16px;
-                font-size: 1.05rem;
+                width: 48px !important;
+                height: 48px !important;
+                padding: 0 !important;
+                border-radius: 50% !important;
             }
         }
 
@@ -15407,7 +15403,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             ` : '';
             const allTogetherProgress = getAttendanceProgressHtml(students, allColor);
             const allTogetherHtml = showAllCard ? `<div class="class-card" onclick="showAllTogetherView()"
-        style="--cls-color:${allColor};border:2px solid ${allColor};position:relative;">
+        style="--cls-color:${allColor};position:relative;">
         <div class="class-card-badges">
             <div style="display:flex; align-items:center; gap:4px;">
                 <span style="background:${allColor};color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;font-weight:700;font-family:Cairo,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,0.08);">الكل</span>
@@ -15437,7 +15433,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     const combHighlightClass = isCombHighlighted ? ' highlighted' : '';
                     const combStudents = students.filter(s => grpClasses.includes(s['الفصل']));
                     const combProgress = getAttendanceProgressHtml(combStudents, 'var(--brand)');
-                    return `<div class="class-card combined-class-card${combHighlightClass}" onclick="showCombinedClassView('${escJs(label)}')" style="border:2px solid var(--brand);position:relative;">
+                    return `<div class="class-card combined-class-card${combHighlightClass}" onclick="showCombinedClassView('${escJs(label)}')" style="position:relative;">
                 <div class="class-card-badges">
                     <div style="display:flex; align-items:center; gap:4px;">
                         <span style="background:var(--brand);color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;font-weight:700;font-family:Cairo,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,0.08);">مدمج</span>
@@ -15494,7 +15490,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 ` : '';
                 const servantsProgress = getAttendanceProgressHtml(window.allUnclesData || [], '#4f46e5');
                 servantsCardHtml = `
-                    <div class="class-card" onclick="showClassView('الخدام')" style="--cls-color:#4f46e5; border:2px solid #4f46e5; position:relative;">
+                    <div class="class-card" onclick="showClassView('الخدام')" style="--cls-color:#4f46e5; position:relative;">
                         <div class="class-card-badges">
                             <div style="display:flex; align-items:center; gap:4px;">
                                 <span style="background:#4f46e5;color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;font-weight:700;font-family:Cairo,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,0.08);">خدام</span>
@@ -15520,7 +15516,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             let guestsCardHtml = '';
             if (guestsCount > 0 || guestsUnsaved > 0) {
                 guestsCardHtml = `
-                    <div class="class-card" onclick="showClassView('الزوار')" style="--cls-color:#f59e0b; border:2px solid #f59e0b; position:relative;">
+                    <div class="class-card" onclick="showClassView('الزوار')" style="--cls-color:#f59e0b; position:relative;">
                         <div class="class-card-badges">
                             <div style="display:flex; align-items:center; gap:4px;">
                                 <span style="background:#f59e0b;color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;font-weight:700;font-family:Cairo,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,0.08);">زوار</span>
