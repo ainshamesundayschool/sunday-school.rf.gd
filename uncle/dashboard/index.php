@@ -18853,6 +18853,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (standaloneActions) standaloneActions.style.display = 'none';
         }
 
+        function scrollToDetailsTop() {
+            const modalEl = document.querySelector('#studentModal .modal');
+            if (modalEl) modalEl.scrollTop = 0;
+            const standaloneEl = document.querySelector('.standalone-full-screen-container');
+            if (standaloneEl) standaloneEl.scrollTop = 0;
+        }
+
         function showDetailsFooter() {
             const footer = document.getElementById('studentModalFooter');
             if (footer) footer.style.display = '';
@@ -19301,6 +19308,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             setModalHeader(words.panelLabel, true);
             hideDetailsFooter();
+            scrollToDetailsTop();
 
             const membersHtml = members.length
                 ? members.map(m => {
@@ -19344,6 +19352,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             setModalHeader('الدرجات والامتحانات الورقية', true);
             hideDetailsFooter();
+            scrollToDetailsTop();
 
             const examsHtml = paperExamsList.length === 0 ? `
                 <div style="text-align:center; padding:30px 20px; color:var(--muted); font-size:0.82rem; font-style:italic;">
@@ -19402,6 +19411,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             setModalHeader('الملاحظات', true);
             hideDetailsFooter();
+            scrollToDetailsTop();
 
             const notesHtml = `
             <div class="student-notes-section" style="margin-top:8px;">
@@ -20212,6 +20222,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             setModalHeader('الاشتراكات الشهرية للخدمة', true);
             hideDetailsFooter();
+            scrollToDetailsTop();
 
             let fees = [];
             try {
@@ -20651,6 +20662,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             setModalHeader(title, true);
 
             hideDetailsFooter();
+            scrollToDetailsTop();
 
             // Append editForm to studentDetails container
             const editFormEl = document.getElementById('editForm');
