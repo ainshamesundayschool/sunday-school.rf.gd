@@ -1480,17 +1480,17 @@
         .action-btn {
             display: inline-flex;
             align-items: center;
-            gap: var(--spacing-xs);
-            padding: 12px 22px;
-            border-radius: var(--radius-md);
-            font-size: 1rem;
-            font-weight: 700;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            font-size: 0.82rem;
             cursor: pointer;
             border: none;
             transition: var(--transition-normal);
             text-decoration: none;
             box-shadow: var(--shadow-sm);
-            font-family: 'Cairo', sans-serif;
+            flex-shrink: 0;
         }
 
         .download-btn {
@@ -1783,9 +1783,8 @@
                             <!-- Actions: Download & Share -->
                             <div class="song-actions">
                                 <div class="download-dropdown-wrapper">
-                                    <button id="download-btn" class="action-btn download-btn">
+                                    <button id="download-btn" class="action-btn download-btn" title="تحميل">
                                         <i class="fas fa-download"></i>
-                                        تحميل
                                     </button>
                                     <div id="download-dropdown" class="download-dropdown-menu">
                                         <button id="download-mp3-btn" class="dropdown-item">
@@ -1799,9 +1798,8 @@
                                     </div>
                                 </div>
                                 
-                                <button id="share-btn" class="action-btn share-btn">
+                                <button id="share-btn" class="action-btn share-btn" title="مشاركة">
                                     <i class="fas fa-share-alt"></i>
-                                    مشاركة
                                 </button>
                             </div>
                         </div>
