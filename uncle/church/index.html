@@ -2650,9 +2650,9 @@
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(10, 8, 26, 0.6);
-            backdrop-filter: blur(8px) saturate(1.2);
-            -webkit-backdrop-filter: blur(8px) saturate(1.2);
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
             z-index: 1000;
             justify-content: center;
             align-items: center;
@@ -2675,7 +2675,7 @@
         }
 
         .modal-box {
-            background: white;
+            background: var(--surface, #ffffff);
             border-radius: var(--radius-xl);
             width: 100%;
             max-width: 540px;
@@ -2713,7 +2713,7 @@
             justify-content: space-between;
             position: sticky;
             top: 0;
-            background: white;
+            background: var(--surface, #ffffff);
             z-index: 1;
             border-radius: var(--radius-xl) var(--radius-xl) 0 0;
         }
@@ -2762,7 +2762,7 @@
             display: flex;
             gap: 10px;
             justify-content: flex-end;
-            background: #f8fafc;
+            background: var(--surface-2, #f8fafc);
             border-radius: 0 0 var(--radius-xl) var(--radius-xl);
         }
 
@@ -5301,10 +5301,32 @@
 
             .modal-head {
                 border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+                padding: 14px 16px;
+            }
+
+            .modal-head h2 {
+                font-size: 0.9rem;
+            }
+
+            .modal-close {
+                width: 30px;
+                height: 30px;
+                font-size: 0.9rem;
+            }
+
+            .modal-body {
+                padding: 16px 14px;
             }
 
             .modal-footer {
                 border-radius: 0;
+                padding: 12px 14px;
+            }
+
+            #unclesBulkUploadSection,
+            #churchesBulkUploadSection,
+            #bulkAddModal .modal-body > div[style*="grid-template-columns"] {
+                grid-template-columns: 1fr !important;
             }
 
             @keyframes slideUp {
