@@ -7825,13 +7825,50 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border-radius: var(--r-xl);
             border: 1px solid transparent !important;
             background: 
-                linear-gradient(to right, transparent, rgba(99, 102, 241, 0.03) 20%, rgba(236, 72, 153, 0.03) 50%, rgba(99, 102, 241, 0.03) 80%, transparent) padding-box,
+                linear-gradient(to right, transparent, rgba(251, 191, 36, 0.06) 20%, rgba(244, 63, 94, 0.06) 50%, rgba(251, 191, 36, 0.06) 80%, transparent) padding-box,
                 linear-gradient(to right, transparent, var(--surface) 20%, var(--surface) 80%, transparent) padding-box,
-                linear-gradient(to right, transparent, var(--brand) 20%, #a855f7 50%, #ec4899 80%, transparent) border-box !important;
+                linear-gradient(to right, transparent, rgba(251, 191, 36, 0.3) 20%, rgba(244, 63, 94, 0.3) 50%, rgba(251, 191, 36, 0.3) 80%, transparent) border-box !important;
             padding: 8px 16px !important;
             width: 100%;
             max-width: 640px;
             box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bday-decor {
+            position: absolute;
+            font-size: 2.2rem;
+            opacity: 0.12;
+            color: var(--brand);
+            user-select: none;
+            pointer-events: none;
+            z-index: 1;
+            transition: all var(--t) var(--ease);
+        }
+
+        .bday-decor-left {
+            left: 16px;
+            bottom: 6px;
+            transform: rotate(-15deg);
+            animation: bdayFloatLeft 4s ease-in-out infinite alternate;
+        }
+
+        .bday-decor-right {
+            right: 16px;
+            top: 6px;
+            transform: rotate(15deg);
+            animation: bdayFloatRight 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes bdayFloatLeft {
+            0% { transform: translateY(0) rotate(-15deg); }
+            100% { transform: translateY(-6px) rotate(-10deg); }
+        }
+
+        @keyframes bdayFloatRight {
+            0% { transform: translateY(0) rotate(15deg); }
+            100% { transform: translateY(6px) rotate(20deg); }
         }
 
         .bday-banner-wrapper .section-head {
@@ -7844,9 +7881,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         [data-theme="dark"] .bday-banner-wrapper {
             background: 
-                linear-gradient(to right, transparent, rgba(99, 102, 241, 0.06) 20%, rgba(236, 72, 153, 0.06) 50%, rgba(99, 102, 241, 0.06) 80%, transparent) padding-box,
+                linear-gradient(to right, transparent, rgba(251, 191, 36, 0.12) 20%, rgba(244, 63, 94, 0.12) 50%, rgba(251, 191, 36, 0.12) 80%, transparent) padding-box,
                 linear-gradient(to right, transparent, var(--surface) 20%, var(--surface) 80%, transparent) padding-box,
-                linear-gradient(to right, transparent, var(--brand) 20%, #a855f7 50%, #ec4899 80%, transparent) border-box !important;
+                linear-gradient(to right, transparent, rgba(251, 191, 36, 0.42) 20%, rgba(244, 63, 94, 0.42) 50%, rgba(251, 191, 36, 0.42) 80%, transparent) border-box !important;
         }
 
         .bday-banner-list {
@@ -11377,12 +11414,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 <!-- Birthdays Container -->
                 <div id="mainStatsRow" class="bday-banner-wrapper" style="display:none;">
-                    <div class="section-head" style="margin: 0 0 2px 0 !important;">
+                    <div class="bday-decor bday-decor-left"><i class="fas fa-birthday-cake"></i></div>
+                    <div class="bday-decor bday-decor-right"><i class="fas fa-gift"></i></div>
+                    <div class="section-head" style="margin: 0 0 2px 0 !important; z-index: 2; position: relative;">
                         <div class="dashboard-section-toggle-btn" style="cursor: default; pointer-events: none;">
                             <span class="section-title" id="todayBirthdayTitle">أعياد الميلاد</span>
                         </div>
                     </div>
-                    <div class="bday-banner-list" id="todayBirthdayList"></div>
+                    <div class="bday-banner-list" id="todayBirthdayList" style="z-index: 2; position: relative;"></div>
                 </div>
 
                 <div class="section-head" id="tripsSectionHead"
@@ -15486,9 +15525,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
 
             if (todayCount > 0) {
-                title.textContent = `أعياد ميلاد اليوم`;
+                title.innerHTML = `<i class="fas fa-birthday-cake" style="margin-left: 6px; color: var(--brand);"></i> أعياد ميلاد اليوم`;
             } else {
-                title.textContent = `أعياد ميلاد هذا الأسبوع`;
+                title.innerHTML = `<i class="fas fa-gift" style="margin-left: 6px; color: var(--brand);"></i> أعياد ميلاد هذا الأسبوع`;
             }
 
             // Ensure collapsed class is never present since toggling is disabled
