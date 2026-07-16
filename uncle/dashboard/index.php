@@ -8078,13 +8078,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
         /* ── Birthday indicator on attendance row ── */
         .attendance-item.bday-row {
             /* top border removed */
-        }
-
         .bday-row-badge {
             display: inline-flex;
             align-items: center;
             gap: 3px;
-            background: linear-gradient(135deg, #db2777, #9333ea);
+            background: linear-gradient(135deg, var(--brand), var(--brand-light));
             color: #fff;
             font-size: .58rem;
             font-weight: 800;
@@ -8114,20 +8112,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .birthday-card-new.bday-today {
-            background: linear-gradient(135deg, #fce7f3, #fdf4ff);
-            border-color: #db2777;
-            box-shadow: 0 0 0 3px rgba(219, 39, 119, .15), var(--shadow-md);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(168, 85, 247, 0.05)), var(--surface) !important;
+            border-color: var(--brand) !important;
+            box-shadow: 0 0 0 3px var(--brand-glow), var(--shadow-md) !important;
         }
 
         [data-theme="dark"] .birthday-card-new.bday-today {
-            background: linear-gradient(135deg, rgba(219, 39, 119, .15), rgba(139, 92, 246, .1));
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(168, 85, 247, 0.1)), var(--surface) !important;
+            border-color: var(--brand) !important;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25), var(--shadow-md) !important;
         }
 
         .bday-today-badge {
             position: absolute;
             top: 8px;
             left: 8px;
-            background: linear-gradient(135deg, #db2777, #9333ea);
+            background: var(--brand);
             color: #fff;
             font-size: .68rem;
             font-weight: 800;
@@ -14491,7 +14491,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (isExactIdMatch) {
                     badges += `<span class="status-badge" style="background:var(--brand); color:#fff; font-weight:700;"><i class="fas fa-id-card"></i> ID: ${dbId}</span>`;
                 }
-                if (isBdayToday2) badges += '<span class="bday-row-badge"><i class="fas fa-birthday-cake"></i> عيد ميلاد سعيد! 🎂</span>';
+                if (isBdayToday2) badges += '<span class="bday-row-badge"><i class="fas fa-birthday-cake" style="margin-left: 3px;"></i>عيد ميلاد سعيد!</span>';
                 if (st === 'pending' && !isInChanged) badges += '<span class="status-badge pending"><i class="fas fa-minus"></i> لا بيانات</span>';
                 else if (st === 'pending' && isInChanged) badges += '<span class="status-badge local"><i class="fas fa-times-circle"></i> مسح — محلياً</span>';
                 else if (isSynced) badges += '<span class="status-badge saved"><i class="fas fa-check"></i> محفوظ</span>';
@@ -16562,7 +16562,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const isBdayToday = _bdParts.length >= 2 && parseInt(_bdParts[0]) === _now.getDate() && parseInt(_bdParts[1]) - 1 === _now.getMonth();
 
                 let badges = '';
-                if (isBdayToday) badges += '<span class="bday-row-badge"><i class="fas fa-birthday-cake"></i> عيد ميلاد سعيد! 🎂</span>';
+                if (isBdayToday) badges += '<span class="bday-row-badge"><i class="fas fa-birthday-cake" style="margin-left: 3px;"></i>عيد ميلاد سعيد!</span>';
                 if (isOfflineAttSaved) {
                     badges += '<span class="status-badge offline-saved"><i class="fas fa-cloud-upload-alt"></i> محفوظ أوفلاين</span>';
                 } else if (st === 'pending' && !isInChanged) {
@@ -16721,7 +16721,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             // Update badges
             let badges = '';
-            if (isBdayToday) badges += '<span class="bday-row-badge"><i class="fas fa-birthday-cake"></i> عيد ميلاد سعيد! 🎂</span>';
+            if (isBdayToday) badges += '<span class="bday-row-badge"><i class="fas fa-birthday-cake" style="margin-left: 3px;"></i>عيد ميلاد سعيد!</span>';
             if (isOfflineAttSaved) {
                 badges += '<span class="status-badge offline-saved"><i class="fas fa-cloud-upload-alt"></i> محفوظ أوفلاين</span>';
             } else if (st === 'pending' && !isInChanged) {
@@ -21673,13 +21673,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const isToday = (bDay === todayDay && bMonth - 1 === todayMonth);
                 const age = bYear > 0 ? today.getFullYear() - bYear - (today < new Date(today.getFullYear(), bMonth - 1, bDay) ? 1 : 0) : 0;
                 const photo = s['صورة']
-                    ? `<img src="${s['صورة']}" alt="" style="width:54px;height:54px;border-radius:50%;object-fit:cover;border:3px solid ${isToday ? '#db2777' : 'var(--border-solid)'};box-shadow:var(--shadow-sm);cursor:pointer;flex-shrink:0" onclick="showImageModal('${(s['صورة'] || '').replace(/'/g, "\\'")}',event)">`
+                    ? `<img src="${s['صورة']}" alt="" style="width:54px;height:54px;border-radius:50%;object-fit:cover;border:3px solid ${isToday ? 'var(--brand)' : 'var(--border-solid)'};box-shadow:var(--shadow-sm);cursor:pointer;flex-shrink:0" onclick="showImageModal('${(s['صورة'] || '').replace(/'/g, "\\'")}',event)">`
                     : `<div style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,var(--brand-bg),var(--coupon-bg));display:flex;align-items:center;justify-content:center;color:var(--brand);font-size:1.3rem;flex-shrink:0"><i class="fas fa-user"></i></div>`;
                 const phone = (s['رقم التليفون'] || '').replace(/\D/g, '');
                 const waMsgRaw = `🎂 كل سنة وأنت طيب يا ${s['الاسم']}!\n\nنتمنى لك عيد ميلاد سعيد ومليان فرحة 🎉\nمع حبنا وصلواتنا 🙏`;
                 const waLink = phone ? `https://api.whatsapp.com/send?phone=${phone.startsWith('0') ? '2' + phone : phone}&text=${encodeURIComponent(waMsgRaw)}` : '';
                 return `<div class="birthday-card-new ${isToday ? 'bday-today' : ''}" onclick="showStudentDetails('${(s['الاسم'] || '').replace(/'/g, "\\'")}')">
-            ${isToday ? '<div class="bday-today-badge">🎂 اليوم!</div>' : ''}
+            ${isToday ? '<div class="bday-today-badge"><i class="fas fa-birthday-cake" style="margin-left: 4px;"></i>اليوم!</div>' : ''}
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
                 ${photo}
                 <div style="flex:1;min-width:0">
