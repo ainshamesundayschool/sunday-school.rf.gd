@@ -7818,25 +7818,32 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         /* ── Today's Birthday Banner (homepage) ── */
         .bday-banner-wrapper {
-            margin-bottom: 8px !important;
+            margin: 0 auto 8px auto !important;
             border-radius: var(--r-xl);
             border: 1px solid transparent !important;
             background: 
-                linear-gradient(to left, rgba(244, 63, 94, 0.05) 0%, rgba(245, 158, 11, 0.05) 70%, transparent 100%) padding-box,
-                linear-gradient(to left, rgba(244, 63, 94, 0.12) 0%, rgba(245, 158, 11, 0.12) 70%, transparent 100%) border-box;
-            padding: 10px 12px !important;
+                linear-gradient(to right, transparent 0%, rgba(244, 63, 94, 0.04) 20%, rgba(245, 158, 11, 0.04) 50%, rgba(244, 63, 94, 0.04) 80%, transparent 100%) padding-box,
+                linear-gradient(to right, transparent 0%, rgba(244, 63, 94, 0.12) 20%, rgba(245, 158, 11, 0.12) 50%, rgba(244, 63, 94, 0.12) 80%, transparent 100%) border-box;
+            padding: 10px 16px !important;
             width: fit-content;
             max-width: 100%;
         }
 
         .bday-banner-wrapper .section-head {
             margin: 0 0 6px 0 !important;
+            display: flex;
+            justify-content: center;
+        }
+
+        .bday-banner-wrapper .dashboard-section-toggle-btn {
+            justify-content: center;
+            gap: 6px;
         }
 
         [data-theme="dark"] .bday-banner-wrapper {
             background: 
-                linear-gradient(to left, rgba(244, 63, 94, 0.12) 0%, rgba(245, 158, 11, 0.12) 70%, transparent 100%) padding-box,
-                linear-gradient(to left, rgba(244, 63, 94, 0.22) 0%, rgba(245, 158, 11, 0.22) 70%, transparent 100%) border-box;
+                linear-gradient(to right, transparent 0%, rgba(244, 63, 94, 0.1) 20%, rgba(245, 158, 11, 0.1) 50%, rgba(244, 63, 94, 0.1) 80%, transparent 100%) padding-box,
+                linear-gradient(to right, transparent 0%, rgba(244, 63, 94, 0.22) 20%, rgba(245, 158, 11, 0.22) 50%, rgba(244, 63, 94, 0.22) 80%, transparent 100%) border-box;
         }
 
         .bday-banner-list {
@@ -7849,6 +7856,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transition: max-height 0.3s ease, opacity 0.3s ease, margin 0.3s ease;
             max-height: 250px;
             opacity: 1;
+            justify-content: center;
         }
 
         .bday-banner-list.collapsed {
@@ -7866,13 +7874,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .bday-banner-chip {
             display: inline-flex;
+            flex-direction: column;
             align-items: center;
-            gap: 10px;
+            text-align: center;
+            gap: 6px;
             flex-shrink: 0;
-            width: 200px;
+            width: 130px;
             background: transparent;
             border: none !important;
-            padding: 10px 12px;
+            padding: 8px;
             border-radius: var(--r-lg);
             cursor: pointer;
             transition: all var(--t) var(--ease);
@@ -7892,11 +7902,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         /* Birthday of the week (not today): smaller dimensions and clean neutral styling */
         .bday-banner-chip:not(.today) {
-            width: 172px;
-            padding: 8px 10px;
+            width: 130px;
+            padding: 8px;
             border: none !important;
             background: transparent;
-            gap: 8px;
+            gap: 6px;
             box-shadow: none !important;
         }
 
@@ -7914,51 +7924,60 @@ if ($hasUncleId && $uncleRole === 'uncle')
             background: rgba(255, 255, 255, 0.05);
         }
 
-        .bday-banner-chip:not(.today) .bday-chip-img {
-            width: 32px;
-            height: 32px;
-        }
-
-        .bday-banner-chip:not(.today) .bday-chip-name {
-            font-size: 0.73rem;
-        }
-
         .bday-chip-img {
-            width: 38px;
-            height: 38px;
+            width: 52px;
+            height: 52px;
             border-radius: 50%;
             object-fit: cover;
-            border: 1.5px solid var(--border);
+            border: 2px solid var(--brand-light);
             background: var(--surface-3);
             flex-shrink: 0;
+            box-shadow: var(--shadow-sm);
+            transition: all var(--t) var(--ease);
+        }
+
+        .bday-banner-chip.today .bday-chip-img {
+            border-color: var(--brand);
+            box-shadow: 0 0 8px var(--brand-glow);
+        }
+
+        .bday-banner-chip:not(.today) .bday-chip-img {
+            width: 48px;
+            height: 48px;
+            border-color: var(--border-solid);
+            box-shadow: none;
         }
 
         .bday-chip-info {
-            flex: 1;
-            min-width: 0;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            align-items: center;
+            gap: 2px;
+            width: 100%;
+            min-width: 0;
         }
 
         .bday-chip-name {
-            font-size: 0.78rem;
-            font-weight: 800;
+            font-size: 0.8rem;
+            font-weight: 700;
             color: var(--text);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            width: 100%;
+            text-align: center;
         }
 
         .bday-chip-meta-row {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 6px;
+            justify-content: center;
+            gap: 4px;
+            width: 100%;
+            font-size: 0.68rem;
         }
 
         .bday-chip-day {
-            font-size: 0.68rem;
             font-weight: 700;
             white-space: nowrap;
         }
@@ -7972,23 +7991,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .bday-chip-class {
-            font-size: 0.68rem;
             color: var(--text-3);
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
-
-        .bday-banner-chip.today {
-            border-color: var(--brand);
-            background: var(--brand-bg);
-            box-shadow: 0 4px 12px var(--brand-glow);
-        }
-
-        .bday-banner-chip.today:hover {
-            border-color: var(--brand);
-            background: var(--brand-bg);
-            box-shadow: 0 6px 16px var(--brand-glow);
+        .bday-chip-separator {
+            color: var(--text-3);
+            font-size: 0.6rem;
+            opacity: 0.6;
         }
 
         #syncToTodayBtn {
@@ -15508,8 +15517,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="bday-chip-info">
                         <div class="bday-chip-name">${name}</div>
                         <div class="bday-chip-meta-row">
-                            ${item.isToday ? `<span class="bday-chip-day today">اليوم 🎉</span>` : `<span class="bday-chip-day text-muted">${item.dayName}</span>`}
                             ${cls ? `<span class="bday-chip-class">${cls}</span>` : ''}
+                            ${cls ? `<span class="bday-chip-separator">·</span>` : ''}
+                            ${item.isToday ? `<span class="bday-chip-day today">اليوم 🎉</span>` : `<span class="bday-chip-day text-muted">${item.dayName}</span>`}
                         </div>
                     </div>
                 </div>`;
