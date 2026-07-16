@@ -7817,21 +7817,36 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         /* ── Today's Birthday Banner (homepage) ── */
+        .bday-banner-wrapper {
+            margin-bottom: 8px !important;
+            border-radius: var(--r-xl);
+            border: 1px solid transparent !important;
+            background: 
+                linear-gradient(to left, rgba(244, 63, 94, 0.05) 0%, rgba(245, 158, 11, 0.05) 70%, transparent 100%) padding-box,
+                linear-gradient(to left, rgba(244, 63, 94, 0.12) 0%, rgba(245, 158, 11, 0.12) 70%, transparent 100%) border-box;
+            padding: 10px 12px !important;
+            width: fit-content;
+            max-width: 100%;
+        }
+
+        .bday-banner-wrapper .section-head {
+            margin: 0 0 6px 0 !important;
+        }
+
+        [data-theme="dark"] .bday-banner-wrapper {
+            background: 
+                linear-gradient(to left, rgba(244, 63, 94, 0.12) 0%, rgba(245, 158, 11, 0.12) 70%, transparent 100%) padding-box,
+                linear-gradient(to left, rgba(244, 63, 94, 0.22) 0%, rgba(245, 158, 11, 0.22) 70%, transparent 100%) border-box;
+        }
+
         .bday-banner-list {
             display: flex;
             overflow-x: auto;
             gap: 10px;
-            padding: 10px 12px !important;
-            margin-bottom: 8px !important;
+            padding: 4px 2px 2px !important;
             scrollbar-width: none;
             -ms-overflow-style: none;
-            border: 1px solid rgba(244, 63, 94, 0.12) !important;
-            border-radius: var(--r-xl);
-            background: linear-gradient(to left, rgba(244, 63, 94, 0.05) 0%, rgba(245, 158, 11, 0.05) 70%, transparent 100%);
-            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
-            width: fit-content;
-            max-width: 100%;
-            transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease, margin 0.3s ease, border-color 0.3s ease;
+            transition: max-height 0.3s ease, opacity 0.3s ease, margin 0.3s ease;
             max-height: 250px;
             opacity: 1;
         }
@@ -7839,17 +7854,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .bday-banner-list.collapsed {
             max-height: 0px !important;
             opacity: 0 !important;
-            padding-top: 0px !important;
-            padding-bottom: 0px !important;
+            margin-top: 0px !important;
             margin-bottom: 0px !important;
-            border-color: transparent !important;
             overflow: hidden;
             pointer-events: none;
-        }
-
-        [data-theme="dark"] .bday-banner-list {
-            background: linear-gradient(to left, rgba(244, 63, 94, 0.12) 0%, rgba(245, 158, 11, 0.12) 70%, transparent 100%);
-            border-color: rgba(244, 63, 94, 0.2) !important;
         }
 
         .bday-banner-list::-webkit-scrollbar {
@@ -7862,39 +7870,48 @@ if ($hasUncleId && $uncleRole === 'uncle')
             gap: 10px;
             flex-shrink: 0;
             width: 200px;
-            background: var(--surface);
-            border: 1px solid var(--border-solid);
+            background: transparent;
+            border: none !important;
             padding: 10px 12px;
             border-radius: var(--r-lg);
             cursor: pointer;
             transition: all var(--t) var(--ease);
-            box-shadow: var(--shadow-sm);
+            box-shadow: none !important;
         }
 
         .bday-banner-chip:hover {
             transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-            border-color: var(--brand);
-            background: var(--surface-2);
+            box-shadow: none !important;
+            border-color: transparent !important;
+            background: rgba(244, 63, 94, 0.05);
+        }
+
+        [data-theme="dark"] .bday-banner-chip:hover {
+            background: rgba(244, 63, 94, 0.12);
         }
 
         /* Birthday of the week (not today): smaller dimensions and clean neutral styling */
         .bday-banner-chip:not(.today) {
             width: 172px;
             padding: 8px 10px;
-            border-color: var(--border-solid);
-            background: var(--surface);
+            border: none !important;
+            background: transparent;
             gap: 8px;
+            box-shadow: none !important;
         }
 
         [data-theme="dark"] .bday-banner-chip:not(.today) {
-            border-color: var(--border-solid);
-            background: var(--surface);
+            border: none !important;
+            background: transparent;
         }
 
         .bday-banner-chip:not(.today):hover {
-            border-color: var(--brand);
-            background: var(--surface-2);
+            border: none !important;
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        [data-theme="dark"] .bday-banner-chip:not(.today):hover {
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .bday-banner-chip:not(.today) .bday-chip-img {
@@ -11347,8 +11364,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
 
                 <!-- Birthdays Container -->
-                <div id="mainStatsRow" style="display:none; margin-bottom: 6px;">
-                    <div class="section-head" style="margin-bottom: 2px; margin-top: 4px;">
+                <div id="mainStatsRow" class="bday-banner-wrapper" style="display:none;">
+                    <div class="section-head" style="margin: 0 0 6px 0 !important;">
                         <button type="button" onclick="toggleBdayCollapse()" class="dashboard-section-toggle-btn">
                             <span class="section-title" id="todayBirthdayTitle">أعياد الميلاد</span>
                             <i class="fas fa-chevron-down chevron" id="bdayCollapseIcon"
