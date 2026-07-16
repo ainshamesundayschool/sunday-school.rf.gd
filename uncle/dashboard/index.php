@@ -7824,14 +7824,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
             margin: 0 auto 4px auto !important;
             border-radius: var(--r-xl);
             border: 1px solid transparent !important;
-            background-image: 
-                linear-gradient(to right, transparent 0%, rgba(244, 63, 94, 0.08) 20%, rgba(245, 158, 11, 0.08) 50%, rgba(244, 63, 94, 0.08) 80%, transparent 100%),
-                linear-gradient(to right, transparent 0%, rgba(244, 63, 94, 0.2) 20%, rgba(245, 158, 11, 0.2) 50%, rgba(244, 63, 94, 0.2) 80%, transparent 100%);
-            background-clip: padding-box, border-box;
-            background-origin: padding-box, border-box;
-            padding: 6px 12px !important;
-            width: fit-content;
-            max-width: 100%;
+            background: 
+                linear-gradient(135deg, rgba(99, 102, 241, 0.03), rgba(236, 72, 153, 0.03)) padding-box,
+                linear-gradient(var(--surface), var(--surface)) padding-box,
+                linear-gradient(135deg, var(--brand), #a855f7, #ec4899) border-box !important;
+            padding: 8px 16px !important;
+            width: 100%;
+            max-width: 640px;
+            box-shadow: var(--shadow-sm);
         }
 
         .bday-banner-wrapper .section-head {
@@ -7843,9 +7843,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         [data-theme="dark"] .bday-banner-wrapper {
-            background-image: 
-                linear-gradient(to right, transparent 0%, rgba(244, 63, 94, 0.16) 20%, rgba(245, 158, 11, 0.16) 50%, rgba(244, 63, 94, 0.16) 80%, transparent 100%),
-                linear-gradient(to right, transparent 0%, rgba(244, 63, 94, 0.3) 20%, rgba(245, 158, 11, 0.3) 50%, rgba(244, 63, 94, 0.3) 80%, transparent 100%);
+            background: 
+                linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(236, 72, 153, 0.06)) padding-box,
+                linear-gradient(var(--surface), var(--surface)) padding-box,
+                linear-gradient(135deg, var(--brand), #a855f7, #ec4899) border-box !important;
         }
 
         .bday-banner-list {
