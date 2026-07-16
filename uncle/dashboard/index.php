@@ -12546,11 +12546,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
                     <div class="form-group" style="margin-bottom:12px;">
                         <label class="form-label">الفصول التي يديرها الخادم *</label>
-                        <div class="input-icon-wrap" style="height: auto;">
-                            <select id="editUncleClasses" class="form-input" multiple style="height: 120px; padding: 6px; border-radius: 8px;">
-                            </select>
+                        <div id="editUncleClassesCheckboxes" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:6px; margin-top:6px; max-height:150px; overflow-y:auto; padding:6px; border:1px solid var(--border-solid); border-radius:8px; background:var(--surface-2);">
+                            <div style="color:var(--text-3); font-size:0.8rem; padding:8px;"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>
                         </div>
-                        <small style="color:var(--text-3); font-size:0.7rem; display:block; margin-top:4px;">اضغط مع السحب أو اضغط مع زر Ctrl/Cmd لاختيار أكثر من فصل</small>
+                        <select id="editUncleClasses" class="form-input" multiple style="display:none;"></select>
                     </div>
                 </div>
 
@@ -21215,10 +21214,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 // Populate and select classes for editing
                 const ucsSelect = document.getElementById('editUncleClasses');
-                if (ucsSelect) {
+                const ucsBox = document.getElementById('editUncleClassesCheckboxes');
+                if (ucsSelect && ucsBox) {
                     ucsSelect.innerHTML = '';
+                    ucsBox.innerHTML = '';
                     const assignedClassNames = (s.classes || []).map(c => c.class_name);
-                    classes.forEach(c => {
+                    classes.forEach((c, idx) => {
                         const optVal = c.arabic_name || c.code;
                         const o = document.createElement('option');
                         o.value = optVal;
@@ -21227,6 +21228,38 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             o.selected = true;
                         }
                         ucsSelect.appendChild(o);
+
+                        const id = 'edit_uc_' + optVal.replace(/\s/g, '_') + '_' + idx;
+                        const div = document.createElement('div');
+                        div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;border:1.5px solid var(--border-solid);cursor:pointer;transition:all .15s;background:var(--surface);';
+                        const isChecked = assignedClassNames.includes(optVal);
+
+                        div.innerHTML = `<input type="checkbox" id="${id}" value="${optVal}" style="width:15px;height:15px;accent-color:var(--brand);cursor:pointer;" ${isChecked ? 'checked' : ''}>
+                            <label for="${id}" style="font-size:0.84rem;font-weight:600;color:var(--text);cursor:pointer;margin:0;">${optVal}</label>`;
+
+                        const updateStyles = (chk) => {
+                            div.style.borderColor = chk ? 'var(--brand)' : 'var(--border-solid)';
+                            div.style.background = chk ? 'var(--brand-bg)' : 'var(--surface)';
+                        };
+                        updateStyles(isChecked);
+
+                        div.addEventListener('click', function(e) {
+                            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'LABEL') {
+                                const input = div.querySelector('input');
+                                input.checked = !input.checked;
+                                input.dispatchEvent(new Event('change'));
+                            }
+                        });
+
+                        const inp = div.querySelector('input');
+                        inp.addEventListener('change', function() {
+                            updateStyles(this.checked);
+                            Array.from(ucsSelect.options).forEach(opt => {
+                                if (opt.value === this.value) opt.selected = this.checked;
+                            });
+                        });
+
+                        ucsBox.appendChild(div);
                     });
                 }
             }

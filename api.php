@@ -16763,6 +16763,13 @@ function addUncle()
 
         $classes = isset($_POST['classes']) ? json_decode($_POST['classes'], true) : [];
 
+        $isCallerDeveloper = isset($_SESSION['uncle_role']) && in_array(strtolower($_SESSION['uncle_role']), ['developer', 'dev']);
+        $isNewRoleDeveloper = in_array(strtolower($uncleRole), ['developer', 'dev']);
+        if ($isNewRoleDeveloper && !$isCallerDeveloper) {
+            sendJSON(['success' => false, 'message' => 'لا يمكنك تعيين صلاحية مطور']);
+            return;
+        }
+
 
 
         if (empty($name) || empty($username) || empty($password) || $churchId === 0) {
@@ -16925,6 +16932,13 @@ function updateUncle()
         $uncleRole = sanitize($_POST['role'] ?? 'uncle');
 
         $classes = isset($_POST['classes']) ? json_decode($_POST['classes'], true) : [];
+
+        $isCallerDeveloper = isset($_SESSION['uncle_role']) && in_array(strtolower($_SESSION['uncle_role']), ['developer', 'dev']);
+        $isNewRoleDeveloper = in_array(strtolower($uncleRole), ['developer', 'dev']);
+        if ($isNewRoleDeveloper && !$isCallerDeveloper) {
+            sendJSON(['success' => false, 'message' => 'لا يمكنك تعيين صلاحية مطور']);
+            return;
+        }
 
         $churchId = getChurchId();
 

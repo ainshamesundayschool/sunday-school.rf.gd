@@ -9319,12 +9319,13 @@
                     <div class="form-group" style="margin-bottom:20px;"><label class="form-label">تاريخ الميلاد</label><input type="text" id="editUncleBirthday" class="form-input"
                             placeholder="DD/MM/YYYY"></div>
                     <div class="form-group" style="margin-bottom:20px;">
-                        <label class="form-label">الفصل (يمكن اختيار أكثر من فصل)</label>
-                        <select id="editUncleClass" class="form-select" multiple style="width:100%; height:120px;">
+                        <label class="form-label">الفصول المسؤول عنها الخادم</label>
+                        <div id="editUncleClassCheckboxes" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:6px; margin-top:6px; max-height:150px; overflow-y:auto; padding:6px; border:1px solid var(--border); border-radius:8px; background:var(--bg-alpha);">
+                            <div style="color:var(--muted); font-size:0.8rem; padding:8px;"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>
+                        </div>
+                        <select id="editUncleClass" class="form-select" multiple style="display:none;">
                             <option value="">بدون فصل</option>
                         </select>
-                        <small style="color:var(--muted);font-size:0.75rem;">اضغط Ctrl (أو Cmd في Mac) لاختيار عدة
-                            فصول</small>
                     </div>
                     <div style="display:flex;gap:10px;">
                         <button type="submit" class="btn btn-primary" style="flex:2;"><i class="fas fa-save"></i>
@@ -20938,22 +20939,60 @@
                 // Clear existing options except the first one
                 select.innerHTML = '<option value="">بدون فصل</option>';
 
+                const box = document.getElementById(selectId + 'Checkboxes');
+                if (box) box.innerHTML = '';
+
                 if (data.success && data.classes) {
-                    data.classes.forEach(cls => {
+                    data.classes.forEach((cls, idx) => {
                         const option = document.createElement('option');
                         option.value = cls.arabic_name;
                         option.textContent = cls.arabic_name;
 
                         // Check if this class should be selected
-                        if (selectedClasses.includes(cls.arabic_name)) {
+                        const isSelected = selectedClasses.includes(cls.arabic_name);
+                        if (isSelected) {
                             option.selected = true;
                         }
 
                         select.appendChild(option);
+
+                        if (box) {
+                            const id = 'chk_' + selectId + '_' + cls.arabic_name.replace(/\s/g, '_') + '_' + idx;
+                            const div = document.createElement('div');
+                            div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;border:1.5px solid var(--border);cursor:pointer;transition:all .15s;background:var(--bg);';
+                            div.innerHTML = `<input type="checkbox" id="${id}" value="${cls.arabic_name}" style="width:15px;height:15px;accent-color:var(--primary);cursor:pointer;" ${isSelected ? 'checked' : ''}>
+                                <label for="${id}" style="font-size:0.84rem;font-weight:600;color:var(--text);cursor:pointer;margin:0;">${cls.arabic_name}</label>`;
+                            
+                            const updateStyles = (chk) => {
+                                div.style.borderColor = chk ? 'var(--primary)' : 'var(--border)';
+                                div.style.background = chk ? 'var(--brand-bg)' : 'var(--bg)';
+                            };
+                            updateStyles(isSelected);
+
+                            div.addEventListener('click', function (e) {
+                                if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'LABEL') {
+                                    const input = div.querySelector('input');
+                                    input.checked = !input.checked;
+                                    input.dispatchEvent(new Event('change'));
+                                }
+                            });
+
+                            const inp = div.querySelector('input');
+                            inp.addEventListener('change', function () {
+                                updateStyles(this.checked);
+                                Array.from(select.options).forEach(o => {
+                                    if (o.value === this.value) o.selected = this.checked;
+                                });
+                            });
+
+                            box.appendChild(div);
+                        }
                     });
                 }
             } catch (error) {
                 console.error('Error loading classes:', error);
+                const box = document.getElementById(selectId + 'Checkboxes');
+                if (box) box.innerHTML = '<div style="color:var(--danger);font-size:0.82rem;padding:8px;">فشل تحميل الفصول</div>';
             }
         }
         // Function to save uncles table as image
@@ -21660,7 +21699,6 @@
                     displayUncles(allUncles);
                     // Load classes for checkboxes (now in same section)
                     loadUncleClassCheckboxes();
-                    loadClassesForUncleDropdown('uncleClass');
                     populateAllowedUnclesCheckboxes();
                 } else {
                     const cached = _readLocalCache('uncles');
