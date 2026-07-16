@@ -207,15 +207,18 @@
             overflow: hidden;
             height: 180px;
             box-shadow: var(--shadow-sm);
+            background: linear-gradient(135deg, #eff1fe 0%, #bbbeff 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .hero-img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
             border-radius: var(--radius-md);
             display: block;
-            transform: scale(1.25);
         }
 
         .title {
