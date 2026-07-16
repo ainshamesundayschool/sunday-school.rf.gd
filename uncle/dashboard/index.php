@@ -4950,8 +4950,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .sibling-scroll-avatar-wrap {
-            width: 32px;
-            height: 32px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             overflow: hidden;
             border: 1px solid var(--border-solid);
@@ -4966,7 +4966,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .sibling-scroll-avatar-wrap .sibling-mini-avatar-fallback {
             width: 100% !important;
             height: 100% !important;
-            font-size: 0.75rem !important;
+            font-size: 1rem !important;
             border: none !important;
             box-shadow: none !important;
         }
@@ -19222,20 +19222,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (members.length > 0) {
                 previewHtml = `
                 <div class="sibling-scroll-container" 
-                     style="display:flex; gap:10px; overflow-x:auto; padding:8px 0 2px 0; margin-top:8px; margin-inline-start:42px; scrollbar-width:none; -ms-overflow-style:none;" 
+                     style="display:flex; gap:12px; overflow-x:auto; padding:8px 0 2px 0; margin-top:10px; margin-inline-start:42px; scrollbar-width:none; -ms-overflow-style:none;" 
                      onclick="event.stopPropagation()">
                     ${members.map(m => {
                         const firstName = getStudentFirstName(m);
                         return `
                         <div onclick="showStudentDetails('${escJs(m.name || m['الاسم'] || '')}')" 
-                             style="display:flex; flex-direction:column; align-items:center; gap:4px; min-width:48px; max-width:52px; cursor:pointer; text-align:center; transition:transform 0.15s;"
+                             style="display:flex; flex-direction:column; align-items:center; gap:5px; min-width:58px; max-width:62px; cursor:pointer; text-align:center; transition:transform 0.15s;"
                              onmouseover="this.style.transform='scale(1.06)';"
                              onmouseout="this.style.transform='';"
                              title="${escAttr(getStudentDisplayName(m))}">
                             <div class="sibling-scroll-avatar-wrap">
                                 ${buildSiblingMiniAvatar(m)}
                             </div>
-                            <span style="font-size:0.62rem; color:var(--text-2); font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; width:100%; display:block;">${escHtml(firstName)}</span>
+                            <span style="font-size:0.68rem; color:var(--text-2); font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; width:100%; display:block;">${escHtml(firstName)}</span>
                         </div>
                         `;
                     }).join('')}
