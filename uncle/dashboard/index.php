@@ -4662,9 +4662,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
    STUDENT DETAILS MODAL  — icon-rich detail rows
 ═══════════════════════════════════════════════════════════════ */
         .detail-avatar-wrap {
-            text-align: center;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            align-items: center;
+            gap: 4px 16px;
+            text-align: right;
             margin-bottom: 18px;
             padding-bottom: 18px;
+            border-bottom: 1px solid var(--border-solid);
         }
 
         .detail-avatar {
@@ -4672,7 +4677,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             height: 108px;
             border-radius: 50%;
             object-fit: cover;
-            margin: 0 auto;
+            grid-column: 1;
+            grid-row: 1 / span 2;
+            margin: 0;
             border: 3px solid var(--brand-light);
             box-shadow: var(--shadow-md);
             cursor: pointer;
@@ -4693,24 +4700,30 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto;
+            grid-column: 1;
+            grid-row: 1 / span 2;
+            margin: 0;
             color: var(--brand);
             font-size: 2.6rem
         }
 
         .detail-student-name {
-            font-size: 1.1rem;
+            font-size: 1.35rem;
             font-weight: 800;
             color: var(--text);
-            text-align: center;
-            margin-top: 10px
+            text-align: right;
+            margin-top: 0;
+            grid-column: 2;
+            grid-row: 1;
         }
 
         .detail-student-class {
-            font-size: .78rem;
-            color: var(--text-3);
-            text-align: center;
-            margin-top: 4px
+            font-size: 0.95rem;
+            color: var(--text-2);
+            text-align: right;
+            margin-top: 0;
+            grid-column: 2;
+            grid-row: 2;
         }
 
         .detail-row {
