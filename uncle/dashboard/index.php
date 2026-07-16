@@ -25397,7 +25397,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             try {
                 const ctrl = new AbortController();
-                const timer = setTimeout(() => ctrl.abort(), 3500);
+                const timer = setTimeout(() => ctrl.abort(), 10000);
                 const fd = new FormData();
                 fd.append('action', '__connectivityProbe');
                 const res = await fetch(API_URL + `?_probe=${now}`, {
