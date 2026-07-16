@@ -6,9 +6,10 @@ const CACHE_NAME        = `sunday-school-${SW_VERSION}`;
 const SYNC_TAG          = 'sync-attendance';
 const PERIODIC_SYNC_TAG = 'check-registrations';
 
-// Only these API actions should be queued for background sync.
-// Everything else (login, photo upload, settings) should fail normally when offline.
 const QUEUEABLE_ACTIONS = ['submitAttendance', 'submitUncleAttendance', 'updateCoupons'];
+
+// Temporarily bypasses cache-first navigation strategy when a cookie check forces a reload.
+let _bypassCacheUntil = 0;
 
 const SHELL_URLS = [
     '/favicon.ico','/logo.png',
@@ -173,6 +174,8 @@ self.addEventListener('fetch', e => {
                     const r = await fetch(e.request.clone());
                     const isCookieCheck = await _isCookieCheckResponse(r);
                     if (isCookieCheck) {
+                        // Bypass cache-first strategy for the next 10 seconds to let the cookie check run on reload
+                        _bypassCacheUntil = Date.now() + 10000;
                         // Force reload the client window(s) to let the cookie check complete
                         const clientsList = await self.clients.matchAll({ type: 'window' });
                         for (const client of clientsList) {
@@ -216,8 +219,9 @@ self.addEventListener('fetch', e => {
     if (e.request.mode === 'navigate') {
         e.respondWith(
             (async () => {
+                const bypassCache = Date.now() < _bypassCacheUntil;
                 // Stale-While-Revalidate strategy for instant offline shell loading
-                if (isOfflineShellFriendly) {
+                if (isOfflineShellFriendly && !bypassCache) {
                     const cached = await caches.match(e.request, { ignoreSearch: true });
                     if (cached) {
                         // Revalidate in the background to update cache
@@ -268,6 +272,8 @@ self.addEventListener('fetch', e => {
                     const r = await fetch(e.request, { cache: 'no-store' });
                     const isCookieCheck = await _isCookieCheckResponse(r);
                     if (isCookieCheck) {
+                        // Bypass cache-first strategy for the next 10 seconds to let the cookie check run on reload
+                        _bypassCacheUntil = Date.now() + 10000;
                         const clientsList = await self.clients.matchAll({ type: 'window' });
                         for (const client of clientsList) {
                             if (client.url) {
@@ -341,24 +347,29 @@ async function _isCookieCheckResponse(response) {
     if (!response.ok) return false;
 
     const responseUrl = response.url || '';
-    if (responseUrl.indexOf('ifastnet.com/cookies.html') !== -1 || responseUrl.indexOf('/cookies.html') !== -1) {
+    if (responseUrl.indexOf('ifastnet.com/cookies.html') !== -1) {
         return true;
     }
 
     const contentType = response.headers && response.headers.get('content-type') || '';
-    if (/text\/html|javascript|json|plain/i.test(contentType) || responseUrl === '' || !contentType) {
+    if (/text\/html|javascript/i.test(contentType) || responseUrl === '' || !contentType) {
         try {
             const copy = response.clone();
             const text = await copy.text();
-            if (
-                text.indexOf('__test') !== -1 ||
-                text.indexOf('slowAES') !== -1 ||
-                text.indexOf('aes.js') !== -1 ||
-                text.indexOf('cookies.html') !== -1 ||
-                text.indexOf('Cookies are not enabled') !== -1 ||
-                text.indexOf('browser is not accepting cookies') !== -1
-            ) {
-                return true;
+            
+            // To be a true iFastNet cookie challenge, it must be a small script page.
+            // Our own login/sw scripts are larger (usually > 10KB), and contain function names like _isCookieCheckResponse.
+            if (text.length < 8000 && text.indexOf('_isCookieCheckResponse') === -1) {
+                if (
+                    text.indexOf('__test') !== -1 ||
+                    text.indexOf('slowAES') !== -1 ||
+                    text.indexOf('aes.js') !== -1 ||
+                    text.indexOf('cookies.html') !== -1 ||
+                    text.indexOf('Cookies are not enabled') !== -1 ||
+                    text.indexOf('browser is not accepting cookies') !== -1
+                ) {
+                    return true;
+                }
             }
         } catch (_) {}
     }
