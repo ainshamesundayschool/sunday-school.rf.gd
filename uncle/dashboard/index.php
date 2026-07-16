@@ -7835,9 +7835,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             overflow: hidden;
         }
 
-        .bday-banner-wrapper.has-many-bdays .bday-decor {
-            display: none !important;
-        }
 
         .bday-banner-wrapper .bday-menu-arrow {
             position: absolute;
@@ -7917,9 +7914,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: flex;
             overflow-x: auto;
             gap: 10px;
-            padding: 4px 2px 2px !important;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
+            padding: 4px 2px 8px !important;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(99, 102, 241, 0.2) transparent;
             transition: max-height 0.3s ease, opacity 0.3s ease, margin 0.3s ease;
             max-height: 250px;
             opacity: 1;
@@ -7936,7 +7933,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .bday-banner-list::-webkit-scrollbar {
-            display: none;
+            height: 4px;
+        }
+        .bday-banner-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .bday-banner-list::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.25);
+            border-radius: 10px;
+        }
+        .bday-banner-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.45);
         }
 
         .bday-banner-chip {
