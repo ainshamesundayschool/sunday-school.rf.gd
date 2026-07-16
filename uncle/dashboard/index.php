@@ -20495,7 +20495,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (full.medical_notes) {
                 rowsList.push(['ملاحظات طبية', full.medical_notes, 'red', 'fa-notes-medical', full.medical_notes]);
             }
-            rowsList.push(
             const displayBday = formatBirthdayForDisplay(full.birthday);
             rowsList.push(
                 ['تاريخ الميلاد', displayBday, 'pink', 'fa-birthday-cake', displayBday],
