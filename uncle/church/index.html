@@ -278,6 +278,12 @@
             transition: background var(--t-base) var(--ease), color var(--t-base) var(--ease);
         }
 
+        html.modal-open,
+        body.modal-open {
+            overflow: hidden !important;
+            overscroll-behavior-y: contain !important;
+        }
+
         h1,
         h2,
         h3,
@@ -3106,18 +3112,24 @@
                 bottom: 0;
                 right: 0;
                 left: 0;
-                z-index: 990;
-                background: var(--surface, #fff);
+                z-index: 999999;
+                background: var(--surface, #fff) !important;
                 border-radius: 24px 24px 0 0;
-                box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
-                max-height: 85vh;
+                box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.2);
+                width: 100%;
+                max-width: 600px;
+                margin: 0 auto;
+                height: 82vh;
+                max-height: 82vh;
                 overflow-y: auto !important;
+                overflow-x: hidden;
                 -webkit-overflow-scrolling: touch;
                 touch-action: pan-y;
+                overscroll-behavior-y: contain;
                 padding: 44px 20px 24px 20px;
                 transform: translateY(100%);
                 pointer-events: none;
-                transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
                 padding-bottom: calc(24px + env(safe-area-inset-bottom));
                 box-sizing: border-box;
             }
@@ -3179,20 +3191,21 @@
                 display: none !important;
             }
 
-            /* Overlay backdrop when sidebar is open - NO blur, NO dark background */
+            /* Overlay backdrop when sidebar is open - matching dashboard mobile modal overlay */
             .sidebar-backdrop {
                 position: fixed;
                 inset: 0;
-                background: transparent;
-                backdrop-filter: none;
-                z-index: 980;
+                background: rgba(0, 0, 0, 0.45) !important;
+                backdrop-filter: blur(6px) !important;
+                -webkit-backdrop-filter: blur(6px) !important;
+                z-index: 999998;
                 opacity: 0;
                 pointer-events: none !important;
                 transition: opacity 0.3s ease;
             }
             body.modal-open .sidebar-backdrop {
                 opacity: 1;
-                pointer-events: none !important;
+                pointer-events: auto !important;
             }
 
             /* Hide the old close buttons on mobile */
