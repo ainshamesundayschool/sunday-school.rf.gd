@@ -7835,6 +7835,35 @@ if ($hasUncleId && $uncleRole === 'uncle')
             overflow: hidden;
         }
 
+        .bday-banner-wrapper.has-many-bdays .bday-decor {
+            display: none !important;
+        }
+
+        .bday-banner-wrapper .bday-menu-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            left: 10px;
+            z-index: 10;
+            cursor: pointer;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(99, 102, 241, 0.08);
+            color: var(--brand);
+            font-size: 0.65rem;
+            transition: all var(--t) var(--ease);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+        }
+
+        .bday-banner-wrapper .bday-menu-arrow:hover {
+            background: var(--brand);
+            color: var(--surface);
+            transform: translateY(-50%) scale(1.15);
+        }
         .bday-decor {
             position: absolute;
             font-size: 1.8rem;
@@ -7967,7 +7996,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             height: 48px;
             border-radius: 50%;
             object-fit: cover;
-            border: 2px solid var(--brand-light);
+            border: none !important;
             background: var(--surface-3);
             flex-shrink: 0;
             box-shadow: var(--shadow-sm);
@@ -7975,14 +8004,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .bday-banner-chip.today .bday-chip-img {
-            border-color: var(--brand);
             box-shadow: 0 0 8px var(--brand-glow);
         }
 
         .bday-banner-chip:not(.today) .bday-chip-img {
             width: 40px;
             height: 40px;
-            border-color: var(--border-solid);
             box-shadow: none;
         }
 
@@ -11412,6 +11439,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 <!-- Birthdays Container -->
                 <div id="mainStatsRow" class="bday-banner-wrapper" style="display:none;">
+                    <div class="bday-menu-arrow" onclick="showBirthdayModal()" title="كل أعياد الميلاد"><i class="fas fa-chevron-left"></i></div>
                     <div class="bday-decor bday-decor-left"><i class="fas fa-birthday-cake"></i></div>
                     <div class="bday-decor bday-decor-right"><i class="fas fa-gift"></i></div>
                     <div class="bday-banner-list" id="todayBirthdayList" style="z-index: 2; position: relative;"></div>
@@ -15515,6 +15543,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 return;
             } else {
                 banner.style.display = 'block';
+            }
+
+            if (items.length > 2) {
+                banner.classList.add('has-many-bdays');
+            } else {
+                banner.classList.remove('has-many-bdays');
             }
 
             if (title) {
