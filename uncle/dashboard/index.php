@@ -4662,10 +4662,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
    STUDENT DETAILS MODAL  — icon-rich detail rows
 ═══════════════════════════════════════════════════════════════ */
         .detail-avatar-wrap {
-            display: grid;
-            grid-template-columns: auto 1fr;
+            display: flex;
             align-items: center;
-            gap: 0px 16px;
+            gap: 16px;
             text-align: right;
             margin-bottom: 18px;
             padding-bottom: 18px;
@@ -4677,14 +4676,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             height: 108px;
             border-radius: 50%;
             object-fit: cover;
-            grid-column: 1;
-            grid-row: 1 / span 2;
             margin: 0;
             border: 3px solid var(--brand-light);
             box-shadow: var(--shadow-md);
             cursor: pointer;
             transition: all var(--t) var(--spring);
-            display: block
+            display: block;
+            flex-shrink: 0;
         }
 
         .detail-avatar:hover {
@@ -4700,11 +4698,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: flex;
             align-items: center;
             justify-content: center;
-            grid-column: 1;
-            grid-row: 1 / span 2;
             margin: 0;
             color: var(--brand);
-            font-size: 2.6rem
+            font-size: 2.6rem;
+            flex-shrink: 0;
+        }
+
+        .detail-info-text {
+            display: flex;
+            flex-direction: column;
+            gap: 0px;
+            justify-content: center;
         }
 
         .detail-student-name {
@@ -4714,8 +4718,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             text-align: right;
             margin: 0;
             line-height: 1.2;
-            grid-column: 2;
-            grid-row: 1;
         }
 
         .detail-student-class {
@@ -4724,8 +4726,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             text-align: right;
             margin: 0;
             line-height: 1.2;
-            grid-column: 2;
-            grid-row: 2;
         }
 
         .detail-row {
@@ -18935,8 +18935,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const gender = (g.gender === 'female' || g['النوع'] === 'female') ? 'female' : 'male';
             const imageUrl = g.image_url || g['صورة'] || '';
             const img = imageUrl
-                ? `<div class="detail-avatar-wrap"><img src="${window.photoUrl(imageUrl)}" class="detail-avatar" onclick="showImageModal('${escStr(imageUrl)}')" onerror="this.style.display='none';var el=document.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-student-name">${escStr(g.name || '')}</div><div class="detail-student-class">زائر</div></div>`
-                : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user-tag"></i></div><div class="detail-student-name">${escStr(g.name || '')}</div><div class="detail-student-class">زائر</div></div>`;
+                ? `<div class="detail-avatar-wrap"><img src="${window.photoUrl(imageUrl)}" class="detail-avatar" onclick="showImageModal('${escStr(imageUrl)}')" onerror="this.style.display='none';var el=document.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-info-text"><div class="detail-student-name">${escStr(g.name || '')}</div><div class="detail-student-class">زائر</div></div></div>`
+                : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user-tag"></i></div><div class="detail-info-text"><div class="detail-student-name">${escStr(g.name || '')}</div><div class="detail-student-class">زائر</div></div></div>`;
 
             let rowsList = [
                 ['معرّف الزائر (ID)', String(g.id || g.guest_id || ''), 'blue', 'fa-fingerprint', String(g.id || g.guest_id || '')],
@@ -19066,8 +19066,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             // Basic avatar + header (kept from local cache)
             const detailNameStr = (s['الاسم'] || '') + (s._isGuest ? ' <span class="guest-badge" style="font-size:0.65rem; background:#f59e0b; color:#fff; padding:2px 6px; border-radius:4px; margin-right:4px; vertical-align:middle; display:inline-block;">زائر</span>' : '');
             const img = s['صورة']
-                ? `<div class="detail-avatar-wrap"><img src="${window.photoUrl(s['صورة'])}" class="detail-avatar" onclick="showImageModal('${s['صورة']}')" onerror="this.style.display='none';var el=document.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${s['الفصل'] || ''}</div></div>`
-                : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user${s._isGuest ? '-tag' : ''}"></i></div><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${s['الفصل'] || ''}</div></div>`;
+                ? `<div class="detail-avatar-wrap"><img src="${window.photoUrl(s['صورة'])}" class="detail-avatar" onclick="showImageModal('${s['صورة']}')" onerror="this.style.display='none';var el=document.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-info-text"><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${s['الفصل'] || ''}</div></div></div>`
+                : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user${s._isGuest ? '-tag' : ''}"></i></div><div class="detail-info-text"><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${s['الفصل'] || ''}</div></div></div>`;
 
             // Reset edit/delete buttons visibility to default
             const editBtn = document.getElementById('editStudentBtn');
@@ -20193,8 +20193,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const showImgClick = full.image_url ? `onclick="showImageModal('${escJs(full.image_url)}', event)"` : '';
             const detailNameStr = escStr(full.name || '') + (full._isGuest ? ' <span class="guest-badge" style="font-size:0.65rem; background:#f59e0b; color:#fff; padding:2px 6px; border-radius:4px; margin-right:4px; vertical-align:middle; display:inline-block;">زائر</span>' : '');
             const img = full.image_url
-                ? `<div class="detail-avatar-wrap" ${showImgClick}><img src="${full.image_url}" class="detail-avatar"><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div>`
-                : `<div class="detail-avatar-wrap" ${showImgClick}><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div>`;
+                ? `<div class="detail-avatar-wrap" ${showImgClick}><img src="${full.image_url}" class="detail-avatar"><div class="detail-info-text"><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div></div>`
+                : `<div class="detail-avatar-wrap" ${showImgClick}><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-info-text"><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div></div>`;
 
             let rowsList = [
                 ['معرّف الطفل (ID)', String(full.id), 'blue', 'fa-fingerprint', String(full.id)],
@@ -20317,8 +20317,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const gender = (full.gender === 'female' || full['النوع'] === 'female') ? 'female' : 'male';
             const showImgClick = full.image_url ? `onclick="showImageModal('${escJs(full.image_url)}', event)"` : '';
             const img = full.image_url
-                ? `<div class="detail-avatar-wrap" ${showImgClick}><img src="${full.image_url}" class="detail-avatar"><div class="detail-student-name">${escStr(full.name || '')}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div>`
-                : `<div class="detail-avatar-wrap" ${showImgClick}><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${escStr(full.name || '')}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div>`;
+                ? `<div class="detail-avatar-wrap" ${showImgClick}><img src="${full.image_url}" class="detail-avatar"><div class="detail-info-text"><div class="detail-student-name">${escStr(full.name || '')}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div></div>`
+                : `<div class="detail-avatar-wrap" ${showImgClick}><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-info-text"><div class="detail-student-name">${escStr(full.name || '')}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div></div>`;
 
             const roleLabels = {
                 'admin': 'مسؤول (Admin)',
