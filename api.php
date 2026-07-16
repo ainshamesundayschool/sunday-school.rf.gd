@@ -1389,7 +1389,7 @@ function getUncleProfileInfo() {
         $conn = getDBConnection();
         // Load uncle info
         $stmt = $conn->prepare("
-            SELECT u.id, u.name, u.username, u.image_url, u.role, u.email, u.phone, u.gender, c.church_name
+            SELECT u.id, u.name, u.username, u.image_url, u.role, u.email, u.phone, u.gender, u.birthday, c.church_name
             FROM uncles u
             LEFT JOIN churches c ON u.church_id = c.id
             WHERE u.id = ? AND (u.deleted IS NULL OR u.deleted = 0)
@@ -1426,6 +1426,7 @@ function getUncleProfileInfo() {
                 'email' => $uncle['email'],
                 'phone' => $uncle['phone'],
                 'gender' => $uncle['gender'],
+                'birthday' => $uncle['birthday'] ?? '',
                 'church_name' => $uncle['church_name'],
                 'classes' => $classes
             ]
@@ -15377,6 +15378,10 @@ function ensureUnclesTableCustomInfoColumn($conn)
     if ($res->num_rows === 0) {
         $conn->query("ALTER TABLE `uncles` ADD COLUMN `custom_info` TEXT DEFAULT NULL");
     }
+    $res2 = $conn->query("SHOW COLUMNS FROM `uncles` LIKE 'birthday'");
+    if ($res2->num_rows === 0) {
+        $conn->query("ALTER TABLE `uncles` ADD COLUMN `birthday` VARCHAR(20) DEFAULT NULL");
+    }
 }
 
 function addUncleFee()
@@ -15714,7 +15719,7 @@ function getAllUncles()
                 $placeholders = implode(',', array_fill(0, count($churchIds), '?'));
                 $types = str_repeat('i', count($churchIds));
                 $stmt = $conn->prepare("
-                    SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.gender, u.phone, u.created_at, u.custom_info,
+                    SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.gender, u.phone, u.created_at, u.custom_info, u.birthday,
                            c.church_name
                     FROM uncles u
                     LEFT JOIN churches c ON u.church_id = c.id
@@ -15729,7 +15734,7 @@ function getAllUncles()
                 $stmt->bind_param($types, ...$churchIds);
             } else {
                 $stmt = $conn->prepare("
-                    SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.gender, u.phone, u.created_at, u.custom_info
+                    SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.gender, u.phone, u.created_at, u.custom_info, u.birthday
                     FROM uncles u
                     WHERE u.church_id = ? AND (u.deleted IS NULL OR u.deleted = 0) AND u.role NOT IN ('developer', 'dev')
                     ORDER BY 
@@ -15743,7 +15748,7 @@ function getAllUncles()
             }
         } elseif ($isAll) {
             $stmt = $conn->prepare("
-                SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.gender, u.phone, u.created_at, u.custom_info,
+                SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.gender, u.phone, u.created_at, u.custom_info, u.birthday,
                        c.church_name
                 FROM uncles u
                 LEFT JOIN churches c ON u.church_id = c.id
@@ -15757,7 +15762,7 @@ function getAllUncles()
             ");
         } else {
             $stmt = $conn->prepare("
-                SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.gender, u.phone, u.created_at, u.custom_info
+                SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.gender, u.phone, u.created_at, u.custom_info, u.birthday
                 FROM uncles u
                 WHERE u.church_id = ? AND (u.deleted IS NULL OR u.deleted = 0) AND u.role NOT IN ('developer', 'dev')
                 ORDER BY 
@@ -16108,7 +16113,7 @@ function getCurrentUncle()
 
         $conn = getDBConnection();
 
-        $stmt = $conn->prepare("SELECT id, name, username, image_url, role, custom_info, email, phone, gender FROM uncles WHERE id = ? AND (deleted IS NULL OR deleted = 0) LIMIT 1");
+        $stmt = $conn->prepare("SELECT id, name, username, image_url, role, custom_info, email, phone, gender, birthday FROM uncles WHERE id = ? AND (deleted IS NULL OR deleted = 0) LIMIT 1");
 
         $stmt->bind_param("i", $uncleId);
 
@@ -16356,33 +16361,35 @@ function updateUncleProfile()
 
 
 
+            $birthday = sanitize($_POST['birthday'] ?? '');
             $passwordHash = hash('sha256', $newPassword);
 
             $stmt = $conn->prepare("
 
                 UPDATE uncles 
 
-                SET name = ?, username = ?, password_hash = ?, email = ?, phone = ?, gender = ?, updated_at = NOW()
+                SET name = ?, username = ?, password_hash = ?, email = ?, phone = ?, gender = ?, birthday = ?, updated_at = NOW()
 
                 WHERE id = ?
 
             ");
 
-            $stmt->bind_param("ssssssi", $name, $username, $passwordHash, $email, $phone, $gender, $uncleId);
+            $stmt->bind_param("sssssssi", $name, $username, $passwordHash, $email, $phone, $gender, $birthday, $uncleId);
 
         } else {
 
+            $birthday = sanitize($_POST['birthday'] ?? '');
             $stmt = $conn->prepare("
 
                 UPDATE uncles 
 
-                SET name = ?, username = ?, email = ?, phone = ?, gender = ?, updated_at = NOW()
+                SET name = ?, username = ?, email = ?, phone = ?, gender = ?, birthday = ?, updated_at = NOW()
 
                 WHERE id = ?
 
             ");
 
-            $stmt->bind_param("sssssi", $name, $username, $email, $phone, $gender, $uncleId);
+            $stmt->bind_param("ssssssi", $name, $username, $email, $phone, $gender, $birthday, $uncleId);
 
         }
 
@@ -16588,7 +16595,7 @@ function getAllUncles_duplicate()
                 $placeholders = implode(',', array_fill(0, count($churchIds), '?'));
                 $types = str_repeat('i', count($churchIds));
                 $stmt = $conn->prepare("
-                    SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.gender, u.phone, u.created_at,
+                    SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.gender, u.phone, u.created_at, u.birthday,
                            c.church_name
                     FROM uncles u
                     LEFT JOIN churches c ON u.church_id = c.id
@@ -16603,7 +16610,7 @@ function getAllUncles_duplicate()
                 $stmt->bind_param($types, ...$churchIds);
             } else {
                 $stmt = $conn->prepare("
-                    SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.gender, u.phone, u.created_at
+                    SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.gender, u.phone, u.created_at, u.birthday
                     FROM uncles u
                     WHERE u.church_id = ? AND (u.deleted IS NULL OR u.deleted = 0) AND u.role NOT IN ('developer', 'dev')
                     ORDER BY 
@@ -16617,7 +16624,7 @@ function getAllUncles_duplicate()
             }
         } elseif ($isAll) {
             $stmt = $conn->prepare("
-                SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.gender, u.phone, u.created_at,
+                SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.gender, u.phone, u.created_at, u.birthday,
                        c.church_name
                 FROM uncles u
                 LEFT JOIN churches c ON u.church_id = c.id
@@ -16633,7 +16640,7 @@ function getAllUncles_duplicate()
 
             $stmt = $conn->prepare("
 
-                SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.gender, u.phone, u.created_at
+                SELECT u.id, u.church_id, u.name, u.username, u.image_url, u.role, u.gender, u.phone, u.created_at, u.birthday
 
                 FROM uncles u
 
@@ -16818,20 +16825,19 @@ function addUncle()
         }
 
         $phone = sanitize($_POST['phone'] ?? '');
-
-
+        $birthday = sanitize($_POST['birthday'] ?? '');
 
         // Insert uncle
 
         $stmt = $conn->prepare("
 
-            INSERT INTO uncles (church_id, name, username, password_hash, role, gender, phone)
+            INSERT INTO uncles (church_id, name, username, password_hash, role, gender, phone, birthday)
 
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 
         ");
 
-        $stmt->bind_param("issssss", $churchId, $name, $username, $passwordHash, $uncleRole, $gender, $phone);
+        $stmt->bind_param("isssssss", $churchId, $name, $username, $passwordHash, $uncleRole, $gender, $phone, $birthday);
 
 
 
@@ -17000,6 +17006,7 @@ function updateUncle()
         $gender = sanitize($_POST['gender'] ?? 'male');
 
         $phone = sanitize($_POST['phone'] ?? '');
+        $birthday = sanitize($_POST['birthday'] ?? '');
 
 
 
@@ -17011,13 +17018,13 @@ function updateUncle()
 
                 UPDATE uncles 
 
-                SET name = ?, username = ?, password_hash = ?, role = ?, gender = ?, phone = ?
+                SET name = ?, username = ?, password_hash = ?, role = ?, gender = ?, phone = ?, birthday = ?
 
                 WHERE id = ? AND church_id = ?
 
             ");
 
-            $stmt->bind_param("ssssssii", $name, $username, $passwordHash, $uncleRole, $gender, $phone, $uncleId, $churchId);
+            $stmt->bind_param("sssssssii", $name, $username, $passwordHash, $uncleRole, $gender, $phone, $birthday, $uncleId, $churchId);
 
         } else {
 
@@ -17025,13 +17032,13 @@ function updateUncle()
 
                 UPDATE uncles 
 
-                SET name = ?, username = ?, role = ?, gender = ?, phone = ?
+                SET name = ?, username = ?, role = ?, gender = ?, phone = ?, birthday = ?
 
                 WHERE id = ? AND church_id = ?
 
             ");
 
-            $stmt->bind_param("sssssii", $name, $username, $uncleRole, $gender, $phone, $uncleId, $churchId);
+            $stmt->bind_param("ssssssii", $name, $username, $uncleRole, $gender, $phone, $birthday, $uncleId, $churchId);
 
         }
 
@@ -40438,6 +40445,10 @@ function registerUncleWithChurchCode()
 
     $password = $_POST['password'] ?? '';
 
+    $phone = sanitize($_POST['phone'] ?? '');
+
+    $birthday = sanitize($_POST['birthday'] ?? '');
+
     $classes = $_POST['classes'] ?? '[]';
 
     if (!$churchCode || !$name || !$username || strlen($password) < 6) {
@@ -40490,9 +40501,9 @@ function registerUncleWithChurchCode()
 
     $role = 'uncle';
 
-    $stmt = $conn->prepare("INSERT INTO uncles (church_id, name, username, password_hash, role) VALUES (?,?,?,?,?)");
+    $stmt = $conn->prepare("INSERT INTO uncles (church_id, name, username, password_hash, role, phone, birthday) VALUES (?,?,?,?,?,?,?)");
 
-    $stmt->bind_param("issss", $churchId, $name, $username, $hash, $role);
+    $stmt->bind_param("issssss", $churchId, $name, $username, $hash, $role, $phone, $birthday);
 
     if ($stmt->execute()) {
 

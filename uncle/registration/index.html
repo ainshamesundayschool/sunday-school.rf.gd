@@ -372,6 +372,14 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
             <small><i class="fas fa-mobile-alt"></i> يبدأ بـ 01 — 11 رقم</small>
           </div>
         </div>
+        <!-- ★ NEW: Birthday field -->
+        <div class="fr full" style="margin-bottom:0; margin-top:12px;">
+          <div class="ff">
+            <label><i class="fas fa-birthday-cake"></i> تاريخ الميلاد <span class="req">*</span></label>
+            <input type="text" id="uncleBirthday" placeholder="DD/MM/YYYY" maxlength="10" />
+            <small><i class="fas fa-info-circle"></i> بالصيغة يوم/شهر/سنة (مثال: 15/08/1990)</small>
+          </div>
+        </div>
       </div>
       <div class="alert alert-err" id="err1"><i class="fas fa-circle-exclamation"></i><span id="errTxt1"></span></div>
       <div class="act-bar">
@@ -461,6 +469,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
         <div class="rv-head"><i class="fas fa-user-tie"></i> بيانات الخادم</div>
         <div class="rv-row"><span class="rv-lbl">الاسم الكامل</span><span class="rv-val" id="rv-name">—</span></div>
         <div class="rv-row"><span class="rv-lbl">رقم التليفون</span><span class="rv-val" id="rv-phone">—</span></div>
+        <div class="rv-row"><span class="rv-lbl">تاريخ الميلاد</span><span class="rv-val" id="rv-birthday">—</span></div>
         <div class="rv-row"><span class="rv-lbl">اسم المستخدم</span><span class="rv-val" id="rv-username">—</span></div>
         <div class="rv-row"><span class="rv-lbl">كلمة المرور</span><span class="rv-val">••••••</span></div>
         <div class="rv-row"><span class="rv-lbl">الفصول المختارة</span><span class="rv-val" id="rv-classes">—</span></div>
@@ -695,6 +704,18 @@ function v1() {
   if (!ph || !ph.startsWith('01') || ph.length !== 11) {
     showErr(1,'رقم التليفون غير صحيح — يبدأ بـ 01 ويتكون من 11 رقم'); focusErr('unclePhone'); return false;
   }
+  const bday = val('uncleBirthday').trim();
+  if (!bday) { showErr(1,'الرجاء إدخال تاريخ الميلاد'); focusErr('uncleBirthday'); return false; }
+  const parts = bday.split('/');
+  if (parts.length !== 3 || parts[0].length < 1 || parts[0].length > 2 || parts[1].length < 1 || parts[1].length > 2 || parts[2].length !== 4) {
+    showErr(1,'تاريخ الميلاد غير صحيح — الرجاء إدخاله بالصيغة يوم/شهر/سنة (مثال: 15/08/1990)'); focusErr('uncleBirthday'); return false;
+  }
+  const day = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10);
+  const year = parseInt(parts[2], 10);
+  if (isNaN(day) || isNaN(month) || isNaN(year) || day < 1 || day > 31 || month < 1 || month > 12 || year < 1920 || year > new Date().getFullYear()) {
+    showErr(1,'تاريخ الميلاد غير منطقي'); focusErr('uncleBirthday'); return false;
+  }
   return true;
 }
 function v2() {
@@ -717,6 +738,7 @@ function fillReview() {
   document.getElementById('rv-church').textContent   = churchName || '—';
   document.getElementById('rv-name').textContent     = val('uncleName')    || '—';
   document.getElementById('rv-phone').textContent    = val('unclePhone')   || '—';
+  document.getElementById('rv-birthday').textContent = val('uncleBirthday')|| '—';
   document.getElementById('rv-username').textContent = val('uncleUsername') || '—';
   document.getElementById('rv-classes').textContent  = selectedClasses.length
     ? selectedClasses.join(' · ')
@@ -753,6 +775,7 @@ async function submitForm() {
 
   const name     = val('uncleName');
   const phone    = val('unclePhone').replace(/\D/g,'');
+  const birthday = val('uncleBirthday');
   const username = val('uncleUsername');
   const password = val('unclePassword');
 
@@ -762,6 +785,7 @@ async function submitForm() {
       church_code: churchCode,
       name,
       phone,
+      birthday,
       username,
       password,
       classes:     JSON.stringify(selectedClasses)

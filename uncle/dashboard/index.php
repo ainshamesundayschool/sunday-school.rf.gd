@@ -8078,6 +8078,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         /* ── Birthday indicator on attendance row ── */
         .attendance-item.bday-row {
             /* top border removed */
+        }
         .bday-row-badge {
             display: inline-flex;
             align-items: center;
@@ -11443,6 +11444,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="bday-decor bday-decor-left"><i class="fas fa-birthday-cake"></i></div>
                     <div class="bday-decor bday-decor-right"><i class="fas fa-gift"></i></div>
                     <div class="bday-banner-list" id="todayBirthdayList" style="z-index: 2; position: relative;"></div>
+                    <div id="bdayCountSummary" style="text-align: center; font-size: 0.68rem; color: var(--text-3); margin-top: -6px; margin-bottom: 6px; z-index: 2; position: relative;"></div>
                 </div>
 
                 <div class="section-head" id="tripsSectionHead"
@@ -12098,6 +12100,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                                 <option value="male">ذكر</option>
                                                 <option value="female">أنثى</option>
                                             </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Birthday -->
+                                <div class="settings-field-box">
+                                    <div class="form-group">
+                                        <label class="form-label">تاريخ الميلاد</label>
+                                        <div class="input-icon-wrap">
+                                            <i class="fas fa-calendar input-icon"></i>
+                                            <input type="text" class="form-input" id="uncleProfileBirthday"
+                                                placeholder="DD/MM/YYYY">
                                         </div>
                                     </div>
                                 </div>
@@ -14595,7 +14609,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 image_url: localStorage.getItem('uncleImageUrl') || '',
                 email: localStorage.getItem('uncleEmail') || '',
                 phone: localStorage.getItem('unclePhone') || '',
-                gender: localStorage.getItem('uncleGender') || 'male'
+                gender: localStorage.getItem('uncleGender') || 'male',
+                birthday: localStorage.getItem('uncleBirthday') || ''
             };
 
             const roleTranslate = { 'admin': 'مسؤول', 'developer': 'مطور', 'dev': 'مطور', 'uncle': 'خادم' };
@@ -14617,6 +14632,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (document.getElementById('uncleProfileEmail')) document.getElementById('uncleProfileEmail').value = u.email || '';
             if (document.getElementById('uncleProfilePhone')) document.getElementById('uncleProfilePhone').value = u.phone || '';
             if (document.getElementById('uncleProfileGender')) document.getElementById('uncleProfileGender').value = u.gender || 'male';
+            if (document.getElementById('uncleProfileBirthday')) {
+                const bd = u.birthday || '';
+                document.getElementById('uncleProfileBirthday').value = bd.match(/^\d{4}-\d{2}-\d{2}$/) ? bd.split('-').reverse().join('/') : bd;
+            }
 
 
             const av = document.getElementById('accountBigAvatar');
@@ -15083,7 +15102,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 u['الاسم'] = u.name;
                                 u['الفصل'] = 'الخدام';
                                 u['رقم التليفون'] = u.phone || '';
-                                u['عيد الميلاد'] = '';
+                                u['عيد الميلاد'] = u.birthday || '';
                                 u['النوع'] = u.gender || 'male';
                                 u['صورة'] = u.image_url || '';
                                 u._customInfo = u.custom_info ? (typeof u.custom_info === 'string' ? JSON.parse(u.custom_info) : u.custom_info) : {};
@@ -15228,7 +15247,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 u['الاسم'] = u.name;
                                 u['الفصل'] = 'الخدام';
                                 u['رقم التليفون'] = u.phone || '';
-                                u['عيد الميلاد'] = '';
+                                u['عيد الميلاد'] = u.birthday || '';
                                 u['النوع'] = u.gender || 'male';
                                 u['صورة'] = u.image_url || '';
                                 u._customInfo = u.custom_info ? (typeof u.custom_info === 'string' ? JSON.parse(u.custom_info) : u.custom_info) : {};
@@ -15317,7 +15336,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 u['الاسم'] = u.name;
                                 u['الفصل'] = 'الخدام';
                                 u['رقم التليفون'] = u.phone || '';
-                                u['عيد الميلاد'] = '';
+                                u['عيد الميلاد'] = u.birthday || '';
                                 u['النوع'] = u.gender || 'male';
                                 u['صورة'] = u.image_url || '';
                                 u._customInfo = u.custom_info ? (typeof u.custom_info === 'string' ? JSON.parse(u.custom_info) : u.custom_info) : {};
@@ -15396,7 +15415,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function getTodayBirthdays() {
             const now = new Date();
             const todayDay = now.getDate(), todayMonth = now.getMonth(); // month 0-based
-            return (allStudentsData.length ? allStudentsData : students).filter(s => {
+            const stds = allStudentsData.length ? allStudentsData : (window.students || []);
+            const uncles = window.allUnclesData || [];
+            return [...stds, ...uncles].filter(s => {
                 if (!s['عيد الميلاد']) return false;
                 const p = s['عيد الميلاد'].split('/');
                 if (p.length < 2) return false;
@@ -15444,7 +15465,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 cycleDates.push(d);
             }
 
-            const srcList = allStudentsData.length ? allStudentsData : students;
+            const stds = allStudentsData.length ? allStudentsData : (window.students || []);
+            const uncles = window.allUnclesData || [];
+            const srcList = [...stds, ...uncles];
             const results = [];
 
             srcList.forEach(s => {
@@ -15549,6 +15572,29 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 banner.classList.add('has-many-bdays');
             } else {
                 banner.classList.remove('has-many-bdays');
+            }
+
+            // Count kids vs uncles
+            const kidsCount = items.filter(item => !item.student._isUncle).length;
+            const unclesCount = items.filter(item => item.student._isUncle).length;
+            const summaryEl = document.getElementById('bdayCountSummary');
+            if (summaryEl) {
+                let kidText = '';
+                if (kidsCount === 1) kidText = 'طفل واحد';
+                else if (kidsCount === 2) kidText = 'طفلان';
+                else if (kidsCount >= 3 && kidsCount <= 10) kidText = `${kidsCount} أطفال`;
+                else if (kidsCount > 10) kidText = `${kidsCount} طفل`;
+
+                let uncleText = '';
+                if (unclesCount === 1) uncleText = 'خادم واحد';
+                else if (unclesCount === 2) uncleText = 'خادمان';
+                else if (unclesCount >= 3 && unclesCount <= 10) uncleText = `${unclesCount} خدام`;
+                else if (unclesCount > 10) uncleText = `${unclesCount} خادم`;
+
+                let parts = [];
+                if (kidsCount > 0) parts.push(kidText);
+                if (unclesCount > 0) parts.push(uncleText);
+                summaryEl.textContent = parts.join(' · ');
             }
 
             if (title) {
@@ -19164,7 +19210,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     ? (window.allGuestsData || []).find(g => g['الاسم'] === name)
                     : (isCombinedView
                         ? (combinedStudents.find(s => s['الاسم'] === name) || students.find(s => s['الاسم'] === name))
-                        : students.find(s => s['الاسم'] === name)));
+                        : students.find(s => s['الاسم'] === name)))
+                || (window.allUnclesData || []).find(u => u['الاسم'] === name)
+                || (window.allGuestsData || []).find(g => g['الاسم'] === name);
             if (!s) { showToast('لم يتم العثور على الشخص', 'error'); return; }
             currentStudentForEdit = s;
             const title = s._isUncle ? 'معلومات الخادم: ' + name : (s._isGuest ? 'معلومات الزائر: ' + name : 'معلومات: ' + name);
@@ -20446,6 +20494,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 ['النوع', (full.gender === 'female' ? 'خادمة' : 'خادم'), 'purple', 'fa-venus-mars', (full.gender === 'female' ? 'خادمة' : 'خادم')],
                 ['الدور / الصلاحية', roleLabel, 'red', 'fa-user-shield', roleLabel],
                 ['رقم التليفون', full.phone || '---', 'green', 'fa-phone', full.phone || '---'],
+                ['تاريخ الميلاد', full.birthday || '---', 'pink', 'fa-birthday-cake', full.birthday || '---'],
             ];
 
             let rows = rowsList.map(([l, v, color, icon, copyVal]) => `
@@ -20975,7 +21024,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (classEl) classEl.style.display = isUncle ? 'none' : '';
 
             const birthdayEl = document.getElementById('editBirthdayGroup');
-            if (birthdayEl) birthdayEl.style.display = isUncle ? 'none' : '';
+            if (birthdayEl) birthdayEl.style.display = '';
 
             const couponsEl = document.getElementById('editCommitmentCouponsGroup');
             if (couponsEl) couponsEl.style.display = isUncle ? 'none' : '';
@@ -21114,6 +21163,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     role: role,
                     gender: document.getElementById('editStudentGender').value,
                     phone: document.getElementById('editStudentPhone').value.trim(),
+                    birthday: document.getElementById('editStudentBirthday').value.trim(),
                     classes: JSON.stringify(currentStudentForEdit.classes || [])
                 };
 
@@ -21177,6 +21227,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const role = document.getElementById('uncleRoleField').value;
                 const gender = document.getElementById('studentGender').value;
                 const phone = document.getElementById('studentPhone').value.trim();
+                const birthday = document.getElementById('studentBirthday').value.trim();
 
                 if (!name || !username || !password) {
                     showToast('الاسم واسم المستخدم وكلمة المرور مطلوبة', 'error');
@@ -21192,6 +21243,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 fd.append('role', role);
                 fd.append('gender', gender);
                 fd.append('phone', phone);
+                fd.append('birthday', birthday);
 
                 // Add photo if cropped photo exists
                 if (currentCroppedBlob && currentPhotoEditorType === 'new') {
@@ -21305,7 +21357,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 document.getElementById('studentAddressGroup').style.display = 'none';
                 document.getElementById('studentEmergencyPhoneGroup').style.display = 'none';
                 document.getElementById('studentMedicalNotesGroup').style.display = 'none';
-                document.getElementById('studentBirthdayGroup').style.display = 'none';
+                document.getElementById('studentBirthdayGroup').style.display = '';
                 document.getElementById('studentCouponsGroup').style.display = 'none';
                 document.getElementById('studentIsGuestGroup').style.display = 'none';
 
@@ -21652,7 +21704,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
         function showBirthdaysByMonth(idx) {
             document.querySelectorAll('.month-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
-            const ms = allStudentsData.filter(s => {
+            const stds = allStudentsData.length ? allStudentsData : (window.students || []);
+            const uncles = window.allUnclesData || [];
+            const ms = [...stds, ...uncles].filter(s => {
                 if (!s['عيد الميلاد']) return false;
                 const p = s['عيد الميلاد'].split('/');
                 return p.length >= 2 && parseInt(p[1]) - 1 === idx;
@@ -21662,7 +21716,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
             });
 
             const countEl = document.getElementById('birthdayMonthCount');
-            if (countEl) countEl.textContent = ms.length ? ms.length + ' طفل' : '';
+            if (countEl) {
+                const kidsCount = ms.filter(x => !x._isUncle).length;
+                const unclesCount = ms.filter(x => x._isUncle).length;
+                let countTxt = '';
+                if (kidsCount > 0 && unclesCount > 0) {
+                    countTxt = `${kidsCount} أطفال · ${unclesCount} خدام`;
+                } else if (kidsCount > 0) {
+                    countTxt = `${kidsCount} طفل`;
+                } else if (unclesCount > 0) {
+                    countTxt = `${unclesCount} خادم`;
+                }
+                countEl.textContent = countTxt;
+            }
 
             const today = new Date();
             const todayDay = today.getDate(), todayMonth = today.getMonth();
@@ -21672,10 +21738,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const bDay = parseInt(p[0]), bMonth = parseInt(p[1]), bYear = p.length >= 3 ? parseInt(p[2]) : 0;
                 const isToday = (bDay === todayDay && bMonth - 1 === todayMonth);
                 const age = bYear > 0 ? today.getFullYear() - bYear - (today < new Date(today.getFullYear(), bMonth - 1, bDay) ? 1 : 0) : 0;
-                const photo = s['صورة']
-                    ? `<img src="${s['صورة']}" alt="" style="width:54px;height:54px;border-radius:50%;object-fit:cover;border:3px solid ${isToday ? 'var(--brand)' : 'var(--border-solid)'};box-shadow:var(--shadow-sm);cursor:pointer;flex-shrink:0" onclick="showImageModal('${(s['صورة'] || '').replace(/'/g, "\\'")}',event)">`
+                const photoVal = s['صورة'] || s.image_url || '';
+                const photo = photoVal
+                    ? `<img src="${(typeof window.photoUrl === 'function' && !photoVal.startsWith('http') && !photoVal.startsWith('/')) ? window.photoUrl(photoVal) : photoVal}" alt="" style="width:54px;height:54px;border-radius:50%;object-fit:cover;border:3px solid ${isToday ? 'var(--brand)' : 'var(--border-solid)'};box-shadow:var(--shadow-sm);cursor:pointer;flex-shrink:0" onclick="showImageModal('${(photoVal).replace(/'/g, "\\'")}',event)">`
                     : `<div style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,var(--brand-bg),var(--coupon-bg));display:flex;align-items:center;justify-content:center;color:var(--brand);font-size:1.3rem;flex-shrink:0"><i class="fas fa-user"></i></div>`;
-                const phone = (s['رقم التليفون'] || '').replace(/\D/g, '');
+                const phone = (s['رقم التليفون'] || s.phone || '').replace(/\D/g, '');
                 const waMsgRaw = `🎂 كل سنة وأنت طيب يا ${s['الاسم']}!\n\nنتمنى لك عيد ميلاد سعيد ومليان فرحة 🎉\nمع حبنا وصلواتنا 🙏`;
                 const waLink = phone ? `https://api.whatsapp.com/send?phone=${phone.startsWith('0') ? '2' + phone : phone}&text=${encodeURIComponent(waMsgRaw)}` : '';
                 return `<div class="birthday-card-new ${isToday ? 'bday-today' : ''}" onclick="showStudentDetails('${(s['الاسم'] || '').replace(/'/g, "\\'")}')">
@@ -21684,7 +21751,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 ${photo}
                 <div style="flex:1;min-width:0">
                     <div style="font-weight:800;color:var(--text);font-size:.92rem;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s['الاسم'] || '---'}</div>
-                    <div style="font-size:.74rem;color:var(--text-3)">${s['الفصل'] || ''}</div>
+                    <div style="font-size:.74rem;color:var(--text-3)">${s['الفصل'] || (s._isUncle ? 'خادم' : '')}</div>
                 </div>
             </div>
             <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
@@ -21692,7 +21759,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <span style="background:var(--brand-bg);color:var(--brand);padding:2px 8px;border-radius:var(--r-full);font-size:.72rem;font-weight:700"><i class="fas fa-calendar-day" style="font-size:.6rem"></i> ${s['عيد الميلاد']}</span>
                     ${age > 0 ? `<span style="background:var(--success-bg);color:var(--success-dark);padding:2px 8px;border-radius:var(--r-full);font-size:.72rem;font-weight:700">${age} سنة</span>` : ''}
                 </div>
-                ${waLink ? `<a href="${waLink}" target="_blank" onclick="event.stopPropagation()" style="background:#25d366;color:#fff;padding:4px 10px;border-radius:var(--r-full);font-size:.72rem;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:4px;flex-shrink:0"><i class="fab fa-whatsapp"></i> تهنئة</a>` : ''}
+                ${waLink ? `<a href="${waLink}" target="_blank" onclick="event.stopPropagation()" style="background:rgba(37,211,102,0.08);color:#128c7e;padding:4px 10px;border-radius:var(--r-full);font-size:.72rem;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:4px;flex-shrink:0"><i class="fab fa-whatsapp"></i> تهنئة</a>` : ''}
             </div>
         </div>`;
             }).join('') : '<div style="text-align:center;padding:3rem;color:var(--text-3);grid-column:1/-1"><i class="fas fa-birthday-cake" style="font-size:2.5rem;opacity:.3;display:block;margin-bottom:10px"></i>لا أعياد ميلاد هذا الشهر</div>';
@@ -23615,6 +23682,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     localStorage.setItem('uncleEmail', r.uncle.email || '');
                     localStorage.setItem('unclePhone', r.uncle.phone || '');
                     localStorage.setItem('uncleGender', r.uncle.gender || 'male');
+                    localStorage.setItem('uncleBirthday', r.uncle.birthday || '');
                     const chip = document.getElementById('uncleChip');
                     if (chip) chip.style.display = 'flex';
                     // Update hero greeting with fresh name from DB
@@ -24276,11 +24344,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const email = (document.getElementById('uncleProfileEmail')?.value || '').trim();
                 const phone = (document.getElementById('uncleProfilePhone')?.value || '').trim();
                 const gender = (document.getElementById('uncleProfileGender')?.value || 'male');
+                const birthday = (document.getElementById('uncleProfileBirthday')?.value || '').trim();
 
                 if (!name || !username) { showToast('الاسم واسم المستخدم مطلوبان', 'error'); return; }
 
                 showLoading('جاري التحديث...');
-                const payload = { action: 'updateUncleProfile', name, username, email, phone, gender };
+                const payload = { action: 'updateUncleProfile', name, username, email, phone, gender, birthday };
 
                 makeApiCall(payload, r => {
                     showToast('تم التحديث', 'success');
@@ -24295,8 +24364,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     localStorage.setItem('uncleEmail', email);
                     localStorage.setItem('unclePhone', phone);
                     localStorage.setItem('uncleGender', gender);
+                    localStorage.setItem('uncleBirthday', birthday);
 
-                    if (window.currentUncle) { window.currentUncle.name = name; window.currentUncle.username = username; window.currentUncle.email = email; window.currentUncle.phone = phone; window.currentUncle.gender = gender; }
+                    if (window.currentUncle) {
+                        window.currentUncle.name = name;
+                        window.currentUncle.username = username;
+                        window.currentUncle.email = email;
+                        window.currentUncle.phone = phone;
+                        window.currentUncle.gender = gender;
+                        window.currentUncle.birthday = birthday;
+                    }
                     hideAccountEditForm();
                 }, e => showToast('فشل: ' + e, 'error'));
             });
@@ -24318,6 +24395,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     email: (document.getElementById('uncleProfileEmail')?.value || '').trim(),
                     phone: (document.getElementById('uncleProfilePhone')?.value || '').trim(),
                     gender: (document.getElementById('uncleProfileGender')?.value || 'male'),
+                    birthday: (document.getElementById('uncleProfileBirthday')?.value || '').trim(),
                     current_password: currentPass,
                     new_password: newPass
                 };

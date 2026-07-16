@@ -7327,6 +7327,11 @@
                                             placeholder="مثال: 01xxxxxxxxx" autocomplete="off" style="font-size:0.8rem;height:34px;">
                                     </div>
                                     <div class="form-group">
+                                        <label class="form-label" style="font-size:0.8rem;">تاريخ الميلاد</label>
+                                        <input type="text" id="uncleBirthday" class="form-input"
+                                            placeholder="DD/MM/YYYY" autocomplete="off" style="font-size:0.8rem;height:34px;">
+                                    </div>
+                                    <div class="form-group">
                                         <label class="form-label" style="font-size:0.8rem;">الفصول المسؤول عنها</label>
                                         <div id="uncleClassCheckboxes"
                                             style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;margin-top:6px;max-height:150px;overflow-y:auto;padding:6px;border:1px solid var(--border);border-radius:8px;background:var(--bg-alpha);">
@@ -9311,6 +9316,8 @@
                     <div class="form-group" style="margin-bottom:20px;"><label class="form-label">رقم
                             التليفون</label><input type="text" id="editUnclePhone" class="form-input"
                             placeholder="رقم تليفون الخادم"></div>
+                    <div class="form-group" style="margin-bottom:20px;"><label class="form-label">تاريخ الميلاد</label><input type="text" id="editUncleBirthday" class="form-input"
+                            placeholder="DD/MM/YYYY"></div>
                     <div class="form-group" style="margin-bottom:20px;">
                         <label class="form-label">الفصل (يمكن اختيار أكثر من فصل)</label>
                         <select id="editUncleClass" class="form-select" multiple style="width:100%; height:120px;">
@@ -13187,6 +13194,7 @@
             fd.append('role', document.getElementById('uncleRole')?.value || 'uncle');
             fd.append('gender', document.getElementById('uncleGender').value);
             fd.append('phone', document.getElementById('unclePhone').value);
+            fd.append('birthday', document.getElementById('uncleBirthday').value);
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
             if (d.success) { showToast('تم إضافة الخادم بنجاح', 'success'); e.target.reset(); loadUncles(); }
             else showToast(d.message || 'فشل في إضافة الخادم', 'error');
@@ -13222,6 +13230,7 @@
             document.getElementById('editUncleGender').value = gender || 'male';
             const uncle = allUncles.find(u => u.id === id);
             document.getElementById('editUnclePhone').value = (uncle && uncle.phone) || '';
+            document.getElementById('editUncleBirthday').value = (uncle && uncle.birthday) || '';
             document.getElementById('editUnclePassword').value = '';
             const av = document.getElementById('editUncleAvatar');
             if (imgUrl) { av.innerHTML = `<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`; }
@@ -13258,6 +13267,7 @@
             fd.append('role', document.getElementById('editUncleRole').value);
             fd.append('gender', document.getElementById('editUncleGender').value);
             fd.append('phone', document.getElementById('editUnclePhone').value);
+            fd.append('birthday', document.getElementById('editUncleBirthday').value);
             const pw = document.getElementById('editUnclePassword').value;
             if (pw) fd.append('new_password', pw);
             const imgFile = document.getElementById('editUncleImageFile').files[0];
@@ -21225,6 +21235,7 @@
             fd.append('role', document.getElementById('uncleRole')?.value || 'uncle');
             fd.append('gender', document.getElementById('uncleGender').value);
             fd.append('phone', document.getElementById('unclePhone').value);
+            fd.append('birthday', document.getElementById('uncleBirthday').value);
 
             // Add classes if selected
             if (selectedClasses.length > 0) {
@@ -21291,6 +21302,7 @@
             const uncle = allUncles.find(u => u.id === id);
             document.getElementById('editUncleGender').value = (uncle && uncle.gender) || 'male';
             document.getElementById('editUnclePhone').value = (uncle && uncle.phone) || '';
+            document.getElementById('editUncleBirthday').value = (uncle && uncle.birthday) || '';
             const assignedClasses = uncle && uncle.classes ? uncle.classes.map(c => c.class_name) : [];
 
             // Load classes and select assigned ones
@@ -21319,6 +21331,7 @@
             fd.append('role', document.getElementById('editUncleRole').value);
             fd.append('gender', document.getElementById('editUncleGender').value);
             fd.append('phone', document.getElementById('editUnclePhone').value);
+            fd.append('birthday', document.getElementById('editUncleBirthday').value);
 
             // Get selected classes
             const classSelect = document.getElementById('editUncleClass');
