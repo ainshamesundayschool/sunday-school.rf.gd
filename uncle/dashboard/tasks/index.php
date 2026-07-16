@@ -303,7 +303,7 @@ $dashBack    = '/uncle/dashboard/' . ($activeClass ? '?class='.urlencode($active
 
 
 
-<meta name="theme-color" content="#5b6cf5">
+<meta name="theme-color" content="#f8fafc">
 
 
 

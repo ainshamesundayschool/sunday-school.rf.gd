@@ -149,6 +149,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             // Apply dark/light theme instantly (existing behaviour, kept here for clarity)
             var t = localStorage.getItem('app_theme') || 'light';
             document.documentElement.setAttribute('data-theme', t);
+            
+            // Dynamically set theme-color to blend status bar seamlessly with current theme
+            try {
+                var themeColor = (t === 'dark') ? '#1e293b' : '#f8fafc';
+                var metaTheme = document.querySelector('meta[name="theme-color"]');
+                if (metaTheme) metaTheme.setAttribute('content', themeColor);
+            } catch (e) {}
 
             // PHP is the authoritative source for church type — read it first.
             var phpType = <?php echo json_encode($churchType); ?>;
@@ -241,9 +248,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta name="theme-color" content="#5b6cf5">
+    <meta name="theme-color" content="#f8fafc">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="<?php echo $churchType === 'youth' ? 'الشباب' : 'مدارس الأحد'; ?>">
     <meta name="mobile-web-app-capable" content="yes">
     <script>
