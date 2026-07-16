@@ -748,6 +748,12 @@
             font-weight: 700;
             flex-shrink: 0;
             box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+            transition: transform var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+        }
+
+        .user-avatar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
         }
 
         .user-info {
@@ -6964,19 +6970,14 @@
             </button>
         </nav>
         <div class="sidebar-footer">
-            <div class="sidebar-footer-user" style="cursor:pointer;"
-                onclick="switchTabByName('churchSettings'); openSettingsPage('adminProfile');">
-                <div class="user-avatar" id="sidebarAvatar">م</div>
-                <div class="user-info">
-                    <strong id="sidebarUserName">المسؤول</strong>
-                    <span id="sidebarUserRole">admin</span>
-                </div>
+            <!-- Hidden user info elements to prevent JS exceptions -->
+            <div style="display:none;">
+                <span id="sidebarUserName">المسؤول</span>
+                <span id="sidebarUserRole">admin</span>
             </div>
             <div class="footer-actions">
                 <button class="footer-btn" onclick="refreshData()"><i
                         class="fas fa-sync-alt"></i><span>تحديث</span></button>
-                <button class="footer-btn" onclick="window.location.href='/uncle/dashboard'" title="الصفحة الرئيسية"><i
-                        class="fas fa-external-link-alt"></i><span>الصفحة الرئيسية</span></button>
                 <button class="footer-btn danger" onclick="logout()"><i
                         class="fas fa-sign-out-alt"></i><span>خروج</span></button>
             </div>
@@ -6995,6 +6996,7 @@
                 </div>
             </div>
             <div class="page-header-actions">
+                <button class="icon-btn" onclick="window.location.href='/uncle/dashboard'" title="الصفحة الرئيسية"><i class="fas fa-home"></i></button>
                 <button class="icon-btn" onclick="refreshData()" title="تحديث"><i class="fas fa-sync-alt"></i></button>
                 <button class="icon-btn" id="notifBellBtn" onclick="toggleNotifPanel()" title="إشعارات"
                     style="position:relative; display:none !important;">
@@ -7006,6 +7008,8 @@
                         class="fas fa-moon" id="darkModeIcon"></i></button>
                 <button class="icon-btn dev-only" onclick="showDebugInfo()" title="تشخيص الجلسة"
                     style="display:none;color:var(--brand);"><i class="fas fa-bug"></i></button>
+                <div class="user-avatar" id="sidebarAvatar" style="cursor:pointer; width:36px; height:36px; font-size:0.9rem;"
+                    onclick="switchTabByName('churchSettings'); openSettingsPage('adminProfile');" title="حسابي">م</div>
             </div>
         </div>
 
