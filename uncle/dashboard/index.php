@@ -7825,9 +7825,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border-radius: var(--r-xl);
             border: 1px solid transparent !important;
             background: 
-                linear-gradient(135deg, rgba(99, 102, 241, 0.03), rgba(236, 72, 153, 0.03)) padding-box,
-                linear-gradient(var(--surface), var(--surface)) padding-box,
-                linear-gradient(135deg, var(--brand), #a855f7, #ec4899) border-box !important;
+                linear-gradient(to right, transparent, rgba(99, 102, 241, 0.03) 20%, rgba(236, 72, 153, 0.03) 50%, rgba(99, 102, 241, 0.03) 80%, transparent) padding-box,
+                linear-gradient(to right, transparent, var(--surface) 20%, var(--surface) 80%, transparent) padding-box,
+                linear-gradient(to right, transparent, var(--brand) 20%, #a855f7 50%, #ec4899 80%, transparent) border-box !important;
             padding: 8px 16px !important;
             width: 100%;
             max-width: 640px;
@@ -7844,9 +7844,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         [data-theme="dark"] .bday-banner-wrapper {
             background: 
-                linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(236, 72, 153, 0.06)) padding-box,
-                linear-gradient(var(--surface), var(--surface)) padding-box,
-                linear-gradient(135deg, var(--brand), #a855f7, #ec4899) border-box !important;
+                linear-gradient(to right, transparent, rgba(99, 102, 241, 0.06) 20%, rgba(236, 72, 153, 0.06) 50%, rgba(99, 102, 241, 0.06) 80%, transparent) padding-box,
+                linear-gradient(to right, transparent, var(--surface) 20%, var(--surface) 80%, transparent) padding-box,
+                linear-gradient(to right, transparent, var(--brand) 20%, #a855f7 50%, #ec4899 80%, transparent) border-box !important;
         }
 
         .bday-banner-list {
