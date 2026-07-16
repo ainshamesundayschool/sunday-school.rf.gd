@@ -1478,19 +1478,23 @@
         }
 
         .action-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            font-size: 0.82rem;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 32px !important;
+            min-width: 32px !important;
+            height: 32px !important;
+            min-height: 32px !important;
+            border-radius: 50% !important;
+            font-size: 0.82rem !important;
             cursor: pointer;
-            border: none;
+            border: none !important;
             transition: var(--transition-normal);
-            text-decoration: none;
+            text-decoration: none !important;
             box-shadow: var(--shadow-sm);
-            flex-shrink: 0;
+            flex-shrink: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
         }
 
         .download-btn {
@@ -1775,13 +1779,24 @@
                         </button>
                     </div>
                     
-                    <!-- Right Side (RTL: left side): Song Info & Player Controls -->
+                    <!-- Right Side (RTL: left side): Single-row Player controls & Actions -->
                     <div class="song-player-details">
-                        <div class="song-meta-row">
-                            <h3 class="song-title">صحي النايمين - شبهك أكون ٢٠٢٦</h3>
+                        <div style="display:flex; align-items:center; gap:10px; width:100%;">
+                            <!-- Progress container -->
+                            <div class="progress-container" style="flex:1;">
+                                <button id="small-play-btn" class="small-play-btn" aria-label="تشغيل">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                                <span id="current-time" class="time-label">0:00</span>
+                                <div id="progress-bar" class="progress-bar-wrapper">
+                                    <div id="progress-filled" class="progress-bar-filled"></div>
+                                    <div id="progress-knob" class="progress-bar-knob"></div>
+                                </div>
+                                <span id="duration-time" class="time-label">0:00</span>
+                            </div>
                             
                             <!-- Actions: Download & Share -->
-                            <div class="song-actions">
+                            <div class="song-actions" style="display:flex; gap:6px; flex-shrink:0;">
                                 <div class="download-dropdown-wrapper">
                                     <button id="download-btn" class="action-btn download-btn" title="تحميل">
                                         <i class="fas fa-download"></i>
@@ -1806,19 +1821,6 @@
                         
                         <!-- Audio Element (hidden) -->
                         <audio id="exclusive-audio" src="/exclusive/song/2026/files/song.mp3" preload="metadata"></audio>
-                        
-                        <!-- Progress container -->
-                        <div class="progress-container">
-                            <button id="small-play-btn" class="small-play-btn" aria-label="تشغيل">
-                                <i class="fas fa-play"></i>
-                            </button>
-                            <span id="current-time" class="time-label">0:00</span>
-                            <div id="progress-bar" class="progress-bar-wrapper">
-                                <div id="progress-filled" class="progress-bar-filled"></div>
-                                <div id="progress-knob" class="progress-bar-knob"></div>
-                            </div>
-                            <span id="duration-time" class="time-label">0:00</span>
-                        </div>
                     </div>
                 </div>
             </div>
