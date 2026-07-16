@@ -27721,460 +27721,657 @@ if ($hasUncleId && $uncleRole === 'uncle')
             let scoredFeatures = [];
 
             HELP_FEATURES.forEach(feature => {
-                if (currentHelpCategory !== 'all' && feature.category !== currentHelpCategory) {
-                    return;
-                }
+               // ── STANDALONE KID VIEW LOGIC ───────────────────────────────────
+        window.currentStandaloneKidId = null;
+        window.currentStandaloneAttendance = [];
 
-                let score = 0;
-
-                if (queryWords.length > 0) {
-                    const normTitle = normalizeArabic(feature.title);
-                    const normDesc = normalizeArabic(feature.description);
-                    const normHow = normalizeArabic(feature.how_it_works);
-                    const normLoc = normalizeArabic(feature.location);
-
-                    queryWords.forEach(word => {
-                        if (normTitle === word) score += 30;
-                        else if (normTitle.includes(word)) score += 15;
-
-                        if (feature.keywords && feature.keywords.some(k => normalizeArabic(k).includes(word))) {
-                            score += 10;
-                        }
-
-                        if (normDesc.includes(word)) score += 5;
-                        if (normHow.includes(word)) score += 2;
-                        if (normLoc.includes(word)) score += 2;
-                        if (normalizeArabic(feature.category) === word) score += 5;
-                    });
-                } else {
-                    score = 1;
-                }
-
-                if (score > 0) {
-                    scoredFeatures.push({ feature, score });
-                }
-            });
-
-            if (queryWords.length > 0) {
-                scoredFeatures.sort((a, b) => b.score - a.score);
+        // Intercept getElementById to target standalone details block
+        const originalGetElementById = document.getElementById;
+        document.getElementById = function(id) {
+            if (id === 'studentDetails' && window.currentStandaloneKidId) {
+                return originalGetElementById.call(document, 'standaloneDetailsBody');
             }
+            if (id === 'studentModalTitle' && window.currentStandaloneKidId) {
+                return originalGetElementById.call(document, 'standaloneNavbarTitle');
+            }
+            if (id === 'studentModalFooter' && window.currentStandaloneKidId) {
+                return originalGetElementById.call(document, 'standaloneDetailsActionsDummy');
+            }
+            return originalGetElementById.call(document, id);
+        };
 
-            if (scoredFeatures.length === 0) {
-                listContainer.innerHTML = `
-                    <div style="text-align:center; padding:40px; color:var(--text-3);">
-                        <i class="fas fa-search" style="font-size:2.5rem; display:block; margin-bottom:12px; opacity:0.5;"></i>
-                        <p style="font-size:1rem; font-weight:bold; margin-bottom:4px;">لم نجد ميزات تطابق بحثك</p>
-                        <p style="font-size:0.8rem; opacity:0.8;">تأكد من كتابة كلمات بحث صحيحة أو تصفح الأقسام بالكامل.</p>
-                    </div>
-                `;
+        function getChurchId() {
+            return (typeof devViewChurchId !== 'undefined' && devViewChurchId > 0) 
+                ? devViewChurchId 
+                : <?php echo json_encode($_SESSION['church_id'] ?? 0); ?>;
+        }
+
+        function _appendDevOverride(fd) {
+            if (typeof devViewChurchId !== 'undefined' && devViewChurchId > 0) {
+                fd.append('dev_override_church_id', devViewChurchId);
+                if (!fd.has('church_id')) {
+                    fd.append('church_id', devViewChurchId);
+                }
+            }
+            return fd;
+        }
+
+        async function openStandaloneKidView(kidId) {
+            window.currentStandaloneKidId = kidId;
+            document.getElementById('kidStandaloneContainer').style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Lock background scroll
+            
+            // Wait for students to load if not already loaded
+            let attempts = 0;
+            while ((!students || !students.length) && attempts < 25) {
+                await new Promise(r => setTimeout(r, 150));
+                attempts++;
+            }
+            
+            const student = students.find(s => Number(getStudentDbId(s)) === kidId);
+            if (!student) {
+                showToast('لم يتم العثور على هذا الطفل في قائمة البيانات', 'error');
+                closeStandaloneKidView();
                 return;
             }
-
-            function highlightText(text, words) {
-                if (!words.length || !text) return text;
-                let regexPattern = words.map(w => w.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')).join('|');
+            
+            // Setup innerHTML interceptor on the dummy container to split avatar header and detail info rows
+            const dummyEl = originalGetElementById.call(document, 'standaloneDetailsBody');
+            if (dummyEl && !dummyEl._hasHookedSetter) {
+                dummyEl._hasHookedSetter = true;
+                Object.defineProperty(dummyEl, 'innerHTML', {
+                    set: function(val) {
+                        const temp = document.createElement('div');
+                        temp.innerHTML = val;
+                        const avatarWrap = temp.querySelector('.detail-avatar-wrap');
+                        if (avatarWrap) {
+                            originalGetElementById.call(document, 'standaloneDetailsHeader').innerHTML = avatarWrap.outerHTML;
+                            avatarWrap.remove();
+                            originalGetElementById.call(document, 'standaloneDetailsBody_info').innerHTML = temp.innerHTML;
+                        } else {
+                            originalGetElementById.call(document, 'standaloneDetailsBody_info').innerHTML = val;
+                        }
+                    },
+                    get: function() {
+                        return originalGetElementById.call(document, 'standaloneDetailsBody_info').innerHTML;
+                    }
+                });
+            }
+            
+            // 1. Render student info by triggering the existing renderer
+            showStudentDetails(student['الاسم'] || student.name);
+            
+            // 2. Set public profile link
+            const pubLink = document.getElementById('standalonePublicProfileLink');
+            if (pubLink) {
+                pubLink.href = `/user/profile/index.php?id=${kidId}&noredirect=true`;
+            }
+            
+            // 3. Initialize attendance day
+            const cachedSettings = localStorage.getItem('lastSettingsData');
+            let attDay = 5;
+            if (cachedSettings) {
                 try {
-                    let re = new RegExp(`(${regexPattern})`, 'gi');
-                    return text.replace(re, '<mark style="background:rgba(254,240,138,0.85); color:#000; padding:0 2px; border-radius:2px;">$1</mark>');
-                } catch (e) {
-                    return text;
-                }
+                    const s = JSON.parse(cachedSettings);
+                    attDay = s.attendance_day || 5;
+                } catch(e){}
             }
-
-            scoredFeatures.forEach(({ feature }) => {
-                const card = document.createElement('div');
-                card.style.cssText = `
-                    background: var(--card, #ffffff);
-                    border: 1px solid var(--border);
-                    border-radius: var(--r-md, 8px);
-                    padding: 14px;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 8px;
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-                    transition: transform 0.2s, box-shadow 0.2s;
-                `;
-
-                card.onmouseenter = () => {
-                    card.style.transform = 'translateY(-2px)';
-                    card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)';
-                };
-                card.onmouseleave = () => {
-                    card.style.transform = 'none';
-                    card.style.boxShadow = '0 1px 3px rgba(0,0,0,0.02)';
-                };
-
-                let categoryColor = 'var(--brand)';
-                let categoryLabel = '';
-                switch (feature.category) {
-                    case 'attendance': categoryLabel = 'الحضور والغياب'; categoryColor = '#10b981'; break;
-                    case 'bulk': categoryLabel = 'إجراءات جماعية'; categoryColor = '#8b5cf6'; break;
-                    case 'profile': categoryLabel = 'الملف الشخصي'; categoryColor = '#3b82f6'; break;
-                    case 'settings': categoryLabel = 'إعدادات الطباعة'; categoryColor = '#f59e0b'; break;
-                    case 'trash': categoryLabel = 'المحذوفات'; categoryColor = '#ef4444'; break;
-                    case 'admin': categoryLabel = 'إدارة النظام'; categoryColor = '#374151'; break;
-                }
-
-                const categoryBadge = `<span style="background:${categoryColor}15; color:${categoryColor}; font-size:0.68rem; font-weight:800; padding:2px 8px; border-radius:12px; margin-right:auto; font-family:'Cairo',sans-serif;">${categoryLabel}</span>`;
-
-                const highlightedTitle = queryWords.length ? highlightText(feature.title, queryWords) : feature.title;
-                const highlightedDesc = queryWords.length ? highlightText(feature.description, queryWords) : feature.description;
-                const highlightedHow = queryWords.length ? highlightText(feature.how_it_works, queryWords) : feature.how_it_works;
-                const highlightedLoc = queryWords.length ? highlightText(feature.location, queryWords) : feature.location;
-
-                let actionBtnHtml = '';
-                if (typeof feature.action === 'string') {
-                    let processedAction = feature.action;
-                    const pathPrefix = window.location.pathname.indexOf('/testing/') !== -1 ? '/testing' : '';
-                    if (pathPrefix) {
-                        processedAction = processedAction
-                            .replace(/window\.location\.href\s*=\s*'\/(uncle|login)/g, `window.location.href='${pathPrefix}/$1`)
-                            .replace(/window\.open\s*\(\s*'\/(audit\.php|leaderboard|church-register\.html|user\/registration)/g, `window.open('${pathPrefix}/$1`);
-                    }
-                    if (feature.action.startsWith('window.location.href') || feature.action.startsWith('window.open')) {
-                        actionBtnHtml = `
-                            <button onclick="${processedAction}" style="margin-right:auto; height:28px; padding:0 12px; font-size:0.75rem; font-weight:700; border-radius:15px; border:none; background:var(--brand); color:#fff; cursor:pointer; font-family:'Cairo',sans-serif; display:flex; align-items:center; gap:4px; transition:opacity 0.2s;">
-                                <span>انتقال</span> <i class="fas fa-external-link-alt" style="font-size:0.65rem;"></i>
-                            </button>
-                        `;
-                    } else {
-                        actionBtnHtml = `
-                            <button onclick="${processedAction}" style="margin-right:auto; height:28px; padding:0 12px; font-size:0.75rem; font-weight:700; border-radius:15px; border:none; background:var(--brand); color:#fff; cursor:pointer; font-family:'Cairo',sans-serif; display:flex; align-items:center; gap:4px; transition:opacity 0.2s;">
-                                <span>فتح الأداة</span> <i class="fas fa-arrow-left" style="font-size:0.65rem;"></i>
-                            </button>
-                        `;
-                    }
-                }
-
-                const iconClass = feature.icon || 'fas fa-star';
-
-                card.innerHTML = `
-                    <div style="display:flex; gap:12px; align-items:flex-start; width:100%;">
-                        <div style="flex:none; width:38px; height:38px; border-radius:50%; background:${categoryColor}10; color:${categoryColor}; display:flex; align-items:center; justify-content:center; font-size:1.1rem; margin-top:2px;">
-                            <i class="${iconClass}"></i>
-                        </div>
-                        <div style="flex:1; display:flex; flex-direction:column; gap:6px; min-width:0;">
-                            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
-                                <h4 style="margin:0; font-size:0.92rem; font-weight:800; color:var(--text); font-family:'Cairo',sans-serif;">${highlightedTitle}</h4>
-                                ${categoryBadge}
-                            </div>
-                            <p style="margin:0; font-size:0.82rem; color:var(--text-2); line-height:1.5; font-family:'Cairo',sans-serif;">
-                                ${highlightedDesc} ${highlightedHow}
-                            </p>
-                            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-top:4px; background:var(--surface-2, rgba(120,120,120,0.04)); padding:6px 12px; border-radius:8px; border:1px solid var(--border-solid, rgba(120,120,120,0.08)); box-sizing:border-box; width:100%;">
-                                <div style="display:flex; align-items:center; gap:6px; font-size:0.76rem; color:var(--text-3);">
-                                    <i class="fas fa-compass" style="color:var(--brand); font-size:0.8rem;"></i>
-                                    <span style="font-weight:700;">الموقع:</span>
-                                    <span style="color:var(--text-2); font-weight:600;">${highlightedLoc}</span>
-                                </div>
-                                ${actionBtnHtml}
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                listContainer.appendChild(card);
-            });
-        }
-
-        // ── PAPER EXAMS FUNCTIONS ─────────────────────────────────────
-        let activeExamStudents = []; // holds students list for the current active exam
-        let filteredExamStudents = []; // holds the sorted/filtered list of students
-        let activeExamId = 0;
-        let activeExamTotalDegree = 100;
-
-        function showPaperExamsModal() {
-            openModal('paperExamsModal');
-            backToExamsList();
-            populateClassDropdowns();
-        }
-
-        function closePaperExamsModal() {
-            closeModal('paperExamsModal');
-        }
-
-        function showAddPaperExamForm() {
-            document.getElementById('paperExamId').value = '0';
-            document.getElementById('paperExamForm').reset();
-            document.getElementById('paperExamFormTitle').textContent = 'إضافة امتحان جديد';
-            document.getElementById('paperExamExistingRef').style.display = 'none';
-            document.getElementById('paperExamsListView').style.display = 'none';
-            document.getElementById('paperExamSheetView').style.display = 'none';
-            document.getElementById('paperExamFormView').style.display = 'block';
-
-            // Reset checkboxes and Select All
-            const selectAllCb = document.getElementById('paper-exam-select-all-classes');
-            if (selectAllCb) selectAllCb.checked = false;
-            document.querySelectorAll('input[name="paper_exam_class_cb"]').forEach(cb => {
-                cb.checked = false;
-            });
-        }
-
-        function hidePaperExamForm() {
-            document.getElementById('paperExamFormView').style.display = 'none';
-            document.getElementById('paperExamsListView').style.display = 'block';
-        }
-
-        function backToExamsList() {
-            document.getElementById('paperExamSheetView').style.display = 'none';
-            document.getElementById('paperExamFormView').style.display = 'none';
-            document.getElementById('paperExamsListView').style.display = 'block';
-            loadPaperExamsList();
-        }
-
-        function populateClassDropdowns() {
-            const paperExamClassList = document.getElementById('paperExamClassIdsList');
-            const sheetClassSelect = document.getElementById('sheetClassFilter');
-
-            if (paperExamClassList) {
-                paperExamClassList.innerHTML = '';
-
-                // Add Select All checkbox at the top
-                const selectAllLabel = document.createElement('label');
-                selectAllLabel.style = "display:flex; align-items:center; gap:8px; font-size:0.8rem; font-weight:700; color:var(--brand); cursor:pointer; padding:4px 0; border-bottom:1px dashed var(--border-solid); margin-bottom:4px;";
-
-                const selectAllCb = document.createElement('input');
-                selectAllCb.type = 'checkbox';
-                selectAllCb.id = 'paper-exam-select-all-classes';
-                selectAllCb.style = "width:16px; height:16px; accent-color:var(--brand); cursor:pointer;";
-
-                const selectAllSpan = document.createElement('span');
-                selectAllSpan.textContent = 'تحديد الكل';
-
-                selectAllCb.addEventListener('change', function () {
-                    const checkboxes = paperExamClassList.querySelectorAll('input[name="paper_exam_class_cb"]');
-                    checkboxes.forEach(cb => {
-                        cb.checked = selectAllCb.checked;
-                    });
-                });
-
-                selectAllLabel.appendChild(selectAllCb);
-                selectAllLabel.appendChild(selectAllSpan);
-                paperExamClassList.appendChild(selectAllLabel);
-
-                classes.forEach(c => {
-                    const id = `class-cb-${c.id}`;
-                    const label = document.createElement('label');
-                    label.style = "display:flex; align-items:center; gap:8px; font-size:0.8rem; color:var(--text); cursor:pointer; padding:4px 0;";
-
-                    const cb = document.createElement('input');
-                    cb.type = 'checkbox';
-                    cb.name = 'paper_exam_class_cb';
-                    cb.value = c.id;
-                    cb.id = id;
-                    cb.style = "width:16px; height:16px; accent-color:var(--brand); cursor:pointer;";
-
-                    cb.addEventListener('change', function () {
-                        const checkboxes = paperExamClassList.querySelectorAll('input[name="paper_exam_class_cb"]');
-                        const allChecked = Array.from(checkboxes).every(x => x.checked);
-                        selectAllCb.checked = allChecked;
-                    });
-
-                    const span = document.createElement('span');
-                    span.textContent = c.arabic_name || c.code;
-
-                    label.appendChild(cb);
-                    label.appendChild(span);
-                    paperExamClassList.appendChild(label);
-                });
-            }
-
-            if (sheetClassSelect) {
-                sheetClassSelect.innerHTML = '<option value="">كل الفصول</option>';
-                classes.forEach(c => {
-                    const opt = document.createElement('option');
-                    opt.value = c.arabic_name || c.code;
-                    opt.textContent = c.arabic_name || c.code;
-                    sheetClassSelect.appendChild(opt);
+            const targetDate = getLatestAttendanceDate(parseInt(attDay));
+            document.getElementById('standaloneAttDate').value = targetDate;
+            
+            // 4. Fetch standalone attendance details & trips
+            await Promise.all([
+                loadStandaloneAttendance(),
+                loadStandaloneTrips()
+            ]);
+            
+            // 5. Update coupons counter
+            document.getElementById('standaloneCouponsVal').textContent = student.coupons || student['كوبونات'] || 0;
+            
+            // Reset active coupon target to 10
+            const countInput = document.getElementById('standaloneAddCouponsCount');
+            if (countInput) countInput.value = 10;
+            const targetGrid = document.querySelector('.coupon-targets-grid');
+            if (targetGrid) {
+                const buttons = targetGrid.querySelectorAll('.coupon-target-btn');
+                buttons.forEach((b, idx) => {
+                    if (idx === 0) b.classList.add('active');
+                    else b.classList.remove('active');
                 });
             }
         }
 
-        function getExamClassesLabel(exam) {
-            if (!exam.class_ids) {
-                return 'كل الفصول';
-            }
-            const ids = exam.class_ids.split(',');
-            const names = [];
-            ids.forEach(id => {
-                const found = classes.find(c => String(c.id) === String(id));
-                if (found) {
-                    names.push(found.arabic_name || found.code);
-                }
-            });
-            return names.length > 0 ? names.join('، ') : 'كل الفصول';
+        async function refreshStandaloneKidView(kidId) {
+            const student = students.find(s => Number(getStudentDbId(s)) === kidId);
+            if (!student) return;
+            showStudentDetails(student['الاسم'] || student.name);
+            document.getElementById('standaloneCouponsVal').textContent = student.coupons || student['كوبونات'] || 0;
         }
 
-        async function loadPaperExamsList() {
-            const listContainer = document.getElementById('paperExamsList');
-            if (!listContainer) return;
-            listContainer.innerHTML = '<div style="width: 100%; text-align:center; padding:20px; color:var(--text-3);"><i class="fas fa-spinner fa-spin"></i> جارٍ تحميل الامتحانات…</div>';
-
-            try {
-                const fd = new FormData();
-                fd.append('action', 'getPaperExams');
-                const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
-
-                if (resp.success && resp.exams) {
-                    if (resp.exams.length === 0) {
-                        listContainer.innerHTML = '<div style="width: 100%; text-align:center; padding:20px; color:var(--text-3);">لا توجد امتحانات مسجلة حتى الآن.</div>';
-                        return;
-                    }
-                    listContainer.innerHTML = resp.exams.map(exam => `
-                        <div class="tool-card" style="display:flex; flex-direction:row; align-items:center; justify-content:space-between; padding:14px 18px; width:100%; gap:14px;">
-                            <div>
-                                <h4 style="margin:0 0 6px 0; font-weight:800; color:var(--text);">${escHtml(exam.name)}</h4>
-                                <div style="font-size:0.78rem; color:var(--text-3); display:flex; flex-direction:row; gap:12px;">
-                                    <span>الدرجة الكلية: <strong>${exam.total_degree}</strong></span>
-                                    <span>الفصل: <strong>${escHtml(getExamClassesLabel(exam))}</strong></span>
-                                </div>
-                            </div>
-                            <div style="display:flex; gap:6px; flex-shrink:0; align-items:center;">
-                                <button class="btn btn-primary" style="font-size:0.75rem; padding:6px 12px;" onclick="openExamSheet(${exam.id})">
-                                    <i class="fas fa-list-ol"></i> رصد الدرجات
-                                </button>
-                                <button class="btn btn-ghost" style="padding:6px; font-size:0.8rem;" onclick="editPaperExam(${exam.id}, '${escJs(exam.name)}', ${exam.total_degree}, '${exam.class_id || ''}', '${exam.class_ids || ''}', '${escJs(exam.reference_url || '')}')" title="تعديل">
-                                    <i class="fas fa-edit" style="color:var(--text);"></i>
-                                </button>
-                                <button class="btn btn-ghost" style="padding:6px; font-size:0.8rem; color:var(--danger);" onclick="deletePaperExam(${exam.id}, '${escJs(exam.name)}')" title="حذف">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `).join('');
-                } else {
-                    listContainer.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:20px; color:var(--danger);">فشل تحميل الامتحانات.</div>';
-                }
-            } catch (e) {
-                listContainer.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:20px; color:var(--danger);">خطأ في الاتصال بالخادم.</div>';
+        function getLatestAttendanceDate(attendanceDay = 5) {
+            const today = new Date();
+            const dbToJsDay = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 0 };
+            const targetDay = dbToJsDay[attendanceDay] !== undefined ? dbToJsDay[attendanceDay] : 5;
+            
+            const currentDay = today.getDay();
+            let diff = currentDay - targetDay;
+            if (diff < 0) {
+                diff += 7;
             }
+            
+            const targetDate = new Date(today);
+            targetDate.setDate(today.getDate() - diff);
+            
+            const y = targetDate.getFullYear();
+            const m = String(targetDate.getMonth() + 1).padStart(2, '0');
+            const d = String(targetDate.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+        
+        function resetToLatestAttendanceDate() {
+            const cachedSettings = localStorage.getItem('lastSettingsData');
+            let attDay = 5;
+            if (cachedSettings) {
+                try {
+                    const s = JSON.parse(cachedSettings);
+                    attDay = s.attendance_day || 5;
+                } catch(e){}
+            }
+            const targetDate = getLatestAttendanceDate(parseInt(attDay));
+            document.getElementById('standaloneAttDate').value = targetDate;
+            updateStandaloneAttendanceUI();
         }
 
-        async function handlePaperExamFormSubmit(e) {
-            e.preventDefault();
-            const btn = e.target.querySelector('button[type="submit"]');
-            const originalHtml = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جارٍ الحفظ…';
-            btn.disabled = true;
-
+        async function loadStandaloneAttendance() {
+            const kidId = window.currentStandaloneKidId;
+            if (!kidId) return;
+            
             const fd = new FormData();
-            fd.append('action', 'savePaperExam');
-            fd.append('id', document.getElementById('paperExamId').value);
-            fd.append('name', document.getElementById('paperExamName').value);
-            fd.append('total_degree', document.getElementById('paperExamTotalDegree').value);
-
-            const checkedClassIds = Array.from(document.querySelectorAll('input[name="paper_exam_class_cb"]:checked')).map(cb => cb.value);
-            fd.append('class_ids', checkedClassIds.join(','));
-            fd.append('class_id', checkedClassIds.length === 1 ? checkedClassIds[0] : '');
-
-            const fileInput = document.getElementById('paperExamRefFile');
-            if (fileInput.files.length > 0) {
-                fd.append('reference_file', fileInput.files[0]);
-            }
-
+            fd.append('action', 'getStudentAttendanceDetails');
+            fd.append('studentId', kidId);
+            
             try {
-                const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
-                if (resp.success) {
-                    showToast(resp.message, 'success');
-                    backToExamsList();
-                } else {
-                    showToast(resp.message || 'فشل حفظ الامتحان', 'error');
-                }
-            } catch (err) {
-                showToast('حدث خطأ أثناء الاتصال بالخادم', 'error');
-            } finally {
-                btn.innerHTML = originalHtml;
-                btn.disabled = false;
+                const res = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
+                window.currentStandaloneAttendance = res.success ? (res.attendance || []) : [];
+            } catch (e) {
+                window.currentStandaloneAttendance = [];
             }
+            
+            updateStandaloneAttendanceUI();
         }
-
-        function editPaperExam(id, name, totalDegree, classId, classIdsStr, refUrl) {
-            showAddPaperExamForm();
-            document.getElementById('paperExamId').value = id;
-            document.getElementById('paperExamName').value = name;
-            document.getElementById('paperExamTotalDegree').value = totalDegree;
-            document.getElementById('paperExamClassId').value = classId || '';
-
-            const classIds = classIdsStr ? classIdsStr.split(',') : [];
-            let allChecked = true;
-            const checkboxes = document.querySelectorAll('input[name="paper_exam_class_cb"]');
-            checkboxes.forEach(cb => {
-                const checked = classIds.includes(cb.value);
-                cb.checked = checked;
-                if (!checked) allChecked = false;
-            });
-            const selectAllCb = document.getElementById('paper-exam-select-all-classes');
-            if (selectAllCb) {
-                selectAllCb.checked = (checkboxes.length > 0 && allChecked);
-            }
-
-            document.getElementById('paperExamFormTitle').textContent = 'تعديل الامتحان: ' + name;
-
-            const refContainer = document.getElementById('paperExamExistingRef');
-            const refLink = document.getElementById('paperExamExistingRefLink');
-            if (refUrl) {
-                refLink.href = refUrl;
-                refContainer.style.display = 'block';
+        
+        function updateStandaloneAttendanceUI() {
+            const selectedDate = document.getElementById('standaloneAttDate').value;
+            if (!selectedDate) return;
+            
+            const record = (window.currentStandaloneAttendance || []).find(r => r.attendance_date === selectedDate);
+            
+            const statusEl = document.getElementById('standaloneAttStatus');
+            const actionsEl = document.getElementById('standaloneAttActions');
+            
+            if (record) {
+                let statusText = record.status === 'present' ? 'حاضر' : 'غائب';
+                let statusClass = record.status === 'present' ? 'present' : 'absent';
+                
+                statusEl.innerHTML = `<span class="standalone-status-badge ${statusClass}">${statusText}</span>`;
+                actionsEl.innerHTML = `
+                    <button class="btn btn-outline-danger btn-sm" onclick="deleteStandaloneAttendance()" style="padding: 6px 10px; font-size: 0.8rem;"><i class="fas fa-trash-alt"></i> حذف</button>
+                    <button class="btn btn-primary btn-sm" onclick="toggleStandaloneAttendance('${record.status}')" style="padding: 6px 10px; font-size: 0.8rem;"><i class="fas fa-sync-alt"></i> تغيير</button>
+                `;
             } else {
-                refContainer.style.display = 'none';
+                statusEl.innerHTML = `<span class="standalone-status-badge none">غير مسجل</span>`;
+                actionsEl.innerHTML = `
+                    <button class="btn btn-success btn-sm" onclick="saveStandaloneAttendance('present')" style="padding: 6px 10px; font-size: 0.8rem;"><i class="fas fa-check"></i> حضور</button>
+                    <button class="btn btn-danger btn-sm" onclick="saveStandaloneAttendance('absent')" style="padding: 6px 10px; font-size: 0.8rem;"><i class="fas fa-times"></i> غياب</button>
+                `;
             }
         }
-
-        async function deletePaperExam(id, name) {
-            if (!confirm(`هل أنت متأكد من حذف امتحان "${name}"؟ سيتم حذف جميع درجات الأطفال المسجلة له نهائياً!`)) return;
-
+        
+        async function saveStandaloneAttendance(status) {
+            const date = document.getElementById('standaloneAttDate').value;
+            if (!date) return;
+            
+            const fd = new FormData();
+            fd.append('action', 'updateStudentAttendance');
+            fd.append('studentId', window.currentStandaloneKidId);
+            fd.append('date', date);
+            fd.append('status', status);
+            
             try {
-                const fd = new FormData();
-                fd.append('action', 'deletePaperExam');
-                fd.append('id', id);
-                const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
-                if (resp.success) {
-                    showToast(resp.message, 'success');
-                    loadPaperExamsList();
+                const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
+                if (d.success) {
+                    showToast('تم تحديث حالة الحضور', 'success');
+                    await loadStandaloneAttendance();
                 } else {
-                    showToast(resp.message || 'فشل حذف الامتحان', 'error');
+                    showToast(d.message || 'فشل التحديث', 'error');
                 }
             } catch (e) {
                 showToast('خطأ في الاتصال بالخادم', 'error');
             }
         }
-
-        async function openExamSheet(examId) {
-            activeExamId = examId;
-            document.getElementById('paperExamsListView').style.display = 'none';
-            document.getElementById('paperExamFormView').style.display = 'none';
-
-            const sheetView = document.getElementById('paperExamSheetView');
-            sheetView.style.display = 'flex';
-
-            document.getElementById('sheetStudentsTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-3);"><i class="fas fa-spinner fa-spin"></i> جارٍ تحميل الأطفال...</td></tr>';
-
+        
+        async function deleteStandaloneAttendance() {
+            const date = document.getElementById('standaloneAttDate').value;
+            if (!date) return;
+            
+            if (!confirm('هل أنت متأكد من حذف سجل الحضور لهذا اليوم؟')) return;
+            
+            const fd = new FormData();
+            fd.append('action', 'deleteStudentAttendanceByDate');
+            fd.append('studentId', window.currentStandaloneKidId);
+            fd.append('date', date);
+            
             try {
-                const fd = new FormData();
-                fd.append('action', 'getPaperExamDegrees');
-                fd.append('paper_exam_id', examId);
-                const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
+                const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
+                if (d.success) {
+                    showToast('تم حذف السجل بنجاح', 'success');
+                    await loadStandaloneAttendance();
+                } else {
+                    showToast(d.message || 'فشل حذف السجل', 'error');
+                }
+            } catch (e) {
+                showToast('خطأ في الاتصال بالخادم', 'error');
+            }
+        }
+        
+        function toggleStandaloneAttendance(curr) {
+            const next = curr === 'present' ? 'absent' : 'present';
+            saveStandaloneAttendance(next);
+        }
 
-                if (resp.success && resp.students) {
-                    activeExamStudents = resp.students;
-                    activeExamTotalDegree = resp.exam.total_degree;
+        function selectCouponTarget(amount, btn) {
+            document.getElementById('standaloneAddCouponsCount').value = amount;
+            const buttons = btn.parentElement.querySelectorAll('.coupon-target-btn');
+            buttons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
 
-                    document.getElementById('sheetExamName').textContent = resp.exam.name;
-                    document.getElementById('sheetExamTotalDegree').textContent = 'الدرجة الكلية: ' + resp.exam.total_degree;
+        async function addStandaloneCoupons(e) {
+            e.preventDefault();
+            const amount = parseInt(document.getElementById('standaloneAddCouponsCount').value || 0);
+            const reason = document.getElementById('standaloneAddCouponsReason').value.trim();
+            if (!amount) {
+                showToast('الرجاء إدخال عدد الكوبونات المضاف', 'warning');
+                return;
+            }
+            
+            const student = students.find(s => Number(getStudentDbId(s)) === window.currentStandaloneKidId);
+            if (!student) return;
+            
+            const currentCoupons = parseInt(student.coupons || student['كوبونات'] || 0);
+            const newTotal = currentCoupons + amount;
+            if (newTotal < 0) {
+                showToast('لا يمكن أن يكون إجمالي الكوبونات أقل من صفر', 'warning');
+                return;
+            }
+            
+            const fd = _appendDevOverride(new FormData());
+            fd.append('action', 'updateCouponsWithReason');
+            fd.append('studentId', window.currentStandaloneKidId);
+            fd.append('coupons', newTotal);
+            fd.append('reason', reason || 'إضافة يدوية');
+            
+            try {
+                const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
+                if (d.success) {
+                    showToast('تم إضافة الكوبونات بنجاح', 'success');
+                    document.getElementById('standaloneAddCouponsReason').value = '';
+                    loadData(); // This will refresh the standalone view through our hook
+                } else {
+                    showToast(d.message || 'فشل إضافة الكوبونات', 'error');
+                }
+            } catch (ex) {
+                showToast('خطأ في الاتصال بالخادم', 'error');
+            }
+        }
 
-                    const refBtnText = document.getElementById('sheetRefBtnText');
-                    if (refBtnText) {
-                        refBtnText.textContent = resp.exam.reference_url ? 'تغيير المرجع ✓' : 'ملف المرجع';
+        async function loadStandaloneTrips() {
+            const listEl = document.getElementById('standaloneTripsList');
+            listEl.innerHTML = `<p style="color:var(--text-3);text-align:center;padding:12px;"><i class="fas fa-spinner fa-spin"></i> جارٍ تحميل الرحلات...</p>`;
+            
+            const student = students.find(s => Number(getStudentDbId(s)) === window.currentStandaloneKidId);
+            if (!student) return;
+            
+            const churchId = getChurchId();
+            
+            const fd = new FormData();
+            fd.append('action', 'getStudentTrips');
+            fd.append('church_id', churchId);
+            fd.append('student_id', window.currentStandaloneKidId);
+            
+            try {
+                const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
+                if (d.success && d.trips && d.trips.length) {
+                    const registeredTrips = d.trips.filter(t => t.my_registration !== null);
+                    
+                    if (registeredTrips.length === 0) {
+                        listEl.innerHTML = `<p style="color:var(--text-3);text-align:center;padding:12px;">هذا الطفل غير مسجل في أي رحلات نشطة حالياً</p>`;
+                        return;
                     }
+                    
+                    listEl.innerHTML = registeredTrips.map(t => {
+                        const paid = parseFloat(t.my_registration.total_paid || 0);
+                        const finalPrice = parseFloat(t.final_price || 0);
+                        const remaining = Math.max(0, finalPrice - paid);
+                        
+                        let payBadge = '';
+                        if (remaining <= 0) {
+                            payBadge = '<span class="badge badge-success" style="background:var(--success-light);color:var(--success-dark);padding:4px 8px;border-radius:12px;">مدفوع بالكامل</span>';
+                        } else {
+                            payBadge = `<span class="badge badge-danger" style="background:var(--danger-light);color:var(--danger-dark);padding:4px 8px;border-radius:12px;">متبقي ${remaining.toFixed(0)} ج.م</span>`;
+                        }
+                        
+                        return `
+                            <div class="standalone-trip-card" onclick="openTripPointsFromStandalone(${t.id})">
+                                <div>
+                                    <div style="font-weight:800;font-size:1.05rem;">${t.title}</div>
+                                    <div style="font-size:0.8rem;color:var(--text-3);margin-top:4px;">
+                                        <i class="fas fa-calendar-alt"></i> من ${t.start_date_formatted} إلى ${t.end_date_formatted}
+                                    </div>
+                                </div>
+                                <div style="display:flex;align-items:center;gap:12px;">
+                                    ${payBadge}
+                                    <i class="fas fa-chevron-left text-muted"></i>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    listEl.innerHTML = `<p style="color:var(--text-3);text-align:center;padding:12px;">لا توجد رحلات متاحة</p>`;
+                }
+            } catch (e) {
+                listEl.innerHTML = `<p style="color:var(--danger);text-align:center;padding:12px;">فشل تحميل الرحلات</p>`;
+            }
+        }
+        
+        function openTripPointsFromStandalone(tripId) {
+            window.open(`/uncle/trip/index.html?trip_id=${tripId}&student_id=${window.currentStandaloneKidId}`, '_blank');
+        }
 
-                    const refLinkContainer = document.getElementById('sheetExamRefLinkContainer');
-                    if (refLinkContainer) {
-                        if (resp.exam.reference_url) {
-                            const isImg = /\.(jpg|jpeg|png|gif|webp)$/i.test(resp.exam.reference_url);
-                            if (isImg) {
-                                refLinkContainer.innerHTML = `<img src="${resp.exam.reference_url}" style="width:34px; height:34px; object-fit:cover; border-radius:6px; border:1px solid var(--border-solid); cursor:pointer; transition:transform 0.2s;" onclick="window.open('${resp.exam.reference_url}', '_blank')" title="عرض صورة المرجع" class="hover-scale">`;
-                            } else {
-                                refLinkContainer.innerHTML = `<a href="${resp.exam.reference_url}" target="_blank" style="color:var(--brand); font-size:0.8rem; font-weight:700; display:inline-flex; align-items:center; gap:2px; padding:6px 10px; background:var(--surface-3); border-radius:6px; border:1px solid var(--border-solid); text-decoration:none;"><i class="fas fa-file-alt"></i> عرض المرجع</a>`;
+        function editStandaloneKidInfo() {
+            if (window.currentStandaloneKidId) {
+                showEditForm();
+            }
+        }
+
+        function closeStandaloneKidView() {
+            window.currentStandaloneKidId = null;
+            document.getElementById('kidStandaloneContainer').style.display = 'none';
+            document.body.style.overflow = ''; // Restore background scroll
+            
+            // Clean URL query param
+            const url = new URL(window.location.href);
+            url.searchParams.delete('kid_id');
+            window.history.replaceState({}, '', url.toString());
+        }
+    </script>
+
+    <!-- Standalone CSS styling and HTML Structure -->
+    <style>
+    .standalone-full-screen-container {
+        position: fixed;
+        inset: 0;
+        z-index: 1000025;
+        background: var(--bg);
+        overflow-y: auto;
+        direction: rtl;
+        text-align: right;
+        font-family: 'Cairo', 'Baloo Bhaijaan 2', sans-serif;
+        padding: 0 0 40px;
+    }
+    .standalone-navbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 20px;
+        background: var(--surface);
+        border-bottom: 1.5px solid var(--border-solid);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        box-shadow: var(--sh-sm);
+    }
+    .standalone-centered-layout {
+        max-width: 750px;
+        margin: 16px auto;
+        padding: 0 16px;
+    }
+    .standalone-profile-panel {
+        background: var(--surface);
+        border: 1px solid var(--border-solid);
+        border-radius: var(--r-2xl);
+        padding: 20px 4px;
+        box-shadow: var(--sh-sm);
+        height: fit-content;
+    }
+    .standalone-card {
+        background: var(--surface-2);
+        border: 1.5px solid var(--border-solid);
+        border-radius: var(--r-xl);
+        padding: 16px;
+    }
+    .standalone-card-title {
+        font-size: 1rem;
+        font-weight: 800;
+        color: var(--text);
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-bottom: 1.5px solid var(--border-solid);
+        padding-bottom: 8px;
+    }
+    .attendance-taking-box {
+        background: var(--surface-3);
+        border: 1px solid var(--border-solid);
+        border-radius: var(--r-lg);
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .attendance-row-main {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .attendance-date-select {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .attendance-status-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-top: 1px dashed var(--border-solid);
+        padding-top: 10px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .standalone-status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-weight: 800;
+        font-size: 0.82rem;
+    }
+    .standalone-status-badge.present {
+        background: var(--success-light);
+        color: var(--success-dark);
+    }
+    .standalone-status-badge.absent {
+        background: var(--danger-light);
+        color: var(--danger-dark);
+    }
+    .standalone-status-badge.none {
+        background: var(--surface-3);
+        color: var(--text-3);
+    }
+    .coupon-targets-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+        margin-bottom: 4px;
+    }
+    .coupon-target-btn {
+        background: var(--surface-3);
+        border: 1.5px solid var(--border-solid);
+        border-radius: var(--r-md);
+        padding: 8px 2px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--text);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: center;
+    }
+    .coupon-target-btn:hover {
+        background: var(--surface-4);
+        border-color: var(--brand);
+    }
+    .coupon-target-btn.active {
+        background: var(--brand);
+        border-color: var(--brand);
+        color: #fff;
+    }
+    .standalone-trip-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--surface-3);
+        border: 1px solid var(--border-solid);
+        border-radius: var(--r-md);
+        padding: 12px 16px;
+        text-decoration: none;
+        color: var(--text);
+        transition: all 0.2s ease;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+    .standalone-trip-card:hover {
+        background: var(--surface-4);
+        border-color: var(--brand);
+        transform: translateY(-1px);
+    }
+    @media (max-width: 600px) {
+        .coupons-grid {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+        }
+        .standalone-centered-layout {
+            padding: 0 8px;
+        }
+        .standalone-card {
+            padding: 12px;
+        }
+    }
+    </style>
+
+    <div id="kidStandaloneContainer" class="standalone-full-screen-container" style="display:none;">
+        <div class="standalone-navbar">
+            <button class="btn btn-outline btn-sm" onclick="closeStandaloneKidView()"><i class="fas fa-times"></i> إغلاق</button>
+            <span style="font-weight:800; font-size:1.1rem; color:var(--text);" id="standaloneNavbarTitle">لوحة بيانات الطفل</span>
+        </div>
+        
+        <div class="standalone-centered-layout">
+            <div class="standalone-profile-panel">
+                <!-- 1. Header (Avatar, Name, Class) -->
+                <div id="standaloneDetailsHeader" style="border-bottom: 1.5px solid var(--border-solid); padding-bottom: 16px; margin-bottom: 20px;">
+                    <!-- Header renders here -->
+                </div>
+                
+                <!-- 2. Actions (Edit Info, View Profile Link) -->
+                <div id="standaloneDetailsActions" style="display:flex; gap:10px; justify-content:center; margin-bottom: 20px; flex-wrap:wrap; padding: 0 16px;">
+                    <button class="btn btn-sm btn-outline" onclick="editStandaloneKidInfo()" style="flex:1;"><i class="fas fa-edit"></i> تعديل البيانات</button>
+                    <a id="standalonePublicProfileLink" href="#" target="_blank" class="btn btn-sm btn-ghost" style="flex:1; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:6px;"><i class="fas fa-external-link-alt"></i> الملف العام (دون توجيه)</a>
+                </div>
+                
+                <!-- 3. Standalone Management Panel (Attendance, Coupons, Trips) -->
+                <div class="standalone-management-panel" style="margin-bottom: 24px; padding: 0 16px; display: flex; flex-direction: column; gap: 20px;">
+                    <!-- Attendance Card (all in one rectangle) -->
+                    <div class="standalone-card">
+                        <div class="standalone-card-title">
+                            <i class="fas fa-calendar-check" style="color:var(--success);"></i>
+                            تسجيل الحضور والغياب
+                        </div>
+                        
+                        <div class="attendance-taking-box">
+                            <div class="attendance-row-main">
+                                <div class="attendance-date-select">
+                                    <label class="form-label" style="margin:0; font-weight:700; font-size:0.88rem;">التاريخ:</label>
+                                    <input type="date" id="standaloneAttDate" class="form-input" style="padding: 6px 10px; font-size: 0.88rem;" onchange="updateStandaloneAttendanceUI()">
+                                </div>
+                                <button class="btn btn-xs btn-outline" onclick="resetToLatestAttendanceDate()" style="font-size:0.75rem; padding: 4px 8px;"><i class="fas fa-sync-alt"></i> الخدمة الحالية</button>
+                            </div>
+                            <div class="attendance-status-row">
+                                <div style="font-size: 0.88rem;">الحالة: <span id="standaloneAttStatus" style="font-weight:800;">—</span></div>
+                                <div id="standaloneAttActions" style="display:flex; gap:8px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Coupons Card -->
+                    <div class="standalone-card">
+                        <div class="standalone-card-title">
+                            <i class="fas fa-coins" style="color:var(--warning);"></i>
+                            إضافة الكوبونات
+                        </div>
+                        
+                        <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap:16px; align-items:center;" class="coupons-grid">
+                            <div style="text-align:center; background:var(--brand-bg); padding:16px; border-radius:12px; border:1px solid var(--brand-light);">
+                                <div style="font-size:0.8rem; color:var(--brand-dark); font-weight:700; margin-bottom:4px;"><i class="fas fa-star"></i> كوبونات الطفل</div>
+                                <div style="font-size:2.2rem; font-weight:800; color:var(--brand-dark); line-height:1;" id="standaloneCouponsVal">0</div>
+                            </div>
+                            
+                            <form onsubmit="addStandaloneCoupons(event)" style="display:flex; flex-direction:column; gap:10px;">
+                                <!-- Predefined Targets -->
+                                <div class="coupon-targets-grid">
+                                    <button type="button" class="coupon-target-btn active" onclick="selectCouponTarget(10, this)">+10</button>
+                                    <button type="button" class="coupon-target-btn" onclick="selectCouponTarget(30, this)">+30</button>
+                                    <button type="button" class="coupon-target-btn" onclick="selectCouponTarget(50, this)">+50</button>
+                                    <button type="button" class="coupon-target-btn" onclick="selectCouponTarget(100, this)">+100</button>
+                                </div>
+                                
+                                <input type="hidden" id="standaloneAddCouponsCount" value="10">
+                                
+                                <div class="form-group" style="margin:0;">
+                                    <input type="text" id="standaloneAddCouponsReason" class="form-input" placeholder="السبب (التزام بالدرس، إجابة ممتازة...)" style="padding:8px 12px; border-radius:8px; font-size:0.85rem;" required>
+                                </div>
+                                <button type="submit" class="btn btn-warning btn-sm" style="font-weight:700; background:var(--brand); border-color:var(--brand); color:#fff; font-size:0.85rem; padding: 8px;"><i class="fas fa-plus"></i> حفظ وإضافة الكوبونات</button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Trips Card -->
+                    <div class="standalone-card">
+                        <div class="standalone-card-title">
+                            <i class="fas fa-route" style="color:var(--brand);"></i>
+                            رحلات الطفل المشترك فيها
+                        </div>
+                        <div id="standaloneTripsList" style="display:flex; flex-direction:column; gap:8px;">
+                            <!-- list of trips -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 4. Profile Details Info (ID, phone, address, custom fields, siblings, notes, exams) -->
+                <div id="standaloneDetailsBody_info" style="padding: 0 16px;">
+                    <!-- Details render here -->
+                </div>
+                
+                <!-- Dummy hidden element representing the proxy target for the complex renderer -->
+                <div id="standaloneDetailsBody" style="display:none !important"></div>
+                <div id="standaloneDetailsActionsDummy" style="display:none !important"></div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>.reference_url}" target="_blank" style="color:var(--brand); font-size:0.8rem; font-weight:700; display:inline-flex; align-items:center; gap:2px; padding:6px 10px; background:var(--surface-3); border-radius:6px; border:1px solid var(--border-solid); text-decoration:none;"><i class="fas fa-file-alt"></i> عرض المرجع</a>`;
                             }
                         } else {
                             refLinkContainer.innerHTML = '';
@@ -28723,6 +28920,29 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 return;
             }
             
+            // Setup innerHTML interceptor on the dummy container to split avatar header and detail info rows
+            const dummyEl = originalGetElementById.call(document, 'standaloneDetailsBody');
+            if (dummyEl && !dummyEl._hasHookedSetter) {
+                dummyEl._hasHookedSetter = true;
+                Object.defineProperty(dummyEl, 'innerHTML', {
+                    set: function(val) {
+                        const temp = document.createElement('div');
+                        temp.innerHTML = val;
+                        const avatarWrap = temp.querySelector('.detail-avatar-wrap');
+                        if (avatarWrap) {
+                            originalGetElementById.call(document, 'standaloneDetailsHeader').innerHTML = avatarWrap.outerHTML;
+                            avatarWrap.remove();
+                            originalGetElementById.call(document, 'standaloneDetailsBody_info').innerHTML = temp.innerHTML;
+                        } else {
+                            originalGetElementById.call(document, 'standaloneDetailsBody_info').innerHTML = val;
+                        }
+                    },
+                    get: function() {
+                        return originalGetElementById.call(document, 'standaloneDetailsBody_info').innerHTML;
+                    }
+                });
+            }
+
             // 1. Render student info by triggering the existing renderer
             showStudentDetails(student['الاسم'] || student.name);
             
@@ -28752,6 +28972,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
             
             // 5. Update coupons counter
             document.getElementById('standaloneCouponsVal').textContent = student.coupons || student['كوبونات'] || 0;
+
+            // Reset active coupon target to 10
+            const countInput = document.getElementById('standaloneAddCouponsCount');
+            if (countInput) countInput.value = 10;
+            const targetGrid = document.querySelector('.coupon-targets-grid');
+            if (targetGrid) {
+                const buttons = targetGrid.querySelectorAll('.coupon-target-btn');
+                buttons.forEach((b, idx) => {
+                    if (idx === 0) b.classList.add('active');
+                    else b.classList.remove('active');
+                });
+            }
         }
 
         async function refreshStandaloneKidView(kidId) {
@@ -28892,6 +29124,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             saveStandaloneAttendance(next);
         }
 
+        function selectCouponTarget(amount, btn) {
+            document.getElementById('standaloneAddCouponsCount').value = amount;
+            const buttons = btn.parentElement.querySelectorAll('.coupon-target-btn');
+            buttons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
         async function addStandaloneCoupons(e) {
             e.preventDefault();
             const amount = parseInt(document.getElementById('standaloneAddCouponsCount').value || 0);
@@ -29029,7 +29268,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 16px 24px;
+        padding: 12px 20px;
         background: var(--surface);
         border-bottom: 1.5px solid var(--border-solid);
         position: sticky;
@@ -29037,13 +29276,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
         z-index: 100;
         box-shadow: var(--sh-sm);
     }
-    .standalone-split-layout {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 24px;
-        max-width: 1250px;
-        margin: 24px auto;
-        padding: 0 20px;
+    .standalone-centered-layout {
+        max-width: 750px;
+        margin: 16px auto;
+        padding: 0 16px;
     }
     .standalone-profile-panel {
         background: var(--surface);
@@ -29053,36 +29289,60 @@ if ($hasUncleId && $uncleRole === 'uncle')
         box-shadow: var(--sh-sm);
         height: fit-content;
     }
-    .standalone-management-panel {
-        display: flex;
-        flex-direction: column;
-        gap: 24px;
-    }
     .standalone-card {
-        background: var(--surface);
-        border: 1px solid var(--border-solid);
-        border-radius: var(--r-2xl);
-        padding: 24px;
-        box-shadow: var(--sh-sm);
+        background: var(--surface-2);
+        border: 1.5px solid var(--border-solid);
+        border-radius: var(--r-xl);
+        padding: 16px;
     }
     .standalone-card-title {
-        font-size: 1.15rem;
+        font-size: 1rem;
         font-weight: 800;
         color: var(--text);
-        margin-bottom: 20px;
+        margin-bottom: 14px;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
         border-bottom: 1.5px solid var(--border-solid);
-        padding-bottom: 12px;
+        padding-bottom: 8px;
+    }
+    .attendance-taking-box {
+        background: var(--surface-3);
+        border: 1px solid var(--border-solid);
+        border-radius: var(--r-lg);
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .attendance-row-main {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .attendance-date-select {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .attendance-status-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-top: 1px dashed var(--border-solid);
+        padding-top: 10px;
+        flex-wrap: wrap;
+        gap: 8px;
     }
     .standalone-status-badge {
         display: inline-flex;
         align-items: center;
-        padding: 6px 16px;
+        padding: 4px 12px;
         border-radius: 20px;
         font-weight: 800;
-        font-size: 0.9rem;
+        font-size: 0.82rem;
     }
     .standalone-status-badge.present {
         background: var(--success-light);
@@ -29096,6 +29356,34 @@ if ($hasUncleId && $uncleRole === 'uncle')
         background: var(--surface-3);
         color: var(--text-3);
     }
+    .coupon-targets-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+        margin-bottom: 4px;
+    }
+    .coupon-target-btn {
+        background: var(--surface-3);
+        border: 1.5px solid var(--border-solid);
+        border-radius: var(--r-md);
+        padding: 8px 2px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--text);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: center;
+        font-family: inherit;
+    }
+    .coupon-target-btn:hover {
+        background: var(--surface-4);
+        border-color: var(--brand);
+    }
+    .coupon-target-btn.active {
+        background: var(--brand);
+        border-color: var(--brand);
+        color: #fff;
+    }
     .standalone-trip-card {
         display: flex;
         align-items: center;
@@ -29103,111 +29391,127 @@ if ($hasUncleId && $uncleRole === 'uncle')
         background: var(--surface-3);
         border: 1px solid var(--border-solid);
         border-radius: var(--r-md);
-        padding: 16px 20px;
+        padding: 12px 16px;
         text-decoration: none;
         color: var(--text);
         transition: all 0.2s ease;
         cursor: pointer;
+        font-size: 0.9rem;
     }
     .standalone-trip-card:hover {
         background: var(--surface-4);
         border-color: var(--brand);
-        transform: translateY(-2px);
+        transform: translateY(-1px);
     }
-    @media (max-width: 800px) {
-        .standalone-split-layout {
-            grid-template-columns: 1fr;
+    @media (max-width: 600px) {
+        .coupons-grid {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+        }
+        .standalone-centered-layout {
+            padding: 0 8px;
+        }
+        .standalone-card {
+            padding: 12px;
         }
     }
     </style>
 
     <div id="kidStandaloneContainer" class="standalone-full-screen-container" style="display:none;">
         <div class="standalone-navbar">
-            <button class="btn btn-outline btn-sm" onclick="closeStandaloneKidView()"><i class="fas fa-times"></i> إغلاق</button>
             <span style="font-weight:800; font-size:1.1rem; color:var(--text);" id="standaloneNavbarTitle">لوحة بيانات الطفل</span>
+            <button class="btn btn-outline btn-sm" onclick="closeStandaloneKidView()"><i class="fas fa-times"></i> إغلاق</button>
         </div>
         
-        <div class="standalone-split-layout">
-            <!-- Profile Column (matches student details modal look) -->
+        <div class="standalone-centered-layout">
             <div class="standalone-profile-panel">
-                <div id="standaloneDetailsBody">
-                    <!-- Renders the student profile -->
+                <!-- 1. Header (Avatar, Name, Class) -->
+                <div id="standaloneDetailsHeader" style="border-bottom: 1.5px solid var(--border-solid); padding-bottom: 16px; margin-bottom: 20px;">
+                    <!-- Header renders here -->
                 </div>
-                <div id="standaloneDetailsActions" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;padding: 0 16px 16px;">
-                    <button class="btn" onclick="editStandaloneKidInfo()" style="flex:1"><i class="fas fa-edit"></i> تعديل</button>
-                    <a id="standalonePublicProfileLink" href="#" target="_blank" class="btn btn-secondary" style="flex:1;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;"><i class="fas fa-user"></i> الملف العام</a>
+                
+                <!-- 2. Actions (Edit Info, View Profile Link) -->
+                <div id="standaloneDetailsActions" style="display:flex; gap:10px; justify-content:center; margin-bottom: 20px; flex-wrap:wrap; padding: 0 16px;">
+                    <button class="btn btn-sm btn-outline" onclick="editStandaloneKidInfo()" style="flex:1;"><i class="fas fa-edit"></i> تعديل البيانات</button>
+                    <a id="standalonePublicProfileLink" href="#" target="_blank" class="btn btn-sm btn-ghost" style="flex:1; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:6px;"><i class="fas fa-external-link-alt"></i> الملف العام (دون توجيه)</a>
                 </div>
+                
+                <!-- 3. Standalone Management Panel (Attendance, Coupons, Trips) -->
+                <div class="standalone-management-panel" style="margin-bottom: 24px; padding: 0 16px; display: flex; flex-direction: column; gap: 20px;">
+                    <!-- Attendance Card (all in one rectangle) -->
+                    <div class="standalone-card">
+                        <div class="standalone-card-title">
+                            <div class="detail-icon green" style="width:28px; height:28px; font-size:0.75rem;"><i class="fas fa-calendar-check"></i></div>
+                            <span>تسجيل الحضور والغياب</span>
+                        </div>
+                        
+                        <div class="attendance-taking-box">
+                            <div class="attendance-row-main">
+                                <div class="attendance-date-select">
+                                    <label class="form-label" style="margin:0; font-weight:700; font-size:0.88rem;">التاريخ:</label>
+                                    <input type="date" id="standaloneAttDate" class="form-input" style="padding: 6px 10px; font-size: 0.88rem;" onchange="updateStandaloneAttendanceUI()">
+                                </div>
+                                <button class="btn btn-xs btn-outline" onclick="resetToLatestAttendanceDate()" style="font-size:0.75rem; padding: 4px 8px;"><i class="fas fa-sync-alt"></i> الخدمة الحالية</button>
+                            </div>
+                            <div class="attendance-status-row">
+                                <div style="font-size: 0.88rem;">الحالة: <span id="standaloneAttStatus" style="font-weight:800;">—</span></div>
+                                <div id="standaloneAttActions" style="display:flex; gap:8px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Coupons Card -->
+                    <div class="standalone-card">
+                        <div class="standalone-card-title">
+                            <div class="detail-icon purple" style="width:28px; height:28px; font-size:0.75rem;"><i class="fas fa-coins"></i></div>
+                            <span>إضافة الكوبونات</span>
+                        </div>
+                        
+                        <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap:16px; align-items:center;" class="coupons-grid">
+                            <div style="text-align:center; background:var(--brand-bg); padding:16px; border-radius:12px; border:1px solid var(--brand-light);">
+                                <div style="font-size:0.8rem; color:var(--brand-dark); font-weight:700; margin-bottom:4px;"><i class="fas fa-star"></i> كوبونات الطفل</div>
+                                <div style="font-size:2.2rem; font-weight:800; color:var(--brand-dark); line-height:1;" id="standaloneCouponsVal">0</div>
+                            </div>
+                            
+                            <form onsubmit="addStandaloneCoupons(event)" style="display:flex; flex-direction:column; gap:10px;">
+                                <!-- Predefined Targets -->
+                                <div class="coupon-targets-grid">
+                                    <button type="button" class="coupon-target-btn active" onclick="selectCouponTarget(10, this)">+10</button>
+                                    <button type="button" class="coupon-target-btn" onclick="selectCouponTarget(30, this)">+30</button>
+                                    <button type="button" class="coupon-target-btn" onclick="selectCouponTarget(50, this)">+50</button>
+                                    <button type="button" class="coupon-target-btn" onclick="selectCouponTarget(100, this)">+100</button>
+                                </div>
+                                
+                                <input type="hidden" id="standaloneAddCouponsCount" value="10">
+                                
+                                <div class="form-group" style="margin:0;">
+                                    <input type="text" id="standaloneAddCouponsReason" class="form-input" placeholder="السبب (التزام بالدرس، إجابة ممتازة...)" style="padding:8px 12px; border-radius:8px; font-size:0.85rem;" required>
+                                </div>
+                                <button type="submit" class="btn btn-warning btn-sm" style="font-weight:700; background:var(--brand); border-color:var(--brand); color:#fff; font-size:0.85rem; padding: 8px;"><i class="fas fa-plus"></i> حفظ وإضافة الكوبونات</button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Trips Card -->
+                    <div class="standalone-card">
+                        <div class="standalone-card-title">
+                            <div class="detail-icon blue" style="width:28px; height:28px; font-size:0.75rem;"><i class="fas fa-route"></i></div>
+                            <span>رحلات الطفل المشترك فيها</span>
+                        </div>
+                        <div id="standaloneTripsList" style="display:flex; flex-direction:column; gap:8px;">
+                            <!-- list of trips -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 4. Profile Details Info (ID, phone, address, custom fields, siblings, notes, exams) -->
+                <div id="standaloneDetailsBody_info" style="padding: 0 16px;">
+                    <!-- Details render here -->
+                </div>
+                
+                <!-- Dummy hidden element representing the proxy target for the complex renderer -->
+                <div id="standaloneDetailsBody" style="display:none !important"></div>
                 <div id="standaloneDetailsActionsDummy" style="display:none !important"></div>
-            </div>
-            
-            <!-- Management Column (Attendance, Coupons, Trips) -->
-            <div class="standalone-management-panel">
-                <!-- Attendance Card -->
-                <div class="standalone-card">
-                    <div class="standalone-card-title">
-                        <i class="fas fa-calendar-check" style="color:var(--success);"></i>
-                        تسجيل الحضور والغياب
-                    </div>
-                    
-                    <div style="display:flex;flex-direction:column;gap:16px;">
-                        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;background:var(--surface-3);padding:14px;border-radius:12px;border:1px solid var(--border-solid);">
-                            <div style="display:flex;align-items:center;gap:8px;">
-                                <label style="font-weight:700;font-size:0.9rem;margin:0;">اختر تاريخ الحضور:</label>
-                                <input type="date" id="standaloneAttDate" class="form-input" style="width:auto;margin:0;padding:8px 12px;border-radius:8px;" onchange="updateStandaloneAttendanceUI()">
-                            </div>
-                            <button class="btn btn-sm btn-outline" onclick="resetToLatestAttendanceDate()"><i class="fas fa-sync-alt"></i> اليوم الحالي للخدمة</button>
-                        </div>
-                        
-                        <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface-3);padding:18px;border-radius:12px;border:1px solid var(--border-solid);flex-wrap:wrap;gap:12px;">
-                            <div>
-                                <div style="font-size:0.8rem;color:var(--text-3);margin-bottom:4px;">حالة الحضور في التاريخ المحدد:</div>
-                                <div id="standaloneAttStatus" style="font-size:1.1rem;font-weight:800;">—</div>
-                            </div>
-                            <div id="standaloneAttActions" style="display:flex;gap:10px;">
-                                <!-- Actions dynamically rendered -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Coupons Card -->
-                <div class="standalone-card">
-                    <div class="standalone-card-title">
-                        <i class="fas fa-coins" style="color:var(--warning);"></i>
-                        إضافة الكوبونات
-                    </div>
-                    
-                    <div style="display:grid;grid-template-columns:1fr 1.2fr;gap:20px;align-items:center;" class="coupons-grid">
-                        <div style="text-align:center;background:var(--brand-bg);padding:24px;border-radius:16px;border:1px solid var(--brand-light);">
-                            <div style="font-size:0.9rem;color:var(--brand-dark);font-weight:700;margin-bottom:6px;"><i class="fas fa-star"></i> إجمالي كوبونات الطفل</div>
-                            <div style="font-size:2.8rem;font-weight:800;color:var(--brand-dark);line-height:1;" id="standaloneCouponsVal">0</div>
-                            <div style="font-size:0.8rem;color:var(--brand-dark);margin-top:6px;">كوبون</div>
-                        </div>
-                        
-                        <form onsubmit="addStandaloneCoupons(event)" style="display:flex;flex-direction:column;gap:12px;">
-                            <div class="form-group" style="margin:0;">
-                                <label class="form-label" style="font-weight:700;">عدد الكوبونات المراد إضافتها:</label>
-                                <input type="number" id="standaloneAddCouponsCount" class="form-input" value="5" min="-1000" max="1000" style="padding:8px 12px;border-radius:8px;" required>
-                            </div>
-                            <div class="form-group" style="margin:0;">
-                                <label class="form-label" style="font-weight:700;">السبب:</label>
-                                <input type="text" id="standaloneAddCouponsReason" class="form-input" placeholder="مثال: التزام بالدرس، إجابة ممتازة..." style="padding:8px 12px;border-radius:8px;" required>
-                            </div>
-                            <button type="submit" class="btn btn-warning" style="font-weight:700;background:var(--brand);border-color:var(--brand);color:#fff;"><i class="fas fa-plus"></i> حفظ وإضافة الكوبونات</button>
-                        </form>
-                    </div>
-                </div>
-                
-                <!-- Trips Card -->
-                <div class="standalone-card">
-                    <div class="standalone-card-title">
-                        <i class="fas fa-route" style="color:var(--brand);"></i>
-                        رحلات الطفل المشترك فيها
-                    </div>
-                    <div id="standaloneTripsList" style="display:flex;flex-direction:column;gap:12px;">
-                        <!-- list of trips -->
-                    </div>
-                </div>
             </div>
         </div>
     </div>
