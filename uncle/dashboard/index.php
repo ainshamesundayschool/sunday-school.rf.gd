@@ -7913,14 +7913,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .bday-banner-list {
             display: flex;
             overflow-x: auto;
-            gap: 10px;
-            padding: 4px 2px 8px !important;
-            scrollbar-width: thin;
-            scrollbar-color: rgba(99, 102, 241, 0.2) transparent;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
             transition: max-height 0.3s ease, opacity 0.3s ease, margin 0.3s ease;
             max-height: 250px;
             opacity: 1;
-            justify-content: center;
+            padding: 8px 0 !important;
         }
 
         .bday-banner-list.collapsed {
@@ -7933,17 +7932,32 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .bday-banner-list::-webkit-scrollbar {
-            height: 4px;
+            display: none;
         }
-        .bday-banner-list::-webkit-scrollbar-track {
-            background: transparent;
+
+        .bday-page {
+            flex: 0 0 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            scroll-snap-align: center;
+            box-sizing: border-box;
         }
-        .bday-banner-list::-webkit-scrollbar-thumb {
-            background: rgba(99, 102, 241, 0.25);
-            border-radius: 10px;
+
+        .bday-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: rgba(99, 102, 241, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
-        .bday-banner-list::-webkit-scrollbar-thumb:hover {
-            background: rgba(99, 102, 241, 0.45);
+
+        .bday-dot.active {
+            background: var(--brand);
+            transform: scale(1.3);
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
         }
 
         .bday-banner-chip {
@@ -11451,6 +11465,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="bday-decor bday-decor-left"><i class="fas fa-birthday-cake"></i></div>
                     <div class="bday-decor bday-decor-right"><i class="fas fa-gift"></i></div>
                     <div class="bday-banner-list" id="todayBirthdayList" style="z-index: 2; position: relative;"></div>
+                    <div id="bdayDotsIndicator" style="display: none; justify-content: center; gap: 6px; margin-top: 4px; margin-bottom: 8px; z-index: 2; position: relative;"></div>
                     <div id="bdayCountSummary" style="text-align: center; font-size: 0.68rem; color: var(--text-3); margin-top: -6px; margin-bottom: 6px; z-index: 2; position: relative;"></div>
                 </div>
 
@@ -15511,11 +15526,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 }
             });
 
-            // Sort results by the cycle day order (from Saturday to Friday)
+            // Sort results by the cycle day order (from Friday to Saturday)
             results.sort((a, b) => {
                 const idxA = cycleDates.indexOf(a.matchDate);
                 const idxB = cycleDates.indexOf(b.matchDate);
-                return idxB - idxA;
+                return idxA - idxB;
             });
 
             return results;
@@ -15563,6 +15578,30 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
 
+
+        window.currentBdayPage = 0;
+        function scrollToBdayPage(pageIdx) {
+            const list = document.getElementById('todayBirthdayList');
+            if (!list) return;
+            const pages = list.querySelectorAll('.bday-page');
+            if (pages[pageIdx]) {
+                pages[pageIdx].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                window.currentBdayPage = pageIdx;
+                updateBdayDots();
+            }
+        }
+        function updateBdayDots() {
+            const dotsContainer = document.getElementById('bdayDotsIndicator');
+            if (!dotsContainer) return;
+            const dots = dotsContainer.querySelectorAll('.bday-dot');
+            dots.forEach((dot, idx) => {
+                if (idx === window.currentBdayPage) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
 
         function renderTodayBirthdayBanner() {
             const banner = document.getElementById('mainStatsRow');
@@ -15623,41 +15662,86 @@ if ($hasUncleId && $uncleRole === 'uncle')
             // Ensure collapsed class is never present since toggling is disabled
             list.classList.remove('collapsed');
 
-            list.innerHTML = items.map((item, index) => {
-                const s = item.student;
-                const name = s['الاسم'] || '---';
-                const cls = s['الفصل'] || '';
-                const photo = s['صورة'] || s['photo'] || s['الصورة'] || '';
-                const safe = name.replace(/'/g, "\\'");
-                const avatar = photo ? ((typeof window.photoUrl === 'function') ? window.photoUrl(photo) : photo) : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=f5f3ff&color=7c3aed&bold=true`;
-                return `
-                <div class="bday-banner-chip${item.isToday ? ' today' : ''}" id="bday_chip_${index}" onclick="showStudentDetails('${safe}')">
-                    <img src="${avatar}" class="bday-chip-img">
-                    <div class="bday-chip-info">
-                        <div class="bday-chip-name">${name}</div>
-                        <div class="bday-chip-meta-row">
-                            ${cls ? `<span class="bday-chip-class">${cls}</span>` : ''}
-                            ${cls ? `<span class="bday-chip-separator">·</span>` : ''}
-                            ${item.isToday ? `<span class="bday-chip-day today"><i class="fas fa-birthday-cake" style="margin-left: 3px; font-size: 0.62rem; color: var(--brand);"></i>اليوم</span>` : `<span class="bday-chip-day text-muted"><i class="fas fa-gift" style="margin-left: 3px; font-size: 0.62rem; color: var(--brand-light);"></i>${item.dayName}</span>`}
+            // Group items into chunks of 3 cards per page
+            const pageSize = 3;
+            const pages = [];
+            for (let i = 0; i < items.length; i += pageSize) {
+                pages.push(items.slice(i, i + pageSize));
+            }
+
+            list.innerHTML = pages.map((pageItems, pageIdx) => {
+                const pageHtml = pageItems.map((item, index) => {
+                    const globalIdx = pageIdx * pageSize + index;
+                    const s = item.student;
+                    const name = s['الاسم'] || '---';
+                    const cls = s['الفصل'] || '';
+                    const photo = s['صورة'] || s['photo'] || s['الصورة'] || '';
+                    const safe = name.replace(/'/g, "\\'");
+                    const avatar = photo ? ((typeof window.photoUrl === 'function') ? window.photoUrl(photo) : photo) : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=f5f3ff&color=7c3aed&bold=true`;
+                    return `
+                    <div class="bday-banner-chip${item.isToday ? ' today' : ''}" id="bday_chip_${globalIdx}" onclick="showStudentDetails('${safe}')">
+                        <img src="${avatar}" class="bday-chip-img">
+                        <div class="bday-chip-info">
+                            <div class="bday-chip-name">${name}</div>
+                            <div class="bday-chip-meta-row">
+                                ${cls ? `<span class="bday-chip-class">${cls}</span>` : ''}
+                                ${cls ? `<span class="bday-chip-separator">·</span>` : ''}
+                                ${item.isToday ? `<span class="bday-chip-day today"><i class="fas fa-birthday-cake" style="margin-left: 3px; font-size: 0.62rem; color: var(--brand);"></i>اليوم</span>` : `<span class="bday-chip-day text-muted"><i class="fas fa-gift" style="margin-left: 3px; font-size: 0.62rem; color: var(--brand-light);"></i>${item.dayName}</span>`}
+                            </div>
                         </div>
-                    </div>
-                </div>`;
+                    </div>`;
+                }).join('');
+                return `<div class="bday-page" data-page-index="${pageIdx}">${pageHtml}</div>`;
             }).join('');
 
-            // Scroll to target element (today's birthday, or last birthday of the week cycle)
+            // Render dots
+            const dotsContainer = document.getElementById('bdayDotsIndicator');
+            if (dotsContainer) {
+                if (pages.length > 1) {
+                    dotsContainer.style.display = 'flex';
+                    dotsContainer.innerHTML = pages.map((_, idx) => {
+                        return `<div class="bday-dot${idx === window.currentBdayPage ? ' active' : ''}" onclick="scrollToBdayPage(${idx})"></div>`;
+                    }).join('');
+                } else {
+                    dotsContainer.style.display = 'none';
+                    dotsContainer.innerHTML = '';
+                }
+            }
+
+            // Initialize scroll listener to update dots active state
+            if (!list.dataset.scrollInit) {
+                list.dataset.scrollInit = 'true';
+                list.addEventListener('scroll', () => {
+                    const pagesEl = list.querySelectorAll('.bday-page');
+                    if (!pagesEl.length) return;
+                    const listRect = list.getBoundingClientRect();
+                    let minDiff = Infinity;
+                    let activeIdx = 0;
+                    pagesEl.forEach((page, idx) => {
+                        const pageRect = page.getBoundingClientRect();
+                        const diff = Math.abs(pageRect.left - listRect.left);
+                        if (diff < minDiff) {
+                            minDiff = diff;
+                            activeIdx = idx;
+                        }
+                    });
+                    if (activeIdx !== window.currentBdayPage) {
+                        window.currentBdayPage = activeIdx;
+                        updateBdayDots();
+                    }
+                });
+            }
+
+            // Scroll to page of target element (today's birthday, or last birthday of the week cycle)
             let targetIndex = items.findIndex(item => item.isToday);
             if (targetIndex === -1 && items.length > 0) {
                 targetIndex = items.length - 1;
             }
 
             if (targetIndex !== -1) {
+                const targetPage = Math.floor(targetIndex / pageSize);
                 setTimeout(() => {
-                    const targetEl = document.getElementById(`bday_chip_${targetIndex}`);
-                    const bdayList = document.getElementById('todayBirthdayList');
-                    // Only scroll if we are in horizontal scroll view (not grid-view)
-                    if (targetEl && bdayList && !bdayList.classList.contains('grid-view')) {
-                        targetEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-                    }
+                    scrollToBdayPage(targetPage);
                 }, 100);
             }
         }
