@@ -716,7 +716,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         html,
         body {
             scrollbar-width: none;
-            -ms-overflow-style: none
+            -ms-overflow-style: none;
+            background: var(--bg);
         }
 
         /* Default thin scrollbar for all other elements */
