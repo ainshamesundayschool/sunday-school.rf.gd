@@ -12052,7 +12052,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             </div>
             <div id="studentDetailsHeader"></div>
             <div id="studentModalFooter" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;margin-bottom:10px;">
-                <button class="btn btn-xs btn-outline btn-secondary" id="viewProfileBtn" style="padding:4px 8px;font-size:0.72rem;"><i class="fas fa-user"></i> ملف الطفل</button>
                 <button class="btn btn-xs btn-outline" id="editStudentBtn" style="padding:4px 8px;font-size:0.72rem;"><i class="fas fa-edit"></i> تعديل</button>
             </div>
             <div id="studentDetails" style="margin-bottom:14px"></div>
@@ -20032,7 +20031,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
             </div>
             `;
 
-            document.getElementById('studentDetails').innerHTML = avatar + rows + siblingHtml + notesHtml;
+            // Public Profile link row
+            const publicProfileHtml = `
+            <div class="navigation-row" onclick="redirectToKidProfile()">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div class="navigation-icon purple"><i class="fas fa-external-link-alt"></i></div>
+                    <div class="navigation-label">الملف العام (دون توجيه)</div>
+                </div>
+                <div>
+                    <i class="fas fa-chevron-left navigation-arrow"></i>
+                </div>
+            </div>
+            `;
+
+            document.getElementById('studentDetails').innerHTML = avatar + rows + siblingHtml + notesHtml + publicProfileHtml;
         }
 
         function buildStudentDetailsFromProfile(full) {
@@ -20145,7 +20157,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
             </div>
             `;
 
-            document.getElementById('studentDetails').innerHTML = img + rows + tpHtml + siblingHtml + paperExamsHtml + notesHtml;
+            // Public Profile link row
+            const publicProfileHtml = `
+            <div class="navigation-row" onclick="redirectToKidProfile()">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div class="navigation-icon purple"><i class="fas fa-external-link-alt"></i></div>
+                    <div class="navigation-label">الملف العام (دون توجيه)</div>
+                </div>
+                <div>
+                    <i class="fas fa-chevron-left navigation-arrow"></i>
+                </div>
+            </div>
+            `;
+
+            document.getElementById('studentDetails').innerHTML = img + rows + tpHtml + siblingHtml + paperExamsHtml + notesHtml + publicProfileHtml;
         }
 
         function buildUncleDetailsFromProfile(full) {
