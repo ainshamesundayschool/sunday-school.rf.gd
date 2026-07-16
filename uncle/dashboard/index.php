@@ -13888,6 +13888,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 updateCurrentDateDisplay();
                 _applyDayNameToUI();
                 if (!currentClass) displayClasses();
+                else if (currentClass === 'الخدام') {
+                    loadClassUncles('الخدام');
+                }
             }, () => {
                 uncleClassNavPermission = 'all';
                 allowedViewUncles = '';
@@ -15030,6 +15033,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 loadAttendanceDataForClass('الخدام');
                                 renderAttendanceList('الخدام');
                                 updateClassStats();
+                                loadClassUncles('الخدام');
                             }
                         }
                     });
@@ -23521,6 +23525,26 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const bar = document.getElementById('unclesBar');
             const list = document.getElementById('unclesList');
             if (!bar || !list) return;
+
+            if (className === 'الخدام') {
+                const allowedList = (allowedViewUncles || '').split(',').map(x => x.trim().toLowerCase()).filter(x => x);
+                const allowedUncles = (window.allUnclesData || []).filter(u => u.username && allowedList.includes(u.username.toLowerCase()));
+
+                if (allowedUncles.length) {
+                    bar.style.display = 'flex';
+                    list.innerHTML = allowedUncles.map(u =>
+                        `<div class="uncle-avatar-wrap">` +
+                        `<img class="uncle-avatar-img" src="${window.photoUrl(u.image_url || u['صورة'] || 'https://sunday-school.online/profile_default..webp')}"` +
+                        ` alt="${u.name}" onerror="this.src='https://sunday-school.online/profile_default..webp'">` +
+                        `<div class="uncle-tooltip">${u.name}</div>` +
+                        `</div>`
+                    ).join('');
+                } else {
+                    bar.style.display = 'none';
+                }
+                return;
+            }
+
             // Skip network call when offline — uncles bar not critical
             if (!navigator.onLine) { bar.style.display = 'none'; return; }
 
