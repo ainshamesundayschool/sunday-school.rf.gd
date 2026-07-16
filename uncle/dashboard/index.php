@@ -244,7 +244,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <!-- ═══ Standard fallback description ═══ -->
     <meta name="description" content="<?php echo htmlspecialchars($ogDescription); ?>">
 
-    <title>Sunday School — <?php echo htmlspecialchars($churchName); ?></title>
+    <title>Sunday School Online — <?php echo htmlspecialchars($churchName); ?></title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -13915,7 +13915,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 document.title = 'حسابي - Sunday School';
             } else {
                 location.hash = '';
-                document.title = 'Sunday School — <?php echo htmlspecialchars($churchName); ?>';
+                document.title = 'Sunday School Online — <?php echo htmlspecialchars($churchName); ?>';
             }
         }
         window.addEventListener('hashchange', () => {

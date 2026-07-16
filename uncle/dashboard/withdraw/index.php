@@ -58,7 +58,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
         content="منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد">
     <meta name="twitter:image" content="https://sunday-school.online/imgs/Sunday%20School%20App.png">
 
-    <title>سحب الكوبونات | Sunday School</title>
+    <title>سحب الكوبونات | Sunday School Online</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet"
