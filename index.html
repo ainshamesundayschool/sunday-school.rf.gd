@@ -213,37 +213,35 @@
         }
 
         .hero-stats {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-top: 6px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 12px;
+            margin-top: 4px;
         }
 
         .hero-stat-item {
             display: flex;
-            flex-direction: column;
             align-items: center;
-            text-align: center;
-            background: rgba(99, 102, 241, 0.04);
-            padding: 6px;
-            border-radius: var(--radius-md);
+            gap: 4px;
         }
 
-        [data-theme="dark"] .hero-stat-item {
-            background: rgba(255, 255, 255, 0.02);
+        .hero-stat-item:not(:last-child)::after {
+            content: "•";
+            margin-right: 12px;
+            color: var(--secondary);
+            opacity: 0.4;
         }
 
         .stat-value {
-            font-size: 1.15rem;
+            font-size: 0.95rem;
             font-weight: 800;
             color: var(--primary);
-            margin-bottom: 2px;
         }
 
         .stat-label {
             color: var(--secondary);
             font-weight: 600;
-            font-size: 0.72rem;
+            font-size: 0.8rem;
         }
 
         /* ===== USER CARDS ===== */
@@ -563,7 +561,9 @@
             }
 
             .hero-illustration {
-                display: none; /* hide illustration on mobile for super compact view */
+                display: block;
+                height: 130px;
+                order: -1; /* place illustration at top of content on mobile */
             }
 
             .title.main {
@@ -575,16 +575,15 @@
             }
 
             .hero-stats {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 8px;
+                gap: 6px 10px;
             }
 
             .stat-value {
-                font-size: 1.05rem;
+                font-size: 0.9rem;
             }
 
             .stat-label {
-                font-size: 0.68rem;
+                font-size: 0.76rem;
             }
 
             .user-cards {
