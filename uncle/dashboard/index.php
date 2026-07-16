@@ -4423,10 +4423,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 11px;
+            margin-top: 20px;
             margin-bottom: 14px;
             padding-bottom: 12px;
-            border-bottom: 1.5px solid var(--border-solid);
+            border-bottom: none;
             position: sticky;
             top: 0;
             background: var(--surface);
@@ -4529,7 +4529,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             .modal-header {
                 position: static;
                 padding-top: 0;
-                margin-top: 11px;
+                margin-top: 20px;
                 margin-inline: 0;
                 padding-inline: 0;
             }
