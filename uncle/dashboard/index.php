@@ -10967,10 +10967,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         </div>
                     </div>
 
-                    <!-- Clear selection (Trash) + Count -->
+                    <!-- Clear selection (Deselect) + Count -->
                     <button class="btn btn-ghost btn-sm" onclick="bulkSelectByFilter('none')" title="إلغاء تحديد الكل"
                         style="height: 30px; padding: 0 8px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border-solid) !important; border-radius: var(--r-sm); background: var(--surface-2); box-shadow: none;">
-                        <i class="fas fa-trash" style="font-size: 0.75rem; color: var(--text-3);"></i>
+                        <i class="fas fa-minus-square" style="font-size: 0.8rem; color: var(--text-3);"></i>
                         <span id="bulkSelectedCount" class="selected-count-chip"
                             style="background: var(--brand); color: #fff; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: var(--r-full); min-width: 20px; text-align: center; font-family: Cairo, sans-serif; display: inline-flex; align-items: center; justify-content: center; height: 20px; line-height: 1;">0</span>
                     </button>
