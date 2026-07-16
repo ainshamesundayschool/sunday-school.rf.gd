@@ -5734,8 +5734,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         /* Minimal Collapsible Sections (no bg, no container) */
-        #tripsSectionHead,
-        #mainStatsRow {
+        #tripsSectionHead {
             display: none;
             background: none !important;
             border: none !important;
@@ -5744,6 +5743,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             margin-top: 4px !important;
             padding: 0 !important;
             border-radius: 0 !important;
+        }
+
+        #mainStatsRow {
+            display: none;
         }
 
         .dashboard-section-toggle-btn {
@@ -11373,12 +11376,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 <!-- Birthdays Container -->
                 <div id="mainStatsRow" class="bday-banner-wrapper" style="display:none;">
-                    <div class="section-head" style="margin: 0 0 6px 0 !important;">
-                        <button type="button" onclick="toggleBdayCollapse()" class="dashboard-section-toggle-btn">
+                    <div class="section-head" style="margin: 0 0 2px 0 !important;">
+                        <div class="dashboard-section-toggle-btn" style="cursor: default; pointer-events: none;">
                             <span class="section-title" id="todayBirthdayTitle">أعياد الميلاد</span>
-                            <i class="fas fa-chevron-down chevron" id="bdayCollapseIcon"
-                                style="transform: rotate(0deg);"></i>
-                        </button>
+                        </div>
                     </div>
                     <div class="bday-banner-list" id="todayBirthdayList"></div>
                 </div>
@@ -15489,19 +15490,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 title.textContent = `أعياد ميلاد هذا الأسبوع`;
             }
 
-            // Restore collapsed state
-            let bdayPref = localStorage.getItem('bdayCollapsed');
-            if (bdayPref === null) {
-                bdayPref = 'false'; // Open by default!
-            }
-            const isCollapsed = bdayPref === 'true';
-            if (isCollapsed) {
-                list.classList.add('collapsed');
-                if (icon) icon.style.transform = 'rotate(-90deg)';
-            } else {
-                list.classList.remove('collapsed');
-                if (icon) icon.style.transform = 'rotate(0deg)';
-            }
+            // Ensure collapsed class is never present since toggling is disabled
+            list.classList.remove('collapsed');
 
             list.innerHTML = items.map((item, index) => {
                 const s = item.student;
