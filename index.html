@@ -703,16 +703,29 @@
             overflow-x: auto;
             scroll-snap-type: x mandatory;
             -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-            padding: 14px 32px 28px;
+            padding: 14px 32px 20px;
             cursor: grab;
             user-select: none;
-            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
-            mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
         }
 
         .ss-track::-webkit-scrollbar {
-            display: none;
+            height: 6px;
+            display: block;
+        }
+
+        .ss-track::-webkit-scrollbar-track {
+            background: rgba(99, 102, 241, 0.04);
+            border-radius: 999px;
+        }
+
+        .ss-track::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.2);
+            border-radius: 999px;
+            transition: var(--transition-fast);
+        }
+
+        .ss-track::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.4);
         }
 
         .ss-track.is-dragging {
@@ -776,12 +789,11 @@
             }
 
             .ss-phone {
-                padding: 10px;
+                padding: 8px;
                 border-radius: 24px;
-                background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
-                border: 1px solid rgba(148, 163, 184, .25);
-                box-shadow: 0 18px 40px -18px rgba(15, 23, 42, .35),
-                    0 4px 14px -8px rgba(99, 102, 241, .2);
+                background: #0f172a;
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                box-shadow: 0 18px 40px rgba(15, 23, 42, 0.25);
             }
 
             .ss-phone::before,
@@ -790,14 +802,7 @@
             }
 
             .ss-screen {
-                padding-bottom: 66%;
                 border-radius: 18px;
-            }
-
-            .ss-screen img {
-                top: 0;
-                height: 100%;
-                object-position: center top;
             }
 
             .ss-phone-label {
@@ -824,19 +829,17 @@
         .ss-phone {
             width: 100%;
             border-radius: 28px;
-            background: #1c1c2e;
+            background: #0f172a;
             padding: 7px;
-            box-shadow: 0 12px 40px -8px rgba(99, 102, 241, .22),
-                0 4px 16px -4px rgba(0, 0, 0, .18),
-                0 0 0 1px rgba(255, 255, 255, .06);
+            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.15),
+                        0 0 0 1px rgba(255, 255, 255, 0.08);
             position: relative;
-            transition: box-shadow .3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .ss-phone-card:hover .ss-phone {
-            box-shadow: 0 20px 50px -10px rgba(99, 102, 241, .35),
-                0 6px 20px -4px rgba(0, 0, 0, .22),
-                0 0 0 1px rgba(99, 102, 241, .2);
+            box-shadow: 0 20px 48px rgba(99, 102, 241, 0.2),
+                        0 0 0 1px rgba(99, 102, 241, 0.2);
         }
 
         .ss-phone::before {
@@ -1702,39 +1705,6 @@
                 <img src="imgs/Sunday-School-App.webp" alt="Sunday School Cover" class="hero-img">
             </div>
         </div>
-
-<!-- Features Section -->
-        <section class="features-section">
-            <h2 class="title" style="text-align: center; margin-bottom: var(--spacing-xl);">مميزات النظام</h2>
-            <div class="features-grid">
-                <div class="feature-item">
-                    <div class="feature-icon">
-                        <i class="fas fa-user-check"></i>
-                    </div>
-                    <h3 class="feature-title">إدارة الحضور الذكية</h3>
-                    <p class="feature-desc">تسجيل حضور الأطفال بسهولة مع تحديث فوري</p>
-                </div>
-                <div class="feature-item">
-                    <div class="feature-icon">
-                        <i class="fas fa-coins"></i>
-                    </div>
-                    <h3 class="feature-title">نظام الكوبونات</h3>
-                    <p class="feature-desc">تتبع وتوزيع الكوبونات للمكافأة والتشجيع</p>
-                </div>
-                <div class="feature-item">
-                    <div class="feature-icon">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <h3 class="feature-title">تقارير وإحصائيات</h3>
-                    <p class="feature-desc">تقارير مفصلة عن الحضور والأداء</p>
-                </div>
-            </div>
-            <!-- Start Button -->
-            <button class="start-btn" onclick="scrollToSelection()">
-                ابدأ الآن
-                <i class="fas fa-arrow-down"></i>
-            </button>
-        </section>
 
 <!-- User Type Selection -->
         <section id="user-selection" style="margin-bottom: var(--spacing-xl);">
