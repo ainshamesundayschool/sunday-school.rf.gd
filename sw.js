@@ -137,8 +137,8 @@ self.addEventListener('fetch', e => {
                     const cached = await caches.match(manifestPath);
                     if (cached) return cached;
                     return new Response(JSON.stringify({
-                        name: 'Sunday School',
-                        short_name: 'Sunday School',
+                        name: 'Sunday School Online',
+                        short_name: 'Sunday School Online',
                         start_url: '/',
                         display: 'standalone',
                         icons: []
