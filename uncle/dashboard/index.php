@@ -15545,7 +15545,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <div class="bday-chip-meta-row">
                             ${cls ? `<span class="bday-chip-class">${cls}</span>` : ''}
                             ${cls ? `<span class="bday-chip-separator">·</span>` : ''}
-                            ${item.isToday ? `<span class="bday-chip-day today">اليوم 🎉</span>` : `<span class="bday-chip-day text-muted">${item.dayName}</span>`}
+                            ${item.isToday ? `<span class="bday-chip-day today"><i class="fas fa-birthday-cake" style="margin-left: 3px; font-size: 0.62rem; color: var(--brand);"></i>اليوم</span>` : `<span class="bday-chip-day text-muted"><i class="fas fa-gift" style="margin-left: 3px; font-size: 0.62rem; color: var(--brand-light);"></i>${item.dayName}</span>`}
                         </div>
                     </div>
                 </div>`;
