@@ -292,13 +292,13 @@
         }
 
         .user-icon {
-            font-size: 3rem;
-            margin-bottom: var(--spacing-lg);
+            font-size: 4rem;
+            margin-bottom: var(--spacing-md);
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 80px;
-            height: 80px;
+            width: 100px;
+            height: 100px;
             border-radius: var(--radius-xl);
             background: linear-gradient(135deg, var(--primary-bg), rgba(165, 180, 252, 0.3));
             color: var(--primary);
@@ -599,9 +599,9 @@
             }
 
             .user-icon {
-                font-size: 2.2rem;
-                width: 60px;
-                height: 60px;
+                font-size: 3.2rem;
+                width: 80px;
+                height: 80px;
                 margin-bottom: var(--spacing-sm);
             }
 
@@ -1704,7 +1704,68 @@
             </div>
         </div>
 
-        <!-- Exclusive Song Section -->
+<!-- Features Section -->
+        <section class="features-section">
+            <h2 class="title" style="text-align: center; margin-bottom: var(--spacing-xl);">مميزات النظام</h2>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <h3 class="feature-title">إدارة الحضور الذكية</h3>
+                    <p class="feature-desc">تسجيل حضور الأطفال بسهولة مع تحديث فوري</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <h3 class="feature-title">نظام الكوبونات</h3>
+                    <p class="feature-desc">تتبع وتوزيع الكوبونات للمكافأة والتشجيع</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="feature-title">تقارير وإحصائيات</h3>
+                    <p class="feature-desc">تقارير مفصلة عن الحضور والأداء</p>
+                </div>
+            </div>
+            <!-- Start Button -->
+            <button class="start-btn" onclick="scrollToSelection()">
+                ابدأ الآن
+                <i class="fas fa-arrow-down"></i>
+            </button>
+        </section>
+
+<!-- User Type Selection -->
+        <section id="user-selection" style="margin-bottom: var(--spacing-xl);">
+            <h2 class="title" style="text-align: center;">اختر نوع المستخدم للبدء</h2>
+            <div class="user-cards">
+                <div class="user-card" onclick="selectUser('kid')">
+                    <div class="user-icon" style="margin-top: 10px;">
+                        <i class="fas fa-child"></i>
+                    </div>
+                    <h3 class="user-title">طفل</h3>
+                    <div class="user-action">
+                        <span>الدخول كـ طفل</span>
+                        <i class="fas fa-arrow-left"></i>
+                    </div>
+                </div>
+
+                <div class="user-card" onclick="selectUser('uncle')">
+                    <div class="user-icon" style="margin-top: 10px;">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <h3 class="user-title">انكل / طنط</h3>
+                    <div class="user-action">
+                        <span>الدخول كـ انكل / طنط</span>
+                        <i class="fas fa-arrow-left"></i>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+<!-- Exclusive Song Section -->
         <section class="exclusive-song-section">
             <div class="song-card-container">
                 <div class="song-card">
@@ -1755,76 +1816,6 @@
                         
                         <!-- Audio Element (hidden) -->
                         <audio id="exclusive-audio" src="/exclusive/song/2026/files/song.mp3" preload="metadata"></audio>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ═══ SCREENSHOTS SHOWCASE ═══ -->
-
-
-        <!-- Features Section -->
-        <section class="features-section">
-            <h2 class="title" style="text-align: center; margin-bottom: var(--spacing-xl);">مميزات النظام</h2>
-            <div class="features-grid">
-                <div class="feature-item">
-                    <div class="feature-icon">
-                        <i class="fas fa-user-check"></i>
-                    </div>
-                    <h3 class="feature-title">إدارة الحضور الذكية</h3>
-                    <p class="feature-desc">تسجيل حضور الأطفال بسهولة مع تحديث فوري</p>
-                </div>
-                <div class="feature-item">
-                    <div class="feature-icon">
-                        <i class="fas fa-coins"></i>
-                    </div>
-                    <h3 class="feature-title">نظام الكوبونات</h3>
-                    <p class="feature-desc">تتبع وتوزيع الكوبونات للمكافأة والتشجيع</p>
-                </div>
-                <div class="feature-item">
-                    <div class="feature-icon">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <h3 class="feature-title">تقارير وإحصائيات</h3>
-                    <p class="feature-desc">تقارير مفصلة عن الحضور والأداء</p>
-                </div>
-            </div>
-            <!-- Start Button -->
-            <button class="start-btn" onclick="scrollToSelection()">
-                ابدأ الآن
-                <i class="fas fa-arrow-down"></i>
-            </button>
-        </section>
-
-        <!-- User Type Selection -->
-        <section id="user-selection" style="margin-bottom: var(--spacing-xl);">
-            <h2 class="title" style="text-align: center;">اختر نوع المستخدم للبدء</h2>
-            <div class="user-cards">
-                <div class="user-card" onclick="selectUser('kid')">
-                    <div class="user-icon">
-                        <i class="fas fa-child"></i>
-                    </div>
-                    <h3 class="user-title">طفل</h3>
-                    <p class="user-description">
-                        مشاهدة ملفي الشخصي، الكوبونات، سجل الحضور والمهام
-                    </p>
-                    <div class="user-action">
-                        <span>الدخول كـ طفل</span>
-                        <i class="fas fa-arrow-left"></i>
-                    </div>
-                </div>
-
-                <div class="user-card" onclick="selectUser('uncle')">
-                    <div class="user-icon">
-                        <i class="fas fa-user-tie"></i>
-                    </div>
-                    <h3 class="user-title">انكل / طنط</h3>
-                    <p class="user-description">
-                        إدارة الأطفال، تسجيل الحضور، تعديل المعلومات، وإرسال الإعلانات والمهام
-                    </p>
-                    <div class="user-action">
-                        <span>الدخول كـ انكل / طنط</span>
-                        <i class="fas fa-arrow-left"></i>
                     </div>
                 </div>
             </div>
