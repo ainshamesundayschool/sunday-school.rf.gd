@@ -938,7 +938,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             cursor: pointer;
             transition: all var(--t) var(--ease);
             background: var(--brand-bg);
-            border: 2.5px solid var(--brand);
+            border: none;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -947,17 +947,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .topbar-avatar-btn:hover {
-            border-color: var(--brand-dark);
             transform: translateY(-1px) scale(1.06);
-            box-shadow: 0 4px 14px var(--brand-glow)
+            box-shadow: 0 4px 14px var(--brand-glow);
         }
 
         .topbar-avatar-btn img {
-            width: 36px;
-            height: 36px;
+            width: 100%;
+            height: 100%;
             border-radius: 50%;
             object-fit: cover;
-            flex-shrink: 0
+            flex-shrink: 0;
         }
 
         .topbar-avatar-btn i {
@@ -4493,6 +4492,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .navigation-icon.blue {
             background: rgba(59, 130, 246, 0.1);
             color: #3b82f6;
+        }
+        .navigation-icon.orange {
+            background: var(--warning-bg);
+            color: var(--warning-dark);
         }
         .navigation-label {
             font-size: 0.88rem;
@@ -20028,7 +20031,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             </div>
             `;
 
-            document.getElementById('studentDetails').innerHTML = img + rows + siblingHtml + tpHtml + paperExamsHtml + notesHtml;
+            document.getElementById('studentDetails').innerHTML = img + rows + tpHtml + siblingHtml + paperExamsHtml + notesHtml;
         }
 
         function buildUncleDetailsFromProfile(full) {
