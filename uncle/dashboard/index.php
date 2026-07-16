@@ -7825,10 +7825,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border-radius: var(--r-xl);
             border: 1px solid transparent !important;
             background: 
-                linear-gradient(to right, transparent, rgba(251, 191, 36, 0.06) 20%, rgba(244, 63, 94, 0.06) 50%, rgba(251, 191, 36, 0.06) 80%, transparent) padding-box,
+                linear-gradient(to right, transparent, rgba(99, 102, 241, 0.02) 20%, rgba(99, 102, 241, 0.02) 80%, transparent) padding-box,
                 linear-gradient(to right, transparent, var(--surface) 20%, var(--surface) 80%, transparent) padding-box,
-                linear-gradient(to right, transparent, rgba(251, 191, 36, 0.3) 20%, rgba(244, 63, 94, 0.3) 50%, rgba(251, 191, 36, 0.3) 80%, transparent) border-box !important;
-            padding: 8px 16px !important;
+                linear-gradient(to right, transparent, var(--brand-light) 20%, var(--brand) 50%, var(--brand-light) 80%, transparent) border-box !important;
+            padding: 4px 12px !important;
             width: 100%;
             max-width: 640px;
             box-shadow: var(--shadow-sm);
@@ -7838,9 +7838,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .bday-decor {
             position: absolute;
-            font-size: 2.2rem;
-            opacity: 0.12;
-            color: var(--brand);
+            font-size: 1.5rem;
+            opacity: 0.06;
+            color: var(--brand-light);
             user-select: none;
             pointer-events: none;
             z-index: 1;
@@ -7848,15 +7848,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .bday-decor-left {
-            left: 16px;
-            bottom: 6px;
+            left: 8px;
+            bottom: 2px;
             transform: rotate(-15deg);
             animation: bdayFloatLeft 4s ease-in-out infinite alternate;
         }
 
         .bday-decor-right {
-            right: 16px;
-            top: 6px;
+            right: 8px;
+            top: 2px;
             transform: rotate(15deg);
             animation: bdayFloatRight 4s ease-in-out infinite alternate;
         }
@@ -7881,9 +7881,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         [data-theme="dark"] .bday-banner-wrapper {
             background: 
-                linear-gradient(to right, transparent, rgba(251, 191, 36, 0.12) 20%, rgba(244, 63, 94, 0.12) 50%, rgba(251, 191, 36, 0.12) 80%, transparent) padding-box,
+                linear-gradient(to right, transparent, rgba(99, 102, 241, 0.05) 20%, rgba(99, 102, 241, 0.05) 80%, transparent) padding-box,
                 linear-gradient(to right, transparent, var(--surface) 20%, var(--surface) 80%, transparent) padding-box,
-                linear-gradient(to right, transparent, rgba(251, 191, 36, 0.42) 20%, rgba(244, 63, 94, 0.42) 50%, rgba(251, 191, 36, 0.42) 80%, transparent) border-box !important;
+                linear-gradient(to right, transparent, var(--brand) 20%, var(--brand-light) 50%, var(--brand) 80%, transparent) border-box !important;
         }
 
         .bday-banner-list {
@@ -7917,12 +7917,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             flex-direction: column;
             align-items: center;
             text-align: center;
-            gap: 4px;
+            gap: 2px;
             flex-shrink: 0;
             width: 130px;
             background: transparent;
             border: none !important;
-            padding: 4px 6px;
+            padding: 2px 4px;
             border-radius: var(--r-lg);
             cursor: pointer;
             transition: all var(--t) var(--ease);
@@ -7943,10 +7943,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
         /* Birthday of the week (not today): smaller dimensions and clean neutral styling */
         .bday-banner-chip:not(.today) {
             width: 130px;
-            padding: 4px 6px;
+            padding: 2px 4px;
             border: none !important;
             background: transparent;
-            gap: 4px;
+            gap: 2px;
             box-shadow: none !important;
         }
 
@@ -7965,8 +7965,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .bday-chip-img {
-            width: 64px;
-            height: 64px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid var(--brand-light);
@@ -7982,8 +7982,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .bday-banner-chip:not(.today) .bday-chip-img {
-            width: 56px;
-            height: 56px;
+            width: 40px;
+            height: 40px;
             border-color: var(--border-solid);
             box-shadow: none;
         }
@@ -11416,11 +11416,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div id="mainStatsRow" class="bday-banner-wrapper" style="display:none;">
                     <div class="bday-decor bday-decor-left"><i class="fas fa-birthday-cake"></i></div>
                     <div class="bday-decor bday-decor-right"><i class="fas fa-gift"></i></div>
-                    <div class="section-head" style="margin: 0 0 2px 0 !important; z-index: 2; position: relative;">
-                        <div class="dashboard-section-toggle-btn" style="cursor: default; pointer-events: none;">
-                            <span class="section-title" id="todayBirthdayTitle">أعياد الميلاد</span>
-                        </div>
-                    </div>
                     <div class="bday-banner-list" id="todayBirthdayList" style="z-index: 2; position: relative;"></div>
                 </div>
 
@@ -15524,10 +15519,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 banner.style.display = 'block';
             }
 
-            if (todayCount > 0) {
-                title.innerHTML = `<i class="fas fa-birthday-cake" style="margin-left: 6px; color: var(--brand);"></i> أعياد ميلاد اليوم`;
-            } else {
-                title.innerHTML = `<i class="fas fa-gift" style="margin-left: 6px; color: var(--brand);"></i> أعياد ميلاد هذا الأسبوع`;
+            if (title) {
+                if (todayCount > 0) {
+                    title.innerHTML = `<i class="fas fa-birthday-cake" style="margin-left: 6px; color: var(--brand);"></i> أعياد ميلاد اليوم`;
+                } else {
+                    title.innerHTML = `<i class="fas fa-gift" style="margin-left: 6px; color: var(--brand);"></i> أعياد ميلاد هذا الأسبوع`;
+                }
             }
 
             // Ensure collapsed class is never present since toggling is disabled
