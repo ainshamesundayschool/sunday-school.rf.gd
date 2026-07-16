@@ -4638,7 +4638,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             text-align: center;
             margin-bottom: 18px;
             padding-bottom: 18px;
-            border-bottom: 1px solid var(--border-solid)
         }
 
         .detail-avatar {
