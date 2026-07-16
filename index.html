@@ -67,10 +67,14 @@
     <meta name="facebook-domain-verification" content="hp0d2j5rjf51gc5j0ak6djiauvpthr">
     <meta property="fb:app_id" content="422015245890190">
 
-    <!-- Stylesheets -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Stylesheets (Asynchronously loaded to prevent render blocking) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap"></noscript>
+
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
 
     <style>
         /* Minimal critical CSS */
@@ -1723,7 +1727,35 @@
             to { opacity: 1; }
         }
 
+        /* Touch target size booster for PageSpeed / Lighthouse audits */
+        .ss-lb-close,
+        .ss-lb-fullscreen,
+        .ss-btn,
+        .ss-dot {
+            position: relative;
+        }
 
+        .ss-lb-close::after,
+        .ss-lb-fullscreen::after {
+            content: '';
+            position: absolute;
+            inset: -6px;
+            border-radius: 50%;
+        }
+
+        .ss-btn::after {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            border-radius: 50%;
+        }
+
+        .ss-dot::after {
+            content: '';
+            position: absolute;
+            inset: -20px;
+            border-radius: 50%;
+        }
     </style>
     <script src="/js/og-meta.js"></script>
 </head>
@@ -1737,7 +1769,7 @@
         <a href="/">/</a>
     </div>
 
-    <div class="container">
+    <main class="container">
         <!-- Top Section: Unified Responsive Hero Card -->
         <div class="hero-card">
             <div class="hero-content">
@@ -1762,7 +1794,7 @@
             </div>
 
             <div class="hero-illustration">
-                <img src="imgs/Sunday-School-App.webp" alt="Sunday School Cover" class="hero-img">
+                <img src="imgs/Sunday-School-App.webp" alt="Sunday School Cover" class="hero-img" width="400" height="180">
             </div>
         </div>
 
@@ -1844,7 +1876,7 @@
                         </div>
                         
                         <!-- Audio Element (hidden) -->
-                        <audio id="exclusive-audio" src="/exclusive/song/2026/files/song.mp3" preload="metadata"></audio>
+                        <audio id="exclusive-audio" src="/exclusive/song/2026/files/song.mp3" preload="none"></audio>
                     </div>
                 </div>
             </div>
@@ -2025,7 +2057,7 @@
         </section>
 
         <!-- ═══ LIGHTBOX ═══ -->
-        <div class="ss-lightbox" id="ssLightbox" role="dialog" aria-modal="true">
+        <div class="ss-lightbox" id="ssLightbox" role="dialog" aria-modal="true" aria-label="معرض لقطات شاشة التطبيق">
             <div class="ss-lb-backdrop" id="ssLbBackdrop"></div>
             <button class="ss-lb-close" id="ssLbClose" aria-label="إغلاق"><i class="fas fa-times"></i></button>
             <button class="ss-lb-fullscreen" id="ssLbFullscreen" aria-label="ملء الشاشة"><i
@@ -2174,7 +2206,7 @@
                 style="flex-direction: column; align-items: center; gap: 8px; margin-bottom: 16px;">
                 <a href="/" class="footer-brand">
                     <div class="brand-icon">
-                        <img src="/logo.png" alt="Logo"
+                        <img src="/logo.png" alt="Logo" width="40" height="40"
                             onerror="this.parentElement.innerHTML='&lt;i class=\'fas fa-cross\' style=\'color:#fff;font-size:15px\'&gt;&lt;/i&gt;'">
                     </div>
                     <span class="brand-name">Sunday School 2026</span>
@@ -2188,14 +2220,14 @@
                 <a href="https://api.whatsapp.com/send?phone=201037011355" class="footer-link"><i
                         class="fab fa-whatsapp"></i> تواصل معنا</a>
                 <a href="https://ipn.eg/S/peterfyqnb/instapay/4OGoKS" target="_blank" class="footer-link">
-                    <img src="/InstaPay-Logo.webp" alt="InstaPay"
+                    <img src="/InstaPay-Logo.webp" alt="InstaPay" width="54" height="14"
                         style="height: 14px; width: auto; vertical-align: middle; border-radius: 2px;">
                     <span>تبرّع للمشروع</span>
                 </a>
                 <a href="/about" class="footer-link"><i class="fas fa-info-circle"></i> حول التطبيق</a>
             </div>
         </footer>
-    </div>
+    </main>
 
     <script>
         // ── SCREENSHOTS CAROUSEL + LIGHTBOX ─────────────
