@@ -7827,12 +7827,28 @@ if ($hasUncleId && $uncleRole === 'uncle')
             -ms-overflow-style: none;
             border: 1px solid rgba(244, 63, 94, 0.12) !important;
             border-radius: var(--r-xl);
-            background: linear-gradient(135deg, rgba(244, 63, 94, 0.05) 0%, rgba(245, 158, 11, 0.05) 100%);
+            background: linear-gradient(to left, rgba(244, 63, 94, 0.05) 0%, rgba(245, 158, 11, 0.05) 70%, transparent 100%);
             box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+            width: fit-content;
+            max-width: 100%;
+            transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease, margin 0.3s ease, border-color 0.3s ease;
+            max-height: 250px;
+            opacity: 1;
+        }
+
+        .bday-banner-list.collapsed {
+            max-height: 0px !important;
+            opacity: 0 !important;
+            padding-top: 0px !important;
+            padding-bottom: 0px !important;
+            margin-bottom: 0px !important;
+            border-color: transparent !important;
+            overflow: hidden;
+            pointer-events: none;
         }
 
         [data-theme="dark"] .bday-banner-list {
-            background: linear-gradient(135deg, rgba(244, 63, 94, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%);
+            background: linear-gradient(to left, rgba(244, 63, 94, 0.12) 0%, rgba(245, 158, 11, 0.12) 70%, transparent 100%);
             border-color: rgba(244, 63, 94, 0.2) !important;
         }
 
@@ -15410,13 +15426,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const list = document.getElementById('todayBirthdayList');
             const icon = document.getElementById('bdayCollapseIcon');
             if (!list) return;
-            const isCollapsed = list.style.display === 'none';
+            const isCollapsed = list.classList.contains('collapsed');
             if (isCollapsed) {
-                list.style.display = '';
+                list.classList.remove('collapsed');
                 if (icon) icon.style.transform = 'rotate(0deg)';
                 localStorage.setItem('bdayCollapsed', 'false');
             } else {
-                list.style.display = 'none';
+                list.classList.add('collapsed');
                 if (icon) icon.style.transform = 'rotate(-90deg)';
                 localStorage.setItem('bdayCollapsed', 'true');
             }
@@ -15455,10 +15471,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
             const isCollapsed = bdayPref === 'true';
             if (isCollapsed) {
-                list.style.display = 'none';
+                list.classList.add('collapsed');
                 if (icon) icon.style.transform = 'rotate(-90deg)';
             } else {
-                list.style.display = '';
+                list.classList.remove('collapsed');
                 if (icon) icon.style.transform = 'rotate(0deg)';
             }
 
