@@ -7821,11 +7821,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: flex;
             overflow-x: auto;
             gap: 10px;
-            padding: 4px 2px 10px !important;
-            margin-bottom: 4px !important;
+            padding: 10px 12px !important;
+            margin-bottom: 8px !important;
             scrollbar-width: none;
             -ms-overflow-style: none;
-            border-top: none !important;
+            border: 1px solid rgba(244, 63, 94, 0.12) !important;
+            border-radius: var(--r-xl);
+            background: linear-gradient(135deg, rgba(244, 63, 94, 0.05) 0%, rgba(245, 158, 11, 0.05) 100%);
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+        }
+
+        [data-theme="dark"] .bday-banner-list {
+            background: linear-gradient(135deg, rgba(244, 63, 94, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%);
+            border-color: rgba(244, 63, 94, 0.2) !important;
         }
 
         .bday-banner-list::-webkit-scrollbar {
