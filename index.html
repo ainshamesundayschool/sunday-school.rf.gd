@@ -1230,6 +1230,37 @@
             max-height: 90vh;
         }
 
+        .ss-lightbox:fullscreen {
+            background: #000 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 100vw !important;
+            height: 100vh !important;
+        }
+
+        .ss-lightbox:fullscreen .ss-lb-inner {
+            width: 100vw !important;
+            height: 100vh !important;
+            padding: 0 !important;
+            justify-content: center !important;
+        }
+
+        .ss-lightbox:fullscreen .ss-lb-img-wrap {
+            max-height: 100vh !important;
+            width: 100vw !important;
+            height: 100vh !important;
+        }
+
+        .ss-lightbox:fullscreen .ss-lb-img-wrap img {
+            max-height: 100vh !important;
+            max-width: 100vw !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            border-radius: 0 !important;
+            object-fit: contain !important;
+        }
+
         /* Mobile prev/next: bottom corners */
         @media(max-width: 600px) {
             .ss-lb-prev {
@@ -1718,16 +1749,12 @@
                         <div class="stat-label">طفل مسجل</div>
                     </div>
                     <div class="hero-stat-item">
+                        <div class="stat-value">150+</div>
+                        <div class="stat-label">خادم وخادمة</div>
+                    </div>
+                    <div class="hero-stat-item">
                         <div class="stat-value">45+</div>
                         <div class="stat-label">كنيسة</div>
-                    </div>
-                    <div class="hero-stat-item">
-                        <div class="stat-value">250K+</div>
-                        <div class="stat-label">كوبون</div>
-                    </div>
-                    <div class="hero-stat-item">
-                        <div class="stat-value">95%</div>
-                        <div class="stat-label">حضور</div>
                     </div>
                 </div>
             </div>
@@ -2012,33 +2039,7 @@
             </div>
         </div>
 
-        <!-- Features Section -->
-        <section class="mfeatures-section">
-            <h2 class="title" style="text-align: center; margin-bottom: var(--spacing-xl);">مميزات النظام</h2>
-            <div class="features-grid">
-                <div class="feature-item">
-                    <div class="feature-icon">
-                        <i class="fas fa-user-check"></i>
-                    </div>
-                    <h3 class="feature-title">إدارة الحضور الذكية</h3>
-                    <p class="feature-desc">تسجيل حضور الأطفال بسهولة مع تحديث فوري</p>
-                </div>
-                <div class="feature-item">
-                    <div class="feature-icon">
-                        <i class="fas fa-coins"></i>
-                    </div>
-                    <h3 class="feature-title">نظام الكوبونات</h3>
-                    <p class="feature-desc">تتبع وتوزيع الكوبونات للمكافأة والتشجيع</p>
-                </div>
-                <div class="feature-item">
-                    <div class="feature-icon">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <h3 class="feature-title">تقارير وإحصائيات</h3>
-                    <p class="feature-desc">تقارير مفصلة عن الحضور والأداء</p>
-                </div>
-            </div>
-        </section>
+
         <!-- Footer -->
         <style>
             /* ── FOOTER ── */
@@ -2246,7 +2247,7 @@
                 const cw = getCardWidth();
                 const trackW = track.offsetWidth;
                 const offset = (cw * currentIdx) - (trackW / 2) + (cards[currentIdx].offsetWidth / 2);
-                track.scrollTo({ left: Math.max(0, offset), behavior: 'smooth' });
+                track.scrollTo({ left: -offset, behavior: 'smooth' });
                 updateCarouselUI();
             }
 
@@ -2259,7 +2260,7 @@
 
             track.addEventListener('scroll', () => {
                 const cw = getCardWidth();
-                currentIdx = Math.min(total - 1, Math.max(0, Math.round(track.scrollLeft / cw)));
+                currentIdx = Math.min(total - 1, Math.max(0, Math.round(Math.abs(track.scrollLeft) / cw)));
                 updateCarouselUI();
             }, { passive: true });
 
@@ -2284,7 +2285,7 @@
                 e.preventDefault();
                 const dx = e.pageX - track.offsetLeft - startX;
                 if (Math.abs(dx) > 4) didDrag = true;
-                track.scrollLeft = startScroll - dx * 1.4;
+                track.scrollLeft = startScroll + dx * 1.4;
             });
 
             updateCarouselUI();
@@ -2376,6 +2377,7 @@
 
             if (lbClose) lbClose.addEventListener('click', closeLightbox);
             if (lbBack) lbBack.addEventListener('click', closeLightbox);
+            if (lbImg) lbImg.addEventListener('click', toggleFullscreen);
             if (lbPrev) lbPrev.addEventListener('click', () => lbGoTo(lbIdx - 1));
             if (lbNext) lbNext.addEventListener('click', () => lbGoTo(lbIdx + 1));
             if (lbFullscreen) lbFullscreen.addEventListener('click', toggleFullscreen);
@@ -2420,17 +2422,15 @@
         // بيانات إحصائية ديناميكية
         const stats = {
             totalKids: 1250,
-            activeChurches: 45,
-            totalCoupons: 250000,
-            attendanceRate: 95
+            totalUncles: 150,
+            activeChurches: 45
         };
 
         // دالة لتحديث الإحصائيات
         function updateStats() {
             document.querySelectorAll('.stat-value')[0].textContent = `${stats.totalKids.toLocaleString()}+`;
-            document.querySelectorAll('.stat-value')[1].textContent = `${stats.activeChurches}+`;
-            document.querySelectorAll('.stat-value')[2].textContent = `${stats.totalCoupons.toLocaleString()}+`;
-            document.querySelectorAll('.stat-value')[3].textContent = `${stats.attendanceRate}%`;
+            document.querySelectorAll('.stat-value')[1].textContent = `${stats.totalUncles.toLocaleString()}+`;
+            document.querySelectorAll('.stat-value')[2].textContent = `${stats.activeChurches}+`;
         }
 
         // دالة اختيار المستخدم
@@ -2742,7 +2742,7 @@
             }, observerOptions);
 
             // مراقبة العناصر لإضافة تأثيرات التمرير
-            document.querySelectorAll('.stat-card, .user-card, .feature-item, .song-card-container').forEach(el => {
+            document.querySelectorAll('.user-card').forEach(el => {
                 el.style.opacity = '0';
                 el.style.transform = 'translateY(20px)';
                 el.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
