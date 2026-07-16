@@ -7837,9 +7837,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         .bday-decor {
             position: absolute;
-            font-size: 1.5rem;
-            opacity: 0.06;
-            color: var(--brand-light);
+            font-size: 1.8rem;
+            opacity: 0.22;
+            color: var(--brand);
             user-select: none;
             pointer-events: none;
             z-index: 1;
