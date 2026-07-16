@@ -1,7 +1,7 @@
 // ╔══════════════════════════════════════════════════════════════╗
 // ║  Sunday School PWA — Service Worker v24                     ║
 // ╚══════════════════════════════════════════════════════════════╝
-const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v24';
+const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v25';
 const CACHE_NAME        = `sunday-school-${SW_VERSION}`;
 const SYNC_TAG          = 'sync-attendance';
 const PERIODIC_SYNC_TAG = 'check-registrations';
@@ -216,6 +216,22 @@ self.addEventListener('fetch', e => {
     if (e.request.mode === 'navigate') {
         e.respondWith(
             (async () => {
+                // Stale-While-Revalidate strategy for instant offline shell loading
+                if (isOfflineShellFriendly) {
+                    const cached = await caches.match(e.request, { ignoreSearch: true });
+                    if (cached) {
+                        // Revalidate in the background to update cache
+                        fetch(e.request, { cache: 'no-store' }).then(async r => {
+                            if (await _isCacheableAppResponse(r, e.request)) {
+                                const copy = r.clone();
+                                const cache = await caches.open(CACHE_NAME);
+                                await cache.put(e.request, copy);
+                            }
+                        }).catch(() => {});
+                        return cached;
+                    }
+                }
+
                 try {
                     // Force no-store for all navigations to prevent browser caching the cookie-check pages
                     const r = await fetch(e.request, { cache: 'no-store' });
