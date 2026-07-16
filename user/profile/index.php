@@ -50,7 +50,9 @@ if ($tempIdFromUrl && !$studentIdFromUrl) {
 }
 $isUncleLoggedIn = isset($_SESSION['uncle_id']) || isset($_SESSION['church_id']);
 if ($isUncleLoggedIn && $studentIdFromUrl && !(isset($_GET['noredirect']) && ($_GET['noredirect'] === 'true' || $_GET['noredirect'] === '1'))) {
-    header("Location: /uncle/church/index.html?kid_id=" . $studentIdFromUrl);
+    $isTestingEnv = (strpos($_SERVER['REQUEST_URI'], '/testing/') !== false || strpos($_SERVER['SCRIPT_NAME'], '/testing/') !== false);
+    $pathPrefix = $isTestingEnv ? '/testing' : '';
+    header("Location: " . $pathPrefix . "/uncle/dashboard/index.php?kid_id=" . $studentIdFromUrl);
     exit;
 }
 $targetTripId = isset($_GET['trip_id']) ? intval($_GET['trip_id']) : null;
