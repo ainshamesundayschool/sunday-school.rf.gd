@@ -4668,8 +4668,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .detail-avatar {
-            width: 88px;
-            height: 88px;
+            width: 108px;
+            height: 108px;
             border-radius: 50%;
             object-fit: cover;
             margin: 0 auto;
@@ -4686,8 +4686,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .detail-avatar-fallback {
-            width: 88px;
-            height: 88px;
+            width: 108px;
+            height: 108px;
             border-radius: 50%;
             background: var(--brand-bg);
             display: flex;
@@ -4695,7 +4695,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             justify-content: center;
             margin: 0 auto;
             color: var(--brand);
-            font-size: 2.2rem
+            font-size: 2.6rem
         }
 
         .detail-student-name {
@@ -12073,13 +12073,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <!-- Student Details Modal -->
     <div id="studentModal" class="modal-overlay" style="z-index:1000005">
         <div class="modal">
-            <div class="modal-header">
-                <h3 id="studentModalTitle">معلومات الطفل</h3>
-                <button class="close-btn" id="closeStudentModal">&times;</button>
+            <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                <div style="display:flex; align-items:center; gap:10px; min-width:0; flex:1;">
+                    <h3 id="studentModalTitle" style="margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">معلومات الطفل</h3>
+                    <button class="btn btn-xs btn-outline" id="editStudentBtn" style="padding:4px 8px;font-size:0.72rem;flex-shrink:0;"><i class="fas fa-edit"></i> تعديل</button>
+                </div>
+                <button class="close-btn" id="closeStudentModal" style="flex-shrink:0;">&times;</button>
             </div>
             <div id="studentDetailsHeader"></div>
-            <div id="studentModalFooter" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;margin-bottom:10px;">
-                <button class="btn btn-xs btn-outline" id="editStudentBtn" style="padding:4px 8px;font-size:0.72rem;"><i class="fas fa-edit"></i> تعديل</button>
+            <div id="studentModalFooter" style="display:none;gap:6px;flex-wrap:wrap;justify-content:flex-end;margin-bottom:10px;">
             </div>
             <div id="studentDetails" style="margin-bottom:14px"></div>
             <div id="studentModalDeleteFooter" style="display:flex;justify-content:center;margin-top:14px;">
@@ -18890,6 +18892,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (standaloneActions) standaloneActions.style.display = 'none';
             const headerEl = document.getElementById('studentDetailsHeader');
             if (headerEl) headerEl.style.display = 'none';
+            const editBtn = document.getElementById('editStudentBtn');
+            if (editBtn) editBtn.style.display = 'none';
         }
 
         function scrollToDetailsTop() {
@@ -18908,6 +18912,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (standaloneActions) standaloneActions.style.display = 'flex';
             const headerEl = document.getElementById('studentDetailsHeader');
             if (headerEl) headerEl.style.display = '';
+            const editBtn = document.getElementById('editStudentBtn');
+            if (editBtn) editBtn.style.display = '';
         }
 
         function setModalHeader(title, showBack = false) {
