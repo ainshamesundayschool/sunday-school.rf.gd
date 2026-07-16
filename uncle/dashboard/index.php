@@ -4423,7 +4423,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 0;
+            margin-top: 11px;
             margin-bottom: 14px;
             padding-bottom: 12px;
             border-bottom: 1.5px solid var(--border-solid);
@@ -4438,9 +4438,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .modal-header h3 {
-            font-size: 1rem;
-            font-weight: 800;
-            color: var(--text)
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: var(--text-3) !important;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .modal-header h3 i {
+            display: none !important;
+        }
+
+        .modal-header > button,
+        .modal-header > div {
+            margin-right: auto !important;
+            margin-left: 0 !important;
         }
 
         .header-btn,
@@ -4516,7 +4529,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             .modal-header {
                 position: static;
                 padding-top: 0;
-                margin-top: 14px;
+                margin-top: 11px;
                 margin-inline: 0;
                 padding-inline: 0;
             }
