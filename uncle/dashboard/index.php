@@ -4665,7 +4665,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: grid;
             grid-template-columns: auto 1fr;
             align-items: center;
-            gap: 4px 16px;
+            gap: 0px 16px;
             text-align: right;
             margin-bottom: 18px;
             padding-bottom: 18px;
@@ -4712,7 +4712,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-weight: 800;
             color: var(--text);
             text-align: right;
-            margin-top: 0;
+            margin: 0;
+            line-height: 1.2;
             grid-column: 2;
             grid-row: 1;
         }
@@ -4721,7 +4722,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-size: 0.95rem;
             color: var(--text-2);
             text-align: right;
-            margin-top: 0;
+            margin: 0;
+            line-height: 1.2;
             grid-column: 2;
             grid-row: 2;
         }
@@ -10455,6 +10457,34 @@ if ($hasUncleId && $uncleRole === 'uncle')
             #paperExamSheetView {
                 height: 100% !important;
             }
+
+            /* Compact table on mobile */
+            .sheet-table {
+                min-width: 100% !important;
+            }
+            .col-photo {
+                display: none !important;
+            }
+            .col-class {
+                display: none !important;
+            }
+            .col-answers {
+                width: 60px !important;
+                padding: 4px !important;
+            }
+            .col-grade {
+                width: 90px !important;
+                padding: 4px !important;
+            }
+            .col-name {
+                padding: 4px !important;
+                font-size: 0.8rem !important;
+            }
+            .sheet-degree-input {
+                width: 65px !important;
+                padding: 4px !important;
+                font-size: 0.8rem !important;
+            }
         }
 
         /* Ensure all inputs and buttons inherit custom font */
@@ -10897,15 +10927,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <!-- Sheet table container -->
                     <div
                         style="flex:1; overflow:auto; border:1px solid var(--border-solid); border-radius:var(--r-md); margin-top:8px;">
-                        <table style="width:100%; min-width:600px; border-collapse:collapse; text-align:right; font-size:0.85rem;">
+                        <table class="sheet-table" style="width:100%; min-width:600px; border-collapse:collapse; text-align:right; font-size:0.85rem;">
                             <thead>
                                 <tr
                                     style="background:var(--surface-2); border-bottom:2px solid var(--border-solid); color:var(--text);">
-                                    <th style="padding:10px; width:50px; text-align:center;">الصورة</th>
-                                    <th style="padding:10px; text-align:right;">الاسم</th>
-                                    <th style="padding:10px; width:120px; text-align:right;">الفصل</th>
-                                    <th style="padding:10px; width:150px; text-align:center;">ورقة الإجابة</th>
-                                    <th style="padding:10px; width:150px; text-align:center;">الدرجة المرصودة</th>
+                                    <th class="col-photo" style="padding:10px; width:50px; text-align:center;">الصورة</th>
+                                    <th class="col-name" style="padding:10px; text-align:right;">الاسم</th>
+                                    <th class="col-class" style="padding:10px; width:120px; text-align:right;">الفصل</th>
+                                    <th class="col-answers" style="padding:10px; width:150px; text-align:center;">ورقة الإجابة</th>
+                                    <th class="col-grade" style="padding:10px; width:150px; text-align:center;">الدرجة المرصودة</th>
                                 </tr>
                             </thead>
                             <tbody id="sheetStudentsTableBody">
@@ -28506,19 +28536,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 return `
                     <tr style="border-bottom:1px solid var(--border-solid);">
-                        <td style="padding:8px; text-align:center; vertical-align:middle;">
+                        <td class="col-photo" style="padding:8px; text-align:center; vertical-align:middle;">
                             <div style="position:relative; width:34px; height:34px; margin:0 auto;">
                                 ${avatar}
                                 ${fallback}
                             </div>
                         </td>
-                        <td style="padding:8px; font-weight:700; color:var(--text); vertical-align:middle;">${nameHtml}</td>
-                        <td style="padding:8px; color:var(--text-2); vertical-align:middle;">${escHtml(student.class_name)}</td>
-                        <td style="padding:8px; text-align:center; vertical-align:middle;">
+                        <td class="col-name" style="padding:8px; font-weight:700; color:var(--text); vertical-align:middle;">${nameHtml}</td>
+                        <td class="col-class" style="padding:8px; color:var(--text-2); vertical-align:middle;">${escHtml(student.class_name)}</td>
+                        <td class="col-answers" style="padding:8px; text-align:center; vertical-align:middle;">
                             ${answersPicHtml}
                             <input type="file" id="answers-file-input-${student.id}" style="display:none;" accept="image/*" onchange="uploadAnswersPic(${student.id}, ${activeExamId})">
                         </td>
-                        <td style="padding:8px; text-align:center; vertical-align:middle;">
+                        <td class="col-grade" style="padding:8px; text-align:center; vertical-align:middle;">
                             <input type="number" step="any" min="0" max="${activeExamTotalDegree}" class="form-input sheet-degree-input" 
                                    style="width:80px; text-align:center; margin:0 auto; padding:6px; font-family:Cairo,sans-serif; font-size:0.85rem;" 
                                    data-student-id="${student.id}" 
