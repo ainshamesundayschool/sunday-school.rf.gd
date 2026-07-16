@@ -6693,128 +6693,147 @@
         .dev-church-bar-pill {
             display: flex;
             align-items: center;
-            gap: 8px;
-            background: rgba(124, 58, 237, 0.08);
-            border: 1px solid rgba(124, 58, 237, 0.2);
-            padding: 4px 12px;
-            border-radius: 20px;
+            gap: 10px;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(124, 58, 237, 0.02));
+            border: 1.5px solid rgba(124, 58, 237, 0.25);
+            padding: 6px 16px;
+            border-radius: 12px;
             margin-left: 8px;
-            transition: all 0.2s ease;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             flex-shrink: 0;
             box-sizing: border-box;
             position: relative;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
         }
 
         .dev-church-bar-pill:hover {
-            background: rgba(124, 58, 237, 0.12);
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.12), rgba(124, 58, 237, 0.04));
+            border-color: rgba(124, 58, 237, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.12);
         }
 
         .dev-church-bar-icon {
-            width: 24px;
-            height: 24px;
+            width: 26px;
+            height: 26px;
             border-radius: 50%;
             background: var(--brand);
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.7rem;
+            font-size: 0.8rem;
             flex-shrink: 0;
+            box-shadow: 0 2px 5px rgba(124, 58, 237, 0.3);
         }
 
         .dev-church-chevron {
-            position: absolute;
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 0.6rem;
+            font-size: 0.7rem;
             color: var(--brand);
-            pointer-events: none;
+            transition: transform 0.25s ease;
+            margin-inline-start: auto;
+        }
+
+        .dev-church-bar-pill[aria-expanded="true"] .dev-church-chevron {
+            transform: rotate(180deg);
         }
 
         /* Custom Web Dropdown Menu */
         .dev-church-dropdown-menu {
             position: absolute;
-            top: 42px;
+            top: 48px;
             right: 0;
-            width: 240px;
-            background: var(--bg-card, rgba(255, 255, 255, 0.95));
-            border: 1px solid var(--border-solid, rgba(0, 0, 0, 0.08));
-            border-radius: 12px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            width: 320px;
+            background: var(--bg-card, rgba(255, 255, 255, 0.98));
+            border: 1px solid var(--border-solid, rgba(124, 58, 237, 0.15));
+            border-radius: 16px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             z-index: 1000000;
             overflow: hidden;
             display: none;
             flex-direction: column;
-            animation: devDropdownFadeIn 0.2s ease forwards;
+            animation: devDropdownFadeIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
             direction: rtl;
+            padding: 8px;
         }
 
         @keyframes devDropdownFadeIn {
             from {
                 opacity: 0;
-                transform: translateY(-8px);
+                transform: translateY(-10px) scale(0.95);
             }
-
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translateY(0) scale(1);
             }
         }
 
         .dev-church-dropdown-search-wrap {
-            padding: 8px;
-            border-bottom: 1px solid var(--border-solid, rgba(0, 0, 0, 0.08));
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(124, 58, 237, 0.1);
             display: flex;
             align-items: center;
-            gap: 6px;
-            background: rgba(0, 0, 0, 0.02);
+            gap: 10px;
+            margin-bottom: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .dev-church-dropdown-search-wrap:focus-within {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: var(--brand);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
         }
 
         .dev-church-dropdown-search-wrap .search-icon {
-            font-size: 0.78rem;
-            color: var(--text-3);
+            font-size: 0.85rem;
+            color: var(--brand);
         }
 
         .dev-church-dropdown-search-input {
             border: none;
             background: transparent;
-            font-size: 0.78rem;
+            font-size: 0.85rem;
             width: 100%;
             outline: none;
             color: var(--text);
             font-family: 'Cairo', sans-serif;
+            font-weight: 500;
         }
 
         .dev-church-dropdown-list {
-            max-height: 200px;
+            max-height: 320px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            padding: 4px;
+            gap: 4px;
+            padding: 2px;
         }
 
         .dev-church-dropdown-item {
-            padding: 8px 12px;
-            font-size: 0.8rem;
-            font-weight: 700;
+            padding: 10px 14px;
+            font-size: 0.88rem;
+            font-weight: 600;
             color: var(--text-2);
             cursor: pointer;
-            border-radius: 8px;
+            border-radius: 10px;
             text-align: right;
-            transition: all 0.15s ease;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .dev-church-dropdown-item:hover {
             background: rgba(124, 58, 237, 0.08);
             color: var(--brand);
+            transform: translateX(-4px);
         }
 
         .dev-church-dropdown-item.selected {
             background: var(--brand);
             color: #fff;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
         }
 
         .dev-church-dropdown-item-empty {
@@ -6826,13 +6845,13 @@
 
         @media (max-width: 600px) {
             .dev-church-bar-pill {
-                width: 34px !important;
-                height: 34px !important;
-                border-radius: 50% !important;
+                width: 38px !important;
+                height: 38px !important;
+                border-radius: 10px !important;
                 padding: 0 !important;
                 justify-content: center !important;
                 background: rgba(124, 58, 237, 0.08) !important;
-                border: 1px solid rgba(124, 58, 237, 0.2) !important;
+                border: 1.5px solid rgba(124, 58, 237, 0.25) !important;
                 margin-left: 4px !important;
                 margin-right: 4px !important;
                 cursor: pointer !important;
@@ -6873,9 +6892,9 @@
             }
 
             .dev-church-dropdown-menu {
-                right: auto;
-                left: 0;
-                width: 200px;
+                width: 290px !important;
+                right: auto !important;
+                left: -10px !important;
             }
         }
     </style>
@@ -19039,9 +19058,11 @@
             if (event) event.stopPropagation();
             const el = document.getElementById('devChurchDropdownMenu');
             if (!el) return;
+            const bar = document.getElementById('devChurchBar') || document.getElementById('devDashboardChurchSwitcher');
             const isHidden = el.style.display === 'none' || el.style.display === '' || getComputedStyle(el).display === 'none';
             if (isHidden) {
                 el.style.display = 'flex';
+                if (bar) bar.setAttribute('aria-expanded', 'true');
                 const searchInput = document.getElementById('devChurchDropdownSearch');
                 if (searchInput) {
                     searchInput.value = '';
@@ -19050,6 +19071,7 @@
                 renderDevChurchDropdownList(allChurchesCache || []);
             } else {
                 el.style.display = 'none';
+                if (bar) bar.setAttribute('aria-expanded', 'false');
             }
         }
 
@@ -19132,6 +19154,8 @@
             const dropdown = document.getElementById('devChurchDropdownMenu');
             if (dropdown && !e.target.closest('#devChurchBar')) {
                 dropdown.style.display = 'none';
+                const bar = document.getElementById('devChurchBar');
+                if (bar) bar.setAttribute('aria-expanded', 'false');
             }
         });
 
