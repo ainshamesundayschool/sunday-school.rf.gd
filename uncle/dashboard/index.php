@@ -28722,6 +28722,29 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 closeStandaloneKidView();
                 return;
             }
+
+            // Setup innerHTML interceptor on the dummy container to split avatar header and detail info rows
+            const dummyEl = originalGetElementById.call(document, 'standaloneDetailsBody');
+            if (dummyEl && !dummyEl._hasHookedSetter) {
+                dummyEl._hasHookedSetter = true;
+                Object.defineProperty(dummyEl, 'innerHTML', {
+                    set: function(val) {
+                        const temp = document.createElement('div');
+                        temp.innerHTML = val;
+                        const avatarWrap = temp.querySelector('.detail-avatar-wrap');
+                        if (avatarWrap) {
+                            originalGetElementById.call(document, 'standaloneDetailsHeader').innerHTML = avatarWrap.outerHTML;
+                            avatarWrap.remove();
+                            originalGetElementById.call(document, 'standaloneDetailsBody_info').innerHTML = temp.innerHTML;
+                        } else {
+                            originalGetElementById.call(document, 'standaloneDetailsBody_info').innerHTML = val;
+                        }
+                    },
+                    get: function() {
+                        return originalGetElementById.call(document, 'standaloneDetailsBody_info').innerHTML;
+                    }
+                });
+            }
             
             // 1. Render student info by triggering the existing renderer
             showStudentDetails(student['الاسم'] || student.name);
@@ -28752,6 +28775,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
             
             // 5. Update coupons counter
             document.getElementById('standaloneCouponsVal').textContent = student.coupons || student['كوبونات'] || 0;
+
+            // Reset active coupon target to 10
+            const countInput = document.getElementById('standaloneAddCouponsCount');
+            if (countInput) countInput.value = 10;
+            const targetGrid = document.querySelector('.coupon-targets-grid');
+            if (targetGrid) {
+                const buttons = targetGrid.querySelectorAll('.coupon-target-btn');
+                buttons.forEach((b, idx) => {
+                    if (idx === 0) b.classList.add('active');
+                    else b.classList.remove('active');
+                });
+            }
         }
 
         async function refreshStandaloneKidView(kidId) {
@@ -28828,14 +28863,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 
                 statusEl.innerHTML = `<span class="standalone-status-badge ${statusClass}">${statusText}</span>`;
                 actionsEl.innerHTML = `
-                    <button class="btn btn-outline-danger btn-sm" onclick="deleteStandaloneAttendance()"><i class="fas fa-trash-alt"></i> حذف</button>
-                    <button class="btn btn-primary btn-sm" onclick="toggleStandaloneAttendance('${record.status}')"><i class="fas fa-sync-alt"></i> تغيير الحالة</button>
+                    <button class="btn btn-xs btn-outline-danger" onclick="deleteStandaloneAttendance()" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fas fa-trash-alt"></i> حذف</button>
+                    <button class="btn btn-xs btn-primary" onclick="toggleStandaloneAttendance('${record.status}')" style="padding: 4px 8px; font-size: 0.75rem; background: var(--brand); border-color: var(--brand); color: #fff;"><i class="fas fa-sync-alt"></i> تغيير</button>
                 `;
             } else {
                 statusEl.innerHTML = `<span class="standalone-status-badge none">غير مسجل</span>`;
                 actionsEl.innerHTML = `
-                    <button class="btn btn-success btn-sm" onclick="saveStandaloneAttendance('present')"><i class="fas fa-check"></i> تسجيل حضور</button>
-                    <button class="btn btn-danger btn-sm" onclick="saveStandaloneAttendance('absent')"><i class="fas fa-times"></i> تسجيل غياب</button>
+                    <button class="btn btn-xs btn-success" onclick="saveStandaloneAttendance('present')" style="padding: 4px 8px; font-size: 0.75rem; background: var(--success); border-color: var(--success); color: #fff;"><i class="fas fa-check"></i> حضور</button>
+                    <button class="btn btn-xs btn-danger" onclick="saveStandaloneAttendance('absent')" style="padding: 4px 8px; font-size: 0.75rem; background: var(--danger); border-color: var(--danger); color: #fff;"><i class="fas fa-times"></i> غياب</button>
                 `;
             }
         }
@@ -28890,6 +28925,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function toggleStandaloneAttendance(curr) {
             const next = curr === 'present' ? 'absent' : 'present';
             saveStandaloneAttendance(next);
+        }
+
+        function selectCouponTarget(amount, btn) {
+            document.getElementById('standaloneAddCouponsCount').value = amount;
+            const buttons = btn.parentElement.querySelectorAll('.coupon-target-btn');
+            buttons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
         }
 
         async function addStandaloneCoupons(e) {
@@ -29037,64 +29079,86 @@ if ($hasUncleId && $uncleRole === 'uncle')
         z-index: 100;
         box-shadow: var(--sh-sm);
     }
-    .standalone-split-layout {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 24px;
-        max-width: 1250px;
-        margin: 24px auto;
-        padding: 0 20px;
+    .standalone-centered-layout {
+        max-width: 680px;
+        margin: 20px auto;
+        padding: 0 12px;
     }
     .standalone-profile-panel {
         background: var(--surface);
         border: 1px solid var(--border-solid);
         border-radius: var(--r-2xl);
-        padding: 20px 4px;
+        padding: 24px 8px;
         box-shadow: var(--sh-sm);
-        height: fit-content;
-    }
-    .standalone-management-panel {
-        display: flex;
-        flex-direction: column;
-        gap: 24px;
     }
     .standalone-card {
-        background: var(--surface);
+        background: var(--surface-2);
         border: 1px solid var(--border-solid);
-        border-radius: var(--r-2xl);
-        padding: 24px;
-        box-shadow: var(--sh-sm);
+        border-radius: var(--r-xl);
+        padding: 16px;
     }
     .standalone-card-title {
-        font-size: 1.15rem;
+        font-size: 1rem;
         font-weight: 800;
         color: var(--text);
-        margin-bottom: 20px;
+        margin-bottom: 14px;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
         border-bottom: 1.5px solid var(--border-solid);
-        padding-bottom: 12px;
+        padding-bottom: 10px;
     }
-    .standalone-status-badge {
-        display: inline-flex;
-        align-items: center;
-        padding: 6px 16px;
-        border-radius: 20px;
-        font-weight: 800;
-        font-size: 0.9rem;
-    }
-    .standalone-status-badge.present {
-        background: var(--success-light);
-        color: var(--success-dark);
-    }
-    .standalone-status-badge.absent {
-        background: var(--danger-light);
-        color: var(--danger-dark);
-    }
-    .standalone-status-badge.none {
+    .attendance-taking-box {
         background: var(--surface-3);
-        color: var(--text-3);
+        border: 1px solid var(--border-solid);
+        border-radius: 12px;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .attendance-row-main {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .attendance-date-select {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .attendance-status-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px dashed var(--border-solid);
+        padding-top: 8px;
+    }
+    .coupon-targets-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+    }
+    .coupon-target-btn {
+        background: var(--surface-3);
+        border: 1px solid var(--border-solid);
+        color: var(--text-2);
+        font-weight: 700;
+        font-size: 0.8rem;
+        padding: 6px 0;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+    .coupon-target-btn:hover {
+        background: var(--surface-4);
+    }
+    .coupon-target-btn.active {
+        background: var(--brand-light);
+        border-color: var(--brand);
+        color: var(--brand-dark);
     }
     .standalone-trip-card {
         display: flex;
@@ -29103,111 +29167,132 @@ if ($hasUncleId && $uncleRole === 'uncle')
         background: var(--surface-3);
         border: 1px solid var(--border-solid);
         border-radius: var(--r-md);
-        padding: 16px 20px;
+        padding: 10px 14px;
         text-decoration: none;
         color: var(--text);
         transition: all 0.2s ease;
         cursor: pointer;
+        font-size: 0.88rem;
     }
     .standalone-trip-card:hover {
         background: var(--surface-4);
         border-color: var(--brand);
-        transform: translateY(-2px);
+        transform: translateY(-1px);
     }
-    @media (max-width: 800px) {
-        .standalone-split-layout {
-            grid-template-columns: 1fr;
+    @media (max-width: 600px) {
+        .standalone-centered-layout {
+            margin: 8px auto;
+            padding: 0 6px;
+        }
+        .standalone-profile-panel {
+            padding: 16px 4px;
+            border-radius: var(--r-xl);
+        }
+        .standalone-card {
+            padding: 12px;
+        }
+        .coupons-grid {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
         }
     }
     </style>
 
     <div id="kidStandaloneContainer" class="standalone-full-screen-container" style="display:none;">
         <div class="standalone-navbar">
-            <button class="btn btn-outline btn-sm" onclick="closeStandaloneKidView()"><i class="fas fa-times"></i> إغلاق</button>
             <span style="font-weight:800; font-size:1.1rem; color:var(--text);" id="standaloneNavbarTitle">لوحة بيانات الطفل</span>
+            <button class="btn btn-outline btn-sm" onclick="closeStandaloneKidView()"><i class="fas fa-times"></i> إغلاق</button>
         </div>
         
-        <div class="standalone-split-layout">
-            <!-- Profile Column (matches student details modal look) -->
+        <div class="standalone-centered-layout">
             <div class="standalone-profile-panel">
-                <div id="standaloneDetailsBody">
-                    <!-- Renders the student profile -->
+                <!-- 1. Header (Avatar, Name, Class) -->
+                <div id="standaloneDetailsHeader" style="border-bottom: 1.5px solid var(--border-solid); padding-bottom: 16px; margin-bottom: 20px;">
+                    <!-- Header renders here -->
                 </div>
-                <div id="standaloneDetailsActions" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;padding: 0 16px 16px;">
-                    <button class="btn" onclick="editStandaloneKidInfo()" style="flex:1"><i class="fas fa-edit"></i> تعديل</button>
-                    <a id="standalonePublicProfileLink" href="#" target="_blank" class="btn btn-secondary" style="flex:1;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;"><i class="fas fa-user"></i> الملف العام</a>
+                
+                <!-- 2. Actions (Edit Info, View Profile Link) -->
+                <div id="standaloneDetailsActions" style="display:flex; gap:10px; justify-content:center; margin-bottom: 20px; flex-wrap:wrap; padding: 0 16px;">
+                    <button class="btn btn-sm btn-outline" onclick="editStandaloneKidInfo()" style="flex:1;"><i class="fas fa-edit"></i> تعديل البيانات</button>
+                    <a id="standalonePublicProfileLink" href="#" target="_blank" class="btn btn-sm btn-ghost" style="flex:1; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:6px;"><i class="fas fa-external-link-alt"></i> الملف العام (دون توجيه)</a>
                 </div>
+                
+                <!-- 3. Standalone Management Panel (Attendance, Coupons, Trips) -->
+                <div class="standalone-management-panel" style="margin-bottom: 24px; padding: 0 16px; display: flex; flex-direction: column; gap: 20px;">
+                    <!-- Attendance Card (all in one rectangle) -->
+                    <div class="standalone-card">
+                        <div class="standalone-card-title">
+                            <div class="detail-icon green" style="width:28px; height:28px; font-size:0.75rem;"><i class="fas fa-calendar-check"></i></div>
+                            <span>تسجيل الحضور والغياب</span>
+                        </div>
+                        
+                        <div class="attendance-taking-box">
+                            <div class="attendance-row-main">
+                                <div class="attendance-date-select">
+                                    <label class="form-label" style="margin:0; font-weight:700; font-size:0.88rem;">التاريخ:</label>
+                                    <input type="date" id="standaloneAttDate" class="form-input" style="padding: 6px 10px; font-size: 0.88rem;" onchange="updateStandaloneAttendanceUI()">
+                                </div>
+                                <button class="btn btn-xs btn-outline" onclick="resetToLatestAttendanceDate()" style="font-size:0.75rem; padding: 4px 8px;"><i class="fas fa-sync-alt"></i> الخدمة الحالية</button>
+                            </div>
+                            <div class="attendance-status-row">
+                                <div style="font-size: 0.88rem;">الحالة: <span id="standaloneAttStatus" style="font-weight:800;">—</span></div>
+                                <div id="standaloneAttActions" style="display:flex; gap:8px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Coupons Card -->
+                    <div class="standalone-card">
+                        <div class="standalone-card-title">
+                            <div class="detail-icon purple" style="width:28px; height:28px; font-size:0.75rem;"><i class="fas fa-coins"></i></div>
+                            <span>إضافة الكوبونات</span>
+                        </div>
+                        
+                        <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap:16px; align-items:center;" class="coupons-grid">
+                            <div style="text-align:center; background:var(--brand-bg); padding:16px; border-radius:12px; border:1px solid var(--brand-light);">
+                                <div style="font-size:0.8rem; color:var(--brand-dark); font-weight:700; margin-bottom:4px;"><i class="fas fa-star"></i> كوبونات الطفل</div>
+                                <div style="font-size:2.2rem; font-weight:800; color:var(--brand-dark); line-height:1;" id="standaloneCouponsVal">0</div>
+                            </div>
+                            
+                            <form onsubmit="addStandaloneCoupons(event)" style="display:flex; flex-direction:column; gap:10px;">
+                                <!-- Predefined Targets -->
+                                <div class="coupon-targets-grid">
+                                    <button type="button" class="coupon-target-btn active" onclick="selectCouponTarget(10, this)">+10</button>
+                                    <button type="button" class="coupon-target-btn" onclick="selectCouponTarget(30, this)">+30</button>
+                                    <button type="button" class="coupon-target-btn" onclick="selectCouponTarget(50, this)">+50</button>
+                                    <button type="button" class="coupon-target-btn" onclick="selectCouponTarget(100, this)">+100</button>
+                                </div>
+                                
+                                <input type="hidden" id="standaloneAddCouponsCount" value="10">
+                                
+                                <div class="form-group" style="margin:0;">
+                                    <input type="text" id="standaloneAddCouponsReason" class="form-input" placeholder="السبب (التزام بالدرس، إجابة ممتازة...)" style="padding:8px 12px; border-radius:8px; font-size:0.85rem;" required>
+                                </div>
+                                <button type="submit" class="btn btn-warning btn-sm" style="font-weight:700; background:var(--brand); border-color:var(--brand); color:#fff; font-size:0.85rem; padding: 8px;"><i class="fas fa-plus"></i> حفظ وإضافة الكوبونات</button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Trips Card -->
+                    <div class="standalone-card">
+                        <div class="standalone-card-title">
+                            <div class="detail-icon blue" style="width:28px; height:28px; font-size:0.75rem;"><i class="fas fa-route"></i></div>
+                            <span>رحلات الطفل المشترك فيها</span>
+                        </div>
+                        <div id="standaloneTripsList" style="display:flex; flex-direction:column; gap:8px;">
+                            <!-- list of trips -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 4. Profile Details Info (ID, phone, address, custom fields, siblings, notes, exams) -->
+                <div id="standaloneDetailsBody_info" style="padding: 0 16px;">
+                    <!-- Details render here -->
+                </div>
+                
+                <!-- Dummy hidden elements representing the proxy targets for the complex renderer -->
+                <div id="standaloneDetailsBody" style="display:none !important"></div>
                 <div id="standaloneDetailsActionsDummy" style="display:none !important"></div>
-            </div>
-            
-            <!-- Management Column (Attendance, Coupons, Trips) -->
-            <div class="standalone-management-panel">
-                <!-- Attendance Card -->
-                <div class="standalone-card">
-                    <div class="standalone-card-title">
-                        <i class="fas fa-calendar-check" style="color:var(--success);"></i>
-                        تسجيل الحضور والغياب
-                    </div>
-                    
-                    <div style="display:flex;flex-direction:column;gap:16px;">
-                        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;background:var(--surface-3);padding:14px;border-radius:12px;border:1px solid var(--border-solid);">
-                            <div style="display:flex;align-items:center;gap:8px;">
-                                <label style="font-weight:700;font-size:0.9rem;margin:0;">اختر تاريخ الحضور:</label>
-                                <input type="date" id="standaloneAttDate" class="form-input" style="width:auto;margin:0;padding:8px 12px;border-radius:8px;" onchange="updateStandaloneAttendanceUI()">
-                            </div>
-                            <button class="btn btn-sm btn-outline" onclick="resetToLatestAttendanceDate()"><i class="fas fa-sync-alt"></i> اليوم الحالي للخدمة</button>
-                        </div>
-                        
-                        <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface-3);padding:18px;border-radius:12px;border:1px solid var(--border-solid);flex-wrap:wrap;gap:12px;">
-                            <div>
-                                <div style="font-size:0.8rem;color:var(--text-3);margin-bottom:4px;">حالة الحضور في التاريخ المحدد:</div>
-                                <div id="standaloneAttStatus" style="font-size:1.1rem;font-weight:800;">—</div>
-                            </div>
-                            <div id="standaloneAttActions" style="display:flex;gap:10px;">
-                                <!-- Actions dynamically rendered -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Coupons Card -->
-                <div class="standalone-card">
-                    <div class="standalone-card-title">
-                        <i class="fas fa-coins" style="color:var(--warning);"></i>
-                        إضافة الكوبونات
-                    </div>
-                    
-                    <div style="display:grid;grid-template-columns:1fr 1.2fr;gap:20px;align-items:center;" class="coupons-grid">
-                        <div style="text-align:center;background:var(--brand-bg);padding:24px;border-radius:16px;border:1px solid var(--brand-light);">
-                            <div style="font-size:0.9rem;color:var(--brand-dark);font-weight:700;margin-bottom:6px;"><i class="fas fa-star"></i> إجمالي كوبونات الطفل</div>
-                            <div style="font-size:2.8rem;font-weight:800;color:var(--brand-dark);line-height:1;" id="standaloneCouponsVal">0</div>
-                            <div style="font-size:0.8rem;color:var(--brand-dark);margin-top:6px;">كوبون</div>
-                        </div>
-                        
-                        <form onsubmit="addStandaloneCoupons(event)" style="display:flex;flex-direction:column;gap:12px;">
-                            <div class="form-group" style="margin:0;">
-                                <label class="form-label" style="font-weight:700;">عدد الكوبونات المراد إضافتها:</label>
-                                <input type="number" id="standaloneAddCouponsCount" class="form-input" value="5" min="-1000" max="1000" style="padding:8px 12px;border-radius:8px;" required>
-                            </div>
-                            <div class="form-group" style="margin:0;">
-                                <label class="form-label" style="font-weight:700;">السبب:</label>
-                                <input type="text" id="standaloneAddCouponsReason" class="form-input" placeholder="مثال: التزام بالدرس، إجابة ممتازة..." style="padding:8px 12px;border-radius:8px;" required>
-                            </div>
-                            <button type="submit" class="btn btn-warning" style="font-weight:700;background:var(--brand);border-color:var(--brand);color:#fff;"><i class="fas fa-plus"></i> حفظ وإضافة الكوبونات</button>
-                        </form>
-                    </div>
-                </div>
-                
-                <!-- Trips Card -->
-                <div class="standalone-card">
-                    <div class="standalone-card-title">
-                        <i class="fas fa-route" style="color:var(--brand);"></i>
-                        رحلات الطفل المشترك فيها
-                    </div>
-                    <div id="standaloneTripsList" style="display:flex;flex-direction:column;gap:12px;">
-                        <!-- list of trips -->
-                    </div>
-                </div>
             </div>
         </div>
     </div>
