@@ -10420,6 +10420,28 @@ if ($hasUncleId && $uncleRole === 'uncle')
             #uncleAccountPage_profile>div {
                 justify-content: center !important;
             }
+
+            .hide-mobile {
+                display: none !important;
+            }
+
+            #paperExamsModal .modal {
+                padding: 0 12px 12px !important;
+                height: 90vh !important;
+                max-height: 90vh !important;
+                overflow-y: hidden !important;
+            }
+
+            #paperExamsModalBody {
+                padding: 8px 0 !important;
+                display: flex;
+                flex-direction: column;
+                height: calc(100% - 60px);
+            }
+
+            #paperExamSheetView {
+                height: 100% !important;
+            }
         }
 
         /* Ensure all inputs and buttons inherit custom font */
@@ -10809,11 +10831,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <span id="sheetExamTotalDegree" style="font-size:0.8rem; color:var(--text-3);">الدرجة
                                 الكلية: 100</span>
                         </div>
-                        <div style="display:flex; gap:8px; align-items:center;">
+                        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
                             <div id="sheetExamRefLinkContainer"
                                 style="display:inline-flex; align-items:center; gap:4px;"></div>
-                            <button class="btn btn-ghost" onclick="triggerRefUploadFromSheet()"><i
-                                    class="fas fa-paperclip"></i> <span id="sheetRefBtnText">ملف المرجع</span></button>
+                            <button class="btn btn-ghost" onclick="triggerRefUploadFromSheet()" title="ملف المرجع"><i
+                                    class="fas fa-paperclip"></i> <span id="sheetRefBtnText" class="hide-mobile">ملف المرجع</span></button>
                             <input type="file" id="sheetRefFileInput" style="display:none;"
                                 onchange="handleSheetRefUpload()"
                                 accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
@@ -10821,18 +10843,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <!-- CSV Import Button -->
                             <button class="btn btn-ghost"
                                 style="color:var(--brand); display:inline-flex; align-items:center; gap:4px;"
-                                onclick="triggerCsvImport()"><i class="fas fa-file-csv"></i> استيراد CSV</button>
+                                onclick="triggerCsvImport()" title="استيراد CSV"><i class="fas fa-file-csv"></i> <span class="hide-mobile">استيراد CSV</span></button>
                             <input type="file" id="sheetCsvFileInput" style="display:none;" onchange="handleCsvImport()"
                                 accept=".csv">
 
                             <!-- CSV Template Download Button -->
                             <button class="btn btn-ghost"
                                 style="color:var(--brand); display:inline-flex; align-items:center; gap:4px;"
-                                onclick="downloadPaperExamCsvTemplate()"><i class="fas fa-download"></i> تحميل
-                                القالب</button>
+                                onclick="downloadPaperExamCsvTemplate()" title="تحميل القالب"><i class="fas fa-download"></i> <span class="hide-mobile">تحميل القالب</span></button>
 
-                            <button class="btn btn-secondary" onclick="backToExamsList()"><i
-                                    class="fas fa-arrow-left"></i> رجوع</button>
+                            <button class="btn btn-secondary" onclick="backToExamsList()" title="رجوع"><i
+                                    class="fas fa-arrow-left"></i> <span class="hide-mobile">رجوع</span></button>
                         </div>
                     </div>
 
@@ -10862,8 +10883,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                     <!-- Sheet table container -->
                     <div
-                        style="flex:1; overflow-y:auto; border:1px solid var(--border-solid); border-radius:var(--r-md); margin-top:8px;">
-                        <table style="width:100%; border-collapse:collapse; text-align:right; font-size:0.85rem;">
+                        style="flex:1; overflow:auto; border:1px solid var(--border-solid); border-radius:var(--r-md); margin-top:8px;">
+                        <table style="width:100%; min-width:600px; border-collapse:collapse; text-align:right; font-size:0.85rem;">
                             <thead>
                                 <tr
                                     style="background:var(--surface-2); border-bottom:2px solid var(--border-solid); color:var(--text);">
