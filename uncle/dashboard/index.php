@@ -11460,11 +11460,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="bday-decor bday-decor-left"><i class="fas fa-birthday-cake"></i></div>
                     <div class="bday-decor bday-decor-right"><i class="fas fa-gift"></i></div>
                     <div class="bday-banner-list" id="todayBirthdayList" style="z-index: 2; position: relative;"></div>
-                    <div class="bday-dots-container" style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 4px; margin-bottom: 8px; z-index: 2; position: relative;">
-                        <div id="bdayDotsIndicator" style="display: none; gap: 6px; align-items: center;"></div>
-                        <div class="bday-menu-arrow" onclick="showBirthdayModal()" title="كل أعياد الميلاد"><i class="fas fa-chevron-left"></i></div>
+                    <div class="bday-footer-row" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 2px; margin-bottom: 4px; padding: 0 12px; z-index: 2; position: relative;">
+                        <div id="bdayCountSummary" style="font-size: 0.68rem; color: var(--text-3); margin: 0;"></div>
+                        <div class="bday-dots-container" style="display: flex; align-items: center; gap: 8px;">
+                            <div id="bdayDotsIndicator" style="display: none; gap: 6px; align-items: center;"></div>
+                            <div class="bday-menu-arrow" onclick="showBirthdayModal()" title="كل أعياد الميلاد"><i class="fas fa-chevron-left"></i></div>
+                        </div>
                     </div>
-                    <div id="bdayCountSummary" style="text-align: center; font-size: 0.68rem; color: var(--text-3); margin-top: -6px; margin-bottom: 6px; z-index: 2; position: relative;"></div>
                 </div>
 
                 <div class="section-head" id="tripsSectionHead"
