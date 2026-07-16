@@ -4471,7 +4471,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
         .navigation-row:hover {
             background: var(--surface-3);
-            border-color: var(--brand);
             transform: translateY(-1px);
         }
         .navigation-row:active {
@@ -4527,6 +4526,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             justify-content: center;
             transition: all var(--t) var(--ease);
             border-radius: var(--r-md);
+        }
+        .modal-header h3 .back-btn i {
+            display: inline-block !important;
         }
         .modal-header h3 .back-btn:hover {
             color: var(--brand);
@@ -4904,6 +4906,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
             background: var(--brand-bg);
             color: var(--brand);
             font-size: 0.9rem;
+        }
+
+        .sibling-preview-avatar-wrap .sibling-mini-avatar,
+        .sibling-preview-avatar-wrap .sibling-mini-avatar-fallback {
+            width: 20px !important;
+            height: 20px !important;
+            font-size: 0.6rem !important;
+            border-width: 1px !important;
+            box-shadow: none !important;
         }
 
         .sibling-unlink-btn {
@@ -11242,7 +11253,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             onclick="toggleTasksCollapse()">
                             <span
                                 style="font-size: 0.82rem; font-weight: 700; color: var(--text-2); display: inline-flex; align-items: center; gap: 6px; font-family: 'Cairo', sans-serif;">
-                                <i class="fas fa-tasks" style="color: var(--brand);"></i> المهام المتاحة (<span
+                                <span class="detail-icon blue" style="width: 24px; height: 24px; font-size: 0.72rem; border-radius: 6px; display: inline-flex;"><i class="fas fa-tasks"></i></span> المهام المتاحة (<span
                                     id="collapsedTasksCount">0</span>)
                             </span>
                             <div style="display: flex; align-items: center; gap: 6px;">
@@ -14006,8 +14017,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 return `
                     <div class="task-pill-item" onclick="openTasksModal(${t.id})" 
                         style="display: flex; align-items: center; justify-content: space-between; background: var(--surface-3); border: 1px solid var(--border-solid); padding: 8px 12px; border-radius: var(--r-md); cursor: pointer; transition: all 0.2s; gap: 8px; position: relative; z-index: 1;"
-                        onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow-sm)';this.style.borderColor='var(--brand)';this.style.zIndex='2';"
-                        onmouseout="this.style.transform='';this.style.boxShadow='';this.style.borderColor='var(--border-solid)';this.style.zIndex='1';"
+                        onmouseover="this.style.background='var(--surface-4)';"
+                        onmouseout="this.style.background='var(--surface-3)';"
                     >
                         <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1;">
                             <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escHtml(t.title)}</div>
@@ -19141,16 +19152,37 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const group = custom.sibling_group && typeof custom.sibling_group === 'object' ? custom.sibling_group : null;
             const members = group && group.id ? getSiblingMembersByGroupId(group.id, studentId) : [];
 
+            let previewHtml = '';
+            if (members.length > 0) {
+                previewHtml = `
+                <div class="sibling-preview-list" style="display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; margin-inline-start:34px;" onclick="event.stopPropagation()">
+                    ${members.map(m => {
+                        return `
+                        <div class="sibling-preview-tag" onclick="showStudentDetails('${escJs(m.name || m['الاسم'] || '')}')" style="display:inline-flex; align-items:center; gap:6px; background:var(--surface-3); border:1px solid var(--border-solid); padding:2px 8px 2px 4px; border-radius:16px; font-size:0.72rem; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='var(--surface-4)'" onmouseout="this.style.background='var(--surface-3)'">
+                            <div class="sibling-preview-avatar-wrap" style="width:20px; height:20px; border-radius:50%; overflow:hidden; position:relative; flex-shrink:0;">
+                                ${buildSiblingMiniAvatar(m)}
+                            </div>
+                            <span style="color:var(--text); font-weight:700; font-size:0.72rem;">${escHtml(getStudentDisplayName(m))}</span>
+                        </div>
+                        `;
+                    }).join('')}
+                </div>
+                `;
+            }
+
             return `
-            <div class="navigation-row" onclick="showSiblingsSubPage()">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <div class="navigation-icon blue"><i class="fas fa-people-roof"></i></div>
-                    <div class="navigation-label">${escHtml(words.panelLabel)}</div>
+            <div class="navigation-row" onclick="showSiblingsSubPage()" style="display:flex; flex-direction:column; align-items:stretch; gap:0;">
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div class="navigation-icon blue"><i class="fas fa-people-roof"></i></div>
+                        <div class="navigation-label">${escHtml(words.panelLabel)}</div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span class="navigation-count">${members.length}</span>
+                        <i class="fas fa-chevron-left navigation-arrow"></i>
+                    </div>
                 </div>
-                <div style="display:flex; align-items:center; gap:6px;">
-                    <span class="navigation-count">${members.length}</span>
-                    <i class="fas fa-chevron-left navigation-arrow"></i>
-                </div>
+                ${previewHtml}
             </div>
             `;
         }
@@ -19190,15 +19222,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const studentIdJs = JSON.stringify(studentId || 0);
             const siblingSubPageHtml = `
             <div class="sibling-panel" style="margin-top:8px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                    <h4 style="font-size:0.95rem; font-weight:700; color:var(--primary); margin:0; display:flex; align-items:center; gap:6px;">
-                        <i class="fas fa-people-roof"></i> ${escHtml(words.panelLabel)} (${members.length})
-                    </h4>
+                <div style="display:flex; justify-content:flex-end; align-items:center; margin-bottom:12px;">
                     <button type="button" class="btn btn-ghost sibling-link-btn" title="إضافة أخت أو أخ" onclick="openSiblingLinkModal(${studentIdJs})">
                         <i class="fas fa-link"></i> <i class="fas fa-plus"></i>
                     </button>
                 </div>
-                <div class="sibling-list" style="max-height:400px; overflow-y:auto; padding-inline-end:4px;">
+                <div class="sibling-list">
                     ${membersHtml}
                 </div>
             </div>
@@ -19207,14 +19236,152 @@ if ($hasUncleId && $uncleRole === 'uncle')
             document.getElementById('studentDetails').innerHTML = siblingSubPageHtml;
         }
 
+        function showPaperExamsSubPage() {
+            if (!currentStudentForEdit) return;
+            const full = currentStudentForEdit;
+            const paperExamsList = full.paper_exams || [];
+
+            setModalHeader('الدرجات والامتحانات الورقية', true);
+            const footer = document.getElementById('studentModalFooter');
+            if (footer) footer.style.display = 'none';
+
+            const examsHtml = paperExamsList.length === 0 ? `
+                <div style="text-align:center; padding:30px 20px; color:var(--muted); font-size:0.82rem; font-style:italic;">
+                    لا توجد امتحانات ورقية مسجلة.
+                </div>
+            ` : paperExamsList.map(exam => `
+                <div class="glass-card" style="padding:12px; border:1px solid var(--border-solid); border-radius:10px; display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px;">
+                    <div style="display:flex; flex-direction:column; gap:4px; flex:1;">
+                        <span style="font-weight:700; font-size:0.82rem; color:var(--text);">${escHtml(exam.name)}</span>
+                        <div style="display:flex; gap:8px; align-items:center; font-size:0.75rem; margin-top:2px;">
+                            <span style="color:var(--text-3);">الدرجة الكلية: ${exam.total_degree}</span>
+                            ${exam.reference_url ? `<a href="${exam.reference_url}" target="_blank" style="color:var(--brand); font-weight:700;"><i class="fas fa-external-link-alt"></i> ورقة الامتحان</a>` : ''}
+                        </div>
+                    </div>
+                    
+                    <!-- Answers Paper Picture Section -->
+                    <div style="display:flex; align-items:center; gap:4px; margin-left:8px;">
+                        ${exam.answers_picture ? `
+                            <img src="${exam.answers_picture}" style="width:36px; height:36px; object-fit:cover; border-radius:4px; border:1px solid var(--border-solid); cursor:pointer;" onclick="window.open('${exam.answers_picture}', '_blank')">
+                            <button class="btn btn-ghost" style="padding:4px; color:var(--danger); font-size:0.75rem;" onclick="deleteModalAnswersPic(${full.id}, ${exam.id})"><i class="fas fa-trash-alt"></i></button>
+                        ` : `
+                            <button class="btn btn-ghost" style="color:var(--brand); padding:4px; display:flex; align-items:center; gap:2px;" onclick="triggerModalAnswersPicUpload(${exam.id})">
+                                <i class="fas fa-camera"></i> <span style="font-size:0.7rem; font-weight:700;">إجابة الطفل</span>
+                            </button>
+                        `}
+                        <input type="file" id="modal-answers-file-input-${exam.id}" style="display:none;" accept="image/*" onchange="uploadModalAnswersPic(${full.id}, ${exam.id})">
+                    </div>
+
+                    <!-- Score input section -->
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <input type="number" step="any" min="0" max="${exam.total_degree}" class="form-input" style="width:65px; text-align:center; padding:5px 6px; font-family:Cairo,sans-serif; font-size:0.8rem; height:32px;" value="${exam.degree !== null ? exam.degree : ''}" placeholder="---" id="modal-degree-input-${exam.id}" oninput="validateDegreeInput(this, ${exam.total_degree})">
+                        <button class="btn btn-primary" style="padding:5px 8px; height:32px; font-size:0.75rem;" onclick="saveModalExamDegree(${full.id}, ${exam.id})"><i class="fas fa-check"></i></button>
+                    </div>
+                </div>
+            `).join('');
+
+            const examsSubPageHtml = `
+            <div class="student-paper-exams-section" style="margin-top:8px;">
+                <div style="display:flex; justify-content:flex-end; align-items:center; margin-bottom:12px;">
+                    <button type="button" class="btn btn-ghost sibling-link-btn" title="إدارة الامتحانات الورقية" onclick="showPaperExamsModal()"><i class="fas fa-file-invoice"></i> <i class="fas fa-plus"></i></button>
+                </div>
+                <div style="display:flex; flex-direction:column;">
+                    ${examsHtml}
+                </div>
+            </div>
+            `;
+
+            document.getElementById('studentDetails').innerHTML = examsSubPageHtml;
+        }
+
+        function showNotesSubPage() {
+            if (!currentStudentForEdit) return;
+            const s = currentStudentForEdit;
+            const info = parseStudentCustomInfo(s);
+            const notesList = info._notes || [];
+
+            setModalHeader('الملاحظات', true);
+            const footer = document.getElementById('studentModalFooter');
+            if (footer) footer.style.display = 'none';
+
+            const notesHtml = `
+            <div class="student-notes-section" style="margin-top:8px;">
+                <div style="display:flex; justify-content:flex-end; align-items:center; margin-bottom:12px;">
+                    <button type="button" class="btn btn-ghost sibling-link-btn" title="إضافة ملاحظة" onclick="toggleAddNoteArea()"><i class="fas fa-sticky-note"></i> <i class="fas fa-plus"></i></button>
+                </div>
+                
+                <!-- Add Note Area (Hidden by default) -->
+                <div id="addNoteArea" class="glass-card" style="display:none; margin-bottom:14px; padding:12px; border: 1px solid var(--border-solid); border-radius:10px;">
+                    <div class="form-group" style="margin-bottom:8px;">
+                        <label class="form-label" style="font-size:0.75rem; font-weight:700; margin-bottom:4px;">نوع الملاحظة (العنوان)</label>
+                        <div class="note-suggestions-pills" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px; direction:rtl;">
+                            ${['زيارة منزلية', 'متابعة تلفونية', 'احتياج مالي', 'مستلزمات مدرسية', 'طلب صلاة', 'أخرى'].map(sugg => `
+                                <span class="badge" onclick="selectNoteTitleSuggestion('${sugg}')" style="cursor:pointer; font-size:0.68rem; padding:4px 8px; background:rgba(91, 108, 245, 0.08); color:var(--brand); border:1px solid rgba(91, 108, 245, 0.15); font-weight:700;">
+                                    ${sugg}
+                                </span>
+                            `).join('')}
+                        </div>
+                        <input type="text" id="noteTitleInput" class="form-input" placeholder="اكتب عنوان الملاحظة أو اختر من الاقتراحات..." style="font-size:0.8rem; padding:6px 10px;">
+                    </div>
+                    <div class="form-group" style="margin-bottom:8px;">
+                        <label class="form-label" style="font-size:0.75rem; font-weight:700; margin-bottom:4px;">تفاصيل الملاحظة (الوصف)</label>
+                        <textarea id="noteDescInput" class="form-input" rows="3" placeholder="تفاصيل الملاحظة..." style="font-size:0.8rem; padding:6px 10px; font-family:inherit; resize:vertical;"></textarea>
+                    </div>
+                    <div class="form-group" style="margin-bottom:10px;">
+                        <label class="form-label" style="font-size:0.75rem; font-weight:700; margin-bottom:4px;">التاريخ (اختياري)</label>
+                        <input type="date" id="noteDateInput" class="form-input" style="font-size:0.8rem; padding:6px 10px;">
+                    </div>
+                    <div style="display:flex; gap:6px; justify-content:flex-end;">
+                        <button class="btn btn-ghost" onclick="toggleAddNoteArea(false)" style="font-size:0.75rem; padding:4px 10px;">إلغاء</button>
+                        <button class="btn" onclick="submitStudentNote(${getStudentDbId(s)})" style="font-size:0.75rem; padding:4px 12px; background:var(--brand); color:#fff;">حفظ</button>
+                    </div>
+                </div>
+
+                <!-- Notes List -->
+                <div class="notes-list-wrap" style="display:flex; flex-direction:column; gap:8px;">
+                    ${notesList.length === 0 ? `
+                        <div style="text-align:center; padding:30px 20px; color:var(--muted); font-size:0.82rem; font-style:italic;">
+                            لا توجد ملاحظات مسجلة.
+                        </div>
+                    ` : notesList.map(note => {
+                        const noteDateStr = note.date ? new Date(note.date).toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric' }) : '---';
+                        return `
+                            <div class="glass-card note-item-card" style="padding:10px 12px; border:1px solid var(--border-solid); border-radius:10px; position:relative; direction:rtl; text-align:right;">
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
+                                    <strong style="font-size:0.82rem; color:var(--text);">${escHtml(note.title)}</strong>
+                                    <button onclick="deleteStudentNote(${getStudentDbId(s)}, '${note.id}')" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:0.8rem; padding:2px;" title="حذف الملاحظة">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                                <p style="font-size:0.78rem; color:var(--text-2); margin:0 0 6px 0; line-height:1.4; white-space:pre-wrap;">${escHtml(note.description)}</p>
+                                <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.68rem; color:var(--text-3); font-weight:600;">
+                                    <span>بواسطة: ${escHtml(note.created_by || 'خادم')}</span>
+                                    <span>التاريخ: ${noteDateStr}</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+            `;
+
+            document.getElementById('studentDetails').innerHTML = notesHtml;
+        }
+
         function refreshStudentDetailsView(name) {
             const titleEl = document.getElementById('studentModalTitle');
             const isSiblingsPage = titleEl && (titleEl.textContent.includes('الإخوات') || titleEl.textContent.includes('الأخوات'));
+            const isPaperExamsPage = titleEl && titleEl.textContent.includes('الورقية');
+            const isNotesPage = titleEl && titleEl.textContent.includes('الملاحظات');
             
             showStudentDetails(name);
 
             if (isSiblingsPage) {
                 showSiblingsSubPage();
+            } else if (isPaperExamsPage) {
+                showPaperExamsSubPage();
+            } else if (isNotesPage) {
+                showNotesSubPage();
             }
         }
 
@@ -19735,62 +19902,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             // Render Notes Section for Cache (Offline fallback)
             const notesList = info._notes || [];
-            let notesHtml = `
-            <div class="student-notes-section" style="margin-top:16px; border-top:1px solid var(--border); padding-top:16px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                    <h4 style="font-size:0.95rem; font-weight:700; color:var(--primary); margin:0; display:flex; align-items:center; gap:6px;">
-                        <i class="fas fa-sticky-note"></i> الملاحظات (${notesList.length})
-                    </h4>
-                    <button type="button" class="btn btn-ghost sibling-link-btn" title="إضافة ملاحظة" onclick="toggleAddNoteArea()"><i class="fas fa-sticky-note"></i> <i class="fas fa-plus"></i></button>
+            const notesHtml = `
+            <div class="navigation-row" onclick="showNotesSubPage()">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div class="navigation-icon orange"><i class="fas fa-sticky-note"></i></div>
+                    <div class="navigation-label">الملاحظات</div>
                 </div>
-                
-                <!-- Add Note Area (Hidden by default) -->
-                <div id="addNoteArea" class="glass-card" style="display:none; margin-bottom:14px; padding:12px; border: 1px solid var(--border-solid); border-radius:10px;">
-                    <div class="form-group" style="margin-bottom:8px;">
-                        <label class="form-label" style="font-size:0.75rem; font-weight:700; margin-bottom:4px;">نوع الملاحظة (العنوان)</label>
-                        <div class="note-suggestions-pills" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px; direction:rtl;">
-                            ${['زيارة منزلية', 'متابعة تلفونية', 'احتياج مالي', 'مستلزمات مدرسية', 'طلب صلاة', 'أخرى'].map(sugg => `
-                                <span class="badge" onclick="selectNoteTitleSuggestion('${sugg}')" style="cursor:pointer; font-size:0.68rem; padding:4px 8px; background:rgba(91, 108, 245, 0.08); color:var(--brand); border:1px solid rgba(91, 108, 245, 0.15); font-weight:700;">
-                                    ${sugg}
-                                </span>
-                            `).join('')}
-                        </div>
-                        <input type="text" id="noteTitleInput" class="form-input" placeholder="اكتب عنوان الملاحظة أو اختر من الاقتراحات..." style="font-size:0.8rem; padding:6px 10px;">
-                    </div>
-                    <div class="form-group" style="margin-bottom:8px;">
-                        <label class="form-label" style="font-size:0.75rem; font-weight:700; margin-bottom:4px;">تفاصيل الملاحظة (الوصف)</label>
-                        <textarea id="noteDescInput" class="form-input" rows="3" placeholder="تفاصيل الملاحظة..." style="font-size:0.8rem; padding:6px 10px; font-family:inherit; resize:vertical;"></textarea>
-                    </div>
-                    <div class="form-group" style="margin-bottom:10px;">
-                        <label class="form-label" style="font-size:0.75rem; font-weight:700; margin-bottom:4px;">التاريخ (اختياري)</label>
-                        <input type="date" id="noteDateInput" class="form-input" style="font-size:0.8rem; padding:6px 10px;">
-                    </div>
-                    <div style="display:flex; gap:6px; justify-content:flex-end;">
-                        <button class="btn btn-ghost" onclick="toggleAddNoteArea(false)" style="font-size:0.75rem; padding:4px 10px;">إلغاء</button>
-                        <button class="btn" onclick="submitStudentNote(${getStudentDbId(s)})" style="font-size:0.75rem; padding:4px 12px; background:var(--brand); color:#fff;">حفظ</button>
-                    </div>
-                </div>
-
-                <!-- Notes List -->
-                <div class="notes-list-wrap" style="display:flex; flex-direction:column; gap:8px;">
-                    ${notesList.length === 0 ? '' : notesList.map(note => {
-                const noteDateStr = note.date ? new Date(note.date).toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric' }) : '---';
-                return `
-                            <div class="glass-card note-item-card" style="padding:10px 12px; border:1px solid var(--border-solid); border-radius:10px; position:relative; direction:rtl; text-align:right;">
-                                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
-                                    <strong style="font-size:0.82rem; color:var(--text);">${escHtml(note.title)}</strong>
-                                    <button onclick="deleteStudentNote(${getStudentDbId(s)}, '${note.id}')" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:0.8rem; padding:2px;" title="حذف الملاحظة">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </div>
-                                <p style="font-size:0.78rem; color:var(--text-2); margin:0 0 6px 0; line-height:1.4; white-space:pre-wrap;">${escHtml(note.description)}</p>
-                                <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.68rem; color:var(--text-3); font-weight:600;">
-                                    <span>بواسطة: ${escHtml(note.created_by || 'خادم')}</span>
-                                    <span>التاريخ: ${noteDateStr}</span>
-                                </div>
-                            </div>
-                        `;
-            }).join('')}
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span class="navigation-count">${notesList.length}</span>
+                    <i class="fas fa-chevron-left navigation-arrow"></i>
                 </div>
             </div>
             `;
@@ -19880,49 +20000,30 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             // Paper Exams section inside modal details
             const paperExamsList = full.paper_exams || [];
-            let paperExamsHtml = `
-            <div class="student-paper-exams-section" style="margin-top:16px; border-top:1px solid var(--border); padding-top:16px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                    <h4 style="font-size:0.95rem; font-weight:700; color:var(--primary); margin:0; display:flex; align-items:center; gap:6px;">
-                        <i class="fas fa-file-invoice"></i> الدرجات والامتحانات الورقية (${paperExamsList.length})
-                    </h4>
-                    <button type="button" class="btn btn-ghost sibling-link-btn" title="إدارة الامتحانات الورقية" onclick="showPaperExamsModal()"><i class="fas fa-file-invoice"></i> <i class="fas fa-plus"></i></button>
+            const paperExamsHtml = `
+            <div class="navigation-row" onclick="showPaperExamsSubPage()">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div class="navigation-icon blue"><i class="fas fa-file-invoice"></i></div>
+                    <div class="navigation-label">الدرجات والامتحانات الورقية</div>
                 </div>
-                <div style="display:flex; flex-direction:column; gap:8px;">
-                    ${paperExamsList.length === 0 ? `
-                        <div style="text-align:center; padding:16px; color:var(--muted); font-size:0.78rem; font-style:italic;">
-                            لا توجد امتحانات ورقية مسجلة.
-                        </div>
-                    ` : paperExamsList.map(exam => `
-                        <div class="glass-card" style="padding:10px 12px; border:1px solid var(--border-solid); border-radius:10px; display:flex; align-items:center; justify-content:space-between; gap:8px;">
-                            <div style="display:flex; flex-direction:column; gap:4px; flex:1;">
-                                <span style="font-weight:700; font-size:0.82rem; color:var(--text);">${escHtml(exam.name)}</span>
-                                <div style="display:flex; gap:8px; align-items:center; font-size:0.75rem;">
-                                    <span style="color:var(--text-3);">الدرجة الكلية: ${exam.total_degree}</span>
-                                    ${exam.reference_url ? `<a href="${exam.reference_url}" target="_blank" style="color:var(--brand); font-weight:700;"><i class="fas fa-external-link-alt"></i> ورقة الامتحان</a>` : ''}
-                                </div>
-                            </div>
-                            
-                            <!-- Answers Paper Picture Section -->
-                            <div style="display:flex; align-items:center; gap:4px; margin-left:8px;">
-                                ${exam.answers_picture ? `
-                                    <img src="${exam.answers_picture}" style="width:36px; height:36px; object-fit:cover; border-radius:4px; border:1px solid var(--border-solid); cursor:pointer;" onclick="window.open('${exam.answers_picture}', '_blank')">
-                                    <button class="btn btn-ghost" style="padding:4px; color:var(--danger); font-size:0.75rem;" onclick="deleteModalAnswersPic(${full.id}, ${exam.id})"><i class="fas fa-trash-alt"></i></button>
-                                ` : `
-                                    <button class="btn btn-ghost" style="color:var(--brand); padding:4px; display:flex; align-items:center; gap:2px;" onclick="triggerModalAnswersPicUpload(${exam.id})">
-                                        <i class="fas fa-camera"></i> <span style="font-size:0.7rem; font-weight:700;">إجابة الطفل</span>
-                                    </button>
-                                `}
-                                <input type="file" id="modal-answers-file-input-${exam.id}" style="display:none;" accept="image/*" onchange="uploadModalAnswersPic(${full.id}, ${exam.id})">
-                            </div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span class="navigation-count">${paperExamsList.length}</span>
+                    <i class="fas fa-chevron-left navigation-arrow"></i>
+                </div>
+            </div>
+            `;
 
-                            <!-- Score input section -->
-                            <div style="display:flex; align-items:center; gap:6px;">
-                                <input type="number" step="any" min="0" max="${exam.total_degree}" class="form-input" style="width:65px; text-align:center; padding:5px 6px; font-family:Cairo,sans-serif; font-size:0.8rem; height:32px;" value="${exam.degree !== null ? exam.degree : ''}" placeholder="---" id="modal-degree-input-${exam.id}" oninput="validateDegreeInput(this, ${exam.total_degree})">
-                                <button class="btn btn-primary" style="padding:5px 8px; height:32px; font-size:0.75rem;" onclick="saveModalExamDegree(${full.id}, ${exam.id})"><i class="fas fa-check"></i></button>
-                            </div>
-                        </div>
-                    `).join('')}
+            // Notes section inside modal details
+            const notesList = info._notes || [];
+            const notesHtml = `
+            <div class="navigation-row" onclick="showNotesSubPage()">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div class="navigation-icon orange"><i class="fas fa-sticky-note"></i></div>
+                    <div class="navigation-label">الملاحظات</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span class="navigation-count">${notesList.length}</span>
+                    <i class="fas fa-chevron-left navigation-arrow"></i>
                 </div>
             </div>
             `;
@@ -20097,16 +20198,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             const feesSubPageHtml = `
             <div class="uncle-fees-section" style="margin-top:8px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                    <h4 style="font-size:0.95rem; font-weight:700; color:var(--primary); margin:0; display:flex; align-items:center; gap:6px;">
-                        <i class="fas fa-money-bill-wave"></i> الاشتراكات الشهرية للخدمة (${extFees.length})
-                    </h4>
+                <div style="display:flex; justify-content:flex-end; align-items:center; margin-bottom:12px;">
                     ${addFeeBtn}
                 </div>
                 
                 ${canManageFees ? feeForm : ''}
 
-                <div style="display:flex; flex-direction:column; gap:8px; max-height:400px; overflow-y:auto; padding-inline-end:4px;">
+                <div style="display:flex; flex-direction:column; gap:8px;">
                     ${extFees.length === 0 ? `
                         <div style="text-align:center; padding:30px 20px; color:var(--muted); font-size:0.82rem; font-style:italic;">
                             لا توجد اشتراكات مسجلة.
@@ -26910,7 +27008,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     hideLoading();
                     if (d.success) {
                         showToast(d.message || 'تم حفظ الملاحظة بنجاح', 'success');
-                        showStudentDetails(currentStudentForEdit['الاسم']);
+                        refreshStudentDetailsView(currentStudentForEdit['الاسم']);
                     } else {
                         showToast(d.message || 'فشل حفظ الملاحظة', 'error');
                     }
@@ -26936,7 +27034,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     hideLoading();
                     if (d.success) {
                         showToast(d.message || 'تم حذف الملاحظة بنجاح', 'success');
-                        showStudentDetails(currentStudentForEdit['الاسم']);
+                        refreshStudentDetailsView(currentStudentForEdit['الاسم']);
                     } else {
                         showToast(d.message || 'فشل حذف الملاحظة', 'error');
                     }
@@ -28405,7 +28503,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
                 if (resp.success) {
                     showToast(resp.message, 'success');
-                    if (currentStudentForEdit) showStudentDetails(currentStudentForEdit['الاسم']);
+                    if (currentStudentForEdit) refreshStudentDetailsView(currentStudentForEdit['الاسم']);
                 } else {
                     showToast(resp.message || 'فشل الحفظ', 'error');
                 }
@@ -28435,7 +28533,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
                 if (resp.success) {
                     showToast('تم رفع ورقة الإجابة بنجاح', 'success');
-                    if (currentStudentForEdit) showStudentDetails(currentStudentForEdit['الاسم']);
+                    if (currentStudentForEdit) refreshStudentDetailsView(currentStudentForEdit['الاسم']);
                 } else {
                     showToast(resp.message || 'فشل الرفع', 'error');
                 }
@@ -28458,7 +28556,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
                 if (resp.success) {
                     showToast('تم حذف ورقة الإجابة بنجاح', 'success');
-                    if (currentStudentForEdit) showStudentDetails(currentStudentForEdit['الاسم']);
+                    if (currentStudentForEdit) refreshStudentDetailsView(currentStudentForEdit['الاسم']);
                 } else {
                     showToast(resp.message || 'فشل حذف ورقة الإجابة', 'error');
                 }
