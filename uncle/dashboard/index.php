@@ -12522,6 +12522,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <option value="developer">مطور (Developer)</option>
                             </select></div>
                     </div>
+                    <div class="form-group" style="margin-bottom:12px;">
+                        <label class="form-label">الفصول التي يديرها الخادم *</label>
+                        <div class="input-icon-wrap" style="height: auto;">
+                            <select id="editUncleClasses" class="form-input" multiple style="height: 120px; padding: 6px; border-radius: 8px;">
+                            </select>
+                        </div>
+                        <small style="color:var(--text-3); font-size:0.7rem; display:block; margin-top:4px;">اضغط مع السحب أو اضغط مع زر Ctrl/Cmd لاختيار أكثر من فصل</small>
+                    </div>
                 </div>
 
                 <button type="submit" class="btn" style="width:100%"><i class="fas fa-save"></i> حفظ التعديلات</button>
@@ -19219,6 +19227,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
             setModalHeader('', false);
             const titleFooter = document.getElementById('studentModalTitleFooter');
             if (titleFooter) titleFooter.textContent = title;
+
+            // Ensure details header is visible (resetting hidden state from edit mode)
+            showDetailsFooter();
+
+            // Move editForm back to static editStudentForm if it is inside studentDetails
+            const editFormEl = document.getElementById('editForm');
+            const staticModal = document.getElementById('editStudentForm');
+            if (editFormEl && staticModal && editFormEl.parentElement !== staticModal) {
+                staticModal.appendChild(editFormEl);
+            }
+
             const gender = (s['النوع'] === 'female' || s['gender'] === 'female') ? 'female' : 'male';
             // Basic avatar + header (kept from local cache)
             const detailNameStr = (s['الاسم'] || '') + (s._isGuest ? ' <span class="guest-badge" style="font-size:0.65rem; background:#f59e0b; color:#fff; padding:2px 6px; border-radius:4px; margin-right:4px; vertical-align:middle; display:inline-block;">زائر</span>' : '');
@@ -20981,6 +21000,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 currentStudentForEdit = null;
                 startAutoRefresh();
             }
+            // Move editForm back to static editStudentForm if it is inside studentDetails
+            const editFormEl = document.getElementById('editForm');
+            const staticModal = document.getElementById('editStudentForm');
+            if (editFormEl && staticModal && editFormEl.parentElement !== staticModal) {
+                staticModal.appendChild(editFormEl);
+            }
+            // Reset details header display just in case it was hidden
+            const headerEl = document.getElementById('studentDetailsHeader');
+            if (headerEl) headerEl.style.display = '';
         }
         function showEditForm() {
             if (!currentStudentForEdit) return;
@@ -21064,17 +21092,31 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             devOpt.textContent = 'مطور (Developer)';
                             roleSelect.appendChild(devOpt);
                         }
-                        devOpt.style.display = '';
-                        devOpt.disabled = false;
                     } else {
                         if (devOpt) {
-                            devOpt.style.display = 'none';
-                            devOpt.disabled = true;
+                            devOpt.remove();
                         }
                     }
                 }
                 document.getElementById('editUncleRole').value = s.role || 'uncle';
                 document.getElementById('editUnclePassword').value = '';
+
+                // Populate and select classes for editing
+                const ucsSelect = document.getElementById('editUncleClasses');
+                if (ucsSelect) {
+                    ucsSelect.innerHTML = '';
+                    const assignedClassNames = (s.classes || []).map(c => c.class_name);
+                    classes.forEach(c => {
+                        const optVal = c.arabic_name || c.code;
+                        const o = document.createElement('option');
+                        o.value = optVal;
+                        o.textContent = optVal;
+                        if (assignedClassNames.includes(optVal)) {
+                            o.selected = true;
+                        }
+                        ucsSelect.appendChild(o);
+                    });
+                }
             }
 
             const cs = document.getElementById('editStudentClass');
@@ -21154,6 +21196,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const newPassword = document.getElementById('editUnclePassword').value;
                 if (!username) { showToast('اسم المستخدم مطلوب', 'error'); return; }
 
+                const ucsSelect = document.getElementById('editUncleClasses');
+                const selectedClasses = ucsSelect ? Array.from(ucsSelect.selectedOptions).map(opt => opt.value) : [];
+
                 const updatePayload = {
                     action: 'updateUncle',
                     uncle_id: id,
@@ -21164,7 +21209,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     gender: document.getElementById('editStudentGender').value,
                     phone: document.getElementById('editStudentPhone').value.trim(),
                     birthday: document.getElementById('editStudentBirthday').value.trim(),
-                    classes: JSON.stringify(currentStudentForEdit.classes || [])
+                    classes: JSON.stringify(selectedClasses)
                 };
 
                 showLoading('جاري التحديث...');
