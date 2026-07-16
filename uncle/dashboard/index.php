@@ -19200,11 +19200,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 `;
             }
 
+            let subtitleHtml = '';
+            if (members.length > 0) {
+                const names = members.map(m => getStudentDisplayName(m)).join('، ');
+                subtitleHtml = `<div style="font-size:0.7rem; color:var(--text-3); font-weight:500; margin-top:2px;">${escHtml(names)}</div>`;
+            }
+
             return `
             <div class="navigation-row" onclick="showSiblingsSubPage()" style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="display:flex; align-items:center; gap:10px;">
                     <div class="navigation-icon blue"><i class="fas fa-user-friends"></i></div>
-                    <div class="navigation-label">${escHtml(words.panelLabel)}</div>
+                    <div style="display:flex; flex-direction:column; gap:1px;">
+                        <div class="navigation-label">${escHtml(words.panelLabel)}</div>
+                        ${subtitleHtml}
+                    </div>
                 </div>
                 <div style="display:flex; align-items:center; gap:6px;">
                     ${previewHtml}
