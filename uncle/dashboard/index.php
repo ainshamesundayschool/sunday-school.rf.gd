@@ -10426,6 +10426,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             max-width: 500px;
         }
 
+        .action-btn-vertical {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
         @media (max-width: 768px) {
             .profile-avatar-card {
                 margin: 0 auto !important;
@@ -10456,6 +10462,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             #paperExamSheetView {
                 height: 100% !important;
+            }
+
+            .action-btn-vertical {
+                flex-direction: column !important;
+                gap: 4px !important;
+                padding: 6px 8px !important;
+            }
+            .action-btn-vertical .btn-label {
+                font-size: 0.62rem !important;
+                font-weight: 700;
+                line-height: 1;
+                display: block !important;
+            }
+            .action-btn-vertical i {
+                font-size: 1.1rem !important;
             }
 
             /* Compact table on mobile */
@@ -10868,35 +10889,35 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div id="paperExamSheetView" style="display:none; height:100%; flex-direction:column; gap:12px;">
                     <div
                         style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; border-bottom:1px solid var(--border-solid); padding-bottom:12px;">
-                        <div>
-                            <h4 id="sheetExamName" style="margin:0; font-weight:800; color:var(--brand);">اسم الامتحان
-                            </h4>
-                            <span id="sheetExamTotalDegree" style="font-size:0.8rem; color:var(--text-3);">الدرجة
-                                الكلية: 100</span>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <button class="btn btn-secondary" onclick="backToExamsList()" title="رجوع" style="padding:6px 12px; font-size:0.8rem; flex-shrink:0;">
+                                <i class="fas fa-arrow-right"></i> <span class="hide-mobile">رجوع</span>
+                            </button>
+                            <div>
+                                <h4 id="sheetExamName" style="margin:0; font-weight:800; color:var(--brand);">اسم الامتحان</h4>
+                                <span id="sheetExamTotalDegree" style="font-size:0.8rem; color:var(--text-3);">الدرجة الكلية: 100</span>
+                            </div>
                         </div>
                         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
                             <div id="sheetExamRefLinkContainer"
                                 style="display:inline-flex; align-items:center; gap:4px;"></div>
-                            <button class="btn btn-ghost" onclick="triggerRefUploadFromSheet()" title="ملف المرجع"><i
-                                    class="fas fa-paperclip"></i> <span id="sheetRefBtnText" class="hide-mobile">ملف المرجع</span></button>
+                            <button class="btn btn-ghost action-btn-vertical" onclick="triggerRefUploadFromSheet()" title="ملف المرجع"><i
+                                    class="fas fa-paperclip"></i> <span id="sheetRefBtnText" class="btn-label">ملف المرجع</span></button>
                             <input type="file" id="sheetRefFileInput" style="display:none;"
                                 onchange="handleSheetRefUpload()"
                                 accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
 
                             <!-- CSV Import Button -->
-                            <button class="btn btn-ghost"
-                                style="color:var(--brand); display:inline-flex; align-items:center; gap:4px;"
-                                onclick="triggerCsvImport()" title="استيراد CSV"><i class="fas fa-file-csv"></i> <span class="hide-mobile">استيراد CSV</span></button>
+                            <button class="btn btn-ghost action-btn-vertical"
+                                style="color:var(--brand);"
+                                onclick="triggerCsvImport()" title="استيراد CSV"><i class="fas fa-file-csv"></i> <span class="btn-label">استيراد CSV</span></button>
                             <input type="file" id="sheetCsvFileInput" style="display:none;" onchange="handleCsvImport()"
                                 accept=".csv">
 
                             <!-- CSV Template Download Button -->
-                            <button class="btn btn-ghost"
-                                style="color:var(--brand); display:inline-flex; align-items:center; gap:4px;"
-                                onclick="downloadPaperExamCsvTemplate()" title="تحميل القالب"><i class="fas fa-download"></i> <span class="hide-mobile">تحميل القالب</span></button>
-
-                            <button class="btn btn-secondary" onclick="backToExamsList()" title="رجوع"><i
-                                    class="fas fa-arrow-left"></i> <span class="hide-mobile">رجوع</span></button>
+                            <button class="btn btn-ghost action-btn-vertical"
+                                style="color:var(--brand);"
+                                onclick="downloadPaperExamCsvTemplate()" title="تحميل القالب"><i class="fas fa-download"></i> <span class="btn-label">تحميل القالب</span></button>
                         </div>
                     </div>
 
@@ -10933,9 +10954,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                     style="background:var(--surface-2); border-bottom:2px solid var(--border-solid); color:var(--text);">
                                     <th class="col-photo" style="padding:10px; width:50px; text-align:center;">الصورة</th>
                                     <th class="col-name" style="padding:10px; text-align:right;">الاسم</th>
+                                    <th class="col-grade" style="padding:10px; width:150px; text-align:center;">الدرجة المرصودة</th>
                                     <th class="col-class" style="padding:10px; width:120px; text-align:right;">الفصل</th>
                                     <th class="col-answers" style="padding:10px; width:150px; text-align:center;">ورقة الإجابة</th>
-                                    <th class="col-grade" style="padding:10px; width:150px; text-align:center;">الدرجة المرصودة</th>
                                 </tr>
                             </thead>
                             <tbody id="sheetStudentsTableBody">
@@ -28543,11 +28564,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             </div>
                         </td>
                         <td class="col-name" style="padding:8px; font-weight:700; color:var(--text); vertical-align:middle;">${nameHtml}</td>
-                        <td class="col-class" style="padding:8px; color:var(--text-2); vertical-align:middle;">${escHtml(student.class_name)}</td>
-                        <td class="col-answers" style="padding:8px; text-align:center; vertical-align:middle;">
-                            ${answersPicHtml}
-                            <input type="file" id="answers-file-input-${student.id}" style="display:none;" accept="image/*" onchange="uploadAnswersPic(${student.id}, ${activeExamId})">
-                        </td>
                         <td class="col-grade" style="padding:8px; text-align:center; vertical-align:middle;">
                             <input type="number" step="any" min="0" max="${activeExamTotalDegree}" class="form-input sheet-degree-input" 
                                    style="width:80px; text-align:center; margin:0 auto; padding:6px; font-family:Cairo,sans-serif; font-size:0.85rem;" 
@@ -28555,6 +28571,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                    value="${student.degree !== null ? student.degree : ''}" 
                                    placeholder="غير مرصود"
                                    oninput="validateDegreeInput(this, ${activeExamTotalDegree})">
+                        </td>
+                        <td class="col-class" style="padding:8px; color:var(--text-2); vertical-align:middle;">${escHtml(student.class_name)}</td>
+                        <td class="col-answers" style="padding:8px; text-align:center; vertical-align:middle;">
+                            ${answersPicHtml}
+                            <input type="file" id="answers-file-input-${student.id}" style="display:none;" accept="image/*" onchange="uploadAnswersPic(${student.id}, ${activeExamId})">
                         </td>
                     </tr>
                 `;
