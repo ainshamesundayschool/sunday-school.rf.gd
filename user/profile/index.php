@@ -3182,6 +3182,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
     /* ══ RESPONSIVE ══════════════════════════════════════ */
     @media(max-width:580px) {
+      .hero #scInfo {
+        margin: 12px auto 0 !important;
+        padding: 10px 12px !important;
+        border-radius: 16px !important;
+      }
+      .hero #scInfo .sc-body {
+        padding: 0 !important;
+      }
+      .hero #scInfo .info-grid {
+        gap: 6px !important;
+      }
+      .hero #scInfo .ip {
+        padding: 6px 10px !important;
+        gap: 8px !important;
+        border-radius: 10px !important;
+      }
+      .hero #scInfo .ip-ico {
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 0.7rem !important;
+      }
+      .hero #scInfo .ip-lbl {
+        font-size: 0.6rem !important;
+        margin-bottom: 0 !important;
+      }
+      .hero #scInfo .ip-val {
+        font-size: 0.78rem !important;
+      }
+
       .coupon-hero {
         grid-template-columns: 1fr auto;
         padding: 12px 14px;
@@ -4621,12 +4650,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       </div>
       <!-- Info -->
       <div class="sc" id="scInfo">
-        <div class="sc-head">
-          <div class="sc-ico" style="background:#e0e7ff;color:var(--brand);"><i class="fas fa-id-card"></i></div>
-          <div class="sc-label">
-            <div class="sc-title">المعلومات الشخصية</div>
-          </div>
-        </div>
         <div class="sc-body">
           <div class="info-grid" id="infoGrid"></div>
         </div>
