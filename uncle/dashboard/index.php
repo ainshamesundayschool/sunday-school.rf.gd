@@ -7823,15 +7823,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .bday-banner-wrapper {
             margin: 0 auto 4px auto !important;
             border-radius: var(--r-xl);
-            border: 1px solid transparent !important;
+            border: none !important;
             background: 
-                linear-gradient(to right, transparent, rgba(99, 102, 241, 0.02) 20%, rgba(99, 102, 241, 0.02) 80%, transparent) padding-box,
-                linear-gradient(to right, transparent, var(--surface) 20%, var(--surface) 80%, transparent) padding-box,
-                linear-gradient(to right, transparent, var(--brand-light) 20%, var(--brand) 50%, var(--brand-light) 80%, transparent) border-box !important;
+                linear-gradient(to right, transparent, rgba(99, 102, 241, 0.03) 20%, rgba(236, 72, 153, 0.03) 50%, rgba(99, 102, 241, 0.03) 80%, transparent),
+                linear-gradient(to right, transparent, var(--surface) 20%, var(--surface) 80%, transparent) !important;
             padding: 4px 12px !important;
             width: 100%;
             max-width: 640px;
-            box-shadow: var(--shadow-sm);
+            box-shadow: none !important;
             position: relative;
             overflow: hidden;
         }
@@ -7881,9 +7880,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         [data-theme="dark"] .bday-banner-wrapper {
             background: 
-                linear-gradient(to right, transparent, rgba(99, 102, 241, 0.05) 20%, rgba(99, 102, 241, 0.05) 80%, transparent) padding-box,
-                linear-gradient(to right, transparent, var(--surface) 20%, var(--surface) 80%, transparent) padding-box,
-                linear-gradient(to right, transparent, var(--brand) 20%, var(--brand-light) 50%, var(--brand) 80%, transparent) border-box !important;
+                linear-gradient(to right, transparent, rgba(99, 102, 241, 0.06) 20%, rgba(236, 72, 153, 0.06) 50%, rgba(99, 102, 241, 0.06) 80%, transparent),
+                linear-gradient(to right, transparent, var(--surface) 20%, var(--surface) 80%, transparent) !important;
         }
 
         .bday-banner-list {
