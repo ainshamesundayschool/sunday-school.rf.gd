@@ -14664,7 +14664,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (document.getElementById('uncleProfileGender')) document.getElementById('uncleProfileGender').value = u.gender || 'male';
             if (document.getElementById('uncleProfileBirthday')) {
                 const bd = u.birthday || '';
-                document.getElementById('uncleProfileBirthday').value = bd.match(/^\d{4}-\d{2}-\d{2}$/) ? bd.split('-').reverse().join('/') : bd;
+                if (bd.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                    const parts = bd.split('-');
+                    if (parts[0] === '1000' || parts[0] === '1900') {
+                        document.getElementById('uncleProfileBirthday').value = `${parts[2]}/${parts[1]}`;
+                    } else {
+                        document.getElementById('uncleProfileBirthday').value = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                    }
+                } else {
+                    document.getElementById('uncleProfileBirthday').value = bd;
+                }
             }
 
 
@@ -19189,7 +19198,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const gender = (g.gender === 'female' || g['النوع'] === 'female') ? 'female' : 'male';
             const imageUrl = g.image_url || g['صورة'] || '';
             const img = imageUrl
-                ? `<div class="detail-avatar-wrap"><img src="${window.photoUrl(imageUrl)}" class="detail-avatar" onclick="showImageModal('${escStr(imageUrl)}')" onerror="this.style.display='none';var el=document.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-info-text"><div class="detail-student-name">${escStr(g.name || '')}</div><div class="detail-student-class">زائر</div></div></div>`
+                ? `<div class="detail-avatar-wrap"><img src="${window.photoUrl(imageUrl)}" class="detail-avatar" onclick="showImageModal('${escStr(imageUrl)}')" onerror="this.style.display='none';var el=this.parentElement.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-avatar-fallback ${gender}" style="display:none"><i class="fas fa-user-tag"></i></div><div class="detail-info-text"><div class="detail-student-name">${escStr(g.name || '')}</div><div class="detail-student-class">زائر</div></div></div>`
                 : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user-tag"></i></div><div class="detail-info-text"><div class="detail-student-name">${escStr(g.name || '')}</div><div class="detail-student-class">زائر</div></div></div>`;
 
             let rowsList = [
@@ -19333,7 +19342,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             // Basic avatar + header (kept from local cache)
             const detailNameStr = (s['الاسم'] || '') + (s._isGuest ? ' <span class="guest-badge" style="font-size:0.65rem; background:#f59e0b; color:#fff; padding:2px 6px; border-radius:4px; margin-right:4px; vertical-align:middle; display:inline-block;">زائر</span>' : '');
             const img = s['صورة']
-                ? `<div class="detail-avatar-wrap"><img src="${window.photoUrl(s['صورة'])}" class="detail-avatar" onclick="showImageModal('${s['صورة']}')" onerror="this.style.display='none';var el=document.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-info-text"><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${s['الفصل'] || ''}</div></div></div>`
+                ? `<div class="detail-avatar-wrap"><img src="${window.photoUrl(s['صورة'])}" class="detail-avatar" onclick="showImageModal('${s['صورة']}')" onerror="this.style.display='none';var el=this.parentElement.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-avatar-fallback ${gender}" style="display:none"><i class="fas fa-user${s._isGuest ? '-tag' : ''}"></i></div><div class="detail-info-text"><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${s['الفصل'] || ''}</div></div></div>`
                 : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user${s._isGuest ? '-tag' : ''}"></i></div><div class="detail-info-text"><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${s['الفصل'] || ''}</div></div></div>`;
 
             // Reset edit/delete buttons visibility to default
@@ -20371,6 +20380,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
             await linkSiblingToCurrent(tid);
         }
 
+        function formatBirthdayForDisplay(bday) {
+            if (!bday) return '---';
+            const parts = bday.split('/');
+            if (parts.length >= 3 && (parts[2] === '1000' || parts[2] === '1900')) {
+                return `${parts[0]}/${parts[1]}`;
+            }
+            return bday;
+        }
+
         function buildStudentDetailsFromCache(s) {
             const genderLabel = formatGenderLabel(s);
             const siblingHtml = buildSiblingPanel(s);
@@ -20388,8 +20406,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (s['ملاحظات طبية']) {
                 rowsList.push(['ملاحظات طبية', s['ملاحظات طبية'], 'red', 'fa-notes-medical', s['ملاحظات طبية']]);
             }
+            const displayBday = formatBirthdayForDisplay(s['عيد الميلاد']);
             rowsList.push(
-                ['تاريخ الميلاد', s['عيد الميلاد'] || '---', 'pink', 'fa-birthday-cake', s['عيد الميلاد'] || '---'],
+                ['تاريخ الميلاد', displayBday, 'pink', 'fa-birthday-cake', displayBday],
                 ['الكوبونات', (s['كوبونات'] || '0') + ' <i class="fas fa-star" style="color:var(--coupon);font-size:.8rem"></i>', 'purple', 'fa-star', String(s['كوبونات'] || '0')]
             );
 
@@ -20420,7 +20439,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const gender = getStudentGender(s);
             const detailNameStr = escStr(s['الاسم'] || '') + (s._isGuest ? ' <span class="guest-badge" style="font-size:0.65rem; background:#f59e0b; color:#fff; padding:2px 6px; border-radius:4px; margin-right:4px; vertical-align:middle; display:inline-block;">زائر</span>' : '');
             const avatar = s['صورة']
-                ? `<div class="detail-avatar-wrap" onclick="showImageModal('${escJs(s['صورة'])}', event)"> <img src="${s['صورة']}" class="detail-avatar"><div class="detail-student-name">${detailNameStr}</div></div>`
+                ? `<div class="detail-avatar-wrap" onclick="showImageModal('${escJs(s['صورة'])}', event)"> <img src="${s['صورة']}" class="detail-avatar" onerror="this.style.display='none';var el=this.parentElement.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-avatar-fallback ${gender}" style="display:none"><i class="fas fa-user"></i></div><div class="detail-student-name">${detailNameStr}</div></div>`
                 : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${detailNameStr}</div></div>`;
 
             // Render Notes Section for Cache (Offline fallback)
@@ -20460,7 +20479,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const showImgClick = full.image_url ? `onclick="showImageModal('${escJs(full.image_url)}', event)"` : '';
             const detailNameStr = escStr(full.name || '') + (full._isGuest ? ' <span class="guest-badge" style="font-size:0.65rem; background:#f59e0b; color:#fff; padding:2px 6px; border-radius:4px; margin-right:4px; vertical-align:middle; display:inline-block;">زائر</span>' : '');
             const img = full.image_url
-                ? `<div class="detail-avatar-wrap" ${showImgClick}><img src="${full.image_url}" class="detail-avatar"><div class="detail-info-text"><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div></div>`
+                ? `<div class="detail-avatar-wrap" ${showImgClick}><img src="${full.image_url}" class="detail-avatar" onerror="this.style.display='none';var el=this.parentElement.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-avatar-fallback ${gender}" style="display:none"><i class="fas fa-user"></i></div><div class="detail-info-text"><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div></div>`
                 : `<div class="detail-avatar-wrap" ${showImgClick}><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-info-text"><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div></div>`;
 
             let rowsList = [
@@ -20478,7 +20497,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 rowsList.push(['ملاحظات طبية', full.medical_notes, 'red', 'fa-notes-medical', full.medical_notes]);
             }
             rowsList.push(
-                ['تاريخ الميلاد', full.birthday || '---', 'pink', 'fa-birthday-cake', full.birthday || '---'],
+            const displayBday = formatBirthdayForDisplay(full.birthday);
+            rowsList.push(
+                ['تاريخ الميلاد', displayBday, 'pink', 'fa-birthday-cake', displayBday],
                 ['الكوبونات', (full.coupons || 0) + ' <i class="fas fa-star" style="color:var(--coupon);font-size:.8rem"></i>', 'purple', 'fa-star', String(full.coupons || 0)]
             );
 
@@ -20584,7 +20605,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const gender = (full.gender === 'female' || full['النوع'] === 'female') ? 'female' : 'male';
             const showImgClick = full.image_url ? `onclick="showImageModal('${escJs(full.image_url)}', event)"` : '';
             const img = full.image_url
-                ? `<div class="detail-avatar-wrap" ${showImgClick}><img src="${full.image_url}" class="detail-avatar"><div class="detail-info-text"><div class="detail-student-name">${escStr(full.name || '')}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div></div>`
+                ? `<div class="detail-avatar-wrap" ${showImgClick}><img src="${full.image_url}" class="detail-avatar" onerror="this.style.display='none';var el=this.parentElement.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-avatar-fallback ${gender}" style="display:none"><i class="fas fa-user"></i></div><div class="detail-info-text"><div class="detail-student-name">${escStr(full.name || '')}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div></div>`
                 : `<div class="detail-avatar-wrap" ${showImgClick}><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-info-text"><div class="detail-student-name">${escStr(full.name || '')}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div></div>`;
 
             const roleLabels = {
@@ -20604,7 +20625,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 ['النوع', (full.gender === 'female' ? 'خادمة' : 'خادم'), 'purple', 'fa-venus-mars', (full.gender === 'female' ? 'خادمة' : 'خادم')],
                 ['الدور / الصلاحية', roleLabel, 'red', 'fa-user-shield', roleLabel],
                 ['رقم التليفون', full.phone || '---', 'green', 'fa-phone', full.phone || '---'],
-                ['تاريخ الميلاد', full.birthday || '---', 'pink', 'fa-birthday-cake', full.birthday || '---'],
+                ['تاريخ الميلاد', formatBirthdayForDisplay(full.birthday), 'pink', 'fa-birthday-cake', formatBirthdayForDisplay(full.birthday)],
             ];
 
             let rows = rowsList.map(([l, v, color, icon, copyVal]) => `
@@ -21233,8 +21254,26 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (studentMedEl) {
                 studentMedEl.value = s.medical_notes || s['ملاحظات طبية'] || s.notes || '';
             }
+            const birthdayLabel = document.querySelector('#editBirthdayGroup .form-label');
+            const birthdayInput = document.getElementById('editStudentBirthday');
+            if (isUncle) {
+                if (birthdayLabel) birthdayLabel.textContent = 'تاريخ الميلاد (DD/MM أو DD/MM/YYYY)';
+                if (birthdayInput) birthdayInput.placeholder = 'DD/MM أو DD/MM/YYYY';
+            } else {
+                if (birthdayLabel) birthdayLabel.textContent = 'تاريخ الميلاد (DD/MM/YYYY)';
+                if (birthdayInput) birthdayInput.placeholder = 'DD/MM/YYYY';
+            }
             const bd = s.birthday || s['عيد الميلاد'] || '';
-            document.getElementById('editStudentBirthday').value = bd.match(/^\d{4}-\d{2}-\d{2}$/) ? bd.split('-').reverse().join('/') : bd;
+            let formattedBd = bd;
+            if (bd.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                const parts = bd.split('-');
+                if (parts[0] === '1000' || parts[0] === '1900') {
+                    formattedBd = `${parts[2]}/${parts[1]}`;
+                } else {
+                    formattedBd = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                }
+            }
+            document.getElementById('editStudentBirthday').value = formattedBd;
             document.getElementById('editStudentCommitmentCoupons').value = s.commitment_coupons !== undefined ? s.commitment_coupons : (s['كوبونات الالتزام'] || '0');
             // Populate circle photo preview
             const prev = document.getElementById('uploadPreview');
@@ -21873,7 +21912,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const p = s['عيد الميلاد'].split('/');
                 const bDay = parseInt(p[0]), bMonth = parseInt(p[1]), bYear = p.length >= 3 ? parseInt(p[2]) : 0;
                 const isToday = (bDay === todayDay && bMonth - 1 === todayMonth);
-                const age = bYear > 0 ? today.getFullYear() - bYear - (today < new Date(today.getFullYear(), bMonth - 1, bDay) ? 1 : 0) : 0;
+                const isPlaceholderYear = bYear === 1000 || bYear === 1900;
+                const age = (bYear > 0 && !isPlaceholderYear) ? today.getFullYear() - bYear - (today < new Date(today.getFullYear(), bMonth - 1, bDay) ? 1 : 0) : 0;
                 const photoVal = s['صورة'] || s.image_url || '';
                 const photo = photoVal
                     ? `<img src="${(typeof window.photoUrl === 'function' && !photoVal.startsWith('http') && !photoVal.startsWith('/')) ? window.photoUrl(photoVal) : photoVal}" alt="" style="width:54px;height:54px;border-radius:50%;object-fit:cover;border:3px solid ${isToday ? 'var(--brand)' : 'var(--border-solid)'};box-shadow:var(--shadow-sm);cursor:pointer;flex-shrink:0" onclick="showImageModal('${(photoVal).replace(/'/g, "\\'")}',event)">`
@@ -21892,7 +21932,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             </div>
             <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
                 <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-                    <span style="background:var(--brand-bg);color:var(--brand);padding:2px 8px;border-radius:var(--r-full);font-size:.72rem;font-weight:700"><i class="fas fa-calendar-day" style="font-size:.6rem"></i> ${s['عيد الميلاد']}</span>
+                    <span style="background:var(--brand-bg);color:var(--brand);padding:2px 8px;border-radius:var(--r-full);font-size:.72rem;font-weight:700"><i class="fas fa-calendar-day" style="font-size:.6rem"></i> ${formatBirthdayForDisplay(s['عيد الميلاد'])}</span>
                     ${age > 0 ? `<span style="background:var(--success-bg);color:var(--success-dark);padding:2px 8px;border-radius:var(--r-full);font-size:.72rem;font-weight:700">${age} سنة</span>` : ''}
                 </div>
                 ${waLink ? `<a href="${waLink}" target="_blank" onclick="event.stopPropagation()" style="background:rgba(37,211,102,0.08);color:#128c7e;padding:4px 10px;border-radius:var(--r-full);font-size:.72rem;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:4px;flex-shrink:0"><i class="fab fa-whatsapp"></i> تهنئة</a>` : ''}
@@ -24345,9 +24385,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
             let v = input.value.replace(/\D/g, '').substring(0, 8), f = '';
             if (v.length > 0) f = v.substring(0, 2); if (v.length > 2) f += '/' + v.substring(2, 4); if (v.length > 4) f += '/' + v.substring(4, 8);
             input.value = f;
-            if (f.length === 10) { const [d, m, y] = f.split('/').map(Number); input.style.borderColor = isValidDate(d, m, y) ? 'var(--success)' : 'var(--danger)'; } else input.style.borderColor = '';
+            if (f.length === 5) {
+                const [d, m] = f.split('/').map(Number);
+                input.style.borderColor = isValidDate(d, m, 1000) ? 'var(--success)' : 'var(--danger)';
+            } else if (f.length === 10) {
+                const [d, m, y] = f.split('/').map(Number);
+                input.style.borderColor = isValidDate(d, m, y) ? 'var(--success)' : 'var(--danger)';
+            } else {
+                input.style.borderColor = '';
+            }
         }
-        function isValidDate(d, m, y) { if (y < 1900 || y > new Date().getFullYear() || m < 1 || m > 12 || d < 1) return false; const dm = [31, y % 4 === 0 && (y % 100 !== 0 || y % 400 === 0) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]; return d <= dm[m - 1]; }
+        function isValidDate(d, m, y) { if (y !== 1000 && (y < 1900 || y > new Date().getFullYear() || m < 1 || m > 12 || d < 1)) return false; const dm = [31, y % 4 === 0 && (y % 100 !== 0 || y % 400 === 0) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]; return d <= dm[m - 1]; }
         function setupBirthdayInputListeners() {
             document.querySelectorAll('input[id*="Birthday"],input[id*="birthday"]').forEach(inp => {
                 inp.addEventListener('input', () => autoFormatBirthdayInput(inp));
@@ -24360,7 +24408,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             // Setup innerHTML interceptor on studentDetails to split avatar header and detail info rows
             const studentDetailsEl = document.getElementById('studentDetails');
             if (studentDetailsEl) {
-                const descriptor = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+                const descriptor = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML') || Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'innerHTML');
                 Object.defineProperty(studentDetailsEl, 'innerHTML', {
                     set: function(val) {
                         const temp = document.createElement('div');

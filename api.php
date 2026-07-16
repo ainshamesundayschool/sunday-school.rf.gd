@@ -1387,6 +1387,7 @@ function getUncleProfileInfo() {
             return;
         }
         $conn = getDBConnection();
+        ensureUnclesTableCustomInfoColumn($conn);
         // Load uncle info
         $stmt = $conn->prepare("
             SELECT u.id, u.name, u.username, u.image_url, u.role, u.email, u.phone, u.gender, u.birthday, c.church_name
@@ -15373,13 +15374,12 @@ function sendRegistrationEmails($churchId, $userEmail, $registrationData)
 
 function ensureUnclesTableCustomInfoColumn($conn)
 {
-    if (defined('SCHEMA_MIGRATED')) { return; }
     $res = $conn->query("SHOW COLUMNS FROM `uncles` LIKE 'custom_info'");
-    if ($res->num_rows === 0) {
+    if ($res && $res->num_rows === 0) {
         $conn->query("ALTER TABLE `uncles` ADD COLUMN `custom_info` TEXT DEFAULT NULL");
     }
     $res2 = $conn->query("SHOW COLUMNS FROM `uncles` LIKE 'birthday'");
-    if ($res2->num_rows === 0) {
+    if ($res2 && $res2->num_rows === 0) {
         $conn->query("ALTER TABLE `uncles` ADD COLUMN `birthday` VARCHAR(20) DEFAULT NULL");
     }
 }
@@ -16112,6 +16112,7 @@ function getCurrentUncle()
     try {
 
         $conn = getDBConnection();
+        ensureUnclesTableCustomInfoColumn($conn);
 
         $stmt = $conn->prepare("SELECT id, name, username, image_url, role, custom_info, email, phone, gender, birthday FROM uncles WHERE id = ? AND (deleted IS NULL OR deleted = 0) LIMIT 1");
 
@@ -22497,7 +22498,13 @@ function formatDateFromDB($dbDate)
 
         $date = DateTime::createFromFormat('Y-m-d', $dbDate);
 
-        return $date ? $date->format('d/m/Y') : '';
+        if ($date) {
+            if ($date->format('Y') === '1000' || $date->format('Y') === '1900') {
+                return $date->format('d/m');
+            }
+            return $date->format('d/m/Y');
+        }
+        return '';
 
     } catch (Exception $e) {
 
@@ -22557,6 +22564,10 @@ function formatDateToDB($inputDate)
 
         'Y/m/d', // 2024/12/31
 
+        'd/m',   // 31/12 (بدون سنة)
+
+        'd-m',   // 31-12 (بدون سنة)
+
     ];
 
 
@@ -22567,6 +22578,9 @@ function formatDateToDB($inputDate)
 
         if ($date && $date->format($format) === $inputDate) {
 
+            if (strpos($format, 'y') === false && strpos($format, 'Y') === false) {
+                $date->setDate(1000, $date->format('m'), $date->format('d'));
+            }
             return $date->format('Y-m-d'); // تنسيق قاعدة البيانات
 
         }

@@ -376,8 +376,8 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
         <div class="fr full" style="margin-bottom:0; margin-top:12px;">
           <div class="ff">
             <label><i class="fas fa-birthday-cake"></i> تاريخ الميلاد <span class="req">*</span></label>
-            <input type="text" id="uncleBirthday" placeholder="DD/MM/YYYY" maxlength="10" />
-            <small><i class="fas fa-info-circle"></i> بالصيغة يوم/شهر/سنة (مثال: 15/08/1990)</small>
+            <input type="text" id="uncleBirthday" placeholder="DD/MM أو DD/MM/YYYY" maxlength="10" />
+            <small><i class="fas fa-info-circle"></i> بالصيغة يوم/شهر (مثال: 15/08) أو يوم/شهر/سنة</small>
           </div>
         </div>
       </div>
@@ -707,14 +707,27 @@ function v1() {
   const bday = val('uncleBirthday').trim();
   if (!bday) { showErr(1,'الرجاء إدخال تاريخ الميلاد'); focusErr('uncleBirthday'); return false; }
   const parts = bday.split('/');
-  if (parts.length !== 3 || parts[0].length < 1 || parts[0].length > 2 || parts[1].length < 1 || parts[1].length > 2 || parts[2].length !== 4) {
-    showErr(1,'تاريخ الميلاد غير صحيح — الرجاء إدخاله بالصيغة يوم/شهر/سنة (مثال: 15/08/1990)'); focusErr('uncleBirthday'); return false;
-  }
-  const day = parseInt(parts[0], 10);
-  const month = parseInt(parts[1], 10);
-  const year = parseInt(parts[2], 10);
-  if (isNaN(day) || isNaN(month) || isNaN(year) || day < 1 || day > 31 || month < 1 || month > 12 || year < 1920 || year > new Date().getFullYear()) {
-    showErr(1,'تاريخ الميلاد غير منطقي'); focusErr('uncleBirthday'); return false;
+  if (parts.length === 2) {
+    if (parts[0].length < 1 || parts[0].length > 2 || parts[1].length < 1 || parts[1].length > 2) {
+      showErr(1, 'تاريخ الميلاد غير صحيح — الرجاء إدخاله بالصيغة يوم/شهر (مثال: 15/08) أو يوم/شهر/سنة'); focusErr('uncleBirthday'); return false;
+    }
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10);
+    if (isNaN(day) || isNaN(month) || day < 1 || day > 31 || month < 1 || month > 12) {
+      showErr(1, 'تاريخ الميلاد غير منطقي'); focusErr('uncleBirthday'); return false;
+    }
+  } else if (parts.length === 3) {
+    if (parts[0].length < 1 || parts[0].length > 2 || parts[1].length < 1 || parts[1].length > 2 || parts[2].length !== 4) {
+      showErr(1, 'تاريخ الميلاد غير صحيح — الرجاء إدخاله بالصيغة يوم/شهر/سنة (مثال: 15/08/1990)'); focusErr('uncleBirthday'); return false;
+    }
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10);
+    const year = parseInt(parts[2], 10);
+    if (isNaN(day) || isNaN(month) || isNaN(year) || day < 1 || day > 31 || month < 1 || month > 12 || year < 1920 || year > new Date().getFullYear()) {
+      showErr(1, 'تاريخ الميلاد غير منطقي'); focusErr('uncleBirthday'); return false;
+    }
+  } else {
+    showErr(1, 'تاريخ الميلاد غير صحيح — الرجاء إدخاله بالصيغة يوم/شهر (مثال: 15/08) أو يوم/شهر/سنة'); focusErr('uncleBirthday'); return false;
   }
   return true;
 }
