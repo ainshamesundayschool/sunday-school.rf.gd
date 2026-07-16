@@ -12052,12 +12052,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <button class="close-btn" id="closeStudentModal">&times;</button>
             </div>
             <div id="studentDetailsHeader"></div>
-            <div id="studentModalFooter" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-bottom:14px;padding-bottom:10px;border-bottom:1.5px solid var(--border-solid);">
-                <button class="btn btn-sm" id="editStudentBtn" style="padding:6px 12px;font-size:0.8rem;"><i class="fas fa-edit"></i> تعديل</button>
-                <button class="btn btn-sm btn-secondary" id="viewProfileBtn" style="padding:6px 12px;font-size:0.8rem;"><i class="fas fa-user"></i> ملف الطفل</button>
-                <button class="btn btn-sm btn-danger" id="deleteStudentBtn" style="padding:6px 12px;font-size:0.8rem;"><i class="fas fa-trash"></i> حذف</button>
+            <div id="studentModalFooter" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;margin-bottom:10px;">
+                <button class="btn btn-xs btn-outline" id="editStudentBtn" style="padding:4px 8px;font-size:0.72rem;"><i class="fas fa-edit"></i> تعديل</button>
+                <button class="btn btn-xs btn-outline btn-secondary" id="viewProfileBtn" style="padding:4px 8px;font-size:0.72rem;"><i class="fas fa-user"></i> ملف الطفل</button>
             </div>
             <div id="studentDetails" style="margin-bottom:14px"></div>
+            <div id="studentModalDeleteFooter" style="display:flex;justify-content:center;margin-top:14px;">
+                <button class="btn btn-xs btn-danger" id="deleteStudentBtn" style="width:100%;padding:8px;font-size:0.8rem;"><i class="fas fa-trash"></i> حذف</button>
+            </div>
         </div>
     </div>
 
@@ -18848,6 +18850,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function hideDetailsFooter() {
             const footer = document.getElementById('studentModalFooter');
             if (footer) footer.style.display = 'none';
+            const deleteFooter = document.getElementById('studentModalDeleteFooter');
+            if (deleteFooter) deleteFooter.style.display = 'none';
             const standaloneActions = document.getElementById('standaloneDetailsActions');
             if (standaloneActions) standaloneActions.style.display = 'none';
             const headerEl = document.getElementById('studentDetailsHeader');
@@ -18863,7 +18867,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         function showDetailsFooter() {
             const footer = document.getElementById('studentModalFooter');
-            if (footer) footer.style.display = '';
+            if (footer) footer.style.display = 'flex';
+            const deleteFooter = document.getElementById('studentModalDeleteFooter');
+            if (deleteFooter) deleteFooter.style.display = 'flex';
             const standaloneActions = document.getElementById('standaloneDetailsActions');
             if (standaloneActions) standaloneActions.style.display = 'flex';
             const headerEl = document.getElementById('studentDetailsHeader');
