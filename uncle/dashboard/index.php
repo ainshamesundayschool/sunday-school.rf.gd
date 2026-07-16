@@ -12729,7 +12729,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         </style>
         <div class="modal modal-lg"
-            style="width: min(95vw, 1200px); max-height: 90vh; display: flex; flex-direction: column;">
+            style="width: 100%; max-width: 1400px; max-height: 90vh; display: flex; flex-direction: column;">
             <div class="modal-header">
                 <h3><i class="fas fa-table-cells"></i> تعديل جماعي للحضور (كشف الشيت)</h3>
                 <button class="close-btn" onclick="hideBulkAttendanceModal()">&times;</button>
