@@ -930,8 +930,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .topbar-avatar-btn {
+            width: 40px;
             height: 40px;
             min-width: 40px;
+            max-width: 40px;
             padding: 0;
             border-radius: 50%;
             overflow: hidden;
