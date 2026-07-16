@@ -216,20 +216,6 @@ self.addEventListener('fetch', e => {
     if (e.request.mode === 'navigate') {
         e.respondWith(
             (async () => {
-                const remoteVersion = isOfflineShellFriendly ? await _getRemoteBuildVersion() : null;
-                const versionMismatch = !!remoteVersion && remoteVersion !== SW_VERSION;
-
-                if (isOfflineShellFriendly && versionMismatch) {
-                    try {
-                        const fresh = await fetch(e.request, { cache: 'no-store' });
-                        if (await _isCacheableAppResponse(fresh, e.request)) {
-                            const copy = fresh.clone();
-                            caches.open(CACHE_NAME).then(c => c.put(e.request, copy)).catch(() => {});
-                        }
-                        return fresh;
-                    } catch (_) { }
-                }
-
                 try {
                     // Force no-store for all navigations to prevent browser caching the cookie-check pages
                     const r = await fetch(e.request, { cache: 'no-store' });

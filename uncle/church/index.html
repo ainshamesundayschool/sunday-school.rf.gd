@@ -12353,7 +12353,15 @@
             document.getElementById('sidebarUserName').textContent = displayName;
             const roleTranslate = { 'admin': 'مسؤول', 'developer': 'مطور', 'dev': 'مطور', 'uncle': 'خادم' };
             document.getElementById('sidebarUserRole').textContent = roleTranslate[userRole] || userRole || 'مسؤول';
-            document.getElementById('sidebarAvatar').textContent = displayName.charAt(0);
+            const avatarUrl = sess.image_url || localStorage.getItem('uncleImageUrl') || '';
+            const avatarNode = document.getElementById('sidebarAvatar');
+            if (avatarNode) {
+                if (avatarUrl && avatarUrl.trim() !== '') {
+                    avatarNode.innerHTML = `<img src="${avatarUrl}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;" onerror="this.style.display='none'; this.parentElement.textContent='${displayName.charAt(0)}';">`;
+                } else {
+                    avatarNode.textContent = displayName.charAt(0);
+                }
+            }
             document.getElementById('sidebarChurchName').textContent = sess.church_name || localStorage.getItem('churchName') || 'مدارس الأحد';
             document.getElementById('sidebarChurchCode').textContent = sessionChurchCode ? `رمز: ${sessionChurchCode}` : 'لوحة الإدارة';
             const ovCN = document.getElementById('overviewChurchName');
@@ -22157,7 +22165,19 @@
             if (d.success) {
                 showToast('تم حفظ بيانات الحساب بنجاح ✅', 'success');
                 // Update stored name
-                if (newName) { localStorage.setItem('uncleName', newName); document.getElementById('sidebarUserName').textContent = newName; document.getElementById('sidebarAvatar').textContent = newName.charAt(0); }
+                if (newName) { 
+                    localStorage.setItem('uncleName', newName); 
+                    document.getElementById('sidebarUserName').textContent = newName; 
+                    const avatarUrl = localStorage.getItem('uncleImageUrl') || '';
+                    const avatarNode = document.getElementById('sidebarAvatar');
+                    if (avatarNode) {
+                        if (avatarUrl && avatarUrl.trim() !== '') {
+                            avatarNode.innerHTML = `<img src="${avatarUrl}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;" onerror="this.style.display='none'; this.parentElement.textContent='${newName.charAt(0)}';">`;
+                        } else {
+                            avatarNode.textContent = newName.charAt(0);
+                        }
+                    }
+                }
                 if (newUser) localStorage.setItem('uncleUsername', newUser);
                 loadUncles();
             } else {
