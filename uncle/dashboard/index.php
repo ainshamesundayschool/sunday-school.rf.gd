@@ -10484,7 +10484,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 min-width: 100% !important;
             }
             .col-photo {
-                display: none !important;
+                width: 36px !important;
+                padding: 4px !important;
+            }
+            .col-photo div {
+                width: 28px !important;
+                height: 28px !important;
+            }
+            .col-photo img,
+            .col-photo .table-avatar-fallback {
+                width: 28px !important;
+                height: 28px !important;
+                font-size: 0.7rem !important;
             }
             .col-class {
                 display: none !important;
