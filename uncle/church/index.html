@@ -3178,12 +3178,12 @@
                 backdrop-filter: none;
                 z-index: 980;
                 opacity: 0;
-                pointer-events: none;
+                pointer-events: none !important;
                 transition: opacity 0.3s ease;
             }
             body.modal-open .sidebar-backdrop {
                 opacity: 1;
-                pointer-events: auto;
+                pointer-events: none !important;
             }
 
             /* Hide the old close buttons on mobile */
@@ -11269,11 +11269,19 @@
             document.body.classList.remove('modal-open');
         }
 
-        // Close mobile sidebar when user clicks the backdrop element
+        // Close mobile sidebar when user clicks outside
         document.addEventListener('click', function(e) {
             if (!document.body.classList.contains('modal-open')) return;
-            if (e.target.id === 'sidebarBackdrop') {
-                closeAllMobileAddModals();
+            const openSidebar = document.querySelector('.split-sidebar.open-mobile');
+            if (openSidebar && !openSidebar.contains(e.target)) {
+                const isToggleBtn = e.target.closest('button') && e.target.outerHTML.includes('openMobileAddModal');
+                const isIgnored = e.target.closest('.autocomplete-suggestions') || 
+                                  e.target.closest('.flatpickr-calendar') || 
+                                  e.target.closest('.swal2-container') ||
+                                  e.target.closest('.flatpickr-monthDropdown-months');
+                if (!isToggleBtn && !isIgnored) {
+                    closeAllMobileAddModals();
+                }
             }
         });
 
