@@ -13228,6 +13228,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
      JAVASCRIPT
 ════════════════════════════════════════════ -->
     <script>
+        // Redirect to home screen if offline and in PWA standalone mode
+        if (!navigator.onLine && (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone)) {
+            window.location.href = '/';
+        }
+
         'use strict';
         const API_URL = window.location.pathname.indexOf('/testing/') !== -1 ? '/testing/api.php' : '/api.php';
         const APP_VERSION = '1.0.1';

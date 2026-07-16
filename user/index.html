@@ -807,6 +807,11 @@
 </div>
 
 <script>
+        // Redirect to home screen if offline and in PWA standalone mode
+        if (!navigator.onLine && (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone)) {
+            window.location.href = '/';
+        }
+
 'use strict';
 const API = 'api.php';
 let selectedChurchId = null;

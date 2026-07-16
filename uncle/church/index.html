@@ -11225,6 +11225,11 @@
     <!-- ══════════════════ SCRIPT ══════════════════ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
+        // Redirect to home screen if offline and in PWA standalone mode
+        if (!navigator.onLine && (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone)) {
+            window.location.href = '/';
+        }
+
         function openMobileAddModal(sidebarId) {
             const sidebar = document.getElementById(sidebarId);
             if (!sidebar) return;
