@@ -174,8 +174,21 @@ self.addEventListener('fetch', e => {
                     const r = await fetch(e.request.clone());
                     const isCookieCheck = await _isCookieCheckResponse(r);
                     if (isCookieCheck) {
+                        const now = Date.now();
+                        // If we already tried to bypass cache and reload recently, cookies are blocked
+                        if (now < _bypassCacheUntil) {
+                            return new Response(JSON.stringify({
+                                success: false,
+                                offline: true,
+                                cookies_blocked: true,
+                                message: 'ملفات تعريف الارتباط محجوبة. يرجى تفعيل الكوكيز في المتصفح.'
+                            }), {
+                                status: 403,
+                                headers: { 'Content-Type': 'application/json; charset=utf-8' }
+                            });
+                        }
                         // Bypass cache-first strategy for the next 10 seconds to let the cookie check run on reload
-                        _bypassCacheUntil = Date.now() + 10000;
+                        _bypassCacheUntil = now + 10000;
                         // Force reload the client window(s) to let the cookie check complete
                         const clientsList = await self.clients.matchAll({ type: 'window' });
                         for (const client of clientsList) {
@@ -272,8 +285,16 @@ self.addEventListener('fetch', e => {
                     const r = await fetch(e.request, { cache: 'no-store' });
                     const isCookieCheck = await _isCookieCheckResponse(r);
                     if (isCookieCheck) {
+                        const now = Date.now();
+                        // If we already tried to bypass cache and reload recently, cookies are blocked
+                        if (now < _bypassCacheUntil) {
+                            return new Response('<!doctype html><meta charset="utf-8"><title>تفعيل ملفات تعريف الارتباط</title><body dir="rtl" style="font-family:sans-serif;padding:24px;text-align:center;color:#333;"><h2 style="color:#e11d48;">خطأ في الاتصال (ملفات الكوكيز محجوبة)</h2><p>يبدو أن متصفحك يمنع ملفات تعريف الارتباط (Cookies)، أو أنك تستخدم وضع التصفح الخفي.</p><p>يرجى التأكد من <strong>السماح بملفات الكوكيز</strong> وإعادة تحميل الصفحة لتتمكن من استخدام التطبيق.</p></body></html>', {
+                                status: 403,
+                                headers: { 'Content-Type': 'text/html; charset=utf-8' }
+                            });
+                        }
                         // Bypass cache-first strategy for the next 10 seconds to let the cookie check run on reload
-                        _bypassCacheUntil = Date.now() + 10000;
+                        _bypassCacheUntil = now + 10000;
                         const clientsList = await self.clients.matchAll({ type: 'window' });
                         for (const client of clientsList) {
                             if (client.url) {
