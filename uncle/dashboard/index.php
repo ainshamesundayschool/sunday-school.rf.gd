@@ -4456,6 +4456,83 @@ if ($hasUncleId && $uncleRole === 'uncle')
             margin-left: 0 !important;
         }
 
+        /* ── Modal Sub-Page Navigation Styles ── */
+        .navigation-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 14px;
+            background: var(--surface-2);
+            border: 1px solid var(--border-solid);
+            border-radius: var(--r-xl);
+            margin-top: 14px;
+            cursor: pointer;
+            transition: all var(--t) var(--ease);
+        }
+        .navigation-row:hover {
+            background: var(--surface-3);
+            border-color: var(--brand);
+            transform: translateY(-1px);
+        }
+        .navigation-row:active {
+            transform: translateY(0);
+        }
+        .navigation-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+        .navigation-icon.purple {
+            background: rgba(124, 58, 237, 0.1);
+            color: #7c3aed;
+        }
+        .navigation-icon.blue {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+        }
+        .navigation-label {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .navigation-count {
+            background: var(--surface-3);
+            color: var(--text-2);
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 12px;
+            border: 1px solid var(--border-solid);
+        }
+        .navigation-arrow {
+            color: var(--text-3);
+            font-size: 0.8rem;
+            margin-inline-start: 4px;
+        }
+        .modal-header h3 .back-btn {
+            background: none;
+            border: none;
+            color: var(--text-3);
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 4px 8px;
+            margin-inline-end: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--t) var(--ease);
+            border-radius: var(--r-md);
+        }
+        .modal-header h3 .back-btn:hover {
+            color: var(--brand);
+            background: var(--surface-3);
+        }
+
         .header-btn,
         .close-btn {
             background: var(--surface-3);
@@ -11908,7 +11985,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <button class="close-btn" id="closeStudentModal">&times;</button>
             </div>
             <div id="studentDetails" style="margin-bottom:14px"></div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <div id="studentModalFooter" style="display:flex;gap:8px;flex-wrap:wrap">
                 <button class="btn" id="editStudentBtn" style="flex:1"><i class="fas fa-edit"></i> تعديل</button>
                 <button class="btn btn-secondary" id="viewProfileBtn" style="flex:1"><i class="fas fa-user"></i> ملف
                     الطفل</button>
@@ -18696,6 +18773,34 @@ if ($hasUncleId && $uncleRole === 'uncle')
             document.getElementById('studentDetails').innerHTML = content;
         }
 
+        function setModalHeader(title, showBack = false) {
+            const titleEl = document.getElementById('studentModalTitle');
+            if (!titleEl) return;
+            if (showBack) {
+                titleEl.innerHTML = `
+                    <button type="button" class="back-btn" onclick="goBackToMainDetails()"><i class="fas fa-arrow-right"></i></button>
+                    <span>${title}</span>
+                `;
+            } else {
+                titleEl.innerHTML = `<span>${title}</span>`;
+            }
+        }
+
+        function goBackToMainDetails() {
+            if (!currentStudentForEdit) return;
+            const footer = document.getElementById('studentModalFooter');
+            if (footer) footer.style.display = '';
+
+            const isUncle = !!currentStudentForEdit._isUncle;
+            if (isUncle) {
+                setModalHeader('معلومات الخادم: ' + (currentStudentForEdit.name || currentStudentForEdit['الاسم'] || ''), false);
+                buildUncleDetailsFromProfile(currentStudentForEdit);
+            } else {
+                setModalHeader('معلومات: ' + (currentStudentForEdit['الاسم'] || ''), false);
+                buildStudentDetailsFromProfile(currentStudentForEdit);
+            }
+        }
+
         // ── STUDENT DETAILS ───────────────────────────────────────────
         function showStudentDetails(name) {
             const s = (currentClass === 'الخدام')
@@ -18707,7 +18812,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         : students.find(s => s['الاسم'] === name)));
             if (!s) { showToast('لم يتم العثور على الشخص', 'error'); return; }
             currentStudentForEdit = s;
-            document.getElementById('studentModalTitle').textContent = s._isUncle ? 'معلومات الخادم: ' + name : (s._isGuest ? 'معلومات الزائر: ' + name : 'معلومات: ' + name);
+            const title = s._isUncle ? 'معلومات الخادم: ' + name : (s._isGuest ? 'معلومات الزائر: ' + name : 'معلومات: ' + name);
+            setModalHeader(title, false);
             const gender = (s['النوع'] === 'female' || s['gender'] === 'female') ? 'female' : 'male';
             // Basic avatar + header (kept from local cache)
             const detailNameStr = (s['الاسم'] || '') + (s._isGuest ? ' <span class="guest-badge" style="font-size:0.65rem; background:#f59e0b; color:#fff; padding:2px 6px; border-radius:4px; margin-right:4px; vertical-align:middle; display:inline-block;">زائر</span>' : '');
@@ -18816,7 +18922,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             return {
                 singular: female ? 'أخت' : 'أخ',
                 plural: female ? 'الأخوات' : 'الإخوات',
-                panelLabel: female ? 'الأخوات المرتبطات' : 'الإخوات المرتبطون',
+                panelLabel: female ? 'الأخوات' : 'الإخوات',
                 actionLabel: 'إضافة أخت أو أخ',
                 searchLabel: 'ابحث عن أخت أو أخ',
                 modalTitle: 'إضافة أخت أو أخ',
@@ -19034,15 +19140,39 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const custom = parseStudentCustomInfo(student);
             const group = custom.sibling_group && typeof custom.sibling_group === 'object' ? custom.sibling_group : null;
             const members = group && group.id ? getSiblingMembersByGroupId(group.id, studentId) : [];
-            const visibleMembers = members.slice(0, 6);
+
+            return `
+            <div class="navigation-row" onclick="showSiblingsSubPage()">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div class="navigation-icon blue"><i class="fas fa-people-roof"></i></div>
+                    <div class="navigation-label">${escHtml(words.panelLabel)}</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span class="navigation-count">${members.length}</span>
+                    <i class="fas fa-chevron-left navigation-arrow"></i>
+                </div>
+            </div>
+            `;
+        }
+
+        function showSiblingsSubPage() {
+            if (!currentStudentForEdit) return;
+            const student = currentStudentForEdit;
+            const studentId = getStudentDbId(student);
+            const words = getSiblingWordForms(student);
+            const custom = parseStudentCustomInfo(student);
+            const group = custom.sibling_group && typeof custom.sibling_group === 'object' ? custom.sibling_group : null;
+            const members = group && group.id ? getSiblingMembersByGroupId(group.id, studentId) : [];
             const groupId = group?.id;
 
-            const membersHtml = visibleMembers.length
-                ? visibleMembers.map(m => {
+            setModalHeader(words.panelLabel, true);
+            const footer = document.getElementById('studentModalFooter');
+            if (footer) footer.style.display = 'none';
+
+            const membersHtml = members.length
+                ? members.map(m => {
                     const mId = getStudentDbId(m);
-                    const mGender = getStudentGender(m);
-                    const icon = mGender === 'female' ? 'fa-user-circle' : 'fa-user-circle';
-                    return `<div class="sibling-item">
+                    return `<div class="sibling-item" style="margin-bottom:8px;">
                         <div class="sibling-item-main" onclick="showStudentDetails('${escJs(getStudentDisplayName(m))}')">
                             ${buildSiblingMiniAvatar(m)}
                             <div class="sibling-item-info">
@@ -19053,20 +19183,39 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <button type="button" class="sibling-unlink-btn" onclick="unlinkSibling(${studentId || 0}, ${mId || 0}, '${escJs(groupId || '')}')" title="فك الارتباط"><i class="fas fa-trash-can"></i></button>
                     </div>`;
                 }).join('')
-                : '';
+                : `<div style="text-align:center; padding:30px 20px; color:var(--muted); font-size:0.82rem; font-style:italic;">
+                    لا توجد إخوة مضافين.
+                   </div>`;
 
             const studentIdJs = JSON.stringify(studentId || 0);
-            return `
-                <div class="sibling-panel">
-                    <div class="sibling-panel-head">
-                        <div>
-                            <div class="sibling-panel-title">${escHtml(words.panelLabel)}</div>
-                        </div>
-                        <button type="button" class="btn btn-ghost sibling-link-btn" title="فتح الاقتراحات وإضافة أخت/أخ" onclick="openSiblingLinkModal(${studentIdJs})"><i class="fas fa-link"></i> <i class="fas fa-plus"></i></button>
-                    </div>
-                    ${membersHtml ? `<div class="sibling-list">${membersHtml}</div>` : ''}
+            const siblingSubPageHtml = `
+            <div class="sibling-panel" style="margin-top:8px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                    <h4 style="font-size:0.95rem; font-weight:700; color:var(--primary); margin:0; display:flex; align-items:center; gap:6px;">
+                        <i class="fas fa-people-roof"></i> ${escHtml(words.panelLabel)} (${members.length})
+                    </h4>
+                    <button type="button" class="btn btn-ghost sibling-link-btn" title="إضافة أخت أو أخ" onclick="openSiblingLinkModal(${studentIdJs})">
+                        <i class="fas fa-link"></i> <i class="fas fa-plus"></i>
+                    </button>
                 </div>
+                <div class="sibling-list" style="max-height:400px; overflow-y:auto; padding-inline-end:4px;">
+                    ${membersHtml}
+                </div>
+            </div>
             `;
+
+            document.getElementById('studentDetails').innerHTML = siblingSubPageHtml;
+        }
+
+        function refreshStudentDetailsView(name) {
+            const titleEl = document.getElementById('studentModalTitle');
+            const isSiblingsPage = titleEl && (titleEl.textContent.includes('الإخوات') || titleEl.textContent.includes('الأخوات'));
+            
+            showStudentDetails(name);
+
+            if (isSiblingsPage) {
+                showSiblingsSubPage();
+            }
         }
 
         let _siblingLinkStudentId = 0;
@@ -19364,7 +19513,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 await new Promise(resolve => setTimeout(resolve, 200));
                 loadData();
                 setTimeout(() => {
-                    if (currentStudentForEdit) showStudentDetails(getStudentDisplayName(currentStudentForEdit));
+                    if (currentStudentForEdit) refreshStudentDetailsView(getStudentDisplayName(currentStudentForEdit));
                 }, 500);
             } else {
                 showToast(d.message || 'فشل في حفظ الربط', 'error');
@@ -19405,7 +19554,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 await new Promise(resolve => setTimeout(resolve, 200));
                 loadData();
                 setTimeout(() => {
-                    if (current) showStudentDetails(getStudentDisplayName(current));
+                    if (current) refreshStudentDetailsView(getStudentDisplayName(current));
                 }, 500);
             } else {
                 showToast(d.message || 'فشل في فك الارتباط', 'error');
@@ -19820,6 +19969,57 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 fees = info._fees || [];
             } catch (e) { fees = []; }
 
+            const isUncleLoggedIn = localStorage.getItem('uncleLoggedIn') === 'true';
+            const currentUncleId = window.currentUncle?.id || localStorage.getItem('uncleId');
+            const loggedInUsername = (localStorage.getItem('uncleUsername') || '').trim().toLowerCase();
+            const allowedList = (allowedViewUncles || '').split(',').map(x => x.trim().toLowerCase());
+            const isAssignedManager = loggedInUsername && allowedList.includes(loggedInUsername);
+
+            let canViewFees = (churchUncleFeesEnabled !== 0);
+            if (canViewFees && isUncleLoggedIn) {
+                if (currentUncleId && String(currentUncleId) === String(full.id)) {
+                    canViewFees = true;
+                } else if (isAssignedManager) {
+                    canViewFees = true;
+                } else {
+                    canViewFees = false;
+                }
+            }
+
+            let feesHtml = '';
+            if (canViewFees) {
+                const extFees = getExtendedFeesList(fees);
+                feesHtml = `
+                <div class="navigation-row" onclick="showUncleFeesSubPage()">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div class="navigation-icon purple"><i class="fas fa-money-bill-wave"></i></div>
+                        <div class="navigation-label">الاشتراكات الشهرية للخدمة</div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span class="navigation-count">${extFees.length}</span>
+                        <i class="fas fa-chevron-left navigation-arrow"></i>
+                    </div>
+                </div>
+                `;
+            }
+
+            document.getElementById('studentDetails').innerHTML = img + rows + feesHtml;
+        }
+
+        function showUncleFeesSubPage() {
+            if (!currentStudentForEdit) return;
+            const full = currentStudentForEdit;
+
+            setModalHeader('الاشتراكات الشهرية للخدمة', true);
+            const footer = document.getElementById('studentModalFooter');
+            if (footer) footer.style.display = 'none';
+
+            let fees = [];
+            try {
+                const info = full._customInfo || (full.custom_info ? (typeof full.custom_info === 'string' ? JSON.parse(full.custom_info) : full.custom_info) : {});
+                fees = info._fees || [];
+            } catch (e) { fees = []; }
+
             const arabicMonths = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
             const d = new Date();
             const curYear = d.getFullYear();
@@ -19889,89 +20089,86 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const allowedList = (allowedViewUncles || '').split(',').map(x => x.trim().toLowerCase());
             const isAssignedManager = loggedInUsername && allowedList.includes(loggedInUsername);
 
-            let canViewFees = (churchUncleFeesEnabled !== 0);
-            if (canViewFees && isUncleLoggedIn) {
-                if (currentUncleId && String(currentUncleId) === String(full.id)) {
-                    canViewFees = true;
-                } else if (isAssignedManager) {
-                    canViewFees = true;
-                } else {
-                    canViewFees = false;
-                }
-            }
+            const extFees = getExtendedFeesList(fees);
+            const canManageFees = !isUncleLoggedIn || isAssignedManager;
+            const addFeeBtn = canManageFees ? `
+                <button type="button" class="btn btn-ghost sibling-link-btn" title="إضافة اشتراك" onclick="toggleAddFeeArea()"><i class="fas fa-money-bill-wave"></i> <i class="fas fa-plus"></i></button>
+            ` : '';
 
-            let feesHtml = '';
-            if (canViewFees) {
-                const extFees = getExtendedFeesList(fees);
-                const canManageFees = !isUncleLoggedIn || isAssignedManager;
-                const addFeeBtn = canManageFees ? `
-                    <button type="button" class="btn btn-ghost sibling-link-btn" title="إضافة اشتراك" onclick="toggleAddFeeArea()"><i class="fas fa-money-bill-wave"></i> <i class="fas fa-plus"></i></button>
-                ` : '';
-
-                feesHtml = `
-                <div class="uncle-fees-section" style="margin-top:16px; border-top:1px solid var(--border); padding-top:16px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                        <h4 style="font-size:0.95rem; font-weight:700; color:var(--primary); margin:0; display:flex; align-items:center; gap:6px;">
-                            <i class="fas fa-money-bill-wave"></i> الاشتراكات الشهرية للخدمة (${extFees.length})
-                        </h4>
-                        ${addFeeBtn}
-                    </div>
-                    
-                    ${canManageFees ? feeForm : ''}
-
-                    <div style="display:flex; flex-direction:column; gap:8px; max-height:250px; overflow-y:auto; padding-inline-end:4px;">
-                        ${extFees.length === 0 ? `
-                            <div style="text-align:center; padding:20px; color:var(--muted); font-size:0.78rem; font-style:italic;">
-                                لا توجد اشتراكات مسجلة.
-                            </div>
-                        ` : extFees.map(fee => {
-                    const isPaid = fee.status !== 'unpaid';
-                    const statusBadge = isPaid
-                        ? `<span style="background:#10b981; color:white; font-size:0.65rem; font-weight:700; padding:1px 6px; border-radius:6px; margin-inline-start:6px;">مدفوع</span>`
-                        : `<span style="background:#ef4444; color:white; font-size:0.65rem; font-weight:700; padding:1px 6px; border-radius:6px; margin-inline-start:6px;">غير مدفوع</span>`;
-                    const amountBadge = isPaid
-                        ? `<span style="background:var(--brand); color:white; font-size:0.7rem; font-weight:800; padding:2px 6px; border-radius:10px;">${fee.amount} ج.م</span>`
-                        : '';
-
-                    const payBtn = (canManageFees && !isPaid) ? `
-                                <button class="btn btn-ghost" style="padding:6px; color:#10b981; font-size:0.85rem;" onclick="payUncleFee(${full.id}, '${fee.id}')" title="تسديد الاشتراك">
-                                    <i class="fas fa-check-circle"></i>
-                                </button>
-                            ` : '';
-                    const deleteBtn = (canManageFees && !fee.is_virtual) ? `
-                                <button class="btn btn-ghost" style="padding:6px; color:var(--danger); font-size:0.8rem;" onclick="deleteUncleFee(${full.id}, '${fee.id}')" title="حذف الاشتراك">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            ` : '';
-                    return `
-                            <div class="glass-card" style="padding:10px 12px; border:1px solid var(--border-solid); border-radius:10px; display:flex; align-items:center; justify-content:space-between; gap:8px; background:rgba(255,255,255,0.01);">
-                                <div style="flex:1;">
-                                    <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                                        <span style="font-weight:700; font-size:0.82rem; color:var(--text);">${escHtml(fee.title)}</span>
-                                        ${amountBadge}
-                                        ${statusBadge}
-                                    </div>
-                                    <div style="font-size:0.72rem; color:var(--text-3); margin-top:2px;">
-                                        <span>التاريخ: ${fee.date}</span>
-                                        ${fee.description ? `<span style="margin-inline-start:8px; color:var(--text-2);">| ${escHtml(fee.description)}</span>` : ''}
-                                    </div>
-                                    <div style="font-size:0.65rem; color:var(--muted); margin-top:2px; opacity:0.8;">
-                                        المستلم: ${escHtml(fee.created_by || '---')} (${fee.created_at || ''})
-                                    </div>
-                                </div>
-                                <div style="display:flex; align-items:center; gap:4px;">
-                                    ${payBtn}
-                                    ${deleteBtn}
-                                </div>
-                            </div>
-                            `;
-                }).join('')}
-                    </div>
+            const feesSubPageHtml = `
+            <div class="uncle-fees-section" style="margin-top:8px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                    <h4 style="font-size:0.95rem; font-weight:700; color:var(--primary); margin:0; display:flex; align-items:center; gap:6px;">
+                        <i class="fas fa-money-bill-wave"></i> الاشتراكات الشهرية للخدمة (${extFees.length})
+                    </h4>
+                    ${addFeeBtn}
                 </div>
-                `;
-            }
+                
+                ${canManageFees ? feeForm : ''}
 
-            document.getElementById('studentDetails').innerHTML = img + rows + feesHtml;
+                <div style="display:flex; flex-direction:column; gap:8px; max-height:400px; overflow-y:auto; padding-inline-end:4px;">
+                    ${extFees.length === 0 ? `
+                        <div style="text-align:center; padding:30px 20px; color:var(--muted); font-size:0.82rem; font-style:italic;">
+                            لا توجد اشتراكات مسجلة.
+                        </div>
+                    ` : extFees.map(fee => {
+                const isPaid = fee.status !== 'unpaid';
+                const statusBadge = isPaid
+                    ? `<span style="background:#10b981; color:white; font-size:0.65rem; font-weight:700; padding:1px 6px; border-radius:6px; margin-inline-start:6px;">مدفوع</span>`
+                    : `<span style="background:#ef4444; color:white; font-size:0.65rem; font-weight:700; padding:1px 6px; border-radius:6px; margin-inline-start:6px;">غير مدفوع</span>`;
+                const amountBadge = isPaid
+                    ? `<span style="background:var(--brand); color:white; font-size:0.7rem; font-weight:800; padding:2px 6px; border-radius:10px;">${fee.amount} ج.م</span>`
+                    : '';
+
+                const payBtn = (canManageFees && !isPaid) ? `
+                            <button class="btn btn-ghost" style="padding:6px; color:#10b981; font-size:0.85rem;" onclick="payUncleFee(${full.id}, '${fee.id}')" title="تسديد الاشتراك">
+                                <i class="fas fa-check-circle"></i>
+                            </button>
+                        ` : '';
+                const deleteBtn = (canManageFees && !fee.is_virtual) ? `
+                            <button class="btn btn-ghost" style="padding:6px; color:var(--danger); font-size:0.8rem;" onclick="deleteUncleFee(${full.id}, '${fee.id}')" title="حذف الاشتراك">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        ` : '';
+                return `
+                        <div class="glass-card" style="padding:12px; border:1px solid var(--border-solid); border-radius:10px; display:flex; align-items:center; justify-content:space-between; gap:8px; background:rgba(255,255,255,0.01);">
+                            <div style="flex:1;">
+                                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                                    <span style="font-weight:700; font-size:0.82rem; color:var(--text);">${escHtml(fee.title)}</span>
+                                    ${amountBadge}
+                                    ${statusBadge}
+                                </div>
+                                <div style="font-size:0.72rem; color:var(--text-3); margin-top:4px;">
+                                    <span>التاريخ: ${fee.date}</span>
+                                    ${fee.description ? `<span style="margin-inline-start:8px; color:var(--text-2);">| ${escHtml(fee.description)}</span>` : ''}
+                                </div>
+                                <div style="font-size:0.65rem; color:var(--muted); margin-top:4px; opacity:0.8;">
+                                    المستلم: ${escHtml(fee.created_by || '---')} (${fee.created_at || ''})
+                                </div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:4px;">
+                                ${payBtn}
+                                ${deleteBtn}
+                            </div>
+                        </div>
+                        `;
+            }).join('')}
+                </div>
+            </div>
+            `;
+
+            document.getElementById('studentDetails').innerHTML = feesSubPageHtml;
+        }
+
+        function refreshUncleDetailsView(uncle) {
+            currentStudentForEdit = uncle;
+            const titleEl = document.getElementById('studentModalTitle');
+            const isSubpage = titleEl && titleEl.textContent.includes('الاشتراكات');
+            if (isSubpage) {
+                showUncleFeesSubPage();
+            } else {
+                buildUncleDetailsFromProfile(uncle);
+            }
         }
 
         async function saveUncleFee(uncleId) {
@@ -20025,7 +20222,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             created_at: new Date().toISOString().replace('T', ' ').substr(0, 19)
                         });
                         uncle.custom_info = JSON.stringify(uncle._customInfo);
-                        buildUncleDetailsFromProfile(uncle);
+                        refreshUncleDetailsView(uncle);
                     }
                     setTimeout(loadData, 500);
                 } else {
@@ -20113,7 +20310,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     if (uncle && uncle._customInfo && Array.isArray(uncle._customInfo._fees)) {
                         uncle._customInfo._fees = uncle._customInfo._fees.filter(f => f.id !== feeId);
                         uncle.custom_info = JSON.stringify(uncle._customInfo);
-                        buildUncleDetailsFromProfile(uncle);
+                        refreshUncleDetailsView(uncle);
                     }
                     setTimeout(loadData, 500);
                 } else {
@@ -20199,7 +20396,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 }
                             }
                             uncle.custom_info = JSON.stringify(uncle._customInfo);
-                            buildUncleDetailsFromProfile(uncle);
+                            refreshUncleDetailsView(uncle);
                         }
                         setTimeout(loadData, 500);
                     } else {
