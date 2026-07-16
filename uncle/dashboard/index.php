@@ -12073,15 +12073,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <!-- Student Details Modal -->
     <div id="studentModal" class="modal-overlay" style="z-index:1000005">
         <div class="modal">
-            <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; width:100%;">
-                <div style="display:flex; align-items:center; gap:10px; min-width:0; flex:1;">
-                    <h3 id="studentModalTitle" style="margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">معلومات الطفل</h3>
-                    <button class="btn btn-xs btn-outline" id="editStudentBtn" style="padding:4px 8px;font-size:0.72rem;flex-shrink:0;"><i class="fas fa-edit"></i> تعديل</button>
-                </div>
-                <button class="close-btn" id="closeStudentModal" style="flex-shrink:0;">&times;</button>
+            <div class="modal-header">
+                <h3 id="studentModalTitle">معلومات الطفل</h3>
+                <button class="close-btn" id="closeStudentModal">&times;</button>
             </div>
             <div id="studentDetailsHeader"></div>
-            <div id="studentModalFooter" style="display:none;gap:6px;flex-wrap:wrap;justify-content:flex-end;margin-bottom:10px;">
+            <div id="studentModalFooter" style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+                <div id="studentModalTitleFooter" style="font-size:0.95rem;font-weight:700;color:var(--text-3);">معلومات الطفل</div>
+                <button class="btn btn-xs btn-outline" id="editStudentBtn" style="padding:4px 8px;font-size:0.72rem;"><i class="fas fa-edit"></i> تعديل</button>
             </div>
             <div id="studentDetails" style="margin-bottom:14px"></div>
             <div id="studentModalDeleteFooter" style="display:flex;justify-content:center;margin-top:14px;">
@@ -18892,8 +18891,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (standaloneActions) standaloneActions.style.display = 'none';
             const headerEl = document.getElementById('studentDetailsHeader');
             if (headerEl) headerEl.style.display = 'none';
-            const editBtn = document.getElementById('editStudentBtn');
-            if (editBtn) editBtn.style.display = 'none';
         }
 
         function scrollToDetailsTop() {
@@ -18912,8 +18909,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (standaloneActions) standaloneActions.style.display = 'flex';
             const headerEl = document.getElementById('studentDetailsHeader');
             if (headerEl) headerEl.style.display = '';
-            const editBtn = document.getElementById('editStudentBtn');
-            if (editBtn) editBtn.style.display = '';
         }
 
         function setModalHeader(title, showBack = false) {
@@ -18942,11 +18937,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
             showDetailsFooter();
 
             const isUncle = !!currentStudentForEdit._isUncle;
+            const dynamicTitle = isUncle 
+                ? 'معلومات الخادم: ' + (currentStudentForEdit.name || currentStudentForEdit['الاسم'] || '') 
+                : 'معلومات: ' + (currentStudentForEdit['الاسم'] || '');
+            setModalHeader('', false);
+            const titleFooter = document.getElementById('studentModalTitleFooter');
+            if (titleFooter) titleFooter.textContent = dynamicTitle;
+
             if (isUncle) {
-                setModalHeader('معلومات الخادم: ' + (currentStudentForEdit.name || currentStudentForEdit['الاسم'] || ''), false);
                 buildUncleDetailsFromProfile(currentStudentForEdit);
             } else {
-                setModalHeader('معلومات: ' + (currentStudentForEdit['الاسم'] || ''), false);
                 buildStudentDetailsFromProfile(currentStudentForEdit);
             }
         }
@@ -18963,7 +18963,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (!s) { showToast('لم يتم العثور على الشخص', 'error'); return; }
             currentStudentForEdit = s;
             const title = s._isUncle ? 'معلومات الخادم: ' + name : (s._isGuest ? 'معلومات الزائر: ' + name : 'معلومات: ' + name);
-            setModalHeader(title, false);
+            setModalHeader('', false);
+            const titleFooter = document.getElementById('studentModalTitleFooter');
+            if (titleFooter) titleFooter.textContent = title;
             const gender = (s['النوع'] === 'female' || s['gender'] === 'female') ? 'female' : 'male';
             // Basic avatar + header (kept from local cache)
             const detailNameStr = (s['الاسم'] || '') + (s._isGuest ? ' <span class="guest-badge" style="font-size:0.65rem; background:#f59e0b; color:#fff; padding:2px 6px; border-radius:4px; margin-right:4px; vertical-align:middle; display:inline-block;">زائر</span>' : '');
