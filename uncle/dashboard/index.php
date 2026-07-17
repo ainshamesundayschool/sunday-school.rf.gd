@@ -16913,7 +16913,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         let curStep = 1;
         let qCnt = 0;
-        const LETTERS = ['أ', 'ب', 'ج', 'د', 'هـ', 'و'];
+        // LETTERS is already declared above with 8 letters ('أ', 'ب', 'ج', 'د', 'هـ', 'و', 'ز', 'ح')
 
         function goStep(n) {
             [1, 2, 3].forEach(i => {
