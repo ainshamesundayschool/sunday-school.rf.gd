@@ -12459,6 +12459,134 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         color: var(--warning);
                         background: var(--warning-bg);
                     }
+
+                    /* Hero / Welcome Section for Tasks */
+                    .hero-card {
+                        background: var(--surface-2);
+                        border: 1px solid var(--border-solid);
+                        border-radius: var(--r-xl);
+                        padding: 24px;
+                        box-shadow: var(--shadow-sm);
+                        position: relative;
+                        overflow: hidden;
+                    }
+                    .hero-card::before {
+                        content: '';
+                        position: absolute;
+                        top: -60px;
+                        left: -60px;
+                        width: 200px;
+                        height: 200px;
+                        border-radius: 50%;
+                        background: radial-gradient(circle, rgba(99, 102, 241, 0.15), transparent 70%);
+                        pointer-events: none;
+                    }
+                    .hero-badge {
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 6px;
+                        padding: 5px 12px;
+                        border-radius: var(--r-full);
+                        background: var(--brand-bg);
+                        border: 1px solid var(--border-solid);
+                        font-size: .74rem;
+                        font-weight: 700;
+                        color: var(--brand);
+                        margin-bottom: 14px;
+                    }
+                    .hero-title {
+                        font-size: 1.6rem;
+                        font-weight: 900;
+                        color: var(--text-1);
+                        margin-bottom: 8px;
+                        line-height: 1.3;
+                    }
+                    .hero-sub {
+                        font-size: .88rem;
+                        line-height: 1.85;
+                        color: var(--text-3);
+                        max-width: 580px;
+                    }
+                    .hero-actions {
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 9px;
+                        margin-top: 18px;
+                    }
+                    .hero-link {
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 6px;
+                        padding: 8px 16px;
+                        border-radius: var(--r-md);
+                        border: 1px solid var(--border-solid);
+                        background: var(--surface-1);
+                        color: var(--text-2);
+                        text-decoration: none;
+                        font-size: .79rem;
+                        font-weight: 700;
+                        transition: all 0.2s ease;
+                    }
+                    .hero-link:hover {
+                        border-color: var(--brand);
+                        color: var(--brand);
+                        background: var(--brand-bg);
+                        transform: translateY(-1px);
+                    }
+                    .hero-side {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 10px;
+                    }
+                    .hero-mini {
+                        background: var(--surface-1);
+                        border: 1px solid var(--border-solid);
+                        border-radius: var(--r-lg);
+                        padding: 14px 16px;
+                        box-shadow: var(--shadow-sm);
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                    }
+                    .hero-mini-label {
+                        font-size: .71rem;
+                        color: var(--text-3);
+                        margin-bottom: 6px;
+                        font-weight: 700;
+                    }
+                    .hero-mini-value {
+                        font-size: 1.4rem;
+                        font-weight: 900;
+                        color: var(--text-1);
+                        line-height: 1;
+                    }
+                    .hero-mini-note {
+                        font-size: .7rem;
+                        color: var(--text-3);
+                        margin-top: 5px;
+                    }
+                    .ftabs {
+                        display: flex;
+                        gap: 6px;
+                        flex-wrap: wrap;
+                    }
+                    .ftab {
+                        padding: 6px 14px;
+                        border-radius: var(--r-full);
+                        font-size: .76rem;
+                        font-weight: 700;
+                        cursor: pointer;
+                        border: 1px solid var(--border-solid);
+                        background: var(--surface-1);
+                        color: var(--text-3);
+                        transition: all 0.15s ease;
+                    }
+                    .ftab:hover, .ftab.active {
+                        background: var(--brand-bg);
+                        color: var(--brand);
+                        border-color: var(--brand);
+                    }
                     </style>
                     <div id="classTasksCollapsible" style="display: none;">
                         <div class="class-tasks-header" onclick="toggleTasksCollapse()">
@@ -13234,16 +13362,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <button class="close-btn" onclick="closeTasksModal()">&times;</button>
             </div>
             <div class="modal-body" style="padding: 16px; flex: 1; overflow-y: auto; direction: rtl; text-align: right;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
-                    <h4 style="margin:0; font-weight:700; color:var(--text);">المهام المسجلة في الفصل</h4>
+                <!-- Clean Controls & Navigation -->
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid var(--border-solid); padding-bottom:10px; flex-wrap:wrap; gap:12px; direction:rtl; text-align:right;">
                     <div style="display:flex; gap:8px;">
-                        <button class="btn btn-primary btn-sm" onclick="openTasksOverviewModal()" style="font-size:0.8rem; font-weight:700; padding:8px 12px; display:inline-flex; align-items:center; gap:6px;">
-                            <i class="fas fa-file-export"></i> تصدير نظرة عامة
+                        <button class="btn btn-primary" onclick="openNativeTaskCreateForm()" style="font-weight:700; display:inline-flex; align-items:center; gap:6px;">
+                            <i class="fas fa-plus"></i> مهمة جديدة
                         </button>
-                        <button class="btn btn-success" onclick="openNativeTaskCreateForm()" style="width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: #fff;" title="مهمة جديدة">
-                            <i class="fas fa-plus"></i>
+                        <button class="btn btn-outline" onclick="openTasksOverviewModal()" style="font-weight:700; display:inline-flex; align-items:center; gap:6px; color:var(--text-2); background:var(--surface-3); border:1px solid var(--border-solid);">
+                            <i class="fas fa-file-export"></i> نظرة عامة
                         </button>
                     </div>
+                    <div style="font-size:0.85rem; color:var(--text-3); font-weight:700;"><i class="fas fa-folder"></i> مجلدات المهام:</div>
                 </div>
 
                 <!-- Folders / Groups Explorer -->
@@ -15580,6 +15709,44 @@ if ($hasUncleId && $uncleRole === 'uncle')
         let allLoadedTasks = [];
         let selectedTaskIds = new Set();
         let activeGroupTab = null;
+        let activeStatusFilter = 'all';
+
+        function fmtDate(iso) {
+            if (!iso) return '—';
+            try {
+                const formattedIso = iso.includes(' ') ? iso.replace(' ', 'T') : iso;
+                return new Date(formattedIso).toLocaleDateString('ar-EG', {
+                    day: 'numeric',
+                    month: 'short',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch (e) {
+                return iso;
+            }
+        }
+
+        function updateStats() {
+            const stTotal = document.getElementById('stTotal');
+            const stActive = document.getElementById('stActive');
+            const stUpcoming = document.getElementById('stUpcoming');
+            const stCoupons = document.getElementById('stCoupons');
+            if (!stTotal || !stActive || !stUpcoming || !stCoupons) return;
+
+            stTotal.textContent = allLoadedTasks.length;
+            stActive.textContent = allLoadedTasks.filter(t => statusOf(t).key === 'active').length;
+            stUpcoming.textContent = allLoadedTasks.filter(t => statusOf(t).key === 'upcoming').length;
+
+            const tc = allLoadedTasks.reduce((a, t) => a + (t.submissions || []).reduce((b, s) => b + (parseInt(s.coupons_awarded) || 0), 0), 0);
+            stCoupons.textContent = tc;
+        }
+
+        window.setActiveStatusFilter = function(status, el) {
+            activeStatusFilter = status;
+            document.querySelectorAll('.ftab').forEach(tab => tab.classList.remove('active'));
+            if (el) el.classList.add('active');
+            renderFilteredTasksGrid();
+        };
 
         function toggleSelectTask(event, taskId) {
             event.stopPropagation();
@@ -15662,6 +15829,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (r && r.success && Array.isArray(r.tasks)) {
                     allLoadedTasks = r.tasks;
                     selectedTaskIds.clear();
+                    updateStats();
                     updateBulkMenuBar();
                     
                     // Render Group Folder tabs
@@ -15749,9 +15917,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             let filtered = allLoadedTasks;
             if (activeGroupTab === '_ungrouped') {
-                filtered = allLoadedTasks.filter(t => !(t.group_name || '').trim());
+                filtered = filtered.filter(t => !(t.group_name || '').trim());
             } else if (activeGroupTab !== null) {
-                filtered = allLoadedTasks.filter(t => (t.group_name || '').trim() === activeGroupTab);
+                filtered = filtered.filter(t => (t.group_name || '').trim() === activeGroupTab);
+            }
+
+            if (activeStatusFilter !== 'all') {
+                filtered = filtered.filter(t => statusOf(t).key === activeStatusFilter);
             }
 
             if (filtered.length === 0) {
@@ -15797,8 +15969,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 </div>
                             </div>
                             <div class="tmeta">
-                                <div class="tmeta-i"><i class="fas fa-calendar-check"></i>${formatBirthdayForDisplay(t.start_date)}</div>
-                                <div class="tmeta-i"><i class="fas fa-flag-checkered"></i>${parseInt(t.no_deadline || 0) ? 'بدون آخر موعد' : formatBirthdayForDisplay(t.end_date)}</div>
+                                <div class="tmeta-i"><i class="fas fa-calendar-check"></i>${fmtDate(t.start_date)}</div>
+                                <div class="tmeta-i"><i class="fas fa-flag-checkered"></i>${parseInt(t.no_deadline || 0) ? 'بدون آخر موعد' : fmtDate(t.end_date)}</div></div>
                                 ${t.time_limit ? `<div class="tmeta-i"><i class="fas fa-stopwatch"></i>${t.time_limit} دقيقة</div>` : ''}
                             </div>
                             <div class="tinfo-grid">
