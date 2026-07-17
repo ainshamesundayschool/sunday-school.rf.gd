@@ -1231,9 +1231,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .class-card.highlighted {
-            box-shadow: 0 4px 20px -2px color-mix(in srgb, var(--cls-color, var(--brand)) 30%, transparent) !important;
-            background: color-mix(in srgb, var(--cls-color, var(--brand)) 6%, var(--surface)) !important;
+            border: 2px solid var(--cls-color, var(--brand)) !important;
+            background: color-mix(in srgb, var(--cls-color, var(--brand)) 8%, var(--surface)) !important;
             transform: scale(1.02);
+            animation: myClassGlow 3s infinite ease-in-out;
+        }
+
+        @keyframes myClassGlow {
+            0%, 100% {
+                box-shadow: 0 4px 20px -2px color-mix(in srgb, var(--cls-color, var(--brand)) 30%, transparent) !important;
+            }
+            50% {
+                box-shadow: 0 4px 30px 4px color-mix(in srgb, var(--cls-color, var(--brand)) 60%, transparent) !important;
+            }
         }
 
         /* Tiny stacked uncles inside class cards */
@@ -16157,7 +16167,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
             ` : '';
             const allTogetherProgress = getAttendanceProgressHtml(students, allColor);
-            const allTogetherHtml = showAllCard ? `<div class="class-card" onclick="showAllTogetherView()"
+            const allTogetherHtml = showAllCard ? `<div class="class-card custom-class-card" onclick="showAllTogetherView()"
         style="--cls-color:${allColor};position:relative;">
         <div class="class-card-badges">
             <div style="display:flex; align-items:center; gap:4px;">
@@ -16188,7 +16198,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     const combHighlightClass = isCombHighlighted ? ' highlighted' : '';
                     const combStudents = students.filter(s => grpClasses.includes(s['الفصل']));
                     const combProgress = getAttendanceProgressHtml(combStudents, 'var(--brand)');
-                    return `<div class="class-card combined-class-card${combHighlightClass}" onclick="showCombinedClassView('${escJs(label)}')" style="position:relative;">
+                    return `<div class="class-card combined-class-card custom-class-card${combHighlightClass}" onclick="showCombinedClassView('${escJs(label)}')" style="position:relative; --cls-color:var(--brand);">
                 <div class="class-card-badges">
                     <div style="display:flex; align-items:center; gap:4px;">
                         <span style="background:var(--brand);color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;font-weight:700;font-family:Cairo,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,0.08);">مدمج</span>
@@ -16245,7 +16255,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 ` : '';
                 const servantsProgress = getAttendanceProgressHtml(window.allUnclesData || [], '#4f46e5');
                 servantsCardHtml = `
-                    <div class="class-card" onclick="showClassView('الخدام')" style="--cls-color:#4f46e5; position:relative;">
+                    <div class="class-card custom-class-card" onclick="showClassView('الخدام')" style="--cls-color:#4f46e5; position:relative;">
                         <div class="class-card-badges">
                             <div style="display:flex; align-items:center; gap:4px;">
                                 <span style="background:#4f46e5;color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;font-weight:700;font-family:Cairo,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,0.08);">خدام</span>
@@ -16271,7 +16281,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             let guestsCardHtml = '';
             if (guestsCount > 0 || guestsUnsaved > 0) {
                 guestsCardHtml = `
-                    <div class="class-card" onclick="showClassView('الزوار')" style="--cls-color:#f59e0b; position:relative;">
+                    <div class="class-card custom-class-card" onclick="showClassView('الزوار')" style="--cls-color:#f59e0b; position:relative;">
                         <div class="class-card-badges">
                             <div style="display:flex; align-items:center; gap:4px;">
                                 <span style="background:#f59e0b;color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;font-weight:700;font-family:Cairo,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,0.08);">زوار</span>
