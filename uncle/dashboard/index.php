@@ -968,6 +968,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             /* Surface (Light) */
             --bg: #f3f4f9;
             --surface: #ffffff;
+            --surface-rgb: 255, 255, 255;
+            --surface-1: var(--surface);
+            --ok: var(--success);
+            --ok-bg: var(--success-bg);
             --surface-2: #f7f8fc;
             --surface-3: #eceef7;
             --border: rgba(91, 108, 245, .12);
@@ -998,6 +1002,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         [data-theme="dark"] {
             --bg: #0f1117;
             --surface: #181b26;
+            --surface-rgb: 24, 27, 38;
             --surface-2: #1e2132;
             --surface-3: #252840;
             --border: rgba(91, 108, 245, .18);
@@ -4707,7 +4712,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             backdrop-filter: blur(6px);
             z-index: 999999;
             justify-content: flex-end;
-            align-items: flex-end;
+            align-items: center;
             flex-direction: column;
             overscroll-behavior-y: contain;
         }
@@ -12076,14 +12081,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     }
                     /* --- TASKS V2 DESIGNS (FROM TASKS INDEX.PHP) --- */
                     :root {
-                      --t-ok: #10b981;
-                      --t-ok-bg: #d1fae5;
-                      --t-err: #ef4444;
-                      --t-err-bg: #fee2e2;
-                      --t-warn: #f59e0b;
-                      --t-warn-bg: #fef3c7;
-                      --t-cou: #8b5cf6;
-                      --t-cou-bg: #ede9fe;
+                      --t-ok: var(--success);
+                      --t-ok-bg: var(--success-bg);
+                      --t-err: var(--danger);
+                      --t-err-bg: var(--danger-bg);
+                      --t-warn: var(--warning);
+                      --t-warn-bg: var(--warning-bg);
+                      --t-cou: var(--coupon);
+                      --t-cou-bg: var(--coupon-bg);
+                    }
+                    /* Ensure icons inside tasks modal headers are shown */
+                    #tasksModal .modal-header h3 i,
+                    #nativeTaskDetailModal .modal-header h3 i,
+                    #nativeTaskFormModal .modal-header h3 i,
+                    #overviewOv .modal-header h3 i {
+                        display: inline-block !important;
                     }
                     .tgrid {
                       display: grid;
@@ -12099,7 +12111,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                       border: 1px solid var(--border-solid, rgba(91, 108, 245, .12));
                       border-radius: 18px;
                       overflow: hidden;
-                      box-shadow: 0 2px 8px -2px rgba(0, 0, 0, .07);
+                      box-shadow: var(--shadow-sm);
                       transition: all 0.22s cubic-bezier(.4, 0, .2, 1);
                       cursor: pointer;
                       animation: cardIn .35s cubic-bezier(.4, 0, .2, 1) both;
@@ -12108,9 +12120,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                       text-align: right;
                     }
                     .tcard:hover {
-                      box-shadow: 0 8px 24px -4px rgba(0, 0, 0, .10);
+                      box-shadow: var(--shadow-md);
                       border-color: var(--brand);
-                      transform: translateY(-3px);
+                      transform: translateY(-4px);
                     }
                     .tcard-acc {
                       height: 4px;
@@ -12667,17 +12679,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                     /* Responsive Tasks Modals styles */
                     @media (max-width: 768px) {
+                        #tasksModal .modal,
+                        #overviewOv .modal,
                         #nativeTaskFormModal .modal,
                         #nativeTaskDetailModal .modal {
                             width: 100% !important;
                             max-width: 100% !important;
-                            height: 100vh !important;
-                            max-height: 100vh !important;
-                            border-radius: 0 !important;
+                            height: 94vh !important;
+                            max-height: 94vh !important;
+                            border-radius: 20px 20px 0 0 !important;
                             margin: 0 !important;
                             border: none !important;
                         }
                         
+                        #tasksModal .modal-body,
+                        #overviewOv .modal-body,
                         #nativeTaskFormModal .modal-body,
                         #nativeTaskDetailModal .modal-body {
                             padding: 16px !important;
@@ -12830,6 +12846,78 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         color: var(--brand);
                         border-color: var(--brand);
                     }
+                    /* Task Pill Items modern card design */
+                    .task-pill-item {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        background: var(--surface-1);
+                        border: 1px solid var(--border-solid);
+                        padding: 12px 16px;
+                        border-radius: var(--r-md);
+                        cursor: pointer;
+                        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                        gap: 12px;
+                        position: relative;
+                        box-shadow: var(--shadow-sm);
+                        direction: rtl;
+                    }
+                    .task-pill-item:hover {
+                        transform: translateY(-2px);
+                        box-shadow: var(--shadow-md);
+                        border-color: var(--brand);
+                    }
+                    .task-pill-info {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 4px;
+                        min-width: 0;
+                        flex: 1;
+                        text-align: right;
+                    }
+                    .task-pill-title {
+                        font-size: 0.85rem;
+                        font-weight: 700;
+                        color: var(--text-1);
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                    }
+                    .task-pill-meta {
+                        font-size: 0.72rem;
+                        color: var(--text-3);
+                        display: flex;
+                        align-items: center;
+                        gap: 4px;
+                        font-weight: 600;
+                    }
+                    .task-pill-meta i {
+                        color: var(--brand);
+                    }
+                    .task-pill-badges {
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        flex-shrink: 0;
+                    }
+                    .task-pill-badge {
+                        font-size: 0.72rem;
+                        font-weight: 700;
+                        padding: 4px 8px;
+                        border-radius: var(--r-sm);
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 4px;
+                        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+                    }
+                    .task-pill-badge.q {
+                        color: var(--brand);
+                        background: var(--brand-bg);
+                    }
+                    .task-pill-badge.d {
+                        color: var(--warning);
+                        background: var(--warning-bg);
+                    }
                     </style>
                     <div id="classTasksCollapsible"
                         style="display: none; width: 100%; margin-top: 12px; border-top: 1px dashed var(--border); padding-top: 10px; flex-direction: column; gap: 8px;">
@@ -12844,8 +12932,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <button class="btn btn-ghost"
                                     onclick="event.stopPropagation(); openTasksModal();"
                                     style="width: 24px; height: 24px; border-radius: var(--r-sm); padding: 0; min-width: unset; display: flex; align-items: center; justify-content: center; background: var(--brand-bg); color: var(--brand); border: none; cursor: pointer;"
-                                    title="إدارة كافة المهام">
-                                    <i class="fas fa-folder-open" style="font-size: 0.7rem;"></i>
+                                    title="فتح قائمة المهام الكاملة">
+                                    <i class="fas fa-external-link-alt" style="font-size: 0.7rem;"></i>
                                 </button>
                                 <span id="tasksToggleBtn"
                                     style="font-size: 0.72rem; font-weight: 700; color: var(--brand); background: var(--brand-bg); padding: 2px 8px; border-radius: var(--r-sm); display: inline-flex; align-items: center; gap: 4px;">
