@@ -11006,6 +11006,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <label class="form-label">الفصول المخصصة للامتحان (اختياري - عدم تحديد أي فصل يعني كل
                                 الفصول)</label>
                             <div id="paperExamClassIdsList"
+                                ontouchstart="event.stopPropagation()"
+                                ontouchmove="event.stopPropagation()"
+                                ontouchend="event.stopPropagation()"
                                 style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto; padding: 10px; background: var(--surface-3); border: 1.5px solid var(--border-solid); border-radius: var(--r-sm);">
                                 <!-- checkboxes will be populated dynamically -->
                             </div>
@@ -24881,7 +24884,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             // Overlay click & swipe-to-close
             document.querySelectorAll('.modal-overlay').forEach(overlay => {
                 overlay.addEventListener('click', e => {
-                    if (e.target === overlay) { overlay.classList.remove('active'); startAutoRefresh(); if (overlay.id === 'studentModal') currentStudentForEdit = null; if (overlay.id === 'accountModal') hideAccountEditForm(); }
+                    if (e.target === overlay) {
+                        if (overlay.id === 'paperExamsModal' || overlay.id === 'paperExamMatchReviewModal') return;
+                        overlay.classList.remove('active');
+                        startAutoRefresh();
+                        if (overlay.id === 'studentModal') currentStudentForEdit = null;
+                        if (overlay.id === 'accountModal') hideAccountEditForm();
+                    }
                 });
                 initSwipeToClose(overlay);
             });
