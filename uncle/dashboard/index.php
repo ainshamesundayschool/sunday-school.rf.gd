@@ -5680,10 +5680,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .custom-class-slim-card {
             flex: 0 0 auto;
             width: 220px;
-            height: 64px;
             display: flex;
             align-items: center;
-            padding: 8px 12px;
+            padding: 10px 12px;
             background: var(--surface);
             border-radius: var(--r-md);
             border: 1px solid var(--border);
@@ -16254,14 +16253,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const allTogetherHtml = showAllCard ? `
                 <div class="custom-class-slim-card custom-class-card" onclick="showAllTogetherView()" style="--cls-color:${allColor}; ${window.getDashedBorderSvg(allColor, 12, 12)} position:relative;">
                     <div class="class-card-badges" style="position:absolute; top:6px; left:8px; z-index:12;">
-                        ${allUnsavedHtml}
+                        <div style="display:flex; align-items:center; gap:4px;">
+                            ${allUnsavedHtml}
+                            <span style="background:var(--text-2); color:var(--surface); border-radius:4px; font-size:.55rem; padding:2px 6px; font-weight:700; font-family:Cairo,sans-serif; box-shadow:0 1px 3px rgba(0,0,0,0.15);">الكل</span>
+                        </div>
                     </div>
                     <div class="class-icon" style="background:${allBg}"><i class="fas ${allIcon}" style="color:white; font-size: 0.95rem;"></i></div>
                     <div style="display:flex; flex-direction:column; justify-content:center; min-width:0; flex-grow:1; text-align:right;">
-                        <div style="display:flex; align-items:center; gap:6px; flex-wrap:nowrap; min-width:0;">
-                            <span class="class-name" style="font-size:0.85rem; font-weight:700; color:var(--text); margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${allLabel}</span>
-                            <span style="background:color-mix(in srgb, ${allColor} 12%, var(--surface)); color: ${allColor}; border: 1px solid color-mix(in srgb, ${allColor} 30%, transparent); border-radius: 4px; font-size: 0.58rem; padding: 2px 6px; font-weight: 700; font-family: Cairo, sans-serif; white-space: nowrap; flex-shrink: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">الكل</span>
-                        </div>
+                        <div class="class-name" style="font-size:0.85rem; font-weight:700; color:var(--text); margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${allLabel}</div>
                         <div style="font-size:0.7rem; color:var(--text-3); font-weight:600; margin-top:2px;">${allCount} ${window.IS_YOUTH ? 'شاب' : 'طفل'}</div>
                     </div>
                     ${allTogetherProgress}
@@ -16289,14 +16288,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     return `
                         <div class="custom-class-slim-card custom-class-card${combHighlightClass}" onclick="showCombinedClassView('${escJs(label)}')" style="position:relative; --cls-color:${combBrandColor}; ${window.getDashedBorderSvg(combBrandColor, 12, 12)}" title="${grpClasses.join(' + ')}">
                             <div class="class-card-badges" style="position:absolute; top:6px; left:8px; z-index:12;">
-                                ${unsavedHtml}
+                                <div style="display:flex; align-items:center; gap:4px;">
+                                    ${unsavedHtml}
+                                    <span style="background:var(--text-2); color:var(--surface); border-radius:4px; font-size:.55rem; padding:2px 6px; font-weight:700; font-family:Cairo,sans-serif; box-shadow:0 1px 3px rgba(0,0,0,0.15);">مدمج</span>
+                                </div>
                             </div>
                             <div class="class-icon" style="background:linear-gradient(135deg,${combBrandColor},color-mix(in srgb,${combBrandColor} 80%,black))"><i class="fas fa-layer-group" style="color:white; font-size: 0.95rem;"></i></div>
                             <div style="display:flex; flex-direction:column; justify-content:center; min-width:0; flex-grow:1; text-align:right;">
-                                <div style="display:flex; align-items:center; gap:6px; flex-wrap:nowrap; min-width:0;">
-                                    <span class="class-name" style="font-size:0.85rem; font-weight:700; color:var(--text); margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${label}</span>
-                                    <span style="background:color-mix(in srgb, ${combBrandColor} 12%, var(--surface)); color: ${combBrandColor}; border: 1px solid color-mix(in srgb, ${combBrandColor} 30%, transparent); border-radius: 4px; font-size: 0.58rem; padding: 2px 6px; font-weight: 700; font-family: Cairo, sans-serif; white-space: nowrap; flex-shrink: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">مدمج</span>
-                                </div>
+                                <div class="class-name" style="font-size:0.85rem; font-weight:700; color:var(--text); margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${label}</div>
                                 <div style="font-size:0.7rem; color:var(--text-3); font-weight:600; margin-top:2px;">${count} ${window.IS_YOUTH ? 'شاب' : 'طفل'}</div>
                             </div>
                             ${combProgress}
@@ -16348,14 +16347,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 servantsCardHtml = `
                     <div class="custom-class-slim-card custom-class-card" onclick="showClassView('الخدام')" style="--cls-color:#4f46e5; ${window.getDashedBorderSvg('#4f46e5', 12, 12)} position:relative;">
                         <div class="class-card-badges" style="position:absolute; top:6px; left:8px; z-index:12;">
-                            ${unsavedHtml}
+                            <div style="display:flex; align-items:center; gap:4px;">
+                                ${unsavedHtml}
+                                <span style="background:var(--text-2); color:var(--surface); border-radius:4px; font-size:.55rem; padding:2px 6px; font-weight:700; font-family:Cairo,sans-serif; box-shadow:0 1px 3px rgba(0,0,0,0.15);">خدام</span>
+                            </div>
                         </div>
                         <div class="class-icon" style="background:color-mix(in srgb,#4f46e5 15%,white);color:#4f46e5"><i class="fas fa-user" style="font-size: 0.95rem;"></i></div>
                         <div style="display:flex; flex-direction:column; justify-content:center; min-width:0; flex-grow:1; text-align:right;">
-                            <div style="display:flex; align-items:center; gap:6px; flex-wrap:nowrap; min-width:0;">
-                                <span class="class-name" style="font-size:0.85rem; font-weight:700; color:var(--text); margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">الخدام</span>
-                                <span style="background:color-mix(in srgb, #4f46e5 12%, var(--surface)); color: #4f46e5; border: 1px solid color-mix(in srgb, #4f46e5 30%, transparent); border-radius: 4px; font-size: 0.58rem; padding: 2px 6px; font-weight: 700; font-family: Cairo, sans-serif; white-space: nowrap; flex-shrink: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">خدام</span>
-                            </div>
+                            <div class="class-name" style="font-size:0.85rem; font-weight:700; color:var(--text); margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">الخدام</div>
                             <div style="font-size:0.7rem; color:var(--text-3); font-weight:600; margin-top:2px;">${servantsCount} خادم</div>
                         </div>
                         ${servantsProgress}
@@ -16376,14 +16375,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 guestsCardHtml = `
                     <div class="custom-class-slim-card custom-class-card" onclick="showClassView('الزوار')" style="--cls-color:#f59e0b; ${window.getDashedBorderSvg('#f59e0b', 12, 12)} position:relative;">
                         <div class="class-card-badges" style="position:absolute; top:6px; left:8px; z-index:12;">
-                            ${guestsUnsavedHtml}
+                            <div style="display:flex; align-items:center; gap:4px;">
+                                ${guestsUnsavedHtml}
+                                <span style="background:var(--text-2); color:var(--surface); border-radius:4px; font-size:.55rem; padding:2px 6px; font-weight:700; font-family:Cairo,sans-serif; box-shadow:0 1px 3px rgba(0,0,0,0.15);">زوار</span>
+                            </div>
                         </div>
                         <div class="class-icon" style="background:color-mix(in srgb,#f59e0b 15%,white);color:#f59e0b"><i class="fas fa-user-tag" style="font-size: 0.95rem;"></i></div>
                         <div style="display:flex; flex-direction:column; justify-content:center; min-width:0; flex-grow:1; text-align:right;">
-                            <div style="display:flex; align-items:center; gap:6px; flex-wrap:nowrap; min-width:0;">
-                                <span class="class-name" style="font-size:0.85rem; font-weight:700; color:var(--text); margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">الزوار</span>
-                                <span style="background:color-mix(in srgb, #f59e0b 12%, var(--surface)); color: #f59e0b; border: 1px solid color-mix(in srgb, #f59e0b 30%, transparent); border-radius: 4px; font-size: 0.58rem; padding: 2px 6px; font-weight: 700; font-family: Cairo, sans-serif; white-space: nowrap; flex-shrink: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">زوار</span>
-                            </div>
+                            <div class="class-name" style="font-size:0.85rem; font-weight:700; color:var(--text); margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">الزوار</div>
                             <div style="font-size:0.7rem; color:var(--text-3); font-weight:600; margin-top:2px;">${guestsCount} زائر</div>
                         </div>
                         ${guestsProgress}
