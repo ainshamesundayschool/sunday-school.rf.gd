@@ -21216,32 +21216,46 @@ function getStudentProfile()
             $studentClassId = intval($row['class_id']);
             if ($studentClassId === 0 && !empty($row['class']) && $row['class'] !== 'بدون فصل') {
                 $cName = $row['class'];
-                $cStmt = $conn->prepare("SELECT id FROM church_classes WHERE (arabic_name = ? OR code = ?) AND church_id = ?");
+                $cNameNorm = normalizeArabicClassName($cName);
+                
+                // Fetch all classes of the church to find a normalized match
+                $cStmt = $conn->prepare("SELECT id, arabic_name, code FROM church_classes WHERE church_id = ?");
                 if ($cStmt) {
-                    $cStmt->bind_param("ssi", $cName, $cName, $row['church_id']);
+                    $cStmt->bind_param("i", $row['church_id']);
                     $cStmt->execute();
-                    $cRes = $cStmt->get_result()->fetch_assoc();
-                    if ($cRes) {
-                        $studentClassId = intval($cRes['id']);
-                    } else {
-                        $cStmt2 = $conn->prepare("SELECT id FROM classes WHERE arabic_name = ? OR code = ?");
-                        if ($cStmt2) {
-                            $cStmt2->bind_param("ss", $cName, $cName);
-                            $cStmt2->execute();
-                            $cRes2 = $cStmt2->get_result()->fetch_assoc();
-                            if ($cRes2) {
-                                $studentClassId = intval($cRes2['id']);
-                            }
-                            $cStmt2->close();
+                    $cRes = $cStmt->get_result();
+                    while ($cRow = $cRes->fetch_assoc()) {
+                        if (normalizeArabicClassName($cRow['arabic_name']) === $cNameNorm || normalizeArabicClassName($cRow['code']) === $cNameNorm) {
+                            $studentClassId = intval($cRow['id']);
+                            break;
                         }
                     }
                     $cStmt->close();
+                }
+                
+                // Fallback to system classes if still 0
+                if ($studentClassId === 0) {
+                    $cStmt2 = $conn->prepare("SELECT id, arabic_name, code FROM classes");
+                    if ($cStmt2) {
+                        $cStmt2->execute();
+                        $cRes2 = $cStmt2->get_result();
+                        while ($cRow2 = $cRes2->fetch_assoc()) {
+                            if (normalizeArabicClassName($cRow2['arabic_name']) === $cNameNorm || normalizeArabicClassName($cRow2['code']) === $cNameNorm) {
+                                $studentClassId = intval($cRow2['id']);
+                                break;
+                            }
+                        }
+                        $cStmt2->close();
+                    }
                 }
             }
             while ($exRow = $examsRes->fetch_assoc()) {
                 $classIdsStr = trim($exRow['class_ids'] ?? '');
                 $showExam = false;
-                if ($classIdsStr === '') {
+                if ($exRow['degree'] !== null || $exRow['answers_picture'] !== null) {
+                    // Always show if the kid already has a degree/picture registered
+                    $showExam = true;
+                } else if ($classIdsStr === '') {
                     // Assigned to ALL classes
                     $showExam = true;
                 } else {

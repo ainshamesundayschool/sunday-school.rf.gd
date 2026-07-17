@@ -10978,7 +10978,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div id="paperExamsListView">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                         <h4 style="margin:0; font-weight:700; color:var(--text);">الامتحانات المسجلة</h4>
-                        <button class="btn btn-primary" onclick="showAddPaperExamForm()">
+                        <button class="btn btn-success" onclick="showAddPaperExamForm()">
                             <i class="fas fa-plus"></i> إضافة امتحان جديد
                         </button>
                     </div>
@@ -28947,13 +28947,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             </div>
                             <div style="display:flex; flex-direction:column; gap:6px; flex-shrink:0; align-items:stretch;">
                                 <div style="display:flex; justify-content:space-between; gap:8px;">
-                                    <button class="btn btn-secondary" style="flex:1; padding:6px 10px; font-size:0.8rem; font-family:'Cairo', sans-serif; display:flex; align-items:center; justify-content:center; gap:4px;" onclick="editPaperExam(${exam.id}, '${escJs(exam.name)}', ${exam.total_degree}, '${exam.class_id || ''}', '${exam.class_ids || ''}', '${escJs(exam.reference_url || '')}')" title="تعديل">
-                                        <i class="fas fa-edit" style="color:var(--text-2);"></i>
+                                    <button class="btn btn-warning" style="flex:1; padding:6px 10px; font-size:0.8rem; font-family:'Cairo', sans-serif; color:#fff; display:flex; align-items:center; justify-content:center; gap:4px;" onclick="editPaperExam(${exam.id}, '${escJs(exam.name)}', ${exam.total_degree}, '${exam.class_id || ''}', '${exam.class_ids || ''}', '${escJs(exam.reference_url || '')}')" title="تعديل">
+                                        <i class="fas fa-edit" style="color:#fff;"></i>
                                         <span>تعديل</span>
                                     </button>
-                                    <button class="btn btn-secondary" style="flex:1; padding:6px 10px; font-size:0.8rem; font-family:'Cairo', sans-serif; color:var(--danger); border-color:rgba(239, 68, 68, 0.2); display:flex; align-items:center; justify-content:center; gap:4px;" onclick="deletePaperExam(${exam.id}, '${escJs(exam.name)}')" title="حذف">
-                                        <i class="fas fa-trash-alt" style="color:var(--danger);"></i>
-                                        <span style="color:var(--danger);">حذف</span>
+                                    <button class="btn btn-danger" style="flex:1; padding:6px 10px; font-size:0.8rem; font-family:'Cairo', sans-serif; color:#fff; display:flex; align-items:center; justify-content:center; gap:4px;" onclick="deletePaperExam(${exam.id}, '${escJs(exam.name)}')" title="حذف">
+                                        <i class="fas fa-trash-alt" style="color:#fff;"></i>
+                                        <span>حذف</span>
                                     </button>
                                 </div>
                                 <button class="btn btn-primary" style="font-size:0.75rem; padding:6px 12px;" onclick="openExamSheet(${exam.id})">
