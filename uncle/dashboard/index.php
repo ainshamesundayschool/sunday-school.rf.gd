@@ -14805,48 +14805,63 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 _historyLogs = [];
                 _historyFilter = '';
                 _historySearch = '';
+                _historyLimit = 50;
                 if (document.getElementById('historyFilter')) document.getElementById('historyFilter').value = '';
                 if (document.getElementById('historySearch')) document.getElementById('historySearch').value = '';
                 if (document.getElementById('historySummary')) document.getElementById('historySummary').innerHTML = '';
                 if (empty) empty.style.display = 'none';
-                if (content) content.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text-3)">
+
+                stopAutoRefresh();
+                _loadHistoryLogs();
+            }
+        }
+
+        function _loadHistoryLogs() {
+            const content = document.getElementById('uncleHistoryContent');
+            if (content && _historyLogs.length === 0) {
+                content.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text-3)">
                     <i class="fas fa-spinner fa-spin" style="font-size:1.5rem"></i>
                     <p style="margin-top:8px">جاري التحميل...</p>
                 </div>`;
+            }
 
-                stopAutoRefresh();
-
-                const fd = new FormData();
-                fd.append('action', 'getUncleActivityLogs');
-                fd.append('limit', '300');
-                fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' })
-                    .then(r => r.json())
-                    .then(d => {
-                        if (!d.success) {
-                            if (content) content.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--danger)">
-                                <i class="fas fa-exclamation-circle" style="font-size:1.5rem;display:block;margin-bottom:8px"></i>
-                                <div style="font-size:.88rem">${d.message || 'فشل في تحميل السجل'}</div>
-                            </div>`;
-                            return;
-                        }
-                        if (!d.logs || !d.logs.length) {
-                            if (content) content.innerHTML = `<div style="text-align:center;padding:3rem;color:var(--text-3)">
+            const fd = new FormData();
+            fd.append('action', 'getUncleActivityLogs');
+            fd.append('limit', String(_historyLimit));
+            fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' })
+                .then(r => r.json())
+                .then(d => {
+                    if (!d.success) {
+                        if (content) content.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--danger)">
+                            <i class="fas fa-exclamation-circle" style="font-size:1.5rem;display:block;margin-bottom:8px"></i>
+                            <div style="font-size:.88rem">${d.message || 'فشل في تحميل السجل'}</div>
+                        </div>`;
+                        return;
+                    }
+                    if (!d.logs || !d.logs.length) {
+                        if (content && _historyLogs.length === 0) {
+                            content.innerHTML = `<div style="text-align:center;padding:3rem;color:var(--text-3)">
                                 <i class="fas fa-scroll" style="font-size:2rem;display:block;margin-bottom:10px"></i>
                                 لا يوجد نشاط مسجل بعد
                             </div>`;
-                            return;
                         }
-                        _historyLogs = d.logs;
-                        renderHistorySummary(_historyLogs);
-                        renderHistoryList();
-                    })
-                    .catch(e => {
-                        if (content) content.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--danger)">
-                            <i class="fas fa-wifi" style="font-size:1.5rem;display:block;margin-bottom:8px"></i>
-                            <div style="font-size:.88rem">خطأ في الاتصال: ${e.message}</div>
-                        </div>`;
-                    });
-            }
+                        return;
+                    }
+                    _historyLogs = d.logs;
+                    renderHistorySummary(_historyLogs);
+                    renderHistoryList();
+                })
+                .catch(e => {
+                    if (content) content.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--danger)">
+                        <i class="fas fa-wifi" style="font-size:1.5rem;display:block;margin-bottom:8px"></i>
+                        <div style="font-size:.88rem">خطأ في الاتصال: ${e.message}</div>
+                    </div>`;
+                });
+        }
+
+        function loadMoreHistory() {
+            _historyLimit += 50;
+            _loadHistoryLogs();
         }
 
         function closeUncleAccountPage() {
@@ -24899,6 +24914,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         let _historyLogs = [];  // full raw log array
         let _historyFilter = '';  // selected category filter
         let _historySearch = '';  // search text
+        let _historyLimit = 50;   // pagination limit
 
         function filterHistory() {
             _historyFilter = document.getElementById('historyFilter')?.value || '';
@@ -25025,6 +25041,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
             </div>`;
                 });
             });
+
+            if (_historyLogs.length >= _historyLimit) {
+                html += `<div style="text-align:center;padding:15px 0 10px 0;">
+                    <button class="btn btn-sm btn-outline" onclick="loadMoreHistory()" style="border-radius:12px;padding:8px 24px;font-weight:700;font-family: 'Baloo Bhaijaan 2', Cairo, sans-serif;">
+                        <i class="fas fa-chevron-down" style="margin-left:5px;"></i> عرض المزيد
+                    </button>
+                </div>`;
+            }
 
             content.innerHTML = html;
         }

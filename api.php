@@ -39596,65 +39596,35 @@ function getUncleActivityLogs()
         // (this covers church admins who are also listed as uncles)
 
         if (!$uncleId && $churchId) {
-
             // Return logs for this church filtered to known admin actions
-
             // (no specific uncle_id filter — show all for this church)
-
             $stmt = $conn->prepare("
-
                 SELECT id, action, entity, entity_id, entity_name,
-
-                       uncle_name, old_data, new_data, notes, ip_address, created_at
-
+                       uncle_name, notes, ip_address, created_at
                 FROM audit_logs
-
                 WHERE church_id = ?
-
                 ORDER BY created_at DESC
-
                 LIMIT ?
-
             ");
-
             $stmt->bind_param("ii", $churchId, $limit);
-
             $stmt->execute();
-
             $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
             sendJSON(['success' => true, 'logs' => $rows, 'total' => count($rows)]);
-
             return;
-
         }
-
-
 
         if (!$uncleId) {
-
             sendJSON(['success' => false, 'message' => 'غير مصرح - يرجى تسجيل الدخول']);
-
             return;
-
         }
 
-
-
         $stmt = $conn->prepare("
-
             SELECT id, action, entity, entity_id, entity_name,
-
-                   uncle_name, old_data, new_data, notes, ip_address, created_at
-
+                   uncle_name, notes, ip_address, created_at
             FROM audit_logs
-
             WHERE uncle_id = ? AND church_id = ?
-
             ORDER BY created_at DESC
-
             LIMIT ?
-
         ");
 
         $stmt->bind_param("iii", $uncleId, $churchId, $limit);
