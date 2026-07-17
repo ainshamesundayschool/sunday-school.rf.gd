@@ -2,33 +2,39 @@
 header('Content-Type: text/plain; charset=utf-8');
 require_once __DIR__ . '/config.php';
 
+ini_set('session.gc_maxlifetime', 315360000);
+ini_set('session.cookie_lifetime', 315360000);
 session_start();
 
 try {
     $conn = getDBConnection();
     echo "=== DATABASE CONNECTION SUCCESSFUL ===\n\n";
 
-    // Print active session variables
     echo "=== SESSION DATA ===\n";
     print_r($_SESSION);
     echo "\n";
 
-    // Resolve churchId using same logic as api.php
-    $churchId = null;
-    if (isset($_SESSION['church_id']) && !empty($_SESSION['church_id'])) {
+    // Allow overriding from GET for debugging convenience
+    $churchId = isset($_GET['church_id']) ? intval($_GET['church_id']) : null;
+    if (!$churchId && isset($_SESSION['church_id']) && !empty($_SESSION['church_id'])) {
         $churchId = intval($_SESSION['church_id']);
     }
-    
-    $uncleId = isset($_SESSION['uncle_id']) ? intval($_SESSION['uncle_id']) : 0;
+
+    $uncleId = isset($_GET['uncle_id']) ? intval($_GET['uncle_id']) : null;
+    if ($uncleId === null) {
+        $uncleId = isset($_SESSION['uncle_id']) ? intval($_SESSION['uncle_id']) : 0;
+    }
+
     $limit = 100;
 
-    echo "Parameters from Session:\n";
+    echo "Parameters:\n";
     echo "churchId: " . ($churchId ?? 'NULL') . "\n";
     echo "uncleId: $uncleId\n";
     echo "limit: $limit\n\n";
 
     if (!$churchId) {
-        echo "Error: No church_id in session. Cannot run queries.\n";
+        echo "Error: No church_id resolved (neither in session nor GET parameters).\n";
+        echo "Usage: check_query.php?church_id=1&uncle_id=1\n";
         exit;
     }
 
@@ -37,7 +43,7 @@ try {
         $stmt1 = $conn->prepare("
             SELECT id, action, entity, entity_id, entity_name,
                    uncle_name, old_data, new_data, notes, ip_address, created_at
-            FROM audit_logs
+        FROM audit_logs
             WHERE church_id = ?
             ORDER BY created_at DESC
             LIMIT ?
