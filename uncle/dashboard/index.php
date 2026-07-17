@@ -25693,46 +25693,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         // ── Called once per day to notify about today's birthdays ────
         async function _maybeSendBirthdayNotification() {
-            if (!navigator.onLine || !VAPID_PUBLIC_KEY) return;
-            const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-            const storageKey = `bdayNotifSent_${today}`;
-            if (localStorage.getItem(storageKey)) return; // already sent today
-
-            // Wait for students data to be loaded (may be called before loadData finishes)
-            const tryCheck = () => {
-                if (localStorage.getItem(storageKey)) return; // check again inside the timer to prevent concurrency races!
-                const data = allStudentsData.length ? allStudentsData : students;
-                if (!data.length) return;
-                const now = new Date();
-                const todayKids = data.filter(s => {
-                    if (!s['عيد الميلاد']) return false;
-                    const p = s['عيد الميلاد'].split('/');
-                    return p.length >= 2 && parseInt(p[0]) === now.getDate() && parseInt(p[1]) - 1 === now.getMonth();
-                });
-                if (!todayKids.length) return;
-                localStorage.setItem(storageKey, '1');
-                const names = todayKids.map(s => s['الاسم'] || '').filter(Boolean);
-                _sendBirthdayPush(names).catch(() => { });
-            };
-            // Try immediately; if data not ready yet, retry after loadData
-            tryCheck();
-            setTimeout(tryCheck, 3000);
-            setTimeout(tryCheck, 8000);
+            // Disabled: server-side checkDailyUnclesNotifications handles this church-wide.
+            return;
         }
 
         async function _sendBirthdayPush(names) {
-            if (!names.length || !navigator.onLine || !VAPID_PUBLIC_KEY) return;
-            try {
-                await makeApiCallRaw({
-                    action: 'sendPushNotification',
-                    target: 'self',
-                    uncle_id: window.currentUncle?.id || '',
-                    notifType: 'birthday',
-                    title: `🎂 أعياد ميلاد اليوم (${names.length})`,
-                    body: names.join('، '),
-                    url: window.location.href
-                });
-            } catch (e) { }
+            // Disabled: server-side checkDailyUnclesNotifications handles this church-wide.
+            return;
         }
 
         // Called from every notification button — asks permission then subscribes
