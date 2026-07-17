@@ -5377,6 +5377,16 @@ try {
 
 
 
+        case 'bulkClassifyTasks':
+
+            checkUncleAuth();
+
+            bulkClassifyTasks();
+
+            break;
+
+
+
         case 'deleteTask':
 
             checkUncleAuth();
@@ -40812,6 +40822,10 @@ function getTasks()
 
 
 
+        $conn->query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS group_name VARCHAR(255) NULL");
+
+        $conn->query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS group_icon VARCHAR(255) NULL");
+
         $taskCols = [];
 
         $colRes = $conn->query("SHOW COLUMNS FROM tasks");
@@ -40823,6 +40837,10 @@ function getTasks()
         $hasNoDeadline = in_array('no_deadline', $taskCols);
 
         $hasClassIds = in_array('class_ids', $taskCols);
+
+        $hasGroupName = in_array('group_name', $taskCols);
+
+        $hasGroupIcon = in_array('group_icon', $taskCols);
 
 
 
@@ -40838,7 +40856,7 @@ function getTasks()
 
                 t.status, t.assign_to, t.specific_ids,
 
-                t.shuffle, t.show_result, t.show_answers, t.allow_review" . ($hasNoDeadline ? ", t.no_deadline" : "") . ($hasClassIds ? ", t.class_ids" : "") . ",
+                t.shuffle, t.show_result, t.show_answers, t.allow_review" . ($hasNoDeadline ? ", t.no_deadline" : "") . ($hasClassIds ? ", t.class_ids" : "") . ($hasGroupName ? ", t.group_name" : "") . ($hasGroupIcon ? ", t.group_icon" : "") . ",
 
                 t.created_at,
 
@@ -41196,6 +41214,10 @@ function createTask()
 
         $questionsJson = $_POST['questions'] ?? '[]';
 
+        $groupName = sanitize($_POST['group_name'] ?? '');
+
+        $groupIcon = sanitize($_POST['group_icon'] ?? '');
+
 
 
         if (!$title) {
@@ -41254,6 +41276,10 @@ function createTask()
 
         $conn->query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS class_ids VARCHAR(255) NULL AFTER class_id");
 
+        $conn->query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS group_name VARCHAR(255) NULL");
+
+        $conn->query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS group_icon VARCHAR(255) NULL");
+
         $conn->begin_transaction();
 
 
@@ -41270,15 +41296,17 @@ function createTask()
 
                  status, assign_to, specific_ids,
 
-                 shuffle, show_result, show_answers, allow_review, created_at)
+                 shuffle, show_result, show_answers, allow_review,
 
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())
+                 group_name, group_icon, created_at)
+
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())
 
         ");
 
         $stmt->bind_param(
 
-            'iiisssssiisiissssiiii',
+            'iiisssssiisiissssiiiiss',
 
             $churchId,
 
@@ -41320,7 +41348,11 @@ function createTask()
 
             $showAnswers,
 
-            $allowReview
+            $allowReview,
+
+            $groupName,
+
+            $groupIcon
 
         );
 
@@ -41621,6 +41653,10 @@ function updateTask()
 
         $questionsJson = $_POST['questions'] ?? '[]';
 
+        $groupName = sanitize($_POST['group_name'] ?? '');
+
+        $groupIcon = sanitize($_POST['group_icon'] ?? '');
+
 
 
         if (!$classId && $className) {
@@ -41653,6 +41689,10 @@ function updateTask()
 
         $conn->query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS class_ids VARCHAR(255) NULL AFTER class_id");
 
+        $conn->query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS group_name VARCHAR(255) NULL");
+
+        $conn->query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS group_icon VARCHAR(255) NULL");
+
         $conn->begin_transaction();
 
 
@@ -41671,6 +41711,8 @@ function updateTask()
 
                 shuffle=?, show_result=?, allow_review=?,
 
+                group_name=?, group_icon=?,
+
                 updated_at=NOW()
 
             WHERE id=? AND church_id=?
@@ -41679,7 +41721,7 @@ function updateTask()
 
         $stmt->bind_param(
 
-            'isssssiisiissssiiiii',
+            'isssssiisiissssiiiissii',
 
             $classId,
 
@@ -41716,6 +41758,10 @@ function updateTask()
             $showResult,
 
             $allowReview,
+
+            $groupName,
+
+            $groupIcon,
 
             $taskId,
 
@@ -42026,6 +42072,74 @@ function updateTask()
             $conn->rollback();
 
         error_log("updateTask error: " . $e->getMessage());
+
+        sendJSON(['success' => false, 'message' => $e->getMessage()]);
+
+    }
+
+}
+
+
+
+// ─── bulkClassifyTasks ──────────────────────────────────────────
+
+function bulkClassifyTasks()
+
+{
+
+    try {
+
+        $conn = getDBConnection();
+
+        $churchId = getChurchId();
+
+        $taskIds = json_decode($_POST['task_ids'] ?? '[]', true) ?: [];
+
+        $groupName = sanitize($_POST['group_name'] ?? '');
+
+        $groupIcon = sanitize($_POST['group_icon'] ?? 'fa-folder');
+
+
+
+        if (empty($taskIds)) {
+
+            sendJSON(['success' => false, 'message' => 'لم يتم تحديد أي مهام']);
+
+            return;
+
+        }
+
+
+
+        $conn->query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS group_name VARCHAR(255) NULL");
+
+        $conn->query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS group_icon VARCHAR(255) NULL");
+
+
+
+        $placeholders = implode(',', array_fill(0, count($taskIds), '?'));
+
+        $types = 'ss' . str_repeat('i', count($taskIds)) . 'i';
+
+
+
+        $stmt = $conn->prepare("UPDATE tasks SET group_name = ?, group_icon = ? WHERE id IN ($placeholders) AND church_id = ?");
+
+
+
+        $bindParams = array_merge([$groupName, $groupIcon], array_map('intval', $taskIds), [$churchId]);
+
+        $stmt->bind_param($types, ...$bindParams);
+
+        $stmt->execute();
+
+
+
+        sendJSON(['success' => true, 'message' => 'تم تصنيف المهام المحددة بنجاح']);
+
+    } catch (Exception $e) {
+
+        error_log("bulkClassifyTasks error: " . $e->getMessage());
 
         sendJSON(['success' => false, 'message' => $e->getMessage()]);
 

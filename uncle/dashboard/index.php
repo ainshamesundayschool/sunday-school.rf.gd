@@ -11863,6 +11863,410 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         0%, 100% { transform: translateX(-50%) translateY(0); }
                         50% { transform: translateX(-50%) translateY(4px); }
                     }
+                    /* --- TASKS V2 DESIGNS (FROM TASKS INDEX.PHP) --- */
+                    :root {
+                      --t-ok: #10b981;
+                      --t-ok-bg: #d1fae5;
+                      --t-err: #ef4444;
+                      --t-err-bg: #fee2e2;
+                      --t-warn: #f59e0b;
+                      --t-warn-bg: #fef3c7;
+                      --t-cou: #8b5cf6;
+                      --t-cou-bg: #ede9fe;
+                    }
+                    .tgrid {
+                      display: grid;
+                      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+                      gap: 16px;
+                    }
+                    @keyframes cardIn {
+                      from { opacity: 0; transform: translateY(12px); }
+                      to { opacity: 1; transform: translateY(0); }
+                    }
+                    .tcard {
+                      background: var(--surface-1, #fff);
+                      border: 1px solid var(--border-solid, rgba(91, 108, 245, .12));
+                      border-radius: 18px;
+                      overflow: hidden;
+                      box-shadow: 0 2px 8px -2px rgba(0, 0, 0, .07);
+                      transition: all 0.22s cubic-bezier(.4, 0, .2, 1);
+                      cursor: pointer;
+                      animation: cardIn .35s cubic-bezier(.4, 0, .2, 1) both;
+                      position: relative;
+                      direction: rtl;
+                      text-align: right;
+                    }
+                    .tcard:hover {
+                      box-shadow: 0 8px 24px -4px rgba(0, 0, 0, .10);
+                      border-color: var(--brand);
+                      transform: translateY(-3px);
+                    }
+                    .tcard-acc {
+                      height: 4px;
+                      background: var(--brand);
+                    }
+                    .tcard-acc.ok { background: var(--t-ok); }
+                    .tcard-acc.warn { background: var(--t-warn); }
+                    .tcard-acc.err { background: var(--t-err); }
+
+                    .tcard-body {
+                      padding: 18px 18px 14px;
+                    }
+                    .tcard-top {
+                      display: flex;
+                      align-items: flex-start;
+                      justify-content: space-between;
+                      gap: 10px;
+                      margin-bottom: 12px;
+                    }
+                    .tcard-title {
+                      font-weight: 800;
+                      font-size: .97rem;
+                      color: var(--text);
+                      line-height: 1.5;
+                      flex: 1;
+                      min-width: 0;
+                      word-break: break-word;
+                    }
+                    .tstatus {
+                      display: inline-flex;
+                      align-items: center;
+                      gap: 4px;
+                      padding: 4px 10px;
+                      border-radius: 9999px;
+                      font-size: .68rem;
+                      font-weight: 800;
+                      white-space: nowrap;
+                      flex-shrink: 0;
+                    }
+                    .tstatus.s-draft { background: var(--t-warn-bg); color: var(--t-warn); }
+                    .tstatus.s-upcoming { background: var(--brand-bg); color: var(--brand); }
+                    .tstatus.s-ended { background: var(--t-err-bg); color: var(--t-err); }
+                    .tstatus.s-active { background: var(--t-ok-bg); color: var(--t-ok); }
+
+                    .tmeta {
+                      display: flex;
+                      flex-wrap: wrap;
+                      gap: 8px;
+                      margin-bottom: 12px;
+                    }
+                    .tmeta-i {
+                      display: inline-flex;
+                      align-items: center;
+                      gap: 6px;
+                      font-size: .73rem;
+                      color: var(--text-3);
+                      font-weight: 700;
+                    }
+                    .tmeta-i i {
+                      color: var(--brand);
+                      font-size: .78rem;
+                    }
+                    .tinfo-grid {
+                      display: grid;
+                      grid-template-columns: 1fr 1fr;
+                      gap: 10px;
+                      margin-bottom: 14px;
+                    }
+                    .tinfo-pill {
+                      display: flex;
+                      align-items: center;
+                      gap: 8px;
+                      background: var(--surface-2);
+                      border: 1px solid var(--border-solid);
+                      padding: 8px 12px;
+                      border-radius: 12px;
+                    }
+                    .tinfo-pill i {
+                      font-size: 1.15rem;
+                      color: var(--brand);
+                    }
+                    .tinfo-pill .tip-val {
+                      font-size: .78rem;
+                      font-weight: 800;
+                      color: var(--text-1);
+                    }
+                    .tinfo-pill .tip-lbl {
+                      font-size: .63rem;
+                      font-weight: 700;
+                      color: var(--text-3);
+                      margin-top: 1px;
+                    }
+                    .tprogress {
+                      margin-top: 12px;
+                      display: flex;
+                      flex-direction: column;
+                      gap: 6px;
+                    }
+                    .prog-bar {
+                      height: 6px;
+                      background: var(--border-solid);
+                      border-radius: 9999px;
+                      overflow: hidden;
+                    }
+                    .prog-fill {
+                      height: 100%;
+                      border-radius: 9999px;
+                      background: var(--brand);
+                      transition: width .6s ease;
+                    }
+                    .prog-lbl {
+                      display: flex;
+                      justify-content: space-between;
+                      font-size: .68rem;
+                      color: var(--text-2);
+                      font-weight: 700;
+                    }
+                    .tcard-foot {
+                      padding: 12px 18px;
+                      border-top: 1px solid var(--border-solid);
+                      display: flex;
+                      align-items: center;
+                      justify-content: space-between;
+                      gap: 8px;
+                      background: var(--surface-2);
+                    }
+                    .tclass-badge {
+                      display: inline-flex;
+                      align-items: center;
+                      gap: 5px;
+                      padding: 5px 12px;
+                      border-radius: 9999px;
+                      font-size: .7rem;
+                      font-weight: 700;
+                      background: var(--surface-1);
+                      color: var(--text-2);
+                      border: 1px solid var(--border-solid);
+                      min-width: 0;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                      white-space: nowrap;
+                      max-width: 140px;
+                    }
+                    .tact {
+                      display: flex;
+                      gap: 6px;
+                    }
+                    .tbtn {
+                      height: 32px;
+                      padding: 0 12px;
+                      border-radius: 10px;
+                      border: 1px solid var(--border-solid);
+                      background: var(--surface-1);
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      cursor: pointer;
+                      color: var(--text-2);
+                      font-size: .72rem;
+                      transition: all 0.15s ease;
+                      gap: 6px;
+                      font-weight: 700;
+                      white-space: nowrap;
+                    }
+                    .tbtn:hover {
+                      background: var(--brand-bg);
+                      color: var(--brand);
+                      border-color: var(--brand);
+                      transform: translateY(-1px);
+                    }
+                    .tbtn.d:hover {
+                      background: var(--t-err-bg);
+                      color: var(--t-err);
+                      border-color: var(--t-err);
+                    }
+                    .tbtn.view-btn {
+                      background: var(--brand-bg);
+                      color: var(--brand);
+                      border-color: var(--brand-bg);
+                    }
+                    .tbtn.view-btn:hover {
+                      background: var(--brand);
+                      color: #fff;
+                      border-color: var(--brand);
+                    }
+                    .tbtn-lbl {
+                      display: inline;
+                    }
+
+                    /* --- Interactive Grading Panels --- */
+                    .grade-panel {
+                      position: fixed;
+                      inset: 0;
+                      z-index: 1000030;
+                      background: rgba(15, 17, 23, 0.45);
+                      backdrop-filter: blur(8px);
+                      -webkit-backdrop-filter: blur(8px);
+                      display: none;
+                      align-items: flex-end;
+                      justify-content: center;
+                      transition: all 0.22s ease;
+                      direction: rtl;
+                      text-align: right;
+                    }
+                    .grade-panel.open {
+                      display: flex;
+                    }
+                    .grade-sheet {
+                      background: var(--surface-1);
+                      border-radius: 20px 20px 0 0;
+                      width: 100%;
+                      max-width: 720px;
+                      max-height: 90vh;
+                      overflow-y: auto;
+                      box-shadow: 0 -8px 32px rgba(0,0,0,.16);
+                      display: flex;
+                      flex-direction: column;
+                      border: 1px solid var(--border-solid);
+                    }
+                    .grade-sheet-hdr {
+                      padding: 18px 24px;
+                      border-bottom: 1px solid var(--border-solid);
+                      display: flex;
+                      align-items: center;
+                      gap: 12px;
+                      position: sticky;
+                      top: 0;
+                      background: var(--surface-1);
+                      z-index: 2;
+                    }
+                    .grade-sheet-body {
+                      padding: 20px 24px;
+                      flex: 1;
+                    }
+                    .grade-sub-card {
+                      background: var(--surface-2);
+                      border: 1.5px solid var(--border-solid);
+                      border-radius: 14px;
+                      padding: 16px;
+                      margin-bottom: 14px;
+                    }
+                    .grade-sub-name {
+                      font-size: .9rem;
+                      font-weight: 800;
+                      color: var(--text-1);
+                      margin-bottom: 12px;
+                      display: flex;
+                      align-items: center;
+                      gap: 8px;
+                      flex-wrap: wrap;
+                    }
+                    .grade-q-row {
+                      margin-bottom: 14px;
+                    }
+                    .grade-q-text {
+                      font-size: .81rem;
+                      font-weight: 800;
+                      color: var(--text-2);
+                      margin-bottom: 6px;
+                    }
+                    .grade-ans-text {
+                      background: var(--surface-1);
+                      border: 1px solid var(--border-solid);
+                      border-radius: 10px;
+                      padding: 10px 14px;
+                      font-size: .81rem;
+                      color: var(--text-1);
+                      margin-bottom: 8px;
+                      white-space: pre-wrap;
+                      word-break: break-word;
+                      line-height: 1.6;
+                    }
+                    .grade-score-row {
+                      display: flex;
+                      align-items: center;
+                      gap: 8px;
+                    }
+                    .grade-score-inp {
+                      width: 80px;
+                      padding: 6px 10px;
+                      border: 1.5px solid var(--border-solid);
+                      border-radius: 10px;
+                      font-family: inherit;
+                      font-size: .87rem;
+                      font-weight: 800;
+                      text-align: center;
+                      transition: all 0.15s ease;
+                      background: var(--surface-1);
+                      color: var(--text-1);
+                    }
+                    .grade-score-inp:focus {
+                      border-color: var(--brand);
+                      box-shadow: 0 0 0 2px var(--brand-glow);
+                      outline: none;
+                    }
+                    .grade-max-lbl {
+                      font-size: .74rem;
+                      color: var(--text-3);
+                      font-weight: 700;
+                    }
+                    .grade-save-btn {
+                      display: block;
+                      width: 100%;
+                      margin-top: 14px;
+                      padding: 12px;
+                      background: var(--brand);
+                      color: #fff;
+                      border: none;
+                      border-radius: 9999px;
+                      font-size: .9rem;
+                      font-weight: 800;
+                      cursor: pointer;
+                      box-shadow: var(--shadow-sm);
+                      transition: all 0.15s ease;
+                    }
+                    .grade-save-btn:hover {
+                      background: var(--brand-d);
+                      transform: translateY(-1px);
+                      box-shadow: 0 6px 18px var(--brand-glow);
+                    }
+                    .pending-badge {
+                      display: inline-flex;
+                      align-items: center;
+                      gap: 4px;
+                      background: var(--t-err-bg);
+                      color: var(--t-err);
+                      border-radius: 9999px;
+                      padding: 3px 10px;
+                      font-size: .7rem;
+                      font-weight: 800;
+                    }
+                    .grade-note-row {
+                      display: flex;
+                      align-items: flex-start;
+                      gap: 8px;
+                      margin-top: 10px;
+                      padding: 10px 12px;
+                      background: #fffbeb;
+                      border: 1px solid #fde68a;
+                      border-radius: 10px;
+                    }
+                    .grade-note-row i {
+                      color: #d97706;
+                      font-size: .82rem;
+                      margin-top: 5px;
+                      flex-shrink: 0;
+                    }
+                    .grade-note-row .gn-wrap {
+                      flex: 1;
+                      display: flex;
+                      flex-direction: column;
+                      gap: 3px;
+                    }
+                    .grade-note-row .gn-lbl {
+                      font-size: .68rem;
+                      font-weight: 800;
+                      color: #92400e;
+                    }
+                    .grade-note-inp {
+                      width: 100%;
+                      padding: 7px 11px;
+                      border: 1.5px solid #fde68a;
+                      border-radius: 10px;
+                      font-family: inherit;
+                      font-size: .78rem;
+                      color: var(--text-1);
+                    }
                     </style>
                     <div id="classTasksCollapsible"
                         style="display: none; width: 100%; margin-top: 12px; border-top: 1px dashed var(--border); padding-top: 10px; flex-direction: column; gap: 8px;">
@@ -12652,7 +13056,38 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         </button>
                     </div>
                 </div>
-                <div id="nativeTasksGrid" class="tools-grid">
+
+                <!-- Folders / Groups Explorer -->
+                <div id="tasksGroupsTabs" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:12px; margin-bottom:12px; border-bottom:1px solid var(--border-solid); direction:rtl; text-align:right; scrollbar-width: thin;">
+                    <!-- Filled dynamically with group folder pills -->
+                </div>
+
+                <!-- Bulk Action Menu Bar -->
+                <div id="tasksBulkMenuBar" style="display:none; align-items:center; justify-content:space-between; background:var(--brand-bg); padding:10px 14px; border-radius:12px; margin-bottom:12px; gap:12px; flex-wrap:wrap; border:1px solid var(--brand); direction:rtl; text-align:right;">
+                    <span style="font-size:0.82rem; font-weight:700; color:var(--brand);"><i class="fas fa-check-double"></i> تم تحديد <span id="selectedTasksCountDisplay">0</span> مهمة</span>
+                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                        <input type="text" id="bulkGroupNameInput" class="form-input" style="height:32px; font-size:0.78rem; padding:4px 8px; width:180px; min-width:unset; margin:0;" placeholder="اسم المجموعة أو المجلد">
+                        <select id="bulkGroupIconSelect" class="form-input" style="height:32px; font-size:0.78rem; padding:4px 4px; width:120px; min-width:unset; margin:0;">
+                            <option value="fa-folder">📁 مجلد</option>
+                            <option value="fa-book">📖 كتاب</option>
+                            <option value="fa-star">⭐ مسابقة</option>
+                            <option value="fa-heart">❤️ محبة</option>
+                            <option value="fa-flag">🚩 علم</option>
+                            <option value="fa-award">🏆 وسام</option>
+                            <option value="fa-church">⛪ كنيسة</option>
+                            <option value="fa-pen">✏️ تحرير</option>
+                            <option value="fa-users">👥 اجتماعات</option>
+                        </select>
+                        <button class="btn btn-primary btn-sm" onclick="applyBulkTaskGroup()" style="height:32px; font-size:0.75rem; font-weight:700; padding:0 12px; display:inline-flex; align-items:center; gap:4px;">
+                            <i class="fas fa-folder-plus"></i> تطبيق التصنيف
+                        </button>
+                        <button class="btn btn-ghost btn-sm" onclick="clearBulkTaskSelection()" style="height:32px; font-size:0.75rem; color:var(--text-3); padding:0 8px;" title="إلغاء التحديد">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="nativeTasksGrid" class="tgrid">
                     <!-- Filled dynamically -->
                 </div>
             </div>
@@ -12713,6 +13148,23 @@ if ($hasUncleId && $uncleRole === 'uncle')
         </div>
     </div>
 
+    <!-- Interactive Grading Panel Sheet -->
+    <div class="grade-panel" id="gradePanel" style="z-index: 1000030;">
+        <div class="grade-sheet">
+            <div class="grade-sheet-hdr">
+                <div style="width:38px;height:38px;border-radius:10px;background:var(--warning-bg);color:var(--warning);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-pen-nib"></i></div>
+                <div style="flex:1;">
+                    <div style="font-size:1rem;font-weight:800;color:var(--text-1);">تصحيح الإجابات المفتوحة</div>
+                    <div style="font-size:.72rem;color:var(--text-3);" id="gradePanelSub">أدخل الدرجة لكل إجابة</div>
+                </div>
+                <button onclick="closeGradePanel()" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--border-solid);background:var(--surface-2);cursor:pointer;color:var(--text-2);"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="grade-sheet-body" id="gradePanelBody">
+                <div style="text-align:center;padding:40px;color:var(--text-3);"><i class="fas fa-spinner fa-spin" style="font-size:2rem;"></i></div>
+            </div>
+        </div>
+    </div>
+
     <!-- Task Create/Edit Modal -->
     <div class="modal-overlay" id="nativeTaskFormModal" style="z-index: 1000024;">
         <div class="modal modal-lg" style="max-width: 900px; height: 90vh; display: flex; flex-direction: column;">
@@ -12760,6 +13212,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <select id="nfStatus" class="form-input">
                                 <option value="published">منشورة مباشرة</option>
                                 <option value="draft">مسودة (غير مرئية للأطفال)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">المجموعة / المجلد (تصنيف)</label>
+                            <input type="text" id="nfGroupName" class="form-input" placeholder="مثال: مسابقات الصوم الكبير">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">أيقونة المجموعة</label>
+                            <select id="nfGroupIcon" class="form-input">
+                                <option value="fa-folder">📁 مجلد (Default)</option>
+                                <option value="fa-book">📖 كتاب (Book)</option>
+                                <option value="fa-star">⭐ مسابقة (Star)</option>
+                                <option value="fa-heart">❤️ محبة (Heart)</option>
+                                <option value="fa-flag">🚩 علم (Flag)</option>
+                                <option value="fa-award">🏆 وسام (Award)</option>
+                                <option value="fa-church">⛪ كنيسة (Church)</option>
+                                <option value="fa-pen">✏️ تحرير (Pen)</option>
+                                <option value="fa-users">👥 اجتماعات (Users)</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -14908,6 +15378,91 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         };
 
+        function statusOf(t) {
+            if (t.status==='draft') return {key:'draft',cls:'s-draft',label:'مسودة',acc:'warn'};
+            const n=Date.now(), s=new Date(t.start_date.replace(' ', 'T')).getTime();
+            const hasEnd = !parseInt(t.no_deadline||0) && !!t.end_date;
+            const e=hasEnd ? new Date(t.end_date.replace(' ', 'T')).getTime() : null;
+            if (n<s) return {key:'upcoming',cls:'s-upcoming',label:'قادمة',acc:''};
+            if (hasEnd && n>e) return {key:'ended',   cls:'s-ended',   label:'منتهية',acc:'err'};
+            return          {key:'active',  cls:'s-active',  label:'نشطة',  acc:'ok'};
+        }
+
+        let allLoadedTasks = [];
+        let selectedTaskIds = new Set();
+        let activeGroupTab = null;
+
+        function toggleSelectTask(event, taskId) {
+            event.stopPropagation();
+            const checked = event.target.checked;
+            const label = event.target.closest('label');
+            const icon = label.querySelector('i');
+            
+            if (checked) {
+                selectedTaskIds.add(taskId);
+                icon.style.color = 'var(--brand)';
+                label.style.borderColor = 'var(--brand)';
+                label.style.background = 'var(--brand-bg)';
+            } else {
+                selectedTaskIds.delete(taskId);
+                icon.style.color = 'transparent';
+                label.style.borderColor = 'var(--border-solid)';
+                label.style.background = 'var(--surface-1)';
+            }
+            updateBulkMenuBar();
+        }
+
+        function updateBulkMenuBar() {
+            const bar = document.getElementById('tasksBulkMenuBar');
+            const display = document.getElementById('selectedTasksCountDisplay');
+            if (!bar || !display) return;
+            
+            const count = selectedTaskIds.size;
+            if (count > 0) {
+                bar.style.display = 'flex';
+                display.textContent = count;
+            } else {
+                bar.style.display = 'none';
+                document.getElementById('bulkGroupNameInput').value = '';
+            }
+        }
+
+        function clearBulkTaskSelection() {
+            selectedTaskIds.clear();
+            updateBulkMenuBar();
+            renderFilteredTasksGrid();
+        }
+
+        async function applyBulkTaskGroup() {
+            const groupName = document.getElementById('bulkGroupNameInput').value.trim();
+            const groupIcon = document.getElementById('bulkGroupIconSelect').value;
+            
+            if (selectedTaskIds.size === 0) {
+                showToast('لم يتم تحديد أي مهام لتصنيفها', 'warning');
+                return;
+            }
+            
+            showToast('جاري تصنيف المهام...', 'info');
+            try {
+                const res = await makeApiCallRaw({
+                    action: 'bulkClassifyTasks',
+                    task_ids: JSON.stringify(Array.from(selectedTaskIds)),
+                    group_name: groupName,
+                    group_icon: groupIcon
+                });
+                
+                if (res && res.success) {
+                    showToast(res.message || 'تم التصنيف بنجاح', 'ok');
+                    clearBulkTaskSelection();
+                    await loadNativeTasksList();
+                } else {
+                    showToast(res.message || 'فشل تصنيف المهام', 'err');
+                }
+            } catch (e) {
+                showToast('حدث خطأ أثناء تصنيف المهام', 'err');
+            }
+        }
+
         async function loadNativeTasksList() {
             const grid = document.getElementById('nativeTasksGrid');
             if (!grid) return;
@@ -14916,43 +15471,181 @@ if ($hasUncleId && $uncleRole === 'uncle')
             try {
                 const r = await makeApiCallRaw({ action: 'getTasks', class_name: currentClass });
                 if (r && r.success && Array.isArray(r.tasks)) {
-                    const tasks = r.tasks;
-                    if (tasks.length === 0) {
-                        grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-3);width:100%;">لا توجد مهام مسجلة في هذا الفصل</div>';
-                        return;
-                    }
-                    grid.innerHTML = tasks.map(t => {
-                        const isDraft = t.status === 'draft';
-                        const qCount = (t.questions || []).length;
-                        const subCount = (t.submissions || []).length;
-                        return `
-                            <div class="glass-card" style="padding:16px; border:1px solid var(--border-solid); border-radius:12px; display:flex; flex-direction:column; justify-content:space-between; gap:12px; position:relative; direction:rtl; text-align:right;">
-                                <div>
-                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                                        <span style="font-weight:800; font-size:0.9rem; color:var(--text);">${escHtml(t.title)}</span>
-                                        ${isDraft ? '<span style="background:var(--warning-bg); color:var(--warning); font-size:0.68rem; font-weight:700; padding:2px 6px; border-radius:4px;">مسودة</span>' : '<span style="background:var(--brand-bg); color:var(--brand); font-size:0.68rem; font-weight:700; padding:2px 6px; border-radius:4px;">منشورة</span>'}
-                                    </div>
-                                    <p style="font-size:0.75rem; color:var(--text-3); line-height:1.4; height:34px; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; margin:0 0 8px 0;">${escHtml(t.description || 'لا يوجد وصف')}</p>
-                                    <div style="display:flex; gap:6px; font-size:0.72rem; color:var(--text-3); flex-wrap:wrap;">
-                                        <span><i class="fas fa-question-circle"></i> ${qCount} أسئلة</span>
-                                        <span><i class="fas fa-paper-plane"></i> ${subCount} تسليمات</span>
-                                        <span><i class="fas fa-star"></i> ${t.total_degree} درجة</span>
-                                    </div>
-                                </div>
-                                <div style="display:flex; gap:6px; margin-top:8px;">
-                                    <button class="btn btn-primary btn-sm" onclick="openNativeTaskDetails(${t.id})" style="flex:1; padding:6px; font-size:0.75rem;"><i class="fas fa-eye"></i> التفاصيل والتصحيح</button>
-                                    <button class="btn btn-ghost btn-sm" onclick="openNativeTaskEditForm(${t.id})" style="padding:6px; color:var(--brand);" title="تعديل"><i class="fas fa-pen"></i></button>
-                                    <button class="btn btn-ghost btn-sm" onclick="deleteNativeTask(${t.id})" style="padding:6px; color:var(--danger);" title="حذف"><i class="fas fa-trash-alt"></i></button>
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
+                    allLoadedTasks = r.tasks;
+                    selectedTaskIds.clear();
+                    updateBulkMenuBar();
+                    
+                    // Render Group Folder tabs
+                    renderGroupTabs();
+                    
+                    // Render Grid items
+                    renderFilteredTasksGrid();
                 } else {
                     grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--danger);width:100%;">فشل تحميل قائمة المهام</div>';
                 }
             } catch (e) {
                 grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--danger);width:100%;">حدث خطأ في تحميل قائمة المهام</div>';
             }
+        }
+
+        function renderGroupTabs() {
+            const container = document.getElementById('tasksGroupsTabs');
+            if (!container) return;
+
+            const groups = {};
+            let hasUngrouped = false;
+
+            allLoadedTasks.forEach(t => {
+                const name = (t.group_name || '').trim();
+                if (name) {
+                    if (!groups[name]) {
+                        groups[name] = t.group_icon || 'fa-folder';
+                    }
+                } else {
+                    hasUngrouped = true;
+                }
+            });
+
+            const uniqueGroupNames = Object.keys(groups);
+
+            let html = `
+                <button class="pill-btn ${activeGroupTab === null ? 'active' : ''}" onclick="setActiveGroupTab(null)" style="padding:6px 14px; font-size:0.8rem; font-weight:700; border-radius:30px; display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border-solid); background:${activeGroupTab === null ? 'var(--brand)' : 'var(--surface-1)'}; color:${activeGroupTab === null ? '#fff' : 'var(--text-2)'}; transition:all 0.2s;">
+                    <i class="fas fa-list"></i> الكل (${allLoadedTasks.length})
+                </button>
+            `;
+
+            if (hasUngrouped) {
+                const ungroupedCount = allLoadedTasks.filter(t => !(t.group_name || '').trim()).length;
+                html += `
+                    <button class="pill-btn ${activeGroupTab === '_ungrouped' ? 'active' : ''}" onclick="setActiveGroupTab('_ungrouped')" style="padding:6px 14px; font-size:0.8rem; font-weight:700; border-radius:30px; display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border-solid); background:${activeGroupTab === '_ungrouped' ? 'var(--brand)' : 'var(--surface-1)'}; color:${activeGroupTab === '_ungrouped' ? '#fff' : 'var(--text-2)'}; transition:all 0.2s;">
+                        <i class="fas fa-folder-open"></i> غير مصنفة (${ungroupedCount})
+                    </button>
+                `;
+            }
+
+            uniqueGroupNames.forEach(name => {
+                const icon = groups[name];
+                const count = allLoadedTasks.filter(t => (t.group_name || '').trim() === name).length;
+                html += `
+                    <button class="pill-btn ${activeGroupTab === name ? 'active' : ''}" onclick="setActiveGroupTab('${escHtml(name)}')" style="padding:6px 14px; font-size:0.8rem; font-weight:700; border-radius:30px; display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border-solid); background:${activeGroupTab === name ? 'var(--brand)' : 'var(--surface-1)'}; color:${activeGroupTab === name ? '#fff' : 'var(--text-2)'}; transition:all 0.2s;">
+                        <i class="fas ${escHtml(icon)}"></i> ${escHtml(name)} (${count})
+                    </button>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        window.setActiveGroupTab = function(tab) {
+            activeGroupTab = tab;
+            renderGroupTabs();
+            renderFilteredTasksGrid();
+        };
+
+        window.toggleSelectTask = function(event, taskId) {
+            toggleSelectTask(event, taskId);
+        };
+
+        window.applyBulkTaskGroup = function() {
+            applyBulkTaskGroup();
+        };
+
+        window.clearBulkTaskSelection = function() {
+            clearBulkTaskSelection();
+        };
+
+        function renderFilteredTasksGrid() {
+            const grid = document.getElementById('nativeTasksGrid');
+            if (!grid) return;
+
+            let filtered = allLoadedTasks;
+            if (activeGroupTab === '_ungrouped') {
+                filtered = allLoadedTasks.filter(t => !(t.group_name || '').trim());
+            } else if (activeGroupTab !== null) {
+                filtered = allLoadedTasks.filter(t => (t.group_name || '').trim() === activeGroupTab);
+            }
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-3);width:100%;">لا توجد مهام في هذا التصنيف</div>';
+                return;
+            }
+
+            grid.innerHTML = filtered.map((t, idx) => {
+                const si = statusOf(t);
+                const qs = (t.questions || []).length;
+                const subs = (t.submissions || []).length;
+                const asgn = t.assign_to === 'specific' ? (t.specific_ids ? JSON.parse(t.specific_ids).length : 0) : (students.length ?? 0);
+                const pct = (asgn && asgn !== '?') ? Math.round(subs / asgn * 100) : 0;
+                const tc = (t.submissions || []).reduce((a, s) => a + (parseInt(s.coupons_awarded) || 0), 0);
+                
+                // pendingOpen count calculations
+                const pendingOpen = (t.submissions || []).filter(s => {
+                    const hasPending = s.pending_open_grading ?? s.has_open_pending;
+                    return hasPending;
+                }).length;
+
+                const isChecked = selectedTaskIds.has(t.id);
+
+                return `
+                    <div class="tcard" onclick="openNativeTaskDetails(${t.id})" style="animation-delay:${idx*40}ms; border:1px solid ${isChecked ? 'var(--brand)' : 'var(--border-solid)'}; background:${isChecked ? 'var(--brand-bg)' : 'var(--surface-1)'};">
+                        
+                        <!-- Checkbox Overlay -->
+                        <label style="position:absolute; top:12px; left:12px; display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; background:${isChecked ? 'var(--brand-bg)' : 'var(--surface-1)'}; border:1px solid ${isChecked ? 'var(--brand)' : 'var(--border-solid)'}; border-radius:6px; cursor:pointer; z-index:2; transition: all 0.2s;" class="task-checkbox-label" onclick="event.stopPropagation();">
+                            <input type="checkbox" style="display:none;" onchange="toggleSelectTask(event, ${t.id})" ${isChecked ? 'checked' : ''}>
+                            <i class="fas fa-check" style="font-size:0.68rem; color:${isChecked ? 'var(--brand)' : 'transparent'};"></i>
+                        </label>
+
+                        <div class="tcard-acc ${si.acc}"></div>
+                        <div class="tcard-body">
+                            <div class="tcard-top">
+                                <div class="tcard-title">
+                                    ${t.group_name ? `<i class="fas ${escHtml(t.group_icon || 'fa-folder')}" style="color:var(--brand); margin-left:4px; font-size:0.85rem;"></i>` : ''}
+                                    ${escHtml(t.title)}
+                                </div>
+                                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0;">
+                                    <div class="tstatus ${si.cls}">${si.label}</div>
+                                    ${pendingOpen ? `<div class="pending-badge" onclick="event.stopPropagation(); openGradePanel(${t.id})"><i class="fas fa-pen-nib"></i> ${pendingOpen} تصحيح</div>` : ''}
+                                </div>
+                            </div>
+                            <div class="tmeta">
+                                <div class="tmeta-i"><i class="fas fa-calendar-check"></i>${formatBirthdayForDisplay(t.start_date)}</div>
+                                <div class="tmeta-i"><i class="fas fa-flag-checkered"></i>${parseInt(t.no_deadline || 0) ? 'بدون آخر موعد' : formatBirthdayForDisplay(t.end_date)}</div>
+                                ${t.time_limit ? `<div class="tmeta-i"><i class="fas fa-stopwatch"></i>${t.time_limit} دقيقة</div>` : ''}
+                            </div>
+                            <div class="tinfo-grid">
+                                <div class="tinfo-pill">
+                                    <i class="fas fa-question-circle"></i>
+                                    <div>
+                                        <div class="tip-val">${qs} سؤال</div>
+                                        <div class="tip-lbl">${t.total_degree || 0} درجة</div>
+                                    </div>
+                                </div>
+                                <div class="tinfo-pill">
+                                    <i class="fas fa-ticket-alt" style="color:var(--t-cou);"></i>
+                                    <div>
+                                        <div class="tip-val">${tc}</div>
+                                        <div class="tip-lbl">كوبون ممنوح</div>
+                                    </div>
+                                </div>
+                            </div>
+                            ${asgn !== 0 ? `
+                            <div class="tprogress">
+                                <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+                                <div class="prog-lbl"><span>${subs}/${asgn} أجاب</span><span>${pct}%</span></div>
+                            </div>
+                            ` : ''}
+                        </div>
+                        <div class="tcard-foot">
+                            <div class="tclass-badge"><i class="fas fa-users"></i>${escHtml(t.class_name || '—')}</div>
+                            <div class="tact" onclick="event.stopPropagation()">
+                                <div class="tbtn view-btn" onclick="openNativeTaskDetails(${t.id})" title="عرض التفاصيل"><i class="fas fa-eye"></i><span class="tbtn-lbl">عرض</span></div>
+                                <div class="tbtn" onclick="openNativeTaskEditForm(${t.id})" title="تعديل"><i class="fas fa-pen"></i><span class="tbtn-lbl">تعديل</span></div>
+                                <div class="tbtn d" onclick="deleteNativeTask(${t.id})" title="حذف"><i class="fas fa-trash"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         async function openNativeTaskDetails(taskId) {
@@ -15022,7 +15715,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             actionHtml = '<span style="color:var(--text-3); font-size:0.75rem;">مصحح تلقائي/يدوي</span>';
                         } else {
                             statusHtml = '<span style="color:var(--warning); font-weight:700;"><i class="fas fa-hourglass-half"></i> معلق (يحتاج تصحيح)</span>';
-                            actionHtml = `<button class="btn btn-warning btn-sm" onclick="openNativeGradingPanel(${taskId}, ${sub.id})" style="padding:4px 8px; font-size:0.7rem;"><i class="fas fa-check"></i> تصحيح</button>`;
+                            actionHtml = `<button class="btn btn-warning btn-sm" onclick="openGradePanel(${taskId})" style="padding:4px 8px; font-size:0.7rem;"><i class="fas fa-check"></i> تصحيح</button>`;
                         }
 
                         return `
@@ -15047,127 +15740,328 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
 
-        async function openNativeGradingPanel(taskId, submissionId) {
-            // Create grading modal dynamically if not present
-            if (!document.getElementById('nativeGradingModal')) {
-                const div = document.createElement('div');
-                div.className = 'modal-overlay';
-                div.id = 'nativeGradingModal';
-                div.style.zIndex = '1000030';
-                div.innerHTML = `
-                    <div class="modal modal-md" style="max-width: 600px; height: 75vh; display: flex; flex-direction: column;">
-                        <div class="modal-header">
-                            <h3 style="display:flex; align-items:center; gap:8px;">
-                                <i class="fas fa-graduation-cap" style="color:var(--brand);"></i>
-                                <span>تصحيح إجابات الطالب</span>
-                            </h3>
-                            <button class="close-btn" onclick="closeModal('nativeGradingModal')">&times;</button>
-                        </div>
-                        <div class="modal-body" id="ngModalBody" style="padding: 16px; flex: 1; overflow-y: auto; direction: rtl; text-align: right;">
-                            <!-- Filled dynamically -->
-                        </div>
-                        <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:8px;">
-                            <button class="btn btn-outline btn-sm" onclick="closeModal('nativeGradingModal')">إلغاء</button>
-                            <button class="btn btn-primary btn-sm" id="ngSaveBtn">حفظ الدرجة</button>
-                        </div>
-                    </div>
-                `;
-                document.body.appendChild(div);
-            }
+        let gradeTaskId = null;
+        let gradeTaskData = null;
+        let gradeSubs = [];
 
-            openModal('nativeGradingModal');
-            const body = document.getElementById('ngModalBody');
-            body.innerHTML = '<div style="text-align:center;padding:40px;"><i class="fas fa-spinner fa-spin" style="font-size:2rem;color:var(--brand);"></i> جاري تحميل الإجابات...</div>';
+        function getStudentAvatarHtml(photo, name, size = '28px') {
+            if (photo) {
+                return `<img src="${escHtml(photo)}" style="width:${size};height:${size};border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid var(--border-solid);" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />` +
+                       `<span style="display:none;width:${size};height:${size};border-radius:50%;background:var(--brand-bg);color:var(--brand);align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;"><i class="fas fa-user"></i></span>`;
+            }
+            return `<span style="display:inline-flex;width:${size};height:${size};border-radius:50%;background:var(--brand-bg);color:var(--brand);align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;"><i class="fas fa-user"></i></span>`;
+        }
+
+        const LETTERS = ['أ', 'ب', 'ج', 'د', 'هـ', 'و', 'ز', 'ح'];
+
+        window.openGradePanel = async function(taskId) {
+            gradeTaskId = taskId;
+            document.getElementById('gradePanel').classList.add('open');
+            document.body.style.overflow = 'hidden';
+            document.getElementById('gradePanelBody').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-3);"><i class="fas fa-spinner fa-spin" style="font-size:2rem;color:var(--brand);"></i></div>';
 
             try {
+                const td = await makeApiCallRaw({ action: 'getTaskDetail', task_id: taskId });
+                gradeTaskData = (td && td.success) ? td.task : null;
+
                 const d = await makeApiCallRaw({ action: 'getPendingOpenSubmissions', task_id: taskId });
-                if (d && d.success && Array.isArray(d.submissions)) {
-                    const sub = d.submissions.find(s => s.id == submissionId);
-                    if (!sub) {
-                        body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--danger);">لم يتم العثور على التسليم المعلق</div>';
-                        return;
-                    }
+                if (!d || !d.success) {
+                    showToast((d && d.message) || 'فشل تحميل التسليمات المعلقة', 'err');
+                    return;
+                }
+                gradeSubs = d.submissions || [];
+                renderGradePanel();
+            } catch (e) {
+                showToast('خطأ في الاتصال أثناء فتح لوحة التصحيح', 'err');
+            }
+        };
 
-                    const answers = JSON.parse(sub.answers || '{}');
-                    const openQs = sub.open_questions || [];
+        window.closeGradePanel = function() {
+            closeGradePanel();
+        };
 
-                    body.innerHTML = `
-                        <div style="margin-bottom:14px; font-weight:700; color:var(--text-1); font-size:0.95rem;">الطالب: ${escHtml(sub.student_name)}</div>
-                        <div style="display:flex; flex-direction:column; gap:12px;">
-                            ${openQs.map((q, idx) => {
-                                const ansText = answers[q.id] || 'لم يجب';
-                                return `
-                                    <div class="glass-card" style="padding:12px; border:1px solid var(--border-solid); border-radius:10px;">
-                                        <div style="font-weight:700; font-size:0.82rem; color:var(--text-1); margin-bottom:6px;">سؤال ${idx+1}: ${escHtml(q.text)}</div>
-                                        <div style="font-size:0.75rem; color:var(--text-3); margin-bottom:10px;">الدرجة الكلية للسؤال: ${q.degree}</div>
-                                        <div style="background:var(--surface-3); padding:10px; border-radius:8px; font-size:0.8rem; color:var(--text-2); margin-bottom:12px; border:1px solid var(--border-solid); line-height:1.4;">
-                                            <strong>إجابة الطفل:</strong><br>${escHtml(ansText)}
-                                        </div>
-                                        <div class="form-group" style="margin:0;">
-                                            <label class="form-label" style="font-size:0.75rem;">الدرجة المستحقة</label>
-                                            <input type="number" step="any" class="form-input ng-score-input" data-qid="${q.id}" data-max="${q.degree}" min="0" max="${q.degree}" value="${q.degree}" style="width:100px;">
-                                        </div>
-                                    </div>
-                                `;
-                            }).join('')}
+        function renderGradePanel() {
+            const el = document.getElementById('gradePanelBody');
+            if (!el) return;
+            document.getElementById('gradePanelSub').textContent = `${gradeSubs.length} إجابة تنتظر التصحيح`;
+
+            if (!gradeSubs.length) {
+                el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-3);"><i class="fas fa-check-circle" style="font-size:2rem;color:var(--ok);display:block;margin-bottom:10px;"></i>تم تصحيح جميع الإجابات!</div>';
+                return;
+            }
+
+            const allQuestions = gradeTaskData ? (gradeTaskData.questions || []) : [];
+
+            el.innerHTML = gradeSubs.map((sub, si) => {
+                const answers = JSON.parse(sub.answers || '{}');
+
+                // Build full exam view
+                const qRows = allQuestions.map((q, qi) => {
+                    const qtype = q.question_type || q.type || 'mcq';
+                    const qId = String(q.id);
+                    const imgH = q.image_url ? `<div style="margin:4px 0 8px;border-radius:8px;overflow:hidden;border:1px solid var(--border-solid);"><img src="${q.image_url}" alt="" style="width:100%;max-height:160px;object-fit:contain;display:block;background:var(--surface-2);"></div>` : '';
+                    const noteId = `gn_${sub.id}_${q.id}`;
+
+                    const buildNoteHtml = (placeholder, defVal = '') => `
+                        <div class="grade-note-row" style="margin-top:10px; display:flex; gap:8px; align-items:flex-start;">
+                            <i class="fas fa-comment-dots" style="color:var(--text-3); margin-top:4px;"></i>
+                            <div style="flex:1;">
+                                <div style="font-size:0.7rem; color:var(--text-2); margin-bottom:2px;">ملاحظة للمعلم / إجابة نموذجية:</div>
+                                <textarea class="grade-note-inp" id="${noteId}" data-sub="${sub.id}" data-qid="${q.id}" placeholder="${placeholder}" style="width:100%; min-height:50px; border-radius:8px; border:1px solid var(--border-solid); background:var(--surface-2); color:var(--text-1); padding:6px; font-size:0.75rem; resize:vertical;">${defVal}</textarea>
+                            </div>
                         </div>
                     `;
 
-                    // Setup save handler
-                    document.getElementById('ngSaveBtn').onclick = async () => {
-                        const scores = {};
-                        let valid = true;
-                        body.querySelectorAll('.ng-score-input').forEach(inp => {
-                            const val = parseFloat(inp.value) || 0;
-                            const max = parseFloat(inp.dataset.max) || 0;
-                            if (val < 0 || val > max) {
-                                showToast('يرجى التحقق من الدرجات المدخلة للأسئلة المفتوحة', 'warning');
-                                valid = false;
-                            }
-                            scores[inp.dataset.qid] = val;
-                        });
+                    if (qtype === 'open' || qtype === 'text') {
+                        const ans = answers[qId] !== undefined ? String(answers[qId]) : '';
+                        return `
+                            <div class="grade-q-row" style="background:var(--surface-2); border:1.5px solid var(--warning); border-radius:10px; padding:12px; margin-bottom:12px;">
+                                <div style="color:var(--warning); margin-bottom:6px; font-size:0.8rem; font-weight:700;">
+                                    <span style="background:var(--warning-bg); color:var(--warning); border-radius:12px; padding:2px 8px; font-size:0.65rem; margin-left:6px;"><i class="fas fa-pen-nib"></i> سؤال مقالي</span>
+                                    <strong>${qi + 1}.</strong> ${escHtml(q.question_text || q.text)} <span style="color:var(--text-3); font-size:0.72rem;">(${q.degree} درجة)</span>
+                                </div>
+                                ${imgH}
+                                <div style="background:var(--surface-1); border:1px solid var(--border-solid); border-radius:8px; padding:8px 12px; font-size:0.8rem; color:var(--text-1); margin-bottom:10px; min-height:36px; line-height:1.4; white-space:pre-wrap;">${ans ? escHtml(ans) : '<em style="color:var(--text-3);">— لم يُجب —</em>'}</div>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span style="font-size:0.78rem; color:var(--text-2); font-weight:600;">الدرجة:</span>
+                                    <input class="grade-score-inp" type="number" step="any" min="0" max="${q.degree}" value="0"
+                                        id="gs_${sub.id}_${q.id}" data-sub="${sub.id}" data-qid="${q.id}" data-max="${q.degree}"
+                                        oninput="clampGradeInput(this);updateSubScore(${sub.id})"
+                                        style="width:80px; border-radius:6px; border:1px solid var(--border-solid); background:var(--surface-1); color:var(--text-1); padding:4px 8px; font-size:0.8rem; text-align:center;">
+                                    <span style="font-size:0.75rem; color:var(--text-3);">/ ${q.degree}</span>
+                                </div>
+                                ${buildNoteHtml('اكتب ملاحظة أو تصويب للطفل (اختياري)...')}
+                            </div>
+                        `;
+                    }
 
-                        if (!valid) return;
+                    // MCQ / TF
+                    const given = answers[qId] !== undefined ? parseInt(answers[qId]) : null;
+                    const correct = q.correct_index !== null && q.correct_index !== undefined ? parseInt(q.correct_index) : null;
+                    const isCorrect = given !== null && correct !== null && given === correct;
+                    const isWrong = given !== null && correct !== null && given !== correct;
 
-                        const saveBtn = document.getElementById('ngSaveBtn');
-                        saveBtn.disabled = true;
-                        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+                    const statusDot = given === null
+                        ? `<span style="color:var(--text-3); font-size:0.68rem;">لم يجب</span>`
+                        : isCorrect
+                            ? `<span style="background:var(--ok-bg); color:var(--ok); border-radius:12px; padding:2px 8px; font-size:0.68rem; font-weight:700;"><i class="fas fa-check"></i> صح</span>`
+                            : `<span style="background:var(--danger-bg); color:var(--danger); border-radius:12px; padding:2px 8px; font-size:0.68rem; font-weight:700;"><i class="fas fa-times"></i> خطأ</span>`;
 
-                        try {
-                            const gradeRes = await makeApiCallRaw({
-                                action: 'gradeOpenAnswer',
-                                submission_id: submissionId,
-                                scores: JSON.stringify(scores),
-                                notes: '{}'
-                            });
+                    if (qtype === 'tf') {
+                        const opts = ['صحيح', 'خطأ'];
+                        const tfNotePlaceholder = isWrong ? `الإجابة الصحيحة: ${opts[correct]}` : 'اكتب ملاحظة للطفل (اختياري)...';
+                        const tfNoteDefault = isWrong ? `الإجابة الصحيحة: ${opts[correct]}` : '';
 
-                            if (gradeRes && gradeRes.success) {
-                                let couponMsg = '';
-                                if (gradeRes.coupon_diff > 0) {
-                                    couponMsg = ` — تم منح ${gradeRes.coupon_diff} كوبونات`;
-                                } else if (gradeRes.coupon_diff < 0) {
-                                    couponMsg = ` — تم خصم ${Math.abs(gradeRes.coupon_diff)} كوبونات`;
-                                }
-                                showToast(`تم تقييم الإجابات بنجاح! الدرجة: ${gradeRes.score}${couponMsg}`, 'ok');
-                                closeModal('nativeGradingModal');
-                                openNativeTaskDetails(taskId); // Refresh details
-                                if (currentClass) fetchClassTasks(currentClass); // Refresh collapsible drawer
-                            } else {
-                                showToast(gradeRes.message || 'فشل التقييم', 'err');
-                            }
-                        } catch (err) {
-                            showToast('خطأ أثناء إرسال الدرجة للخادم', 'err');
-                        } finally {
-                            saveBtn.disabled = false;
-                            saveBtn.innerHTML = 'حفظ الدرجة';
+                        return `
+                            <div style="background:${isCorrect ? 'rgba(16, 185, 129, 0.04)' : isWrong ? 'rgba(239, 68, 68, 0.04)' : 'var(--surface-2)'}; border:1.5px solid ${isCorrect ? 'var(--ok)' : isWrong ? 'var(--danger)' : 'var(--border-solid)'}; border-radius:10px; padding:12px; margin-bottom:12px;">
+                                <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; justify-content:space-between;">
+                                    <span style="font-size:0.75rem; font-weight:700; color:var(--text-1);"><strong>${qi + 1}.</strong> ${escHtml(q.question_text || q.text)}</span>
+                                    <div style="display:flex; align-items:center; gap:6px;">
+                                        ${statusDot}
+                                        <span style="font-size:0.68rem; color:var(--text-3);">${q.degree} درجة</span>
+                                    </div>
+                                </div>
+                                ${imgH}
+                                <div style="display:flex; gap:8px;">
+                                    ${opts.map((o, j) => {
+                                        const isSel = given === j;
+                                        const isCorr = correct === j;
+                                        let bg = 'var(--surface-1)';
+                                        let border = 'var(--border-solid)';
+                                        let clr = 'var(--text-2)';
+                                        if (isSel && isCorr) { bg = 'var(--ok-bg)'; border = 'var(--ok)'; clr = 'var(--ok)'; }
+                                        else if (isSel && !isCorr) { bg = 'var(--danger-bg)'; border = 'var(--danger)'; clr = 'var(--danger)'; }
+                                        else if (isCorr && !isSel) { bg = 'var(--ok-bg)'; border = 'var(--ok)'; clr = 'var(--ok)'; }
+
+                                        return `
+                                            <div style="flex:1; padding:6px 10px; border-radius:6px; border:1px solid ${border}; background:${bg}; color:${clr}; font-size:0.78rem; font-weight:700; text-align:center;">
+                                                ${o}${isSel ? ' <i class="fas fa-hand-pointer" style="font-size:0.7rem;"></i>' : ''}${isCorr && !isSel ? ' ✓' : ''}
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                                ${buildNoteHtml(tfNotePlaceholder, tfNoteDefault)}
+                            </div>
+                        `;
+                    }
+
+                    // MCQ
+                    const opts = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
+                    const mcqNotePlaceholder = isWrong && correct !== null && opts[correct] ? `الإجابة الصحيحة: ${opts[correct]}` : 'اكتب ملاحظة للطفل (اختياري)...';
+                    const mcqNoteDefault = isWrong && correct !== null && opts[correct] ? `الإجابة الصحيحة: ${opts[correct]}` : '';
+
+                    return `
+                        <div style="background:${isCorrect ? 'rgba(16, 185, 129, 0.04)' : isWrong ? 'rgba(239, 68, 68, 0.04)' : 'var(--surface-2)'}; border:1.5px solid ${isCorrect ? 'var(--ok)' : isWrong ? 'var(--danger)' : 'var(--border-solid)'}; border-radius:10px; padding:12px; margin-bottom:12px;">
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; justify-content:space-between;">
+                                <span style="font-size:0.75rem; font-weight:700; color:var(--text-1);"><strong>${qi + 1}.</strong> ${escHtml(q.question_text || q.text)}</span>
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    ${statusDot}
+                                    <span style="font-size:0.68rem; color:var(--text-3);">${q.degree} درجة</span>
+                                </div>
+                            </div>
+                            ${imgH}
+                            ${opts.map((o, j) => {
+                                const isSel = given === j;
+                                const isCorr = correct === j;
+                                let bg = 'var(--surface-1)';
+                                let border = 'var(--border-solid)';
+                                let clr = 'var(--text-2)';
+                                if (isSel && isCorr) { bg = 'var(--ok-bg)'; border = 'var(--ok)'; clr = 'var(--ok)'; }
+                                else if (isSel && !isCorr) { bg = 'var(--danger-bg)'; border = 'var(--danger)'; clr = 'var(--danger)'; }
+                                else if (isCorr && !isSel) { bg = 'var(--ok-bg)'; border = 'var(--ok)'; clr = 'var(--ok)'; }
+
+                                return `
+                                    <div style="display:flex; align-items:center; gap:7px; padding:6px 10px; border-radius:6px; border:1px solid ${border}; background:${bg}; color:${clr}; font-size:0.78rem; margin-bottom:4px;">
+                                        <strong style="min-width:18px;">${LETTERS[j] || j}</strong>${escHtml(o)}
+                                        ${isSel ? '<i class="fas fa-hand-pointer" style="margin-right:auto; font-size:0.7rem;"></i>' : ''}
+                                        ${isCorr && !isSel ? '<i class="fas fa-check" style="margin-right:auto; color:var(--ok);"></i>' : ''}
+                                    </div>
+                                `;
+                            }).join('')}
+                            ${buildNoteHtml(mcqNotePlaceholder, mcqNoteDefault)}
+                        </div>
+                    `;
+                }).join('');
+
+                const photo = sub.photo || '';
+                const avatar = getStudentAvatarHtml(photo, sub.student_name, '28px');
+
+                return `
+                    <div class="grade-sub-card" id="gradecard_${sub.id}" style="background:var(--surface-1); border:1px solid var(--border-solid); border-radius:12px; padding:16px; margin-bottom:16px; display:flex; flex-direction:column; gap:12px;">
+                        <div class="grade-sub-name" style="display:flex; align-items:center; gap:8px; font-weight:800; color:var(--text-1); font-size:0.9rem; border-bottom:1px solid var(--border-solid); padding-bottom:8px; margin-bottom:4px;">
+                            ${avatar}
+                            <span>${escHtml(sub.student_name || '—')}</span>
+                            <span style="font-size:0.72rem; color:var(--text-3); font-weight:500; margin-right:4px;">${escHtml(sub.task_title || '')}</span>
+                            <span style="margin-right:auto; font-size:0.72rem;" id="scoreDisp_${sub.id}"></span>
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:4px;">
+                            ${qRows}
+                        </div>
+                        <button class="grade-save-btn btn btn-primary" onclick="submitGrade(${sub.id}, ${si})" style="width:100%; padding:10px; font-size:0.85rem; font-weight:800; border-radius:10px; display:flex; align-items:center; justify-content:center; gap:6px;">
+                            <i class="fas fa-check"></i> حفظ التصحيح وتحديث الكوبونات
+                        </button>
+                    </div>
+                `;
+            }).join('');
+
+            // Trigger score display calculation for each card initially
+            gradeSubs.forEach(sub => updateSubScore(sub.id));
+        }
+
+        window.clampGradeInput = function(inp) {
+            clampGradeInput(inp);
+        };
+
+        window.updateSubScore = function(subId) {
+            updateSubScore(subId);
+        };
+
+        window.submitGrade = async function(subId, subIdx) {
+            await submitGrade(subId, subIdx);
+        };
+
+        function clampGradeInput(inp) {
+            const max = parseFloat(inp.dataset.max) || 0;
+            let v = parseFloat(inp.value) || 0;
+            if (v < 0) v = 0;
+            if (v > max) v = max;
+            inp.value = v;
+        }
+
+        function updateSubScore(subId) {
+            let openTotal = 0;
+            document.querySelectorAll(`.grade-score-inp[data-sub="${subId}"]`).forEach(inp => {
+                openTotal += parseFloat(inp.value) || 0;
+            });
+
+            const disp = document.getElementById(`scoreDisp_${subId}`);
+            if (disp && gradeTaskData) {
+                const sub = gradeSubs.find(s => s.id == subId);
+                if (sub) {
+                    const answers = JSON.parse(sub.answers || '{}');
+                    let mcqScore = 0;
+                    (gradeTaskData.questions || []).forEach(q => {
+                        const qtype = q.question_type || q.type || 'mcq';
+                        if (qtype === 'open' || qtype === 'text') return;
+                        const qId = String(q.id);
+                        const correct = q.correct_index !== null && q.correct_index !== undefined ? parseInt(q.correct_index) : null;
+                        const given = answers[qId];
+                        if (given !== undefined && correct !== null && parseInt(given) === correct) {
+                            mcqScore += parseFloat(q.degree || 0);
                         }
-                    };
+                    });
+                    const total = mcqScore + openTotal;
+                    const pct = gradeTaskData.total_degree > 0 ? Math.round(total / gradeTaskData.total_degree * 100) : 0;
+                    disp.innerHTML = `<span style="background:var(--brand-bg); color:var(--brand); border-radius:12px; padding:2px 8px; font-weight:800;">${total} / ${gradeTaskData.total_degree} — ${pct}%</span>`;
+                }
+            }
+        }
+
+        async function submitGrade(subId, subIdx) {
+            const scores = {};
+            document.querySelectorAll(`.grade-score-inp[data-sub="${subId}"]`).forEach(inp => {
+                scores[inp.dataset.qid] = parseFloat(inp.value) || 0;
+            });
+
+            const notes = {};
+            document.querySelectorAll(`.grade-note-inp[data-sub="${subId}"]`).forEach(ta => {
+                if (ta.value.trim()) {
+                    notes[ta.dataset.qid] = ta.value.trim();
+                }
+            });
+
+            const btn = document.querySelector(`#gradecard_${subId} .grade-save-btn`);
+            const orig = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+
+            try {
+                const d = await makeApiCallRaw({
+                    action: 'gradeOpenAnswer',
+                    submission_id: subId,
+                    scores: JSON.stringify(scores),
+                    notes: JSON.stringify(notes)
+                });
+
+                if (d && d.success) {
+                    let couponMsg = '';
+                    if (d.coupon_diff > 0) {
+                        couponMsg = ` — تمت إضافة ${d.coupon_diff} كوبون لكوبونات المهام`;
+                    } else if (d.coupon_diff < 0) {
+                        couponMsg = ` — تم خصم ${Math.abs(d.coupon_diff)} كوبون من كوبونات المهام`;
+                    } else {
+                        couponMsg = ' — لا تغيير في الكوبونات';
+                    }
+                    showToast(`تم الحفظ: ${d.score} / ${gradeTaskData?.total_degree || 0} درجة${couponMsg}`, 'ok');
+                    
+                    document.getElementById(`gradecard_${subId}`)?.remove();
+                    gradeSubs.splice(subIdx, 1);
+                    if (!gradeSubs.length) {
+                        renderGradePanel();
+                    }
+                    
+                    await loadNativeTasksList();
+                    if (currentClass) {
+                        fetchClassTasks(currentClass); // Refresh collapsible drawer if it's there
+                    }
                 } else {
-                    body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--danger);">خطأ في جلب تفاصيل التقييم</div>';
+                    showToast((d && d.message) || 'فشل التقييم', 'err');
                 }
             } catch (e) {
-                body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--danger);">حدث خطأ أثناء تحميل بيانات التقييم</div>';
+                showToast('خطأ أثناء إرسال الدرجة للخادم', 'err');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = orig;
             }
+        }
+
+        function closeGradePanel() {
+            document.getElementById('gradePanel').classList.remove('open');
+            document.body.style.overflow = '';
+            if (gradeTaskId) {
+                openNativeTaskDetails(gradeTaskId);
+            }
+            loadNativeTasksList();
         }
 
         function renderNFClasses(selectedClassIds = []) {
@@ -15345,6 +16239,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             document.getElementById('nfTotalDegree').value = '10';
             document.getElementById('nfMaxCoupons').value = '10';
             document.getElementById('nfStatus').value = 'published';
+            document.getElementById('nfGroupName').value = '';
+            document.getElementById('nfGroupIcon').value = 'fa-folder';
             document.getElementById('nfQuestionsList').innerHTML = '';
             updateNFQuestionsCount();
             renderNFClasses([]);
@@ -15376,6 +16272,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     document.getElementById('nfTotalDegree').value = t.total_degree;
                     document.getElementById('nfMaxCoupons').value = t.max_coupons;
                     document.getElementById('nfStatus').value = t.status;
+                    document.getElementById('nfGroupName').value = t.group_name || '';
+                    document.getElementById('nfGroupIcon').value = t.group_icon || 'fa-folder';
                     
                     if (t.coupon_matrix) {
                         try {
@@ -15504,6 +16402,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             if (!questionsValid) return;
 
+            const groupName = document.getElementById('nfGroupName').value.trim();
+            const groupIcon = document.getElementById('nfGroupIcon').value;
+
             const payload = {
                 action: taskId > 0 ? 'updateTask' : 'createTask',
                 title: title,
@@ -15516,7 +16417,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 status: status,
                 coupon_matrix: couponMatrix,
                 class_ids: classIdsStr,
-                questions: JSON.stringify(questions)
+                questions: JSON.stringify(questions),
+                group_name: groupName,
+                group_icon: groupIcon
             };
 
             if (taskId > 0) {
