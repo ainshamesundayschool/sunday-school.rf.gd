@@ -5665,6 +5665,83 @@ if ($hasUncleId && $uncleRole === 'uncle')
             background: var(--surface-2);
         }
 
+        /* ── CUSTOM CLASSES HORIZONTAL SCROLL ── */
+        .custom-classes-scroll {
+            display: flex;
+            overflow-x: auto;
+            gap: 12px;
+            padding: 4px 4px 10px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .custom-classes-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        .custom-class-slim-card {
+            flex: 0 0 auto;
+            width: 200px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            background: var(--surface);
+            border-radius: var(--r-md);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: transform var(--t) var(--spring), box-shadow var(--t) var(--ease);
+            gap: 10px;
+            text-decoration: none;
+            color: inherit;
+        }
+        .custom-class-slim-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        .custom-class-slim-card:active {
+            transform: scale(0.98);
+        }
+        .custom-class-slim-card.custom-class-card {
+            border: none !important;
+            background-color: color-mix(in srgb, var(--cls-color) 4%, var(--surface)) !important;
+            background-repeat: no-repeat !important;
+            background-size: 100% 100% !important;
+        }
+        .custom-class-slim-card.custom-class-card:hover {
+            background-color: color-mix(in srgb, var(--cls-color) 8%, var(--surface)) !important;
+        }
+        .custom-class-slim-card .class-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .custom-class-slim-card .class-card-badges {
+            position: absolute;
+            top: 4px;
+            left: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            z-index: 12;
+        }
+        .custom-class-slim-card .class-progress-bar {
+            position: absolute;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            height: 4px !important;
+            border-radius: 0 !important;
+            background: rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            z-index: 10;
+        }
+
         .trip-slim-img {
             width: 38px;
             height: 38px;
@@ -11563,6 +11640,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </button>
                 </div>
                 <div class="trips-horizontal-scroll" id="tripsContainer" style="margin-bottom: 4px;"></div>
+                <div class="custom-classes-scroll" id="customClassesContainer" style="display: none; margin-bottom: 12px;"></div>
                 <div class="classes-grid" id="classesGrid"></div>
 
                 <footer class="site-footer">
@@ -16173,19 +16251,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
             ` : '';
             const allTogetherProgress = getAttendanceProgressHtml(students, allColor);
-            const allTogetherHtml = showAllCard ? `<div class="class-card custom-class-card" onclick="showAllTogetherView()"
-        style="--cls-color:${allColor}; ${window.getDashedBorderSvg(allColor)} position:relative;">
-        <div class="class-card-badges">
-            <div style="display:flex; align-items:center; gap:4px;">
-                <span style="background:${allColor};color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;font-weight:700;font-family:Cairo,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,0.08);">الكل</span>
-                ${allUnsavedHtml}
-            </div>
-            <div></div>
-        </div>
-        <div class="class-icon" style="background:${allBg}"><i class="fas ${allIcon}" style="color:white"></i></div>
-        <div class="class-name">${allLabel} <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${allCount})</span></div>
-        ${allTogetherProgress}
-    </div>` : '';
+            const allTogetherHtml = showAllCard ? `
+                <div class="custom-class-slim-card custom-class-card" onclick="showAllTogetherView()" style="--cls-color:${allColor}; ${window.getDashedBorderSvg(allColor, 12, 12)} position:relative;">
+                    <div class="class-card-badges">
+                        <div style="display:flex; align-items:center; gap:4px;">
+                            ${allUnsavedHtml}
+                            <span style="background:${allColor};color:white;border-radius:4px;font-size:.55rem;padding:1px 4px;font-weight:700;font-family:Cairo,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,0.08);">الكل</span>
+                        </div>
+                    </div>
+                    <div class="class-icon" style="background:${allBg}"><i class="fas ${allIcon}" style="color:white; font-size: 0.95rem;"></i></div>
+                    <div style="display:flex; flex-direction:column; justify-content:center; min-width:0; flex-grow:1; text-align:right;">
+                        <div class="class-name" style="font-size:0.82rem; font-weight:700; color:var(--text); margin:0;">${allLabel}</div>
+                        <div style="font-size:0.7rem; color:var(--text-3); font-weight:600; margin-top:2px;">${allCount} ${window.IS_YOUTH ? 'شاب' : 'طفل'}</div>
+                    </div>
+                    ${allTogetherProgress}
+                </div>
+            ` : '';
 
             // ── Combined class group cards ────────────────────────────
             let combinedHtml = '';
@@ -16205,19 +16286,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     const combStudents = students.filter(s => grpClasses.includes(s['الفصل']));
                     const combBrandColor = (window.IS_YOUTH || (window.currentUncle && window.currentUncle.role === 'youth')) ? '#7c3aed' : '#5b6cf5';
                     const combProgress = getAttendanceProgressHtml(combStudents, combBrandColor);
-                    return `<div class="class-card combined-class-card custom-class-card${combHighlightClass}" onclick="showCombinedClassView('${escJs(label)}')" style="position:relative; --cls-color:${combBrandColor}; ${window.getDashedBorderSvg(combBrandColor)}">
-                <div class="class-card-badges">
-                    <div style="display:flex; align-items:center; gap:4px;">
-                        <span style="background:${combBrandColor};color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;font-weight:700;font-family:Cairo,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,0.08);">مدمج</span>
-                        ${unsavedHtml}
-                    </div>
-                    <div></div>
-                </div>
-                <div class="class-icon" style="background:linear-gradient(135deg,${combBrandColor},color-mix(in srgb,${combBrandColor} 80%,black))"><i class="fas fa-layer-group" style="color:white"></i></div>
-                <div class="class-name">${label} <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${count})</span></div>
-                <div style="font-size:.68rem;color:var(--text-3);margin-top:4px">${grpClasses.slice(0, 3).join(' + ')}${grpClasses.length > 3 ? '...' : ''}</div>
-                ${combProgress}
-            </div>`;
+                    return `
+                        <div class="custom-class-slim-card custom-class-card${combHighlightClass}" onclick="showCombinedClassView('${escJs(label)}')" style="position:relative; --cls-color:${combBrandColor}; ${window.getDashedBorderSvg(combBrandColor, 12, 12)}" title="${grpClasses.join(' + ')}">
+                            <div class="class-card-badges">
+                                <div style="display:flex; align-items:center; gap:4px;">
+                                    ${unsavedHtml}
+                                    <span style="background:${combBrandColor};color:white;border-radius:4px;font-size:.55rem;padding:1px 4px;font-weight:700;font-family:Cairo,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,0.08);">مدمج</span>
+                                </div>
+                            </div>
+                            <div class="class-icon" style="background:linear-gradient(135deg,${combBrandColor},color-mix(in srgb,${combBrandColor} 80%,black))"><i class="fas fa-layer-group" style="color:white; font-size: 0.95rem;"></i></div>
+                            <div style="display:flex; flex-direction:column; justify-content:center; min-width:0; flex-grow:1; text-align:right;">
+                                <div class="class-name" style="font-size:0.82rem; font-weight:700; color:var(--text); margin:0;">${label}</div>
+                                <div style="font-size:0.7rem; color:var(--text-3); font-weight:600; margin-top:2px;">${count} ${window.IS_YOUTH ? 'شاب' : 'طفل'}</div>
+                            </div>
+                            ${combProgress}
+                        </div>
+                    `;
                 }).join('');
             }
 
@@ -16262,16 +16346,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 ` : '';
                 const servantsProgress = getAttendanceProgressHtml(window.allUnclesData || [], '#4f46e5');
                 servantsCardHtml = `
-                    <div class="class-card custom-class-card" onclick="showClassView('الخدام')" style="--cls-color:#4f46e5; ${window.getDashedBorderSvg('#4f46e5')} position:relative;">
+                    <div class="custom-class-slim-card custom-class-card" onclick="showClassView('الخدام')" style="--cls-color:#4f46e5; ${window.getDashedBorderSvg('#4f46e5', 12, 12)} position:relative;">
                         <div class="class-card-badges">
                             <div style="display:flex; align-items:center; gap:4px;">
-                                <span style="background:#4f46e5;color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;font-weight:700;font-family:Cairo,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,0.08);">خدام</span>
                                 ${unsavedHtml}
+                                <span style="background:#4f46e5;color:white;border-radius:4px;font-size:.55rem;padding:1px 4px;font-weight:700;font-family:Cairo,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,0.08);">خدام</span>
                             </div>
-                            <div></div>
                         </div>
-                        <div class="class-icon" style="background:color-mix(in srgb,#4f46e5 15%,white);color:#4f46e5"><i class="fas fa-user"></i></div>
-                        <div class="class-name">الخدام <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${servantsCount})</span></div>
+                        <div class="class-icon" style="background:color-mix(in srgb,#4f46e5 15%,white);color:#4f46e5"><i class="fas fa-user" style="font-size: 0.95rem;"></i></div>
+                        <div style="display:flex; flex-direction:column; justify-content:center; min-width:0; flex-grow:1; text-align:right;">
+                            <div class="class-name" style="font-size:0.82rem; font-weight:700; color:var(--text); margin:0;">الخدام</div>
+                            <div style="font-size:0.7rem; color:var(--text-3); font-weight:600; margin-top:2px;">${servantsCount} خادم</div>
+                        </div>
                         ${servantsProgress}
                     </div>
                 `;
@@ -16288,24 +16374,37 @@ if ($hasUncleId && $uncleRole === 'uncle')
             let guestsCardHtml = '';
             if (guestsCount > 0 || guestsUnsaved > 0) {
                 guestsCardHtml = `
-                    <div class="class-card custom-class-card" onclick="showClassView('الزوار')" style="--cls-color:#f59e0b; ${window.getDashedBorderSvg('#f59e0b')} position:relative;">
+                    <div class="custom-class-slim-card custom-class-card" onclick="showClassView('الزوار')" style="--cls-color:#f59e0b; ${window.getDashedBorderSvg('#f59e0b', 12, 12)} position:relative;">
                         <div class="class-card-badges">
                             <div style="display:flex; align-items:center; gap:4px;">
-                                <span style="background:#f59e0b;color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;font-weight:700;font-family:Cairo,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,0.08);">زوار</span>
                                 ${guestsUnsavedHtml}
+                                <span style="background:#f59e0b;color:white;border-radius:4px;font-size:.55rem;padding:1px 4px;font-weight:700;font-family:Cairo,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,0.08);">زوار</span>
                             </div>
-                            <div></div>
                         </div>
-                        <div class="class-icon" style="background:color-mix(in srgb,#f59e0b 15%,white);color:#f59e0b"><i class="fas fa-user-tag"></i></div>
-                        <div class="class-name">الزوار <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${guestsCount})</span></div>
+                        <div class="class-icon" style="background:color-mix(in srgb,#f59e0b 15%,white);color:#f59e0b"><i class="fas fa-user-tag" style="font-size: 0.95rem;"></i></div>
+                        <div style="display:flex; flex-direction:column; justify-content:center; min-width:0; flex-grow:1; text-align:right;">
+                            <div class="class-name" style="font-size:0.82rem; font-weight:700; color:var(--text); margin:0;">الزوار</div>
+                            <div style="font-size:0.7rem; color:var(--text-3); font-weight:600; margin-top:2px;">${guestsCount} زائر</div>
+                        </div>
                         ${guestsProgress}
                     </div>
                 `;
             }
 
-            const visibleCombined = showClassCards ? combinedHtml : '';
+            const customContainer = document.getElementById('customClassesContainer');
+            const customCardsHtml = allTogetherHtml + servantsCardHtml + (showClassCards ? combinedHtml : '') + guestsCardHtml;
+            if (customContainer) {
+                if (customCardsHtml.trim()) {
+                    customContainer.innerHTML = customCardsHtml;
+                    customContainer.style.display = 'flex';
+                } else {
+                    customContainer.innerHTML = '';
+                    customContainer.style.display = 'none';
+                }
+            }
+
             const visibleRegular = showClassCards ? regularHtml : '';
-            grid.innerHTML = allTogetherHtml + servantsCardHtml + visibleCombined + visibleRegular + guestsCardHtml;
+            grid.innerHTML = visibleRegular;
             renderTodayBirthdayBanner();
         }
 
