@@ -11074,19 +11074,29 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 style="border:none; background:transparent; font-family:Cairo,sans-serif; font-size:.82rem; color:var(--text); width:100%; outline:none;"
                                 oninput="filterSheetStudents()">
                         </div>
-                        <select id="sheetClassFilter" onchange="filterSheetStudents()"
-                            style="border:1.5px solid var(--border-solid); border-radius:var(--r-md); padding:6px 10px; font-family:Cairo,sans-serif; font-size:.82rem; background:var(--surface-3); color:var(--text); cursor:pointer; outline:none;">
-                            <option value="">كل الفصول</option>
-                        </select>
-                        <select id="sheetSortSelect" onchange="sortSheetStudents()"
-                            style="border:1.5px solid var(--border-solid); border-radius:var(--r-md); padding:6px 10px; font-family:Cairo,sans-serif; font-size:.82rem; background:var(--surface-3); color:var(--text); cursor:pointer; outline:none;">
-                            <option value="name_asc">الاسم (أ - ي)</option>
-                            <option value="name_desc">الاسم (ي - أ)</option>
-                            <option value="class_asc">الفصل</option>
-                            <option value="degree_desc">الدرجة (الأعلى للأقل)</option>
-                            <option value="degree_asc">الدرجة (الأقل للأعلى)</option>
-                            <option value="no_degree">غير مرصود أولاً</option>
-                        </select>
+
+                        <!-- Class Filter Icon Button -->
+                        <div class="icon-select-btn" style="position:relative; width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; background:var(--surface-3); border:1.5px solid var(--border-solid); border-radius:var(--r-md); color:var(--text-2); cursor:pointer; flex-shrink:0;" title="تصفية الفصول">
+                            <i class="fas fa-filter" style="font-size:0.85rem;"></i>
+                            <select id="sheetClassFilter" onchange="filterSheetStudents()"
+                                style="position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; outline:none;">
+                                <option value="">كل الفصول</option>
+                            </select>
+                        </div>
+
+                        <!-- Sort Icon Button -->
+                        <div class="icon-select-btn" style="position:relative; width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; background:var(--surface-3); border:1.5px solid var(--border-solid); border-radius:var(--r-md); color:var(--text-2); cursor:pointer; flex-shrink:0;" title="ترتيب الأطفال">
+                            <i class="fas fa-sort-amount-down" style="font-size:0.85rem;"></i>
+                            <select id="sheetSortSelect" onchange="sortSheetStudents()"
+                                style="position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; outline:none;">
+                                <option value="name_asc">الاسم (أ - ي)</option>
+                                <option value="name_desc">الاسم (ي - أ)</option>
+                                <option value="class_asc">الفصل</option>
+                                <option value="degree_desc">الدرجة (الأعلى للأقل)</option>
+                                <option value="degree_asc">الدرجة (الأقل للأعلى)</option>
+                                <option value="no_degree">غير مرصود أولاً</option>
+                            </select>
+                        </div>
                     </div>
 
                     <!-- Sheet table container -->
@@ -13337,6 +13347,58 @@ if ($hasUncleId && $uncleRole === 'uncle')
     </div>
 
     <!-- Bulk Note Modal -->
+    <!-- Paper Exam CSV Match Review Modal -->
+    <div class="modal-overlay" id="paperExamMatchReviewModal" style="z-index:1000007">
+        <div class="modal" style="max-width: 95vw; width: 1100px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-tasks"></i> مراجعة مطابقة درجات الامتحان الورقي</h3>
+                <button class="close-btn" onclick="closeModal('paperExamMatchReviewModal')">&times;</button>
+            </div>
+            <div class="mbody" style="padding:16px;">
+                <div style="background:rgba(91,108,245,0.06); padding:12px; border-radius:10px; border:1px solid var(--border-solid); font-size:0.85rem; line-height:1.6; margin-bottom:16px; color:var(--brand); direction:rtl; text-align:right;">
+                    <i class="fas fa-info-circle"></i> <strong>تلميح:</strong> يقوم النظام بمطابقة أسماء الأطفال من ملف الـ CSV مع الأطفال المتاحين في فصول هذا الامتحان. يمكنك مراجعة وتعديل المطابقة وتحديد الدرجات قبل الحفظ النهائي.
+                </div>
+                
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:10px; flex-wrap:wrap; direction:rtl; text-align:right;">
+                    <div style="display:flex; gap:8px;">
+                        <span class="badge" style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;" id="peReviewMatchCount">مطابقة مؤكدة: 0</span>
+                        <span class="badge" style="background:#fffbeb; color:#92400e; border:1px solid #fde68a;" id="peReviewPossibleCount">مطابقة محتملة: 0</span>
+                        <span class="badge" style="background:#fef2f2; color:#991b1b; border:1px solid #fca5a5;" id="peReviewNotMatchedCount">غير مطابق: 0</span>
+                    </div>
+                    <div>
+                        <input type="text" id="peReviewSearchInput" class="form-input form-input-sm" style="width:200px; display:inline-block; font-size:0.8rem; padding:6px 10px;" placeholder="البحث في القائمة..." oninput="filterPeReviewTable()">
+                    </div>
+                </div>
+
+                <div class="table-wrap" style="max-height:55vh; overflow-y:auto; direction:rtl; text-align:right; border:1px solid var(--border-solid); border-radius:10px;">
+                    <table class="table" style="width:100%; min-width:800px; text-align:right; border-collapse:collapse;">
+                        <thead style="position:sticky; top:0; background:var(--surface-2); z-index:10;">
+                            <tr style="border-bottom:2px solid var(--border-solid);">
+                                <th style="width:50px; text-align:right; padding:10px;">#</th>
+                                <th style="text-align:right; padding:10px;">الاسم بالملف</th>
+                                <th style="text-align:right; padding:10px;">الفصل بالملف</th>
+                                <th style="text-align:center; padding:10px; width:100px;">الدرجة</th>
+                                <th style="text-align:right; padding:10px; width:220px;">حالة المطابقة</th>
+                                <th style="text-align:right; padding:10px; width:320px;">الطفل في الكنيسة</th>
+                                <th style="text-align:center; padding:10px; width:80px;">رصد؟</th>
+                            </tr>
+                        </thead>
+                        <tbody id="peBulkReviewTableBody">
+                            <!-- Rows dynamic -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="display:flex; gap:10px; margin-top:16px; justify-content:flex-end; direction:rtl;">
+                    <button class="btn btn-success" id="btnConfirmPeBulkImport" onclick="submitPeBulkImport()" style="background:#10b981; color:#fff; border:none; padding:8px 20px; font-weight:800; display:flex; align-items:center; gap:6px; border-radius:var(--r-md);">
+                        <i class="fas fa-check-double"></i> حفظ ورصد الدرجات المؤكدة
+                    </button>
+                    <button class="btn btn-secondary" onclick="closeModal('paperExamMatchReviewModal')" style="padding:8px 20px; border-radius:var(--r-md);">إلغاء</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal-overlay" id="bulkNoteModal" style="z-index:1000007">
         <div class="modal" style="max-width:500px">
             <div class="modal-header">
@@ -16607,7 +16669,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         // ── SWIPE TO CLOSE ────────────────────────────────────────────
         function initSwipeToClose(overlay) {
-            if (overlay.id === 'kidQrScannerModal' || overlay.id === 'customExportModal' || overlay.id === 'bulkAttendanceModal' || overlay.id === 'tasksModal') return;
+            if (overlay.id === 'kidQrScannerModal' || overlay.id === 'customExportModal' || overlay.id === 'bulkAttendanceModal' || overlay.id === 'tasksModal' || overlay.id === 'paperExamsModal' || overlay.id === 'paperExamMatchReviewModal') return;
             const modal = overlay.querySelector('.modal');
             if (!modal) return;
 
@@ -16627,7 +16689,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (target && target.closest && (
                     target.closest('.table-zoom-wrap') ||
                     target.closest('.table-container') ||
-                    target.closest('.sheet-container')
+                    target.closest('.sheet-container') ||
+                    target.closest('.table-wrap') ||
+                    target.closest('table')
                 )) {
                     isDragging = false;
                     return;
@@ -29265,37 +29329,289 @@ if ($hasUncleId && $uncleRole === 'uncle')
             document.getElementById('sheetCsvFileInput').click();
         }
 
+        let peReviewRows = [];
+
+        function parseCSVLine(line) {
+            let arr = [];
+            let inQuotes = false;
+            let current = '';
+            for (let i = 0; i < line.length; i++) {
+                let char = line[i];
+                if (char === '"') {
+                    if (inQuotes && line[i+1] === '"') {
+                        current += '"';
+                        i++;
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === ',' && !inQuotes) {
+                    arr.push(current);
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            arr.push(current);
+            return arr;
+        }
+
         async function handleCsvImport() {
             const input = document.getElementById('sheetCsvFileInput');
             if (input.files.length === 0) return;
 
             const file = input.files[0];
-            if (!confirm(`هل تريد بالتأكيد استيراد الدرجات من الملف "${file.name}"؟`)) {
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                let csvText = e.target.result;
+                csvText = csvText.replace(/^\uFEFF/, '');
+                const lines = csvText.split(/\r?\n/);
+                if (!lines.length || lines[0].trim() === '') {
+                    showToast('ملف الـ CSV فارغ', 'error');
+                    return;
+                }
+
+                const headers = parseCSVLine(lines[0]);
+                let colId = -1, colName = -1, colClass = -1, colDegree = -1;
+
+                headers.forEach((h, idx) => {
+                    const cleanH = h.trim().toLowerCase();
+                    if (cleanH.includes('id') || cleanH.includes('معرف') || cleanH.includes('كود') || cleanH.includes('رقم')) {
+                        colId = idx;
+                    } else if (cleanH.includes('الاسم') || cleanH.includes('اسم') || cleanH.includes('name')) {
+                        colName = idx;
+                    } else if (cleanH.includes('فصل') || cleanH.includes('الفصل') || cleanH.includes('class')) {
+                        colClass = idx;
+                    } else if (cleanH.includes('درجة') || cleanH.includes('الدرجة') || cleanH.includes('degree') || cleanH.includes('mark') || cleanH.includes('grade')) {
+                        colDegree = idx;
+                    }
+                });
+
+                if (colName === -1 || colDegree === -1) {
+                    showToast('تأكد من وجود عمود الاسم وعمود الدرجة بالملف', 'error');
+                    return;
+                }
+
+                peReviewRows = [];
+                const activeKids = activeExamStudents || [];
+
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    const cells = parseCSVLine(line);
+
+                    const name = cells[colName] ? cells[colName].replace(/"/g, '').trim() : '';
+                    if (!name || name.includes('الاسم الكامل') || name.includes('مثال:')) continue;
+
+                    const idVal = colId !== -1 && cells[colId] ? parseInt(cells[colId].trim()) || 0 : 0;
+                    const classVal = colClass !== -1 && cells[colClass] ? cells[colClass].replace(/"/g, '').trim() : '';
+                    const degreeVal = cells[colDegree] ? parseFloat(cells[colDegree].trim()) : null;
+
+                    let targetId = 0;
+                    let matchType = 'none';
+                    const matches = [];
+
+                    activeKids.forEach(kid => {
+                        let score = 0;
+                        if (idVal > 0 && Number(kid.id) === idVal) {
+                            score = 10000;
+                        } else {
+                            score = getMatchScore(kid, name);
+                        }
+
+                        if (score > 40) {
+                            matches.push({ id: kid.id, name: kid.name, class: kid.class_name, score: score });
+                        }
+                    });
+
+                    matches.sort((a, b) => b.score - a.score);
+
+                    if (idVal > 0) {
+                        const foundById = activeKids.find(k => Number(k.id) === idVal);
+                        if (foundById) {
+                            targetId = idVal;
+                            matchType = 'confident';
+                        }
+                    }
+
+                    if (!targetId && matches.length > 0) {
+                        const best = matches[0];
+                        if (best.score >= 100) {
+                            targetId = best.id;
+                            matchType = 'confident';
+                        } else if (best.score >= 40) {
+                            targetId = best.id;
+                            matchType = 'possible';
+                        }
+                    }
+
+                    peReviewRows.push({
+                        csvName: name,
+                        csvClass: classVal,
+                        csvDegree: degreeVal,
+                        targetId: targetId,
+                        matchType: matchType,
+                        matches: matches,
+                        import: targetId > 0
+                    });
+                }
+
                 input.value = '';
+                if (peReviewRows.length === 0) {
+                    showToast('لم يتم العثور على درجات صالحة لاستيرادها', 'warning');
+                    return;
+                }
+
+                openModal('paperExamMatchReviewModal');
+                filterPeReviewTable();
+            };
+
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        function filterPeReviewTable() {
+            const search = document.getElementById('peReviewSearchInput').value.trim();
+            const body = document.getElementById('peBulkReviewTableBody');
+            if (!body) return;
+
+            let confidentCount = 0, possibleCount = 0, notMatchedCount = 0;
+            peReviewRows.forEach(r => {
+                if (r.import) {
+                    if (r.targetId === 0) notMatchedCount++;
+                    else if (r.matchType === 'possible') possibleCount++;
+                    else confidentCount++;
+                } else {
+                    notMatchedCount++;
+                }
+            });
+
+            document.getElementById('peReviewMatchCount').textContent = `مطابقة مؤكدة: ${confidentCount}`;
+            document.getElementById('peReviewPossibleCount').textContent = `مطابقة محتملة: ${possibleCount}`;
+            document.getElementById('peReviewNotMatchedCount').textContent = `غير مطابق: ${notMatchedCount}`;
+
+            const activeKidsSorted = [...(activeExamStudents || [])].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));
+
+            let html = '';
+            peReviewRows.forEach((r, idx) => {
+                if (search && !r.csvName.includes(search) && !(r.csvClass && r.csvClass.includes(search))) {
+                    return;
+                }
+
+                let badge = '';
+                if (!r.import || r.targetId === 0) {
+                    badge = `<span class="badge" style="background:#fef2f2; color:#991b1b; border:1px solid #fca5a5;">غير مطابق</span>`;
+                } else if (r.matchType === 'possible') {
+                    badge = `<span class="badge" style="background:#fffbeb; color:#92400e; border:1px solid #fde68a;">مطابقة محتملة</span>`;
+                } else {
+                    badge = `<span class="badge" style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;">مطابقة مؤكدة</span>`;
+                }
+
+                let selectHtml = `<select class="form-select form-select-sm" style="width:100%; font-size:0.8rem; font-family:'Font Awesome 5 Free', 'Cairo', sans-serif; font-weight:900;" onchange="updatePeRowMatch(${idx}, this.value)">`;
+                selectHtml += `<option value="0" ${r.targetId === 0 ? 'selected' : ''}>&#xf05e; تخطي / عدم الاستيراد</option>`;
+
+                if (r.matches.length > 0) {
+                    selectHtml += `<optgroup label="مطابقات مقترحة" style="font-family:'Cairo', sans-serif; font-weight:normal;">`;
+                    r.matches.forEach(m => {
+                        selectHtml += `<option value="${m.id}" ${r.targetId === m.id ? 'selected' : ''}>&#xf0c1; ${m.name} [${m.class || 'بدون فصل'}]</option>`;
+                    });
+                    selectHtml += `</optgroup>`;
+                }
+
+                selectHtml += `<optgroup label="باقي أطفال الامتحان" style="font-family:'Cairo', sans-serif; font-weight:normal;">`;
+                const matchedIds = new Set(r.matches.map(m => m.id));
+                activeKidsSorted.forEach(k => {
+                    if (!matchedIds.has(k.id)) {
+                        selectHtml += `<option value="${k.id}" ${r.targetId === k.id ? 'selected' : ''}>&#xf007; ${k.name} [${k.class_name || 'بدون فصل'}]</option>`;
+                    }
+                });
+                selectHtml += `</optgroup></select>`;
+
+                html += `
+                    <tr style="border-bottom:1px solid var(--border-solid);">
+                        <td style="padding:10px; text-align:center; vertical-align:middle; color:var(--text-3); font-size:0.8rem;">${idx + 1}</td>
+                        <td style="padding:10px; font-weight:700; color:var(--text); vertical-align:middle;">${escHtml(r.csvName)}</td>
+                        <td style="padding:10px; color:var(--text-2); vertical-align:middle;">${escHtml(r.csvClass || '-')}</td>
+                        <td style="padding:10px; text-align:center; vertical-align:middle; font-weight:800; color:var(--brand);">${r.csvDegree !== null ? r.csvDegree : ''}</td>
+                        <td style="padding:10px; vertical-align:middle;">${badge}</td>
+                        <td style="padding:10px; vertical-align:middle;">${selectHtml}</td>
+                        <td style="padding:10px; text-align:center; vertical-align:middle;">
+                            <input type="checkbox" style="width:18px; height:18px; cursor:pointer;" ${r.import ? 'checked' : ''} onchange="togglePeRowImport(${idx}, this.checked)">
+                        </td>
+                    </tr>
+                `;
+            });
+
+            body.innerHTML = html || '<tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-3);">لا توجد نتائج مطابقة للبحث.</td></tr>';
+        }
+
+        window.updatePeRowMatch = function(index, targetIdStr) {
+            const targetId = parseInt(targetIdStr) || 0;
+            const row = peReviewRows[index];
+            if (!row) return;
+
+            row.targetId = targetId;
+            if (targetId === 0) {
+                row.import = false;
+                row.matchType = 'none';
+            } else {
+                row.import = true;
+                const matchInfo = row.matches.find(m => m.id === targetId);
+                if (matchInfo) {
+                    row.matchType = matchInfo.score >= 100 ? 'confident' : 'possible';
+                } else {
+                    row.matchType = 'possible';
+                }
+            }
+            filterPeReviewTable();
+        };
+
+        window.togglePeRowImport = function(index, isChecked) {
+            const row = peReviewRows[index];
+            if (!row) return;
+            row.import = isChecked;
+            if (isChecked && row.targetId === 0 && row.matches.length > 0) {
+                row.targetId = row.matches[0].id;
+                row.matchType = row.matches[0].score >= 100 ? 'confident' : 'possible';
+            }
+            filterPeReviewTable();
+        };
+
+        window.submitPeBulkImport = async function() {
+            const degrees = [];
+            peReviewRows.forEach(r => {
+                if (r.import && r.targetId > 0 && r.csvDegree !== null) {
+                    degrees.push({
+                        student_id: r.targetId,
+                        degree: r.csvDegree
+                    });
+                }
+            });
+
+            if (degrees.length === 0) {
+                showToast('لا توجد درجات مؤكدة لرصدها', 'warning');
                 return;
             }
 
             const fd = new FormData();
-            fd.append('action', 'importPaperExamDegreesCSV');
+            fd.append('action', 'savePaperExamDegrees');
             fd.append('paper_exam_id', activeExamId);
-            fd.append('csv_file', file);
+            fd.append('degrees', JSON.stringify(degrees));
 
-            showToast('جارٍ استيراد الملف...', 'info');
+            showToast('جارٍ حفظ الدرجات المستوردة…', 'info');
 
             try {
                 const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
-                input.value = '';
                 if (resp.success) {
-                    showToast(resp.message, 'success');
+                    showToast(resp.message || 'تم استيراد ورصد الدرجات بنجاح', 'success');
+                    closeModal('paperExamMatchReviewModal');
                     openExamSheet(activeExamId);
                 } else {
-                    showToast(resp.message || 'فشل استيراد الملف', 'error');
+                    showToast(resp.message || 'فشل حفظ الدرجات', 'error');
                 }
             } catch (e) {
-                input.value = '';
                 showToast('خطأ في الاتصال بالخادم', 'error');
             }
-        }
+        };
 
         function downloadPaperExamCsvTemplate() {
             if (!filteredExamStudents || filteredExamStudents.length === 0) {

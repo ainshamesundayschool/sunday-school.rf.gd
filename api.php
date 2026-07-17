@@ -21758,7 +21758,7 @@ function getPaperExamDegrees() {
         LEFT JOIN church_classes cc ON cc.id = s.class_id AND cc.church_id = s.church_id
         LEFT JOIN classes cl ON cl.id = s.class_id
         LEFT JOIN paper_exam_degrees ped ON ped.paper_exam_id = ? AND ped.student_id = s.id
-        WHERE s.church_id = ? AND s.enrollment_status = 'active'
+        WHERE s.church_id = ? AND COALESCE(s.enrollment_status, 'active') = 'active'
     ";
     
     $params = [$examId, $churchId];
