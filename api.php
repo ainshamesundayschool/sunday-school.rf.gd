@@ -44628,6 +44628,36 @@ function savePushSubscription()
 
         $stmt->execute();
 
+        // Prune old subscriptions for this uncle or student (keep max 3 most recent)
+        if ($uncleId) {
+            $conn->query("
+                DELETE FROM push_subscriptions 
+                WHERE uncle_id = $uncleId 
+                  AND id NOT IN (
+                      SELECT id FROM (
+                          SELECT id FROM push_subscriptions 
+                          WHERE uncle_id = $uncleId 
+                          ORDER BY updated_at DESC, id DESC 
+                          LIMIT 3
+                      ) as tmp
+                  )
+            ");
+        }
+        if ($studentId) {
+            $conn->query("
+                DELETE FROM push_subscriptions 
+                WHERE student_id = $studentId 
+                  AND id NOT IN (
+                      SELECT id FROM (
+                          SELECT id FROM push_subscriptions 
+                          WHERE student_id = $studentId 
+                          ORDER BY updated_at DESC, id DESC 
+                          LIMIT 3
+                      ) as tmp
+                  )
+            ");
+        }
+
         sendJSON(['success' => true]);
 
     } catch (Exception $e) {
@@ -44957,7 +44987,21 @@ function _pushToEndpoint($endpoint, $p256dh, $auth, $payload, $vapidPri, $vapidP
             $success = true;
             foreach ($webPush->flush() as $r) {
                 if (!$r->isSuccess()) {
-                    error_log("WebPush notification failed for endpoint " . $r->getEndpoint() . ": " . $r->getReason());
+                    $endp = $r->getEndpoint();
+                    error_log("WebPush notification failed for endpoint " . $endp . ": " . $r->getReason());
+                    if ($r->isSubscriptionExpired()) {
+                        try {
+                            $db = getDBConnection();
+                            $delStmt = $db->prepare("DELETE FROM push_subscriptions WHERE endpoint = ?");
+                            if ($delStmt) {
+                                $delStmt->bind_param("s", $endp);
+                                $delStmt->execute();
+                                error_log("Deleted expired push subscription for endpoint: " . $endp);
+                            }
+                        } catch (Exception $dbEx) {
+                            error_log("Failed to delete expired endpoint: " . $dbEx->getMessage());
+                        }
+                    }
                     $success = false;
                 }
             }
