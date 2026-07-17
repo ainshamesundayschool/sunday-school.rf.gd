@@ -12267,34 +12267,223 @@ if ($hasUncleId && $uncleRole === 'uncle')
                       font-size: .78rem;
                       color: var(--text-1);
                     }
+
+                    /* Enhanced Class Tasks Collapsible */
+                    #classTasksCollapsible {
+                        background: var(--surface-2);
+                        border: 1px solid var(--border-solid);
+                        border-radius: var(--r-md);
+                        padding: 12px 14px;
+                        margin-top: 14px;
+                        box-shadow: var(--shadow-sm);
+                        transition: all 0.3s ease;
+                        display: none;
+                        flex-direction: column;
+                        gap: 10px;
+                        direction: rtl;
+                        text-align: right;
+                    }
+
+                    #classTasksCollapsible:hover {
+                        box-shadow: var(--shadow-md);
+                        border-color: rgba(var(--brand-rgb), 0.2);
+                    }
+
+                    .class-tasks-header {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        cursor: pointer;
+                        user-select: none;
+                        direction: rtl;
+                    }
+
+                    .class-tasks-title {
+                        font-size: 0.85rem;
+                        font-weight: 800;
+                        color: var(--text-2);
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 8px;
+                        font-family: 'Cairo', sans-serif;
+                    }
+
+                    .class-tasks-title i {
+                        color: var(--brand);
+                    }
+
+                    .class-tasks-actions {
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    }
+
+                    .class-tasks-action-btn {
+                        width: 28px;
+                        height: 28px;
+                        border-radius: var(--r-sm);
+                        padding: 0;
+                        min-width: unset;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        background: var(--brand-bg);
+                        color: var(--brand);
+                        border: 1px solid transparent;
+                        cursor: pointer;
+                        transition: all 0.2s ease;
+                    }
+
+                    .class-tasks-action-btn:hover {
+                        background: var(--brand);
+                        color: #fff;
+                        transform: translateY(-1px);
+                    }
+
+                    .class-tasks-toggle-badge {
+                        font-size: 0.72rem;
+                        font-weight: 700;
+                        color: var(--text-2);
+                        background: var(--surface-3);
+                        border: 1px solid var(--border-solid);
+                        padding: 4px 10px;
+                        border-radius: var(--r-full);
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 6px;
+                        transition: all 0.2s ease;
+                    }
+
+                    .class-tasks-toggle-badge:hover {
+                        background: var(--brand-bg);
+                        color: var(--brand);
+                        border-color: rgba(var(--brand-rgb), 0.2);
+                    }
+
+                    #collapsedTasksList {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 8px;
+                        margin-top: 10px;
+                        max-height: 200px;
+                        overflow-y: auto;
+                        padding-inline-end: 4px;
+                    }
+
+                    /* Scrollbar for tasks list */
+                    #collapsedTasksList::-webkit-scrollbar {
+                        width: 4px;
+                    }
+                    #collapsedTasksList::-webkit-scrollbar-thumb {
+                        background: var(--border-solid);
+                        border-radius: 4px;
+                    }
+                    #collapsedTasksList::-webkit-scrollbar-thumb:hover {
+                        background: var(--text-3);
+                    }
+
+                    /* Task Pill Item */
+                    .task-pill-item {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        background: var(--surface-3);
+                        border: 1px solid var(--border-solid);
+                        padding: 10px 14px;
+                        border-radius: var(--r-md);
+                        cursor: pointer;
+                        transition: all 0.2s ease;
+                        gap: 10px;
+                        position: relative;
+                        text-align: right;
+                        direction: rtl;
+                    }
+
+                    .task-pill-item:hover {
+                        background: var(--brand-bg);
+                        border-color: var(--brand);
+                        transform: translateX(-2px);
+                    }
+
+                    .task-pill-info {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 4px;
+                        min-width: 0;
+                        flex: 1;
+                        text-align: right;
+                        direction: rtl;
+                    }
+
+                    .task-pill-title {
+                        font-size: 0.8rem;
+                        font-weight: 800;
+                        color: var(--text-1);
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                    }
+
+                    .task-pill-meta {
+                        font-size: 0.68rem;
+                        color: var(--text-3);
+                        display: flex;
+                        align-items: center;
+                        gap: 4px;
+                        direction: rtl;
+                    }
+
+                    .task-pill-badges {
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                        flex-shrink: 0;
+                    }
+
+                    .task-pill-badge {
+                        font-size: 0.7rem;
+                        font-weight: 800;
+                        padding: 3px 8px;
+                        border-radius: var(--r-sm);
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 4px;
+                    }
+
+                    .task-pill-badge.q {
+                        color: var(--brand);
+                        background: var(--brand-bg);
+                    }
+
+                    .task-pill-badge.d {
+                        color: var(--warning);
+                        background: var(--warning-bg);
+                    }
                     </style>
-                    <div id="classTasksCollapsible"
-                        style="display: none; width: 100%; margin-top: 12px; border-top: 1px dashed var(--border); padding-top: 10px; flex-direction: column; gap: 8px;">
-                        <div style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;"
-                            onclick="toggleTasksCollapse()">
-                            <span
-                                style="font-size: 0.82rem; font-weight: 700; color: var(--text-2); display: inline-flex; align-items: center; gap: 6px; font-family: 'Cairo', sans-serif;">
-                                <span class="detail-icon blue" style="width: 24px; height: 24px; font-size: 0.72rem; border-radius: 6px; display: inline-flex;"><i class="fas fa-tasks"></i></span> المهام المتاحة (<span
-                                    id="collapsedTasksCount">0</span>)
+                    <div id="classTasksCollapsible" style="display: none;">
+                        <div class="class-tasks-header" onclick="toggleTasksCollapse()">
+                            <span class="class-tasks-title">
+                                <i class="fas fa-tasks"></i> المهام المتاحة (<span id="collapsedTasksCount">0</span>)
                             </span>
-                            <div style="display: flex; align-items: center; gap: 6px;">
-                                <button class="btn btn-ghost"
-                                    onclick="event.stopPropagation(); openNativeTaskCreateForm();"
-                                    style="width: 24px; height: 24px; border-radius: var(--r-sm); padding: 0; min-width: unset; display: flex; align-items: center; justify-content: center; background: var(--brand-bg); color: var(--brand); border: none; cursor: pointer;"
-                                    title="إضافة مهمة جديدة">
-                                    <i class="fas fa-plus" style="font-size: 0.7rem;"></i>
+                            <div class="class-tasks-actions">
+                                <button class="class-tasks-action-btn"
+                                    onclick="event.stopPropagation(); openTasksModal();"
+                                    title="إدارة كافة المهام">
+                                    <i class="fas fa-folder-open" style="font-size: 0.72rem;"></i>
                                 </button>
-                                <span id="tasksToggleBtn"
-                                    style="font-size: 0.72rem; font-weight: 700; color: var(--brand); background: var(--brand-bg); padding: 2px 8px; border-radius: var(--r-sm); display: inline-flex; align-items: center; gap: 4px;">
+                                <button class="class-tasks-action-btn"
+                                    onclick="event.stopPropagation(); openNativeTaskCreateForm();"
+                                    title="إضافة مهمة جديدة">
+                                    <i class="fas fa-plus" style="font-size: 0.72rem;"></i>
+                                </button>
+                                <span class="class-tasks-toggle-badge" id="tasksToggleBtn">
                                     <span id="tasksToggleText">عرض</span>
-                                    <i class="fas fa-chevron-down" id="tasksCollapseIcon"
-                                        style="transition: transform 0.2s;"></i>
+                                    <i class="fas fa-chevron-down" id="tasksCollapseIcon" style="transition: transform 0.2s;"></i>
                                 </span>
                             </div>
                         </div>
                         <div style="position: relative; width: 100%;">
-                            <div id="collapsedTasksList"
-                                style="display: none; flex-direction: column; gap: 8px; margin-top: 4px; max-height: 180px; overflow-y: auto; padding-inline-start: 2px; padding-inline-end: 4px;">
+                            <div id="collapsedTasksList" style="display: none;">
                                 <!-- Dynamically loaded task pills -->
                             </div>
                             <div id="tasksScrollIndicator" 
