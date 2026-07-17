@@ -1,4 +1,10 @@
 <?php
+// Prevent caching of dashboard to see instant updates
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Date in the past
+
 ini_set('session.gc_probability', 1);
 ini_set('session.gc_divisor', 100);
 ini_set('session.gc_maxlifetime', 60 * 60 * 24 * 365 * 10);
@@ -500,7 +506,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         onload="this.media='all'">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script src="<?php echo $pathPrefix; ?>/js/qr-scanner.umd.min.js" type="text/javascript"></script>
-    <script src="<?php echo $pathPrefix; ?>/js/search_intelligent.js" type="text/javascript"></script>
+    <script src="<?php echo $pathPrefix; ?>/js/search_intelligent.js?v=<?php echo file_exists($rootPath . '/js/search_intelligent.js') ? filemtime($rootPath . '/js/search_intelligent.js') : time(); ?>" type="text/javascript"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script defer
         src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
@@ -11198,7 +11204,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transition: all var(--t-fast) var(--ease);
         }
     </style>
-    <script src="/js/og-meta.js"></script>
+    <script src="/js/og-meta.js?v=<?php echo file_exists($rootPath . '/js/og-meta.js') ? filemtime($rootPath . '/js/og-meta.js') : time(); ?>"></script>
 </head>
 
 <body>

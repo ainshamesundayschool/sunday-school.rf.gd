@@ -1,7 +1,7 @@
 // ╔══════════════════════════════════════════════════════════════╗
-// ║  Sunday School PWA — Service Worker v24                     ║
+// ║  Sunday School PWA — Service Worker v26                     ║
 // ╚══════════════════════════════════════════════════════════════╝
-const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v25';
+const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v26';
 const CACHE_NAME        = `sunday-school-${SW_VERSION}`;
 const SYNC_TAG          = 'sync-attendance';
 const PERIODIC_SYNC_TAG = 'check-registrations';
@@ -233,29 +233,32 @@ self.addEventListener('fetch', e => {
         e.respondWith(
             (async () => {
                 const bypassCache = Date.now() < _bypassCacheUntil;
-                // Stale-While-Revalidate strategy for instant offline shell loading
-                if (isOfflineShellFriendly && !bypassCache) {
-                    const cached = await caches.match(e.request, { ignoreSearch: true });
-                    if (cached) {
-                        // Revalidate in the background to update cache
-                        fetch(e.request, { cache: 'no-store' }).then(async r => {
-                            if (await _isCacheableAppResponse(r, e.request)) {
-                                const copy = r.clone();
-                                const cache = await caches.open(CACHE_NAME);
-                                await cache.put(e.request, copy);
-                            }
-                        }).catch(() => {});
-                        return cached;
+                
+                // Network-First strategy: try the network first to get the latest fresh updates, falling back to cache if offline
+                if (!bypassCache) {
+                    try {
+                        // Force no-store for all navigations to prevent browser caching the cookie-check pages
+                        const r = await fetch(e.request, { cache: 'no-store' });
+                        if (isOfflineShellFriendly && await _isCacheableAppResponse(r, e.request)) {
+                            const copy = r.clone();
+                            const cache = await caches.open(CACHE_NAME);
+                            await cache.put(e.request, copy);
+                        }
+                        return r;
+                    } catch (err) {
+                        // Network failed (offline), try to serve from cache
+                        if (isOfflineShellFriendly) {
+                            const cached = await caches.match(e.request, { ignoreSearch: true });
+                            if (cached) return cached;
+                        }
+                        const cachedShell = await _matchOfflineShell(e.request, url);
+                        if (cachedShell) return cachedShell;
                     }
                 }
 
+                // If bypassCache is active (e.g. cookie-check loop) or network fails and there is no cache
                 try {
-                    // Force no-store for all navigations to prevent browser caching the cookie-check pages
                     const r = await fetch(e.request, { cache: 'no-store' });
-                    if (isOfflineShellFriendly && await _isCacheableAppResponse(r, e.request)) {
-                        const copy = r.clone();
-                        caches.open(CACHE_NAME).then(c => c.put(e.request, copy)).catch(() => {});
-                    }
                     return r;
                 } catch (_) {
                     const cached = await _matchOfflineShell(e.request, url);
