@@ -15740,9 +15740,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
 
-        let gradeTaskId = null;
-        let gradeTaskData = null;
-        let gradeSubs = [];
+        gradeTaskId = null;
+        gradeTaskData = null;
+        gradeSubs = [];
 
         function getStudentAvatarHtml(photo, name, size = '28px') {
             if (photo) {
@@ -16552,7 +16552,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (!list) return;
 
             if (!classTasks.length) {
-                list.innerHTML = `<div style="text-align:center;font-size:0.78rem;color:var(--text-3);padding:8px 0;">لا توجد مهام نشطة حالياً</div>`;
+                list.innerHTML = `<div style="text-align:center;font-size:0.78rem;color:var(--text-3);padding:12px 0;">لا توجد مهام نشطة حالياً</div>`;
                 return;
             }
 
@@ -16562,22 +16562,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const deadlineText = t.no_deadline == 1 ? 'مستمر' : (t.end_date ? new Date(t.end_date).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' }) : 'مستمر');
 
                 return `
-                    <div class="task-pill-item" onclick="openTasksModal(${t.id})" 
-                        style="display: flex; align-items: center; justify-content: space-between; background: var(--surface-3); border: 1px solid var(--border-solid); padding: 8px 12px; border-radius: var(--r-md); cursor: pointer; transition: all 0.2s; gap: 8px; position: relative; z-index: 1;"
-                        onmouseover="this.style.background='var(--surface-4)';"
-                        onmouseout="this.style.background='var(--surface-3)';"
-                    >
-                        <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1;">
-                            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escHtml(t.title)}</div>
-                            <div style="font-size: 0.7rem; color: var(--text-3); display: flex; align-items: center; gap: 4px;">
+                    <div class="task-pill-item" onclick="openTasksModal(${t.id})">
+                        <div class="task-pill-info">
+                            <div class="task-pill-title">${escHtml(t.title)}</div>
+                            <div class="task-pill-meta">
                                 <i class="fas fa-flag-checkered" style="font-size: 0.65rem;"></i> آخر موعد: ${deadlineText}
                             </div>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
-                            <span style="font-size: 0.72rem; font-weight: 700; color: var(--brand); background: var(--brand-bg); padding: 2px 6px; border-radius: var(--r-sm); display: inline-flex; align-items: center; gap: 4px;">
+                        <div class="task-pill-badges">
+                            <span class="task-pill-badge q">
                                 <i class="fas fa-question-circle" style="font-size:0.65rem;"></i> ${qCount} أسئلة
                             </span>
-                            <span style="font-size: 0.72rem; font-weight: 700; color: var(--warning); background: var(--warning-bg); padding: 2px 6px; border-radius: var(--r-sm); display: inline-flex; align-items: center; gap: 4px;">
+                            <span class="task-pill-badge d">
                                 <i class="fas fa-star" style="font-size:0.65rem;"></i> ${totalDegree} درجة
                             </span>
                         </div>
@@ -16587,8 +16583,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         function toggleTasksCollapse() {
-            // Open the tasks listing modal as requested
-            openTasksModal();
+            const list = document.getElementById('collapsedTasksList');
+            const icon = document.getElementById('tasksCollapseIcon');
+            const toggleText = document.getElementById('tasksToggleText');
+            if (!list) return;
+
+            if (list.style.display === 'none') {
+                list.style.display = 'flex';
+                isTasksCollapsed = false;
+                if (icon) icon.style.transform = 'rotate(180deg)';
+                if (toggleText) toggleText.textContent = 'إخفاء';
+                setTimeout(updateTasksScrollIndicator, 50);
+            } else {
+                list.style.display = 'none';
+                isTasksCollapsed = true;
+                if (icon) icon.style.transform = 'rotate(0deg)';
+                if (toggleText) toggleText.textContent = 'عرض';
+                const ind = document.getElementById('tasksScrollIndicator');
+                if (ind) ind.style.display = 'none';
+            }
         }
 
         // Listen for postMessage from tasks iframe
