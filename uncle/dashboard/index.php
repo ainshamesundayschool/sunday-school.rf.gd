@@ -12693,252 +12693,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         #nativeTaskFormModal .steps-bar .step {
                             gap: 0 !important;
                         }
-
-                        .premium-table, .premium-table thead, .premium-table tbody, .premium-table th, .premium-table td, .premium-table tr {
-                            display: block;
-                        }
-
-                        .premium-table thead {
-                            display: none;
-                        }
-
-                        .premium-table tr.submission-row {
-                            margin-bottom: 12px;
-                            background: var(--surface-1);
-                            border: 1px solid var(--border-solid);
-                            border-radius: var(--r-md);
-                            padding: 12px;
-                            box-shadow: var(--shadow-sm);
-                        }
-
-                        .premium-table tr.submission-row td {
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                            padding: 8px 0 !important;
-                            border: none !important;
-                            background: none !important;
-                            text-align: right;
-                        }
-
-                        .premium-table tr.submission-row td::before {
-                            content: attr(data-label);
-                            font-weight: 700;
-                            color: var(--text-3);
-                            font-size: 0.76rem;
-                        }
-                        
-                        .premium-table tr.submission-row td:first-child {
-                            font-size: 0.95rem;
-                            border-bottom: 1px dashed var(--border-solid) !important;
-                            padding-bottom: 10px !important;
-                            margin-bottom: 6px;
-                        }
-                        
-                        .premium-table tr.submission-row td:first-child::before {
-                            content: "الاسم";
-                        }
-
-                        .premium-table tr.submission-row td:last-child {
-                            justify-content: center;
-                            border-top: 1px solid var(--border-solid) !important;
-                            padding-top: 10px !important;
-                            margin-top: 6px;
-                            gap: 8px;
-                        }
                     }
 
-                    /* Enhanced Class Tasks Collapsible */
-                    #classTasksCollapsible {
-                        background: var(--surface-2);
-                        border: 1px solid var(--border-solid);
-                        border-radius: var(--r-md);
-                        padding: 12px 14px;
-                        margin-top: 14px;
-                        box-shadow: var(--shadow-sm);
-                        transition: all 0.3s ease;
-                        display: none;
-                        flex-direction: column;
-                        gap: 10px;
-                        direction: rtl;
-                        text-align: right;
-                    }
-
-                    #classTasksCollapsible:hover {
-                        box-shadow: var(--shadow-md);
-                        border-color: rgba(var(--brand-rgb), 0.2);
-                    }
-
-                    .class-tasks-header {
-                        display: flex;
-                        align-items: center;
-                        justify-content: space-between;
-                        cursor: pointer;
-                        user-select: none;
-                        direction: rtl;
-                    }
-
-                    .class-tasks-title {
-                        font-size: 0.85rem;
-                        font-weight: 800;
-                        color: var(--text-2);
-                        display: inline-flex;
-                        align-items: center;
-                        gap: 8px;
-                        font-family: 'Cairo', sans-serif;
-                    }
-
-                    .class-tasks-title i {
-                        color: var(--brand);
-                    }
-
-                    .class-tasks-actions {
-                        display: flex;
-                        align-items: center;
-                        gap: 8px;
-                    }
-
-                    .class-tasks-action-btn {
-                        width: 28px;
-                        height: 28px;
-                        border-radius: var(--r-sm);
-                        padding: 0;
-                        min-width: unset;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        background: var(--brand-bg);
-                        color: var(--brand);
-                        border: 1px solid transparent;
-                        cursor: pointer;
-                        transition: all 0.2s ease;
-                    }
-
-                    .class-tasks-action-btn:hover {
-                        background: var(--brand);
-                        color: #fff;
-                        transform: translateY(-1px);
-                    }
-
-                    .class-tasks-toggle-badge {
-                        font-size: 0.72rem;
-                        font-weight: 700;
-                        color: var(--text-2);
-                        background: var(--surface-3);
-                        border: 1px solid var(--border-solid);
-                        padding: 4px 10px;
-                        border-radius: var(--r-full);
-                        display: inline-flex;
-                        align-items: center;
-                        gap: 6px;
-                        transition: all 0.2s ease;
-                    }
-
-                    .class-tasks-toggle-badge:hover {
-                        background: var(--brand-bg);
-                        color: var(--brand);
-                        border-color: rgba(var(--brand-rgb), 0.2);
-                    }
-
-                    #collapsedTasksList {
-                        display: flex;
-                        flex-direction: column;
-                        gap: 8px;
-                        margin-top: 10px;
-                        max-height: 200px;
-                        overflow-y: auto;
-                        padding-inline-end: 4px;
-                    }
-
-                    /* Scrollbar for tasks list */
-                    #collapsedTasksList::-webkit-scrollbar {
-                        width: 4px;
-                    }
-                    #collapsedTasksList::-webkit-scrollbar-thumb {
-                        background: var(--border-solid);
-                        border-radius: 4px;
-                    }
-                    #collapsedTasksList::-webkit-scrollbar-thumb:hover {
-                        background: var(--text-3);
-                    }
-
-                    /* Task Pill Item */
-                    .task-pill-item {
-                        display: flex;
-                        align-items: center;
-                        justify-content: space-between;
-                        background: var(--surface-3);
-                        border: 1px solid var(--border-solid);
-                        padding: 10px 14px;
-                        border-radius: var(--r-md);
-                        cursor: pointer;
-                        transition: all 0.2s ease;
-                        gap: 10px;
-                        position: relative;
-                        text-align: right;
-                        direction: rtl;
-                    }
-
-                    .task-pill-item:hover {
-                        background: var(--brand-bg);
-                        border-color: var(--brand);
-                        transform: translateX(-2px);
-                    }
-
-                    .task-pill-info {
-                        display: flex;
-                        flex-direction: column;
-                        gap: 4px;
-                        min-width: 0;
-                        flex: 1;
-                        text-align: right;
-                        direction: rtl;
-                    }
-
-                    .task-pill-title {
-                        font-size: 0.8rem;
-                        font-weight: 800;
-                        color: var(--text-1);
-                        overflow: hidden;
-                        text-overflow: ellipsis;
-                        white-space: nowrap;
-                    }
-
-                    .task-pill-meta {
-                        font-size: 0.68rem;
-                        color: var(--text-3);
-                        display: flex;
-                        align-items: center;
-                        gap: 4px;
-                        direction: rtl;
-                    }
-
-                    .task-pill-badges {
-                        display: flex;
-                        align-items: center;
-                        gap: 6px;
-                        flex-shrink: 0;
-                    }
-
-                    .task-pill-badge {
-                        font-size: 0.7rem;
-                        font-weight: 800;
-                        padding: 3px 8px;
-                        border-radius: var(--r-sm);
-                        display: inline-flex;
-                        align-items: center;
-                        gap: 4px;
-                    }
-
-                    .task-pill-badge.q {
-                        color: var(--brand);
-                        background: var(--brand-bg);
-                    }
-
-                    .task-pill-badge.d {
-                        color: var(--warning);
-                        background: var(--warning-bg);
-                    }
+                                        
 
                     /* Hero / Welcome Section for Tasks */
                     .hero-card {
@@ -13068,30 +12825,33 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         border-color: var(--brand);
                     }
                     </style>
-                    <div id="classTasksCollapsible" style="display: none;">
-                        <div class="class-tasks-header" onclick="toggleTasksCollapse()">
-                            <span class="class-tasks-title">
-                                <i class="fas fa-tasks"></i> المهام المتاحة (<span id="collapsedTasksCount">0</span>)
+                    <div id="classTasksCollapsible"
+                        style="display: none; width: 100%; margin-top: 12px; border-top: 1px dashed var(--border); padding-top: 10px; flex-direction: column; gap: 8px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;"
+                            onclick="toggleTasksCollapse()">
+                            <span
+                                style="font-size: 0.82rem; font-weight: 700; color: var(--text-2); display: inline-flex; align-items: center; gap: 6px; font-family: 'Cairo', sans-serif;">
+                                <span class="detail-icon blue" style="width: 24px; height: 24px; font-size: 0.72rem; border-radius: 6px; display: inline-flex;"><i class="fas fa-tasks"></i></span> المهام المتاحة (<span
+                                    id="collapsedTasksCount">0</span>)
                             </span>
-                            <div class="class-tasks-actions">
-                                <button class="class-tasks-action-btn"
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <button class="btn btn-ghost"
                                     onclick="event.stopPropagation(); openTasksModal();"
+                                    style="width: 24px; height: 24px; border-radius: var(--r-sm); padding: 0; min-width: unset; display: flex; align-items: center; justify-content: center; background: var(--brand-bg); color: var(--brand); border: none; cursor: pointer;"
                                     title="إدارة كافة المهام">
-                                    <i class="fas fa-folder-open" style="font-size: 0.72rem;"></i>
+                                    <i class="fas fa-folder-open" style="font-size: 0.7rem;"></i>
                                 </button>
-                                <button class="class-tasks-action-btn"
-                                    onclick="event.stopPropagation(); openNativeTaskCreateForm();"
-                                    title="إضافة مهمة جديدة">
-                                    <i class="fas fa-plus" style="font-size: 0.72rem;"></i>
-                                </button>
-                                <span class="class-tasks-toggle-badge" id="tasksToggleBtn">
+                                <span id="tasksToggleBtn"
+                                    style="font-size: 0.72rem; font-weight: 700; color: var(--brand); background: var(--brand-bg); padding: 2px 8px; border-radius: var(--r-sm); display: inline-flex; align-items: center; gap: 4px;">
                                     <span id="tasksToggleText">عرض</span>
-                                    <i class="fas fa-chevron-down" id="tasksCollapseIcon" style="transition: transform 0.2s;"></i>
+                                    <i class="fas fa-chevron-down" id="tasksCollapseIcon"
+                                        style="transition: transform 0.2s;"></i>
                                 </span>
                             </div>
                         </div>
                         <div style="position: relative; width: 100%;">
-                            <div id="collapsedTasksList" style="display: none;">
+                            <div id="collapsedTasksList"
+                                style="display: none; flex-direction: column; gap: 8px; margin-top: 4px; max-height: 180px; overflow-y: auto; padding-inline-start: 2px; padding-inline-end: 4px;">
                                 <!-- Dynamically loaded task pills -->
                             </div>
                             <div id="tasksScrollIndicator" 
@@ -13831,9 +13591,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         </div>
     </div>
 
-    <!-- Tasks Listing Modal (All tasks of selected class) -->
     <div class="modal-overlay" id="tasksModal" style="z-index: 1000020;">
-        <div class="modal modal-lg" style="max-width: 900px; height: 85vh; display: flex; flex-direction: column;">
+        <div class="modal modal-lg" style="max-width: 900px; height: 85vh; display: flex; flex-direction: column; background: rgba(var(--surface-rgb), 0.85); backdrop-filter: blur(20px); border: 1px solid var(--border-solid); border-radius: 20px;">
             <div class="modal-header">
                 <h3 style="display:flex; align-items:center; gap:8px;">
                     <i class="fas fa-tasks" style="color:var(--brand);"></i>
@@ -13864,17 +13623,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <span style="font-size:0.82rem; font-weight:700; color:var(--brand);"><i class="fas fa-check-double"></i> تم تحديد <span id="selectedTasksCountDisplay">0</span> مهمة</span>
                     <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                         <input type="text" id="bulkGroupNameInput" class="form-input" style="height:32px; font-size:0.78rem; padding:4px 8px; width:180px; min-width:unset; margin:0;" placeholder="اسم المجموعة أو المجلد">
-                        <select id="bulkGroupIconSelect" class="form-input" style="height:32px; font-size:0.78rem; padding:4px 4px; width:120px; min-width:unset; margin:0;">
-                            <option value="fa-folder">📁 مجلد</option>
-                            <option value="fa-book">📖 كتاب</option>
-                            <option value="fa-star">⭐ مسابقة</option>
-                            <option value="fa-heart">❤️ محبة</option>
-                            <option value="fa-flag">🚩 علم</option>
-                            <option value="fa-award">🏆 وسام</option>
-                            <option value="fa-church">⛪ كنيسة</option>
-                            <option value="fa-pen">✏️ تحرير</option>
-                            <option value="fa-users">👥 اجتماعات</option>
-                        </select>
                         <button class="btn btn-primary btn-sm" onclick="applyBulkTaskGroup()" style="height:32px; font-size:0.75rem; font-weight:700; padding:0 12px; display:inline-flex; align-items:center; gap:4px;">
                             <i class="fas fa-folder-plus"></i> تطبيق التصنيف
                         </button>
@@ -14038,9 +13786,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         </div>
     </div>
 
-    <!-- Task Details & Submissions Modal -->
     <div class="modal-overlay" id="nativeTaskDetailModal" style="z-index: 1000022;">
-        <div class="modal modal-lg" style="max-width: 1000px; height: 85vh; display: flex; flex-direction: column;">
+        <div class="modal modal-lg" style="max-width: 1000px; height: 85vh; display: flex; flex-direction: column; background: rgba(var(--surface-rgb), 0.85); backdrop-filter: blur(20px); border: 1px solid var(--border-solid); border-radius: 20px;">
             <div class="modal-header">
                 <h3 style="display:flex; align-items:center; gap:8px;">
                     <i class="fas fa-eye" style="color:var(--brand);"></i>
@@ -14080,7 +13827,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             </div>
                         </div>
                         <div class="task-stat-card coupons">
-                            <div class="task-stat-icon"><i class="fas fa-ticket-alt"></i></div>
+                            <div class="task-stat-icon"><i class="fas fa-star"></i></div>
                             <div class="task-stat-info">
                                 <span class="task-stat-label">الكوبونات المتاحة</span>
                                 <span class="task-stat-value" id="ndTaskCoupons">---</span>
@@ -14341,7 +14088,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <!-- STEP 3: Coupons Tier Configuration -->
                 <div id="sp3" style="display: none; flex-direction: column; gap: 16px;">
                     <div style="background: var(--surface-1); border: 1px solid var(--border-solid); padding: 18px; border-radius: 14px; display:flex; flex-direction:column; gap:12px;">
-                        <h4 style="margin:0; font-weight:800; color:var(--text-1); font-size:0.95rem; display:flex; align-items:center; gap:6px; border-bottom: 1px solid var(--border-solid); padding-bottom:8px; margin-bottom:4px;"><i class="fas fa-ticket-alt" style="color:var(--coupon);"></i> مصفوفة توزيع الكوبونات التلقائي</h4>
+                        <h4 style="margin:0; font-weight:800; color:var(--text-1); font-size:0.95rem; display:flex; align-items:center; gap:6px; border-bottom: 1px solid var(--border-solid); padding-bottom:8px; margin-bottom:4px;"><i class="fas fa-star" style="color:var(--coupon);"></i> مصفوفة توزيع الكوبونات التلقائي</h4>
                         <p style="font-size:0.78rem; color:var(--text-3); line-height:1.5; margin:0;">حدد عدد الكوبونات التي يحصل عليها الطفل تلقائياً بناءً على النسبة المئوية لإجابته الصحيحة في الاختبار.<br>الدرجة الكلية الحالية للاختبار: <strong id="s3deg" style="color:var(--text-1); font-weight:900;">0</strong> درجات.</p>
                         
                         <div id="ctierList" style="display:flex; flex-direction:column; gap:8px; margin-top:10px; min-height:100px;">
@@ -16608,7 +16355,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         async function applyBulkTaskGroup() {
             const groupName = document.getElementById('bulkGroupNameInput').value.trim();
-            const groupIcon = document.getElementById('bulkGroupIconSelect').value;
+            const groupIcon = 'fa-folder';
             
             if (selectedTaskIds.size === 0) {
                 showToast('لم يتم تحديد أي مهام لتصنيفها', 'warning');
@@ -16791,7 +16538,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                     </div>
                                 </div>
                                 <div class="tinfo-pill">
-                                    <i class="fas fa-ticket-alt" style="color:var(--t-cou);"></i>
+                                    <i class="fas fa-star" style="color:var(--t-cou);"></i>
                                     <div>
                                         <div class="tip-val">${tc}</div>
                                         <div class="tip-lbl">كوبون ممنوح</div>
@@ -16870,6 +16617,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         return;
                     }
 
+                    // Load student list to display student photo/avatar
+                    let studentPhotoMap = {};
+                    try {
+                        const stuList = await loadStudents(t.class_name || 'كل الفصول');
+                        (stuList || []).forEach(s => {
+                            if (s.id) studentPhotoMap[String(s.id)] = s.photo;
+                            if (s.name) studentPhotoMap[s.name.trim()] = s.photo;
+                        });
+                    } catch (err) {
+                        console.error("Failed to load students cache:", err);
+                    }
+
                     // Check if there are open questions
                     const hasOpenQs = (t.questions || []).some(q => q.type === 'open' || q.type === 'text');
 
@@ -16889,12 +16648,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             actionHtml = `${viewAnsBtn}<button class="btn btn-warning btn-sm" onclick="openGradePanel(${taskId})" style="padding:4px 8px; font-size:0.7rem; margin-top:2px;"><i class="fas fa-check"></i> تصحيح</button>`;
                         }
 
+                        const studentPhoto = studentPhotoMap[String(sub.student_id)] || studentPhotoMap[String(sub.student_name).trim()] || '';
+
                         return `
                             <tr class="submission-row">
-                                <td style="text-align:right; font-weight:800; color:var(--text-1);">${escHtml(sub.student_name)}</td>
+                                <td style="text-align:right; font-weight:800; color:var(--text-1); display:flex; align-items:center; gap:8px;">
+                                    ${getStudentAvatarHtml(studentPhoto, sub.student_name)}
+                                    <span>${escHtml(sub.student_name)}</span>
+                                </td>
                                 <td style="text-align:center;" data-label="حالة التقييم">${statusHtml}</td>
                                 <td style="text-align:center; font-weight:800; color:var(--brand);" data-label="الدرجة">${sub.score} / ${t.total_degree}</td>
-                                <td style="text-align:center; font-weight:800; color:var(--coupon);" data-label="الكوبونات الممنوحة"><i class="fas fa-ticket-alt" style="margin-left:4px; font-size:.8rem;"></i>${sub.coupons_awarded}</td>
+                                <td style="text-align:center; font-weight:800; color:var(--coupon);" data-label="الكوبونات الممنوحة"><i class="fas fa-star" style="margin-left:4px; font-size:.8rem;"></i>${sub.coupons_awarded}</td>
                                 <td style="text-align:center; color:var(--text-3); font-size:0.75rem;" data-label="تاريخ التسليم">${dateStr}</td>
                                 <td style="text-align:center; display:flex; justify-content:center; align-items:center; gap:4px;" data-label="الإجراء">${actionHtml}</td>
                             </tr>
@@ -17830,7 +17594,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div class="ctier-range" style="font-size:0.8rem; font-weight:700; color:var(--text-2);">من <input type="number" min="0" max="100" value="${from}" style="width:50px; text-align:center; height:28px; border-radius:6px; border:1px solid var(--border-solid); background:var(--surface-1); color:var(--text-1);"> %</div>
                 <div class="ctier-arr" style="color:var(--text-3); font-size: 0.72rem;"><i class="fas fa-arrow-left"></i></div>
                 <div class="ctier-range" style="font-size:0.8rem; font-weight:700; color:var(--text-2);">إلى <input type="number" min="0" max="100" value="${to}" style="width:50px; text-align:center; height:28px; border-radius:6px; border:1px solid var(--border-solid); background:var(--surface-1); color:var(--text-1);"> %</div>
-                <div class="crew" style="display:flex; align-items:center; gap:4px; margin-right:auto; font-size:0.8rem; font-weight:700; color:var(--text-1);"><i class="fas fa-ticket-alt" style="color:var(--coupon);"></i><input type="number" min="0" max="999" value="${coupons}" style="width:60px; text-align:center; height:28px; border-radius:6px; border:1px solid var(--border-solid); background:var(--surface-1); color:var(--text-1); font-weight:700;"><span class="crew-l" style="font-size:0.75rem; color:var(--text-3);">كوبون</span></div>
+                <div class="crew" style="display:flex; align-items:center; gap:4px; margin-right:auto; font-size:0.8rem; font-weight:700; color:var(--text-1);"><i class="fas fa-star" style="color:var(--coupon);"></i><input type="number" min="0" max="999" value="${coupons}" style="width:60px; text-align:center; height:28px; border-radius:6px; border:1px solid var(--border-solid); background:var(--surface-1); color:var(--text-1); font-weight:700;"><span class="crew-l" style="font-size:0.75rem; color:var(--text-3);">كوبون</span></div>
                 <button type="button" class="btn btn-xs btn-ghost btn-danger" onclick="this.closest('.ctier').remove()" style="width:28px; height:28px; padding:0; display:flex; align-items:center; justify-content:center;"><i class="fas fa-times"></i></button>
             `;
             document.getElementById('ctierList').appendChild(div);
