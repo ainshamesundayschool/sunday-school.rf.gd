@@ -9480,24 +9480,24 @@
           }
 
           // Match Dropdown
-          let selectHtml = `<select class="form-select form-select-sm" style="width:100%;font-size:0.8rem;" onchange="updateRowMatch(${idx}, this.value)">`;
-          selectHtml += `<option value="0" ${r.targetId === 0 ? 'selected' : ''}>➕ إضافة كطفل جديد بالكنيسة</option>`;
+          let selectHtml = `<select class="form-select form-select-sm" style="width:100%;font-size:0.8rem; font-family:'Font Awesome 5 Free', 'Cairo', sans-serif; font-weight:900;" onchange="updateRowMatch(${idx}, this.value)">`;
+          selectHtml += `<option value="0" ${r.targetId === 0 ? 'selected' : ''}>&#xf067; إضافة كطفل جديد بالكنيسة</option>`;
 
           if (r.matches.length > 0) {
-            selectHtml += `<optgroup label="مطابقات مقترحة">`;
+            selectHtml += `<optgroup label="مطابقات مقترحة" style="font-family:'Cairo', sans-serif; font-weight:normal;">`;
             r.matches.forEach(m => {
               const pct = Math.round(m.score * 100);
-              selectHtml += `<option value="${m.id}" ${r.targetId === m.id ? 'selected' : ''}>🔗 (${pct}%) ${m.name} [${m.class || 'بدون فصل'}]</option>`;
+              selectHtml += `<option value="${m.id}" ${r.targetId === m.id ? 'selected' : ''}>&#xf0c1; (${pct}%) ${m.name} [${m.class || 'بدون فصل'}]</option>`;
             });
             selectHtml += `</optgroup>`;
           }
 
-          selectHtml += `<optgroup label="باقي أطفال الكنيسة">`;
+          selectHtml += `<optgroup label="باقي أطفال الكنيسة" style="font-family:'Cairo', sans-serif; font-weight:normal;">`;
           const potentialIds = new Set(r.matches.map(m => m.id));
           allStudentsSorted.forEach(s => {
             const sid = s['_studentId'] || s['id'];
             if (!potentialIds.has(sid)) {
-              selectHtml += `<option value="${sid}" ${r.targetId === sid ? 'selected' : ''}>👤 ${s['الاسم']} [${s['الفصل'] || 'بدون فصل'}]</option>`;
+              selectHtml += `<option value="${sid}" ${r.targetId === sid ? 'selected' : ''}>&#xf007; ${s['الاسم']} [${s['الفصل'] || 'بدون فصل'}]</option>`;
             }
           });
           selectHtml += `</optgroup></select>`;
@@ -10941,20 +10941,20 @@
         rowDiv.style = 'display:flex; gap:8px; align-items:center; width:100%; margin-bottom:8px;';
         
         rowDiv.innerHTML = `
-          <select class="form-select shortcut-icon" style="width:75px; flex-shrink:0;">
-            <option value="fas fa-star" ${icon === 'fas fa-star' ? 'selected' : ''}>⭐</option>
-            <option value="fas fa-clock" ${icon === 'fas fa-clock' ? 'selected' : ''}>⏰</option>
-            <option value="fas fa-check-circle" ${icon === 'fas fa-check-circle' ? 'selected' : ''}>✅</option>
-            <option value="fas fa-times-circle" ${icon === 'fas fa-times-circle' ? 'selected' : ''}>❌</option>
-            <option value="fas fa-book" ${icon === 'fas fa-book' ? 'selected' : ''}>📖</option>
-            <option value="fas fa-church" ${icon === 'fas fa-church' ? 'selected' : ''}>⛪</option>
-            <option value="fas fa-heart" ${icon === 'fas fa-heart' ? 'selected' : ''}>❤️</option>
-            <option value="fas fa-gift" ${icon === 'fas fa-gift' ? 'selected' : ''}>🎁</option>
-            <option value="fas fa-smile" ${icon === 'fas fa-smile' ? 'selected' : ''}>😊</option>
-            <option value="fas fa-frown" ${icon === 'fas fa-frown' ? 'selected' : ''}>😢</option>
-            <option value="fas fa-bus" ${icon === 'fas fa-bus' ? 'selected' : ''}>🚌</option>
-            <option value="fas fa-plus" ${icon === 'fas fa-plus' ? 'selected' : ''}>➕</option>
-            <option value="fas fa-minus" ${icon === 'fas fa-minus' ? 'selected' : ''}>➖</option>
+          <select class="form-select shortcut-icon" style="width:75px; flex-shrink:0; font-family:'Font Awesome 5 Free', 'Font Awesome 5 Brands', sans-serif; font-weight:900;">
+            <option value="fas fa-star" ${icon === 'fas fa-star' ? 'selected' : ''}>&#xf005;</option>
+            <option value="fas fa-clock" ${icon === 'fas fa-clock' ? 'selected' : ''}>&#xf017;</option>
+            <option value="fas fa-check-circle" ${icon === 'fas fa-check-circle' ? 'selected' : ''}>&#xf058;</option>
+            <option value="fas fa-times-circle" ${icon === 'fas fa-times-circle' ? 'selected' : ''}>&#xf057;</option>
+            <option value="fas fa-book" ${icon === 'fas fa-book' ? 'selected' : ''}>&#xf02d;</option>
+            <option value="fas fa-church" ${icon === 'fas fa-church' ? 'selected' : ''}>&#xf67f;</option>
+            <option value="fas fa-heart" ${icon === 'fas fa-heart' ? 'selected' : ''}>&#xf004;</option>
+            <option value="fas fa-gift" ${icon === 'fas fa-gift' ? 'selected' : ''}>&#xf06b;</option>
+            <option value="fas fa-smile" ${icon === 'fas fa-smile' ? 'selected' : ''}>&#xf118;</option>
+            <option value="fas fa-frown" ${icon === 'fas fa-frown' ? 'selected' : ''}>&#xf119;</option>
+            <option value="fas fa-bus" ${icon === 'fas fa-bus' ? 'selected' : ''}>&#xf207;</option>
+            <option value="fas fa-plus" ${icon === 'fas fa-plus' ? 'selected' : ''}>&#xf067;</option>
+            <option value="fas fa-minus" ${icon === 'fas fa-minus' ? 'selected' : ''}>&#xf068;</option>
           </select>
           <input type="text" class="form-input shortcut-name" placeholder="الاسم (مثال: حضور مبكر)" value="${escHtml(name)}" style="flex:2; min-width:120px;" required>
           <input type="text" class="form-input shortcut-desc" placeholder="الوصف (اختياري)" value="${escHtml(desc)}" style="flex:2; min-width:120px;">

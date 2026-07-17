@@ -28656,6 +28656,27 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const paperExamClassList = document.getElementById('paperExamClassIdsList');
             const sheetClassSelect = document.getElementById('sheetClassFilter');
 
+            let filteredClasses = classes;
+            try {
+                const role = (window.currentUncle && window.currentUncle.role) || localStorage.getItem('uncleRole') || '';
+                if (uncleClassNavPermission === 'own' && filteredClasses && filteredClasses.length && !['admin', 'developer'].includes(String(role).toLowerCase())) {
+                    const assigned = (window.currentUncle && Array.isArray(window.currentUncle.classes))
+                        ? window.currentUncle.classes.map(c => c.class_name || c.arabic_name || c)
+                        : [];
+
+                    if (assigned.length) {
+                        filteredClasses = filteredClasses.filter(cls => assigned.includes(cls.arabic_name || cls.code));
+                    } else {
+                        try {
+                            const cached = JSON.parse(localStorage.getItem('uncleAssignedClasses') || '[]');
+                            if (Array.isArray(cached) && cached.length) {
+                                filteredClasses = filteredClasses.filter(cls => cached.includes(cls.arabic_name || cls.code));
+                            }
+                        } catch (e) { }
+                    }
+                }
+            } catch (e) { }
+
             if (paperExamClassList) {
                 paperExamClassList.innerHTML = '';
 
@@ -28682,7 +28703,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 selectAllLabel.appendChild(selectAllSpan);
                 paperExamClassList.appendChild(selectAllLabel);
 
-                classes.forEach(c => {
+                filteredClasses.forEach(c => {
                     const id = `class-cb-${c.id}`;
                     const label = document.createElement('label');
                     label.style = "display:flex; align-items:center; gap:8px; font-size:0.8rem; color:var(--text); cursor:pointer; padding:4px 0;";
@@ -28711,7 +28732,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             if (sheetClassSelect) {
                 sheetClassSelect.innerHTML = '<option value="">كل الفصول</option>';
-                classes.forEach(c => {
+                filteredClasses.forEach(c => {
                     const opt = document.createElement('option');
                     opt.value = c.arabic_name || c.code;
                     opt.textContent = c.arabic_name || c.code;
@@ -28746,11 +28767,40 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
 
                 if (resp.success && resp.exams) {
-                    if (resp.exams.length === 0) {
+                    let filteredExams = resp.exams;
+                    try {
+                        const role = (window.currentUncle && window.currentUncle.role) || localStorage.getItem('uncleRole') || '';
+                        if (uncleClassNavPermission === 'own' && !['admin', 'developer'].includes(String(role).toLowerCase())) {
+                            const assignedClassNames = (window.currentUncle && Array.isArray(window.currentUncle.classes))
+                                ? window.currentUncle.classes.map(c => c.class_name || c.arabic_name || c)
+                                : [];
+                            if (!assignedClassNames.length) {
+                                try {
+                                    const cached = JSON.parse(localStorage.getItem('uncleAssignedClasses') || '[]');
+                                    if (Array.isArray(cached)) assignedClassNames.push(...cached);
+                                } catch (e) {}
+                            }
+
+                            filteredExams = resp.exams.filter(exam => {
+                                if (!exam.class_ids) return true; // all classes is visible to everyone
+                                const ids = exam.class_ids.split(',');
+                                return ids.some(id => {
+                                    const found = classes.find(c => String(c.id) === String(id));
+                                    if (found) {
+                                        const name = found.arabic_name || found.code;
+                                        return assignedClassNames.includes(name);
+                                    }
+                                    return false;
+                                });
+                            });
+                        }
+                    } catch (e) {}
+
+                    if (filteredExams.length === 0) {
                         listContainer.innerHTML = '<div style="width: 100%; text-align:center; padding:20px; color:var(--text-3);">لا توجد امتحانات مسجلة حتى الآن.</div>';
                         return;
                     }
-                    listContainer.innerHTML = resp.exams.map(exam => `
+                    listContainer.innerHTML = filteredExams.map(exam => `
                         <div class="tool-card" style="display:flex; flex-direction:row; align-items:center; justify-content:space-between; padding:14px 18px; width:100%; gap:14px;">
                             <div>
                                 <h4 style="margin:0 0 6px 0; font-weight:800; color:var(--text);">${escHtml(exam.name)}</h4>

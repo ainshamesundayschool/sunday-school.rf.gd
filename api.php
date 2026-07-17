@@ -19646,9 +19646,93 @@ function normalizeArabicNamePHP($str) {
     return $s;
 }
 
+function transliterateEnglishToArabicPHP($englishName) {
+    if (empty($englishName)) return '';
+    
+    $dict = [
+        'peter' => 'بيتر', 'mina' => 'مينا', 'girgis' => 'جرجس', 'gerges' => 'جرجس', 'george' => 'جرجس',
+        'kirollos' => 'كيرلس', 'kirolos' => 'كيرلس', 'kyrollos' => 'كيرلس', 'cyril' => 'كيرلس',
+        'mark' => 'مرقص', 'marcos' => 'مرقص', 'john' => 'يوحنا', 'yohanna' => 'يوحنا', 'fayez' => 'فايز',
+        'michael' => 'ميخائيل', 'mikhail' => 'ميخائيل', 'abanoub' => 'ابانوب', 'bishoy' => 'بيشوي',
+        'fady' => 'فادي', 'fadi' => 'فادي', 'marina' => 'مارينا', 'veronia' => 'فيرونيا', 'david' => 'داود',
+        'youssef' => 'يوسف', 'joseph' => 'يوسف', 'tony' => 'توني', 'shenouda' => 'شنوده', 'shenoda' => 'شنوده',
+        'mario' => 'ماريو', 'thomas' => 'توماس', 'toma' => 'توما', 'andrew' => 'اندرو', 'andrawes' => 'اندراوس',
+        'paul' => 'بولس', 'paula' => 'بولا', 'paulos' => 'بولس', 'antony' => 'انطون', 'antonios' => 'انطونيوس',
+        'abram' => 'ابرام', 'ibram' => 'ابرام', 'samuel' => 'صموئيل', 'danial' => 'دانيال', 'daniel' => 'دانيال',
+        'mariam' => 'مريم', 'mary' => 'مريم', 'demiana' => 'دميانه', 'justina' => 'يوستينه', 'yostina' => 'يوستينه',
+        'martina' => 'مارتينا', 'monica' => 'مونيكا', 'sandra' => 'ساندرا', 'irene' => 'ايريني', 'eriny' => 'ايريني',
+        'sherry' => 'شيري', 'cheri' => 'شيري', 'romany' => 'روماني', 'safwat' => 'صفوت', 'tharwat' => 'ثروت',
+        'medhat' => 'مدحت', 'nashat' => 'نشأت', 'nashaat' => 'نشأت', 'raafat' => 'رأفت', 'maged' => 'ماجد',
+        'magdy' => 'مجدي', 'wagdy' => 'وجدي', 'waged' => 'وجد', 'wagih' => 'وجيه', 'nabil' => 'نبيل',
+        'nady' => 'نادي', 'adel' => 'عادل', 'emad' => 'عماد', 'ayman' => 'ايمن', 'ashraf' => 'اشرف',
+        'amir' => 'امير', 'sherif' => 'شريف', 'hany' => 'هاني', 'mounir' => 'منير', 'monir' => 'منير',
+        'samir' => 'سمير', 'magued' => 'ماجد', 'sameh' => 'سامح', 'bassem' => 'باسم', 'basim' => 'باسم',
+        'bahaa' => 'بهاء', 'milad' => 'ميلاد', 'moris' => 'موريس', 'mouris' => 'موريس', 'naser' => 'ناصر',
+        'nassif' => 'نصيف', 'nazaer' => 'نظير', 'sobhy' => 'صبحي', 'shawky' => 'شوقي', 'shaker' => 'شاكر',
+        'shokry' => 'شكري', 'said' => 'سعيد', 'saad' => 'سعد', 'soliman' => 'سليمان', 'samy' => 'سامي',
+        'hassan' => 'حسن', 'hussein' => 'حسين', 'ibrahim' => 'ابراهيم', 'mourad' => 'مراد', 'murad' => 'مراد',
+        'ramzy' => 'رمزي', 'refaat' => 'رفعت', 'rizk' => 'رزق', 'rezk' => 'رزق', 'zaki' => 'زكي',
+        'kamal' => 'كمال', 'kamel' => 'كامل', 'gamal' => 'جمال', 'gamil' => 'جميل', 'jalal' => 'جلال',
+        'salah' => 'صلاح', 'farag' => 'فرج', 'fag' => 'فرج', 'fouad' => 'فؤاد', 'foad' => 'فؤاد',
+        'fakhry' => 'فخري', 'fahmy' => 'فهمي', 'wasim' => 'وسيم', 'waseem' => 'وسيم', 'waheed' => 'وحيد',
+        'wahid' => 'وحيد', 'yasser' => 'ياسر', 'zakaria' => 'زكريا'
+    ];
+
+    $charMap = [
+        'sh' => 'ش', 'ch' => 'ش', 'kh' => 'خ', 'gh' => 'غ', 'th' => 'ث', 'ph' => 'ف',
+        'a' => 'ا', 'e' => 'ي', 'i' => 'ي', 'o' => 'و', 'u' => 'و', 'y' => 'ي',
+        'b' => 'ب', 'c' => 'ك', 'd' => 'د', 'f' => 'ف', 'g' => 'ج', 'h' => 'ه',
+        'j' => 'ج', 'k' => 'ك', 'l' => 'ل', 'm' => 'م', 'n' => 'ن', 'p' => 'ب',
+        'q' => 'ق', 'r' => 'ر', 's' => 'س', 't' => 'ت', 'v' => 'ف', 'w' => 'و',
+        'x' => 'كس', 'z' => 'ز'
+    ];
+
+    $englishNameClean = preg_replace('/[^a-z\s]/i', '', $englishName);
+    $words = array_filter(explode(' ', strtolower($englishNameClean)));
+    $converted = [];
+    foreach ($words as $w) {
+        if (isset($dict[$w])) {
+            $converted[] = $dict[$w];
+            continue;
+        }
+        $ar = '';
+        $i = 0;
+        $wLen = strlen($w);
+        while ($i < $wLen) {
+            $matched = false;
+            if ($i < $wLen - 1) {
+                $doubleChar = substr($w, $i, 2);
+                if (isset($charMap[$doubleChar])) {
+                    $ar .= $charMap[$doubleChar];
+                    $i += 2;
+                    $matched = true;
+                }
+            }
+            if (!$matched) {
+                $singleChar = $w[$i];
+                if (isset($charMap[$singleChar])) {
+                    $ar .= $charMap[$singleChar];
+                }
+                $i++;
+            }
+        }
+        $converted[] = $ar;
+    }
+    return implode(' ', $converted);
+}
+
 function calculateFuzzyScorePHP($name1, $name2) {
-    $n1 = normalizeArabicNamePHP($name1);
-    $n2 = normalizeArabicNamePHP($name2);
+    $n1 = $name1;
+    $n2 = $name2;
+    if (preg_match('/[a-z]/i', $name1)) {
+        $n1 = transliterateEnglishToArabicPHP($name1);
+    }
+    if (preg_match('/[a-z]/i', $name2)) {
+        $n2 = transliterateEnglishToArabicPHP($name2);
+    }
+    
+    $n1 = normalizeArabicNamePHP($n1);
+    $n2 = normalizeArabicNamePHP($n2);
     if ($n1 === $n2) return 1.0;
     
     $w1 = array_filter(explode(' ', $n1));
@@ -19682,7 +19766,18 @@ function calculateFuzzyScorePHP($name1, $name2) {
     $maxLen = max(mb_strlen($n1, 'UTF-8'), mb_strlen($n2, 'UTF-8'));
     $strScore = $maxLen > 0 ? (1.0 - ($dist / $maxLen)) : 0;
     
-    return max($wordScore, $strScore);
+    $finalScore = max($wordScore, $strScore);
+    
+    // Siblings auto-match prevention: if first names are different but father/rest names match
+    if ($finalScore > 0.4 && $finalScore < 0.8) {
+        if (count($w1) > 1 && count($w2) > 1) {
+            if ($w1[0] !== $w2[0]) {
+                $finalScore = min($finalScore, 0.45);
+            }
+        }
+    }
+    
+    return $finalScore;
 }
 
 function linkSiblingsByName($conn, $churchId, $studentId, $siblingName) {
@@ -21359,12 +21454,15 @@ function importPaperExamDegreesCSV() {
     // Get students for mapping
     $studentsList = [];
     if ($colName !== false) {
-        $stmtStu = $conn->prepare("SELECT id, name FROM students WHERE church_id = ?");
+        $stmtStu = $conn->prepare("SELECT id, name FROM students WHERE church_id = ? AND COALESCE(enrollment_status, 'active') = 'active'");
         $stmtStu->bind_param("i", $churchId);
         $stmtStu->execute();
         $resStu = $stmtStu->get_result();
         while ($sRow = $resStu->fetch_assoc()) {
-            $studentsList[normalizeArabicNamePHP($sRow['name'])] = intval($sRow['id']);
+            $studentsList[] = [
+                'id' => intval($sRow['id']),
+                'name' => $sRow['name']
+            ];
         }
         $stmtStu->close();
     }
@@ -21396,22 +21494,23 @@ function importPaperExamDegreesCSV() {
         
         if (!$studentId && $colName !== false && isset($row[$colName]) && trim($row[$colName]) !== '') {
             $studentName = trim($row[$colName]);
-            $normName = normalizeArabicNamePHP($studentName);
-            if (isset($studentsList[$normName])) {
-                $studentId = $studentsList[$normName];
+            
+            $bestMatchId = null;
+            $bestMatchScore = 0;
+            
+            foreach ($studentsList as $sInfo) {
+                $score = calculateFuzzyScorePHP($studentName, $sInfo['name']);
+                if ($score > $bestMatchScore) {
+                    $bestMatchScore = $score;
+                    $bestMatchId = $sInfo['id'];
+                }
+            }
+            
+            if ($bestMatchScore >= 0.75) {
+                $studentId = $bestMatchId;
             } else {
-                $found = false;
-                foreach ($studentsList as $cachedName => $cachedId) {
-                    if (strpos($cachedName, $normName) !== false || strpos($normName, $cachedName) !== false) {
-                        $studentId = $cachedId;
-                        $found = true;
-                        break;
-                    }
-                }
-                if (!$found) {
-                    $errors[] = "السطر $rowNum: لم يتم العثور على طفل باسم '$studentName'";
-                    continue;
-                }
+                $errors[] = "السطر $rowNum: لم يتم العثور على طفل مطابق للاسم '$studentName'";
+                continue;
             }
         }
         
@@ -21625,7 +21724,7 @@ function getPaperExamDegrees() {
         sendJSON(['success' => false, 'message' => 'معرف الامتحان مطلوب']);
     }
 
-    $check = $conn->prepare("SELECT name, total_degree, reference_url FROM paper_exams WHERE id = ? AND church_id = ?");
+    $check = $conn->prepare("SELECT name, total_degree, reference_url, class_id, class_ids FROM paper_exams WHERE id = ? AND church_id = ?");
     $check->bind_param("ii", $examId, $churchId);
     $check->execute();
     $exam = $check->get_result()->fetch_assoc();
@@ -21634,6 +21733,22 @@ function getPaperExamDegrees() {
     if (!$exam) {
         sendJSON(['success' => false, 'message' => 'الامتحان غير موجود']);
     }
+
+    // Check if uncle class navigation is restricted
+    $uncleClassNavigation = 'all';
+    $role = $_SESSION['uncle_role'] ?? '';
+    $uncleId = $_SESSION['uncle_id'] ?? 0;
+
+    $stmtSettings = $conn->prepare("SELECT uncle_class_navigation FROM church_settings WHERE church_id = ?");
+    $stmtSettings->bind_param("i", $churchId);
+    $stmtSettings->execute();
+    $settRes = $stmtSettings->get_result()->fetch_assoc();
+    if ($settRes) {
+        $uncleClassNavigation = $settRes['uncle_class_navigation'] ?? 'all';
+    }
+    $stmtSettings->close();
+
+    $isRestricted = ($uncleClassNavigation === 'own' && $uncleId > 0 && !in_array(strtolower($role), ['developer', 'dev', 'admin']));
 
     $sql = "
         SELECT s.id, s.name, s.image_url, s.gender,
@@ -21649,9 +21764,33 @@ function getPaperExamDegrees() {
     $params = [$examId, $churchId];
     $types = "ii";
 
+    // 1. Filter by target class ID if selected in filter dropdown
     if ($classId !== null && $classId > 0) {
         $sql .= " AND s.class_id = ?";
         $params[] = $classId;
+        $types .= "i";
+    }
+
+    // 2. Filter by the exam's assigned classes (class_ids or class_id)
+    $allowedClassIds = [];
+    if (!empty($exam['class_ids'])) {
+        $allowedClassIds = array_filter(array_map('intval', explode(',', $exam['class_ids'])));
+    } elseif (!empty($exam['class_id'])) {
+        $allowedClassIds = [intval($exam['class_id'])];
+    }
+    if (!empty($allowedClassIds)) {
+        $classPlaceholders = implode(',', array_fill(0, count($allowedClassIds), '?'));
+        $sql .= " AND s.class_id IN ($classPlaceholders)";
+        foreach ($allowedClassIds as $cid) {
+            $params[] = $cid;
+            $types .= "i";
+        }
+    }
+
+    // 3. Filter by uncle's assigned classes if restricted
+    if ($isRestricted) {
+        $sql .= " AND COALESCE(cc.arabic_name, cl.arabic_name, s.class) IN (SELECT class_name FROM uncle_class_assignments WHERE uncle_id = ?)";
+        $params[] = $uncleId;
         $types .= "i";
     }
 
