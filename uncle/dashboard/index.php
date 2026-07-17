@@ -11126,50 +11126,46 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
 
                 <!-- CSV Import Confirmation/Review View -->
-                <div id="paperExamMatchReviewView" style="display:none; height:100%; flex-direction:column; gap:12px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; border-bottom:1px solid var(--border-solid); padding-bottom:12px;">
-                        <div style="display:flex; align-items:center; gap:10px;">
-                            <button class="btn btn-secondary" onclick="backToExamSheet()" title="رجوع للامتحان" style="padding:6px 12px; font-size:0.8rem; flex-shrink:0;">
+                <div id="paperExamMatchReviewView" style="display:none; height:100%; flex-direction:column; gap:8px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; border-bottom:1px solid var(--border-solid); padding-bottom:8px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <button class="btn btn-secondary" onclick="backToExamSheet()" title="رجوع للامتحان" style="padding:5px 10px; font-size:0.75rem; flex-shrink:0;">
                                 <i class="fas fa-arrow-right"></i> <span class="hide-mobile">رجوع</span>
                             </button>
                             <div>
-                                <h4 style="margin:0; font-weight:800; color:var(--brand);">مراجعة مطابقة الدرجات المستوردة</h4>
-                                <span style="font-size:0.8rem; color:var(--text-3);">قم بمراجعة وتعديل الأسماء قبل حفظ الدرجات</span>
+                                <h4 style="margin:0; font-weight:800; color:var(--brand); font-size:0.95rem;">مراجعة مطابقة الدرجات المستوردة</h4>
+                                <span style="font-size:0.75rem; color:var(--text-3);">قم بمراجعة وتعديل الأسماء قبل حفظ الدرجات</span>
                             </div>
                         </div>
                     </div>
 
-                    <div style="background:rgba(91,108,245,0.06); padding:12px; border-radius:10px; border:1px solid var(--border-solid); font-size:0.82rem; line-height:1.6; color:var(--brand); direction:rtl; text-align:right;">
-                        <i class="fas fa-info-circle"></i> <strong>تلميح:</strong> يطابق النظام تلقائياً بين أسماء الملف وأسماء أطفال الامتحان. يمكنك تصحيح أي مطابقة خاطئة أو إلغاء استيراد طفل محدد.
-                    </div>
-
                     <!-- Search / Counters Row -->
-                    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; direction:rtl; text-align:right;">
-                        <div style="flex:1; min-width:200px; display:flex; align-items:center; gap:6px; background:var(--surface-3); border-radius:var(--r-md); padding:6px 10px; border:1.5px solid var(--border-solid);">
-                            <i class="fas fa-search" style="color:var(--text-3); font-size:.8rem; flex-shrink:0;"></i>
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; direction:rtl; text-align:right;">
+                        <div style="flex:1; min-width:180px; display:flex; align-items:center; gap:6px; background:var(--surface-3); border-radius:var(--r-md); padding:5px 8px; border:1.5px solid var(--border-solid);">
+                            <i class="fas fa-search" style="color:var(--text-3); font-size:.75rem; flex-shrink:0;"></i>
                             <input id="peReviewSearchInput" type="text" placeholder="بحث بالاسم أو الفصل من الملف..."
-                                style="border:none; background:transparent; font-family:Cairo,sans-serif; font-size:.82rem; color:var(--text); width:100%; outline:none;"
+                                style="border:none; background:transparent; font-family:Cairo,sans-serif; font-size:.78rem; color:var(--text); width:100%; outline:none;"
                                 oninput="filterPeReviewTable()">
                         </div>
-                        <div style="display:flex; gap:10px; flex-wrap:wrap; font-size:0.82rem;">
-                            <span id="peReviewMatchCount" class="badge" style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; padding:6px 10px; border-radius:15px;">مطابقة مؤكدة: 0</span>
-                            <span id="peReviewPossibleCount" class="badge" style="background:#fffbeb; color:#92400e; border:1px solid #fde68a; padding:6px 10px; border-radius:15px;">مطابقة محتملة: 0</span>
-                            <span id="peReviewNotMatchedCount" class="badge" style="background:#fef2f2; color:#991b1b; border:1px solid #fca5a5; padding:6px 10px; border-radius:15px;">غير مطابق: 0</span>
+                        <div style="display:flex; gap:6px; flex-wrap:wrap; font-size:0.75rem;">
+                            <span id="peReviewMatchCount" class="badge" style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; padding:4px 8px; border-radius:15px;">مطابقة مؤكدة: 0</span>
+                            <span id="peReviewPossibleCount" class="badge" style="background:#fffbeb; color:#92400e; border:1px solid #fde68a; padding:4px 8px; border-radius:15px;">مطابقة محتملة: 0</span>
+                            <span id="peReviewNotMatchedCount" class="badge" style="background:#fef2f2; color:#991b1b; border:1px solid #fca5a5; padding:4px 8px; border-radius:15px;">غير مطابق: 0</span>
                         </div>
                     </div>
 
                     <!-- Responsive Table Container -->
-                    <div style="flex:1; overflow:auto; border:1px solid var(--border-solid); border-radius:var(--r-md); margin-top:8px;">
-                        <table class="sheet-table" style="width:100%; min-width:800px; border-collapse:collapse; text-align:right; font-size:0.85rem;">
+                    <div style="flex:1; overflow:auto; border:1px solid var(--border-solid); border-radius:var(--r-md); margin-top:4px;">
+                        <table class="sheet-table" style="width:100%; min-width:600px; border-collapse:collapse; text-align:right; font-size:0.78rem;">
                             <thead>
                                 <tr style="background:var(--surface-2); border-bottom:2px solid var(--border-solid); color:var(--text);">
-                                    <th style="padding:10px; width:50px; text-align:center;">#</th>
-                                    <th style="padding:10px; text-align:right;">الاسم في الملف</th>
-                                    <th style="padding:10px; width:120px; text-align:right;">الفصل في الملف</th>
-                                    <th style="padding:10px; width:80px; text-align:center;">الدرجة</th>
-                                    <th style="padding:10px; width:130px; text-align:center;">حالة المطابقة</th>
-                                    <th style="padding:10px; width:300px; text-align:right;">الطفل المطابق</th>
-                                    <th style="padding:10px; width:80px; text-align:center;">استيراد؟</th>
+                                    <th style="padding:6px; width:35px; text-align:center;">#</th>
+                                    <th style="padding:6px; text-align:right;">الاسم في الملف</th>
+                                    <th style="padding:6px; width:90px; text-align:right;">الفصل في الملف</th>
+                                    <th style="padding:6px; width:50px; text-align:center;">الدرجة</th>
+                                    <th style="padding:6px; width:100px; text-align:center;">حالة المطابقة</th>
+                                    <th style="padding:6px; width:250px; text-align:right;">الطفل المطابق</th>
+                                    <th style="padding:6px; width:60px; text-align:center;">استيراد؟</th>
                                 </tr>
                             </thead>
                             <tbody id="peBulkReviewTableBody">
@@ -11179,11 +11175,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
 
                     <!-- Action Buttons -->
-                    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
-                        <button type="button" class="btn btn-success" onclick="submitPeBulkImport()" style="padding:10px 24px;">
+                    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+                        <button type="button" class="btn btn-success" onclick="submitPeBulkImport()" style="padding:8px 18px; font-size:0.8rem;">
                             <i class="fas fa-check"></i> حفظ ورصد الدرجات المستوردة
                         </button>
-                        <button type="button" class="btn btn-secondary" onclick="backToExamSheet()" style="padding:10px 24px;">
+                        <button type="button" class="btn btn-secondary" onclick="backToExamSheet()" style="padding:8px 18px; font-size:0.8rem;">
                             إلغاء
                         </button>
                     </div>
@@ -29567,14 +29563,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 let badge = '';
                 if (!r.import || r.targetId === 0) {
-                    badge = `<span class="badge" style="background:#fef2f2; color:#991b1b; border:1px solid #fca5a5;">غير مطابق</span>`;
+                    badge = `<span class="badge" style="background:#fef2f2; color:#991b1b; border:1px solid #fca5a5; padding:3px 6px; font-size:0.7rem; border-radius:10px;">غير مطابق</span>`;
                 } else if (r.matchType === 'possible') {
-                    badge = `<span class="badge" style="background:#fffbeb; color:#92400e; border:1px solid #fde68a;">مطابقة محتملة</span>`;
+                    badge = `<span class="badge" style="background:#fffbeb; color:#92400e; border:1px solid #fde68a; padding:3px 6px; font-size:0.7rem; border-radius:10px;">مطابقة محتملة</span>`;
                 } else {
-                    badge = `<span class="badge" style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;">مطابقة مؤكدة</span>`;
+                    badge = `<span class="badge" style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; padding:3px 6px; font-size:0.7rem; border-radius:10px;">مطابقة مؤكدة</span>`;
                 }
 
-                let selectHtml = `<select class="form-select form-select-sm" style="width:100%; font-size:0.8rem; font-family:'Font Awesome 5 Free', 'Cairo', sans-serif; font-weight:900;" onchange="updatePeRowMatch(${idx}, this.value)">`;
+                let selectHtml = `<select class="form-select form-select-sm" style="width:100%; padding:3px 6px; height:28px; font-size:0.75rem; font-family:'Font Awesome 5 Free', 'Cairo', sans-serif; font-weight:900;" onchange="updatePeRowMatch(${idx}, this.value)">`;
                 selectHtml += `<option value="0" ${r.targetId === 0 ? 'selected' : ''}>&#xf05e; تخطي / عدم الاستيراد</option>`;
 
                 if (r.matches.length > 0) {
@@ -29596,14 +29592,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 html += `
                     <tr style="border-bottom:1px solid var(--border-solid);">
-                        <td style="padding:10px; text-align:center; vertical-align:middle; color:var(--text-3); font-size:0.8rem;">${idx + 1}</td>
-                        <td style="padding:10px; font-weight:700; color:var(--text); vertical-align:middle; text-align:right;">${escHtml(r.csvName)}</td>
-                        <td style="padding:10px; color:var(--text-2); vertical-align:middle; text-align:right;">${escHtml(r.csvClass || '-')}</td>
-                        <td style="padding:10px; text-align:center; vertical-align:middle; font-weight:800; color:var(--brand);">${r.csvDegree !== null ? r.csvDegree : ''}</td>
-                        <td style="padding:10px; text-align:center; vertical-align:middle;">${badge}</td>
-                        <td style="padding:10px; vertical-align:middle; text-align:right;">${selectHtml}</td>
-                        <td style="padding:10px; text-align:center; vertical-align:middle;">
-                            <input type="checkbox" style="width:18px; height:18px; cursor:pointer;" ${r.import ? 'checked' : ''} onchange="togglePeRowImport(${idx}, this.checked)">
+                        <td style="padding:6px; text-align:center; vertical-align:middle; color:var(--text-3); font-size:0.75rem;">${idx + 1}</td>
+                        <td style="padding:6px; font-weight:700; color:var(--text); vertical-align:middle; text-align:right; font-size:0.78rem;">${escHtml(r.csvName)}</td>
+                        <td style="padding:6px; color:var(--text-2); vertical-align:middle; text-align:right; font-size:0.75rem;">${escHtml(r.csvClass || '-')}</td>
+                        <td style="padding:6px; text-align:center; vertical-align:middle; font-weight:800; color:var(--brand); font-size:0.78rem;">${r.csvDegree !== null ? r.csvDegree : ''}</td>
+                        <td style="padding:6px; text-align:center; vertical-align:middle;">${badge}</td>
+                        <td style="padding:6px; vertical-align:middle; text-align:right;">${selectHtml}</td>
+                        <td style="padding:6px; text-align:center; vertical-align:middle;">
+                            <input type="checkbox" style="width:16px; height:16px; cursor:pointer;" ${r.import ? 'checked' : ''} onchange="togglePeRowImport(${idx}, this.checked)">
                         </td>
                     </tr>
                 `;
