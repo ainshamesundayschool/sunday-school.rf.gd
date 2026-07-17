@@ -23682,179 +23682,102 @@ function saveChurchClasses()
 
 
 
-        // ── Collect the IDs that came back from the client ───────────
-
-        // IDs that are null/missing = new rows to INSERT.
-
-        // IDs that exist           = UPDATE in place (preserves class_id).
-
-        $submittedIds = [];
-
-        foreach ($classes as $cls) {
-
-            if (!empty($cls['id']) && is_numeric($cls['id'])) {
-
-                $submittedIds[] = (int) $cls['id'];
-
-            }
-
-        }
-
-
-
-        // ── Soft-deactivate any existing class that was REMOVED ───────
-
-        // We never hard-delete because students still reference the old id.
-
-        if (!empty($submittedIds)) {
-
-            $placeholders = implode(',', array_fill(0, count($submittedIds), '?'));
-
-            $types = 'i' . str_repeat('i', count($submittedIds));
-
-            $deactivateStmt = $conn->prepare("
-
-                UPDATE church_classes
-
-                SET    is_active = 0
-
-                WHERE  church_id = ?
-
-                  AND  id NOT IN ($placeholders)
-
-            ");
-
-            $bindArgs = array_merge([$churchId], $submittedIds);
-
-            $deactivateStmt->bind_param($types, ...$bindArgs);
-
-            $deactivateStmt->execute();
-
-        } else {
-
-            // No existing IDs submitted — deactivate everything
-
-            $stmt0 = $conn->prepare("UPDATE church_classes SET is_active = 0 WHERE church_id = ?");
-
-            $stmt0->bind_param("i", $churchId);
-
-            $stmt0->execute();
-
-        }
-
-
-
         // ── Upsert each submitted class ───────────────────────────────
-
-        // • Existing row (has id): UPDATE name/code/order/color/icon, re-activate.
-
-        // • New row (no id):       INSERT — gets a fresh auto-increment id.
-
         ensureChurchClassesOrderColumn($conn);
 
-
+        $activeIds = [];
 
         $updateStmt = $conn->prepare("
-
             UPDATE church_classes
-
             SET    arabic_name   = ?,
-
                    code          = ?,
-
                    display_order = ?,
-
                    `order`       = ?,
-
                    color         = ?,
-
                    icon          = ?,
-
                    is_active     = 1
-
             WHERE  id = ? AND church_id = ?
-
         ");
-
-
 
         $insertStmt = $conn->prepare("
-
             INSERT INTO church_classes
-
                 (church_id, code, arabic_name, display_order, `order`, color, icon, is_active)
-
             VALUES (?, ?, ?, ?, ?, ?, ?, 1)
-
         ");
-
-
 
         $order = 1;
 
         foreach ($classes as $cls) {
-
             $id = !empty($cls['id']) && is_numeric($cls['id']) ? (int) $cls['id'] : null;
-
             $name = sanitize($cls['arabic_name'] ?? '');
-
             $code = sanitize($cls['code'] ?? '');
-
             $color = sanitize($cls['color'] ?? '#4f46e5');
-
             $icon = sanitize($cls['icon'] ?? '');
-
             $order = intval($cls['display_order'] ?? $order);
 
-
-
             if (empty($name)) {
-
                 $order++;
-
                 continue;
-
+            }
+            if (empty($code)) {
+                $code = 'cls_' . $churchId . '_' . $order . '_' . time();
             }
 
-            if (empty($code))
-
-                $code = 'cls_' . $churchId . '_' . $order . '_' . time();
-
-
+            // Check if class already exists in church_classes by ID or by Code
+            $existingId = null;
 
             if ($id !== null) {
-
-                // UPDATE existing row — id stays the same, students keep their class_id
-
-                $updateStmt->bind_param("ssiissii", $name, $code, $order, $order, $color, $icon, $id, $churchId);
-
-                $updateStmt->execute();
-
-                if ($updateStmt->affected_rows === 0) {
-
-                    // Row didn't exist with that id+church — treat as new
-
-                    $insertStmt->bind_param("issiiss", $churchId, $code, $name, $order, $order, $color, $icon);
-
-                    $insertStmt->execute();
-
+                $chkId = $conn->prepare("SELECT id FROM church_classes WHERE id = ? AND church_id = ? LIMIT 1");
+                $chkId->bind_param("ii", $id, $churchId);
+                $chkId->execute();
+                $res = $chkId->get_result()->fetch_assoc();
+                if ($res) {
+                    $existingId = (int)$res['id'];
                 }
-
-            } else {
-
-                // INSERT brand-new class
-
-                $insertStmt->bind_param("issiiss", $churchId, $code, $name, $order, $order, $color, $icon);
-
-                $insertStmt->execute();
-
             }
 
-            $order++;
+            if ($existingId === null && !empty($code)) {
+                $chkCode = $conn->prepare("SELECT id FROM church_classes WHERE code = ? AND church_id = ? LIMIT 1");
+                $chkCode->bind_param("si", $code, $churchId);
+                $chkCode->execute();
+                $res = $chkCode->get_result()->fetch_assoc();
+                if ($res) {
+                    $existingId = (int)$res['id'];
+                }
+            }
 
+            if ($existingId !== null) {
+                // UPDATE existing row
+                $updateStmt->bind_param("ssiissii", $name, $code, $order, $order, $color, $icon, $existingId, $churchId);
+                $updateStmt->execute();
+                $activeIds[] = $existingId;
+            } else {
+                // INSERT brand-new class
+                $insertStmt->bind_param("issiiss", $churchId, $code, $name, $order, $order, $color, $icon);
+                $insertStmt->execute();
+                $activeIds[] = (int)$conn->insert_id;
+            }
+            $order++;
         }
 
-
+        // ── Soft-deactivate any class that is NOT in the active list ──
+        if (!empty($activeIds)) {
+            $placeholders = implode(',', array_fill(0, count($activeIds), '?'));
+            $types = 'i' . str_repeat('i', count($activeIds));
+            $deactivateStmt = $conn->prepare("
+                UPDATE church_classes
+                SET    is_active = 0
+                WHERE  church_id = ?
+                  AND  id NOT IN ($placeholders)
+            ");
+            $bindArgs = array_merge([$churchId], $activeIds);
+            $deactivateStmt->bind_param($types, ...$bindArgs);
+            $deactivateStmt->execute();
+        } else {
+            $deactivateStmt = $conn->prepare("UPDATE church_classes SET is_active = 0 WHERE church_id = ?");
+            $deactivateStmt->bind_param("i", $churchId);
+            $deactivateStmt->execute();
+        }
 
         $conn->commit();
 

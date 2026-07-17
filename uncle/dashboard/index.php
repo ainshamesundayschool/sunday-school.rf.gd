@@ -15129,7 +15129,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     students = d.students || d.allStudents || [];
                     allStudentsData = d.allStudents || d.students || students;
                     if (d.classes && d.classes.length) {
-                        classes = d.classes.sort((a, b) => getClassOrderWeight(a.arabic_name || a.code) - getClassOrderWeight(b.arabic_name || b.code));
+                        classes = d.classes.sort((a, b) => {
+                            const orderA = Number(a.class_order !== undefined ? a.class_order : (a.display_order !== undefined ? a.display_order : 999));
+                            const orderB = Number(b.class_order !== undefined ? b.class_order : (b.display_order !== undefined ? b.display_order : 999));
+                            if (orderA !== orderB) return orderA - orderB;
+                            return (a.arabic_name || '').localeCompare(b.arabic_name || '', 'ar');
+                        });
                     }
                     const cachedUncles = localStorage.getItem('lastUnclesData');
                     if (cachedUncles) {
@@ -15244,7 +15249,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     else if (r.allStudents && Array.isArray(r.allStudents)) students = r.allStudents;
                     allStudentsData = students;
                     if (r.classes && Array.isArray(r.classes)) {
-                        classes = r.classes.sort((a, b) => getClassOrderWeight(a.arabic_name || a.code) - getClassOrderWeight(b.arabic_name || b.code));
+                        classes = r.classes.sort((a, b) => {
+                            const orderA = Number(a.class_order !== undefined ? a.class_order : (a.display_order !== undefined ? a.display_order : 999));
+                            const orderB = Number(b.class_order !== undefined ? b.class_order : (b.display_order !== undefined ? b.display_order : 999));
+                            if (orderA !== orderB) return orderA - orderB;
+                            return (a.arabic_name || '').localeCompare(b.arabic_name || '', 'ar');
+                        });
                     }
 
                     try {
@@ -15363,7 +15373,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     students = d.students || d.allStudents || [];
                     allStudentsData = d.allStudents || d.students || students;
                     if (d.classes && d.classes.length) {
-                        classes = d.classes.sort((a, b) => getClassOrderWeight(a.arabic_name || a.code) - getClassOrderWeight(b.arabic_name || b.code));
+                        classes = d.classes.sort((a, b) => {
+                            const orderA = Number(a.class_order !== undefined ? a.class_order : (a.display_order !== undefined ? a.display_order : 999));
+                            const orderB = Number(b.class_order !== undefined ? b.class_order : (b.display_order !== undefined ? b.display_order : 999));
+                            if (orderA !== orderB) return orderA - orderB;
+                            return (a.arabic_name || '').localeCompare(b.arabic_name || '', 'ar');
+                        });
                     }
                     const cachedUncles = localStorage.getItem('lastUnclesData');
                     if (cachedUncles) {
@@ -26981,7 +26996,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     students = d.students || d.allStudents || [];
                     allStudentsData = d.allStudents || d.students || students;
                     if (d.classes && d.classes.length) {
-                        classes = d.classes.sort((a, b) => getClassOrderWeight(a.arabic_name || a.code) - getClassOrderWeight(b.arabic_name || b.code));
+                        classes = d.classes.sort((a, b) => {
+                            const orderA = Number(a.class_order !== undefined ? a.class_order : (a.display_order !== undefined ? a.display_order : 999));
+                            const orderB = Number(b.class_order !== undefined ? b.class_order : (b.display_order !== undefined ? b.display_order : 999));
+                            if (orderA !== orderB) return orderA - orderB;
+                            return (a.arabic_name || '').localeCompare(b.arabic_name || '', 'ar');
+                        });
                     }
                     displayClasses(); // also calls renderTodayBirthdayBanner()
                     updateDashboardStats();
@@ -27239,6 +27259,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
         function getClassOrderWeight(name) {
             if (!name) return 999;
             const clean = name.trim();
+            if (typeof classes !== 'undefined' && Array.isArray(classes)) {
+                const clsObj = classes.find(c => (c.arabic_name && c.arabic_name.trim() === clean) || (c.code && c.code.trim() === clean));
+                if (clsObj) {
+                    const orderVal = clsObj.class_order !== undefined ? clsObj.class_order : clsObj.display_order;
+                    if (orderVal !== undefined && orderVal !== null) {
+                        return Number(orderVal);
+                    }
+                }
+            }
             if (clean.includes('حضانة')) return 1;
             if (clean.includes('أولى') || clean.includes('اولى')) return 2;
             if (clean.includes('تانية') || clean.includes('ثانية')) return 3;
