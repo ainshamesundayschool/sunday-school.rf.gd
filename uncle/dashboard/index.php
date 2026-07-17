@@ -1180,7 +1180,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .class-card:hover {
             transform: translateY(-5px) scale(1.01);
             box-shadow: var(--shadow-lg);
-            border-color: var(--brand)
         }
 
         .class-card:active {
@@ -1231,9 +1230,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .class-card.highlighted {
-            border: 2.5px solid var(--cls-color, var(--brand)) !important;
+            border: 1.5px solid var(--cls-color, var(--brand)) !important;
             background: color-mix(in srgb, var(--cls-color, var(--brand)) 6%, var(--surface)) !important;
-            box-shadow: 0 6px 18px -2px color-mix(in srgb, var(--cls-color, var(--brand)) 25%, rgba(0,0,0,0.06)) !important;
             transform: scale(1.02);
         }
 
