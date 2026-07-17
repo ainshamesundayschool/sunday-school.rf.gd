@@ -21214,9 +21214,9 @@ function getStudentProfile()
             $examsRes = $examsStmt->get_result();
             $paperExams = [];
             $studentClassId = intval($row['class_id']);
-            if ($studentClassId === 0 && !empty($row['class']) && $row['class'] !== 'بدون فصل') {
-                $cName = $row['class'];
-                $cNameNorm = normalizeArabicClassName($cName);
+            $studentClassName = trim($row['class'] ?? '');
+            if ($studentClassId === 0 && !empty($studentClassName) && $studentClassName !== 'بدون فصل') {
+                $cNameNorm = normalizeArabicClassName($studentClassName);
                 
                 // Fetch all classes of the church to find a normalized match
                 $cStmt = $conn->prepare("SELECT id, arabic_name, code FROM church_classes WHERE church_id = ?");
@@ -21251,16 +21251,61 @@ function getStudentProfile()
             }
             while ($exRow = $examsRes->fetch_assoc()) {
                 $classIdsStr = trim($exRow['class_ids'] ?? '');
+                
+                // Resolve allowed class IDs & names for this exam
+                $allowedClassIds = [];
+                if ($classIdsStr !== '') {
+                    $allowedClassIds = array_filter(array_map('intval', explode(',', $classIdsStr)));
+                }
+                
                 $showExam = false;
                 if ($exRow['degree'] !== null || $exRow['answers_picture'] !== null) {
                     // Always show if the kid already has a degree/picture registered
                     $showExam = true;
-                } else if ($classIdsStr === '') {
+                } else if (empty($allowedClassIds)) {
                     // Assigned to ALL classes
                     $showExam = true;
                 } else {
-                    $classIdsArr = explode(',', $classIdsStr);
-                    if (in_array(strval($studentClassId), $classIdsArr)) {
+                    // Fetch matching class names/codes for allowed classes of this exam
+                    $allowedClassNames = [];
+                    $ccPlaceholders = implode(',', array_fill(0, count($allowedClassIds), '?'));
+                    
+                    // Custom classes
+                    $ccStmt = $conn->prepare("SELECT arabic_name, code FROM church_classes WHERE id IN ($ccPlaceholders) AND church_id = ?");
+                    if ($ccStmt) {
+                        $ccParams = array_merge($allowedClassIds, [$row['church_id']]);
+                        $ccTypes = str_repeat('i', count($allowedClassIds)) . 'i';
+                        $ccStmt->bind_param($ccTypes, ...$ccParams);
+                        $ccStmt->execute();
+                        $ccRes = $ccStmt->get_result();
+                        while ($ccRow = $ccRes->fetch_assoc()) {
+                            if (!empty($ccRow['arabic_name'])) $allowedClassNames[] = $ccRow['arabic_name'];
+                            if (!empty($ccRow['code'])) $allowedClassNames[] = $ccRow['code'];
+                        }
+                        $ccStmt->close();
+                    }
+                    
+                    // Global classes
+                    $gcStmt = $conn->prepare("SELECT arabic_name, code FROM classes WHERE id IN ($ccPlaceholders)");
+                    if ($gcStmt) {
+                        $gcTypes = str_repeat('i', count($allowedClassIds));
+                        $gcStmt->bind_param($gcTypes, ...$allowedClassIds);
+                        $gcStmt->execute();
+                        $gcRes = $gcStmt->get_result();
+                        while ($gcRow = $gcRes->fetch_assoc()) {
+                            if (!empty($gcRow['arabic_name'])) $allowedClassNames[] = $gcRow['arabic_name'];
+                            if (!empty($gcRow['code'])) $allowedClassNames[] = $gcRow['code'];
+                        }
+                        $gcStmt->close();
+                    }
+                    
+                    $allowedClassNames = array_unique(array_filter($allowedClassNames));
+                    $normAllowedNames = array_map('normalizeArabicClassName', $allowedClassNames);
+                    $normStudentClassName = normalizeArabicClassName($studentClassName);
+                    
+                    if (in_array($studentClassId, $allowedClassIds)) {
+                        $showExam = true;
+                    } else if ($normStudentClassName !== '' && in_array($normStudentClassName, $normAllowedNames)) {
                         $showExam = true;
                     }
                 }
