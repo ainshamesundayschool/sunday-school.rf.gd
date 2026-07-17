@@ -45093,13 +45093,23 @@ function checkDailyUnclesNotifications()
 
 {
 
+    $logFn = function($msg) {
+        $logFile = __DIR__ . '/notification_debug.log';
+        $time = date('Y-m-d H:i:s');
+        @file_put_contents($logFile, "[$time] $msg\n", FILE_APPEND);
+    };
+
+    $logFn("checkDailyUnclesNotifications triggered.");
+
     try {
 
         $conn = getDBConnection();
 
         $churchId = getChurchId();
+        $logFn("Church ID resolved: $churchId");
 
         if ($churchId <= 0) {
+            $logFn("Church ID is invalid, exiting.");
 
             sendJSON(['success' => false, 'message' => 'Church ID not found']);
 
@@ -45111,7 +45121,7 @@ function checkDailyUnclesNotifications()
 
         // Auto-create daily_notification_logs table
 
-        $conn->query("
+        $tblRes = $conn->query("
 
             CREATE TABLE IF NOT EXISTS daily_notification_logs (
 
@@ -45128,6 +45138,7 @@ function checkDailyUnclesNotifications()
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
         ");
+        $logFn("Table creation check result: " . ($tblRes ? "Success" : "Failed: " . $conn->error));
 
 
 
@@ -45138,15 +45149,24 @@ function checkDailyUnclesNotifications()
 
 
         // 1. Check birthdays today
+        $logFn("Checking birthday logs for today: $todayStr");
 
         $chkBday = $conn->query("SELECT id FROM daily_notification_logs WHERE church_id=$churchId AND check_date='$todayStr' AND notification_type='birthday' LIMIT 1");
+        if ($chkBday) {
+            $logFn("Bday SELECT query executed successfully. num_rows = " . $chkBday->num_rows);
+        } else {
+            $logFn("Bday SELECT query failed: " . $conn->error);
+        }
 
         if ($chkBday && $chkBday->num_rows === 0) {
 
             // Attempt to insert immediately to lock this task and prevent concurrent runs
-            $conn->query("INSERT IGNORE INTO daily_notification_logs (church_id, check_date, notification_type) VALUES ($churchId, '$todayStr', 'birthday')");
+            $logFn("Attempting INSERT IGNORE into daily_notification_logs for birthday...");
+            $insertRes = $conn->query("INSERT IGNORE INTO daily_notification_logs (church_id, check_date, notification_type) VALUES ($churchId, '$todayStr', 'birthday')");
+            $affected = $conn->affected_rows;
+            $logFn("Bday INSERT result: " . ($insertRes ? "Success" : "Failed: " . $conn->error) . ", affected_rows: " . $affected);
 
-            if ($conn->affected_rows > 0) {
+            if ($affected > 0) {
 
                 $dayNow = (int)$cairoTime->format('d');
 
@@ -45199,8 +45219,14 @@ function checkDailyUnclesNotifications()
 
 
         // 2. Check unsaved attendance
+        $logFn("Checking attendance logs for today: $todayStr");
 
         $chkAtt = $conn->query("SELECT id FROM daily_notification_logs WHERE church_id=$churchId AND check_date='$todayStr' AND notification_type='attendance' LIMIT 1");
+        if ($chkAtt) {
+            $logFn("Attendance select row count: " . $chkAtt->num_rows);
+        } else {
+            $logFn("Attendance select failed: " . $conn->error);
+        }
 
         if ($chkAtt && $chkAtt->num_rows === 0) {
 
@@ -45213,13 +45239,17 @@ function checkDailyUnclesNotifications()
             $todayDayOfWeek = (int)$cairoTime->format('N');
 
             $currentHour = (int)$cairoTime->format('H');
+            $logFn("Today day of week: $todayDayOfWeek, expected attendance day: $attDay, current hour: $currentHour");
 
             if ($todayDayOfWeek === $attDay && $currentHour >= 14) {
 
                 // Attempt to insert immediately to lock this task and prevent concurrent runs
-                $conn->query("INSERT IGNORE INTO daily_notification_logs (church_id, check_date, notification_type) VALUES ($churchId, '$todayStr', 'attendance')");
+                $logFn("Attempting INSERT IGNORE into daily_notification_logs for attendance...");
+                $insertAttRes = $conn->query("INSERT IGNORE INTO daily_notification_logs (church_id, check_date, notification_type) VALUES ($churchId, '$todayStr', 'attendance')");
+                $affectedAtt = $conn->affected_rows;
+                $logFn("Attendance INSERT result: " . ($insertAttRes ? "Success" : "Failed: " . $conn->error) . ", affected_rows: " . $affectedAtt);
 
-                if ($conn->affected_rows > 0) {
+                if ($affectedAtt > 0) {
 
                     $classesQ = $conn->query("SELECT id, arabic_name FROM church_classes WHERE church_id=$churchId AND is_active=1");
 
