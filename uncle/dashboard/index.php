@@ -5723,7 +5723,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .custom-class-slim-card .class-card-badges {
             position: absolute;
             top: 4px;
-            left: 8px;
+            inset-inline-end: 8px;
+            left: auto;
             display: flex;
             align-items: center;
             gap: 4px;
@@ -16261,10 +16262,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const allTogetherProgress = getAttendanceProgressHtml(students, allColor);
             const allTogetherHtml = showAllCard ? `
                 <div class="custom-class-slim-card custom-class-card" onclick="showAllTogetherView()" style="--cls-color:${allColor}; ${window.getDashedBorderSvg(allColor, 12, 12)} position:relative;">
-                    <div class="class-card-badges" style="position:absolute; top:6px; left:8px; z-index:12;">
+                    <div class="class-card-badges">
                         <div style="display:flex; align-items:center; gap:4px;">
                             ${allUnsavedHtml}
-                            <span style="background:var(--text-2); color:var(--surface); border-radius:4px; font-size:.55rem; padding:2px 6px; font-weight:700; font-family:Cairo,sans-serif; box-shadow:0 1px 3px rgba(0,0,0,0.15);">الكل</span>
+                            <span style="background:var(--surface); color:${allColor}; border:1px solid ${allColor}; border-radius:4px; font-size:.5rem; padding:1px 3px; font-weight:700; font-family:Cairo,sans-serif; box-shadow:0 1px 2px rgba(0,0,0,0.05); white-space:nowrap;">الكل</span>
                         </div>
                     </div>
                     <div class="class-icon" style="background:${allBg}"><i class="fas ${allIcon}" style="color:white; font-size: 0.95rem;"></i></div>
@@ -16296,10 +16297,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     const combProgress = getAttendanceProgressHtml(combStudents, combBrandColor);
                     return `
                         <div class="custom-class-slim-card custom-class-card${combHighlightClass}" onclick="showCombinedClassView('${escJs(label)}')" style="position:relative; --cls-color:${combBrandColor}; ${window.getDashedBorderSvg(combBrandColor, 12, 12)}" title="${grpClasses.join(' + ')}">
-                            <div class="class-card-badges" style="position:absolute; top:6px; left:8px; z-index:12;">
+                            <div class="class-card-badges">
                                 <div style="display:flex; align-items:center; gap:4px;">
                                     ${unsavedHtml}
-                                    <span style="background:var(--text-2); color:var(--surface); border-radius:4px; font-size:.55rem; padding:2px 6px; font-weight:700; font-family:Cairo,sans-serif; box-shadow:0 1px 3px rgba(0,0,0,0.15);">مدمج</span>
+                                    <span style="background:var(--surface); color:${combBrandColor}; border:1px solid ${combBrandColor}; border-radius:4px; font-size:.5rem; padding:1px 3px; font-weight:700; font-family:Cairo,sans-serif; box-shadow:0 1px 2px rgba(0,0,0,0.05); white-space:nowrap;">مدمج</span>
                                 </div>
                             </div>
                             <div class="class-icon" style="background:linear-gradient(135deg,${combBrandColor},color-mix(in srgb,${combBrandColor} 80%,black))"><i class="fas fa-layer-group" style="color:white; font-size: 0.95rem;"></i></div>
@@ -16358,10 +16359,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const servantsProgress = getAttendanceProgressHtml(window.allUnclesData || [], '#4f46e5');
                 servantsCardHtml = `
                     <div class="custom-class-slim-card custom-class-card" onclick="showClassView('الخدام')" style="--cls-color:#4f46e5; ${window.getDashedBorderSvg('#4f46e5', 12, 12)} position:relative;">
-                        <div class="class-card-badges" style="position:absolute; top:6px; left:8px; z-index:12;">
+                        <div class="class-card-badges">
                             <div style="display:flex; align-items:center; gap:4px;">
                                 ${unsavedHtml}
-                                <span style="background:var(--text-2); color:var(--surface); border-radius:4px; font-size:.55rem; padding:2px 6px; font-weight:700; font-family:Cairo,sans-serif; box-shadow:0 1px 3px rgba(0,0,0,0.15);">خدام</span>
+                                <span style="background:var(--surface); color:#4f46e5; border:1px solid #4f46e5; border-radius:4px; font-size:.5rem; padding:1px 3px; font-weight:700; font-family:Cairo,sans-serif; box-shadow:0 1px 2px rgba(0,0,0,0.05); white-space:nowrap;">خدام</span>
                             </div>
                         </div>
                         <div class="class-icon" style="background:color-mix(in srgb,#4f46e5 15%,white);color:#4f46e5"><i class="fas fa-user" style="font-size: 0.95rem;"></i></div>
@@ -16386,10 +16387,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (guestsCount > 0 || guestsUnsaved > 0) {
                 guestsCardHtml = `
                     <div class="custom-class-slim-card custom-class-card" onclick="showClassView('الزوار')" style="--cls-color:#f59e0b; ${window.getDashedBorderSvg('#f59e0b', 12, 12)} position:relative;">
-                        <div class="class-card-badges" style="position:absolute; top:6px; left:8px; z-index:12;">
+                        <div class="class-card-badges">
                             <div style="display:flex; align-items:center; gap:4px;">
                                 ${guestsUnsavedHtml}
-                                <span style="background:var(--text-2); color:var(--surface); border-radius:4px; font-size:.55rem; padding:2px 6px; font-weight:700; font-family:Cairo,sans-serif; box-shadow:0 1px 3px rgba(0,0,0,0.15);">زوار</span>
+                                <span style="background:var(--surface); color:#f59e0b; border:1px solid #f59e0b; border-radius:4px; font-size:.5rem; padding:1px 3px; font-weight:700; font-family:Cairo,sans-serif; box-shadow:0 1px 2px rgba(0,0,0,0.05); white-space:nowrap;">زوار</span>
                             </div>
                         </div>
                         <div class="class-icon" style="background:color-mix(in srgb,#f59e0b 15%,white);color:#f59e0b"><i class="fas fa-user-tag" style="font-size: 0.95rem;"></i></div>
