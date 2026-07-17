@@ -92,7 +92,11 @@ if (!$hasSession && !$isLoginPage) { ?>
                             try { localStorage.setItem('uncleName', d.uncle_name); } catch (e) { }
                         }
                         // Session cookie is now set — plain reload, no query string
-                        window.location.reload();
+                        if (window.triggerCacheBusterAndReload) {
+                            window.triggerCacheBusterAndReload();
+                        } else {
+                            window.location.reload();
+                        }
                     } else if (navigator.onLine && d.message && (d.message.indexOf('not found') !== -1 || d.message.indexOf('No credentials') !== -1 || d.message.indexOf('معلقة') !== -1 || d.message.indexOf('انتظار موافقة') !== -1)) {
                         // Server confirmed user/church does not exist or is pending → truly invalid, clear and redirect
                         sessionStorage.removeItem(KEY);
@@ -143,6 +147,49 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <!-- ═══ CLIENT-SIDE SESSION VALIDATION & CACHE BUSTER ═══ -->
     <script>
         (function () {
+            // Expose cache buster helper globally so Session Guard can also use it
+            window.triggerCacheBusterAndReload = function () {
+                // Prevent infinite reload loops
+                var reloadCount = parseInt(sessionStorage.getItem('_ss_reload_count') || '0', 10);
+                if (reloadCount >= 3) {
+                    sessionStorage.removeItem('_ss_reload_count');
+                    console.warn('Session validator: Maximum reload attempts reached. Aborting reload to prevent loop.');
+                    var style = document.getElementById('session-hide-body-style');
+                    if (style) style.remove();
+                    return;
+                }
+                sessionStorage.setItem('_ss_reload_count', (reloadCount + 1).toString());
+
+                // Instantly hide body to prevent content flashes of wrong account
+                var style = document.createElement('style');
+                style.id = 'session-hide-body-style';
+                style.innerHTML = 'body { display: none !important; }';
+                document.head.appendChild(style);
+
+                if ('caches' in window) {
+                    caches.keys().then(function(keys) {
+                        return Promise.all(keys.map(function(key) {
+                            return caches.open(key).then(function(cache) {
+                                return cache.keys().then(function(requests) {
+                                    return Promise.all(requests.map(function(request) {
+                                        if (request.url.indexOf('uncle/dashboard') !== -1) {
+                                            return cache.delete(request);
+                                        }
+                                        return Promise.resolve();
+                                    }));
+                                });
+                            });
+                        }));
+                    }).then(function() {
+                        window.location.reload();
+                    }).catch(function() {
+                        window.location.reload();
+                    });
+                } else {
+                    window.location.reload();
+                }
+            };
+
             // Check if we are online and not currently performing a restore
             if (navigator.onLine && sessionStorage.getItem('_ss_restoring') !== '1') {
                 var phpChurchId = <?php echo isset($_SESSION['church_id']) ? (int)$_SESSION['church_id'] : 'null'; ?>;
@@ -163,7 +210,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 }
 
                 if (immediateMismatch) {
-                    triggerCacheBusterAndReload();
+                    window.triggerCacheBusterAndReload();
                     return;
                 }
 
@@ -209,43 +256,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 if (d.uncle_role) localStorage.setItem('uncleRole', d.uncle_role);
                                 if (d.login_type) localStorage.setItem('loginType', d.login_type);
 
-                                triggerCacheBusterAndReload();
+                                window.triggerCacheBusterAndReload();
                             }
                         } else {
                             // Server says no session. If page has hardcoded session variables, trigger reload to refresh layout
                             if (phpChurchId || phpUncleId) {
-                                triggerCacheBusterAndReload();
+                                window.triggerCacheBusterAndReload();
                             }
                         }
                     })
                     .catch(function() {});
-            }
-
-            function triggerCacheBusterAndReload() {
-                // Instantly hide body to prevent content flashes of wrong account
-                var style = document.createElement('style');
-                style.innerHTML = 'body { display: none !important; }';
-                document.head.appendChild(style);
-
-                if ('caches' in window) {
-                    caches.keys().then(function(keys) {
-                        return Promise.all(keys.map(function(key) {
-                            return caches.open(key).then(function(cache) {
-                                return Promise.all([
-                                    cache.delete('/uncle/dashboard/index.php'),
-                                    cache.delete('/uncle/dashboard/'),
-                                    cache.delete('/uncle/dashboard')
-                                ]);
-                            });
-                        }));
-                    }).then(function() {
-                        window.location.reload();
-                    }).catch(function() {
-                        window.location.reload();
-                    });
-                } else {
-                    window.location.reload();
-                }
             }
         })();
     </script>
@@ -5787,6 +5807,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
         .custom-classes-scroll::-webkit-scrollbar {
             display: none;
+        }
+        @media (max-width: 600px) {
+            .custom-class-slim-card {
+                width: 175px !important;
+            }
         }
         .custom-class-slim-card {
             flex: 0 0 auto;
@@ -11833,6 +11858,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
 
                     <!-- Collapsible Tasks Panel -->
+                    <style>
+                    @keyframes tasksBounce {
+                        0%, 100% { transform: translateX(-50%) translateY(0); }
+                        50% { transform: translateX(-50%) translateY(4px); }
+                    }
+                    </style>
                     <div id="classTasksCollapsible"
                         style="display: none; width: 100%; margin-top: 12px; border-top: 1px dashed var(--border); padding-top: 10px; flex-direction: column; gap: 8px;">
                         <div style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;"
@@ -11844,7 +11875,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             </span>
                             <div style="display: flex; align-items: center; gap: 6px;">
                                 <button class="btn btn-ghost"
-                                    onclick="event.stopPropagation(); openTasksModal(null, 'create');"
+                                    onclick="event.stopPropagation(); openNativeTaskCreateForm();"
                                     style="width: 24px; height: 24px; border-radius: var(--r-sm); padding: 0; min-width: unset; display: flex; align-items: center; justify-content: center; background: var(--brand-bg); color: var(--brand); border: none; cursor: pointer;"
                                     title="إضافة مهمة جديدة">
                                     <i class="fas fa-plus" style="font-size: 0.7rem;"></i>
@@ -11857,9 +11888,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 </span>
                             </div>
                         </div>
-                        <div id="collapsedTasksList"
-                            style="display: none; flex-direction: column; gap: 8px; margin-top: 4px; max-height: 180px; overflow-y: auto; padding-inline-start: 2px; padding-inline-end: 4px;">
-                            <!-- Dynamically loaded task pills -->
+                        <div style="position: relative; width: 100%;">
+                            <div id="collapsedTasksList"
+                                style="display: none; flex-direction: column; gap: 8px; margin-top: 4px; max-height: 180px; overflow-y: auto; padding-inline-start: 2px; padding-inline-end: 4px;">
+                                <!-- Dynamically loaded task pills -->
+                            </div>
+                            <div id="tasksScrollIndicator" 
+                                 style="display: none; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); background: linear-gradient(transparent, rgba(0, 0, 0, 0.08) 80%); width: 100%; height: 24px; pointer-events: none; align-items: flex-end; justify-content: center; padding-bottom: 2px;">
+                                <i class="fas fa-chevron-down" style="font-size: 0.75rem; color: var(--brand); animation: tasksBounce 1.5s infinite;"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -11879,8 +11916,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             style="left: 0; right: auto; min-width: 220px;">
                             <div class="dropdown-group-label">الفصل</div>
                             <button class="dropdown-item" id="classTasksMenuItem"
-                                onclick="openTasksModal();closeAllDropdowns()"><i class="fas fa-tasks"></i> مهام
-                                الفصل</button>
+                                onclick="openNativeTaskCreateForm();closeAllDropdowns()"><i class="fas fa-plus"></i> إضافة مهمة جديدة</button>
                             <button class="dropdown-item coupon"
                                 onclick="showCustomExportModal();closeAllDropdowns()"><i class="fas fa-table"></i>
                                 حفظ كجدول</button>
@@ -12594,11 +12630,166 @@ if ($hasUncleId && $uncleRole === 'uncle')
         </div>
     </div>
 
-    <!-- Tasks Fullscreen Modal Container -->
-    <div class="modal-overlay" id="tasksModal" style="z-index: 1000020; padding: 0;">
-        <div class="modal"
-            style="width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; border-radius: 0 !important; margin: 0 !important; padding: 0 !important; display: flex; flex-direction: column; background: var(--bg2);">
-            <iframe id="tasksIframe" src="" style="width: 100%; height: 100%; border: none; flex: 1;"></iframe>
+    <!-- Tasks Listing Modal (All tasks of selected class) -->
+    <div class="modal-overlay" id="tasksModal" style="z-index: 1000020;">
+        <div class="modal modal-lg" style="max-width: 900px; height: 85vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <h3 style="display:flex; align-items:center; gap:8px;">
+                    <i class="fas fa-tasks" style="color:var(--brand);"></i>
+                    <span>مهام واختبارات الفصل</span>
+                </h3>
+                <button class="close-btn" onclick="closeTasksModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 16px; flex: 1; overflow-y: auto; direction: rtl; text-align: right;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+                    <h4 style="margin:0; font-weight:700; color:var(--text);">المهام المسجلة في الفصل</h4>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn btn-primary btn-sm" onclick="openTasksOverviewModal()" style="font-size:0.8rem; font-weight:700; padding:8px 12px; display:inline-flex; align-items:center; gap:6px;">
+                            <i class="fas fa-file-export"></i> تصدير نظرة عامة
+                        </button>
+                        <button class="btn btn-success" onclick="openNativeTaskCreateForm()" style="width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: #fff;" title="مهمة جديدة">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="nativeTasksGrid" class="tools-grid">
+                    <!-- Filled dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Details & Submissions Modal -->
+    <div class="modal-overlay" id="nativeTaskDetailModal" style="z-index: 1000022;">
+        <div class="modal modal-lg" style="max-width: 1000px; height: 85vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <h3 style="display:flex; align-items:center; gap:8px;">
+                    <i class="fas fa-eye" style="color:var(--brand);"></i>
+                    <span id="ndTaskTitle">تفاصيل المهمة</span>
+                </h3>
+                <button class="close-btn" onclick="closeModal('nativeTaskDetailModal')">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 16px; flex: 1; overflow-y: auto; direction: rtl; text-align: right; display:flex; flex-direction:column; gap:16px;">
+                <div class="glass-card" style="padding:14px; border:1px solid var(--border-solid); border-radius:12px;">
+                    <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:8px;">
+                        <span style="font-weight:800; font-size:1.05rem; color:var(--text-1);" id="ndTaskMainTitle">---</span>
+                        <span id="ndTaskStatus" style="font-size:0.75rem; font-weight:700; padding:4px 8px; border-radius:6px;">نشط</span>
+                    </div>
+                    <div style="font-size:0.8rem; color:var(--text-3);" id="ndTaskDesc">---</div>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:10px; margin-top:12px; border-top:1px dashed var(--border-solid); padding-top:10px;">
+                        <div><i class="fas fa-calendar-alt" style="color:var(--brand);"></i> تاريخ البدء: <span id="ndTaskStart">---</span></div>
+                        <div><i class="fas fa-calendar-check" style="color:var(--danger);"></i> آخر موعد: <span id="ndTaskEnd">---</span></div>
+                        <div><i class="fas fa-star" style="color:var(--warning);"></i> الدرجة الكلية: <span id="ndTaskDegree">---</span></div>
+                        <div><i class="fas fa-coins" style="color:var(--coupon);"></i> الكوبونات المتاحة: <span id="ndTaskCoupons">---</span></div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 style="font-weight:700; color:var(--text-1); margin-bottom:10px;"><i class="fas fa-clipboard-list"></i> تسليمات الطلاب (<span id="ndSubmissionsCount">0</span>)</h4>
+                    <div style="overflow-x:auto;">
+                        <table class="ov-table" style="width:100%; border-collapse:separate; border-spacing:0;">
+                            <thead>
+                                <tr>
+                                    <th style="padding:10px; text-align:right;">الاسم</th>
+                                    <th style="padding:10px; text-align:center;">حالة التقييم</th>
+                                    <th style="padding:10px; text-align:center;">الدرجة</th>
+                                    <th style="padding:10px; text-align:center;">الكوبونات الممنوحة</th>
+                                    <th style="padding:10px; text-align:center;">تاريخ التسليم</th>
+                                    <th style="padding:10px; text-align:center;">الإجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ndSubmissionsList">
+                                <!-- Dynamically loaded submissions -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:8px;">
+                <button class="btn btn-outline btn-sm" onclick="closeModal('nativeTaskDetailModal')">إغلاق</button>
+                <button class="btn btn-warning btn-sm" id="ndEditBtn"><i class="fas fa-pen"></i> تعديل المهمة</button>
+                <button class="btn btn-danger btn-sm" id="ndDeleteBtn"><i class="fas fa-trash-alt"></i> حذف</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Create/Edit Modal -->
+    <div class="modal-overlay" id="nativeTaskFormModal" style="z-index: 1000024;">
+        <div class="modal modal-lg" style="max-width: 900px; height: 90vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <h3 style="display:flex; align-items:center; gap:8px;">
+                    <i class="fas fa-tasks" style="color:var(--brand);"></i>
+                    <span id="nfFormTitle">إضافة مهمة جديدة</span>
+                </h3>
+                <button class="close-btn" onclick="closeModal('nativeTaskFormModal')">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 16px; flex: 1; overflow-y: auto; direction: rtl; text-align: right; display:flex; flex-direction:column; gap:16px;">
+                <form id="nativeTaskSaveForm" onsubmit="event.preventDefault();">
+                    <input type="hidden" id="nfTaskId" value="0">
+                    
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label class="form-label">عنوان المهمة</label>
+                            <input type="text" id="nfTitle" class="form-input" required placeholder="مثال: مسابقة إنجيل لوقا">
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label class="form-label">الوصف / التفاصيل</label>
+                            <textarea id="nfDesc" class="form-input" rows="3" placeholder="ملاحظات أو وصف للمهمة للأطفال..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">تاريخ البدء</label>
+                            <input type="datetime-local" id="nfStartDate" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">الموعد النهائي</label>
+                            <input type="datetime-local" id="nfEndDate" class="form-input">
+                            <label style="display:inline-flex; align-items:center; gap:6px; margin-top:6px; cursor:pointer; font-size:0.75rem;">
+                                <input type="checkbox" id="nfNoDeadline" onchange="toggleFormNoDeadline()"> مستمر (بدون موعد نهائي)
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">الدرجة الكلية للمهمة</label>
+                            <input type="number" id="nfTotalDegree" class="form-input" required min="0" value="10">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label font-bold">الحد الأقصى للكوبونات</label>
+                            <input type="number" id="nfMaxCoupons" class="form-input" required min="0" value="10">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">حالة النشر</label>
+                            <select id="nfStatus" class="form-input">
+                                <option value="published">منشورة مباشرة</option>
+                                <option value="draft">مسودة (غير مرئية للأطفال)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">توزيع الكوبونات بناءً على النسبة المئوية</label>
+                            <div style="font-size:0.72rem; color:var(--text-3); margin-bottom:6px;">مصفوفة التوزيع التلقائي للكوبونات</div>
+                            <textarea id="nfCouponMatrix" class="form-input" rows="2" style="font-family:monospace; font-size:0.75rem;">[{"from":0,"to":49,"val":0},{"from":50,"to":69,"val":10},{"from":70,"to":84,"val":30},{"from":85,"to":94,"val":50},{"from":95,"to":100,"val":100}]</textarea>
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label class="form-label">الفصول المستهدفة (عدم تحديد أي فصل يعني إتاحتها لكل فصول مدارس الأحد)</label>
+                            <div id="nfClassesList" style="display:flex; flex-wrap:wrap; gap:8px; padding:10px; border:1px solid var(--border-solid); border-radius:8px; background:var(--surface-3); max-height:120px; overflow-y:auto;">
+                                <!-- Checkboxes populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="border-top:1px dashed var(--border-solid); padding-top:16px; margin-top:16px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <h4 style="margin:0; font-weight:700; color:var(--text-1);"><i class="fas fa-question-circle"></i> أسئلة المسابقة (<span id="nfQuestionsCount">0</span>)</h4>
+                            <button type="button" class="btn btn-ghost" onclick="addNFQuestion()" style="font-size:0.78rem; font-weight:700; display:inline-flex; align-items:center; gap:6px; color:var(--brand); background:var(--brand-bg); border:none; padding:4px 10px; border-radius:6px;"><i class="fas fa-plus"></i> إضافة سؤال</button>
+                        </div>
+                        <div id="nfQuestionsList" style="display:flex; flex-direction:column; gap:12px;">
+                            <!-- Questions builder -->
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:8px;">
+                <button class="btn btn-outline btn-sm" onclick="closeModal('nativeTaskFormModal')">إلغاء</button>
+                <button class="btn btn-primary btn-sm" onclick="saveNativeTask()"><i class="fas fa-save"></i> حفظ المهمة</button>
+            </div>
         </div>
     </div>
 
@@ -13896,25 +14087,30 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (storedUncleId && phpUncleId && String(storedUncleId) !== String(phpUncleId)) isAccountSwitched = true;
 
             if (isAccountSwitched) {
-                try {
-                    [
-                        'churchSettings', 'lastStudentsData', 'currentClass', 'selectedFriday',
-                        'combinedClassGroups', 'customAttendanceDates', 'lastTripsData', 'lastUnclesData', 'uncleAssignedClasses'
-                    ].forEach(k => localStorage.removeItem(k));
-                    Object.keys(localStorage).forEach(k => {
-                        if (k.startsWith('lastTripsData_')) localStorage.removeItem(k);
-                    });
-                    Object.keys(localStorage).forEach(k => {
-                        if (
-                            k.startsWith('attendanceData_') ||
-                            k.startsWith('changedStudents_') ||
-                            k.startsWith('savedStudents_') ||
-                            k.startsWith('couponData_') ||
-                            k.startsWith('changedCouponStudents_') ||
-                            k.startsWith('savedCoupons_')
-                        ) localStorage.removeItem(k);
-                    });
-                } catch (e) { }
+                if (navigator.onLine) {
+                    try {
+                        [
+                            'churchSettings', 'lastStudentsData', 'currentClass', 'selectedFriday',
+                            'combinedClassGroups', 'customAttendanceDates', 'lastTripsData', 'lastUnclesData', 'uncleAssignedClasses'
+                        ].forEach(k => localStorage.removeItem(k));
+                        Object.keys(localStorage).forEach(k => {
+                            if (k.startsWith('lastTripsData_')) localStorage.removeItem(k);
+                        });
+                        Object.keys(localStorage).forEach(k => {
+                            if (
+                                k.startsWith('attendanceData_') ||
+                                k.startsWith('changedStudents_') ||
+                                k.startsWith('savedStudents_') ||
+                                k.startsWith('couponData_') ||
+                                k.startsWith('changedCouponStudents_') ||
+                                k.startsWith('savedCoupons_')
+                            ) localStorage.removeItem(k);
+                        });
+                    } catch (e) { }
+                } else {
+                    // Offline and stale HTML cache: do NOT overwrite localStorage, do NOT clear cache
+                    return;
+                }
             }
 
             try {
@@ -14626,34 +14822,760 @@ if ($hasUncleId && $uncleRole === 'uncle')
         let classTasks = [];
         let isTasksCollapsed = true;
 
+        let formQuestions = [];
+        let nfCurrentTaskData = null;
+        let gradeSubs = [];
+        let gradeTaskData = null;
+        let gradeTaskId = 0;
+
         function openTasksModal(taskId = null, action = null) {
-            const iframe = document.getElementById('tasksIframe');
-            const pathPrefix = '<?php echo $pathPrefix; ?>';
-            let url = `${pathPrefix}/uncle/dashboard/tasks/?class=${encodeURIComponent(currentClass)}`;
+            // Native tasks logic instead of iframe
             if (taskId) {
-                url += `&taskId=${taskId}`;
+                if (action === 'edit') {
+                    openNativeTaskEditForm(taskId);
+                } else {
+                    openNativeTaskDetails(taskId);
+                }
+            } else if (action === 'create') {
+                openNativeTaskCreateForm();
+            } else {
+                // Open all tasks list modal
+                openModal('tasksModal');
+                loadNativeTasksList();
             }
-            if (action) {
-                url += `&action=${action}`;
-            }
-            // Remove active class when loading a task
-            document.getElementById('tasksModal').classList.remove('active');
-            showToast('جاري التحميل...', 'info');
-            iframe.onload = () => {
-                document.getElementById('tasksModal').classList.add('active');
-            };
-            iframe.src = url;
         }
 
         function closeTasksModal() {
-            document.getElementById('tasksModal').classList.remove('active');
-            const iframe = document.getElementById('tasksIframe');
-            iframe.onload = null;
-            iframe.src = '';
-            // Reload dashboard data in case tasks changed or were graded
+            closeModal('tasksModal');
+            clearTaskUrlParams();
             loadData();
             if (currentClass) {
                 fetchClassTasks(currentClass);
+            }
+        }
+
+        function updateTaskUrlParams(taskId = null, action = null) {
+            const url = new URL(window.location.href);
+            if (taskId) {
+                url.searchParams.set('taskId', taskId);
+            } else {
+                url.searchParams.delete('taskId');
+            }
+            if (action) {
+                url.searchParams.set('taskAction', action);
+            } else {
+                url.searchParams.delete('taskAction');
+            }
+            window.history.pushState({}, '', url.toString());
+        }
+
+        function clearTaskUrlParams() {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('taskId');
+            url.searchParams.delete('taskAction');
+            window.history.pushState({}, '', url.toString());
+        }
+
+        function checkTaskUrlParamsOnLoad() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const taskId = urlParams.get('taskId');
+            const taskAction = urlParams.get('taskAction');
+            
+            if (taskId || taskAction) {
+                if (!currentClass) {
+                    setTimeout(checkTaskUrlParamsOnLoad, 100);
+                    return;
+                }
+                
+                if (taskId) {
+                    if (taskAction === 'edit') {
+                        openNativeTaskEditForm(taskId);
+                    } else {
+                        openNativeTaskDetails(taskId);
+                    }
+                } else if (taskAction === 'create') {
+                    openNativeTaskCreateForm();
+                }
+            }
+        }
+
+        // Wrap closeModal to clear query params if closing native task modals
+        const originalCloseModal = window.closeModal;
+        window.closeModal = function(modalId) {
+            if (originalCloseModal) originalCloseModal(modalId);
+            if (modalId === 'nativeTaskDetailModal' || modalId === 'nativeTaskFormModal' || modalId === 'tasksModal') {
+                clearTaskUrlParams();
+            }
+        };
+
+        async function loadNativeTasksList() {
+            const grid = document.getElementById('nativeTasksGrid');
+            if (!grid) return;
+            grid.innerHTML = '<div style="text-align:center;padding:40px;width:100%;"><i class="fas fa-spinner fa-spin" style="font-size:2rem;color:var(--brand);"></i></div>';
+
+            try {
+                const r = await makeApiCallRaw({ action: 'getTasks', class_name: currentClass });
+                if (r && r.success && Array.isArray(r.tasks)) {
+                    const tasks = r.tasks;
+                    if (tasks.length === 0) {
+                        grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-3);width:100%;">لا توجد مهام مسجلة في هذا الفصل</div>';
+                        return;
+                    }
+                    grid.innerHTML = tasks.map(t => {
+                        const isDraft = t.status === 'draft';
+                        const qCount = (t.questions || []).length;
+                        const subCount = (t.submissions || []).length;
+                        return `
+                            <div class="glass-card" style="padding:16px; border:1px solid var(--border-solid); border-radius:12px; display:flex; flex-direction:column; justify-content:space-between; gap:12px; position:relative; direction:rtl; text-align:right;">
+                                <div>
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                        <span style="font-weight:800; font-size:0.9rem; color:var(--text);">${escHtml(t.title)}</span>
+                                        ${isDraft ? '<span style="background:var(--warning-bg); color:var(--warning); font-size:0.68rem; font-weight:700; padding:2px 6px; border-radius:4px;">مسودة</span>' : '<span style="background:var(--brand-bg); color:var(--brand); font-size:0.68rem; font-weight:700; padding:2px 6px; border-radius:4px;">منشورة</span>'}
+                                    </div>
+                                    <p style="font-size:0.75rem; color:var(--text-3); line-height:1.4; height:34px; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; margin:0 0 8px 0;">${escHtml(t.description || 'لا يوجد وصف')}</p>
+                                    <div style="display:flex; gap:6px; font-size:0.72rem; color:var(--text-3); flex-wrap:wrap;">
+                                        <span><i class="fas fa-question-circle"></i> ${qCount} أسئلة</span>
+                                        <span><i class="fas fa-paper-plane"></i> ${subCount} تسليمات</span>
+                                        <span><i class="fas fa-star"></i> ${t.total_degree} درجة</span>
+                                    </div>
+                                </div>
+                                <div style="display:flex; gap:6px; margin-top:8px;">
+                                    <button class="btn btn-primary btn-sm" onclick="openNativeTaskDetails(${t.id})" style="flex:1; padding:6px; font-size:0.75rem;"><i class="fas fa-eye"></i> التفاصيل والتصحيح</button>
+                                    <button class="btn btn-ghost btn-sm" onclick="openNativeTaskEditForm(${t.id})" style="padding:6px; color:var(--brand);" title="تعديل"><i class="fas fa-pen"></i></button>
+                                    <button class="btn btn-ghost btn-sm" onclick="deleteNativeTask(${t.id})" style="padding:6px; color:var(--danger);" title="حذف"><i class="fas fa-trash-alt"></i></button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--danger);width:100%;">فشل تحميل قائمة المهام</div>';
+                }
+            } catch (e) {
+                grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--danger);width:100%;">حدث خطأ في تحميل قائمة المهام</div>';
+            }
+        }
+
+        async function openNativeTaskDetails(taskId) {
+            openModal('nativeTaskDetailModal');
+            const mainTitle = document.getElementById('ndTaskMainTitle');
+            const desc = document.getElementById('ndTaskDesc');
+            const start = document.getElementById('ndTaskStart');
+            const end = document.getElementById('ndTaskEnd');
+            const degree = document.getElementById('ndTaskDegree');
+            const coupons = document.getElementById('ndTaskCoupons');
+            const status = document.getElementById('ndTaskStatus');
+            const subCount = document.getElementById('ndSubmissionsCount');
+            const subList = document.getElementById('ndSubmissionsList');
+
+            mainTitle.textContent = 'جاري التحميل...';
+            subList.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin"></i> جاري تحميل التسليمات...</td></tr>';
+
+            try {
+                // Update URL history for routing
+                updateTaskUrlParams(taskId);
+
+                const r = await makeApiCallRaw({ action: 'getTaskDetail', task_id: taskId });
+                if (r && r.success && r.task) {
+                    const t = r.task;
+                    mainTitle.textContent = t.title;
+                    desc.textContent = t.description || 'لا يوجد وصف';
+                    start.textContent = formatBirthdayForDisplay(t.start_date);
+                    end.textContent = t.no_deadline == 1 ? 'مستمر' : formatBirthdayForDisplay(t.end_date);
+                    degree.textContent = t.total_degree;
+                    coupons.textContent = t.max_coupons;
+                    
+                    if (t.status === 'draft') {
+                        status.textContent = 'مسودة';
+                        status.style.background = 'var(--warning-bg)';
+                        status.style.color = 'var(--warning)';
+                    } else {
+                        status.textContent = 'نشط';
+                        status.style.background = 'var(--brand-bg)';
+                        status.style.color = 'var(--brand)';
+                    }
+
+                    // Setup buttons
+                    document.getElementById('ndEditBtn').onclick = () => openNativeTaskEditForm(taskId);
+                    document.getElementById('ndDeleteBtn').onclick = () => deleteNativeTask(taskId);
+
+                    // Load submissions
+                    const subs = t.submissions || [];
+                    subCount.textContent = subs.length;
+
+                    if (subs.length === 0) {
+                        subList.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-3);font-style:italic;">لا توجد تسليمات بعد</td></tr>';
+                        return;
+                    }
+
+                    // Check if there are open questions
+                    const hasOpenQs = (t.questions || []).some(q => q.type === 'open' || q.type === 'text');
+
+                    subList.innerHTML = subs.map(sub => {
+                        const dateObj = new Date(sub.submitted_at);
+                        const dateStr = `${dateObj.getDate()}/${dateObj.getMonth() + 1} ${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
+                        
+                        let statusHtml = '';
+                        let actionHtml = '';
+
+                        if (sub.is_graded == 1 || !hasOpenQs) {
+                            statusHtml = '<span style="color:var(--ok); font-weight:700;"><i class="fas fa-check-circle"></i> تم التقييم</span>';
+                            actionHtml = '<span style="color:var(--text-3); font-size:0.75rem;">مصحح تلقائي/يدوي</span>';
+                        } else {
+                            statusHtml = '<span style="color:var(--warning); font-weight:700;"><i class="fas fa-hourglass-half"></i> معلق (يحتاج تصحيح)</span>';
+                            actionHtml = `<button class="btn btn-warning btn-sm" onclick="openNativeGradingPanel(${taskId}, ${sub.id})" style="padding:4px 8px; font-size:0.7rem;"><i class="fas fa-check"></i> تصحيح</button>`;
+                        }
+
+                        return `
+                            <tr>
+                                <td style="padding:10px; text-align:right; font-weight:700; color:var(--text-1);">${escHtml(sub.student_name)}</td>
+                                <td style="padding:10px; text-align:center;">${statusHtml}</td>
+                                <td style="padding:10px; text-align:center; font-weight:700; color:var(--brand);">${sub.score} / ${t.total_degree}</td>
+                                <td style="padding:10px; text-align:center;"><i class="fas fa-coins" style="color:var(--coupon);"></i> ${sub.coupons_awarded}</td>
+                                <td style="padding:10px; text-align:center; color:var(--text-3); font-size:0.75rem;">${dateStr}</td>
+                                <td style="padding:10px; text-align:center;">${actionHtml}</td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                } else {
+                    mainTitle.textContent = 'فشل تحميل المهمة';
+                    subList.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--danger);">خطأ في تحميل تفاصيل المهمة من الخادم</td></tr>';
+                }
+            } catch (e) {
+                mainTitle.textContent = 'خطأ في الاتصال';
+                subList.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--danger);">حدث خطأ أثناء تحميل بيانات المهمة</td></tr>';
+            }
+        }
+
+        async function openNativeGradingPanel(taskId, submissionId) {
+            // Create grading modal dynamically if not present
+            if (!document.getElementById('nativeGradingModal')) {
+                const div = document.createElement('div');
+                div.className = 'modal-overlay';
+                div.id = 'nativeGradingModal';
+                div.style.zIndex = '1000030';
+                div.innerHTML = `
+                    <div class="modal modal-md" style="max-width: 600px; height: 75vh; display: flex; flex-direction: column;">
+                        <div class="modal-header">
+                            <h3 style="display:flex; align-items:center; gap:8px;">
+                                <i class="fas fa-graduation-cap" style="color:var(--brand);"></i>
+                                <span>تصحيح إجابات الطالب</span>
+                            </h3>
+                            <button class="close-btn" onclick="closeModal('nativeGradingModal')">&times;</button>
+                        </div>
+                        <div class="modal-body" id="ngModalBody" style="padding: 16px; flex: 1; overflow-y: auto; direction: rtl; text-align: right;">
+                            <!-- Filled dynamically -->
+                        </div>
+                        <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:8px;">
+                            <button class="btn btn-outline btn-sm" onclick="closeModal('nativeGradingModal')">إلغاء</button>
+                            <button class="btn btn-primary btn-sm" id="ngSaveBtn">حفظ الدرجة</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(div);
+            }
+
+            openModal('nativeGradingModal');
+            const body = document.getElementById('ngModalBody');
+            body.innerHTML = '<div style="text-align:center;padding:40px;"><i class="fas fa-spinner fa-spin" style="font-size:2rem;color:var(--brand);"></i> جاري تحميل الإجابات...</div>';
+
+            try {
+                const d = await makeApiCallRaw({ action: 'getPendingOpenSubmissions', task_id: taskId });
+                if (d && d.success && Array.isArray(d.submissions)) {
+                    const sub = d.submissions.find(s => s.id == submissionId);
+                    if (!sub) {
+                        body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--danger);">لم يتم العثور على التسليم المعلق</div>';
+                        return;
+                    }
+
+                    const answers = JSON.parse(sub.answers || '{}');
+                    const openQs = sub.open_questions || [];
+
+                    body.innerHTML = `
+                        <div style="margin-bottom:14px; font-weight:700; color:var(--text-1); font-size:0.95rem;">الطالب: ${escHtml(sub.student_name)}</div>
+                        <div style="display:flex; flex-direction:column; gap:12px;">
+                            ${openQs.map((q, idx) => {
+                                const ansText = answers[q.id] || 'لم يجب';
+                                return `
+                                    <div class="glass-card" style="padding:12px; border:1px solid var(--border-solid); border-radius:10px;">
+                                        <div style="font-weight:700; font-size:0.82rem; color:var(--text-1); margin-bottom:6px;">سؤال ${idx+1}: ${escHtml(q.text)}</div>
+                                        <div style="font-size:0.75rem; color:var(--text-3); margin-bottom:10px;">الدرجة الكلية للسؤال: ${q.degree}</div>
+                                        <div style="background:var(--surface-3); padding:10px; border-radius:8px; font-size:0.8rem; color:var(--text-2); margin-bottom:12px; border:1px solid var(--border-solid); line-height:1.4;">
+                                            <strong>إجابة الطفل:</strong><br>${escHtml(ansText)}
+                                        </div>
+                                        <div class="form-group" style="margin:0;">
+                                            <label class="form-label" style="font-size:0.75rem;">الدرجة المستحقة</label>
+                                            <input type="number" step="any" class="form-input ng-score-input" data-qid="${q.id}" data-max="${q.degree}" min="0" max="${q.degree}" value="${q.degree}" style="width:100px;">
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+
+                    // Setup save handler
+                    document.getElementById('ngSaveBtn').onclick = async () => {
+                        const scores = {};
+                        let valid = true;
+                        body.querySelectorAll('.ng-score-input').forEach(inp => {
+                            const val = parseFloat(inp.value) || 0;
+                            const max = parseFloat(inp.dataset.max) || 0;
+                            if (val < 0 || val > max) {
+                                showToast('يرجى التحقق من الدرجات المدخلة للأسئلة المفتوحة', 'warning');
+                                valid = false;
+                            }
+                            scores[inp.dataset.qid] = val;
+                        });
+
+                        if (!valid) return;
+
+                        const saveBtn = document.getElementById('ngSaveBtn');
+                        saveBtn.disabled = true;
+                        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+
+                        try {
+                            const gradeRes = await makeApiCallRaw({
+                                action: 'gradeOpenAnswer',
+                                submission_id: submissionId,
+                                scores: JSON.stringify(scores),
+                                notes: '{}'
+                            });
+
+                            if (gradeRes && gradeRes.success) {
+                                let couponMsg = '';
+                                if (gradeRes.coupon_diff > 0) {
+                                    couponMsg = ` — تم منح ${gradeRes.coupon_diff} كوبونات`;
+                                } else if (gradeRes.coupon_diff < 0) {
+                                    couponMsg = ` — تم خصم ${Math.abs(gradeRes.coupon_diff)} كوبونات`;
+                                }
+                                showToast(`تم تقييم الإجابات بنجاح! الدرجة: ${gradeRes.score}${couponMsg}`, 'ok');
+                                closeModal('nativeGradingModal');
+                                openNativeTaskDetails(taskId); // Refresh details
+                                if (currentClass) fetchClassTasks(currentClass); // Refresh collapsible drawer
+                            } else {
+                                showToast(gradeRes.message || 'فشل التقييم', 'err');
+                            }
+                        } catch (err) {
+                            showToast('خطأ أثناء إرسال الدرجة للخادم', 'err');
+                        } finally {
+                            saveBtn.disabled = false;
+                            saveBtn.innerHTML = 'حفظ الدرجة';
+                        }
+                    };
+                } else {
+                    body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--danger);">خطأ في جلب تفاصيل التقييم</div>';
+                }
+            } catch (e) {
+                body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--danger);">حدث خطأ أثناء تحميل بيانات التقييم</div>';
+            }
+        }
+
+        function renderNFClasses(selectedClassIds = []) {
+            const list = document.getElementById('nfClassesList');
+            if (!list) return;
+            
+            list.innerHTML = classes.map(cls => {
+                const isChecked = selectedClassIds.includes(cls.id) || selectedClassIds.includes(String(cls.id)) || (selectedClassIds.length === 0 && cls.arabic_name === currentClass);
+                return `
+                    <label style="display:inline-flex; align-items:center; gap:4px; cursor:pointer; font-size:0.75rem; background:var(--surface); border:1px solid var(--border-solid); padding:4px 8px; border-radius:6px; margin:2px;">
+                        <input type="checkbox" name="nf_class_cb" value="${cls.id}" ${isChecked ? 'checked' : ''}>
+                        <span>${escHtml(cls.arabic_name || cls.code)}</span>
+                    </label>
+                `;
+            }).join('');
+        }
+
+        function addNFQuestion(q = null) {
+            const container = document.getElementById('nfQuestionsList');
+            if (!container) return;
+
+            const qId = q ? q.id : (Date.now() + Math.random().toString(36).substr(2, 5));
+            const type = q ? q.type : 'mcq';
+            const text = q ? q.text : '';
+            const degree = q ? q.degree : 2;
+
+            const card = document.createElement('div');
+            card.className = 'glass-card nf-question-card';
+            card.id = `nf_qcard_${qId}`;
+            card.dataset.qid = qId;
+            card.style.padding = '12px';
+            card.style.border = '1px solid var(--border-solid)';
+            card.style.borderRadius = '10px';
+            card.style.position = 'relative';
+
+            let optionsHtml = '';
+            if (type === 'mcq') {
+                const opts = q ? q.options : ['', '', '', ''];
+                const correctIdx = q ? q.answer : 0;
+                optionsHtml = `
+                    <div class="nf-mcq-options" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+                        ${opts.map((opt, oIdx) => `
+                            <div style="display:flex; align-items:center; gap:4px;">
+                                <input type="radio" name="nf_correct_${qId}" value="${oIdx}" ${oIdx == correctIdx ? 'checked' : ''}>
+                                <input type="text" class="form-input nf-mcq-opt-input" placeholder="اختيار ${oIdx+1}" value="${escAttr(opt)}" style="font-size:0.75rem; padding:4px 8px; height:28px;">
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else if (type === 'tf') {
+                const correctVal = q ? q.answer : 'true';
+                optionsHtml = `
+                    <div style="margin-top:8px; display:flex; gap:12px; align-items:center;">
+                        <span style="font-size:0.75rem; font-weight:700;">الإجابة الصحيحة:</span>
+                        <label style="display:flex; align-items:center; gap:4px; font-size:0.75rem; cursor:pointer;">
+                            <input type="radio" name="nf_correct_${qId}" value="true" ${correctVal == 'true' || correctVal == true ? 'checked' : ''}> صح
+                        </label>
+                        <label style="display:flex; align-items:center; gap:4px; font-size:0.75rem; cursor:pointer;">
+                            <input type="radio" name="nf_correct_${qId}" value="false" ${correctVal == 'false' || correctVal == false ? 'checked' : ''}> خطأ
+                        </label>
+                    </div>
+                `;
+            }
+
+            card.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:10px;">
+                    <div style="display:flex; align-items:center; gap:8px; flex:1;">
+                        <span style="font-weight:700; font-size:0.78rem; color:var(--brand);">نوع السؤال:</span>
+                        <select class="form-input nf-qtype-select" onchange="changeNFQuestionType('${qId}')" style="font-size:0.75rem; padding:4px 8px; height:28px; width:120px;">
+                            <option value="mcq" ${type === 'mcq' ? 'selected' : ''}>اختيار من متعدد</option>
+                            <option value="open" ${type === 'open' || type === 'text' ? 'selected' : ''}>سؤال مقالي (مفتوح)</option>
+                            <option value="tf" ${type === 'tf' ? 'selected' : ''}>صح أو خطأ</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-ghost" onclick="removeNFQuestion('${qId}')" style="color:var(--danger); padding:4px 8px; font-size:0.75rem;" title="حذف السؤال"><i class="fas fa-trash-alt"></i></button>
+                </div>
+                
+                <div class="form-group" style="margin-bottom:8px;">
+                    <label class="form-label" style="font-size:0.75rem;">نص السؤال</label>
+                    <input type="text" class="form-input nf-qtext-input" placeholder="اكتب نص السؤال هنا..." value="${escAttr(text)}" required style="font-size:0.78rem; padding:6px 10px;">
+                </div>
+                
+                <div class="nf-options-container">
+                    ${optionsHtml}
+                </div>
+                
+                <div class="form-group" style="margin-top:8px; margin-bottom:0;">
+                    <label class="form-label" style="font-size:0.75rem;">درجة السؤال</label>
+                    <input type="number" class="form-input nf-qdegree-input" min="0" value="${degree}" style="width:80px; font-size:0.75rem; padding:4px 8px; height:28px;">
+                </div>
+            `;
+
+            container.appendChild(card);
+            updateNFQuestionsCount();
+        }
+
+        function changeNFQuestionType(qId) {
+            const card = document.getElementById(`nf_qcard_${qId}`);
+            if (!card) return;
+            const select = card.querySelector('.nf-qtype-select');
+            const type = select.value;
+            const container = card.querySelector('.nf-options-container');
+            
+            if (type === 'mcq') {
+                container.innerHTML = `
+                    <div class="nf-mcq-options" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+                        <div style="display:flex; align-items:center; gap:4px;">
+                            <input type="radio" name="nf_correct_${qId}" value="0" checked>
+                            <input type="text" class="form-input nf-mcq-opt-input" placeholder="اختيار 1" style="font-size:0.75rem; padding:4px 8px; height:28px;">
+                        </div>
+                        <div style="display:flex; align-items:center; gap:4px;">
+                            <input type="radio" name="nf_correct_${qId}" value="1">
+                            <input type="text" class="form-input nf-mcq-opt-input" placeholder="اختيار 2" style="font-size:0.75rem; padding:4px 8px; height:28px;">
+                        </div>
+                        <div style="display:flex; align-items:center; gap:4px;">
+                            <input type="radio" name="nf_correct_${qId}" value="2">
+                            <input type="text" class="form-input nf-mcq-opt-input" placeholder="اختيار 3" style="font-size:0.75rem; padding:4px 8px; height:28px;">
+                        </div>
+                        <div style="display:flex; align-items:center; gap:4px;">
+                            <input type="radio" name="nf_correct_${qId}" value="3">
+                            <input type="text" class="form-input nf-mcq-opt-input" placeholder="اختيار 4" style="font-size:0.75rem; padding:4px 8px; height:28px;">
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'tf') {
+                container.innerHTML = `
+                    <div style="margin-top:8px; display:flex; gap:12px; align-items:center;">
+                        <span style="font-size:0.75rem; font-weight:700;">الإجابة الصحيحة:</span>
+                        <label style="display:flex; align-items:center; gap:4px; font-size:0.75rem; cursor:pointer;">
+                            <input type="radio" name="nf_correct_${qId}" value="true" checked> صح
+                        </label>
+                        <label style="display:flex; align-items:center; gap:4px; font-size:0.75rem; cursor:pointer;">
+                            <input type="radio" name="nf_correct_${qId}" value="false"> خطأ
+                        </label>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = '';
+            }
+        }
+
+        function removeNFQuestion(qId) {
+            const card = document.getElementById(`nf_qcard_${qId}`);
+            if (card) {
+                card.remove();
+                updateNFQuestionsCount();
+            }
+        }
+
+        function updateNFQuestionsCount() {
+            const list = document.getElementById('nfQuestionsList');
+            if (list) {
+                const count = list.children.length;
+                document.getElementById('nfQuestionsCount').textContent = count;
+            }
+        }
+
+        function openNativeTaskCreateForm() {
+            openModal('nativeTaskFormModal');
+            document.getElementById('nfFormTitle').textContent = 'إضافة مهمة جديدة';
+            document.getElementById('nfTaskId').value = '0';
+            document.getElementById('nfTitle').value = '';
+            document.getElementById('nfDesc').value = '';
+            document.getElementById('nfNoDeadline').checked = false;
+            document.getElementById('nfEndDate').disabled = false;
+            
+            // Default dates
+            const now = new Date();
+            const startVal = now.toISOString().slice(0, 16);
+            document.getElementById('nfStartDate').value = startVal;
+            
+            const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+            document.getElementById('nfEndDate').value = tomorrow.toISOString().slice(0, 16);
+
+            document.getElementById('nfTotalDegree').value = '10';
+            document.getElementById('nfMaxCoupons').value = '10';
+            document.getElementById('nfStatus').value = 'published';
+            document.getElementById('nfQuestionsList').innerHTML = '';
+            updateNFQuestionsCount();
+            renderNFClasses([]);
+            
+            // Update URL routing
+            updateTaskUrlParams(null, 'create');
+        }
+
+        async function openNativeTaskEditForm(taskId) {
+            openModal('nativeTaskFormModal');
+            document.getElementById('nfFormTitle').textContent = 'تعديل المهمة';
+            document.getElementById('nfTaskId').value = taskId;
+            document.getElementById('nfQuestionsList').innerHTML = '<div style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin"></i> جاري تحميل الأسئلة...</div>';
+
+            try {
+                // Update URL routing
+                updateTaskUrlParams(taskId, 'edit');
+
+                const r = await makeApiCallRaw({ action: 'getTaskDetail', task_id: taskId });
+                if (r && r.success && r.task) {
+                    const t = r.task;
+                    document.getElementById('nfTitle').value = t.title;
+                    document.getElementById('nfDesc').value = t.description || '';
+                    document.getElementById('nfStartDate').value = t.start_date ? t.start_date.slice(0, 16).replace(' ', 'T') : '';
+                    document.getElementById('nfEndDate').value = t.end_date ? t.end_date.slice(0, 16).replace(' ', 'T') : '';
+                    document.getElementById('nfNoDeadline').checked = t.no_deadline == 1;
+                    document.getElementById('nfEndDate').disabled = t.no_deadline == 1;
+
+                    document.getElementById('nfTotalDegree').value = t.total_degree;
+                    document.getElementById('nfMaxCoupons').value = t.max_coupons;
+                    document.getElementById('nfStatus').value = t.status;
+                    
+                    if (t.coupon_matrix) {
+                        try {
+                            const parsedMatrix = JSON.parse(t.coupon_matrix);
+                            document.getElementById('nfCouponMatrix').value = JSON.stringify(parsedMatrix);
+                        } catch (e) {
+                            document.getElementById('nfCouponMatrix').value = t.coupon_matrix;
+                        }
+                    }
+
+                    // Render assigned classes
+                    let selectedClassIds = [];
+                    if (t.class_ids) {
+                        selectedClassIds = t.class_ids.split(',').map(s => s.trim());
+                    } else if (t.class_id) {
+                        selectedClassIds = [String(t.class_id)];
+                    }
+                    renderNFClasses(selectedClassIds);
+
+                    // Render questions
+                    const container = document.getElementById('nfQuestionsList');
+                    container.innerHTML = '';
+                    const questions = t.questions || [];
+                    if (questions.length === 0) {
+                        container.innerHTML = '<div style="text-align:center;padding:10px;color:var(--text-3);">لا توجد أسئلة مضافة بعد. اضغط على "إضافة سؤال" للبدء</div>';
+                    } else {
+                        questions.forEach(q => addNFQuestion(q));
+                    }
+                } else {
+                    showToast('فشل جلب تفاصيل المهمة للتعديل', 'err');
+                    closeModal('nativeTaskFormModal');
+                }
+            } catch (e) {
+                showToast('حدث خطأ أثناء تحميل بيانات المهمة للتعديل', 'err');
+                closeModal('nativeTaskFormModal');
+            }
+        }
+
+        function toggleFormNoDeadline() {
+            const isChecked = document.getElementById('nfNoDeadline').checked;
+            document.getElementById('nfEndDate').disabled = isChecked;
+        }
+
+        async function saveNativeTask() {
+            const taskId = parseInt(document.getElementById('nfTaskId').value) || 0;
+            const title = document.getElementById('nfTitle').value.trim();
+            const description = document.getElementById('nfDesc').value.trim();
+            const startDate = document.getElementById('nfStartDate').value;
+            let endDate = document.getElementById('nfEndDate').value;
+            const noDeadline = document.getElementById('nfNoDeadline').checked ? 1 : 0;
+            const totalDegree = parseInt(document.getElementById('nfTotalDegree').value) || 0;
+            const maxCoupons = parseInt(document.getElementById('nfMaxCoupons').value) || 0;
+            const status = document.getElementById('nfStatus').value;
+            const couponMatrix = document.getElementById('nfCouponMatrix').value.trim();
+
+            if (!title) {
+                showToast('عنوان المهمة مطلوب', 'warning');
+                return;
+            }
+            if (!startDate) {
+                showToast('تاريخ البدء مطلوب', 'warning');
+                return;
+            }
+            if (!noDeadline && !endDate) {
+                showToast('الموعد النهائي مطلوب أو حدد خيار مستمر', 'warning');
+                return;
+            }
+
+            // Get selected class IDs
+            const classIdsList = [];
+            document.querySelectorAll('input[name="nf_class_cb"]:checked').forEach(cb => {
+                classIdsList.push(cb.value);
+            });
+            const classIdsStr = classIdsList.join(',');
+
+            // Build questions JSON
+            const questions = [];
+            const questionCards = document.getElementById('nfQuestionsList').children;
+            let questionsValid = true;
+
+            for (let i = 0; i < questionCards.length; i++) {
+                const card = questionCards[i];
+                if (!card.classList.contains('nf-question-card')) continue;
+                
+                const qId = card.dataset.qid;
+                const text = card.querySelector('.nf-qtext-input').value.trim();
+                const type = card.querySelector('.nf-qtype-select').value;
+                const degree = parseFloat(card.querySelector('.nf-qdegree-input').value) || 0;
+
+                if (!text) {
+                    showToast('نص السؤال مطلوب لجميع الأسئلة المضافة', 'warning');
+                    questionsValid = false;
+                    break;
+                }
+
+                const qObj = {
+                    id: isNaN(qId) ? i + 1 : parseInt(qId),
+                    text: text,
+                    type: type,
+                    degree: degree
+                };
+
+                if (type === 'mcq') {
+                    const optInputs = card.querySelectorAll('.nf-mcq-opt-input');
+                    const options = [];
+                    optInputs.forEach(inp => {
+                        if (inp.value.trim()) options.push(inp.value.trim());
+                    });
+                    if (options.length < 2) {
+                        showToast('يجب كتابة اختيارين على الأقل للأسئلة الاختيارية', 'warning');
+                        questionsValid = false;
+                        break;
+                    }
+                    const correctRadio = card.querySelector(`input[name="nf_correct_${qId}"]:checked`);
+                    const correctIdx = correctRadio ? parseInt(correctRadio.value) : 0;
+
+                    qObj.options = options;
+                    qObj.answer = correctIdx;
+                } else if (type === 'tf') {
+                    const correctRadio = card.querySelector(`input[name="nf_correct_${qId}"]:checked`);
+                    qObj.answer = correctRadio ? correctRadio.value : 'true';
+                }
+
+                questions.push(qObj);
+            }
+
+            if (!questionsValid) return;
+
+            const payload = {
+                action: taskId > 0 ? 'updateTask' : 'createTask',
+                title: title,
+                description: description,
+                start_date: startDate.replace('T', ' '),
+                end_date: noDeadline ? '9999-12-31 23:59:59' : endDate.replace('T', ' '),
+                no_deadline: noDeadline,
+                total_degree: totalDegree,
+                max_coupons: maxCoupons,
+                status: status,
+                coupon_matrix: couponMatrix,
+                class_ids: classIdsStr,
+                questions: JSON.stringify(questions)
+            };
+
+            if (taskId > 0) {
+                payload.task_id = taskId;
+            } else {
+                payload.class_name = currentClass;
+            }
+
+            try {
+                showToast('جاري حفظ المهمة...', 'info');
+                const res = await makeApiCallRaw(payload);
+                if (res && res.success) {
+                    showToast('تم حفظ المهمة بنجاح!', 'ok');
+                    closeModal('nativeTaskFormModal');
+                    if (taskId > 0) {
+                        openNativeTaskDetails(taskId); // Back to details if editing
+                    } else {
+                        closeTasksModal(); // Reload lists
+                    }
+                } else {
+                    showToast(res.message || 'فشل حفظ المهمة', 'err');
+                }
+            } catch (err) {
+                showToast('خطأ أثناء الاتصال بالخادم لحفظ المهمة', 'err');
+            }
+        }
+
+        async function deleteNativeTask(taskId) {
+            if (!confirm('هل أنت متأكد من حذف هذه المهمة نهائياً؟ سيتم حذف جميع إجابات وتقييمات الطلاب المرتبطة بها.')) return;
+            
+            try {
+                showToast('جاري حذف المهمة...', 'info');
+                const res = await makeApiCallRaw({ action: 'deleteTask', task_id: taskId });
+                if (res && res.success) {
+                    showToast('تم حذف المهمة بنجاح', 'ok');
+                    closeModal('nativeTaskDetailModal');
+                    closeModal('nativeTaskFormModal');
+                    closeTasksModal();
+                } else {
+                    showToast(res.message || 'فشل حذف المهمة', 'err');
+                }
+            } catch (err) {
+                showToast('خطأ أثناء حذف المهمة', 'err');
+            }
+        }
+
+        function updateTasksScrollIndicator() {
+            const list = document.getElementById('collapsedTasksList');
+            const ind = document.getElementById('tasksScrollIndicator');
+            if (!list || !ind) return;
+
+            if (list.style.display === 'flex' && list.scrollHeight > list.clientHeight) {
+                if (list.scrollTop + list.clientHeight < list.scrollHeight - 5) {
+                    ind.style.display = 'flex';
+                } else {
+                    ind.style.display = 'none';
+                }
+            } else {
+                ind.style.display = 'none';
             }
         }
 
@@ -14698,6 +15620,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (classTasks.length > 0) {
                     container.style.display = 'flex';
                     renderCollapsedTasks();
+                    
+                    const list = document.getElementById('collapsedTasksList');
+                    const icon = document.getElementById('tasksCollapseIcon');
+                    const toggleText = document.getElementById('tasksToggleText');
+                    if (list) {
+                        list.style.display = 'flex';
+                        isTasksCollapsed = false;
+                        if (icon) icon.style.transform = 'rotate(180deg)';
+                        if (toggleText) toggleText.textContent = 'إخفاء';
+                        
+                        // Attach event listener if not already done
+                        list.removeEventListener('scroll', updateTasksScrollIndicator);
+                        list.addEventListener('scroll', updateTasksScrollIndicator);
+                    }
+                    setTimeout(updateTasksScrollIndicator, 150);
                 } else {
                     container.style.display = 'none';
                 }
@@ -14747,22 +15684,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         function toggleTasksCollapse() {
-            isTasksCollapsed = !isTasksCollapsed;
-            const list = document.getElementById('collapsedTasksList');
-            const icon = document.getElementById('tasksCollapseIcon');
-            const toggleText = document.getElementById('tasksToggleText');
-
-            if (list && icon && toggleText) {
-                if (isTasksCollapsed) {
-                    list.style.display = 'none';
-                    icon.style.transform = 'rotate(0deg)';
-                    toggleText.textContent = 'عرض';
-                } else {
-                    list.style.display = 'flex';
-                    icon.style.transform = 'rotate(180deg)';
-                    toggleText.textContent = 'إخفاء';
-                }
-            }
+            // Open the tasks listing modal as requested
+            openTasksModal();
         }
 
         // Listen for postMessage from tasks iframe
@@ -15751,8 +16674,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (cached) {
                 try {
                     const d = JSON.parse(cached);
-                    students = d.students || d.allStudents || [];
-                    allStudentsData = d.allStudents || d.students || students;
+                    students = d.students || d.allStudents || d.data || [];
+                    allStudentsData = d.allStudents || d.students || d.data || students;
                     if (d.classes && d.classes.length) {
                         classes = d.classes.sort((a, b) => {
                             const orderA = Number(a.class_order !== undefined ? a.class_order : (a.display_order !== undefined ? a.display_order : 999));
@@ -20262,6 +21185,54 @@ if ($hasUncleId && $uncleRole === 'uncle')
             document.getElementById('studentDetails').innerHTML = examsSubPageHtml;
         }
 
+        function showTasksSubPage() {
+            if (!currentStudentForEdit) return;
+            const full = currentStudentForEdit;
+            const tasksList = full.tasks || [];
+
+            setModalHeader('المهام والاختبارات المحلولة', true);
+            hideDetailsFooter();
+            scrollToDetailsTop();
+
+            const tasksHtml = tasksList.length === 0 ? `
+                <div style="text-align:center; padding:30px 20px; color:var(--text-3); font-size:0.82rem; font-style:italic;">
+                    لا توجد مهام محلولة مسجلة للطفل.
+                </div>
+            ` : tasksList.map(task => {
+                const dateObj = new Date(task.submitted_at);
+                const dateStr = `${dateObj.getDate()}/${dateObj.getMonth() + 1} ${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
+                const earned = parseFloat(task.score);
+                const total = parseFloat(task.task_total_degree);
+                const isPass = total > 0 ? (earned / total >= 0.5) : true;
+                return `
+                <div class="glass-card" style="padding:12px; border:1px solid var(--border-solid); border-radius:10px; display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; direction:rtl; text-align:right;">
+                    <div style="display:flex; flex-direction:column; gap:4px; flex:1;">
+                        <span style="font-weight:700; font-size:0.82rem; color:var(--text);">${escHtml(task.task_title)}</span>
+                        <div style="display:flex; gap:8px; align-items:center; font-size:0.75rem; margin-top:2px; flex-wrap:wrap;">
+                            <span style="color:var(--text-3);"><i class="far fa-clock"></i> تسليم: ${dateStr}</span>
+                            <span style="color:var(--brand); font-weight:700;"><i class="fas fa-coins" style="color:var(--coupon);"></i> ${task.coupons_awarded} كوبون</span>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span class="ov-grade-badge ${isPass ? 'ov-grade-pass' : 'ov-grade-fail'}" style="font-size:0.75rem; padding:4px 8px; border-radius:6px; font-weight:bold; white-space:nowrap;">
+                            الدرجة: ${earned} / ${total}
+                        </span>
+                    </div>
+                </div>
+                `;
+            }).join('');
+
+            const tasksSubPageHtml = `
+            <div class="student-tasks-section" style="margin-top:8px;">
+                <div style="display:flex; flex-direction:column;">
+                    ${tasksHtml}
+                </div>
+            </div>
+            `;
+
+            document.getElementById('studentDetails').innerHTML = tasksSubPageHtml;
+        }
+
         function showNotesSubPage() {
             if (!currentStudentForEdit) return;
             const s = currentStudentForEdit;
@@ -21005,6 +21976,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
             </div>
             `;
 
+            // Tasks section inside modal details
+            const tasksList = full.tasks || [];
+            const tasksHtml = `
+            <div class="navigation-row" onclick="showTasksSubPage()">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div class="navigation-icon purple"><i class="fas fa-tasks"></i></div>
+                    <div class="navigation-label">المهام والاختبارات المحلولة</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span class="navigation-count">${tasksList.length}</span>
+                    <i class="fas fa-chevron-left navigation-arrow"></i>
+                </div>
+            </div>
+            `;
+
             // Notes section inside modal details
             const notesList = info._notes || [];
             const notesHtml = `
@@ -21033,7 +22019,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             </div>
             `;
 
-            document.getElementById('studentDetails').innerHTML = img + rows + tpHtml + siblingHtml + paperExamsHtml + notesHtml + publicProfileHtml;
+            document.getElementById('studentDetails').innerHTML = img + rows + tpHtml + siblingHtml + paperExamsHtml + tasksHtml + notesHtml + publicProfileHtml;
         }
 
         function buildUncleDetailsFromProfile(full) {
@@ -26872,6 +27858,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     document.getElementById('pendingRegistrationsSection')?.scrollIntoView({ behavior: 'smooth' });
                 }, 1000);
             }
+            checkTaskUrlParamsOnLoad();
         });
 
         // ══════════════════════════════════════════════════════════════

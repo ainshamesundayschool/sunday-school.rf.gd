@@ -12098,6 +12098,10 @@ button, input, select, textarea, a {
 
 
     <script src="/js/og-meta.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="/js/search_intelligent.js"></script>
 </head>
 
 
@@ -12212,7 +12216,7 @@ button, input, select, textarea, a {
 
         <button class="btn-create" onclick="openCreate()"><i class="fas fa-plus"></i> مهمة جديدة</button>
 
-
+        <button class="hero-link" onclick="openTasksOverviewModal()" style="background:var(--brand-bg); color:var(--brand); border:1px solid var(--brand-l); font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; gap:6px;"><i class="fas fa-file-export"></i> تصدير نظرة عامة</button>
 
         <a class="hero-link" href="<?php echo htmlspecialchars($dashBack); ?>"><i class="fas fa-arrow-right"></i> الرجوع للوحة الفصل</a>
 
@@ -13369,6 +13373,157 @@ button, input, select, textarea, a {
 
 
 
+
+<!-- ══ TASKS OVERVIEW & EXPORT MODAL ══════════════════════════════ -->
+<div class="overlay fullscreen" id="overviewOv">
+  <style>
+    #overviewOv .modal {
+      font-family: 'Baloo Bhaijaan 2', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+    }
+    .ov-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      direction: rtl;
+      font-size: .87rem;
+    }
+    .ov-table th {
+      background: var(--brand-bg) !important;
+      color: var(--brand) !important;
+      font-weight: 700;
+      padding: 12px 10px;
+      border-bottom: 2px solid var(--brand-l);
+      text-align: right;
+      white-space: nowrap;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .ov-table td {
+      padding: 10px;
+      border-bottom: 1px solid var(--bdr);
+      color: var(--t1);
+      vertical-align: middle;
+      text-align: right;
+    }
+    .ov-table tr:hover td {
+      background: var(--bg-hover) !important;
+    }
+    .ov-table tr:nth-child(even) td {
+      background: var(--bg);
+    }
+    .ov-cell-answered {
+      color: #10b981;
+      font-weight: bold;
+    }
+    .ov-cell-unanswered {
+      color: var(--t3);
+      font-style: italic;
+    }
+    .ov-grade-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: .75rem;
+      font-weight: bold;
+    }
+    .ov-grade-pass {
+      background: #e6fcf5;
+      color: #0ca678;
+    }
+    .ov-grade-fail {
+      background: #fff5f5;
+      color: #fa5252;
+    }
+    .ov-time-text {
+      font-size: .7rem;
+      color: var(--t3);
+      margin-top: 3px;
+      display: block;
+    }
+    .ov-class-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: .75rem;
+      background: var(--bg-card);
+      border: 1px solid var(--bdr);
+      color: var(--t2);
+    }
+  </style>
+  <div class="modal wide" style="max-width:1300px; width:95%; height:90vh; display:flex; flex-direction:column;">
+    <div class="mhdr">
+      <div class="mhdr-ico" style="background:var(--brand-bg); color:var(--brand);"><i class="fas fa-file-export"></i></div>
+      <div>
+        <div class="mhdr-title">تصدير نظرة عامة للمهام</div>
+        <div class="mhdr-sub">تصدير نتائج وحل الطلاب للمهام بصيغ مختلفة (صورة، PDF، CSV، أو نسخ رسالة)</div>
+      </div>
+      <div class="mclose" onclick="closeOv('overviewOv')"><i class="fas fa-times"></i></div>
+    </div>
+    
+    <div class="mbody" style="flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:20px;">
+      <!-- Filters and Options Box -->
+      <div class="overview-filters-box" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:15px; background:var(--bg); border:1px solid var(--bdr); padding:15px; border-radius:12px;">
+        <!-- Class Filter -->
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <label style="font-weight:700; font-size:.9rem; color:var(--t1);"><i class="fas fa-users"></i> الفصول المستهدفة:</label>
+          <div id="ovClassesList" style="display:flex; flex-wrap:wrap; gap:8px; max-height:100px; overflow-y:auto; padding:5px; border:1px solid var(--bdr); border-radius:8px; background:#fff;">
+            <!-- Loaded dynamically in JS -->
+          </div>
+        </div>
+        
+        <!-- Answer Status Filter -->
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <label style="font-weight:700; font-size:.9rem; color:var(--t1);"><i class="fas fa-filter"></i> عرض الطلاب:</label>
+          <select id="ovAnswerStatus" onchange="renderOverviewTable()" style="padding:8px 12px; border:1px solid var(--bdr); border-radius:8px; background:#fff; font-size:.87rem; outline:none; cursor:pointer;">
+            <option value="both">الكل (الذين أجابوا والذين لم يجيبوا)</option>
+            <option value="answered">الذين أجابوا فقط (على الأقل مهمة واحدة)</option>
+            <option value="unanswered">الذين لم يجيبوا على أي مهمة</option>
+            <option value="missing">الذين لديهم مهام لم يتم حلها</option>
+          </select>
+        </div>
+        
+        <!-- Search and Toggles -->
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <label style="font-weight:700; font-size:.9rem; color:var(--t1);"><i class="fas fa-search"></i> بحث عن طالب:</label>
+          <input type="text" id="ovStudentSearch" oninput="renderOverviewTable()" placeholder="ابحث باسم الطالب (إدخال ذكي)..." style="padding:8px 12px; border:1px solid var(--bdr); border-radius:8px; font-size:.87rem; outline:none;">
+        </div>
+
+        <!-- Toggle Checkboxes -->
+        <div style="display:flex; flex-direction:column; justify-content:center; gap:10px;">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:.87rem; color:var(--t1);">
+            <input type="checkbox" id="ovShowGrades" onchange="renderOverviewTable()" checked style="accent-color:var(--brand); width:16px; height:16px; cursor:pointer;">
+            <span>عرض الدرجات والتقييم</span>
+          </label>
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:.87rem; color:var(--t1);">
+            <input type="checkbox" id="ovShowTime" onchange="renderOverviewTable()" checked style="accent-color:var(--brand); width:16px; height:16px; cursor:pointer;">
+            <span>عرض وقت تسليم المهمة</span>
+          </label>
+        </div>
+      </div>
+      
+      <!-- Table Wrapper -->
+      <div style="flex:1; border:1px solid var(--bdr); border-radius:12px; background:#fff; padding:15px; overflow:auto; position:relative; min-height:250px;">
+        <div id="ovTableContainer">
+          <!-- Dynamically Rendered Table -->
+        </div>
+      </div>
+    </div>
+    
+    <div class="mfoot" style="justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+      <div style="font-size:.8rem; color:var(--t2);" id="ovStatsText">جاري معالجة البيانات...</div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-g" onclick="closeOv('overviewOv')">إلغاء</button>
+        <button class="btn" onclick="copyOverviewMessage()" style="background:linear-gradient(135deg,#10b981,#059669); color:#fff; font-weight:700;"><i class="fas fa-copy"></i> نسخ كرسالة</button>
+        <button class="btn" onclick="exportOverviewCSV()" style="background:linear-gradient(135deg,#3b82f6,#2563eb); color:#fff; font-weight:700;"><i class="fas fa-file-csv"></i> CSV</button>
+        <button class="btn" onclick="exportOverviewPDF()" style="background:linear-gradient(135deg,#ec4899,#d946ef); color:#fff; font-weight:700;"><i class="fas fa-file-pdf"></i> PDF</button>
+        <button class="btn btn-p" onclick="exportOverviewImage()"><i class="fas fa-file-image"></i> صورة</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="tc" id="tc"></div>
 
@@ -19402,7 +19557,339 @@ function showToast(msg,type='info'){
 
 }
 
+// ─── Tasks Overview and Export Logic ──────────────────────────────────────────
 
+async function openTasksOverviewModal() {
+  showToast('جاري جلب بيانات الطلاب...', 'info');
+  try {
+    await loadStudents('كل الفصول');
+  } catch(e) {
+    console.error(e);
+  }
+  
+  openOv('overviewOv');
+  buildOverviewClassesList();
+  renderOverviewTable();
+}
+
+function buildOverviewClassesList() {
+  const container = document.getElementById('ovClassesList');
+  if (!container) return;
+  container.innerHTML = '';
+  
+  allClasses.forEach(cl => {
+    const wrap = document.createElement('label');
+    wrap.className = 'ov-class-label';
+    wrap.style = "display:flex; align-items:center; gap:6px; cursor:pointer; font-size:.8rem; background:var(--bg-card); padding:4px 8px; border-radius:6px; border:1px solid var(--bdr); transition:all 0.2s;";
+    
+    const chk = document.createElement('input');
+    chk.type = 'checkbox';
+    chk.value = cl.arabic_name;
+    chk.className = 'ov-class-checkbox';
+    chk.style.accentColor = 'var(--brand)';
+    chk.style.width = '14px';
+    chk.style.height = '14px';
+    chk.style.cursor = 'pointer';
+    
+    if (!CFG.activeClass || CFG.activeClass === 'كل الفصول' || cl.arabic_name === CFG.activeClass) {
+      chk.checked = true;
+    }
+    
+    chk.onchange = renderOverviewTable;
+    
+    wrap.appendChild(chk);
+    wrap.appendChild(document.createTextNode(' ' + cl.arabic_name));
+    container.appendChild(wrap);
+  });
+}
+
+function renderOverviewTable() {
+  const tableContainer = document.getElementById('ovTableContainer');
+  const statsText = document.getElementById('ovStatsText');
+  if (!tableContainer) return;
+  
+  const showGrades = document.getElementById('ovShowGrades').checked;
+  const showTime = document.getElementById('ovShowTime').checked;
+  const statusFilter = document.getElementById('ovAnswerStatus').value;
+  const searchVal = document.getElementById('ovStudentSearch').value.trim();
+  
+  const checkedClassNames = Array.from(document.querySelectorAll('.ov-class-checkbox:checked')).map(cb => cb.value);
+  
+  if (checkedClassNames.length === 0) {
+    tableContainer.innerHTML = '<div style="text-align:center; padding:40px; color:var(--t3);">برجاء تحديد فصل واحد على الأقل للعرض.</div>';
+    statsText.textContent = 'عدد الطلاب: 0 | عدد المهام: 0';
+    return;
+  }
+  
+  let targetStudents = [];
+  checkedClassNames.forEach(cn => {
+    const list = classStuCache[cn] || [];
+    list.forEach(s => {
+      if (!targetStudents.some(item => item.id === s.id)) {
+        targetStudents.push({ ...s, className: cn });
+      }
+    });
+  });
+  
+  const checkedClassIds = checkedClassNames.map(cn => {
+    const found = allClasses.find(c => c.arabic_name === cn);
+    return found ? String(found.id) : null;
+  }).filter(Boolean);
+  
+  const targetTasks = tasks.filter(t => {
+    if (t.status === 'draft') return false;
+    if (t.class_id === 0 || t.class_name === 'كل الفصول') return true;
+    if (checkedClassNames.includes(t.class_name)) return true;
+    if (t.class_ids) {
+      const ids = String(t.class_ids).split(',');
+      if (ids.some(id => checkedClassIds.includes(id))) return true;
+    }
+    return false;
+  });
+  
+  targetTasks.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  
+  const subMap = {};
+  targetTasks.forEach(t => {
+    const subs = t.submissions || [];
+    subs.forEach(sub => {
+      subMap[sub.student_id + '_' + t.id] = sub;
+    });
+  });
+  
+  if (searchVal && targetStudents.length > 0 && typeof getMatchScore === 'function') {
+    targetStudents = targetStudents.map(s => {
+      const score = getMatchScore(s, searchVal, [
+        { val: s.name, weight: 1.0 },
+        { val: s.className, weight: 0.5 }
+      ]);
+      return { ...s, _score: score };
+    }).filter(s => s._score > 0)
+      .sort((a, b) => b._score - a._score);
+  } else {
+    targetStudents.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+  }
+  
+  if (targetTasks.length > 0) {
+    targetStudents = targetStudents.filter(s => {
+      const solvedCount = targetTasks.filter(t => subMap[s.id + '_' + t.id]).length;
+      if (statusFilter === 'answered') {
+        return solvedCount > 0;
+      } else if (statusFilter === 'unanswered') {
+        return solvedCount === 0;
+      } else if (statusFilter === 'missing') {
+        return solvedCount < targetTasks.length;
+      }
+      return true;
+    });
+  }
+  
+  if (targetTasks.length === 0) {
+    tableContainer.innerHTML = '<div style="text-align:center; padding:40px; color:var(--t3);">لا توجد مهام منشورة لهذه الفصول بعد.</div>';
+    statsText.textContent = `عدد الطلاب: ${targetStudents.length} | عدد المهام: 0`;
+    return;
+  }
+  
+  let html = `<table class="ov-table" id="ovExportTable">`;
+  html += `<thead><tr>`;
+  html += `<th style="min-width:180px;">اسم الطالب</th>`;
+  html += `<th style="min-width:100px;">الفصل</th>`;
+  
+  targetTasks.forEach(t => {
+    html += `<th style="min-width:120px; text-align:center;" title="${esc(t.title)}">${esc(t.title)}</th>`;
+  });
+  html += `</tr></thead><tbody>`;
+  
+  if (targetStudents.length === 0) {
+    html += `<tr><td colspan="${targetTasks.length + 2}" style="text-align:center; padding:30px; color:var(--t3);">لا يوجد طلاب يطابقون خيارات البحث والترشيح.</td></tr>`;
+  } else {
+    targetStudents.forEach(s => {
+      html += `<tr>`;
+      html += `<td><strong>${esc(s.name)}</strong></td>`;
+      html += `<td><span class="ov-class-badge">${esc(s.className)}</span></td>`;
+      
+      targetTasks.forEach(t => {
+        const sub = subMap[s.id + '_' + t.id];
+        html += `<td style="text-align:center;">`;
+        if (sub) {
+          if (showGrades) {
+            const scoreVal = parseInt(sub.score);
+            const totalVal = parseInt(t.total_degree || sub.total_degree || 0);
+            const pct = totalVal > 0 ? (scoreVal / totalVal) : 0;
+            const isPass = pct >= 0.5;
+            html += `<span class="ov-grade-badge ${isPass ? 'ov-grade-pass' : 'ov-grade-fail'}">${scoreVal}/${totalVal}</span>`;
+          } else {
+            html += `<span class="ov-cell-answered"><i class="fas fa-check-circle"></i> أجاب</span>`;
+          }
+          if (showTime && sub.submitted_at) {
+            const dateObj = new Date(sub.submitted_at);
+            const dateStr = `${dateObj.getDate()}/${dateObj.getMonth() + 1} ${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
+            html += `<span class="ov-time-text">${dateStr}</span>`;
+          }
+        } else {
+          html += `<span class="ov-cell-unanswered"><i class="fas fa-times-circle" style="color:var(--err-bg); filter:brightness(0.85);"></i> لم يجب</span>`;
+        }
+        html += `</td>`;
+      });
+      html += `</tr>`;
+    });
+  }
+  
+  html += `</tbody></table>`;
+  tableContainer.innerHTML = html;
+  
+  statsText.textContent = `عدد الطلاب: ${targetStudents.length} | عدد المهام: ${targetTasks.length}`;
+}
+
+function exportOverviewCSV() {
+  const table = document.getElementById('ovExportTable');
+  if (!table) { showToast('لا توجد بيانات لتصديرها', 'err'); return; }
+  
+  let csv = [];
+  const rows = table.querySelectorAll('tr');
+  
+  rows.forEach(tr => {
+    let row = [];
+    const cols = tr.querySelectorAll('th, td');
+    cols.forEach(col => {
+      let text = col.innerText.trim().replace(/"/g, '""');
+      text = text.replace(/[\n\r]+/g, ' ');
+      row.push('"' + text + '"');
+    });
+    csv.push(row.join(','));
+  });
+  
+  const csvContent = "\ufeff" + csv.join("\n");
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', `overview_tasks_${new Date().toISOString().slice(0,10)}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  showToast('تم تصدير ملف CSV بنجاح', 'ok');
+}
+
+function copyOverviewMessage() {
+  const table = document.getElementById('ovExportTable');
+  if (!table) { showToast('لا توجد بيانات لنسخها', 'err'); return; }
+  
+  const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.innerText.trim());
+  const rows = Array.from(table.querySelectorAll('tbody tr'));
+  
+  let msg = `📊 *تقرير حل المهام والاختبارات*\n`;
+  msg += `📅 التاريخ: ${new Date().toLocaleDateString('ar-EG')}\n\n`;
+  
+  msg += `📋 *المهام:* \n`;
+  for (let i = 2; i < headers.length; i++) {
+    msg += ` ${i-1}- ${headers[i]}\n`;
+  }
+  msg += `\n`;
+  
+  msg += `👤 *الطلاب:*\n`;
+  rows.forEach(tr => {
+    const cols = tr.querySelectorAll('td');
+    if (cols.length < 2) return;
+    const name = cols[0].innerText.trim();
+    const cls = cols[1].innerText.trim();
+    
+    msg += `• *${name}* (${cls}):\n`;
+    for (let i = 2; i < cols.length; i++) {
+      const taskTitle = headers[i];
+      const statusText = cols[i].innerText.trim().replace(/\s+/g, ' ');
+      msg += `   - ${taskTitle}: ${statusText}\n`;
+    }
+  });
+  
+  navigator.clipboard.writeText(msg).then(() => {
+    showToast('تم نسخ التقرير كرسالة', 'ok');
+  }).catch(() => {
+    const textarea = document.createElement('textarea');
+    textarea.value = msg;
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      document.execCommand('copy');
+      showToast('تم نسخ التقرير كرسالة', 'ok');
+    } catch(err) {
+      showToast('فشل نسخ التقرير تلقائياً', 'err');
+    }
+    document.body.removeChild(textarea);
+  });
+}
+
+async function exportOverviewImage() {
+  const container = document.getElementById('ovTableContainer');
+  if (!container) { showToast('لا توجد بيانات لتصديرها', 'err'); return; }
+  
+  showToast('جاري إعداد الصورة...', 'info');
+  
+  try {
+    const canvas = await html2canvas(container, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+      allowTaint: false
+    });
+    
+    const link = document.createElement('a');
+    link.download = `overview_tasks_${new Date().toISOString().slice(0,10)}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast('تم حفظ الصورة بنجاح', 'ok');
+  } catch(e) {
+    console.error(e);
+    showToast('فشل تصدير الصورة', 'err');
+  }
+}
+
+async function exportOverviewPDF() {
+  const container = document.getElementById('ovTableContainer');
+  if (!container) { showToast('لا توجد بيانات لتصديرها', 'err'); return; }
+  
+  showToast('جاري إنشاء PDF...', 'info');
+  
+  try {
+    const { jsPDF } = window.jspdf;
+    if (!jsPDF) { showToast('مكتبة PDF غير محملة', 'err'); return; }
+    
+    const canvas = await html2canvas(container, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+      allowTaint: false
+    });
+    
+    const orientation = canvas.width > canvas.height ? 'landscape' : 'portrait';
+    const pdf = new jsPDF({ orientation, unit: 'mm', format: 'a4' });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const imgW = pageW - 12;
+    const imgH = canvas.height * imgW / canvas.width;
+    const img = canvas.toDataURL('image/png');
+    
+    let y = 6;
+    let remaining = imgH;
+    
+    pdf.addImage(img, 'PNG', 6, y, imgW, imgH);
+    while (remaining > pageH - 12) {
+      remaining -= pageH - 12;
+      pdf.addPage();
+      pdf.addImage(img, 'PNG', 6, 6 - (imgH - remaining), imgW, imgH);
+    }
+    
+    pdf.save(`overview_tasks_${new Date().toISOString().slice(0,10)}.pdf`);
+    showToast('تم حفظ PDF بنجاح', 'ok');
+  } catch (e) {
+    console.error(e);
+    showToast('فشل إنشاء PDF: ' + e.message, 'err');
+  }
+}
+
+}
 
 </script>
 

@@ -21324,6 +21324,31 @@ function getStudentProfile()
             $examsStmt->close();
             $row['paper_exams'] = $paperExams;
 
+            $tasksStmt = $conn->prepare("
+                SELECT ts.id, ts.task_id, ts.score, ts.coupons_awarded, ts.submitted_at, t.title AS task_title, t.total_degree AS task_total_degree
+                FROM task_submissions ts
+                JOIN tasks t ON ts.task_id = t.id
+                WHERE ts.student_id = ? AND ts.church_id = ?
+                ORDER BY ts.submitted_at DESC
+            ");
+            $tasksStmt->bind_param("ii", $studentId, $row['church_id']);
+            $tasksStmt->execute();
+            $tasksRes = $tasksStmt->get_result();
+            $studentTasks = [];
+            while ($tRow = $tasksRes->fetch_assoc()) {
+                $studentTasks[] = [
+                    'id' => intval($tRow['id']),
+                    'task_id' => intval($tRow['task_id']),
+                    'score' => floatval($tRow['score']),
+                    'coupons_awarded' => intval($tRow['coupons_awarded']),
+                    'submitted_at' => $tRow['submitted_at'],
+                    'task_title' => $tRow['task_title'],
+                    'task_total_degree' => floatval($tRow['task_total_degree'])
+                ];
+            }
+            $tasksStmt->close();
+            $row['tasks'] = $studentTasks;
+
             sendJSON([
 
                 'success' => true,
