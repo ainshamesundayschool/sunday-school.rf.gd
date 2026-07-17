@@ -21831,12 +21831,7 @@ function getPaperExamDegrees() {
         }
     }
 
-    // 3. Filter by uncle's assigned classes if restricted
-    if ($isRestricted) {
-        $sql .= " AND COALESCE(cc.arabic_name, cl.arabic_name, s.class) IN (SELECT class_name FROM uncle_class_assignments WHERE uncle_id = ?)";
-        $params[] = $uncleId;
-        $types .= "i";
-    }
+
 
     $sql .= " ORDER BY s.name ASC";
 
