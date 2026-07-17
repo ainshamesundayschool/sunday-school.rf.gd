@@ -16234,6 +16234,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 return;
             }
 
+            // Sort list to pin uncle's assigned classes at the very top of the list
+            list = [...list].sort((a, b) => {
+                const aName = a.arabic_name || a.code || '';
+                const bName = b.arabic_name || b.code || '';
+                const aAssigned = isUncleAssignedClass(aName) ? 1 : 0;
+                const bAssigned = isUncleAssignedClass(bName) ? 1 : 0;
+                return bAssigned - aAssigned;
+            });
+
             // ── "View all together" card — only if view_mode includes 'all' ─
             const showAllCard = (churchViewMode === 'all' || churchViewMode === 'both');
             const showClassCards = (churchViewMode === 'classes' || churchViewMode === 'both' || !churchViewMode);
@@ -16319,6 +16328,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const clsHighlightClass = isClsHighlighted ? ' highlighted' : '';
                 const classStudents = students.filter(s => s['الفصل'] === name);
                 const classProgress = getAttendanceProgressHtml(classStudents, color);
+                const pinHtml = isClsHighlighted ? `
+                    <i class="fas fa-thumbtack" style="transform: rotate(45deg); font-size: 0.72rem; color: ${color}; margin-left: 6px;" title="فصلي"></i>
+                ` : '';
                 return `<div class="class-card${clsHighlightClass}" onclick="showClassView('${name}')"
             style="--cls-color:${color}">
             <div class="class-card-badges">
@@ -16328,7 +16340,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div></div>
             </div>
             <div class="class-icon" style="background:color-mix(in srgb,${color} 15%,white);color:${color}">${iconHtml}</div>
-            <div class="class-name">${name} <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${count})</span></div>
+            <div class="class-name">${pinHtml}${name} <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${count})</span></div>
             ${classProgress}
         </div>`;
             }).join('');
