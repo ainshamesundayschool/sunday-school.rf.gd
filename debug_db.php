@@ -6,6 +6,41 @@ try {
     $conn = getDBConnection();
     echo "=== DATABASE CONNECTION SUCCESSFUL ===\n\n";
 
+    // One-time pruning/cleanup for all uncles with subscriptions
+    echo "=== RUNNING ONE-TIME DATABASE CLEANUP ===\n";
+    $uncles = [];
+    $res = $conn->query("SELECT DISTINCT uncle_id FROM push_subscriptions WHERE uncle_id IS NOT NULL");
+    if ($res) {
+        while ($row = $res->fetch_assoc()) {
+            $uncles[] = (int)$row['uncle_id'];
+        }
+    }
+    
+    $cleanedCount = 0;
+    foreach ($uncles as $uid) {
+        $before = $conn->query("SELECT COUNT(*) as cnt FROM push_subscriptions WHERE uncle_id = $uid")->fetch_assoc()['cnt'];
+        $conn->query("
+            DELETE FROM push_subscriptions 
+            WHERE uncle_id = $uid 
+              AND id NOT IN (
+                  SELECT id FROM (
+                      SELECT id FROM push_subscriptions 
+                      WHERE uncle_id = $uid 
+                      ORDER BY updated_at DESC, id DESC 
+                      LIMIT 3
+                  ) as tmp
+              )
+        ");
+        $after = $conn->query("SELECT COUNT(*) as cnt FROM push_subscriptions WHERE uncle_id = $uid")->fetch_assoc()['cnt'];
+        $diff = $before - $after;
+        if ($diff > 0) {
+            echo "Uncle ID $uid: Cleaned $diff stale subscriptions (kept 3 most recent).\n";
+            $cleanedCount += $diff;
+        }
+    }
+    echo "Cleanup complete. Total stale subscriptions removed: $cleanedCount\n\n";
+    echo "=======================================\n\n";
+
     // 1. Check daily_notification_logs table
     echo "=== daily_notification_logs TABLE ===\n";
     $tblCheck1 = $conn->query("SHOW TABLES LIKE 'daily_notification_logs'")->fetch_assoc();
