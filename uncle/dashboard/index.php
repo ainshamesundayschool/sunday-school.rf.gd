@@ -28936,16 +28936,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                     <span>الفصل: <strong>${escHtml(getExamClassesLabel(exam))}</strong></span>
                                 </div>
                             </div>
-                            <div style="display:flex; gap:6px; flex-shrink:0; align-items:center;">
+                            <div style="display:flex; flex-direction:column; gap:6px; flex-shrink:0; align-items:stretch;">
                                 <button class="btn btn-primary" style="font-size:0.75rem; padding:6px 12px;" onclick="openExamSheet(${exam.id})">
                                     <i class="fas fa-list-ol"></i> رصد الدرجات
                                 </button>
-                                <button class="btn btn-ghost" style="padding:6px; font-size:0.8rem;" onclick="editPaperExam(${exam.id}, '${escJs(exam.name)}', ${exam.total_degree}, '${exam.class_id || ''}', '${exam.class_ids || ''}', '${escJs(exam.reference_url || '')}')" title="تعديل">
-                                    <i class="fas fa-edit" style="color:var(--text);"></i>
-                                </button>
-                                <button class="btn btn-ghost" style="padding:6px; font-size:0.8rem; color:var(--danger);" onclick="deletePaperExam(${exam.id}, '${escJs(exam.name)}')" title="حذف">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
+                                <div style="display:flex; justify-content:center; gap:12px;">
+                                    <button class="btn btn-ghost" style="padding:4px; font-size:0.8rem; min-height:unset;" onclick="editPaperExam(${exam.id}, '${escJs(exam.name)}', ${exam.total_degree}, '${exam.class_id || ''}', '${exam.class_ids || ''}', '${escJs(exam.reference_url || '')}')" title="تعديل">
+                                        <i class="fas fa-edit" style="color:var(--text);"></i>
+                                    </button>
+                                    <button class="btn btn-ghost" style="padding:4px; font-size:0.8rem; color:var(--danger); min-height:unset;" onclick="deletePaperExam(${exam.id}, '${escJs(exam.name)}')" title="حذف">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     `).join('');
