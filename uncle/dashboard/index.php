@@ -12473,6 +12473,281 @@ if ($hasUncleId && $uncleRole === 'uncle')
                       color: var(--text-1);
                     }
 
+                    /* Premium Task Details Styles */
+                    .task-detail-hero {
+                        background: linear-gradient(135deg, rgba(var(--brand-rgb), 0.04) 0%, rgba(var(--brand-rgb), 0.01) 100%);
+                        border: 1px solid rgba(var(--brand-rgb), 0.15);
+                        border-radius: var(--r-xl);
+                        padding: 20px;
+                        margin-bottom: 12px;
+                        position: relative;
+                        overflow: hidden;
+                        box-shadow: var(--shadow-sm);
+                    }
+
+                    .task-detail-hero::after {
+                        content: '';
+                        position: absolute;
+                        top: -50px;
+                        left: -50px;
+                        width: 150px;
+                        height: 150px;
+                        border-radius: 50%;
+                        background: radial-gradient(circle, rgba(var(--brand-rgb), 0.1), transparent 70%);
+                        pointer-events: none;
+                    }
+
+                    .task-detail-title-row {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        flex-wrap: wrap;
+                        gap: 12px;
+                        margin-bottom: 10px;
+                    }
+
+                    .task-detail-title {
+                        font-size: 1.25rem;
+                        font-weight: 800;
+                        color: var(--text-1);
+                        font-family: 'Cairo', 'Baloo Bhaijaan 2', sans-serif;
+                    }
+
+                    .task-detail-desc {
+                        font-size: 0.8rem;
+                        color: var(--text-3);
+                        line-height: 1.6;
+                        margin-bottom: 16px;
+                    }
+
+                    .task-detail-stats {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                        gap: 12px;
+                        border-top: 1px dashed var(--border-solid);
+                        padding-top: 16px;
+                    }
+
+                    .task-stat-card {
+                        background: var(--surface-1);
+                        border: 1px solid var(--border-solid);
+                        border-radius: var(--r-lg);
+                        padding: 10px 14px;
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                        transition: all 0.2s ease;
+                        box-shadow: var(--shadow-xs);
+                    }
+
+                    .task-stat-card:hover {
+                        transform: translateY(-2px);
+                        box-shadow: var(--shadow-md);
+                        border-color: var(--brand);
+                    }
+
+                    .task-stat-icon {
+                        width: 38px;
+                        height: 38px;
+                        border-radius: 10px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 1rem;
+                        flex-shrink: 0;
+                    }
+
+                    .task-stat-card.start .task-stat-icon { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
+                    .task-stat-card.end .task-stat-icon { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+                    .task-stat-card.degree .task-stat-icon { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+                    .task-stat-card.coupons .task-stat-icon { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
+
+                    .task-stat-info {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 2px;
+                    }
+
+                    .task-stat-label {
+                        font-size: 0.68rem;
+                        color: var(--text-3);
+                        font-weight: 700;
+                    }
+
+                    .task-stat-value {
+                        font-size: 0.85rem;
+                        font-weight: 800;
+                        color: var(--text-1);
+                    }
+
+                    .submissions-container {
+                        margin-top: 16px;
+                    }
+
+                    .premium-table-wrap {
+                        overflow-x: auto;
+                        padding: 4px 0;
+                    }
+
+                    .premium-table {
+                        width: 100%;
+                        border-collapse: separate;
+                        border-spacing: 0 8px;
+                        direction: rtl;
+                        text-align: right;
+                    }
+
+                    .premium-table th {
+                        font-size: 0.78rem;
+                        font-weight: 800;
+                        color: var(--text-3);
+                        padding: 8px 12px;
+                        border: none;
+                    }
+
+                    .premium-table tr.submission-row td {
+                        background: var(--surface-1);
+                        border-top: 1px solid var(--border-solid);
+                        border-bottom: 1px solid var(--border-solid);
+                        padding: 10px 14px;
+                        vertical-align: middle;
+                        box-shadow: 0 1px 3px rgba(0,0,0,0.01);
+                        transition: all 0.2s ease;
+                    }
+
+                    .premium-table tr.submission-row td:first-child {
+                        border-right: 1px solid var(--border-solid);
+                        border-radius: 0 var(--r-md) var(--r-md) 0;
+                    }
+
+                    .premium-table tr.submission-row td:last-child {
+                        border-left: 1px solid var(--border-solid);
+                        border-radius: var(--r-md) 0 0 var(--r-md);
+                    }
+
+                    .premium-table tr.submission-row:hover td {
+                        background: var(--surface-2);
+                        border-color: rgba(var(--brand-rgb), 0.2);
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+                    }
+
+                    .premium-table tr.submission-row:hover td:first-child {
+                        border-right-color: var(--brand);
+                    }
+
+                    .premium-table tr.submission-row:hover td:last-child {
+                        border-left-color: var(--brand);
+                    }
+
+                    .grading-badge {
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 6px;
+                        padding: 4px 10px;
+                        border-radius: 100px;
+                        font-size: 0.7rem;
+                        font-weight: 800;
+                    }
+
+                    .grading-badge.done {
+                        background: var(--ok-bg);
+                        color: var(--ok);
+                    }
+
+                    .grading-badge.pending {
+                        background: var(--warning-bg);
+                        color: var(--warning);
+                    }
+
+                    /* Responsive Tasks Modals styles */
+                    @media (max-width: 768px) {
+                        #nativeTaskFormModal .modal,
+                        #nativeTaskDetailModal .modal {
+                            width: 100% !important;
+                            max-width: 100% !important;
+                            height: 100vh !important;
+                            max-height: 100vh !important;
+                            border-radius: 0 !important;
+                            margin: 0 !important;
+                            border: none !important;
+                        }
+                        
+                        #nativeTaskFormModal .modal-body,
+                        #nativeTaskDetailModal .modal-body {
+                            padding: 16px !important;
+                        }
+                        
+                        #nativeTaskFormModal #sp1 > div {
+                            grid-template-columns: 1fr !important;
+                            gap: 16px !important;
+                        }
+
+                        #nativeTaskFormModal .steps-bar {
+                            padding: 6px 10px !important;
+                        }
+                        
+                        #nativeTaskFormModal .steps-bar .step span:not(.step-num) {
+                            display: none !important;
+                        }
+
+                        #nativeTaskFormModal .steps-bar .step {
+                            gap: 0 !important;
+                        }
+
+                        .premium-table, .premium-table thead, .premium-table tbody, .premium-table th, .premium-table td, .premium-table tr {
+                            display: block;
+                        }
+
+                        .premium-table thead {
+                            display: none;
+                        }
+
+                        .premium-table tr.submission-row {
+                            margin-bottom: 12px;
+                            background: var(--surface-1);
+                            border: 1px solid var(--border-solid);
+                            border-radius: var(--r-md);
+                            padding: 12px;
+                            box-shadow: var(--shadow-sm);
+                        }
+
+                        .premium-table tr.submission-row td {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            padding: 8px 0 !important;
+                            border: none !important;
+                            background: none !important;
+                            text-align: right;
+                        }
+
+                        .premium-table tr.submission-row td::before {
+                            content: attr(data-label);
+                            font-weight: 700;
+                            color: var(--text-3);
+                            font-size: 0.76rem;
+                        }
+                        
+                        .premium-table tr.submission-row td:first-child {
+                            font-size: 0.95rem;
+                            border-bottom: 1px dashed var(--border-solid) !important;
+                            padding-bottom: 10px !important;
+                            margin-bottom: 6px;
+                        }
+                        
+                        .premium-table tr.submission-row td:first-child::before {
+                            content: "الاسم";
+                        }
+
+                        .premium-table tr.submission-row td:last-child {
+                            justify-content: center;
+                            border-top: 1px solid var(--border-solid) !important;
+                            padding-top: 10px !important;
+                            margin-top: 6px;
+                            gap: 8px;
+                        }
+                    }
+
                     /* Enhanced Class Tasks Collapsible */
                     #classTasksCollapsible {
                         background: var(--surface-2);
@@ -13773,33 +14048,64 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </h3>
                 <button class="close-btn" onclick="closeModal('nativeTaskDetailModal')">&times;</button>
             </div>
-            <div class="modal-body" style="padding: 16px; flex: 1; overflow-y: auto; direction: rtl; text-align: right; display:flex; flex-direction:column; gap:16px;">
-                <div class="glass-card" style="padding:14px; border:1px solid var(--border-solid); border-radius:12px;">
-                    <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:8px;">
-                        <span style="font-weight:800; font-size:1.05rem; color:var(--text-1);" id="ndTaskMainTitle">---</span>
-                        <span id="ndTaskStatus" style="font-size:0.75rem; font-weight:700; padding:4px 8px; border-radius:6px;">نشط</span>
+            <div class="modal-body" style="padding: 24px; flex: 1; overflow-y: auto; direction: rtl; text-align: right; display:flex; flex-direction:column; gap:20px; background:var(--surface-bg);">
+                <!-- Premium Task Hero Info Card -->
+                <div class="task-detail-hero">
+                    <div class="task-detail-title-row">
+                        <span class="task-detail-title" id="ndTaskMainTitle">---</span>
+                        <span id="ndTaskStatus" class="tstatus s-active" style="font-size:0.75rem; font-weight:800; padding:6px 12px; border-radius:100px;">نشط</span>
                     </div>
-                    <div style="font-size:0.8rem; color:var(--text-3);" id="ndTaskDesc">---</div>
-                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:10px; margin-top:12px; border-top:1px dashed var(--border-solid); padding-top:10px;">
-                        <div><i class="fas fa-calendar-alt" style="color:var(--brand);"></i> تاريخ البدء: <span id="ndTaskStart">---</span></div>
-                        <div><i class="fas fa-calendar-check" style="color:var(--danger);"></i> آخر موعد: <span id="ndTaskEnd">---</span></div>
-                        <div><i class="fas fa-star" style="color:var(--warning);"></i> الدرجة الكلية: <span id="ndTaskDegree">---</span></div>
-                        <div><i class="fas fa-coins" style="color:var(--coupon);"></i> الكوبونات المتاحة: <span id="ndTaskCoupons">---</span></div>
+                    <div class="task-detail-desc" id="ndTaskDesc">---</div>
+                    
+                    <div class="task-detail-stats">
+                        <div class="task-stat-card start">
+                            <div class="task-stat-icon"><i class="fas fa-calendar-alt"></i></div>
+                            <div class="task-stat-info">
+                                <span class="task-stat-label">تاريخ البدء</span>
+                                <span class="task-stat-value" id="ndTaskStart">---</span>
+                            </div>
+                        </div>
+                        <div class="task-stat-card end">
+                            <div class="task-stat-icon"><i class="fas fa-stopwatch"></i></div>
+                            <div class="task-stat-info">
+                                <span class="task-stat-label">آخر موعد</span>
+                                <span class="task-stat-value" id="ndTaskEnd">---</span>
+                            </div>
+                        </div>
+                        <div class="task-stat-card degree">
+                            <div class="task-stat-icon"><i class="fas fa-award"></i></div>
+                            <div class="task-stat-info">
+                                <span class="task-stat-label">الدرجة الكلية</span>
+                                <span class="task-stat-value" id="ndTaskDegree">---</span>
+                            </div>
+                        </div>
+                        <div class="task-stat-card coupons">
+                            <div class="task-stat-icon"><i class="fas fa-ticket-alt"></i></div>
+                            <div class="task-stat-info">
+                                <span class="task-stat-label">الكوبونات المتاحة</span>
+                                <span class="task-stat-value" id="ndTaskCoupons">---</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
-                <div>
-                    <h4 style="font-weight:700; color:var(--text-1); margin-bottom:10px;"><i class="fas fa-clipboard-list"></i> تسليمات الطلاب (<span id="ndSubmissionsCount">0</span>)</h4>
-                    <div style="overflow-x:auto;">
-                        <table class="ov-table" style="width:100%; border-collapse:separate; border-spacing:0;">
+                <!-- Submissions Section -->
+                <div class="submissions-container">
+                    <h4 style="font-weight:800; color:var(--text-1); margin-bottom:12px; font-size:1rem; display:flex; align-items:center; gap:8px;">
+                        <i class="fas fa-users" style="color:var(--brand);"></i> 
+                        <span>تسليمات الطلاب</span> 
+                        <span style="background:var(--brand-bg); color:var(--brand); border-radius:100px; padding:2px 10px; font-size:0.75rem; font-weight:800;" id="ndSubmissionsCount">0</span>
+                    </h4>
+                    <div class="premium-table-wrap">
+                        <table class="premium-table">
                             <thead>
                                 <tr>
-                                    <th style="padding:10px; text-align:right;">الاسم</th>
-                                    <th style="padding:10px; text-align:center;">حالة التقييم</th>
-                                    <th style="padding:10px; text-align:center;">الدرجة</th>
-                                    <th style="padding:10px; text-align:center;">الكوبونات الممنوحة</th>
-                                    <th style="padding:10px; text-align:center;">تاريخ التسليم</th>
-                                    <th style="padding:10px; text-align:center;">الإجراء</th>
+                                    <th style="text-align:right; width:30%;">الاسم</th>
+                                    <th style="text-align:center; width:20%;">حالة التقييم</th>
+                                    <th style="text-align:center; width:15%;">الدرجة</th>
+                                    <th style="text-align:center; width:15%;">الكوبونات الممنوحة</th>
+                                    <th style="text-align:center; width:10%;">تاريخ التسليم</th>
+                                    <th style="text-align:center; width:10%;">الإجراء</th>
                                 </tr>
                             </thead>
                             <tbody id="ndSubmissionsList">
@@ -16196,6 +16502,32 @@ if ($hasUncleId && $uncleRole === 'uncle')
         let activeGroupTab = null;
         let activeStatusFilter = 'all';
 
+        let classStuCache = {};
+
+        async function loadStudents(cls = 'كل الفصول') {
+            classStuCache = {};
+            classStuCache['كل الفصول'] = [];
+            
+            students.forEach(s => {
+                const c = s['الفصل'] || 'الزوار';
+                if (!classStuCache[c]) classStuCache[c] = [];
+                
+                const student = {
+                    id: s.id,
+                    name: s['الاسم'] || s.name || '',
+                    className: c,
+                    photo: s['صورة'] || s.photo_url || s.image_url || '',
+                    phone: s['رقم التليفون'] || s.phone || '',
+                    birthday: s['عيد الميلاد'] || s.birthday || '',
+                    gender: s['النوع'] || s.gender || 'male'
+                };
+                
+                classStuCache[c].push(student);
+                classStuCache['كل الفصول'].push(student);
+            });
+            return classStuCache[cls] || [];
+        }
+
         function fmtDate(iso) {
             if (!iso) return '—';
             try {
@@ -16384,17 +16716,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
             renderFilteredTasksGrid();
         };
 
-        window.toggleSelectTask = function(event, taskId) {
-            toggleSelectTask(event, taskId);
-        };
-
-        window.applyBulkTaskGroup = function() {
-            applyBulkTaskGroup();
-        };
-
-        window.clearBulkTaskSelection = function() {
-            clearBulkTaskSelection();
-        };
+        window.toggleSelectTask = toggleSelectTask;
+        window.applyBulkTaskGroup = applyBulkTaskGroup;
+        window.clearBulkTaskSelection = clearBulkTaskSelection;
 
         function renderFilteredTasksGrid() {
             const grid = document.getElementById('nativeTasksGrid');
@@ -16558,21 +16882,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                         const viewAnsBtn = `<button class="btn btn-outline btn-sm" onclick="viewAnswers(${taskId}, ${sub.student_id})" style="padding:4px 8px; font-size:0.7rem; margin-left:4px;"><i class="fas fa-eye"></i> إجابات</button>`;
                         if (sub.is_graded == 1 || !hasOpenQs) {
-                            statusHtml = '<span style="color:var(--ok); font-weight:700;"><i class="fas fa-check-circle"></i> تم التقييم</span>';
+                            statusHtml = '<span class="grading-badge done"><i class="fas fa-check-circle"></i> تم التقييم</span>';
                             actionHtml = viewAnsBtn;
                         } else {
-                            statusHtml = '<span style="color:var(--warning); font-weight:700;"><i class="fas fa-hourglass-half"></i> معلق (يحتاج تصحيح)</span>';
-                            actionHtml = `${viewAnsBtn}<button class="btn btn-warning btn-sm" onclick="openGradePanel(${taskId})" style="padding:4px 8px; font-size:0.7rem;"><i class="fas fa-check"></i> تصحيح</button>`;
+                            statusHtml = '<span class="grading-badge pending"><i class="fas fa-hourglass-half"></i> يحتاج تصحيح</span>';
+                            actionHtml = `${viewAnsBtn}<button class="btn btn-warning btn-sm" onclick="openGradePanel(${taskId})" style="padding:4px 8px; font-size:0.7rem; margin-top:2px;"><i class="fas fa-check"></i> تصحيح</button>`;
                         }
 
                         return `
-                            <tr>
-                                <td style="padding:10px; text-align:right; font-weight:700; color:var(--text-1);">${escHtml(sub.student_name)}</td>
-                                <td style="padding:10px; text-align:center;">${statusHtml}</td>
-                                <td style="padding:10px; text-align:center; font-weight:700; color:var(--brand);">${sub.score} / ${t.total_degree}</td>
-                                <td style="padding:10px; text-align:center;"><i class="fas fa-coins" style="color:var(--coupon);"></i> ${sub.coupons_awarded}</td>
-                                <td style="padding:10px; text-align:center; color:var(--text-3); font-size:0.75rem;">${dateStr}</td>
-                                <td style="padding:10px; text-align:center; display:flex; justify-content:center; align-items:center; gap:4px;">${actionHtml}</td>
+                            <tr class="submission-row">
+                                <td style="text-align:right; font-weight:800; color:var(--text-1);">${escHtml(sub.student_name)}</td>
+                                <td style="text-align:center;" data-label="حالة التقييم">${statusHtml}</td>
+                                <td style="text-align:center; font-weight:800; color:var(--brand);" data-label="الدرجة">${sub.score} / ${t.total_degree}</td>
+                                <td style="text-align:center; font-weight:800; color:var(--coupon);" data-label="الكوبونات الممنوحة"><i class="fas fa-ticket-alt" style="margin-left:4px; font-size:.8rem;"></i>${sub.coupons_awarded}</td>
+                                <td style="text-align:center; color:var(--text-3); font-size:0.75rem;" data-label="تاريخ التسليم">${dateStr}</td>
+                                <td style="text-align:center; display:flex; justify-content:center; align-items:center; gap:4px;" data-label="الإجراء">${actionHtml}</td>
                             </tr>
                         `;
                     }).join('');
@@ -17930,6 +18254,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const scoreBg = pct >= 80 ? 'var(--ok-bg)' : pct >= 50 ? 'var(--warning-bg)' : 'var(--danger-bg)';
 
                 const activeClass = t.class_name || 'كل الفصول';
+                await loadStudents(activeClass);
                 const stud = (classStuCache[activeClass] || []).find(x => x.id == studentId) || 
                              (classStuCache['كل الفصول'] || []).find(x => x.id == studentId);
                 const photo = stud ? stud.photo : '';
@@ -18397,25 +18722,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
 
-        window.openTasksOverviewModal = function() {
-            openTasksOverviewModal();
-        };
-
-        window.copyOverviewMessage = function() {
-            copyOverviewMessage();
-        };
-
-        window.exportOverviewCSV = function() {
-            exportOverviewCSV();
-        };
-
-        window.exportOverviewPDF = function() {
-            exportOverviewPDF();
-        };
-
-        window.exportOverviewImage = function() {
-            exportOverviewImage();
-        };
+        window.openTasksOverviewModal = openTasksOverviewModal;
+        window.copyOverviewMessage = copyOverviewMessage;
+        window.exportOverviewCSV = exportOverviewCSV;
+        window.exportOverviewPDF = exportOverviewPDF;
+        window.exportOverviewImage = exportOverviewImage;
 
 
         async function deleteNativeTask(taskId) {
