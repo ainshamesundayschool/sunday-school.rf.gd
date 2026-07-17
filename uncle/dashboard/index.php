@@ -25700,6 +25700,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             // Wait for students data to be loaded (may be called before loadData finishes)
             const tryCheck = () => {
+                if (localStorage.getItem(storageKey)) return; // check again inside the timer to prevent concurrency races!
                 const data = allStudentsData.length ? allStudentsData : students;
                 if (!data.length) return;
                 const now = new Date();
