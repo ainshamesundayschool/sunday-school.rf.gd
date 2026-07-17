@@ -1231,19 +1231,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .class-card.highlighted {
-            border: 2px solid var(--cls-color, var(--brand)) !important;
-            background: color-mix(in srgb, var(--cls-color, var(--brand)) 8%, var(--surface)) !important;
+            border: 2.5px solid var(--cls-color, var(--brand)) !important;
+            background: color-mix(in srgb, var(--cls-color, var(--brand)) 6%, var(--surface)) !important;
+            box-shadow: 0 6px 18px -2px color-mix(in srgb, var(--cls-color, var(--brand)) 25%, rgba(0,0,0,0.06)) !important;
             transform: scale(1.02);
-            animation: myClassGlow 3s infinite ease-in-out;
         }
 
-        @keyframes myClassGlow {
-            0%, 100% {
-                box-shadow: 0 4px 20px -2px color-mix(in srgb, var(--cls-color, var(--brand)) 30%, transparent) !important;
-            }
-            50% {
-                box-shadow: 0 4px 30px 4px color-mix(in srgb, var(--cls-color, var(--brand)) 60%, transparent) !important;
-            }
+        .class-card.custom-class-card {
+            border: none !important;
+            background-color: color-mix(in srgb, var(--cls-color) 4%, var(--surface)) !important;
+            background-repeat: no-repeat !important;
+            background-size: 100% 100% !important;
+        }
+
+        .class-card.custom-class-card:hover {
+            border: none !important;
+            background-color: color-mix(in srgb, var(--cls-color) 8%, var(--surface)) !important;
         }
 
         /* Tiny stacked uncles inside class cards */
@@ -16089,6 +16092,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             `;
         }
 
+        window.getDashedBorderSvg = function(color) {
+            const encodedColor = encodeURIComponent(color);
+            return `background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='20' ry='20' stroke='${encodedColor}' stroke-width='2' stroke-dasharray='10%2c 12' stroke-linecap='round'/%3e%3c/svg%3e");`;
+        };
+
         function displayClasses() {
             const grid = document.getElementById('classesGrid');
             if (!grid) return;
@@ -16168,7 +16176,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             ` : '';
             const allTogetherProgress = getAttendanceProgressHtml(students, allColor);
             const allTogetherHtml = showAllCard ? `<div class="class-card custom-class-card" onclick="showAllTogetherView()"
-        style="--cls-color:${allColor};position:relative;">
+        style="--cls-color:${allColor}; ${window.getDashedBorderSvg(allColor)} position:relative;">
         <div class="class-card-badges">
             <div style="display:flex; align-items:center; gap:4px;">
                 <span style="background:${allColor};color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;font-weight:700;font-family:Cairo,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,0.08);">الكل</span>
@@ -16197,16 +16205,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     const isCombHighlighted = grpClasses.some(c => isUncleAssignedClass(c));
                     const combHighlightClass = isCombHighlighted ? ' highlighted' : '';
                     const combStudents = students.filter(s => grpClasses.includes(s['الفصل']));
-                    const combProgress = getAttendanceProgressHtml(combStudents, 'var(--brand)');
-                    return `<div class="class-card combined-class-card custom-class-card${combHighlightClass}" onclick="showCombinedClassView('${escJs(label)}')" style="position:relative; --cls-color:var(--brand);">
+                    const combBrandColor = (window.IS_YOUTH || (window.currentUncle && window.currentUncle.role === 'youth')) ? '#7c3aed' : '#5b6cf5';
+                    const combProgress = getAttendanceProgressHtml(combStudents, combBrandColor);
+                    return `<div class="class-card combined-class-card custom-class-card${combHighlightClass}" onclick="showCombinedClassView('${escJs(label)}')" style="position:relative; --cls-color:${combBrandColor}; ${window.getDashedBorderSvg(combBrandColor)}">
                 <div class="class-card-badges">
                     <div style="display:flex; align-items:center; gap:4px;">
-                        <span style="background:var(--brand);color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;font-weight:700;font-family:Cairo,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,0.08);">مدمج</span>
+                        <span style="background:${combBrandColor};color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;font-weight:700;font-family:Cairo,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,0.08);">مدمج</span>
                         ${unsavedHtml}
                     </div>
                     <div></div>
                 </div>
-                <div class="class-icon" style="background:linear-gradient(135deg,var(--brand),var(--brand-dark))"><i class="fas fa-layer-group" style="color:white"></i></div>
+                <div class="class-icon" style="background:linear-gradient(135deg,${combBrandColor},color-mix(in srgb,${combBrandColor} 80%,black))"><i class="fas fa-layer-group" style="color:white"></i></div>
                 <div class="class-name">${label} <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${count})</span></div>
                 <div style="font-size:.68rem;color:var(--text-3);margin-top:4px">${grpClasses.slice(0, 3).join(' + ')}${grpClasses.length > 3 ? '...' : ''}</div>
                 ${combProgress}
@@ -16255,7 +16264,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 ` : '';
                 const servantsProgress = getAttendanceProgressHtml(window.allUnclesData || [], '#4f46e5');
                 servantsCardHtml = `
-                    <div class="class-card custom-class-card" onclick="showClassView('الخدام')" style="--cls-color:#4f46e5; position:relative;">
+                    <div class="class-card custom-class-card" onclick="showClassView('الخدام')" style="--cls-color:#4f46e5; ${window.getDashedBorderSvg('#4f46e5')} position:relative;">
                         <div class="class-card-badges">
                             <div style="display:flex; align-items:center; gap:4px;">
                                 <span style="background:#4f46e5;color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;font-weight:700;font-family:Cairo,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,0.08);">خدام</span>
@@ -16281,7 +16290,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             let guestsCardHtml = '';
             if (guestsCount > 0 || guestsUnsaved > 0) {
                 guestsCardHtml = `
-                    <div class="class-card custom-class-card" onclick="showClassView('الزوار')" style="--cls-color:#f59e0b; position:relative;">
+                    <div class="class-card custom-class-card" onclick="showClassView('الزوار')" style="--cls-color:#f59e0b; ${window.getDashedBorderSvg('#f59e0b')} position:relative;">
                         <div class="class-card-badges">
                             <div style="display:flex; align-items:center; gap:4px;">
                                 <span style="background:#f59e0b;color:white;border-radius:4px;font-size:.6rem;padding:1px 5px;font-weight:700;font-family:Cairo,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,0.08);">زوار</span>
