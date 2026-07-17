@@ -505,6 +505,211 @@ if ($hasUncleId && $uncleRole === 'uncle')
     <script defer
         src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <style>
+        /* ── Step-by-Step Wizard Styles ── */
+        .steps-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--surface-3);
+            padding: 10px 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border-solid);
+            position: relative;
+            margin-top: 4px;
+        }
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 800;
+            font-size: 0.82rem;
+            color: var(--text-3);
+            transition: all 0.2s ease;
+        }
+        .step.active {
+            color: var(--brand);
+        }
+        .step.done {
+            color: var(--ok);
+        }
+        .step-num {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--surface-1);
+            border: 1px solid var(--border-solid);
+            color: var(--text-3);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 800;
+            transition: all 0.2s ease;
+        }
+        .step.active .step-num {
+            background: var(--brand);
+            color: #fff;
+            border-color: var(--brand);
+            box-shadow: 0 0 10px var(--brand-glow);
+        }
+        .step.done .step-num {
+            background: var(--ok);
+            color: #fff;
+            border-color: var(--ok);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+        }
+
+        /* ── Student Answers Viewer CSS ── */
+        .ans-shell {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            overflow-y: auto;
+            max-height: 70vh;
+        }
+        .ans-head {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px 18px;
+            border-radius: var(--border-radius-lg);
+            background: var(--surface-1);
+            border: 1px solid var(--border-solid);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 14px;
+        }
+        .ans-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 16px;
+            background: var(--brand-bg);
+            color: var(--brand);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+            border: 1px solid rgba(124, 58, 237, 0.2);
+            box-shadow: 0 4px 10px rgba(124, 58, 237, 0.1);
+        }
+        .ans-name {
+            font-size: 1rem;
+            font-weight: 900;
+            color: var(--text-1);
+            line-height: 1.2;
+        }
+        .ans-sub {
+            font-size: .75rem;
+            color: var(--text-3);
+            margin-top: 4px;
+            font-weight: 600;
+        }
+        .ans-question {
+            margin-bottom: 14px;
+            padding: 16px;
+            border: 1px solid var(--border-solid);
+            border-radius: var(--border-radius-lg);
+            background: var(--surface-1);
+            box-shadow: var(--shadow-sm);
+        }
+        .ans-qhead {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        .ans-qnum {
+            width: 28px;
+            height: 28px;
+            min-width: 28px;
+            border-radius: 9px;
+            background: var(--brand-bg);
+            color: var(--brand);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .78rem;
+            font-weight: 900;
+            flex-shrink: 0;
+            border: 1px solid rgba(124, 58, 237, 0.2);
+        }
+        .ans-qtext {
+            font-weight: 800;
+            color: var(--text-1);
+            line-height: 1.6;
+            flex: 1;
+            word-break: break-word;
+        }
+        .ans-open {
+            padding: 12px 14px;
+            border-radius: var(--border-radius-md);
+            background: var(--surface-3);
+            border: 1px solid var(--border-solid);
+        }
+        .ans-open-label {
+            font-size: .69rem;
+            color: var(--text-3);
+            margin-bottom: 5px;
+            font-weight: 800;
+        }
+        .ans-open-text {
+            color: var(--text-2);
+            font-size: .88rem;
+            white-space: pre-wrap;
+            line-height: 1.7;
+            word-break: break-word;
+        }
+        .ans-choice {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: var(--border-radius-md);
+            border: 1.5px solid var(--border-solid);
+            background: var(--surface-1);
+            color: var(--text-2);
+            font-size: .84rem;
+            transition: all 0.2s ease;
+        }
+        .ans-choice + .ans-choice {
+            margin-top: 8px;
+        }
+        .ans-choice.correct {
+            border-color: #86efac;
+            background: rgba(16, 185, 129, 0.08);
+            color: #047857;
+            font-weight: 700;
+        }
+        .ans-choice.wrong {
+            border-color: #fca5a5;
+            background: rgba(239, 68, 68, 0.08);
+            color: #dc2626;
+            font-weight: 700;
+        }
+        .ans-choice-letter {
+            width: 22px;
+            height: 22px;
+            min-width: 22px;
+            border-radius: 7px;
+            background: rgba(148, 163, 184, 0.14);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: .7rem;
+            flex-shrink: 0;
+        }
+        .ans-choice-icon {
+            margin-right: auto;
+            font-size: .92rem;
+            flex-shrink: 0;
+        }
+
+        #tasksGroupsTabs button, #tasksGroupsTabs .pill-btn {
+            font-family: 'Cairo', 'Baloo Bhaijaan 2', sans-serif !important;
+        }
+
         /* ── Developer Church Switcher Pill & Custom Dropdown ── */
         .dev-church-bar-pill {
             display: flex;
@@ -11910,7 +12115,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     .tcard-acc.err { background: var(--t-err); }
 
                     .tcard-body {
-                      padding: 18px 18px 14px;
+                      padding: 18px 38px 14px 18px;
                     }
                     .tcard-top {
                       display: flex;
@@ -13372,7 +13577,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <i class="fas fa-file-export"></i> نظرة عامة
                         </button>
                     </div>
-                    <div style="font-size:0.85rem; color:var(--text-3); font-weight:700;"><i class="fas fa-folder"></i> مجلدات المهام:</div>
                 </div>
 
                 <!-- Folders / Groups Explorer -->
@@ -13407,6 +13611,153 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 <div id="nativeTasksGrid" class="tgrid">
                     <!-- Filled dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tasks Overview Modal -->
+    <div class="modal-overlay" id="overviewOv" style="z-index: 1000025;">
+        <style>
+            #overviewOv .modal {
+                font-family: 'Cairo', 'Baloo Bhaijaan 2', sans-serif !important;
+            }
+            /* Style rules for overview table */
+            .ov-table {
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 0;
+                direction: rtl;
+                font-size: .87rem;
+            }
+            .ov-table th {
+                background: var(--brand-bg) !important;
+                color: var(--brand) !important;
+                font-weight: 700;
+                padding: 12px 10px;
+                border-bottom: 2px solid rgba(124, 58, 237, 0.2);
+                text-align: right;
+                white-space: nowrap;
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+            .ov-table td {
+                padding: 10px;
+                border-bottom: 1px solid var(--border-solid);
+                color: var(--text-1);
+                vertical-align: middle;
+                text-align: right;
+            }
+            .ov-table tr:hover td {
+                background: var(--surface-3) !important;
+            }
+            .ov-table tr:nth-child(even) td {
+                background: var(--surface-2);
+            }
+            .ov-cell-answered {
+                color: var(--ok);
+                font-weight: bold;
+            }
+            .ov-cell-unanswered {
+                color: var(--text-3);
+                font-style: italic;
+            }
+            .ov-grade-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-size: .75rem;
+                font-weight: bold;
+            }
+            .ov-grade-pass {
+                background: var(--ok-bg);
+                color: var(--ok);
+            }
+            .ov-grade-fail {
+                background: var(--danger-bg);
+                color: var(--danger);
+            }
+            .ov-time-text {
+                font-size: .7rem;
+                color: var(--text-3);
+                margin-top: 3px;
+                display: block;
+            }
+            .ov-class-badge {
+                display: inline-block;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-size: .75rem;
+                background: var(--surface-3);
+                border: 1px solid var(--border-solid);
+                color: var(--text-2);
+            }
+        </style>
+        <div class="modal modal-lg" style="max-width: 1250px; width: 95%; height: 90vh; display: flex; flex-direction: column; overflow: hidden; border-radius: 20px; background: rgba(var(--surface-rgb), 0.85); backdrop-filter: blur(20px); border: 1px solid var(--border-solid);">
+            <div class="modal-header" style="border-bottom: 1px solid var(--border-solid); background: var(--surface-1); padding: 18px 24px;">
+                <h3 style="display:flex; align-items:center; gap:8px; margin:0; font-family:'Cairo','Baloo Bhaijaan 2',sans-serif; font-weight:800; color:var(--text-1); font-size:1.15rem;">
+                    <i class="fas fa-file-export" style="color:var(--brand); font-size:1.1rem;"></i>
+                    <span>نظرة عامة على المهام والاختبارات</span>
+                </h3>
+                <button class="close-btn" onclick="closeModal('overviewOv')" style="font-size:1.4rem; color:var(--text-3); background:none; border:none; cursor:pointer;">&times;</button>
+            </div>
+            
+            <div class="modal-body" style="padding: 20px 24px; flex: 1; overflow-y: auto; direction: rtl; text-align: right; background: var(--surface-bg); display: flex; flex-direction: column; gap: 16px;">
+                <!-- Filters Grid -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; background: var(--surface-1); border: 1px solid var(--border-solid); padding: 16px; border-radius: 12px;">
+                    <div style="display:flex; flex-direction:column; gap:6px;">
+                        <label style="font-weight:800; font-size:0.78rem; color:var(--text-1);"><i class="fas fa-users" style="color:var(--brand)"></i> الفصول المستهدفة:</label>
+                        <div id="ovClassesList" style="display:flex; flex-wrap:wrap; gap:4px; max-height:85px; overflow-y:auto; padding:6px; border:1px solid var(--border-solid); border-radius:8px; background:var(--surface-3);">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                    
+                    <div style="display:flex; flex-direction:column; gap:6px;">
+                        <label style="font-weight:800; font-size:0.78rem; color:var(--text-1);"><i class="fas fa-filter" style="color:var(--brand)"></i> عرض الطلاب:</label>
+                        <select id="ovAnswerStatus" onchange="renderOverviewTable()" class="form-input" style="height:36px; font-size:0.8rem;">
+                            <option value="both">الكل (الذين أجابوا والذين لم يجيبوا)</option>
+                            <option value="answered">الذين أجابوا فقط (على الأقل مهمة واحدة)</option>
+                            <option value="unanswered">الذين لم يجيبوا على أي مهمة</option>
+                            <option value="missing">الذين لديهم مهام غير مكتملة</option>
+                        </select>
+                    </div>
+                    
+                    <div style="display:flex; flex-direction:column; gap:6px;">
+                        <label style="font-weight:800; font-size:0.78rem; color:var(--text-1);"><i class="fas fa-search" style="color:var(--brand)"></i> بحث باسم الطالب:</label>
+                        <input type="text" id="ovStudentSearch" oninput="renderOverviewTable()" class="form-input" placeholder="ابحث عن طالب..." style="height:36px; font-size:0.8rem;">
+                    </div>
+                    
+                    <div style="display:flex; flex-direction:column; justify-content:center; gap:8px;">
+                        <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-size:0.78rem; color:var(--text-2); font-weight:700;">
+                            <input type="checkbox" id="ovShowGrades" onchange="renderOverviewTable()" checked style="accent-color:var(--brand)">
+                            <span>عرض الدرجات والتقييم</span>
+                        </label>
+                        <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-size:0.78rem; color:var(--text-2); font-weight:700;">
+                            <input type="checkbox" id="ovShowTime" onchange="renderOverviewTable()" checked style="accent-color:var(--brand)">
+                            <span>عرض وقت تسليم المهمة</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Table container -->
+                <div style="flex:1; border:1px solid var(--border-solid); border-radius:14px; background:var(--surface-1); padding:12px; overflow:auto; min-height:250px;">
+                    <div id="ovTableContainer" style="overflow-x:auto;">
+                        <!-- Rendered dynamically -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center; padding:16px 24px; border-top:1px solid var(--border-solid); background:var(--surface-1); flex-wrap:wrap; gap:10px;">
+                <div style="font-size:0.78rem; color:var(--text-3); font-weight:700;" id="ovStatsText">جاري تحميل البيانات...</div>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('overviewOv')">إلغاء</button>
+                    <button type="button" class="btn btn-sm" onclick="copyOverviewMessage()" style="background:linear-gradient(135deg,#10b981,#059669); color:#fff; font-weight:700; border:none; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-copy"></i> نسخ كرسالة</button>
+                    <button type="button" class="btn btn-sm" onclick="exportOverviewCSV()" style="background:linear-gradient(135deg,#3b82f6,#2563eb); color:#fff; font-weight:700; border:none; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-file-csv"></i> CSV</button>
+                    <button type="button" class="btn btn-sm" onclick="exportOverviewPDF()" style="background:linear-gradient(135deg,#ec4899,#d946ef); color:#fff; font-weight:700; border:none; display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-file-pdf"></i> PDF</button>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="exportOverviewImage()" style="display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-file-image"></i> صورة</button>
                 </div>
             </div>
         </div>
@@ -13485,98 +13836,232 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
     <!-- Task Create/Edit Modal -->
     <div class="modal-overlay" id="nativeTaskFormModal" style="z-index: 1000024;">
-        <div class="modal modal-lg" style="max-width: 900px; height: 90vh; display: flex; flex-direction: column;">
-            <div class="modal-header">
-                <h3 style="display:flex; align-items:center; gap:8px;">
-                    <i class="fas fa-tasks" style="color:var(--brand);"></i>
-                    <span id="nfFormTitle">إضافة مهمة جديدة</span>
-                </h3>
-                <button class="close-btn" onclick="closeModal('nativeTaskFormModal')">&times;</button>
+        <div class="modal modal-lg" style="max-width: 950px; height: 92vh; display: flex; flex-direction: column; overflow: hidden; border-radius: 20px; background: rgba(var(--surface-rgb), 0.85); backdrop-filter: blur(20px); border: 1px solid var(--border-solid);">
+            <div class="modal-header" style="flex-direction: column; align-items: stretch; gap: 12px; padding: 18px 24px; border-bottom: 1px solid var(--border-solid); background: var(--surface-1);">
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                    <h3 style="display:flex; align-items:center; gap:8px; margin:0; font-family:'Cairo','Baloo Bhaijaan 2',sans-serif; font-weight:800; color:var(--text-1); font-size:1.15rem;">
+                        <i class="fas fa-magic" style="color:var(--brand); font-size:1.1rem;"></i>
+                        <span id="nfFormTitle">إضافة مهمة جديدة</span>
+                    </h3>
+                    <button class="close-btn" onclick="closeModal('nativeTaskFormModal')" style="font-size:1.4rem; color:var(--text-3); transition:.2s; background:none; border:none; cursor:pointer;">&times;</button>
+                </div>
+                
+                <!-- Wizard Steps bar -->
+                <div class="steps-bar" style="display: flex; justify-content: space-between; align-items: center; background: var(--surface-3); padding: 10px 20px; border-radius: 12px; border: 1px solid var(--border-solid); position: relative; margin-top: 4px;">
+                    <div class="step active" id="sd1" style="display:flex; align-items:center; gap:8px; font-weight:800; font-size:0.82rem; color:var(--brand); transition:.2s;">
+                        <span class="step-num" style="width:24px; height:24px; border-radius:50%; background:var(--brand); color:#fff; display:inline-flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:800; box-shadow: 0 0 10px var(--brand-glow);">١</span>
+                        <span>الإعدادات العامة</span>
+                    </div>
+                    <div style="flex:1; height:2px; background:var(--border-solid); margin:0 16px;"></div>
+                    <div class="step" id="sd2" style="display:flex; align-items:center; gap:8px; font-weight:800; font-size:0.82rem; color:var(--text-3); transition:.2s;">
+                        <span class="step-num" style="width:24px; height:24px; border-radius:50%; background:var(--surface-1); border:1px solid var(--border-solid); color:var(--text-3); display:inline-flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:800;">٢</span>
+                        <span>بناء الأسئلة</span>
+                    </div>
+                    <div style="flex:1; height:2px; background:var(--border-solid); margin:0 16px;"></div>
+                    <div class="step" id="sd3" style="display:flex; align-items:center; gap:8px; font-weight:800; font-size:0.82rem; color:var(--text-3); transition:.2s;">
+                        <span class="step-num" style="width:24px; height:24px; border-radius:50%; background:var(--surface-1); border:1px solid var(--border-solid); color:var(--text-3); display:inline-flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:800;">٣</span>
+                        <span>مصفوفة الكوبونات</span>
+                    </div>
+                </div>
             </div>
-            <div class="modal-body" style="padding: 16px; flex: 1; overflow-y: auto; direction: rtl; text-align: right; display:flex; flex-direction:column; gap:16px;">
-                <form id="nativeTaskSaveForm" onsubmit="event.preventDefault();">
-                    <input type="hidden" id="nfTaskId" value="0">
-                    
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                        <div class="form-group" style="grid-column: span 2;">
-                            <label class="form-label">عنوان المهمة</label>
-                            <input type="text" id="nfTitle" class="form-input" required placeholder="مثال: مسابقة إنجيل لوقا">
+            
+            <div class="modal-body" style="padding: 20px 24px; flex: 1; overflow-y: auto; direction: rtl; text-align: right; background: var(--surface-bg);">
+                <input type="hidden" id="nfTaskId" value="0">
+                
+                <!-- STEP 1: Settings -->
+                <div id="sp1" style="display: flex; flex-direction: column; gap: 16px;">
+                    <div style="display:grid; grid-template-columns: 1.2fr 0.8fr; gap:20px; align-items: start;">
+                        <!-- Right Column (General Settings & Targeted Audiences) -->
+                        <div style="display: flex; flex-direction: column; gap: 16px; background: var(--surface-1); border: 1px solid var(--border-solid); padding: 18px; border-radius: 14px;">
+                            <h4 style="margin:0 0 4px; font-weight:800; color:var(--text-1); font-size:0.9rem; display:flex; align-items:center; gap:6px;"><i class="fas fa-cog" style="color:var(--brand);"></i> الإعدادات الأساسية</h4>
+                            
+                            <div class="form-group">
+                                <label class="form-label" style="font-weight:700; font-size:0.78rem;">عنوان المهمة / الاختبار <span style="color:var(--danger)">*</span></label>
+                                <input type="text" id="nfTitle" class="form-input" style="height:38px; font-size:0.85rem;" required placeholder="مثال: مسابقة إنجيل لوقا الأسبوعية">
+                            </div>
+                            
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                                <div class="form-group">
+                                    <label class="form-label" style="font-weight:700; font-size:0.78rem;">المجموعة / التصنيف</label>
+                                    <input type="text" id="nfGroupName" class="form-input" style="height:36px; font-size:0.8rem;" placeholder="مثال: مسابقات مهرجان الكرازة">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" style="font-weight:700; font-size:0.78rem;">أيقونة المجموعة</label>
+                                    <select id="nfGroupIcon" class="form-input" style="height:36px; font-size:0.8rem;">
+                                        <option value="fa-folder">📁 مجلد</option>
+                                        <option value="fa-book">📖 كتاب</option>
+                                        <option value="fa-star">⭐ نجمة</option>
+                                        <option value="fa-heart">❤️ قلب</option>
+                                        <option value="fa-flag">🚩 علم</option>
+                                        <option value="fa-award">🏆 وسام</option>
+                                        <option value="fa-church">⛪ كنيسة</option>
+                                        <option value="fa-pen">✏️ قلم</option>
+                                        <option value="fa-users">👥 مستخدمين</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" style="font-weight:700; font-size:0.78rem;">الوصف أو تعليمات الامتحان (اختياري)</label>
+                                <textarea id="nfDesc" class="form-input" rows="3" style="font-size:0.8rem;" placeholder="ملاحظات أو آية الأسبوع أو تعليمات الامتحان للأطفال..."></textarea>
+                            </div>
+                            
+                            <div style="border-top:1px dashed var(--border-solid); padding-top:12px; margin-top:4px;">
+                                <label class="form-label" style="font-weight:800; font-size:0.8rem; color:var(--text-1); margin-bottom:8px;"><i class="fas fa-users" style="color:var(--brand)"></i> الفصول المستهدفة</label>
+                                <div style="font-size:0.7rem; color:var(--text-3); margin-bottom:6px;">حدد الفصول التي تريد نشر المهمة لها (عدم تحديد أي فصل يعني إتاحتها لجميع فصول مدارس الأحد)</div>
+                                <div id="nfClassesList" style="display:flex; flex-wrap:wrap; gap:6px; padding:10px; border:1px solid var(--border-solid); border-radius:8px; background:var(--surface-3); max-height:100px; overflow-y:auto;">
+                                    <!-- Class Checkboxes dynamically loaded -->
+                                </div>
+                            </div>
+                            
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:8px;">
+                                <div class="form-group">
+                                    <label class="form-label" style="font-weight:700; font-size:0.78rem;">توجيه المهمة لـ</label>
+                                    <select id="fAssign" class="form-input" style="height:36px; font-size:0.8rem;" onchange="populateSpec()">
+                                        <option value="all">جميع أطفال الفصل</option>
+                                        <option value="specific">أطفال محددون فقط</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group" id="specRow" style="display:none; flex-direction:column; background:var(--surface-3); border:1px solid var(--border-solid); padding:10px; border-radius:10px; margin-top:4px;">
+                                <label class="form-label" style="font-weight:700; font-size:0.78rem; display:flex; align-items:center; gap:6px;"><i class="fas fa-user-check"></i> حدد أطفال الفصل المستهدفين</label>
+                                <div id="specList" style="display:flex; flex-direction:column; gap:4px; max-height:140px; overflow-y:auto; padding:4px;">
+                                    <!-- Child checkboxes loaded dynamically -->
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-group" style="grid-column: span 2;">
-                            <label class="form-label">الوصف / التفاصيل</label>
-                            <textarea id="nfDesc" class="form-input" rows="3" placeholder="ملاحظات أو وصف للمهمة للأطفال..."></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">تاريخ البدء</label>
-                            <input type="datetime-local" id="nfStartDate" class="form-input" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">الموعد النهائي</label>
-                            <input type="datetime-local" id="nfEndDate" class="form-input">
-                            <label style="display:inline-flex; align-items:center; gap:6px; margin-top:6px; cursor:pointer; font-size:0.75rem;">
-                                <input type="checkbox" id="nfNoDeadline" onchange="toggleFormNoDeadline()"> مستمر (بدون موعد نهائي)
-                            </label>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">الدرجة الكلية للمهمة</label>
-                            <input type="number" id="nfTotalDegree" class="form-input" required min="0" value="10">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label font-bold">الحد الأقصى للكوبونات</label>
-                            <input type="number" id="nfMaxCoupons" class="form-input" required min="0" value="10">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">حالة النشر</label>
-                            <select id="nfStatus" class="form-input">
-                                <option value="published">منشورة مباشرة</option>
-                                <option value="draft">مسودة (غير مرئية للأطفال)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">المجموعة / المجلد (تصنيف)</label>
-                            <input type="text" id="nfGroupName" class="form-input" placeholder="مثال: مسابقات الصوم الكبير">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">أيقونة المجموعة</label>
-                            <select id="nfGroupIcon" class="form-input">
-                                <option value="fa-folder">📁 مجلد (Default)</option>
-                                <option value="fa-book">📖 كتاب (Book)</option>
-                                <option value="fa-star">⭐ مسابقة (Star)</option>
-                                <option value="fa-heart">❤️ محبة (Heart)</option>
-                                <option value="fa-flag">🚩 علم (Flag)</option>
-                                <option value="fa-award">🏆 وسام (Award)</option>
-                                <option value="fa-church">⛪ كنيسة (Church)</option>
-                                <option value="fa-pen">✏️ تحرير (Pen)</option>
-                                <option value="fa-users">👥 اجتماعات (Users)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">توزيع الكوبونات بناءً على النسبة المئوية</label>
-                            <div style="font-size:0.72rem; color:var(--text-3); margin-bottom:6px;">مصفوفة التوزيع التلقائي للكوبونات</div>
-                            <textarea id="nfCouponMatrix" class="form-input" rows="2" style="font-family:monospace; font-size:0.75rem;">[{"from":0,"to":49,"val":0},{"from":50,"to":69,"val":10},{"from":70,"to":84,"val":30},{"from":85,"to":94,"val":50},{"from":95,"to":100,"val":100}]</textarea>
-                        </div>
-                        <div class="form-group" style="grid-column: span 2;">
-                            <label class="form-label">الفصول المستهدفة (عدم تحديد أي فصل يعني إتاحتها لكل فصول مدارس الأحد)</label>
-                            <div id="nfClassesList" style="display:flex; flex-wrap:wrap; gap:8px; padding:10px; border:1px solid var(--border-solid); border-radius:8px; background:var(--surface-3); max-height:120px; overflow-y:auto;">
-                                <!-- Checkboxes populated dynamically -->
+                        
+                        <!-- Left Column (Timing, Settings & Options) -->
+                        <div style="display: flex; flex-direction: column; gap: 16px;">
+                            <!-- Time & Timing Config Card -->
+                            <div style="background: var(--surface-1); border: 1px solid var(--border-solid); padding: 18px; border-radius: 14px; display:flex; flex-direction:column; gap:12px;">
+                                <h4 style="margin:0; font-weight:800; color:var(--text-1); font-size:0.9rem; display:flex; align-items:center; gap:6px;"><i class="fas fa-clock" style="color:var(--brand);"></i> إعدادات التوقيت</h4>
+                                
+                                <div class="form-group">
+                                    <label class="form-label" style="font-weight:700; font-size:0.78rem;">تاريخ وساعة البدء <span style="color:var(--danger)">*</span></label>
+                                    <input type="datetime-local" id="nfStartDate" class="form-input" style="height:36px; font-size:0.8rem;" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                                        <label class="form-label" style="font-weight:700; font-size:0.78rem; margin:0;">تاريخ وساعة الانتهاء</label>
+                                        <label style="display:inline-flex; align-items:center; gap:4px; cursor:pointer; font-size:0.7rem; color:var(--text-3); font-weight:700;">
+                                            <input type="checkbox" id="fNoDeadline" onchange="toggleNoDeadline()" style="accent-color:var(--brand)"> مستمر دائماً
+                                        </label>
+                                    </div>
+                                    <input type="datetime-local" id="nfEndDate" class="form-input" style="height:36px; font-size:0.8rem;">
+                                </div>
+                                
+                                <div style="display:flex; flex-wrap:wrap; gap:4px; background:var(--surface-3); padding:4px; border-radius:8px; justify-content:space-between; border:1px solid var(--border-solid);">
+                                    <button type="button" class="btn btn-xs btn-ghost" onclick="applyDuePreset(0)" style="font-size:0.68rem; padding:4px 6px;">اليوم</button>
+                                    <button type="button" class="btn btn-xs btn-ghost" onclick="applyDuePreset(1)" style="font-size:0.68rem; padding:4px 6px;">غداً</button>
+                                    <button type="button" class="btn btn-xs btn-ghost" onclick="applyDuePreset(3)" style="font-size:0.68rem; padding:4px 6px;">٣ أيام</button>
+                                    <button type="button" class="btn btn-xs btn-ghost" onclick="applyDuePreset(7)" style="font-size:0.68rem; padding:4px 6px;">أسبوع</button>
+                                </div>
+                                
+                                <div style="border-top:1px dashed var(--border-solid); padding-top:10px; margin-top:4px; display:flex; flex-direction:column; gap:6px;">
+                                    <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-weight:800; font-size:0.8rem; color:var(--text-1);">
+                                        <input type="checkbox" id="fTimerOn" style="accent-color:var(--brand)">
+                                        <span>تفعيل مؤقت للامتحان (وقت محدد)</span>
+                                    </label>
+                                    <div id="timerRow" style="display:none; gap:10px; align-items:center; background:var(--surface-3); padding:8px; border-radius:8px; border:1px solid var(--border-solid);">
+                                        <div class="form-group" style="margin:0; flex:1;">
+                                            <label class="form-label" style="font-size:0.7rem; margin-bottom:2px;">المدة بالدقائق</label>
+                                            <input type="number" id="fTimerMin" class="form-input" min="1" max="300" value="30" style="height:32px; font-size:0.75rem; text-align:center;">
+                                        </div>
+                                        <div class="form-group" style="margin:0; flex:1.2;">
+                                            <label class="form-label" style="font-size:0.7rem; margin-bottom:2px;">تصرف انتهاء الوقت</label>
+                                            <select id="fTimerBeh" class="form-input" style="height:32px; font-size:0.75rem;">
+                                                <option value="submit">إرسال الإجابة تلقائياً</option>
+                                                <option value="lock">إغلاق وتأمين الامتحان</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Options Configuration Card -->
+                            <div style="background: var(--surface-1); border: 1px solid var(--border-solid); padding: 18px; border-radius: 14px; display:flex; flex-direction:column; gap:10px;">
+                                <h4 style="margin:0; font-weight:800; color:var(--text-1); font-size:0.9rem; display:flex; align-items:center; gap:6px;"><i class="fas fa-eye" style="color:var(--brand);"></i> خيارات العرض للأطفال</h4>
+                                
+                                <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-size:0.78rem; color:var(--text-2);">
+                                    <input type="checkbox" id="fShowAns" style="accent-color:var(--brand)">
+                                    <span>إظهار الإجابات التفصيلية بعد التسليم</span>
+                                </label>
+                                
+                                <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-size:0.78rem; color:var(--text-2);">
+                                    <input type="checkbox" id="fShowRes" checked style="accent-color:var(--brand)">
+                                    <span>إظهار النتيجة المئوية مباشرةً بعد الإنهاء</span>
+                                </label>
+                                
+                                <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-size:0.78rem; color:var(--text-2);">
+                                    <input type="checkbox" id="fShuffle" style="accent-color:var(--brand)">
+                                    <span>عشوائية خلط ترتيب الأسئلة لكل طفل</span>
+                                </label>
+                                
+                                <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-size:0.78rem; color:var(--text-2);">
+                                    <input type="checkbox" id="fReview" checked style="accent-color:var(--brand)">
+                                    <span>السماح بمراجعة وتعديل الإجابات قبل التأكيد</span>
+                                </label>
                             </div>
                         </div>
                     </div>
-                    
-                    <div style="border-top:1px dashed var(--border-solid); padding-top:16px; margin-top:16px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                            <h4 style="margin:0; font-weight:700; color:var(--text-1);"><i class="fas fa-question-circle"></i> أسئلة المسابقة (<span id="nfQuestionsCount">0</span>)</h4>
-                            <button type="button" class="btn btn-ghost" onclick="addNFQuestion()" style="font-size:0.78rem; font-weight:700; display:inline-flex; align-items:center; gap:6px; color:var(--brand); background:var(--brand-bg); border:none; padding:4px 10px; border-radius:6px;"><i class="fas fa-plus"></i> إضافة سؤال</button>
+                </div>
+                
+                <!-- STEP 2: Questions Visual Builder -->
+                <div id="sp2" style="display: none; flex-direction: column; gap: 16px;">
+                    <div style="background: var(--surface-1); border: 1px solid var(--border-solid); padding: 18px; border-radius: 14px; display:flex; flex-direction:column; gap:12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid var(--border-solid); padding-bottom:8px; margin-bottom:4px;">
+                            <h4 style="margin:0; font-weight:800; color:var(--text-1); font-size:0.95rem; display:flex; align-items:center; gap:6px;"><i class="fas fa-question-circle" style="color:var(--brand);"></i> أسئلة الاختبار</h4>
+                            <div class="deg-sum" style="display:flex; align-items:center; gap:6px; font-size:0.8rem; font-weight:800; background:var(--brand-bg); color:var(--brand); padding:4px 10px; border-radius:8px;">
+                                <i class="fas fa-star"></i>
+                                <span>إجمالي الدرجات:</span>
+                                <span id="degTotal">0 <small style="font-size:.65rem; font-weight:500;">درجة</small></span>
+                            </div>
                         </div>
-                        <div id="nfQuestionsList" style="display:flex; flex-direction:column; gap:12px;">
-                            <!-- Questions builder -->
+                        
+                        <div id="qList" style="display:flex; flex-direction:column; gap:14px; min-height:100px; padding:4px 0;">
+                            <!-- Visual question cards will be created here dynamically -->
                         </div>
+                        
+                        <button type="button" class="btn btn-outline" onclick="addQ()" style="width:100%; padding:12px; font-weight:800; border-radius:12px; border:2px dashed var(--border-solid); display:flex; align-items:center; justify-content:center; gap:6px; background:var(--surface-3); transition:.2s; font-size:0.85rem; color:var(--brand);">
+                            <i class="fas fa-plus-circle" style="font-size:1rem;"></i>
+                            <span>إضافة سؤال جديد</span>
+                        </button>
                     </div>
-                </form>
+                </div>
+                
+                <!-- STEP 3: Coupons Tier Configuration -->
+                <div id="sp3" style="display: none; flex-direction: column; gap: 16px;">
+                    <div style="background: var(--surface-1); border: 1px solid var(--border-solid); padding: 18px; border-radius: 14px; display:flex; flex-direction:column; gap:12px;">
+                        <h4 style="margin:0; font-weight:800; color:var(--text-1); font-size:0.95rem; display:flex; align-items:center; gap:6px; border-bottom: 1px solid var(--border-solid); padding-bottom:8px; margin-bottom:4px;"><i class="fas fa-ticket-alt" style="color:var(--coupon);"></i> مصفوفة توزيع الكوبونات التلقائي</h4>
+                        <p style="font-size:0.78rem; color:var(--text-3); line-height:1.5; margin:0;">حدد عدد الكوبونات التي يحصل عليها الطفل تلقائياً بناءً على النسبة المئوية لإجابته الصحيحة في الاختبار.<br>الدرجة الكلية الحالية للاختبار: <strong id="s3deg" style="color:var(--text-1); font-weight:900;">0</strong> درجات.</p>
+                        
+                        <div id="ctierList" style="display:flex; flex-direction:column; gap:8px; margin-top:10px; min-height:100px;">
+                            <!-- Coupons tier matrix configuration loaded dynamically -->
+                        </div>
+                        
+                        <button type="button" class="btn btn-outline" onclick="addTier()" style="width:100%; padding:10px; font-weight:800; border-radius:10px; border:1px solid var(--border-solid); display:flex; align-items:center; justify-content:center; gap:6px; transition:.2s; font-size:0.8rem;">
+                            <i class="fas fa-plus"></i>
+                            <span>إضافة نطاق مئوي جديد</span>
+                        </button>
+                    </div>
+                </div>
             </div>
-            <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:8px;">
-                <button class="btn btn-outline btn-sm" onclick="closeModal('nativeTaskFormModal')">إلغاء</button>
-                <button class="btn btn-primary btn-sm" onclick="saveNativeTask()"><i class="fas fa-save"></i> حفظ المهمة</button>
+            
+            <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center; padding:16px 24px; border-top:1px solid var(--border-solid); background:var(--surface-1);">
+                <div style="font-size:0.75rem; color:var(--text-3); font-weight:700;">
+                    الخطوة <strong id="stepNum" style="color:var(--brand); font-size:0.95rem;">١</strong> من ٣
+                </div>
+                
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('nativeTaskFormModal')">إلغاء</button>
+                    <button type="button" class="btn btn-outline btn-sm" id="prevBtn" onclick="prevStep()" style="display:none;"><i class="fas fa-chevron-right"></i> السابق</button>
+                    <button type="button" class="btn btn-outline btn-sm" id="draftBtn" onclick="saveNativeTask('draft')" style="background:var(--warning-bg); border-color:var(--warning); color:var(--warning);"><i class="fas fa-save"></i> حفظ كمسودة</button>
+                    <button type="button" class="btn btn-primary btn-sm" id="nextBtn" onclick="nextStep()">التالي <i class="fas fa-chevron-left"></i></button>
+                    <button type="button" class="btn btn-primary btn-sm" id="pubBtn" onclick="saveNativeTask('published')" style="display:none; background:var(--brand); border-color:var(--brand);"><i class="fas fa-paper-plane"></i> نشر وإرسال</button>
+                </div>
             </div>
         </div>
     </div>
@@ -15951,7 +16436,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="tcard" onclick="openNativeTaskDetails(${t.id})" style="animation-delay:${idx*40}ms; border:1px solid ${isChecked ? 'var(--brand)' : 'var(--border-solid)'}; background:${isChecked ? 'var(--brand-bg)' : 'var(--surface-1)'};">
                         
                         <!-- Checkbox Overlay -->
-                        <label style="position:absolute; top:12px; left:12px; display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; background:${isChecked ? 'var(--brand-bg)' : 'var(--surface-1)'}; border:1px solid ${isChecked ? 'var(--brand)' : 'var(--border-solid)'}; border-radius:6px; cursor:pointer; z-index:2; transition: all 0.2s;" class="task-checkbox-label" onclick="event.stopPropagation();">
+                        <label style="position:absolute; top:12px; right:12px; display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; background:${isChecked ? 'var(--brand-bg)' : 'var(--surface-1)'}; border:1px solid ${isChecked ? 'var(--brand)' : 'var(--border-solid)'}; border-radius:6px; cursor:pointer; z-index:2; transition: all 0.2s;" class="task-checkbox-label" onclick="event.stopPropagation();">
                             <input type="checkbox" style="display:none;" onchange="toggleSelectTask(event, ${t.id})" ${isChecked ? 'checked' : ''}>
                             <i class="fas fa-check" style="font-size:0.68rem; color:${isChecked ? 'var(--brand)' : 'transparent'};"></i>
                         </label>
@@ -15970,7 +16455,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             </div>
                             <div class="tmeta">
                                 <div class="tmeta-i"><i class="fas fa-calendar-check"></i>${fmtDate(t.start_date)}</div>
-                                <div class="tmeta-i"><i class="fas fa-flag-checkered"></i>${parseInt(t.no_deadline || 0) ? 'بدون آخر موعد' : fmtDate(t.end_date)}</div></div>
+                                <div class="tmeta-i"><i class="fas fa-stopwatch"></i>${parseInt(t.no_deadline || 0) ? 'بدون آخر موعد' : fmtDate(t.end_date)}</div></div>
                                 ${t.time_limit ? `<div class="tmeta-i"><i class="fas fa-stopwatch"></i>${t.time_limit} دقيقة</div>` : ''}
                             </div>
                             <div class="tinfo-grid">
@@ -16071,12 +16556,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         let statusHtml = '';
                         let actionHtml = '';
 
+                        const viewAnsBtn = `<button class="btn btn-outline btn-sm" onclick="viewAnswers(${taskId}, ${sub.student_id})" style="padding:4px 8px; font-size:0.7rem; margin-left:4px;"><i class="fas fa-eye"></i> إجابات</button>`;
                         if (sub.is_graded == 1 || !hasOpenQs) {
                             statusHtml = '<span style="color:var(--ok); font-weight:700;"><i class="fas fa-check-circle"></i> تم التقييم</span>';
-                            actionHtml = '<span style="color:var(--text-3); font-size:0.75rem;">مصحح تلقائي/يدوي</span>';
+                            actionHtml = viewAnsBtn;
                         } else {
                             statusHtml = '<span style="color:var(--warning); font-weight:700;"><i class="fas fa-hourglass-half"></i> معلق (يحتاج تصحيح)</span>';
-                            actionHtml = `<button class="btn btn-warning btn-sm" onclick="openGradePanel(${taskId})" style="padding:4px 8px; font-size:0.7rem;"><i class="fas fa-check"></i> تصحيح</button>`;
+                            actionHtml = `${viewAnsBtn}<button class="btn btn-warning btn-sm" onclick="openGradePanel(${taskId})" style="padding:4px 8px; font-size:0.7rem;"><i class="fas fa-check"></i> تصحيح</button>`;
                         }
 
                         return `
@@ -16086,7 +16572,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <td style="padding:10px; text-align:center; font-weight:700; color:var(--brand);">${sub.score} / ${t.total_degree}</td>
                                 <td style="padding:10px; text-align:center;"><i class="fas fa-coins" style="color:var(--coupon);"></i> ${sub.coupons_awarded}</td>
                                 <td style="padding:10px; text-align:center; color:var(--text-3); font-size:0.75rem;">${dateStr}</td>
-                                <td style="padding:10px; text-align:center;">${actionHtml}</td>
+                                <td style="padding:10px; text-align:center; display:flex; justify-content:center; align-items:center; gap:4px;">${actionHtml}</td>
                             </tr>
                         `;
                     }).join('');
@@ -16425,6 +16911,683 @@ if ($hasUncleId && $uncleRole === 'uncle')
             loadNativeTasksList();
         }
 
+        let curStep = 1;
+        let qCnt = 0;
+        const LETTERS = ['أ', 'ب', 'ج', 'د', 'هـ', 'و'];
+
+        function goStep(n) {
+            [1, 2, 3].forEach(i => {
+                const sp = document.getElementById(`sp${i}`);
+                if (sp) sp.style.display = i === n ? '' : 'none';
+                const sd = document.getElementById(`sd${i}`);
+                if (sd) {
+                    sd.className = 'step' + (i < n ? ' done' : i === n ? ' active' : '');
+                }
+            });
+            const prevBtn = document.getElementById('prevBtn');
+            if (prevBtn) prevBtn.style.display = n > 1 ? '' : 'none';
+            const nextBtn = document.getElementById('nextBtn');
+            if (nextBtn) nextBtn.style.display = n < 3 ? '' : 'none';
+            const pubBtn = document.getElementById('pubBtn');
+            if (pubBtn) pubBtn.style.display = n === 3 ? '' : 'none';
+            const stepNum = document.getElementById('stepNum');
+            if (stepNum) stepNum.textContent = n;
+            curStep = n;
+        }
+
+        function nextStep() {
+            if (curStep === 1 && !v1()) return;
+            if (curStep === 2 && !v2()) return;
+            if (curStep === 2) {
+                const s3deg = document.getElementById('s3deg');
+                if (s3deg) s3deg.textContent = calcDeg();
+            }
+            goStep(curStep + 1);
+        }
+
+        function prevStep() {
+            goStep(curStep - 1);
+        }
+
+        function v1() {
+            const title = document.getElementById('nfTitle').value.trim();
+            if (!title) {
+                showToast('أدخل العنوان', 'warning');
+                return false;
+            }
+            const startVal = document.getElementById('nfStartDate').value;
+            if (!startVal) {
+                showToast('أدخل تاريخ البداية', 'warning');
+                return false;
+            }
+            const noDeadline = document.getElementById('fNoDeadline').checked;
+            if (!noDeadline) {
+                const endVal = document.getElementById('nfEndDate').value;
+                if (!endVal) {
+                    showToast('أدخل الموعد النهائي', 'warning');
+                    return false;
+                }
+                const startD = new Date(startVal);
+                const endD = new Date(endVal);
+                if (isNaN(endD.getTime()) || endD <= startD) {
+                    showToast('الموعد النهائي يجب أن يكون بعد تاريخ البداية', 'warning');
+                    return false;
+                }
+            }
+            const timerOn = document.getElementById('fTimerOn').checked;
+            if (timerOn) {
+                const timerVal = document.getElementById('fTimerMin').value;
+                if (!timerVal || parseInt(timerVal) <= 0) {
+                    showToast('أدخل مدة المؤقت بالدقائق', 'warning');
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function v2() {
+            const cards = document.querySelectorAll('.qcard');
+            if (cards.length === 0) {
+                showToast('أضف سؤالاً واحداً على الأقل', 'warning');
+                return false;
+            }
+            for (const card of cards) {
+                const qi = card.querySelector('.qi');
+                if (!qi || !qi.value.trim()) {
+                    showToast('أكمل نص الأسئلة', 'warning');
+                    return false;
+                }
+                const qtype = card.dataset.qtype || 'mcq';
+                if (qtype === 'tf') {
+                    if (card.dataset.tfAnswer === undefined || card.dataset.tfAnswer === '') {
+                        showToast('حدد الإجابة الصحيحة (صح أو خطأ)', 'warning');
+                        return false;
+                    }
+                } else if (qtype === 'mcq') {
+                    const correctRadio = card.querySelector('.oradio.ok');
+                    if (!correctRadio) {
+                        showToast('حدد الإجابة الصحيحة لكل سؤال اختيارات', 'warning');
+                        return false;
+                    }
+                    const optionInputs = card.querySelectorAll('.oinp');
+                    if (optionInputs.length < 2) {
+                        showToast('كل سؤال يحتاج خيارين على الأقل', 'warning');
+                        return false;
+                    }
+                    let hasEmpty = false;
+                    optionInputs.forEach(inp => {
+                        if (!inp.value.trim()) hasEmpty = true;
+                    });
+                    if (hasEmpty) {
+                        showToast('أكمل نص الخيارات لجميع الأسئلة', 'warning');
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        function toggleNoDeadline() {
+            const isChecked = document.getElementById('fNoDeadline').checked;
+            document.getElementById('nfEndDate').disabled = isChecked;
+        }
+
+        function applyDuePreset(days) {
+            const now = new Date();
+            let targetDate;
+            if (days === 0) {
+                targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 0);
+            } else {
+                targetDate = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+            }
+            document.getElementById('nfEndDate').value = targetDate.toISOString().slice(0, 16);
+            document.getElementById('fNoDeadline').checked = false;
+            document.getElementById('nfEndDate').disabled = false;
+        }
+
+        function calcDeg() {
+            let total = 0;
+            document.querySelectorAll('.qcard').forEach(card => {
+                const degInp = card.querySelector('.qdeg-i');
+                if (degInp) {
+                    total += parseFloat(degInp.value) || 0;
+                }
+            });
+            return total;
+        }
+
+        function updDeg() {
+            const total = calcDeg();
+            const degTotal = document.getElementById('degTotal');
+            if (degTotal) {
+                degTotal.innerHTML = `${total} <small style="font-size:.7rem;font-weight:500;">درجة</small>`;
+            }
+            const s3deg = document.getElementById('s3deg');
+            if (s3deg) {
+                s3deg.textContent = total;
+            }
+        }
+
+        function addQ(data = null) {
+            qCnt++;
+            const id = 'q' + qCnt;
+            const qtype = data && (data.question_type || data.type) ? (data.question_type || data.type) : 'mcq';
+            const deg = data && data.degree ? data.degree : 2;
+            const qtxt = data && (data.question_text || data.text) ? (data.question_text || data.text) : '';
+            
+            const div = document.createElement('div');
+            div.className = 'qcard';
+            div.dataset.qid = id;
+            div.dataset.qtype = qtype;
+            div.style.background = 'var(--surface-2)';
+            div.style.border = '1px solid var(--border-solid)';
+            div.style.borderRadius = '12px';
+            div.style.padding = '16px';
+            div.style.marginBottom = '16px';
+            div.style.position = 'relative';
+            div.style.display = 'flex';
+            div.style.flexDirection = 'column';
+            div.style.gap = '12px';
+            
+            const n = document.querySelectorAll('.qcard').length + 1;
+            div.innerHTML = `
+                <div class="qhdr" style="display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+                        <div class="qnum" id="qn_${id}" style="width: 24px; height: 24px; border-radius: 50%; background: var(--brand); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700;">${n}</div>
+                        <input class="qi form-input" type="text" placeholder="نص السؤال..." value="${escHtml(qtxt)}" style="margin: 0; flex: 1; height: 36px; font-size: 0.85rem;">
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                        <div class="qdeg" style="display: flex; align-items: center; gap: 4px;">
+                            <span class="qdeg-l" style="font-size: 0.72rem; color: var(--text-2); font-weight: 700;">الدرجة</span>
+                            <input class="qdeg-i form-input" type="number" min="0" max="100" value="${deg}" oninput="updDeg()" style="margin: 0; width: 60px; height: 32px; text-align: center; padding: 2px;">
+                        </div>
+                        <button type="button" class="btn btn-xs btn-outline btn-danger" onclick="rmQ('${id}')" style="width: 32px; height: 32px; border-radius: 6px; padding: 0; display: flex; align-items: center; justify-content: center;"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+                <div class="q-type-selector" style="display: flex; gap: 6px; flex-wrap: wrap; background: var(--surface-3); padding: 4px; border-radius: 8px;">
+                    <button type="button" class="btn btn-xs ${qtype === 'mcq' ? 'btn-primary' : 'btn-ghost'}" onclick="setQType('${id}','mcq',this)" style="font-size: 0.7rem; padding: 4px 8px; font-weight: 700;">
+                        <i class="fas fa-list-ul"></i> اختيار متعدد
+                    </button>
+                    <button type="button" class="btn btn-xs ${qtype === 'tf' ? 'btn-primary' : 'btn-ghost'}" onclick="setQType('${id}','tf',this)" style="font-size: 0.7rem; padding: 4px 8px; font-weight: 700;">
+                        <i class="fas fa-check-circle"></i> صح/خطأ
+                    </button>
+                    <button type="button" class="btn btn-xs ${qtype === 'open' ? 'btn-primary' : 'btn-ghost'}" onclick="setQType('${id}','open',this)" style="font-size: 0.7rem; padding: 4px 8px; font-weight: 700;">
+                        <i class="fas fa-pen-nib"></i> إجابة مفتوحة
+                    </button>
+                </div>
+                <div class="qbody" id="qbody_${id}">
+                    <div class="opts" id="opts_${id}" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 6px;"></div>
+                    <button type="button" class="btn btn-xs btn-outline" id="addopt_${id}" onclick="addOpt('${id}')" style="font-size: 0.7rem; padding: 4px 8px; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-plus"></i> إضافة خيار</button>
+                    <div class="tf-opts" id="tfopts_${id}" style="display:none; gap: 10px;">
+                        <button type="button" class="btn btn-sm btn-outline btn-success tf-btn tf-true" id="tftrue_${id}" onclick="setTF('${id}',true)" style="flex: 1; font-weight: 700; border-radius: 8px;"><i class="fas fa-check-circle"></i> صحيح</button>
+                        <button type="button" class="btn btn-sm btn-outline btn-danger tf-btn tf-false" id="tffalse_${id}" onclick="setTF('${id}',false)" style="flex: 1; font-weight: 700; border-radius: 8px;"><i class="fas fa-times-circle"></i> خطأ</button>
+                    </div>
+                    <div class="open-q-note" id="opennote_${id}" style="display:none; align-items: center; gap: 8px; font-size: 0.75rem; color: var(--text-3); background: var(--surface-3); padding: 8px 12px; border-radius: 8px;">
+                        <i class="fas fa-pen-nib" style="color: var(--brand);"></i> الطفل يكتب إجابة نصية حرة — يتم تصحيحها يدوياً.
+                    </div>
+                </div>
+                <div class="q-img-section" style="border-top: 1px dashed var(--border-solid); padding-top: 8px;">
+                    <button type="button" class="btn btn-ghost btn-xs" onclick="toggleImgSection('${id}')" style="width: 100%; justify-content: space-between; font-size: 0.7rem; color: var(--text-2);">
+                        <span><i class="fas fa-image"></i> إضافة صورة للسؤال (اختياري)</span>
+                        <i class="fas fa-chevron-down" id="imgchev_${id}" style="font-size:.62rem; transition:.2s;"></i>
+                    </button>
+                    <div class="q-img-input-wrap" id="imgwrap_${id}" style="display: none; flex-direction: column; gap: 8px; margin-top: 8px;">
+                        <div class="q-img-tabs" style="display: flex; gap: 4px;">
+                            <button type="button" class="btn btn-xs btn-primary active" id="tabbtn_url_${id}" onclick="switchImgTab('${id}','url',this)" style="font-size: 0.65rem; padding: 2px 6px;"><i class="fas fa-link"></i> رابط</button>
+                            <button type="button" class="btn btn-xs btn-outline" id="tabbtn_upload_${id}" onclick="switchImgTab('${id}','upload',this)" style="font-size: 0.65rem; padding: 2px 6px;"><i class="fas fa-upload"></i> رفع</button>
+                        </div>
+                        <div class="q-img-tab-panel active" id="imgtab_url_${id}" style="display: block;">
+                            <div class="q-img-url-row" style="display: flex; gap: 6px;">
+                                <input class="q-img-url-inp form-input" id="imgurl_${id}" type="text" placeholder="الصق رابط الصورة هنا..." style="margin: 0; flex: 1; height: 32px; font-size: 0.78rem;">
+                                <button type="button" class="btn btn-sm btn-outline" onclick="fetchImgFromUrl('${id}')" style="height: 32px; padding: 0 10px;"><i class="fas fa-magic"></i> جلب</button>
+                            </div>
+                        </div>
+                        <div class="q-img-tab-panel" id="imgtab_upload_${id}" style="display: none;">
+                            <div class="q-img-drop" id="imgdrop_${id}" onclick="document.getElementById('imgfile_${id}').click()"
+                                 ondragover="event.preventDefault(); this.style.borderColor='var(--brand)'"
+                                 ondragleave="this.style.borderColor='var(--border-solid)'"
+                                 ondrop="event.preventDefault(); this.style.borderColor='var(--border-solid)'; uploadQImg('${id}',event.dataTransfer.files[0])"
+                                 style="border: 2px dashed var(--border-solid); border-radius: 8px; padding: 12px; text-align: center; cursor: pointer; font-size: 0.7rem; color: var(--text-3); background: var(--surface-3);">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 1.2rem; margin-bottom: 4px; display: block; color: var(--text-2);"></i>
+                                <p style="margin: 0;">اضغط أو اسحب صورة هنا</p>
+                                <small>JPG, PNG, WebP — حتى 5 ميجا</small>
+                            </div>
+                            <input type="file" id="imgfile_${id}" accept="image/*" style="display:none" onchange="uploadQImg('${id}',this.files[0])">
+                            <div class="q-img-uploading" id="imgloading_${id}" style="display: none; align-items: center; justify-content: center; gap: 6px; font-size: 0.7rem; color: var(--text-2); margin-top: 4px;"><i class="fas fa-spinner fa-spin"></i> جاري الرفع...</div>
+                        </div>
+                        <div class="q-img-preview" id="imgpreview_${id}" style="display: none; position: relative; border-radius: 8px; overflow: hidden; max-height: 140px; border: 1px solid var(--border-solid);">
+                            <img id="imgel_${id}" src="" style="width: 100%; max-height: 140px; object-fit: contain; background: var(--surface-3);">
+                            <button type="button" class="btn btn-xs btn-danger" onclick="removeQImg('${id}')" style="position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; opacity: 0.8;"><i class="fas fa-times"></i></button>
+                        </div>
+                        <div class="q-img-status" id="imgstatus_${id}" style="font-size: 0.68rem; margin-top: 4px; text-align: right;"></div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('qList').appendChild(div);
+            
+            if (data && (data.image_url || data.image)) {
+                setQImg(id, data.image_url || data.image);
+            }
+            
+            if (qtype === 'tf') {
+                _showTFLayout(id, data);
+            } else if (qtype === 'open') {
+                _showOpenQLayout(id);
+            } else if (data && data.options) {
+                let os = [];
+                try {
+                    os = typeof data.options === 'string' ? JSON.parse(data.options) : (data.options || []);
+                } catch(e) {
+                    os = [];
+                }
+                const ci = parseInt((data.correct_index !== undefined ? data.correct_index : data.answer) ?? 0);
+                os.forEach((o, i) => {
+                    addOpt(id, o, i === ci);
+                });
+            } else {
+                for (let i = 0; i < 4; i++) {
+                    addOpt(id, '', i === 0);
+                }
+            }
+            
+            renumQ();
+            updDeg();
+        }
+
+        function rmQ(qid) {
+            const card = document.querySelector(`.qcard[data-qid="${qid}"]`);
+            if (card) {
+                card.remove();
+                renumQ();
+                updDeg();
+            }
+        }
+
+        function renumQ() {
+            document.querySelectorAll('.qcard').forEach((card, idx) => {
+                const qnum = card.querySelector('.qnum');
+                if (qnum) qnum.textContent = idx + 1;
+            });
+        }
+
+        function addOpt(qid, text = '', correct = false) {
+            const list = document.getElementById(`opts_${qid}`);
+            if (!list) return;
+            const idx = list.children.length;
+            if (idx >= 5) {
+                showToast('الحد الأقصى 5 خيارات', 'info');
+                return;
+            }
+            const row = document.createElement('div');
+            row.className = 'orow';
+            row.style.display = 'flex';
+            row.style.alignItems = 'center';
+            row.style.gap = '8px';
+            row.innerHTML = `
+                <div class="oradio ${correct ? 'ok' : ''}" onclick="setCorrect(this)" style="width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--border-solid); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: #fff; background: ${correct ? 'var(--ok)' : 'var(--surface-3)'}; border-color: ${correct ? 'var(--ok)' : 'var(--border-solid)'};">${correct ? '✓' : ''}</div>
+                <div class="olet" style="font-size: 0.78rem; font-weight: 700; color: var(--text-2); min-width: 14px;">${LETTERS[idx]}</div>
+                <input class="oinp form-input" type="text" placeholder="الخيار ${LETTERS[idx]}" value="${escHtml(text)}" style="margin: 0; flex: 1; height: 32px; font-size: 0.8rem;">
+                <button type="button" class="btn btn-xs btn-ghost btn-danger" onclick="this.closest('.orow').remove(); relabel('${qid}')" style="width: 28px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center;"><i class="fas fa-times"></i></button>
+            `;
+            list.appendChild(row);
+        }
+
+        function setCorrect(el) {
+            el.closest('.opts').querySelectorAll('.oradio').forEach(r => {
+                r.classList.remove('ok');
+                r.textContent = '';
+                r.style.background = 'var(--surface-3)';
+                r.style.borderColor = 'var(--border-solid)';
+            });
+            el.classList.add('ok');
+            el.textContent = '✓';
+            el.style.background = 'var(--ok)';
+            el.style.borderColor = 'var(--ok)';
+        }
+
+        function relabel(qid) {
+            const list = document.getElementById(`opts_${qid}`);
+            if (!list) return;
+            list.querySelectorAll('.orow').forEach((r, i) => {
+                const olet = r.querySelector('.olet');
+                if (olet) olet.textContent = LETTERS[i];
+                const oinp = r.querySelector('.oinp');
+                if (oinp) oinp.placeholder = `الخيار ${LETTERS[i]}`;
+            });
+        }
+
+        function setQType(qid, type, btn) {
+            const div = document.querySelector(`.qcard[data-qid="${qid}"]`);
+            if (!div) return;
+            div.dataset.qtype = type;
+            btn.closest('.q-type-selector').querySelectorAll('.btn').forEach(b => {
+                b.className = 'btn btn-xs btn-ghost';
+            });
+            btn.className = 'btn btn-xs btn-primary';
+            if (type === 'mcq') {
+                _showMcqLayout(qid);
+            } else if (type === 'tf') {
+                _showTFLayout(qid, null);
+            } else {
+                _showOpenQLayout(qid);
+            }
+        }
+
+        function _showMcqLayout(qid) {
+            const opts = document.getElementById(`opts_${qid}`);
+            const addBtn = document.getElementById(`addopt_${qid}`);
+            const tfopts = document.getElementById(`tfopts_${qid}`);
+            const note = document.getElementById(`opennote_${qid}`);
+            if (opts) opts.style.display = 'flex';
+            if (addBtn) addBtn.style.display = 'inline-flex';
+            if (tfopts) tfopts.style.display = 'none';
+            if (note) note.style.display = 'none';
+            if (opts && opts.children.length === 0) {
+                for (let i = 0; i < 4; i++) addOpt(qid, '', i === 0);
+            }
+        }
+
+        function _showTFLayout(qid, data) {
+            const opts = document.getElementById(`opts_${qid}`);
+            const addBtn = document.getElementById(`addopt_${qid}`);
+            const tfopts = document.getElementById(`tfopts_${qid}`);
+            const note = document.getElementById(`opennote_${qid}`);
+            if (opts) opts.style.display = 'none';
+            if (addBtn) addBtn.style.display = 'none';
+            if (tfopts) tfopts.style.display = 'flex';
+            if (note) note.style.display = 'none';
+            
+            const ansVal = data && (data.correct_index !== undefined ? data.correct_index : data.answer);
+            if (ansVal !== undefined && ansVal !== null) {
+                const isTrue = String(ansVal) === '0' || String(ansVal) === 'true';
+                setTF(qid, isTrue);
+            } else {
+                setTF(qid, true);
+            }
+        }
+
+        function _showOpenQLayout(qid) {
+            const opts = document.getElementById(`opts_${qid}`);
+            const addBtn = document.getElementById(`addopt_${qid}`);
+            const tfopts = document.getElementById(`tfopts_${qid}`);
+            const note = document.getElementById(`opennote_${qid}`);
+            if (opts) opts.style.display = 'none';
+            if (addBtn) addBtn.style.display = 'none';
+            if (tfopts) tfopts.style.display = 'none';
+            if (note) note.style.display = 'flex';
+        }
+
+        function setTF(qid, isTrue) {
+            const trueBtn = document.getElementById(`tftrue_${qid}`);
+            const falseBtn = document.getElementById(`tffalse_${qid}`);
+            if (!trueBtn || !falseBtn) return;
+            trueBtn.className = 'btn btn-sm ' + (isTrue ? 'btn-success' : 'btn-outline');
+            falseBtn.className = 'btn btn-sm ' + (!isTrue ? 'btn-danger' : 'btn-outline');
+            const div = document.querySelector(`.qcard[data-qid="${qid}"]`);
+            if (div) div.dataset.tfAnswer = isTrue ? '0' : '1';
+        }
+
+        function toggleImgSection(qid) {
+            const wrap = document.getElementById(`imgwrap_${qid}`);
+            const chev = document.getElementById(`imgchev_${qid}`);
+            if (!wrap) return;
+            const open = wrap.style.display === 'none' || wrap.style.display === '';
+            wrap.style.display = open ? 'flex' : 'none';
+            if (chev) chev.style.transform = open ? 'rotate(180deg)' : '';
+        }
+
+        function switchImgTab(qid, tab, btn) {
+            const wrap = document.getElementById(`imgwrap_${qid}`);
+            if (!wrap) return;
+            wrap.querySelectorAll('.q-img-tabs .btn').forEach(b => {
+                b.className = 'btn btn-xs btn-outline';
+            });
+            btn.className = 'btn btn-xs btn-primary';
+            const tabUrl = document.getElementById(`imgtab_url_${qid}`);
+            const tabUpload = document.getElementById(`imgtab_upload_${qid}`);
+            if (tabUrl) tabUrl.style.display = tab === 'url' ? 'block' : 'none';
+            if (tabUpload) tabUpload.style.display = tab === 'upload' ? 'block' : 'none';
+        }
+
+        async function fetchImgFromUrl(qid) {
+            const inp = document.getElementById(`imgurl_${qid}`);
+            const status = document.getElementById(`imgstatus_${qid}`);
+            const url = (inp && inp.value || '').trim();
+            if (!url) {
+                showToast('أدخل رابطاً أولاً', 'warning');
+                return;
+            }
+            if (status) {
+                status.style.color = 'var(--text-3)';
+                status.textContent = 'جارٍ جلب الصورة...';
+            }
+            
+            const directImg = /\.(jpe?g|png|gif|webp|svg|bmp|avif)(\?.*)?$/i.test(url);
+            if (directImg) {
+                setQImg(qid, url);
+                return;
+            }
+            
+            const transformed = transformToDirectImg(url);
+            if (transformed) {
+                setQImg(qid, transformed);
+                return;
+            }
+            
+            try {
+                if (status) status.textContent = 'جارٍ استخراج الصورة من الرابط...';
+                const d = await makeApiCallRaw({ action: 'fetchOgImage', url: url });
+                if (d && d.success && d.image_url) {
+                    setQImg(qid, d.image_url);
+                } else {
+                    if (status) {
+                        status.style.color = 'var(--danger)';
+                        status.textContent = 'تعذّر استخراج الصورة — جرّب رابطاً مباشراً';
+                    }
+                }
+            } catch(e) {
+                if (status) {
+                    status.style.color = 'var(--danger)';
+                    status.textContent = 'خطأ في الاتصال';
+                }
+            }
+        }
+
+        function transformToDirectImg(url) {
+            let m = url.match(/drive\.google\.com\/file\/d\/([^\/]+)/);
+            if (m) return 'https://drive.google.com/uc?export=view&id=' + m[1];
+            m = url.match(/drive\.google\.com\/open\?id=([^&]+)/);
+            if (m) return 'https://drive.google.com/uc?export=view&id=' + m[1];
+            if (url.indexOf('dropbox.com') > -1 && url.indexOf('dl=0') > -1) return url.replace('dl=0', 'dl=1');
+            m = url.match(/imgur\.com\/(?!a\/|gallery\/)([a-zA-Z0-9]+)$/);
+            if (m) return 'https://i.imgur.com/' + m[1] + '.jpg';
+            return null;
+        }
+
+        function setQImg(qid, src) {
+            const preview = document.getElementById(`imgpreview_${qid}`);
+            const img = document.getElementById(`imgel_${qid}`);
+            const status = document.getElementById(`imgstatus_${qid}`);
+            const inp = document.getElementById(`imgurl_${qid}`);
+            if (!preview || !img) return;
+            
+            img.onerror = function() {
+                preview.style.display = 'none';
+                if (status) {
+                    status.style.color = 'var(--danger)';
+                    status.textContent = 'تعذّر تحميل الصورة — تأكد أن الرابط عام ومباشر';
+                }
+            };
+            
+            img.onload = function() {
+                preview.style.display = 'block';
+                if (status) {
+                    status.style.color = 'var(--ok)';
+                    status.textContent = 'تم تحميل الصورة ✓';
+                }
+            };
+            
+            img.src = src;
+            if (inp && !inp.value) inp.value = src;
+            const wrap = document.getElementById(`imgwrap_${qid}`);
+            if (wrap && wrap.style.display !== 'flex') toggleImgSection(qid);
+        }
+
+        function removeQImg(qid) {
+            const preview = document.getElementById(`imgpreview_${qid}`);
+            const img = document.getElementById(`imgel_${qid}`);
+            const status = document.getElementById(`imgstatus_${qid}`);
+            const inp = document.getElementById(`imgurl_${qid}`);
+            const fileInp = document.getElementById(`imgfile_${qid}`);
+            if (preview) preview.style.display = 'none';
+            if (img) img.src = '';
+            if (status) status.textContent = '';
+            if (inp) inp.value = '';
+            if (fileInp) fileInp.value = '';
+        }
+
+        function getQImg(qid) {
+            const img = document.getElementById(`imgel_${qid}`);
+            return (img && img.src && img.src.indexOf('data:') < 0 && img.src !== window.location.href) ? img.src : '';
+        }
+
+        async function uploadQImg(qid, file) {
+            if (!file) return;
+            const status = document.getElementById(`imgstatus_${qid}`);
+            const loading = document.getElementById(`imgloading_${qid}`);
+            
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('الحد الأقصى لحجم الملف 5 ميجا', 'warning');
+                return;
+            }
+            
+            if (loading) loading.style.display = 'flex';
+            if (status) status.textContent = '';
+            
+            const fd = new FormData();
+            fd.append('action', 'uploadTaskImage');
+            fd.append('image', file);
+            
+            try {
+                const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' })
+                    .then(r => r.json())
+                    .catch(() => ({ success: false }));
+                if (resp && resp.success && resp.image_url) {
+                    setQImg(qid, resp.image_url);
+                } else {
+                    if (status) {
+                        status.style.color = 'var(--danger)';
+                        status.textContent = resp.message || 'فشل رفع الصورة';
+                    }
+                }
+            } catch(e) {
+                if (status) {
+                    status.style.color = 'var(--danger)';
+                    status.textContent = 'خطأ أثناء رفع الصورة';
+                }
+            } finally {
+                if (loading) loading.style.display = 'none';
+            }
+        }
+
+        function addTier(from = 50, to = 100, coupons = 3) {
+            const div = document.createElement('div');
+            div.className = 'ctier';
+            div.style.display = 'flex';
+            div.style.alignItems = 'center';
+            div.style.gap = '8px';
+            div.style.background = 'var(--surface-3)';
+            div.style.padding = '8px 12px';
+            div.style.borderRadius = '8px';
+            div.style.border = '1px solid var(--border-solid)';
+            
+            div.innerHTML = `
+                <div class="ctier-range" style="font-size:0.8rem; font-weight:700; color:var(--text-2);">من <input type="number" min="0" max="100" value="${from}" style="width:50px; text-align:center; height:28px; border-radius:6px; border:1px solid var(--border-solid); background:var(--surface-1); color:var(--text-1);"> %</div>
+                <div class="ctier-arr" style="color:var(--text-3); font-size: 0.72rem;"><i class="fas fa-arrow-left"></i></div>
+                <div class="ctier-range" style="font-size:0.8rem; font-weight:700; color:var(--text-2);">إلى <input type="number" min="0" max="100" value="${to}" style="width:50px; text-align:center; height:28px; border-radius:6px; border:1px solid var(--border-solid); background:var(--surface-1); color:var(--text-1);"> %</div>
+                <div class="crew" style="display:flex; align-items:center; gap:4px; margin-right:auto; font-size:0.8rem; font-weight:700; color:var(--text-1);"><i class="fas fa-ticket-alt" style="color:var(--coupon);"></i><input type="number" min="0" max="999" value="${coupons}" style="width:60px; text-align:center; height:28px; border-radius:6px; border:1px solid var(--border-solid); background:var(--surface-1); color:var(--text-1); font-weight:700;"><span class="crew-l" style="font-size:0.75rem; color:var(--text-3);">كوبون</span></div>
+                <button type="button" class="btn btn-xs btn-ghost btn-danger" onclick="this.closest('.ctier').remove()" style="width:28px; height:28px; padding:0; display:flex; align-items:center; justify-content:center;"><i class="fas fa-times"></i></button>
+            `;
+            document.getElementById('ctierList').appendChild(div);
+        }
+
+        function initTiers() {
+            const ctierList = document.getElementById('ctierList');
+            if (ctierList) {
+                ctierList.innerHTML = '';
+                addTier(0, 49, 0);
+                addTier(50, 69, 10);
+                addTier(70, 84, 30);
+                addTier(85, 94, 50);
+                addTier(95, 100, 100);
+            }
+        }
+
+        async function populateSpec(selectedIds = []) {
+            const assignVal = document.getElementById('fAssign').value;
+            const row = document.getElementById('specRow');
+            if (row) {
+                row.style.display = assignVal === 'specific' ? 'flex' : 'none';
+            }
+            if (assignVal !== 'specific') return;
+            
+            const c = document.getElementById('specList');
+            if (!c) return;
+            
+            c.innerHTML = '<span style="color:var(--text-3);"><i class="fas fa-spinner fa-spin"></i> جارٍ تحميل الأطفال…</span>';
+            
+            // Ensure students are loaded
+            await loadStudents('كل الفصول');
+            
+            // Get checked classes
+            const checkedBoxes = Array.from(document.querySelectorAll('input[name="nf_class_cb"]:checked'));
+            if (checkedBoxes.length === 0) {
+                c.innerHTML = '<span style="color:var(--text-3);">اختر الفصل أولاً</span>';
+                return;
+            }
+            
+            const classIds = checkedBoxes.map(cb => cb.value);
+            const checkedClassNames = classIds.map(id => {
+                const found = classes.find(cls => String(cls.id) === String(id));
+                return found ? found.arabic_name : null;
+            }).filter(Boolean);
+            
+            let st = [];
+            checkedClassNames.forEach(cn => {
+                const list = classStuCache[cn] || [];
+                st = st.concat(list);
+            });
+            
+            // Deduplicate
+            const seenIds = new Set();
+            st = st.filter(s => {
+                const dbId = s.id;
+                if (seenIds.has(dbId)) return false;
+                seenIds.add(dbId);
+                return true;
+            });
+            
+            if (st.length === 0) {
+                c.innerHTML = '<span style="color:var(--text-3);">لا يوجد أطفال في هذه الفصول</span>';
+                return;
+            }
+            
+            st.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+            
+            c.innerHTML = st.map(s => {
+                const avatar = getStudentAvatarHtml(s.photo, s.name, '24px');
+                const isChecked = selectedIds.includes(s.id) || selectedIds.includes(String(s.id));
+                return `
+                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:.78rem; color:var(--text-1); padding:4px 0; direction:rtl;">
+                        <input type="checkbox" name="spec_ids" value="${s.id}" style="accent-color:var(--brand);" ${isChecked ? 'checked' : ''}>
+                        ${avatar}
+                        <span style="font-weight:600;">${escHtml(s.name)}</span>
+                    </label>
+                `;
+            }).join('');
+        }
+
         function renderNFClasses(selectedClassIds = []) {
             const list = document.getElementById('nfClassesList');
             if (!list) return;
@@ -16433,161 +17596,138 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const isChecked = selectedClassIds.includes(cls.id) || selectedClassIds.includes(String(cls.id)) || (selectedClassIds.length === 0 && cls.arabic_name === currentClass);
                 return `
                     <label style="display:inline-flex; align-items:center; gap:4px; cursor:pointer; font-size:0.75rem; background:var(--surface); border:1px solid var(--border-solid); padding:4px 8px; border-radius:6px; margin:2px;">
-                        <input type="checkbox" name="nf_class_cb" value="${cls.id}" ${isChecked ? 'checked' : ''}>
+                        <input type="checkbox" name="nf_class_cb" value="${cls.id}" ${isChecked ? 'checked' : ''} onchange="populateSpec()">
                         <span>${escHtml(cls.arabic_name || cls.code)}</span>
                     </label>
                 `;
             }).join('');
         }
 
-        function addNFQuestion(q = null) {
-            const container = document.getElementById('nfQuestionsList');
-            if (!container) return;
-
-            const qId = q ? q.id : (Date.now() + Math.random().toString(36).substr(2, 5));
-            const type = q ? q.type : 'mcq';
-            const text = q ? q.text : '';
-            const degree = q ? q.degree : 2;
-
-            const card = document.createElement('div');
-            card.className = 'glass-card nf-question-card';
-            card.id = `nf_qcard_${qId}`;
-            card.dataset.qid = qId;
-            card.style.padding = '12px';
-            card.style.border = '1px solid var(--border-solid)';
-            card.style.borderRadius = '10px';
-            card.style.position = 'relative';
-
-            let optionsHtml = '';
-            if (type === 'mcq') {
-                const opts = q ? q.options : ['', '', '', ''];
-                const correctIdx = q ? q.answer : 0;
-                optionsHtml = `
-                    <div class="nf-mcq-options" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
-                        ${opts.map((opt, oIdx) => `
-                            <div style="display:flex; align-items:center; gap:4px;">
-                                <input type="radio" name="nf_correct_${qId}" value="${oIdx}" ${oIdx == correctIdx ? 'checked' : ''}>
-                                <input type="text" class="form-input nf-mcq-opt-input" placeholder="اختيار ${oIdx+1}" value="${escAttr(opt)}" style="font-size:0.75rem; padding:4px 8px; height:28px;">
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-            } else if (type === 'tf') {
-                const correctVal = q ? q.answer : 'true';
-                optionsHtml = `
-                    <div style="margin-top:8px; display:flex; gap:12px; align-items:center;">
-                        <span style="font-size:0.75rem; font-weight:700;">الإجابة الصحيحة:</span>
-                        <label style="display:flex; align-items:center; gap:4px; font-size:0.75rem; cursor:pointer;">
-                            <input type="radio" name="nf_correct_${qId}" value="true" ${correctVal == 'true' || correctVal == true ? 'checked' : ''}> صح
-                        </label>
-                        <label style="display:flex; align-items:center; gap:4px; font-size:0.75rem; cursor:pointer;">
-                            <input type="radio" name="nf_correct_${qId}" value="false" ${correctVal == 'false' || correctVal == false ? 'checked' : ''}> خطأ
-                        </label>
-                    </div>
-                `;
-            }
-
-            card.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:10px;">
-                    <div style="display:flex; align-items:center; gap:8px; flex:1;">
-                        <span style="font-weight:700; font-size:0.78rem; color:var(--brand);">نوع السؤال:</span>
-                        <select class="form-input nf-qtype-select" onchange="changeNFQuestionType('${qId}')" style="font-size:0.75rem; padding:4px 8px; height:28px; width:120px;">
-                            <option value="mcq" ${type === 'mcq' ? 'selected' : ''}>اختيار من متعدد</option>
-                            <option value="open" ${type === 'open' || type === 'text' ? 'selected' : ''}>سؤال مقالي (مفتوح)</option>
-                            <option value="tf" ${type === 'tf' ? 'selected' : ''}>صح أو خطأ</option>
-                        </select>
-                    </div>
-                    <button type="button" class="btn btn-ghost" onclick="removeNFQuestion('${qId}')" style="color:var(--danger); padding:4px 8px; font-size:0.75rem;" title="حذف السؤال"><i class="fas fa-trash-alt"></i></button>
-                </div>
-                
-                <div class="form-group" style="margin-bottom:8px;">
-                    <label class="form-label" style="font-size:0.75rem;">نص السؤال</label>
-                    <input type="text" class="form-input nf-qtext-input" placeholder="اكتب نص السؤال هنا..." value="${escAttr(text)}" required style="font-size:0.78rem; padding:6px 10px;">
-                </div>
-                
-                <div class="nf-options-container">
-                    ${optionsHtml}
-                </div>
-                
-                <div class="form-group" style="margin-top:8px; margin-bottom:0;">
-                    <label class="form-label" style="font-size:0.75rem;">درجة السؤال</label>
-                    <input type="number" class="form-input nf-qdegree-input" min="0" value="${degree}" style="width:80px; font-size:0.75rem; padding:4px 8px; height:28px;">
-                </div>
-            `;
-
-            container.appendChild(card);
-            updateNFQuestionsCount();
-        }
-
-        function changeNFQuestionType(qId) {
-            const card = document.getElementById(`nf_qcard_${qId}`);
-            if (!card) return;
-            const select = card.querySelector('.nf-qtype-select');
-            const type = select.value;
-            const container = card.querySelector('.nf-options-container');
+        function collectForm(status) {
+            const title = document.getElementById('nfTitle').value.trim();
+            const description = document.getElementById('nfDesc').value.trim();
+            const groupName = document.getElementById('nfGroupName').value.trim();
+            const groupIcon = document.getElementById('nfGroupIcon').value;
             
-            if (type === 'mcq') {
-                container.innerHTML = `
-                    <div class="nf-mcq-options" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
-                        <div style="display:flex; align-items:center; gap:4px;">
-                            <input type="radio" name="nf_correct_${qId}" value="0" checked>
-                            <input type="text" class="form-input nf-mcq-opt-input" placeholder="اختيار 1" style="font-size:0.75rem; padding:4px 8px; height:28px;">
-                        </div>
-                        <div style="display:flex; align-items:center; gap:4px;">
-                            <input type="radio" name="nf_correct_${qId}" value="1">
-                            <input type="text" class="form-input nf-mcq-opt-input" placeholder="اختيار 2" style="font-size:0.75rem; padding:4px 8px; height:28px;">
-                        </div>
-                        <div style="display:flex; align-items:center; gap:4px;">
-                            <input type="radio" name="nf_correct_${qId}" value="2">
-                            <input type="text" class="form-input nf-mcq-opt-input" placeholder="اختيار 3" style="font-size:0.75rem; padding:4px 8px; height:28px;">
-                        </div>
-                        <div style="display:flex; align-items:center; gap:4px;">
-                            <input type="radio" name="nf_correct_${qId}" value="3">
-                            <input type="text" class="form-input nf-mcq-opt-input" placeholder="اختيار 4" style="font-size:0.75rem; padding:4px 8px; height:28px;">
-                        </div>
-                    </div>
-                `;
-            } else if (type === 'tf') {
-                container.innerHTML = `
-                    <div style="margin-top:8px; display:flex; gap:12px; align-items:center;">
-                        <span style="font-size:0.75rem; font-weight:700;">الإجابة الصحيحة:</span>
-                        <label style="display:flex; align-items:center; gap:4px; font-size:0.75rem; cursor:pointer;">
-                            <input type="radio" name="nf_correct_${qId}" value="true" checked> صح
-                        </label>
-                        <label style="display:flex; align-items:center; gap:4px; font-size:0.75rem; cursor:pointer;">
-                            <input type="radio" name="nf_correct_${qId}" value="false"> خطأ
-                        </label>
-                    </div>
-                `;
-            } else {
-                container.innerHTML = '';
+            const startDate = document.getElementById('nfStartDate').value;
+            const noDeadline = document.getElementById('fNoDeadline').checked ? 1 : 0;
+            let endDate = document.getElementById('nfEndDate').value;
+            if (noDeadline) {
+                endDate = '9999-12-31 23:59:59';
             }
+            
+            const timeLimit = document.getElementById('fTimerOn').checked ? (parseInt(document.getElementById('fTimerMin').value) || null) : null;
+            const timerBehavior = document.getElementById('fTimerBeh').value;
+            
+            const showAnswers = document.getElementById('fShowAns').checked ? 1 : 0;
+            const showResult = document.getElementById('fShowRes').checked ? 1 : 0;
+            const shuffle = document.getElementById('fShuffle').checked ? 1 : 0;
+            const allowReview = document.getElementById('fReview').checked ? 1 : 0;
+            
+            // Selected classes
+            const classIdsList = [];
+            document.querySelectorAll('input[name="nf_class_cb"]:checked').forEach(cb => {
+                classIdsList.push(cb.value);
+            });
+            const classIdsStr = classIdsList.join(',');
+            
+            // Target assign kids
+            const assignTo = document.getElementById('fAssign').value;
+            const specIds = [];
+            if (assignTo === 'specific') {
+                document.querySelectorAll('input[name="spec_ids"]:checked').forEach(cb => {
+                    specIds.push(parseInt(cb.value));
+                });
+            }
+            
+            // Build questions JSON
+            const questions = [];
+            document.querySelectorAll('.qcard').forEach((card, qi) => {
+                const qtype = card.dataset.qtype || 'mcq';
+                const text = card.querySelector('.qi').value.trim();
+                const degree = parseFloat(card.querySelector('.qdeg-i').value) || 0;
+                const img = getQImg(card.dataset.qid) || '';
+                
+                const qObj = {
+                    id: qi + 1,
+                    sort_order: qi,
+                    question_type: qtype,
+                    question_text: text,
+                    degree: degree,
+                    image_url: img
+                };
+                
+                if (qtype === 'open') {
+                    qObj.options = '[]';
+                    qObj.correct_index = null;
+                } else if (qtype === 'tf') {
+                    const ans = parseInt(card.dataset.tfAnswer || '0');
+                    qObj.options = JSON.stringify(['صحيح', 'خطأ']);
+                    qObj.correct_index = ans;
+                } else {
+                    const opts = [];
+                    let correctIdx = 0;
+                    card.querySelectorAll('.orow').forEach((r, oi) => {
+                        opts.push(r.querySelector('.oinp').value.trim());
+                        if (r.querySelector('.oradio.ok')) {
+                            correctIdx = oi;
+                        }
+                    });
+                    qObj.options = JSON.stringify(opts);
+                    qObj.correct_index = correctIdx;
+                }
+                questions.push(qObj);
+            });
+            
+            // Build tiers JSON
+            const tiers = [];
+            document.querySelectorAll('.ctier').forEach(t => {
+                const ns = t.querySelectorAll('input[type=number]');
+                tiers.push({
+                    from: parseInt(ns[0].value) || 0,
+                    to: parseInt(ns[1].value) || 100,
+                    val: parseInt(ns[2].value) || 0
+                });
+            });
+            
+            const totalDegree = calcDeg();
+            const maxCoupons = Math.max(...tiers.map(t => t.val), 0);
+            
+            const payload = {
+                title: title,
+                description: description,
+                start_date: startDate.replace('T', ' '),
+                end_date: endDate.replace('T', ' '),
+                no_deadline: noDeadline,
+                time_limit: timeLimit,
+                timer_behavior: timerBehavior,
+                show_result: showResult,
+                show_answers: showAnswers,
+                shuffle: shuffle,
+                allow_review: allowReview,
+                class_ids: classIdsStr,
+                assign_to: assignTo,
+                specific_ids: JSON.stringify(specIds),
+                total_degree: totalDegree,
+                max_coupons: maxCoupons,
+                coupon_matrix: JSON.stringify(tiers),
+                questions: JSON.stringify(questions),
+                group_name: groupName,
+                group_icon: groupIcon,
+                status: status
+            };
+            
+            return payload;
         }
 
-        function removeNFQuestion(qId) {
-            const card = document.getElementById(`nf_qcard_${qId}`);
-            if (card) {
-                card.remove();
-                updateNFQuestionsCount();
-            }
-        }
-
-        function updateNFQuestionsCount() {
-            const list = document.getElementById('nfQuestionsList');
-            if (list) {
-                const count = list.children.length;
-                document.getElementById('nfQuestionsCount').textContent = count;
-            }
-        }
-
-        function openNativeTaskCreateForm() {
+        async function openNativeTaskCreateForm() {
             openModal('nativeTaskFormModal');
             document.getElementById('nfFormTitle').textContent = 'إضافة مهمة جديدة';
             document.getElementById('nfTaskId').value = '0';
             document.getElementById('nfTitle').value = '';
             document.getElementById('nfDesc').value = '';
-            document.getElementById('nfNoDeadline').checked = false;
-            document.getElementById('nfEndDate').disabled = false;
+            document.getElementById('nfGroupName').value = '';
+            document.getElementById('nfGroupIcon').value = 'fa-folder';
             
             // Default dates
             const now = new Date();
@@ -16596,15 +17736,33 @@ if ($hasUncleId && $uncleRole === 'uncle')
             
             const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
             document.getElementById('nfEndDate').value = tomorrow.toISOString().slice(0, 16);
-
-            document.getElementById('nfTotalDegree').value = '10';
-            document.getElementById('nfMaxCoupons').value = '10';
-            document.getElementById('nfStatus').value = 'published';
-            document.getElementById('nfGroupName').value = '';
-            document.getElementById('nfGroupIcon').value = 'fa-folder';
-            document.getElementById('nfQuestionsList').innerHTML = '';
-            updateNFQuestionsCount();
+            document.getElementById('fNoDeadline').checked = false;
+            document.getElementById('nfEndDate').disabled = false;
+            
+            document.getElementById('fTimerOn').checked = false;
+            document.getElementById('timerRow').style.display = 'none';
+            document.getElementById('fTimerMin').value = '30';
+            document.getElementById('fTimerBeh').value = 'submit';
+            
+            document.getElementById('fShowAns').checked = false;
+            document.getElementById('fShowRes').checked = true;
+            document.getElementById('fShuffle').checked = false;
+            document.getElementById('fReview').checked = true;
+            
+            document.getElementById('fAssign').value = 'all';
+            document.getElementById('specRow').style.display = 'none';
+            document.getElementById('specList').innerHTML = '';
+            
+            document.getElementById('qList').innerHTML = '';
+            qCnt = 0;
+            
+            // Add default two questions
+            addQ();
+            addQ();
+            
+            initTiers();
             renderNFClasses([]);
+            goStep(1);
             
             // Update URL routing
             updateTaskUrlParams(null, 'create');
@@ -16614,7 +17772,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             openModal('nativeTaskFormModal');
             document.getElementById('nfFormTitle').textContent = 'تعديل المهمة';
             document.getElementById('nfTaskId').value = taskId;
-            document.getElementById('nfQuestionsList').innerHTML = '<div style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin"></i> جاري تحميل الأسئلة...</div>';
+            document.getElementById('qList').innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3);"><i class="fas fa-spinner fa-spin"></i> جاري تحميل الأسئلة...</div>';
 
             try {
                 // Update URL routing
@@ -16623,27 +17781,28 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const r = await makeApiCallRaw({ action: 'getTaskDetail', task_id: taskId });
                 if (r && r.success && r.task) {
                     const t = r.task;
-                    document.getElementById('nfTitle').value = t.title;
+                    document.getElementById('nfTitle').value = t.title || '';
                     document.getElementById('nfDesc').value = t.description || '';
                     document.getElementById('nfStartDate').value = t.start_date ? t.start_date.slice(0, 16).replace(' ', 'T') : '';
                     document.getElementById('nfEndDate').value = t.end_date ? t.end_date.slice(0, 16).replace(' ', 'T') : '';
-                    document.getElementById('nfNoDeadline').checked = t.no_deadline == 1;
+                    document.getElementById('fNoDeadline').checked = t.no_deadline == 1;
                     document.getElementById('nfEndDate').disabled = t.no_deadline == 1;
 
-                    document.getElementById('nfTotalDegree').value = t.total_degree;
-                    document.getElementById('nfMaxCoupons').value = t.max_coupons;
-                    document.getElementById('nfStatus').value = t.status;
+                    document.getElementById('fTimerOn').checked = !!t.time_limit;
+                    document.getElementById('timerRow').style.display = t.time_limit ? 'flex' : 'none';
+                    document.getElementById('fTimerMin').value = t.time_limit || '30';
+                    document.getElementById('fTimerBeh').value = t.timer_behavior || 'submit';
+
+                    document.getElementById('fShowAns').checked = t.show_answers == 1;
+                    document.getElementById('fShowRes').checked = t.show_result == 1;
+                    document.getElementById('fShuffle').checked = t.shuffle == 1;
+                    document.getElementById('fReview').checked = t.allow_review == 1;
+
                     document.getElementById('nfGroupName').value = t.group_name || '';
                     document.getElementById('nfGroupIcon').value = t.group_icon || 'fa-folder';
                     
-                    if (t.coupon_matrix) {
-                        try {
-                            const parsedMatrix = JSON.parse(t.coupon_matrix);
-                            document.getElementById('nfCouponMatrix').value = JSON.stringify(parsedMatrix);
-                        } catch (e) {
-                            document.getElementById('nfCouponMatrix').value = t.coupon_matrix;
-                        }
-                    }
+                    document.getElementById('fAssign').value = t.assign_to || 'all';
+                    document.getElementById('specRow').style.display = t.assign_to === 'specific' ? 'flex' : 'none';
 
                     // Render assigned classes
                     let selectedClassIds = [];
@@ -16654,15 +17813,48 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     }
                     renderNFClasses(selectedClassIds);
 
+                    // Load specific students if assign_to is specific
+                    let specIds = [];
+                    if (t.assign_to === 'specific') {
+                        try {
+                            specIds = typeof t.specific_ids === 'string' ? JSON.parse(t.specific_ids) : (t.specific_ids || []);
+                        } catch(e) {
+                            specIds = [];
+                        }
+                    }
+                    await populateSpec(specIds);
+
                     // Render questions
-                    const container = document.getElementById('nfQuestionsList');
-                    container.innerHTML = '';
+                    const qContainer = document.getElementById('qList');
+                    qContainer.innerHTML = '';
+                    qCnt = 0;
                     const questions = t.questions || [];
                     if (questions.length === 0) {
-                        container.innerHTML = '<div style="text-align:center;padding:10px;color:var(--text-3);">لا توجد أسئلة مضافة بعد. اضغط على "إضافة سؤال" للبدء</div>';
+                        addQ();
+                        addQ();
                     } else {
-                        questions.forEach(q => addNFQuestion(q));
+                        questions.forEach(q => addQ(q));
                     }
+
+                    // Render coupon matrix
+                    const ctierList = document.getElementById('ctierList');
+                    ctierList.innerHTML = '';
+                    let matrix = [];
+                    if (t.coupon_matrix) {
+                        try {
+                            matrix = typeof t.coupon_matrix === 'string' ? JSON.parse(t.coupon_matrix) : t.coupon_matrix;
+                        } catch(e) {}
+                    }
+                    if (matrix && matrix.length > 0) {
+                        matrix.forEach(tier => {
+                            addTier(tier.from, tier.to, tier.val);
+                        });
+                    } else {
+                        initTiers();
+                    }
+
+                    goStep(1);
+
                 } else {
                     showToast('فشل جلب تفاصيل المهمة للتعديل', 'err');
                     closeModal('nativeTaskFormModal');
@@ -16673,127 +17865,30 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
 
-        function toggleFormNoDeadline() {
-            const isChecked = document.getElementById('nfNoDeadline').checked;
-            document.getElementById('nfEndDate').disabled = isChecked;
-        }
-
-        async function saveNativeTask() {
+        async function saveNativeTask(status = 'published') {
             const taskId = parseInt(document.getElementById('nfTaskId').value) || 0;
-            const title = document.getElementById('nfTitle').value.trim();
-            const description = document.getElementById('nfDesc').value.trim();
-            const startDate = document.getElementById('nfStartDate').value;
-            let endDate = document.getElementById('nfEndDate').value;
-            const noDeadline = document.getElementById('nfNoDeadline').checked ? 1 : 0;
-            const totalDegree = parseInt(document.getElementById('nfTotalDegree').value) || 0;
-            const maxCoupons = parseInt(document.getElementById('nfMaxCoupons').value) || 0;
-            const status = document.getElementById('nfStatus').value;
-            const couponMatrix = document.getElementById('nfCouponMatrix').value.trim();
-
-            if (!title) {
-                showToast('عنوان المهمة مطلوب', 'warning');
+            if (!v1()) {
+                goStep(1);
                 return;
             }
-            if (!startDate) {
-                showToast('تاريخ البدء مطلوب', 'warning');
+            if (!v2()) {
+                goStep(2);
                 return;
             }
-            if (!noDeadline && !endDate) {
-                showToast('الموعد النهائي مطلوب أو حدد خيار مستمر', 'warning');
-                return;
-            }
-
-            // Get selected class IDs
-            const classIdsList = [];
-            document.querySelectorAll('input[name="nf_class_cb"]:checked').forEach(cb => {
-                classIdsList.push(cb.value);
-            });
-            const classIdsStr = classIdsList.join(',');
-
-            // Build questions JSON
-            const questions = [];
-            const questionCards = document.getElementById('nfQuestionsList').children;
-            let questionsValid = true;
-
-            for (let i = 0; i < questionCards.length; i++) {
-                const card = questionCards[i];
-                if (!card.classList.contains('nf-question-card')) continue;
-                
-                const qId = card.dataset.qid;
-                const text = card.querySelector('.nf-qtext-input').value.trim();
-                const type = card.querySelector('.nf-qtype-select').value;
-                const degree = parseFloat(card.querySelector('.nf-qdegree-input').value) || 0;
-
-                if (!text) {
-                    showToast('نص السؤال مطلوب لجميع الأسئلة المضافة', 'warning');
-                    questionsValid = false;
-                    break;
-                }
-
-                const qObj = {
-                    id: isNaN(qId) ? i + 1 : parseInt(qId),
-                    text: text,
-                    type: type,
-                    degree: degree
-                };
-
-                if (type === 'mcq') {
-                    const optInputs = card.querySelectorAll('.nf-mcq-opt-input');
-                    const options = [];
-                    optInputs.forEach(inp => {
-                        if (inp.value.trim()) options.push(inp.value.trim());
-                    });
-                    if (options.length < 2) {
-                        showToast('يجب كتابة اختيارين على الأقل للأسئلة الاختيارية', 'warning');
-                        questionsValid = false;
-                        break;
-                    }
-                    const correctRadio = card.querySelector(`input[name="nf_correct_${qId}"]:checked`);
-                    const correctIdx = correctRadio ? parseInt(correctRadio.value) : 0;
-
-                    qObj.options = options;
-                    qObj.answer = correctIdx;
-                } else if (type === 'tf') {
-                    const correctRadio = card.querySelector(`input[name="nf_correct_${qId}"]:checked`);
-                    qObj.answer = correctRadio ? correctRadio.value : 'true';
-                }
-
-                questions.push(qObj);
-            }
-
-            if (!questionsValid) return;
-
-            const groupName = document.getElementById('nfGroupName').value.trim();
-            const groupIcon = document.getElementById('nfGroupIcon').value;
-
-            const payload = {
-                action: taskId > 0 ? 'updateTask' : 'createTask',
-                title: title,
-                description: description,
-                start_date: startDate.replace('T', ' '),
-                end_date: noDeadline ? '9999-12-31 23:59:59' : endDate.replace('T', ' '),
-                no_deadline: noDeadline,
-                total_degree: totalDegree,
-                max_coupons: maxCoupons,
-                status: status,
-                coupon_matrix: couponMatrix,
-                class_ids: classIdsStr,
-                questions: JSON.stringify(questions),
-                group_name: groupName,
-                group_icon: groupIcon
-            };
-
+            
+            const payload = collectForm(status);
+            payload.action = taskId > 0 ? 'updateTask' : 'createTask';
             if (taskId > 0) {
                 payload.task_id = taskId;
             } else {
                 payload.class_name = currentClass;
             }
-
+            
             try {
                 showToast('جاري حفظ المهمة...', 'info');
                 const res = await makeApiCallRaw(payload);
                 if (res && res.success) {
-                    showToast('تم حفظ المهمة بنجاح!', 'ok');
+                    showToast(status === 'draft' ? 'تم حفظ المسودة ✓' : 'تم نشر المهمة بنجاح!', 'ok');
                     closeModal('nativeTaskFormModal');
                     if (taskId > 0) {
                         openNativeTaskDetails(taskId); // Back to details if editing
@@ -16803,10 +17898,525 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 } else {
                     showToast(res.message || 'فشل حفظ المهمة', 'err');
                 }
-            } catch (err) {
-                showToast('خطأ أثناء الاتصال بالخادم لحفظ المهمة', 'err');
+            } catch(e) {
+                showToast('خطأ أثناء حفظ المهمة', 'err');
             }
         }
+
+        async function viewAnswers(taskId, studentId) {
+            try {
+                showToast('جاري تحميل إجابات الطالب...', 'info');
+                const r = await makeApiCallRaw({ action: 'getTaskDetail', task_id: taskId });
+                if (!r || !r.success || !r.task) {
+                    showToast('فشل جلب تفاصيل المهمة', 'err');
+                    return;
+                }
+                const t = r.task;
+                const sub = (t.submissions || []).find(x => x.student_id == studentId);
+                if (!sub) {
+                    showToast('لم يتم العثور على تسليم لهذا الطالب', 'warning');
+                    return;
+                }
+
+                const ans = typeof sub.answers === 'string' ? JSON.parse(sub.answers) : (sub.answers || {});
+                const openScores = typeof sub.open_scores === 'string' ? JSON.parse(sub.open_scores) : (sub.open_scores || {});
+                const correctionNotes = typeof sub.correction_notes === 'string' ? JSON.parse(sub.correction_notes) : (sub.correction_notes || {});
+
+                const score = sub.score ?? sub.total_score ?? 0;
+                const totalDeg = t.total_degree || 0;
+                const pct = totalDeg > 0 ? Math.round(score / totalDeg * 100) : 0;
+
+                const scoreColor = pct >= 80 ? 'var(--ok)' : pct >= 50 ? 'var(--warning)' : 'var(--danger)';
+                const scoreBg = pct >= 80 ? 'var(--ok-bg)' : pct >= 50 ? 'var(--warning-bg)' : 'var(--danger-bg)';
+
+                const activeClass = t.class_name || 'كل الفصول';
+                const stud = (classStuCache[activeClass] || []).find(x => x.id == studentId) || 
+                             (classStuCache['كل الفصول'] || []).find(x => x.id == studentId);
+                const photo = stud ? stud.photo : '';
+                const avatar = getStudentAvatarHtml(photo, sub.student_name, '40px');
+
+                let html = `<div class="ans-shell" style="direction:rtl; text-align:right;">
+                    <div class="ans-head">
+                        <div class="ans-avatar" style="background:none; border:none; display:flex; align-items:center; justify-content:center; padding:0;">${avatar}</div>
+                        <div style="flex:1; min-width:0;">
+                            <div class="ans-name" style="font-weight:800; font-size:1.05rem;">${escHtml(sub.student_name)}</div>
+                            <div class="ans-sub" style="font-size:0.75rem; color:var(--text-3);">أجاب على المهمة: <strong>${escHtml(t.title || '')}</strong></div>
+                        </div>
+                        <div style="text-align:center; flex-shrink:0;">
+                            <div style="font-size:1.3rem; font-weight:900; color:${scoreColor}; line-height:1;">${score}<span style="font-size:.8rem; font-weight:600; color:var(--text-3);">/${totalDeg}</span></div>
+                            <div style="display:inline-flex; align-items:center; gap:4px; background:${scoreBg}; color:${scoreColor}; border-radius:100px; padding:2px 8px; font-size:.68rem; font-weight:700; margin-top:4px;">${pct}%</div>
+                        </div>
+                    </div>`;
+
+                if (!t.questions || t.questions.length === 0) {
+                    html += `<div style="text-align:center; padding:40px; color:var(--text-3); font-size:.85rem;"><i class="fas fa-question-circle" style="font-size:2rem; display:block; margin-bottom:10px; color:var(--text-3);"></i>لا توجد أسئلة لهذه المهمة.</div>`;
+                } else {
+                    t.questions.forEach((q, i) => {
+                        const qType = q.question_type || q.type || 'mcq';
+                        const given = ans[q.id] !== undefined ? ans[q.id] : ans[String(q.id)];
+                        const correctIdx = q.correct_index !== null && q.correct_index !== undefined ? parseInt(q.correct_index) : null;
+                        const imgH = q.image_url ? `<div style="margin:0 0 10px; border-radius:8px; overflow:hidden; border:1px solid var(--border-solid);"><img src="${escHtml(q.image_url)}" alt="" style="width:100%; max-height:200px; object-fit:contain; display:block; background:var(--surface-3);"></div>` : '';
+
+                        html += `<div class="ans-question">
+                            <div class="ans-qhead">
+                                <div class="ans-qnum">${i + 1}</div>
+                                <div class="ans-qtext">${escHtml(q.question_text || q.text)}</div>
+                                <div style="flex-shrink:0; font-size:.7rem; color:var(--text-3); font-weight:700; padding:2px 8px; background:var(--surface-2); border:1px solid var(--border-solid); border-radius:100px;">${q.degree} درجات</div>
+                            </div>
+                            ${imgH}`;
+
+                        if (qType === 'open' || qType === 'text') {
+                            const hasAns = given && String(given).trim().length > 0;
+                            html += `<div class="ans-open">
+                                <div class="ans-open-label">إجابة الطفل (إجابة مفتوحة):</div>
+                                <div class="ans-open-text" style="${!hasAns ? 'color:var(--text-3); font-style:italic;' : ''}">${hasAns ? escHtml(given) : '— لم يُجب على هذا السؤال —'}</div>
+                            </div>`;
+
+                            if (sub.is_graded == 1 || openScores[q.id] !== undefined || openScores[String(q.id)] !== undefined) {
+                                const openScoreVal = openScores[q.id] !== undefined ? openScores[q.id] : openScores[String(q.id)];
+                                const corrNoteVal = correctionNotes[q.id] !== undefined ? correctionNotes[q.id] : correctionNotes[String(q.id)];
+                                const scoreDisplay = openScoreVal !== undefined ? openScoreVal : 0;
+                                html += `
+                                <div style="margin-top: 10px; padding: 10px; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--border-solid);">
+                                    <div style="font-weight: 700; font-size: 0.8rem; color: var(--ok); margin-bottom: 5px;">
+                                        <i class="fas fa-check-double"></i> درجة تصرح السؤال: 
+                                        <span style="font-size: 0.95rem; color: var(--text-1); font-weight: 900;">${scoreDisplay}</span> من <span>${q.degree}</span>
+                                    </div>`;
+                                if (corrNoteVal && String(corrNoteVal).trim().length > 0) {
+                                    html += `
+                                    <div style="font-size: 0.78rem; color: var(--text-2); margin-top: 5px;">
+                                        <strong style="color: var(--text-3);"><i class="fas fa-comment-dots"></i> ملاحظات التصحيح:</strong> 
+                                        <span>${escHtml(corrNoteVal)}</span>
+                                    </div>`;
+                                }
+                                html += `</div>`;
+                            }
+                        } else {
+                            let opts = [];
+                            try {
+                                opts = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
+                            } catch(e) {
+                                opts = [];
+                            }
+                            if (qType === 'tf') { opts = ['صحيح', 'خطأ']; }
+
+                            html += `<div style="display:flex; flex-direction:column; gap:7px;">`;
+                            opts.forEach((o, j) => {
+                                const isCorr = j === correctIdx;
+                                const isSel = given !== undefined && given !== null && parseInt(given) === j;
+                                let choiceClass = '';
+                                let icon = '';
+
+                                if (isCorr && isSel) {
+                                    choiceClass = 'correct';
+                                    icon = `<i class="fas fa-check-circle ans-choice-icon" style="color:var(--ok);"></i>`;
+                                } else if (isCorr) {
+                                    choiceClass = 'correct';
+                                    icon = `<i class="fas fa-check ans-choice-icon" style="color:var(--ok); opacity:.55;"></i>`;
+                                } else if (isSel) {
+                                    choiceClass = 'wrong';
+                                    icon = `<i class="fas fa-times-circle ans-choice-icon" style="color:var(--danger);"></i>`;
+                                }
+
+                                html += `<div class="ans-choice ${choiceClass}" style="${isSel ? 'font-weight:700;' : ''}">
+                                    <span class="ans-choice-letter">${LETTERS[j] || j + 1}</span>
+                                    <span>${escHtml(o)}</span>
+                                    ${icon}
+                                    ${isSel ? `<span style="font-size:.65rem; font-weight:700; padding:1px 7px; border-radius:100px; background:${isCorr ? 'var(--ok)' : 'var(--danger)'}; color:#fff; flex-shrink:0; margin-right:auto;">${isCorr ? 'إجابتك ✓' : 'إجابتك ✗'}</span>` : ''}
+                                </div>`;
+                            });
+                            html += `</div>`;
+                        }
+                        html += `</div>`;
+                    });
+                }
+                html += `</div>`;
+                openHtmlModal(html);
+            } catch (e) {
+                console.error(e);
+                showToast('حدث خطأ أثناء تحميل إجابات الطالب', 'err');
+            }
+        }
+
+        function openHtmlModal(html) {
+            const ov = document.createElement('div');
+            ov.className = 'modal-overlay active';
+            ov.style.zIndex = '1000035';
+            ov.style.display = 'flex';
+            ov.style.alignItems = 'center';
+            ov.style.justifyContent = 'center';
+            
+            ov.innerHTML = `
+                <div class="modal modal-lg" style="max-width: 760px; height: 85vh; display: flex; flex-direction: column; overflow: hidden;">
+                    <div class="modal-header">
+                        <h3 style="display:flex; align-items:center; gap:8px;">
+                            <i class="fas fa-eye" style="color:var(--brand);"></i>
+                            <span>مراجعة إجابات الطالب</span>
+                        </h3>
+                        <button class="close-btn" onclick="this.closest('.modal-overlay').remove()">&times;</button>
+                    </div>
+                    <div class="modal-body" style="padding: 0; flex: 1; overflow: hidden;">
+                        ${html}
+                    </div>
+                    <div class="modal-footer" style="display:flex; justify-content:flex-end;">
+                        <button class="btn btn-outline btn-sm" onclick="this.closest('.modal-overlay').remove()">إغلاق</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(ov);
+        }
+
+        // ─── Tasks Overview and Export Logic ──────────────────────────────────────────
+        async function openTasksOverviewModal() {
+            showToast('جاري جلب بيانات الطلاب...', 'info');
+            try {
+                await loadStudents('كل الفصول');
+            } catch(e) {
+                console.error(e);
+            }
+            
+            openModal('overviewOv');
+            buildOverviewClassesList();
+            renderOverviewTable();
+        }
+
+        function buildOverviewClassesList() {
+            const container = document.getElementById('ovClassesList');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            classes.forEach(cl => {
+                const wrap = document.createElement('label');
+                wrap.className = 'ov-class-label';
+                wrap.style = "display:flex; align-items:center; gap:6px; cursor:pointer; font-size:.8rem; background:var(--surface-3); padding:4px 8px; border-radius:6px; border:1px solid var(--border-solid); transition:all 0.2s;";
+                
+                const chk = document.createElement('input');
+                chk.type = 'checkbox';
+                chk.value = cl.arabic_name;
+                chk.className = 'ov-class-checkbox';
+                chk.style.accentColor = 'var(--brand)';
+                chk.style.width = '14px';
+                chk.style.height = '14px';
+                chk.style.cursor = 'pointer';
+                
+                if (!currentClass || currentClass === 'كل الفصول' || cl.arabic_name === currentClass) {
+                    chk.checked = true;
+                }
+                
+                chk.onchange = renderOverviewTable;
+                
+                wrap.appendChild(chk);
+                wrap.appendChild(document.createTextNode(' ' + cl.arabic_name));
+                container.appendChild(wrap);
+            });
+        }
+
+        function renderOverviewTable() {
+            const tableContainer = document.getElementById('ovTableContainer');
+            const statsText = document.getElementById('ovStatsText');
+            if (!tableContainer) return;
+            
+            const showGrades = document.getElementById('ovShowGrades').checked;
+            const showTime = document.getElementById('ovShowTime').checked;
+            const statusFilter = document.getElementById('ovAnswerStatus').value;
+            const searchVal = document.getElementById('ovStudentSearch').value.trim();
+            
+            const checkedClassNames = Array.from(document.querySelectorAll('.ov-class-checkbox:checked')).map(cb => cb.value);
+            
+            if (checkedClassNames.length === 0) {
+                tableContainer.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-3);">برجاء تحديد فصل واحد على الأقل للعرض.</div>';
+                statsText.textContent = 'عدد الطلاب: 0 | عدد المهام: 0';
+                return;
+            }
+            
+            let targetStudents = [];
+            checkedClassNames.forEach(cn => {
+                const list = classStuCache[cn] || [];
+                list.forEach(s => {
+                    if (!targetStudents.some(item => item.id === s.id)) {
+                        targetStudents.push({ ...s, className: cn });
+                    }
+                });
+            });
+            
+            const checkedClassIds = checkedClassNames.map(cn => {
+                const found = classes.find(c => c.arabic_name === cn);
+                return found ? String(found.id) : null;
+            }).filter(Boolean);
+            
+            const targetTasks = allLoadedTasks.filter(t => {
+                if (t.status === 'draft') return false;
+                if (t.class_id === 0 || t.class_name === 'كل الفصول') return true;
+                if (checkedClassNames.includes(t.class_name)) return true;
+                if (t.class_ids) {
+                    const ids = String(t.class_ids).split(',');
+                    if (ids.some(id => checkedClassIds.includes(id))) return true;
+                }
+                return false;
+            });
+            
+            targetTasks.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+            
+            const subMap = {};
+            targetTasks.forEach(t => {
+                const subs = t.submissions || [];
+                subs.forEach(sub => {
+                    subMap[sub.student_id + '_' + t.id] = sub;
+                });
+            });
+            
+            if (searchVal && targetStudents.length > 0 && typeof getMatchScore === 'function') {
+                targetStudents = targetStudents.map(s => {
+                    const score = getMatchScore(s, searchVal, [
+                        { val: s.name, weight: 1.0 },
+                        { val: s.className, weight: 0.5 }
+                    ]);
+                    return { ...s, _score: score };
+                }).filter(s => s._score > 0)
+                  .sort((a, b) => b._score - a._score);
+            } else {
+                targetStudents.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+            }
+            
+            if (targetTasks.length > 0) {
+                targetStudents = targetStudents.filter(s => {
+                    const solvedCount = targetTasks.filter(t => subMap[s.id + '_' + t.id]).length;
+                    if (statusFilter === 'answered') {
+                        return solvedCount > 0;
+                    } else if (statusFilter === 'unanswered') {
+                        return solvedCount === 0;
+                    } else if (statusFilter === 'missing') {
+                        return solvedCount < targetTasks.length;
+                    }
+                    return true;
+                });
+            }
+            
+            if (targetTasks.length === 0) {
+                tableContainer.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-3);">لا توجد مهام منشورة لهذه الفصول بعد.</div>';
+                statsText.textContent = `عدد الطلاب: ${targetStudents.length} | عدد المهام: 0`;
+                return;
+            }
+            
+            let html = `<table class="ov-table" id="ovExportTable">`;
+            html += `<thead><tr>`;
+            html += `<th style="min-width:180px;">اسم الطالب</th>`;
+            html += `<th style="min-width:100px;">الفصل</th>`;
+            
+            targetTasks.forEach(t => {
+                html += `<th style="min-width:120px; text-align:center;" title="${escHtml(t.title)}">${escHtml(t.title)}</th>`;
+            });
+            html += `</tr></thead><tbody>`;
+            
+            if (targetStudents.length === 0) {
+                html += `<tr><td colspan="${targetTasks.length + 2}" style="text-align:center; padding:30px; color:var(--text-3);">لا يوجد طلاب يطابقون خيارات البحث والترشيح.</td></tr>`;
+            } else {
+                targetStudents.forEach(s => {
+                    html += `<tr>`;
+                    html += `<td><strong>${escHtml(s.name)}</strong></td>`;
+                    html += `<td><span class="ov-class-badge">${escHtml(s.className)}</span></td>`;
+                    
+                    targetTasks.forEach(t => {
+                        const sub = subMap[s.id + '_' + t.id];
+                        html += `<td style="text-align:center;">`;
+                        if (sub) {
+                            if (showGrades) {
+                                const scoreVal = parseInt(sub.score);
+                                const totalVal = parseInt(t.total_degree || sub.total_degree || 0);
+                                const pct = totalVal > 0 ? (scoreVal / totalVal) : 0;
+                                const isPass = pct >= 0.5;
+                                html += `<span class="ov-grade-badge ${isPass ? 'ov-grade-pass' : 'ov-grade-fail'}">${scoreVal}/${totalVal}</span>`;
+                            } else {
+                                html += `<span class="ov-cell-answered"><i class="fas fa-check-circle"></i> أجاب</span>`;
+                            }
+                            if (showTime && sub.submitted_at) {
+                                const dateObj = new Date(sub.submitted_at);
+                                const dateStr = `${dateObj.getDate()}/${dateObj.getMonth() + 1} ${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
+                                html += `<span class="ov-time-text">${dateStr}</span>`;
+                            }
+                        } else {
+                            html += `<span class="ov-cell-unanswered"><i class="fas fa-times-circle" style="color:var(--danger); filter:brightness(0.85);"></i> لم يجب</span>`;
+                        }
+                        html += `</td>`;
+                    });
+                    html += `</tr>`;
+                });
+            }
+            
+            html += `</tbody></table>`;
+            tableContainer.innerHTML = html;
+            
+            statsText.textContent = `عدد الطلاب: ${targetStudents.length} | عدد المهام: ${targetTasks.length}`;
+        }
+
+        function exportOverviewCSV() {
+            const table = document.getElementById('ovExportTable');
+            if (!table) { showToast('لا توجد بيانات لتصديرها', 'err'); return; }
+            
+            let csv = [];
+            const rows = table.querySelectorAll('tr');
+            
+            rows.forEach(tr => {
+                let row = [];
+                const cols = tr.querySelectorAll('th, td');
+                cols.forEach(col => {
+                    let text = col.innerText.trim().replace(/"/g, '""');
+                    text = text.replace(/[\n\r]+/g, ' ');
+                    row.push('"' + text + '"');
+                });
+                csv.push(row.join(','));
+            });
+            
+            const csvContent = "\ufeff" + csv.join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `overview_tasks_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('تم تصدير ملف CSV بنجاح', 'ok');
+        }
+
+        function copyOverviewMessage() {
+            const table = document.getElementById('ovExportTable');
+            if (!table) { showToast('لا توجد بيانات لنسخها', 'err'); return; }
+            
+            const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.innerText.trim());
+            const rows = Array.from(table.querySelectorAll('tbody tr'));
+            
+            let msg = `📊 *تقرير حل المهام والاختبارات*\n`;
+            msg += `📅 التاريخ: ${new Date().toLocaleDateString('ar-EG')}\n\n`;
+            
+            msg += `📋 *المهام:* \n`;
+            for (let i = 2; i < headers.length; i++) {
+                msg += ` ${i-1}- ${headers[i]}\n`;
+            }
+            msg += `\n`;
+            
+            msg += `👤 *الطلاب:*\n`;
+            rows.forEach(tr => {
+                const cols = tr.querySelectorAll('td');
+                if (cols.length < 2) return;
+                const name = cols[0].innerText.trim();
+                const cls = cols[1].innerText.trim();
+                
+                msg += `• *${name}* (${cls}):\n`;
+                for (let i = 2; i < cols.length; i++) {
+                    const taskTitle = headers[i];
+                    const statusText = cols[i].innerText.trim().replace(/\s+/g, ' ');
+                    msg += `   - ${taskTitle}: ${statusText}\n`;
+                }
+            });
+            
+            navigator.clipboard.writeText(msg).then(() => {
+                showToast('تم نسخ التقرير كرسالة', 'ok');
+            }).catch(() => {
+                const textarea = document.createElement('textarea');
+                textarea.value = msg;
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast('تم نسخ التقرير كرسالة', 'ok');
+                } catch(err) {
+                    showToast('فشل نسخ التقرير تلقائياً', 'err');
+                }
+                document.body.removeChild(textarea);
+            });
+        }
+
+        async function exportOverviewImage() {
+            const container = document.getElementById('ovTableContainer');
+            if (!container) { showToast('لا توجد بيانات لتصديرها', 'err'); return; }
+            
+            showToast('جاري إعداد الصورة...', 'info');
+            
+            try {
+                const canvas = await html2canvas(container, {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: '#ffffff',
+                    logging: false,
+                    allowTaint: false
+                });
+                
+                const link = document.createElement('a');
+                link.download = `overview_tasks_${new Date().toISOString().slice(0,10)}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                showToast('تم حفظ الصورة بنجاح', 'ok');
+            } catch(e) {
+                console.error(e);
+                showToast('فشل تصدير الصورة', 'err');
+            }
+        }
+
+        async function exportOverviewPDF() {
+            const container = document.getElementById('ovTableContainer');
+            if (!container) { showToast('لا توجد بيانات لتصديرها', 'err'); return; }
+            
+            showToast('جاري إنشاء PDF...', 'info');
+            
+            try {
+                const { jsPDF } = window.jspdf;
+                if (!jsPDF) { showToast('مكتبة PDF غير محملة', 'err'); return; }
+                
+                const canvas = await html2canvas(container, {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: '#ffffff',
+                    logging: false,
+                    allowTaint: false
+                });
+                
+                const orientation = canvas.width > canvas.height ? 'landscape' : 'portrait';
+                const pdf = new jsPDF({ orientation, unit: 'mm', format: 'a4' });
+                const pageW = pdf.internal.pageSize.getWidth();
+                const pageH = pdf.internal.pageSize.getHeight();
+                const imgW = pageW - 12;
+                const imgH = canvas.height * imgW / canvas.width;
+                const img = canvas.toDataURL('image/png');
+                
+                let y = 6;
+                let remaining = imgH;
+                
+                pdf.addImage(img, 'PNG', 6, y, imgW, imgH);
+                while (remaining > pageH - 12) {
+                    remaining -= pageH - 12;
+                    pdf.addPage();
+                    pdf.addImage(img, 'PNG', 6, 6 - (imgH - remaining), imgW, imgH);
+                }
+                
+                pdf.save(`overview_tasks_${new Date().toISOString().slice(0,10)}.pdf`);
+                showToast('تم حفظ PDF بنجاح', 'ok');
+            } catch (e) {
+                console.error(e);
+                showToast('فشل إنشاء PDF: ' + e.message, 'err');
+            }
+        }
+
+        window.openTasksOverviewModal = function() {
+            openTasksOverviewModal();
+        };
+
+        window.copyOverviewMessage = function() {
+            copyOverviewMessage();
+        };
+
+        window.exportOverviewCSV = function() {
+            exportOverviewCSV();
+        };
+
+        window.exportOverviewPDF = function() {
+            exportOverviewPDF();
+        };
+
+        window.exportOverviewImage = function() {
+            exportOverviewImage();
+        };
+
 
         async function deleteNativeTask(taskId) {
             if (!confirm('هل أنت متأكد من حذف هذه المهمة نهائياً؟ سيتم حذف جميع إجابات وتقييمات الطلاب المرتبطة بها.')) return;
@@ -16927,7 +18537,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <div class="task-pill-info">
                             <div class="task-pill-title">${escHtml(t.title)}</div>
                             <div class="task-pill-meta">
-                                <i class="fas fa-flag-checkered" style="font-size: 0.65rem;"></i> آخر موعد: ${deadlineText}
+                                <i class="fas fa-stopwatch" style="font-size: 0.65rem;"></i> آخر موعد: ${deadlineText}
                             </div>
                         </div>
                         <div class="task-pill-badges">
