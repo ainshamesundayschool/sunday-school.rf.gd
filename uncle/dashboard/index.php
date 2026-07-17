@@ -13538,16 +13538,27 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const phpUncleName = <?php echo json_encode($uncleName); ?>;
             const phpUncleRole = <?php echo json_encode($uncleRole); ?>;
             const phpChurchCode = <?php echo json_encode($churchCode); ?>;
+            const phpChurchId = <?php echo isset($_SESSION['church_id']) ? (int)$_SESSION['church_id'] : '""'; ?>;
+            const phpUncleId = <?php echo isset($_SESSION['uncle_id']) ? (int)$_SESSION['uncle_id'] : '""'; ?>;
 
-            // Detect account switch: if stored church identity differs from what PHP
-            // says, clear account-scoped cached data so another church is not shown.
+            // Detect account switch: if stored identity differs from what PHP says,
+            // clear account-scoped cached data so another church or uncle's data is not shown.
             const storedType = localStorage.getItem('churchType');
             const storedCode = localStorage.getItem('churchCode');
-            if ((storedType && storedType !== phpChurchType) || (storedCode && phpChurchCode && storedCode !== phpChurchCode)) {
+            const storedChurchId = localStorage.getItem('churchId') || localStorage.getItem('church_id');
+            const storedUncleId = localStorage.getItem('uncleId') || localStorage.getItem('uncle_id');
+
+            let isAccountSwitched = false;
+            if (storedType && phpChurchType && storedType !== phpChurchType) isAccountSwitched = true;
+            if (storedCode && phpChurchCode && storedCode !== phpChurchCode) isAccountSwitched = true;
+            if (storedChurchId && phpChurchId && String(storedChurchId) !== String(phpChurchId)) isAccountSwitched = true;
+            if (storedUncleId && phpUncleId && String(storedUncleId) !== String(phpUncleId)) isAccountSwitched = true;
+
+            if (isAccountSwitched) {
                 try {
                     [
                         'churchSettings', 'lastStudentsData', 'currentClass', 'selectedFriday',
-                        'combinedClassGroups', 'customAttendanceDates', 'lastTripsData'
+                        'combinedClassGroups', 'customAttendanceDates', 'lastTripsData', 'lastUnclesData', 'uncleAssignedClasses'
                     ].forEach(k => localStorage.removeItem(k));
                     Object.keys(localStorage).forEach(k => {
                         if (k.startsWith('lastTripsData_')) localStorage.removeItem(k);
@@ -13571,6 +13582,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (phpUncleName) localStorage.setItem('uncleName', phpUncleName);
                 if (phpUncleRole) localStorage.setItem('uncleRole', phpUncleRole);
                 if (phpChurchCode) localStorage.setItem('churchCode', phpChurchCode);
+                if (phpChurchId) {
+                    localStorage.setItem('churchId', phpChurchId);
+                    localStorage.setItem('church_id', phpChurchId);
+                }
+                if (phpUncleId) {
+                    localStorage.setItem('uncleId', phpUncleId);
+                    localStorage.setItem('uncle_id', phpUncleId);
+                }
             } catch (e) { }
         })();
 
