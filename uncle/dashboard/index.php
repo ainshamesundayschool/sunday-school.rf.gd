@@ -140,6 +140,117 @@ if ($hasUncleId && $uncleRole === 'uncle')
 <head>
     <meta name="facebook-domain-verification" content="fxb1yj847dop22gkxax1i02jkz7w98" />
 
+    <!-- ═══ CLIENT-SIDE SESSION VALIDATION & CACHE BUSTER ═══ -->
+    <script>
+        (function () {
+            // Check if we are online and not currently performing a restore
+            if (navigator.onLine && sessionStorage.getItem('_ss_restoring') !== '1') {
+                var phpChurchId = <?php echo isset($_SESSION['church_id']) ? (int)$_SESSION['church_id'] : 'null'; ?>;
+                var phpUncleId = <?php echo isset($_SESSION['uncle_id']) ? (int)$_SESSION['uncle_id'] : 'null'; ?>;
+                var phpChurchCode = <?php echo json_encode($_SESSION['church_code'] ?? null); ?>;
+
+                var storedChurchId = localStorage.getItem('churchId') || localStorage.getItem('church_id');
+                var storedUncleId = localStorage.getItem('uncleId') || localStorage.getItem('uncle_id');
+                var hasLocalStorageCreds = localStorage.getItem('loggedIn') === 'true' || localStorage.getItem('uncleLoggedIn') === 'true';
+
+                // Check if there is an immediate mismatch between cached HTML session and localStorage
+                var immediateMismatch = false;
+                if (hasLocalStorageCreds) {
+                    if (phpChurchId && String(phpChurchId) !== String(storedChurchId)) immediateMismatch = true;
+                    if (phpUncleId && String(phpUncleId) !== String(storedUncleId)) immediateMismatch = true;
+                } else {
+                    if (phpChurchId || phpUncleId) immediateMismatch = true;
+                }
+
+                if (immediateMismatch) {
+                    triggerCacheBusterAndReload();
+                    return;
+                }
+
+                // Verify with server active session using getSessionInfo
+                var dynamicApiUrl = window.location.pathname.indexOf('/testing/') !== -1 ? '/testing/api.php' : '/api.php';
+                var fd = new FormData();
+                fd.append('action', 'getSessionInfo');
+
+                fetch(dynamicApiUrl, { method: 'POST', body: fd, credentials: 'include' })
+                    .then(function(r) { return r.json(); })
+                    .then(function(d) {
+                        var sessionMismatch = false;
+                        if (d.success) {
+                            var serverChurchId = d.church_id;
+                            var serverUncleId = d.uncle_id;
+                            var serverChurchCode = d.church_code;
+                            var serverUncleUsername = d.uncle_username || d.username;
+
+                            if (phpChurchId && String(phpChurchId) !== String(serverChurchId)) sessionMismatch = true;
+                            if (phpUncleId && String(phpUncleId) !== String(serverUncleId)) sessionMismatch = true;
+                            if (storedChurchId && String(storedChurchId) !== String(serverChurchId)) sessionMismatch = true;
+                            if (storedUncleId && String(storedUncleId) !== String(serverUncleId)) sessionMismatch = true;
+
+                            if (sessionMismatch) {
+                                if (serverChurchId) {
+                                    localStorage.setItem('churchId', serverChurchId);
+                                    localStorage.setItem('church_id', serverChurchId);
+                                }
+                                if (serverUncleId) {
+                                    localStorage.setItem('uncleId', serverUncleId);
+                                    localStorage.setItem('uncle_id', serverUncleId);
+                                }
+                                if (serverChurchCode) {
+                                    localStorage.setItem('churchCode', serverChurchCode);
+                                    localStorage.setItem('church_code', serverChurchCode);
+                                }
+                                if (serverUncleUsername) {
+                                    localStorage.setItem('uncleUsername', serverUncleUsername);
+                                }
+                                if (d.church_name) localStorage.setItem('churchName', d.church_name);
+                                if (d.uncle_name) localStorage.setItem('uncleName', d.uncle_name);
+                                if (d.church_type) localStorage.setItem('churchType', d.church_type);
+                                if (d.uncle_role) localStorage.setItem('uncleRole', d.uncle_role);
+                                if (d.login_type) localStorage.setItem('loginType', d.login_type);
+
+                                triggerCacheBusterAndReload();
+                            }
+                        } else {
+                            // Server says no session. If page has hardcoded session variables, trigger reload to refresh layout
+                            if (phpChurchId || phpUncleId) {
+                                triggerCacheBusterAndReload();
+                            }
+                        }
+                    })
+                    .catch(function() {});
+            }
+
+            function triggerCacheBusterAndReload() {
+                // Instantly hide body to prevent content flashes of wrong account
+                var style = document.createElement('style');
+                style.innerHTML = 'body { display: none !important; }';
+                document.head.appendChild(style);
+
+                if ('caches' in window) {
+                    caches.keys().then(function(keys) {
+                        return Promise.all(keys.map(function(key) {
+                            return caches.open(key).then(function(cache) {
+                                return Promise.all([
+                                    cache.delete('/uncle/dashboard/index.php'),
+                                    cache.delete('/uncle/dashboard/'),
+                                    cache.delete('/uncle/dashboard')
+                                ]);
+                            });
+                        }));
+                    }).then(function() {
+                        window.location.reload();
+                    }).catch(function() {
+                        window.location.reload();
+                    });
+                } else {
+                    window.location.reload();
+                }
+            }
+        })();
+    </script>
+
+
     <!-- ═══ INSTANT THEME BOOTSTRAP — must be first script in <head> ═══
      Reads churchType from localStorage before PHP even renders so
      youth accounts get the purple palette with ZERO flash, even on
