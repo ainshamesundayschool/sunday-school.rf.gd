@@ -10978,7 +10978,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div id="paperExamsListView">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                         <h4 style="margin:0; font-weight:700; color:var(--text);">الامتحانات المسجلة</h4>
-                        <button class="btn btn-ghost" style="width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%;" onclick="showAddPaperExamForm()" title="إضافة امتحان جديد">
+                        <button class="btn btn-success" style="width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: #fff;" onclick="showAddPaperExamForm()" title="إضافة امتحان جديد">
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>
