@@ -21779,11 +21779,55 @@ function getPaperExamDegrees() {
         $allowedClassIds = [intval($exam['class_id'])];
     }
     if (!empty($allowedClassIds)) {
-        $classPlaceholders = implode(',', array_fill(0, count($allowedClassIds), '?'));
-        $sql .= " AND s.class_id IN ($classPlaceholders)";
-        foreach ($allowedClassIds as $cid) {
-            $params[] = $cid;
-            $types .= "i";
+        // Fetch matching class names/codes to support kids who only have the text class set
+        $allowedClassNames = [];
+        $ccPlaceholders = implode(',', array_fill(0, count($allowedClassIds), '?'));
+        
+        // 2a. Custom classes names
+        $ccStmt = $conn->prepare("SELECT arabic_name, code FROM church_classes WHERE id IN ($ccPlaceholders) AND church_id = ?");
+        $ccParams = array_merge($allowedClassIds, [$churchId]);
+        $ccTypes = str_repeat('i', count($allowedClassIds)) . 'i';
+        $ccStmt->bind_param($ccTypes, ...$ccParams);
+        $ccStmt->execute();
+        $ccRes = $ccStmt->get_result();
+        while ($ccRow = $ccRes->fetch_assoc()) {
+            if (!empty($ccRow['arabic_name'])) $allowedClassNames[] = $ccRow['arabic_name'];
+            if (!empty($ccRow['code'])) $allowedClassNames[] = $ccRow['code'];
+        }
+        $ccStmt->close();
+
+        // 2b. Global classes names
+        $gcStmt = $conn->prepare("SELECT arabic_name, code FROM classes WHERE id IN ($ccPlaceholders)");
+        $gcTypes = str_repeat('i', count($allowedClassIds));
+        $gcStmt->bind_param($gcTypes, ...$allowedClassIds);
+        $gcStmt->execute();
+        $gcRes = $gcStmt->get_result();
+        while ($gcRow = $gcRes->fetch_assoc()) {
+            if (!empty($gcRow['arabic_name'])) $allowedClassNames[] = $gcRow['arabic_name'];
+            if (!empty($gcRow['code'])) $allowedClassNames[] = $gcRow['code'];
+        }
+        $gcStmt->close();
+
+        $allowedClassNames = array_unique(array_filter($allowedClassNames));
+        $idPlaceholders = implode(',', array_fill(0, count($allowedClassIds), '?'));
+
+        if (!empty($allowedClassNames)) {
+            $namePlaceholders = implode(',', array_fill(0, count($allowedClassNames), '?'));
+            $sql .= " AND (s.class_id IN ($idPlaceholders) OR COALESCE(cc.arabic_name, cl.arabic_name, s.class) IN ($namePlaceholders))";
+            foreach ($allowedClassIds as $cid) {
+                $params[] = $cid;
+                $types .= "i";
+            }
+            foreach ($allowedClassNames as $cname) {
+                $params[] = $cname;
+                $types .= "s";
+            }
+        } else {
+            $sql .= " AND s.class_id IN ($idPlaceholders)";
+            foreach ($allowedClassIds as $cid) {
+                $params[] = $cid;
+                $types .= "i";
+            }
         }
     }
 
