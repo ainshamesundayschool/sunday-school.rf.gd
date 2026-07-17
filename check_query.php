@@ -2,14 +2,12 @@
 header('Content-Type: text/plain; charset=utf-8');
 require_once __DIR__ . '/config.php';
 
-session_start();
-
 try {
     $conn = getDBConnection();
     echo "=== DATABASE CONNECTION SUCCESSFUL ===\n\n";
 
-    $churchId = getChurchId();
-    $uncleId = intval($_SESSION['uncle_id'] ?? 1); // fallback to 1 for testing
+    $churchId = 1;
+    $uncleId = 1;
     $limit = 100;
 
     echo "Parameters:\n";
