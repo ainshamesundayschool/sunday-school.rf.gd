@@ -21063,6 +21063,85 @@ function copyOverviewMessage() {
   });
 }
 
+async function getExportCanvas() {
+  const container = document.getElementById('ovTableContainer');
+  if (!container) return null;
+  
+  // Clone the container
+  const clone = container.cloneNode(true);
+  
+  // Reset styles for all table components to ensure static, full-size rendering
+  clone.style.position = 'absolute';
+  clone.style.top = '0';
+  clone.style.left = '-9999px';
+  clone.style.width = 'max-content';
+  clone.style.height = 'auto';
+  clone.style.overflow = 'visible';
+  clone.style.background = '#ffffff';
+  clone.style.padding = '25px';
+  
+  const tables = clone.querySelectorAll('table');
+  tables.forEach(t => {
+    t.style.width = 'max-content';
+    t.style.maxWidth = 'none';
+    t.style.overflow = 'visible';
+    t.style.margin = '0';
+    t.style.borderCollapse = 'collapse';
+  });
+  
+  const headers = clone.querySelectorAll('th');
+  headers.forEach(th => {
+    th.style.position = 'static';
+    th.style.background = 'var(--brand-bg, #eef0ff)';
+    th.style.color = 'var(--brand, #5b6cf5)';
+  });
+  
+  // Add a beautiful print header at the top of the clone
+  const statsText = document.getElementById('ovStatsText') ? document.getElementById('ovStatsText').innerText : '';
+  const headerDiv = document.createElement('div');
+  headerDiv.style.direction = 'rtl';
+  headerDiv.style.fontFamily = "'Baloo Bhaijaan 2', 'Segoe UI', Tahoma, sans-serif";
+  headerDiv.style.marginBottom = '25px';
+  headerDiv.style.borderBottom = '3px solid var(--brand, #5b6cf5)';
+  headerDiv.style.paddingBottom = '15px';
+  headerDiv.style.display = 'flex';
+  headerDiv.style.justifyContent = 'space-between';
+  headerDiv.style.alignItems = 'center';
+  
+  headerDiv.innerHTML = `
+    <div>
+      <h2 style="margin:0 0 5px 0; color:#1a1d2e; font-size:1.6rem; font-weight:800;">📋 تقرير متابعة التاسكات والاختبارات</h2>
+      <p style="margin:0; color:#4b5068; font-size:0.95rem;">التاريخ: ${new Date().toLocaleDateString('ar-EG')} | ${statsText}</p>
+    </div>
+    <div style="text-align:left; direction: ltr;">
+      <span style="font-size:1.3rem; font-weight:800; color:var(--brand, #5b6cf5); font-family: 'Baloo Bhaijaan 2', sans-serif;">Sunday School</span>
+    </div>
+  `;
+  
+  clone.insertBefore(headerDiv, clone.firstChild);
+  document.body.appendChild(clone);
+  
+  // Let the browser lay it out
+  await new Promise(r => setTimeout(r, 150));
+  
+  try {
+    const canvas = await html2canvas(clone, {
+      scale: 2, // High DPI capture
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+      allowTaint: false,
+      width: clone.scrollWidth,
+      height: clone.scrollHeight,
+      windowWidth: clone.scrollWidth + 100,
+      windowHeight: clone.scrollHeight + 100
+    });
+    return canvas;
+  } finally {
+    document.body.removeChild(clone);
+  }
+}
+
 async function exportOverviewImage() {
   const container = document.getElementById('ovTableContainer');
   if (!container) { showToast('لا توجد بيانات لتصديرها', 'err'); return; }
@@ -21070,13 +21149,8 @@ async function exportOverviewImage() {
   showToast('جاري إعداد الصورة...', 'info');
   
   try {
-    const canvas = await html2canvas(container, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: '#ffffff',
-      logging: false,
-      allowTaint: false
-    });
+    const canvas = await getExportCanvas();
+    if (!canvas) { showToast('فشل تصدير الصورة', 'err'); return; }
     
     const link = document.createElement('a');
     link.download = `overview_tasks_${new Date().toISOString().slice(0,10)}.png`;
@@ -21099,13 +21173,8 @@ async function exportOverviewPDF() {
     const { jsPDF } = window.jspdf;
     if (!jsPDF) { showToast('مكتبة PDF غير محملة', 'err'); return; }
     
-    const canvas = await html2canvas(container, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: '#ffffff',
-      logging: false,
-      allowTaint: false
-    });
+    const canvas = await getExportCanvas();
+    if (!canvas) { showToast('فشل إنشاء PDF', 'err'); return; }
     
     const orientation = canvas.width > canvas.height ? 'landscape' : 'portrait';
     const pdf = new jsPDF({ orientation, unit: 'mm', format: 'a4' });
