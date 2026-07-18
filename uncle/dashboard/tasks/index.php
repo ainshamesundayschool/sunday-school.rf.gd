@@ -18675,66 +18675,61 @@ async function openDetail(id){
 
 
 
-      <div class="detail-banner">
+      <!-- Unified Compact Details Info Board -->
+      <div style="background:var(--bg-card); border:1.5px solid var(--bdr); border-radius:12px; padding:16px; margin-bottom:20px; display:flex; flex-direction:column; gap:12px; direction:rtl;">
+        
+        <!-- Metadata pills -->
+        <div style="display:flex; flex-wrap:wrap; gap:12px; font-size:0.75rem; color:var(--t3); border-bottom:1px dashed var(--bdr); padding-bottom:12px; justify-content:flex-start; align-items:center; direction:rtl; text-align:right;">
+          <span style="display:inline-flex; align-items:center; gap:4px; background:var(--brand-bg); color:var(--brand); padding:2px 8px; border-radius:4px; font-weight:700;"><i class="fas fa-users"></i> ${esc(t.class_name || 'كل الفصول')}</span>
+          <span style="display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-calendar-check" style="color:var(--brand);"></i> البدء: ${fmtDate(t.start_date)}</span>
+          <span style="display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-flag-checkered" style="color:var(--brand);"></i> النهاية: ${parseInt(t.no_deadline||0)?'بدون موعد':fmtDate(t.end_date)}</span>
+          ${t.time_limit ? `<span style="display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-stopwatch" style="color:var(--brand);"></i> ${t.time_limit} دقيقة</span>` : ''}
+          ${parseInt(t.shuffle) ? `<span style="display:inline-flex; align-items:center; gap:4px; color:var(--warn);"><i class="fas fa-random"></i> ترتيب عشوائي</span>` : ''}
+          ${si.key === 'draft' ? `<span style="background:var(--warn-bg); color:var(--warn); font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:4px; border:1px solid rgba(245,158,11,0.25);">Draft</span>` : ''}
+        </div>
 
-
-
-        ${si.key === 'draft' ? `<span class="tstatus ${si.cls}">${si.label}</span>` : ''}
-
-
-
-        ${t.time_limit?`<span class="tstatus s-upcoming"><i class="fas fa-stopwatch"></i> ${t.time_limit} دقيقة</span>`:''}
-
-
-
-        <span class="tmeta-i"><i class="fas fa-calendar-check"></i>${fmtDate(t.start_date)}</span>
-
-
-
-        <span class="tmeta-i"><i class="fas fa-flag-checkered"></i>${parseInt(t.no_deadline||0)?'بدون آخر موعد':fmtDate(t.end_date)}</span>
-
-
-
-        ${parseInt(t.shuffle)?'<span class="tmeta-i"><i class="fas fa-random"></i>ترتيب عشوائي</span>':''}
-
-
-
-      </div>
-
-
-
-      <div class="detail-overview">
-
-
-
-        <div class="detail-stat"><div class="detail-stat-label">الأسئلة</div><div class="detail-stat-value">${(t.questions||[]).length}</div></div>
-
-
-
-        <div class="detail-stat"><div class="detail-stat-label">الإجابات</div><div class="detail-stat-value">${subs.length}</div></div>
-
-
-
-        <div class="detail-stat"><div class="detail-stat-label">الدرجة الكلية</div><div class="detail-stat-value">${t.total_degree}</div></div>
-
-
-
-        <div class="detail-stat"><div class="detail-stat-label">الكوبونات</div><div class="detail-stat-value">${tc}</div></div>
-
-
+        <!-- Metrics row -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(100px, 1fr)); gap:16px; direction:rtl;">
+          <div style="text-align:right;">
+            <div style="font-size:0.7rem; color:var(--t3); font-weight:700; margin-bottom:2px;">الأسئلة</div>
+            <div style="font-size:1.15rem; font-weight:900; color:var(--t1);">${(t.questions||[]).length} <span style="font-size:0.75rem; font-weight:700; color:var(--t3);">سؤال</span></div>
+          </div>
+          <div style="text-align:right; border-right:1px solid var(--bdr); padding-right:16px;">
+            <div style="font-size:0.7rem; color:var(--t3); font-weight:700; margin-bottom:2px;">الدرجة الكلية</div>
+            <div style="font-size:1.15rem; font-weight:900; color:var(--t1);">${t.total_degree} <span style="font-size:0.75rem; font-weight:700; color:var(--t3);">درجة</span></div>
+          </div>
+          <div style="text-align:right; border-right:1px solid var(--bdr); padding-right:16px;">
+            <div style="font-size:0.7rem; color:var(--t3); font-weight:700; margin-bottom:2px;">تسليمات الطلاب</div>
+            <div style="font-size:1.15rem; font-weight:900; color:var(--t1);">${subs.length} <span style="font-size:0.75rem; font-weight:700; color:var(--t3);">إجابة</span></div>
+          </div>
+          <div style="text-align:right; border-right:1px solid var(--bdr); padding-right:16px;">
+            <div style="font-size:0.7rem; color:var(--t3); font-weight:700; margin-bottom:2px;">الكوبونات الموزعة</div>
+            <div style="font-size:1.15rem; font-weight:900; color:var(--cou);">${tc} <i class="fas fa-star" style="color:#eab308; font-size:0.75rem; margin-right:2px;"></i></div>
+          </div>
+        </div>
 
       </div>
 
 
 
-      <div class="coupon-chips" style="margin-bottom:18px;">
-
-
-
-        ${convertTiersToMilestones(matrix).map(m=>`<span style="display:flex;align-items:center;gap:6px;padding:5px 12px;background:var(--cou-bg);border:1px solid #c4b5fd;border-radius:var(--r-full);font-size:.76rem;font-weight:700;color:var(--cou);"><i class="fas fa-star" style="color:#eab308;"></i>${m.pct}% أو أكثر ➔ ${m.coupons} كوبون</span>`).join('')}
-
-
-
+      <!-- Premium Milestones Card -->
+      <div style="background:var(--bg3); border:1px solid var(--bdr); border-radius:12px; padding:14px 16px; margin-bottom:18px; direction:rtl;">
+        <div style="font-size:0.8rem; font-weight:800; color:var(--t2); margin-bottom:10px; display:flex; align-items:center; gap:6px; text-align:right; justify-content:flex-start;">
+          <i class="fas fa-star" style="color:#eab308; font-size:0.85rem;"></i>
+          <span>قواعد توزيع الكوبونات</span>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:10px;">
+          ${convertTiersToMilestones(matrix).map(m=>`
+            <div style="background:var(--bg-card); border:1.5px solid var(--brand-l); border-radius:10px; padding:10px; text-align:center; display:flex; flex-direction:column; gap:4px; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+              <div style="font-size:0.7rem; font-weight:700; color:var(--t3);">عند الحصول على</div>
+              <div style="font-size:1.05rem; font-weight:900; color:var(--brand);">${m.pct}% أو أكثر</div>
+              <div style="font-size:0.72rem; font-weight:800; color:var(--t2); display:inline-flex; align-items:center; justify-content:center; gap:4px; margin-top:2px; background:var(--cou-bg); padding:3px 8px; border-radius:14px; border:1px solid #c4b5fd;">
+                <i class="fas fa-star" style="color:#eab308; font-size:0.65rem;"></i>
+                <span>${m.coupons} كوبون</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
       </div>
 
 
