@@ -3578,6 +3578,17 @@ button, input, select, textarea, a {
 
 }
 
+.overlay.fullscreen .modal.wide {
+  min-height: auto;
+  max-height: 92vh;
+  height: auto;
+  border-radius: var(--r-xl);
+  margin: auto;
+  max-width: 860px;
+  width: 90%;
+  box-shadow: var(--sh-lg);
+}
+
 
 
 .overlay.fullscreen .mbody {
@@ -12123,6 +12134,48 @@ body {
   }
 }
 
+/* Wide Modal Minimum Height */
+.overlay.fullscreen .modal.wide {
+  min-height: 480px !important;
+}
+
+/* Fullscreen Grading Panel Overrides */
+.grade-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 3000 !important;
+  background: var(--bg3) !important;
+  align-items: stretch !important;
+  justify-content: stretch !important;
+}
+.grade-sheet {
+  width: 100% !important;
+  height: 100vh !important;
+  max-width: 100% !important;
+  max-height: 100vh !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background: var(--bg3) !important;
+  box-shadow: none !important;
+  border: none !important;
+  min-height: 100vh !important;
+}
+.grade-sheet-body {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+.grade-sub-card {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+}
+
 /* Skeleton Loading Screens styles */
 .skeleton-card {
   background: var(--bg-card, #fff);
@@ -12233,7 +12286,7 @@ body {
 
   <header class="tasks-subpage-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; gap: 16px; border-bottom: 1px solid var(--bdr); padding-bottom: 16px; direction: rtl;">
     <div style="display: flex; align-items: center; gap: 12px;">
-      <a href="<?php echo htmlspecialchars($dashBack); ?>" style="background: var(--bg-card); border: 1px solid var(--bdr); border-radius: var(--r-md); width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--t1); transition: all 0.2s;" onmouseover="this.style.background='var(--brand-bg)'; this.style.color='var(--brand)';" onmouseout="this.style.background='var(--bg-card)'; this.style.color='var(--t1)';"><i class="fas fa-arrow-right"></i></a>
+      <a href="<?php echo htmlspecialchars($dashBack); ?>" style="text-decoration: none !important; background: var(--bg-card); border: 1px solid var(--bdr); border-radius: var(--r-md); width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--t1); transition: all 0.2s;" onmouseover="this.style.background='var(--brand-bg)'; this.style.color='var(--brand)';" onmouseout="this.style.background='var(--bg-card)'; this.style.color='var(--t1)';"><i class="fas fa-arrow-right"></i></a>
       <div>
         <div style="font-size: 1.25rem; font-weight: 800; color: var(--t1); font-family: 'Cairo', 'Baloo Bhaijaan 2', sans-serif;">التاسكات والاختبارات</div>
         <?php if ($activeClass): ?>
@@ -12255,7 +12308,7 @@ body {
         <div style="font-size: 1.05rem; font-weight: 800; color: var(--brand);" id="stActiveIframe">—</div>
       </div>
       <div style="background: var(--bg-card); border: 1px solid var(--bdr); border-radius: var(--r-md); padding: 6px 14px; text-align: center; min-width: 70px;">
-        <div style="font-size: 0.68rem; color: var(--t3); font-weight: bold; margin-bottom: 2px;">المسودات</div>
+        <div style="font-size: 0.68rem; color: var(--t3); font-weight: bold; margin-bottom: 2px;">Draft</div>
         <div style="font-size: 1.05rem; font-weight: 800; color: var(--warn);" id="stDraftIframe">—</div>
       </div>
     </div>
@@ -12287,11 +12340,7 @@ body {
 
 
 
-      <div class="ftabs">
-
-
-
-        <div class="ftab active" onclick="setFilter('all',this)">الكل</div>
+      <div class="ftabs" id="filterTabsContainer"></div>
 
 
 
@@ -12489,6 +12538,12 @@ body {
 
 
 
+            </div>
+
+            <div class="fg" style="margin-bottom:12px;">
+              <label class="flbl">الفلاتر المخصصة (مفصولة بفاصلة ,)</label>
+              <input id="taskGroupName" class="fi" type="text" placeholder="مثال: واجب, حفظ, Somthing" style="font-size:.95rem;">
+              <div id="existingFiltersBadges" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;"></div>
             </div>
 
 
@@ -13113,7 +13168,7 @@ body {
 
 
 
-      <button class="btn btn-g" id="draftBtn" onclick="saveDraft()"><i class="fas fa-save"></i> مسودة</button>
+      <button class="btn btn-g" id="draftBtn" onclick="saveDraft()"><i class="fas fa-save"></i> Draft</button>
 
 
 
@@ -14279,7 +14334,7 @@ function statusOf(t) {
 
 
 
-  if (t.status==='draft') return {key:'draft',cls:'s-draft',label:'مسودة',acc:'warn'};
+  if (t.status==='draft') return {key:'draft',cls:'s-draft',label:'Draft',acc:'warn'};
 
 
 
@@ -14310,6 +14365,66 @@ function statusOf(t) {
 }
 
 
+
+function getCustomFilters() {
+  const customFilters = new Set();
+  tasks.forEach(t => {
+    if (t.group_name) {
+      t.group_name.split(',').forEach(g => {
+        const trimmed = g.trim();
+        if (trimmed) customFilters.add(trimmed);
+      });
+    }
+  });
+  return Array.from(customFilters);
+}
+
+function renderFilterTabs() {
+  const container = document.getElementById('filterTabsContainer');
+  if (!container) return;
+
+  let html = `<div class="ftab ${curFilter === 'all' ? 'active' : ''}" onclick="setFilter('all',this)">الكل</div>`;
+  html += `<div class="ftab ${curFilter === 'draft' ? 'active' : ''}" onclick="setFilter('draft',this)">Draft</div>`;
+
+  const customFilters = getCustomFilters();
+  customFilters.forEach(f => {
+    html += `<div class="ftab ${curFilter === 'custom_' + f ? 'active' : ''}" onclick="setFilter('custom_${f}',this)">${f}</div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+function appendToFiltersInput(fName) {
+  const input = document.getElementById('taskGroupName');
+  if (!input) return;
+  let val = input.value.trim();
+  if (!val) {
+    input.value = fName;
+  } else {
+    const existing = val.split(',').map(x => x.trim());
+    if (!existing.includes(fName)) {
+      existing.push(fName);
+      input.value = existing.join(', ');
+    }
+  }
+}
+
+function updateExistingFiltersBadges() {
+  const container = document.getElementById('existingFiltersBadges');
+  if (!container) return;
+  
+  const customFilters = getCustomFilters();
+  if (customFilters.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+  
+  let html = '<span style="font-size:0.7rem; color:var(--t3); align-self:center; margin-left:4px;">اضغط للإضافة:</span>';
+  customFilters.forEach(fName => {
+    html += `<span class="badge" onclick="appendToFiltersInput('${esc(fName)}')" style="cursor:pointer; background:var(--bg2); border:1px solid var(--bdr); padding:2px 8px; border-radius:12px; font-size:0.75rem; color:var(--t1); transition:0.2s;" onmouseover="this.style.background='var(--brand-bg)'; this.style.color='var(--brand)';" onmouseout="this.style.background='var(--bg2)'; this.style.color='var(--t1)';">${esc(fName)}</span>`;
+  });
+  container.innerHTML = html;
+}
 
 function setFilter(f, el) {
 
@@ -14343,7 +14458,23 @@ function renderGrid() {
 
 
 
-  let list = curFilter==='all' ? tasks : tasks.filter(t=>statusOf(t).key===curFilter);
+  // Update dynamic filter tabs view
+  renderFilterTabs();
+
+  let list = [];
+  if (curFilter === 'all') {
+    list = tasks.filter(t => t.status !== 'draft');
+  } else if (curFilter === 'draft') {
+    list = tasks.filter(t => t.status === 'draft');
+  } else if (curFilter.startsWith('custom_')) {
+    const fName = curFilter.substring(7);
+    list = tasks.filter(t => {
+      if (!t.group_name) return false;
+      return t.group_name.split(',').map(x => x.trim()).includes(fName);
+    });
+  } else {
+    list = tasks.filter(t => statusOf(t).key === curFilter);
+  }
 
 
 
@@ -14660,6 +14791,8 @@ function resetForm() {
 
 
   ['fTitle','fDesc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('taskGroupName').value = '';
+  updateExistingFiltersBadges();
 
 
 
@@ -14792,6 +14925,8 @@ function fillForm(t) {
 
 
   document.getElementById('fTitle').value=t.title||'';
+  document.getElementById('taskGroupName').value = t.group_name || '';
+  updateExistingFiltersBadges();
 
 
 
@@ -16618,6 +16753,7 @@ function collectForm(status){
 
 
     status, title:document.getElementById('fTitle').value.trim(), description:document.getElementById('fDesc').value.trim(),
+    group_name: document.getElementById('taskGroupName').value.trim(),
 
 
 
@@ -16721,7 +16857,7 @@ async function saveTask(status){
 
 
 
-    if(d.success){ showToast(status==='draft'?'تم حفظ المسودة ✓':'تم نشر التاسك 🎉',status==='draft'?'info':'ok'); closeCreate(); await loadTasks(); }
+    if(d.success){ showToast(status==='draft'?'تم حفظ الـ Draft ✓':'تم نشر التاسك 🎉',status==='draft'?'info':'ok'); closeCreate(); await loadTasks(); }
 
 
 
@@ -17689,20 +17825,11 @@ let gradeTaskData = null;
 
 
 async function openGradePanel(taskId) {
-
-
-
   gradeTaskId = taskId;
-
-
+  window.activeGradeIndex = 0;
 
   document.getElementById('gradePanel').classList.add('open');
-
-
-
   document.body.style.overflow = 'hidden';
-
-
 
   document.getElementById('gradePanelBody').innerHTML = `
     <div class="skeleton-row"><div class="skeleton-line" style="height:14px; width:45%;"></div><div class="skeleton-line" style="height:28px; width:60px; border-radius:6px;"></div></div>
@@ -17710,667 +17837,257 @@ async function openGradePanel(taskId) {
     <div class="skeleton-row"><div class="skeleton-line" style="height:14px; width:35%;"></div><div class="skeleton-line" style="height:28px; width:60px; border-radius:6px;"></div></div>
   `;
 
-
-
   try {
-
-
-
-    // Load task detail for questions
-
-
-
     const td = await api('getTaskDetail', {task_id: taskId});
-
-
-
     gradeTaskData = td.success ? td.task : null;
 
-
-
-
-
-
-
-    // Load all submissions (not just ungraded) for full view
-
-
-
     const d = await api('getPendingOpenSubmissions', {task_id: taskId});
-
-
-
     if(!d.success){showToast(d.message||'فشل','err');return;}
 
-
-
     gradeSubs = d.submissions || [];
-
     if (gradeTaskData) {
         await loadStudents(gradeTaskData.class_name || 'كل الفصول');
     }
 
     renderGradePanel();
-
-
-
   } catch(e){showToast('خطأ في الاتصال','err');}
-
-
-
 }
 
+window.activeGradeIndex = 0;
 
+function navigateGrading(dir) {
+  if (!gradeSubs || gradeSubs.length === 0) return;
+  let newIdx = window.activeGradeIndex + dir;
+  if (newIdx < 0 || newIdx >= gradeSubs.length) return;
+  window.activeGradeIndex = newIdx;
+  renderGradePanel();
+}
 
-
-
-
+function updateGradeIndicator() {
+  const indicator = document.getElementById('gradeIndexIndicator');
+  const prevBtn = document.getElementById('prevGradeBtn');
+  const nextBtn = document.getElementById('nextGradeBtn');
+  
+  if (indicator) {
+    indicator.textContent = `${window.activeGradeIndex + 1} / ${gradeSubs.length}`;
+  }
+  if (prevBtn) {
+    prevBtn.disabled = window.activeGradeIndex === 0;
+    prevBtn.style.opacity = window.activeGradeIndex === 0 ? '0.4' : '1';
+    prevBtn.style.cursor = window.activeGradeIndex === 0 ? 'not-allowed' : 'pointer';
+  }
+  if (nextBtn) {
+    nextBtn.disabled = window.activeGradeIndex === gradeSubs.length - 1;
+    nextBtn.style.opacity = window.activeGradeIndex === gradeSubs.length - 1 ? '0.4' : '1';
+    nextBtn.style.cursor = window.activeGradeIndex === gradeSubs.length - 1 ? 'not-allowed' : 'pointer';
+  }
+}
 
 function renderGradePanel() {
-
-
-
   const el = document.getElementById('gradePanelBody');
-
-
-
-  document.getElementById('gradePanelSub').textContent = `${gradeSubs.length} طفل ينتظر التصحيح`;
-
-
-
-  if(!gradeSubs.length){
-
-
-
+  
+  if (!gradeSubs || !gradeSubs.length) {
+    document.getElementById('gradePanelSub').textContent = `0 طفل ينتظر التصحيح`;
     el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--t3);"><i class="fas fa-check-circle" style="font-size:2rem;color:var(--ok);display:block;margin-bottom:10px;"></i>تم تصحيح جميع الإجابات!</div>';
-
-
-
+    const indicator = document.getElementById('gradeIndexIndicator');
+    if (indicator) indicator.textContent = '0 / 0';
     return;
-
-
-
   }
 
+  if (window.activeGradeIndex >= gradeSubs.length) {
+    window.activeGradeIndex = Math.max(0, gradeSubs.length - 1);
+  }
 
+  document.getElementById('gradePanelSub').textContent = `${gradeSubs.length} طفل ينتظر التصحيح`;
+  updateGradeIndicator();
 
-
-
-
+  const sub = gradeSubs[window.activeGradeIndex];
+  const si = window.activeGradeIndex;
 
   const allQuestions = gradeTaskData ? (gradeTaskData.questions||[]) : [];
-
-
-
-  const matrix = gradeTaskData ? JSON.parse(gradeTaskData.coupon_matrix||'[]') : [];
-
-
-
   const totalDeg = gradeTaskData ? (gradeTaskData.total_degree||0) : 0;
-
-
-
-
-
-
-
-  el.innerHTML = gradeSubs.map((sub, si) => {
-
-
-
-    const answers = JSON.parse(sub.answers||'{}');
-
-
-
-    const openQs = sub.open_questions || [];
-
-
-
-    const openQIds = openQs.map(q=>String(q.id));
-
-
-
-
-
-
-
-    // Build full exam view
-
-
-
-    const qRows = allQuestions.map((q, qi) => {
-
-
-
-      const qtype = q.question_type || 'mcq';
-
-
-
-      const qId = String(q.id);
-
-
-
-      const imgH = q.image_url ? `<div style="margin:4px 0 8px;border-radius:8px;overflow:hidden;border:1px solid var(--bdr);"><img src="${q.image_url}" alt="" style="width:100%;max-height:160px;object-fit:contain;display:block;background:#f8fafc;"></div>` : '';
-
-
-
-
-
-
-
-      // Note textarea HTML — shown for every question type
-
-
-
-      const noteId = `gn_${sub.id}_${q.id}`;
-
-
-
-      const buildNoteHtml = (placeholder) => `<div class="grade-note-row">
-
-
-
-        <i class="fas fa-comment-dots"></i>
-
-
-
-        <div class="gn-wrap">
-
-
-
-          <div class="gn-lbl">ملاحظة / الإجابة الصحيحة للطفل:</div>
-
-
-
-          <textarea class="grade-note-inp" id="${noteId}" data-sub="${sub.id}" data-qid="${q.id}" placeholder="${placeholder}"></textarea>
-
-
-
-        </div>
-
-
-
-      </div>`;
-
-
-
-
-
-
-
-      if(qtype === 'open'){
-
-
-
-        const ans = answers[qId] !== undefined ? String(answers[qId]) : '';
-
-
-
-        return `<div class="grade-q-row" style="background:var(--bg2);border:1.5px solid #fde68a;border-radius:var(--r-sm);padding:11px 13px;margin-bottom:10px;">
-
-
-
-          <div class="grade-q-text" style="color:#b45309;margin-bottom:4px;">
-
-
-
-            <span style="background:#fef3c7;color:#92400e;border-radius:var(--r-full);padding:1px 8px;font-size:.66rem;font-weight:700;margin-left:5px;"><i class="fas fa-pen-nib"></i> مفتوح</span>
-
-
-
-            <strong>${qi+1}.</strong> ${esc(q.question_text)} <span style="color:var(--t3);font-size:.72rem;">(${q.degree} درجة)</span>
-
-
-
-          </div>
-
-
-
-          ${imgH}
-
-
-
-          <div class="grade-ans-text" style="background:var(--bg);border:1px solid #fde68a;">${ans ? esc(ans) : '<em style="color:var(--t3);">— لم يُجب —</em>'}</div>
-
-
-
-          <div class="grade-score-row">
-
-
-
-            <span style="font-size:.78rem;color:var(--t2);font-weight:600;">الدرجة:</span>
-
-
-
-            <input class="grade-score-inp" type="number" min="0" max="${q.degree}" value="0"
-
-
-
-              id="gs_${sub.id}_${q.id}" data-sub="${sub.id}" data-qid="${q.id}" data-max="${q.degree}"
-
-
-
-              oninput="clampGradeInput(this);updateSubScore(${sub.id})">
-
-
-
-            <span class="grade-max-lbl">/ ${q.degree}</span>
-
-
-
-          </div>
-
-
-
-          ${buildNoteHtml('اكتب ملاحظة أو الإجابة الصحيحة للطفل…')}
-
-
-
-        </div>`;
-
-
-
-      }
-
-
-
-
-
-
-
-      // MCQ / TF — show with correct/wrong highlighting
-
-
-
-      const given = answers[qId] !== undefined ? parseInt(answers[qId]) : null;
-
-
-
-      const correct = q.correct_index !== null ? parseInt(q.correct_index) : null;
-
-
-
-      const isCorrect = given !== null && correct !== null && given === correct;
-
-
-
-      const isWrong = given !== null && correct !== null && given !== correct;
-
-
-
-
-
-
-
-      const statusDot = given === null
-
-
-
-        ? `<span style="color:var(--t3);font-size:.68rem;">لم يجب</span>`
-
-
-
-        : isCorrect
-
-
-
-          ? `<span style="background:var(--ok-bg);color:var(--ok);border-radius:var(--r-full);padding:1px 8px;font-size:.68rem;font-weight:700;"><i class="fas fa-check"></i> صح</span>`
-
-
-
-          : `<span style="background:var(--err-bg);color:var(--err);border-radius:var(--r-full);padding:1px 8px;font-size:.68rem;font-weight:700;"><i class="fas fa-times"></i> خطأ</span>`;
-
-
-
-
-
-
-
-      if(qtype === 'tf') {
-
-
-
-        const opts = ['صحيح','خطأ'];
-
-
-
-        // Pre-populate note suggestion for wrong TF answers
-
-
-
-        const tfNotePlaceholder = isWrong ? `الإجابة الصحيحة: ${opts[correct]}` : 'اكتب ملاحظة للطفل (اختياري)…';
-
-
-
-        const tfNoteDefault = isWrong ? `الإجابة الصحيحة: ${opts[correct]}` : '';
-
-
-
-        return `<div style="background:${isCorrect?'var(--ok-bg)':isWrong?'var(--err-bg)':'var(--bg2)'};border:1.5px solid ${isCorrect?'#6ee7b7':isWrong?'#fca5a5':'var(--bdr)'};border-radius:var(--r-sm);padding:9px 13px;margin-bottom:8px;">
-
-
-
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
-
-
-
-            <span style="font-size:.75rem;font-weight:600;color:var(--t2);"><strong>${qi+1}.</strong> ${esc(q.question_text)}</span>
-
-
-
-            <span style="margin-right:auto;">${statusDot}</span>
-
-
-
-            <span style="font-size:.68rem;color:var(--t3);">${q.degree} درجة</span>
-
-
-
-          </div>
-
-
-
-          ${imgH}
-
-
-
-          <div style="display:flex;gap:8px;">
-
-
-
-            ${opts.map((o,j)=>{
-
-
-
-              const isSel = given===j;
-
-
-
-              const isCorr = correct===j;
-
-
-
-              let bg='var(--bg)'; let border='var(--bdr)'; let clr='var(--t2)';
-
-
-
-              if(isSel && isCorr){bg='var(--ok-bg)';border='#6ee7b7';clr='var(--ok)';}
-
-
-
-              else if(isSel && !isCorr){bg='var(--err-bg)';border='#fca5a5';clr='var(--err)';}
-
-
-
-              else if(isCorr && !isSel){bg='var(--ok-bg)';border='#6ee7b7';clr='var(--ok)';}
-
-
-
-              return `<div style="flex:1;padding:7px 10px;border-radius:7px;border:1.5px solid ${border};background:${bg};color:${clr};font-size:.8rem;font-weight:700;text-align:center;">
-
-
-
-                ${o}${isSel?' <i class="fas fa-hand-pointer"></i>':''}${isCorr&&!isSel?' ✓':''}
-
-
-
-              </div>`;
-
-
-
-            }).join('')}
-
-
-
-          </div>
-
-
-
-          <div class="grade-note-row">
-
-
-
-            <i class="fas fa-comment-dots"></i>
-
-
-
-            <div class="gn-wrap">
-
-
-
-              <div class="gn-lbl">ملاحظة / الإجابة الصحيحة للطفل:</div>
-
-
-
-              <textarea class="grade-note-inp" id="${noteId}" data-sub="${sub.id}" data-qid="${q.id}" placeholder="${tfNotePlaceholder}">${tfNoteDefault}</textarea>
-
-
-
-            </div>
-
-
-
-          </div>
-
-
-
-        </div>`;
-
-
-
-      }
-
-
-
-
-
-
-
-      // MCQ
-
-
-
-      const opts = typeof q.options==='string' ? JSON.parse(q.options) : (q.options||[]);
-
-
-
-      // Pre-populate note suggestion for wrong MCQ answers
-
-
-
-      const mcqNotePlaceholder = isWrong && correct !== null && opts[correct] ? `الإجابة الصحيحة: ${opts[correct]}` : 'اكتب ملاحظة للطفل (اختياري)…';
-
-
-
-      const mcqNoteDefault = isWrong && correct !== null && opts[correct] ? `الإجابة الصحيحة: ${opts[correct]}` : '';
-
-
-
-      return `<div style="background:${isCorrect?'var(--ok-bg)':isWrong?'var(--err-bg)':'var(--bg2)'};border:1.5px solid ${isCorrect?'#6ee7b7':isWrong?'#fca5a5':'var(--bdr)'};border-radius:var(--r-sm);padding:9px 13px;margin-bottom:8px;">
-
-
-
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
-
-
-
-          <span style="font-size:.75rem;font-weight:600;color:var(--t2);"><strong>${qi+1}.</strong> ${esc(q.question_text)}</span>
-
-
-
-          <span style="margin-right:auto;">${statusDot}</span>
-
-
-
-          <span style="font-size:.68rem;color:var(--t3);">${q.degree} درجة</span>
-
-
-
-        </div>
-
-
-
-        ${imgH}
-
-
-
-        ${opts.map((o,j)=>{
-
-
-
-          const isSel = given===j;
-
-
-
-          const isCorr = correct===j;
-
-
-
-          let bg='var(--bg)'; let border='var(--bdr)'; let clr='var(--t2)';
-
-
-
-          if(isSel && isCorr){bg='var(--ok-bg)';border='#6ee7b7';clr='var(--ok)';}
-
-
-
-          else if(isSel && !isCorr){bg='var(--err-bg)';border='#fca5a5';clr='var(--err)';}
-
-
-
-          else if(isCorr && !isSel){bg='var(--ok-bg)';border='#6ee7b7';clr='var(--ok)';}
-
-
-
-          return `<div style="display:flex;align-items:center;gap:7px;padding:6px 10px;border-radius:6px;border:1.5px solid ${border};background:${bg};color:${clr};font-size:.78rem;margin-bottom:4px;">
-
-
-
-            <strong style="min-width:18px;">${LETTERS[j]}</strong>${esc(o)}
-
-
-
-            ${isSel?'<i class="fas fa-hand-pointer" style="margin-right:auto;font-size:.7rem;"></i>':''}
-
-
-
-            ${isCorr&&!isSel?'<i class="fas fa-check" style="margin-right:auto;color:var(--ok);"></i>':''}
-
-
-
-          </div>`;
-
-
-
-        }).join('')}
-
-
-
-        <div class="grade-note-row">
-
-
-
-          <i class="fas fa-comment-dots"></i>
-
-
-
-          <div class="gn-wrap">
-
-
-
-            <div class="gn-lbl">ملاحظة / الإجابة الصحيحة للطفل:</div>
-
-
-
-            <textarea class="grade-note-inp" id="${noteId}" data-sub="${sub.id}" data-qid="${q.id}" placeholder="${mcqNotePlaceholder}">${mcqNoteDefault}</textarea>
-
-
-
-          </div>
-
-
-
-        </div>
-
-
-
-      </div>`;
-
-
-
-    }).join('');
-
-
-
-
-
-
-
-    const activeClass = gradeTaskData ? gradeTaskData.class_name : 'كل الفصول';
-    const stud = classStuCache[activeClass || 'كل الفصول']?.find(x => x.id == sub.student_id);
-    const photo = stud ? stud.photo : '';
-    const avatar = getStudentAvatarHtml(photo, sub.student_name, '28px');
-
-    return `<div class="grade-sub-card" id="gradecard_${sub.id}">
-
-
-
-      <div class="grade-sub-name">
-
-
-
-        ${avatar}
-
-
-
-        ${esc(sub.student_name||'—')}
-
-
-
-        <span style="font-size:.72rem;color:var(--t3);font-weight:500;margin-right:5px;">${esc(sub.task_title||'')}</span>
-
-
-
-        <span style="margin-right:auto;font-size:.72rem;" id="scoreDisp_${sub.id}"></span>
-
-
-
+  const answers = JSON.parse(sub.answers||'{}');
+
+  const qRows = allQuestions.map((q, qi) => {
+    const qtype = q.question_type || 'mcq';
+    const qId = String(q.id);
+    const imgH = q.image_url ? `<div style="margin:4px 0 8px;border-radius:8px;overflow:hidden;border:1px solid var(--bdr);"><img src="${q.image_url}" alt="" style="width:100%;max-height:160px;object-fit:contain;display:block;background:#f8fafc;"></div>` : '';
+    const noteId = `gn_${sub.id}_${q.id}`;
+
+    const buildNoteHtml = (placeholder) => `<div class="grade-note-row">
+      <i class="fas fa-comment-dots"></i>
+      <div class="gn-wrap">
+        <div class="gn-lbl">ملاحظة / الإجابة الصحيحة للطفل:</div>
+        <textarea class="grade-note-inp" id="${noteId}" data-sub="${sub.id}" data-qid="${q.id}" placeholder="${placeholder}"></textarea>
       </div>
-
-
-
-      ${qRows}
-
-
-
-      <button class="grade-save-btn" onclick="submitGrade(${sub.id}, ${si})">
-
-
-
-        <i class="fas fa-check"></i> حفظ التصحيح وتحديث الكوبونات
-
-
-
-      </button>
-
-
-
     </div>`;
 
+    if (qtype === 'open') {
+      const ans = answers[qId] !== undefined ? String(answers[qId]) : '';
+      return `<div class="grade-q-row" style="background:var(--bg2);border:1.5px solid #fde68a;border-radius:var(--r-sm);padding:11px 13px;margin-bottom:10px;">
+        <div class="grade-q-text" style="color:#b45309;margin-bottom:4px;">
+          <span style="background:#fef3c7;color:#92400e;border-radius:var(--r-full);padding:1px 8px;font-size:.66rem;font-weight:700;margin-left:5px;"><i class="fas fa-pen-nib"></i> مفتوح</span>
+          <strong>${qi+1}.</strong> ${esc(q.question_text)} <span style="color:var(--t3);font-size:.72rem;">(${q.degree} درجة)</span>
+        </div>
+        ${imgH}
+        <div class="grade-ans-text" style="background:var(--bg);border:1px solid #fde68a;">${ans ? esc(ans) : '<em style="color:var(--t3);">— لم يُجب —</em>'}</div>
+        <div class="grade-score-row">
+          <span style="font-size:.78rem;color:var(--t2);font-weight:600;">الدرجة:</span>
+          <input class="grade-score-inp" type="number" min="0" max="${q.degree}" value="0"
+            id="gs_${sub.id}_${q.id}" data-sub="${sub.id}" data-qid="${q.id}" data-max="${q.degree}"
+            oninput="clampGradeInput(this);updateSubScore(${sub.id})">
+          <span class="grade-max-lbl">/ ${q.degree}</span>
+        </div>
+        ${buildNoteHtml('اكتب ملاحظة أو الإجابة الصحيحة للطفل…')}
+      </div>`;
+    }
 
+    const given = answers[qId] !== undefined ? parseInt(answers[qId]) : null;
+    const correct = q.correct_index !== null ? parseInt(q.correct_index) : null;
+    const isCorrect = given !== null && correct !== null && given === correct;
+    const isWrong = given !== null && correct !== null && given !== correct;
 
+    const statusDot = given === null
+      ? `<span style="color:var(--t3);font-size:.68rem;">لم يجب</span>`
+      : isCorrect
+        ? `<span style="background:var(--ok-bg);color:var(--ok);border-radius:var(--r-full);padding:1px 8px;font-size:.68rem;font-weight:700;"><i class="fas fa-check"></i> صح</span>`
+        : `<span style="background:var(--err-bg);color:var(--err);border-radius:var(--r-full);padding:1px 8px;font-size:.68rem;font-weight:700;"><i class="fas fa-times"></i> خطأ</span>`;
+
+    if (qtype === 'tf') {
+      const opts = ['صحيح','خطأ'];
+      const tfNotePlaceholder = isWrong ? `الإجابة الصحيحة: ${opts[correct]}` : 'اكتب ملاحظة للطفل (اختياري)…';
+      const tfNoteDefault = isWrong ? `الإجابة الصحيحة: ${opts[correct]}` : '';
+
+      return `<div style="background:${isCorrect?'var(--ok-bg)':isWrong?'var(--err-bg)':'var(--bg2)'};border:1.5px solid ${isCorrect?'#6ee7b7':isWrong?'#fca5a5':'var(--bdr)'};border-radius:var(--r-sm);padding:9px 13px;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+          <span style="font-size:.75rem;font-weight:600;color:var(--t2);"><strong>${qi+1}.</strong> ${esc(q.question_text)}</span>
+          <span style="margin-right:auto;">${statusDot}</span>
+          <span style="font-size:.68rem;color:var(--t3);">${q.degree} درجة</span>
+        </div>
+        ${imgH}
+        <div style="display:flex;gap:8px;">
+          ${opts.map((o,j)=>{
+            const isSel = given===j;
+            const isCorr = correct===j;
+            let bg='var(--bg)'; let border='var(--bdr)'; let clr='var(--t2)';
+            if(isSel && isCorr){bg='var(--ok-bg)';border='#6ee7b7';clr='var(--ok)';}
+            else if(isSel && !isCorr){bg='var(--err-bg)';border='#fca5a5';clr='var(--err)';}
+            else if(isCorr && !isSel){bg='var(--ok-bg)';border='#6ee7b7';clr='var(--ok)';}
+            return `<div style="flex:1;padding:7px 10px;border-radius:7px;border:1.5px solid ${border};background:${bg};color:${clr};font-size:.8rem;font-weight:700;text-align:center;">
+              ${o}${isSel?' <i class="fas fa-hand-pointer"></i>':''}${isCorr&&!isSel?' ✓':''}
+            </div>`;
+          }).join('')}
+        </div>
+        <div class="grade-note-row">
+          <i class="fas fa-comment-dots"></i>
+          <div class="gn-wrap">
+            <div class="gn-lbl">ملاحظة / الإجابة الصحيحة للطفل:</div>
+            <textarea class="grade-note-inp" id="${noteId}" data-sub="${sub.id}" data-qid="${q.id}" placeholder="${tfNotePlaceholder}">${tfNoteDefault}</textarea>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    const opts = typeof q.options==='string' ? JSON.parse(q.options) : (q.options||[]);
+    const mcqNotePlaceholder = isWrong && correct !== null && opts[correct] ? `الإجابة الصحيحة: ${opts[correct]}` : 'اكتب ملاحظة للطفل (اختياري)…';
+    const mcqNoteDefault = isWrong && correct !== null && opts[correct] ? `الإجابة الصحيحة: ${opts[correct]}` : '';
+
+    return `<div style="background:${isCorrect?'var(--ok-bg)':isWrong?'var(--err-bg)':'var(--bg2)'};border:1.5px solid ${isCorrect?'#6ee7b7':isWrong?'#fca5a5':'var(--bdr)'};border-radius:var(--r-sm);padding:9px 13px;margin-bottom:8px;">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+        <span style="font-size:.75rem;font-weight:600;color:var(--t2);"><strong>${qi+1}.</strong> ${esc(q.question_text)}</span>
+        <span style="margin-right:auto;">${statusDot}</span>
+        <span style="font-size:.68rem;color:var(--t3);">${q.degree} درجة</span>
+      </div>
+      ${imgH}
+      ${opts.map((o,j)=>{
+        const isSel = given===j;
+        const isCorr = correct===j;
+        let bg='var(--bg)'; let border='var(--bdr)'; let clr='var(--t2)';
+        if(isSel && isCorr){bg='var(--ok-bg)';border='#6ee7b7';clr='var(--ok)';}
+        else if(isSel && !isCorr){bg='var(--err-bg)';border='#fca5a5';clr='var(--err)';}
+        else if(isCorr && !isSel){bg='var(--ok-bg)';border='#6ee7b7';clr='var(--ok)';}
+        return `<div style="display:flex;align-items:center;gap:7px;padding:6px 10px;border-radius:6px;border:1.5px solid ${border};background:${bg};color:${clr};font-size:.78rem;margin-bottom:4px;">
+          <strong style="min-width:18px;">${LETTERS[j]}</strong>${esc(o)}
+          ${isSel?'<i class="fas fa-hand-pointer" style="margin-right:auto;font-size:.7rem;"></i>':''}
+          ${isCorr&&!isSel?'<i class="fas fa-check" style="margin-right:auto;color:var(--ok);"></i>':''}
+        </div>`;
+      }).join('')}
+      <div class="grade-note-row">
+        <i class="fas fa-comment-dots"></i>
+        <div class="gn-wrap">
+          <div class="gn-lbl">ملاحظة / الإجابة الصحيحة للطفل:</div>
+          <textarea class="grade-note-inp" id="${noteId}" data-sub="${sub.id}" data-qid="${q.id}" placeholder="${mcqNotePlaceholder}">${mcqNoteDefault}</textarea>
+        </div>
+      </div>
+    </div>`;
   }).join('');
 
+  const activeClass = gradeTaskData ? gradeTaskData.class_name : 'كل الفصول';
+  const stud = classStuCache[activeClass || 'كل الفصول']?.find(x => x.id == sub.student_id);
+  const photo = stud ? stud.photo : '';
+  const avatar = getStudentAvatarHtml(photo, sub.student_name, '28px');
 
-
+  el.innerHTML = `<div class="grade-sub-card" id="gradecard_${sub.id}" style="margin: 0; border: none; box-shadow: none;">
+    <div class="grade-sub-name" style="padding: 12px 18px; background: var(--bg3); border-bottom: 1px solid var(--bdr);">
+      ${avatar}
+      <strong>${esc(sub.student_name||'—')}</strong>
+      <span style="font-size:.72rem;color:var(--t3);font-weight:500;margin-right:5px;">${esc(sub.task_title||'')}</span>
+      <span style="margin-right:auto;font-size:.72rem;" id="scoreDisp_${sub.id}"></span>
+    </div>
+    <div style="padding: 20px 24px; overflow-y: auto; flex: 1;">
+      ${qRows}
+    </div>
+    <div style="padding: 16px 24px; background: var(--bg3); border-top: 1px solid var(--bdr); display: flex; justify-content: flex-end;">
+      <button class="grade-save-btn" onclick="submitGrade(${sub.id}, ${si})" style="margin: 0; width: auto; padding: 10px 24px;">
+        <i class="fas fa-check"></i> حفظ التصحيح وتحديث الكوبونات
+      </button>
+    </div>
+  </div>`;
+  
+  updateSubScore(sub.id);
 }
 
+async function submitGrade(subId, subIdx) {
+  const scores = {};
+  document.querySelectorAll(`.grade-score-inp[data-sub="${subId}"]`).forEach(inp => {
+    scores[inp.dataset.qid] = parseInt(inp.value)||0;
+  });
 
+  const notes = {};
+  document.querySelectorAll(`.grade-note-inp[data-sub="${subId}"]`).forEach(ta => {
+    if(ta.value.trim()) notes[ta.dataset.qid] = ta.value.trim();
+  });
 
+  const btn = document.querySelector(`#gradecard_${subId} .grade-save-btn`);
+  const orig = btn.innerHTML; btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> جارٍ الحفظ…';
 
+  try {
+    const d = await api('gradeOpenAnswer', {
+      submission_id: subId,
+      scores: JSON.stringify(scores),
+      notes: JSON.stringify(notes)
+    });
 
+    if(d.success){
+      let couponMsg = '';
+      if(d.coupon_diff > 0)       couponMsg = ` — تمت إضافة ${d.coupon_diff} كوبون لكوبونات التاسكات`;
+      else if(d.coupon_diff < 0)  couponMsg = ` — تم خصم ${Math.abs(d.coupon_diff)} كوبون من كوبونات التاسكات`;
+      else                         couponMsg = ' — لا تغيير في الكوبونات';
 
+      showToast(`تم الحفظ: ${d.score}/${gradeTaskData?.total_degree||0} درجة${couponMsg}`, 'ok');
 
+      gradeSubs.splice(subIdx, 1);
+      renderGradePanel();
+
+      await loadTasks();
+      updatePendingBadge(gradeTaskId);
+    }
+  } catch(e) {
+    showToast('خطأ في الاتصال', 'err');
+    btn.disabled = false;
+    btn.innerHTML = orig;
+  }
+}
 function clampGradeInput(inp) {
 
 
@@ -19702,34 +19419,23 @@ async function exportOverviewPDF() {
 
 
 
-    <div class="grade-sheet-hdr">
-
-
-
-      <div style="width:38px;height:38px;border-radius:10px;background:var(--warn-bg);color:var(--warn);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-pen-nib"></i></div>
-
-
-
-      <div style="flex:1;">
-
-
-
-        <div style="font-size:1rem;font-weight:800;color:var(--t1);">تصحيح الإجابات المفتوحة</div>
-
-
-
-        <div style="font-size:.72rem;color:var(--t3);" id="gradePanelSub">أدخل الدرجة لكل إجابة</div>
-
-
-
+    <div class="grade-sheet-hdr" style="background:var(--bg3); padding:16px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--bdr);">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="width:38px;height:38px;border-radius:10px;background:var(--warn-bg);color:var(--warn);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-pen-nib"></i></div>
+        <div style="flex:1;">
+          <div style="font-size:1rem;font-weight:800;color:var(--t1);">تصحيح الإجابات المفتوحة</div>
+          <div style="font-size:.72rem;color:var(--t3);" id="gradePanelSub">أدخل الدرجة لكل إجابة</div>
+        </div>
+      </div>
+      
+      <!-- Navigation Arrows -->
+      <div class="grade-nav-arrows" style="display:flex; align-items:center; gap:12px; margin-right:auto; margin-left:20px; direction:rtl;">
+        <button onclick="navigateGrading(-1)" id="prevGradeBtn" style="background:var(--bg2); border:1px solid var(--bdr); color:var(--t1); width:36px; height:36px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;" onmouseover="this.style.background='var(--brand-bg)'; this.style.color='var(--brand)';" onmouseout="this.style.background='var(--bg2)'; this.style.color='var(--t1)';"><i class="fas fa-chevron-right"></i></button>
+        <span id="gradeIndexIndicator" style="font-size:0.8rem; font-weight:800; color:var(--t2); min-width:45px; text-align:center;">—</span>
+        <button onclick="navigateGrading(1)" id="nextGradeBtn" style="background:var(--bg2); border:1px solid var(--bdr); color:var(--t1); width:36px; height:36px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;" onmouseover="this.style.background='var(--brand-bg)'; this.style.color='var(--brand)';" onmouseout="this.style.background='var(--bg2)'; this.style.color='var(--t1)';"><i class="fas fa-chevron-left"></i></button>
       </div>
 
-
-
-      <button onclick="closeGradePanel()" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--bdr);background:var(--bg2);cursor:pointer;color:var(--t2);"><i class="fas fa-times"></i></button>
-
-
-
+      <button onclick="closeGradePanel()" style="background:var(--bg2); border:1px solid var(--bdr); color:var(--t2); width:34px; height:34px; border-radius:10px; cursor:pointer; font-size:.85rem; display:flex; align-items:center; justify-content:center; transition:0.2s;" onmouseover="this.style.background='var(--err-bg)'; this.style.color='var(--err)';" onmouseout="this.style.background='var(--bg2)'; this.style.color='var(--t2)';"><i class="fas fa-times"></i></button>
     </div>
 
 
