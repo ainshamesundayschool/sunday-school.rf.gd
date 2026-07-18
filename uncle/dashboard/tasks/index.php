@@ -3560,7 +3560,10 @@ button, input, select, textarea, a {
 
 
 
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  max-height: 100dvh;
 
 
 
@@ -12608,7 +12611,7 @@ body {
                 <select id="classificationSelector" onchange="handleClassificationSelect(this)" style="flex:1; padding:8px 12px; border:1px solid var(--bdr); border-radius:8px; background:var(--bg); color:var(--t1); font-size:0.87rem; outline:none; cursor:pointer;">
                   <option value="" disabled selected>— اختر تصنيفاً لتحديده —</option>
                 </select>
-                <button type="button" class="btn btn-p" onclick="addNewClassificationPrompt()" style="padding: 0 14px; height: 38px; font-size: 0.85rem; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--r-md);"><i class="fas fa-plus"></i> تصنيف جديد</button>
+                <button type="button" class="btn btn-p" onclick="addNewClassificationPrompt()" style="white-space: nowrap; flex-shrink: 0; padding: 0 12px; height: 38px; font-size: 0.85rem; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--r-md);"><i class="fas fa-plus"></i> تصنيف جديد</button>
               </div>
             </div>
 
