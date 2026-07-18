@@ -19893,9 +19893,6 @@ async function exportOverviewPDF() {
     showToast('فشل إنشاء PDF: ' + e.message, 'err');
   }
 }
-
-}
-
 </script>
 
 
