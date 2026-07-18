@@ -12326,10 +12326,7 @@ body {
         <div style="font-size: 0.68rem; color: var(--t3); font-weight: bold; margin-bottom: 2px;">إجمالي التاسكات</div>
         <div style="font-size: 1.05rem; font-weight: 800; color: var(--t1);" id="stTotalIframe">—</div>
       </div>
-      <div style="background: var(--bg-card); border: 1px solid var(--bdr); border-radius: var(--r-md); padding: 6px 14px; text-align: center; min-width: 70px;">
-        <div style="font-size: 0.68rem; color: var(--t3); font-weight: bold; margin-bottom: 2px;">التاسكات النشطة</div>
-        <div style="font-size: 1.05rem; font-weight: 800; color: var(--brand);" id="stActiveIframe">—</div>
-      </div>
+
       <div style="background: var(--bg-card); border: 1px solid var(--bdr); border-radius: var(--r-md); padding: 6px 14px; text-align: center; min-width: 70px;">
         <div style="font-size: 0.68rem; color: var(--t3); font-weight: bold; margin-bottom: 2px;">Draft</div>
         <div style="font-size: 1.05rem; font-weight: 800; color: var(--warn);" id="stDraftIframe">—</div>
@@ -14339,10 +14336,9 @@ function getStudentAvatarHtml(photo, name, size = '28px') {
 
 
 function statusOf(t) {
-
-
-
   if (t.status==='draft') return {key:'draft',cls:'s-draft',label:'Draft',acc:'warn'};
+  return {key:'published',cls:'s-published',label:'منشور',acc:'ok'};
+};
 
 
 
@@ -14602,7 +14598,7 @@ function renderGrid() {
 
 
 
-            <div class="tstatus ${si.cls}">${si.label}</div>
+            ${si.key === 'draft' ? `<div class="tstatus ${si.cls}">${si.label}</div>` : ''}
 
 
 
@@ -14724,7 +14720,7 @@ function updateStats() {
   setVal('stCoupons', tc);
 
   setVal('stTotalIframe', total);
-  setVal('stActiveIframe', active);
+  
   setVal('stDraftIframe', drafts);
 }
 
@@ -18771,7 +18767,7 @@ async function openDetail(id){
 
 
 
-        <span class="tstatus ${si.cls}">${si.label}</span>
+        ${si.key === 'draft' ? `<span class="tstatus ${si.cls}">${si.label}</span>` : ''}
 
 
 
