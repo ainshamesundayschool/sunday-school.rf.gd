@@ -13482,6 +13482,7 @@ body {
       border-spacing: 0;
       direction: rtl;
       font-size: .87rem;
+      margin-bottom: 25px;
     }
     .ov-table th {
       background: var(--brand-bg) !important;
@@ -13721,6 +13722,15 @@ body {
         <div style="display:flex; flex-direction:column; gap:8px;">
           <label style="font-weight:700; font-size:.9rem; color:var(--t1);"><i class="fas fa-search"></i> بحث بالاسم:</label>
           <input type="text" id="ovStudentSearch" oninput="renderOverviewTable()" placeholder="ابحث بالاسم (إدخال ذكي)..." style="padding:8px 12px; border:1px solid var(--bdr); border-radius:8px; font-size:.87rem; outline:none;">
+        </div>
+
+        <!-- Export Page Orientation -->
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <label style="font-weight:700; font-size:.9rem; color:var(--t1);"><i class="fas fa-file-pdf"></i> اتجاه الصفحة للتصدير:</label>
+          <select id="ovOrientation" style="padding:8px 12px; border:1px solid var(--bdr); border-radius:8px; background:#fff; font-size:.87rem; outline:none; cursor:pointer;">
+            <option value="landscape" selected>عرضي (Landscape)</option>
+            <option value="portrait">طولي (Portrait)</option>
+          </select>
         </div>
 
         <!-- Toggle Checkboxes -->
@@ -21072,11 +21082,17 @@ async function getExportCanvas() {
   // Clone the container
   const clone = container.cloneNode(true);
   
-  // Calculate dynamic export width based on column counts to prevent infinite stretching
+  // Calculate dynamic export width based on orientation and column counts
+  const orientationVal = document.getElementById('ovOrientation') ? document.getElementById('ovOrientation').value : 'landscape';
   const ths = clone.querySelectorAll('thead th');
   let exportWidth = 1200;
-  if (ths.length > 4) {
-    exportWidth = Math.max(1200, ths.length * 135);
+  
+  if (orientationVal === 'portrait') {
+    exportWidth = 850; // Constrain width so chips and cells wrap vertically for portrait printing
+  } else {
+    if (ths.length > 4) {
+      exportWidth = Math.max(1200, ths.length * 135);
+    }
   }
   
   // Reset styles for all table components to ensure static, full-size rendering
@@ -21087,7 +21103,7 @@ async function getExportCanvas() {
   clone.style.height = 'auto';
   clone.style.overflow = 'visible';
   clone.style.background = '#ffffff';
-  clone.style.padding = '25px';
+  clone.style.padding = '25px 25px 50px 25px'; // Increased bottom padding to prevent bottom row cropping
   
   const tables = clone.querySelectorAll('table');
   tables.forEach(t => {
@@ -21128,6 +21144,12 @@ async function getExportCanvas() {
   `;
   
   clone.insertBefore(headerDiv, clone.firstChild);
+  
+  // Append a spacer at the bottom to guarantee no bottom clipping
+  const spacer = document.createElement('div');
+  spacer.style.height = '30px';
+  clone.appendChild(spacer);
+  
   document.body.appendChild(clone);
   
   // Let the browser lay it out
@@ -21185,8 +21207,8 @@ async function exportOverviewPDF() {
     const canvas = await getExportCanvas();
     if (!canvas) { showToast('فشل إنشاء PDF', 'err'); return; }
     
-    const orientation = canvas.width > canvas.height ? 'landscape' : 'portrait';
-    const pdf = new jsPDF({ orientation, unit: 'mm', format: 'a4' });
+    const orientationVal = document.getElementById('ovOrientation') ? document.getElementById('ovOrientation').value : 'landscape';
+    const pdf = new jsPDF({ orientation: orientationVal, unit: 'mm', format: 'a4' });
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
     const imgW = pageW - 12;
