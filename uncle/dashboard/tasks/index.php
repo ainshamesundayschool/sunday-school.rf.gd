@@ -12135,11 +12135,19 @@ body {
 }
 
 /* Wide Modal Fullscreen rules */
+.overlay.fullscreen {
+  height: 100vh !important;
+  height: 100dvh !important;
+  max-height: 100vh !important;
+  max-height: 100dvh !important;
+}
 .overlay.fullscreen .modal.wide {
   width: 100% !important;
   height: 100vh !important;
+  height: 100dvh !important;
   max-width: 100% !important;
   max-height: 100vh !important;
+  max-height: 100dvh !important;
   margin: 0 !important;
   border-radius: 0 !important;
   box-shadow: none !important;
@@ -12153,6 +12161,8 @@ body {
 .grade-panel {
   position: fixed;
   inset: 0;
+  height: 100vh !important;
+  height: 100dvh !important;
   z-index: 3000 !important;
   background: var(--bg3) !important;
   align-items: stretch !important;
@@ -12161,8 +12171,10 @@ body {
 .grade-sheet {
   width: 100% !important;
   height: 100vh !important;
+  height: 100dvh !important;
   max-width: 100% !important;
   max-height: 100vh !important;
+  max-height: 100dvh !important;
   border-radius: 0 !important;
   margin: 0 !important;
   display: flex !important;
@@ -12171,6 +12183,7 @@ body {
   box-shadow: none !important;
   border: none !important;
   min-height: 100vh !important;
+  min-height: 100dvh !important;
 }
 .grade-sheet-body {
   flex: 1 !important;
@@ -18414,7 +18427,7 @@ function openModal(html) {
   ov.style.alignItems = 'stretch';
 
   ov.innerHTML = `
-    <div class="modal" style="width:100%; height:100vh; max-width:100%; margin:0; border-radius:0; display:flex; flex-direction:column; background:var(--bg3);">
+    <div class="modal" style="width:100%; height:100vh; height:100dvh; max-width:100%; max-height:100vh; max-height:100dvh; margin:0; border-radius:0; display:flex; flex-direction:column; background:var(--bg3);">
       <div class="mhdr" style="background:var(--bg3); padding:16px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--bdr);">
         <div style="display:flex; align-items:center; gap:10px;">
           <div style="width:32px;height:32px;border-radius:10px;background:var(--brand-bg);color:var(--brand);display:flex;align-items:center;justify-content:center;"><i class="fas fa-eye" style="font-size:.85rem;"></i></div>
