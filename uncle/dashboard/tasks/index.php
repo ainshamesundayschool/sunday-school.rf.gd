@@ -14342,32 +14342,6 @@ function statusOf(t) {
 
 
 
-  const n=Date.now(), s=new Date(t.start_date).getTime();
-
-
-
-  const hasEnd = !parseInt(t.no_deadline||0) && !!t.end_date;
-
-
-
-  const e=hasEnd ? new Date(t.end_date).getTime() : null;
-
-
-
-  if (n<s) return {key:'upcoming',cls:'s-upcoming',label:'قادمة',acc:''};
-
-
-
-  if (hasEnd && n>e) return {key:'ended',   cls:'s-ended',   label:'منتهية',acc:'err'};
-
-
-
-  return          {key:'active',  cls:'s-active',  label:'نشطة',  acc:'ok'};
-
-
-
-}
-
 
 
 function getCustomFilters() {
