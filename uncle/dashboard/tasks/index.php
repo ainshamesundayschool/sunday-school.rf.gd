@@ -14407,43 +14407,29 @@ async function onClassCheckboxChange(e) {
 
 async function loadTasks() {
 
-
-
   try {
-
-
 
     const extra = {};
 
-
-
     if (CFG.activeClass) extra.class_name = CFG.activeClass;
-
-
 
     const d = await api('getTasks', extra);
 
-
-
     if (d.success) tasks = d.tasks || [];
-
-
 
     else showToast(d.message||'فشل تحميل التاسكات', 'err');
 
-
-
   } catch(e) { showToast('خطأ في الاتصال', 'err'); }
 
-
+  try {
+    await loadStudents('كل الفصول');
+  } catch(e) {
+    console.error('Failed to load students:', e);
+  }
 
   renderGrid();
 
-
-
   updateStats();
-
-
 
 }
 
@@ -18977,7 +18963,7 @@ async function openDetail(id){
 
 
             s=>{
-              const stud = classStudents.find(x => x.id === parseInt(s.student_id));
+              const stud = (classStuCache['كل الفصول'] || []).find(x => x.id == s.student_id);
               const photo = stud ? stud.photo : '';
               const avatar = getStudentAvatarHtml(photo, s.student_name, '28px');
               return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(0,0,0,.07);">
@@ -19193,7 +19179,7 @@ async function openDetail(id){
 
           <table class="sub-tbl"><thead><tr><th>${PEOPLE}</th><th>الدرجة</th><th>النسبة</th><th>الكوبونات</th><th>وقت الإرسال</th><th style="width:80px;"></th></tr></thead>
           <tbody>${subs.map(s=>{
-            const stud = classStudents.find(x => x.id === parseInt(s.student_id));
+            const stud = (classStuCache['كل الفصول'] || []).find(x => x.id == s.student_id);
             const photo = stud ? stud.photo : '';
             const avatar = getStudentAvatarHtml(photo, s.student_name, '24px');
             return `<tr>
@@ -19768,8 +19754,7 @@ function renderGradePanel() {
     </div>`;
   }).join('');
 
-  const activeClass = gradeTaskData ? gradeTaskData.class_name : 'كل الفصول';
-  const stud = classStuCache[activeClass || 'كل الفصول']?.find(x => x.id == sub.student_id);
+  const stud = (classStuCache['كل الفصول'] || []).find(x => x.id == sub.student_id);
   const photo = stud ? stud.photo : '';
   const avatar = getStudentAvatarHtml(photo, sub.student_name, '28px');
 
@@ -20232,8 +20217,7 @@ function getSubmissionAnswersHtml(taskId, studentId) {
   const scoreColor = pct >= 80 ? 'var(--ok)' : pct >= 50 ? 'var(--warn)' : 'var(--err)';
   const scoreBg   = pct >= 80 ? 'var(--ok-bg)' : pct >= 50 ? 'var(--warn-bg)' : 'var(--err-bg)';
 
-  const activeClass = t.class_name || 'كل الفصول';
-  const stud = classStuCache[activeClass]?.find(x => x.id == studentId);
+  const stud = (classStuCache['كل الفصول'] || []).find(x => x.id == studentId);
   const photo = stud ? stud.photo : '';
   const avatar = getStudentAvatarHtml(photo, sub.student_name, '40px');
 
