@@ -12336,6 +12336,40 @@ body {
 #overviewOv * {
   font-family: 'Baloo Bhaijaan 2', 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
 }
+/* Overlapping student avatar groups styling */
+.uncle-avatar-wrap {
+  position: relative;
+  margin-left: -10px;
+  transition: all 0.2s ease;
+  z-index: 1;
+  display: inline-block;
+}
+.uncle-avatar-wrap:hover {
+  z-index: 100 !important;
+  transform: scale(1.18) translateY(-3px);
+}
+.uncle-tooltip {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--t1);
+  color: var(--bg);
+  padding: 3px 8px;
+  border-radius: var(--r-full);
+  font-size: .68rem;
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: all 0.2s ease;
+  z-index: 999;
+  box-shadow: var(--shadow-sm);
+}
+.uncle-avatar-wrap:hover .uncle-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
 </style>
 
 
@@ -14516,9 +14550,9 @@ async function loadStudents(cls) {
 function getStudentAvatarHtml(photo, name, size = '28px') {
     if (photo) {
         return `<img src="${esc(photo)}" style="width:${size};height:${size};border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid var(--bdr);" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />` +
-               `<span style="display:none;width:${size};height:${size};border-radius:50%;background:var(--brand-bg);color:var(--brand);align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;"><i class="fas fa-user"></i></span>`;
+               `<span style="display:none;width:${size};height:${size};border-radius:50%;background:var(--brand-bg);color:var(--brand);align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;border:1px solid var(--bdr);"><i class="fas fa-user"></i></span>`;
     }
-    return `<span style="display:inline-flex;width:${size};height:${size};border-radius:50%;background:var(--brand-bg);color:var(--brand);align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;"><i class="fas fa-user"></i></span>`;
+    return `<span style="display:inline-flex;width:${size};height:${size};border-radius:50%;background:var(--brand-bg);color:var(--brand);align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;border:1px solid var(--bdr);"><i class="fas fa-user"></i></span>`;
 }
 
 
@@ -14652,28 +14686,41 @@ function setFilter(f, el) {
 
 
 
-function renderOverlappingAvatars(students, size = '26px') {
+function renderOverlappingAvatars(students, size = '26px', bgType = 'bg3', maxShow = 3) {
   if (!students || !students.length) {
     return `<span style="font-size:0.7rem; color:var(--t4); font-style:italic;">لا يوجد</span>`;
   }
-  const maxShow = 3;
   const visible = students.slice(0, maxShow);
   const extraCount = students.length - maxShow;
   
   let html = `<div style="display:flex; align-items:center; flex-wrap:nowrap; direction:rtl; padding-right:4px;">`;
   visible.forEach((s, idx) => {
+    let borderStyle = 'border: 2px solid var(--bg3) !important;';
+    if (bgType === 'ok') borderStyle = 'border: 2px solid var(--ok-bg) !important;';
+    else if (bgType === 'err') borderStyle = 'border: 2px solid var(--err-bg) !important;';
+    else if (bgType === 'bg') borderStyle = 'border: 2px solid var(--bg) !important;';
+
     const avatarHtml = getStudentAvatarHtml(s.photo, s.name, size);
+    const styledAvatarHtml = avatarHtml
+      .replace(/border:[^;"]+/g, borderStyle)
+      .replace(/border-radius:50%/g, 'border-radius:50%; box-shadow:none');
+
     html += `
-      <div class="uncle-avatar-wrap" style="margin-left:-8px; z-index:${maxShow - idx}; position:relative;">
-        ${avatarHtml}
-        <div class="uncle-tooltip" style="bottom:100%; left:50%; transform:translateX(-50%); font-size:0.65rem;">${esc(s.name)}</div>
+      <div class="uncle-avatar-wrap" style="margin-left:-10px; z-index:${maxShow - idx}; position:relative;">
+        ${styledAvatarHtml}
+        <div class="uncle-tooltip">${esc(s.name)}</div>
       </div>
     `;
   });
   
   if (extraCount > 0) {
+    let extraBg = 'var(--bg3)';
+    let extraBorder = 'var(--bdr)';
+    if (bgType === 'ok') { extraBg = '#a7f3d0'; extraBorder = '#6ee7b7'; }
+    else if (bgType === 'err') { extraBg = '#fecaca'; extraBorder = '#fca5a5'; }
+
     html += `
-      <div style="margin-left:-8px; z-index:0; width:${size}; height:${size}; border-radius:50%; background:var(--bg3); border:2px solid var(--bdr); color:var(--t2); display:flex; align-items:center; justify-content:center; font-size:0.65rem; font-weight:800; font-family:'Cairo'; flex-shrink:0;">
+      <div style="margin-left:-10px; z-index:0; width:${size}; height:${size}; border-radius:50%; background:${extraBg}; border:2px solid ${extraBorder}; color:var(--t2); display:flex; align-items:center; justify-content:center; font-size:0.65rem; font-weight:800; font-family:'Cairo'; flex-shrink:0;">
         +${extraCount}
       </div>
     `;
@@ -14743,8 +14790,8 @@ function renderGrid() {
     const answeredStudents = studentsInClass.filter(s => answeredIds.includes(parseInt(s.id)));
     const notAnsweredStudents = studentsInClass.filter(s => !answeredIds.includes(parseInt(s.id)));
 
-    const answeredAvatarsHtml = renderOverlappingAvatars(answeredStudents, '26px');
-    const notAnsweredAvatarsHtml = renderOverlappingAvatars(notAnsweredStudents, '26px');
+    const answeredAvatarsHtml = renderOverlappingAvatars(answeredStudents, '26px', 'bg3', 3);
+    const notAnsweredAvatarsHtml = renderOverlappingAvatars(notAnsweredStudents, '26px', 'bg3', 3);
 
     const totalToAnswer = studentsInClass.length;
     const progressPercent = totalToAnswer > 0 ? Math.round((answeredStudents.length / totalToAnswer) * 100) : 0;
@@ -18958,32 +19005,10 @@ async function openDetail(id){
 
 
 
-          ${buildCollapsibleList(subs,
-
-
-
-            s=>{
-              const stud = (classStuCache['كل الفصول'] || []).find(x => x.id == s.student_id);
-              const photo = stud ? stud.photo : '';
-              const avatar = getStudentAvatarHtml(photo, s.student_name, '28px');
-              return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(0,0,0,.07);">
-                ${avatar}
-                <span style="font-size:.8rem;font-weight:700;color:var(--t1);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.student_name||'—')}</span>
-                <span style="font-size:.68rem;background:var(--brand-bg);color:var(--brand);border-radius:var(--r-full);padding:1px 7px;font-weight:700;flex-shrink:0;">${s.score||0}/${t.total_degree}</span>
-                <button onclick="event.stopPropagation();viewAnswers(${t.id},${s.student_id})"
-                  style="background:var(--info-bg);border:1px solid #bfdbfe;color:var(--info);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:.65rem;font-weight:700;font-family:'Cairo',sans-serif;flex-shrink:0;white-space:nowrap;"><i class="fas fa-eye"></i></button>
-                <button onclick="event.stopPropagation();showDeleteSubConfirm(${s.id},'${esc(s.student_name||'')}',${s.coupons_awarded||0},${t.id})"
-                  style="background:none;border:1px solid #fca5a5;color:var(--err);border-radius:5px;padding:4px 6px;cursor:pointer;font-size:.63rem;flex-shrink:0;"><i class="fas fa-trash"></i></button>
-              </div>`;
-            },
-
-
-
-            'لا أحد بعد'
-
-
-
-          )}
+          ${renderOverlappingAvatars(subs.map(s => {
+            const stud = (classStuCache['كل الفصول'] || []).find(x => x.id == s.student_id);
+            return { id: s.student_id, name: s.student_name, photo: stud ? stud.photo : '' };
+          }), '32px', 'ok', 12)}
 
 
 
@@ -19011,25 +19036,7 @@ async function openDetail(id){
 
 
 
-          ${buildCollapsibleList(notAnswered,
-
-
-
-            s=>{
-              const avatar = getStudentAvatarHtml(s.photo, s.name, '28px');
-              return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.07);">
-                ${avatar}
-                <span style="font-size:.8rem;font-weight:700;color:var(--t1);">${esc(s.name)}</span>
-              </div>`;
-            },
-
-
-
-            classStudents.length ? 'الجميع أجاب 🎉' : 'بيانات الفصل غير محملة'
-
-
-
-          )}
+          ${renderOverlappingAvatars(notAnswered, '32px', 'err', 12)}
 
 
 
