@@ -14460,6 +14460,37 @@ function setFilter(f, el) {
 
 
 
+function renderOverlappingAvatars(students, size = '26px') {
+  if (!students || !students.length) {
+    return `<span style="font-size:0.7rem; color:var(--t4); font-style:italic;">لا يوجد</span>`;
+  }
+  const maxShow = 3;
+  const visible = students.slice(0, maxShow);
+  const extraCount = students.length - maxShow;
+  
+  let html = `<div style="display:flex; align-items:center; flex-wrap:nowrap; direction:rtl; padding-right:4px;">`;
+  visible.forEach((s, idx) => {
+    const avatarHtml = getStudentAvatarHtml(s.photo, s.name, size);
+    html += `
+      <div class="uncle-avatar-wrap" style="margin-left:-8px; z-index:${maxShow - idx}; position:relative;">
+        ${avatarHtml}
+        <div class="uncle-tooltip" style="bottom:100%; left:50%; transform:translateX(-50%); font-size:0.65rem;">${esc(s.name)}</div>
+      </div>
+    `;
+  });
+  
+  if (extraCount > 0) {
+    html += `
+      <div style="margin-left:-8px; z-index:0; width:${size}; height:${size}; border-radius:50%; background:var(--bg3); border:2px solid var(--bdr); color:var(--t2); display:flex; align-items:center; justify-content:center; font-size:0.65rem; font-weight:800; font-family:'Cairo'; flex-shrink:0;">
+        +${extraCount}
+      </div>
+    `;
+  }
+  
+  html += `</div>`;
+  return html;
+}
+
 function renderGrid() {
 
 
@@ -14505,170 +14536,79 @@ function renderGrid() {
 
 
   g.innerHTML = list.map((t, idx) => {
-
-
-
     const si   = statusOf(t);
-
-
-
     const qs   = (t.questions||[]).length;
-
-
-
     const subs = (t.submissions||[]).length;
-
-
-
-    const asgn = t.assign_to==='specific' ? (t.specific_ids ? JSON.parse(t.specific_ids).length : 0) : (classStuCache[t.class_name]?.length ?? '?');
-
-
-
-    const pct  = (asgn && asgn!=='?') ? Math.round(subs/asgn*100) : 0;
-
-
-
     const tc   = (t.submissions||[]).reduce((a,s)=>a+(parseInt(s.coupons_awarded)||0),0);
-
-
-
     const pendingOpen = (t.submissions||[]).filter(s=>{
-
-
-
       const hasPending = s.pending_open_grading ?? s.has_open_pending;
-
-
-
       return hasPending;
-
-
-
     }).length;
 
+    const clsName = t.class_name || 'كل الفصول';
+    const studentsInClass = classStuCache[clsName] || [];
+    const answeredIds = (t.submissions || []).map(s => parseInt(s.student_id));
+    const answeredStudents = studentsInClass.filter(s => answeredIds.includes(parseInt(s.id)));
+    const notAnsweredStudents = studentsInClass.filter(s => !answeredIds.includes(parseInt(s.id)));
 
+    const answeredAvatarsHtml = renderOverlappingAvatars(answeredStudents, '26px');
+    const notAnsweredAvatarsHtml = renderOverlappingAvatars(notAnsweredStudents, '26px');
 
-    return `<div class="tcard" onclick="openDetail(${t.id})" style="animation-delay:${idx*40}ms">
+    const totalToAnswer = studentsInClass.length;
+    const progressPercent = totalToAnswer > 0 ? Math.round((answeredStudents.length / totalToAnswer) * 100) : 0;
 
-
-
-      <div class="tcard-acc${si.acc?' '+si.acc:''}"></div>
-
-
-
-      <div class="tcard-body">
-
-
-
-        <div class="tcard-top">
-
-
-
-          <div class="tcard-title">${esc(t.title)}</div>
-
-
-
-          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
-
-
-
-            ${si.key === 'draft' ? `<div class="tstatus ${si.cls}">${si.label}</div>` : ''}
-
-
-
-            ${pendingOpen?`<div class="pending-badge"><i class="fas fa-pen-nib"></i> ${pendingOpen} تصحيح</div>`:''}
-
-
-
+    return `<div class="tcard" onclick="openDetail(${t.id})" style="animation-delay:${idx*40}ms; border-radius: var(--r-lg); overflow: hidden; background: var(--bg-card); border: 1.5px solid var(--bdr); transition: all 0.2s; box-shadow: var(--shadow-sm); cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='var(--brand-l)';" onmouseout="this.style.transform='none'; this.style.borderColor='var(--bdr)';">
+      
+      <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+        
+        <!-- Header row -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+          <div style="font-size: 0.95rem; font-weight: 800; color: var(--t1); line-height: 1.4; flex: 1; text-align: right;">${esc(t.title)}</div>
+          <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+            ${si.key === 'draft' ? `<span style="background:var(--warn-bg); color:var(--warn); font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:4px; border:1px solid rgba(245,158,11,0.25);">Draft</span>` : ''}
+            ${pendingOpen ? `<span style="background:var(--brand-bg); color:var(--brand); font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:4px; border:1px solid rgba(124,58,237,0.2);"><i class="fas fa-pen-nib"></i> ${pendingOpen} تصحيح</span>` : ''}
           </div>
-
-
-
         </div>
 
-
-
-        <div class="tmeta">
-
-
-
-          <div class="tmeta-i"><i class="fas fa-calendar-check"></i>${fmtDate(t.start_date)}</div>
-
-
-
-          <div class="tmeta-i"><i class="fas fa-flag-checkered"></i>${parseInt(t.no_deadline||0)?'بدون آخر موعد':fmtDate(t.end_date)}</div>
-
-
-
-          ${t.time_limit?`<div class="tmeta-i"><i class="fas fa-stopwatch"></i>${t.time_limit} دقيقة</div>`:''}
-
-
-
+        <!-- Sub/Meta details -->
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.72rem; color: var(--t3); border-bottom: 1px dashed var(--bdr); padding-bottom: 10px; direction: rtl;">
+          <span style="display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-users" style="color:var(--brand);"></i> ${esc(t.class_name || 'كل الفصول')}</span>
+          <span style="display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-flag-checkered"></i> ${parseInt(t.no_deadline||0)?'بدون موعد':fmtDate(t.end_date)}</span>
+          <span style="display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-question-circle"></i> ${qs} سؤال (${t.total_degree||0} درجة)</span>
         </div>
 
-
-
-        <div class="tinfo-grid">
-
-
-
-          <div class="tinfo-pill"><i class="fas fa-question-circle"></i><div><div class="tip-val">${qs} سؤال</div><div class="tip-lbl">${t.total_degree||0} درجة</div></div></div>
-
-
-
-          <div class="tinfo-pill"><i class="fas fa-star" style="color:var(--cou);"></i><div><div class="tip-val">${tc}</div><div class="tip-lbl">كوبون ممنوح</div></div></div>
-
-
-
+        <!-- Overlapping Kids Avatars row -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: center; background: var(--bg3); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--bdr); direction: rtl;">
+          <div>
+            <div style="font-size: 0.68rem; font-weight: 700; color: var(--t2); margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; direction: rtl;">
+              <span>أجابوا (${answeredStudents.length})</span>
+              <span style="color: var(--brand); font-size: 0.65rem;">${progressPercent}%</span>
+            </div>
+            ${answeredAvatarsHtml}
+          </div>
+          <div style="border-right: 1px solid var(--bdr); padding-right: 12px;">
+            <div style="font-size: 0.68rem; font-weight: 700; color: var(--t2); margin-bottom: 4px; text-align: right;">لم يجيبوا (${notAnsweredStudents.length})</div>
+            ${notAnsweredAvatarsHtml}
+          </div>
         </div>
-
-
-
-        ${asgn!=='?'?`<div class="tprogress"><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div><div class="prog-lbl"><span>${subs}/${asgn} أجاب</span><span>${pct}%</span></div></div>`:''}
-
-
 
       </div>
 
-
-
-      <div class="tcard-foot">
-
-
-
-        <div class="tclass-badge"><i class="fas fa-users"></i>${esc(t.class_name||'—')}</div>
-
-
-
-        <div class="tact" onclick="event.stopPropagation()">
-
-
-
-          <div class="tbtn view-btn" onclick="openDetail(${t.id})" title="عرض التفاصيل"><i class="fas fa-eye"></i><span class="tbtn-lbl">عرض</span></div>
-
-
-
-          <div class="tbtn" onclick="openEdit(${t.id})" title="تعديل"><i class="fas fa-pen"></i><span class="tbtn-lbl">تعديل</span></div>
-
-
-
-          <div class="tbtn d" onclick="openConf(${t.id})" title="حذف"><i class="fas fa-trash"></i></div>
-
-
-
+      <!-- Action Footer -->
+      <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-hover); padding: 10px 16px; border-top: 1px solid var(--bdr); direction: rtl;">
+        <!-- Tags or categories -->
+        <div style="display: flex; gap: 4px; overflow: hidden; flex: 1; margin-left: 8px; justify-content: flex-start; direction: rtl;">
+          ${t.group_name ? t.group_name.split(',').map(g => `<span style="font-size:0.65rem; color:var(--brand); background:var(--brand-bg); border:1.5px solid var(--brand-l); padding:2px 8px; border-radius:10px; font-weight:700; white-space:nowrap;">${esc(g.trim())}</span>`).join('') : '<span style="font-size:0.65rem; color:var(--t4); font-style:italic;">بدون تصنيف</span>'}
         </div>
-
-
-
+        <!-- Buttons -->
+        <div style="display: flex; gap: 6px; flex-shrink: 0;" onclick="event.stopPropagation()">
+          <button class="btn btn-sm" onclick="openDetail(${t.id})" style="padding: 4px 10px; font-size: 0.75rem; font-weight: 700; background: var(--bg); border: 1px solid var(--bdr); color: var(--t1); cursor: pointer; border-radius: 6px; font-family:'Cairo';"><i class="fas fa-eye"></i> عرض</button>
+          <button class="btn btn-sm btn-p" onclick="openEdit(${t.id})" style="padding: 4px 10px; font-size: 0.75rem; font-weight: 700; cursor: pointer; border-radius: 6px; font-family:'Cairo';"><i class="fas fa-pen"></i> تعديل</button>
+          <button class="btn btn-sm" onclick="openConf(${t.id})" style="padding: 4px 6px; font-size: 0.75rem; font-weight: 700; color: var(--err); background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); cursor: pointer; border-radius: 6px; font-family:'Cairo';"><i class="fas fa-trash"></i></button>
+        </div>
       </div>
 
-
-
-    </div>`;
-
-
-
-  }).join('');
+    </div>`;  }).join('');
 
 
 
