@@ -13481,7 +13481,7 @@ button, input, select, textarea, a {
         
         <!-- Answer Status Filter -->
         <div style="display:flex; flex-direction:column; gap:8px;">
-          <label style="font-weight:700; font-size:.9rem; color:var(--t1);"><i class="fas fa-filter"></i> عرض الطلاب:</label>
+          <label style="font-weight:700; font-size:.9rem; color:var(--t1);">عرض الطلاب:</label>
           <select id="ovAnswerStatus" onchange="renderOverviewTable()" style="padding:8px 12px; border:1px solid var(--bdr); border-radius:8px; background:#fff; font-size:.87rem; outline:none; cursor:pointer;">
             <option value="both">الكل (الذين أجابوا والذين لم يجيبوا)</option>
             <option value="answered">الذين أجابوا فقط (على الأقل مهمة واحدة)</option>
@@ -13687,9 +13687,9 @@ document.addEventListener('DOMContentLoaded', async () => {
               window.parent.postMessage({ action: 'closeTasksModal' }, '*');
           };
       }
-      const heroLink = document.querySelector('.hero-link');
-      if (heroLink) {
-          heroLink.style.display = 'none';
+      const backToDashLink = document.querySelector('a.hero-link');
+      if (backToDashLink) {
+          backToDashLink.style.display = 'none';
       }
   }
 
