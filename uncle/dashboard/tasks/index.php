@@ -12134,9 +12134,19 @@ body {
   }
 }
 
-/* Wide Modal Minimum Height */
+/* Wide Modal Fullscreen rules */
 .overlay.fullscreen .modal.wide {
-  min-height: 480px !important;
+  width: 100% !important;
+  height: 100vh !important;
+  max-width: 100% !important;
+  max-height: 100vh !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+  transform: none !important;
 }
 
 /* Fullscreen Grading Panel Overrides */
@@ -13228,7 +13238,7 @@ body {
 
 
 
-    <div class="mbody" id="dBody" style="max-height:min(75vh,640px);overflow-y:auto;overflow-x:hidden;"></div>
+    <div class="mbody" id="dBody" style="flex:1; overflow-y:auto; overflow-x:hidden;"></div>
 
 
 
@@ -13483,7 +13493,7 @@ body {
       color: var(--t2);
     }
   </style>
-  <div class="modal wide" style="max-width:1300px; width:95%; height:90vh; display:flex; flex-direction:column;">
+  <div class="modal wide" style="display:flex; flex-direction:column;">
     <div class="mhdr">
       <div class="mhdr-ico" style="background:var(--brand-bg); color:var(--brand);"><i class="fas fa-file-export"></i></div>
       <div>
