@@ -12367,26 +12367,6 @@ body {
 
 
 
-        <div class="ftab" onclick="setFilter('active',this)">نشطة</div>
-
-
-
-        <div class="ftab" onclick="setFilter('upcoming',this)">قادمة</div>
-
-
-
-        <div class="ftab" onclick="setFilter('ended',this)">منتهية</div>
-
-
-
-        <div class="ftab" onclick="setFilter('draft',this)">مسودات</div>
-
-
-
-      </div>
-
-
-
     </div>
 
 
@@ -12564,9 +12544,14 @@ body {
             </div>
 
             <div class="fg" style="margin-bottom:12px;">
-              <label class="flbl">الفلاتر المخصصة (مفصولة بفاصلة ,)</label>
-              <input id="taskGroupName" class="fi" type="text" placeholder="مثال: واجب, حفظ, Somthing" style="font-size:.95rem;">
-              <div id="existingFiltersBadges" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;"></div>
+              <label class="flbl">تصنيف التاسك</label>
+              <div id="activeClassificationsContainer" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;"></div>
+              <div style="display:flex; gap:8px;">
+                <select id="classificationSelector" onchange="handleClassificationSelect(this)" style="flex:1; padding:8px 12px; border:1px solid var(--bdr); border-radius:8px; background:var(--bg); color:var(--t1); font-size:0.87rem; outline:none; cursor:pointer;">
+                  <option value="" disabled selected>— اختر تصنيفاً لتحديده —</option>
+                </select>
+                <button type="button" class="btn btn-p" onclick="addNewClassificationPrompt()" style="padding: 0 14px; height: 38px; font-size: 0.85rem; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--r-md);"><i class="fas fa-plus"></i> تصنيف جديد</button>
+              </div>
             </div>
 
 
@@ -13159,7 +13144,7 @@ body {
 
 
 
-          <button class="add-opt" style="margin-top:9px;width:100%;justify-content:center;" onclick="addTier()"><i class="fas fa-plus"></i>إضافة مستوى</button>
+          <button class="add-opt" style="margin-top:9px;width:100%;justify-content:center;" onclick="addMilestone()"><i class="fas fa-plus"></i>إضافة مستوى</button>
 
 
 
@@ -14417,36 +14402,68 @@ function renderFilterTabs() {
   container.innerHTML = html;
 }
 
-function appendToFiltersInput(fName) {
-  const input = document.getElementById('taskGroupName');
-  if (!input) return;
-  let val = input.value.trim();
-  if (!val) {
-    input.value = fName;
-  } else {
-    const existing = val.split(',').map(x => x.trim());
-    if (!existing.includes(fName)) {
-      existing.push(fName);
-      input.value = existing.join(', ');
+window.selectedClassifications = [];
+
+function renderActiveTags() {
+  const container = document.getElementById('activeClassificationsContainer');
+  if (!container) return;
+  if (window.selectedClassifications.length === 0) {
+    container.innerHTML = '<span style="font-size:0.8rem; color:var(--t3); font-style:italic;">لا توجد تصنيفات محددة</span>';
+    return;
+  }
+  let html = '';
+  window.selectedClassifications.forEach(tag => {
+    html += `
+      <span class="badge" style="display:inline-flex; align-items:center; gap:6px; background:var(--brand-bg); border:1px solid var(--brand-l); padding:4px 10px; border-radius:14px; font-size:0.8rem; color:var(--brand); font-weight:700;">
+        ${esc(tag)}
+        <i class="fas fa-times" onclick="removeClassification('${esc(tag)}')" style="cursor:pointer; font-size:0.75rem; opacity:0.7;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'"></i>
+      </span>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+function populateClassificationSelector() {
+  const selector = document.getElementById('classificationSelector');
+  if (!selector) return;
+  
+  selector.innerHTML = '<option value="" disabled selected>— اختر تصنيفاً لتحديده —</option>';
+  
+  const allFilters = getCustomFilters();
+  allFilters.forEach(f => {
+    if (!window.selectedClassifications.includes(f)) {
+      selector.innerHTML += `<option value="${esc(f)}">${esc(f)}</option>`;
     }
+  });
+}
+
+function handleClassificationSelect(el) {
+  const val = el.value.trim();
+  if (!val) return;
+  if (!window.selectedClassifications.includes(val)) {
+    window.selectedClassifications.push(val);
+    renderActiveTags();
+    populateClassificationSelector();
+  }
+  el.value = '';
+}
+
+function addNewClassificationPrompt() {
+  const name = prompt("أدخل اسم التصنيف الجديد:");
+  if (!name) return;
+  const trimmed = name.trim();
+  if (!trimmed) return;
+  if (!window.selectedClassifications.includes(trimmed)) {
+    window.selectedClassifications.push(trimmed);
+    renderActiveTags();
+    populateClassificationSelector();
   }
 }
 
-function updateExistingFiltersBadges() {
-  const container = document.getElementById('existingFiltersBadges');
-  if (!container) return;
-  
-  const customFilters = getCustomFilters();
-  if (customFilters.length === 0) {
-    container.innerHTML = '';
-    return;
-  }
-  
-  let html = '<span style="font-size:0.7rem; color:var(--t3); align-self:center; margin-left:4px;">اضغط للإضافة:</span>';
-  customFilters.forEach(fName => {
-    html += `<span class="badge" onclick="appendToFiltersInput('${esc(fName)}')" style="cursor:pointer; background:var(--bg2); border:1px solid var(--bdr); padding:2px 8px; border-radius:12px; font-size:0.75rem; color:var(--t1); transition:0.2s;" onmouseover="this.style.background='var(--brand-bg)'; this.style.color='var(--brand)';" onmouseout="this.style.background='var(--bg2)'; this.style.color='var(--t1)';">${esc(fName)}</span>`;
-  });
-  container.innerHTML = html;
+function removeClassification(tag) {
+  window.selectedClassifications = window.selectedClassifications.filter(x => x !== tag);
+  renderActiveTags();
+  populateClassificationSelector();
 }
 
 function setFilter(f, el) {
@@ -14814,8 +14831,9 @@ function resetForm() {
 
 
   ['fTitle','fDesc'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('taskGroupName').value = '';
-  updateExistingFiltersBadges();
+window.selectedClassifications = [];
+  renderActiveTags();
+  populateClassificationSelector();
 
 
 
@@ -14948,8 +14966,9 @@ function fillForm(t) {
 
 
   document.getElementById('fTitle').value=t.title||'';
-  document.getElementById('taskGroupName').value = t.group_name || '';
-  updateExistingFiltersBadges();
+window.selectedClassifications = t.group_name ? t.group_name.split(',').map(x => x.trim()).filter(Boolean) : [];
+  renderActiveTags();
+  populateClassificationSelector();
 
 
 
@@ -15073,7 +15092,1637 @@ function fillForm(t) {
 
 
 
-  if(mx&&mx.length) mx.forEach(m=>addTier(m.from,m.to,m.val));
+  if(mx&&mx.length) {
+    const milestones = convertTiersToMilestones(mx);
+    milestones.forEach(m => addMilestone(m.pct, m.coupons));
+  }
+
+
+
+  else initTiers();
+
+
+
+  updDeg();
+
+
+
+}
+
+
+
+
+
+
+
+// ─── Steps ──────────────────────────────────────────────────────
+
+
+
+function goStep(n) {
+
+
+
+  [1,2,3].forEach(i=>{
+
+
+
+    document.getElementById(`sp${i}`).style.display=i===n?'':'none';
+
+
+
+    const d=document.getElementById(`sd${i}`);
+
+
+
+    d.className='step'+(i<n?' done':i===n?' active':'');
+
+
+
+  });
+
+
+
+  document.getElementById('prevBtn').style.display=n>1?'':'none';
+
+
+
+  document.getElementById('nextBtn').style.display=n<3?'':'none';
+
+
+
+  document.getElementById('pubBtn').style.display=n===3?'':'none';
+
+
+
+  document.getElementById('stepNum').textContent=n;
+
+
+
+  curStep=n;
+
+
+
+}
+
+
+
+function nextStep() {
+
+
+
+  if(curStep===1&&!v1())return;
+
+
+
+  if(curStep===2&&!v2())return;
+
+
+
+  if(curStep===2)document.getElementById('s3deg').textContent=calcDeg();
+
+
+
+  goStep(curStep+1);
+
+
+
+}
+
+
+
+function prevStep(){goStep(curStep-1);}
+
+
+
+function v1(){
+
+
+
+  if(!document.getElementById('fTitle').value.trim()){showToast('أدخل العنوان','err');return false;}
+
+
+
+  const anyClassChecked = Array.from(document.querySelectorAll('#fClassContainer input[type="checkbox"]:checked')).length > 0;
+
+  if(!anyClassChecked){showToast('اختر الفصل / المراحل المستهدفة','err');return false;}
+
+
+
+  const s=new Date(document.getElementById('fStart').value);
+
+
+
+  if(Number.isNaN(s.getTime())){showToast('أدخل تاريخ البداية','err');return false;}
+
+
+
+  if(!document.getElementById('fNoDeadline').checked){
+
+
+
+    const e=new Date(getNormalizedEndDateValue());
+
+
+
+    if(Number.isNaN(e.getTime())||e<=s){showToast('الموعد النهائي يجب أن يكون بعد البداية','err');return false;}
+
+
+
+  }
+
+
+
+  if(document.getElementById('fTimerOn').checked&&!document.getElementById('fTimerMin').value){showToast('أدخل مدة المؤقت','err');return false;}
+
+
+
+  return true;
+
+
+
+}
+
+
+
+function v2(){
+
+
+
+  const cards=document.querySelectorAll('.qcard');
+
+
+
+  if(!cards.length){showToast('أضف سؤالاً واحداً على الأقل','err');return false;}
+
+
+
+  for(const card of cards){
+
+
+
+    if(!card.querySelector('.qi').value.trim()){showToast('أكمل نص الأسئلة','err');return false;}
+
+
+
+    const qt2v=card.dataset.qtype||'mcq';
+
+
+
+    if(qt2v==='tf'){
+
+
+
+      if(!card.dataset.tfAnswer&&card.dataset.tfAnswer!=='0'){showToast('حدد الإجابة الصحيحة (صح أو خطأ)','err');return false;}
+
+
+
+    } else if(qt2v==='mcq'){
+
+
+
+      if(!card.querySelector('.oradio.ok')){showToast('حدد الإجابة الصحيحة لكل سؤال','err');return false;}
+
+
+
+      const os=card.querySelectorAll('.oinp');
+
+
+
+      if(os.length<2){showToast('كل سؤال يحتاج خيارين على الأقل','err');return false;}
+
+
+
+      let empty=false;os.forEach(o=>{if(!o.value.trim())empty=true;});
+
+
+
+      if(empty){showToast('أكمل نص الخيارات','err');return false;}
+
+
+
+    }
+
+
+
+  }
+
+
+
+  return true;
+
+
+
+}
+
+
+
+
+
+
+
+// ─── Question builder ───────────────────────────────────────────
+
+
+
+function addQ(data){
+
+
+
+  data=data||null;
+
+
+
+  qCnt++;
+
+
+
+  var id='q'+qCnt;
+
+
+
+  var qtype=data&&data.question_type?data.question_type:'mcq';
+
+
+
+  var deg=data&&data.degree?data.degree:25;
+
+
+
+  var qtxt=data&&data.question_text?data.question_text:'';
+
+
+
+  var div=document.createElement('div');
+
+
+
+  div.className='qcard'; div.dataset.qid=id; div.dataset.qtype=qtype;
+
+
+
+  var n=document.querySelectorAll('.qcard').length+1;
+
+
+
+  div.innerHTML=
+
+
+
+    '<div class="qhdr">'+
+
+
+
+      '<div class="qnum" id="qn_'+id+'">'+n+'</div>'+
+
+
+
+      '<input class="qi" type="text" placeholder="نص السؤال\u2026" value="'+esc(qtxt)+'">'+
+
+
+
+      '<div class="qdeg"><span class="qdeg-l">الدرجة</span><input class="qdeg-i" type="number" min="1" max="100" value="'+deg+'" oninput="updDeg()"></div>'+
+
+
+
+      '<div class="qrm" onclick="rmQ(\''+id+'\')"><i class="fas fa-trash"></i></div>'+
+
+
+
+    '</div>'+
+
+
+
+    '<div class="q-type-selector">'+
+
+
+
+      '<button class="q-type-btn '+(qtype==='mcq'?'active':'')+'" onclick="setQType(\''+id+'\',\'mcq\',this)" title="اختيار من متعدد">'+
+
+
+
+        '<i class="fas fa-list-ul"></i> متعدد</button>'+
+
+
+
+      '<button class="q-type-btn '+(qtype==='tf'?'active-tf':'')+'" onclick="setQType(\''+id+'\',\'tf\',this)" title="صح أو خطأ">'+
+
+
+
+        '<i class="fas fa-check-circle"></i> صح/خطأ</button>'+
+
+
+
+      '<button class="q-type-btn '+(qtype==='open'?'active-open':'')+'" onclick="setQType(\''+id+'\',\'open\',this)" title="إجابة مفتوحة">'+
+
+
+
+        '<i class="fas fa-pen-nib"></i> مفتوح</button>'+
+
+
+
+    '</div>'+
+
+
+
+    '<div class="qbody" id="qbody_'+id+'">'+
+
+
+
+      '<div class="opts" id="opts_'+id+'"></div>'+
+
+
+
+      '<button class="add-opt" id="addopt_'+id+'" onclick="addOpt(\''+id+'\')"><i class="fas fa-plus"></i>إضافة خيار</button>'+
+
+
+
+      '<div class="tf-opts" id="tfopts_'+id+'" style="display:none">'+
+
+
+
+        '<button class="tf-btn tf-true" id="tftrue_'+id+'" onclick="setTF(\''+id+'\',true)"><i class="fas fa-check-circle"></i> صحيح</button>'+
+
+
+
+        '<button class="tf-btn tf-false" id="tffalse_'+id+'" onclick="setTF(\''+id+'\',false)"><i class="fas fa-times-circle"></i> خطأ</button>'+
+
+
+
+      '</div>'+
+
+
+
+      '<div class="open-q-note" id="opennote_'+id+'" style="display:none"><i class="fas fa-pen-nib"></i>الطفل يكتب إجابة نصية \u2014 تُصحَّح يدوياً بعد التسليم</div>'+
+
+
+
+    '</div>'+
+
+
+
+    '<div class="q-img-section">'+
+
+
+
+      '<button class="q-img-toggle" onclick="toggleImgSection(\''+id+'\')">'+
+
+
+
+        '<i class="fas fa-image"></i> إضافة صورة للسؤال (اختياري)'+
+
+
+
+        '<i class="fas fa-chevron-down" id="imgchev_'+id+'" style="font-size:.62rem;margin-right:auto;transition:.2s;"></i>'+
+
+
+
+      '</button>'+
+
+
+
+      '<div class="q-img-input-wrap" id="imgwrap_'+id+'">'+
+
+
+
+        '<div class="q-img-tabs">'+
+
+
+
+          '<button class="q-img-tab active" onclick="switchImgTab(\''+id+'\',\'url\',this)">'+
+
+
+
+            '<i class="fas fa-link"></i> رابط</button>'+
+
+
+
+          '<button class="q-img-tab" onclick="switchImgTab(\''+id+'\',\'upload\',this)">'+
+
+
+
+            '<i class="fas fa-upload"></i> رفع صورة</button>'+
+
+
+
+        '</div>'+
+
+
+
+        '<div class="q-img-tab-panel active" id="imgtab_url_'+id+'">'+
+
+
+
+          '<div class="q-img-url-row">'+
+
+
+
+            '<input class="q-img-url-inp" id="imgurl_'+id+'" type="text" placeholder="الصق رابط الصورة أو أي رابط يحتوي صورة\u2026">'+
+
+
+
+            '<button class="q-img-fetch-btn" onclick="fetchImgFromUrl(\''+id+'\')" ><i class="fas fa-magic"></i> جلب</button>'+
+
+
+
+          '</div>'+
+
+
+
+        '</div>'+
+
+
+
+        '<div class="q-img-tab-panel" id="imgtab_upload_'+id+'">'+
+
+
+
+          '<div class="q-img-drop" id="imgdrop_'+id+'" onclick="document.getElementById(\'imgfile_'+id+'\').click()" '+
+
+
+
+            'ondragover="event.preventDefault();this.classList.add(\'dragover\')" '+
+
+
+
+            'ondragleave="this.classList.remove(\'dragover\')" '+
+
+
+
+            'ondrop="event.preventDefault();this.classList.remove(\'dragover\');handleImgDrop(\''+id+'\',event)">'+
+
+
+
+            '<i class="fas fa-cloud-upload-alt"></i>'+
+
+
+
+            '<p>اضغط أو اسحب صورة هنا</p>'+
+
+
+
+            '<small>JPG, PNG, WebP — حتى 5 MB</small>'+
+
+
+
+          '</div>'+
+
+
+
+          '<input type="file" id="imgfile_'+id+'" accept="image/*" style="display:none" onchange="uploadQImg(\''+id+'\',this.files[0])">'+
+
+
+
+          '<div class="q-img-uploading" id="imgloading_'+id+'"><div class="spin spin-sm"></div> جارٍ رفع الصورة\u2026</div>'+
+
+
+
+        '</div>'+
+
+
+
+        '<div class="q-img-status" id="imgstatus_'+id+'"> class="fas fa-times"></i></button>'+
+
+
+
+        '</div>'+
+
+
+
+      '</div>'+
+
+
+
+    '</div>';
+
+
+
+  document.getElementById('qList').appendChild(div);
+
+
+
+  if(data&&data.image_url){setQImg(id,data.image_url);toggleImgSection(id);}
+
+
+
+  if(qtype==='tf'){
+
+
+
+    _showTFLayout(id,data);
+
+
+
+  } else if(qtype==='open'){
+
+
+
+    _showOpenQLayout(id);
+
+
+
+  } else if(data&&data.options){
+
+
+
+    var os=typeof data.options==='string'?JSON.parse(data.options):(data.options||[]);
+
+
+
+    var ci=parseInt(data.correct_index!=null?data.correct_index:0);
+
+
+
+    os.forEach(function(o,i){addOpt(id,o,i===ci);});
+
+
+
+  } else { for(var i=0;i<4;i++) addOpt(id,'',i===0); }
+
+
+
+  renumQ(); updDeg();
+
+
+
+}
+
+
+
+function setQType(qid,type,btn){
+
+
+
+  var div=document.querySelector('.qcard[data-qid="'+qid+'"]');
+
+
+
+  if(!div)return;
+
+
+
+  div.dataset.qtype=type;
+
+
+
+  div.querySelectorAll('.q-type-btn').forEach(function(b){b.classList.remove('active','active-tf','active-open');});
+
+
+
+  if(type==='mcq')     {btn.classList.add('active');     _showMcqLayout(qid);}
+
+
+
+  else if(type==='tf') {btn.classList.add('active-tf');  _showTFLayout(qid,null);}
+
+
+
+  else                 {btn.classList.add('active-open');_showOpenQLayout(qid);}
+
+
+
+}
+
+
+
+function _showMcqLayout(qid){
+
+
+
+  var opts=document.getElementById('opts_'+qid);
+
+
+
+  var addBtn=document.getElementById('addopt_'+qid);
+
+
+
+  var tfopts=document.getElementById('tfopts_'+qid);
+
+
+
+  var note=document.getElementById('opennote_'+qid);
+
+
+
+  if(opts)opts.style.display='';
+
+
+
+  if(addBtn)addBtn.style.display='';
+
+
+
+  if(tfopts)tfopts.style.display='none';
+
+
+
+  if(note)note.style.display='none';
+
+
+
+  if(opts){opts.innerHTML='';for(var i=0;i<4;i++)addOpt(qid,'',i===0);}
+
+
+
+}
+
+
+
+function _showTFLayout(qid,data){
+
+
+
+  var opts=document.getElementById('opts_'+qid);
+
+
+
+  var addBtn=document.getElementById('addopt_'+qid);
+
+
+
+  var tfopts=document.getElementById('tfopts_'+qid);
+
+
+
+  var note=document.getElementById('opennote_'+qid);
+
+
+
+  if(opts)opts.innerHTML='';
+
+
+
+  if(addBtn)addBtn.style.display='none';
+
+
+
+  if(tfopts)tfopts.style.display='flex';
+
+
+
+  if(note)note.style.display='none';
+
+
+
+  if(data&&data.correct_index!=null){
+
+
+
+    var isTrue=parseInt(data.correct_index)===0;
+
+
+
+    setTF(qid,isTrue,true);
+
+
+
+  }
+
+
+
+}
+
+
+
+function _showOpenQLayout(qid){
+
+
+
+  var opts=document.getElementById('opts_'+qid);
+
+
+
+  var addBtn=document.getElementById('addopt_'+qid);
+
+
+
+  var tfopts=document.getElementById('tfopts_'+qid);
+
+
+
+  var note=document.getElementById('opennote_'+qid);
+
+
+
+  if(opts)opts.innerHTML='';
+
+
+
+  if(addBtn)addBtn.style.display='none';
+
+
+
+  if(tfopts)tfopts.style.display='none';
+
+
+
+  if(note)note.style.display='flex';
+
+
+
+}
+
+
+
+function setTF(qid,isTrue,silent){
+
+
+
+  var trueBtn=document.getElementById('tftrue_'+qid);
+
+
+
+  var falseBtn=document.getElementById('tffalse_'+qid);
+
+
+
+  if(!trueBtn||!falseBtn)return;
+
+
+
+  trueBtn.classList.toggle('selected',isTrue);
+
+
+
+  falseBtn.classList.toggle('selected',!isTrue);
+
+
+
+  var div=document.querySelector('.qcard[data-qid="'+qid+'"]');
+
+
+
+  if(div)div.dataset.tfAnswer=isTrue?'0':'1';
+
+
+
+}
+
+
+
+function toggleImgSection(qid){
+
+
+
+  var wrap=document.getElementById('imgwrap_'+qid);
+
+
+
+  var chev=document.getElementById('imgchev_'+qid);
+
+
+
+  if(!wrap)return;
+
+
+
+  var open=wrap.classList.toggle('open');
+
+
+
+  if(chev)chev.style.transform=open?'rotate(180deg)':'';
+
+
+
+}
+
+
+
+async function fetchImgFromUrl(qid){
+
+
+
+  var inp=document.getElementById('imgurl_'+qid);
+
+
+
+  var status=document.getElementById('imgstatus_'+qid);
+
+
+
+  var url=(inp&&inp.value||'').trim();
+
+
+
+  if(!url){showToast('أدخل رابطاً أولاً','err');return;}
+
+
+
+  if(status){status.className='q-img-status';status.textContent='جارٍ جلب الصورة\u2026';}
+
+
+
+  var directImg=/\.(jpe?g|png|gif|webp|svg|bmp|avif)(\?.*)?$/i.test(url);
+
+
+
+  if(directImg){setQImg(qid,url);return;}
+
+
+
+  var transformed=transformToDirectImg(url);
+
+
+
+  if(transformed){setQImg(qid,transformed);return;}
+
+
+
+  try{
+
+
+
+    if(status)status.textContent='جارٍ استخراج الصورة من الرابط\u2026';
+
+
+
+    var d=await api('fetchOgImage',{url:url});
+
+
+
+    if(d.success&&d.image_url){setQImg(qid,d.image_url);}
+
+
+
+    else{if(status){status.className='q-img-status err';status.textContent='تعذّر استخراج الصورة \u2014 جرّب رابطاً مباشراً';}}
+
+
+
+  }catch(e){if(status){status.className='q-img-status err';status.textContent='خطأ في الاتصال';}}
+
+
+
+}
+
+
+
+function transformToDirectImg(url){
+
+
+
+  var m=url.match(/drive\.google\.com\/file\/d\/([^\/]+)/);
+
+
+
+  if(m)return'https://drive.google.com/uc?export=view&id='+m[1];
+
+
+
+  m=url.match(/drive\.google\.com\/open\?id=([^&]+)/);
+
+
+
+  if(m)return'https://drive.google.com/uc?export=view&id='+m[1];
+
+
+
+  if(url.indexOf('dropbox.com')>-1&&url.indexOf('dl=0')>-1)return url.replace('dl=0','dl=1');
+
+
+
+  m=url.match(/imgur\.com\/(?!a\/|gallery\/)([a-zA-Z0-9]+)$/);
+
+
+
+  if(m)return'https://i.imgur.com/'+m[1]+'.jpg';
+
+
+
+  return null;
+
+
+
+}
+
+
+
+function setQImg(qid,src){
+
+
+
+  var preview=document.getElementById('imgpreview_'+qid);
+
+
+
+  var img=document.getElementById('imgel_'+qid);
+
+
+
+  var status=document.getElementById('imgstatus_'+qid);
+
+
+
+  var inp=document.getElementById('imgurl_'+qid);
+
+
+
+  if(!preview||!img)return;
+
+
+
+  img.onerror=function(){preview.style.display='none';if(status){status.className='q-img-status err';status.textContent='تعذّر تحميل الصورة \u2014 تأكد أن الرابط عام';};};
+
+
+
+  img.onload=function(){preview.style.display='block';if(status){status.className='q-img-status ok';status.textContent='تم تحميل الصورة \u2713';};};
+
+
+
+  img.src=src;
+
+
+
+  if(inp&&!inp.value)inp.value=src;
+
+
+
+  var wrap=document.getElementById('imgwrap_'+qid);
+
+
+
+  if(wrap&&!wrap.classList.contains('open'))toggleImgSection(qid);
+
+
+
+}
+
+
+
+function removeQImg(qid){
+
+
+
+  var preview=document.getElementById('imgpreview_'+qid);
+
+
+
+  var img=document.getElementById('imgel_'+qid);
+
+
+
+  var status=document.getElementById('imgstatus_'+qid);
+
+
+
+  var inp=document.getElementById('imgurl_'+qid);
+
+
+
+  var fileInp=document.getElementById('imgfile_'+qid);
+
+
+
+  if(preview)preview.style.display='none';
+
+
+
+  if(img)img.src='';
+
+
+
+  if(status)status.textContent='';
+
+
+
+  if(inp)inp.value='';
+
+
+
+  if(fileInp)fileInp.value='';
+
+
+
+}
+
+
+
+function getQImg(qid){
+
+
+
+  var img=document.getElementById('imgel_'+qid);
+
+
+
+  return(img&&img.src&&img.src.indexOf('data:')<0&&img.src!==window.location.href)?img.src:'';
+
+
+
+}
+
+
+
+
+
+
+
+function switchImgTab(qid, tab, btn){
+
+
+
+  var wrap = document.getElementById('imgwrap_'+qid);
+
+
+
+  if(!wrap) return;
+
+
+
+  wrap.querySelectorAll('.q-img-tab').forEach(function(b){ b.classList.remove('active'); });
+
+
+
+  wrap.querySelectorAll('.q-img-tab-panel').forEach(function(p){ p.classList.remove('active'); });
+
+
+
+  btn.classList.add('active');
+
+
+
+  var panel = document.getElementById('imgtab_'+tab+'_'+qid);
+
+
+
+  if(panel) panel.classList.add('active');
+
+
+
+}
+
+
+
+
+
+
+
+async function uploadQImg(qid, file){
+
+
+
+  if(!file) return;
+
+
+
+  if(file.size > 5*1024*1024){ showToast('الحجم الأقصى 5 MB','err'); return; }
+
+
+
+  var loading = document.getElementById('imgloading_'+qid);
+
+
+
+  var status  = document.getElementById('imgstatus_'+qid);
+
+
+
+  if(loading) loading.style.display='flex';
+
+
+
+  if(status){ status.className='q-img-status'; status.textContent='جارٍ رفع الصورة…'; }
+
+
+
+  try {
+
+
+
+    var fd = new FormData();
+
+
+
+    fd.append('photo', file, 'question_img_'+Date.now()+'.'+file.name.split('.').pop());
+
+
+
+    fd.append('type', 'question');
+
+
+
+    var r = await fetch('/upload.php', {
+
+
+
+      method: 'POST', body: fd, headers: { Accept: 'application/json' }
+
+
+
+    });
+
+
+
+    var d = await r.json();
+
+
+
+    if(d.success && d.imageUrl){
+
+
+
+      setQImg(qid, d.imageUrl);
+
+
+
+      var inp = document.getElementById('imgurl_'+qid);
+
+
+
+      if(inp) inp.value = d.imageUrl;
+
+
+
+    } else {
+
+
+
+      if(status){ status.className='q-img-status err'; status.textContent = d.message || 'فشل الرفع'; }
+
+
+
+    }
+
+
+
+  } catch(e) {
+
+
+
+    if(status){ status.className='q-img-status err'; status.textContent='خطأ في الاتصال'; }
+
+
+
+  }
+
+
+
+  if(loading) loading.style.display='none';
+
+
+
+}
+
+
+
+
+
+
+
+function handleImgDrop(qid, event){
+
+
+
+  var files = event.dataTransfer.files;
+
+
+
+  if(files && files[0]) uploadQImg(qid, files[0]);
+
+
+
+}
+
+
+
+
+
+
+
+function addOpt(qid,text='',correct=false){
+
+
+
+  const list=document.getElementById(`opts_${qid}`);
+
+
+
+  const idx=list.children.length;
+
+
+
+  if(idx>=5){showToast('الحد الأقصى ٥ خيارات','info');return;}
+
+
+
+  const row=document.createElement('div');
+
+
+
+  row.className='orow';
+
+
+
+  row.innerHTML=`<div class="oradio${correct?' ok':''}" onclick="setCorrect(this)">${correct?'✓':''}</div>
+
+
+
+    <div class="olet">${LETTERS[idx]}</div>
+
+
+
+    <input class="oinp" type="text" placeholder="الخيار ${LETTERS[idx]}" value="${esc(text)}">
+
+
+
+    <div class="odel" onclick="this.closest('.orow').remove();relabel('${qid}')"><i class="fas fa-times"></i></div>`;
+
+
+
+  list.appendChild(row);
+
+
+
+}
+
+
+
+function setCorrect(el){
+
+
+
+  el.closest('.opts').querySelectorAll('.oradio').forEach(r=>{r.classList.remove('ok');r.textContent='';});
+
+
+
+  el.classList.add('ok'); el.textContent='✓';
+
+
+
+}
+
+
+
+function relabel(qid){
+
+
+
+  document.getElementById(`opts_${qid}`).querySelectorAll('.orow').forEach((r,i)=>{
+
+
+
+    r.querySelector('.olet').textContent=LETTERS[i];
+
+
+
+    r.querySelector('.oinp').placeholder=`الخيار ${LETTERS[i]}`;
+
+
+
+  });
+
+
+
+}
+
+
+
+function rmQ(id){document.querySelector(`.qcard[data-qid="${id}"]`)?.remove();renumQ();updDeg();}
+
+
+
+function renumQ(){document.querySelectorAll('.qcard').forEach((c,i)=>c.querySelector('.qnum').textContent=i+1);}
+
+
+
+function calcDeg(){let t=0;document.querySelectorAll('.qdeg-i').forEach(i=>t+=parseInt(i.value)||0);return t;}
+
+
+
+function updDeg(){document.getElementById('degTotal').innerHTML=`${calcDeg()} <small style="font-size:.7rem;font-weight:500;">درجة</small>`;}
+
+
+
+
+
+
+
+// ─── Coupon tiers ────────────────────────────────────────────────
+
+
+
+function convertMilestonesToTiers(milestones) {
+  const sorted = [...milestones].sort((a, b) => a.pct - b.pct);
+  if (sorted.length === 0 || sorted[0].pct > 0) {
+    sorted.unshift({ pct: 0, coupons: 0 });
+  }
+  
+  const tiers = [];
+  for (let i = 0; i < sorted.length; i++) {
+    const from = sorted[i].pct;
+    const val = sorted[i].coupons;
+    const to = (i < sorted.length - 1) ? (sorted[i+1].pct - 1) : 100;
+    tiers.push({ from, to, val });
+  }
+  return tiers;
+}
+
+function convertTiersToMilestones(tiers) {
+  return (tiers || [])
+    .filter(t => parseInt(t.from) > 0 || parseInt(t.val) > 0)
+    .map(t => ({ pct: parseInt(t.from), coupons: parseInt(t.val) }))
+    .sort((a, b) => a.pct - b.pct);
+}
+
+function addMilestone(pct=50, coupons=10) {
+  const div=document.createElement('div');
+  div.className='ctier';
+  div.style = "display:flex; align-items:center; gap:8px; margin-bottom:8px; background:var(--bg2); border:1px solid var(--bdr); padding:8px 12px; border-radius:8px;";
+  div.innerHTML=`
+    <div style="display:flex; align-items:center; gap:6px;">
+      <span style="font-size:0.85rem; color:var(--t2); font-weight:700;">حصول الطالب على</span>
+      <input type="number" class="milestone-pct" min="1" max="100" value="${pct}" style="width:65px; text-align:center; font-weight:bold; border-radius:6px; border:1px solid var(--bdr); padding:5px; background:var(--bg);">
+      <span style="font-size:0.85rem; color:var(--t2); font-weight:700;">% أو أكثر</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:6px; margin-right:15px;">
+      <span style="font-size:0.85rem; color:var(--t2); font-weight:700;">يمنحه</span>
+      <input type="number" class="milestone-coupons" min="0" max="999" value="${coupons}" style="width:65px; text-align:center; font-weight:bold; border-radius:6px; border:1px solid var(--bdr); padding:5px; background:var(--bg);">
+      <i class="fas fa-star" style="color:#eab308; font-size: 0.9rem;"></i>
+      <span style="font-size:0.85rem; color:var(--t2); font-weight:700;">كوبون</span>
+    </div>
+    <div class="ctier-del" onclick="this.closest('.ctier').remove()" style="margin-right:auto; margin-left:5px; cursor:pointer; color:var(--t3); transition:0.2s;" onmouseover="this.style.color='var(--err)'" onmouseout="this.style.color='var(--t3)'"><i class="fas fa-times"></i></div>
+  `;
+  document.getElementById('ctierList').appendChild(div);
+}
+
+function initTiers() {
+  document.getElementById('ctierList').innerHTML='';
+  addMilestone(50, 10);
+  addMilestone(70, 30);
+  addMilestone(85, 50);
+  addMilestone(95, 100);
+}
+
+function resetForm() {
+
+
+
+  ['fTitle','fDesc'].forEach(id=>document.getElementById(id).value='');
+window.selectedClassifications = [];
+  renderActiveTags();
+  populateClassificationSelector();
+
+
+
+  document.getElementById('fAssign').value='all';
+
+
+
+  document.getElementById('specRow').style.display='none';
+
+
+
+  document.getElementById('fTimerOn').checked=false;
+
+
+
+  document.getElementById('timerRow').style.display='none';
+
+
+
+  document.getElementById('fNoDeadline').checked=false;
+
+
+
+  document.getElementById('fEndDateMode').checked=false;
+
+
+
+  document.getElementById('fShowRes').checked=true;
+
+
+
+  document.getElementById('fShowAns').checked=false;
+
+
+
+  document.getElementById('fShuffle').checked=false;
+
+
+
+  document.getElementById('fReview').checked=true;
+
+
+
+  document.getElementById('qList').innerHTML='';
+
+
+
+  document.getElementById('ctierList').innerHTML='';
+
+
+
+  setDefaultDates();
+
+
+
+  toggleEndDateMode(false);
+
+
+
+  toggleNoDeadline(false);
+
+
+
+  const allChk = document.getElementById('class_all');
+
+
+
+  if (allChk) {
+
+
+
+    if (CFG.activeClass === 'كل الفصول') {
+
+
+
+      allChk.checked = true;
+
+
+
+    } else {
+
+
+
+      allChk.checked = !CFG.activeClass;
+
+
+
+    }
+
+
+
+  }
+
+
+
+  document.querySelectorAll('.class-checkbox').forEach(cb => {
+
+
+
+    if (CFG.activeClass && cb.value === CFG.activeClass) {
+
+
+
+      cb.checked = true;
+
+
+
+    } else {
+
+
+
+      cb.checked = false;
+
+
+
+    }
+
+
+
+  });
+
+
+
+}
+
+
+
+function fillForm(t) {
+
+
+
+  document.getElementById('fTitle').value=t.title||'';
+window.selectedClassifications = t.group_name ? t.group_name.split(',').map(x => x.trim()).filter(Boolean) : [];
+  renderActiveTags();
+  populateClassificationSelector();
+
+
+
+  document.getElementById('fDesc').value=t.description||'';
+
+
+
+  document.getElementById('fStart').value=toLocalDT(t.start_date);
+
+
+
+  document.getElementById('fEnd').value=toLocalDT(t.end_date);
+
+
+
+  document.getElementById('fNoDeadline').checked=!!parseInt(t.no_deadline||0);
+
+
+
+  document.getElementById('fAssign').value=t.assign_to||'all';
+
+
+
+  document.getElementById('fShowRes').checked=!!parseInt(t.show_result);
+
+
+
+  document.getElementById('fShowAns').checked=!!parseInt(t.show_answers||0);
+
+
+
+  document.getElementById('fShuffle').checked=!!parseInt(t.shuffle);
+
+
+
+  document.getElementById('fReview').checked=!!parseInt(t.allow_review);
+
+
+
+  document.getElementById('fEndDateMode').checked=isEndDateOnly(t.end_date);
+
+
+
+  toggleEndDateMode(false);
+
+
+
+  toggleNoDeadline(false);
+
+
+
+  const classIds = (t.class_ids || '').split(',').map(s=>s.trim()).filter(Boolean);
+
+
+
+  const allChk = document.getElementById('class_all');
+
+
+
+  if (allChk) allChk.checked = (classIds.includes('0') || classIds.length === 0);
+
+
+
+  
+
+
+
+  document.querySelectorAll('.class-checkbox').forEach(cb => {
+
+
+
+    cb.checked = classIds.includes(cb.dataset.id);
+
+
+
+  });
+
+
+
+  if(parseInt(t.time_limit)){
+
+
+
+    document.getElementById('fTimerOn').checked=true;
+
+
+
+    document.getElementById('timerRow').style.display='';
+
+
+
+    document.getElementById('fTimerMin').value=t.time_limit;
+
+
+
+    document.getElementById('fTimerBeh').value=t.timer_behavior||'submit';
+
+
+
+  }
+
+
+
+  if(t.assign_to==='specific') onAssignChange();
+
+
+
+  document.getElementById('qList').innerHTML='';
+
+
+
+  (t.questions||[]).forEach(q=>addQ(q));
+
+
+
+  document.getElementById('ctierList').innerHTML='';
+
+
+
+  const mx=t.coupon_matrix?JSON.parse(t.coupon_matrix):null;
+
+
+
+  if(mx&&mx.length) {
+    const milestones = convertTiersToMilestones(mx);
+    milestones.forEach(m => addMilestone(m.pct, m.coupons));
+  }
 
 
 
@@ -16663,19 +18312,13 @@ function collectForm(status){
 
 
 
-  const tiers=[];
-
-
-
-  document.querySelectorAll('.ctier').forEach(t=>{
-
-
-
-    const ns=t.querySelectorAll('input[type=number]');
-
-
-
-    tiers.push({from:parseInt(ns[0].value)||0,to:parseInt(ns[1].value)||100,val:parseInt(ns[2].value)||0});
+  const milestones = [];
+  document.querySelectorAll('.ctier').forEach(t => {
+    const pct = parseInt(t.querySelector('.milestone-pct').value)||50;
+    const coupons = parseInt(t.querySelector('.milestone-coupons').value)||0;
+    milestones.push({ pct, coupons });
+  });
+  const tiers = convertMilestonesToTiers(milestones);
 
 
 
@@ -16776,7 +18419,7 @@ function collectForm(status){
 
 
     status, title:document.getElementById('fTitle').value.trim(), description:document.getElementById('fDesc').value.trim(),
-    group_name: document.getElementById('taskGroupName').value.trim(),
+    group_name: window.selectedClassifications.join(','),
 
 
 
@@ -17180,7 +18823,7 @@ async function openDetail(id){
 
 
 
-        ${matrix.map(m=>`<span style="display:flex;align-items:center;gap:4px;padding:4px 10px;background:var(--cou-bg);border:1px solid #c4b5fd;border-radius:var(--r-full);font-size:.72rem;font-weight:600;color:var(--cou);"><i class="fas fa-star"></i>${m.from}%–${m.to}% = ${m.val} كوبون</span>`).join('')}
+        ${convertTiersToMilestones(matrix).map(m=>`<span style="display:flex;align-items:center;gap:6px;padding:5px 12px;background:var(--cou-bg);border:1px solid #c4b5fd;border-radius:var(--r-full);font-size:.76rem;font-weight:700;color:var(--cou);"><i class="fas fa-star" style="color:#eab308;"></i>${m.pct}% أو أكثر ➔ ${m.coupons} كوبون</span>`).join('')}
 
 
 
