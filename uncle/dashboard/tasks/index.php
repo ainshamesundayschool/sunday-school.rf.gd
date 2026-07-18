@@ -20906,13 +20906,14 @@ function renderOverviewTable() {
     targetTasks.forEach(t => {
       const respondents = targetStudents.filter(s => subMap[s.id + '_' + t.id]);
       let namesText = respondents.map((s, idx) => {
+        const avatar = getStudentAvatarHtml(s.photo, s.name, '20px');
         if (showGrades) {
           const sub = subMap[s.id + '_' + t.id];
           const scoreVal = parseInt(sub.score);
           const totalVal = parseInt(t.total_degree || sub.total_degree || 0);
-          return `<span style="display:inline-block; margin:2px 4px; padding:4px 8px; background:var(--brand-bg); color:var(--brand); border-radius:6px; font-size:0.78rem;">${idx + 1}. ${esc(s.name)} (${scoreVal}/${totalVal})</span>`;
+          return `<span style="display:inline-flex; align-items:center; gap:5px; margin:2px 4px; padding:4px 8px; background:var(--brand-bg); color:var(--brand); border-radius:6px; font-size:0.78rem;">${idx + 1}. ${avatar} ${esc(s.name)} (${scoreVal}/${totalVal})</span>`;
         } else {
-          return `<span style="display:inline-block; margin:2px 4px; padding:4px 8px; background:var(--bg-card); color:var(--t1); border:1px solid var(--bdr); border-radius:6px; font-size:0.78rem;">${idx + 1}. ${esc(s.name)}</span>`;
+          return `<span style="display:inline-flex; align-items:center; gap:5px; margin:2px 4px; padding:4px 8px; background:var(--bg-card); color:var(--t1); border:1px solid var(--bdr); border-radius:6px; font-size:0.78rem;">${idx + 1}. ${avatar} ${esc(s.name)}</span>`;
         }
       }).join(' ');
 
@@ -20949,7 +20950,8 @@ function renderOverviewTable() {
   } else {
     targetStudents.forEach(s => {
       html += `<tr>`;
-      html += `<td><strong>${esc(s.name)}</strong></td>`;
+      const avatar = getStudentAvatarHtml(s.photo, s.name, '24px');
+      html += `<td><div style="display:flex; align-items:center; gap:8px;">${avatar} <strong>${esc(s.name)}</strong></div></td>`;
       html += `<td><span class="ov-class-badge">${esc(s.className)}</span></td>`;
       
       targetTasks.forEach(t => {
@@ -21070,11 +21072,18 @@ async function getExportCanvas() {
   // Clone the container
   const clone = container.cloneNode(true);
   
+  // Calculate dynamic export width based on column counts to prevent infinite stretching
+  const ths = clone.querySelectorAll('thead th');
+  let exportWidth = 1200;
+  if (ths.length > 4) {
+    exportWidth = Math.max(1200, ths.length * 135);
+  }
+  
   // Reset styles for all table components to ensure static, full-size rendering
   clone.style.position = 'absolute';
   clone.style.top = '0';
   clone.style.left = '-9999px';
-  clone.style.width = 'max-content';
+  clone.style.width = exportWidth + 'px';
   clone.style.height = 'auto';
   clone.style.overflow = 'visible';
   clone.style.background = '#ffffff';
@@ -21082,8 +21091,8 @@ async function getExportCanvas() {
   
   const tables = clone.querySelectorAll('table');
   tables.forEach(t => {
-    t.style.width = 'max-content';
-    t.style.maxWidth = 'none';
+    t.style.width = '100%';
+    t.style.maxWidth = '100%';
     t.style.overflow = 'visible';
     t.style.margin = '0';
     t.style.borderCollapse = 'collapse';
