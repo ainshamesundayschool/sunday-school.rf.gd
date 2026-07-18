@@ -11343,7 +11343,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </button>
                 <button class="tool-card" onclick="openTasksModal();hideAllToolsModal()">
                     <span class="tool-card-icon"><i class="fas fa-tasks"></i></span>
-                    <span class="tool-card-name">المهام</span>
+                    <span class="tool-card-name">التاسكات</span>
                     <span class="tool-card-desc">إدارة الاختبارات والواجبات والتسليمات.</span>
                 </button>
                 <button class="tool-card" onclick="hideAllToolsModal();showPaperExamsModal()">
@@ -12086,14 +12086,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             onclick="toggleTasksCollapse()">
                             <span
                                 style="font-size: 0.82rem; font-weight: 700; color: var(--text-2); display: inline-flex; align-items: center; gap: 6px; font-family: 'Cairo', sans-serif;">
-                                <span class="detail-icon blue" style="width: 24px; height: 24px; font-size: 0.72rem; border-radius: 6px; display: inline-flex;"><i class="fas fa-tasks"></i></span> المهام المتاحة (<span
+                                <span class="detail-icon blue" style="width: 24px; height: 24px; font-size: 0.72rem; border-radius: 6px; display: inline-flex;"><i class="fas fa-tasks"></i></span> التاسكات المتاحة (<span
                                     id="collapsedTasksCount">0</span>)
                             </span>
                             <div style="display: flex; align-items: center; gap: 6px;">
                                 <button class="btn btn-ghost"
                                     onclick="event.stopPropagation(); openTasksModal();"
                                     style="width: 24px; height: 24px; border-radius: var(--r-sm); padding: 0; min-width: unset; display: flex; align-items: center; justify-content: center; background: var(--brand-bg); color: var(--brand); border: none; cursor: pointer;"
-                                    title="فتح قائمة المهام الكاملة">
+                                    title="فتح قائمة التاسكات الكاملة">
                                     <i class="fas fa-external-link-alt" style="font-size: 0.7rem;"></i>
                                 </button>
                                 <span id="tasksToggleBtn"
@@ -12132,7 +12132,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             style="left: 0; right: auto; min-width: 220px;">
                             <div class="dropdown-group-label">الفصل</div>
                             <button class="dropdown-item" id="classTasksMenuItem"
-                                onclick="openNativeTaskCreateForm();closeAllDropdowns()"><i class="fas fa-plus"></i> إضافة مهمة جديدة</button>
+                                onclick="openTasksModal(null, 'create');closeAllDropdowns()"><i class="fas fa-plus"></i> إضافة تاسك جديد</button>
                             <button class="dropdown-item coupon"
                                 onclick="showCustomExportModal();closeAllDropdowns()"><i class="fas fa-table"></i>
                                 حفظ كجدول</button>
@@ -12936,7 +12936,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div class="mbody" style="overflow-y:auto; flex:1; padding-top:10px;">
                 <p style="font-size:0.78rem; color:var(--text-3); margin-bottom:12px; line-height:1.5;">
                     اختر القيم التي تريد الاحتفاظ بها في الحساب الرئيسي. سيتم دمج الحسابين وحذف الحساب المكرر مع تحويل
-                    جميع السجلات المرتبطة (الحضور، المهام، الكوبونات، الرحلات) تلقائياً.
+                    جميع السجلات المرتبطة (الحضور، التاسكات، الكوبونات، الرحلات) تلقائياً.
                 </p>
                 <div id="mergeModalContent"></div>
             </div>
@@ -14978,7 +14978,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (!list) return;
 
             if (!classTasks.length) {
-                list.innerHTML = `<div style="text-align:center;font-size:0.78rem;color:var(--text-3);padding:8px 0;">لا توجد مهام نشطة حالياً</div>`;
+                list.innerHTML = `<div style="text-align:center;font-size:0.78rem;color:var(--text-3);padding:8px 0;">لا توجد تاسكات نشطة حالياً</div>`;
                 return;
             }
 
@@ -18283,7 +18283,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <input type="radio" name="merge_coupons" value="sum" checked>
                         <div>
                             <div style="font-weight:700;font-size:0.78rem;">جمع كوبونات المحفظتين (الكوبونات الإجمالية: ${couponsSum})</div>
-                            <div style="font-size:0.7rem;color:var(--text-3)">سيتم إضافة الكوبونات والالتزام والمهام معاً.</div>
+                            <div style="font-size:0.7rem;color:var(--text-3)">سيتم إضافة الكوبونات والالتزام والتاسكات معاً.</div>
                         </div>
                     </label>
                     <label class="merge-radio-item" onclick="document.querySelectorAll('input[name=\\'merge_coupons\\']').forEach(r => r.closest('.merge-radio-item').classList.remove('selected')); this.classList.add('selected')">
@@ -18393,10 +18393,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         ${couponHtml}
                     </div>
 
-                    <div class="merge-section-title"><i class="fas fa-calendar-check"></i> الحضور والغياب والمهام</div>
+                    <div class="merge-section-title"><i class="fas fa-calendar-check"></i> الحضور والغياب والتاسكات</div>
                     <div class="merge-attendance-box">
                         <div style="font-size:0.7rem;color:var(--text-3);margin-bottom:6px;">
-                            <i class="fas fa-tasks"></i> سجل المهام: الحساب الأول سلّم <b>${tasksA}</b> مهام، والحساب الثاني سلّم <b>${tasksB}</b> مهام. (سيتم الدمج التلقائي مع تفضيل الدرجة الأعلى).
+                            <i class="fas fa-tasks"></i> سجل التاسكات: الحساب الأول سلّم <b>${tasksA}</b> تاسكات، والحساب الثاني سلّم <b>${tasksB}</b> تاسكات. (سيتم الدمج التلقائي مع تفضيل الدرجة الأعلى).
                         </div>
                         ${attendanceHtml}
                     </div>
@@ -20533,13 +20533,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const full = currentStudentForEdit;
             const tasksList = full.tasks || [];
 
-            setModalHeader('المهام والاختبارات المحلولة', true);
+            setModalHeader('التاسكات والاختبارات المحلولة', true);
             hideDetailsFooter();
             scrollToDetailsTop();
 
             const tasksHtml = tasksList.length === 0 ? `
                 <div style="text-align:center; padding:30px 20px; color:var(--text-3); font-size:0.82rem; font-style:italic;">
-                    لا توجد مهام محلولة مسجلة للطفل.
+                    لا توجد تاسكات محلولة مسجلة للطفل.
                 </div>
             ` : tasksList.map(task => {
                 const dateObj = new Date(task.submitted_at);
@@ -21325,7 +21325,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             <div class="navigation-row" onclick="showTasksSubPage()">
                 <div style="display:flex; align-items:center; gap:10px;">
                     <div class="navigation-icon purple"><i class="fas fa-tasks"></i></div>
-                    <div class="navigation-label">المهام والاختبارات المحلولة</div>
+                    <div class="navigation-label">التاسكات والاختبارات المحلولة</div>
                 </div>
                 <div style="display:flex; align-items:center; gap:6px;">
                     <span class="navigation-count">${tasksList.length}</span>
@@ -23734,7 +23734,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 { key: 'coupons', label: 'إجمالي الكوبونات', source: 'كوبونات', selected: false },
                 { key: 'attendance_coupons', label: 'كوبونات الحضور', source: 'كوبونات الحضور', selected: false },
                 { key: 'commitment_coupons', label: 'كوبونات الالتزام', source: 'كوبونات الالتزام', selected: false },
-                { key: 'task_coupons', label: 'كوبونات المهام', source: 'كوبونات المهام', selected: false },
+                { key: 'task_coupons', label: 'كوبونات التاسكات', source: 'كوبونات التاسكات', selected: false },
                 { key: 'attended_count', label: 'إجمالي الحضور', type: 'attendance_count', selected: false },
             ];
             if (churchCustomFields && churchCustomFields.length) {
@@ -27884,14 +27884,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
             };
             const typeLabel = {
                 registration: 'تسجيل جديد',
-                task_submission: 'مهمة',
+                task_submission: 'تاسك',
                 developer_message: 'رسالة',
                 system: 'نظام',
                 announcement: 'إعلان',
             };
             const typeAction = {
                 registration: 'عرض الطلبات',
-                task_submission: 'فتح المهام',
+                task_submission: 'فتح التاسكات',
                 developer_message: 'فتح الرسالة',
                 announcement: 'عرض الإعلان',
             };
@@ -28689,13 +28689,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 action: "window.location.href='/uncle/dashboard/withdraw/'"
             },
             {
-                title: "إدارة المهام والواجبات",
+                title: "إدارة التاسكات والواجبات",
                 category: "attendance",
                 icon: "fas fa-tasks",
                 description: "تسجيل وتقييم تسليمات الواجبات والأنشطة والاختبارات الدورية.",
-                how_it_works: "اعمل مهمة جديدة زي حفظ أو واجب، وبعدين سجل درجات الولاد وتقييماتهم.",
-                location: "الصفحة الرئيسية > شريط الأدوات > المهام",
-                keywords: ["مهمة", "مهام", "واجب", "اختبار", "حفظ", "تسميع", "تسليم", "درجات"],
+                how_it_works: "اعمل تاسك جديد زي حفظ أو واجب، وبعدين سجل درجات الولاد وتقييماتهم.",
+                location: "الصفحة الرئيسية > شريط الأدوات > التاسكات",
+                keywords: ["تاسك", "تاسكات", "واجب", "اختبار", "حفظ", "تسميع", "تسليم", "درجات"],
                 action: "closeHelpModal(); openTasksModal();"
             },
             {

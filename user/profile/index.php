@@ -4694,7 +4694,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       </div>
       <div class="bottom-nav-item" data-tab="tasks" onclick="switchTab('tasks')" style="position: relative;">
         <i class="fas fa-tasks"></i>
-        <span>المهام</span>
+        <span>التاسكات</span>
         <span id="tasksBadge"
           style="display:none; position:absolute; top:6px; right:calc(50% - 18px); width:8px; height:8px; background:var(--err); border-radius:50%; border:1px solid #fff;"></span>
       </div>
@@ -4884,7 +4884,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
               <div style="font-size:.9rem; font-weight:900;" id="sendAvailCom">0</div>
             </div>
             <div style="background:var(--surf); padding:6px; border-radius:var(--r-sm); border:1px solid var(--bdr);">
-              <div style="font-size:.62rem; color:var(--t4);">مهام</div>
+              <div style="font-size:.62rem; color:var(--t4);">تاسكات</div>
               <div style="font-size:.9rem; font-weight:900;" id="sendAvailTsk">0</div>
             </div>
           </div>
@@ -4899,7 +4899,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
             <button class="send-cat-btn active" data-cat="all" onclick="selectSendCat(this)">الكل</button>
             <button class="send-cat-btn" data-cat="att" onclick="selectSendCat(this)">حضور</button>
             <button class="send-cat-btn" data-cat="com" onclick="selectSendCat(this)">التزام</button>
-            <button class="send-cat-btn" data-cat="task" onclick="selectSendCat(this)">مهام</button>
+            <button class="send-cat-btn" data-cat="task" onclick="selectSendCat(this)">تاسكات</button>
           </div>
         </div>
 
@@ -5018,8 +5018,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       <div class="sc-head">
         <div class="sc-ico" style="background:var(--brand-bg);color:var(--brand);"><i class="fas fa-tasks"></i></div>
         <div class="sc-label">
-          <div class="sc-title">الاختبارات والمهام</div>
-          <div class="sc-sub" id="taskSub">0 مهمة</div>
+          <div class="sc-title">الاختبارات والتاسكات</div>
+          <div class="sc-sub" id="taskSub">0 تاسك</div>
         </div>
       </div>
       <div class="sc-body">
@@ -6635,7 +6635,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       const rows = [
         { icon: 'fa-calendar-check', color: '#6ee7b7', label: 'حضور', val: attCoupons },
         { icon: 'fa-star', color: '#c4b5fd', label: 'التزام', val: comCoupons },
-        { icon: 'fa-tasks', color: '#fde68a', label: 'مهام', val: taskCoupons }
+        { icon: 'fa-tasks', color: '#fde68a', label: 'تاسكات', val: taskCoupons }
       ];
 
       document.getElementById('chBreakdown').innerHTML = rows.map(r => `
@@ -7523,12 +7523,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     function renderTasks(tasks) {
       allTasks = tasks;
       const el = document.getElementById('taskList');
-      document.getElementById('taskSub').textContent = tasks.length + ' مهمة';
+      document.getElementById('taskSub').textContent = tasks.length + ' تاسك';
       if (!tasks.length) {
         el.innerHTML = `
           <div style="text-align:center; padding:50px 20px; color:rgba(255,255,255,0.7);">
             <div style="font-size:3rem; margin-bottom:15px; opacity:0.4;"><i class="fas fa-tasks"></i></div>
-            <div style="font-size:1.05rem; font-weight:800;">لا توجد مهام أو اختبارات حالياً</div>
+            <div style="font-size:1.05rem; font-weight:800;">لا توجد تاسكات أو اختبارات حالياً</div>
             <div style="font-size:0.8rem; margin-top:6px; opacity:0.8;">تابع مع مدرسك لمعرفة كل جديد</div>
           </div>
         `;
@@ -7603,7 +7603,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       const dismissedIds = JSON.parse(localStorage.getItem('dismissedAnns_' + student.id) || '[]');
       let changed = false;
       allAnnouncements.forEach(ann => {
-        const isTaskAnn = ann.type === 'task' || (ann.text && (ann.text.includes(t.title) || ann.text.includes('مهمة')));
+        const isTaskAnn = ann.type === 'task' || (ann.text && (ann.text.includes(t.title) || ann.text.includes('تاسك')));
         if (isTaskAnn && !dismissedIds.includes(parseInt(ann.id))) {
           dismissedIds.push(parseInt(ann.id));
           changed = true;
@@ -7615,7 +7615,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       }
       const st = tSt(t);
       if (st === 'done' && t.my_submission) { showExamResult(t, t.my_submission); return; }
-      if (st === 'upcoming') { toast('هذه المهمة لم تُفتح بعد', 'info'); return; }
+      if (st === 'upcoming') { toast('هذا التاسك لم تُفتح بعد', 'info'); return; }
       if (st === 'expired' && !t.my_submission) { toast('انتهت فترة التسليم', 'err'); return; }
       curTask = t; examDone = false;
 
@@ -8348,7 +8348,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         // 1. Handle navigation tab badge for tasks
         const badge = document.getElementById('tasksBadge');
         if (badge && !isViewingOther() && document.querySelector('.bottom-nav-item.active')?.getAttribute('data-tab') !== 'tasks') {
-          const taskAnns = anns.filter(ann => ann.text && (ann.text.includes('مهمة') || ann.text.includes('تصحيح') || ann.text.includes('الكوبونات')));
+          const taskAnns = anns.filter(ann => ann.text && (ann.text.includes('تاسك') || ann.text.includes('تصحيح') || ann.text.includes('الكوبونات')));
           maxFetchedTaskAnnId = taskAnns.length ? Math.max(...taskAnns.map(ann => parseInt(ann.id) || 0)) : 0;
           const lastViewedId = parseInt(localStorage.getItem('tasksLastViewedAnnId_' + student.id) || '0');
           const hasNewTaskAnn = taskAnns.some(ann => (parseInt(ann.id) || 0) > lastViewedId);
@@ -8764,7 +8764,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     </div>`;
 
       if (!t.questions || t.questions.length === 0) {
-        html += `<div style="text-align:center;padding:40px;color:var(--t4);">لا توجد أسئلة لهذه المهمة.</div>`;
+        html += `<div style="text-align:center;padding:40px;color:var(--t4);">لا توجد أسئلة لهذا التاسك.</div>`;
       } else {
         t.questions.forEach((q, i) => {
           const qType = q.question_type || 'mcq';
@@ -9470,7 +9470,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         let label = "الكل مدمج";
         if (selectedSendCategory === 'att') label = "الحضور";
         else if (selectedSendCategory === 'com') label = "الالتزام";
-        else if (selectedSendCategory === 'task') label = "المهام";
+        else if (selectedSendCategory === 'task') label = "التاسكات";
 
         const amount = parseInt(document.getElementById('sendAmount').value);
         document.getElementById('sendSummaryMsg').innerHTML = `سوف تقوم بإرسال <strong style="font-size:1.15rem; color:#f59e0b;">${amount}</strong> كوبون من رصيد [${label}] إلى صديقك <strong style="color:#60a5fa;">(${selectedRecipientNameStr})</strong>.`;

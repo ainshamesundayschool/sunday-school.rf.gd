@@ -40,7 +40,7 @@
   function pageLabel(path) {
     if (path.indexOf('/login') !== -1) return 'تسجيل الدخول';
     if (path.indexOf('/registration') !== -1 || path.indexOf('church-register') !== -1) return 'التسجيل';
-    if (path.indexOf('/dashboard/tasks') !== -1) return 'المهام';
+    if (path.indexOf('/dashboard/tasks') !== -1) return 'التاسكات';
     if (path.indexOf('/dashboard/withdraw') !== -1) return 'السحب';
     if (path.indexOf('/dashboard') !== -1 || path.indexOf('/uncle/church') !== -1) return 'لوحة التحكم';
     if (path.indexOf('/trip') !== -1 || path.indexOf('/trips') !== -1) return 'الرحلات';

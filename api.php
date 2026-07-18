@@ -6251,7 +6251,7 @@ function getData()
 
                     'كوبونات الالتزام' => intval($row['commitment_coupons']),
 
-                    'كوبونات المهام' => intval($row['task_coupons']),
+                    'كوبونات التاسكات' => intval($row['task_coupons']),
 
                     'تليفون الطوارئ' => $row['emergency_phone'] ?? '',
 
@@ -6654,7 +6654,7 @@ function getData()
 
                 'كوبونات الالتزام' => intval($row['commitment_coupons']),
 
-                'كوبونات المهام' => intval($row['task_coupons']),
+                'كوبونات التاسكات' => intval($row['task_coupons']),
 
                 'تليفون الطوارئ' => $row['emergency_phone'] ?? '',
 
@@ -6951,7 +6951,7 @@ function withdrawCoupons()
             $tsk_sub = 0;
         } elseif ($category === 'task') {
             if ($tsk_avail < $amount) {
-                throw new Exception('رصيد كوبونات المهام غير كافٍ');
+                throw new Exception('رصيد كوبونات التاسكات غير كافٍ');
             }
             $att_sub = 0;
             $com_sub = 0;
@@ -41096,7 +41096,7 @@ function getTaskDetail()
 
         if (!$task) {
 
-            sendJSON(['success' => false, 'message' => 'المهمة غير موجودة']);
+            sendJSON(['success' => false, 'message' => 'التاسك غير موجودة']);
 
             return;
 
@@ -41386,7 +41386,7 @@ function createTask()
                     $extra['class_ids'] = (string)$classId;
                 }
             }
-            _sendWebPushToKids($conn, $churchId, 'مهمة جديدة 📝', "مهمة جديدة: {$title}", $extra);
+            _sendWebPushToKids($conn, $churchId, 'تاسك جديد 📝', "تاسك جديد: {$title}", $extra);
         }
 
         if (function_exists('writeAuditLog')) {
@@ -41397,7 +41397,7 @@ function createTask()
 
 
 
-        sendJSON(['success' => true, 'task_id' => $taskId, 'message' => 'تم إنشاء المهمة']);
+        sendJSON(['success' => true, 'task_id' => $taskId, 'message' => 'تم إنشاء التاسك']);
 
     } catch (Exception $e) {
 
@@ -41503,7 +41503,7 @@ function deleteSubmission()
 
                 $negAwarded = -$awarded;
 
-                $reason = "حذف إجابة مهمة #{$sub['task_id']}: {$sub['title']}";
+                $reason = "حذف إجابة تاسك #{$sub['task_id']}: {$sub['title']}";
 
                 $logStmt = $conn->prepare("INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason) VALUES (?,?,?,?,?,'task',?)");
 
@@ -41603,7 +41603,7 @@ function updateTask()
 
             if (!$r || (int) $r['uncle_id'] !== $uncleId) {
 
-                sendJSON(['success' => false, 'message' => 'غير مصرح بتعديل هذه المهمة']);
+                sendJSON(['success' => false, 'message' => 'غير مصرح بتعديل هذا التاسك']);
 
                 return;
 
@@ -41971,7 +41971,7 @@ function updateTask()
 
                     // Log
 
-                    $reason2 = "تحديث مهمة #{$taskId}: تعديل درجة {$oldScore}→{$newScore}";
+                    $reason2 = "تحديث تاسك #{$taskId}: تعديل درجة {$oldScore}→{$newScore}";
 
                     $log2 = $conn->prepare("INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason) VALUES (?,?,?,?,?,'task',?)");
 
@@ -42027,7 +42027,7 @@ function updateTask()
 
             // Check if there's any target class or student
             if ($notifiedClass !== '' || $notifiedStudents !== '') {
-                $annText = "تم تعديل المهمة: " . $title . " وتحديث الكوبونات الخاصة بها.";
+                $annText = "تم تعديل التاسك: " . $title . " وتحديث الكوبونات الخاصة بها.";
                 $annStmt = $conn->prepare("INSERT INTO announcements (church_id, type, text, link, class, student_names, is_active, created_at) VALUES (?, 'task', ?, '', ?, ?, 1, NOW())");
                 $annStmt->bind_param('isss', $churchId, $annText, $notifiedClass, $notifiedStudents);
                 $annStmt->execute();
@@ -42048,7 +42048,7 @@ function updateTask()
                     $extra['class_ids'] = (string)$classId;
                 }
             }
-            _sendWebPushToKids($conn, $churchId, 'تحديث مهمة 📝', "تم تحديث المهمة: {$title}", $extra);
+            _sendWebPushToKids($conn, $churchId, 'تحديث تاسك 📝', "تم تحديث التاسك: {$title}", $extra);
         }
 
         $conn->commit();
@@ -42063,7 +42063,7 @@ function updateTask()
 
 
 
-        sendJSON(['success' => true, 'message' => 'تم تحديث المهمة وإعادة حساب نتائج الأطفال']);
+        sendJSON(['success' => true, 'message' => 'تم تحديث التاسك وإعادة حساب نتائج الأطفال']);
 
     } catch (Exception $e) {
 
@@ -42103,7 +42103,7 @@ function bulkClassifyTasks()
 
         if (empty($taskIds)) {
 
-            sendJSON(['success' => false, 'message' => 'لم يتم تحديد أي مهام']);
+            sendJSON(['success' => false, 'message' => 'لم يتم تحديد أي تاسكات']);
 
             return;
 
@@ -42135,7 +42135,7 @@ function bulkClassifyTasks()
 
 
 
-        sendJSON(['success' => true, 'message' => 'تم تصنيف المهام المحددة بنجاح']);
+        sendJSON(['success' => true, 'message' => 'تم تصنيف التاسكات المحددة بنجاح']);
 
     } catch (Exception $e) {
 
@@ -42257,7 +42257,7 @@ function deleteTask()
 
                     $totalReversed += $awarded;
 
-                    $reason = "حذف مهمة #{$taskId} (مع سحب الكوبونات)";
+                    $reason = "حذف تاسك #{$taskId} (مع سحب الكوبونات)";
 
                     $negAwarded = -$awarded;
 
@@ -42289,7 +42289,7 @@ function deleteTask()
 
                 if ($stu) {
 
-                    $reason = "حذف مهمة #{$taskId} (الكوبونات محتفظ بها)";
+                    $reason = "حذف تاسك #{$taskId} (الكوبونات محتفظ بها)";
 
                     $zero = 0;
 
@@ -42339,7 +42339,7 @@ function deleteTask()
 
 
 
-        $msg = $reverseCoupons ? 'تم حذف المهمة وسحب الكوبونات' : 'تم حذف المهمة والكوبونات محتفظ بها';
+        $msg = $reverseCoupons ? 'تم حذف التاسك وسحب الكوبونات' : 'تم حذف التاسك والكوبونات محتفظ بها';
 
         sendJSON(['success' => true, 'message' => $msg, 'coupons_reversed' => $totalReversed, 'reverse_coupons' => $reverseCoupons]);
 
@@ -42873,7 +42873,7 @@ function submitTaskAnswers()
 
         if (!$task) {
 
-            sendJSON(['success' => false, 'message' => 'المهمة غير متاحة']);
+            sendJSON(['success' => false, 'message' => 'التاسك غير متاحة']);
 
             return;
 
@@ -43005,7 +43005,7 @@ function submitTaskAnswers()
 
             ");
 
-            $reason = "مهمة #{$taskId}: {$task['title']}";
+            $reason = "تاسك #{$taskId}: {$task['title']}";
 
             $log->bind_param('iiiis', $studentId, $stu['task_coupons'], $newTask, $coupons, $reason);
 
@@ -43039,9 +43039,9 @@ function submitTaskAnswers()
 
             'task_submission',
 
-            'تسليم مهمة جديدة',
+            'تسليم تاسك جديد',
 
-            "{$stuName} سلّم مهمة «{$task['title']}» بدرجة {$score} من {$task['total_degree']}",
+            "{$stuName} سلّم تاسك «{$task['title']}» بدرجة {$score} من {$task['total_degree']}",
 
             'task',
 
@@ -43052,8 +43052,8 @@ function submitTaskAnswers()
         _sendWebPushToChurch(
             $conn,
             $churchId,
-            'تسليم مهمة جديدة 📝',
-            "{$stuName} سلّم مهمة «{$task['title']}» بدرجة {$score} من {$task['total_degree']}",
+            'تسليم تاسك جديد 📝',
+            "{$stuName} سلّم تاسك «{$task['title']}» بدرجة {$score} من {$task['total_degree']}",
             ['notifType' => 'task_submission', 'url' => '/uncle/dashboard/']
         );
 
@@ -46016,7 +46016,7 @@ function gradeOpenAnswer()
 
                 $sign = $couponDiff > 0 ? "إضافة {$couponDiff}" : "خصم " . abs($couponDiff);
 
-                $reason = "تصحيح مهمة #{$sub['task_id']}: {$sign} كوبون";
+                $reason = "تصحيح تاسك #{$sub['task_id']}: {$sign} كوبون";
 
                 $log = $conn->prepare("INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason) VALUES (?,?,?,?,?,'task',?)");
 
@@ -46040,7 +46040,7 @@ function gradeOpenAnswer()
         $taskTitle = $sub['task_title'] ?? '';
 
         if ($studentName !== '') {
-            $annText = "تم تصحيح المهمة: \"{$taskTitle}\" وحصلت على {$coupons} من الكوبونات!";
+            $annText = "تم تصحيح التاسك: \"{$taskTitle}\" وحصلت على {$coupons} من الكوبونات!";
             $annStmt = $conn->prepare("INSERT INTO announcements (church_id, type, text, link, class, student_names, is_active, created_at) VALUES (?, 'task', ?, '', ?, ?, 1, NOW())");
             $annStmt->bind_param('isss', $churchId, $annText, $studentClass, $studentName);
             $annStmt->execute();
@@ -48247,7 +48247,7 @@ function shareCoupons()
             $tsk_sub = 0;
         } elseif ($category === 'task') {
             if ($sender_tsk < $amount) {
-                throw new Exception('رصيد كوبونات المهام غير كافٍ');
+                throw new Exception('رصيد كوبونات التاسكات غير كافٍ');
             }
             $att_sub = 0;
             $com_sub = 0;

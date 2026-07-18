@@ -1493,16 +1493,16 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             <div class="breakdown-card">
                 <div class="br-row"><div class="br-lbl">حضور</div><div class="br-val">${s['كوبونات الحضور'] || 0}</div></div>
                 <div class="br-row"><div class="br-lbl">التزام</div><div class="br-val">${s['كوبونات الالتزام'] || 0}</div></div>
-                <div class="br-row"><div class="br-lbl">مهام</div><div class="br-val">${s['كوبونات المهام'] || 0}</div></div>
+                <div class="br-row"><div class="br-lbl">تاسكات</div><div class="br-val">${s['كوبونات التاسكات'] || 0}</div></div>
             </div>
             <div class="action-box" style="padding-bottom:20px">
                 <div style="font-weight:900;margin-bottom:8px;padding-right:8px;font-size:0.9rem">سحب كوبونات</div>
                 <div style="margin-bottom:12px;">
                     <select id="wCategory" onchange="checkAmount()" style="padding:8px 12px;border:1.5px solid var(--border-solid);border-radius:10px;font-family:inherit;font-size:.82rem;font-weight:800;background:var(--surface);color:var(--text);outline:none;width:100%;">
-                        <option value="all">الكل مدمج (حضور ← التزام ← مهام)</option>
+                        <option value="all">الكل مدمج (حضور ← التزام ← تاسكات)</option>
                         <option value="att">الحضور فقط</option>
                         <option value="com">الالتزام فقط</option>
-                        <option value="task">المهام فقط</option>
+                        <option value="task">التاسكات فقط</option>
                     </select>
                 </div>
                 <div style="margin-bottom:12px;">
@@ -1536,7 +1536,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             if (selectedStudent) {
                 if (category === 'att') max = parseInt(selectedStudent['كوبونات الحضور'] || 0);
                 else if (category === 'com') max = parseInt(selectedStudent['كوبونات الالتزام'] || 0);
-                else if (category === 'task') max = parseInt(selectedStudent['كوبونات المهام'] || 0);
+                else if (category === 'task') max = parseInt(selectedStudent['كوبونات التاسكات'] || 0);
                 else max = parseInt(selectedStudent['كوبونات'] || 0);
             }
 
@@ -1601,7 +1601,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
             let limit = selectedStudent ? (selectedStudent['كوبونات'] || 0) : 0;
             if (category === 'att') limit = parseInt(selectedStudent['كوبونات الحضور'] || 0);
             else if (category === 'com') limit = parseInt(selectedStudent['كوبونات الالتزام'] || 0);
-            else if (category === 'task') limit = parseInt(selectedStudent['كوبونات المهام'] || 0);
+            else if (category === 'task') limit = parseInt(selectedStudent['كوبونات التاسكات'] || 0);
 
             if (val > limit) { showToast('الرصيد غير كافٍ في هذا التصنيف', 'error'); return; }
 
@@ -1648,7 +1648,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                                     breakdownDiv.innerHTML = `
                                         <div class="br-row"><div class="br-lbl">حضور</div><div class="br-val">${updated['كوبونات الحضور'] || 0}</div></div>
                                         <div class="br-row"><div class="br-lbl">التزام</div><div class="br-val">${updated['كوبونات الالتزام'] || 0}</div></div>
-                                        <div class="br-row"><div class="br-lbl">مهام</div><div class="br-val">${updated['كوبونات المهام'] || 0}</div></div>
+                                        <div class="br-row"><div class="br-lbl">تاسكات</div><div class="br-val">${updated['كوبونات التاسكات'] || 0}</div></div>
                                     `;
                                 }
                             }
@@ -1688,7 +1688,7 @@ $uncleName = $_SESSION['uncle_name'] ?? '';
                                     breakdownDiv.innerHTML = `
                                         <div class="br-row"><div class="br-lbl">حضور</div><div class="br-val">${updated['كوبونات الحضور'] || 0}</div></div>
                                         <div class="br-row"><div class="br-lbl">التزام</div><div class="br-val">${updated['كوبونات الالتزام'] || 0}</div></div>
-                                        <div class="br-row"><div class="br-lbl">مهام</div><div class="br-val">${updated['كوبونات المهام'] || 0}</div></div>
+                                        <div class="br-row"><div class="br-lbl">تاسكات</div><div class="br-val">${updated['كوبونات التاسكات'] || 0}</div></div>
                                     `;
                                 }
                             }

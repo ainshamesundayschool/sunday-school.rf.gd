@@ -287,7 +287,7 @@ $dashBack    = '/uncle/dashboard/' . ($activeClass ? '?class='.urlencode($active
     <!-- ═══ Social Preview Defaults ═══ -->
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Sunday School">
-    <meta property="og:title" content="المهام">
+    <meta property="og:title" content="التاسكات">
     <meta property="og:description" content="منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد">
     <meta property="og:url" content="https://sunday-school.online/uncle/dashboard/tasks/">
     <meta property="og:image" content="https://sunday-school.online/imgs/Sunday-School-Og.png">
@@ -297,14 +297,14 @@ $dashBack    = '/uncle/dashboard/' . ($activeClass ? '?class='.urlencode($active
     <meta property="og:image:alt" content="Sunday School">
     <meta property="og:locale" content="ar_AR">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="المهام">
+    <meta name="twitter:title" content="التاسكات">
     <meta name="twitter:description" content="منصة متكاملة لإدارة مدارس الأحد — الحضور، الكوبونات، الرحلات / المؤتمرات والمزيد">
     <meta name="twitter:image" content="https://sunday-school.online/imgs/Sunday%20School%20App.png">
 
 
 
 
-<title>المهام — <?php echo htmlspecialchars($activeClass ?: $churchName); ?></title>
+<title>التاسكات — <?php echo htmlspecialchars($activeClass ?: $churchName); ?></title>
 
 
 
@@ -12190,7 +12190,7 @@ body.body-iframe-view .iframe-subpage-header {
 
 
 
-    المهام والاختبارات
+    التاسكات والاختبارات
 
 
 
@@ -12202,7 +12202,7 @@ body.body-iframe-view .iframe-subpage-header {
 
 
 
-    <i class="fas fa-plus"></i><span class="btn-text"> مهمة جديدة</span>
+    <i class="fas fa-plus"></i><span class="btn-text"> تاسك جديد</span>
 
 
 
@@ -12228,7 +12228,7 @@ body.body-iframe-view .iframe-subpage-header {
     <div style="display: flex; align-items: center; gap: 12px;">
       <button onclick="window.parent.postMessage({ action: 'closeTasksModal' }, '*')" style="background: var(--bg-card); border: 1px solid var(--bdr); border-radius: var(--r-md); width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--t1); transition: all 0.2s;" onmouseover="this.style.background='var(--brand-bg)'; this.style.color='var(--brand)';" onmouseout="this.style.background='var(--bg-card)'; this.style.color='var(--t1)';"><i class="fas fa-arrow-right"></i></button>
       <div>
-        <div style="font-size: 1.25rem; font-weight: 800; color: var(--t1); font-family: 'Cairo', 'Baloo Bhaijaan 2', sans-serif;">المهام والاختبارات</div>
+        <div style="font-size: 1.25rem; font-weight: 800; color: var(--t1); font-family: 'Cairo', 'Baloo Bhaijaan 2', sans-serif;">التاسكات والاختبارات</div>
         <?php if ($activeClass): ?>
           <div style="font-size: 0.75rem; font-weight: 700; color: var(--brand); background: var(--brand-bg); padding: 2px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; border: 1px solid var(--brand-l);">
             <i class="fas fa-users" style="font-size: 0.65rem;"></i> <?php echo htmlspecialchars($activeClass); ?>
@@ -12240,11 +12240,11 @@ body.body-iframe-view .iframe-subpage-header {
     <!-- Stats Row -->
     <div class="iframe-stats-row" style="display: flex; gap: 12px; align-items: center;">
       <div style="background: var(--bg-card); border: 1px solid var(--bdr); border-radius: var(--r-md); padding: 6px 14px; text-align: center; min-width: 70px;">
-        <div style="font-size: 0.68rem; color: var(--t3); font-weight: bold; margin-bottom: 2px;">إجمالي المهام</div>
+        <div style="font-size: 0.68rem; color: var(--t3); font-weight: bold; margin-bottom: 2px;">إجمالي التاسكات</div>
         <div style="font-size: 1.05rem; font-weight: 800; color: var(--t1);" id="stTotalIframe">—</div>
       </div>
       <div style="background: var(--bg-card); border: 1px solid var(--bdr); border-radius: var(--r-md); padding: 6px 14px; text-align: center; min-width: 70px;">
-        <div style="font-size: 0.68rem; color: var(--t3); font-weight: bold; margin-bottom: 2px;">المهام النشطة</div>
+        <div style="font-size: 0.68rem; color: var(--t3); font-weight: bold; margin-bottom: 2px;">التاسكات النشطة</div>
         <div style="font-size: 1.05rem; font-weight: 800; color: var(--brand);" id="stActiveIframe">—</div>
       </div>
       <div style="background: var(--bg-card); border: 1px solid var(--bdr); border-radius: var(--r-md); padding: 6px 14px; text-align: center; min-width: 70px;">
@@ -12255,7 +12255,7 @@ body.body-iframe-view .iframe-subpage-header {
 
     <!-- Actions -->
     <div style="display: flex; gap: 10px; align-items: center;">
-      <button class="btn-create" onclick="openCreate()" style="padding: 10px 18px; font-size: 0.85rem; font-weight: 800; height: 38px; display: inline-flex; align-items: center; gap: 6px;"><i class="fas fa-plus"></i> مهمة جديدة</button>
+      <button class="btn-create" onclick="openCreate()" style="padding: 10px 18px; font-size: 0.85rem; font-weight: 800; height: 38px; display: inline-flex; align-items: center; gap: 6px;"><i class="fas fa-plus"></i> تاسك جديد</button>
       <button onclick="openTasksOverviewModal()" style="background:var(--brand-bg); color:var(--brand); border:1.5px solid var(--brand-l); font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; gap:6px; padding: 0 16px; border-radius: var(--r-md); font-size: 0.85rem; font-family: 'Cairo', 'Baloo Bhaijaan 2', sans-serif; height: 38px; transition: all 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='var(--brand-bg)'; this.style.color='var(--brand)';"><i class="fas fa-file-export"></i> تصدير نظرة عامة</button>
     </div>
   </header>
@@ -12280,11 +12280,11 @@ body.body-iframe-view .iframe-subpage-header {
 
 
 
-      <div class="hero-title">المهام والاختبارات</div>
+      <div class="hero-title">التاسكات والاختبارات</div>
 
 
 
-      <div class="hero-sub">تابع حالة كل مهمة بسرعة، وابدأ مهمة جديدة من واجهة أبسط تركز على المواعيد والإعدادات المهمة بدون تعقيد.</div>
+      <div class="hero-sub">تابع حالة كل تاسك بسرعة، وابدأ تاسك جديد من واجهة أبسط تركز على المواعيد والإعدادات التاسك بدون تعقيد.</div>
 
 
 
@@ -12292,7 +12292,7 @@ body.body-iframe-view .iframe-subpage-header {
 
 
 
-        <button class="btn-create" onclick="openCreate()"><i class="fas fa-plus"></i> مهمة جديدة</button>
+        <button class="btn-create" onclick="openCreate()"><i class="fas fa-plus"></i> تاسك جديد</button>
 
         <button class="hero-link" onclick="openTasksOverviewModal()" style="background:var(--brand-bg); color:var(--brand); border:1px solid var(--brand-l); font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; gap:6px;"><i class="fas fa-file-export"></i> تصدير نظرة عامة</button>
 
@@ -12316,7 +12316,7 @@ body.body-iframe-view .iframe-subpage-header {
 
 
 
-        <div class="hero-mini-label">إجمالي المهام</div>
+        <div class="hero-mini-label">إجمالي التاسكات</div>
 
 
 
@@ -12412,7 +12412,7 @@ body.body-iframe-view .iframe-subpage-header {
 
 
 
-      <div class="sec-title"><div class="sec-dot"></div>المهام</div>
+      <div class="sec-title"><div class="sec-dot"></div>التاسكات</div>
 
 
 
@@ -12496,7 +12496,7 @@ body.body-iframe-view .iframe-subpage-header {
 
 
 
-      <div><div class="mhdr-title" id="createTitle">إنشاء مهمة جديدة</div><div class="mhdr-sub">اختبار MCQ مع مكافآت كوبونات</div></div>
+      <div><div class="mhdr-title" id="createTitle">إنشاء تاسك جديد</div><div class="mhdr-sub">اختبار MCQ مع مكافآت كوبونات</div></div>
 
 
 
@@ -12572,7 +12572,7 @@ body.body-iframe-view .iframe-subpage-header {
 
 
 
-          <div class="scard2-hdr"><i class="fas fa-pen"></i> معلومات المهمة</div>
+          <div class="scard2-hdr"><i class="fas fa-pen"></i> معلومات التاسك</div>
 
 
 
@@ -12904,7 +12904,7 @@ body.body-iframe-view .iframe-subpage-header {
 
 
 
-                <div class="sopt-desc">عداد تنازلي يبدأ عند فتح الطفل للمهمة</div>
+                <div class="sopt-desc">عداد تنازلي يبدأ عند فتح الطفل للتاسك</div>
 
 
 
@@ -12988,7 +12988,7 @@ body.body-iframe-view .iframe-subpage-header {
 
 
 
-                <span>اختر الخيارات التي تجعل المهمة أوضح: نتيجة فورية، مراجعة الإجابات، أو إظهار الحلول بعد الإنهاء.</span>
+                <span>اختر الخيارات التي تجعل التاسك أوضح: نتيجة فورية، مراجعة الإجابات، أو إظهار الحلول بعد الإنهاء.</span>
 
 
 
@@ -13264,7 +13264,7 @@ body.body-iframe-view .iframe-subpage-header {
 
 
 
-      <div><div class="mhdr-title" id="dTitle">تفاصيل المهمة</div><div class="mhdr-sub" id="dSub"></div></div>
+      <div><div class="mhdr-title" id="dTitle">تفاصيل التاسك</div><div class="mhdr-sub" id="dSub"></div></div>
 
 
 
@@ -13316,7 +13316,7 @@ body.body-iframe-view .iframe-subpage-header {
 
 
 
-      <div class="conf-t">حذف المهمة؟</div>
+      <div class="conf-t">حذف التاسك؟</div>
 
 
 
@@ -13535,8 +13535,8 @@ body.body-iframe-view .iframe-subpage-header {
     <div class="mhdr">
       <div class="mhdr-ico" style="background:var(--brand-bg); color:var(--brand);"><i class="fas fa-file-export"></i></div>
       <div>
-        <div class="mhdr-title">تصدير نظرة عامة للمهام</div>
-        <div class="mhdr-sub">تصدير نتائج وحل الطلاب للمهام بصيغ مختلفة (صورة، PDF، CSV، أو نسخ رسالة)</div>
+        <div class="mhdr-title">تصدير نظرة عامة للتاسكات</div>
+        <div class="mhdr-sub">تصدير نتائج وحل الطلاب للتاسكات بصيغ مختلفة (صورة، PDF، CSV، أو نسخ رسالة)</div>
       </div>
       <div class="mclose" onclick="closeOv('overviewOv')"><i class="fas fa-times"></i></div>
     </div>
@@ -13557,9 +13557,9 @@ body.body-iframe-view .iframe-subpage-header {
           <label style="font-weight:700; font-size:.9rem; color:var(--t1);">عرض الطلاب:</label>
           <select id="ovAnswerStatus" onchange="renderOverviewTable()" style="padding:8px 12px; border:1px solid var(--bdr); border-radius:8px; background:#fff; font-size:.87rem; outline:none; cursor:pointer;">
             <option value="both">الكل (الذين أجابوا والذين لم يجيبوا)</option>
-            <option value="answered">الذين أجابوا فقط (على الأقل مهمة واحدة)</option>
-            <option value="unanswered">الذين لم يجيبوا على أي مهمة</option>
-            <option value="missing">الذين لديهم مهام لم يتم حلها</option>
+            <option value="answered">الذين أجابوا فقط (على الأقل تاسك واحد)</option>
+            <option value="unanswered">الذين لم يجيبوا على أي تاسك</option>
+            <option value="missing">الذين لديهم تاسكات لم يتم حلها</option>
           </select>
         </div>
         
@@ -13577,7 +13577,11 @@ body.body-iframe-view .iframe-subpage-header {
           </label>
           <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:.87rem; color:var(--t1);">
             <input type="checkbox" id="ovShowTime" onchange="renderOverviewTable()" checked style="accent-color:var(--brand); width:16px; height:16px; cursor:pointer;">
-            <span>عرض وقت تسليم المهمة</span>
+            <span>عرض وقت تسليم التاسك</span>
+          </label>
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:.87rem; color:var(--t1);">
+            <input type="checkbox" id="ovOnlyResList" onchange="renderOverviewTable()" style="accent-color:var(--brand); width:16px; height:16px; cursor:pointer;">
+            <span>عرض قائمة المجيبين لكل تاسك فقط</span>
           </label>
         </div>
       </div>
@@ -14258,7 +14262,7 @@ async function loadTasks() {
 
 
 
-    else showToast(d.message||'فشل تحميل المهام', 'err');
+    else showToast(d.message||'فشل تحميل التاسكات', 'err');
 
 
 
@@ -14450,7 +14454,7 @@ function renderGrid() {
 
 
 
-    g.innerHTML = `<div class="empty"><div class="empty-ico"><i class="fas fa-clipboard-list"></i></div><div class="empty-t">لا توجد مهام</div><div class="empty-s">اضغط "مهمة جديدة" لإنشاء أول اختبار</div><button class="btn btn-p" onclick="openCreate()"><i class="fas fa-plus"></i> إنشاء مهمة</button></div>`;
+    g.innerHTML = `<div class="empty"><div class="empty-ico"><i class="fas fa-clipboard-list"></i></div><div class="empty-t">لا توجد تاسكات</div><div class="empty-s">اضغط "تاسك جديد" لإنشاء أول اختبار</div><button class="btn btn-p" onclick="openCreate()"><i class="fas fa-plus"></i> إنشاء تاسك</button></div>`;
 
 
 
@@ -14678,11 +14682,11 @@ function openCreate(taskId=null) {
 
 
 
-  if (taskId) { const t=tasks.find(x=>x.id==taskId); if(t)fillForm(t); document.getElementById('createTitle').textContent='تعديل المهمة'; }
+  if (taskId) { const t=tasks.find(x=>x.id==taskId); if(t)fillForm(t); document.getElementById('createTitle').textContent='تعديل التاسك'; }
 
 
 
-  else { document.getElementById('createTitle').textContent='إنشاء مهمة جديدة'; addQ(); addQ(); }
+  else { document.getElementById('createTitle').textContent='إنشاء تاسك جديد'; addQ(); addQ(); }
 
 
 
@@ -16820,7 +16824,7 @@ async function saveTask(status){
 
 
 
-    if(d.success){ showToast(status==='draft'?'تم حفظ المسودة ✓':'تم نشر المهمة 🎉',status==='draft'?'info':'ok'); closeCreate(); await loadTasks(); }
+    if(d.success){ showToast(status==='draft'?'تم حفظ المسودة ✓':'تم نشر التاسك 🎉',status==='draft'?'info':'ok'); closeCreate(); await loadTasks(); }
 
 
 
@@ -17491,7 +17495,7 @@ function showDeleteSubConfirm(subId, studentName, coupons, taskId){
 
 
 
-      + (coupons>0?`<br><span style="color:var(--err);font-size:.8rem;">سيتم خصم ${coupons} كوبون من كوبونات المهام فقط.</span>`:'');
+      + (coupons>0?`<br><span style="color:var(--err);font-size:.8rem;">سيتم خصم ${coupons} كوبون من كوبونات التاسكات فقط.</span>`:'');
 
 
 
@@ -17543,7 +17547,7 @@ async function doDeleteSubConfirmed(){
 
 
 
-      if(d.coupons_reversed > 0) msg += ` — تم خصم ${d.coupons_reversed} كوبون من كوبونات المهام`;
+      if(d.coupons_reversed > 0) msg += ` — تم خصم ${d.coupons_reversed} كوبون من كوبونات التاسكات`;
 
 
 
@@ -17655,7 +17659,7 @@ function openConf(id) {
 
 
 
-    detailEl.textContent = `حصل ${kidCount} طفل على إجمالي ${totalCoupons} كوبون من هذه المهمة. اختر إذا كنت تريد سحبها أو الاحتفاظ بها.`;
+    detailEl.textContent = `حصل ${kidCount} طفل على إجمالي ${totalCoupons} كوبون من هذا التاسك. اختر إذا كنت تريد سحبها أو الاحتفاظ بها.`;
 
 
 
@@ -17703,7 +17707,7 @@ async function doDelete(reverseCoupons) {
 
 
 
-      let msg = 'تم حذف المهمة';
+      let msg = 'تم حذف التاسك';
 
 
 
@@ -18678,11 +18682,11 @@ async function submitGrade(subId, subIdx) {
 
 
 
-      if(d.coupon_diff > 0)       couponMsg = ` — تمت إضافة ${d.coupon_diff} كوبون لكوبونات المهام`;
+      if(d.coupon_diff > 0)       couponMsg = ` — تمت إضافة ${d.coupon_diff} كوبون لكوبونات التاسكات`;
 
 
 
-      else if(d.coupon_diff < 0)  couponMsg = ` — تم خصم ${Math.abs(d.coupon_diff)} كوبون من كوبونات المهام`;
+      else if(d.coupon_diff < 0)  couponMsg = ` — تم خصم ${Math.abs(d.coupon_diff)} كوبون من كوبونات التاسكات`;
 
 
 
@@ -18938,7 +18942,7 @@ function viewAnswers(taskId, studentId) {
 
 
 
-        <div class="ans-sub">أجاب على المهمة: <strong>${esc(t.title||'')}</strong></div>
+        <div class="ans-sub">أجاب على التاسك: <strong>${esc(t.title||'')}</strong></div>
 
 
 
@@ -18974,7 +18978,7 @@ function viewAnswers(taskId, studentId) {
 
 
 
-    html += `<div style="text-align:center;padding:40px;color:var(--t4);font-size:.88rem;"><i class="fas fa-question-circle" style="font-size:2rem;display:block;margin-bottom:10px;color:var(--t4);"></i>لا توجد أسئلة لهذه المهمة.</div>`;
+    html += `<div style="text-align:center;padding:40px;color:var(--t4);font-size:.88rem;"><i class="fas fa-question-circle" style="font-size:2rem;display:block;margin-bottom:10px;color:var(--t4);"></i>لا توجد أسئلة لهذا التاسك.</div>`;
 
 
 
@@ -19330,7 +19334,7 @@ function toggleNoDeadline(sync=false){
 
 
 
-    note.textContent = 'لن يكون هناك آخر موعد، وستظل المهمة متاحة بعد البداية.';
+    note.textContent = 'لن يكون هناك آخر موعد، وستظل التاسك متاحة بعد البداية.';
 
 
 
@@ -19692,7 +19696,7 @@ function renderOverviewTable() {
   
   if (checkedClassNames.length === 0) {
     tableContainer.innerHTML = '<div style="text-align:center; padding:40px; color:var(--t3);">برجاء تحديد فصل واحد على الأقل للعرض.</div>';
-    statsText.textContent = 'عدد الطلاب: 0 | عدد المهام: 0';
+    statsText.textContent = 'عدد الطلاب: 0 | عدد التاسكات: 0';
     return;
   }
   
@@ -19760,8 +19764,49 @@ function renderOverviewTable() {
   }
   
   if (targetTasks.length === 0) {
-    tableContainer.innerHTML = '<div style="text-align:center; padding:40px; color:var(--t3);">لا توجد مهام منشورة لهذه الفصول بعد.</div>';
-    statsText.textContent = `عدد الطلاب: ${targetStudents.length} | عدد المهام: 0`;
+    tableContainer.innerHTML = '<div style="text-align:center; padding:40px; color:var(--t3);">لا توجد تاسكات منشورة لهذه الفصول بعد.</div>';
+    statsText.textContent = `عدد الطلاب: ${targetStudents.length} | عدد التاسكات: 0`;
+    return;
+  }
+
+  const onlyResList = document.getElementById('ovOnlyResList') && document.getElementById('ovOnlyResList').checked;
+  if (onlyResList) {
+    let html = `<table class="ov-table" id="ovExportTable">`;
+    html += `<thead><tr>`;
+    html += `<th style="width:30%;">اسم التاسك</th>`;
+    html += `<th style="width:15%; text-align:center;">الفصل</th>`;
+    html += `<th style="width:15%; text-align:center;">عدد المجيبين</th>`;
+    html += `<th style="width:40%;">الطلاب الذين أجابوا</th>`;
+    html += `</tr></thead><tbody>`;
+
+    targetTasks.forEach(t => {
+      const respondents = targetStudents.filter(s => subMap[s.id + '_' + t.id]);
+      let namesText = respondents.map((s, idx) => {
+        if (showGrades) {
+          const sub = subMap[s.id + '_' + t.id];
+          const scoreVal = parseInt(sub.score);
+          const totalVal = parseInt(t.total_degree || sub.total_degree || 0);
+          return `<span style="display:inline-block; margin:2px 4px; padding:4px 8px; background:var(--brand-bg); color:var(--brand); border-radius:6px; font-size:0.78rem;">${idx + 1}. ${esc(s.name)} (${scoreVal}/${totalVal})</span>`;
+        } else {
+          return `<span style="display:inline-block; margin:2px 4px; padding:4px 8px; background:var(--bg-card); color:var(--t1); border:1px solid var(--bdr); border-radius:6px; font-size:0.78rem;">${idx + 1}. ${esc(s.name)}</span>`;
+        }
+      }).join(' ');
+
+      if (respondents.length === 0) {
+        namesText = `<span style="color:var(--t3); font-style:italic;">لا يوجد مجيبين بعد</span>`;
+      }
+
+      html += `<tr>`;
+      html += `<td><strong>${esc(t.title)}</strong></td>`;
+      html += `<td style="text-align:center;"><span class="ov-class-badge">${esc(t.class_name || 'كل الفصول')}</span></td>`;
+      html += `<td style="text-align:center;"><strong style="color:var(--brand);">${respondents.length}</strong> / ${targetStudents.length}</td>`;
+      html += `<td>${namesText}</td>`;
+      html += `</tr>`;
+    });
+
+    html += `</tbody></table>`;
+    tableContainer.innerHTML = html;
+    statsText.textContent = `عدد الطلاب: ${targetStudents.length} | عدد التاسكات: ${targetTasks.length}`;
     return;
   }
   
@@ -19813,7 +19858,7 @@ function renderOverviewTable() {
   html += `</tbody></table>`;
   tableContainer.innerHTML = html;
   
-  statsText.textContent = `عدد الطلاب: ${targetStudents.length} | عدد المهام: ${targetTasks.length}`;
+  statsText.textContent = `عدد الطلاب: ${targetStudents.length} | عدد التاسكات: ${targetTasks.length}`;
 }
 
 function exportOverviewCSV() {
@@ -19853,10 +19898,10 @@ function copyOverviewMessage() {
   const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.innerText.trim());
   const rows = Array.from(table.querySelectorAll('tbody tr'));
   
-  let msg = `📊 *تقرير حل المهام والاختبارات*\n`;
+  let msg = `📊 *تقرير حل التاسكات والاختبارات*\n`;
   msg += `📅 التاريخ: ${new Date().toLocaleDateString('ar-EG')}\n\n`;
   
-  msg += `📋 *المهام:* \n`;
+  msg += `📋 *التاسكات:* \n`;
   for (let i = 2; i < headers.length; i++) {
     msg += ` ${i-1}- ${headers[i]}\n`;
   }
