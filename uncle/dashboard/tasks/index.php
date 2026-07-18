@@ -7162,26 +7162,14 @@ button, input, select, textarea, a {
 
 
   .sub-tbl thead { display: none; }
-
-
-
-  .sub-tbl, .sub-tbl tbody, .sub-tbl tr, .sub-tbl td { display: block; width: 100%; }
-
-
-
-  .sub-tbl tr { padding: 12px; border-bottom: 1px solid var(--bdr); }
-
-
-
-  .sub-tbl td { padding: 4px 0 !important; border: none !important; text-align: right; font-size: .82rem; }
-
-
-
-  .sub-tbl td[data-label]::before { content: attr(data-label) ': '; font-weight: 800; color: var(--t3); font-size: .72rem; }
-
-
-
-  .sub-tbl td:last-child { padding-top: 8px !important; }
+  .sub-tbl, .sub-tbl tbody, .sub-tbl tr, .sub-tbl td { display: block; width: 100%; box-sizing: border-box; }
+  .sub-tbl tr { background: var(--bg-card); border: 1px solid var(--bdr); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; }
+  .sub-tbl td { padding: 0 !important; border: none !important; text-align: right; font-size: 0.8rem; }
+  .sub-tbl td:first-child { display: flex; align-items: center; gap: 8px; justify-content: flex-start; direction: rtl; border-bottom: 1px dashed var(--bdr) !important; padding-bottom: 8px !important; }
+  .sub-tbl td:first-child::before { display: none !important; }
+  .sub-tbl td:not(:first-child):not(:last-child) { display: flex; justify-content: space-between; align-items: center; direction: rtl; }
+  .sub-tbl td:not(:first-child):not(:last-child)[data-label]::before { content: attr(data-label) ': '; font-weight: 700; color: var(--t3); font-size: 0.72rem; }
+  .sub-tbl td:last-child { display: flex; justify-content: flex-end; padding-top: 8px !important; border-top: 1px solid var(--bdr) !important; margin-top: 4px; }
 
 
 
@@ -12407,9 +12395,9 @@ body {
     </div>
 
     <!-- Actions -->
-    <div style="display: flex; gap: 10px; align-items: center;">
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <button onclick="openTasksOverviewModal()" title="تصدير نظرة عامة" style="background:var(--brand-bg); color:var(--brand); border:1.5px solid var(--brand-l); font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; width: 38px; height: 38px; border-radius: var(--r-md); transition: all 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='var(--brand-bg)'; this.style.color='var(--brand)';"><i class="fas fa-file-export" style="font-size:1rem;"></i></button>
       <button class="btn-create" onclick="openCreate()" style="padding: 10px 18px; font-size: 0.85rem; font-weight: 800; height: 38px; display: inline-flex; align-items: center; gap: 6px;"><i class="fas fa-plus"></i> تاسك جديد</button>
-      <button onclick="openTasksOverviewModal()" style="background:var(--brand-bg); color:var(--brand); border:1.5px solid var(--brand-l); font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; gap:6px; padding: 0 16px; border-radius: var(--r-md); font-size: 0.85rem; font-family: 'Cairo', 'Baloo Bhaijaan 2', sans-serif; height: 38px; transition: all 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='var(--brand-bg)'; this.style.color='var(--brand)';"><i class="fas fa-file-export"></i> تصدير نظرة عامة</button>
     </div>
   </header>
 
@@ -18782,18 +18770,18 @@ async function openDetail(id){
 
 
       <!-- Premium Milestones Card -->
-      <div style="background:var(--bg3); border:1px solid var(--bdr); border-radius:12px; padding:14px 16px; margin-bottom:18px; direction:rtl;">
-        <div style="font-size:0.8rem; font-weight:800; color:var(--t2); margin-bottom:10px; display:flex; align-items:center; gap:6px; text-align:right; justify-content:flex-start;">
-          <i class="fas fa-star" style="color:#eab308; font-size:0.85rem;"></i>
+      <div style="background:var(--bg3); border:1px solid var(--bdr); border-radius:12px; padding:10px 12px; margin-bottom:14px; direction:rtl;">
+        <div style="font-size:0.75rem; font-weight:800; color:var(--t2); margin-bottom:8px; display:flex; align-items:center; gap:6px; text-align:right; justify-content:flex-start;">
+          <i class="fas fa-star" style="color:var(--brand); font-size:0.8rem;"></i>
           <span>قواعد توزيع الكوبونات</span>
         </div>
-        <div class="detail-milestones-grid">
+        <div class="detail-milestones-grid" style="grid-template-columns:repeat(auto-fit, minmax(110px, 1fr)); gap:8px;">
           ${convertTiersToMilestones(matrix).map(m=>`
-            <div class="detail-milestone-card" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
-              <div style="font-size:0.7rem; font-weight:700; color:var(--t3);">عند الحصول على</div>
-              <div style="font-size:1.05rem; font-weight:900; color:var(--brand);">${m.pct}% أو أكثر</div>
-              <div style="font-size:0.72rem; font-weight:800; color:var(--t2); display:inline-flex; align-items:center; justify-content:center; gap:4px; margin-top:2px; background:var(--cou-bg); padding:3px 8px; border-radius:14px; border:1px solid #c4b5fd;">
-                <i class="fas fa-star" style="color:#eab308; font-size:0.65rem;"></i>
+            <div class="detail-milestone-card" style="padding:6px 8px; border-radius:8px; gap:2px; border:1.5px solid var(--brand-l); background:var(--bg-card); text-align:center; display:flex; flex-direction:column; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+              <div style="font-size:0.65rem; font-weight:700; color:var(--t3);">عند الحصول على</div>
+              <div style="font-size:0.9rem; font-weight:900; color:var(--brand);">${m.pct}% أو أكثر</div>
+              <div style="font-size:0.65rem; font-weight:800; color:var(--brand); display:inline-flex; align-items:center; justify-content:center; gap:4px; margin-top:2px; background:var(--brand-bg); padding:2px 6px; border-radius:12px; border:1px solid var(--brand-l);">
+                <i class="fas fa-star" style="color:var(--brand); font-size:0.6rem;"></i>
                 <span>${m.coupons} كوبون</span>
               </div>
             </div>
@@ -19055,58 +19043,29 @@ async function openDetail(id){
 
 
           <table class="sub-tbl"><thead><tr><th>${PEOPLE}</th><th>الدرجة</th><th>النسبة</th><th>الكوبونات</th><th>وقت الإرسال</th><th style="width:80px;"></th></tr></thead>
-
-
-
-          <tbody>${subs.map(s=>`<tr>
-
-
-
-            <td data-label="${PEOPLE}">${esc(s.student_name||'—')}</td>
-
-
-
-            <td data-label="الدرجة">${s.score||0}/${t.total_degree}</td>
-
-
-
-            <td data-label="النسبة">${t.total_degree?Math.round((parseInt(s.score)||0)/t.total_degree*100):0}%</td>
-
-
-
-            <td data-label="الكوبونات"><span style="color:var(--cou);font-weight:700;">${s.coupons_awarded||0} <i class="fas fa-star"></i></span></td>
-
-
-
-            <td data-label="التوقيت" style="color:var(--t3);font-size:.7rem;">${fmtDate(s.submitted_at)}</td>
-
-
-
-            <td>
-
-
-
-    <div style="display:flex;gap:4px;">
-
-
-
-      <button onclick="event.stopPropagation();viewAnswers(${t.id}, ${s.student_id})" style="background:var(--info-bg);border:1px solid #bfdbfe;color:var(--info);border-radius:6px;padding:5px 10px;cursor:pointer;font-size:.72rem;font-weight:700;font-family:'Cairo',sans-serif;min-height:32px;"><i class="fas fa-eye"></i> إجابات</button>
-
-
-
-      <button onclick="event.stopPropagation();showDeleteSubConfirm(${s.id},'${esc(s.student_name||'')}',${s.coupons_awarded||0},${t.id})" style="background:var(--err-bg);border:1px solid #fca5a5;color:var(--err);border-radius:6px;padding:5px 8px;cursor:pointer;font-size:.72rem;min-height:32px;"><i class="fas fa-trash"></i></button>
-
-
-
-    </div>
-
-
-
-  </td>
-
-
-
-          </tr>`).join('')}</tbody>
+          <tbody>${subs.map(s=>{
+            const stud = classStudents.find(x => x.id === parseInt(s.student_id));
+            const photo = stud ? stud.photo : '';
+            const avatar = getStudentAvatarHtml(photo, s.student_name, '24px');
+            return `<tr>
+              <td data-label="${PEOPLE}">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  ${avatar}
+                  <span style="font-weight:700;color:var(--t1);">${esc(s.student_name||'—')}</span>
+                </div>
+              </td>
+              <td data-label="الدرجة">${s.score||0}/${t.total_degree}</td>
+              <td data-label="النسبة">${t.total_degree?Math.round((parseInt(s.score)||0)/t.total_degree*100):0}%</td>
+              <td data-label="الكوبونات"><span style="color:var(--cou);font-weight:700;">${s.coupons_awarded||0} <i class="fas fa-star"></i></span></td>
+              <td data-label="التوقيت" style="color:var(--t3);font-size:.7rem;">${fmtDate(s.submitted_at)}</td>
+              <td>
+                <div style="display:flex;gap:4px;">
+                  <button onclick="event.stopPropagation();viewAnswers(${t.id}, ${s.student_id})" style="background:var(--info-bg);border:1px solid #bfdbfe;color:var(--info);border-radius:6px;padding:5px 10px;cursor:pointer;font-size:.72rem;font-weight:700;font-family:'Cairo',sans-serif;min-height:32px;"><i class="fas fa-eye"></i> إجابات</button>
+                  <button onclick="event.stopPropagation();showDeleteSubConfirm(${s.id},'${esc(s.student_name||'')}',${s.coupons_awarded||0},${t.id})" style="background:var(--err-bg);border:1px solid #fca5a5;color:var(--err);border-radius:6px;padding:5px 8px;cursor:pointer;font-size:.72rem;min-height:32px;"><i class="fas fa-trash"></i></button>
+                </div>
+              </td>
+            </tr>`;
+          }).join('')}</tbody>
 
 
 
