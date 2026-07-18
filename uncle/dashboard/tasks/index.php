@@ -12342,7 +12342,10 @@ body {
   margin-left: -10px;
   transition: all 0.2s ease;
   z-index: 1;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
 }
 .uncle-avatar-wrap:hover {
   z-index: 100 !important;
@@ -19005,10 +19008,23 @@ async function openDetail(id){
 
 
 
-          ${renderOverlappingAvatars(subs.map(s => {
-            const stud = (classStuCache['كل الفصول'] || []).find(x => x.id == s.student_id);
-            return { id: s.student_id, name: s.student_name, photo: stud ? stud.photo : '' };
-          }), '32px', 'ok', 12)}
+          ${buildCollapsibleList(subs,
+            s=>{
+              const stud = (classStuCache['كل الفصول'] || []).find(x => x.id == s.student_id);
+              const photo = stud ? stud.photo : '';
+              const avatar = getStudentAvatarHtml(photo, s.student_name, '28px');
+              return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(0,0,0,.07);">
+                ${avatar}
+                <span style="font-size:.8rem;font-weight:700;color:var(--t1);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.student_name||'—')}</span>
+                <span style="font-size:.68rem;background:var(--brand-bg);color:var(--brand);border-radius:var(--r-full);padding:1px 7px;font-weight:700;flex-shrink:0;">${s.score||0}/${t.total_degree}</span>
+                <button onclick="event.stopPropagation();viewAnswers(${t.id},${s.student_id})"
+                  style="background:var(--info-bg);border:1px solid #bfdbfe;color:var(--info);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:.65rem;font-weight:700;font-family:'Cairo',sans-serif;flex-shrink:0;white-space:nowrap;"><i class="fas fa-eye"></i></button>
+                <button onclick="event.stopPropagation();showDeleteSubConfirm(${s.id},'${esc(s.student_name||'')}',${s.coupons_awarded||0},${t.id})"
+                  style="background:none;border:1px solid #fca5a5;color:var(--err);border-radius:5px;padding:4px 6px;cursor:pointer;font-size:.63rem;flex-shrink:0;"><i class="fas fa-trash"></i></button>
+              </div>`;
+            },
+            'لا أحد بعد'
+          )}
 
 
 
@@ -19036,7 +19052,16 @@ async function openDetail(id){
 
 
 
-          ${renderOverlappingAvatars(notAnswered, '32px', 'err', 12)}
+          ${buildCollapsibleList(notAnswered,
+            s=>{
+              const avatar = getStudentAvatarHtml(s.photo, s.name, '28px');
+              return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.07);">
+                ${avatar}
+                <span style="font-size:.8rem;font-weight:700;color:var(--t1);">${esc(s.name)}</span>
+              </div>`;
+            },
+            classStudents.length ? 'الجميع أجاب 🎉' : 'بيانات الفصل غير محملة'
+          )}
 
 
 
