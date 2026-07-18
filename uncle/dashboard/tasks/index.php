@@ -13511,10 +13511,16 @@ body {
     .ov-cell-answered {
       color: #10b981;
       font-weight: bold;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
     }
     .ov-cell-unanswered {
       color: var(--t3);
       font-style: italic;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
     }
     .ov-grade-badge {
       display: inline-flex;
@@ -13548,13 +13554,143 @@ body {
       border: 1px solid var(--bdr);
       color: var(--t2);
     }
+    /* Premium unified export buttons */
+    .btn-export {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: var(--r-md);
+      font-size: .83rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all var(--fast);
+      border: 1.5px solid transparent;
+      text-decoration: none;
+      min-height: 38px;
+    }
+    .btn-export.btn-msg {
+      background: rgba(16, 185, 129, 0.08);
+      color: #10b981;
+      border-color: rgba(16, 185, 129, 0.2);
+    }
+    .btn-export.btn-msg:hover {
+      background: #10b981;
+      color: #fff;
+      border-color: #10b981;
+      transform: translateY(-1px);
+    }
+    .btn-export.btn-csv {
+      background: rgba(59, 130, 246, 0.08);
+      color: #3b82f6;
+      border-color: rgba(59, 130, 246, 0.2);
+    }
+    .btn-export.btn-csv:hover {
+      background: #3b82f6;
+      color: #fff;
+      border-color: #3b82f6;
+      transform: translateY(-1px);
+    }
+    .btn-export.btn-pdf {
+      background: rgba(236, 72, 153, 0.08);
+      color: #ec4899;
+      border-color: rgba(236, 72, 153, 0.2);
+    }
+    .btn-export.btn-pdf:hover {
+      background: #ec4899;
+      color: #fff;
+      border-color: #ec4899;
+      transform: translateY(-1px);
+    }
+    .btn-export.btn-img {
+      background: rgba(139, 92, 246, 0.08);
+      color: #8b5cf6;
+      border-color: rgba(139, 92, 246, 0.2);
+    }
+    .btn-export.btn-img:hover {
+      background: #8b5cf6;
+      color: #fff;
+      border-color: #8b5cf6;
+      transform: translateY(-1px);
+    }
+    
+    /* Responsive overrides for tasks overview */
+    @media (max-width: 768px) {
+      #overviewOv .mhdr {
+        padding: 12px 16px !important;
+      }
+      #overviewOv .mhdr-title {
+        font-size: 1.1rem !important;
+      }
+      #overviewOv .mhdr-sub {
+        font-size: 0.75rem !important;
+        line-height: 1.3;
+      }
+      #overviewOv .mbody {
+        padding: 12px !important;
+        gap: 12px !important;
+      }
+      .overview-filters-box {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+        padding: 12px !important;
+        border-radius: 8px !important;
+      }
+      #ovClassesList {
+        max-height: 80px !important;
+      }
+      .ov-table {
+        font-size: 0.75rem !important;
+      }
+      .ov-table th {
+        padding: 8px 6px !important;
+      }
+      .ov-table td {
+        padding: 6px 6px !important;
+      }
+      .ov-grade-badge {
+        padding: 1px 4px !important;
+        font-size: 0.68rem !important;
+      }
+      .ov-class-badge {
+        padding: 1px 4px !important;
+        font-size: 0.68rem !important;
+      }
+      .ov-time-text {
+        font-size: 0.65rem !important;
+      }
+      #overviewOv .mfoot {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+        padding: 12px !important;
+      }
+      .ov-mfoot-btns {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+        width: 100% !important;
+      }
+      .ov-mfoot-btns .btn,
+      .ov-mfoot-btns .btn-export {
+        width: 100% !important;
+        justify-content: center !important;
+        padding: 8px 10px !important;
+        font-size: 0.78rem !important;
+        min-height: 36px !important;
+      }
+      .ov-mfoot-btns .btn-g {
+        grid-column: span 2 !important;
+        order: 99 !important;
+      }
+    }
   </style>
   <div class="modal wide" style="display:flex; flex-direction:column;">
     <div class="mhdr">
       <div class="mhdr-ico" style="background:var(--brand-bg); color:var(--brand);"><i class="fas fa-file-export"></i></div>
       <div>
         <div class="mhdr-title">تصدير نظرة عامة للتاسكات</div>
-        <div class="mhdr-sub">تصدير نتائج وحل الطلاب للتاسكات بصيغ مختلفة (صورة، PDF، CSV، أو نسخ رسالة)</div>
+        <div class="mhdr-sub">تصدير نتائج وحلول التاسكات بصيغ مختلفة (صورة، PDF، CSV، أو نسخ رسالة)</div>
       </div>
       <div class="mclose" onclick="closeOv('overviewOv')"><i class="fas fa-times"></i></div>
     </div>
@@ -13572,7 +13708,7 @@ body {
         
         <!-- Answer Status Filter -->
         <div style="display:flex; flex-direction:column; gap:8px;">
-          <label style="font-weight:700; font-size:.9rem; color:var(--t1);">عرض الطلاب:</label>
+          <label style="font-weight:700; font-size:.9rem; color:var(--t1);">حالة الحل:</label>
           <select id="ovAnswerStatus" onchange="renderOverviewTable()" style="padding:8px 12px; border:1px solid var(--bdr); border-radius:8px; background:#fff; font-size:.87rem; outline:none; cursor:pointer;">
             <option value="both">الكل (الذين أجابوا والذين لم يجيبوا)</option>
             <option value="answered">الذين أجابوا فقط (على الأقل تاسك واحد)</option>
@@ -13583,8 +13719,8 @@ body {
         
         <!-- Search and Toggles -->
         <div style="display:flex; flex-direction:column; gap:8px;">
-          <label style="font-weight:700; font-size:.9rem; color:var(--t1);"><i class="fas fa-search"></i> بحث عن طالب:</label>
-          <input type="text" id="ovStudentSearch" oninput="renderOverviewTable()" placeholder="ابحث باسم الطالب (إدخال ذكي)..." style="padding:8px 12px; border:1px solid var(--bdr); border-radius:8px; font-size:.87rem; outline:none;">
+          <label style="font-weight:700; font-size:.9rem; color:var(--t1);"><i class="fas fa-search"></i> بحث بالاسم:</label>
+          <input type="text" id="ovStudentSearch" oninput="renderOverviewTable()" placeholder="ابحث بالاسم (إدخال ذكي)..." style="padding:8px 12px; border:1px solid var(--bdr); border-radius:8px; font-size:.87rem; outline:none;">
         </div>
 
         <!-- Toggle Checkboxes -->
@@ -13614,12 +13750,12 @@ body {
     
     <div class="mfoot" style="justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
       <div style="font-size:.8rem; color:var(--t2);" id="ovStatsText">جاري معالجة البيانات...</div>
-      <div style="display:flex; gap:8px;">
-        <button class="btn btn-g" onclick="closeOv('overviewOv')">إلغاء</button>
-        <button class="btn" onclick="copyOverviewMessage()" style="background:linear-gradient(135deg,#10b981,#059669); color:#fff; font-weight:700;"><i class="fas fa-copy"></i> نسخ كرسالة</button>
-        <button class="btn" onclick="exportOverviewCSV()" style="background:linear-gradient(135deg,#3b82f6,#2563eb); color:#fff; font-weight:700;"><i class="fas fa-file-csv"></i> CSV</button>
-        <button class="btn" onclick="exportOverviewPDF()" style="background:linear-gradient(135deg,#ec4899,#d946ef); color:#fff; font-weight:700;"><i class="fas fa-file-pdf"></i> PDF</button>
-        <button class="btn btn-p" onclick="exportOverviewImage()"><i class="fas fa-file-image"></i> صورة</button>
+      <div class="ov-mfoot-btns" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+        <button class="btn btn-g" onclick="closeOv('overviewOv')" style="order:99;">إلغاء</button>
+        <button class="btn-export btn-msg" onclick="copyOverviewMessage()"><i class="fas fa-copy"></i> نسخ كرسالة</button>
+        <button class="btn-export btn-csv" onclick="exportOverviewCSV()"><i class="fas fa-file-csv"></i> CSV</button>
+        <button class="btn-export btn-pdf" onclick="exportOverviewPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+        <button class="btn-export btn-img" onclick="exportOverviewImage()"><i class="fas fa-file-image"></i> صورة</button>
       </div>
     </div>
   </div>
@@ -20627,7 +20763,7 @@ function showToast(msg,type='info'){
 // ─── Tasks Overview and Export Logic ──────────────────────────────────────────
 
 async function openTasksOverviewModal() {
-  showToast('جاري جلب بيانات الطلاب...', 'info');
+  showToast('جاري جلب البيانات...', 'info');
   try {
     await loadStudents('كل الفصول');
   } catch(e) {
@@ -20684,7 +20820,7 @@ function renderOverviewTable() {
   
   if (checkedClassNames.length === 0) {
     tableContainer.innerHTML = '<div style="text-align:center; padding:40px; color:var(--t3);">برجاء تحديد فصل واحد على الأقل للعرض.</div>';
-    statsText.textContent = 'عدد الطلاب: 0 | عدد التاسكات: 0';
+    statsText.textContent = 'العدد: 0 | عدد التاسكات: 0';
     return;
   }
   
@@ -20753,7 +20889,7 @@ function renderOverviewTable() {
   
   if (targetTasks.length === 0) {
     tableContainer.innerHTML = '<div style="text-align:center; padding:40px; color:var(--t3);">لا توجد تاسكات منشورة لهذه الفصول بعد.</div>';
-    statsText.textContent = `عدد الطلاب: ${targetStudents.length} | عدد التاسكات: 0`;
+    statsText.textContent = `العدد: ${targetStudents.length} | عدد التاسكات: 0`;
     return;
   }
 
@@ -20764,7 +20900,7 @@ function renderOverviewTable() {
     html += `<th style="width:30%;">اسم التاسك</th>`;
     html += `<th style="width:15%; text-align:center;">الفصل</th>`;
     html += `<th style="width:15%; text-align:center;">عدد المجيبين</th>`;
-    html += `<th style="width:40%;">الطلاب الذين أجابوا</th>`;
+    html += `<th style="width:40%;">الذين أجابوا</th>`;
     html += `</tr></thead><tbody>`;
 
     targetTasks.forEach(t => {
@@ -20794,13 +20930,13 @@ function renderOverviewTable() {
 
     html += `</tbody></table>`;
     tableContainer.innerHTML = html;
-    statsText.textContent = `عدد الطلاب: ${targetStudents.length} | عدد التاسكات: ${targetTasks.length}`;
+    statsText.textContent = `العدد: ${targetStudents.length} | عدد التاسكات: ${targetTasks.length}`;
     return;
   }
   
   let html = `<table class="ov-table" id="ovExportTable">`;
   html += `<thead><tr>`;
-  html += `<th style="min-width:180px;">اسم الطالب</th>`;
+  html += `<th style="min-width:180px;">الاسم</th>`;
   html += `<th style="min-width:100px;">الفصل</th>`;
   
   targetTasks.forEach(t => {
@@ -20809,7 +20945,7 @@ function renderOverviewTable() {
   html += `</tr></thead><tbody>`;
   
   if (targetStudents.length === 0) {
-    html += `<tr><td colspan="${targetTasks.length + 2}" style="text-align:center; padding:30px; color:var(--t3);">لا يوجد طلاب يطابقون خيارات البحث والترشيح.</td></tr>`;
+    html += `<tr><td colspan="${targetTasks.length + 2}" style="text-align:center; padding:30px; color:var(--t3);">لا توجد نتائج تطابق خيارات البحث والترشيح.</td></tr>`;
   } else {
     targetStudents.forEach(s => {
       html += `<tr>`;
@@ -20835,7 +20971,7 @@ function renderOverviewTable() {
             html += `<span class="ov-time-text">${dateStr}</span>`;
           }
         } else {
-          html += `<span class="ov-cell-unanswered"><i class="fas fa-times-circle" style="color:var(--err-bg); filter:brightness(0.85);"></i> لم يجب</span>`;
+          html += `<span class="ov-cell-unanswered"><i class="fas fa-times-circle" style="color:var(--err);"></i> لم يجب</span>`;
         }
         html += `</td>`;
       });
@@ -20846,7 +20982,7 @@ function renderOverviewTable() {
   html += `</tbody></table>`;
   tableContainer.innerHTML = html;
   
-  statsText.textContent = `عدد الطلاب: ${targetStudents.length} | عدد التاسكات: ${targetTasks.length}`;
+  statsText.textContent = `العدد: ${targetStudents.length} | عدد التاسكات: ${targetTasks.length}`;
 }
 
 function exportOverviewCSV() {
@@ -20895,7 +21031,7 @@ function copyOverviewMessage() {
   }
   msg += `\n`;
   
-  msg += `👤 *الطلاب:*\n`;
+  msg += `👤 *الأسماء:*\n`;
   rows.forEach(tr => {
     const cols = tr.querySelectorAll('td');
     if (cols.length < 2) return;
