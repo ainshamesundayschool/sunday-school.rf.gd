@@ -12081,39 +12081,50 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     }
                     </style>
                     <div id="classTasksCollapsible"
-                        style="display: none; width: 100%; margin-top: 12px; border-top: 1px dashed var(--border); padding-top: 10px; flex-direction: column; gap: 8px;">
-                        <div style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;"
-                            onclick="toggleTasksCollapse()">
-                            <span
-                                style="font-size: 0.82rem; font-weight: 700; color: var(--text-2); display: inline-flex; align-items: center; gap: 6px; font-family: 'Cairo', sans-serif;">
-                                <span class="detail-icon blue" style="width: 24px; height: 24px; font-size: 0.72rem; border-radius: 6px; display: inline-flex;"><i class="fas fa-tasks"></i></span> التاسكات المتاحة (<span
-                                    id="collapsedTasksCount">0</span>)
+                        style="display: none; width: 100%; margin-top: 12px; border-top: 1px dashed var(--border); padding-top: 12px; flex-direction: column; gap: 8px;">
+                        
+                        <!-- Premium Accordion Header row -->
+                        <div style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; padding: 4px 6px; border-radius: 8px; transition: background 0.2s;"
+                            onclick="toggleTasksCollapse()"
+                            onmouseover="this.style.background='var(--bg-hover)'"
+                            onmouseout="this.style.background='none'">
+                            
+                            <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-2); display: inline-flex; align-items: center; gap: 8px; font-family: 'Cairo', sans-serif;">
+                                <span class="detail-icon blue" style="width: 26px; height: 26px; font-size: 0.75rem; border-radius: 6px; display: inline-flex;"><i class="fas fa-tasks"></i></span>
+                                التاسكات المتاحة (<span id="collapsedTasksCount">0</span>)
                             </span>
-                            <div style="display: flex; align-items: center; gap: 6px;">
-                                <button class="btn btn-ghost"
-                                    onclick="event.stopPropagation(); openTasksModal();"
-                                    style="width: 24px; height: 24px; border-radius: var(--r-sm); padding: 0; min-width: unset; display: flex; align-items: center; justify-content: center; background: var(--brand-bg); color: var(--brand); border: none; cursor: pointer;"
-                                    title="فتح قائمة التاسكات الكاملة">
-                                    <i class="fas fa-external-link-alt" style="font-size: 0.7rem;"></i>
+                            
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <!-- Elegant full page link button pill badge style -->
+                                <button onclick="event.stopPropagation(); openTasksModal();"
+                                    style="font-family: 'Cairo', sans-serif; font-size: 0.72rem; font-weight: 700; color: var(--brand); background: var(--brand-bg); border: 1.5px solid var(--brand-l); padding: 4px 10px; border-radius: var(--r-full); cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 4px;"
+                                    onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';"
+                                    onmouseout="this.style.background='var(--brand-bg)'; this.style.color='var(--brand)';">
+                                    <i class="fas fa-external-link-alt" style="font-size: 0.65rem;"></i>
+                                    <span>إدارة التاسكات</span>
                                 </button>
-                                <span id="tasksToggleBtn"
-                                    style="font-size: 0.72rem; font-weight: 700; color: var(--brand); background: var(--brand-bg); padding: 2px 8px; border-radius: var(--r-sm); display: inline-flex; align-items: center; gap: 4px;">
-                                    <span id="tasksToggleText">عرض</span>
-                                    <i class="fas fa-chevron-down" id="tasksCollapseIcon"
-                                        style="transition: transform 0.2s;"></i>
-                                </span>
+                                
+                                <!-- Chevron toggle -->
+                                <div style="display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: var(--bg-hover); color: var(--text-3);">
+                                    <i class="fas fa-chevron-down" id="tasksCollapseIcon" style="transition: transform 0.3s; font-size: 0.75rem;"></i>
+                                </div>
                             </div>
                         </div>
-                        <div style="position: relative; width: 100%;">
-                            <div id="collapsedTasksList"
-                                style="display: none; flex-direction: column; gap: 8px; margin-top: 4px; max-height: 180px; overflow-y: auto; padding-inline-start: 2px; padding-inline-end: 4px;">
-                                <!-- Dynamically loaded task pills -->
-                            </div>
-                            <div id="tasksScrollIndicator" 
-                                 style="display: none; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); background: linear-gradient(transparent, rgba(0, 0, 0, 0.08) 80%); width: 100%; height: 24px; pointer-events: none; align-items: flex-end; justify-content: center; padding-bottom: 2px;">
-                                <i class="fas fa-chevron-down" style="font-size: 0.75rem; color: var(--brand); animation: tasksBounce 1.5s infinite;"></i>
+                        
+                        <!-- Dynamic grid-rows height transition wrapper -->
+                        <div id="collapsedTasksWrapper" style="display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease-out; overflow: hidden; width: 100%;">
+                            <div style="min-height: 0; display: flex; flex-direction: column; gap: 8px; position: relative;">
+                                <div id="collapsedTasksList"
+                                    style="display: flex; flex-direction: column; gap: 8px; max-height: 240px; overflow-y: auto; padding-inline-start: 2px; padding-inline-end: 4px; padding-top: 6px; padding-bottom: 6px;">
+                                    <!-- Dynamically loaded task pills -->
+                                </div>
+                                <div id="tasksScrollIndicator" 
+                                     style="display: none; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); background: linear-gradient(transparent, rgba(0, 0, 0, 0.08) 80%); width: 100%; height: 24px; pointer-events: none; align-items: flex-end; justify-content: center; padding-bottom: 2px;">
+                                    <i class="fas fa-chevron-down" style="font-size: 0.75rem; color: var(--brand); animation: tasksBounce 1.5s infinite;"></i>
+                                </div>
                             </div>
                         </div>
+                        
                     </div>
                 </div>
 
@@ -14993,19 +15004,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         function toggleTasksCollapse() {
             isTasksCollapsed = !isTasksCollapsed;
-            const list = document.getElementById('collapsedTasksList');
+            const wrapper = document.getElementById('collapsedTasksWrapper');
             const icon = document.getElementById('tasksCollapseIcon');
-            const toggleText = document.getElementById('tasksToggleText');
 
-            if (list && icon && toggleText) {
+            if (wrapper && icon) {
                 if (isTasksCollapsed) {
-                    list.style.display = 'none';
+                    wrapper.style.gridTemplateRows = '0fr';
                     icon.style.transform = 'rotate(0deg)';
-                    toggleText.textContent = 'عرض';
                 } else {
-                    list.style.display = 'flex';
+                    wrapper.style.gridTemplateRows = '1fr';
                     icon.style.transform = 'rotate(180deg)';
-                    toggleText.textContent = 'إخفاء';
                 }
             }
         }
