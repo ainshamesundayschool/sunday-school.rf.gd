@@ -12096,40 +12096,99 @@ button, input, select, textarea, a {
 
 }
 
-/* Iframe Subpage Header Integration */
-.iframe-subpage-header {
-  display: none;
+/* Subpage Header layout styling */
+.tasks-subpage-header {
+  display: flex;
 }
-body.body-iframe-view {
+body {
   background: var(--bg2) !important;
 }
-body.body-iframe-view .topbar {
-  display: none !important;
-}
-body.body-iframe-view .hero {
-  display: none !important;
-}
-body.body-iframe-view .page {
-  padding-top: 16px !important;
+.page {
+  padding-top: 20px !important;
   margin-top: 0 !important;
-  max-width: 100% !important;
-}
-body.body-iframe-view .iframe-subpage-header {
-  display: flex !important;
+  max-width: 1200px !important;
 }
 
 @media (max-width: 992px) {
-  body.body-iframe-view .iframe-subpage-header {
+  .tasks-subpage-header {
     flex-direction: column;
     align-items: stretch !important;
     gap: 16px !important;
   }
-  body.body-iframe-view .iframe-stats-row {
+  .iframe-stats-row {
     justify-content: center;
   }
-  body.body-iframe-view .iframe-subpage-header > div:last-child {
+  .tasks-subpage-header > div:last-child {
     justify-content: center;
   }
+}
+
+/* Skeleton Loading Screens styles */
+.skeleton-card {
+  background: var(--bg-card, #fff);
+  border: 1px solid var(--bdr, rgba(91, 108, 245, .12));
+  border-radius: var(--r-lg, 14px);
+  padding: 20px;
+  height: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--sh-sm);
+}
+.skeleton-card::after {
+  content: "";
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  background: linear-gradient(90deg, transparent, rgba(91, 108, 245, 0.08), transparent);
+  transform: translateX(-100%);
+  animation: shimmer 1.6s infinite;
+}
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+.skeleton-line {
+  background: var(--bg2, #f3f4f6);
+  border-radius: 6px;
+}
+.skeleton-title {
+  height: 20px;
+  width: 60%;
+}
+.skeleton-text {
+  height: 12px;
+  width: 85%;
+}
+.skeleton-footer {
+  margin-top: auto;
+  display: flex;
+  gap: 10px;
+}
+.skeleton-foot-item {
+  height: 22px;
+  width: 25%;
+  border-radius: 6px;
+}
+
+/* Skeleton Rows for Tables / Panels */
+.skeleton-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--bdr);
+  background: var(--bg-card);
+  position: relative;
+  overflow: hidden;
+}
+.skeleton-row::after {
+  content: "";
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  background: linear-gradient(90deg, transparent, rgba(91, 108, 245, 0.08), transparent);
+  transform: translateX(-100%);
+  animation: shimmer 1.6s infinite;
 }
 
 /* Ensure all overview overlay contents inherit the premium fonts */
@@ -12158,59 +12217,7 @@ body.body-iframe-view .iframe-subpage-header {
 
 
 
-<!-- ══ TOPBAR ═══════════════════════════════════════════════════ -->
 
-
-
-<nav class="topbar">
-
-
-
-  <a href="<?php echo htmlspecialchars($dashBack); ?>" class="tb-back">
-
-
-
-    <i class="fas fa-chevron-right"></i>
-
-
-
-    <?php echo $activeClass ? htmlspecialchars($activeClass) : 'لوحة التحكم'; ?>
-
-
-
-  </a>
-
-
-
-  <div class="tb-title">
-
-
-
-    <div class="tb-icon"><i class="fas fa-tasks"></i></div>
-
-
-
-    التاسكات والاختبارات
-
-
-
-  </div>
-
-
-
-  <button class="btn-create" onclick="openCreate()">
-
-
-
-    <i class="fas fa-plus"></i><span class="btn-text"> تاسك جديد</span>
-
-
-
-  </button>
-
-
-
-</nav>
 
 
 
@@ -12224,9 +12231,9 @@ body.body-iframe-view .iframe-subpage-header {
 
 <main class="page">
 
-  <header class="iframe-subpage-header" style="display: none; align-items: center; justify-content: space-between; margin-bottom: 24px; gap: 16px; border-bottom: 1px solid var(--bdr); padding-bottom: 16px; direction: rtl;">
+  <header class="tasks-subpage-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; gap: 16px; border-bottom: 1px solid var(--bdr); padding-bottom: 16px; direction: rtl;">
     <div style="display: flex; align-items: center; gap: 12px;">
-      <button onclick="window.parent.postMessage({ action: 'closeTasksModal' }, '*')" style="background: var(--bg-card); border: 1px solid var(--bdr); border-radius: var(--r-md); width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--t1); transition: all 0.2s;" onmouseover="this.style.background='var(--brand-bg)'; this.style.color='var(--brand)';" onmouseout="this.style.background='var(--bg-card)'; this.style.color='var(--t1)';"><i class="fas fa-arrow-right"></i></button>
+      <a href="<?php echo htmlspecialchars($dashBack); ?>" style="background: var(--bg-card); border: 1px solid var(--bdr); border-radius: var(--r-md); width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--t1); transition: all 0.2s;" onmouseover="this.style.background='var(--brand-bg)'; this.style.color='var(--brand)';" onmouseout="this.style.background='var(--bg-card)'; this.style.color='var(--t1)';"><i class="fas fa-arrow-right"></i></a>
       <div>
         <div style="font-size: 1.25rem; font-weight: 800; color: var(--t1); font-family: 'Cairo', 'Baloo Bhaijaan 2', sans-serif;">التاسكات والاختبارات</div>
         <?php if ($activeClass): ?>
@@ -12260,143 +12267,7 @@ body.body-iframe-view .iframe-subpage-header {
     </div>
   </header>
 
-  <section class="hero">
-
-
-
-    <div class="hero-card hero-main">
-
-
-
-      <?php if ($activeClass): ?>
-
-
-
-        <div class="hero-badge"><i class="fas fa-users"></i><?php echo htmlspecialchars($activeClass); ?></div>
-
-
-
-      <?php endif; ?>
-
-
-
-      <div class="hero-title">التاسكات والاختبارات</div>
-
-
-
-      <div class="hero-sub">تابع حالة كل تاسك بسرعة، وابدأ تاسك جديد من واجهة أبسط تركز على المواعيد والإعدادات التاسك بدون تعقيد.</div>
-
-
-
-      <div class="hero-actions">
-
-
-
-        <button class="btn-create" onclick="openCreate()"><i class="fas fa-plus"></i> تاسك جديد</button>
-
-        <button class="hero-link" onclick="openTasksOverviewModal()" style="background:var(--brand-bg); color:var(--brand); border:1px solid var(--brand-l); font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; gap:6px;"><i class="fas fa-file-export"></i> تصدير نظرة عامة</button>
-
-        <a class="hero-link" href="<?php echo htmlspecialchars($dashBack); ?>"><i class="fas fa-arrow-right"></i> الرجوع للوحة الفصل</a>
-
-
-
-      </div>
-
-
-
-    </div>
-
-
-
-    <div class="hero-side">
-
-
-
-      <div class="hero-mini">
-
-
-
-        <div class="hero-mini-label">إجمالي التاسكات</div>
-
-
-
-        <div class="hero-mini-value" id="stTotal">—</div>
-
-
-
-        <div class="hero-mini-note">كل المسودات والمنشور</div>
-
-
-
-      </div>
-
-
-
-      <div class="hero-mini">
-
-
-
-        <div class="hero-mini-label">نشطة الآن</div>
-
-
-
-        <div class="hero-mini-value" id="stActive">—</div>
-
-
-
-        <div class="hero-mini-note">المتاح للأطفال حاليًا</div>
-
-
-
-      </div>
-
-
-
-      <div class="hero-mini">
-
-
-
-        <div class="hero-mini-label">قادمة</div>
-
-
-
-        <div class="hero-mini-value" id="stUpcoming">—</div>
-
-
-
-        <div class="hero-mini-note">جاهزة للبدء قريبًا</div>
-
-
-
-      </div>
-
-
-
-      <div class="hero-mini">
-
-
-
-        <div class="hero-mini-label">كوبونات ممنوحة</div>
-
-
-
-        <div class="hero-mini-value" id="stCoupons">—</div>
-
-
-
-        <div class="hero-mini-note">إجمالي ما تم منحه</div>
-
-
-
-      </div>
-
-
-
-    </div>
-
-
-
-  </section>
+  
 
 
 
@@ -12456,7 +12327,33 @@ body.body-iframe-view .iframe-subpage-header {
 
 
 
-      <div class="empty"><div class="empty-ico"><i class="fas fa-circle-notch fa-spin"></i></div><div class="empty-t">جارٍ التحميل…</div></div>
+      <div class="skeleton-card">
+        <div class="skeleton-line skeleton-title"></div>
+        <div class="skeleton-line skeleton-text" style="width: 40%;"></div>
+        <div class="skeleton-line skeleton-text" style="width: 80%;"></div>
+        <div class="skeleton-footer">
+          <div class="skeleton-line skeleton-foot-item"></div>
+          <div class="skeleton-line skeleton-foot-item"></div>
+        </div>
+      </div>
+      <div class="skeleton-card">
+        <div class="skeleton-line skeleton-title"></div>
+        <div class="skeleton-line skeleton-text" style="width: 30%;"></div>
+        <div class="skeleton-line skeleton-text" style="width: 70%;"></div>
+        <div class="skeleton-footer">
+          <div class="skeleton-line skeleton-foot-item"></div>
+          <div class="skeleton-line skeleton-foot-item"></div>
+        </div>
+      </div>
+      <div class="skeleton-card">
+        <div class="skeleton-line skeleton-title"></div>
+        <div class="skeleton-line skeleton-text" style="width: 50%;"></div>
+        <div class="skeleton-line skeleton-text" style="width: 90%;"></div>
+        <div class="skeleton-footer">
+          <div class="skeleton-line skeleton-foot-item"></div>
+          <div class="skeleton-line skeleton-foot-item"></div>
+        </div>
+      </div>
 
 
 
@@ -13172,7 +13069,7 @@ body.body-iframe-view .iframe-subpage-header {
 
 
 
-          <div class="fsec-title"><i class="fas fa-ticket-alt"></i>مستويات الكوبونات</div>
+          <div class="fsec-title"><i class="fas fa-star"></i>مستويات الكوبونات</div>
 
 
 
@@ -13328,7 +13225,7 @@ body.body-iframe-view .iframe-subpage-header {
 
 
 
-        <strong style="color:var(--cou);display:block;margin-bottom:4px;"><i class="fas fa-ticket-alt"></i> كوبونات الأطفال</strong>
+        <strong style="color:var(--cou);display:block;margin-bottom:4px;"><i class="fas fa-star"></i> كوبونات الأطفال</strong>
 
 
 
@@ -13364,7 +13261,7 @@ body.body-iframe-view .iframe-subpage-header {
 
 
 
-        <i class="fas fa-ticket-alt"></i> حذف والاحتفاظ بالكوبونات
+        <i class="fas fa-star"></i> حذف والاحتفاظ بالكوبونات
 
 
 
@@ -14578,7 +14475,7 @@ function renderGrid() {
 
 
 
-          <div class="tinfo-pill"><i class="fas fa-ticket-alt" style="color:var(--cou);"></i><div><div class="tip-val">${tc}</div><div class="tip-lbl">كوبون ممنوح</div></div></div>
+          <div class="tinfo-pill"><i class="fas fa-star" style="color:var(--cou);"></i><div><div class="tip-val">${tc}</div><div class="tip-lbl">كوبون ممنوح</div></div></div>
 
 
 
@@ -16344,7 +16241,7 @@ function addTier(from=50,to=100,coupons=3){
 
 
 
-    <div class="crew"><i class="fas fa-ticket-alt"></i><input type="number" min="0" max="999" value="${coupons}"><span class="crew-l">كوبون</span></div>
+    <div class="crew"><i class="fas fa-star"></i><input type="number" min="0" max="999" value="${coupons}"><span class="crew-l">كوبون</span></div>
 
 
 
@@ -17124,7 +17021,7 @@ async function openDetail(id){
 
 
 
-        ${matrix.map(m=>`<span style="display:flex;align-items:center;gap:4px;padding:4px 10px;background:var(--cou-bg);border:1px solid #c4b5fd;border-radius:var(--r-full);font-size:.72rem;font-weight:600;color:var(--cou);"><i class="fas fa-ticket-alt"></i>${m.from}%–${m.to}% = ${m.val} كوبون</span>`).join('')}
+        ${matrix.map(m=>`<span style="display:flex;align-items:center;gap:4px;padding:4px 10px;background:var(--cou-bg);border:1px solid #c4b5fd;border-radius:var(--r-full);font-size:.72rem;font-weight:600;color:var(--cou);"><i class="fas fa-star"></i>${m.from}%–${m.to}% = ${m.val} كوبون</span>`).join('')}
 
 
 
@@ -17403,7 +17300,7 @@ async function openDetail(id){
 
 
 
-            <td data-label="الكوبونات"><span style="color:var(--cou);font-weight:700;">${s.coupons_awarded||0} <i class="fas fa-ticket-alt"></i></span></td>
+            <td data-label="الكوبونات"><span style="color:var(--cou);font-weight:700;">${s.coupons_awarded||0} <i class="fas fa-star"></i></span></td>
 
 
 
@@ -17807,7 +17704,11 @@ async function openGradePanel(taskId) {
 
 
 
-  document.getElementById('gradePanelBody').innerHTML = '<div style="text-align:center;padding:40px;color:var(--t3);"><i class="fas fa-spinner fa-spin" style="font-size:2rem;"></i></div>';
+  document.getElementById('gradePanelBody').innerHTML = `
+    <div class="skeleton-row"><div class="skeleton-line" style="height:14px; width:45%;"></div><div class="skeleton-line" style="height:28px; width:60px; border-radius:6px;"></div></div>
+    <div class="skeleton-row"><div class="skeleton-line" style="height:14px; width:55%;"></div><div class="skeleton-line" style="height:28px; width:60px; border-radius:6px;"></div></div>
+    <div class="skeleton-row"><div class="skeleton-line" style="height:14px; width:35%;"></div><div class="skeleton-line" style="height:28px; width:60px; border-radius:6px;"></div></div>
+  `;
 
 
 
@@ -18779,145 +18680,94 @@ function updatePendingBadge(taskId) {
 
 
 function openModal(html) {
-
-
-
   const ov = document.createElement('div');
-
-
-
   ov.className = 'overlay open';
-
-
-
   ov.style.zIndex = '3000';
-
-
-
-  ov.style.padding = window.innerWidth <= 480 ? '0' : '16px';
-
-
-
-  if(window.innerWidth <= 480) ov.style.alignItems = 'flex-end';
-
-
+  ov.style.padding = '0';
+  ov.style.alignItems = 'stretch';
 
   ov.innerHTML = `
-
-
-
-    <div class="modal" style="max-width:760px;margin:${window.innerWidth<=480?'0':'24px auto'};${window.innerWidth<=480?'border-radius:var(--r-xl) var(--r-xl) 0 0;':''}">
-
-
-
-      <div class="mhdr" style="background:linear-gradient(135deg,var(--brand),var(--brand-d));padding:16px 20px;border-radius:${window.innerWidth<=480?'var(--r-xl) var(--r-xl)':'var(--r-xl) var(--r-xl)'} 0 0;display:flex;align-items:center;justify-content:space-between;border-bottom:none;">
-
-
-
-        <div style="display:flex;align-items:center;gap:10px;">
-
-
-
-          <div style="width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;"><i class="fas fa-eye" style="color:#fff;font-size:.85rem;"></i></div>
-
-
-
-          <div style="color:#fff;font-weight:800;font-size:1rem;font-family:'Cairo',sans-serif;">مراجعة الإجابات</div>
-
-
-
+    <div class="modal" style="width:100%; height:100vh; max-width:100%; margin:0; border-radius:0; display:flex; flex-direction:column; background:var(--bg3);">
+      <div class="mhdr" style="background:var(--bg3); padding:16px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--bdr);">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="width:32px;height:32px;border-radius:10px;background:var(--brand-bg);color:var(--brand);display:flex;align-items:center;justify-content:center;"><i class="fas fa-eye" style="font-size:.85rem;"></i></div>
+          <div style="color:var(--t1);font-weight:800;font-size:1rem;font-family:'Cairo',sans-serif;">مراجعة الإجابات</div>
+        </div>
+        
+        <!-- Navigation Arrows -->
+        <div class="modal-nav-arrows" style="display:flex; align-items:center; gap:12px; margin-right:auto; margin-left:20px; direction:rtl;">
+          <button onclick="navigateSubmission(-1)" id="prevSubBtn" style="background:var(--bg2); border:1px solid var(--bdr); color:var(--t1); width:36px; height:36px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;" onmouseover="this.style.background='var(--brand-bg)'; this.style.color='var(--brand)';" onmouseout="this.style.background='var(--bg2)'; this.style.color='var(--t1)';"><i class="fas fa-chevron-right"></i></button>
+          <span id="subIndexIndicator" style="font-size:0.8rem; font-weight:800; color:var(--t2); min-width:45px; text-align:center;">—</span>
+          <button onclick="navigateSubmission(1)" id="nextSubBtn" style="background:var(--bg2); border:1px solid var(--bdr); color:var(--t1); width:36px; height:36px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;" onmouseover="this.style.background='var(--brand-bg)'; this.style.color='var(--brand)';" onmouseout="this.style.background='var(--bg2)'; this.style.color='var(--t1)';"><i class="fas fa-chevron-left"></i></button>
         </div>
 
-
-
-        <button onclick="this.closest('.overlay').remove(); document.documentElement.classList.remove('ov-open');" style="background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.2);color:#fff;width:34px;height:34px;border-radius:10px;cursor:pointer;font-size:.85rem;"><i class="fas fa-times"></i></button>
-
-
-
+        <button onclick="this.closest('.overlay').remove(); document.documentElement.classList.remove('ov-open');" style="background:var(--bg2); border:1px solid var(--bdr); color:var(--t2); width:34px; height:34px; border-radius:10px; cursor:pointer; font-size:.85rem; display:flex; align-items:center; justify-content:center; transition:0.2s;" onmouseover="this.style.background='var(--err-bg)'; this.style.color='var(--err)';" onmouseout="this.style.background='var(--bg2)'; this.style.color='var(--t2)';"><i class="fas fa-times"></i></button>
       </div>
-
-
-
-      <div class="mbody" style="padding:0;">${html}</div>
-
-
-
+      <div class="mbody" id="modalSubmissionsBody" style="padding:0; flex:1; overflow-y:auto; background:var(--bg2);">${html}</div>
     </div>
-
-
-
   `;
 
-
-
   document.body.appendChild(ov);
-
-
-
   ov.onclick = (e) => { if(e.target === ov) { ov.remove(); document.documentElement.classList.remove('ov-open'); } };
-
-
-
   document.documentElement.classList.add('ov-open');
-
-
-
 }
 
+window.activeSubmissionList = [];
+window.activeSubmissionIndex = -1;
+window.activeSubmissionTaskId = null;
 
+function navigateSubmission(dir) {
+  if (!window.activeSubmissionList || window.activeSubmissionList.length === 0) return;
+  
+  let newIdx = window.activeSubmissionIndex + dir;
+  if (newIdx < 0 || newIdx >= window.activeSubmissionList.length) return;
+  
+  window.activeSubmissionIndex = newIdx;
+  const sub = window.activeSubmissionList[newIdx];
+  
+  updateSubmissionIndicator();
+  
+  const html = getSubmissionAnswersHtml(window.activeSubmissionTaskId, sub.student_id);
+  document.getElementById('modalSubmissionsBody').innerHTML = html;
+}
 
+function updateSubmissionIndicator() {
+  const indicator = document.getElementById('subIndexIndicator');
+  const prevBtn = document.getElementById('prevSubBtn');
+  const nextBtn = document.getElementById('nextSubBtn');
+  
+  if (indicator) {
+    indicator.textContent = `${window.activeSubmissionIndex + 1} / ${window.activeSubmissionList.length}`;
+  }
+  if (prevBtn) {
+    prevBtn.disabled = window.activeSubmissionIndex === 0;
+    prevBtn.style.opacity = window.activeSubmissionIndex === 0 ? '0.4' : '1';
+    prevBtn.style.cursor = window.activeSubmissionIndex === 0 ? 'not-allowed' : 'pointer';
+  }
+  if (nextBtn) {
+    nextBtn.disabled = window.activeSubmissionIndex === window.activeSubmissionList.length - 1;
+    nextBtn.style.opacity = window.activeSubmissionIndex === window.activeSubmissionList.length - 1 ? '0.4' : '1';
+    nextBtn.style.cursor = window.activeSubmissionIndex === window.activeSubmissionList.length - 1 ? 'not-allowed' : 'pointer';
+  }
+}
 
-
-
-
-function viewAnswers(taskId, studentId) {
-
-
-
+function getSubmissionAnswersHtml(taskId, studentId) {
   const t = tasks.find(x=>x.id==taskId);
+  if(!t) return '';
 
-
-
-  if(!t) return;
-
-
-
-  const sub = t.submissions.find(x=>x.student_id==studentId);
-
-
-
-  if(!sub) return;
-
-
-
-
-
-
+  const subs = (typeof detailTask !== 'undefined' && detailTask && detailTask.id == taskId) ? (detailTask.submissions || []) : (t.submissions || []);
+  const sub = subs.find(x=>x.student_id==studentId);
+  if(!sub) return '';
 
   const ans = typeof sub.answers === 'string' ? JSON.parse(sub.answers) : (sub.answers || {});
   const openScores = typeof sub.open_scores === 'string' ? JSON.parse(sub.open_scores) : (sub.open_scores || {});
   const correctionNotes = typeof sub.correction_notes === 'string' ? JSON.parse(sub.correction_notes) : (sub.correction_notes || {});
 
-
-
   const score = sub.score ?? sub.total_score ?? 0;
-
-
-
   const totalDeg = t.total_degree || 0;
-
-
-
   const pct = totalDeg > 0 ? Math.round(score / totalDeg * 100) : 0;
-
-
-
   const scoreColor = pct >= 80 ? 'var(--ok)' : pct >= 50 ? 'var(--warn)' : 'var(--err)';
-
-
-
   const scoreBg   = pct >= 80 ? 'var(--ok-bg)' : pct >= 50 ? 'var(--warn-bg)' : 'var(--err-bg)';
-
 
   const activeClass = t.class_name || 'كل الفصول';
   const stud = classStuCache[activeClass]?.find(x => x.id == studentId);
@@ -18925,137 +18775,41 @@ function viewAnswers(taskId, studentId) {
   const avatar = getStudentAvatarHtml(photo, sub.student_name, '40px');
 
   let html = `<div class="ans-shell">
-
     <div class="ans-head">
-
-
-
       <div class="ans-avatar" style="background:none;border:none;display:flex;align-items:center;justify-content:center;padding:0;">${avatar}</div>
-
-
-
       <div style="flex:1;min-width:0;">
-
-
-
         <div class="ans-name">${esc(sub.student_name)}</div>
-
-
-
         <div class="ans-sub">أجاب على التاسك: <strong>${esc(t.title||'')}</strong></div>
-
-
-
       </div>
-
-
-
       <div style="text-align:center;flex-shrink:0;">
-
-
-
         <div style="font-size:1.4rem;font-weight:900;color:${scoreColor};line-height:1;">${score}<span style="font-size:.85rem;font-weight:600;color:var(--t3);">/${totalDeg}</span></div>
-
-
-
         <div style="display:inline-flex;align-items:center;gap:4px;background:${scoreBg};color:${scoreColor};border-radius:var(--r-full);padding:2px 9px;font-size:.7rem;font-weight:700;margin-top:4px;">${pct}%</div>
-
-
-
       </div>
-
-
-
     </div>`;
 
-
-
-
-
-
-
   if(!t.questions || t.questions.length === 0) {
-
-
-
     html += `<div style="text-align:center;padding:40px;color:var(--t4);font-size:.88rem;"><i class="fas fa-question-circle" style="font-size:2rem;display:block;margin-bottom:10px;color:var(--t4);"></i>لا توجد أسئلة لهذا التاسك.</div>`;
-
-
-
   } else {
-
-
-
     t.questions.forEach((q, i) => {
-
-
-
       const qType = q.question_type || 'mcq';
-
-
-
       const given = ans[q.id] !== undefined ? ans[q.id] : ans[String(q.id)];
-
-
-
       const correctIdx = q.correct_index !== null ? parseInt(q.correct_index) : null;
-
-
-
       const imgH = q.image_url ? `<div style="margin:0 0 10px;border-radius:var(--r-md);overflow:hidden;border:1px solid var(--bdr);"><img src="${esc(q.image_url)}" alt="" style="width:100%;max-height:200px;object-fit:contain;display:block;background:var(--bg2);"></div>` : '';
 
-
-
-
-
-
-
       html += `<div class="ans-question">`;
-
-
-
       html += `<div class="ans-qhead">
-
-
-
         <div class="ans-qnum">${i+1}</div>
-
-
-
         <div class="ans-qtext">${esc(q.question_text)}</div>
-
-
-
         <div style="flex-shrink:0;font-size:.7rem;color:var(--t3);font-weight:600;padding:2px 7px;background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r-full);">${q.degree} درجة</div>
-
-
-
       </div>`;
-
-
-
-
-
-
 
       html += imgH;
 
-
-
-
-
-
-
       if(qType === 'open') {
-
         const hasAns = given && String(given).trim().length > 0;
-
         html += `<div class="ans-open">
-
           <div class="ans-open-label">إجابة الطفل (إجابة مفتوحة):</div>
-
           <div class="ans-open-text" style="${!hasAns?'color:var(--t4);font-style:italic;':''}">${hasAns ? esc(given) : '— لم يُجب على هذا السؤال —'}</div>
-
         </div>`;
 
         if (sub.is_graded == 1 || openScores[q.id] !== undefined || openScores[String(q.id)] !== undefined) {
@@ -19077,131 +18831,51 @@ function viewAnswers(taskId, studentId) {
           }
           html += `</div>`;
         }
-
       } else {
-
-
-
         const opts = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
-
-
-
         if(qType === 'tf') { opts[0] = 'صواب'; opts[1] = 'خطأ'; }
 
-
-
-
-
-
-
         html += `<div style="display:flex;flex-direction:column;gap:7px;">`;
-
-
-
         opts.forEach((o, j) => {
-
-
-
           const isCorr = j === correctIdx;
-
-
-
           const isSel  = given !== undefined && parseInt(given) === j;
-
-
-
           let cls = '';
-
-
-
           let icon = '';
 
-
-
           if(isCorr && isSel)  { cls='correct'; icon=`<i class="fas fa-check-circle ans-choice-icon" style="color:var(--ok);"></i>`; }
-
-
-
           else if(isCorr)       { cls='correct'; icon=`<i class="fas fa-check ans-choice-icon" style="color:var(--ok);opacity:.55;"></i>`; }
-
-
-
           else if(isSel)        { cls='wrong';   icon=`<i class="fas fa-times-circle ans-choice-icon" style="color:var(--err);"></i>`; }
 
-
-
-
-
-
-
           html += `<div class="ans-choice ${cls}" style="${isSel?'font-weight:700;':''}" >
-
-
-
             <span class="ans-choice-letter">${LETTERS[j]||j+1}</span>
-
-
-
             <span>${esc(o)}</span>
-
-
-
             ${icon}
-
-
-
             ${isSel ? `<span style="font-size:.65rem;font-weight:700;padding:1px 7px;border-radius:var(--r-full);background:${isCorr?'var(--ok)':'var(--err)'};color:#fff;flex-shrink:0;">${isCorr?'إجابتك ✓':'إجابتك ✗'}</span>` : ''}
-
-
-
           </div>`;
-
-
-
         });
-
-
-
         html += `</div>`;
-
-
-
       }
-
-
-
       html += `</div>`;
-
-
-
     });
-
-
-
   }
-
-
-
   html += `</div>`;
-
-
-
-
-
-
-
-  openModal(html);
-
-
-
+  return html;
 }
 
+function viewAnswers(taskId, studentId) {
+  const t = tasks.find(x=>x.id==taskId);
+  if(!t) return;
 
+  const subs = (typeof detailTask !== 'undefined' && detailTask && detailTask.id == taskId) ? (detailTask.submissions || []) : (t.submissions || []);
+  
+  window.activeSubmissionList = subs;
+  window.activeSubmissionIndex = subs.findIndex(x => x.student_id == studentId);
+  window.activeSubmissionTaskId = taskId;
 
-
-
-
-
+  const html = getSubmissionAnswersHtml(taskId, studentId);
+  openModal(html);
+  updateSubmissionIndicator();
+}
 // ─── Overlay helpers ─────────────────────────────────────────────
 
 
@@ -20064,7 +19738,9 @@ async function exportOverviewPDF() {
 
 
 
-      <div style="text-align:center;padding:40px;color:var(--t3);"><i class="fas fa-spinner fa-spin" style="font-size:2rem;"></i></div>
+      <div class="skeleton-row"><div class="skeleton-line" style="height:14px; width:45%;"></div><div class="skeleton-line" style="height:28px; width:60px; border-radius:6px;"></div></div>
+      <div class="skeleton-row"><div class="skeleton-line" style="height:14px; width:55%;"></div><div class="skeleton-line" style="height:28px; width:60px; border-radius:6px;"></div></div>
+      <div class="skeleton-row"><div class="skeleton-line" style="height:14px; width:35%;"></div><div class="skeleton-line" style="height:28px; width:60px; border-radius:6px;"></div></div>
 
 
 

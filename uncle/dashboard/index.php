@@ -12846,13 +12846,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         </div>
     </div>
 
-    <!-- Tasks iframe modal (fullscreen standalone page) -->
-    <div class="modal-overlay" id="tasksModal" style="z-index: 1000020; padding: 0;">
-        <div class="modal"
-            style="width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; border-radius: 0 !important; margin: 0 !important; padding: 0 !important; display: flex; flex-direction: column; background: var(--bg2);">
-            <iframe id="tasksIframe" src="" style="width: 100%; height: 100%; border: none; flex: 1;"></iframe>
-        </div>
-    </div>
+
 
     <!-- Student Details Modal -->
     <div id="studentModal" class="modal-overlay" style="z-index:1000005">
@@ -14884,7 +14878,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
         let isTasksCollapsed = true;
 
         function openTasksModal(taskId = null, action = null) {
-            const iframe = document.getElementById('tasksIframe');
             const pathPrefix = '<?php echo $pathPrefix; ?>';
             let url = `${pathPrefix}/uncle/dashboard/tasks/?class=${encodeURIComponent(currentClass)}`;
             if (taskId) {
@@ -14893,25 +14886,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (action) {
                 url += `&action=${action}`;
             }
-            // Remove active class when loading a task
-            document.getElementById('tasksModal').classList.remove('active');
-            showToast('جاري التحميل...', 'info');
-            iframe.onload = () => {
-                document.getElementById('tasksModal').classList.add('active');
-            };
-            iframe.src = url;
+            window.location.href = url;
         }
 
         function closeTasksModal() {
-            document.getElementById('tasksModal').classList.remove('active');
-            const iframe = document.getElementById('tasksIframe');
-            iframe.onload = null;
-            iframe.src = '';
-            // Reload dashboard data in case tasks changed or were graded
-            loadData();
-            if (currentClass) {
-                fetchClassTasks(currentClass);
-            }
+            // Keep empty or direct function as fallback
         }
 
         function checkTaskUrlParamsOnLoad() {
@@ -28681,7 +28660,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             {
                 title: "سحب هدايا الكوبونات",
                 category: "attendance",
-                icon: "fas fa-ticket-alt",
+                icon: "fas fa-star",
                 description: "خصم نقط أو كوبونات من رصيد الولد لما يستبدلها بجايزة.",
                 how_it_works: "افتح الأداة، اختار الولد، واكتب عدد النقط اللي عايز تخصمها ودوس تأكيد علطول.",
                 location: "الصفحة الرئيسية > شريط الأدوات > سحب كوبونات",
@@ -29021,7 +29000,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             {
                 title: "تذاكر وكروت دخول الرحلات",
                 category: "admin",
-                icon: "fas fa-ticket-alt",
+                icon: "fas fa-star",
                 description: "توليد كروت دخول خاصة بالرحلة للمسجلين فيها كود الـ QR والبيانات الإضافية.",
                 how_it_works: "من تفاصيل الرحلة، دوس على طباعة كروت الـ QR لتوليد التذاكر فوراً.",
                 location: "إعدادات الرحلة > تفاصيل الرحلة > كروت QR",
