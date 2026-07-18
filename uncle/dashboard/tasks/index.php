@@ -12096,8 +12096,47 @@ button, input, select, textarea, a {
 
 }
 
+/* Iframe Subpage Header Integration */
+.iframe-subpage-header {
+  display: none;
+}
+body.body-iframe-view {
+  background: var(--bg2) !important;
+}
+body.body-iframe-view .topbar {
+  display: none !important;
+}
+body.body-iframe-view .hero {
+  display: none !important;
+}
+body.body-iframe-view .page {
+  padding-top: 16px !important;
+  margin-top: 0 !important;
+  max-width: 100% !important;
+}
+body.body-iframe-view .iframe-subpage-header {
+  display: flex !important;
+}
 
+@media (max-width: 992px) {
+  body.body-iframe-view .iframe-subpage-header {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 16px !important;
+  }
+  body.body-iframe-view .iframe-stats-row {
+    justify-content: center;
+  }
+  body.body-iframe-view .iframe-subpage-header > div:last-child {
+    justify-content: center;
+  }
+}
 
+/* Ensure all overview overlay contents inherit the premium fonts */
+#overviewOv, 
+#overviewOv * {
+  font-family: 'Baloo Bhaijaan 2', 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+}
 </style>
 
 
@@ -12185,7 +12224,41 @@ button, input, select, textarea, a {
 
 <main class="page">
 
+  <header class="iframe-subpage-header" style="display: none; align-items: center; justify-content: space-between; margin-bottom: 24px; gap: 16px; border-bottom: 1px solid var(--bdr); padding-bottom: 16px; direction: rtl;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <button onclick="window.parent.postMessage({ action: 'closeTasksModal' }, '*')" style="background: var(--bg-card); border: 1px solid var(--bdr); border-radius: var(--r-md); width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--t1); transition: all 0.2s;" onmouseover="this.style.background='var(--brand-bg)'; this.style.color='var(--brand)';" onmouseout="this.style.background='var(--bg-card)'; this.style.color='var(--t1)';"><i class="fas fa-arrow-right"></i></button>
+      <div>
+        <div style="font-size: 1.25rem; font-weight: 800; color: var(--t1); font-family: 'Cairo', 'Baloo Bhaijaan 2', sans-serif;">المهام والاختبارات</div>
+        <?php if ($activeClass): ?>
+          <div style="font-size: 0.75rem; font-weight: 700; color: var(--brand); background: var(--brand-bg); padding: 2px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; border: 1px solid var(--brand-l);">
+            <i class="fas fa-users" style="font-size: 0.65rem;"></i> <?php echo htmlspecialchars($activeClass); ?>
+          </div>
+        <?php endif; ?>
+      </div>
+    </div>
+    
+    <!-- Stats Row -->
+    <div class="iframe-stats-row" style="display: flex; gap: 12px; align-items: center;">
+      <div style="background: var(--bg-card); border: 1px solid var(--bdr); border-radius: var(--r-md); padding: 6px 14px; text-align: center; min-width: 70px;">
+        <div style="font-size: 0.68rem; color: var(--t3); font-weight: bold; margin-bottom: 2px;">إجمالي المهام</div>
+        <div style="font-size: 1.05rem; font-weight: 800; color: var(--t1);" id="stTotalIframe">—</div>
+      </div>
+      <div style="background: var(--bg-card); border: 1px solid var(--bdr); border-radius: var(--r-md); padding: 6px 14px; text-align: center; min-width: 70px;">
+        <div style="font-size: 0.68rem; color: var(--t3); font-weight: bold; margin-bottom: 2px;">المهام النشطة</div>
+        <div style="font-size: 1.05rem; font-weight: 800; color: var(--brand);" id="stActiveIframe">—</div>
+      </div>
+      <div style="background: var(--bg-card); border: 1px solid var(--bdr); border-radius: var(--r-md); padding: 6px 14px; text-align: center; min-width: 70px;">
+        <div style="font-size: 0.68rem; color: var(--t3); font-weight: bold; margin-bottom: 2px;">المسودات</div>
+        <div style="font-size: 1.05rem; font-weight: 800; color: var(--warn);" id="stDraftIframe">—</div>
+      </div>
+    </div>
 
+    <!-- Actions -->
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <button class="btn-create" onclick="openCreate()" style="padding: 10px 18px; font-size: 0.85rem; font-weight: 800; height: 38px; display: inline-flex; align-items: center; gap: 6px;"><i class="fas fa-plus"></i> مهمة جديدة</button>
+      <button onclick="openTasksOverviewModal()" style="background:var(--brand-bg); color:var(--brand); border:1.5px solid var(--brand-l); font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; gap:6px; padding: 0 16px; border-radius: var(--r-md); font-size: 0.85rem; font-family: 'Cairo', 'Baloo Bhaijaan 2', sans-serif; height: 38px; transition: all 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='var(--brand-bg)'; this.style.color='var(--brand)';"><i class="fas fa-file-export"></i> تصدير نظرة عامة</button>
+    </div>
+  </header>
 
   <section class="hero">
 
@@ -13678,6 +13751,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // If inside an iframe, configure postMessage integration
   if (window.self !== window.top) {
+      document.body.classList.add('body-iframe-view');
       const backBtn = document.querySelector('.tb-back');
       if (backBtn) {
           backBtn.removeAttribute('href');
@@ -14561,29 +14635,25 @@ function renderGrid() {
 
 
 function updateStats() {
-
-
-
-  document.getElementById('stTotal').textContent    = tasks.length;
-
-
-
-  document.getElementById('stActive').textContent   = tasks.filter(t=>statusOf(t).key==='active').length;
-
-
-
-  document.getElementById('stUpcoming').textContent = tasks.filter(t=>statusOf(t).key==='upcoming').length;
-
-
-
+  const total = tasks.length;
+  const active = tasks.filter(t=>statusOf(t).key==='active').length;
+  const upcoming = tasks.filter(t=>statusOf(t).key==='upcoming').length;
+  const drafts = tasks.filter(t=>statusOf(t).key==='draft').length;
   const tc = tasks.reduce((a,t)=>a+(t.submissions||[]).reduce((b,s)=>b+(parseInt(s.coupons_awarded)||0),0),0);
 
+  const setVal = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  };
 
+  setVal('stTotal', total);
+  setVal('stActive', active);
+  setVal('stUpcoming', upcoming);
+  setVal('stCoupons', tc);
 
-  document.getElementById('stCoupons').textContent  = tc;
-
-
-
+  setVal('stTotalIframe', total);
+  setVal('stActiveIframe', active);
+  setVal('stDraftIframe', drafts);
 }
 
 
