@@ -18292,8 +18292,6 @@ function collectForm(status){
 
 
 
-  });
-
 
 
   const specIds=[];
