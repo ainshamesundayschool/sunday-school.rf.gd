@@ -12199,6 +12199,79 @@ body {
   height: 100% !important;
 }
 
+/* Responsive Unified Details Info Board & Milestones CSS */
+.detail-meta-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.75rem;
+  color: var(--t3);
+  border-bottom: 1px dashed var(--bdr);
+  padding-bottom: 12px;
+  justify-content: flex-start;
+  align-items: center;
+  direction: rtl;
+  text-align: right;
+}
+.detail-metrics-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  direction: rtl;
+}
+.detail-metric-col {
+  text-align: right;
+}
+.detail-metric-col:not(:first-child) {
+  border-right: 1px solid var(--bdr);
+  padding-right: 16px;
+}
+.detail-milestones-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+}
+.detail-milestone-card {
+  background: var(--bg-card);
+  border: 1.5px solid var(--brand-l);
+  border-radius: 10px;
+  padding: 10px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: transform 0.2s;
+}
+
+@media (max-width: 600px) {
+  .detail-meta-pills {
+    gap: 6px;
+    font-size: 0.68rem;
+    padding-bottom: 8px;
+  }
+  .detail-metrics-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .detail-metric-col {
+    border-right: none !important;
+    padding-right: 0 !important;
+    background: var(--bg-hover);
+    padding: 8px 10px !important;
+    border-radius: 8px;
+    border: 1px solid var(--bdr);
+  }
+  .detail-milestones-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .detail-milestone-card {
+    padding: 8px;
+    gap: 2px;
+    border-radius: 8px;
+  }
+}
+
 /* Skeleton Loading Screens styles */
 .skeleton-card {
   background: var(--bg-card, #fff);
@@ -14338,11 +14411,7 @@ function getStudentAvatarHtml(photo, name, size = '28px') {
 function statusOf(t) {
   if (t.status==='draft') return {key:'draft',cls:'s-draft',label:'Draft',acc:'warn'};
   return {key:'published',cls:'s-published',label:'منشور',acc:'ok'};
-};
-
-
-
-
+}
 
 function getCustomFilters() {
   const customFilters = new Set();
@@ -18718,9 +18787,9 @@ async function openDetail(id){
           <i class="fas fa-star" style="color:#eab308; font-size:0.85rem;"></i>
           <span>قواعد توزيع الكوبونات</span>
         </div>
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:10px;">
+        <div class="detail-milestones-grid">
           ${convertTiersToMilestones(matrix).map(m=>`
-            <div style="background:var(--bg-card); border:1.5px solid var(--brand-l); border-radius:10px; padding:10px; text-align:center; display:flex; flex-direction:column; gap:4px; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+            <div class="detail-milestone-card" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
               <div style="font-size:0.7rem; font-weight:700; color:var(--t3);">عند الحصول على</div>
               <div style="font-size:1.05rem; font-weight:900; color:var(--brand);">${m.pct}% أو أكثر</div>
               <div style="font-size:0.72rem; font-weight:800; color:var(--t2); display:inline-flex; align-items:center; justify-content:center; gap:4px; margin-top:2px; background:var(--cou-bg); padding:3px 8px; border-radius:14px; border:1px solid #c4b5fd;">
