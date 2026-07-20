@@ -9141,6 +9141,8 @@
                                     class="fas fa-sync-alt"></i> تحديث</button>
                             <button class="btn btn-danger btn-sm" onclick="showClearHistoryModal()"
                                 title="حذف السجلات"><i class="fas fa-trash"></i> حذف السجلات</button>
+                            <button class="btn btn-dev btn-sm dev-only" onclick="showDevCleanAuditModal()"
+                                title="تنظيف السجلات (مطور)" style="display:none;"><i class="fas fa-broom"></i> تنظيف السجلات (مطور)</button>
                         </div>
                     </div>
                     <div class="card-body">
@@ -10433,6 +10435,73 @@
             </div>
         </div>
     </div>
+
+    <!-- Dev Clean Audit Modal -->
+    <div id="devCleanAuditModal" class="modal">
+        <div class="modal-box">
+            <div class="modal-head">
+                <h2><i class="fas fa-broom dev-icon"></i> تنظيف سجل العمليات (مطور)</h2>
+                <button class="modal-close" onclick="closeModal('devCleanAuditModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="devCleanAuditForm" onsubmit="executeDevCleanAudit(event)">
+                    <!-- Target Church Selection -->
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label">النطاق المستهدف</label>
+                        <select id="devCleanTarget" class="form-select" style="width:100%;">
+                            <option value="current">الكنيسة الحالية فقط</option>
+                            <option value="all">جميع الكنائس (Global)</option>
+                        </select>
+                    </div>
+
+                    <!-- Clean Type Selection -->
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label">نوع التصفية</label>
+                        <select id="devCleanRangeType" class="form-select" style="width:100%;" onchange="onDevCleanRangeTypeChange()">
+                            <option value="duration">حذف السجلات أقدم من فترة معينة</option>
+                            <option value="range">تحديد فترة تاريخية محددة</option>
+                        </select>
+                    </div>
+
+                    <!-- Duration Option Container -->
+                    <div id="devCleanDurationArea" class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label">احذف السجلات التي مر عليها</label>
+                        <select id="devCleanDurationValue" class="form-select" style="width:100%; margin-bottom: 8px;" onchange="onDevCleanDurationValueChange()">
+                            <option value="1_month">شهر واحد (1 Month)</option>
+                            <option value="3_months">3 أشهر (3 Months)</option>
+                            <option value="6_months">6 أشهر (6 Months)</option>
+                            <option value="1_year">سنة كاملة (1 Year)</option>
+                            <option value="custom_days">عدد أيام مخصص...</option>
+                        </select>
+                        <div id="devCleanCustomDaysArea" style="display:none; margin-top: 8px;">
+                            <label class="form-label" style="font-size: 0.8rem; color: var(--text-secondary);">عدد الأيام</label>
+                            <input type="number" id="devCleanCustomDays" class="form-input" min="1" placeholder="مثال: 45">
+                        </div>
+                    </div>
+
+                    <!-- Date Range Option Container -->
+                    <div id="devCleanDateRangeArea" style="display:none; margin-bottom: 16px;">
+                        <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div class="form-group">
+                                <label class="form-label">من تاريخ</label>
+                                <input type="date" id="devCleanDateFrom" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">إلى تاريخ</label>
+                                <input type="date" id="devCleanDateTo" class="form-input">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; gap:10px; margin-top:24px;">
+                        <button type="submit" class="btn btn-dev" style="flex:2;"><i class="fas fa-trash"></i> بدء التنظيف</button>
+                        <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeModal('devCleanAuditModal')">إلغاء</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast -->
     <div class="toast" id="toast"></div>
 
@@ -20863,6 +20932,101 @@
                 loadAuditLogs();
             } else {
                 showToast(d.message || 'فشل في الحذف', 'error');
+            }
+        }
+
+        function showDevCleanAuditModal() {
+            document.getElementById('devCleanTarget').value = 'current';
+            document.getElementById('devCleanRangeType').value = 'duration';
+            document.getElementById('devCleanDurationValue').value = '1_month';
+            document.getElementById('devCleanCustomDays').value = '';
+            document.getElementById('devCleanDateFrom').value = '';
+            document.getElementById('devCleanDateTo').value = '';
+            
+            document.getElementById('devCleanDurationArea').style.display = 'block';
+            document.getElementById('devCleanCustomDaysArea').style.display = 'none';
+            document.getElementById('devCleanDateRangeArea').style.display = 'none';
+            
+            openModal('devCleanAuditModal');
+        }
+
+        function onDevCleanRangeTypeChange() {
+            const type = document.getElementById('devCleanRangeType').value;
+            if (type === 'duration') {
+                document.getElementById('devCleanDurationArea').style.display = 'block';
+                document.getElementById('devCleanDateRangeArea').style.display = 'none';
+            } else {
+                document.getElementById('devCleanDurationArea').style.display = 'none';
+                document.getElementById('devCleanDateRangeArea').style.display = 'block';
+            }
+        }
+
+        function onDevCleanDurationValueChange() {
+            const val = document.getElementById('devCleanDurationValue').value;
+            if (val === 'custom_days') {
+                document.getElementById('devCleanCustomDaysArea').style.display = 'block';
+            } else {
+                document.getElementById('devCleanCustomDaysArea').style.display = 'none';
+            }
+        }
+
+        async function executeDevCleanAudit(e) {
+            e.preventDefault();
+            
+            const target = document.getElementById('devCleanTarget').value;
+            const rangeType = document.getElementById('devCleanRangeType').value;
+            const durationValue = document.getElementById('devCleanDurationValue').value;
+            const customDays = parseInt(document.getElementById('devCleanCustomDays').value) || 0;
+            const dateFrom = document.getElementById('devCleanDateFrom').value;
+            const dateTo = document.getElementById('devCleanDateTo').value;
+
+            // Simple validation
+            if (rangeType === 'duration' && durationValue === 'custom_days' && customDays <= 0) {
+                showToast('الرجاء إدخال عدد أيام صحيح أكبر من الصفر', 'warning');
+                return;
+            }
+            if (rangeType === 'range' && !dateFrom && !dateTo) {
+                showToast('الرجاء تحديد تاريخ واحد على الأقل', 'warning');
+                return;
+            }
+
+            // Construct confirm message details
+            let msg = 'هل أنت متأكد من رغبتك في حذف السجلات؟ ';
+            if (target === 'all') {
+                msg += 'تنبيه: سيتم حذف السجلات لجميع الكنائس! ';
+            } else {
+                msg += 'سيتم حذف سجلات هذه الكنيسة فقط. ';
+            }
+            
+            if (rangeType === 'duration') {
+                if (durationValue === 'custom_days') {
+                    msg += `الفترة: السجلات التي مر عليها أكثر من ${customDays} يوم.`;
+                } else {
+                    const dict = { '1_month': 'شهر واحد', '3_months': '3 أشهر', '6_months': '6 أشهر', '1_year': 'سنة كاملة' };
+                    msg += `الفترة: السجلات التي مر عليها أكثر من ${dict[durationValue]}.`;
+                }
+            } else {
+                const rangeText = (dateFrom && dateTo) ? `من ${dateFrom} إلى ${dateTo}` : (dateFrom ? `من ${dateFrom}` : `حتى تاريخ ${dateTo}`);
+                msg += `الفترة: نطاق التواريخ ${rangeText}.`;
+            }
+
+            if (!(await showConfirm({ message: msg + '\nلا يمكن التراجع عن هذا الإجراء.', danger: true }))) return;
+
+            const fd = mkFd('devCleanAuditLogs');
+            fd.append('target', target);
+            fd.append('range_type', rangeType);
+            fd.append('duration_value', durationValue);
+            if (durationValue === 'custom_days') fd.append('custom_days', customDays);
+            if (dateFrom) fd.append('date_from', dateFrom);
+            if (dateTo) fd.append('date_to', dateTo);
+
+            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+            if (d.success) {
+                showToast(d.message || 'تم تنظيف السجلات بنجاح', 'success');
+                closeModal('devCleanAuditModal');
+                loadAuditLogs();
+            } else {
+                showToast(d.message || 'فشل في عملية تنظيف السجلات', 'error');
             }
         }
 
