@@ -3622,6 +3622,16 @@ try {
 
 
 
+        case 'devGetAuditCleanupStats':
+
+            checkAuth();
+
+            devGetAuditCleanupStats();
+
+            break;
+
+
+
         case 'joinTrip':
 
             checkAuth();
@@ -40083,6 +40093,277 @@ function devCleanAuditLogs()
             throw new Exception("Execute failed: " . $stmt->error);
 
         }
+
+
+    } catch (Exception $e) {
+
+        sendJSON(['success' => false, 'message' => 'خطأ: ' . $e->getMessage()]);
+
+    }
+
+}
+
+
+
+// ── Get audit log cleanup stats for developer ────────────────
+
+function devGetAuditCleanupStats()
+
+{
+
+    checkAuth();
+
+    try {
+
+        $role = $_SESSION['uncle_role'] ?? 'uncle';
+
+        if ($role !== 'developer' && $role !== 'dev') {
+
+            sendJSON(['success' => false, 'message' => 'غير مصرح']);
+
+            return;
+
+        }
+
+
+        $target = sanitize($_POST['target'] ?? 'current'); // 'current' or 'all'
+
+        $rangeType = sanitize($_POST['range_type'] ?? 'duration'); // 'duration' or 'range'
+
+        $durationValue = sanitize($_POST['duration_value'] ?? ''); // '1_month', '3_months', '6_months', '1_year', 'custom_days'
+
+        $customDays = intval($_POST['custom_days'] ?? 0);
+
+        $dateFrom = sanitize($_POST['date_from'] ?? '');
+
+        $dateTo = sanitize($_POST['date_to'] ?? '');
+
+
+        $conn = getDBConnection();
+
+
+        // 1. Calculate Total count and size
+
+        $totalQuery = "SELECT COUNT(*) as total_count, 
+
+                      COALESCE(SUM(OCTET_LENGTH(IFNULL(old_data, '')) + OCTET_LENGTH(IFNULL(new_data, '')) + OCTET_LENGTH(IFNULL(notes, '')) + OCTET_LENGTH(IFNULL(uncle_name, '')) + OCTET_LENGTH(IFNULL(action, '')) + OCTET_LENGTH(IFNULL(entity, '')) + OCTET_LENGTH(IFNULL(entity_name, '')) + OCTET_LENGTH(IFNULL(ip_address, '')) + OCTET_LENGTH(IFNULL(user_agent, '')) + 80), 0) as total_size 
+
+                      FROM audit_logs";
+
+        
+
+        $totalStmt = null;
+
+        if ($target === 'current') {
+
+            $churchId = getChurchId();
+
+            $totalQuery .= " WHERE church_id = ?";
+
+            $totalStmt = $conn->prepare($totalQuery);
+
+            $totalStmt->bind_param("i", $churchId);
+
+        } else {
+
+            $totalStmt = $conn->prepare($totalQuery);
+
+        }
+
+        
+
+        $totalStmt->execute();
+
+        $totalRes = $totalStmt->get_result()->fetch_assoc();
+
+        $totalCount = intval($totalRes['total_count']);
+
+        $totalSize = floatval($totalRes['total_size']);
+
+
+        // 2. Calculate Delete count and size
+
+        $deleteQuery = "SELECT COUNT(*) as delete_count, 
+
+                       COALESCE(SUM(OCTET_LENGTH(IFNULL(old_data, '')) + OCTET_LENGTH(IFNULL(new_data, '')) + OCTET_LENGTH(IFNULL(notes, '')) + OCTET_LENGTH(IFNULL(uncle_name, '')) + OCTET_LENGTH(IFNULL(action, '')) + OCTET_LENGTH(IFNULL(entity, '')) + OCTET_LENGTH(IFNULL(entity_name, '')) + OCTET_LENGTH(IFNULL(ip_address, '')) + OCTET_LENGTH(IFNULL(user_agent, '')) + 80), 0) as delete_size 
+
+                       FROM audit_logs WHERE ";
+
+        
+
+        $conditions = [];
+
+        $params = [];
+
+        $types = "";
+
+
+        if ($target === 'current') {
+
+            $churchId = getChurchId();
+
+            $conditions[] = "church_id = ?";
+
+            $params[] = $churchId;
+
+            $types .= "i";
+
+        }
+
+
+        if ($rangeType === 'duration') {
+
+            $interval = "";
+
+            if ($durationValue === '1_month') {
+
+                $interval = "INTERVAL 1 MONTH";
+
+            } elseif ($durationValue === '3_months') {
+
+                $interval = "INTERVAL 3 MONTH";
+
+            } elseif ($durationValue === '6_months') {
+
+                $interval = "INTERVAL 6 MONTH";
+
+            } elseif ($durationValue === '1_year') {
+
+                $interval = "INTERVAL 1 YEAR";
+
+            } elseif ($durationValue === 'custom_days' && $customDays > 0) {
+
+                $interval = "INTERVAL ? DAY";
+
+            }
+
+
+            if (empty($interval)) {
+
+                sendJSON(['success' => false, 'message' => 'تحديد الفترة غير صالح']);
+
+                return;
+
+            }
+
+
+            if ($durationValue === 'custom_days') {
+
+                $conditions[] = "created_at < NOW() - $interval";
+
+                $params[] = $customDays;
+
+                $types .= "i";
+
+            } else {
+
+                $conditions[] = "created_at < NOW() - $interval";
+
+            }
+
+        } elseif ($rangeType === 'range') {
+
+            if ($dateFrom && $dateTo) {
+
+                $conditions[] = "DATE(created_at) BETWEEN ? AND ?";
+
+                $params[] = $dateFrom;
+
+                $params[] = $dateTo;
+
+                $types .= "ss";
+
+            } elseif ($dateFrom) {
+
+                $conditions[] = "DATE(created_at) >= ?";
+
+                $params[] = $dateFrom;
+
+                $types .= "s";
+
+            } elseif ($dateTo) {
+
+                $conditions[] = "DATE(created_at) <= ?";
+
+                $params[] = $dateTo;
+
+                $types .= "s";
+
+            } else {
+
+                sendJSON(['success' => false, 'message' => 'يجب تحديد نطاق التواريخ']);
+
+                return;
+
+            }
+
+        } else {
+
+            sendJSON(['success' => false, 'message' => 'نوع النطاق غير صالح']);
+
+            return;
+
+        }
+
+
+        if (empty($conditions)) {
+
+            sendJSON(['success' => false, 'message' => 'لم يتم تحديد شروط الحذف']);
+
+            return;
+
+        }
+
+
+        $deleteQuery .= implode(" AND ", $conditions);
+
+        $deleteStmt = $conn->prepare($deleteQuery);
+
+        if (!$deleteStmt) {
+
+            throw new Exception("Failed to prepare delete stats query: " . $conn->error);
+
+        }
+
+
+        if (!empty($params)) {
+
+            $deleteStmt->bind_param($types, ...$params);
+
+        }
+
+
+        $deleteStmt->execute();
+
+        $deleteRes = $deleteStmt->get_result()->fetch_assoc();
+
+        $deleteCount = intval($deleteRes['delete_count']);
+
+        $deleteSize = floatval($deleteRes['delete_size']);
+
+
+        $remainingCount = max(0, $totalCount - $deleteCount);
+
+        $remainingSize = max(0.0, $totalSize - $deleteSize);
+
+
+        sendJSON([
+
+            'success' => true,
+
+            'total_count' => $totalCount,
+
+            'total_size' => $totalSize,
+
+            'delete_count' => $deleteCount,
+
+            'delete_size' => $deleteSize,
+
+            'remaining_count' => $remainingCount,
+
+            'remaining_size' => $remainingSize
+
+        ]);
 
 
     } catch (Exception $e) {

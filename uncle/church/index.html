@@ -10448,7 +10448,7 @@
                     <!-- Target Church Selection -->
                     <div class="form-group" style="margin-bottom: 16px;">
                         <label class="form-label">النطاق المستهدف</label>
-                        <select id="devCleanTarget" class="form-select" style="width:100%;">
+                        <select id="devCleanTarget" class="form-select" style="width:100%;" onchange="loadDevCleanStats()">
                             <option value="current">الكنيسة الحالية فقط</option>
                             <option value="all">جميع الكنائس (Global)</option>
                         </select>
@@ -10457,7 +10457,7 @@
                     <!-- Clean Type Selection -->
                     <div class="form-group" style="margin-bottom: 16px;">
                         <label class="form-label">نوع التصفية</label>
-                        <select id="devCleanRangeType" class="form-select" style="width:100%;" onchange="onDevCleanRangeTypeChange()">
+                        <select id="devCleanRangeType" class="form-select" style="width:100%;" onchange="onDevCleanRangeTypeChange(); loadDevCleanStats();">
                             <option value="duration">حذف السجلات أقدم من فترة معينة</option>
                             <option value="range">تحديد فترة تاريخية محددة</option>
                         </select>
@@ -10466,7 +10466,7 @@
                     <!-- Duration Option Container -->
                     <div id="devCleanDurationArea" class="form-group" style="margin-bottom: 16px;">
                         <label class="form-label">احذف السجلات التي مر عليها</label>
-                        <select id="devCleanDurationValue" class="form-select" style="width:100%; margin-bottom: 8px;" onchange="onDevCleanDurationValueChange()">
+                        <select id="devCleanDurationValue" class="form-select" style="width:100%; margin-bottom: 8px;" onchange="onDevCleanDurationValueChange(); loadDevCleanStats();">
                             <option value="1_month">شهر واحد (1 Month)</option>
                             <option value="3_months">3 أشهر (3 Months)</option>
                             <option value="6_months">6 أشهر (6 Months)</option>
@@ -10475,7 +10475,7 @@
                         </select>
                         <div id="devCleanCustomDaysArea" style="display:none; margin-top: 8px;">
                             <label class="form-label" style="font-size: 0.8rem; color: var(--text-secondary);">عدد الأيام</label>
-                            <input type="number" id="devCleanCustomDays" class="form-input" min="1" placeholder="مثال: 45">
+                            <input type="number" id="devCleanCustomDays" class="form-input" min="1" placeholder="مثال: 45" oninput="triggerDevCleanStatsLoad()">
                         </div>
                     </div>
 
@@ -10484,11 +10484,39 @@
                         <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 10px;">
                             <div class="form-group">
                                 <label class="form-label">من تاريخ</label>
-                                <input type="date" id="devCleanDateFrom" class="form-input">
+                                <input type="date" id="devCleanDateFrom" class="form-input" onchange="loadDevCleanStats()">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">إلى تاريخ</label>
-                                <input type="date" id="devCleanDateTo" class="form-input">
+                                <input type="date" id="devCleanDateTo" class="form-input" onchange="loadDevCleanStats()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats Preview Container -->
+                    <div id="devCleanStatsContainer" style="background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; padding: 12px; margin-top: 16px; margin-bottom: 16px; display: none;">
+                        <div style="font-weight: 700; font-size: 0.85rem; color: var(--text-2); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                            <span><i class="fas fa-chart-pie" style="color: var(--dev); margin-left: 4px;"></i> إحصائيات المعاينة الحالية</span>
+                            <span id="devCleanStatsLoader" style="display:none; font-size: 0.75rem; color: var(--muted);"><i class="fas fa-spinner fa-spin"></i> جاري الحساب...</span>
+                        </div>
+                        <div class="form-grid" style="grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center;">
+                            <!-- Will Delete -->
+                            <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px; padding: 8px 4px;">
+                                <div style="font-size: 0.75rem; color: #ef4444; font-weight: 600; margin-bottom: 4px;">سيتم حذفه</div>
+                                <div id="devCleanStatDeleteCount" style="font-size: 1rem; font-weight: 800; color: #ef4444;">0</div>
+                                <div id="devCleanStatDeleteSize" style="font-size: 0.7rem; color: var(--muted); margin-top: 2px;">0 Bytes</div>
+                            </div>
+                            <!-- Will Remain -->
+                            <div style="background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.2); border-radius: 8px; padding: 8px 4px;">
+                                <div style="font-size: 0.75rem; color: #22c55e; font-weight: 600; margin-bottom: 4px;">سيتبقى</div>
+                                <div id="devCleanStatRemainCount" style="font-size: 1rem; font-weight: 800; color: #22c55e;">0</div>
+                                <div id="devCleanStatRemainSize" style="font-size: 0.7rem; color: var(--muted); margin-top: 2px;">0 Bytes</div>
+                            </div>
+                            <!-- Total -->
+                            <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 8px; padding: 8px 4px;">
+                                <div style="font-size: 0.75rem; color: var(--primary); font-weight: 600; margin-bottom: 4px;">الإجمالي</div>
+                                <div id="devCleanStatTotalCount" style="font-size: 1rem; font-weight: 800; color: var(--primary);">0</div>
+                                <div id="devCleanStatTotalSize" style="font-size: 0.7rem; color: var(--muted); margin-top: 2px;">0 Bytes</div>
                             </div>
                         </div>
                     </div>
@@ -20948,6 +20976,68 @@
             document.getElementById('devCleanDateRangeArea').style.display = 'none';
             
             openModal('devCleanAuditModal');
+            loadDevCleanStats();
+        }
+
+        async function loadDevCleanStats() {
+            const container = document.getElementById('devCleanStatsContainer');
+            const loader = document.getElementById('devCleanStatsLoader');
+            if (!container || !loader) return;
+
+            container.style.display = 'block';
+            loader.style.display = 'inline';
+
+            const target = document.getElementById('devCleanTarget').value;
+            const rangeType = document.getElementById('devCleanRangeType').value;
+            const durationValue = document.getElementById('devCleanDurationValue').value;
+            const customDays = parseInt(document.getElementById('devCleanCustomDays').value) || 0;
+            const dateFrom = document.getElementById('devCleanDateFrom').value;
+            const dateTo = document.getElementById('devCleanDateTo').value;
+
+            const fd = mkFd('devGetAuditCleanupStats');
+            fd.append('target', target);
+            fd.append('range_type', rangeType);
+            fd.append('duration_value', durationValue);
+            if (durationValue === 'custom_days') fd.append('custom_days', customDays);
+            if (dateFrom) fd.append('date_from', dateFrom);
+            if (dateTo) fd.append('date_to', dateTo);
+
+            try {
+                const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                loader.style.display = 'none';
+
+                if (d.success) {
+                    document.getElementById('devCleanStatDeleteCount').textContent = d.delete_count.toLocaleString();
+                    document.getElementById('devCleanStatDeleteSize').textContent = formatBytes(d.delete_size);
+
+                    document.getElementById('devCleanStatRemainCount').textContent = d.remaining_count.toLocaleString();
+                    document.getElementById('devCleanStatRemainSize').textContent = formatBytes(d.remaining_size);
+
+                    document.getElementById('devCleanStatTotalCount').textContent = d.total_count.toLocaleString();
+                    document.getElementById('devCleanStatTotalSize').textContent = formatBytes(d.total_size);
+                } else {
+                    console.error('Failed to load clean stats:', d.message);
+                }
+            } catch (err) {
+                loader.style.display = 'none';
+                console.error('Error fetching clean stats:', err);
+            }
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        let devCleanStatsTimeout = null;
+        function triggerDevCleanStatsLoad() {
+            if (devCleanStatsTimeout) clearTimeout(devCleanStatsTimeout);
+            devCleanStatsTimeout = setTimeout(() => {
+                loadDevCleanStats();
+            }, 450);
         }
 
         function onDevCleanRangeTypeChange() {
