@@ -39809,569 +39809,328 @@ function bulkAddStudentNotes()
 
 
 
-// ── Clear all audit logs for this church ─────────────────────
-
-function clearAllAuditLogs()
-
+// ── Helper to append audit_type filtering SQL ────────────────
+function appendAuditTypeClause($auditType, &$conditions, &$params, &$types)
 {
-
-    try {
-
-        $churchId = getChurchId();
-
-        $from = sanitize($_POST['date_from'] ?? '');
-
-        $to = sanitize($_POST['date_to'] ?? '');
-
-        $conn = getDBConnection();
-
-        if ($from && $to) {
-
-            $stmt = $conn->prepare("DELETE FROM audit_logs WHERE church_id = ? AND DATE(created_at) BETWEEN ? AND ?");
-
-            $stmt->bind_param("iss", $churchId, $from, $to);
-
-        } elseif ($from) {
-
-            $stmt = $conn->prepare("DELETE FROM audit_logs WHERE church_id = ? AND DATE(created_at) >= ?");
-
-            $stmt->bind_param("is", $churchId, $from);
-
-        } else {
-
-            $stmt = $conn->prepare("DELETE FROM audit_logs WHERE church_id = ?");
-
-            $stmt->bind_param("i", $churchId);
-
-        }
-
-        $stmt->execute();
-
-        $deleted = $stmt->affected_rows;
-
-        sendJSON(['success' => true, 'message' => "تم حذف $deleted سجل", 'deleted' => $deleted]);
-
-    } catch (Exception $e) {
-
-        sendJSON(['success' => false, 'message' => 'خطأ: ' . $e->getMessage()]);
-
+    $auditType = trim(strtolower($auditType));
+    if (empty($auditType) || $auditType === 'all') {
+        return;
     }
-
+    if ($auditType === 'logins' || $auditType === 'login' || $auditType === 'auth') {
+        $conditions[] = "((entity IN ('auth', 'church', 'uncle') AND action LIKE 'login%') OR action IN ('login', 'login_church', 'login_uncle', 'logout'))";
+    } elseif ($auditType === 'attendance') {
+        $conditions[] = "(entity = 'attendance' OR action LIKE 'attendance%')";
+    } elseif ($auditType === 'coupon') {
+        $conditions[] = "(entity = 'coupon' OR action LIKE 'coupon%')";
+    } elseif ($auditType === 'student') {
+        $conditions[] = "(entity = 'student' OR action LIKE 'student%')";
+    } elseif ($auditType === 'uncle') {
+        $conditions[] = "(entity = 'uncle' OR action LIKE 'uncle%')";
+    } elseif ($auditType === 'trip') {
+        $conditions[] = "(entity IN ('trip', 'trip_registration') OR action LIKE 'trip%')";
+    } elseif ($auditType === 'announcement') {
+        $conditions[] = "(entity = 'announcement' OR action LIKE 'announcement%')";
+    } elseif ($auditType === 'registration') {
+        $conditions[] = "(entity = 'registration' OR action LIKE 'registration%')";
+    } else {
+        $conditions[] = "(entity = ? OR action = ?)";
+        $params[] = $auditType;
+        $params[] = $auditType;
+        $types .= "ss";
+    }
 }
 
-
-
-// ── Clean audit logs for developer ──────────────────────────
-
-function devCleanAuditLogs()
-
+// ── Clear all audit logs for this church or global ────────────
+function clearAllAuditLogs()
 {
+    devCleanAuditLogs();
+}
 
+// ── Clean audit logs with audit_type & duration/mode filters ──
+function devCleanAuditLogs()
+{
     checkAuth();
-
     try {
-
         $role = $_SESSION['uncle_role'] ?? 'uncle';
-
-        if ($role !== 'developer' && $role !== 'dev') {
-
-            sendJSON(['success' => false, 'message' => 'غير مصرح']);
-
-            return;
-
-        }
-
-
         $target = sanitize($_POST['target'] ?? 'current'); // 'current' or 'all'
 
-        $rangeType = sanitize($_POST['range_type'] ?? 'duration'); // 'duration' or 'range'
+        // Non-developers can only delete logs for their current church
+        if ($role !== 'developer' && $role !== 'dev') {
+            $target = 'current';
+        }
 
+        $auditType = sanitize($_POST['audit_type'] ?? $_POST['entity'] ?? 'all');
+        $rangeType = sanitize($_POST['range_type'] ?? $_POST['clean_mode'] ?? 'duration'); // 'duration', 'delete_all', 'range'
         $durationValue = sanitize($_POST['duration_value'] ?? ''); // '1_month', '3_months', '6_months', '1_year', 'custom_days'
-
         $customDays = intval($_POST['custom_days'] ?? 0);
-
         $dateFrom = sanitize($_POST['date_from'] ?? '');
-
         $dateTo = sanitize($_POST['date_to'] ?? '');
 
-
         $conn = getDBConnection();
-
         $query = "DELETE FROM audit_logs WHERE ";
-
         $conditions = [];
-
         $params = [];
-
         $types = "";
 
-
         // 1. Church Target Condition
-
         if ($target === 'current') {
-
             $churchId = getChurchId();
-
             $conditions[] = "church_id = ?";
-
             $params[] = $churchId;
-
             $types .= "i";
-
         }
 
+        // 2. Audit Type Filter
+        appendAuditTypeClause($auditType, $conditions, $params, $types);
 
-        // 2. Range Condition
-
+        // 3. Range / Duration Condition
         if ($rangeType === 'duration') {
-
             $interval = "";
-
             if ($durationValue === '1_month') {
-
                 $interval = "INTERVAL 1 MONTH";
-
             } elseif ($durationValue === '3_months') {
-
                 $interval = "INTERVAL 3 MONTH";
-
             } elseif ($durationValue === '6_months') {
-
                 $interval = "INTERVAL 6 MONTH";
-
             } elseif ($durationValue === '1_year') {
-
                 $interval = "INTERVAL 1 YEAR";
-
             } elseif ($durationValue === 'custom_days' && $customDays > 0) {
-
                 $interval = "INTERVAL ? DAY";
-
             }
-
 
             if (empty($interval)) {
-
                 sendJSON(['success' => false, 'message' => 'تحديد الفترة غير صالح']);
-
                 return;
-
             }
-
 
             if ($durationValue === 'custom_days') {
-
                 $conditions[] = "created_at < NOW() - $interval";
-
                 $params[] = $customDays;
-
                 $types .= "i";
-
             } else {
-
                 $conditions[] = "created_at < NOW() - $interval";
-
             }
-
         } elseif ($rangeType === 'range') {
-
             if ($dateFrom && $dateTo) {
-
                 $conditions[] = "DATE(created_at) BETWEEN ? AND ?";
-
                 $params[] = $dateFrom;
-
                 $params[] = $dateTo;
-
                 $types .= "ss";
-
             } elseif ($dateFrom) {
-
                 $conditions[] = "DATE(created_at) >= ?";
-
                 $params[] = $dateFrom;
-
                 $types .= "s";
-
             } elseif ($dateTo) {
-
                 $conditions[] = "DATE(created_at) <= ?";
-
                 $params[] = $dateTo;
-
                 $types .= "s";
-
             } else {
-
                 sendJSON(['success' => false, 'message' => 'يجب تحديد نطاق التواريخ']);
-
                 return;
-
             }
-
+        } elseif ($rangeType === 'delete_all' || $rangeType === 'all') {
+            // Delete all matching audit logs of that type without date restriction
         } else {
-
             sendJSON(['success' => false, 'message' => 'نوع النطاق غير صالح']);
-
             return;
-
         }
-
 
         if (empty($conditions)) {
-
             sendJSON(['success' => false, 'message' => 'لم يتم تحديد شروط الحذف']);
-
             return;
-
         }
 
-
         $query .= implode(" AND ", $conditions);
-
         $stmt = $conn->prepare($query);
 
         if (!$stmt) {
-
             throw new Exception("Failed to prepare statement: " . $conn->error);
-
         }
-
 
         if (!empty($params)) {
-
             $stmt->bind_param($types, ...$params);
-
         }
-
 
         if ($stmt->execute()) {
-
             $deleted = $stmt->affected_rows;
 
-
-            // Log this developer action in the audit logs
-
-            $logNotes = "المستهدف: " . ($target === 'all' ? 'جميع الكنائس' : 'الكنيسة الحالية');
-
-            if ($rangeType === 'duration') {
-
+            $logNotes = "نوع السجل: $auditType | المستهدف: " . ($target === 'all' ? 'جميع الكنائس' : 'الكنيسة الحالية');
+            if ($rangeType === 'delete_all' || $rangeType === 'all') {
+                $logNotes .= " | تفاصيل: حذف الكل";
+            } elseif ($rangeType === 'duration') {
                 $logNotes .= " | أقدم من: " . ($durationValue === 'custom_days' ? "$customDays يوم" : $durationValue);
-
             } else {
-
                 $logNotes .= " | بين $dateFrom و $dateTo";
-
             }
-
             $logNotes .= " | المحذوف: $deleted سجل";
 
-
             writeAuditLog(
-
-                'dev_clean_audit_logs',
-
+                'clean_audit_logs',
                 'system',
-
                 null,
-
                 'System Logs',
-
                 null,
-
                 null,
-
-                "قام مطور النظام بتنظيف سجلات العمليات. $logNotes"
-
+                "قام الخادم بتنظيف سجلات العمليات. $logNotes"
             );
 
-
             sendJSON(['success' => true, 'message' => "تم حذف $deleted سجل بنجاح", 'deleted' => $deleted]);
-
         } else {
-
             throw new Exception("Execute failed: " . $stmt->error);
-
         }
-
 
     } catch (Exception $e) {
-
         sendJSON(['success' => false, 'message' => 'خطأ: ' . $e->getMessage()]);
-
     }
-
 }
 
-
-
-// ── Get audit log cleanup stats for developer ────────────────
-
+// ── Get audit log cleanup stats for developer or church admin ──
 function devGetAuditCleanupStats()
-
 {
-
     checkAuth();
-
     try {
-
         $role = $_SESSION['uncle_role'] ?? 'uncle';
-
-        if ($role !== 'developer' && $role !== 'dev') {
-
-            sendJSON(['success' => false, 'message' => 'غير مصرح']);
-
-            return;
-
-        }
-
-
         $target = sanitize($_POST['target'] ?? 'current'); // 'current' or 'all'
 
-        $rangeType = sanitize($_POST['range_type'] ?? 'duration'); // 'duration' or 'range'
+        if ($role !== 'developer' && $role !== 'dev') {
+            $target = 'current';
+        }
 
+        $auditType = sanitize($_POST['audit_type'] ?? $_POST['entity'] ?? 'all');
+        $rangeType = sanitize($_POST['range_type'] ?? $_POST['clean_mode'] ?? 'duration'); // 'duration', 'delete_all', 'range'
         $durationValue = sanitize($_POST['duration_value'] ?? ''); // '1_month', '3_months', '6_months', '1_year', 'custom_days'
-
         $customDays = intval($_POST['custom_days'] ?? 0);
-
         $dateFrom = sanitize($_POST['date_from'] ?? '');
-
         $dateTo = sanitize($_POST['date_to'] ?? '');
-
 
         $conn = getDBConnection();
 
-
-        // 1. Calculate Total count and size
-
+        // 1. Calculate Total count and size for church/scope
         $totalQuery = "SELECT COUNT(*) as total_count, 
-
                       COALESCE(SUM(OCTET_LENGTH(IFNULL(old_data, '')) + OCTET_LENGTH(IFNULL(new_data, '')) + OCTET_LENGTH(IFNULL(notes, '')) + OCTET_LENGTH(IFNULL(uncle_name, '')) + OCTET_LENGTH(IFNULL(action, '')) + OCTET_LENGTH(IFNULL(entity, '')) + OCTET_LENGTH(IFNULL(entity_name, '')) + OCTET_LENGTH(IFNULL(ip_address, '')) + OCTET_LENGTH(IFNULL(user_agent, '')) + 80), 0) as total_size 
-
                       FROM audit_logs";
 
-        
-
         $totalStmt = null;
-
         if ($target === 'current') {
-
             $churchId = getChurchId();
-
             $totalQuery .= " WHERE church_id = ?";
-
             $totalStmt = $conn->prepare($totalQuery);
-
             $totalStmt->bind_param("i", $churchId);
-
         } else {
-
             $totalStmt = $conn->prepare($totalQuery);
-
         }
-
-        
 
         $totalStmt->execute();
-
         $totalRes = $totalStmt->get_result()->fetch_assoc();
-
         $totalCount = intval($totalRes['total_count']);
-
         $totalSize = floatval($totalRes['total_size']);
 
-
         // 2. Calculate Delete count and size
-
         $deleteQuery = "SELECT COUNT(*) as delete_count, 
-
                        COALESCE(SUM(OCTET_LENGTH(IFNULL(old_data, '')) + OCTET_LENGTH(IFNULL(new_data, '')) + OCTET_LENGTH(IFNULL(notes, '')) + OCTET_LENGTH(IFNULL(uncle_name, '')) + OCTET_LENGTH(IFNULL(action, '')) + OCTET_LENGTH(IFNULL(entity, '')) + OCTET_LENGTH(IFNULL(entity_name, '')) + OCTET_LENGTH(IFNULL(ip_address, '')) + OCTET_LENGTH(IFNULL(user_agent, '')) + 80), 0) as delete_size 
-
                        FROM audit_logs WHERE ";
 
-        
-
         $conditions = [];
-
         $params = [];
-
         $types = "";
 
-
         if ($target === 'current') {
-
             $churchId = getChurchId();
-
             $conditions[] = "church_id = ?";
-
             $params[] = $churchId;
-
             $types .= "i";
-
         }
 
+        appendAuditTypeClause($auditType, $conditions, $params, $types);
 
         if ($rangeType === 'duration') {
-
             $interval = "";
-
             if ($durationValue === '1_month') {
-
                 $interval = "INTERVAL 1 MONTH";
-
             } elseif ($durationValue === '3_months') {
-
                 $interval = "INTERVAL 3 MONTH";
-
             } elseif ($durationValue === '6_months') {
-
                 $interval = "INTERVAL 6 MONTH";
-
             } elseif ($durationValue === '1_year') {
-
                 $interval = "INTERVAL 1 YEAR";
-
             } elseif ($durationValue === 'custom_days' && $customDays > 0) {
-
                 $interval = "INTERVAL ? DAY";
-
             }
-
 
             if (empty($interval)) {
-
                 sendJSON(['success' => false, 'message' => 'تحديد الفترة غير صالح']);
-
                 return;
-
             }
-
 
             if ($durationValue === 'custom_days') {
-
                 $conditions[] = "created_at < NOW() - $interval";
-
                 $params[] = $customDays;
-
                 $types .= "i";
-
             } else {
-
                 $conditions[] = "created_at < NOW() - $interval";
-
             }
-
         } elseif ($rangeType === 'range') {
-
             if ($dateFrom && $dateTo) {
-
                 $conditions[] = "DATE(created_at) BETWEEN ? AND ?";
-
                 $params[] = $dateFrom;
-
                 $params[] = $dateTo;
-
                 $types .= "ss";
-
             } elseif ($dateFrom) {
-
                 $conditions[] = "DATE(created_at) >= ?";
-
                 $params[] = $dateFrom;
-
                 $types .= "s";
-
             } elseif ($dateTo) {
-
                 $conditions[] = "DATE(created_at) <= ?";
-
                 $params[] = $dateTo;
-
                 $types .= "s";
-
             } else {
-
                 sendJSON(['success' => false, 'message' => 'يجب تحديد نطاق التواريخ']);
-
                 return;
-
             }
-
+        } elseif ($rangeType === 'delete_all' || $rangeType === 'all') {
+            // Delete all matching audit logs of that type without date restriction
         } else {
-
             sendJSON(['success' => false, 'message' => 'نوع النطاق غير صالح']);
-
             return;
-
         }
-
 
         if (empty($conditions)) {
-
             sendJSON(['success' => false, 'message' => 'لم يتم تحديد شروط الحذف']);
-
             return;
-
         }
 
-
         $deleteQuery .= implode(" AND ", $conditions);
-
         $deleteStmt = $conn->prepare($deleteQuery);
 
         if (!$deleteStmt) {
-
             throw new Exception("Failed to prepare delete stats query: " . $conn->error);
-
         }
-
 
         if (!empty($params)) {
-
             $deleteStmt->bind_param($types, ...$params);
-
         }
 
-
         $deleteStmt->execute();
-
         $deleteRes = $deleteStmt->get_result()->fetch_assoc();
-
         $deleteCount = intval($deleteRes['delete_count']);
-
         $deleteSize = floatval($deleteRes['delete_size']);
 
-
         $remainingCount = max(0, $totalCount - $deleteCount);
-
         $remainingSize = max(0.0, $totalSize - $deleteSize);
 
-
         sendJSON([
-
             'success' => true,
-
             'total_count' => $totalCount,
-
             'total_size' => $totalSize,
-
             'delete_count' => $deleteCount,
-
             'delete_size' => $deleteSize,
-
             'remaining_count' => $remainingCount,
-
             'remaining_size' => $remainingSize
-
         ]);
 
-
     } catch (Exception $e) {
-
         sendJSON(['success' => false, 'message' => 'خطأ: ' . $e->getMessage()]);
-
     }
-
 }
 
 

@@ -10436,17 +10436,17 @@
         </div>
     </div>
 
-    <!-- Dev Clean Audit Modal -->
+    <!-- Dev / Admin Clean Audit Modal -->
     <div id="devCleanAuditModal" class="modal">
         <div class="modal-box">
             <div class="modal-head">
-                <h2><i class="fas fa-broom dev-icon"></i> تنظيف سجل العمليات (مطور)</h2>
+                <h2><i class="fas fa-broom dev-icon"></i> تنظيف وإدارة سجل العمليات</h2>
                 <button class="modal-close" onclick="closeModal('devCleanAuditModal')"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body">
                 <form id="devCleanAuditForm" onsubmit="executeDevCleanAudit(event)">
-                    <!-- Target Church Selection -->
-                    <div class="form-group" style="margin-bottom: 16px;">
+                    <!-- Target Church Selection (Dev Only) -->
+                    <div class="form-group dev-only" style="margin-bottom: 16px; display: none;">
                         <label class="form-label">النطاق المستهدف</label>
                         <select id="devCleanTarget" class="form-select" style="width:100%;" onchange="loadDevCleanStats()">
                             <option value="current">الكنيسة الحالية فقط</option>
@@ -10454,21 +10454,38 @@
                         </select>
                     </div>
 
-                    <!-- Clean Type Selection -->
+                    <!-- Audit Log Type Selection -->
                     <div class="form-group" style="margin-bottom: 16px;">
-                        <label class="form-label">نوع التصفية</label>
-                        <select id="devCleanRangeType" class="form-select" style="width:100%;" onchange="onDevCleanRangeTypeChange(); loadDevCleanStats();">
-                            <option value="duration">حذف السجلات أقدم من فترة معينة</option>
-                            <option value="range">تحديد فترة تاريخية محددة</option>
+                        <label class="form-label">نوع سجل العمليات المراد تنظيفه</label>
+                        <select id="devCleanAuditType" class="form-select" style="width:100%; font-weight:700;" onchange="loadDevCleanStats()">
+                            <option value="logins">🔑 تسجيلات الدخول والخروج (Logins & Auth) — غير هامة (موصى بها)</option>
+                            <option value="all">🌐 جميع السجلات (كل الكيانات والأحداث)</option>
+                            <option value="attendance">📅 سجلات الحضور والغياب (Attendance)</option>
+                            <option value="coupon">🌟 سجلات الكوبونات والنقاط (Coupons)</option>
+                            <option value="student">👶 بيانات وسجلات الأطفال (Students)</option>
+                            <option value="uncle">👨‍🏫 بيانات وسجلات الخدام (Servants)</option>
+                            <option value="trip">🚌 سجلات الرحلات (Trips)</option>
+                            <option value="announcement">📢 سجلات الإعلانات (Announcements)</option>
+                            <option value="registration">📝 طلبات الانضمام (Registrations)</option>
+                        </select>
+                    </div>
+
+                    <!-- Clean Strategy Selection -->
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label">طريقة الحذف والنطاق</label>
+                        <select id="devCleanRangeType" class="form-select" style="width:100%; font-weight:700;" onchange="onDevCleanRangeTypeChange(); loadDevCleanStats();">
+                            <option value="duration">⏳ حذف السجلات الأقدم من فترة معينة (X شهر / أيام)</option>
+                            <option value="delete_all">🗑️ حذف جميع السجلات لهذا النوع بالكامل (حذف الكل)</option>
+                            <option value="range">📅 تحديد نطاق تواريخ محدد (من / إلى)</option>
                         </select>
                     </div>
 
                     <!-- Duration Option Container -->
                     <div id="devCleanDurationArea" class="form-group" style="margin-bottom: 16px;">
-                        <label class="form-label">احذف السجلات التي مر عليها</label>
+                        <label class="form-label">احذف السجلات التي مر عليها أكثر من</label>
                         <select id="devCleanDurationValue" class="form-select" style="width:100%; margin-bottom: 8px;" onchange="onDevCleanDurationValueChange(); loadDevCleanStats();">
                             <option value="1_month">شهر واحد (1 Month)</option>
-                            <option value="3_months">3 أشهر (3 Months)</option>
+                            <option value="3_months" selected>3 أشهر (3 Months)</option>
                             <option value="6_months">6 أشهر (6 Months)</option>
                             <option value="1_year">سنة كاملة (1 Year)</option>
                             <option value="custom_days">عدد أيام مخصص...</option>
@@ -10496,7 +10513,7 @@
                     <!-- Stats Preview Container -->
                     <div id="devCleanStatsContainer" style="background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; padding: 12px; margin-top: 16px; margin-bottom: 16px; display: none;">
                         <div style="font-weight: 700; font-size: 0.85rem; color: var(--text-2); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-                            <span><i class="fas fa-chart-pie" style="color: var(--dev); margin-left: 4px;"></i> إحصائيات المعاينة الحالية</span>
+                            <span><i class="fas fa-chart-pie" style="color: var(--dev); margin-left: 4px;"></i> إحصائيات المعاينة المباشرة</span>
                             <span id="devCleanStatsLoader" style="display:none; font-size: 0.75rem; color: var(--muted);"><i class="fas fa-spinner fa-spin"></i> جاري الحساب...</span>
                         </div>
                         <div class="form-grid" style="grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center;">
@@ -10522,7 +10539,7 @@
                     </div>
 
                     <div style="display:flex; gap:10px; margin-top:24px;">
-                        <button type="submit" class="btn btn-dev" style="flex:2;"><i class="fas fa-trash"></i> بدء التنظيف</button>
+                        <button type="submit" class="btn btn-danger" style="flex:2; font-weight:800;"><i class="fas fa-trash-alt"></i> بدء تنظيف السجلات</button>
                         <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeModal('devCleanAuditModal')">إلغاء</button>
                     </div>
                 </form>
@@ -20942,39 +20959,25 @@
             };
         })();
 
-        async function showClearHistoryModal() {
-            const from = document.getElementById('auditDateFrom')?.value || '';
-            const to = document.getElementById('auditDateTo')?.value || '';
-            const rangeText = (from && to) ? `من ${from} إلى ${to}` : (from ? `من ${from}` : 'جميع السجلات');
-            if (!(await showConfirm({ message: `هل تريد حذف ${rangeText}؟ لا يمكن التراجع عن هذا الإجراء.`, danger: true }))) return;
-            clearAuditHistory(from, to);
-        }
-
-        async function clearAuditHistory(dateFrom = '', dateTo = '') {
-            const fd = mkFd('clearAllAuditLogs');
-            if (dateFrom) fd.append('date_from', dateFrom);
-            if (dateTo) fd.append('date_to', dateTo);
-            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
-            if (d.success) {
-                showToast(d.message || 'تم حذف السجلات', 'success');
-                loadAuditLogs();
-            } else {
-                showToast(d.message || 'فشل في الحذف', 'error');
-            }
+        function showClearHistoryModal() {
+            showDevCleanAuditModal();
         }
 
         function showDevCleanAuditModal() {
+            const isDev = (window.currentUser && (currentUser.role === 'developer' || currentUser.role === 'dev'));
+            const devTargetGroup = document.querySelector('#devCleanAuditModal .dev-only');
+            if (devTargetGroup) {
+                devTargetGroup.style.display = isDev ? 'block' : 'none';
+            }
             document.getElementById('devCleanTarget').value = 'current';
+            document.getElementById('devCleanAuditType').value = 'logins';
             document.getElementById('devCleanRangeType').value = 'duration';
-            document.getElementById('devCleanDurationValue').value = '1_month';
+            document.getElementById('devCleanDurationValue').value = '3_months';
             document.getElementById('devCleanCustomDays').value = '';
             document.getElementById('devCleanDateFrom').value = '';
             document.getElementById('devCleanDateTo').value = '';
-            
-            document.getElementById('devCleanDurationArea').style.display = 'block';
-            document.getElementById('devCleanCustomDaysArea').style.display = 'none';
-            document.getElementById('devCleanDateRangeArea').style.display = 'none';
-            
+
+            onDevCleanRangeTypeChange();
             openModal('devCleanAuditModal');
             loadDevCleanStats();
         }
@@ -20987,15 +20990,17 @@
             container.style.display = 'block';
             loader.style.display = 'inline';
 
-            const target = document.getElementById('devCleanTarget').value;
-            const rangeType = document.getElementById('devCleanRangeType').value;
-            const durationValue = document.getElementById('devCleanDurationValue').value;
-            const customDays = parseInt(document.getElementById('devCleanCustomDays').value) || 0;
-            const dateFrom = document.getElementById('devCleanDateFrom').value;
-            const dateTo = document.getElementById('devCleanDateTo').value;
+            const target = document.getElementById('devCleanTarget')?.value || 'current';
+            const auditType = document.getElementById('devCleanAuditType')?.value || 'all';
+            const rangeType = document.getElementById('devCleanRangeType')?.value || 'duration';
+            const durationValue = document.getElementById('devCleanDurationValue')?.value || '3_months';
+            const customDays = parseInt(document.getElementById('devCleanCustomDays')?.value) || 0;
+            const dateFrom = document.getElementById('devCleanDateFrom')?.value || '';
+            const dateTo = document.getElementById('devCleanDateTo')?.value || '';
 
             const fd = mkFd('devGetAuditCleanupStats');
             fd.append('target', target);
+            fd.append('audit_type', auditType);
             fd.append('range_type', rangeType);
             fd.append('duration_value', durationValue);
             if (durationValue === 'custom_days') fd.append('custom_days', customDays);
@@ -21007,14 +21012,14 @@
                 loader.style.display = 'none';
 
                 if (d.success) {
-                    document.getElementById('devCleanStatDeleteCount').textContent = d.delete_count.toLocaleString();
-                    document.getElementById('devCleanStatDeleteSize').textContent = formatBytes(d.delete_size);
+                    document.getElementById('devCleanStatDeleteCount').textContent = (d.delete_count || 0).toLocaleString();
+                    document.getElementById('devCleanStatDeleteSize').textContent = formatBytes(d.delete_size || 0);
 
-                    document.getElementById('devCleanStatRemainCount').textContent = d.remaining_count.toLocaleString();
-                    document.getElementById('devCleanStatRemainSize').textContent = formatBytes(d.remaining_size);
+                    document.getElementById('devCleanStatRemainCount').textContent = (d.remaining_count || 0).toLocaleString();
+                    document.getElementById('devCleanStatRemainSize').textContent = formatBytes(d.remaining_size || 0);
 
-                    document.getElementById('devCleanStatTotalCount').textContent = d.total_count.toLocaleString();
-                    document.getElementById('devCleanStatTotalSize').textContent = formatBytes(d.total_size);
+                    document.getElementById('devCleanStatTotalCount').textContent = (d.total_count || 0).toLocaleString();
+                    document.getElementById('devCleanStatTotalSize').textContent = formatBytes(d.total_size || 0);
                 } else {
                     console.error('Failed to load clean stats:', d.message);
                 }
@@ -21045,9 +21050,12 @@
             if (type === 'duration') {
                 document.getElementById('devCleanDurationArea').style.display = 'block';
                 document.getElementById('devCleanDateRangeArea').style.display = 'none';
-            } else {
+            } else if (type === 'range') {
                 document.getElementById('devCleanDurationArea').style.display = 'none';
                 document.getElementById('devCleanDateRangeArea').style.display = 'block';
+            } else {
+                document.getElementById('devCleanDurationArea').style.display = 'none';
+                document.getElementById('devCleanDateRangeArea').style.display = 'none';
             }
         }
 
@@ -21063,14 +21071,14 @@
         async function executeDevCleanAudit(e) {
             e.preventDefault();
             
-            const target = document.getElementById('devCleanTarget').value;
-            const rangeType = document.getElementById('devCleanRangeType').value;
-            const durationValue = document.getElementById('devCleanDurationValue').value;
-            const customDays = parseInt(document.getElementById('devCleanCustomDays').value) || 0;
-            const dateFrom = document.getElementById('devCleanDateFrom').value;
-            const dateTo = document.getElementById('devCleanDateTo').value;
+            const target = document.getElementById('devCleanTarget')?.value || 'current';
+            const auditType = document.getElementById('devCleanAuditType')?.value || 'all';
+            const rangeType = document.getElementById('devCleanRangeType')?.value || 'duration';
+            const durationValue = document.getElementById('devCleanDurationValue')?.value || '3_months';
+            const customDays = parseInt(document.getElementById('devCleanCustomDays')?.value) || 0;
+            const dateFrom = document.getElementById('devCleanDateFrom')?.value || '';
+            const dateTo = document.getElementById('devCleanDateTo')?.value || '';
 
-            // Simple validation
             if (rangeType === 'duration' && durationValue === 'custom_days' && customDays <= 0) {
                 showToast('الرجاء إدخال عدد أيام صحيح أكبر من الصفر', 'warning');
                 return;
@@ -21080,15 +21088,26 @@
                 return;
             }
 
-            // Construct confirm message details
-            let msg = 'هل أنت متأكد من رغبتك في حذف السجلات؟ ';
+            const typeNames = {
+                'all': 'جميع السجلات',
+                'logins': 'تسجيلات الدخول والخروج (Logins)',
+                'attendance': 'سجلات الحضور والغياب',
+                'coupon': 'سجلات الكوبونات والنقاط',
+                'student': 'بيانات الأطفال',
+                'uncle': 'بيانات الخدام',
+                'trip': 'سجلات الرحلات',
+                'announcement': 'سجلات الإعلانات',
+                'registration': 'طلبات التسجيل'
+            };
+
+            let msg = `هل أنت متأكد من رغبتك في تنظيف سجلات [${typeNames[auditType] || auditType}]؟\n`;
             if (target === 'all') {
-                msg += 'تنبيه: سيتم حذف السجلات لجميع الكنائس! ';
-            } else {
-                msg += 'سيتم حذف سجلات هذه الكنيسة فقط. ';
+                msg += '⚠️ تنبيه: سيتم التنظيف لجميع الكنائس!\n';
             }
             
-            if (rangeType === 'duration') {
+            if (rangeType === 'delete_all') {
+                msg += '⚠️ سيتم حذف جميع سجلات هذا النوع بالكامل!';
+            } else if (rangeType === 'duration') {
                 if (durationValue === 'custom_days') {
                     msg += `الفترة: السجلات التي مر عليها أكثر من ${customDays} يوم.`;
                 } else {
@@ -21104,6 +21123,7 @@
 
             const fd = mkFd('devCleanAuditLogs');
             fd.append('target', target);
+            fd.append('audit_type', auditType);
             fd.append('range_type', rangeType);
             fd.append('duration_value', durationValue);
             if (durationValue === 'custom_days') fd.append('custom_days', customDays);
