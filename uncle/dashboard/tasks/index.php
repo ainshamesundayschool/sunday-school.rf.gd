@@ -12019,13 +12019,20 @@ body {
   .tasks-subpage-header {
     flex-direction: column;
     align-items: stretch !important;
-    gap: 16px !important;
+    gap: 12px !important;
+  }
+  .header-stats-actions-wrap {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    direction: rtl !important;
   }
   .iframe-stats-row {
-    justify-content: center;
+    justify-content: flex-start !important;
   }
-  .tasks-subpage-header > div:last-child {
-    justify-content: center;
+  .header-actions-box {
+    margin-right: auto !important;
   }
 }
 
@@ -12300,7 +12307,7 @@ body {
 
 <main class="page">
 
-  <header class="tasks-subpage-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; gap: 16px; border-bottom: 1px solid var(--bdr); padding-bottom: 16px; direction: rtl;">
+  <header class="tasks-subpage-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; gap: 16px; border-bottom: 1px solid var(--bdr); padding-bottom: 16px; direction: rtl; flex-wrap: wrap;">
     <div style="display: flex; align-items: center; gap: 12px;">
       <a href="<?php echo htmlspecialchars($dashBack); ?>" style="text-decoration: none !important; background: var(--bg-card); border: 1px solid var(--bdr); border-radius: var(--r-md); width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--t1); transition: all 0.2s;" onmouseover="this.style.background='var(--brand-bg)'; this.style.color='var(--brand)';" onmouseout="this.style.background='var(--bg-card)'; this.style.color='var(--t1)';"><i class="fas fa-arrow-right"></i></a>
       <div>
@@ -12313,23 +12320,26 @@ body {
       </div>
     </div>
     
-    <!-- Stats Row -->
-    <div class="iframe-stats-row" style="display: flex; gap: 12px; align-items: center;">
-      <div style="background: var(--bg-card); border: 1px solid var(--bdr); border-radius: var(--r-md); padding: 6px 14px; text-align: center; min-width: 70px;">
-        <div style="font-size: 0.68rem; color: var(--t3); font-weight: bold; margin-bottom: 2px;">إجمالي التاسكات</div>
-        <div style="font-size: 1.05rem; font-weight: 800; color: var(--t1);" id="stTotalIframe">—</div>
+    <!-- Stats + Actions Container (Stats Right, Actions Left) -->
+    <div class="header-stats-actions-wrap" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; direction: rtl;">
+      <!-- Stats Row (Right) -->
+      <div class="iframe-stats-row" style="display: flex; gap: 8px; align-items: center;">
+        <div style="background: var(--bg-card); border: 1px solid var(--bdr); border-radius: var(--r-md); padding: 5px 12px; text-align: center; min-width: 60px;">
+          <div style="font-size: 0.65rem; color: var(--t3); font-weight: bold; margin-bottom: 2px;">إجمالي التاسكات</div>
+          <div style="font-size: 1.05rem; font-weight: 800; color: var(--t1);" id="stTotalIframe">—</div>
+        </div>
+
+        <div style="background: var(--bg-card); border: 1px solid var(--bdr); border-radius: var(--r-md); padding: 5px 12px; text-align: center; min-width: 55px;">
+          <div style="font-size: 0.65rem; color: var(--t3); font-weight: bold; margin-bottom: 2px;">Draft</div>
+          <div style="font-size: 1.05rem; font-weight: 800; color: var(--warn);" id="stDraftIframe">—</div>
+        </div>
       </div>
 
-      <div style="background: var(--bg-card); border: 1px solid var(--bdr); border-radius: var(--r-md); padding: 6px 14px; text-align: center; min-width: 70px;">
-        <div style="font-size: 0.68rem; color: var(--t3); font-weight: bold; margin-bottom: 2px;">Draft</div>
-        <div style="font-size: 1.05rem; font-weight: 800; color: var(--warn);" id="stDraftIframe">—</div>
+      <!-- Actions (Left) -->
+      <div class="header-actions-box" style="display: flex; gap: 8px; align-items: center;">
+        <button onclick="openTasksOverviewModal()" title="تصدير نظرة عامة" style="background:var(--brand-bg); color:var(--brand); border:1.5px solid var(--brand-l); font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; width: 38px; height: 38px; border-radius: var(--r-md); transition: all 0.2s; flex-shrink: 0;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='var(--brand-bg)'; this.style.color='var(--brand)';"><i class="fas fa-file-export" style="font-size:1rem;"></i></button>
+        <button class="btn-create" onclick="openCreate()" style="padding: 0 16px; font-size: 0.85rem; font-weight: 800; height: 38px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; flex-shrink: 0;"><i class="fas fa-plus"></i> تاسك جديد</button>
       </div>
-    </div>
-
-    <!-- Actions -->
-    <div style="display: flex; gap: 8px; align-items: center;">
-      <button onclick="openTasksOverviewModal()" title="تصدير نظرة عامة" style="background:var(--brand-bg); color:var(--brand); border:1.5px solid var(--brand-l); font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; width: 38px; height: 38px; border-radius: var(--r-md); transition: all 0.2s;" onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';" onmouseout="this.style.background='var(--brand-bg)'; this.style.color='var(--brand)';"><i class="fas fa-file-export" style="font-size:1rem;"></i></button>
-      <button class="btn-create" onclick="openCreate()" style="padding: 10px 18px; font-size: 0.85rem; font-weight: 800; height: 38px; display: inline-flex; align-items: center; gap: 6px;"><i class="fas fa-plus"></i> تاسك جديد</button>
     </div>
   </header>
 
