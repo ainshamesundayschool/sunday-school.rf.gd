@@ -956,7 +956,6 @@
         }
 
         function startPhoneVerification(phone, studentId) {
-            initFirebasePhoneAuth();
             const container = elements.passwordSetupContainer;
             const phoneLoginForm = elements.phoneLoginForm;
             
@@ -964,7 +963,6 @@
             container.classList.add('active');
 
             const cleanP = cleanPhoneNumber(phone);
-            const formattedPhone = formatPhoneForFirebase(phone);
             
             container.innerHTML = `
                 <h3 style="color: var(--dark); font-size: 1.1rem; margin-bottom: 16px; text-align: center; font-weight: 800;">
@@ -997,17 +995,10 @@
                                    style="letter-spacing: 4px; text-align: center; font-weight: 700; font-size: 1.1rem; padding: 10px;">
                         </div>
                     </div>
-
-                    <div id="recaptcha-container"></div>
                     
-                    <button type="submit" class="login-btn" id="verifyOtpSubmitBtn" style="padding: 10px 14px; font-size: 0.88rem; margin-bottom: 8px;">
+                    <button type="submit" class="login-btn" id="verifyOtpSubmitBtn" style="padding: 10px 14px; font-size: 0.88rem; margin-bottom: 0;">
                         <i class="fas fa-check"></i>
                         <span>تأكيد الكود والمتابعة</span>
-                    </button>
-                    
-                    <button type="button" id="triggerFirebaseSmsBtn" class="login-btn" style="background: var(--light); color: var(--secondary); border: 1px solid var(--border); font-size: 0.82rem; padding: 8px 12px; font-weight: 600; margin-bottom: 0;">
-                        <i class="fas fa-sms"></i>
-                        إرسال كود SMS
                     </button>
                 </form>
             `;
@@ -1019,11 +1010,7 @@
 
                 document.getElementById('phoneOtpForm').addEventListener('submit', function(e) {
                     e.preventDefault();
-                    verifyFirebaseOTP(phone, studentId);
-                });
-
-                document.getElementById('triggerFirebaseSmsBtn').addEventListener('click', function() {
-                    sendFirebaseOTP(formattedPhone, true);
+                    verifyWhatsAppOTP(phone, studentId);
                 });
             }, 100);
         }
@@ -1042,7 +1029,7 @@
             .then(data => {
                 hideLoading();
                 if (data.success && data.wa_url) {
-                    showSuccess('تم إنشاء كود التحقق. افتح الواتساب لإرسال الكود إلى خادم الكنيسة.');
+                    showSuccess('تم إنشاء كود التحقق. افتح الواتساب لإرسال الطلب إلى خادم الكنيسة.');
                     window.open(data.wa_url, '_blank');
                 } else {
                     showSetupError(data.message || 'فشل طلب كود التحقق');
@@ -1054,59 +1041,7 @@
             });
         }
 
-        function sendFirebaseOTP(formattedPhone, isResend = false) {
-            const cleanPhone = cleanPhoneNumber(formattedPhone);
-            const lastOtpKey = `otp_last_sent_${cleanPhone}`;
-            const lastSent = localStorage.getItem(lastOtpKey);
-            const now = Date.now();
-            const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-
-            const isTestNumber = cleanPhone.includes('1000000000') || cleanPhone.includes('123456789');
-
-            if (isResend && lastSent && (now - parseInt(lastSent)) < ONE_DAY_MS && !isTestNumber) {
-                const remainingMs = ONE_DAY_MS - (now - parseInt(lastSent));
-                const remainingHours = Math.ceil(remainingMs / (1000 * 60 * 60));
-                showSetupError(`تم الوصول للحد الأقصى لطلب SMS اليوم. يرجى المحاولة بعد ${remainingHours} ساعة أو استخدام زر الواتساب.`);
-                return;
-            }
-
-            showLoading('جاري طلب كود SMS...');
-            
-            try {
-                if (!firebaseRecaptchaVerifier && typeof firebase !== 'undefined' && firebase.auth) {
-                    firebaseRecaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-                        'size': 'invisible'
-                    });
-                }
-
-                if (typeof firebase !== 'undefined' && firebase.auth) {
-                    firebase.auth().signInWithPhoneNumber(formattedPhone, firebaseRecaptchaVerifier)
-                    .then(confirmation => {
-                        hideLoading();
-                        firebaseConfirmationResult = confirmation;
-                        localStorage.setItem(lastOtpKey, now.toString());
-                        showSuccess('تم إرسال كود SMS إلى ' + formattedPhone);
-                    })
-                    .catch(err => {
-                        hideLoading();
-                        console.warn('SMS OTP notice:', err);
-                        if (err && (err.code === 'auth/quota-exceeded' || err.code === 'auth/too-many-requests')) {
-                            showSetupError('تم الوصول للحد الأقصى لرسائل SMS اليومية. يرجى استخدام زر الواتساب.');
-                        } else {
-                            showSuccess('أدخل كود التحقق الخاص بك.');
-                        }
-                    });
-                } else {
-                    hideLoading();
-                    showSuccess('أدخل كود التحقق للمتابعة');
-                }
-            } catch(e) {
-                hideLoading();
-                console.error(e);
-            }
-        }
-
-        function verifyFirebaseOTP(phone, studentId) {
+        function verifyWhatsAppOTP(phone, studentId) {
             const code = document.getElementById('otpInput').value.trim();
             if (!code || code.length < 6) {
                 showSetupError('يرجى إدخال كود التحقق المكون من 6 أرقام');
@@ -1115,7 +1050,6 @@
 
             showLoading('جاري التحقق من الكود...');
 
-            // First check with server-side database
             const formData = new FormData();
             formData.append('action', 'verifyCustomWhatsAppOTP');
             formData.append('phone', cleanPhoneNumber(phone));
@@ -1127,29 +1061,14 @@
             })
             .then(res => res.json())
             .then(data => {
+                hideLoading();
                 if (data.success) {
-                    hideLoading();
                     showSuccess('تم التأكد من رقم الهاتف بنجاح');
                     setTimeout(() => {
                         showPasswordSetup(phone, studentId);
                     }, 800);
-                } else if (firebaseConfirmationResult) {
-                    // Fallback to Firebase SMS verification
-                    firebaseConfirmationResult.confirm(code)
-                    .then(result => {
-                        hideLoading();
-                        showSuccess('تم التأكد من رقم الهاتف بنجاح');
-                        setTimeout(() => {
-                            showPasswordSetup(phone, studentId);
-                        }, 800);
-                    })
-                    .catch(err => {
-                        hideLoading();
-                        showSetupError('كود التحقق غير صحيح أو انتهت صلاحيته');
-                    });
                 } else {
-                    hideLoading();
-                    showSetupError(data.message || 'كود التحقق غير صحيح.');
+                    showSetupError(data.message || 'كود التحقق غير صحيح أو انتهت صلاحيته');
                 }
             })
             .catch(err => {
