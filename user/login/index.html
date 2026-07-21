@@ -1113,14 +1113,6 @@
                 return;
             }
 
-            if (code === '123456') {
-                showSuccess('تم التحقق من رقم الهاتف بنجاح');
-                setTimeout(() => {
-                    showPasswordSetup(phone, studentId);
-                }, 800);
-                return;
-            }
-
             showLoading('جاري التحقق من الكود...');
 
             // First check with server-side database

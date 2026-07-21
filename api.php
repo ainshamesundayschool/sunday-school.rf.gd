@@ -20572,13 +20572,14 @@ function sendCustomWhatsAppOTP() {
         $stmt->bind_param("ss", $cleanPhone, $otpCode);
         $stmt->execute();
         
-        $waMsg = rawurlencode("رمز تأكيد ملكية حسابك في مدارس الأحد هو: {$otpCode}");
+        // Message sent from user's WhatsApp to target number requesting their code
+        $waMsg = rawurlencode("طلب كود تفعيل كلمة المرور لحسابي برقم: {$cleanPhone}");
         $waUrl = "https://wa.me/201037011355?text={$waMsg}";
         
+        // Zero-leak response: NEVER send $otpCode to client!
         sendJSON([
             'success' => true,
             'message' => 'تم طلب كود التحقق بنجاح',
-            'otp_code' => $otpCode,
             'wa_url' => $waUrl
         ]);
     } catch (Exception $e) {
@@ -20594,11 +20595,6 @@ function verifyCustomWhatsAppOTP() {
         
         if (empty($cleanPhone) || empty($code)) {
             sendJSON(['success' => false, 'message' => 'البيانات غير كاملة']);
-        }
-        
-        // Bypass for test code 123456
-        if ($code === '123456') {
-            sendJSON(['success' => true, 'message' => 'تم التحقق بنجاح']);
         }
         
         $conn = getDBConnection();
