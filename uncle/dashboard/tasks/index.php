@@ -12962,7 +12962,20 @@ body {
 <div class="overlay fullscreen" id="overviewOv">
   <style>
     #overviewOv .modal {
-      font-family: 'Baloo Bhaijaan 2', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+      font-family: 'Baloo Bhaijaan 2', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    #overviewOv i.fas,
+    #overviewOv i.far,
+    #overviewOv i.fal,
+    #overviewOv i.fab,
+    #overviewOv i.fa,
+    #overviewOv .fas,
+    #overviewOv .far,
+    #overviewOv .fal,
+    #overviewOv .fab,
+    #overviewOv .fa {
+      font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands", FontAwesome !important;
+      font-style: normal !important;
     }
     .ov-table {
       width: 100%;
@@ -13982,7 +13995,8 @@ async function loadStudents(cls) {
 
 
 
-        const student = {id: s._studentId, name: s['الاسم']||s.name||'', photo: s['صورة']||s.image_url||s.photo||''};
+        const sId = parseInt(s['_studentId'] || s.id || s.student_id || s._studentId || s['معرف'] || s['id_student'] || 0);
+        const student = {id: sId, name: s['الاسم']||s.name||'', photo: s['صورة']||s.image_url||s.photo||''};
 
 
 
