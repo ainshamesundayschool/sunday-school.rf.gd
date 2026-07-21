@@ -3919,6 +3919,7 @@ button, input, select, textarea, a {
 
 .mfoot {
   padding: 12px 20px;
+  padding-bottom: max(14px, env(safe-area-inset-bottom, 14px));
   border-top: 1px solid var(--bdr);
   display: flex;
   align-items: center;
@@ -3927,8 +3928,7 @@ button, input, select, textarea, a {
   flex-wrap: wrap;
   background: var(--surface-1, var(--bg2, #ffffff));
   flex-shrink: 0 !important;
-  position: sticky;
-  bottom: 0;
+  position: relative;
   z-index: 100;
   box-shadow: 0 -4px 15px rgba(0,0,0,0.06);
 }
@@ -10000,13 +10000,11 @@ button, input, select, textarea, a {
 
 
 @media(max-width:760px) {
-
-
-
-  .step1-grid { grid-template-columns: 1fr; }
-
-
-
+  .step1-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 14px !important;
+  }
 }
 
 
@@ -12448,404 +12446,202 @@ body {
 
 <!-- ══ CREATE / EDIT MODAL ══════════════════════════════════════ -->
 
-
-
 <div class="overlay fullscreen" id="createOv">
-
-
-
   <div class="modal">
-
-
-
     <div class="mhdr">
-
-
-
       <div class="mhdr-ico"><i class="fas fa-pen-nib"></i></div>
-
-
-
       <div><div class="mhdr-title" id="createTitle">إنشاء تاسك جديد</div><div class="mhdr-sub">اختبار MCQ مع مكافآت كوبونات</div></div>
-
-
-
       <div class="mclose" onclick="closeCreate()"><i class="fas fa-times"></i></div>
-
-
-
     </div>
-
-
 
     <div style="padding:16px 22px 0;">
-
-
-
       <div class="steps" id="stepBar">
-
-
-
         <div class="step active" id="sd1"><div class="step-c">١</div><div class="step-l">الإعدادات</div></div>
-
-
-
         <div class="step" id="sd2"><div class="step-c">٢</div><div class="step-l">الأسئلة</div></div>
-
-
-
         <div class="step" id="sd3"><div class="step-c">٣</div><div class="step-l">الكوبونات</div></div>
-
-
-
       </div>
-
-
-
     </div>
 
-
-
     <div class="mbody">
-
-
-
-
-
-
-
-      <!-- Step 1 — Settings (redesigned, cleaner) -->
-
-
-
+      <!-- Step 1 — Settings -->
       <div id="sp1">
-
-
-
         <div class="step1-grid">
-
-
-
+          <!-- Column 1: Info Card + Timing Card -->
           <div class="step-stack">
 
-
-
-
-
-
-
-        <!-- Card: Info -->
-
-
-
-        <div class="scard2">
-
-
-
-          <div class="scard2-hdr"><i class="fas fa-pen"></i> معلومات التاسك</div>
-
-
-
-          <div class="scard2-body">
-
-
-
-            <div class="fg" style="margin-bottom:12px;">
-
-
-
-              <label class="flbl">العنوان <span class="req">*</span></label>
-
-
-
-              <input id="fTitle" class="fi" type="text" placeholder="مثال: اختبار سفر التكوين" style="font-size:.95rem;">
-
-
-
-            </div>
-
-            <div class="fg" style="margin-bottom:12px;">
-              <label class="flbl">تصنيف التاسك</label>
-              <div id="activeClassificationsContainer" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;"></div>
-              <div style="display:flex; gap:8px;">
-                <select id="classificationSelector" onchange="handleClassificationSelect(this)" style="flex:1; padding:8px 12px; border:1px solid var(--bdr); border-radius:8px; background:var(--bg); color:var(--t1); font-size:0.87rem; outline:none; cursor:pointer;">
-                  <option value="" disabled selected>— اختر تصنيفاً لتحديده —</option>
-                </select>
-                <button type="button" class="btn btn-p" onclick="addNewClassificationPrompt()" style="white-space: nowrap; flex-shrink: 0; padding: 0 12px; height: 38px; font-size: 0.85rem; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--r-md);"><i class="fas fa-plus"></i> تصنيف جديد</button>
-              </div>
-            </div>
-
-
-
-            <div class="fg" style="margin-bottom:12px;">
-
-
-
-              <label class="flbl">الفصل / المراحل المستهدفة <span class="req">*</span></label>
-
-
-
-              <div id="fClassContainer" style="max-height:160px; overflow-y:auto; border:1.5px solid var(--bdr); border-radius:var(--r-md); padding:10px 12px; background:var(--bg3); display:flex; flex-direction:column; gap:6px;">
-
-
-
-                <!-- JavaScript will populate checkboxes here -->
-
-
-
-              </div>
-
-
-
-            </div>
-
-
-
-            <div class="fg" style="margin-bottom:12px;">
-
-
-
-              <label class="flbl">تعيين لـ</label>
-
-
-
-              <select id="fAssign" class="fs" onchange="onAssignChange()"><option value="all">جميع أطفال الفصل</option><option value="specific">أطفال محددون</option></select>
-
-
-
-            </div>
-
-
-
-            <div id="specRow" style="display:none;" class="fg" style="margin-bottom:12px;">
-
-
-
-              <label class="flbl">اختر الأطفال</label>
-
-
-
-              <div id="specList" style="max-height:140px;overflow-y:auto;border:1.5px solid var(--bdr);border-radius:var(--r-md);padding:10px 12px;display:flex;flex-direction:column;gap:7px;background:var(--bg);font-size:.82rem;color:var(--t3);">اختر الفصل أولاً</div>
-
-
-
-            </div>
-
-
-
-            <div class="fg">
-
-
-
-              <label class="flbl">وصف / تعليمات <span style="color:var(--t3);font-weight:400;">(اختياري)</span></label>
-
-
-
-              <textarea id="fDesc" class="fta" placeholder="تعليمات للطفل…"></textarea>
-
-
-
-            </div>
-
-
-
-          </div>
-
-
-
-        </div>
-
-
-
-
-
-
-
-        <!-- Card: Timing -->
-        <div class="scard2" style="border-radius:16px; border:1px solid var(--border); overflow:hidden; background:var(--surface-1);">
-          <div class="scard2-hdr" style="padding:14px 18px; font-weight:800; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--border); background:var(--surface-2);">
-            <i class="fas fa-clock" style="color:var(--brand);"></i> التوقيت ومواعيد التاسك
-          </div>
-
-          <div class="scard2-body" style="padding:18px;">
-
-            <!-- Hidden elements for complete backward compatibility with form scripts -->
-            <input type="checkbox" id="fNoDeadline" style="display:none;" onchange="updateTimingSummaryBadge()">
-            <input type="checkbox" id="fEndDateMode" style="display:none;">
-            <input type="date" id="fEndDateOnly" style="display:none;">
-
-            <!-- Start & End Date Inputs -->
-            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin-bottom:16px;">
-              
-              <!-- Start Date -->
-              <div class="fg">
-                <label class="flbl" style="font-weight:700; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
-                  <i class="far fa-calendar-alt" style="color:var(--brand);"></i> تاريخ ووقت البداية <span class="req">*</span>
-                </label>
-                <input id="fStart" type="datetime-local" class="fi" onchange="updateTimingSummaryBadge()" style="font-family:inherit; border-radius:10px;">
-              </div>
-
-              <!-- End Date -->
-              <div class="fg">
-                <label class="flbl" style="font-weight:700; margin-bottom:6px; display:flex; align-items:center; justify-content:space-between;">
-                  <span style="display:flex; align-items:center; gap:6px;">
-                    <i class="far fa-calendar-check" style="color:#ef4444;"></i> آخر موعد للإجابة <span style="color:var(--t3); font-weight:400;">(اختياري)</span>
-                  </span>
-                </label>
-                <input id="fEnd" type="datetime-local" class="fi" onchange="onEndDateTimeChange()" style="font-family:inherit; border-radius:10px;">
-              </div>
-
-            </div>
-
-            <!-- Quick Presets Chips Bar -->
-            <div style="margin-bottom:16px;">
-              <div style="font-size:0.76rem; font-weight:700; color:var(--t3); margin-bottom:8px; display:flex; align-items:center; gap:6px;">
-                <i class="fas fa-bolt" style="color:#f59e0b;"></i> اختصارات سريعة لموعد الإغلاق:
-              </div>
-              <div style="display:flex; flex-wrap:wrap; gap:8px;">
-                <button type="button" class="quick-preset-chip" onclick="applySimplePreset(0)" style="padding:6px 12px; border-radius:20px; border:1px solid var(--border); background:var(--surface-2); font-size:0.78rem; font-weight:700; cursor:pointer; color:var(--t1); transition:all 0.2s;">اليوم (11:59 م)</button>
-                <button type="button" class="quick-preset-chip" onclick="applySimplePreset(1)" style="padding:6px 12px; border-radius:20px; border:1px solid var(--border); background:var(--surface-2); font-size:0.78rem; font-weight:700; cursor:pointer; color:var(--t1); transition:all 0.2s;">غداً</button>
-                <button type="button" class="quick-preset-chip" onclick="applySimplePreset(3)" style="padding:6px 12px; border-radius:20px; border:1px solid var(--border); background:var(--surface-2); font-size:0.78rem; font-weight:700; cursor:pointer; color:var(--t1); transition:all 0.2s;">بعد 3 أيام</button>
-                <button type="button" class="quick-preset-chip" onclick="applySimplePreset(7)" style="padding:6px 12px; border-radius:20px; border:1px solid var(--border); background:var(--surface-2); font-size:0.78rem; font-weight:700; cursor:pointer; color:var(--t1); transition:all 0.2s;">بعد أسبوع</button>
-                <button type="button" class="quick-preset-chip" onclick="applySimplePreset(14)" style="padding:6px 12px; border-radius:20px; border:1px solid var(--border); background:var(--surface-2); font-size:0.78rem; font-weight:700; cursor:pointer; color:var(--t1); transition:all 0.2s;">بعد أسبوعين</button>
-                <button type="button" class="quick-preset-chip" onclick="setNoDeadlineMode()" style="padding:6px 12px; border-radius:20px; border:1px solid rgba(8,145,178,0.3); background:rgba(8,145,178,0.08); font-size:0.78rem; font-weight:800; cursor:pointer; color:#0891b2; transition:all 0.2s;">♾️ بدون آخر موعد</button>
-              </div>
-            </div>
-
-            <!-- Live Timing Status Preview Card -->
-            <div id="timingSummaryPill" style="padding:12px 14px; border-radius:12px; background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.2); font-size:0.83rem; font-weight:700; color:#4f46e5; display:flex; align-items:center; gap:10px; margin-bottom:16px;">
-              <i class="fas fa-calendar-check" style="font-size:1.1rem; flex-shrink:0;"></i>
-              <span id="timingSummaryText" style="line-height:1.4;">جاري تحديث التوقيت...</span>
-            </div>
-
-            <!-- Optional Timer Section -->
-            <div style="background:var(--surface-2); border:1px solid var(--border); border-radius:12px; padding:14px;">
-              <div style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;" onclick="document.getElementById('fTimerOn').click();">
-                <div style="display:flex; align-items:center; gap:10px;">
-                  <div style="width:36px; height:36px; border-radius:10px; background:rgba(217,119,6,0.12); color:#d97706; display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0;">
-                    <i class="fas fa-stopwatch"></i>
+            <!-- Card 1: Info -->
+            <div class="scard2">
+              <div class="scard2-hdr"><i class="fas fa-pen"></i> معلومات التاسك</div>
+              <div class="scard2-body">
+                <div class="fg" style="margin-bottom:12px;">
+                  <label class="flbl">العنوان <span class="req">*</span></label>
+                  <input id="fTitle" class="fi" type="text" placeholder="مثال: اختبار سفر التكوين" style="font-size:.95rem;">
+                </div>
+
+                <div class="fg" style="margin-bottom:12px;">
+                  <label class="flbl">تصنيف التاسك</label>
+                  <div id="activeClassificationsContainer" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;"></div>
+                  <div style="display:flex; gap:8px;">
+                    <select id="classificationSelector" onchange="handleClassificationSelect(this)" style="flex:1; padding:8px 12px; border:1px solid var(--bdr); border-radius:8px; background:var(--bg); color:var(--t1); font-size:0.87rem; outline:none; cursor:pointer;">
+                      <option value="" disabled selected>— اختر تصنيفاً لتحديده —</option>
+                    </select>
+                    <button type="button" class="btn btn-p" onclick="addNewClassificationPrompt()" style="white-space: nowrap; flex-shrink: 0; padding: 0 12px; height: 38px; font-size: 0.85rem; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--r-md);"><i class="fas fa-plus"></i> تصنيف جديد</button>
                   </div>
+                </div>
+
+                <div class="fg" style="margin-bottom:12px;">
+                  <label class="flbl">الفصل / المراحل المستهدفة <span class="req">*</span></label>
+                  <div id="fClassContainer" style="max-height:160px; overflow-y:auto; border:1.5px solid var(--bdr); border-radius:var(--r-md); padding:10px 12px; background:var(--bg3); display:flex; flex-direction:column; gap:6px;">
+                    <!-- JavaScript populates checkboxes -->
+                  </div>
+                </div>
+
+                <div class="fg" style="margin-bottom:12px;">
+                  <label class="flbl">تعيين لـ</label>
+                  <select id="fAssign" class="fs" onchange="onAssignChange()"><option value="all">جميع أطفال الفصل</option><option value="specific">أطفال محددون</option></select>
+                </div>
+
+                <div id="specRow" style="display:none;" class="fg" style="margin-bottom:12px;">
+                  <label class="flbl">اختر الأطفال</label>
+                  <div id="specList" style="max-height:140px;overflow-y:auto;border:1.5px solid var(--bdr);border-radius:var(--r-md);padding:10px 12px;display:flex;flex-direction:column;gap:7px;background:var(--bg);font-size:.82rem;color:var(--t3);">اختر الفصل أولاً</div>
+                </div>
+
+                <div class="fg">
+                  <label class="flbl">وصف / تعليمات <span style="color:var(--t3);font-weight:400;">(اختياري)</span></label>
+                  <textarea id="fDesc" class="fta" placeholder="تعليمات للطفل…"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2: Timing -->
+            <div class="scard2" style="border-radius:16px; border:1px solid var(--border); overflow:hidden; background:var(--surface-1);">
+              <div class="scard2-hdr" style="padding:14px 18px; font-weight:800; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--border); background:var(--surface-2);">
+                <i class="fas fa-clock" style="color:var(--brand);"></i> التوقيت ومواعيد التاسك
+              </div>
+
+              <div class="scard2-body" style="padding:18px;">
+                <input type="checkbox" id="fNoDeadline" style="display:none;" onchange="updateTimingSummaryBadge()">
+                <input type="checkbox" id="fEndDateMode" style="display:none;">
+                <input type="date" id="fEndDateOnly" style="display:none;">
+
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin-bottom:16px;">
+                  <div class="fg">
+                    <label class="flbl" style="font-weight:700; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                      <i class="far fa-calendar-alt" style="color:var(--brand);"></i> تاريخ ووقت البداية <span class="req">*</span>
+                    </label>
+                    <input id="fStart" type="datetime-local" class="fi" onchange="updateTimingSummaryBadge()" style="font-family:inherit; border-radius:10px;">
+                  </div>
+
+                  <div class="fg">
+                    <label class="flbl" style="font-weight:700; margin-bottom:6px; display:flex; align-items:center; justify-content:space-between;">
+                      <span style="display:flex; align-items:center; gap:6px;">
+                        <i class="far fa-calendar-check" style="color:#ef4444;"></i> آخر موعد للإجابة <span style="color:var(--t3); font-weight:400;">(اختياري)</span>
+                      </span>
+                    </label>
+                    <input id="fEnd" type="datetime-local" class="fi" onchange="onEndDateTimeChange()" style="font-family:inherit; border-radius:10px;">
+                  </div>
+                </div>
+
+                <div style="margin-bottom:16px;">
+                  <div style="font-size:0.76rem; font-weight:700; color:var(--t3); margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+                    <i class="fas fa-bolt" style="color:#f59e0b;"></i> اختصارات سريعة لموعد الإغلاق:
+                  </div>
+                  <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                    <button type="button" class="quick-preset-chip" onclick="applySimplePreset(0)" style="padding:6px 12px; border-radius:20px; border:1px solid var(--border); background:var(--surface-2); font-size:0.78rem; font-weight:700; cursor:pointer; color:var(--t1); transition:all 0.2s;">اليوم (11:59 م)</button>
+                    <button type="button" class="quick-preset-chip" onclick="applySimplePreset(1)" style="padding:6px 12px; border-radius:20px; border:1px solid var(--border); background:var(--surface-2); font-size:0.78rem; font-weight:700; cursor:pointer; color:var(--t1); transition:all 0.2s;">غداً</button>
+                    <button type="button" class="quick-preset-chip" onclick="applySimplePreset(3)" style="padding:6px 12px; border-radius:20px; border:1px solid var(--border); background:var(--surface-2); font-size:0.78rem; font-weight:700; cursor:pointer; color:var(--t1); transition:all 0.2s;">بعد 3 أيام</button>
+                    <button type="button" class="quick-preset-chip" onclick="applySimplePreset(7)" style="padding:6px 12px; border-radius:20px; border:1px solid var(--border); background:var(--surface-2); font-size:0.78rem; font-weight:700; cursor:pointer; color:var(--t1); transition:all 0.2s;">بعد أسبوع</button>
+                    <button type="button" class="quick-preset-chip" onclick="applySimplePreset(14)" style="padding:6px 12px; border-radius:20px; border:1px solid var(--border); background:var(--surface-2); font-size:0.78rem; font-weight:700; cursor:pointer; color:var(--t1); transition:all 0.2s;">بعد أسبوعين</button>
+                    <button type="button" class="quick-preset-chip" onclick="setNoDeadlineMode()" style="padding:6px 12px; border-radius:20px; border:1px solid rgba(8,145,178,0.3); background:rgba(8,145,178,0.08); font-size:0.78rem; font-weight:800; cursor:pointer; color:#0891b2; transition:all 0.2s;">♾️ بدون آخر موعد</button>
+                  </div>
+                </div>
+
+                <div id="timingSummaryPill" style="padding:12px 14px; border-radius:12px; background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.2); font-size:0.83rem; font-weight:700; color:#4f46e5; display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+                  <i class="fas fa-calendar-check" style="font-size:1.1rem; flex-shrink:0;"></i>
+                  <span id="timingSummaryText" style="line-height:1.4;">جاري تحديث التوقيت...</span>
+                </div>
+
+                <div style="background:var(--surface-2); border:1px solid var(--border); border-radius:12px; padding:14px;">
+                  <div style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;" onclick="document.getElementById('fTimerOn').click();">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                      <div style="width:36px; height:36px; border-radius:10px; background:rgba(217,119,6,0.12); color:#d97706; display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0;">
+                        <i class="fas fa-stopwatch"></i>
+                      </div>
+                      <div>
+                        <div style="font-weight:700; font-size:0.88rem; color:var(--t1);">عداد تنازلي للإجابة (اختياري)</div>
+                        <div style="font-size:0.75rem; color:var(--t3);">تحديد زمن محدد بالدقائق يبدأ عند فتح الطفل للتاسك</div>
+                      </div>
+                    </div>
+                    <label class="tgl" onclick="event.stopPropagation();">
+                      <input type="checkbox" id="fTimerOn" onchange="toggleTimerRowDisplay(this.checked)">
+                      <span class="tgl-s"></span>
+                    </label>
+                  </div>
+
+                  <div id="timerRow" style="display:none; margin-top:12px; padding-top:12px; border-top:1px dashed var(--border);">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                      <div class="fg" style="margin:0;">
+                        <label class="flbl" style="font-weight:700; font-size:0.78rem;">زمن حل التاسك (بالدقائق) <span class="req">*</span></label>
+                        <input id="fTimerMin" type="number" class="fi" min="1" max="180" placeholder="مثال: 30" style="border-radius:10px;">
+                      </div>
+                      <div class="fg" style="margin:0;">
+                        <label class="flbl" style="font-weight:700; font-size:0.78rem;">عند انتهاء الوقت</label>
+                        <select id="fTimerBeh" class="fs" style="border-radius:10px; height:38px;">
+                          <option value="submit">إرسال تلقائي</option>
+                          <option value="lock">تأمين بدون إرسال</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Column 2: Options Card -->
+          <div class="step-stack">
+            <div class="scard2">
+              <div class="scard2-hdr"><i class="fas fa-sliders-h"></i> خيارات</div>
+              <div class="scard2-body" style="padding-bottom:4px;">
+                <div class="hint-box" style="margin-bottom:14px;">
+                  <i class="fas fa-hand-pointer"></i>
                   <div>
-                    <div style="font-weight:700; font-size:0.88rem; color:var(--t1);">عداد تنازلي للإجابة (اختياري)</div>
-                    <div style="font-size:0.75rem; color:var(--t3);">تحديد زمن محدد بالدقائق يبدأ عند فتح الطفل للتاسك</div>
+                    <strong>ما يراه الطفل</strong>
+                    <span>اختر الخيارات التي تجعل التاسك أوضح: نتيجة فورية، مراجعة الإجابات، أو إظهار الحلول بعد الإنهاء.</span>
                   </div>
                 </div>
-                <label class="tgl" onclick="event.stopPropagation();">
-                  <input type="checkbox" id="fTimerOn" onchange="toggleTimerRowDisplay(this.checked)">
-                  <span class="tgl-s"></span>
-                </label>
-              </div>
 
-              <div id="timerRow" style="display:none; margin-top:12px; padding-top:12px; border-top:1px dashed var(--border);">
-                <div class="fg" style="max-width:220px; margin:0;">
-                  <label class="flbl" style="font-weight:700; font-size:0.78rem;">زمن حل التاسك (بالدقائق) <span class="req">*</span></label>
-                  <input id="fTimerMin" type="number" class="fi" min="1" max="180" placeholder="مثال: 30" style="border-radius:10px;">
+                <div class="sopt-row" onclick="document.getElementById('fShowAns').click()">
+                  <div class="sopt-ico" style="background:#cffafe;color:#0891b2;"><i class="fas fa-eye"></i></div>
+                  <div class="sopt-txt"><div class="sopt-lbl">إظهار الإجابات المفصلة</div><div class="sopt-desc">السماح للطفل بمعرفة إجاباته الصحيحة والخاطئة</div></div>
+                  <label class="tgl" onclick="event.stopPropagation()"><input type="checkbox" id="fShowAns"><span class="tgl-s"></span></label>
+                </div>
+
+                <div class="sopt-row" onclick="document.getElementById('fShowRes').click()">
+                  <div class="sopt-ico" style="background:#d1fae5;color:#059669;"><i class="fas fa-check-circle"></i></div>
+                  <div class="sopt-txt"><div class="sopt-lbl">إظهار النتيجة فور الانتهاء</div><div class="sopt-desc">يرى الطفل درجته مباشرةً بعد التسليم</div></div>
+                  <label class="tgl" onclick="event.stopPropagation()"><input type="checkbox" id="fShowRes" checked><span class="tgl-s"></span></label>
+                </div>
+
+                <div class="sopt-row" onclick="document.getElementById('fShowAns').click()">
+                  <div class="sopt-ico" style="background:var(--brand-bg);color:var(--brand);"><i class="fas fa-random"></i></div>
+                  <div class="sopt-txt"><div class="sopt-lbl">خلط ترتيب الأسئلة</div><div class="sopt-desc">ترتيب عشوائي مختلف لكل طفل</div></div>
+                  <label class="tgl" onclick="event.stopPropagation()"><input type="checkbox" id="fShuffle"><span class="tgl-s"></span></label>
+                </div>
+
+                <div class="sopt-row" style="margin-bottom:0;" onclick="document.getElementById('fReview').click()">
+                  <div class="sopt-ico" style="background:#fef3c7;color:#d97706;"><i class="fas fa-eye"></i></div>
+                  <div class="sopt-txt"><div class="sopt-lbl">مراجعة الإجابات قبل الإرسال</div><div class="sopt-desc">يستطيع الطفل تغيير إجاباته قبل التسليم النهائي</div></div>
+                  <label class="tgl" onclick="event.stopPropagation()"><input type="checkbox" id="fReview" checked><span class="tgl-s"></span></label>
                 </div>
               </div>
             </div>
-
           </div>
-        </div>
-
-
-
-              <div class="fg"><label class="flbl">عند انتهاء الوقت</label><select id="fTimerBeh" class="fs"><option value="submit">إرسال تلقائي</option><option value="lock">تأمين بدون إرسال</option></select></div>
-
-
-
-            </div>
-
-
-
-          </div>
-
-
 
         </div>
-
-
-
-
-
-
-
-        <!-- Card: Options -->
-
-
-
-          </div>
-
-
-
-          <div class="step-stack">
-
-
-
-        <div class="scard2">
-
-
-
-          <div class="scard2-hdr"><i class="fas fa-sliders-h"></i> خيارات</div>
-
-
-
-          <div class="scard2-body" style="padding-bottom:4px;">
-
-
-
-            <div class="hint-box" style="margin-bottom:14px;">
-
-
-
-              <i class="fas fa-hand-pointer"></i>
-
-
-
-              <div>
-
-
-
-                <strong>ما يراه الطفل</strong>
-
-
-
-                <span>اختر الخيارات التي تجعل التاسك أوضح: نتيجة فورية، مراجعة الإجابات، أو إظهار الحلول بعد الإنهاء.</span>
-
-
-
-              </div>
-
-
-
-            </div>
-
-
-
-            <div class="sopt-row" onclick="document.getElementById('fShowAns').click()">
-
-
-
-              <div class="sopt-ico" style="background:#cffafe;color:#0891b2;"><i class="fas fa-eye"></i></div>
-
-
-
-              <div class="sopt-txt"><div class="sopt-lbl">إظهار الإجابات المفصلة</div><div class="sopt-desc">السماح للطفل بمعرفة إجاباته الصحيحة والخاطئة</div></div>
-
-
-
-              <label class="tgl" onclick="event.stopPropagation()"><input type="checkbox" id="fShowAns"><span class="tgl-s"></span></label>
-
-
-
-            </div>
-
-
-
-            <div class="sopt-row" onclick="document.getElementById('fShowRes').click()">
-
-
-
-              <div class="sopt-ico" style="background:#d1fae5;color:#059669;"><i class="fas fa-check-circle"></i></div>
+      </div>nd:#d1fae5;color:#059669;"><i class="fas fa-check-circle"></i></div>
 
 
 
@@ -18539,9 +18335,9 @@ async function openDetail(id){
             <button type="button" id="dMenuBtn" onclick="toggleDetailMenu(event)" style="background:var(--surface-2, var(--bg3, #f1f5f9)); border:1px solid var(--bdr); color:var(--t1); width:36px; height:36px; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:0.9rem; transition:0.2s;" onmouseover="this.style.background='var(--bdr)';" onmouseout="this.style.background='var(--surface-2)';">
               <i class="fas fa-ellipsis-v"></i>
             </button>
-            <div id="detailMenuDropdown" style="display:none; position:absolute; bottom:100%; right:0; margin-bottom:8px; z-index:100; min-width:145px; background:var(--surface-1, var(--bg2, #ffffff)); border:1px solid var(--bdr); border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.15); overflow:hidden; font-family:'Cairo',sans-serif;">
-              <button onclick="toggleDetailMenu(event); closeDetail(); openEdit(${t.id});" style="width:100%; padding:9px 14px; border:none; background:transparent; color:var(--t1); font-size:0.82rem; font-weight:700; text-align:right; cursor:pointer; display:flex; align-items:center; gap:8px;" onmouseover="this.style.background='var(--bg3)';" onmouseout="this.style.background='transparent';">
-                <i class="fas fa-pen" style="color:var(--brand);"></i> تعديل التاسك
+            <div id="detailMenuDropdown" style="display:none; position:absolute; bottom:100%; right:0; margin-bottom:8px; z-index:100; min-width:150px; background:var(--surface-1, var(--bg2, #ffffff)); border:1px solid var(--bdr); border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.15); overflow:hidden; font-family:'Cairo',sans-serif;">
+              <button onclick="toggleDetailMenu(event); copyTaskShareLink(${t.id});" style="width:100%; padding:9px 14px; border:none; background:transparent; color:var(--t1); font-size:0.82rem; font-weight:700; text-align:right; cursor:pointer; display:flex; align-items:center; gap:8px;" onmouseover="this.style.background='var(--bg3)';" onmouseout="this.style.background='transparent';">
+                <i class="fas fa-link" style="color:var(--brand);"></i> نسخ رابط التاسك
               </button>
               <button onclick="toggleDetailMenu(event); closeDetail(); openConf(${t.id});" style="width:100%; padding:9px 14px; border:none; background:transparent; color:var(--err); font-size:0.82rem; font-weight:700; text-align:right; cursor:pointer; display:flex; align-items:center; gap:8px;" onmouseover="this.style.background='var(--err-bg)';" onmouseout="this.style.background='transparent';">
                 <i class="fas fa-trash"></i> حذف التاسك
@@ -18549,14 +18345,14 @@ async function openDetail(id){
             </div>
           </div>
 
-          <!-- Edit Button -->
-          <button class="btn btn-g" onclick="closeDetail();openEdit(${t.id})" style="height:36px; padding:0 14px; font-size:0.82rem; font-weight:700;">
+          <!-- Edit Button in Main Foot -->
+          <button class="btn btn-g" onclick="closeDetail(); openEdit(${t.id});" style="height:36px; padding:0 14px; font-size:0.82rem; font-weight:700; display:inline-flex; align-items:center; gap:6px;">
             <i class="fas fa-pen" style="color:var(--brand);"></i> تعديل
           </button>
         </div>
 
         <!-- Grading Button -->
-        <button class="btn" onclick="closeDetail();openGradePanel(${t.id})" style="background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; height:36px; padding:0 16px; font-size:0.83rem; font-weight:700; border-radius:10px; display:inline-flex; align-items:center; gap:6px;">
+        <button class="btn" onclick="closeDetail(); openGradePanel(${t.id});" style="background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; height:36px; padding:0 16px; font-size:0.83rem; font-weight:700; border-radius:10px; display:inline-flex; align-items:center; gap:6px;">
           <i class="fas fa-pen-nib"></i> تصحيح الإجابات ${pendingSubs > 0 ? `<span class="pending-badge" style="background:#ef4444; color:#fff; border-radius:99px; padding:2px 7px; font-size:0.7rem;">${pendingSubs}</span>` : ''}
         </button>
       </div>
@@ -20881,6 +20677,37 @@ function copyOverviewMessage() {
     }
     document.body.removeChild(textarea);
   });
+}
+
+function copyTaskShareLink(taskId) {
+  const t = (typeof tasks !== 'undefined' && tasks) ? tasks.find(x => x.id == taskId) : null;
+  const targetTask = t || (typeof detailTask !== 'undefined' ? detailTask : null);
+  const title = targetTask ? targetTask.title : 'تاسك';
+  const baseUrl = window.location.origin;
+  const taskUrl = `${baseUrl}/user/?taskId=${taskId}`;
+  const shareText = `📝 *${title}*\nاضغط على الرابط التالي للبدء في حل التاسك:\n${taskUrl}`;
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(shareText).then(() => {
+      showToast('تم نسخ رابط التاسك بنجاح 📋', 'ok');
+    }).catch(() => fallbackCopyTaskText(shareText));
+  } else {
+    fallbackCopyTaskText(shareText);
+  }
+}
+
+function fallbackCopyTaskText(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showToast('تم نسخ رابط التاسك بنجاح 📋', 'ok');
+  } catch(e) {
+    showToast('تعذر نسخ الرابط', 'err');
+  }
+  document.body.removeChild(ta);
 }
 
 async function getExportCanvas() {
