@@ -276,19 +276,20 @@
         /* Login Button */
         .login-btn {
             width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            padding: 11px 16px;
+            background: var(--primary);
             color: white;
             border: none;
-            border-radius: var(--radius-md);
-            font-size: 1rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
             font-weight: 700;
             cursor: pointer;
             transition: var(--transition);
             font-family: 'Cairo', sans-serif;
             position: relative;
             overflow: hidden;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
+            box-shadow: none;
         }
 
         .login-btn::before {
@@ -965,7 +966,6 @@
             const cleanP = cleanPhoneNumber(phone);
             const formattedPhone = formatPhoneForFirebase(phone);
 
-            // Generate a random 6-digit code for WhatsApp verification
             let waCode = sessionStorage.getItem('wa_code_' + cleanP);
             if (!waCode) {
                 waCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -976,40 +976,25 @@
             const waUrl = `https://wa.me/201037011355?text=${waMsg}`;
             
             container.innerHTML = `
-                <h3 style="color: var(--primary); margin-bottom: 20px; text-align: center;">
-                    <i class="fas fa-shield-alt"></i>
-                    التحقق من ملكية رقم الهاتف
+                <h3 style="color: var(--dark); font-size: 1.1rem; margin-bottom: 16px; text-align: center; font-weight: 800;">
+                    <i class="fas fa-shield-alt" style="color: var(--primary);"></i>
+                    تأكيد ملكية رقم الهاتف
                 </h3>
                 
-                <div style="background: linear-gradient(135deg, #fef3c7, #fde68a);
-                     color: #92400e;
-                     padding: 14px 16px;
-                     border-radius: var(--radius-md);
-                     margin-bottom: 20px;
-                     border: 2px solid #f59e0b;
-                     text-align: center;">
-                    <i class="fas fa-mobile-alt" style="font-size: 1.4rem; margin-bottom: 6px; display: block; color: #d97706;"></i>
-                    <p style="margin: 0; font-weight: 700; font-size: 0.93rem;">
-                        هذا الحساب لا يحتوي على كلمة مرور لحمايته.
-                    </p>
-                    <p style="margin: 4px 0 0 0; font-size: 0.85rem;">
-                        لضمان أمان حسابك، يجب التحقق أولاً من ملكيتك للرقم: <strong>${phone}</strong>
-                    </p>
+                <div style="background: var(--light); color: var(--dark); padding: 12px 14px; border-radius: var(--radius-sm); margin-bottom: 16px; border: 1px solid var(--border); text-align: center; font-size: 0.85rem;">
+                    لأمان حسابك، يرجى التحقق من ملكية الرقم: <strong>${phone}</strong>
                 </div>
                 
-                <div style="margin-bottom: 20px;">
-                    <a id="waDirectBtn" href="${waUrl}" target="_blank" class="login-btn" style="background: linear-gradient(135deg, #25d366, #128c7e); color: white; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 14px; font-weight: 800; font-size: 1rem; border-radius: var(--radius-md); box-shadow: 0 4px 15px rgba(37, 211, 102, 0.35);">
-                        <i class="fab fa-whatsapp" style="font-size: 1.4rem;"></i>
-                        <span>التحقق عبر واتساب 💬 (مجاني 100%)</span>
+                <div style="margin-bottom: 14px;">
+                    <a id="waDirectBtn" href="${waUrl}" target="_blank" class="login-btn" style="background: #25d366; color: white; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; font-weight: 700; font-size: 0.88rem; border-radius: var(--radius-sm); margin-bottom: 6px; box-shadow: none;">
+                        <i class="fab fa-whatsapp" style="font-size: 1.1rem;"></i>
+                        <span>التحقق عبر الواتساب</span>
                     </a>
-                    <p style="font-size: 0.78rem; color: var(--secondary); text-align: center; margin-top: 6px;">
-                        اضغط لفتح واتساب وإرسال كود التوثيق تلقائياً، ثم أدخل الكود بالأسفل.
-                    </p>
                 </div>
 
                 <form id="phoneOtpForm">
-                    <div class="form-group">
-                        <label for="otpInput" class="form-label">أدخل كود التحقق المكون من 6 أرقام (OTP)</label>
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <label for="otpInput" class="form-label" style="font-size: 0.85rem;">أدخل كود التحقق (6 أرقام)</label>
                         <div class="input-container">
                             <i class="fas fa-key input-icon"></i>
                             <input type="text" 
@@ -1017,21 +1002,21 @@
                                    class="form-input" 
                                    required 
                                    maxlength="6"
-                                   placeholder="أدخل كود التحقق" 
-                                   style="letter-spacing: 6px; text-align: center; font-weight: 800; font-size: 1.25rem;">
+                                   placeholder="000000" 
+                                   style="letter-spacing: 4px; text-align: center; font-weight: 700; font-size: 1.1rem; padding: 10px;">
                         </div>
                     </div>
 
                     <div id="recaptcha-container"></div>
                     
-                    <button type="submit" class="login-btn" id="verifyOtpSubmitBtn">
-                        <i class="fas fa-check-circle"></i>
-                        <span>تأكيد كود التحقق والمتابعة</span>
+                    <button type="submit" class="login-btn" id="verifyOtpSubmitBtn" style="padding: 10px 14px; font-size: 0.88rem; margin-bottom: 8px;">
+                        <i class="fas fa-check"></i>
+                        <span>تأكيد الكود والمتابعة</span>
                     </button>
                     
-                    <button type="button" id="triggerFirebaseSmsBtn" class="login-btn" style="background: var(--secondary); margin-top: 10px; font-size: 0.85rem;">
+                    <button type="button" id="triggerFirebaseSmsBtn" class="login-btn" style="background: var(--light); color: var(--secondary); border: 1px solid var(--border); font-size: 0.82rem; padding: 8px 12px; font-weight: 600; margin-bottom: 0;">
                         <i class="fas fa-sms"></i>
-                        ليس لديك واتساب؟ طلب كود SMS عبر Firebase 📱
+                        إرسال كود SMS
                     </button>
                 </form>
             `;
@@ -1053,19 +1038,18 @@
             const lastOtpKey = `otp_last_sent_${cleanPhone}`;
             const lastSent = localStorage.getItem(lastOtpKey);
             const now = Date.now();
-            const ONE_DAY_MS = 24 * 60 * 60 * 1000; // 24 Hours Cooldown
+            const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
             const isTestNumber = cleanPhone.includes('1000000000') || cleanPhone.includes('123456789');
 
-            // Enforce max 1 SMS request per user per 24 hours
             if (isResend && lastSent && (now - parseInt(lastSent)) < ONE_DAY_MS && !isTestNumber) {
                 const remainingMs = ONE_DAY_MS - (now - parseInt(lastSent));
                 const remainingHours = Math.ceil(remainingMs / (1000 * 60 * 60));
-                showSetupError(`عفواً! تم الوصول للحد الأقصى لطلب كود SMS (مرة واحدة كل 24 ساعة للحد من الاستهلاك). يمكنك استخدام التحقق عبر واتساب مجاناً.`);
+                showSetupError(`تم الوصول للحد الأقصى لطلب SMS اليوم. يرجى المحاولة بعد ${remainingHours} ساعة أو استخدام زر الواتساب.`);
                 return;
             }
 
-            showLoading('جاري طلب كود SMS إلى ' + formattedPhone + '...');
+            showLoading('جاري طلب كود SMS...');
             
             try {
                 if (!firebaseRecaptchaVerifier && typeof firebase !== 'undefined' && firebase.auth) {
@@ -1084,20 +1068,16 @@
                     })
                     .catch(err => {
                         hideLoading();
-                        console.warn('Firebase SMS OTP notice:', err);
-                        if (err && err.code === 'auth/operation-not-allowed') {
-                            showSetupError('برجاء تفعيل تسجيل الدخول برقم الهاتف في Firebase Console.');
-                        } else if (err && err.code === 'auth/billing-not-enabled') {
-                            showSuccess('يمكنك التحقق فوراً عبر واتساب، أو إدخال كود الاختبار (123456).');
-                        } else if (err && (err.code === 'auth/quota-exceeded' || err.code === 'auth/too-many-requests')) {
-                            showSetupError('تم الوصول للحد الأقصى لرسائل SMS اليومية. يرجى استخدام زر الواتساب المجاني.');
+                        console.warn('SMS OTP notice:', err);
+                        if (err && (err.code === 'auth/quota-exceeded' || err.code === 'auth/too-many-requests')) {
+                            showSetupError('تم الوصول للحد الأقصى لرسائل SMS اليومية. يرجى استخدام زر الواتساب.');
                         } else {
-                            showSuccess('أدخل كود التحقق (أو كود الواتساب الخاص بك).');
+                            showSuccess('أدخل كود التحقق الخاص بك.');
                         }
                     });
                 } else {
                     hideLoading();
-                    showSuccess('أدخل كود التحقق أو كود الواتساب التجريبي (123456) للمتابعة');
+                    showSuccess('أدخل كود التحقق للمتابعة');
                 }
             } catch(e) {
                 hideLoading();
@@ -1112,9 +1092,8 @@
                 return;
             }
 
-            // Allow test code 123456 for testing / test numbers
             if (code === '123456') {
-                showSuccess('تم التحقق من رقم الهاتف بنجاح 🎉');
+                showSuccess('تم التحقق من رقم الهاتف بنجاح');
                 setTimeout(() => {
                     showPasswordSetup(phone, studentId);
                 }, 800);
@@ -1127,7 +1106,7 @@
                 firebaseConfirmationResult.confirm(code)
                 .then(result => {
                     hideLoading();
-                    showSuccess('تم التأكد من رقم الهاتف بنجاح 🎉');
+                    showSuccess('تم التأكد من رقم الهاتف بنجاح');
                     setTimeout(() => {
                         showPasswordSetup(phone, studentId);
                     }, 800);
@@ -1138,7 +1117,7 @@
                 });
             } else {
                 hideLoading();
-                showSetupError('كود التحقق غير صحيح. يرجى استخدام زر الواتساب للحصول على الكود تلقائياً.');
+                showSetupError('كود التحقق غير صحيح.');
             }
         }
 
@@ -1159,12 +1138,10 @@
                 hideLoading();
                 
                 if (data.success && data.data && data.data.length > 0) {
-                    // Save login credentials
                     localStorage.setItem('savedUsername', cleanPhoneNumber(phone));
                     localStorage.setItem('savedPassword', password);
                     localStorage.setItem('rememberMe', 'true');
                     
-                    // Redirect to profile
                     showSuccess('تم تسجيل الدخول بنجاح، جاري التوجيه...');
                     setTimeout(() => {
                         window.location.href = '/user/profile/';
@@ -1197,11 +1174,9 @@
                 hideLoading();
                 
                 if (data.success && data.data && data.data.length > 0) {
-                    // Save phone in localStorage
                     localStorage.setItem('userPhone', cleanPhoneNumber(phone));
                     localStorage.setItem('loginType', 'phone');
                     
-                    // Redirect to profile
                     showSuccess('تم تسجيل الدخول بنجاح، جاري التوجيه...');
                     setTimeout(() => {
                         window.location.href = '/user/profile/';
@@ -1236,12 +1211,10 @@
                 if (!isAutoLogin) hideLoading();
                 
                 if (data.success && data.data && data.data.length > 0) {
-                    // Save login credentials
                     localStorage.setItem('savedUsername', username);
                     localStorage.setItem('savedPassword', password);
                     localStorage.setItem('rememberMe', 'true');
                     
-                    // Redirect to profile
                     showSuccess('تم تسجيل الدخول بنجاح، جاري التوجيه...');
                     setTimeout(() => {
                         window.location.href = '/user/profile/';
@@ -1250,7 +1223,6 @@
                     if (!isAutoLogin) {
                         showUsernameError(data.message || 'اسم المستخدم أو كلمة المرور غير صحيحة');
                     } else {
-                        // Auto-login failed, clear saved credentials
                         localStorage.removeItem('savedUsername');
                         localStorage.removeItem('savedPassword');
                         localStorage.removeItem('rememberMe');
@@ -1274,30 +1246,19 @@
             container.classList.add('active');
             
             container.innerHTML = `
-                <h3 style="color: var(--primary); margin-bottom: 20px; text-align: center;">
-                    <i class="fas fa-key"></i>
-                    إعداد كلمة المرور وتأمين الحساب
+                <h3 style="color: var(--dark); font-size: 1.1rem; margin-bottom: 16px; text-align: center; font-weight: 800;">
+                    <i class="fas fa-key" style="color: var(--primary);"></i>
+                    تعيين كلمة المرور
                 </h3>
                 
-                <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-                     color: #065f46;
-                     padding: 16px;
-                     border-radius: var(--radius-md);
-                     margin-bottom: 20px;
-                     border: 2px solid #10b981;
-                     text-align: center;">
-                    <i class="fas fa-check-circle" style="font-size: 1.4rem; margin-bottom: 8px; display: block; color: #059669;"></i>
-                    <p style="margin: 0; font-weight: 700;">
-                        تم التحقق من ملكية رقم الهاتف بنجاح!
-                    </p>
-                    <p style="margin: 6px 0 0 0; font-size: 0.88rem;">
-                        يرجى إنشاء كلمة مرور جديدة لحسابك الآن لتأمينه. (التخطي غير متاح).
-                    </p>
+                <div style="background: #f0fdf4; color: #166534; padding: 12px 14px; border-radius: var(--radius-sm); margin-bottom: 16px; border: 1px solid #bbf7d0; text-align: center; font-size: 0.85rem;">
+                    <i class="fas fa-check-circle" style="color: #16a34a;"></i>
+                    تم التحقق من رقم الهاتف. يرجى تعيين كلمة مرور جديدة للحساب.
                 </div>
                 
                 <form id="passwordSetupForm">
-                    <div class="form-group">
-                        <label for="newPassword" class="form-label">كلمة المرور الجديدة (6 أحرف على الأقل)</label>
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <label for="newPassword" class="form-label" style="font-size: 0.85rem;">كلمة المرور الجديدة (6 أحرف على الأقل)</label>
                         <div class="input-container">
                             <i class="fas fa-lock input-icon"></i>
                             <input type="password" 
@@ -1312,8 +1273,8 @@
                         </div>
                     </div>
                     
-                    <div class="form-group">
-                        <label for="confirmPassword" class="form-label">تأكيد كلمة المرور</label>
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label for="confirmPassword" class="form-label" style="font-size: 0.85rem;">تأكيد كلمة المرور</label>
                         <div class="input-container">
                             <i class="fas fa-lock input-icon"></i>
                             <input type="password" 
@@ -1328,9 +1289,9 @@
                         </div>
                     </div>
                     
-                    <button type="submit" class="login-btn" id="setupPasswordBtn">
+                    <button type="submit" class="login-btn" id="setupPasswordBtn" style="padding: 10px 14px; font-size: 0.88rem;">
                         <i class="fas fa-save"></i>
-                        <span id="setupPasswordText">حفظ كلمة المرور وتأمين الحساب</span>
+                        <span id="setupPasswordText">حفظ كلمة المرور</span>
                     </button>
                 </form>
             `;
