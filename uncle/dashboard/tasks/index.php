@@ -12713,250 +12713,90 @@ body {
 
 
         <!-- Card: Timing -->
+        <div class="scard2" style="border-radius:16px; border:1px solid var(--border); overflow:hidden; background:var(--surface-1);">
+          <div class="scard2-hdr" style="padding:14px 18px; font-weight:800; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--border); background:var(--surface-2);">
+            <i class="fas fa-clock" style="color:var(--brand);"></i> التوقيت ومواعيد التاسك
+          </div>
 
+          <div class="scard2-body" style="padding:18px;">
 
+            <!-- Hidden elements for complete backward compatibility with form scripts -->
+            <input type="checkbox" id="fNoDeadline" style="display:none;" onchange="updateTimingSummaryBadge()">
+            <input type="checkbox" id="fEndDateMode" style="display:none;">
+            <input type="date" id="fEndDateOnly" style="display:none;">
 
-        <div class="scard2">
-
-
-
-          <div class="scard2-hdr"><i class="fas fa-calendar-alt"></i> التوقيت</div>
-
-
-
-          <div class="scard2-body">
-
-
-
-            <div class="hint-box">
-
-
-
-              <i class="fas fa-lightbulb"></i>
-
-
-
-              <div>
-
-
-
-                <strong>إعداد أسرع للمواعيد</strong>
-
-
-
-                <span>يمكنك تحديد ساعة دقيقة، أو تفعيل الإغلاق بنهاية اليوم إذا كنت لا تريد وقتاً محدداً للانتهاء.</span>
-
-
-
-              </div>
-
-
-
-            </div>
-
-
-
-            <div class="frow time-block" id="deadlineBlock" style="margin-bottom:12px;">
-
-
-
-              <div class="fg"><label class="flbl">تاريخ البداية <span class="req">*</span></label><input id="fStart" type="datetime-local" class="fi"></div>
-
-
-
+            <!-- Start & End Date Inputs -->
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin-bottom:16px;">
+              
+              <!-- Start Date -->
               <div class="fg">
-
-
-
-                <label class="flbl" style="justify-content:space-between;gap:10px;flex-wrap:wrap;">
-
-
-
-                  <span>آخر موعد <span style="color:var(--t3);font-weight:400;">(اختياري)</span></span>
-
-
-
-                  <button
-
-
-
-                    type="button"
-
-
-
-                    onclick="document.getElementById('fNoDeadline').checked=!document.getElementById('fNoDeadline').checked;toggleNoDeadline();"
-
-
-
-                    style="border:1px solid var(--brand-l);background:var(--brand-bg);color:var(--brand);border-radius:9999px;padding:4px 10px;font-family:'Cairo',sans-serif;font-size:.72rem;font-weight:700;cursor:pointer;"
-
-
-
-                  >بدون آخر موعد</button>
-
-
-
+                <label class="flbl" style="font-weight:700; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                  <i class="far fa-calendar-alt" style="color:var(--brand);"></i> تاريخ ووقت البداية <span class="req">*</span>
                 </label>
+                <input id="fStart" type="datetime-local" class="fi" onchange="updateTimingSummaryBadge()" style="font-family:inherit; border-radius:10px;">
+              </div>
 
+              <!-- End Date -->
+              <div class="fg">
+                <label class="flbl" style="font-weight:700; margin-bottom:6px; display:flex; align-items:center; justify-content:space-between;">
+                  <span style="display:flex; align-items:center; gap:6px;">
+                    <i class="far fa-calendar-check" style="color:#ef4444;"></i> آخر موعد للإجابة <span style="color:var(--t3); font-weight:400;">(اختياري)</span>
+                  </span>
+                </label>
+                <input id="fEnd" type="datetime-local" class="fi" onchange="onEndDateTimeChange()" style="font-family:inherit; border-radius:10px;">
+              </div>
 
+            </div>
 
-                <div class="date-switch">
+            <!-- Quick Presets Chips Bar -->
+            <div style="margin-bottom:16px;">
+              <div style="font-size:0.76rem; font-weight:700; color:var(--t3); margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+                <i class="fas fa-bolt" style="color:#f59e0b;"></i> اختصارات سريعة لموعد الإغلاق:
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                <button type="button" class="quick-preset-chip" onclick="applySimplePreset(0)" style="padding:6px 12px; border-radius:20px; border:1px solid var(--border); background:var(--surface-2); font-size:0.78rem; font-weight:700; cursor:pointer; color:var(--t1); transition:all 0.2s;">اليوم (11:59 م)</button>
+                <button type="button" class="quick-preset-chip" onclick="applySimplePreset(1)" style="padding:6px 12px; border-radius:20px; border:1px solid var(--border); background:var(--surface-2); font-size:0.78rem; font-weight:700; cursor:pointer; color:var(--t1); transition:all 0.2s;">غداً</button>
+                <button type="button" class="quick-preset-chip" onclick="applySimplePreset(3)" style="padding:6px 12px; border-radius:20px; border:1px solid var(--border); background:var(--surface-2); font-size:0.78rem; font-weight:700; cursor:pointer; color:var(--t1); transition:all 0.2s;">بعد 3 أيام</button>
+                <button type="button" class="quick-preset-chip" onclick="applySimplePreset(7)" style="padding:6px 12px; border-radius:20px; border:1px solid var(--border); background:var(--surface-2); font-size:0.78rem; font-weight:700; cursor:pointer; color:var(--t1); transition:all 0.2s;">بعد أسبوع</button>
+                <button type="button" class="quick-preset-chip" onclick="applySimplePreset(14)" style="padding:6px 12px; border-radius:20px; border:1px solid var(--border); background:var(--surface-2); font-size:0.78rem; font-weight:700; cursor:pointer; color:var(--t1); transition:all 0.2s;">بعد أسبوعين</button>
+                <button type="button" class="quick-preset-chip" onclick="setNoDeadlineMode()" style="padding:6px 12px; border-radius:20px; border:1px solid rgba(8,145,178,0.3); background:rgba(8,145,178,0.08); font-size:0.78rem; font-weight:800; cursor:pointer; color:#0891b2; transition:all 0.2s;">♾️ بدون آخر موعد</button>
+              </div>
+            </div>
 
+            <!-- Live Timing Status Preview Card -->
+            <div id="timingSummaryPill" style="padding:12px 14px; border-radius:12px; background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.2); font-size:0.83rem; font-weight:700; color:#4f46e5; display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+              <i class="fas fa-calendar-check" style="font-size:1.1rem; flex-shrink:0;"></i>
+              <span id="timingSummaryText" style="line-height:1.4;">جاري تحديث التوقيت...</span>
+            </div>
 
-
-                  <input id="fEnd" type="datetime-local" class="fi">
-
-
-
-                  <input id="fEndDateOnly" type="date" class="fi" style="display:none;">
-
-
-
+            <!-- Optional Timer Section -->
+            <div style="background:var(--surface-2); border:1px solid var(--border); border-radius:12px; padding:14px;">
+              <div style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;" onclick="document.getElementById('fTimerOn').click();">
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <div style="width:36px; height:36px; border-radius:10px; background:rgba(217,119,6,0.12); color:#d97706; display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0;">
+                    <i class="fas fa-stopwatch"></i>
+                  </div>
+                  <div>
+                    <div style="font-weight:700; font-size:0.88rem; color:var(--t1);">عداد تنازلي للإجابة (اختياري)</div>
+                    <div style="font-size:0.75rem; color:var(--t3);">تحديد زمن محدد بالدقائق يبدأ عند فتح الطفل للتاسك</div>
+                  </div>
                 </div>
-
-
-
-                <div class="mini-note" id="endModeNote">يمكنك تحديد موعد الإغلاق هنا، أو اختيار "بدون آخر موعد".</div>
-
-
-
+                <label class="tgl" onclick="event.stopPropagation();">
+                  <input type="checkbox" id="fTimerOn" onchange="toggleTimerRowDisplay(this.checked)">
+                  <span class="tgl-s"></span>
+                </label>
               </div>
 
-
-
-            </div>
-
-
-
-            <div class="sopt-row" onclick="document.getElementById('fNoDeadline').click()">
-
-
-
-              <div class="sopt-ico" style="background:#ecfeff;color:#0891b2;"><i class="fas fa-infinity"></i></div>
-
-
-
-              <div class="sopt-txt">
-
-
-
-                <div class="sopt-lbl">بدون آخر موعد</div>
-
-
-
-                <div class="sopt-desc">يبقى الامتحان مفتوحاً بعد تاريخ البداية حتى تقوم بإغلاقه أو تعديله لاحقاً</div>
-
-
-
+              <div id="timerRow" style="display:none; margin-top:12px; padding-top:12px; border-top:1px dashed var(--border);">
+                <div class="fg" style="max-width:220px; margin:0;">
+                  <label class="flbl" style="font-weight:700; font-size:0.78rem;">زمن حل التاسك (بالدقائق) <span class="req">*</span></label>
+                  <input id="fTimerMin" type="number" class="fi" min="1" max="180" placeholder="مثال: 30" style="border-radius:10px;">
+                </div>
               </div>
-
-
-
-              <label class="tgl" onclick="event.stopPropagation()"><input type="checkbox" id="fNoDeadline" onchange="toggleNoDeadline()"><span class="tgl-s"></span></label>
-
-
-
             </div>
 
-
-
-            <div class="sopt-row" onclick="document.getElementById('fEndDateMode').click()">
-
-
-
-              <div class="sopt-ico" style="background:#dbeafe;color:#2563eb;"><i class="fas fa-calendar-day"></i></div>
-
-
-
-              <div class="sopt-txt">
-
-
-
-                <div class="sopt-lbl">إغلاق بنهاية اليوم</div>
-
-
-
-                <div class="sopt-desc">بدلاً من اختيار ساعة، يظل الامتحان متاحاً حتى 11:59 مساءً في التاريخ المحدد</div>
-
-
-
-              </div>
-
-
-
-              <label class="tgl" onclick="event.stopPropagation()"><input type="checkbox" id="fEndDateMode" onchange="toggleEndDateMode()"><span class="tgl-s"></span></label>
-
-
-
-            </div>
-
-
-
-            <div class="quick-presets">
-
-
-
-              <button type="button" class="quick-btn" onclick="applyDuePreset(0)">اليوم</button>
-
-
-
-              <button type="button" class="quick-btn" onclick="applyDuePreset(1)">غداً</button>
-
-
-
-              <button type="button" class="quick-btn" onclick="applyDuePreset(3)">3 أيام</button>
-
-
-
-              <button type="button" class="quick-btn" onclick="applyDuePreset(7)">أسبوع</button>
-
-
-
-              <button type="button" class="quick-btn" onclick="applyDuePreset(14)">أسبوعان</button>
-
-
-
-            </div>
-
-
-
-            <div class="sopt-row" onclick="document.getElementById('fTimerOn').click()">
-
-
-
-              <div class="sopt-ico" style="background:#fef3c7;color:#d97706;"><i class="fas fa-stopwatch"></i></div>
-
-
-
-              <div class="sopt-txt">
-
-
-
-                <div class="sopt-lbl">وقت محدد للإجابة</div>
-
-
-
-                <div class="sopt-desc">عداد تنازلي يبدأ عند فتح الطفل للتاسك</div>
-
-
-
-              </div>
-
-
-
-              <label class="tgl" onclick="event.stopPropagation()"><input type="checkbox" id="fTimerOn" onchange="document.getElementById('timerRow').style.display=this.checked?'':'none'"><span class="tgl-s"></span></label>
-
-
-
-            </div>
-
-
-
-            <div id="timerRow" style="display:none;" class="frow" style="margin-top:10px;">
-
-
-
-              <div class="fg"><label class="flbl">المدة (دقيقة) <span class="req">*</span></label><input id="fTimerMin" type="number" class="fi" min="1" max="180" placeholder="30"></div>
+          </div>
+        </div>
 
 
 
@@ -15160,14 +15000,9 @@ window.selectedClassifications = t.group_name ? t.group_name.split(',').map(x =>
 
 
   document.getElementById('fEndDateMode').checked=isEndDateOnly(t.end_date);
-
-
-
   toggleEndDateMode(false);
-
-
-
   toggleNoDeadline(false);
+  if (typeof updateTimingSummaryBadge === 'function') updateTimingSummaryBadge();
 
 
 
@@ -16787,14 +16622,9 @@ window.selectedClassifications = t.group_name ? t.group_name.split(',').map(x =>
 
 
   document.getElementById('fEndDateMode').checked=isEndDateOnly(t.end_date);
-
-
-
   toggleEndDateMode(false);
-
-
-
   toggleNoDeadline(false);
+  if (typeof updateTimingSummaryBadge === 'function') updateTimingSummaryBadge();
 
 
 
