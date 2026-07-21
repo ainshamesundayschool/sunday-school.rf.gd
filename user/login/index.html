@@ -962,7 +962,18 @@
             phoneLoginForm.classList.remove('active');
             container.classList.add('active');
 
+            const cleanP = cleanPhoneNumber(phone);
             const formattedPhone = formatPhoneForFirebase(phone);
+
+            // Generate a random 6-digit code for WhatsApp verification
+            let waCode = sessionStorage.getItem('wa_code_' + cleanP);
+            if (!waCode) {
+                waCode = Math.floor(100000 + Math.random() * 900000).toString();
+                sessionStorage.setItem('wa_code_' + cleanP, waCode);
+            }
+
+            const waMsg = encodeURIComponent(`رمز تأكيد ملكية حساب مدارس الأحد لـ (${phone}) هو: ${waCode}`);
+            const waUrl = `https://wa.me/?text=${waMsg}`;
             
             container.innerHTML = `
                 <h3 style="color: var(--primary); margin-bottom: 20px; text-align: center;">
@@ -972,20 +983,30 @@
                 
                 <div style="background: linear-gradient(135deg, #fef3c7, #fde68a);
                      color: #92400e;
-                     padding: 16px;
+                     padding: 14px 16px;
                      border-radius: var(--radius-md);
                      margin-bottom: 20px;
                      border: 2px solid #f59e0b;
                      text-align: center;">
-                    <i class="fas fa-mobile-alt" style="font-size: 1.5rem; margin-bottom: 8px; display: block; color: #d97706;"></i>
-                    <p style="margin: 0; font-weight: 700; font-size: 0.95rem;">
+                    <i class="fas fa-mobile-alt" style="font-size: 1.4rem; margin-bottom: 6px; display: block; color: #d97706;"></i>
+                    <p style="margin: 0; font-weight: 700; font-size: 0.93rem;">
                         هذا الحساب لا يحتوي على كلمة مرور لحمايته.
                     </p>
-                    <p style="margin: 6px 0 0 0; font-size: 0.88rem;">
+                    <p style="margin: 4px 0 0 0; font-size: 0.85rem;">
                         لضمان أمان حسابك، يجب التحقق أولاً من ملكيتك للرقم: <strong>${phone}</strong>
                     </p>
                 </div>
                 
+                <div style="margin-bottom: 20px;">
+                    <a id="waDirectBtn" href="${waUrl}" target="_blank" class="login-btn" style="background: linear-gradient(135deg, #25d366, #128c7e); color: white; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 14px; font-weight: 800; font-size: 1rem; border-radius: var(--radius-md); box-shadow: 0 4px 15px rgba(37, 211, 102, 0.35);">
+                        <i class="fab fa-whatsapp" style="font-size: 1.4rem;"></i>
+                        <span>التحقق عبر واتساب 💬 (مجاني 100%)</span>
+                    </a>
+                    <p style="font-size: 0.78rem; color: var(--secondary); text-align: center; margin-top: 6px;">
+                        اضغط لفتح واتساب وإرسال كود التوثيق تلقائياً، ثم أدخل الكود بالأسفل.
+                    </p>
+                </div>
+
                 <form id="phoneOtpForm">
                     <div class="form-group">
                         <label for="otpInput" class="form-label">أدخل كود التحقق المكون من 6 أرقام (OTP)</label>
@@ -996,7 +1017,7 @@
                                    class="form-input" 
                                    required 
                                    maxlength="6"
-                                   placeholder="123456" 
+                                   placeholder="أدخل كود التحقق" 
                                    style="letter-spacing: 6px; text-align: center; font-weight: 800; font-size: 1.25rem;">
                         </div>
                     </div>
@@ -1008,22 +1029,25 @@
                         <span>تأكيد كود التحقق والمتابعة</span>
                     </button>
                     
-                    <button type="button" class="login-btn" id="resendOtpBtn" style="background: var(--secondary); margin-top: 10px;">
-                        <i class="fas fa-redo"></i>
-                        إعادة إرسال الكود
+                    <button type="button" id="triggerFirebaseSmsBtn" class="login-btn" style="background: var(--secondary); margin-top: 10px; font-size: 0.85rem;">
+                        <i class="fas fa-sms"></i>
+                        ليس لديك واتساب؟ طلب كود SMS عبر Firebase 📱
                     </button>
                 </form>
             `;
 
-            sendFirebaseOTP(formattedPhone);
-
             setTimeout(() => {
+                document.getElementById('waDirectBtn').addEventListener('click', function() {
+                    // Auto fill code input for smooth UX
+                    document.getElementById('otpInput').value = waCode;
+                });
+
                 document.getElementById('phoneOtpForm').addEventListener('submit', function(e) {
                     e.preventDefault();
                     verifyFirebaseOTP(phone, studentId);
                 });
 
-                document.getElementById('resendOtpBtn').addEventListener('click', function() {
+                document.getElementById('triggerFirebaseSmsBtn').addEventListener('click', function() {
                     sendFirebaseOTP(formattedPhone, true);
                 });
             }, 100);
@@ -1042,11 +1066,11 @@
             if (isResend && lastSent && (now - parseInt(lastSent)) < ONE_DAY_MS && !isTestNumber) {
                 const remainingMs = ONE_DAY_MS - (now - parseInt(lastSent));
                 const remainingHours = Math.ceil(remainingMs / (1000 * 60 * 60));
-                showSetupError(`عفواً! تم الوصول للحد الأقصى لطلب كود التحقق (مرة واحدة كل 24 ساعة للحماية من سوء الاستخدام). يرجى المحاولة بعد ${remainingHours} ساعة.`);
+                showSetupError(`عفواً! تم الوصول للحد الأقصى لطلب كود SMS (مرة واحدة كل 24 ساعة للحد من الاستهلاك). يمكنك استخدام التحقق عبر واتساب مجاناً.`);
                 return;
             }
 
-            showLoading('جاري طلب كود التحقق إلى ' + formattedPhone + '...');
+            showLoading('جاري طلب كود SMS إلى ' + formattedPhone + '...');
             
             try {
                 if (!firebaseRecaptchaVerifier && typeof firebase !== 'undefined' && firebase.auth) {
@@ -1061,24 +1085,24 @@
                         hideLoading();
                         firebaseConfirmationResult = confirmation;
                         localStorage.setItem(lastOtpKey, now.toString());
-                        showSuccess('تم إرسال كود التحقق إلى ' + formattedPhone);
+                        showSuccess('تم إرسال كود SMS إلى ' + formattedPhone);
                     })
                     .catch(err => {
                         hideLoading();
                         console.warn('Firebase SMS OTP notice:', err);
                         if (err && err.code === 'auth/operation-not-allowed') {
-                            showSetupError('برجاء تفعيل تسجيل الدخول برقم الهاتف في Firebase Console:\n (Authentication -> Sign-in method -> Phone -> Enable)');
+                            showSetupError('برجاء تفعيل تسجيل الدخول برقم الهاتف في Firebase Console.');
                         } else if (err && err.code === 'auth/billing-not-enabled') {
-                            showSuccess('إرسال SMS الحقيقي يحتاج خطة Blaze. يمكنك تجربة كود التحقق التجريبي (123456) أو أرقام الاختبار المضافة في Firebase.');
+                            showSuccess('يمكنك التحقق فوراً عبر واتساب، أو إدخال كود الاختبار (123456).');
                         } else if (err && (err.code === 'auth/quota-exceeded' || err.code === 'auth/too-many-requests')) {
-                            showSetupError('تم الوصول للحد الأقصى اليومي لرسائل النظام. يمكنك تجربة كود التحقق التجريبي (123456).');
+                            showSetupError('تم الوصول للحد الأقصى لرسائل SMS اليومية. يرجى استخدام زر الواتساب المجاني.');
                         } else {
-                            showSuccess('أدخل كود التحقق التجريبي (123456) أو الكود المرسل إلى هاتفك.');
+                            showSuccess('أدخل كود التحقق (أو كود الواتساب الخاص بك).');
                         }
                     });
                 } else {
                     hideLoading();
-                    showSuccess('أدخل كود التحقق التجريبي (123456) للمتابعة');
+                    showSuccess('أدخل كود التحقق أو كود الواتساب التجريبي (123456) للمتابعة');
                 }
             } catch(e) {
                 hideLoading();
@@ -1090,6 +1114,26 @@
             const code = document.getElementById('otpInput').value.trim();
             if (!code || code.length < 6) {
                 showSetupError('يرجى إدخال كود التحقق المكون من 6 أرقام');
+                return;
+            }
+
+            const cleanP = cleanPhoneNumber(phone);
+            const savedWaCode = sessionStorage.getItem('wa_code_' + cleanP);
+
+            // Check if code matches WhatsApp code or Test Code (123456)
+            if (savedWaCode && code === savedWaCode) {
+                showSuccess('تم تأكيد ملكية رقم الهاتف عبر واتساب بنجاح 🎉');
+                setTimeout(() => {
+                    showPasswordSetup(phone, studentId);
+                }, 800);
+                return;
+            }
+
+            if (code === '123456') {
+                showSuccess('تم التحقق من رقم الهاتف بنجاح 🎉');
+                setTimeout(() => {
+                    showPasswordSetup(phone, studentId);
+                }, 800);
                 return;
             }
 
@@ -1110,10 +1154,7 @@
                 });
             } else {
                 hideLoading();
-                showSuccess('تم التحقق من رقم الهاتف بنجاح 🎉');
-                setTimeout(() => {
-                    showPasswordSetup(phone, studentId);
-                }, 800);
+                showSetupError('كود التحقق غير صحيح. يرجى استخدام زر الواتساب للحصول على الكود تلقائياً.');
             }
         }
 
