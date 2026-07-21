@@ -9179,10 +9179,17 @@
                                 <option value="registration">تسجيل</option>
                                 <option value="announcement">إعلان</option>
                             </select>
-                            <input type="date" id="auditDateFrom" class="form-input" style="width:148px;"
+                             <input type="date" id="auditDateFrom" class="form-input" style="width:148px;"
                                 onchange="filterAuditLogs()" title="من تاريخ">
                             <input type="date" id="auditDateTo" class="form-input" style="width:148px;"
                                 onchange="filterAuditLogs()" title="إلى تاريخ">
+                            <select id="auditPageSizeSelect" class="form-select" style="width:125px;" onchange="setAuditPageSize(this.value)" title="عدد السجلات بالصفحة">
+                                <option value="25" selected>25 بالصفحة</option>
+                                <option value="50">50 بالصفحة</option>
+                                <option value="100">100 بالصفحة</option>
+                                <option value="250">250 بالصفحة</option>
+                                <option value="500">500 بالصفحة</option>
+                            </select>
                             <button class="btn btn-outline btn-sm" onclick="clearAuditFilters()"><i
                                     class="fas fa-times"></i></button>
                         </div>
@@ -19545,16 +19552,16 @@
         // ── Audit / History ───────────────────────────────────────────
         let auditLogsCache = [];
         let auditPage = 1;
-        const AUDIT_PAGE_SIZE = 50;
+        let AUDIT_PAGE_SIZE = 25;
 
-        async function loadAuditLogs() {
+        async function loadAuditLogs(limit = 1000) {
             const tb = document.getElementById('auditTable');
             if (tb) {
                 tb.innerHTML = panelInlineSkeleton(6);
             }
 
             const fd = mkFd('getAuditLogs');
-            fd.append('limit', 50);
+            fd.append('limit', limit);
 
             try {
                 const response = await fetch(API_URL, { method: 'POST', body: fd });
@@ -19577,6 +19584,19 @@
                     tb.innerHTML = `<div class="empty-state" style="padding:28px;"><i class="fas fa-exclamation-triangle"></i><h3>خطأ في الاتصال بالخادم</h3></div>`;
                 }
             }
+        }
+
+        function setAuditPageSize(val) {
+            AUDIT_PAGE_SIZE = parseInt(val) || 25;
+            auditPage = 1;
+            filterAuditLogs();
+        }
+
+        function auditGoPage(page) {
+            auditPage = page;
+            const logs = typeof _filteredAuditLogs !== 'undefined' && _filteredAuditLogs ? _filteredAuditLogs : auditLogsCache;
+            renderAuditTable(logs);
+            document.getElementById('auditLogsListContainer')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
         window._globalSearchActions = [];
@@ -20327,10 +20347,12 @@
         </button>`;
             }
 
-            // Total count
-            paginHtml += `<span style="font-size:0.78rem; color:var(--muted); margin-right:8px;">
-        إجمالي ${totalItems} سجل
-    </span>`;
+            // Total count & range summary
+            const fromIdx = totalItems > 0 ? (auditPage - 1) * AUDIT_PAGE_SIZE + 1 : 0;
+            const toIdx = Math.min(auditPage * AUDIT_PAGE_SIZE, totalItems);
+            paginHtml += `<span style="font-size:0.8rem; color:var(--text-2); margin-right:12px; font-weight:700; background:var(--surface-2); padding:4px 10px; border-radius:8px; border:1px solid var(--border);">
+                عرض ${fromIdx} - ${toIdx} من إجمالي ${totalItems} سجل
+            </span>`;
 
             paginHtml += '</div>';
             pg.innerHTML = paginHtml;
