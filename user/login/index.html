@@ -1024,12 +1024,28 @@
                 });
 
                 document.getElementById('resendOtpBtn').addEventListener('click', function() {
-                    sendFirebaseOTP(formattedPhone);
+                    sendFirebaseOTP(formattedPhone, true);
                 });
             }, 100);
         }
 
-        function sendFirebaseOTP(formattedPhone) {
+        function sendFirebaseOTP(formattedPhone, isResend = false) {
+            const cleanPhone = cleanPhoneNumber(formattedPhone);
+            const lastOtpKey = `otp_last_sent_${cleanPhone}`;
+            const lastSent = localStorage.getItem(lastOtpKey);
+            const now = Date.now();
+            const ONE_DAY_MS = 24 * 60 * 60 * 1000; // 24 Hours Cooldown
+
+            const isTestNumber = cleanPhone.includes('1000000000') || cleanPhone.includes('123456789');
+
+            // Enforce max 1 SMS request per user per 24 hours
+            if (isResend && lastSent && (now - parseInt(lastSent)) < ONE_DAY_MS && !isTestNumber) {
+                const remainingMs = ONE_DAY_MS - (now - parseInt(lastSent));
+                const remainingHours = Math.ceil(remainingMs / (1000 * 60 * 60));
+                showSetupError(`عفواً! تم الوصول للحد الأقصى لطلب كود التحقق (مرة واحدة كل 24 ساعة للحماية من سوء الاستخدام). يرجى المحاولة بعد ${remainingHours} ساعة.`);
+                return;
+            }
+
             showLoading('جاري طلب كود التحقق إلى ' + formattedPhone + '...');
             
             try {
@@ -1044,6 +1060,7 @@
                     .then(confirmation => {
                         hideLoading();
                         firebaseConfirmationResult = confirmation;
+                        localStorage.setItem(lastOtpKey, now.toString());
                         showSuccess('تم إرسال كود التحقق إلى ' + formattedPhone);
                     })
                     .catch(err => {
@@ -1053,6 +1070,8 @@
                             showSetupError('برجاء تفعيل تسجيل الدخول برقم الهاتف في Firebase Console:\n (Authentication -> Sign-in method -> Phone -> Enable)');
                         } else if (err && err.code === 'auth/billing-not-enabled') {
                             showSuccess('إرسال SMS الحقيقي يحتاج خطة Blaze. يمكنك تجربة كود التحقق التجريبي (123456) أو أرقام الاختبار المضافة في Firebase.');
+                        } else if (err && (err.code === 'auth/quota-exceeded' || err.code === 'auth/too-many-requests')) {
+                            showSetupError('تم الوصول للحد الأقصى اليومي لرسائل النظام. يمكنك تجربة كود التحقق التجريبي (123456).');
                         } else {
                             showSuccess('أدخل كود التحقق التجريبي (123456) أو الكود المرسل إلى هاتفك.');
                         }
