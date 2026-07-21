@@ -9767,18 +9767,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         }
 
         if (Notification.permission === 'default') {
-          try {
-            const permission = await Notification.requestPermission();
-            if (permission === 'granted' && VAPID_PUBLIC_KEY) {
-              sub = await reg.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: _urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-              });
-              needsResubscribe = true;
-            }
-          } catch (err) {
-            console.error("Auto push subscription on load failed:", err);
-          }
+          checkAndShowNotificationPrompt('kid');
         }
 
         if (Notification.permission === 'granted' && (!sub || needsResubscribe)) {
@@ -10002,7 +9991,121 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         <button class="pwa-btn pwa-btn-ghost" onclick="closePwaModal()">ليس الآن</button>
       </div>
     </div>
+  <!-- NOTIFICATION PERMISSION PROMPT MODAL -->
+  <div id="notifPromptModal" style="display:none; position:fixed; inset:0; z-index:100000; background:rgba(15,23,42,0.6); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); align-items:center; justify-content:center; padding:16px;">
+    <div style="background:var(--bg,#ffffff); max-width:440px; width:100%; border-radius:20px; padding:24px; text-align:center; box-shadow:0 20px 40px rgba(0,0,0,0.25); border:1px solid var(--bdr,rgba(0,0,0,0.08));">
+      <div style="width:60px; height:60px; margin:0 auto 14px; border-radius:18px; background:linear-gradient(135deg, #6366f1, #8b5cf6); color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.6rem; box-shadow:0 8px 20px rgba(99,102,241,0.35);">
+        <i class="fas fa-bell"></i>
+      </div>
+      <h3 style="font-size:1.2rem; font-weight:800; color:var(--text,#1e293b); margin-bottom:4px;">تفعيل إشعارات الكنيسة</h3>
+      <p style="font-size:0.83rem; color:var(--text-3,#64748b); margin-bottom:18px;">ليصلك التنبيه فور تصحيح التاسكات والتحديثات الجديدة على جهازك</p>
+
+      <div id="notifPromptList" style="text-align:right; background:var(--bg2,#f8fafc); border:1px solid var(--bdr,rgba(0,0,0,0.08)); border-radius:14px; padding:14px; margin-bottom:20px; display:flex; flex-direction:column; gap:12px;"></div>
+
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <button type="button" onclick="allowNotificationsFromModal()" style="width:100%; padding:12px 18px; border-radius:12px; border:none; background:linear-gradient(135deg, #6366f1, #4f46e5); color:#fff; font-size:0.92rem; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 12px rgba(99,102,241,0.3);">
+          <i class="fas fa-bell"></i> تفعيل الإشعارات الآن
+        </button>
+        <button type="button" onclick="dismissNotificationPromptModal()" style="width:100%; padding:10px 18px; border-radius:12px; border:1px solid var(--bdr,rgba(0,0,0,0.12)); background:transparent; color:var(--text-2,#475569); font-size:0.84rem; font-weight:700; cursor:pointer;">
+          ربما لاحقاً
+        </button>
+      </div>
+    </div>
   </div>
+
+  <script>
+    let _currentNotifRole = 'kid';
+
+    function checkAndShowNotificationPrompt(role = 'kid') {
+      if (!('Notification' in window)) return;
+      if (Notification.permission !== 'default') return;
+      if (sessionStorage.getItem('notif_prompt_dismissed')) return;
+
+      _currentNotifRole = role;
+      const listEl = document.getElementById('notifPromptList');
+      if (!listEl) return;
+
+      if (role === 'kid') {
+        listEl.innerHTML = `
+          <div style="display:flex; align-items:flex-start; gap:10px;">
+            <div style="width:34px; height:34px; border-radius:10px; background:rgba(99, 102, 241, 0.12); color:#6366f1; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.95rem;"><i class="fas fa-tasks"></i></div>
+            <div style="font-size:0.8rem; color:var(--text,#1e293b); line-height:1.4;">
+              <strong style="display:block; color:#6366f1; font-weight:800; margin-bottom:2px;">تصحيح الإجابات والتاسكات</strong>
+              إشعار فور تصحيح إجاباتك، تقييم التاسك، أو تنبيهات المراجعة.
+            </div>
+          </div>
+          <div style="display:flex; align-items:flex-start; gap:10px;">
+            <div style="width:34px; height:34px; border-radius:10px; background:rgba(234, 179, 8, 0.12); color:#ca8a04; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.95rem;"><i class="fas fa-star"></i></div>
+            <div style="font-size:0.8rem; color:var(--text,#1e293b); line-height:1.4;">
+              <strong style="display:block; color:#ca8a04; font-weight:800; margin-bottom:2px;">الكوبونات والمكافآت</strong>
+              تنبيه فوري فور حصولك على كوبونات ونقاط جديدة في حسابك.
+            </div>
+          </div>
+          <div style="display:flex; align-items:flex-start; gap:10px;">
+            <div style="width:34px; height:34px; border-radius:10px; background:rgba(34, 197, 94, 0.12); color:#16a34a; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.95rem;"><i class="fas fa-bullhorn"></i></div>
+            <div style="font-size:0.8rem; color:var(--text,#1e293b); line-height:1.4;">
+              <strong style="display:block; color:#16a34a; font-weight:800; margin-bottom:2px;">الإعلانات والأنشطة</strong>
+              متابعة إعلانات الكنيسة والأنشطة والرحلات المتاحة لك أولاً بأول.
+            </div>
+          </div>
+        `;
+      } else {
+        listEl.innerHTML = `
+          <div style="display:flex; align-items:flex-start; gap:10px;">
+            <div style="width:34px; height:34px; border-radius:10px; background:rgba(99, 102, 241, 0.12); color:#6366f1; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.95rem;"><i class="fas fa-file-signature"></i></div>
+            <div style="font-size:0.8rem; color:var(--text,#1e293b); line-height:1.4;">
+              <strong style="display:block; color:#6366f1; font-weight:800; margin-bottom:2px;">تسليمات الأطفال الجدد</strong>
+              تنبيه فوري عند تسليم أي طفل لتاسك جديد يحتاج للتصحيح.
+            </div>
+          </div>
+          <div style="display:flex; align-items:flex-start; gap:10px;">
+            <div style="width:34px; height:34px; border-radius:10px; background:rgba(59, 130, 246, 0.12); color:#2563eb; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.95rem;"><i class="fas fa-calendar-check"></i></div>
+            <div style="font-size:0.8rem; color:var(--text,#1e293b); line-height:1.4;">
+              <strong style="display:block; color:#2563eb; font-weight:800; margin-bottom:2px;">حضور وتنبيهات الخدمة</strong>
+              إشعارات الحضور والغياب والتنبيهات الإدارية الهامة للكنيسة.
+            </div>
+          </div>
+          <div style="display:flex; align-items:flex-start; gap:10px;">
+            <div style="width:34px; height:34px; border-radius:10px; background:rgba(236, 72, 153, 0.12); color:#db2777; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.95rem;"><i class="fas fa-bus"></i></div>
+            <div style="font-size:0.8rem; color:var(--text,#1e293b); line-height:1.4;">
+              <strong style="display:block; color:#db2777; font-weight:800; margin-bottom:2px;">الرحلات والاشتراكات</strong>
+              تنبيهات طلبات الانضمام واشتراكات الرحلات الجديدة.
+            </div>
+          </div>
+        `;
+      }
+
+      const modal = document.getElementById('notifPromptModal');
+      if (modal) {
+        modal.style.display = 'flex';
+      }
+    }
+
+    async function allowNotificationsFromModal() {
+      dismissNotificationPromptModal();
+      try {
+        const perm = await Notification.requestPermission();
+        if (perm === 'granted') {
+          if (typeof toast === 'function') toast('تم تفعيل الإشعارات بنجاح 🎉', 'ok');
+          else if (typeof showToast === 'function') showToast('تم تفعيل الإشعارات بنجاح 🎉', 'ok');
+          if (typeof setupPushSubscription === 'function') setupPushSubscription();
+        } else if (perm === 'denied') {
+          if (typeof toast === 'function') toast('تم رفض الإشعارات ✕', 'err');
+          else if (typeof showToast === 'function') showToast('تم رفض الإشعارات ✕', 'err');
+        }
+      } catch (err) {
+        console.error("Error requesting notification permission:", err);
+      }
+    }
+
+    function dismissNotificationPromptModal() {
+      sessionStorage.setItem('notif_prompt_dismissed', '1');
+      const modal = document.getElementById('notifPromptModal');
+      if (modal) {
+        modal.style.display = 'none';
+      }
+    }
+  </script>
 </body>
 
 </html>

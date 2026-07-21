@@ -46524,6 +46524,28 @@ function resetSubmissionGrade()
             }
         }
 
+        // Insert notification/announcement for the student stating task is still pending review
+        $studentName = $sub['student_name'] ?? '';
+        $studentClass = $sub['student_class'] ?? '';
+        $taskTitle = $sub['task_title'] ?? '';
+
+        if ($studentName !== '') {
+            $annText = "تذكير: التاسك \"{$taskTitle}\" بانتظار المراجعة والتقييم";
+            $annStmt = $conn->prepare("INSERT INTO announcements (church_id, type, text, link, class, student_names, is_active, created_at) VALUES (?, 'task', ?, '', ?, ?, 1, NOW())");
+            $annStmt->bind_param('isss', $churchId, $annText, $studentClass, $studentName);
+            $annStmt->execute();
+
+            pushNotification(
+                $conn,
+                $churchId,
+                'task_pending',
+                'التاسك بانتظار التقييم',
+                "التاسك \"{$taskTitle}\" بانتظار المراجعة والتقييم",
+                'task',
+                $sub['task_id']
+            );
+        }
+
         $conn->commit();
 
         sendJSON([

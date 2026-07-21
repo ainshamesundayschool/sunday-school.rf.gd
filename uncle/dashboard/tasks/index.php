@@ -8346,43 +8346,23 @@ button, input, select, textarea, a {
 
 .grade-sheet-hdr {
 
-
-
-  padding: 18px 24px;
-
-
+  padding: 10px 14px;
 
   border-bottom: 1px solid var(--bdr);
 
-
-
   display: flex;
-
-
 
   align-items: center;
 
-
-
-  gap: 12px;
-
-
+  gap: 8px;
 
   position: sticky;
 
-
-
   top: 0;
-
-
 
   background: var(--bg);
 
-
-
   z-index: 2;
-
-
 
 }
 
@@ -8394,15 +8374,9 @@ button, input, select, textarea, a {
 
 .grade-sheet-body {
 
-
-
-  padding: 20px 24px;
-
-
+  padding: 12px 14px;
 
   flex: 1;
-
-
 
 }
 
@@ -19797,28 +19771,28 @@ function renderGradePanel() {
   const avatar = getStudentAvatarHtml(photo, sub.student_name, '28px');
 
   const gradedBadge = isAlreadyGraded
-    ? `<span style="background:var(--ok-bg);color:var(--ok);border-radius:var(--r-full);padding:2px 10px;font-size:.7rem;font-weight:800;border:1px solid #6ee7b7;"><i class="fas fa-check-circle"></i> تم التقييم (وضع التعديل)</span>`
-    : `<span style="background:#fef3c7;color:#92400e;border-radius:var(--r-full);padding:2px 10px;font-size:.7rem;font-weight:800;border:1px solid #fde68a;"><i class="fas fa-clock"></i> لم يتم التقييم بعد</span>`;
+    ? `<span style="background:var(--ok-bg);color:var(--ok);border-radius:var(--r-full);padding:2px 8px;font-size:.68rem;font-weight:800;border:1px solid #6ee7b7;white-space:nowrap;"><i class="fas fa-check-circle"></i> تم التقييم</span>`
+    : `<span style="background:#fef3c7;color:#92400e;border-radius:var(--r-full);padding:2px 8px;font-size:.68rem;font-weight:800;border:1px solid #fde68a;white-space:nowrap;"><i class="fas fa-clock"></i> بانتظار التقييم</span>`;
 
   el.innerHTML = `<div class="grade-sub-card" id="gradecard_${sub.id}" style="margin: 0; border: none; box-shadow: none;">
-    <div class="grade-sub-name" style="padding: 12px 18px; background: var(--bg3); border-bottom: 1px solid var(--bdr); display:flex; align-items:center; gap:8px;">
+    <div class="grade-sub-name" style="padding: 8px 14px; background: var(--bg3); border-bottom: 1px solid var(--bdr); display:flex; align-items:center; gap:8px; flex-wrap:nowrap;">
       ${avatar}
-      <div style="display:flex; flex-direction:column;">
-        <strong style="font-size:.9rem;">${esc(sub.student_name||'—')}</strong>
-        <span style="font-size:.7rem;color:var(--t3);font-weight:500;">${esc(sub.task_title||'')}</span>
+      <div style="display:flex; flex-direction:column; min-width:0;">
+        <strong style="font-size:.85rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(sub.student_name||'—')}</strong>
+        <span style="font-size:.68rem;color:var(--t3);font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(sub.task_title||'')}</span>
       </div>
-      <div style="margin-right:auto; display:flex; align-items:center; gap:8px;">
+      <div style="margin-right:auto; display:flex; align-items:center; gap:6px; flex-shrink:0;">
         ${gradedBadge}
-        <span style="font-size:.75rem;" id="scoreDisp_${sub.id}"></span>
+        <span style="font-size:.72rem; font-weight:700;" id="scoreDisp_${sub.id}"></span>
       </div>
     </div>
-    <div style="padding: 20px 24px; overflow-y: auto; flex: 1;">
+    <div style="padding: 12px 14px; overflow-y: auto; flex: 1;">
       ${qRows}
     </div>
-    <div style="padding: 16px 24px; background: var(--bg3); border-top: 1px solid var(--bdr); display: flex; justify-content: space-between; align-items: center; gap: 12px;">
-      ${isAlreadyGraded ? `<button type="button" class="grade-clear-btn" onclick="clearGrade(${sub.id}, ${si})" style="background:var(--err-bg);border:1.5px solid #fca5a5;color:var(--err);padding:9px 16px;border-radius:8px;font-family:inherit;font-weight:800;font-size:.82rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px;"><i class="fas fa-undo"></i> مسح التقييم (إعادة كغير مصحح)</button>` : '<div></div>'}
-      <button class="grade-save-btn" onclick="submitGrade(${sub.id}, ${si})" style="margin: 0; width: auto; padding: 10px 24px;">
-        <i class="fas fa-check"></i> ${isAlreadyGraded ? 'حفظ تعديل الدرجة وتحديث الكوبونات' : 'حفظ التصحيح وتحديث الكوبونات'}
+    <div style="padding: 8px 14px; background: var(--bg3); border-top: 1px solid var(--bdr); display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: nowrap;">
+      ${isAlreadyGraded ? `<button type="button" class="grade-clear-btn" onclick="clearGrade(${sub.id}, ${si})" style="background:var(--err-bg);border:1px solid #fca5a5;color:var(--err);padding:6px 12px;border-radius:8px;font-family:inherit;font-weight:700;font-size:.76rem;cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;height:32px;line-height:1;"><i class="fas fa-undo"></i> مسح التقييم</button>` : '<div></div>'}
+      <button class="grade-save-btn" onclick="submitGrade(${sub.id}, ${si})" style="margin:0; width:auto; padding:6px 14px; height:32px; line-height:1; border-radius:8px; font-weight:700; font-size:.76rem; white-space:nowrap; display:inline-flex; align-items:center; gap:5px;">
+        <i class="fas fa-check"></i> ${isAlreadyGraded ? 'حفظ التعديل' : 'حفظ التصحيح'}
       </button>
     </div>
   </div>`;
@@ -19998,6 +19972,16 @@ function updateSubScore(subId) {
 
 
 
+
+if (typeof window.showConfirm !== 'function') {
+  window.showConfirm = function(opts) {
+    return new Promise((resolve) => {
+      const msg = typeof opts === 'string' ? opts : (opts.message || '');
+      const cleanMsg = msg.replace(/\*\*/g, '');
+      resolve(window.confirm(cleanMsg));
+    });
+  };
+}
 
 async function clearGrade(subId, subIdx) {
   const sub = gradeSubs ? gradeSubs[subIdx] : null;
@@ -21295,23 +21279,23 @@ async function exportOverviewPDF() {
 
 
 
-    <div class="grade-sheet-hdr" style="background:var(--bg3); padding:16px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--bdr);">
-      <div style="display:flex; align-items:center; gap:10px;">
-        <div style="width:38px;height:38px;border-radius:10px;background:var(--warn-bg);color:var(--warn);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-pen-nib"></i></div>
-        <div style="flex:1;">
-          <div style="font-size:1rem;font-weight:800;color:var(--t1);">تصحيح الإجابات المفتوحة</div>
-          <div style="font-size:.72rem;color:var(--t3);" id="gradePanelSub">أدخل الدرجة لكل إجابة</div>
+    <div class="grade-sheet-hdr" style="background:var(--bg3); padding:10px 14px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--bdr); gap:8px; flex-wrap:nowrap;">
+      <div style="display:flex; align-items:center; gap:8px; min-width:0;">
+        <div style="width:30px;height:30px;border-radius:8px;background:var(--warn-bg);color:var(--warn);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.8rem;"><i class="fas fa-pen-nib"></i></div>
+        <div style="display:flex; flex-direction:column; min-width:0;">
+          <div style="font-size:.88rem;font-weight:800;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">تصحيح الإجابات</div>
+          <div style="font-size:.66rem;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="gradePanelSub">أدخل الدرجة لكل إجابة</div>
         </div>
       </div>
       
       <!-- Navigation Arrows -->
-      <div class="grade-nav-arrows" style="display:flex; align-items:center; gap:12px; margin-right:auto; margin-left:20px; direction:rtl;">
-        <button onclick="navigateGrading(-1)" id="prevGradeBtn" style="background:var(--bg2); border:1px solid var(--bdr); color:var(--t1); width:36px; height:36px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;" onmouseover="this.style.background='var(--brand-bg)'; this.style.color='var(--brand)';" onmouseout="this.style.background='var(--bg2)'; this.style.color='var(--t1)';"><i class="fas fa-chevron-right"></i></button>
-        <span id="gradeIndexIndicator" style="font-size:0.8rem; font-weight:800; color:var(--t2); min-width:45px; text-align:center;">—</span>
-        <button onclick="navigateGrading(1)" id="nextGradeBtn" style="background:var(--bg2); border:1px solid var(--bdr); color:var(--t1); width:36px; height:36px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;" onmouseover="this.style.background='var(--brand-bg)'; this.style.color='var(--brand)';" onmouseout="this.style.background='var(--bg2)'; this.style.color='var(--t1)';"><i class="fas fa-chevron-left"></i></button>
+      <div class="grade-nav-arrows" style="display:flex; align-items:center; gap:6px; margin-right:auto; margin-left:8px; direction:rtl; flex-shrink:0;">
+        <button onclick="navigateGrading(-1)" id="prevGradeBtn" style="background:var(--bg2); border:1px solid var(--bdr); color:var(--t1); width:28px; height:28px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:.75rem; transition:0.2s;" onmouseover="this.style.background='var(--brand-bg)'; this.style.color='var(--brand)';" onmouseout="this.style.background='var(--bg2)'; this.style.color='var(--t1)';"><i class="fas fa-chevron-right"></i></button>
+        <span id="gradeIndexIndicator" style="font-size:0.75rem; font-weight:800; color:var(--t2); min-width:35px; text-align:center; white-space:nowrap;">—</span>
+        <button onclick="navigateGrading(1)" id="nextGradeBtn" style="background:var(--bg2); border:1px solid var(--bdr); color:var(--t1); width:28px; height:28px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:.75rem; transition:0.2s;" onmouseover="this.style.background='var(--brand-bg)'; this.style.color='var(--brand)';" onmouseout="this.style.background='var(--bg2)'; this.style.color='var(--t1)';"><i class="fas fa-chevron-left"></i></button>
       </div>
 
-      <button onclick="closeGradePanel()" style="background:var(--bg2); border:1px solid var(--bdr); color:var(--t2); width:34px; height:34px; border-radius:10px; cursor:pointer; font-size:.85rem; display:flex; align-items:center; justify-content:center; transition:0.2s;" onmouseover="this.style.background='var(--err-bg)'; this.style.color='var(--err)';" onmouseout="this.style.background='var(--bg2)'; this.style.color='var(--t2)';"><i class="fas fa-times"></i></button>
+      <button onclick="closeGradePanel()" style="background:var(--bg2); border:1px solid var(--bdr); color:var(--t2); width:28px; height:28px; border-radius:8px; cursor:pointer; font-size:.75rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:0.2s;" onmouseover="this.style.background='var(--err-bg)'; this.style.color='var(--err)';" onmouseout="this.style.background='var(--bg2)'; this.style.color='var(--t2)';"><i class="fas fa-times"></i></button>
     </div>
 
 
