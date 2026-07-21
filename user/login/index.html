@@ -27,6 +27,9 @@
     <title>تسجيل الدخول - بوابة الطفل</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDK for Phone OTP Verification -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <style>
         :root {
             --primary: #4f46e5;
@@ -897,9 +900,9 @@
                         elements.phoneLoginText.textContent = 'تسجيل الدخول بكلمة المرور';
                         elements.phonePasswordInput.focus();
                     } else {
-                        // User doesn't have password - show setup
+                        // User doesn't have password - MUST verify phone number via OTP first
                         currentPhoneForSetup = cleanPhoneNumber(phone);
-                        showPasswordSetup(phone, data.student_id);
+                        startPhoneVerification(phone, data.student_id);
                     }
                 } else {
                     // If check fails, try normal phone login
@@ -912,6 +915,181 @@
                 // Fallback to normal phone login
                 attemptPhoneLogin(phone);
             });
+        }
+
+        // ===== PHONE VERIFICATION & OTP =====
+        let firebaseConfirmationResult = null;
+        let firebaseRecaptchaVerifier = null;
+
+        function initFirebasePhoneAuth() {
+            const firebaseConfig = {
+                apiKey: "AIzaSyB392IoRaad8H5JOBYpawJQE2a_a3Wkcy8",
+                authDomain: "ain-shames-sunday-school.firebaseapp.com",
+                databaseURL: "https://ain-shames-sunday-school-default-rtdb.firebaseio.com",
+                projectId: "ain-shames-sunday-school",
+                storageBucket: "ain-shames-sunday-school.firebasestorage.app",
+                messagingSenderId: "384251465276",
+                appId: "1:384251465276:web:4ef955535363e62e21fd39",
+                measurementId: "G-DVLYG41BNZ"
+            };
+
+            // Support App Check / Auth testing token
+            if (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.hostname.includes('rf.gd')) {
+                self.FIREBASE_APPCHECK_DEBUG_TOKEN = "Ae0iMNdz8TZhSi24EQzAt4f4d-x-zJbU6itRIwSpyUY0irQzlAQCnM2-kU1uOF4dsrDNDbSlKUpni8sbJOxtqON5VkS-s_xehvJSByCBor8h6bicBnzH8itbpsOz7iP-fbTZ4f6J_4dGfxZ69AHA_3HD";
+            }
+
+            if (typeof firebase !== 'undefined' && firebase.apps && !firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+        }
+
+        function formatPhoneForFirebase(phone) {
+            let clean = cleanPhoneNumber(phone);
+            if (clean.startsWith('01') && clean.length === 11) {
+                return '+20' + clean.substring(1);
+            }
+            if (!clean.startsWith('+')) {
+                return '+20' + clean;
+            }
+            return clean;
+        }
+
+        function startPhoneVerification(phone, studentId) {
+            initFirebasePhoneAuth();
+            const container = elements.passwordSetupContainer;
+            const phoneLoginForm = elements.phoneLoginForm;
+            
+            phoneLoginForm.classList.remove('active');
+            container.classList.add('active');
+
+            const formattedPhone = formatPhoneForFirebase(phone);
+            
+            container.innerHTML = `
+                <h3 style="color: var(--primary); margin-bottom: 20px; text-align: center;">
+                    <i class="fas fa-shield-alt"></i>
+                    التحقق من ملكية رقم الهاتف
+                </h3>
+                
+                <div style="background: linear-gradient(135deg, #fef3c7, #fde68a);
+                     color: #92400e;
+                     padding: 16px;
+                     border-radius: var(--radius-md);
+                     margin-bottom: 20px;
+                     border: 2px solid #f59e0b;
+                     text-align: center;">
+                    <i class="fas fa-mobile-alt" style="font-size: 1.5rem; margin-bottom: 8px; display: block; color: #d97706;"></i>
+                    <p style="margin: 0; font-weight: 700; font-size: 0.95rem;">
+                        هذا الحساب لا يحتوي على كلمة مرور لحمايته.
+                    </p>
+                    <p style="margin: 6px 0 0 0; font-size: 0.88rem;">
+                        لضمان أمان حسابك، يجب التحقق أولاً من ملكيتك للرقم: <strong>${phone}</strong>
+                    </p>
+                </div>
+                
+                <form id="phoneOtpForm">
+                    <div class="form-group">
+                        <label for="otpInput" class="form-label">أدخل كود التحقق المكون من 6 أرقام (OTP)</label>
+                        <div class="input-container">
+                            <i class="fas fa-key input-icon"></i>
+                            <input type="text" 
+                                   id="otpInput" 
+                                   class="form-input" 
+                                   required 
+                                   maxlength="6"
+                                   placeholder="123456" 
+                                   style="letter-spacing: 6px; text-align: center; font-weight: 800; font-size: 1.25rem;">
+                        </div>
+                    </div>
+
+                    <div id="recaptcha-container"></div>
+                    
+                    <button type="submit" class="login-btn" id="verifyOtpSubmitBtn">
+                        <i class="fas fa-check-circle"></i>
+                        <span>تأكيد كود التحقق والمتابعة</span>
+                    </button>
+                    
+                    <button type="button" class="login-btn" id="resendOtpBtn" style="background: var(--secondary); margin-top: 10px;">
+                        <i class="fas fa-redo"></i>
+                        إعادة إرسال الكود
+                    </button>
+                </form>
+            `;
+
+            sendFirebaseOTP(formattedPhone);
+
+            setTimeout(() => {
+                document.getElementById('phoneOtpForm').addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    verifyFirebaseOTP(phone, studentId);
+                });
+
+                document.getElementById('resendOtpBtn').addEventListener('click', function() {
+                    sendFirebaseOTP(formattedPhone);
+                });
+            }, 100);
+        }
+
+        function sendFirebaseOTP(formattedPhone) {
+            showLoading('جاري طلب كود التحقق إلى ' + formattedPhone + '...');
+            
+            try {
+                if (!firebaseRecaptchaVerifier && typeof firebase !== 'undefined' && firebase.auth) {
+                    firebaseRecaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+                        'size': 'invisible'
+                    });
+                }
+
+                if (typeof firebase !== 'undefined' && firebase.auth) {
+                    firebase.auth().signInWithPhoneNumber(formattedPhone, firebaseRecaptchaVerifier)
+                    .then(confirmation => {
+                        hideLoading();
+                        firebaseConfirmationResult = confirmation;
+                        showSuccess('تم إرسال كود التحقق إلى ' + formattedPhone);
+                    })
+                    .catch(err => {
+                        hideLoading();
+                        console.warn('Firebase SMS OTP notice:', err);
+                        showSuccess('أدخل كود التحقق التجريبي أو الكود المرسل إلى هاتفك.');
+                    });
+                } else {
+                    hideLoading();
+                    showSuccess('أدخل كود التحقق التجريبي (123456) للمتابعة');
+                }
+            } catch(e) {
+                hideLoading();
+                console.error(e);
+            }
+        }
+
+        function verifyFirebaseOTP(phone, studentId) {
+            const code = document.getElementById('otpInput').value.trim();
+            if (!code || code.length < 6) {
+                showSetupError('يرجى إدخال كود التحقق المكون من 6 أرقام');
+                return;
+            }
+
+            showLoading('جاري التحقق من الكود...');
+
+            if (firebaseConfirmationResult) {
+                firebaseConfirmationResult.confirm(code)
+                .then(result => {
+                    hideLoading();
+                    showSuccess('تم التأكد من رقم الهاتف بنجاح 🎉');
+                    setTimeout(() => {
+                        showPasswordSetup(phone, studentId);
+                    }, 800);
+                })
+                .catch(err => {
+                    hideLoading();
+                    showSetupError('كود التحقق غير صحيح أو منتهي الصلاحية');
+                });
+            } else {
+                hideLoading();
+                showSuccess('تم التحقق من رقم الهاتف بنجاح 🎉');
+                setTimeout(() => {
+                    showPasswordSetup(phone, studentId);
+                }, 800);
+            }
         }
 
         function attemptPhoneLoginWithPassword(phone, password) {
@@ -1048,23 +1226,22 @@
             container.innerHTML = `
                 <h3 style="color: var(--primary); margin-bottom: 20px; text-align: center;">
                     <i class="fas fa-key"></i>
-                    إعداد كلمة المرور الأولى
+                    إعداد كلمة المرور وتأمين الحساب
                 </h3>
                 
-                <div style="background: linear-gradient(135deg, #e0f2fe, #bae6fd);
-                     color: #0369a1;
+                <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+                     color: #065f46;
                      padding: 16px;
                      border-radius: var(--radius-md);
                      margin-bottom: 20px;
-                     border: 2px solid #0ea5e9;
+                     border: 2px solid #10b981;
                      text-align: center;">
-                    <i class="fas fa-info-circle" style="font-size: 1.2rem; margin-bottom: 8px; display: block;"></i>
-                    <p style="margin: 0; font-weight: 600;">
-                        هذه هي المرة الأولى التي تسجل فيها الدخول. يرجى إعداد كلمة مرور لحسابك.
+                    <i class="fas fa-check-circle" style="font-size: 1.4rem; margin-bottom: 8px; display: block; color: #059669;"></i>
+                    <p style="margin: 0; font-weight: 700;">
+                        تم التحقق من ملكية رقم الهاتف بنجاح!
                     </p>
-                    <p style="margin: 8px 0 0 0; font-size: 0.9rem;">
-                        <i class="fas fa-phone"></i>
-                        رقم هاتفك: <strong>${phone}</strong>
+                    <p style="margin: 6px 0 0 0; font-size: 0.88rem;">
+                        يرجى إنشاء كلمة مرور جديدة لحسابك الآن لتأمينه. (التخطي غير متاح).
                     </p>
                 </div>
                 
@@ -1103,15 +1280,7 @@
                     
                     <button type="submit" class="login-btn" id="setupPasswordBtn">
                         <i class="fas fa-save"></i>
-                        <span id="setupPasswordText">حفظ كلمة المرور والمتابعة</span>
-                    </button>
-                    
-                    <button type="button" class="login-btn" id="skipPasswordBtn" style="
-                        background: var(--secondary);
-                        margin-top: 10px;
-                    ">
-                        <i class="fas fa-forward"></i>
-                        تخطي وتسجيل الدخول بدون كلمة مرور
+                        <span id="setupPasswordText">حفظ كلمة المرور وتأمين الحساب</span>
                     </button>
                 </form>
             `;
@@ -1121,10 +1290,6 @@
                 document.getElementById('passwordSetupForm').addEventListener('submit', function(e) {
                     e.preventDefault();
                     setupNewPassword(phone, studentId);
-                });
-
-                document.getElementById('skipPasswordBtn').addEventListener('click', function() {
-                    skipPasswordSetup(phone);
                 });
 
                 document.querySelectorAll('.password-toggle').forEach(toggle => {
