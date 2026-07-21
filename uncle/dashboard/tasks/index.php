@@ -13047,6 +13047,7 @@ body {
     .btn-export {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 6px;
       padding: 8px 16px;
       border-radius: var(--r-md);
@@ -13057,6 +13058,23 @@ body {
       border: 1.5px solid transparent;
       text-decoration: none;
       min-height: 38px;
+    }
+    .btn-export i {
+      font-size: 0.95rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .ov-cell-answered i,
+    .ov-cell-unanswered i {
+      font-size: 0.85rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      line-height: 1;
     }
     .btn-export.btn-msg {
       background: rgba(16, 185, 129, 0.08);
@@ -20653,6 +20671,48 @@ async function getExportCanvas() {
     th.style.position = 'static';
     th.style.background = 'var(--brand-bg, #eef0ff)';
     th.style.color = 'var(--brand, #5b6cf5)';
+  });
+  
+  // Normalize icons inside clone for clean html2canvas rendering
+  clone.querySelectorAll('.ov-cell-answered').forEach(el => {
+    el.style.background = '#d1fae5';
+    el.style.color = '#065f46';
+    el.style.border = '1px solid #6ee7b7';
+    el.style.padding = '3px 8px';
+    el.style.borderRadius = '6px';
+    el.style.fontWeight = '800';
+    el.style.fontSize = '0.78rem';
+    el.style.display = 'inline-flex';
+    el.style.alignItems = 'center';
+    el.style.gap = '4px';
+    el.innerHTML = '✔ أجاب';
+  });
+  clone.querySelectorAll('.ov-cell-unanswered').forEach(el => {
+    el.style.background = '#fee2e2';
+    el.style.color = '#991b1b';
+    el.style.border = '1px solid #fca5a5';
+    el.style.padding = '3px 8px';
+    el.style.borderRadius = '6px';
+    el.style.fontWeight = '800';
+    el.style.fontSize = '0.78rem';
+    el.style.display = 'inline-flex';
+    el.style.alignItems = 'center';
+    el.style.gap = '4px';
+    el.innerHTML = '✖ لم يجب';
+  });
+  clone.querySelectorAll('i.fa-check-circle').forEach(el => {
+    const span = document.createElement('span');
+    span.style.color = '#10b981';
+    span.style.fontWeight = 'bold';
+    span.textContent = '✔ ';
+    if (el.parentNode) el.parentNode.replaceChild(span, el);
+  });
+  clone.querySelectorAll('i.fa-times-circle').forEach(el => {
+    const span = document.createElement('span');
+    span.style.color = '#ef4444';
+    span.style.fontWeight = 'bold';
+    span.textContent = '✖ ';
+    if (el.parentNode) el.parentNode.replaceChild(span, el);
   });
   
   // Add a beautiful print header at the top of the clone
