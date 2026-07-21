@@ -3488,6 +3488,14 @@ try {
 
             break;
 
+        case 'compactExistingAuditLogs':
+
+            checkAuth();
+
+            compactExistingAuditLogs();
+
+            break;
+
         case 'getEntityAuditHistory':
 
             checkAuth();

@@ -48,10 +48,69 @@ function writeAuditLog($action, $entity, $entity_id = null, $entity_name = '', $
         $uncle_name = $_SESSION['uncle_name'] ?? $_SESSION['username'] ?? 'system';
         $ip_address = $_SERVER['REMOTE_ADDR'] ?? '';
         $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+
+        // 1. Delta JSON Compression: If both old and new data are arrays, extract ONLY the changed keys
+        if (is_array($old_data) && is_array($new_data)) {
+            $changed_old = [];
+            $changed_new = [];
+            $all_keys = array_unique(array_merge(array_keys($old_data), array_keys($new_data)));
+            foreach ($all_keys as $k) {
+                // Ignore internal metadata keys like _attendance_history if unchanged
+                if (in_array($k, ['_attendance_history', '_sibling_groups']) && empty($old_data[$k]) && empty($new_data[$k])) {
+                    continue;
+                }
+                $v1 = $old_data[$k] ?? null;
+                $v2 = $new_data[$k] ?? null;
+                if (json_encode($v1, JSON_UNESCAPED_UNICODE) !== json_encode($v2, JSON_UNESCAPED_UNICODE)) {
+                    $changed_old[$k] = $v1;
+                    $changed_new[$k] = $v2;
+                }
+            }
+            $old_data = !empty($changed_old) ? $changed_old : null;
+            $new_data = !empty($changed_new) ? $changed_new : null;
+        }
         
-        // Convert arrays to JSON
+        // Convert arrays to compact JSON strings
         $old_data_json = is_array($old_data) ? json_encode($old_data, JSON_UNESCAPED_UNICODE) : $old_data;
         $new_data_json = is_array($new_data) ? json_encode($new_data, JSON_UNESCAPED_UNICODE) : $new_data;
+
+        // 2. Debounce Window Consolidation: Merge rapid sequential updates (within 10 mins) for same entity/uncle
+        $consolidateActions = ['trip_payment_update', 'trip_registration', 'coupon_edit', 'attendance_add', 'attendance_edit', 'student_edit'];
+        if (in_array($action, $consolidateActions) && !empty($entity_id) && !empty($uncle_id)) {
+            $checkStmt = $conn->prepare("
+                SELECT id, old_data, new_data, notes 
+                FROM audit_logs 
+                WHERE church_id = ? AND uncle_id = ? AND action = ? AND entity = ? AND entity_id = ? 
+                  AND created_at >= NOW() - INTERVAL 10 MINUTE 
+                ORDER BY id DESC LIMIT 1
+            ");
+            if ($checkStmt) {
+                $checkStmt->bind_param("iissi", $church_id, $uncle_id, $action, $entity, $entity_id);
+                $checkStmt->execute();
+                $prev = $checkStmt->get_result()->fetch_assoc();
+                if ($prev) {
+                    // Update existing log entry instead of inserting a new row
+                    $prevNew = !empty($prev['new_data']) ? json_decode($prev['new_data'], true) : [];
+                    $mergedNew = is_array($new_data) ? array_merge(is_array($prevNew) ? $prevNew : [], $new_data) : $new_data;
+                    $mergedNewJson = is_array($mergedNew) ? json_encode($mergedNew, JSON_UNESCAPED_UNICODE) : $mergedNew;
+
+                    $mergedNotes = $prev['notes'] ?: $notes;
+                    if ($notes && strpos($mergedNotes, $notes) === false) {
+                        $mergedNotes .= ' | ' . $notes;
+                    }
+
+                    $upStmt = $conn->prepare("
+                        UPDATE audit_logs 
+                        SET new_data = ?, notes = ?, created_at = NOW() 
+                        WHERE id = ?
+                    ");
+                    if ($upStmt) {
+                        $upStmt->bind_param("ssi", $mergedNewJson, $mergedNotes, $prev['id']);
+                        return $upStmt->execute();
+                    }
+                }
+            }
+        }
         
         $stmt = $conn->prepare("
             INSERT INTO audit_logs 
@@ -408,6 +467,76 @@ function getAuditAnalytics(): void {
     } catch (Throwable $e) {
         error_log("getAuditAnalytics error: " . $e->getMessage());
         sendJSON(['success' => false, 'message' => 'خطأ في حساب تحليل البيانات: ' . $e->getMessage()]);
+    }
+}
+
+/**
+ * compactExistingAuditLogs() — Compresses historical audit logs for trips and coupons:
+ * - Trims redundant old JSON fields, leaving only changed key-value pairs.
+ */
+function compactExistingAuditLogs(): void {
+    checkAuth();
+    try {
+        $churchId = getChurchId();
+        $conn = getDBConnection();
+        ensureAuditLogsTable($conn);
+
+        $isAll = (!empty($_POST['all_churches']) && $_POST['all_churches'] === '1') || 
+                 (isset($_SESSION['uncle_role']) && $_SESSION['uncle_role'] === 'developer');
+
+        $whereClause = "WHERE 1=1";
+        if (!$isAll) {
+            $whereClause .= " AND church_id = " . intval($churchId);
+        }
+
+        // Fetch logs with large JSON payloads
+        $sql = "SELECT id, action, entity, entity_id, old_data, new_data FROM audit_logs $whereClause ORDER BY id ASC";
+        $result = $conn->query($sql);
+
+        $compressedCount = 0;
+
+        if ($result) {
+            while ($row = $result->fetch_assoc()) {
+                $id = intval($row['id']);
+                $oldData = !empty($row['old_data']) ? json_decode($row['old_data'], true) : null;
+                $newData = !empty($row['new_data']) ? json_decode($row['new_data'], true) : null;
+
+                // Delta Compression
+                if (is_array($oldData) && is_array($newData)) {
+                    $changedOld = [];
+                    $changedNew = [];
+                    $allKeys = array_unique(array_merge(array_keys($oldData), array_keys($newData)));
+                    foreach ($allKeys as $k) {
+                        $v1 = $oldData[$k] ?? null;
+                        $v2 = $newData[$k] ?? null;
+                        if (json_encode($v1, JSON_UNESCAPED_UNICODE) !== json_encode($v2, JSON_UNESCAPED_UNICODE)) {
+                            $changedOld[$k] = $v1;
+                            $changedNew[$k] = $v2;
+                        }
+                    }
+                    if (count($changedOld) < count($oldData) || count($changedNew) < count($newData)) {
+                        $compactOldJson = !empty($changedOld) ? json_encode($changedOld, JSON_UNESCAPED_UNICODE) : null;
+                        $compactNewJson = !empty($changedNew) ? json_encode($changedNew, JSON_UNESCAPED_UNICODE) : null;
+                        
+                        $uStmt = $conn->prepare("UPDATE audit_logs SET old_data = ?, new_data = ? WHERE id = ?");
+                        if ($uStmt) {
+                            $uStmt->bind_param("ssi", $compactOldJson, $compactNewJson, $id);
+                            $uStmt->execute();
+                            $compressedCount++;
+                        }
+                    }
+                }
+            }
+        }
+
+        sendJSON([
+            'success' => true,
+            'message' => "تم ضغط وتقليل حجم السجلات القديمة بنجاح! تم تنظيف وتصغير $compressedCount سجل مكرر البيانات.",
+            'compressed_count' => $compressedCount
+        ]);
+    } catch (Throwable $e) {
+        error_log("compactExistingAuditLogs error: " . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في ضغط السجلات: ' . $e->getMessage()]);
     }
 }
 

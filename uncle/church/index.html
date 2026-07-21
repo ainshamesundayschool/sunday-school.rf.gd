@@ -27136,7 +27136,7 @@
 
         let html = `
           <!-- Top Summary Cards -->
-          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:24px;">
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:16px;">
             <div style="background:var(--surface-1); border:1px solid var(--border); border-radius:14px; padding:14px; text-align:center;">
               <div style="font-size:0.75rem; color:var(--muted); font-weight:700; margin-bottom:4px;">إجمالي سجل العمليات</div>
               <div style="font-size:1.4rem; font-weight:800; color:var(--primary);">${total.toLocaleString('ar-EG')} سجل</div>
@@ -27150,6 +27150,12 @@
               <div style="font-size:0.88rem; font-weight:800; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${escHtml(topTrips[0]?.trip_name || 'لا يوجد')}">${escHtml(topTrips[0]?.trip_name || 'لا يوجد')}</div>
               <div style="font-size:0.72rem; color:var(--muted); font-weight:700; margin-top:2px;">${topTrips[0] ? topTrips[0].count + ' سجل' : ''}</div>
             </div>
+          </div>
+
+          <div style="margin-bottom:20px; display:flex; justify-content:flex-end;">
+            <button class="btn btn-outline btn-sm" onclick="compactAuditLogsAction()" style="border-color:#8b5cf6; color:#8b5cf6; font-weight:700;">
+              <i class="fas fa-compress-alt"></i> ضغط وتفريغ مساحة السجلات المكررة
+            </button>
           </div>
 
           <!-- Categories Share Progress Bars -->
@@ -27254,6 +27260,31 @@
       } catch (err) {
         console.error("Error fetching audit analytics:", err);
         body.innerHTML = `<div class="empty-state" style="padding:28px;"><i class="fas fa-exclamation-triangle"></i><h3>خطأ في الاتصال بالخادم</h3></div>`;
+      }
+    }
+
+    async function compactAuditLogsAction() {
+      const ok = await showConfirm(
+        'ضغط السجلات وتفريغ المساحة',
+        'هل تريد ضغط بيانات السجلات القديمة وتفريغ الحقول المكررة؟ لن يتم حذف أي مبالغ أو تواريخ دفع أو بيانات هامة.'
+      );
+      if (!ok) return;
+
+      try {
+        const fd = mkFd('compactExistingAuditLogs');
+        const res = await fetch(API_URL, { method: 'POST', body: fd });
+        const d = await res.json();
+        if (d.success) {
+          if (typeof showToast === 'function') showToast(d.message || 'تم ضغط السجلات بنجاح', 'ok');
+          else if (typeof toast === 'function') toast(d.message || 'تم ضغط السجلات بنجاح', 'ok');
+          showAuditAnalyticsModal();
+        } else {
+          if (typeof showToast === 'function') showToast(d.message || 'تعذر ضغط السجلات', 'err');
+          else if (typeof toast === 'function') toast(d.message || 'تعذر ضغط السجلات', 'err');
+        }
+      } catch (e) {
+        console.error("Error compacting audit logs:", e);
+        if (typeof showToast === 'function') showToast('خطأ في الاتصال بالخادم', 'err');
       }
     }
   </script>
