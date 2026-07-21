@@ -7663,23 +7663,33 @@ function submitAttendance()
 
 
 
-                // Audit
-
+                // Collect for consolidated bulk audit log
                 $isNew = ($existing === null);
-
-                $oldStatus = $existing['status'] ?? '';
-
+                $oldStatus = $existing['status'] ?? 'pending';
                 if ($isNew || $oldStatus !== $status) {
-
-                    auditAttendanceSave($studentId, $student['name'], $dbDate, $oldStatus, $status, $isNew);
-
+                    $bulkAttendanceLogs[] = [
+                        'id' => $studentId,
+                        'name' => $student['name'],
+                        'date' => $dbDate,
+                        'old_data' => ['status' => $oldStatus],
+                        'new_data' => ['status' => $status]
+                    ];
                 }
-
             }
-
         }
 
-
+        if (!empty($bulkAttendanceLogs)) {
+            $bulkLabel = "تسجيل حضور وغياب " . ($className ? "فصل $className" : "") . " (" . count($bulkAttendanceLogs) . " طفل)";
+            writeAuditLog(
+                'bulk_attendance_save',
+                'bulk_action',
+                null,
+                $bulkLabel,
+                $bulkAttendanceLogs,
+                $bulkAttendanceLogs,
+                "تسجيل حضور وغياب تاريخ $dbDate لعدد " . count($bulkAttendanceLogs) . " طفل"
+            );
+        }
 
         $conn->commit();
 
@@ -39592,9 +39602,13 @@ function bulkUpdateStudentsCoupons()
 
 
 
-                    // Audit
-
-                    auditCouponChange($studentId, $student['name'], $oldCount, $newCount, $reason);
+                    // Collect for consolidated bulk audit log
+                    $bulkCouponLogs[] = [
+                        'id' => $studentId,
+                        'name' => $student['name'],
+                        'old_data' => ['coupons' => $oldCount],
+                        'new_data' => ['coupons' => $newCount]
+                    ];
 
                     $successCount++;
 
@@ -39604,7 +39618,17 @@ function bulkUpdateStudentsCoupons()
 
         }
 
-
+        if (!empty($bulkCouponLogs)) {
+            writeAuditLog(
+                'bulk_student_coupon_update',
+                'bulk_action',
+                null,
+                "تعديل كوبونات لعدد " . count($bulkCouponLogs) . " طفل",
+                $bulkCouponLogs,
+                $bulkCouponLogs,
+                "تعديل كوبونات جماعي لعدد " . count($bulkCouponLogs) . " طفل ($reason)"
+            );
+        }
 
         $conn->commit();
 

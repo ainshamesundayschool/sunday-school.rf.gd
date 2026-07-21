@@ -529,9 +529,66 @@ function compactExistingAuditLogs(): void {
             }
         }
 
+        // 2. Merge consecutive individual attendance / coupon logs created within 10 minutes by same uncle into bulk entries
+        $groupSql = "
+            SELECT church_id, uncle_id, action, DATE_FORMAT(created_at, '%Y-%m-%d %H:%i') as min_group, COUNT(*) as cnt, GROUP_CONCAT(id ORDER BY id ASC) as ids
+            FROM audit_logs
+            $whereClause AND action IN ('attendance_add', 'attendance_edit', 'coupon_edit', 'trip_payment_update')
+            GROUP BY church_id, uncle_id, action, DATE_FORMAT(created_at, '%Y-%m-%d %H:%i')
+            HAVING cnt > 1
+        ";
+        $groupRes = $conn->query($groupSql);
+        if ($groupRes) {
+            while ($g = $groupRes->fetch_assoc()) {
+                $ids = array_filter(array_map('intval', explode(',', $g['ids'])));
+                if (count($ids) <= 1) continue;
+
+                $inClause = implode(',', $ids);
+                $fetchRows = $conn->query("SELECT * FROM audit_logs WHERE id IN ($inClause) ORDER BY id ASC");
+                $bulkItems = [];
+                $firstRow = null;
+                while ($r = $fetchRows->fetch_assoc()) {
+                    if (!$firstRow) $firstRow = $r;
+                    $old = !empty($r['old_data']) ? json_decode($r['old_data'], true) : [];
+                    $new = !empty($r['new_data']) ? json_decode($r['new_data'], true) : [];
+                    $bulkItems[] = [
+                        'id' => intval($r['entity_id']),
+                        'name' => $r['entity_name'] ?: ('طفل #' . $r['entity_id']),
+                        'date' => $new['date'] ?? date('Y-m-d', strtotime($r['created_at'])),
+                        'old_data' => $old,
+                        'new_data' => $new
+                    ];
+                }
+
+                if (!empty($bulkItems) && $firstRow) {
+                    $bulkAction = ($g['action'] === 'coupon_edit') ? 'bulk_student_coupon_update' : 'bulk_attendance_save';
+                    $bulkTitle = ($g['action'] === 'coupon_edit') ? 
+                        ("تعديل كوبونات جماعي (" . count($bulkItems) . " طفل)") : 
+                        ("تسجيل حضور وغياب جماعي (" . count($bulkItems) . " طفل)");
+
+                    $compactJson = json_encode($bulkItems, JSON_UNESCAPED_UNICODE);
+
+                    $uStmt = $conn->prepare("
+                        UPDATE audit_logs 
+                        SET action = ?, entity = 'bulk_action', entity_id = NULL, entity_name = ?, old_data = ?, new_data = ? 
+                        WHERE id = ?
+                    ");
+                    $uStmt->bind_param("ssssi", $bulkAction, $bulkTitle, $compactJson, $compactJson, $firstRow['id']);
+                    if ($uStmt->execute()) {
+                        $deleteIds = array_diff($ids, [$firstRow['id']]);
+                        if (!empty($deleteIds)) {
+                            $delClause = implode(',', $deleteIds);
+                            $conn->query("DELETE FROM audit_logs WHERE id IN ($delClause)");
+                            $compressedCount += count($deleteIds);
+                        }
+                    }
+                }
+            }
+        }
+
         sendJSON([
             'success' => true,
-            'message' => "تم ضغط وتقليل حجم السجلات القديمة بنجاح! تم تنظيف وتصغير $compressedCount سجل مكرر البيانات.",
+            'message' => "تم ضغط وتقليل حجم السجلات القديمة بنجاح! تم تنظيف وتدميج $compressedCount سجل مكرر في سجلات جماعية مركزية.",
             'compressed_count' => $compressedCount
         ]);
     } catch (Throwable $e) {
