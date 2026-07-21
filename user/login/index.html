@@ -1049,7 +1049,11 @@
                     .catch(err => {
                         hideLoading();
                         console.warn('Firebase SMS OTP notice:', err);
-                        showSuccess('أدخل كود التحقق التجريبي أو الكود المرسل إلى هاتفك.');
+                        if (err && err.code === 'auth/operation-not-allowed') {
+                            showSetupError('برجاء تفعيل تسجيل الدخول برقم الهاتف في Firebase Console:\n (Authentication -> Sign-in method -> Phone -> Enable)');
+                        } else {
+                            showSuccess('أدخل كود التحقق التجريبي (123456) أو الكود المرسل إلى هاتفك.');
+                        }
                     });
                 } else {
                     hideLoading();
