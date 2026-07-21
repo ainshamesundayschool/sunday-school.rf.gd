@@ -3525,76 +3525,61 @@ button, input, select, textarea, a {
 
 
 .overlay.fullscreen {
-
-
-
-  padding: 0;
-
-
-
-  align-items: stretch;
-
-
-
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  max-height: 100dvh !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  align-items: stretch !important;
+  justify-content: stretch !important;
+  z-index: 2000 !important;
+  background: var(--bg, #ffffff) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
 }
 
-
-
-.overlay.fullscreen .modal {
-  max-width: 100%;
-  width: 100%;
-  border-radius: 0;
-  margin: 0;
-  height: 100vh;
-  height: 100dvh;
-  max-height: 100vh;
-  max-height: 100dvh;
+.overlay.fullscreen .modal,
+.overlay.fullscreen .modal.wide,
+.modal.wide {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 100% !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  max-height: 100vh !important;
+  max-height: 100dvh !important;
   min-height: 0 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
   display: flex !important;
   flex-direction: column !important;
   overflow: hidden !important;
   transform: none !important;
-}
-
-.overlay.fullscreen .modal.wide,
-.modal.wide {
-  min-height: 0 !important;
-  max-height: calc(94vh - 16px) !important;
-  max-height: calc(94dvh - 16px) !important;
-  height: auto !important;
-  border-radius: var(--r-xl) !important;
-  margin: auto !important;
-  max-width: 900px !important;
-  width: 94% !important;
-  box-shadow: var(--sh-lg) !important;
-  display: flex !important;
-  flex-direction: column !important;
-  overflow: hidden !important;
-}
-
-@media (max-width: 640px) {
-  .overlay.fullscreen .modal.wide,
-  .modal.wide {
-    width: 100% !important;
-    max-width: 100% !important;
-    height: 100vh !important;
-    height: 100dvh !important;
-    max-height: 100vh !important;
-    max-height: 100dvh !important;
-    border-radius: 0 !important;
-    margin: 0 !important;
-  }
+  background: var(--bg, #ffffff) !important;
 }
 
 .overlay.fullscreen .mhdr,
+.overlay.fullscreen .mfoot,
 .overlay.fullscreen .modal > div:nth-child(2) {
   flex-shrink: 0 !important;
 }
 
-.overlay.fullscreen .mbody {
+.overlay.fullscreen .mbody,
+.modal.wide .mbody,
+#dBody {
   flex: 1 1 auto !important;
   min-height: 0 !important;
+  height: 0 !important;
   overflow-y: auto !important;
+  overflow-x: hidden !important;
   -webkit-overflow-scrolling: touch !important;
 }
 
