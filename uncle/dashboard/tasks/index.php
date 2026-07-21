@@ -14642,7 +14642,7 @@ function renderGrid() {
               <button type="button" onclick="toggleTaskCardMenu(event, ${t.id})" style="background: transparent; border: none; color: var(--t3); width: 28px; height: 28px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; transition: 0.2s;" onmouseover="this.style.background='var(--bg3)'; this.style.color='var(--t1)';" onmouseout="this.style.background='transparent'; this.style.color='var(--t3)';">
                 <i class="fas fa-ellipsis-v"></i>
               </button>
-              <div id="taskCardMenu_${t.id}" class="task-card-menu" style="display: none; position: absolute; left: 0; top: 100%; margin-top: 4px; z-index: 100; min-width: 130px; background: var(--bg-card); border: 1px solid var(--bdr); border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); overflow: hidden; font-family: 'Cairo', sans-serif;">
+              <div id="taskCardMenu_${t.id}" class="task-card-menu" style="display: none; position: absolute; left: 0; top: 100%; margin-top: 4px; z-index: 100; min-width: 130px; background: var(--surface-1, var(--bg2, #ffffff)); border: 1px solid var(--border, var(--bdr, #e2e8f0)); border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); overflow: hidden; font-family: 'Cairo', sans-serif;">
                 <button onclick="toggleTaskCardMenu(event, ${t.id}); openEdit(${t.id})" style="width: 100%; padding: 8px 12px; border: none; background: transparent; color: var(--t1); font-size: 0.8rem; font-weight: 700; text-align: right; cursor: pointer; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.background='var(--bg3)';" onmouseout="this.style.background='transparent';">
                   <i class="fas fa-pen" style="color: var(--brand);"></i> تعديل التاسك
                 </button>
@@ -20386,30 +20386,13 @@ function toggleNoDeadline(sync=false){
 
 
   if(note && noDeadline){
-
-
-
     note.textContent = 'لن يكون هناك آخر موعد، وستظل التاسك متاحة بعد البداية.';
-
-
-
   } else if(note) {
-
-
-
-    note.textContent = document.getElementById('fEndDateMode').checked
-
-
-
+    note.textContent = document.getElementById('fEndDateMode')?.checked
       ? 'سيُغلق الامتحان تلقائياً في نهاية هذا اليوم.'
-
-
-
       : 'سيُغلق الامتحان في الساعة التي تحددها هنا.';
-
-
-
   }
+  if (typeof updateTimingSummaryBadge === 'function') updateTimingSummaryBadge();
 
 
 
@@ -20458,65 +20441,23 @@ function syncDateTimeFromDateOnly(){
 
 
 function toggleEndDateMode(syncFromCurrent=true){
-
-
-
-  if(document.getElementById('fNoDeadline').checked) return;
-
-
-
-  const dateMode = document.getElementById('fEndDateMode').checked;
-
-
-
+  if(document.getElementById('fNoDeadline')?.checked) return;
+  const dateMode = document.getElementById('fEndDateMode')?.checked;
   const endInput = document.getElementById('fEnd');
-
-
-
   const endDateOnly = document.getElementById('fEndDateOnly');
-
-
-
   const note = document.getElementById('endModeNote');
-
-
-
   if(syncFromCurrent){
-
-
-
     if(dateMode) syncDateOnlyFromDateTime();
-
-
-
     else syncDateTimeFromDateOnly();
-
-
-
   }
-
-
-
-  endInput.style.display = dateMode ? 'none' : '';
-
-
-
-  endDateOnly.style.display = dateMode ? '' : 'none';
-
-
-
-  note.textContent = dateMode
-
-
-
-    ? 'سيُغلق الامتحان تلقائياً في نهاية هذا اليوم.'
-
-
-
-    : 'سيُغلق الامتحان في الساعة التي تحددها هنا.';
-
-
-
+  if(endInput) endInput.style.display = dateMode ? 'none' : '';
+  if(endDateOnly) endDateOnly.style.display = dateMode ? '' : 'none';
+  if(note) {
+    note.textContent = dateMode
+      ? 'سيُغلق الامتحان تلقائياً في نهاية هذا اليوم.'
+      : 'سيُغلق الامتحان في الساعة التي تحددها هنا.';
+  }
+  if(typeof updateTimingSummaryBadge === 'function') updateTimingSummaryBadge();
 }
 
 
