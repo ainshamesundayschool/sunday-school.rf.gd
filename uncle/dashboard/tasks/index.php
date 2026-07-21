@@ -3579,8 +3579,6 @@ button, input, select, textarea, a {
   -webkit-overflow-scrolling: touch !important;
 }
 
-
-
 .overlay.open {
   display: flex !important;
   opacity: 1 !important;
@@ -3588,59 +3586,40 @@ button, input, select, textarea, a {
   pointer-events: auto !important;
 }
 
-.overlay:not(.open) {
+.overlay:not(.open),
+.overlay:not(.open) * {
   display: none !important;
   opacity: 0 !important;
   visibility: hidden !important;
   pointer-events: none !important;
 }
 
-
-
-
-
-
-
 .modal {
-
-
-
   background: var(--bg);
-
-
-
   border-radius: var(--r-xl);
-
-
-
   width: 100%;
-
-
-
   max-width: 740px;
-
-
-
   margin: auto;
-
-
-
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   box-shadow: var(--sh-lg);
-
-
-
   transform: translateY(20px) scale(.97);
-
-
-
   transition: all var(--slow);
-
-
-
   border: 1px solid var(--bdr);
+}
 
+.mhdr, .mfoot {
+  flex-shrink: 0 !important;
+}
 
-
+.mbody {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
 }
 
 
@@ -12641,89 +12620,7 @@ body {
           </div>
 
         </div>
-      </div>nd:#d1fae5;color:#059669;"><i class="fas fa-check-circle"></i></div>
-
-
-
-              <div class="sopt-txt"><div class="sopt-lbl">إظهار النتيجة فور الانتهاء</div><div class="sopt-desc">يرى الطفل درجته مباشرةً بعد التسليم</div></div>
-
-
-
-              <label class="tgl" onclick="event.stopPropagation()"><input type="checkbox" id="fShowRes" checked><span class="tgl-s"></span></label>
-
-
-
-            </div>
-
-
-
-            <div class="sopt-row" onclick="document.getElementById('fShuffle').click()">
-
-
-
-              <div class="sopt-ico" style="background:var(--brand-bg);color:var(--brand);"><i class="fas fa-random"></i></div>
-
-
-
-              <div class="sopt-txt"><div class="sopt-lbl">خلط ترتيب الأسئلة</div><div class="sopt-desc">ترتيب عشوائي مختلف لكل طفل</div></div>
-
-
-
-              <label class="tgl" onclick="event.stopPropagation()"><input type="checkbox" id="fShuffle"><span class="tgl-s"></span></label>
-
-
-
-            </div>
-
-
-
-            <div class="sopt-row" style="margin-bottom:0;" onclick="document.getElementById('fReview').click()">
-
-
-
-              <div class="sopt-ico" style="background:#fef3c7;color:#d97706;"><i class="fas fa-eye"></i></div>
-
-
-
-              <div class="sopt-txt"><div class="sopt-lbl">مراجعة الإجابات قبل الإرسال</div><div class="sopt-desc">يستطيع الطفل تغيير إجاباته قبل التسليم النهائي</div></div>
-
-
-
-              <label class="tgl" onclick="event.stopPropagation()"><input type="checkbox" id="fReview" checked><span class="tgl-s"></span></label>
-
-
-
-            </div>
-
-
-
-          </div>
-
-
-
-        </div>
-
-
-
-
-
-
-
-          </div>
-
-
-
-        </div>
-
-
-
       </div>
-
-
-
-
-
-
 
       <!-- Step 2 -->
 

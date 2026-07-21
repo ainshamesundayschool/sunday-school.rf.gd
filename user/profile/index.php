@@ -1885,17 +1885,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       display: flex;
       align-items: flex-start;
       justify-content: center;
-      padding: 12px;
+      padding: 16px;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
       opacity: 0;
       visibility: hidden;
+      pointer-events: none;
       transition: var(--norm);
-      overflow: hidden;
+    }
+
+    .overlay:not(.open),
+    .overlay:not(.open) * {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
     }
 
     .overlay.open {
-      opacity: 1;
-      visibility: visible;
+      display: flex !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      pointer-events: auto !important;
     }
 
     .modal {
@@ -1904,6 +1915,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       width: 100%;
       max-width: 660px;
       margin: auto;
+      max-height: calc(100vh - 32px);
+      max-height: calc(100dvh - 32px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
       box-shadow: var(--sh-xl);
       border: 1px solid var(--bdr);
       transform: translateY(20px) scale(.97);
@@ -1962,6 +1978,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
     .mbody {
       padding: 18px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      flex: 1 1 auto;
+      min-height: 0;
     }
 
     .mfooter {
@@ -1973,6 +1993,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       gap: 8px;
       background: var(--s2);
       border-radius: 0 0 var(--r-xl) var(--r-xl);
+      flex-shrink: 0;
     }
 
     /* ══ TRIP DETAIL MODAL ════════════════════════════════ */
