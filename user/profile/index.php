@@ -10086,12 +10086,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       try {
         const perm = await Notification.requestPermission();
         if (perm === 'granted') {
-          if (typeof toast === 'function') toast('تم تفعيل الإشعارات بنجاح 🎉', 'ok');
-          else if (typeof showToast === 'function') showToast('تم تفعيل الإشعارات بنجاح 🎉', 'ok');
+          if (typeof toast === 'function') toast('تم تفعيل الإشعارات بنجاح', 'ok');
+          else if (typeof showToast === 'function') showToast('تم تفعيل الإشعارات بنجاح', 'ok');
           if (typeof setupPushSubscription === 'function') setupPushSubscription();
         } else if (perm === 'denied') {
-          if (typeof toast === 'function') toast('تم رفض الإشعارات ✕', 'err');
-          else if (typeof showToast === 'function') showToast('تم رفض الإشعارات ✕', 'err');
+          if (typeof toast === 'function') toast('تم رفض الإشعارات', 'err');
+          else if (typeof showToast === 'function') showToast('تم رفض الإشعارات', 'err');
         }
       } catch (err) {
         console.error("Error requesting notification permission:", err);

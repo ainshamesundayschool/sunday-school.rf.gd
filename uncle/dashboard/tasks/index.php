@@ -13288,22 +13288,28 @@ body {
 
 
 
-    <div class="mhdr">
+    <div class="mhdr" style="position: relative; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+      <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+        <div class="mhdr-ico" style="flex-shrink: 0;"><i class="fas fa-eye"></i></div>
+        <div style="min-width: 0;"><div class="mhdr-title" id="dTitle" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">تفاصيل التاسك</div><div class="mhdr-sub" id="dSub" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div></div>
+      </div>
+      
+      <!-- 3-Dots Action Menu inside Task Detail Modal Header -->
+      <div style="position: relative; flex-shrink: 0;">
+        <button type="button" id="dMenuBtn" onclick="toggleDetailMenu(event)" style="background:var(--bg2); border:1px solid var(--bdr); color:var(--t1); width:32px; height:32px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:0.9rem; transition:0.2s;">
+          <i class="fas fa-ellipsis-v"></i>
+        </button>
+        <div id="detailMenuDropdown" style="display:none; position:absolute; left:0; top:100%; margin-top:6px; z-index:100; min-width:140px; background:var(--bg-card); border:1px solid var(--bdr); border-radius:10px; box-shadow:0 10px 25px rgba(0,0,0,0.15); overflow:hidden; font-family:'Cairo',sans-serif;">
+          <button onclick="toggleDetailMenu(event); closeDetail(); if(detailTask) openEdit(detailTask.id);" style="width:100%; padding:9px 14px; border:none; background:transparent; color:var(--t1); font-size:0.82rem; font-weight:700; text-align:right; cursor:pointer; display:flex; align-items:center; gap:8px;" onmouseover="this.style.background='var(--bg3)';" onmouseout="this.style.background='transparent';">
+            <i class="fas fa-pen" style="color:var(--brand);"></i> تعديل التاسك
+          </button>
+          <button onclick="toggleDetailMenu(event); closeDetail(); if(detailTask) openConf(detailTask.id);" style="width:100%; padding:9px 14px; border:none; background:transparent; color:var(--err); font-size:0.82rem; font-weight:700; text-align:right; cursor:pointer; display:flex; align-items:center; gap:8px;" onmouseover="this.style.background='var(--err-bg)';" onmouseout="this.style.background='transparent';">
+            <i class="fas fa-trash"></i> حذف التاسك
+          </button>
+        </div>
+      </div>
 
-
-
-      <div class="mhdr-ico"><i class="fas fa-eye"></i></div>
-
-
-
-      <div><div class="mhdr-title" id="dTitle">تفاصيل التاسك</div><div class="mhdr-sub" id="dSub"></div></div>
-
-
-
-      <div class="mclose" onclick="closeDetail()"><i class="fas fa-times"></i></div>
-
-
-
+      <div class="mclose" onclick="closeDetail()" style="flex-shrink: 0;"><i class="fas fa-times"></i></div>
     </div>
 
 
@@ -14707,13 +14713,33 @@ function renderOverlappingAvatars(students, size = '26px', bgType = 'bg3', maxSh
   return html;
 }
 
+function toggleDetailMenu(e) {
+  if (e) e.stopPropagation();
+  const menu = document.getElementById('detailMenuDropdown');
+  if (menu) {
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+  }
+}
+
+function toggleTaskCardMenu(e, taskId) {
+  if (e) e.stopPropagation();
+  document.querySelectorAll('.task-card-menu').forEach(m => {
+    if (m.id !== `taskCardMenu_${taskId}`) m.style.display = 'none';
+  });
+  const menu = document.getElementById(`taskCardMenu_${taskId}`);
+  if (menu) {
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+  }
+}
+
+document.addEventListener('click', () => {
+  document.querySelectorAll('.task-card-menu').forEach(m => m.style.display = 'none');
+  const dMenu = document.getElementById('detailMenuDropdown');
+  if (dMenu) dMenu.style.display = 'none';
+});
+
 function renderGrid() {
-
-
-
   const g = document.getElementById('tGrid');
-
-
 
   // Update dynamic filter tabs view
   renderFilterTabs();
@@ -14733,23 +14759,10 @@ function renderGrid() {
     list = tasks.filter(t => statusOf(t).key === curFilter);
   }
 
-
-
   if (!list.length) {
-
-
-
     g.innerHTML = `<div class="empty"><div class="empty-ico"><i class="fas fa-clipboard-list"></i></div><div class="empty-t">لا توجد تاسكات</div><div class="empty-s">اضغط "تاسك جديد" لإنشاء أول اختبار</div><button class="btn btn-p" onclick="openCreate()"><i class="fas fa-plus"></i> إنشاء تاسك</button></div>`;
-
-
-
     return;
-
-
-
   }
-
-
 
   g.innerHTML = list.map((t, idx) => {
     const si   = statusOf(t);
@@ -14783,6 +14796,21 @@ function renderGrid() {
           <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
             ${si.key === 'draft' ? `<span style="background:var(--warn-bg); color:var(--warn); font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:4px; border:1px solid rgba(245,158,11,0.25);">Draft</span>` : ''}
             ${pendingOpen ? `<span style="background:var(--brand-bg); color:var(--brand); font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:4px; border:1px solid rgba(124,58,237,0.2);"><i class="fas fa-pen-nib"></i> ${pendingOpen} تصحيح</span>` : ''}
+            
+            <!-- 3 Dots Action Menu -->
+            <div style="position: relative;" onclick="event.stopPropagation()">
+              <button type="button" onclick="toggleTaskCardMenu(event, ${t.id})" style="background: transparent; border: none; color: var(--t3); width: 28px; height: 28px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; transition: 0.2s;" onmouseover="this.style.background='var(--bg3)'; this.style.color='var(--t1)';" onmouseout="this.style.background='transparent'; this.style.color='var(--t3)';">
+                <i class="fas fa-ellipsis-v"></i>
+              </button>
+              <div id="taskCardMenu_${t.id}" class="task-card-menu" style="display: none; position: absolute; left: 0; top: 100%; margin-top: 4px; z-index: 100; min-width: 130px; background: var(--bg-card); border: 1px solid var(--bdr); border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); overflow: hidden; font-family: 'Cairo', sans-serif;">
+                <button onclick="toggleTaskCardMenu(event, ${t.id}); openEdit(${t.id})" style="width: 100%; padding: 8px 12px; border: none; background: transparent; color: var(--t1); font-size: 0.8rem; font-weight: 700; text-align: right; cursor: pointer; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.background='var(--bg3)';" onmouseout="this.style.background='transparent';">
+                  <i class="fas fa-pen" style="color: var(--brand);"></i> تعديل التاسك
+                </button>
+                <button onclick="toggleTaskCardMenu(event, ${t.id}); openConf(${t.id})" style="width: 100%; padding: 8px 12px; border: none; background: transparent; color: var(--err); font-size: 0.8rem; font-weight: 700; text-align: right; cursor: pointer; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.background='var(--err-bg)';" onmouseout="this.style.background='transparent';">
+                  <i class="fas fa-trash"></i> حذف التاسك
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -14810,21 +14838,18 @@ function renderGrid() {
 
       </div>
 
-      <!-- Action Footer -->
-      <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-hover); padding: 10px 16px; border-top: 1px solid var(--bdr); direction: rtl;">
-        <!-- Tags or categories -->
-        <div style="display: flex; gap: 4px; overflow: hidden; flex: 1; margin-left: 8px; justify-content: flex-start; direction: rtl;">
+      <!-- Footer Category Tags & View Prompt -->
+      <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-hover); padding: 8px 14px; border-top: 1px solid var(--bdr); direction: rtl;">
+        <div style="display: flex; gap: 4px; overflow: hidden; flex: 1; justify-content: flex-start; direction: rtl;">
           ${t.group_name ? t.group_name.split(',').map(g => `<span style="font-size:0.65rem; color:var(--brand); background:var(--brand-bg); border:1.5px solid var(--brand-l); padding:2px 8px; border-radius:10px; font-weight:700; white-space:nowrap;">${esc(g.trim())}</span>`).join('') : '<span style="font-size:0.65rem; color:var(--t4); font-style:italic;">بدون تصنيف</span>'}
         </div>
-        <!-- Buttons -->
-        <div style="display: flex; gap: 6px; flex-shrink: 0;" onclick="event.stopPropagation()">
-          <button class="btn btn-sm" onclick="openDetail(${t.id})" style="padding: 4px 10px; font-size: 0.75rem; font-weight: 700; background: var(--bg); border: 1px solid var(--bdr); color: var(--t1); cursor: pointer; border-radius: 6px; font-family:'Cairo';"><i class="fas fa-eye"></i> عرض</button>
-          <button class="btn btn-sm btn-p" onclick="openEdit(${t.id})" style="padding: 4px 10px; font-size: 0.75rem; font-weight: 700; cursor: pointer; border-radius: 6px; font-family:'Cairo';"><i class="fas fa-pen"></i> تعديل</button>
-          <button class="btn btn-sm" onclick="openConf(${t.id})" style="padding: 4px 6px; font-size: 0.75rem; font-weight: 700; color: var(--err); background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); cursor: pointer; border-radius: 6px; font-family:'Cairo';"><i class="fas fa-trash"></i></button>
-        </div>
+        <span style="font-size:0.72rem; color:var(--brand); font-weight:700; display:inline-flex; align-items:center; gap:4px;">
+          عرض التفاصيل <i class="fas fa-chevron-left" style="font-size:0.65rem;"></i>
+        </span>
       </div>
 
-    </div>`;  }).join('');
+    </div>`;
+  }).join('');
 
 
 
@@ -19982,15 +20007,47 @@ function updateSubScore(subId) {
 
 
 
-if (typeof window.showConfirm !== 'function') {
-  window.showConfirm = function(opts) {
-    return new Promise((resolve) => {
-      const msg = typeof opts === 'string' ? opts : (opts.message || '');
-      const cleanMsg = msg.replace(/\*\*/g, '');
-      resolve(window.confirm(cleanMsg));
-    });
-  };
+let _customConfirmResolver = null;
+
+function showConfirm(opts) {
+  return new Promise((resolve) => {
+    _customConfirmResolver = resolve;
+    const modal = document.getElementById('websiteConfirmModal');
+    const msgEl = document.getElementById('wConfirmMessage');
+    const titleEl = document.getElementById('wConfirmTitle');
+    const iconBox = document.getElementById('wConfirmIconBox');
+    const icon = document.getElementById('wConfirmIcon');
+    const okBtn = document.getElementById('wConfirmOkBtn');
+
+    let rawMsg = typeof opts === 'string' ? opts : (opts.message || '');
+    let cleanMsg = rawMsg.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu, '').replace(/\*\*/g, '').trim();
+
+    if (msgEl) msgEl.textContent = cleanMsg;
+    if (titleEl) titleEl.textContent = opts.title || (opts.danger ? 'تأكيد إجراء هام' : 'تأكيد التعديل');
+
+    if (opts.danger) {
+      if (iconBox) { iconBox.style.background = 'rgba(239,68,68,0.12)'; iconBox.style.color = 'var(--err, #ef4444)'; }
+      if (icon) icon.className = 'fas fa-exclamation-triangle';
+      if (okBtn) { okBtn.style.background = 'var(--err, #ef4444)'; okBtn.style.boxShadow = '0 4px 12px rgba(239,68,68,0.3)'; }
+    } else {
+      if (iconBox) { iconBox.style.background = 'rgba(99,102,241,0.12)'; iconBox.style.color = 'var(--brand, #6366f1)'; }
+      if (icon) icon.className = 'fas fa-info-circle';
+      if (okBtn) { okBtn.style.background = 'var(--brand, #6366f1)'; okBtn.style.boxShadow = '0 4px 12px rgba(99,102,241,0.3)'; }
+    }
+
+    if (modal) modal.style.display = 'flex';
+  });
 }
+
+function resolveCustomConfirm(result) {
+  const modal = document.getElementById('websiteConfirmModal');
+  if (modal) modal.style.display = 'none';
+  if (_customConfirmResolver) {
+    _customConfirmResolver(result);
+    _customConfirmResolver = null;
+  }
+}
+window.showConfirm = showConfirm;
 
 async function clearGrade(subId, subIdx) {
   const sub = gradeSubs ? gradeSubs[subIdx] : null;
@@ -19999,9 +20056,9 @@ async function clearGrade(subId, subIdx) {
   const prevCoupons = parseInt(sub.coupons_awarded || 0);
   const studentName = sub.student_name || 'الطفل';
 
-  let confirmMsg = `⚠️ هل أنت متأكد من مسح تقييم هذا التكليف للطفل [${studentName}]؟\nسيتم إعادة التكليف لحالة "بانتظار التقييم" وتظهر في حساب الطفل كغير مصحح.`;
+  let confirmMsg = `هل أنت متأكد من مسح تقييم هذا التكليف للطفل [${studentName}]؟\nسيتم إعادة التكليف لحالة "بانتظار التقييم" وتظهر في حساب الطفل كغير مصحح.`;
   if (prevCoupons > 0) {
-    confirmMsg += `\n\n🚨 **تحذير الكوبونات:** سيتم خصم وسحب (${prevCoupons}) كوبون سبق منحها للطفل لهذا التكليف!`;
+    confirmMsg += `\n\nتحذير الكوبونات: سيتم خصم وسحب (${prevCoupons}) كوبون سبق منحها للطفل لهذا التكليف!`;
   }
 
   if (!(await showConfirm({ message: confirmMsg, danger: true }))) return;
@@ -20080,12 +20137,12 @@ async function submitGrade(subId, subIdx) {
     let warnMsg = ``;
     if (isAlreadyGraded) {
       if (couponDiff > 0) {
-        warnMsg = `⚠️ **تأكيد تعديل التقييم والكوبونات:**\nسيتم تعديل درجات الطفل [${studentName}] وتعديل الكوبونات بـ **إضافة (+${couponDiff}) كوبون إضافي**.\n\nهل تريد الاستمرار والحفظ؟`;
+        warnMsg = `تأكيد تعديل التقييم والكوبونات:\nسيتم تعديل درجات الطفل [${studentName}] وتعديل الكوبونات بإضافة (+${couponDiff}) كوبون إضافي.\n\nهل تريد الاستمرار والحفظ؟`;
       } else {
-        warnMsg = `⚠️ **تأكيد تعديل التقييم والكوبونات:**\nسيتم تعديل درجات الطفل [${studentName}] وتعديل الكوبونات بـ **خصم (-${Math.abs(couponDiff)}) كوبون**.\n\nهل تريد الاستمرار والحفظ؟`;
+        warnMsg = `تأكيد تعديل التقييم والكوبونات:\nسيتم تعديل درجات الطفل [${studentName}] وتعديل الكوبونات بخصم (-${Math.abs(couponDiff)}) كوبون.\n\nهل تريد الاستمرار والحفظ؟`;
       }
     } else {
-      warnMsg = `⚠️ **تأكيد اعتماد التقييم:**\nسيتم اعتماد درجات الطفل [${studentName}] وحصوله على **(${projectedCoupons}) كوبون**.\n\nهل تريد حفظ التصحيح؟`;
+      warnMsg = `تأكيد اعتماد التقييم:\nسيتم اعتماد درجات الطفل [${studentName}] وحصوله على (${projectedCoupons}) كوبون.\n\nهل تريد حفظ التصحيح؟`;
     }
 
     if (!(await showConfirm({ message: warnMsg, danger: couponDiff < 0 }))) {
@@ -21327,11 +21384,27 @@ async function exportOverviewPDF() {
 
 </div>
 
+<!-- WEBSITE CUSTOM CONFIRMATION MODAL -->
+<div id="websiteConfirmModal" style="display:none; position:fixed; inset:0; z-index:100000; background:rgba(15,23,42,0.6); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); align-items:center; justify-content:center; padding:16px;">
+  <div style="background:var(--bg,#ffffff); max-width:440px; width:100%; border-radius:20px; padding:24px; text-align:center; box-shadow:0 20px 40px rgba(0,0,0,0.25); border:1px solid var(--bdr,rgba(0,0,0,0.08));">
+    <div id="wConfirmIconBox" style="width:60px; height:60px; margin:0 auto 14px; border-radius:18px; background:rgba(239,68,68,0.12); color:var(--err,#ef4444); display:flex; align-items:center; justify-content:center; font-size:1.6rem; box-shadow:0 8px 20px rgba(239,68,68,0.2);">
+      <i id="wConfirmIcon" class="fas fa-exclamation-triangle"></i>
+    </div>
+    <h3 id="wConfirmTitle" style="font-size:1.15rem; font-weight:800; color:var(--t1,#1e293b); margin-bottom:8px;">تأكيد الإجراء</h3>
+    <div id="wConfirmMessage" style="font-size:0.85rem; color:var(--t2,#475569); margin-bottom:20px; line-height:1.5; text-align:center; white-space:pre-line;"></div>
 
+    <div style="display:flex; gap:10px; justify-content:center;">
+      <button type="button" id="wConfirmCancelBtn" onclick="resolveCustomConfirm(false)" style="flex:1; padding:10px 16px; border-radius:10px; border:1px solid var(--bdr,rgba(0,0,0,0.12)); background:var(--bg2,#f8fafc); color:var(--t2,#475569); font-size:0.85rem; font-weight:700; cursor:pointer;">
+        إلغاء
+      </button>
+      <button type="button" id="wConfirmOkBtn" onclick="resolveCustomConfirm(true)" style="flex:1; padding:10px 16px; border-radius:10px; border:none; background:var(--err,#ef4444); color:#fff; font-size:0.85rem; font-weight:800; cursor:pointer; box-shadow:0 4px 12px rgba(239,68,68,0.3);">
+        موافق
+      </button>
+    </div>
+  </div>
+</div>
 
 </body>
-
-
 
 </html>
 

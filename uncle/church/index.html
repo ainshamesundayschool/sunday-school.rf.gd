@@ -27041,11 +27041,11 @@
       try {
         const perm = await Notification.requestPermission();
         if (perm === 'granted') {
-          if (typeof showToast === 'function') showToast('تم تفعيل الإشعارات بنجاح 🎉', 'ok');
-          else if (typeof toast === 'function') toast('تم تفعيل الإشعارات بنجاح 🎉', 'ok');
+          if (typeof showToast === 'function') showToast('تم تفعيل الإشعارات بنجاح', 'ok');
+          else if (typeof toast === 'function') toast('تم تفعيل الإشعارات بنجاح', 'ok');
         } else if (perm === 'denied') {
-          if (typeof showToast === 'function') showToast('تم رفض الإشعارات ✕', 'err');
-          else if (typeof toast === 'function') toast('تم رفض الإشعارات ✕', 'err');
+          if (typeof showToast === 'function') showToast('تم رفض الإشعارات', 'err');
+          else if (typeof toast === 'function') toast('تم رفض الإشعارات', 'err');
         }
       } catch (err) {
         console.error("Error requesting notification permission:", err);
