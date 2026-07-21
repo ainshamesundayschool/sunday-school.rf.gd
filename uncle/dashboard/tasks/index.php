@@ -3541,48 +3541,23 @@ button, input, select, textarea, a {
 
 
 .overlay.fullscreen .modal {
-
-
-
   max-width: 100%;
-
-
-
   width: 100%;
-
-
-
   border-radius: 0;
-
-
-
   margin: 0;
-
-
-
   height: 100vh;
   height: 100dvh;
   max-height: 100vh;
   max-height: 100dvh;
-
-
-
-  display: flex;
-
-
-
-  flex-direction: column;
-
-
-
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
   transform: none !important;
-
-
-
 }
 
 .overlay.fullscreen .modal.wide {
-  min-height: auto;
+  min-height: 0 !important;
   max-height: 92vh;
   height: auto;
   border-radius: var(--r-xl);
@@ -3592,36 +3567,32 @@ button, input, select, textarea, a {
   box-shadow: var(--sh-lg);
 }
 
-
+.overlay.fullscreen .mhdr,
+.overlay.fullscreen .modal > div:nth-child(2) {
+  flex-shrink: 0 !important;
+}
 
 .overlay.fullscreen .mbody {
-
-
-
-  flex: 1;
-
-
-
-  overflow-y: auto;
-
-
-
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
 }
 
 
 
 .overlay.open {
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
 
-
-
-  opacity: 1;
-
-
-
-  visibility: visible;
-
-
-
+.overlay:not(.open) {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
 }
 
 
@@ -3947,41 +3918,19 @@ button, input, select, textarea, a {
 
 
 .mfoot {
-
-
-
-  padding: 14px 24px;
-
-
-
+  padding: 12px 20px;
   border-top: 1px solid var(--bdr);
-
-
-
   display: flex;
-
-
-
   align-items: center;
-
-
-
   justify-content: flex-end;
-
-
-
   gap: 8px;
-
-
-
   flex-wrap: wrap;
-
-
-
-  background: var(--bg3);
-
-
-
+  background: var(--surface-1, var(--bg2, #ffffff));
+  flex-shrink: 0 !important;
+  position: sticky;
+  bottom: 0;
+  z-index: 100;
+  box-shadow: 0 -4px 15px rgba(0,0,0,0.06);
 }
 
 
@@ -13133,22 +13082,6 @@ body {
         <div class="mhdr-ico" style="flex-shrink: 0;"><i class="fas fa-eye"></i></div>
         <div style="min-width: 0;"><div class="mhdr-title" id="dTitle" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">تفاصيل التاسك</div><div class="mhdr-sub" id="dSub" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div></div>
       </div>
-      
-      <!-- 3-Dots Action Menu inside Task Detail Modal Header -->
-      <div style="position: relative; flex-shrink: 0;">
-        <button type="button" id="dMenuBtn" onclick="toggleDetailMenu(event)" style="background:var(--bg2); border:1px solid var(--bdr); color:var(--t1); width:32px; height:32px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:0.9rem; transition:0.2s;">
-          <i class="fas fa-ellipsis-v"></i>
-        </button>
-        <div id="detailMenuDropdown" style="display:none; position:absolute; left:0; top:100%; margin-top:6px; z-index:100; min-width:140px; background:var(--bg-card); border:1px solid var(--bdr); border-radius:10px; box-shadow:0 10px 25px rgba(0,0,0,0.15); overflow:hidden; font-family:'Cairo',sans-serif;">
-          <button onclick="toggleDetailMenu(event); closeDetail(); if(detailTask) openEdit(detailTask.id);" style="width:100%; padding:9px 14px; border:none; background:transparent; color:var(--t1); font-size:0.82rem; font-weight:700; text-align:right; cursor:pointer; display:flex; align-items:center; gap:8px;" onmouseover="this.style.background='var(--bg3)';" onmouseout="this.style.background='transparent';">
-            <i class="fas fa-pen" style="color:var(--brand);"></i> تعديل التاسك
-          </button>
-          <button onclick="toggleDetailMenu(event); closeDetail(); if(detailTask) openConf(detailTask.id);" style="width:100%; padding:9px 14px; border:none; background:transparent; color:var(--err); font-size:0.82rem; font-weight:700; text-align:right; cursor:pointer; display:flex; align-items:center; gap:8px;" onmouseover="this.style.background='var(--err-bg)';" onmouseout="this.style.background='transparent';">
-            <i class="fas fa-trash"></i> حذف التاسك
-          </button>
-        </div>
-      </div>
-
       <div class="mclose" onclick="closeDetail()" style="flex-shrink: 0;"><i class="fas fa-times"></i></div>
     </div>
 
@@ -18598,23 +18531,36 @@ async function openDetail(id){
 
 
 
-    document.getElementById('dFoot').innerHTML=`
+    document.getElementById('dFoot').innerHTML = `
+      <div style="display:flex; align-items:center; justify-content:space-between; width:100%; gap:8px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <!-- 3-Dots Action Dropdown Menu -->
+          <div style="position:relative;" onclick="event.stopPropagation();">
+            <button type="button" id="dMenuBtn" onclick="toggleDetailMenu(event)" style="background:var(--surface-2, var(--bg3, #f1f5f9)); border:1px solid var(--bdr); color:var(--t1); width:36px; height:36px; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:0.9rem; transition:0.2s;" onmouseover="this.style.background='var(--bdr)';" onmouseout="this.style.background='var(--surface-2)';">
+              <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <div id="detailMenuDropdown" style="display:none; position:absolute; bottom:100%; right:0; margin-bottom:8px; z-index:100; min-width:145px; background:var(--surface-1, var(--bg2, #ffffff)); border:1px solid var(--bdr); border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.15); overflow:hidden; font-family:'Cairo',sans-serif;">
+              <button onclick="toggleDetailMenu(event); closeDetail(); openEdit(${t.id});" style="width:100%; padding:9px 14px; border:none; background:transparent; color:var(--t1); font-size:0.82rem; font-weight:700; text-align:right; cursor:pointer; display:flex; align-items:center; gap:8px;" onmouseover="this.style.background='var(--bg3)';" onmouseout="this.style.background='transparent';">
+                <i class="fas fa-pen" style="color:var(--brand);"></i> تعديل التاسك
+              </button>
+              <button onclick="toggleDetailMenu(event); closeDetail(); openConf(${t.id});" style="width:100%; padding:9px 14px; border:none; background:transparent; color:var(--err); font-size:0.82rem; font-weight:700; text-align:right; cursor:pointer; display:flex; align-items:center; gap:8px;" onmouseover="this.style.background='var(--err-bg)';" onmouseout="this.style.background='transparent';">
+                <i class="fas fa-trash"></i> حذف التاسك
+              </button>
+            </div>
+          </div>
 
+          <!-- Edit Button -->
+          <button class="btn btn-g" onclick="closeDetail();openEdit(${t.id})" style="height:36px; padding:0 14px; font-size:0.82rem; font-weight:700;">
+            <i class="fas fa-pen" style="color:var(--brand);"></i> تعديل
+          </button>
+        </div>
 
-
-      <button class="btn btn-g" onclick="closeDetail()" style="min-height:40px;"><i class="fas fa-times"></i> إغلاق</button>
-
-
-
-      ${hasOpenQs?`<button class="btn" onclick="closeDetail();openGradePanel(${t.id})" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;min-height:40px;">
-
-
-
-        <i class="fas fa-pen-nib"></i> تصحيح${pendingSubs>0?` <span class="pending-badge">${pendingSubs}</span>`:''}</button>`:''}
-
-
-
-      <button class="btn btn-p" onclick="closeDetail();openEdit(${t.id})" style="min-height:40px;"><i class="fas fa-pen"></i> تعديل</button>`;
+        <!-- Grading Button -->
+        <button class="btn" onclick="closeDetail();openGradePanel(${t.id})" style="background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; height:36px; padding:0 16px; font-size:0.83rem; font-weight:700; border-radius:10px; display:inline-flex; align-items:center; gap:6px;">
+          <i class="fas fa-pen-nib"></i> تصحيح الإجابات ${pendingSubs > 0 ? `<span class="pending-badge" style="background:#ef4444; color:#fff; border-radius:99px; padding:2px 7px; font-size:0.7rem;">${pendingSubs}</span>` : ''}
+        </button>
+      </div>
+    `;
 
 
 
