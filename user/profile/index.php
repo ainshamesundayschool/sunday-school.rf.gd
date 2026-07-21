@@ -7548,9 +7548,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         // Coupon row — always visible
         let couponRow = '';
         if (sub) {
-          // Submitted: show earned score + coupons
+          const isGraded = parseInt(sub.is_graded || 0) === 1;
           const pct = t.total_degree > 0 ? Math.round(sub.score / t.total_degree * 100) : 0;
-          couponRow = `<div class="task-result">
+          if (isGraded) {
+            couponRow = `<div class="task-result">
         <i class="fas fa-check-circle"></i>
         <span>${sub.score}/${t.total_degree} (${pct}%)</span>
         <span style="margin-right:auto;display:flex;align-items:center;gap:4px;">
@@ -7560,6 +7561,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           ${t.show_answers ? `<button onclick="event.stopPropagation();viewMyAnswers(${t.id})" style="margin-right:5px;background:var(--s2);border:1px solid var(--brand-l);color:var(--brand);border-radius:5px;padding:3px 8px;font-size:.7rem;font-family:'Baloo Bhaijaan 2',sans-serif;font-weight:700;cursor:pointer;"><i class="fas fa-eye"></i> الإجابات</button>` : ''}
         </span>
       </div>`;
+          } else {
+            couponRow = `<div class="task-result" style="background:#fffbeb;border:1px solid #fde68a;color:#b45309;">
+        <i class="fas fa-clock" style="color:#d97706;"></i>
+        <span style="font-weight:700;">بانتظار التقييم (لم يتم التقييم بعد)</span>
+        <span style="margin-right:auto;display:flex;align-items:center;">
+          ${t.show_answers ? `<button onclick="event.stopPropagation();viewMyAnswers(${t.id})" style="background:var(--s2);border:1px solid var(--brand-l);color:var(--brand);border-radius:5px;padding:3px 8px;font-size:.7rem;font-family:'Baloo Bhaijaan 2',sans-serif;font-weight:700;cursor:pointer;"><i class="fas fa-eye"></i> الإجابات</button>` : ''}
+        </span>
+      </div>`;
+          }
         } else if (maxCoupon > 0) {
           // Not submitted: show max possible coupons
           couponRow = `<div class="task-coupon-row" style="display:flex;align-items:center;gap:5px;margin-top:7px;padding:5px 9px;border-radius:var(--r-sm);background:var(--cou-bg);border:1px solid #c4b5fd;font-size:.74rem;">
@@ -7794,84 +7804,92 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           <textarea class="open-ans-textarea" id="openans_${q.id}"
             placeholder="اكتب إجابتك هنا…"
             oninput="pickOpenAns(${q.id},this)">${esc(savedAns)}</textarea>
-          <div style="font-size:.69rem;color:var(--t4);margin-top:5px;display:flex;align-items:center;gap:4px;">
-            <i class="fas fa-info-circle"></i> يُصحَّح من قِبَل الانكل أو الطنط — الدرجة النهائية ستظهر بعد التصحيح
-          </div>
-        </div>
-      </div>`;
-        }
+          <div style="font-size:.6    function buildResultCard(score, total, pct, coupons, hasOpenQs, taskId, showAnswers, isGraded = true) {
+      let grad, iconCls, msg, color;
+      if (!isGraded) {
+        grad = 'linear-gradient(135deg, #d97706 0%, #f59e0b 100%)';
+        iconCls = 'fas fa-hourglass-half';
+        msg = 'تم تسليم إجاباتك بنجاح! التكليف في انتظار تصحيح المدرس.';
+        color = '#d97706';
+      } else if (pct >= 90) {
+        grad = 'linear-gradient(135deg, #059669 0%, #10b981 100%)';
+        iconCls = 'fas fa-trophy';
+        msg = 'ممتاز! إجاباتك رائعة، أنت نجم الفصل!';
+        color = '#059669';
+      } else if (pct >= 70) {
+        grad = 'linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%)';
+        iconCls = 'fas fa-medal';
+        msg = 'أحسنت جداً! نتيجة جميلة وأنت تستاهل أكثر من كده.';
+        color = '#1d4ed8';
+      } else if (pct >= 50) {
+        grad = 'linear-gradient(135deg, #b45309 0%, #f59e0b 100%)';
+        iconCls = 'fas fa-star';
+        msg = 'برافو! في تحسّن واضح وأنت على الطريق الصح.';
+        color = '#b45309';
+      } else {
+        grad = 'linear-gradient(135deg, #4f46e5 0%, #818cf8 100%)';
+        iconCls = 'fas fa-heart';
+        msg = 'شكراً على مشاركتك! كل خطوة بتخليك أقوى وأحسن.';
+        color = '#4f46e5';
+      }
 
-        // ── True / False ──────────────────────────────────────────
-        if (qtype === 'tf') {
-          const saved = taskAnswers[String(q.id)];
-          const trueOn = saved === 0; const falseOn = saved === 1;
-          return `<div class="qcard" id="qc_${q.id}">
-        <div class="qhdr">
-          <div class="qnum">${i + 1}</div>
-          <div class="qtext">${esc(q.question_text)}</div>
-          <span class="qdeg">${q.degree} درجة</span>
-        </div>
-        ${imgHtml}
-        <div class="qopts" style="display:flex;gap:10px;padding:10px 12px;">
-          <button id="tfbtn_${q.id}_0" onclick="pickOpt(${q.id},0,null)"
-            style="flex:1;padding:13px 8px;border-radius:var(--r-sm);border:2px solid ${trueOn ? 'var(--ok)' : 'var(--bdr)'};background:${trueOn ? 'var(--ok-bg)' : 'var(--surf)'};color:${trueOn ? 'var(--ok)' : 'var(--t2)'};font-family:inherit;font-size:.88rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:var(--fast);">
-            <i class="fas fa-check-circle"></i> صحيح
-          </button>
-          <button id="tfbtn_${q.id}_1" onclick="pickOpt(${q.id},1,null)"
-            style="flex:1;padding:13px 8px;border-radius:var(--r-sm);border:2px solid ${falseOn ? 'var(--err)' : 'var(--bdr)'};background:${falseOn ? 'var(--err-bg)' : 'var(--surf)'};color:${falseOn ? 'var(--err)' : 'var(--t2)'};font-family:inherit;font-size:.88rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:var(--fast);">
-            <i class="fas fa-times-circle"></i> خطأ
-          </button>
-        </div>
-      </div>`;
-        }
+      const couponHtml = (isGraded && coupons > 0) ? `
+    <div style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:var(--cou-bg);color:var(--cou);border-radius:var(--r-full);font-weight:800;font-size:1.1rem;box-shadow:0 4px 15px rgba(124,58,237,.2);margin-top:15px;animation:bounce 2s infinite;">
+      <i class="fas fa-star"></i> حصلت على ${coupons} كوبون!
+    </div>` : '';
 
-        // ── MCQ (default) ─────────────────────────────────────────
-        const opts = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
-        const sel = taskAnswers[String(q.id)] !== undefined ? taskAnswers[String(q.id)] : null;
-        return `<div class="qcard" id="qc_${q.id}">
-      <div class="qhdr">
-        <div class="qnum">${i + 1}</div>
-        <div class="qtext">${esc(q.question_text)}</div>
-        ${sel !== null ? `<span style="background:var(--ok-bg);color:var(--ok);border-radius:var(--r-full);padding:2px 7px;font-size:.62rem;font-weight:700;flex-shrink:0;"><i class="fas fa-check"></i></span>` : ''}
-        <span class="qdeg">${q.degree} درجة</span>
+      const pendingNote = !isGraded ? `
+    <div style="display:flex;align-items:center;gap:10px;margin-top:20px;padding:12px 18px;background:#fef3c7;border:1.5px solid #fde68a;border-radius:var(--r-md);font-size:.85rem;color:#92400e;font-weight:700;line-height:1.5;">
+      <i class="fas fa-clock" style="font-size:1.2rem;flex-shrink:0;"></i>
+      <span>لم يتم تحديد الدرجة أو الكوبونات بعد. ستظهر النتيجة والكوبونات فور قيام الخادم بتصحيح التكليف.</span>
+    </div>` : (hasOpenQs ? `
+    <div style="display:flex;align-items:center;gap:10px;margin-top:20px;padding:12px 18px;background:var(--warn-bg);border:1.5px solid #fde68a;border-radius:var(--r-md);font-size:.85rem;color:#92400e;font-weight:700;line-height:1.5;">
+      <i class="fas fa-check-circle" style="font-size:1.2rem;flex-shrink:0;color:#059669;"></i>
+      <span>تم تقييم التكليف وتحديث درجاتك وكوبوناتك بنجاح!</span>
+    </div>` : '');
+
+      const scoreBannerHtml = isGraded
+        ? `<div style="font-size:4rem;font-weight:900;color:#fff;line-height:1;text-shadow:0 4px 15px rgba(0,0,0,.2);">${score} <span style="font-size:1.5rem;opacity:.7;">/ ${total}</span></div>
+           <div style="color:rgba(255,255,255,.9);font-weight:800;font-size:1.3rem;margin-top:5px;">${pct}%</div>`
+        : `<div style="font-size:2.2rem;font-weight:900;color:#fff;line-height:1.2;text-shadow:0 4px 15px rgba(0,0,0,.2);"><i class="fas fa-clock"></i> لم يتم التقييم بعد</div>
+           <div style="color:rgba(255,255,255,.9);font-weight:800;font-size:1.1rem;margin-top:6px;">في انتظار تصحيح الخادم</div>`;
+
+      return `
+    <div style="background:#fff;border-radius:var(--r-2xl);overflow:hidden;box-shadow:var(--sh-xl);animation:pop-in .5s var(--norm);">
+      <div style="background:${grad};padding:40px 20px 60px;text-align:center;position:relative;">
+        <div style="width:100px;height:100px;background:rgba(255,255,255,.2);backdrop-filter:blur(10px);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;border:3px solid #fff;box-shadow:0 8px 30px rgba(0,0,0,.2);">
+          <i class="${iconCls}" style="color:#fff;font-size:3.2rem;"></i>
+        </div>
+        ${scoreBannerHtml}
+        <div style="position:absolute;bottom:-30px;left:0;right:0;height:40px;background:#fff;clip-path:ellipse(55% 100% at 50% 100%);"></div>
       </div>
-      ${imgHtml}
-      <div class="qopts">${opts.map((o, j) => `<div class="qopt${sel === j ? ' selected' : ''}" onclick="pickOpt(${q.id},${j},this)"><div class="oradio"></div><div class="olet">${LETTERS[j]}</div>${esc(o)}</div>`).join('')}</div>
-    </div>`;
-      }).join('');
-      updExamProgress(t);
+      <div style="padding:40px 30px 30px;text-align:center;">
+        <div style="font-size:1.35rem;font-weight:800;color:var(--t1);line-height:1.4;margin-bottom:10px;">${msg}</div>
+        ${couponHtml}
+        ${pendingNote}
+        <div style="margin-top:35px;display:flex;flex-direction:column;gap:12px;">
+          ${showAnswers && taskId ? `<button onclick="viewMyAnswers(${taskId})" style="width:100%;padding:14px;border-radius:var(--r-lg);background:var(--s2);border:2.5px solid ${color};color:${color};font-family:inherit;font-weight:800;font-size:.95rem;cursor:pointer;transition:var(--fast);display:flex;align-items:center;justify-content:center;gap:10px;"><i class="fas fa-eye"></i> راجع إجاباتك وتعلم من أخطائك</button>` : ''}
+          <button onclick="exitExamScreen()" style="width:100%;padding:14px;border-radius:var(--r-lg);background:${color};border:none;color:#fff;font-family:inherit;font-weight:800;font-size:.95rem;cursor:pointer;box-shadow:0 6px 20px ${color}44;transition:var(--fast);">
+             العودة للملف الشخصي
+          </button>
+        </div>
+      </div>
+    </div>
+    <style>
+      @keyframes pop-in { from { transform: scale(.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+      @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+  </style>
+  `;
     }
-
-    function pickOpt(qid, idx, el) {
-      if (examDone) return;
-      taskAnswers[String(qid)] = idx;
-      localStorage.setItem(`ta_${curTask.id}_${student.id}`, JSON.stringify(taskAnswers));
-      // MCQ: toggle selected class
-      if (el && el.closest && el.closest('.qopts')) {
-        el.closest('.qopts').querySelectorAll('.qopt').forEach(o => o.classList.remove('selected'));
-        el.classList.add('selected');
-      }
-      // TF: re-render TF buttons with updated state
-      const tfT = document.getElementById(`tfbtn_${qid}_0`);
-      const tfF = document.getElementById(`tfbtn_${qid}_1`);
-      if (tfT && tfF) {
-        const isTrueSelected = (idx === 0);
-        tfT.style.border = `2px solid ${isTrueSelected ? '#10b981' : 'var(--bdr)'}`;
-        tfT.style.background = isTrueSelected ? '#d1fae5' : 'var(--s2)';
-        tfT.style.color = isTrueSelected ? '#065f46' : 'var(--t2)';
-        tfT.querySelector('i').style.color = isTrueSelected ? '#10b981' : 'var(--t4)';
-        tfF.style.border = `2px solid ${!isTrueSelected ? '#ef4444' : 'var(--bdr)'}`;
-        tfF.style.background = !isTrueSelected ? '#fee2e2' : 'var(--s2)';
-        tfF.style.color = !isTrueSelected ? '#991b1b' : 'var(--t2)';
-        tfF.querySelector('i').style.color = !isTrueSelected ? '#ef4444' : 'var(--t4)';
-      }
-      updExamProgress(curTask);
-    }
-
-    function pickOpenAns(qid, textarea) {
-      if (examDone) { textarea.value = taskAnswers[qid] || ''; return; }
-      taskAnswers[String(qid)] = textarea.value;
-      localStorage.setItem(`ta_${curTask.id}_${student.id}`, JSON.stringify(taskAnswers));
+    function showExamResult(t, sub) {
+      curTask = t; examDone = true;
+      const isGraded = parseInt(sub?.is_graded || 0) === 1;
+      const pct = t.total_degree > 0 ? Math.round((sub?.score || 0) / t.total_degree * 100) : 0;
+      const hasOpenQs = (t.questions || []).some(q => q.question_type === 'open');
+      document.getElementById('examResultCard').innerHTML = buildResultCard(sub?.score || 0, t.total_degree, pct, sub?.coupons_awarded || 0, hasOpenQs, t.id, !!parseInt(t.show_answers || 0), isGraded);
+      examShowView('result');
+      examScreenOpen();
+    }s));
       updExamProgress(curTask);
     }
 

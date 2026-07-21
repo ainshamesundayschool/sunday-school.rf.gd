@@ -19013,10 +19013,17 @@ async function openDetail(id){
               const stud = (classStuCache['كل الفصول'] || []).find(x => x.id == s.student_id);
               const photo = stud ? stud.photo : '';
               const avatar = getStudentAvatarHtml(photo, s.student_name, '28px');
+              const isGraded = parseInt(s.is_graded || 0);
+              const scoreBadge = isGraded 
+                ? `<span style="font-size:.68rem;background:var(--ok-bg);color:var(--ok);border-radius:var(--r-full);padding:2px 8px;font-weight:800;flex-shrink:0;">${s.score||0}/${t.total_degree}</span>`
+                : `<span style="font-size:.68rem;background:#fef3c7;color:#92400e;border-radius:var(--r-full);padding:2px 8px;font-weight:800;flex-shrink:0;"><i class="fas fa-clock"></i> لم يتم التقييم</span>`;
+
               return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(0,0,0,.07);">
                 ${avatar}
                 <span style="font-size:.8rem;font-weight:700;color:var(--t1);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(s.student_name||'—')}</span>
-                <span style="font-size:.68rem;background:var(--brand-bg);color:var(--brand);border-radius:var(--r-full);padding:1px 7px;font-weight:700;flex-shrink:0;">${s.score||0}/${t.total_degree}</span>
+                ${scoreBadge}
+                ${hasOpenQs ? `<button onclick="event.stopPropagation();closeDetail();openGradePanel(${t.id},${s.id},true)"
+                  style="background:var(--warn-bg);border:1px solid #fde68a;color:#b45309;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:.65rem;font-weight:700;font-family:'Cairo',sans-serif;flex-shrink:0;white-space:nowrap;"><i class="fas fa-pen-nib"></i> ${isGraded ? 'تعديل الدرجة' : 'تصحيح'}</button>` : ''}
                 <button onclick="event.stopPropagation();viewAnswers(${t.id},${s.student_id})"
                   style="background:var(--info-bg);border:1px solid #bfdbfe;color:var(--info);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:.65rem;font-weight:700;font-family:'Cairo',sans-serif;flex-shrink:0;white-space:nowrap;"><i class="fas fa-eye"></i></button>
                 <button onclick="event.stopPropagation();showDeleteSubConfirm(${s.id},'${esc(s.student_name||'')}',${s.coupons_awarded||0},${t.id})"
@@ -19588,7 +19595,7 @@ let gradeTaskData = null;
 
 
 
-async function openGradePanel(taskId) {
+async function openGradePanel(taskId, targetSubId = null, includeGraded = true) {
   gradeTaskId = taskId;
   window.activeGradeIndex = 0;
 
@@ -19605,12 +19612,17 @@ async function openGradePanel(taskId) {
     const td = await api('getTaskDetail', {task_id: taskId});
     gradeTaskData = td.success ? td.task : null;
 
-    const d = await api('getPendingOpenSubmissions', {task_id: taskId});
+    const d = await api('getPendingOpenSubmissions', {task_id: taskId, include_graded: includeGraded ? 1 : 0});
     if(!d.success){showToast(d.message||'فشل','err');return;}
 
     gradeSubs = d.submissions || [];
     if (gradeTaskData) {
         await loadStudents(gradeTaskData.class_name || 'كل الفصول');
+    }
+
+    if (targetSubId) {
+        const foundIdx = gradeSubs.findIndex(s => s.id == targetSubId || s.student_id == targetSubId);
+        if (foundIdx >= 0) window.activeGradeIndex = foundIdx;
     }
 
     renderGradePanel();
@@ -19651,7 +19663,7 @@ function renderGradePanel() {
   const el = document.getElementById('gradePanelBody');
   
   if (!gradeSubs || !gradeSubs.length) {
-    document.getElementById('gradePanelSub').textContent = `0 طفل ينتظر التصحيح`;
+    document.getElementById('gradePanelSub').textContent = `0 طفل في قائمة التصحيح`;
     el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--t3);"><i class="fas fa-check-circle" style="font-size:2rem;color:var(--ok);display:block;margin-bottom:10px;"></i>تم تصحيح جميع الإجابات!</div>';
     const indicator = document.getElementById('gradeIndexIndicator');
     if (indicator) indicator.textContent = '0 / 0';
@@ -19662,7 +19674,8 @@ function renderGradePanel() {
     window.activeGradeIndex = Math.max(0, gradeSubs.length - 1);
   }
 
-  document.getElementById('gradePanelSub').textContent = `${gradeSubs.length} طفل ينتظر التصحيح`;
+  const pendingCount = gradeSubs.filter(s => !parseInt(s.is_graded || 0)).length;
+  document.getElementById('gradePanelSub').textContent = `${gradeSubs.length} إجابة (${pendingCount} تنتظر التصحيح)`;
   updateGradeIndicator();
 
   const sub = gradeSubs[window.activeGradeIndex];
@@ -19670,24 +19683,29 @@ function renderGradePanel() {
 
   const allQuestions = gradeTaskData ? (gradeTaskData.questions||[]) : [];
   const totalDeg = gradeTaskData ? (gradeTaskData.total_degree||0) : 0;
-  const answers = JSON.parse(sub.answers||'{}');
+  const answers = typeof sub.answers === 'string' ? JSON.parse(sub.answers||'{}') : (sub.answers||{});
+  const openScores = typeof sub.open_scores === 'string' ? JSON.parse(sub.open_scores||'{}') : (sub.open_scores||{});
+  const corrNotes = typeof sub.correction_notes === 'string' ? JSON.parse(sub.correction_notes||'{}') : (sub.correction_notes||{});
+  const isAlreadyGraded = parseInt(sub.is_graded || 0) === 1;
 
   const qRows = allQuestions.map((q, qi) => {
     const qtype = q.question_type || 'mcq';
     const qId = String(q.id);
     const imgH = q.image_url ? `<div style="margin:4px 0 8px;border-radius:8px;overflow:hidden;border:1px solid var(--bdr);"><img src="${q.image_url}" alt="" style="width:100%;max-height:160px;object-fit:contain;display:block;background:#f8fafc;"></div>` : '';
     const noteId = `gn_${sub.id}_${q.id}`;
+    const existingNote = corrNotes[q.id] !== undefined ? corrNotes[q.id] : (corrNotes[qId] !== undefined ? corrNotes[qId] : '');
 
-    const buildNoteHtml = (placeholder) => `<div class="grade-note-row">
+    const buildNoteHtml = (placeholder, defaultVal = '') => `<div class="grade-note-row">
       <i class="fas fa-comment-dots"></i>
       <div class="gn-wrap">
         <div class="gn-lbl">ملاحظة / الإجابة الصحيحة للطفل:</div>
-        <textarea class="grade-note-inp" id="${noteId}" data-sub="${sub.id}" data-qid="${q.id}" placeholder="${placeholder}"></textarea>
+        <textarea class="grade-note-inp" id="${noteId}" data-sub="${sub.id}" data-qid="${q.id}" placeholder="${placeholder}">${esc(existingNote || defaultVal)}</textarea>
       </div>
     </div>`;
 
     if (qtype === 'open') {
-      const ans = answers[qId] !== undefined ? String(answers[qId]) : '';
+      const ans = answers[qId] !== undefined ? String(answers[qId]) : (answers[q.id] !== undefined ? String(answers[q.id]) : '');
+      const existingScore = openScores[q.id] !== undefined ? openScores[q.id] : (openScores[qId] !== undefined ? openScores[qId] : 0);
       return `<div class="grade-q-row" style="background:var(--bg2);border:1.5px solid #fde68a;border-radius:var(--r-sm);padding:11px 13px;margin-bottom:10px;">
         <div class="grade-q-text" style="color:#b45309;margin-bottom:4px;">
           <span style="background:#fef3c7;color:#92400e;border-radius:var(--r-full);padding:1px 8px;font-size:.66rem;font-weight:700;margin-left:5px;"><i class="fas fa-pen-nib"></i> مفتوح</span>
@@ -19697,7 +19715,7 @@ function renderGradePanel() {
         <div class="grade-ans-text" style="background:var(--bg);border:1px solid #fde68a;">${ans ? esc(ans) : '<em style="color:var(--t3);">— لم يُجب —</em>'}</div>
         <div class="grade-score-row">
           <span style="font-size:.78rem;color:var(--t2);font-weight:600;">الدرجة:</span>
-          <input class="grade-score-inp" type="number" min="0" max="${q.degree}" value="0"
+          <input class="grade-score-inp" type="number" min="0" max="${q.degree}" value="${parseInt(existingScore)||0}"
             id="gs_${sub.id}_${q.id}" data-sub="${sub.id}" data-qid="${q.id}" data-max="${q.degree}"
             oninput="clampGradeInput(this);updateSubScore(${sub.id})">
           <span class="grade-max-lbl">/ ${q.degree}</span>
@@ -19706,7 +19724,7 @@ function renderGradePanel() {
       </div>`;
     }
 
-    const given = answers[qId] !== undefined ? parseInt(answers[qId]) : null;
+    const given = answers[qId] !== undefined ? parseInt(answers[qId]) : (answers[q.id] !== undefined ? parseInt(answers[q.id]) : null);
     const correct = q.correct_index !== null ? parseInt(q.correct_index) : null;
     const isCorrect = given !== null && correct !== null && given === correct;
     const isWrong = given !== null && correct !== null && given !== correct;
@@ -19742,13 +19760,7 @@ function renderGradePanel() {
             </div>`;
           }).join('')}
         </div>
-        <div class="grade-note-row">
-          <i class="fas fa-comment-dots"></i>
-          <div class="gn-wrap">
-            <div class="gn-lbl">ملاحظة / الإجابة الصحيحة للطفل:</div>
-            <textarea class="grade-note-inp" id="${noteId}" data-sub="${sub.id}" data-qid="${q.id}" placeholder="${tfNotePlaceholder}">${tfNoteDefault}</textarea>
-          </div>
-        </div>
+        ${buildNoteHtml(tfNotePlaceholder, tfNoteDefault)}
       </div>`;
     }
 
@@ -19776,13 +19788,7 @@ function renderGradePanel() {
           ${isCorr&&!isSel?'<i class="fas fa-check" style="margin-right:auto;color:var(--ok);"></i>':''}
         </div>`;
       }).join('')}
-      <div class="grade-note-row">
-        <i class="fas fa-comment-dots"></i>
-        <div class="gn-wrap">
-          <div class="gn-lbl">ملاحظة / الإجابة الصحيحة للطفل:</div>
-          <textarea class="grade-note-inp" id="${noteId}" data-sub="${sub.id}" data-qid="${q.id}" placeholder="${mcqNotePlaceholder}">${mcqNoteDefault}</textarea>
-        </div>
-      </div>
+      ${buildNoteHtml(mcqNotePlaceholder, mcqNoteDefault)}
     </div>`;
   }).join('');
 
@@ -19790,19 +19796,28 @@ function renderGradePanel() {
   const photo = stud ? stud.photo : '';
   const avatar = getStudentAvatarHtml(photo, sub.student_name, '28px');
 
+  const gradedBadge = isAlreadyGraded
+    ? `<span style="background:var(--ok-bg);color:var(--ok);border-radius:var(--r-full);padding:2px 10px;font-size:.7rem;font-weight:800;border:1px solid #6ee7b7;"><i class="fas fa-check-circle"></i> تم التقييم (وضع التعديل)</span>`
+    : `<span style="background:#fef3c7;color:#92400e;border-radius:var(--r-full);padding:2px 10px;font-size:.7rem;font-weight:800;border:1px solid #fde68a;"><i class="fas fa-clock"></i> لم يتم التقييم بعد</span>`;
+
   el.innerHTML = `<div class="grade-sub-card" id="gradecard_${sub.id}" style="margin: 0; border: none; box-shadow: none;">
-    <div class="grade-sub-name" style="padding: 12px 18px; background: var(--bg3); border-bottom: 1px solid var(--bdr);">
+    <div class="grade-sub-name" style="padding: 12px 18px; background: var(--bg3); border-bottom: 1px solid var(--bdr); display:flex; align-items:center; gap:8px;">
       ${avatar}
-      <strong>${esc(sub.student_name||'—')}</strong>
-      <span style="font-size:.72rem;color:var(--t3);font-weight:500;margin-right:5px;">${esc(sub.task_title||'')}</span>
-      <span style="margin-right:auto;font-size:.72rem;" id="scoreDisp_${sub.id}"></span>
+      <div style="display:flex; flex-direction:column;">
+        <strong style="font-size:.9rem;">${esc(sub.student_name||'—')}</strong>
+        <span style="font-size:.7rem;color:var(--t3);font-weight:500;">${esc(sub.task_title||'')}</span>
+      </div>
+      <div style="margin-right:auto; display:flex; align-items:center; gap:8px;">
+        ${gradedBadge}
+        <span style="font-size:.75rem;" id="scoreDisp_${sub.id}"></span>
+      </div>
     </div>
     <div style="padding: 20px 24px; overflow-y: auto; flex: 1;">
       ${qRows}
     </div>
     <div style="padding: 16px 24px; background: var(--bg3); border-top: 1px solid var(--bdr); display: flex; justify-content: flex-end;">
       <button class="grade-save-btn" onclick="submitGrade(${sub.id}, ${si})" style="margin: 0; width: auto; padding: 10px 24px;">
-        <i class="fas fa-check"></i> حفظ التصحيح وتحديث الكوبونات
+        <i class="fas fa-check"></i> ${isAlreadyGraded ? 'حفظ تعديل الدرجة وتحديث الكوبونات' : 'حفظ التصحيح وتحديث الكوبونات'}
       </button>
     </div>
   </div>`;
@@ -20253,17 +20268,27 @@ function getSubmissionAnswersHtml(taskId, studentId) {
   const photo = stud ? stud.photo : '';
   const avatar = getStudentAvatarHtml(photo, sub.student_name, '40px');
 
+  const isSubGraded = parseInt(sub.is_graded || 0) === 1;
+  const hasOpenQuestions = (t.questions || []).some(q => (q.question_type || 'mcq') === 'open');
+
+  const scoreHeaderHtml = isSubGraded
+    ? `<div style="text-align:center;flex-shrink:0;">
+        <div style="font-size:1.4rem;font-weight:900;color:${scoreColor};line-height:1;">${score}<span style="font-size:.85rem;font-weight:600;color:var(--t3);">/${totalDeg}</span></div>
+        <div style="display:inline-flex;align-items:center;gap:4px;background:${scoreBg};color:${scoreColor};border-radius:var(--r-full);padding:2px 9px;font-size:.7rem;font-weight:700;margin-top:4px;">${pct}%</div>
+      </div>`
+    : `<div style="text-align:center;flex-shrink:0;">
+        <div style="display:inline-flex;align-items:center;gap:5px;background:#fef3c7;color:#92400e;border-radius:var(--r-full);padding:4px 11px;font-size:.78rem;font-weight:800;border:1px solid #fde68a;"><i class="fas fa-clock"></i> لم يتم التقييم بعد</div>
+      </div>`;
+
   let html = `<div class="ans-shell">
-    <div class="ans-head">
+    <div class="ans-head" style="align-items:center;gap:12px;">
       <div class="ans-avatar" style="background:none;border:none;display:flex;align-items:center;justify-content:center;padding:0;">${avatar}</div>
       <div style="flex:1;min-width:0;">
         <div class="ans-name">${esc(sub.student_name)}</div>
         <div class="ans-sub">أجاب على التاسك: <strong>${esc(t.title||'')}</strong></div>
       </div>
-      <div style="text-align:center;flex-shrink:0;">
-        <div style="font-size:1.4rem;font-weight:900;color:${scoreColor};line-height:1;">${score}<span style="font-size:.85rem;font-weight:600;color:var(--t3);">/${totalDeg}</span></div>
-        <div style="display:inline-flex;align-items:center;gap:4px;background:${scoreBg};color:${scoreColor};border-radius:var(--r-full);padding:2px 9px;font-size:.7rem;font-weight:700;margin-top:4px;">${pct}%</div>
-      </div>
+      ${scoreHeaderHtml}
+      ${hasOpenQuestions ? `<button onclick="document.querySelector('.overlay.open')?.remove();document.documentElement.classList.remove('ov-open');openGradePanel(${t.id},${sub.id},true)" style="background:var(--warn-bg);border:1.5px solid #fde68a;color:#b45309;padding:6px 12px;border-radius:8px;font-family:'Cairo',sans-serif;font-weight:800;font-size:.78rem;cursor:pointer;flex-shrink:0;"><i class="fas fa-pen-nib"></i> ${isSubGraded ? 'تعديل الدرجة' : 'تصحيح'}</button>` : ''}
     </div>`;
 
   if(!t.questions || t.questions.length === 0) {

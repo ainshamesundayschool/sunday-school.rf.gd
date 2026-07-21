@@ -43172,6 +43172,8 @@ function getStudentTasks()
 
         $sHasSubmitAt = in_array('submitted_at', $sCols);
 
+        $sHasIsGraded = in_array('is_graded', $sCols);
+
 
 
         $sSel = "id";
@@ -43187,6 +43189,10 @@ function getStudentTasks()
         if ($sHasSubmitAt)
 
             $sSel .= ", submitted_at";
+
+        if ($sHasIsGraded)
+
+            $sSel .= ", is_graded";
 
 
 
@@ -43267,6 +43273,8 @@ function getStudentTasks()
                     'score' => isset($subRow['score']) ? (int) $subRow['score'] : 0,
 
                     'coupons_awarded' => isset($subRow['coupons_awarded']) ? (int) $subRow['coupons_awarded'] : 0,
+
+                    'is_graded' => isset($subRow['is_graded']) ? (int) $subRow['is_graded'] : 0,
 
                     'submitted_at' => $subRow['submitted_at'] ?? null,
 
@@ -43418,7 +43426,7 @@ function submitTaskAnswers()
 
         // Load questions with correct answers
 
-        $qStmt = $conn->prepare("SELECT id, correct_index, degree FROM task_questions WHERE task_id=? ORDER BY sort_order");
+        $qStmt = $conn->prepare("SELECT id, question_type, correct_index, degree FROM task_questions WHERE task_id=? ORDER BY sort_order");
 
         $qStmt->bind_param('i', $taskId);
 
@@ -43428,21 +43436,31 @@ function submitTaskAnswers()
 
 
 
-        // Score
+        // Score & open question check
 
         $answers = json_decode($answersJson, true) ?: [];
 
         $score = 0;
 
+        $hasOpenQuestions = false;
+
+
+
         foreach ($questions as $q) {
 
-            $given = $answers[$q['id']] ?? $answers[(string) $q['id']] ?? null;
+            $qType = $q['question_type'] ?? 'mcq';
 
-            // Skip open questions (correct_index is NULL — graded manually)
+            if ($qType === 'open' || $q['correct_index'] === null) {
 
-            if ($q['correct_index'] === null)
+                $hasOpenQuestions = true;
 
                 continue;
+
+            }
+
+
+
+            $given = $answers[$q['id']] ?? $answers[(string) $q['id']] ?? null;
 
             if ($given !== null && (int) $given === (int) $q['correct_index']) {
 
@@ -43454,21 +43472,31 @@ function submitTaskAnswers()
 
 
 
-        // Coupons from matrix
+        // Tasks with open questions remain un-graded (is_graded = 0) and coupons are held (0) until reviewed by teacher.
 
-        $pct = $task['total_degree'] > 0 ? ($score / $task['total_degree'] * 100) : 0;
+        // MCQ/TF-only tasks are auto-graded immediately (is_graded = 1) with coupons awarded.
 
-        $matrix = json_decode($task['coupon_matrix'] ?? '[]', true) ?: [];
+        $isGraded = $hasOpenQuestions ? 0 : 1;
 
         $coupons = 0;
 
-        foreach ($matrix as $tier) {
 
-            if ($pct >= (float) $tier['from'] && $pct <= (float) $tier['to']) {
 
-                $coupons = (int) $tier['val'];
+        if ($isGraded) {
 
-                break;
+            $pct = $task['total_degree'] > 0 ? ($score / $task['total_degree'] * 100) : 0;
+
+            $matrix = json_decode($task['coupon_matrix'] ?? '[]', true) ?: [];
+
+            foreach ($matrix as $tier) {
+
+                if ($pct >= (float) $tier['from'] && $pct <= (float) $tier['to']) {
+
+                    $coupons = (int) $tier['val'];
+
+                    break;
+
+                }
 
             }
 
@@ -43480,21 +43508,29 @@ function submitTaskAnswers()
 
 
 
-        // Insert submission — submitted_at uses NOW() inline so only 7 bind vars
+        // Ensure is_graded column exists
+
+        $conn->query("ALTER TABLE task_submissions ADD COLUMN IF NOT EXISTS is_graded TINYINT(1) NOT NULL DEFAULT 0");
+
+
+
+        // Insert submission
 
         $ins = $conn->prepare("
 
             INSERT INTO task_submissions
 
-                (task_id, student_id, church_id, answers, score, coupons_awarded, submitted_at, time_taken_sec)
+                (task_id, student_id, church_id, answers, score, coupons_awarded, is_graded, submitted_at, time_taken_sec)
 
-            VALUES (?,?,?,?,?,?,NOW(),?)
+            VALUES (?,?,?,?,?,?,?,NOW(),?)
 
         ");
 
+
+
         $nullableTime = ($timeTaken !== null) ? (int) $timeTaken : null;
 
-        $ins->bind_param('iiisiii', $taskId, $studentId, $churchId, $answersJson, $score, $coupons, $nullableTime);
+        $ins->bind_param('iiisiiii', $taskId, $studentId, $churchId, $answersJson, $score, $coupons, $isGraded, $nullableTime);
 
         $ins->execute();
 
@@ -46243,6 +46279,8 @@ function getPendingOpenSubmissions()
 
         $taskId = (int) ($_POST['task_id'] ?? 0);
 
+        $includeGraded = !empty($_POST['include_graded']) ? (int) $_POST['include_graded'] : 0;
+
 
 
         // Ensure columns exist
@@ -46251,15 +46289,49 @@ function getPendingOpenSubmissions()
 
         $conn->query("ALTER TABLE task_submissions ADD COLUMN IF NOT EXISTS open_scores LONGTEXT DEFAULT NULL");
 
+        $conn->query("ALTER TABLE task_submissions ADD COLUMN IF NOT EXISTS correction_notes LONGTEXT DEFAULT NULL");
+
+        $conn->query("ALTER TABLE task_submissions ADD COLUMN IF NOT EXISTS coupons_awarded INT NOT NULL DEFAULT 0");
+
         $conn->query("ALTER TABLE task_questions  ADD COLUMN IF NOT EXISTS question_type ENUM('mcq','open') NOT NULL DEFAULT 'mcq' AFTER id");
 
 
 
-        $where = "ts.church_id = ? AND ts.is_graded = 0";
+        // Migration helper: mark past submissions for tasks without open questions as is_graded=1
+
+        $conn->query("
+
+            UPDATE task_submissions ts 
+
+            SET ts.is_graded = 1 
+
+            WHERE ts.is_graded = 0 
+
+              AND NOT EXISTS (
+
+                  SELECT 1 FROM task_questions tq 
+
+                  WHERE tq.task_id = ts.task_id AND tq.question_type = 'open'
+
+              )
+
+        ");
+
+
+
+        $where = "ts.church_id = ?";
 
         $params = [$churchId];
 
         $types = 'i';
+
+
+
+        if (!$includeGraded) {
+
+            $where .= " AND ts.is_graded = 0";
+
+        }
 
 
 
@@ -46279,7 +46351,7 @@ function getPendingOpenSubmissions()
 
         $stmt = $conn->prepare("
 
-            SELECT ts.id, ts.task_id, ts.student_id, ts.answers, ts.submitted_at,
+            SELECT ts.id, ts.task_id, ts.student_id, ts.answers, ts.open_scores, ts.correction_notes, ts.score, ts.coupons_awarded, ts.is_graded, ts.submitted_at,
 
                    s.name AS student_name, t.title AS task_title,
 
@@ -46293,9 +46365,9 @@ function getPendingOpenSubmissions()
 
             WHERE $where
 
-            ORDER BY ts.submitted_at DESC
+            ORDER BY ts.is_graded ASC, ts.submitted_at DESC
 
-            LIMIT 100
+            LIMIT 150
 
         ");
 
