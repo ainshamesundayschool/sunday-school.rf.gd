@@ -1339,15 +1339,40 @@
             window.location.href = '/user/profile/';
         }
 
-        // ===== PASSWORD RECOVERY =====
+        // ===== PASSWORD RECOVERY WITH WHATSAPP OTP VERIFICATION =====
         function showPasswordRecovery() {
             const phone = elements.phoneInput.value.trim();
             if (!phone) {
                 showPhoneError('الرجاء إدخال رقم الهاتف أولاً');
                 return;
             }
+
+            showLoading('جاري التحضير لإعادة تعيين كلمة المرور...');
             
-            alert('إذا نسيت كلمة المرور، يرجى التواصل مع إدارة المدرسة أو المعلم المسؤول عن حسابك.');
+            const formData = new FormData();
+            formData.append('action', 'checkKidPasswordByPhone');
+            formData.append('phone', cleanPhoneNumber(phone));
+            
+            fetch('api.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                hideLoading();
+                if (data.success && data.student_id) {
+                    showSuccess('لإعادة تعيين كلمة المرور، يرجى تأكيد ملكية رقم الهاتف أولاً عبر الواتساب.');
+                    setTimeout(() => {
+                        startPhoneVerification(phone, data.student_id);
+                    }, 1200);
+                } else {
+                    showPhoneError('رقم الهاتف غير مسجل في النظام');
+                }
+            })
+            .catch(err => {
+                hideLoading();
+                showPhoneError('خطأ في الاتصال بالخادم');
+            });
         }
 
         // ===== HELPER FUNCTIONS =====
