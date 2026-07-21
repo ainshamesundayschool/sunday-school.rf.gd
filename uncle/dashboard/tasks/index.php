@@ -19815,7 +19815,8 @@ function renderGradePanel() {
     <div style="padding: 20px 24px; overflow-y: auto; flex: 1;">
       ${qRows}
     </div>
-    <div style="padding: 16px 24px; background: var(--bg3); border-top: 1px solid var(--bdr); display: flex; justify-content: flex-end;">
+    <div style="padding: 16px 24px; background: var(--bg3); border-top: 1px solid var(--bdr); display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+      ${isAlreadyGraded ? `<button type="button" class="grade-clear-btn" onclick="clearGrade(${sub.id}, ${si})" style="background:var(--err-bg);border:1.5px solid #fca5a5;color:var(--err);padding:9px 16px;border-radius:8px;font-family:inherit;font-weight:800;font-size:.82rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px;"><i class="fas fa-undo"></i> مسح التقييم (إعادة كغير مصحح)</button>` : '<div></div>'}
       <button class="grade-save-btn" onclick="submitGrade(${sub.id}, ${si})" style="margin: 0; width: auto; padding: 10px 24px;">
         <i class="fas fa-check"></i> ${isAlreadyGraded ? 'حفظ تعديل الدرجة وتحديث الكوبونات' : 'حفظ التصحيح وتحديث الكوبونات'}
       </button>
@@ -19998,138 +19999,136 @@ function updateSubScore(subId) {
 
 
 
-async function submitGrade(subId, subIdx) {
+async function clearGrade(subId, subIdx) {
+  const sub = gradeSubs ? gradeSubs[subIdx] : null;
+  if (!sub) return;
 
+  const prevCoupons = parseInt(sub.coupons_awarded || 0);
+  const studentName = sub.student_name || 'الطفل';
 
+  let confirmMsg = `⚠️ هل أنت متأكد من مسح تقييم هذا التكليف للطفل [${studentName}]؟\nسيتم إعادة التكليف لحالة "بانتظار التقييم" وتظهر في حساب الطفل كغير مصحح.`;
+  if (prevCoupons > 0) {
+    confirmMsg += `\n\n🚨 **تحذير الكوبونات:** سيتم خصم وسحب (${prevCoupons}) كوبون سبق منحها للطفل لهذا التكليف!`;
+  }
 
-  const scores = {};
+  if (!(await showConfirm({ message: confirmMsg, danger: true }))) return;
 
-
-
-  document.querySelectorAll(`.grade-score-inp[data-sub="${subId}"]`).forEach(inp => {
-
-
-
-    scores[inp.dataset.qid] = parseInt(inp.value)||0;
-
-
-
-  });
-
-
-
-  const notes = {};
-
-
-
-  document.querySelectorAll(`.grade-note-inp[data-sub="${subId}"]`).forEach(ta => {
-
-
-
-    if(ta.value.trim()) notes[ta.dataset.qid] = ta.value.trim();
-
-
-
-  });
-
-
-
-  const btn = document.querySelector(`#gradecard_${subId} .grade-save-btn`);
-
-
-
-  const orig = btn.innerHTML; btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> جارٍ الحفظ…';
-
-
+  const btn = document.querySelector(`#gradecard_${subId} .grade-clear-btn`);
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جارٍ مسح التقييم…'; }
 
   try {
+    const d = await api('resetSubmissionGrade', { submission_id: subId });
+    if (d.success) {
+      let couponMsg = d.prev_coupons > 0 ? ` وتم خصم ${d.prev_coupons} كوبون` : '';
+      showToast(`تم مسح التقييم وإعادة التكليف لحالة "بانتظار التقييم"${couponMsg}`, 'ok');
 
+      if (window.detailTask) {
+        await loadTaskDetail(gradeTaskId);
+      }
+      openGradePanel(gradeTaskId, null, true);
+      if (typeof loadTasks === 'function') await loadTasks();
+    } else {
+      showToast(d.message || 'فشل مسح التقييم', 'err');
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-undo"></i> مسح التقييم (إعادة كغير مصحح)'; }
+    }
+  } catch (e) {
+    showToast('خطأ في الاتصال', 'err');
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-undo"></i> مسح التقييم (إعادة كغير مصحح)'; }
+  }
+}
 
+async function submitGrade(subId, subIdx) {
+  const sub = gradeSubs ? gradeSubs[subIdx] : null;
 
+  const scores = {};
+  document.querySelectorAll(`.grade-score-inp[data-sub="${subId}"]`).forEach(inp => {
+    scores[inp.dataset.qid] = parseInt(inp.value)||0;
+  });
+
+  const notes = {};
+  document.querySelectorAll(`.grade-note-inp[data-sub="${subId}"]`).forEach(ta => {
+    if(ta.value.trim()) notes[ta.dataset.qid] = ta.value.trim();
+  });
+
+  // Calculate projected new score & projected new coupons
+  const allQuestions = gradeTaskData ? (gradeTaskData.questions || []) : [];
+  const answers = typeof sub?.answers === 'string' ? JSON.parse(sub.answers || '{}') : (sub?.answers || {});
+  let mcqScore = 0;
+  let openScore = 0;
+  allQuestions.forEach(q => {
+    if ((q.question_type || 'mcq') === 'open') {
+      openScore += parseInt(scores[q.id] ?? scores[String(q.id)] ?? 0);
+    } else if (q.correct_index !== null && q.correct_index !== undefined) {
+      const given = answers[q.id] !== undefined ? answers[q.id] : answers[String(q.id)];
+      if (given !== null && given !== undefined && parseInt(given) === parseInt(q.correct_index)) {
+        mcqScore += parseInt(q.degree || 0);
+      }
+    }
+  });
+  const totalScore = mcqScore + openScore;
+  const totalDeg = gradeTaskData?.total_degree || 0;
+  const pct = totalDeg > 0 ? (totalScore / totalDeg * 100) : 0;
+  const matrix = typeof gradeTaskData?.coupon_matrix === 'string' ? JSON.parse(gradeTaskData.coupon_matrix || '[]') : (gradeTaskData?.coupon_matrix || []);
+  let projectedCoupons = 0;
+  for (const tier of matrix) {
+    if (pct >= parseFloat(tier.from) && pct <= parseFloat(tier.to)) {
+      projectedCoupons = parseInt(tier.val) || 0;
+      break;
+    }
+  }
+
+  const prevCoupons = parseInt(sub?.coupons_awarded || 0);
+  const isAlreadyGraded = parseInt(sub?.is_graded || 0) === 1;
+  const couponDiff = projectedCoupons - prevCoupons;
+  const studentName = sub?.student_name || 'الطفل';
+
+  // Always warn if coupon changes!
+  if (couponDiff !== 0) {
+    let warnMsg = ``;
+    if (isAlreadyGraded) {
+      if (couponDiff > 0) {
+        warnMsg = `⚠️ **تأكيد تعديل التقييم والكوبونات:**\nسيتم تعديل درجات الطفل [${studentName}] وتعديل الكوبونات بـ **إضافة (+${couponDiff}) كوبون إضافي**.\n\nهل تريد الاستمرار والحفظ؟`;
+      } else {
+        warnMsg = `⚠️ **تأكيد تعديل التقييم والكوبونات:**\nسيتم تعديل درجات الطفل [${studentName}] وتعديل الكوبونات بـ **خصم (-${Math.abs(couponDiff)}) كوبون**.\n\nهل تريد الاستمرار والحفظ؟`;
+      }
+    } else {
+      warnMsg = `⚠️ **تأكيد اعتماد التقييم:**\nسيتم اعتماد درجات الطفل [${studentName}] وحصوله على **(${projectedCoupons}) كوبون**.\n\nهل تريد حفظ التصحيح؟`;
+    }
+
+    if (!(await showConfirm({ message: warnMsg, danger: couponDiff < 0 }))) {
+      return;
+    }
+  }
+
+  const btn = document.querySelector(`#gradecard_${subId} .grade-save-btn`);
+  const orig = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جارٍ الحفظ…'; }
+
+  try {
     const d = await api('gradeOpenAnswer', {
-
-
-
       submission_id: subId,
-
-
-
       scores: JSON.stringify(scores),
-
-
-
       notes: JSON.stringify(notes)
-
-
-
     });
 
-
-
     if(d.success){
-
-
-
-      // coupon_diff = change in task_coupons (positive = added, negative = removed, 0 = no change)
-
-
-
       let couponMsg = '';
-
-
-
       if(d.coupon_diff > 0)       couponMsg = ` — تمت إضافة ${d.coupon_diff} كوبون لكوبونات التاسكات`;
-
-
-
       else if(d.coupon_diff < 0)  couponMsg = ` — تم خصم ${Math.abs(d.coupon_diff)} كوبون من كوبونات التاسكات`;
-
-
-
       else                         couponMsg = ' — لا تغيير في الكوبونات';
-
-
 
       showToast(`تم الحفظ: ${d.score}/${gradeTaskData?.total_degree||0} درجة${couponMsg}`, 'ok');
 
-
-
-      document.getElementById(`gradecard_${subId}`)?.remove();
-
-
-
-      gradeSubs.splice(subIdx,1);
-
-
-
-      if(!gradeSubs.length) renderGradePanel();
-
-
-
-      // Reload tasks list so stats card + submission counts update
-
-
-
-      await loadTasks();
-
-
-
-      updatePendingBadge(gradeTaskId);
-
-
-
+      if (window.detailTask) {
+        await loadTaskDetail(gradeTaskId);
+      }
+      openGradePanel(gradeTaskId, null, true);
+      if (typeof loadTasks === 'function') await loadTasks();
     } else showToast(d.message||'فشل','err');
-
-
 
   } catch(e){showToast('خطأ','err');}
 
-
-
-  btn.disabled=false; btn.innerHTML=orig;
-
-
-
+  if (btn) { btn.disabled=false; btn.innerHTML=orig; }
 }
 
 

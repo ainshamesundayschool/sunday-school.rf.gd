@@ -5625,6 +5625,18 @@ try {
 
 
 
+        case 'resetSubmissionGrade':
+
+        case 'clearSubmissionGrade':
+
+            checkUncleAuth();
+
+            resetSubmissionGrade();
+
+            break;
+
+
+
         case 'processGameQRCode':
 
             processGameQRCode();
@@ -46450,6 +46462,81 @@ function gradeOpenAnswer()
 
     }
 
+}
+
+function resetSubmissionGrade()
+{
+    try {
+        $conn = getDBConnection();
+        $churchId = getChurchId();
+        $uncleId = (int) ($_SESSION['uncle_id'] ?? 0);
+        $subId = (int) ($_POST['submission_id'] ?? 0);
+
+        if (!$subId) {
+            sendJSON(['success' => false, 'message' => 'submission_id مطلوب']);
+            return;
+        }
+
+        $subStmt = $conn->prepare("
+            SELECT ts.*, t.total_degree, t.title AS task_title, s.name AS student_name, s.class AS student_class
+            FROM task_submissions ts 
+            JOIN tasks t ON t.id=ts.task_id 
+            LEFT JOIN students s ON s.id=ts.student_id
+            WHERE ts.id=? AND ts.church_id=?
+        ");
+        $subStmt->bind_param('ii', $subId, $churchId);
+        $subStmt->execute();
+        $sub = $subStmt->get_result()->fetch_assoc();
+
+        if (!$sub) {
+            sendJSON(['success' => false, 'message' => 'السجل غير موجود']);
+            return;
+        }
+
+        $prevCoupons = (int) ($sub['coupons_awarded'] ?? 0);
+        $couponDiff = -$prevCoupons;
+
+        $conn->begin_transaction();
+
+        // Reset submission to is_graded = 0, coupons_awarded = 0, open_scores = NULL, correction_notes = NULL, score = 0
+        $upd = $conn->prepare("UPDATE task_submissions SET score=0, open_scores=NULL, correction_notes=NULL, coupons_awarded=0, is_graded=0, graded_by_uncle_id=NULL, graded_at=NULL WHERE id=?");
+        $upd->bind_param('i', $subId);
+        $upd->execute();
+
+        // Revert coupons awarded from student if any were awarded
+        if ($prevCoupons > 0) {
+            $stuStmt = $conn->prepare("SELECT name, coupons, task_coupons, attendance_coupons, commitment_coupons FROM students WHERE id=? LIMIT 1");
+            $stuStmt->bind_param('i', $sub['student_id']);
+            $stuStmt->execute();
+            $stu = $stuStmt->get_result()->fetch_assoc();
+
+            if ($stu) {
+                $newTask = max(0, (int) $stu['task_coupons'] - $prevCoupons);
+                $newTotal = $newTask + (int) $stu['attendance_coupons'] + (int) $stu['commitment_coupons'];
+                $conn->query("UPDATE students SET task_coupons={$newTask}, coupons={$newTotal} WHERE id={$sub['student_id']}");
+
+                $reason = "مسح تقييم تاسك #{$sub['task_id']}: خصم {$prevCoupons} كوبون وإعادة التكليف لحالة بانتظار التقييم";
+                $log = $conn->prepare("INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason) VALUES (?,?,?,?,?,'task',?)");
+                $log->bind_param('iiiiss', $sub['student_id'], $uncleId, $stu['task_coupons'], $newTask, $couponDiff, $reason);
+                $log->execute();
+
+                auditCouponChange($sub['student_id'], $stu['name'] ?? '', (int) $stu['coupons'], $newTotal, $reason);
+            }
+        }
+
+        $conn->commit();
+
+        sendJSON([
+            'success' => true,
+            'message' => 'تم مسح التقييم وإعادة التكليف لحالة بانتظار التقييم وسحب الكوبونات بنجاح',
+            'coupon_diff' => $couponDiff,
+            'prev_coupons' => $prevCoupons
+        ]);
+
+    } catch (Exception $e) {
+        if (isset($conn)) $conn->rollback();
+        sendJSON(['success' => false, 'message' => 'خطأ: ' . $e->getMessage()]);
+    }
 }
 
 
