@@ -19599,6 +19599,15 @@ async function openGradePanel(taskId, targetSubId = null, includeGraded = true) 
         if (foundIdx >= 0) window.activeGradeIndex = foundIdx;
     }
 
+    // Update URL query parameters for deep linking
+    try {
+        const url = new URL(window.location.href);
+        url.searchParams.set('taskId', taskId);
+        url.searchParams.set('action', 'grade');
+        if (targetSubId) url.searchParams.set('subId', targetSubId);
+        window.history.replaceState({}, '', url.toString());
+    } catch(err){}
+
     renderGradePanel();
   } catch(e){showToast('خطأ في الاتصال','err');}
 }
@@ -20122,17 +20131,15 @@ async function submitGrade(subId, subIdx) {
 
 
 function closeGradePanel(){
-
-
-
   document.getElementById('gradePanel').classList.remove('open');
-
-
-
   document.body.style.overflow='';
-
-
-
+  try {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('action');
+    url.searchParams.delete('subId');
+    url.searchParams.delete('sub_id');
+    window.history.replaceState({}, '', url.toString());
+  } catch(e){}
 }
 
 
