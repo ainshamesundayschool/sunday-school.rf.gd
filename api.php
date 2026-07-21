@@ -4306,6 +4306,12 @@ try {
 
             break;
 
+        case 'getLatestPhoneOTP':
+
+            getLatestPhoneOTP();
+
+            break;
+
         case 'getStudentProfile':
 
             getStudentProfile();
@@ -20627,6 +20633,37 @@ function verifyCustomWhatsAppOTP() {
         }
     } catch (Exception $e) {
         sendJSON(['success' => false, 'message' => 'خطأ في التحقق: ' . $e->getMessage()]);
+    }
+}
+
+function getLatestPhoneOTP() {
+    try {
+        $phone = sanitize($_POST['phone'] ?? '');
+        $cleanPhone = preg_replace('/[^\d]/', '', $phone);
+        
+        if (empty($cleanPhone)) {
+            sendJSON(['success' => false, 'message' => 'رقم الهاتف مطلوب']);
+        }
+        
+        $conn = getDBConnection();
+        $stmt = $conn->prepare("
+            SELECT otp_code FROM phone_verifications 
+            WHERE (phone = ? OR phone LIKE CONCAT('%', ?)) 
+              AND expires_at >= NOW() 
+              AND is_verified = 0 
+            ORDER BY id DESC LIMIT 1
+        ");
+        $stmt->bind_param("ss", $cleanPhone, $cleanPhone);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        
+        if ($row = $res->fetch_assoc()) {
+            sendJSON(['success' => true, 'otp_code' => $row['otp_code']]);
+        } else {
+            sendJSON(['success' => false, 'message' => 'لا يوجد كود نشط']);
+        }
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
     }
 }
 
