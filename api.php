@@ -3480,7 +3480,13 @@ try {
 
             break;
 
+        case 'getAuditAnalytics':
 
+            checkAuth();
+
+            getAuditAnalytics();
+
+            break;
 
         case 'getEntityAuditHistory':
 

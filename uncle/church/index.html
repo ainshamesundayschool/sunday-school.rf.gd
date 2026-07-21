@@ -9137,6 +9137,8 @@
                                 متعدد</button>
                             <button class="btn btn-outline btn-sm" onclick="exportAuditCSV()"><i
                                     class="fas fa-file-csv"></i> تصدير CSV</button>
+                            <button class="btn btn-primary btn-sm" onclick="showAuditAnalyticsModal()"><i
+                                    class="fas fa-chart-pie"></i> تحليل وحجم السجلات</button>
                             <button class="btn btn-outline btn-sm" onclick="loadAuditLogs()"><i
                                     class="fas fa-sync-alt"></i> تحديث</button>
                             <button class="btn btn-danger btn-sm" onclick="showClearHistoryModal()"
@@ -27081,7 +27083,202 @@
         modal.style.display = 'none';
       }
     }
+
+    async function showAuditAnalyticsModal() {
+      openModal('auditAnalyticsModal');
+      const body = document.getElementById('auditAnalyticsBody');
+      if (!body) return;
+
+      body.innerHTML = `
+        <div style="text-align:center; padding:40px; color:var(--muted);">
+          <i class="fas fa-spinner fa-spin fa-2x"></i>
+          <p style="margin-top:10px; font-weight:700;">جاري حساب الإحصائيات وتحليل سجلات الرحلات...</p>
+        </div>
+      `;
+
+      try {
+        const fd = mkFd('getAuditAnalytics');
+        const response = await fetch(API_URL, { method: 'POST', body: fd });
+        const d = await response.json();
+
+        if (!d.success) {
+          body.innerHTML = `<div class="empty-state" style="padding:28px;"><i class="fas fa-exclamation-triangle"></i><h3>${escHtml(d.message || 'فشل تحميل التحليلات')}</h3></div>`;
+          return;
+        }
+
+        const total = d.total_logs || 0;
+        const cats = d.categories || [];
+        const tripData = d.trip_analytics || {};
+        const topTrips = tripData.top_trips || [];
+        const tripActions = tripData.action_breakdown || [];
+        const totalTripLogs = tripData.total_trip_logs || 0;
+        const tripPct = total > 0 ? Math.round((totalTripLogs / total) * 100) : 0;
+
+        const catNames = {
+          trip: { name: 'الرحلات والمؤتمرات', icon: 'fa-bus', color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.1)' },
+          student: { name: 'الأطفال والبيانات', icon: 'fa-users', color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' },
+          attendance: { name: 'الغياب والحضور', icon: 'fa-calendar-check', color: '#06b6d4', bg: 'rgba(6, 182, 212, 0.1)' },
+          coupon: { name: 'الكوبونات والنقاط', icon: 'fa-star', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' },
+          auth: { name: 'تسجيلات الدخول', icon: 'fa-sign-in-alt', color: '#6366f1', bg: 'rgba(99, 102, 241, 0.1)' },
+          other: { name: 'عمليات أخرى', icon: 'fa-cog', color: '#64748b', bg: 'rgba(100, 116, 139, 0.1)' }
+        };
+
+        const actionNamesAr = {
+          'trip_payment_update': 'تحديث دفع وااشتراكات الرحلة',
+          'trip_registration': 'تسجيل اشتراك جديد في الرحلة',
+          'trip_attendance': 'تسجيل حضور وغياب الرحلة',
+          'trip_room_assignment': 'تسكين وتوزيع الغرف',
+          'trip_bus_seat': 'حجز وتوزيع مقاعد الأتوبيس',
+          'trip_edit': 'تعديل تفاصيل الرحلة الأساسية',
+          'trip_add': 'إنشاء رحلة جديدة',
+          'trip_delete': 'حذف رحلة'
+        };
+
+        let html = `
+          <!-- Top Summary Cards -->
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:24px;">
+            <div style="background:var(--surface-1); border:1px solid var(--border); border-radius:14px; padding:14px; text-align:center;">
+              <div style="font-size:0.75rem; color:var(--muted); font-weight:700; margin-bottom:4px;">إجمالي سجل العمليات</div>
+              <div style="font-size:1.4rem; font-weight:800; color:var(--primary);">${total.toLocaleString('ar-EG')} سجل</div>
+            </div>
+            <div style="background:rgba(139,92,246,0.08); border:1px solid rgba(139,92,246,0.25); border-radius:14px; padding:14px; text-align:center;">
+              <div style="font-size:0.75rem; color:#8b5cf6; font-weight:800; margin-bottom:4px;"><i class="fas fa-bus"></i> حجم سجلات الرحلات</div>
+              <div style="font-size:1.4rem; font-weight:800; color:#8b5cf6;">${totalTripLogs.toLocaleString('ar-EG')} (${tripPct}%)</div>
+            </div>
+            <div style="background:var(--surface-1); border:1px solid var(--border); border-radius:14px; padding:14px; text-align:center;">
+              <div style="font-size:0.75rem; color:var(--muted); font-weight:700; margin-bottom:4px;">أكبر رحلة مسجلة</div>
+              <div style="font-size:0.88rem; font-weight:800; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${escHtml(topTrips[0]?.trip_name || 'لا يوجد')}">${escHtml(topTrips[0]?.trip_name || 'لا يوجد')}</div>
+              <div style="font-size:0.72rem; color:var(--muted); font-weight:700; margin-top:2px;">${topTrips[0] ? topTrips[0].count + ' سجل' : ''}</div>
+            </div>
+          </div>
+
+          <!-- Categories Share Progress Bars -->
+          <div style="background:var(--surface-1); border:1px solid var(--border); border-radius:16px; padding:18px; margin-bottom:24px;">
+            <h4 style="font-weight:800; font-size:0.95rem; color:var(--text-main); margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+              <i class="fas fa-layer-group" style="color:var(--primary);"></i> توزيع العمليات حسب الأقسام
+            </h4>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+        `;
+
+        cats.forEach(c => {
+          const meta = catNames[c.category] || catNames.other;
+          html += `
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; margin-bottom:4px; font-weight:700;">
+                <span style="display:flex; align-items:center; gap:6px; color:var(--text-main);">
+                  <i class="fas ${meta.icon}" style="color:${meta.color}; width:16px;"></i> ${meta.name}
+                </span>
+                <span style="color:var(--muted);">${c.count.toLocaleString('ar-EG')} سجل (${c.percentage}%)</span>
+              </div>
+              <div style="width:100%; height:8px; background:var(--surface-2); border-radius:4px; overflow:hidden;">
+                <div style="width:${c.percentage}%; height:100%; background:${meta.color}; border-radius:4px;"></div>
+              </div>
+            </div>
+          `;
+        });
+
+        html += `
+            </div>
+          </div>
+
+          <!-- TRIP DEEP ANALYTICS BREAKDOWN -->
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:16px;">
+            <!-- Top Trips Taking Space -->
+            <div style="background:var(--surface-1); border:1px solid var(--border); border-radius:16px; padding:18px;">
+              <h4 style="font-weight:800; font-size:0.95rem; color:var(--text-main); margin-bottom:8px; display:flex; align-items:center; gap:8px;">
+                <i class="fas fa-bus-alt" style="color:#8b5cf6;"></i> أكثر الرحلات استهلاكاً للسجل
+              </h4>
+              <p style="font-size:0.75rem; color:var(--muted); margin-bottom:14px;">ترتيب الرحلات التي قامت بتوليد أكبر عدد من العمليات</p>
+              <div style="display:flex; flex-direction:column; gap:10px;">
+        `;
+
+        if (topTrips.length === 0) {
+          html += `<div style="text-align:center; padding:16px; color:var(--muted); font-size:0.8rem;">لا توجد رحلات مسجلة في السجل</div>`;
+        } else {
+          topTrips.forEach((t, idx) => {
+            const tripPct = totalTripLogs > 0 ? Math.round((t.count / totalTripLogs) * 100) : 0;
+            html += `
+              <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-radius:10px; background:var(--surface-2); border:1px solid var(--border);">
+                <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                  <span style="width:24px; height:24px; border-radius:50%; background:rgba(139,92,246,0.15); color:#8b5cf6; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.75rem; flex-shrink:0;">${idx+1}</span>
+                  <div style="min-width:0; flex:1;">
+                    <div style="font-weight:700; font-size:0.83rem; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escHtml(t.trip_name)}</div>
+                    <div style="font-size:0.7rem; color:var(--muted); margin-top:2px;">نسبة من سجل الرحلات: ${tripPct}%</div>
+                  </div>
+                </div>
+                <span style="font-weight:800; font-size:0.82rem; color:#8b5cf6; background:rgba(139,92,246,0.1); padding:4px 10px; border-radius:8px; flex-shrink:0;">${t.count} سجل</span>
+              </div>
+            `;
+          });
+        }
+
+        html += `
+              </div>
+            </div>
+
+            <!-- What exactly inside trips takes space -->
+            <div style="background:var(--surface-1); border:1px solid var(--border); border-radius:16px; padding:18px;">
+              <h4 style="font-weight:800; font-size:0.95rem; color:var(--text-main); margin-bottom:8px; display:flex; align-items:center; gap:8px;">
+                <i class="fas fa-list-check" style="color:#06b6d4;"></i> الأفعال الأكثر تكراراً داخل الرحلات
+              </h4>
+              <p style="font-size:0.75rem; color:var(--muted); margin-bottom:14px;">تفاصيل الأفعال المسببة للحجم (دفع، حضور، غرف)</p>
+              <div style="display:flex; flex-direction:column; gap:10px;">
+        `;
+
+        if (tripActions.length === 0) {
+          html += `<div style="text-align:center; padding:16px; color:var(--muted); font-size:0.8rem;">لا توجد تفاصيل أفعال للرحلات</div>`;
+        } else {
+          tripActions.forEach(act => {
+            const label = actionNamesAr[act.action] || act.action;
+            html += `
+              <div>
+                <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.78rem; font-weight:700; margin-bottom:4px;">
+                  <span style="color:var(--text-main);">${escHtml(label)}</span>
+                  <span style="color:#06b6d4; font-weight:800;">${act.count} سجل (${act.percentage}%)</span>
+                </div>
+                <div style="width:100%; height:6px; background:var(--surface-2); border-radius:3px; overflow:hidden;">
+                  <div style="width:${act.percentage}%; height:100%; background:#06b6d4; border-radius:3px;"></div>
+                </div>
+              </div>
+            `;
+          });
+        }
+
+        html += `
+              </div>
+            </div>
+          </div>
+        `;
+
+        body.innerHTML = html;
+      } catch (err) {
+        console.error("Error fetching audit analytics:", err);
+        body.innerHTML = `<div class="empty-state" style="padding:28px;"><i class="fas fa-exclamation-triangle"></i><h3>خطأ في الاتصال بالخادم</h3></div>`;
+      }
+    }
   </script>
+
+  <!-- AUDIT LOGS ANALYTICS & VOLUME OVERVIEW MODAL -->
+  <div id="auditAnalyticsModal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:10000; background:rgba(15,23,42,0.6); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:16px;">
+    <div class="modal-content wide" style="max-width:850px; width:100%; background:var(--surface-main,#fff); border-radius:20px; overflow:hidden; box-shadow:0 20px 40px rgba(0,0,0,0.2); border:1px solid var(--border);">
+      <div class="modal-header" style="background:var(--surface-2,#f8fafc); padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="width:38px; height:38px; border-radius:12px; background:rgba(99,102,241,0.12); color:#6366f1; display:flex; align-items:center; justify-content:center; font-size:1.1rem;">
+            <i class="fas fa-chart-pie"></i>
+          </div>
+          <div>
+            <h3 style="font-weight:800; font-size:1.1rem; color:var(--text-main); margin:0;">تحليل إحصائيات وحجم السجلات</h3>
+            <p style="font-size:0.78rem; color:var(--muted); margin:0;">تحليل دقيق لأكثر الأنشطة والرحلات التي تستهلك مساحة السجل في النظام</p>
+          </div>
+        </div>
+        <button onclick="closeModal('auditAnalyticsModal')" class="btn-icon" style="background:none; border:none; color:var(--muted); font-size:1.2rem; cursor:pointer;"><i class="fas fa-times"></i></button>
+      </div>
+
+      <div class="modal-body" id="auditAnalyticsBody" style="padding:20px; max-height:75vh; overflow-y:auto;">
+        <div style="text-align:center; padding:40px; color:var(--muted);"><i class="fas fa-spinner fa-spin fa-2x"></i><p style="margin-top:10px; font-weight:700;">جاري تحليل السجلات والرحلات...</p></div>
+      </div>
+    </div>
+  </div>
 </body>
 
 </html>

@@ -276,6 +276,142 @@ function getAuditLogs() {
 }
 
 /**
+ * getAuditAnalytics() — Provides detailed volume overview & breakdowns of audit logs,
+ * specifically analyzing trip logs, top trips taking space, actions inside trips, and actor contributions.
+ */
+function getAuditAnalytics(): void {
+    checkAuth();
+    try {
+        $churchId = getChurchId();
+        $conn = getDBConnection();
+        ensureAuditLogsTable($conn);
+
+        $isAll = (!empty($_POST['all_churches']) && $_POST['all_churches'] === '1') || 
+                 (isset($_SESSION['uncle_role']) && $_SESSION['uncle_role'] === 'developer');
+
+        $whereClause = "WHERE 1=1";
+        if (!$isAll) {
+            $whereClause .= " AND al.church_id = " . intval($churchId);
+        }
+
+        // 1. Total logs count
+        $resTotal = $conn->query("SELECT COUNT(*) as cnt FROM audit_logs al $whereClause");
+        $totalLogs = $resTotal ? intval($resTotal->fetch_assoc()['cnt']) : 0;
+
+        // 2. Entity / Category Breakdown
+        $catSql = "SELECT 
+                    CASE 
+                        WHEN LOWER(al.entity) LIKE '%trip%' OR LOWER(al.action) LIKE '%trip%' THEN 'trip'
+                        WHEN LOWER(al.entity) LIKE '%student%' OR LOWER(al.action) LIKE '%student%' THEN 'student'
+                        WHEN LOWER(al.entity) LIKE '%attendance%' OR LOWER(al.action) LIKE '%attendance%' THEN 'attendance'
+                        WHEN LOWER(al.entity) LIKE '%coupon%' OR LOWER(al.action) LIKE '%coupon%' THEN 'coupon'
+                        WHEN LOWER(al.entity) LIKE '%auth%' OR LOWER(al.action) LIKE '%login%' OR LOWER(al.action) LIKE '%logout%' THEN 'auth'
+                        ELSE 'other'
+                    END as cat_key,
+                    COUNT(*) as cnt
+                   FROM audit_logs al
+                   $whereClause
+                   GROUP BY cat_key
+                   ORDER BY cnt DESC";
+        $resCat = $conn->query($catSql);
+        $categoryBreakdown = [];
+        if ($resCat) {
+            while ($r = $resCat->fetch_assoc()) {
+                $cnt = intval($r['cnt']);
+                $pct = $totalLogs > 0 ? round(($cnt / $totalLogs) * 100, 1) : 0;
+                $categoryBreakdown[] = [
+                    'category' => $r['cat_key'],
+                    'count' => $cnt,
+                    'percentage' => $pct
+                ];
+            }
+        }
+
+        // 3. TRIP BREAKDOWN: Which specific trip is generating the most logs?
+        $tripWhere = $whereClause . " AND (LOWER(al.entity) LIKE '%trip%' OR LOWER(al.action) LIKE '%trip%')";
+        $tripSql = "SELECT 
+                        COALESCE(NULLIF(TRIM(al.entity_name), ''), CONCAT('رحلة #', al.entity_id)) as trip_name,
+                        al.entity_id as trip_id,
+                        COUNT(*) as cnt
+                    FROM audit_logs al
+                    $tripWhere
+                    GROUP BY trip_name, al.entity_id
+                    ORDER BY cnt DESC
+                    LIMIT 10";
+        $resTrips = $conn->query($tripSql);
+        $topTrips = [];
+        $totalTripLogs = 0;
+        if ($resTrips) {
+            while ($r = $resTrips->fetch_assoc()) {
+                $topTrips[] = [
+                    'trip_name' => $r['trip_name'] ?: 'رحلة غير محددة',
+                    'trip_id' => intval($r['trip_id']),
+                    'count' => intval($r['cnt'])
+                ];
+                $totalTripLogs += intval($r['cnt']);
+            }
+        }
+
+        // 4. TRIP ACTIONS BREAKDOWN: What exact action inside trips is taking so much volume?
+        $tripActionsSql = "SELECT 
+                            al.action,
+                            COUNT(*) as cnt
+                           FROM audit_logs al
+                           $tripWhere
+                           GROUP BY al.action
+                           ORDER BY cnt DESC";
+        $resTripActions = $conn->query($tripActionsSql);
+        $tripActionBreakdown = [];
+        if ($resTripActions) {
+            while ($r = $resTripActions->fetch_assoc()) {
+                $cnt = intval($r['cnt']);
+                $pct = $totalTripLogs > 0 ? round(($cnt / $totalTripLogs) * 100, 1) : 0;
+                $tripActionBreakdown[] = [
+                    'action' => $r['action'],
+                    'count' => $cnt,
+                    'percentage' => $pct
+                ];
+            }
+        }
+
+        // 5. TOP SERVANTS / UNCLES generating trip logs
+        $actorSql = "SELECT 
+                        COALESCE(NULLIF(TRIM(al.actor_name), ''), 'مسؤول غير معروف') as actor_name,
+                        COUNT(*) as cnt
+                     FROM audit_logs al
+                     $tripWhere
+                     GROUP BY actor_name
+                     ORDER BY cnt DESC
+                     LIMIT 5";
+        $resActors = $conn->query($actorSql);
+        $topTripActors = [];
+        if ($resActors) {
+            while ($r = $resActors->fetch_assoc()) {
+                $topTripActors[] = [
+                    'actor_name' => $r['actor_name'],
+                    'count' => intval($r['cnt'])
+                ];
+            }
+        }
+
+        sendJSON([
+            'success' => true,
+            'total_logs' => $totalLogs,
+            'categories' => $categoryBreakdown,
+            'trip_analytics' => [
+                'total_trip_logs' => $totalTripLogs,
+                'top_trips' => $topTrips,
+                'action_breakdown' => $tripActionBreakdown,
+                'top_actors' => $topTripActors
+            ]
+        ]);
+    } catch (Throwable $e) {
+        error_log("getAuditAnalytics error: " . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في حساب تحليل البيانات: ' . $e->getMessage()]);
+    }
+}
+
+/**
  * getEntityAuditHistory() — timeline for a single record
  * e.g. "show me all changes ever made to student #42"
  */
