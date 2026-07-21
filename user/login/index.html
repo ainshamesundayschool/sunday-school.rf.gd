@@ -1037,11 +1037,6 @@
             `;
 
             setTimeout(() => {
-                document.getElementById('waDirectBtn').addEventListener('click', function() {
-                    // Auto fill code input for smooth UX
-                    document.getElementById('otpInput').value = waCode;
-                });
-
                 document.getElementById('phoneOtpForm').addEventListener('submit', function(e) {
                     e.preventDefault();
                     verifyFirebaseOTP(phone, studentId);
@@ -1117,18 +1112,7 @@
                 return;
             }
 
-            const cleanP = cleanPhoneNumber(phone);
-            const savedWaCode = sessionStorage.getItem('wa_code_' + cleanP);
-
-            // Check if code matches WhatsApp code or Test Code (123456)
-            if (savedWaCode && code === savedWaCode) {
-                showSuccess('تم تأكيد ملكية رقم الهاتف عبر واتساب بنجاح 🎉');
-                setTimeout(() => {
-                    showPasswordSetup(phone, studentId);
-                }, 800);
-                return;
-            }
-
+            // Allow test code 123456 for testing / test numbers
             if (code === '123456') {
                 showSuccess('تم التحقق من رقم الهاتف بنجاح 🎉');
                 setTimeout(() => {
