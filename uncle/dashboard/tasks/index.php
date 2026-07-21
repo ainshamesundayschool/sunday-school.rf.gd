@@ -13270,7 +13270,7 @@ body {
       </div>
       
       <!-- Table Wrapper -->
-      <div style="flex:1; border:1px solid var(--bdr); border-radius:12px; background:#fff; padding:15px; overflow:auto; position:relative; min-height:250px;">
+      <div style="flex:1; border:1px solid var(--bdr); border-radius:12px; background:#fff; padding:0; overflow:auto; position:relative; min-height:250px;">
         <div id="ovTableContainer">
           <!-- Dynamically Rendered Table -->
         </div>
