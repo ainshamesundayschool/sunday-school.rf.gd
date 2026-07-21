@@ -20578,11 +20578,9 @@ function sendCustomWhatsAppOTP() {
         $stmt->bind_param("ss", $cleanPhone, $otpCode);
         $stmt->execute();
         
-        // Message sent from user's WhatsApp to target number requesting their code
         $waMsg = rawurlencode("طلب كود تفعيل كلمة المرور لحسابي برقم: {$cleanPhone}");
         $waUrl = "https://wa.me/201037011355?text={$waMsg}";
         
-        // Zero-leak response: NEVER send $otpCode to client!
         sendJSON([
             'success' => true,
             'message' => 'تم طلب كود التحقق بنجاح',
@@ -20612,7 +20610,7 @@ function verifyCustomWhatsAppOTP() {
         
         $stmt = $conn->prepare("
             SELECT id FROM phone_verifications 
-            WHERE (phone = ? OR phone LIKE CONCAT('%', ?)) 
+            WHERE (RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?) 
               AND otp_code = ? 
               AND expires_at >= NOW() 
               AND is_verified = 0 
@@ -20648,7 +20646,7 @@ function getLatestPhoneOTP() {
         $conn = getDBConnection();
         $stmt = $conn->prepare("
             SELECT otp_code FROM phone_verifications 
-            WHERE (phone = ? OR phone LIKE CONCAT('%', ?)) 
+            WHERE (RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?) 
               AND expires_at >= NOW() 
               AND is_verified = 0 
             ORDER BY id DESC LIMIT 1
