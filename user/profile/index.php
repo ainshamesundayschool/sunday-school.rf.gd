@@ -7825,7 +7825,88 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           <textarea class="open-ans-textarea" id="openans_${q.id}"
             placeholder="اكتب إجابتك هنا…"
             oninput="pickOpenAns(${q.id},this)">${esc(savedAns)}</textarea>
-          <div style="font-size:.6    function buildResultCard(score, total, pct, coupons, hasOpenQs, taskId, showAnswers, isGraded = true) {
+          <div style="font-size:.69rem;color:var(--t4);margin-top:5px;display:flex;align-items:center;gap:4px;">
+            <i class="fas fa-info-circle"></i> يُصحَّح من قِبَل الانكل أو الطنط — الدرجة النهائية ستظهر بعد التصحيح
+          </div>
+        </div>
+      </div>`;
+        }
+
+        // ── True / False ──────────────────────────────────────────
+        if (qtype === 'tf') {
+          const saved = taskAnswers[String(q.id)];
+          const trueOn = saved === 0; const falseOn = saved === 1;
+          return `<div class="qcard" id="qc_${q.id}">
+        <div class="qhdr">
+          <div class="qnum">${i + 1}</div>
+          <div class="qtext">${esc(q.question_text)}</div>
+          <span class="qdeg">${q.degree} درجة</span>
+        </div>
+        ${imgHtml}
+        <div class="qopts" style="display:flex;gap:10px;padding:10px 12px;">
+          <button id="tfbtn_${q.id}_0" onclick="pickOpt(${q.id},0,null)"
+            style="flex:1;padding:13px 8px;border-radius:var(--r-sm);border:2px solid ${trueOn ? 'var(--ok)' : 'var(--bdr)'};background:${trueOn ? 'var(--ok-bg)' : 'var(--surf)'};color:${trueOn ? 'var(--ok)' : 'var(--t2)'};font-family:inherit;font-size:.88rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:var(--fast);">
+            <i class="fas fa-check-circle"></i> صحيح
+          </button>
+          <button id="tfbtn_${q.id}_1" onclick="pickOpt(${q.id},1,null)"
+            style="flex:1;padding:13px 8px;border-radius:var(--r-sm);border:2px solid ${falseOn ? 'var(--err)' : 'var(--bdr)'};background:${falseOn ? 'var(--err-bg)' : 'var(--surf)'};color:${falseOn ? 'var(--err)' : 'var(--t2)'};font-family:inherit;font-size:.88rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:var(--fast);">
+            <i class="fas fa-times-circle"></i> خطأ
+          </button>
+        </div>
+      </div>`;
+        }
+
+        // ── MCQ (default) ─────────────────────────────────────────
+        const opts = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
+        const sel = taskAnswers[String(q.id)] !== undefined ? taskAnswers[String(q.id)] : null;
+        return `<div class="qcard" id="qc_${q.id}">
+      <div class="qhdr">
+        <div class="qnum">${i + 1}</div>
+        <div class="qtext">${esc(q.question_text)}</div>
+        ${sel !== null ? `<span style="background:var(--ok-bg);color:var(--ok);border-radius:var(--r-full);padding:2px 7px;font-size:.62rem;font-weight:700;flex-shrink:0;"><i class="fas fa-check"></i></span>` : ''}
+        <span class="qdeg">${q.degree} درجة</span>
+      </div>
+      ${imgHtml}
+      <div class="qopts">${opts.map((o, j) => `<div class="qopt${sel === j ? ' selected' : ''}" onclick="pickOpt(${q.id},${j},this)"><div class="oradio"></div><div class="olet">${LETTERS[j]}</div>${esc(o)}</div>`).join('')}</div>
+    </div>`;
+      }).join('');
+      updExamProgress(t);
+    }
+
+    function pickOpt(qid, idx, el) {
+      if (examDone) return;
+      taskAnswers[String(qid)] = idx;
+      localStorage.setItem(`ta_${curTask.id}_${student.id}`, JSON.stringify(taskAnswers));
+      // MCQ: toggle selected class
+      if (el && el.closest && el.closest('.qopts')) {
+        el.closest('.qopts').querySelectorAll('.qopt').forEach(o => o.classList.remove('selected'));
+        el.classList.add('selected');
+      }
+      // TF: re-render TF buttons with updated state
+      const tfT = document.getElementById(`tfbtn_${qid}_0`);
+      const tfF = document.getElementById(`tfbtn_${qid}_1`);
+      if (tfT && tfF) {
+        const isTrueSelected = (idx === 0);
+        tfT.style.border = `2px solid ${isTrueSelected ? '#10b981' : 'var(--bdr)'}`;
+        tfT.style.background = isTrueSelected ? '#d1fae5' : 'var(--s2)';
+        tfT.style.color = isTrueSelected ? '#065f46' : 'var(--t2)';
+        tfT.querySelector('i').style.color = isTrueSelected ? '#10b981' : 'var(--t4)';
+        tfF.style.border = `2px solid ${!isTrueSelected ? '#ef4444' : 'var(--bdr)'}`;
+        tfF.style.background = !isTrueSelected ? '#fee2e2' : 'var(--s2)';
+        tfF.style.color = !isTrueSelected ? '#991b1b' : 'var(--t2)';
+        tfF.querySelector('i').style.color = !isTrueSelected ? '#ef4444' : 'var(--t4)';
+      }
+      updExamProgress(curTask);
+    }
+
+    function pickOpenAns(qid, textarea) {
+      if (examDone) { textarea.value = taskAnswers[qid] || ''; return; }
+      taskAnswers[String(qid)] = textarea.value;
+      localStorage.setItem(`ta_${curTask.id}_${student.id}`, JSON.stringify(taskAnswers));
+      updExamProgress(curTask);
+    }
+
+    function buildResultCard(score, total, pct, coupons, hasOpenQs, taskId, showAnswers, isGraded = true) {
       let grad, iconCls, msg, color;
       if (!isGraded) {
         grad = 'linear-gradient(135deg, #d97706 0%, #f59e0b 100%)';
@@ -7910,7 +7991,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       document.getElementById('examResultCard').innerHTML = buildResultCard(sub?.score || 0, t.total_degree, pct, sub?.coupons_awarded || 0, hasOpenQs, t.id, !!parseInt(t.show_answers || 0), isGraded);
       examShowView('result');
       examScreenOpen();
-    }s));
+    }
       updExamProgress(curTask);
     }
 
