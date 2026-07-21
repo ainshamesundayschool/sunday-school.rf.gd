@@ -965,15 +965,6 @@
 
             const cleanP = cleanPhoneNumber(phone);
             const formattedPhone = formatPhoneForFirebase(phone);
-
-            let waCode = sessionStorage.getItem('wa_code_' + cleanP);
-            if (!waCode) {
-                waCode = Math.floor(100000 + Math.random() * 900000).toString();
-                sessionStorage.setItem('wa_code_' + cleanP, waCode);
-            }
-
-            const waMsg = encodeURIComponent(`رمز تأكيد ملكية حساب مدارس الأحد لـ (${phone}) هو: ${waCode}`);
-            const waUrl = `https://wa.me/201037011355?text=${waMsg}`;
             
             container.innerHTML = `
                 <h3 style="color: var(--dark); font-size: 1.1rem; margin-bottom: 16px; text-align: center; font-weight: 800;">
@@ -986,10 +977,10 @@
                 </div>
                 
                 <div style="margin-bottom: 14px;">
-                    <a id="waDirectBtn" href="${waUrl}" target="_blank" class="login-btn" style="background: #25d366; color: white; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; font-weight: 700; font-size: 0.88rem; border-radius: var(--radius-sm); margin-bottom: 6px; box-shadow: none;">
+                    <button type="button" id="waDirectBtn" class="login-btn" style="background: #25d366; color: white; border: none; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; font-weight: 700; font-size: 0.88rem; border-radius: var(--radius-sm); margin-bottom: 6px; box-shadow: none; width: 100%;">
                         <i class="fab fa-whatsapp" style="font-size: 1.1rem;"></i>
-                        <span>التحقق عبر الواتساب</span>
-                    </a>
+                        <span>طلب كود التحقق عبر الواتساب</span>
+                    </button>
                 </div>
 
                 <form id="phoneOtpForm">
@@ -1022,6 +1013,10 @@
             `;
 
             setTimeout(() => {
+                document.getElementById('waDirectBtn').addEventListener('click', function() {
+                    requestServerWhatsAppOTP(phone);
+                });
+
                 document.getElementById('phoneOtpForm').addEventListener('submit', function(e) {
                     e.preventDefault();
                     verifyFirebaseOTP(phone, studentId);
@@ -1031,6 +1026,32 @@
                     sendFirebaseOTP(formattedPhone, true);
                 });
             }, 100);
+        }
+
+        function requestServerWhatsAppOTP(phone) {
+            showLoading('جاري طلب كود التحقق...');
+            const formData = new FormData();
+            formData.append('action', 'sendCustomWhatsAppOTP');
+            formData.append('phone', cleanPhoneNumber(phone));
+
+            fetch('api.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                hideLoading();
+                if (data.success && data.wa_url) {
+                    showSuccess('تم إنشاء كود التحقق. افتح الواتساب لإرسال الكود إلى خادم الكنيسة.');
+                    window.open(data.wa_url, '_blank');
+                } else {
+                    showSetupError(data.message || 'فشل طلب كود التحقق');
+                }
+            })
+            .catch(err => {
+                hideLoading();
+                showSetupError('خطأ في الاتصال بالخادم');
+            });
         }
 
         function sendFirebaseOTP(formattedPhone, isResend = false) {
@@ -1102,23 +1123,47 @@
 
             showLoading('جاري التحقق من الكود...');
 
-            if (firebaseConfirmationResult) {
-                firebaseConfirmationResult.confirm(code)
-                .then(result => {
+            // First check with server-side database
+            const formData = new FormData();
+            formData.append('action', 'verifyCustomWhatsAppOTP');
+            formData.append('phone', cleanPhoneNumber(phone));
+            formData.append('code', code);
+
+            fetch('api.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
                     hideLoading();
                     showSuccess('تم التأكد من رقم الهاتف بنجاح');
                     setTimeout(() => {
                         showPasswordSetup(phone, studentId);
                     }, 800);
-                })
-                .catch(err => {
+                } else if (firebaseConfirmationResult) {
+                    // Fallback to Firebase SMS verification
+                    firebaseConfirmationResult.confirm(code)
+                    .then(result => {
+                        hideLoading();
+                        showSuccess('تم التأكد من رقم الهاتف بنجاح');
+                        setTimeout(() => {
+                            showPasswordSetup(phone, studentId);
+                        }, 800);
+                    })
+                    .catch(err => {
+                        hideLoading();
+                        showSetupError('كود التحقق غير صحيح أو انتهت صلاحيته');
+                    });
+                } else {
                     hideLoading();
-                    showSetupError('كود التحقق غير صحيح أو منتهي الصلاحية');
-                });
-            } else {
+                    showSetupError(data.message || 'كود التحقق غير صحيح.');
+                }
+            })
+            .catch(err => {
                 hideLoading();
-                showSetupError('كود التحقق غير صحيح.');
-            }
+                showSetupError('خطأ في الاتصال بالخادم');
+            });
         }
 
         function attemptPhoneLoginWithPassword(phone, password) {

@@ -4294,6 +4294,18 @@ try {
 
             break;
 
+        case 'sendCustomWhatsAppOTP':
+
+            sendCustomWhatsAppOTP();
+
+            break;
+
+        case 'verifyCustomWhatsAppOTP':
+
+            verifyCustomWhatsAppOTP();
+
+            break;
+
         case 'getStudentProfile':
 
             getStudentProfile();
@@ -20523,6 +20535,103 @@ function setupStudentPassword()
 
     }
 
+}
+
+function sendCustomWhatsAppOTP() {
+    try {
+        $phone = sanitize($_POST['phone'] ?? '');
+        $cleanPhone = preg_replace('/[^\d]/', '', $phone);
+        
+        if (empty($cleanPhone)) {
+            sendJSON(['success' => false, 'message' => 'رقم الهاتف مطلوب']);
+        }
+        
+        $conn = getDBConnection();
+        
+        // Ensure phone_verifications table exists
+        $conn->query("
+            CREATE TABLE IF NOT EXISTS phone_verifications (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                phone VARCHAR(20) NOT NULL,
+                otp_code VARCHAR(10) NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                expires_at DATETIME NOT NULL,
+                is_verified TINYINT(1) DEFAULT 0,
+                INDEX (phone),
+                INDEX (otp_code)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        ");
+        
+        // Generate random 6-digit OTP code
+        $otpCode = str_pad(strval(rand(100000, 999999)), 6, '0', STR_PAD_LEFT);
+        
+        $stmt = $conn->prepare("
+            INSERT INTO phone_verifications (phone, otp_code, expires_at)
+            VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 10 MINUTE))
+        ");
+        $stmt->bind_param("ss", $cleanPhone, $otpCode);
+        $stmt->execute();
+        
+        $waMsg = rawurlencode("رمز تأكيد ملكية حسابك في مدارس الأحد هو: {$otpCode}");
+        $waUrl = "https://wa.me/201037011355?text={$waMsg}";
+        
+        sendJSON([
+            'success' => true,
+            'message' => 'تم طلب كود التحقق بنجاح',
+            'otp_code' => $otpCode,
+            'wa_url' => $waUrl
+        ]);
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => 'خطأ في إنشاء كود التحقق: ' . $e->getMessage()]);
+    }
+}
+
+function verifyCustomWhatsAppOTP() {
+    try {
+        $phone = sanitize($_POST['phone'] ?? '');
+        $code = sanitize($_POST['code'] ?? '');
+        $cleanPhone = preg_replace('/[^\d]/', '', $phone);
+        
+        if (empty($cleanPhone) || empty($code)) {
+            sendJSON(['success' => false, 'message' => 'البيانات غير كاملة']);
+        }
+        
+        // Bypass for test code 123456
+        if ($code === '123456') {
+            sendJSON(['success' => true, 'message' => 'تم التحقق بنجاح']);
+        }
+        
+        $conn = getDBConnection();
+        
+        $tableCheck = $conn->query("SHOW TABLES LIKE 'phone_verifications'");
+        if ($tableCheck->num_rows === 0) {
+            sendJSON(['success' => false, 'message' => 'كود التحقق غير صحيح']);
+        }
+        
+        $stmt = $conn->prepare("
+            SELECT id FROM phone_verifications 
+            WHERE (phone = ? OR phone LIKE CONCAT('%', ?)) 
+              AND otp_code = ? 
+              AND expires_at >= NOW() 
+              AND is_verified = 0 
+            ORDER BY id DESC LIMIT 1
+        ");
+        $stmt->bind_param("sss", $cleanPhone, $cleanPhone, $code);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($row = $result->fetch_assoc()) {
+            $updateStmt = $conn->prepare("UPDATE phone_verifications SET is_verified = 1 WHERE id = ?");
+            $updateStmt->bind_param("i", $row['id']);
+            $updateStmt->execute();
+            
+            sendJSON(['success' => true, 'message' => 'تم التأكد من رقم الهاتف بنجاح']);
+        } else {
+            sendJSON(['success' => false, 'message' => 'كود التحقق غير صحيح أو انتهت صلاحيته']);
+        }
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => 'خطأ في التحقق: ' . $e->getMessage()]);
+    }
 }
 
 
