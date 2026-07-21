@@ -3556,15 +3556,34 @@ button, input, select, textarea, a {
   transform: none !important;
 }
 
-.overlay.fullscreen .modal.wide {
+.overlay.fullscreen .modal.wide,
+.modal.wide {
   min-height: 0 !important;
-  max-height: 92vh;
-  height: auto;
-  border-radius: var(--r-xl);
-  margin: auto;
-  max-width: 860px;
-  width: 90%;
-  box-shadow: var(--sh-lg);
+  max-height: calc(94vh - 16px) !important;
+  max-height: calc(94dvh - 16px) !important;
+  height: auto !important;
+  border-radius: var(--r-xl) !important;
+  margin: auto !important;
+  max-width: 900px !important;
+  width: 94% !important;
+  box-shadow: var(--sh-lg) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+@media (max-width: 640px) {
+  .overlay.fullscreen .modal.wide,
+  .modal.wide {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-height: 100vh !important;
+    max-height: 100dvh !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+  }
 }
 
 .overlay.fullscreen .mhdr,
@@ -12033,19 +12052,7 @@ body {
   max-height: 100dvh !important;
 }
 .overlay.fullscreen .modal.wide {
-  width: 100% !important;
-  height: 100vh !important;
-  height: 100dvh !important;
-  max-width: 100% !important;
-  max-height: 100vh !important;
-  max-height: 100dvh !important;
-  margin: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  border: none !important;
-  display: flex !important;
-  flex-direction: column !important;
-  transform: none !important;
+  min-height: 0 !important;
 }
 
 /* Fullscreen Grading Panel Overrides */
@@ -13182,7 +13189,7 @@ body {
       <div class="mclose" onclick="closeOv('overviewOv')"><i class="fas fa-times"></i></div>
     </div>
     
-    <div class="mbody" style="flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:20px;">
+    <div class="mbody" style="flex:1 1 auto; min-height:0; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:20px;">
       <!-- Filters and Options Box -->
       <div class="overview-filters-box" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:15px; background:var(--bg); border:1px solid var(--bdr); padding:15px; border-radius:12px;">
         <!-- Class Filter -->
