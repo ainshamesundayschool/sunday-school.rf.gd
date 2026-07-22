@@ -19857,7 +19857,10 @@ function sendCustomWhatsAppOTP() {
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
             ");
         } else {
-            @$conn->query("ALTER TABLE phone_verifications ADD COLUMN is_sent TINYINT(1) DEFAULT 0;");
+            $colCheck = $conn->query("SHOW COLUMNS FROM phone_verifications LIKE 'is_sent'");
+            if ($colCheck && $colCheck->num_rows === 0) {
+                $conn->query("ALTER TABLE phone_verifications ADD COLUMN is_sent TINYINT(1) DEFAULT 0;");
+            }
         }
         
         $otp = sprintf("%06d", mt_rand(100000, 999999));
