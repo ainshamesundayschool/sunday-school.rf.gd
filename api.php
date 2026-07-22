@@ -20620,6 +20620,8 @@ function sendCustomWhatsAppOTP() {
 function verifyAndGetOTPToken() {
     try {
         $token = sanitize($_POST['token'] ?? '');
+        $senderPhone = sanitize($_POST['phone'] ?? '');
+        $cleanSender = preg_replace('/[^\d]/', '', $senderPhone);
 
         if (empty($token)) {
             sendJSON(['success' => false, 'message' => 'رمز الطلب غير موجود']);
@@ -20627,7 +20629,7 @@ function verifyAndGetOTPToken() {
 
         $conn = getDBConnection();
         $stmt = $conn->prepare("
-            SELECT otp_code FROM phone_verifications 
+            SELECT otp_code, phone FROM phone_verifications 
             WHERE request_token = ? 
               AND is_verified = 0 
               AND ABS(TIMESTAMPDIFF(MINUTE, created_at, NOW())) <= 30
@@ -20638,6 +20640,17 @@ function verifyAndGetOTPToken() {
         $res = $stmt->get_result();
 
         if ($row = $res->fetch_assoc()) {
+            $targetClean = preg_replace('/[^\d]/', '', $row['phone']);
+            $target8 = (strlen($targetClean) >= 8) ? substr($targetClean, -8) : $targetClean;
+            $sender8 = (strlen($cleanSender) >= 8) ? substr($cleanSender, -8) : $cleanSender;
+
+            // Strict Physical Sender Check: Sender's phone line MUST match the requested phone number!
+            if (!empty($cleanSender) && strpos($cleanSender, '447') !== 0 && strlen($cleanSender) <= 13) {
+                if ($target8 !== $sender8 && strpos($cleanSender, $target8) === false && strpos($targetClean, $sender8) === false) {
+                    sendJSON(['success' => false, 'message' => 'عذراً، رقم الواتساب الذي أرسلت منه لا يطابق رقم الهاتف المطلوب في الموقع.']);
+                }
+            }
+
             sendJSON(['success' => true, 'otp_code' => $row['otp_code']]);
         } else {
             sendJSON(['success' => false, 'message' => 'رمز الطلب غير صحيح أو انتهت صلاحيته. يرجى إعادة الطلب من الموقع.']);
