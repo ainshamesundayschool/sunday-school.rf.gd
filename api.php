@@ -20673,7 +20673,7 @@ function getLatestPhoneOTP() {
             SELECT otp_code FROM phone_verifications 
             WHERE (RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?) 
               AND is_verified = 0 
-              AND TIMESTAMPDIFF(MINUTE, created_at, NOW()) <= 15
+              AND ABS(TIMESTAMPDIFF(MINUTE, created_at, NOW())) <= 30
             ORDER BY id DESC LIMIT 1
         ");
         $stmt->bind_param("ss", $cleanPhone, $cleanPhone);
@@ -20683,7 +20683,29 @@ function getLatestPhoneOTP() {
         if ($row = $res->fetch_assoc()) {
             sendJSON(['success' => true, 'otp_code' => $row['otp_code']]);
         } else {
-            sendJSON(['success' => false, 'message' => 'لا يوجد كود نشط']);
+            // Auto-generate fresh OTP for this registered student
+            $conn->query("
+                CREATE TABLE IF NOT EXISTS phone_verifications (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    phone VARCHAR(20) NOT NULL,
+                    otp_code VARCHAR(10) NOT NULL,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    expires_at DATETIME NOT NULL,
+                    is_verified TINYINT(1) DEFAULT 0,
+                    INDEX (phone),
+                    INDEX (otp_code)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+            ");
+            
+            $otpCode = str_pad(strval(rand(100000, 999999)), 6, '0', STR_PAD_LEFT);
+            $ins = $conn->prepare("
+                INSERT INTO phone_verifications (phone, otp_code, expires_at)
+                VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 10 MINUTE))
+            ");
+            $ins->bind_param("ss", $cleanPhone, $otpCode);
+            $ins->execute();
+
+            sendJSON(['success' => true, 'otp_code' => $otpCode]);
         }
     } catch (Exception $e) {
         sendJSON(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
