@@ -20622,7 +20622,6 @@ function verifyAndGetOTPToken() {
         $token = sanitize($_POST['token'] ?? '');
         $senderPhone = sanitize($_POST['phone'] ?? '');
         $cleanSender = preg_replace('/[^\d]/', '', $senderPhone);
-        $last8 = (strlen($cleanSender) >= 8) ? substr($cleanSender, -8) : $cleanSender;
 
         if (empty($token) || empty($cleanSender)) {
             sendJSON(['success' => false, 'message' => 'بيانات الطلب غير كاملة']);
@@ -20641,14 +20640,17 @@ function verifyAndGetOTPToken() {
         $res = $stmt->get_result();
 
         if ($row = $res->fetch_assoc()) {
-            $targetPhone = preg_replace('/[^\d]/', '', $row['phone']);
-            $targetLast8 = (strlen($targetPhone) >= 8) ? substr($targetPhone, -8) : $targetPhone;
+            $targetClean = preg_replace('/[^\d]/', '', $row['phone']);
+            
+            // Extract last 7 digits for 100% country code and prefix independence
+            $target7 = (strlen($targetClean) >= 7) ? substr($targetClean, -7) : $targetClean;
+            $sender7 = (strlen($cleanSender) >= 7) ? substr($cleanSender, -7) : $cleanSender;
 
-            // STRICT PHYSICAL LINE VERIFICATION: Does sender WhatsApp line match target requested line?
-            if ($targetLast8 === $last8 || substr($targetPhone, -10) === substr($cleanSender, -10)) {
+            // STRICT PHYSICAL LINE VERIFICATION (Country Code & Prefix Proof)
+            if ($target7 === $sender7 || strpos($cleanSender, $target7) !== false || strpos($targetClean, $sender7) !== false) {
                 sendJSON(['success' => true, 'otp_code' => $row['otp_code']]);
             } else {
-                sendJSON(['success' => false, 'message' => 'عذراً، هذا الطلب تم لم ينشأ من رقم الواتساب الخاص بك.']);
+                sendJSON(['success' => false, 'message' => 'عذراً، هذا الطلب لم ينشأ من رقم الواتساب الخاص بك.']);
             }
         } else {
             sendJSON(['success' => false, 'message' => 'رمز الطلب غير صحيح أو انتهت صلاحيته. يرجى إعادة الطلب من الموقع.']);
