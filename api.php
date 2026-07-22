@@ -20562,73 +20562,7 @@ function setupStudentPassword()
 
 }
 
-function sendCustomWhatsAppOTP() {
-    try {
-        $phone = sanitize($_POST['phone'] ?? '');
-        $cleanPhone = preg_replace('/[^\d]/', '', $phone);
-        $last8 = (strlen($cleanPhone) >= 8) ? substr($cleanPhone, -8) : $cleanPhone;
-        
-        if (empty($cleanPhone)) {
-            sendJSON(['success' => false, 'message' => 'رقم الهاتف مطلوب']);
-        }
-        
-        $conn = getDBConnection();
-        
-        // 1. MUST verify that this phone number belongs to a registered student in Sunday School (main phone column)
-        $checkStudent = $conn->prepare("
-            SELECT id FROM students 
-            WHERE (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 8) = RIGHT(?, 8) OR phone = ?) 
-            LIMIT 1
-        ");
-        $checkStudent->bind_param("sss", $last8, $last8, $cleanPhone);
-        $checkStudent->execute();
-        if ($checkStudent->get_result()->num_rows === 0) {
-            sendJSON(['success' => false, 'message' => 'عذراً، رقم الهاتف غير مسجل في نظام مدارس الأحد']);
-        }
-        
-        // Ensure phone_verifications table exists with request_token column
-        $conn->query("
-            CREATE TABLE IF NOT EXISTS phone_verifications (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                phone VARCHAR(20) NOT NULL,
-                otp_code VARCHAR(10) NOT NULL,
-                request_token VARCHAR(32) DEFAULT NULL,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                expires_at DATETIME NOT NULL,
-                is_verified TINYINT(1) DEFAULT 0,
-                INDEX (phone),
-                INDEX (otp_code),
-                INDEX (request_token)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-        ");
-        
-        // Ensure request_token column exists if table was created previously
-        $conn->query("ALTER TABLE phone_verifications ADD COLUMN IF NOT EXISTS request_token VARCHAR(32) DEFAULT NULL;");
-        
-        // Generate random 6-digit OTP code & unique request token
-        $otpCode = str_pad(strval(rand(100000, 999999)), 6, '0', STR_PAD_LEFT);
-        $requestToken = 'REQ-' . strtoupper(substr(md5(uniqid(strval(rand()), true)), 0, 8));
-        
-        $stmt = $conn->prepare("
-            INSERT INTO phone_verifications (phone, otp_code, request_token, expires_at)
-            VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL 10 MINUTE))
-        ");
-        $stmt->bind_param("sss", $cleanPhone, $otpCode, $requestToken);
-        $stmt->execute();
-        
-        $waMsg = rawurlencode("طلب كود تفعيل كلمة المرور لحسابي رمز الطلب: {$requestToken}");
-        $waUrl = "https://wa.me/201037011355?text={$waMsg}";
-        
-        sendJSON([
-            'success' => true,
-            'message' => 'تم طلب كود التحقق بنجاح',
-            'request_token' => $requestToken,
-            'wa_url' => $waUrl
-        ]);
-    } catch (Exception $e) {
-        sendJSON(['success' => false, 'message' => 'خطأ في إنشاء كود التحقق: ' . $e->getMessage()]);
-    }
-}
+
 
 function normalizeEgyptianPhone($phone) {
     $digits = preg_replace('/[^\d]/', '', $phone);
