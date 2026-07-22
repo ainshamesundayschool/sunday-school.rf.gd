@@ -19811,6 +19811,7 @@ function transliterateEnglishToArabicPHP($englishName) {
     return implode(' ', $converted);
 }
 
+
 function calculateFuzzyScorePHP($name1, $name2) {
     $n1 = $name1;
     $n2 = $name2;
