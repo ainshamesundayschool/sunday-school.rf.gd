@@ -20895,160 +20895,79 @@ function changeStudentPassword()
 
 
 
-function kidLoginByPhoneWithPassword()
-
-{
-
+function kidLoginByPhoneWithPassword() {
     try {
-
         $phone = sanitize($_POST['phone'] ?? '');
-
         $password = $_POST['password'] ?? '';
-
         $studentId = intval($_POST['studentId'] ?? 0);
 
-
-
         if (empty($phone) || empty($password)) {
-
             sendJSON(['success' => false, 'message' => 'رقم الهاتف وكلمة المرور مطلوبان']);
-
             return;
-
         }
 
         $sha256Hash = hash('sha256', $password); // legacy
-
         $cleanPhone = preg_replace('/[^\d]/', '', $phone);
-
-
-
-        error_log("🔐 Phone+password login attempt: $cleanPhone, studentId: $studentId");
-
-
 
         $conn = getDBConnection();
 
-
-
-        // Fetch candidates by phone
-
         if ($studentId > 0) {
-
             $stmt = $conn->prepare("
-
                 SELECT s.id, s.name, s.address, s.phone, s.birthday,
-
                        s.coupons, s.attendance_coupons, s.commitment_coupons,
-
                        s.task_coupons, s.image_url, s.church_id, s.class_id,
-
                        s.password_hash, s.custom_info,
-
                        c.church_name,
-
                        COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS class
-
                 FROM students s
-
                 LEFT JOIN churches c  ON s.church_id = c.id
-
                 LEFT JOIN church_classes cc ON cc.id = s.class_id AND cc.church_id = s.church_id
-
                 LEFT JOIN classes cl  ON cl.id = s.class_id
-
                 WHERE s.id = ?
-
             ");
-
             $stmt->bind_param("i", $studentId);
-
         } else {
-
             $stmt = $conn->prepare("
-
                 SELECT s.id, s.name, s.address, s.phone, s.birthday,
-
                        s.coupons, s.attendance_coupons, s.commitment_coupons,
-
                        s.task_coupons, s.image_url, s.church_id, s.class_id,
-
                        s.password_hash, s.custom_info,
-
                        c.church_name,
-
                        COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS class
-
                 FROM students s
-
                 LEFT JOIN churches c  ON s.church_id = c.id
-
                 LEFT JOIN church_classes cc ON cc.id = s.class_id AND cc.church_id = s.church_id
-
                 LEFT JOIN classes cl  ON cl.id = s.class_id
-
-                WHERE (s.phone = ? OR s.phone LIKE CONCAT('%', ?))
-
+                WHERE (RIGHT(s.phone, 10) = RIGHT(?, 10) OR s.phone = ?)
             ");
-
             $stmt->bind_param("ss", $cleanPhone, $cleanPhone);
-
         }
 
         $stmt->execute();
-
         $result = $stmt->get_result();
 
-
-
         $students = [];
-
         while ($row = $result->fetch_assoc()) {
-
             $storedHash = $row['password_hash'] ?? '';
-
             $matched = !empty($storedHash) && (
-
                 password_verify($password, $storedHash) || $storedHash === $sha256Hash
-
             );
-
             if ($matched) {
-
                 $row['birthday'] = formatDateFromDB($row['birthday']);
-
                 $row['class'] = $row['class'] ?? '---';
-
                 unset($row['password_hash']);
-
                 $students[] = $row;
-
             }
-
         }
-
-
 
         if (count($students) > 0) {
-
             sendJSON(['success' => true, 'data' => $students, 'message' => 'تم تسجيل الدخول بنجاح']);
-
         } else {
-
             sendJSON(['success' => false, 'message' => 'كلمة المرور غير صحيحة', 'data' => []]);
-
         }
-
-
-
-    } catch (Exception $e) {
-
-        error_log("❌ kidLoginByPhoneWithPassword error: " . $e->getMessage());
-
-        sendJSON(['success' => false, 'message' => 'خطأ في تسجيل الدخول']);
-
+    } catch (Throwable $e) {
+        sendJSON(['success' => false, 'message' => 'خطأ في تسجيل الدخول: ' . $e->getMessage()]);
     }
-
 }
 
 function kidLogin()
