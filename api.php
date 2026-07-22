@@ -20663,7 +20663,6 @@ function verifyCustomWhatsAppOTP() {
         $phone = sanitize($_POST['phone'] ?? '');
         $code = sanitize($_POST['code'] ?? '');
         $cleanPhone = preg_replace('/[^\d]/', '', $phone);
-        $last8 = (strlen($cleanPhone) >= 8) ? substr($cleanPhone, -8) : $cleanPhone;
         
         if (empty($cleanPhone) || empty($code)) {
             sendJSON(['success' => false, 'message' => 'البيانات غير كاملة']);
@@ -20676,15 +20675,19 @@ function verifyCustomWhatsAppOTP() {
             sendJSON(['success' => false, 'message' => 'كود التحقق غير صحيح']);
         }
         
+        $normPhone = normalizeEgyptianPhone($cleanPhone);
+        $last10 = (strlen($normPhone) >= 10) ? substr($normPhone, -10) : $normPhone;
+        
+        // Strict match: ONLY accept OTP code generated specifically for this exact phone number
         $stmt = $conn->prepare("
             SELECT id FROM phone_verifications 
-            WHERE (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?) 
+            WHERE (RIGHT(phone, 10) = ? OR phone = ? OR phone = ?) 
               AND otp_code = ? 
               AND is_verified = 0 
               AND ABS(TIMESTAMPDIFF(MINUTE, created_at, NOW())) <= 30
             ORDER BY id DESC LIMIT 1
         ");
-        $stmt->bind_param("ssss", $last8, $cleanPhone, $cleanPhone, $code);
+        $stmt->bind_param("ssss", $last10, $cleanPhone, $normPhone, $code);
         $stmt->execute();
         $result = $stmt->get_result();
         
