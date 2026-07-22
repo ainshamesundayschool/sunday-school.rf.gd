@@ -19882,7 +19882,6 @@ function sendCustomWhatsAppOTP() {
 function getPendingOTPMessages() {
     try {
         $conn = getDBConnection();
-        @$conn->query("ALTER TABLE phone_verifications ADD COLUMN is_sent TINYINT(1) DEFAULT 0;");
         $stmt = $conn->prepare("
             SELECT id, phone, otp_code FROM phone_verifications 
             WHERE is_verified = 0 
@@ -19890,16 +19889,20 @@ function getPendingOTPMessages() {
               AND ABS(TIMESTAMPDIFF(MINUTE, created_at, NOW())) <= 10
             ORDER BY id ASC LIMIT 10
         ");
-        $stmt->execute();
-        $res = $stmt->get_result();
-        $rows = [];
-        while ($r = $res->fetch_assoc()) {
-            $r['phone'] = normalizeEgyptianPhone($r['phone']);
-            $rows[] = $r;
+        if ($stmt) {
+            $stmt->execute();
+            $res = $stmt->get_result();
+            $rows = [];
+            while ($r = $res->fetch_assoc()) {
+                $r['phone'] = normalizeEgyptianPhone($r['phone']);
+                $rows[] = $r;
+            }
+            sendJSON(['success' => true, 'data' => $rows]);
+        } else {
+            sendJSON(['success' => true, 'data' => []]);
         }
-        sendJSON(['success' => true, 'data' => $rows]);
-    } catch (Exception $e) {
-        sendJSON(['success' => false, 'message' => $e->getMessage()]);
+    } catch (Throwable $e) {
+        sendJSON(['success' => false, 'data' => [], 'message' => $e->getMessage()]);
     }
 }
 
