@@ -20644,11 +20644,11 @@ function verifyAndGetOTPToken() {
             $target8 = (strlen($targetClean) >= 8) ? substr($targetClean, -8) : $targetClean;
             $sender8 = (strlen($cleanSender) >= 8) ? substr($cleanSender, -8) : $cleanSender;
 
-            // Strict Physical Sender Check: Sender's phone line MUST match the requested phone number!
-            if (!empty($cleanSender) && strpos($cleanSender, '447') !== 0 && strlen($cleanSender) <= 13) {
-                if ($target8 !== $sender8 && strpos($cleanSender, $target8) === false && strpos($targetClean, $sender8) === false) {
-                    sendJSON(['success' => false, 'message' => 'عذراً، رقم الواتساب الذي أرسلت منه لا يطابق رقم الهاتف المطلوب في الموقع.']);
-                }
+            // MANDATORY STRICT SENDER CHECK:
+            // 1. Sender phone cannot be empty
+            // 2. Last 8 digits of sender line MUST match target phone number requested on website
+            if (empty($cleanSender) || empty($sender8) || ($target8 !== $sender8 && strpos($cleanSender, $target8) === false && strpos($targetClean, $sender8) === false)) {
+                sendJSON(['success' => false, 'message' => 'عذراً، رقم الواتساب الذي أرسلت منه لا يطابق رقم الهاتف المطلوب في الموقع.']);
             }
 
             sendJSON(['success' => true, 'otp_code' => $row['otp_code']]);
