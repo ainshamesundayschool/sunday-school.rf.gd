@@ -20656,16 +20656,13 @@ function verifyAndGetOTPToken() {
             $targetNorm = normalizeEgyptianPhone($targetClean);
             $senderNorm = normalizeEgyptianPhone($cleanSender);
 
-            // Last 10 digits for Egyptian local numbers (01210868837)
-            $target10 = (strlen($targetNorm) >= 10) ? substr($targetNorm, -10) : $targetNorm;
-            $sender10 = (strlen($senderNorm) >= 10) ? substr($senderNorm, -10) : $senderNorm;
+            // Compare last 8 digits of both website target phone and physical WhatsApp sender line
+            $target8 = (strlen($targetNorm) >= 8) ? substr($targetNorm, -8) : $targetNorm;
+            $sender8 = (strlen($senderNorm) >= 8) ? substr($senderNorm, -8) : $senderNorm;
 
-            // If sender is a standard WhatsApp line (not a 447 WhatsApp internal LID), enforce match:
-            $isLid = (strpos($cleanSender, '447') === 0 && strlen($cleanSender) >= 14);
-            if (!$isLid && !empty($cleanSender)) {
-                if ($target10 !== $sender10 && strpos($senderNorm, $target10) === false && strpos($targetNorm, $sender10) === false) {
-                    sendJSON(['success' => false, 'message' => 'عذراً، رقم الواتساب الذي أرسلت منه لا يطابق رقم الهاتف المطلوب في الموقع.']);
-                }
+            // ABSOLUTE STRICT MATCH: Sender line MUST match requested phone number 100%
+            if (empty($cleanSender) || empty($sender8) || ($target8 !== $sender8 && strpos($senderNorm, $target8) === false && strpos($targetNorm, $sender8) === false)) {
+                sendJSON(['success' => false, 'message' => 'عذراً، رقم الواتساب الذي أرسلت منه لا يطابق رقم الهاتف المطلوب في الموقع.']);
             }
 
             sendJSON(['success' => true, 'otp_code' => $row['otp_code']]);
