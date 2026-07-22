@@ -852,7 +852,7 @@
             formData.append('username', identifier);
             formData.append('password', password);
 
-            fetch('api.php', { method: 'POST', body: formData })
+            fetch('/api.php', { method: 'POST', body: formData })
             .then(r => r.json())
             .then(data => {
                 if (!isAutoLogin) hideLoading();
@@ -884,7 +884,7 @@
             formData.append('action', 'checkKidPasswordByPhone');
             formData.append('phone', cleanPhoneNumber(phone));
             
-            fetch('api.php', {
+            fetch('/api.php', {
                 method: 'POST',
                 body: formData
             })
@@ -1021,7 +1021,7 @@
             formData.append('action', 'sendCustomWhatsAppOTP');
             formData.append('phone', cleanPhoneNumber(phone));
 
-            fetch('api.php', {
+            fetch('/api.php', {
                 method: 'POST',
                 body: formData
             })
@@ -1054,7 +1054,7 @@
             formData.append('phone', cleanPhoneNumber(phone));
             formData.append('code', code);
 
-            fetch('api.php', {
+            fetch('/api.php', {
                 method: 'POST',
                 body: formData
             })
@@ -1084,7 +1084,7 @@
             formData.append('phone', cleanPhoneNumber(phone));
             formData.append('password', password);
             
-            fetch('api.php', {
+            fetch('/api.php', {
                 method: 'POST',
                 body: formData
             })
@@ -1120,7 +1120,7 @@
             formData.append('action', 'getStudentByPhone');
             formData.append('phone', cleanPhoneNumber(phone));
             
-            fetch('api.php', {
+            fetch('/api.php', {
                 method: 'POST',
                 body: formData
             })
@@ -1157,7 +1157,7 @@
             formData.append('username', username);
             formData.append('password', password);
             
-            fetch('api.php', {
+            fetch('/api.php', {
                 method: 'POST',
                 body: formData
             })
@@ -1305,7 +1305,7 @@
             formData.append('phone', cleanPhoneNumber(phone));
             formData.append('password', newPassword);
             
-            fetch('api.php', {
+            fetch('/api.php', {
                 method: 'POST',
                 body: formData
             })
@@ -1352,7 +1352,7 @@
             formData.append('action', 'checkKidPasswordByPhone');
             formData.append('phone', cleanPhoneNumber(phone));
             
-            fetch('api.php', {
+            fetch('/api.php', {
                 method: 'POST',
                 body: formData
             })
