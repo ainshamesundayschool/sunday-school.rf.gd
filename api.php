@@ -20641,14 +20641,15 @@ function verifyAndGetOTPToken() {
 
         if ($row = $res->fetch_assoc()) {
             $targetClean = preg_replace('/[^\d]/', '', $row['phone']);
-
-            // Extract last 8 digits from both lines for 100% country code & prefix independence
             $target8 = (strlen($targetClean) >= 8) ? substr($targetClean, -8) : $targetClean;
             $sender8 = (strlen($cleanSender) >= 8) ? substr($cleanSender, -8) : $cleanSender;
 
-            // STRICT PHYSICAL LINE ENFORCEMENT: Does the sender's WhatsApp line match the requested phone?
-            if (!empty($sender8) && $target8 !== $sender8 && strpos($cleanSender, $target8) === false && strpos($targetClean, $sender8) === false) {
-                sendJSON(['success' => false, 'message' => 'عذراً، رقم الواتساب الذي أرسلت منه لا يطابق رقم الهاتف المطلوب.']);
+            // If senderPhone is a standard phone JID (not a WhatsApp LID internal identifier starting with 447), enforce match:
+            $isLid = (strpos($cleanSender, '447') === 0 && strlen($cleanSender) >= 14);
+            if (!$isLid && !empty($cleanSender) && strlen($cleanSender) <= 13) {
+                if ($target8 !== $sender8 && strpos($cleanSender, $target8) === false && strpos($targetClean, $sender8) === false) {
+                    sendJSON(['success' => false, 'message' => 'عذراً، رقم الواتساب الذي أرسلت منه لا يطابق رقم الهاتف المطلوب.']);
+                }
             }
 
             sendJSON(['success' => true, 'otp_code' => $row['otp_code']]);
