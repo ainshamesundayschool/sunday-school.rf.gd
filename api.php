@@ -20621,10 +20621,9 @@ function verifyAndGetOTPToken() {
     try {
         $token = sanitize($_POST['token'] ?? '');
         $senderPhone = sanitize($_POST['phone'] ?? '');
-        $cleanSender = preg_replace('/[^\d]/', '', $senderPhone);
 
-        if (empty($token) || empty($cleanSender)) {
-            sendJSON(['success' => false, 'message' => 'بيانات الطلب غير كاملة']);
+        if (empty($token)) {
+            sendJSON(['success' => false, 'message' => 'رمز الطلب غير موجود']);
         }
 
         $conn = getDBConnection();
@@ -20640,18 +20639,7 @@ function verifyAndGetOTPToken() {
         $res = $stmt->get_result();
 
         if ($row = $res->fetch_assoc()) {
-            $targetClean = preg_replace('/[^\d]/', '', $row['phone']);
-            
-            // Extract last 7 digits for 100% country code and prefix independence
-            $target7 = (strlen($targetClean) >= 7) ? substr($targetClean, -7) : $targetClean;
-            $sender7 = (strlen($cleanSender) >= 7) ? substr($cleanSender, -7) : $cleanSender;
-
-            // STRICT PHYSICAL LINE VERIFICATION (Country Code & Prefix Proof)
-            if ($target7 === $sender7 || strpos($cleanSender, $target7) !== false || strpos($targetClean, $sender7) !== false) {
-                sendJSON(['success' => true, 'otp_code' => $row['otp_code']]);
-            } else {
-                sendJSON(['success' => false, 'message' => 'عذراً، هذا الطلب لم ينشأ من رقم الواتساب الخاص بك.']);
-            }
+            sendJSON(['success' => true, 'otp_code' => $row['otp_code']]);
         } else {
             sendJSON(['success' => false, 'message' => 'رمز الطلب غير صحيح أو انتهت صلاحيته. يرجى إعادة الطلب من الموقع.']);
         }
