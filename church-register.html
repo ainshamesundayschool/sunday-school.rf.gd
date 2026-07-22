@@ -361,9 +361,36 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
         <div class="fr full">
           <div class="ff">
             <label><i class="fas fa-phone"></i> رقم الهاتف <span class="req">*</span></label>
-            <input type="text" id="adminPhone" placeholder="01xxxxxxxxx" autocomplete="off" oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
-            <small>رقم الهاتف للتواصل مع المسؤول</small>
+            <div style="display:flex; gap:8px;">
+              <input type="text" id="adminPhone" placeholder="01xxxxxxxxx" autocomplete="off" style="flex:1;"
+                oninput="this.value=this.value.replace(/[^0-9]/g,''); if(isPhoneVerified && this.value !== verifiedPhoneNum){ isPhoneVerified = false; document.getElementById('phoneVerifiedBadge').style.display='none'; document.getElementById('sendOtpBtn').style.display='flex'; this.readOnly=false; }" />
+              <button type="button" id="sendOtpBtn" onclick="requestAdminPhoneOtp()" style="padding:0 14px; background:#25D366; color:white; border:none; border-radius:var(--r-sm); font-family:inherit; font-size:0.85rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                <i class="fab fa-whatsapp" style="font-size:1.1rem;"></i> <span>إرسال كود الواتساب</span>
+              </button>
+            </div>
+            <small>رقم الهاتف للتواصل مع المسؤول (يتطلب التحقق عبر الواتساب)</small>
           </div>
+        </div>
+
+        <!-- OTP Input Box -->
+        <div id="otpVerifyBox" style="display:none; margin-top:12px; padding:14px; background:var(--brand-bg); border:1.5px dashed var(--brand); border-radius:var(--r-md);">
+          <div style="font-size:0.85rem; font-weight:700; color:var(--text); margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+            <i class="fab fa-whatsapp" style="color:#25D366; font-size:1.1rem;"></i>
+            <span>أدخل كود التحقق المرسل لك عبر الواتساب (6 أرقام):</span>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="otpCodeInput" placeholder="000000" maxlength="6" inputmode="numeric" style="letter-spacing:4px; text-align:center; font-weight:800; font-size:1.1rem; flex:1; background:var(--surface);" />
+            <button type="button" onclick="confirmAdminPhoneOtp()" style="padding:0 18px; background:var(--brand); color:white; border:none; border-radius:var(--r-sm); font-family:inherit; font-size:0.88rem; font-weight:700; cursor:pointer;">
+              تأكيد الكود
+            </button>
+          </div>
+          <div id="otpStatusMsg" style="font-size:0.8rem; margin-top:6px; color:var(--brand); font-weight:600;"></div>
+        </div>
+
+        <!-- Verified Badge -->
+        <div id="phoneVerifiedBadge" style="display:none; margin-top:10px; padding:10px 14px; background:var(--success-bg); color:var(--success-dark); border:1px solid rgba(16,185,129,0.3); border-radius:var(--r-sm); font-size:0.88rem; font-weight:700; align-items:center; gap:8px;">
+          <i class="fas fa-check-circle" style="font-size:1.1rem; color:var(--success);"></i>
+          <span>تم التأكد من رقم الهاتف بنجاح عبر الواتساب</span>
         </div>
 
         <!-- Admin Username -->
@@ -547,10 +574,80 @@ function v1() {
   if (val('churchPassword').length < 6) { showErr(1, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل'); focusErr('churchPassword'); return false; }
   return true;
 }
+/* ── WHATSAPP OTP VERIFICATION ── */
+let isPhoneVerified = false;
+let verifiedPhoneNum = '';
+
+async function requestAdminPhoneOtp() {
+  const ph = val('adminPhone').replace(/\D/g, '');
+  if (!ph || ph.length < 10) {
+    showErr(2, 'يرجى إدخال رقم تليفون صحيح أولاً');
+    focusErr('adminPhone');
+    return;
+  }
+
+  const btn = document.getElementById('sendOtpBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
+
+  try {
+    const res = await apiFetch({
+      action: 'sendRegistrationWhatsAppOTP',
+      phone: ph
+    });
+    if (res.success) {
+      document.getElementById('otpVerifyBox').style.display = 'block';
+      document.getElementById('otpStatusMsg').textContent = res.message || 'تم إرسال كود التحقق إلى حساب الواتساب الخاص بك.';
+      btn.innerHTML = '<i class="fab fa-whatsapp"></i> إعادة الإرسال';
+    } else {
+      showErr(2, res.message || 'فشل إرسال كود التحقق عبر الواتساب');
+      btn.innerHTML = '<i class="fab fa-whatsapp"></i> إرسال كود الواتساب';
+    }
+  } catch (err) {
+    showErr(2, 'خطأ في الاتصال بالخادم عند إرسال الكود');
+    btn.innerHTML = '<i class="fab fa-whatsapp"></i> إرسال كود الواتساب';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function confirmAdminPhoneOtp() {
+  const ph = val('adminPhone').replace(/\D/g, '');
+  const code = (document.getElementById('otpCodeInput')?.value || '').trim();
+  if (!code || code.length < 6) {
+    showErr(2, 'يرجى إدخال كود التحقق المكون من 6 أرقام');
+    return;
+  }
+
+  try {
+    const res = await apiFetch({
+      action: 'verifyCustomWhatsAppOTP',
+      phone: ph,
+      code: code
+    });
+    if (res.success) {
+      isPhoneVerified = true;
+      verifiedPhoneNum = ph;
+      document.getElementById('otpVerifyBox').style.display = 'none';
+      document.getElementById('phoneVerifiedBadge').style.display = 'flex';
+      document.getElementById('sendOtpBtn').style.display = 'none';
+      document.getElementById('adminPhone').readOnly = true;
+    } else {
+      showErr(2, res.message || 'كود التحقق غير صحيح أو انتهت صلاحيته');
+    }
+  } catch (err) {
+    showErr(2, 'خطأ أثناء التحقق من كود الواتساب');
+  }
+}
+
 function v2() {
   if (!val('adminName'))     { showErr(2, 'الرجاء إدخال اسم المسؤول');       focusErr('adminName');     return false; }
   if (!val('adminPhone'))    { showErr(2, 'الرجاء إدخال رقم الهاتف');        focusErr('adminPhone');    return false; }
   if (val('adminPhone').length < 10) { showErr(2, 'رقم الهاتف غير صحيح');    focusErr('adminPhone');    return false; }
+  if (!isPhoneVerified || verifiedPhoneNum !== val('adminPhone').replace(/\D/g,'')) {
+    showErr(2, 'يرجى إثبات ملكية رقم الهاتف عبر الواتساب أولاً قبل المتابعة.');
+    return false;
+  }
   if (!val('adminUsername')) { showErr(2, 'الرجاء إدخال اسم المستخدم');      focusErr('adminUsername'); return false; }
   if (val('adminUsername').includes(' ')) { showErr(2, 'اسم المستخدم لا يحتوي على مسافات'); focusErr('adminUsername'); return false; }
   if (!val('adminPassword')) { showErr(2, 'الرجاء إدخال كلمة المرور');       focusErr('adminPassword'); return false; }

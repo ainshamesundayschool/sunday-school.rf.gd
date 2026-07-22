@@ -4300,6 +4300,12 @@ try {
 
             break;
 
+        case 'sendRegistrationWhatsAppOTP':
+
+            sendRegistrationWhatsAppOTP();
+
+            break;
+
         case 'verifyCustomWhatsAppOTP':
 
             verifyCustomWhatsAppOTP();
@@ -19823,24 +19829,28 @@ function sendCustomWhatsAppOTP() {
     try {
         $phone = sanitize($_POST['phone'] ?? '');
         $cleanPhone = preg_replace('/[^\d]/', '', $phone);
+        $forRegistration = !empty($_POST['for_registration']) || !empty($_POST['is_registration']);
         
-        if (empty($cleanPhone)) {
-            sendJSON(['success' => false, 'message' => 'يرجى إدخال رقم الهاتف']);
+        if (empty($cleanPhone) || strlen($cleanPhone) < 10) {
+            sendJSON(['success' => false, 'message' => 'يرجى إدخال رقم هاتف صحيح']);
         }
         
-        // Strict student registration check: phone number MUST be registered in students table
         $conn = getDBConnection();
-        $studentStmt = $conn->prepare("
-            SELECT id, name FROM students 
-            WHERE (RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?) 
-            LIMIT 1
-        ");
-        $studentStmt->bind_param("ss", $cleanPhone, $cleanPhone);
-        $studentStmt->execute();
-        $studentRes = $studentStmt->get_result();
-        
-        if ($studentRes->num_rows === 0) {
-            sendJSON(['success' => false, 'message' => 'عذراً، رقم الهاتف غير مسجل في نظام مدارس الأحد. يرجى التواصل مع الخادم للتسجيل.']);
+
+        if (!$forRegistration) {
+            // Strict student registration check: phone number MUST be registered in students table
+            $studentStmt = $conn->prepare("
+                SELECT id, name FROM students 
+                WHERE (RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?) 
+                LIMIT 1
+            ");
+            $studentStmt->bind_param("ss", $cleanPhone, $cleanPhone);
+            $studentStmt->execute();
+            $studentRes = $studentStmt->get_result();
+            
+            if ($studentRes->num_rows === 0) {
+                sendJSON(['success' => false, 'message' => 'عذراً، رقم الهاتف غير مسجل في نظام مدارس الأحد. يرجى التواصل مع الخادم للتسجيل.']);
+            }
         }
         
         $tableCheck = $conn->query("SHOW TABLES LIKE 'phone_verifications'");
@@ -19873,13 +19883,18 @@ function sendCustomWhatsAppOTP() {
         
         sendJSON([
             'success' => true,
-            'message' => 'تم إرسال كود التحقق بنجاح إلى حساب الواتساب المسجل.',
+            'message' => 'تم إرسال كود التحقق بنجاح إلى حساب الواتساب.',
             'request_token' => $requestToken,
             'wa_phone' => '201037011355'
         ]);
     } catch (Exception $e) {
         sendJSON(['success' => false, 'message' => 'خطأ في إرسال الكود: ' . $e->getMessage()]);
     }
+}
+
+function sendRegistrationWhatsAppOTP() {
+    $_POST['for_registration'] = '1';
+    sendCustomWhatsAppOTP();
 }
 
 function getPendingOTPMessages() {
