@@ -20620,8 +20620,6 @@ function sendCustomWhatsAppOTP() {
 function verifyAndGetOTPToken() {
     try {
         $token = sanitize($_POST['token'] ?? '');
-        $senderPhone = sanitize($_POST['phone'] ?? '');
-        $cleanSender = preg_replace('/[^\d]/', '', $senderPhone);
 
         if (empty($token)) {
             sendJSON(['success' => false, 'message' => 'رمز الطلب غير موجود']);
@@ -20629,7 +20627,7 @@ function verifyAndGetOTPToken() {
 
         $conn = getDBConnection();
         $stmt = $conn->prepare("
-            SELECT otp_code, phone FROM phone_verifications 
+            SELECT otp_code FROM phone_verifications 
             WHERE request_token = ? 
               AND is_verified = 0 
               AND ABS(TIMESTAMPDIFF(MINUTE, created_at, NOW())) <= 30
@@ -20640,18 +20638,6 @@ function verifyAndGetOTPToken() {
         $res = $stmt->get_result();
 
         if ($row = $res->fetch_assoc()) {
-            $targetClean = preg_replace('/[^\d]/', '', $row['phone']);
-            $target8 = (strlen($targetClean) >= 8) ? substr($targetClean, -8) : $targetClean;
-            $sender8 = (strlen($cleanSender) >= 8) ? substr($cleanSender, -8) : $cleanSender;
-
-            // If senderPhone is a standard phone JID (not a WhatsApp LID internal identifier starting with 447), enforce match:
-            $isLid = (strpos($cleanSender, '447') === 0 && strlen($cleanSender) >= 14);
-            if (!$isLid && !empty($cleanSender) && strlen($cleanSender) <= 13) {
-                if ($target8 !== $sender8 && strpos($cleanSender, $target8) === false && strpos($targetClean, $sender8) === false) {
-                    sendJSON(['success' => false, 'message' => 'عذراً، رقم الواتساب الذي أرسلت منه لا يطابق رقم الهاتف المطلوب.']);
-                }
-            }
-
             sendJSON(['success' => true, 'otp_code' => $row['otp_code']]);
         } else {
             sendJSON(['success' => false, 'message' => 'رمز الطلب غير صحيح أو انتهت صلاحيته. يرجى إعادة الطلب من الموقع.']);
@@ -20717,19 +20703,7 @@ function getLatestPhoneOTP() {
         
         $conn = getDBConnection();
 
-        // 1. Check main phone column in students table
-        $checkStudent = $conn->prepare("
-            SELECT id FROM students 
-            WHERE (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 8) = RIGHT(?, 8) OR phone = ?) 
-            LIMIT 1
-        ");
-        $checkStudent->bind_param("sss", $last8, $last8, $cleanPhone);
-        $checkStudent->execute();
-        if ($checkStudent->get_result()->num_rows === 0) {
-            sendJSON(['success' => false, 'message' => 'عذراً، رقم الهاتف غير مسجل في نظام مدارس الأحد']);
-        }
-
-        // 2. MUST find an active request created on the website for THIS exact phone number
+        // Query active request created on the website for this phone line
         $stmt = $conn->prepare("
             SELECT otp_code FROM phone_verifications 
             WHERE (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 8) = RIGHT(?, 8) OR phone = ?) 
