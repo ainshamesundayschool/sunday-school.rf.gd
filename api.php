@@ -20554,6 +20554,18 @@ function sendCustomWhatsAppOTP() {
         
         $conn = getDBConnection();
         
+        // 1. MUST verify that this phone number belongs to a registered student in Sunday School
+        $checkStudent = $conn->prepare("
+            SELECT id FROM students 
+            WHERE (RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?) 
+            LIMIT 1
+        ");
+        $checkStudent->bind_param("ss", $cleanPhone, $cleanPhone);
+        $checkStudent->execute();
+        if ($checkStudent->get_result()->num_rows === 0) {
+            sendJSON(['success' => false, 'message' => 'عذراً، رقم الهاتف غير مسجل في نظام مدارس الأحد']);
+        }
+        
         // Ensure phone_verifications table exists
         $conn->query("
             CREATE TABLE IF NOT EXISTS phone_verifications (
@@ -20644,6 +20656,19 @@ function getLatestPhoneOTP() {
         }
         
         $conn = getDBConnection();
+
+        // Check if student exists in database
+        $checkStudent = $conn->prepare("
+            SELECT id FROM students 
+            WHERE (RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?) 
+            LIMIT 1
+        ");
+        $checkStudent->bind_param("ss", $cleanPhone, $cleanPhone);
+        $checkStudent->execute();
+        if ($checkStudent->get_result()->num_rows === 0) {
+            sendJSON(['success' => false, 'message' => 'عذراً، رقم الهاتف غير مسجل في نظام مدارس الأحد']);
+        }
+
         $stmt = $conn->prepare("
             SELECT otp_code FROM phone_verifications 
             WHERE (RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?) 
