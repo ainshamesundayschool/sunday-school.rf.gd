@@ -20561,22 +20561,13 @@ function sendCustomWhatsAppOTP() {
         
         $conn = getDBConnection();
         
-        // 1. MUST verify that this phone number belongs to a registered student in Sunday School across all phone fields
+        // 1. MUST verify that this phone number belongs to a registered student in Sunday School (main phone column)
         $checkStudent = $conn->prepare("
             SELECT id FROM students 
-            WHERE (
-                phone LIKE CONCAT('%', ?) 
-                OR emergency_phone LIKE CONCAT('%', ?)
-                OR RIGHT(phone, 8) = ?
-                OR RIGHT(emergency_phone, 8) = ?
-                OR JSON_UNQUOTE(JSON_EXTRACT(custom_info, '$.phone')) LIKE CONCAT('%', ?)
-                OR JSON_UNQUOTE(JSON_EXTRACT(custom_info, '$.father_phone')) LIKE CONCAT('%', ?)
-                OR JSON_UNQUOTE(JSON_EXTRACT(custom_info, '$.mother_phone')) LIKE CONCAT('%', ?)
-                OR JSON_UNQUOTE(JSON_EXTRACT(custom_info, '$.whatsapp')) LIKE CONCAT('%', ?)
-            ) 
+            WHERE (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 8) = RIGHT(?, 8) OR phone = ?) 
             LIMIT 1
         ");
-        $checkStudent->bind_param("ssssssss", $last8, $last8, $last8, $last8, $last8, $last8, $last8, $last8);
+        $checkStudent->bind_param("sss", $last8, $last8, $cleanPhone);
         $checkStudent->execute();
         if ($checkStudent->get_result()->num_rows === 0) {
             sendJSON(['success' => false, 'message' => 'عذراً، رقم الهاتف غير مسجل في نظام مدارس الأحد']);
@@ -20726,22 +20717,13 @@ function getLatestPhoneOTP() {
         
         $conn = getDBConnection();
 
-        // 1. Check if student exists in database using comprehensive search across all student phone fields
+        // 1. Check main phone column in students table
         $checkStudent = $conn->prepare("
             SELECT id FROM students 
-            WHERE (
-                phone LIKE CONCAT('%', ?) 
-                OR emergency_phone LIKE CONCAT('%', ?)
-                OR RIGHT(phone, 8) = ?
-                OR RIGHT(emergency_phone, 8) = ?
-                OR JSON_UNQUOTE(JSON_EXTRACT(custom_info, '$.phone')) LIKE CONCAT('%', ?)
-                OR JSON_UNQUOTE(JSON_EXTRACT(custom_info, '$.father_phone')) LIKE CONCAT('%', ?)
-                OR JSON_UNQUOTE(JSON_EXTRACT(custom_info, '$.mother_phone')) LIKE CONCAT('%', ?)
-                OR JSON_UNQUOTE(JSON_EXTRACT(custom_info, '$.whatsapp')) LIKE CONCAT('%', ?)
-            ) 
+            WHERE (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 8) = RIGHT(?, 8) OR phone = ?) 
             LIMIT 1
         ");
-        $checkStudent->bind_param("ssssssss", $last8, $last8, $last8, $last8, $last8, $last8, $last8, $last8);
+        $checkStudent->bind_param("sss", $last8, $last8, $cleanPhone);
         $checkStudent->execute();
         if ($checkStudent->get_result()->num_rows === 0) {
             sendJSON(['success' => false, 'message' => 'عذراً، رقم الهاتف غير مسجل في نظام مدارس الأحد']);
