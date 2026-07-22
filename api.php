@@ -20382,156 +20382,56 @@ function handleKidLogin()
 
 }
 
-function checkKidPasswordByPhone()
-
-{
-
+function checkKidPasswordByPhone() {
     try {
-
         $phone = sanitize($_POST['phone'] ?? '');
-
-
-
-        if (empty($phone)) {
-
-            sendJSON(['success' => false, 'message' => 'رقم الهاتف مطلوب']);
-
-        }
-
-
-
-        // Clean the phone number
-
         $cleanPhone = preg_replace('/[^\d]/', '', $phone);
 
-
-
-        error_log("🔐 Checking password for phone: $cleanPhone");
-
-
-
-        $conn = getDBConnection();
-
-
-
-        // First check if student exists
-
-        $checkStmt = $conn->prepare("
-
-            SELECT id, name, phone 
-
-            FROM students 
-
-            WHERE phone = ? 
-
-               OR phone LIKE CONCAT('%', ?)
-
-               OR REPLACE(phone, '''', '') = ?
-
-               OR REPLACE(phone, '''', '') LIKE CONCAT('%', ?)
-
-            LIMIT 1
-
-        ");
-
-        $checkStmt->bind_param("ssss", $cleanPhone, $cleanPhone, $cleanPhone, $cleanPhone);
-
-        $checkStmt->execute();
-
-        $result = $checkStmt->get_result();
-
-
-
-        if ($student = $result->fetch_assoc()) {
-
-            $studentId = $student['id'];
-
-
-
-            // Now check if password exists
-
-            // First, check if password_hash column exists
-
-            $columnCheck = $conn->query("SHOW COLUMNS FROM students LIKE 'password_hash'");
-
-
-
-            if ($columnCheck && $columnCheck->num_rows > 0) {
-
-                // Column exists, check if there's a password
-
-                $passwordStmt = $conn->prepare("
-
-                    SELECT password_hash FROM students WHERE id = ?
-
-                ");
-
-                $passwordStmt->bind_param("i", $studentId);
-
-                $passwordStmt->execute();
-
-                $passwordResult = $passwordStmt->get_result();
-
-                $passwordData = $passwordResult->fetch_assoc();
-
-
-
-                $hasPassword = !empty($passwordData['password_hash']);
-
-            } else {
-
-                // Column doesn't exist or no password
-
-                $hasPassword = false;
-
-            }
-
-
-
-            error_log("🔐 Student found: ID=" . $studentId . ", Name=" . $student['name'] .
-
-                ", Has Password=" . ($hasPassword ? 'YES' : 'NO'));
-
-
-
-            sendJSON([
-
-                'success' => true,
-
-                'has_password' => $hasPassword,
-
-                'student_id' => $studentId,
-
-                'message' => $hasPassword ? 'يوجد كلمة مرور مسجلة لهذا الرقم' : 'لا توجد كلمة مرور مسجلة'
-
-            ]);
-
-
-
-        } else {
-
-            error_log("🔐 No student found for phone: $cleanPhone");
-
-            sendJSON([
-
-                'success' => false,
-
-                'message' => 'لم يتم العثور على طفل بهذا الرقم'
-
-            ]);
-
+        if (empty($cleanPhone)) {
+            sendJSON(['success' => false, 'message' => 'رقم الهاتف مطلوب']);
         }
 
+        $conn = getDBConnection();
+        $checkStmt = $conn->prepare("
+            SELECT id, name, phone 
+            FROM students 
+            WHERE (RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?)
+            LIMIT 1
+        ");
+        $checkStmt->bind_param("ss", $cleanPhone, $cleanPhone);
+        $checkStmt->execute();
+        $result = $checkStmt->get_result();
 
+        if ($student = $result->fetch_assoc()) {
+            $studentId = $student['id'];
+            $columnCheck = $conn->query("SHOW COLUMNS FROM students LIKE 'password_hash'");
 
-    } catch (Exception $e) {
+            if ($columnCheck && $columnCheck->num_rows > 0) {
+                $passwordStmt = $conn->prepare("SELECT password_hash FROM students WHERE id = ?");
+                $passwordStmt->bind_param("i", $studentId);
+                $passwordStmt->execute();
+                $passwordResult = $passwordStmt->get_result();
+                $passwordData = $passwordResult->fetch_assoc();
+                $hasPassword = !empty($passwordData['password_hash']);
+            } else {
+                $hasPassword = false;
+            }
 
-        error_log("❌ checkKidPasswordByPhone error: " . $e->getMessage());
-
+            sendJSON([
+                'success' => true,
+                'has_password' => $hasPassword,
+                'student_id' => $studentId,
+                'message' => $hasPassword ? 'يوجد كلمة مرور مسجلة لهذا الرقم' : 'لا توجد كلمة مرور مسجلة'
+            ]);
+        } else {
+            sendJSON([
+                'success' => false,
+                'message' => 'لم يتم العثور على طفل بهذا الرقم'
+            ]);
+        }
+    } catch (Throwable $e) {
         sendJSON(['success' => false, 'message' => 'خطأ في التحقق: ' . $e->getMessage()]);
-
     }
-
 }
 
 
