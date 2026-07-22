@@ -20631,6 +20631,8 @@ function normalizeEgyptianPhone($phone) {
 function verifyAndGetOTPToken() {
     try {
         $token = sanitize($_POST['token'] ?? '');
+        $senderPhone = sanitize($_POST['phone'] ?? '');
+        $cleanSender = preg_replace('/[^\d]/', '', $senderPhone);
 
         if (empty($token)) {
             sendJSON(['success' => false, 'message' => 'رمز الطلب غير موجود']);
@@ -20649,6 +20651,21 @@ function verifyAndGetOTPToken() {
         $res = $stmt->get_result();
 
         if ($row = $res->fetch_assoc()) {
+            $targetClean = preg_replace('/[^\d]/', '', $row['phone']);
+            
+            $targetNorm = normalizeEgyptianPhone($targetClean);
+            $senderNorm = normalizeEgyptianPhone($cleanSender);
+
+            $target8 = (strlen($targetNorm) >= 8) ? substr($targetNorm, -8) : $targetNorm;
+            $sender8 = (strlen($senderNorm) >= 8) ? substr($senderNorm, -8) : $senderNorm;
+
+            // Enforce that the physical WhatsApp line sending the message matches the phone requested on the website!
+            if (!empty($cleanSender) && strpos($cleanSender, '447') !== 0) {
+                if ($target8 !== $sender8 && strpos($senderNorm, $target8) === false && strpos($targetNorm, $sender8) === false) {
+                    sendJSON(['success' => false, 'message' => 'عذراً، رقم الواتساب الذي أرسلت منه لا يطابق رقم الهاتف المطلوب في الموقع.']);
+                }
+            }
+
             sendJSON(['success' => true, 'otp_code' => $row['otp_code']]);
         } else {
             sendJSON(['success' => false, 'message' => 'رمز الطلب غير صحيح أو انتهت صلاحيته. يرجى إعادة الطلب من الموقع.']);
