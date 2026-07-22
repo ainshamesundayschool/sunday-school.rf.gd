@@ -45513,37 +45513,40 @@ function savePushSubscription()
 
 
 function deletePushSubscription()
-
 {
-
     try {
-
         $conn = getDBConnection();
+        $endpoint = sanitize($_POST['endpoint'] ?? '');
+        $studentId = sanitize($_POST['student_id'] ?? '');
+        $uncleId = sanitize($_POST['uncle_id'] ?? '');
 
-        $endpoint = $_POST['endpoint'] ?? '';
-
-        if (!$endpoint) {
-
-            sendJSON(['success' => false, 'message' => 'endpoint مطلوب']);
-
+        if (!$endpoint && !$studentId && !$uncleId) {
+            sendJSON(['success' => false, 'message' => 'بيانات الاشتراك مطلوبة']);
             return;
-
         }
 
-        $stmt = $conn->prepare("DELETE FROM push_subscriptions WHERE endpoint = ?");
+        if ($endpoint) {
+            $stmt = $conn->prepare("DELETE FROM push_subscriptions WHERE endpoint = ?");
+            $stmt->bind_param('s', $endpoint);
+            $stmt->execute();
+        }
 
-        $stmt->bind_param('s', $endpoint);
+        if ($studentId) {
+            $stmt = $conn->prepare("DELETE FROM push_subscriptions WHERE student_id = ?");
+            $stmt->bind_param('s', $studentId);
+            $stmt->execute();
+        }
 
-        $stmt->execute();
+        if ($uncleId) {
+            $stmt = $conn->prepare("DELETE FROM push_subscriptions WHERE uncle_id = ?");
+            $stmt->bind_param('s', $uncleId);
+            $stmt->execute();
+        }
 
         sendJSON(['success' => true]);
-
     } catch (Exception $e) {
-
         sendJSON(['success' => false, 'message' => $e->getMessage()]);
-
     }
-
 }
 
 

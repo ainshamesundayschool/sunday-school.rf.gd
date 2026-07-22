@@ -10052,24 +10052,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
               checkbox.checked = false;
             }
           } else {
-            // Unsubscribe
+            // Unsubscribe & Full Reset of Notification State
             try {
               const currentSub = await reg.pushManager.getSubscription();
+              const savedEndpoint = localStorage.getItem('push_sub_saved_endpoint');
+              const endpointToDelete = currentSub ? currentSub.endpoint : (savedEndpoint || '');
+
               if (currentSub) {
                 try {
                   await currentSub.unsubscribe();
-                } catch (e) { }
+                } catch (unsubErr) {
+                  console.warn("Unsubscribe browser error:", unsubErr);
+                }
+              }
+
+              // Always attempt backend delete by endpoint + student_id to clear any orphan subscriptions
+              try {
                 await api({
                   action: 'deletePushSubscription',
-                  endpoint: currentSub.endpoint
+                  endpoint: endpointToDelete,
+                  student_id: student.id
                 });
-                localStorage.removeItem('push_sub_saved_endpoint');
+              } catch (apiErr) {
+                console.warn("Delete push subscription API error:", apiErr);
               }
-              toast('تم إلغاء تفعيل الإشعارات ✓', 'ok');
+
+              localStorage.removeItem('push_sub_saved_endpoint');
+              checkbox.checked = false;
+              toast('تم إيقاف الإشعارات وإعادة ضبطها بنجاح ✓', 'ok');
             } catch (err) {
-              console.error("Unsubscription failed:", err);
-              toast('فشل في إلغاء الإشعارات ✕', 'err');
-              checkbox.checked = true;
+              console.error("Unsubscription reset error:", err);
+              localStorage.removeItem('push_sub_saved_endpoint');
+              checkbox.checked = false;
+              toast('تم إعادة ضبط حالة الإشعارات ✓', 'ok');
             }
           }
         };

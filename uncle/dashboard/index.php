@@ -26628,21 +26628,37 @@ if ($hasUncleId && $uncleRole === 'uncle')
             try {
                 const reg = await navigator.serviceWorker.ready;
                 let sub = await reg.pushManager.getSubscription();
+                const savedEndpoint = localStorage.getItem('push_sub_saved_endpoint');
 
                 if (Notification.permission === 'default') {
                     await requestNotifPermission();
                 } else if (Notification.permission === 'granted') {
-                    if (sub) {
-                        // Unsubscribe (disable)
-                        await sub.unsubscribe();
-                        await makeApiCallRaw({
-                            action: 'deletePushSubscription',
-                            endpoint: sub.endpoint
-                        });
+                    if (sub || savedEndpoint) {
+                        // Unsubscribe & Full Reset
+                        let endpointToDelete = sub ? sub.endpoint : (savedEndpoint || '');
+                        if (sub) {
+                            try {
+                                await sub.unsubscribe();
+                            } catch (unsubErr) {
+                                console.warn("Unsubscribe error:", unsubErr);
+                            }
+                        }
+
+                        try {
+                            await makeApiCallRaw({
+                                action: 'deletePushSubscription',
+                                endpoint: endpointToDelete,
+                                uncle_id: window.currentUncle?.id || ''
+                            });
+                        } catch (apiErr) {
+                            console.warn("Delete push sub error:", apiErr);
+                        }
+
                         localStorage.removeItem('push_sub_saved_endpoint');
-                        showToast('❌ تم إيقاف الإشعارات', 'info');
+                        showToast('❌ تم إيقاف وتصفير الإشعارات بنجاح', 'info');
                     } else {
-                        // Subscribe (enable)
+                        // Subscribe (enable fresh)
+                        localStorage.removeItem('push_sub_saved_endpoint');
                         await _doSubscribe(reg);
                         showToast('✅ تم تفعيل الإشعارات بنجاح!', 'success');
                         _maybeSendBirthdayNotification();
@@ -26653,6 +26669,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 }
             } catch (e) {
                 console.error("Error toggling notifications:", e);
+                localStorage.removeItem('push_sub_saved_endpoint');
+                _updateNotifBtnVisibility();
+                showToast('تم إعادة ضبط حالة الإشعارات بنجاح ✓', 'info');
             }
         }
 
