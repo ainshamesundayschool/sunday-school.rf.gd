@@ -4312,6 +4312,12 @@ try {
 
             break;
 
+        case 'verifyAndGetOTPToken':
+
+            verifyAndGetOTPToken();
+
+            break;
+
         case 'getStudentProfile':
 
             getStudentProfile();
@@ -20567,40 +20573,88 @@ function sendCustomWhatsAppOTP() {
             sendJSON(['success' => false, 'message' => 'عذراً، رقم الهاتف غير مسجل في نظام مدارس الأحد']);
         }
         
-        // Ensure phone_verifications table exists
+        // Ensure phone_verifications table exists with request_token column
         $conn->query("
             CREATE TABLE IF NOT EXISTS phone_verifications (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 phone VARCHAR(20) NOT NULL,
                 otp_code VARCHAR(10) NOT NULL,
+                request_token VARCHAR(32) DEFAULT NULL,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 expires_at DATETIME NOT NULL,
                 is_verified TINYINT(1) DEFAULT 0,
                 INDEX (phone),
-                INDEX (otp_code)
+                INDEX (otp_code),
+                INDEX (request_token)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         ");
         
-        // Generate random 6-digit OTP code
+        // Ensure request_token column exists if table was created previously
+        $conn->query("ALTER TABLE phone_verifications ADD COLUMN IF NOT EXISTS request_token VARCHAR(32) DEFAULT NULL;");
+        
+        // Generate random 6-digit OTP code & unique request token
         $otpCode = str_pad(strval(rand(100000, 999999)), 6, '0', STR_PAD_LEFT);
+        $requestToken = 'REQ-' . strtoupper(substr(md5(uniqid(strval(rand()), true)), 0, 8));
         
         $stmt = $conn->prepare("
-            INSERT INTO phone_verifications (phone, otp_code, expires_at)
-            VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 10 MINUTE))
+            INSERT INTO phone_verifications (phone, otp_code, request_token, expires_at)
+            VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL 10 MINUTE))
         ");
-        $stmt->bind_param("ss", $cleanPhone, $otpCode);
+        $stmt->bind_param("sss", $cleanPhone, $otpCode, $requestToken);
         $stmt->execute();
         
-        $waMsg = rawurlencode("طلب كود تفعيل كلمة المرور لحسابي برقم: {$cleanPhone}");
+        $waMsg = rawurlencode("طلب كود تفعيل كلمة المرور لحسابي رمز الطلب: {$requestToken}");
         $waUrl = "https://wa.me/201037011355?text={$waMsg}";
         
         sendJSON([
             'success' => true,
             'message' => 'تم طلب كود التحقق بنجاح',
+            'request_token' => $requestToken,
             'wa_url' => $waUrl
         ]);
     } catch (Exception $e) {
         sendJSON(['success' => false, 'message' => 'خطأ في إنشاء كود التحقق: ' . $e->getMessage()]);
+    }
+}
+
+function verifyAndGetOTPToken() {
+    try {
+        $token = sanitize($_POST['token'] ?? '');
+        $senderPhone = sanitize($_POST['phone'] ?? '');
+        $cleanSender = preg_replace('/[^\d]/', '', $senderPhone);
+        $last8 = (strlen($cleanSender) >= 8) ? substr($cleanSender, -8) : $cleanSender;
+
+        if (empty($token) || empty($cleanSender)) {
+            sendJSON(['success' => false, 'message' => 'بيانات الطلب غير كاملة']);
+        }
+
+        $conn = getDBConnection();
+        $stmt = $conn->prepare("
+            SELECT otp_code, phone FROM phone_verifications 
+            WHERE request_token = ? 
+              AND is_verified = 0 
+              AND ABS(TIMESTAMPDIFF(MINUTE, created_at, NOW())) <= 30
+            ORDER BY id DESC LIMIT 1
+        ");
+        $stmt->bind_param("s", $token);
+        $stmt->execute();
+        $res = $stmt->get_result();
+
+        if ($row = $res->fetch_assoc()) {
+            $targetPhone = preg_replace('/[^\d]/', '', $row['phone']);
+            $targetLast8 = (strlen($targetPhone) >= 8) ? substr($targetPhone, -8) : $targetPhone;
+
+            // STRICT PHYSICAL LINE VERIFICATION: Does sender WhatsApp line match target requested line?
+            if ($targetLast8 === $last8 || substr($targetPhone, -10) === substr($cleanSender, -10)) {
+                sendJSON(['success' => true, 'otp_code' => $row['otp_code']]);
+            } else {
+                sendJSON(['success' => false, 'message' => 'عذراً، هذا الطلب تم لم ينشأ من رقم الواتساب الخاص بك.']);
+            }
+        } else {
+            sendJSON(['success' => false, 'message' => 'رمز الطلب غير صحيح أو انتهت صلاحيته. يرجى إعادة الطلب من الموقع.']);
+        }
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
     }
 }
 
