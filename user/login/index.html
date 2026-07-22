@@ -1016,7 +1016,7 @@
         }
 
         function requestServerWhatsAppOTP(phone) {
-            showLoading('جاري طلب كود التحقق...');
+            showLoading('جاري إرسال كود التحقق إلى حساب الواتساب الخاص بك...');
             const formData = new FormData();
             formData.append('action', 'sendCustomWhatsAppOTP');
             formData.append('phone', cleanPhoneNumber(phone));
@@ -1028,9 +1028,8 @@
             .then(res => res.json())
             .then(data => {
                 hideLoading();
-                if (data.success && data.wa_url) {
-                    showSuccess('تم إنشاء كود التحقق. افتح الواتساب لإرسال الطلب إلى خادم الكنيسة.');
-                    window.open(data.wa_url, '_blank');
+                if (data.success) {
+                    showSuccess('تم إرسال كود التحقق بنجاح إلى حساب الواتساب المسجل. يرجى مراجعة وتفقد رسائل الواتساب وإدخال الكود أدناه.');
                 } else {
                     showSetupError(data.message || 'فشل طلب كود التحقق');
                 }
