@@ -20659,8 +20659,8 @@ function verifyAndGetOTPToken() {
             $target8 = (strlen($targetNorm) >= 8) ? substr($targetNorm, -8) : $targetNorm;
             $sender8 = (strlen($senderNorm) >= 8) ? substr($senderNorm, -8) : $senderNorm;
 
-            // Enforce that the physical WhatsApp line sending the message matches the phone requested on the website!
-            if (!empty($cleanSender) && strpos($cleanSender, '447') !== 0) {
+            // MANDATORY STRICT SENDER CHECK: Physical sender phone line MUST match website target phone!
+            if (!empty($cleanSender)) {
                 if ($target8 !== $sender8 && strpos($senderNorm, $target8) === false && strpos($targetNorm, $sender8) === false) {
                     sendJSON(['success' => false, 'message' => 'عذراً، رقم الواتساب الذي أرسلت منه لا يطابق رقم الهاتف المطلوب في الموقع.']);
                 }
