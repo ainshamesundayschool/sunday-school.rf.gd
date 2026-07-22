@@ -4306,6 +4306,14 @@ try {
 
             break;
 
+        case 'getPendingOTPMessages':
+            getPendingOTPMessages();
+            break;
+
+        case 'markOTPSent':
+            markOTPSent();
+            break;
+
         case 'getLatestPhoneOTP':
 
             getLatestPhoneOTP();
@@ -19811,6 +19819,104 @@ function transliterateEnglishToArabicPHP($englishName) {
     return implode(' ', $converted);
 }
 
+function sendCustomWhatsAppOTP() {
+    try {
+        $phone = sanitize($_POST['phone'] ?? '');
+        $cleanPhone = preg_replace('/[^\d]/', '', $phone);
+        
+        if (empty($cleanPhone)) {
+            sendJSON(['success' => false, 'message' => 'يرجى إدخال رقم الهاتف']);
+        }
+        
+        // Strict student registration check: phone number MUST be registered in students table
+        $conn = getDBConnection();
+        $studentStmt = $conn->prepare("
+            SELECT id, name FROM students 
+            WHERE (RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?) 
+            LIMIT 1
+        ");
+        $studentStmt->bind_param("ss", $cleanPhone, $cleanPhone);
+        $studentStmt->execute();
+        $studentRes = $studentStmt->get_result();
+        
+        if ($studentRes->num_rows === 0) {
+            sendJSON(['success' => false, 'message' => 'عذراً، رقم الهاتف غير مسجل في نظام مدارس الأحد. يرجى التواصل مع الخادم للتسجيل.']);
+        }
+        
+        $tableCheck = $conn->query("SHOW TABLES LIKE 'phone_verifications'");
+        if ($tableCheck->num_rows === 0) {
+            $conn->query("
+                CREATE TABLE IF NOT EXISTS phone_verifications (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    phone VARCHAR(20) NOT NULL,
+                    request_token VARCHAR(32) DEFAULT NULL,
+                    otp_code VARCHAR(10) NOT NULL,
+                    is_verified TINYINT(1) DEFAULT 0,
+                    is_sent TINYINT(1) DEFAULT 0,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+            ");
+        } else {
+            @$conn->query("ALTER TABLE phone_verifications ADD COLUMN is_sent TINYINT(1) DEFAULT 0;");
+        }
+        
+        $otp = sprintf("%06d", mt_rand(100000, 999999));
+        $bytes = random_bytes(4);
+        $requestToken = 'REQ-' . strtoupper(bin2hex($bytes));
+        
+        $stmt = $conn->prepare("INSERT INTO phone_verifications (phone, request_token, otp_code, is_sent) VALUES (?, ?, ?, 0)");
+        $stmt->bind_param("sss", $cleanPhone, $requestToken, $otp);
+        $stmt->execute();
+        
+        sendJSON([
+            'success' => true,
+            'message' => 'تم إرسال كود التحقق بنجاح إلى حساب الواتساب المسجل.',
+            'request_token' => $requestToken,
+            'wa_phone' => '201037011355'
+        ]);
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => 'خطأ في إرسال الكود: ' . $e->getMessage()]);
+    }
+}
+
+function getPendingOTPMessages() {
+    try {
+        $conn = getDBConnection();
+        @$conn->query("ALTER TABLE phone_verifications ADD COLUMN is_sent TINYINT(1) DEFAULT 0;");
+        $stmt = $conn->prepare("
+            SELECT id, phone, otp_code FROM phone_verifications 
+            WHERE is_verified = 0 
+              AND is_sent = 0 
+              AND ABS(TIMESTAMPDIFF(MINUTE, created_at, NOW())) <= 10
+            ORDER BY id ASC LIMIT 10
+        ");
+        $stmt->execute();
+        $res = $stmt->get_result();
+        $rows = [];
+        while ($r = $res->fetch_assoc()) {
+            $r['phone'] = normalizeEgyptianPhone($r['phone']);
+            $rows[] = $r;
+        }
+        sendJSON(['success' => true, 'data' => $rows]);
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+
+function markOTPSent() {
+    try {
+        $id = intval($_POST['id'] ?? 0);
+        if ($id > 0) {
+            $conn = getDBConnection();
+            $stmt = $conn->prepare("UPDATE phone_verifications SET is_sent = 1 WHERE id = ?");
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
+        }
+        sendJSON(['success' => true]);
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
 
 function calculateFuzzyScorePHP($name1, $name2) {
     $n1 = $name1;
