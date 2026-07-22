@@ -20624,8 +20624,8 @@ function verifyCustomWhatsAppOTP() {
             SELECT id FROM phone_verifications 
             WHERE (RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?) 
               AND otp_code = ? 
-              AND expires_at >= NOW() 
               AND is_verified = 0 
+              AND TIMESTAMPDIFF(MINUTE, created_at, NOW()) <= 15
             ORDER BY id DESC LIMIT 1
         ");
         $stmt->bind_param("sss", $cleanPhone, $cleanPhone, $code);
@@ -20672,8 +20672,8 @@ function getLatestPhoneOTP() {
         $stmt = $conn->prepare("
             SELECT otp_code FROM phone_verifications 
             WHERE (RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?) 
-              AND expires_at >= NOW() 
               AND is_verified = 0 
+              AND TIMESTAMPDIFF(MINUTE, created_at, NOW()) <= 15
             ORDER BY id DESC LIMIT 1
         ");
         $stmt->bind_param("ss", $cleanPhone, $cleanPhone);
