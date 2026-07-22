@@ -20547,6 +20547,7 @@ function sendCustomWhatsAppOTP() {
     try {
         $phone = sanitize($_POST['phone'] ?? '');
         $cleanPhone = preg_replace('/[^\d]/', '', $phone);
+        $last8 = (strlen($cleanPhone) >= 8) ? substr($cleanPhone, -8) : $cleanPhone;
         
         if (empty($cleanPhone)) {
             sendJSON(['success' => false, 'message' => 'رقم الهاتف مطلوب']);
@@ -20557,10 +20558,10 @@ function sendCustomWhatsAppOTP() {
         // 1. MUST verify that this phone number belongs to a registered student in Sunday School
         $checkStudent = $conn->prepare("
             SELECT id FROM students 
-            WHERE (RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?) 
+            WHERE (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?) 
             LIMIT 1
         ");
-        $checkStudent->bind_param("ss", $cleanPhone, $cleanPhone);
+        $checkStudent->bind_param("sss", $last8, $cleanPhone, $cleanPhone);
         $checkStudent->execute();
         if ($checkStudent->get_result()->num_rows === 0) {
             sendJSON(['success' => false, 'message' => 'عذراً، رقم الهاتف غير مسجل في نظام مدارس الأحد']);
@@ -20608,6 +20609,7 @@ function verifyCustomWhatsAppOTP() {
         $phone = sanitize($_POST['phone'] ?? '');
         $code = sanitize($_POST['code'] ?? '');
         $cleanPhone = preg_replace('/[^\d]/', '', $phone);
+        $last8 = (strlen($cleanPhone) >= 8) ? substr($cleanPhone, -8) : $cleanPhone;
         
         if (empty($cleanPhone) || empty($code)) {
             sendJSON(['success' => false, 'message' => 'البيانات غير كاملة']);
@@ -20622,13 +20624,13 @@ function verifyCustomWhatsAppOTP() {
         
         $stmt = $conn->prepare("
             SELECT id FROM phone_verifications 
-            WHERE (RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?) 
+            WHERE (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?) 
               AND otp_code = ? 
               AND is_verified = 0 
-              AND TIMESTAMPDIFF(MINUTE, created_at, NOW()) <= 15
+              AND ABS(TIMESTAMPDIFF(MINUTE, created_at, NOW())) <= 30
             ORDER BY id DESC LIMIT 1
         ");
-        $stmt->bind_param("sss", $cleanPhone, $cleanPhone, $code);
+        $stmt->bind_param("ssss", $last8, $cleanPhone, $cleanPhone, $code);
         $stmt->execute();
         $result = $stmt->get_result();
         
@@ -20650,6 +20652,7 @@ function getLatestPhoneOTP() {
     try {
         $phone = sanitize($_POST['phone'] ?? '');
         $cleanPhone = preg_replace('/[^\d]/', '', $phone);
+        $last8 = (strlen($cleanPhone) >= 8) ? substr($cleanPhone, -8) : $cleanPhone;
         
         if (empty($cleanPhone)) {
             sendJSON(['success' => false, 'message' => 'رقم الهاتف مطلوب']);
@@ -20657,13 +20660,13 @@ function getLatestPhoneOTP() {
         
         $conn = getDBConnection();
 
-        // Check if student exists in database
+        // Check if student exists in database using last 8 digits matching
         $checkStudent = $conn->prepare("
             SELECT id FROM students 
-            WHERE (RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?) 
+            WHERE (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?) 
             LIMIT 1
         ");
-        $checkStudent->bind_param("ss", $cleanPhone, $cleanPhone);
+        $checkStudent->bind_param("sss", $last8, $cleanPhone, $cleanPhone);
         $checkStudent->execute();
         if ($checkStudent->get_result()->num_rows === 0) {
             sendJSON(['success' => false, 'message' => 'عذراً، رقم الهاتف غير مسجل في نظام مدارس الأحد']);
@@ -20671,12 +20674,12 @@ function getLatestPhoneOTP() {
 
         $stmt = $conn->prepare("
             SELECT otp_code FROM phone_verifications 
-            WHERE (RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?) 
+            WHERE (phone LIKE CONCAT('%', ?) OR RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?) 
               AND is_verified = 0 
               AND ABS(TIMESTAMPDIFF(MINUTE, created_at, NOW())) <= 30
             ORDER BY id DESC LIMIT 1
         ");
-        $stmt->bind_param("ss", $cleanPhone, $cleanPhone);
+        $stmt->bind_param("sss", $last8, $cleanPhone, $cleanPhone);
         $stmt->execute();
         $res = $stmt->get_result();
         
