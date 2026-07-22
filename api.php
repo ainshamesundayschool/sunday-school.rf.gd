@@ -20659,8 +20659,12 @@ function verifyAndGetOTPToken() {
             $target8 = (strlen($targetNorm) >= 8) ? substr($targetNorm, -8) : $targetNorm;
             $sender8 = (strlen($senderNorm) >= 8) ? substr($senderNorm, -8) : $senderNorm;
 
-            // MANDATORY STRICT SENDER CHECK: Physical sender phone line MUST match website target phone!
-            if (!empty($cleanSender)) {
+            // Physical sender check:
+            // 1. If sender is a standard phone number (e.g. 201037011355), enforce strict match against website phone!
+            // 2. If sender is a WhatsApp Multi-Device LID (starts with 447...), accept single-use token safely!
+            $isLid = (strpos($cleanSender, '447') === 0 && strlen($cleanSender) >= 14);
+
+            if (!empty($cleanSender) && !$isLid) {
                 if ($target8 !== $sender8 && strpos($senderNorm, $target8) === false && strpos($targetNorm, $sender8) === false) {
                     sendJSON(['success' => false, 'message' => 'عذراً، رقم الواتساب الذي أرسلت منه لا يطابق رقم الهاتف المطلوب في الموقع.']);
                 }
