@@ -93,3 +93,15 @@ cat bot.log
 ```bash
 lsof -ti:5000 | xargs kill -9 2>/dev/null || true
 ```
+
+---
+
+## 🤖 Server AI Agent & Script Update Guidelines
+
+> [!NOTE]
+> The remote server hosting the WhatsApp verification bot script is equipped with its own **AI Agent**.
+> 
+> When updates or code modifications are required for the server-side WhatsApp script (`src/lib/whatsapp.ts` or related bot handlers):
+> 1. **Prompt Delegation**: The AI agent in this workspace should formulate a complete, ready-to-run prompt instructions block for the server's AI agent to apply the changes directly on the remote server.
+> 2. **Manual Replacement**: Alternatively, the user can manually navigate to the server file location (`src/lib/whatsapp.ts`) and replace the script code.
+

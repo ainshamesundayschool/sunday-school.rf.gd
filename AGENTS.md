@@ -17,3 +17,4 @@ All search elements added to this project (inputs, selectors, autocomplete sugge
 
 ## 4. WhatsApp OTP & Password Recovery Architecture
 - Full documentation for WhatsApp OTP verification and password recovery is maintained in [WHATSAPP_BOT_DOCUMENTATION.md](file:///Users/peterfayez/Documents/Sunday%20School/sunday-school.rf.gd/WHATSAPP_BOT_DOCUMENTATION.md).
+- **Server Bot Script Updates**: The server hosting the WhatsApp verification script has an AI agent. When updates to the WhatsApp bot script (`src/lib/whatsapp.ts`) are needed, AI agents can generate a prompt for the server's AI agent, or the user can manually navigate to the server file location to replace the script code.
