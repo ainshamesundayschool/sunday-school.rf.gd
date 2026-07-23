@@ -15408,7 +15408,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <i class="fas fa-question-circle" style="font-size:0.65rem;"></i> ${qCount} أسئلة
                             </span>
                             <span class="task-badge-pill degree" style="font-size: 0.72rem; font-weight: 700; color: var(--warning); background: var(--warning-bg); border: 1px solid rgba(245, 158, 11, 0.2); padding: 3px 8px; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px;">
-                                <i class="fas fa-star" style="font-size:0.65rem;"></i> ${maxCoupons} كوبون
+                                <i class="fas fa-star" style="font-size:0.65rem;"></i> ${maxCoupons}
                             </span>
                             <i class="fas fa-chevron-left task-pill-arrow" style="font-size: 0.75rem; color: var(--text-3); opacity: 0.6;"></i>
                         </div>
