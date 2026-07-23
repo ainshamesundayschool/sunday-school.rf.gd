@@ -7703,8 +7703,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           <span class="task-badge ${stBadge[st]}">${stLbl[st]}</span>
         </div>
         <div class="task-metas">
-          <span class="task-meta-chip"><i class="fas fa-calendar-alt"></i>${parseInt(t.no_deadline || 0) ? 'بدون آخر موعد' : fmtDate(t.end_date)}</span>
-          ${t.total_degree ? `<span class="task-meta-chip"><i class="fas fa-star"></i>${t.total_degree} درجة</span>` : ''}
+          <span class="task-meta-chip"><i class="far fa-clock" style="color:var(--brand);"></i>${parseInt(t.no_deadline || 0) ? 'بدون آخر موعد' : fmtDate(t.end_date)}</span>
+          <span class="task-meta-chip"><i class="fas fa-star" style="color:var(--cou-l);"></i>${maxCoupon} كوبون</span>
           ${t.time_limit ? `<span class="task-meta-chip"><i class="fas fa-stopwatch"></i>${t.time_limit} دقيقة</span>` : ''}
         </div>
         ${couponRow}
@@ -7816,8 +7816,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     // isResume=true → student already started, show "استكمل" with remaining time
     function showExamStartScreen(t, isResume, remainingSec) {
       const qs = (t.questions || []).length;
+      const matrix = t.coupon_matrix ? (typeof t.coupon_matrix === 'string' ? JSON.parse(t.coupon_matrix || '[]') : t.coupon_matrix) : [];
+      const maxCoupon = t.max_coupons ? parseInt(t.max_coupons) : (matrix.length ? Math.max(...matrix.map(m => parseInt(m.val) || 0)) : 0);
       document.getElementById('startTitle').textContent = t.title;
-      document.getElementById('startSub').textContent = `${qs} سؤال · ${t.total_degree} درجة`;
+      document.getElementById('startSub').textContent = `${qs} سؤال · ${maxCoupon} كوبون`;
       const lsKey = `examStart_${t.id}_${student.id}`;
       const hasSaved = Object.keys(JSON.parse(localStorage.getItem(`ta_${t.id}_${student.id}`) || '{}')).length > 0;
       const hasStart = !!localStorage.getItem(lsKey);
@@ -7841,7 +7843,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           'لا يوجد وقت محدد — أجب بتأنٍّ', null));
       }
       rows.push(examMetaRow('var(--s2)', 'var(--bdr)', 'var(--brand)', 'fas fa-list-ol', `${qs} سؤال`, null));
-      rows.push(examMetaRow('var(--s2)', 'var(--bdr)', 'var(--gold-l)', 'fas fa-award', `${t.total_degree} درجة كاملة`, null));
+      rows.push(examMetaRow('var(--s2)', 'var(--bdr)', 'var(--gold-l)', 'fas fa-star', `حتى ${maxCoupon} كوبون`, null));
       if (hasSaved || isResume || hasStart) {
         rows.push(examMetaRow('var(--brand-bg)', 'var(--brand-l)', 'var(--brand)', 'fas fa-layer-group',
           'إجاباتك السابقة محفوظة وستُستكمل', null));
@@ -7889,8 +7891,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         // If examStartedAt already set (resume path) — use as-is, timer continues
       }
 
+      const matrix = t.coupon_matrix ? (typeof t.coupon_matrix === 'string' ? JSON.parse(t.coupon_matrix || '[]') : t.coupon_matrix) : [];
+      const maxCoupon = t.max_coupons ? parseInt(t.max_coupons) : (matrix.length ? Math.max(...matrix.map(m => parseInt(m.val) || 0)) : 0);
+
       document.getElementById('examHeaderTitle').textContent = t.title;
-      document.getElementById('examHeaderSub').textContent = `${(t.questions || []).length} سؤال — ${t.total_degree} درجة`;
+      document.getElementById('examHeaderSub').textContent = `${(t.questions || []).length} سؤال — ${maxCoupon} كوبون`;
       document.getElementById('examTotalQ').textContent = (t.questions || []).length;
       renderExamQuestions(t);
       examShowView('active');

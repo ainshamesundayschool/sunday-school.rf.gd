@@ -12076,40 +12076,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         50% { transform: translateX(-50%) translateY(4px); }
                     }
 
-                    @keyframes pingPulse {
-                        0% {
-                            transform: scale(0.95);
-                            opacity: 0.85;
-                        }
-                        70%, 100% {
-                            transform: scale(2.4);
-                            opacity: 0;
-                        }
-                    }
-
                     .task-ping-badge {
-                        position: relative;
-                        display: inline-flex;
-                        align-items: center;
-                        justify-content: center;
+                        display: inline-block;
                         width: 7px;
                         height: 7px;
                         border-radius: 50%;
                         background-color: #ef4444;
                         flex-shrink: 0;
-                    }
-
-                    .task-ping-badge::after {
-                        content: '';
-                        position: absolute;
-                        top: 0;
-                        left: 0;
-                        width: 100%;
-                        height: 100%;
-                        border-radius: 50%;
-                        background-color: #ef4444;
-                        opacity: 0.75;
-                        animation: pingPulse 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
                     }
 
                     .class-tasks-collapsible {
@@ -12353,7 +12326,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                     <i class="fas fa-tasks"></i>
                                     <span class="task-ping-badge" id="tasksHeaderPing" style="display: none; position: absolute; top: -2px; right: -2px; width: 7px; height: 7px;" title="نشاط جديد"></span>
                                 </span>
-                                <span>التاسكات المتاحة</span>
+                                <span>التاسكات</span>
                                 <span class="header-count-pill" id="collapsedTasksCount">0</span>
                             </span>
                             
@@ -15247,8 +15220,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             list.innerHTML = classTasks.map(t => {
                 const qCount = (t.questions || []).length;
-                const totalDegree = t.total_degree || 0;
-                const deadlineText = t.no_deadline == 1 ? 'مستمر' : (t.end_date ? new Date(t.end_date).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' }) : 'مستمر');
+                const matrix = t.coupon_matrix ? (typeof t.coupon_matrix === 'string' ? JSON.parse(t.coupon_matrix || '[]') : t.coupon_matrix) : [];
+                const maxCoupons = t.max_coupons ? parseInt(t.max_coupons) : (matrix.length ? Math.max(0, ...matrix.map(m => parseInt(m.val) || 0)) : 0);
+                const deadlineText = t.no_deadline == 1 ? 'مستمر' : (t.end_date ? new Date(t.end_date.replace(/-/g, '/')).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' }) : 'مستمر');
 
                 let isNewActivity = false;
                 if (t.has_new_activity || t.is_new) {
@@ -15278,7 +15252,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <i class="fas fa-question-circle" style="font-size:0.65rem;"></i> ${qCount} أسئلة
                             </span>
                             <span class="task-badge-pill degree" style="font-size: 0.72rem; font-weight: 700; color: var(--warning); background: var(--warning-bg); border: 1px solid rgba(245, 158, 11, 0.2); padding: 3px 8px; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px;">
-                                <i class="fas fa-star" style="font-size:0.65rem;"></i> ${totalDegree} درجة
+                                <i class="fas fa-star" style="font-size:0.65rem;"></i> ${maxCoupons} كوبون
                             </span>
                             <i class="fas fa-chevron-left task-pill-arrow" style="font-size: 0.75rem; color: var(--text-3); opacity: 0.6;"></i>
                         </div>

@@ -14317,7 +14317,7 @@ function renderGrid() {
         <!-- Sub/Meta details -->
         <div style="display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.72rem; color: var(--t3); border-bottom: 1px dashed var(--bdr); padding-bottom: 10px; direction: rtl;">
           <span style="display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-users" style="color:var(--brand);"></i> ${esc(t.class_name || 'كل الفصول')}</span>
-          <span style="display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-flag-checkered"></i> ${parseInt(t.no_deadline||0)?'بدون موعد':fmtDate(t.end_date)}</span>
+          <span style="display: inline-flex; align-items: center; gap: 4px;"><i class="far fa-clock" style="color:var(--brand);"></i> ${parseInt(t.no_deadline||0)?'بدون موعد':fmtDate(t.end_date)}</span>
           <span style="display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-question-circle"></i> ${qs} سؤال (${t.total_degree||0} درجة)</span>
         </div>
 
@@ -18426,7 +18426,7 @@ async function openDetail(id){
         <div style="display:flex; flex-wrap:wrap; gap:12px; font-size:0.75rem; color:var(--t3); border-bottom:1px dashed var(--bdr); padding-bottom:12px; justify-content:flex-start; align-items:center; direction:rtl; text-align:right;">
           <span style="display:inline-flex; align-items:center; gap:4px; background:var(--brand-bg); color:var(--brand); padding:2px 8px; border-radius:4px; font-weight:700;"><i class="fas fa-users"></i> ${esc(t.class_name || 'كل الفصول')}</span>
           <span style="display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-calendar-check" style="color:var(--brand);"></i> البدء: ${fmtDate(t.start_date)}</span>
-          <span style="display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-flag-checkered" style="color:var(--brand);"></i> النهاية: ${parseInt(t.no_deadline||0)?'بدون موعد':fmtDate(t.end_date)}</span>
+          <span style="display:inline-flex; align-items:center; gap:4px;"><i class="far fa-clock" style="color:var(--brand);"></i> النهاية: ${parseInt(t.no_deadline||0)?'بدون موعد':fmtDate(t.end_date)}</span>
           ${t.time_limit ? `<span style="display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-stopwatch" style="color:var(--brand);"></i> ${t.time_limit} دقيقة</span>` : ''}
           ${parseInt(t.shuffle) ? `<span style="display:inline-flex; align-items:center; gap:4px; color:var(--warn);"><i class="fas fa-random"></i> ترتيب عشوائي</span>` : ''}
           ${si.key === 'draft' ? `<span style="background:var(--warn-bg); color:var(--warn); font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:4px; border:1px solid rgba(245,158,11,0.25);">Draft</span>` : ''}
