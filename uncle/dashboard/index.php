@@ -12079,11 +12079,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     .class-tasks-collapsible {
                         display: none;
                         width: 100%;
-                        margin-top: 14px;
+                        margin-top: 6px;
+                        margin-bottom: 2px;
                         border-top: 1px dashed var(--border);
-                        padding-top: 12px;
+                        padding-top: 6px;
                         flex-direction: column;
-                        gap: 10px;
+                        gap: 6px;
                     }
 
                     .class-tasks-header {
@@ -12095,14 +12096,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         padding: 8px 12px;
                         border-radius: 12px;
                         background: var(--surface-2);
-                        border: 1px solid var(--border);
+                        border: none;
                         transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
                         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
                     }
 
                     .class-tasks-header:hover {
                         background: var(--surface-3);
-                        border-color: rgba(99, 102, 241, 0.35);
+                        border-color: transparent;
                         box-shadow: 0 4px 14px rgba(99, 102, 241, 0.08);
                         transform: translateY(-1px);
                     }
@@ -12147,26 +12148,39 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                     .class-tasks-manage-btn {
                         font-family: 'Cairo', sans-serif;
-                        font-size: 0.72rem;
+                    .class-tasks-footer-action {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        padding-top: 4px;
+                        padding-bottom: 2px;
+                    }
+
+                    .class-tasks-manage-footer-btn {
+                        font-family: 'Cairo', sans-serif;
+                        font-size: 0.76rem;
                         font-weight: 700;
                         color: var(--brand);
                         background: var(--brand-bg);
-                        border: 1.5px solid rgba(99, 102, 241, 0.25);
-                        padding: 4px 12px;
-                        border-radius: var(--r-full, 999px);
+                        border: 1px solid rgba(99, 102, 241, 0.2);
+                        padding: 7px 16px;
+                        border-radius: 10px;
                         cursor: pointer;
                         transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
                         display: inline-flex;
                         align-items: center;
-                        gap: 5px;
+                        justify-content: center;
+                        gap: 8px;
+                        width: 100%;
+                        box-shadow: 0 2px 6px rgba(99, 102, 241, 0.05);
                     }
 
-                    .class-tasks-manage-btn:hover {
+                    .class-tasks-manage-footer-btn:hover {
                         background: var(--brand);
                         color: #ffffff;
                         border-color: var(--brand);
                         transform: translateY(-1px);
-                        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+                        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.25);
                     }
 
                     .class-tasks-chevron-btn {
@@ -12285,15 +12299,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <span class="header-count-pill" id="collapsedTasksCount">0</span>
                             </span>
                             
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <button class="class-tasks-manage-btn" onclick="event.stopPropagation(); openTasksModal();">
-                                    <i class="fas fa-external-link-alt" style="font-size: 0.65rem;"></i>
-                                    <span>إدارة التاسكات</span>
-                                </button>
-                                
-                                <div class="class-tasks-chevron-btn">
-                                    <i class="fas fa-chevron-down" id="tasksCollapseIcon"></i>
-                                </div>
+                            <div class="class-tasks-chevron-btn">
+                                <i class="fas fa-chevron-down" id="tasksCollapseIcon"></i>
                             </div>
                         </div>
                         
@@ -12301,8 +12308,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <div id="collapsedTasksWrapper" style="display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; width: 100%;">
                             <div style="min-height: 0; display: flex; flex-direction: column; gap: 8px; position: relative;">
                                 <div id="collapsedTasksList"
-                                    style="display: flex; flex-direction: column; gap: 8px; max-height: 240px; overflow-y: auto; padding-inline-start: 2px; padding-inline-end: 4px; padding-top: 6px; padding-bottom: 6px;">
+                                    style="display: flex; flex-direction: column; gap: 8px; max-height: 240px; overflow-y: auto; padding-inline-start: 2px; padding-inline-end: 4px; padding-top: 6px; padding-bottom: 4px;">
                                     <!-- Dynamically loaded task pills -->
+                                </div>
+                                <div class="class-tasks-footer-action">
+                                    <button class="class-tasks-manage-footer-btn" onclick="openTasksModal()">
+                                        <i class="fas fa-sliders-h"></i>
+                                        <span>فتح لوحة إدارة التاسكات</span>
+                                    </button>
                                 </div>
                                 <div id="tasksScrollIndicator" 
                                      style="display: none; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); background: linear-gradient(transparent, rgba(0, 0, 0, 0.08) 80%); width: 100%; height: 24px; pointer-events: none; align-items: flex-end; justify-content: center; padding-bottom: 2px;">
