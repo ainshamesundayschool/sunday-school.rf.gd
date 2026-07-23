@@ -12489,8 +12489,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 <span class="header-count-pill" id="collapsedTasksCount">0</span>
                             </span>
 
-                            <div class="class-tasks-chevron-btn">
-                                <i class="fas fa-chevron-down" id="tasksCollapseIcon"></i>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <button class="class-tasks-add-btn" onclick="event.stopPropagation(); openTasksModal(null, 'create')" title="إضافة تاسك"
+                                    style="all: unset; box-sizing: border-box; width: 28px; height: 28px; border-radius: 8px; background: var(--brand); color: #ffffff; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; font-size: 0.8rem;"
+                                    onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                                <div class="class-tasks-chevron-btn">
+                                    <i class="fas fa-chevron-down" id="tasksCollapseIcon"></i>
+                                </div>
                             </div>
                         </div>
 
@@ -12510,11 +12517,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                     <!-- Dynamically loaded task pills -->
                                 </div>
                                 <div class="class-tasks-footer-action" style="display: flex; gap: 8px; margin-top: 4px;">
-                                    <button class="class-tasks-add-btn" onclick="openTasksModal(null, 'create')"
-                                        style="all: unset; box-sizing: border-box; flex: 1; font-family: 'Cairo', sans-serif; font-size: 0.78rem; font-weight: 700; color: #fff; background: var(--brand); border: 1.5px solid var(--brand); padding: 7px 12px; border-radius: 10px; cursor: pointer; transition: all 0.25s ease; display: flex; align-items: center; justify-content: center; gap: 6px; text-align: center;">
-                                        <i class="fas fa-plus-circle" style="font-size: 0.8rem;"></i>
-                                        <span>إضافة تاسك</span>
-                                    </button>
                                     <button class="class-tasks-manage-footer-btn" onclick="openTasksModal()"
                                         style="all: unset; box-sizing: border-box; flex: 1; font-family: 'Cairo', sans-serif; font-size: 0.78rem; font-weight: 700; color: var(--brand); background: var(--brand-bg); border: 1.5px solid rgba(99, 102, 241, 0.25); padding: 7px 12px; border-radius: 10px; cursor: pointer; transition: all 0.25s ease; display: flex; align-items: center; justify-content: center; gap: 6px; text-align: center;">
                                         <i class="fas fa-sliders-h" style="font-size: 0.75rem;"></i>
