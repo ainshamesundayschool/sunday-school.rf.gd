@@ -12444,10 +12444,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             all: unset;
                             box-sizing: border-box;
                             font-family: 'Cairo', sans-serif;
-                            font-size: 0.72rem;
+                            font-size: 0.68rem;
                             font-weight: 700;
-                            padding: 3px 10px;
-                            border-radius: 20px;
+                            padding: 2px 8px;
+                            border-radius: 12px;
                             cursor: pointer;
                             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
                             white-space: nowrap;
@@ -12457,7 +12457,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             border: 1px solid var(--border);
                             display: inline-flex;
                             align-items: center;
-                            gap: 4px;
+                            gap: 3px;
+                            line-height: 1.3;
                         }
                         .task-filter-chip:hover {
                             border-color: rgba(99, 102, 241, 0.35);
@@ -12467,18 +12468,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             background: var(--brand);
                             color: #ffffff;
                             border-color: var(--brand);
-                            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
                         }
                         .task-filter-count {
-                            font-size: 0.65rem;
-                            padding: 0 5px;
-                            border-radius: 10px;
-                            background: rgba(0, 0, 0, 0.08);
-                            line-height: 1.4;
-                        }
-                        .task-filter-chip.active .task-filter-count {
-                            background: rgba(255, 255, 255, 0.25);
-                            color: #ffffff;
+                            font-size: 0.62rem;
+                            opacity: 0.85;
                         }
                     </style>
                     <div id="classTasksCollapsible" class="class-tasks-collapsible">
@@ -12505,22 +12498,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <div id="collapsedTasksWrapper"
                             style="display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; width: 100%;">
                             <div
-                                style="min-height: 0; display: flex; flex-direction: column; gap: 8px; position: relative;">
+                                style="min-height: 0; display: flex; flex-direction: column; gap: 6px; position: relative; overflow: hidden;">
                                 
                                 <!-- Filter Chips Bar -->
-                                <div class="task-filter-chips-bar" style="display: flex; align-items: center; gap: 6px; overflow-x: auto; padding: 6px 2px 2px 2px; -webkit-overflow-scrolling: touch; scrollbar-width: none;">
-                                    <button type="button" class="task-filter-chip active" data-filter="active" onclick="setTaskFilter('active', this)">
-                                        النشطة <span class="task-filter-count" id="countActiveTasks">0</span>
-                                    </button>
-                                    <button type="button" class="task-filter-chip" data-filter="all" onclick="setTaskFilter('all', this)">
-                                        الكل <span class="task-filter-count" id="countAllTasks">0</span>
-                                    </button>
-                                    <button type="button" class="task-filter-chip" data-filter="ended" onclick="setTaskFilter('ended', this)">
-                                        المنتهية <span class="task-filter-count" id="countEndedTasks">0</span>
-                                    </button>
-                                    <button type="button" class="task-filter-chip" data-filter="draft" onclick="setTaskFilter('draft', this)">
-                                        المسودات <span class="task-filter-count" id="countDraftTasks">0</span>
-                                    </button>
+                                <div class="task-filter-chips-bar" id="taskFilterChipsBar" style="display: flex; align-items: center; gap: 4px; overflow-x: auto; padding: 4px 2px 2px 2px; -webkit-overflow-scrolling: touch; scrollbar-width: none; flex-shrink: 0;">
+                                    <!-- Dynamically rendered filter chips -->
                                 </div>
 
                                 <div id="collapsedTasksList"
@@ -15336,21 +15318,71 @@ if ($hasUncleId && $uncleRole === 'uncle')
         // ── TASKS PWA COLLAPSIBLE & MODAL SYSTEM ─────────────────────────
         let classTasks = [];
         let allRawClassTasks = [];
-        let currentTaskFilter = 'active';
+        let currentTaskFilter = 'all';
         let isTasksCollapsed = true;
 
         function setTaskFilter(filter, btnEl) {
             currentTaskFilter = filter;
-            document.querySelectorAll('.task-filter-chip').forEach(c => {
-                c.classList.remove('active');
-            });
-            if (btnEl) {
-                btnEl.classList.add('active');
-            } else {
-                const target = document.querySelector(`.task-filter-chip[data-filter="${filter}"]`);
-                if (target) target.classList.add('active');
-            }
             renderCollapsedTasks();
+        }
+
+        function renderFilterChipsBar() {
+            const bar = document.getElementById('taskFilterChipsBar');
+            if (!bar) return;
+
+            const customFilters = new Set();
+            let draftCount = 0;
+            let publishedCount = 0;
+
+            allRawClassTasks.forEach(t => {
+                if (!t) return;
+                if (t.status === 'draft') {
+                    draftCount++;
+                } else {
+                    publishedCount++;
+                }
+                if (t.group_name) {
+                    t.group_name.split(',').forEach(g => {
+                        const trimmed = g.trim();
+                        if (trimmed) customFilters.add(trimmed);
+                    });
+                }
+            });
+
+            const customArr = Array.from(customFilters);
+
+            if (draftCount === 0 && customArr.length === 0) {
+                bar.style.display = 'none';
+                return;
+            }
+
+            bar.style.display = 'flex';
+
+            let html = `
+                <button type="button" class="task-filter-chip ${currentTaskFilter === 'all' ? 'active' : ''}" data-filter="all" onclick="setTaskFilter('all', this)">
+                    الكل <span class="task-filter-count">(${publishedCount})</span>
+                </button>
+            `;
+
+            if (draftCount > 0) {
+                html += `
+                    <button type="button" class="task-filter-chip ${currentTaskFilter === 'draft' ? 'active' : ''}" data-filter="draft" onclick="setTaskFilter('draft', this)">
+                        مسودة <span class="task-filter-count">(${draftCount})</span>
+                    </button>
+                `;
+            }
+
+            customArr.forEach(cat => {
+                const count = allRawClassTasks.filter(t => t.group_name && t.group_name.split(',').map(x => x.trim()).includes(cat)).length;
+                const filterKey = 'custom_' + cat;
+                html += `
+                    <button type="button" class="task-filter-chip ${currentTaskFilter === filterKey ? 'active' : ''}" data-filter="${escHtml(filterKey)}" onclick="setTaskFilter('${escHtml(filterKey)}', this)">
+                        ${escHtml(cat)} <span class="task-filter-count">(${count})</span>
+                    </button>
+                `;
+            });
+
+            bar.innerHTML = html;
         }
 
         function openTasksModal(taskId = null, action = null) {
@@ -15414,20 +15446,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     return false;
                 });
 
+                const publishedTasks = allRawClassTasks.filter(t => t.status !== 'draft');
+                document.getElementById('collapsedTasksCount').textContent = publishedTasks.length;
+
                 const now = new Date();
-                const activeTasks = allRawClassTasks.filter(t => t.status === 'published' && (t.no_deadline == 1 || !t.end_date || new Date(t.end_date.replace(/-/g, '/')) >= now));
-                const endedTasks = allRawClassTasks.filter(t => t.status === 'published' && t.no_deadline != 1 && t.end_date && new Date(t.end_date.replace(/-/g, '/')) < now);
-                const draftTasks = allRawClassTasks.filter(t => t.status === 'draft');
-
-                const se = (id) => document.getElementById(id);
-                if (se('countActiveTasks')) se('countActiveTasks').textContent = activeTasks.length;
-                if (se('countAllTasks')) se('countAllTasks').textContent = allRawClassTasks.length;
-                if (se('countEndedTasks')) se('countEndedTasks').textContent = endedTasks.length;
-                if (se('countDraftTasks')) se('countDraftTasks').textContent = draftTasks.length;
-
-                document.getElementById('collapsedTasksCount').textContent = activeTasks.length;
-
-                const hasAnyNewActivity = activeTasks.some(t => {
+                const hasAnyNewActivity = publishedTasks.some(t => {
                     if (t.has_new_activity || t.is_new) return true;
                     if (t.created_at) {
                         const createdDate = new Date(t.created_at.replace(/-/g, '/'));
@@ -15458,31 +15481,31 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const list = document.getElementById('collapsedTasksList');
             if (!list) return;
 
-            const now = new Date();
+            renderFilterChipsBar();
+
             let filtered = [];
-            if (currentTaskFilter === 'active') {
-                filtered = allRawClassTasks.filter(t => t.status === 'published' && (t.no_deadline == 1 || !t.end_date || new Date(t.end_date.replace(/-/g, '/')) >= now));
-            } else if (currentTaskFilter === 'ended') {
-                filtered = allRawClassTasks.filter(t => t.status === 'published' && t.no_deadline != 1 && t.end_date && new Date(t.end_date.replace(/-/g, '/')) < now);
+            if (currentTaskFilter === 'all') {
+                filtered = allRawClassTasks.filter(t => t.status !== 'draft');
             } else if (currentTaskFilter === 'draft') {
                 filtered = allRawClassTasks.filter(t => t.status === 'draft');
+            } else if (currentTaskFilter.startsWith('custom_')) {
+                const catName = currentTaskFilter.substring(7);
+                filtered = allRawClassTasks.filter(t => t.group_name && t.group_name.split(',').map(x => x.trim()).includes(catName));
             } else {
-                filtered = [...allRawClassTasks];
+                filtered = allRawClassTasks.filter(t => t.status !== 'draft');
             }
 
             document.getElementById('collapsedTasksCount').textContent = filtered.length;
 
             if (!filtered.length) {
-                const labelMap = {
-                    active: 'تاسكات نشطة',
-                    ended: 'تاسكات منتهية',
-                    draft: 'مسودات',
-                    all: 'تاسكات'
-                };
+                let emptyLabel = 'تاسكات';
+                if (currentTaskFilter === 'draft') emptyLabel = 'مسودات';
+                else if (currentTaskFilter.startsWith('custom_')) emptyLabel = currentTaskFilter.substring(7);
+
                 list.innerHTML = `
-                    <div style="text-align:center; padding:16px 12px; display:flex; flex-direction:column; align-items:center; gap:8px;">
-                        <div style="font-size:0.78rem; color:var(--text-3);">لا توجد ${labelMap[currentTaskFilter] || 'تاسكات'} حالياً</div>
-                        <button onclick="openTasksModal(null, 'new')" style="all:unset; box-sizing:border-box; font-family:'Cairo',sans-serif; font-size:0.75rem; font-weight:700; color:#fff; background:var(--brand); border-radius:8px; padding:6px 14px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                    <div style="text-align:center; padding:14px 10px; display:flex; flex-direction:column; align-items:center; gap:6px;">
+                        <div style="font-size:0.75rem; color:var(--text-3);">لا توجد ${escHtml(emptyLabel)} حالياً</div>
+                        <button onclick="openTasksModal(null, 'new')" style="all:unset; box-sizing:border-box; font-family:'Cairo',sans-serif; font-size:0.72rem; font-weight:700; color:#fff; background:var(--brand); border-radius:8px; padding:5px 12px; cursor:pointer; display:inline-flex; align-items:center; gap:4px;">
                             <i class="fas fa-plus-circle"></i> إضافة تاسك جديد
                         </button>
                     </div>
