@@ -12076,6 +12076,42 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         50% { transform: translateX(-50%) translateY(4px); }
                     }
 
+                    @keyframes pingPulse {
+                        0% {
+                            transform: scale(0.95);
+                            opacity: 0.85;
+                        }
+                        70%, 100% {
+                            transform: scale(2.4);
+                            opacity: 0;
+                        }
+                    }
+
+                    .task-ping-badge {
+                        position: relative;
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        width: 7px;
+                        height: 7px;
+                        border-radius: 50%;
+                        background-color: #ef4444;
+                        flex-shrink: 0;
+                    }
+
+                    .task-ping-badge::after {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        border-radius: 50%;
+                        background-color: #ef4444;
+                        opacity: 0.75;
+                        animation: pingPulse 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+                    }
+
                     .class-tasks-collapsible {
                         display: none;
                         width: 100%;
@@ -12287,13 +12323,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         color: var(--brand);
                     }
 
-                    /* Hide scrollbars on task list to prevent temporary flash during expand transition */
+                    /* Thin custom scrollbar on task list for smooth scrolling */
                     #collapsedTasksList {
-                        scrollbar-width: none;
-                        -ms-overflow-style: none;
+                        scrollbar-width: thin;
+                        scrollbar-color: rgba(99, 102, 241, 0.35) transparent;
+                        -webkit-overflow-scrolling: touch;
+                        flex-shrink: 0;
                     }
                     #collapsedTasksList::-webkit-scrollbar {
-                        display: none;
+                        width: 5px;
+                    }
+                    #collapsedTasksList::-webkit-scrollbar-track {
+                        background: transparent;
+                    }
+                    #collapsedTasksList::-webkit-scrollbar-thumb {
+                        background: rgba(99, 102, 241, 0.25);
+                        border-radius: 10px;
+                    }
+                    #collapsedTasksList::-webkit-scrollbar-thumb:hover {
+                        background: var(--brand, #6366f1);
                     }
                     </style>
                     <div id="classTasksCollapsible" class="class-tasks-collapsible">
@@ -12301,7 +12349,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <!-- Accordion Header row -->
                         <div class="class-tasks-header" onclick="toggleTasksCollapse()">
                             <span class="header-title-wrap">
-                                <span class="header-icon-box"><i class="fas fa-tasks"></i></span>
+                                <span class="header-icon-box" style="position: relative;">
+                                    <i class="fas fa-tasks"></i>
+                                    <span class="task-ping-badge" id="tasksHeaderPing" style="display: none; position: absolute; top: -2px; right: -2px; width: 7px; height: 7px;" title="نشاط جديد"></span>
+                                </span>
                                 <span>التاسكات المتاحة</span>
                                 <span class="header-count-pill" id="collapsedTasksCount">0</span>
                             </span>
@@ -12315,12 +12366,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <div id="collapsedTasksWrapper" style="display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; width: 100%;">
                             <div style="min-height: 0; display: flex; flex-direction: column; gap: 8px; position: relative;">
                                 <div id="collapsedTasksList"
-                                    style="display: flex; flex-direction: column; gap: 8px; max-height: 240px; overflow-y: auto; padding-inline-start: 2px; padding-inline-end: 4px; padding-top: 6px; padding-bottom: 4px;">
+                                    style="display: flex; flex-direction: column; gap: 8px; max-height: 240px; overflow-y: auto; padding-inline-start: 2px; padding-inline-end: 4px; padding-top: 6px; padding-bottom: 4px; flex-shrink: 0;">
                                     <!-- Dynamically loaded task pills -->
                                 </div>
                                 <div class="class-tasks-footer-action">
-                                    <button class="class-tasks-manage-footer-btn" onclick="openTasksModal()">
-                                        <i class="fas fa-sliders-h"></i>
+                                    <button class="class-tasks-manage-footer-btn" onclick="openTasksModal()"
+                                        style="all: unset; box-sizing: border-box; width: 100%; font-family: 'Cairo', sans-serif; font-size: 0.78rem; font-weight: 700; color: var(--brand); background: var(--brand-bg); border: 1.5px solid rgba(99, 102, 241, 0.25); padding: 7px 16px; border-radius: 10px; cursor: pointer; transition: all 0.25s ease; display: flex; align-items: center; justify-content: center; gap: 8px; text-align: center;">
+                                        <i class="fas fa-sliders-h" style="font-size: 0.75rem;"></i>
                                         <span>فتح لوحة إدارة التاسكات</span>
                                     </button>
                                 </div>
@@ -15157,6 +15209,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 document.getElementById('collapsedTasksCount').textContent = classTasks.length;
 
+                const hasAnyNewActivity = classTasks.some(t => {
+                    if (t.has_new_activity || t.is_new) return true;
+                    if (t.created_at) {
+                        const createdDate = new Date(t.created_at.replace(/-/g, '/'));
+                        const daysDiff = (new Date() - createdDate) / (1000 * 60 * 60 * 24);
+                        return daysDiff <= 7 && daysDiff >= 0;
+                    }
+                    return false;
+                });
+
+                const headerPing = document.getElementById('tasksHeaderPing');
+                if (headerPing) {
+                    headerPing.style.display = hasAnyNewActivity ? 'inline-flex' : 'none';
+                }
+
                 if (classTasks.length > 0) {
                     container.style.display = 'flex';
                     renderCollapsedTasks();
@@ -15183,22 +15250,37 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const totalDegree = t.total_degree || 0;
                 const deadlineText = t.no_deadline == 1 ? 'مستمر' : (t.end_date ? new Date(t.end_date).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' }) : 'مستمر');
 
+                let isNewActivity = false;
+                if (t.has_new_activity || t.is_new) {
+                    isNewActivity = true;
+                } else if (t.created_at) {
+                    const createdDate = new Date(t.created_at.replace(/-/g, '/'));
+                    const daysDiff = (new Date() - createdDate) / (1000 * 60 * 60 * 24);
+                    if (daysDiff <= 7 && daysDiff >= 0) isNewActivity = true;
+                }
+
+                const pingHtml = isNewActivity ? `<span class="task-ping-badge" title="نشاط جديد" style="margin-inline-start: 6px;"></span>` : '';
+
                 return `
-                    <div class="task-pill-item" onclick="openTasksModal(${t.id})">
-                        <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1;">
-                            <div class="task-item-title">${escHtml(t.title)}</div>
-                            <div class="task-item-meta">
-                                <i class="far fa-clock" style="font-size: 0.65rem;"></i> آخر موعد: ${deadlineText}
+                    <div class="task-pill-item" onclick="openTasksModal(${t.id})"
+                        style="display: flex; align-items: center; justify-content: space-between; background: var(--surface-2); border: 1px solid var(--border); padding: 10px 14px; border-radius: 12px; cursor: pointer; transition: all 0.25s ease; gap: 12px; width: 100%; box-sizing: border-box; flex-shrink: 0;">
+                        <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1;">
+                            <div class="task-item-title" style="font-size: 0.84rem; font-weight: 700; color: var(--text-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'Cairo', sans-serif; display: flex; align-items: center;">
+                                <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escHtml(t.title)}</span>
+                                ${pingHtml}
+                            </div>
+                            <div class="task-item-meta" style="font-size: 0.72rem; color: var(--text-3); display: flex; align-items: center; gap: 5px;">
+                                <i class="far fa-clock" style="font-size: 0.68rem; color: var(--brand);"></i> آخر موعد: ${deadlineText}
                             </div>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
-                            <span class="task-badge-pill questions">
+                        <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                            <span class="task-badge-pill questions" style="font-size: 0.72rem; font-weight: 700; color: var(--brand); background: var(--brand-bg); border: 1px solid rgba(99, 102, 241, 0.15); padding: 3px 8px; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px;">
                                 <i class="fas fa-question-circle" style="font-size:0.65rem;"></i> ${qCount} أسئلة
                             </span>
-                            <span class="task-badge-pill degree">
+                            <span class="task-badge-pill degree" style="font-size: 0.72rem; font-weight: 700; color: var(--warning); background: var(--warning-bg); border: 1px solid rgba(245, 158, 11, 0.2); padding: 3px 8px; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px;">
                                 <i class="fas fa-star" style="font-size:0.65rem;"></i> ${totalDegree} درجة
                             </span>
-                            <i class="fas fa-chevron-left task-pill-arrow"></i>
+                            <i class="fas fa-chevron-left task-pill-arrow" style="font-size: 0.75rem; color: var(--text-3); opacity: 0.6;"></i>
                         </div>
                     </div>
                 `;
