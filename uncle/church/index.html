@@ -9135,6 +9135,7 @@
                             <button class="btn btn-outline btn-sm" id="bulkSelectAuditToggleBtn"
                                 onclick="toggleAuditBulkSelectMode()"><i class="fas fa-check-circle"></i> تحديد
                                 متعدد</button>
+                            <button class="btn btn-success btn-sm" onclick="showUniversalRestoreModal()"><i class="fas fa-file-import"></i> استعادة البيانات (.JSON)</button>
                             <button class="btn btn-outline btn-sm" onclick="exportAuditCSV()"><i
                                     class="fas fa-file-csv"></i> تصدير CSV</button>
                             <button class="btn btn-primary btn-sm" onclick="showAuditAnalyticsModal()"><i
@@ -10441,6 +10442,75 @@
             </div>
             <div class="modal-body" id="auditDetailContent">
                 <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete History Backup Modal -->
+    <div id="deleteHistoryBackupModal" class="modal">
+        <div class="modal-box" style="max-width:520px; border-radius:20px;">
+            <div class="modal-head" style="background: linear-gradient(135deg, rgba(239,68,68,0.1), rgba(220,38,38,0.05));">
+                <h2 style="color: #dc2626;"><i class="fas fa-exclamation-triangle"></i> تنبيه حذف نهائي للبيانات</h2>
+                <button class="modal-close" onclick="closeModal('deleteHistoryBackupModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" style="text-align: center; padding: 24px 20px;">
+                <div style="width: 64px; height: 64px; border-radius: 50%; background: #fee2e2; color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin: 0 auto 16px;">
+                    <i class="fas fa-trash-alt"></i>
+                </div>
+                <h3 id="delBackupEntityName" style="margin-bottom: 8px; font-weight: 800; font-size: 1.2rem;">تأكيد الحذف</h3>
+                <p style="color: var(--muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 20px;">
+                    سيؤدي هذا الإجراء إلى <strong>حذف هذا العنصر وجميع سجلاته ومدفوعاته وتاريخه نهائياً</strong> من موقع الكنيسة.
+                    <br>
+                    <span style="color:#b91c1c; font-weight:700;">للحفاظ على بياناتك وسجلاتك سليمة، يمكنك تحميل نسخة احتياطية أولاً قبل الحذف.</span>
+                </p>
+
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 20px;">
+                    <button type="button" class="btn" style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(99,102,241,0.3);" onclick="downloadEntityBackupFile()">
+                        <i class="fas fa-download"></i> تحميل سجل البيانات والنسخة الاحتياطية (.JSON)
+                    </button>
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 8px;">
+                        <button type="button" class="btn btn-outline" style="flex: 1; border-radius: 12px;" onclick="closeModal('deleteHistoryBackupModal')">إلغاء</button>
+                        <button type="button" class="btn btn-danger" style="flex: 1; border-radius: 12px; font-weight:700;" onclick="confirmDeleteEntityAction()">
+                            <i class="fas fa-trash"></i> تأكيد الحذف النهائي
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Universal Data Restore Modal -->
+    <div id="universalRestoreModal" class="modal">
+        <div class="modal-box" style="max-width:540px; border-radius:20px;">
+            <div class="modal-head" style="background: linear-gradient(135deg, rgba(34,197,94,0.1), rgba(16,185,129,0.05));">
+                <h2 style="color: #15803d;"><i class="fas fa-file-import"></i> استعادة البيانات والسجلات</h2>
+                <button class="modal-close" onclick="closeModal('universalRestoreModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" style="padding: 24px 20px;">
+                <p style="color: var(--muted); font-size: 0.9rem; line-height: 1.5; margin-bottom: 16px;">
+                    قم برفع ملف النسخة الاحتياطية المحفوظة بصيغة (<strong>.JSON</strong>). سيقوم النظام بتحديد نوع البيانات (رحلة، طفل، خادم، كنيسة) وإعادة ترتيب البيانات وتسكينها في قاعدة البيانات تلقائياً.
+                </p>
+
+                <form id="universalRestoreForm" onsubmit="executeUniversalRestore(event)">
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label" style="font-weight:700;">اختر ملف النسخة الاحتياطية (.json)</label>
+                        <input type="file" id="universalRestoreFile" accept=".json,application/json" class="form-input" style="width:100%; padding: 10px;" onchange="previewRestoreFile(this)" required>
+                    </div>
+
+                    <div id="restoreFilePreview" style="display:none; background: rgba(99,102,241,0.06); border: 1px dashed var(--primary); border-radius: 12px; padding: 14px; margin-bottom: 16px; font-size: 0.85rem;">
+                        <div style="font-weight: 800; color: var(--primary); margin-bottom: 4px;" id="previewRestoreType">نوع البيانات: -</div>
+                        <div style="color: var(--text);" id="previewRestoreName">الاسم: -</div>
+                        <div style="color: var(--muted); font-size: 0.75rem; margin-top: 4px;" id="previewRestoreDate">تاريخ التصدير: -</div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button type="button" class="btn btn-outline" style="flex:1; border-radius:12px;" onclick="closeModal('universalRestoreModal')">إلغاء</button>
+                        <button type="submit" id="submitRestoreBtn" class="btn btn-success" style="flex:1; border-radius:12px; font-weight:700;">
+                            <i class="fas fa-upload"></i> بدء استعادة البيانات
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -13402,11 +13472,14 @@
         }
 
         async function deleteUncle(id) {
-            if (!(await showConfirm({ message: 'هل أنت متأكد من حذف هذا الخادم؟' }))) return;
-            const fd = _appendDevOverride(new FormData()); fd.append('action', 'deleteUncle'); fd.append('uncle_id', id);
-            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
-            if (d.success) { showToast('تم حذف الخادم', 'success'); loadUncles(); }
-            else showToast(d.message || 'فشل في الحذف', 'error');
+            const uncle = (typeof allUncles !== 'undefined' && Array.isArray(allUncles)) ? allUncles.find(u => u.id === id) : null;
+            const name = uncle ? uncle.name : `خادم #${id}`;
+            promptDeleteWithBackup('uncle', id, name, async () => {
+                const fd = _appendDevOverride(new FormData()); fd.append('action', 'deleteUncle'); fd.append('uncle_id', id);
+                const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+                if (d.success) { showToast('تم حذف الخادم بنجاح', 'success'); loadUncles(); }
+                else showToast(d.message || 'فشل في الحذف', 'error');
+            });
         }
 
         function exportUnclesToCSV() {
@@ -13678,11 +13751,12 @@
         }
 
         async function deleteStudentConfirm(id, name) {
-            if (!(await showConfirm({ message: `هل أنت متأكد من حذف الطفل "${name}"؟\nسيتم حذف جميع سجلات الحضور المرتبطة به.`, danger: true }))) return;
-            const fd = _appendDevOverride(new FormData()); fd.append('action', 'deleteStudent'); fd.append('studentId', id);
-            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
-            if (d.success) { showToast(d.message, 'success'); loadStudents(); loadStatistics(); }
-            else showToast(d.message || 'فشل في الحذف', 'error');
+            promptDeleteWithBackup('student', id, name, async () => {
+                const fd = _appendDevOverride(new FormData()); fd.append('action', 'deleteStudent'); fd.append('studentId', id);
+                const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+                if (d.success) { showToast(d.message || 'تم حذف الطفل بنجاح', 'success'); loadStudents(); loadStatistics(); }
+                else showToast(d.message || 'فشل في الحذف', 'error');
+            });
         }
 
         function showStudentDetails(id) {
@@ -16145,11 +16219,14 @@
         }
 
         async function deleteTrip(id) {
-            if (!(await showConfirm({ message: 'هل أنت متأكد من حذف هذه الرحلة؟' }))) return;
-            const fd = new FormData(); fd.append('action', 'deleteTrip'); fd.append('trip_id', id);
-            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
-            if (d.success) { showToast('تم حذف الرحلة', 'success'); loadTrips(); }
-            else showToast(d.message || 'فشل', 'error');
+            const trip = (typeof allTrips !== 'undefined' && Array.isArray(allTrips)) ? allTrips.find(t => t.id === id) : null;
+            const title = trip ? trip.title : `رحلة #${id}`;
+            promptDeleteWithBackup('trip', id, title, async () => {
+                const fd = new FormData(); fd.append('action', 'deleteTrip'); fd.append('trip_id', id);
+                const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+                if (d.success) { showToast('تم حذف الرحلة بنجاح', 'success'); loadTrips(); }
+                else showToast(d.message || 'فشل في الحذف', 'error');
+            });
         }
 
         // ── Trip Detail Tab switcher ──────────────────────────────────
@@ -19261,13 +19338,14 @@
         }
 
         async function deleteChurchConfirm(id, code) {
-            if (!(await showConfirm({ message: `هل أنت متأكد من حذف الكنيسة؟\nالرمز: ${code}\n\nسيتم حذف جميع البيانات المرتبطة بها نهائياً!` }))) return;
-            const enteredCode = await showPrompt({ title: "تأكيد الحذف", message: `أدخل رمز الكنيسة: "${code}"`, defaultValue: "" });
-            if (enteredCode !== code) { showToast('رمز الكنيسة غير صحيح', 'error'); return; }
-            const fd = new FormData(); fd.append('action', 'deleteChurch'); fd.append('church_id', id); fd.append('church_code', code);
-            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
-            if (d.success) { showToast('تم حذف الكنيسة', 'success'); loadAllChurches(); }
-            else showToast(d.message || 'فشل في الحذف', 'error');
+            promptDeleteWithBackup('church', id, code, async () => {
+                const enteredCode = await showPrompt({ title: "تأكيد الحذف", message: `أدخل رمز الكنيسة: "${code}"`, defaultValue: "" });
+                if (enteredCode !== code) { showToast('رمز الكنيسة غير صحيح', 'error'); return; }
+                const fd = new FormData(); fd.append('action', 'deleteChurch'); fd.append('church_id', id); fd.append('church_code', code);
+                const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+                if (d.success) { showToast('تم حذف الكنيسة', 'success'); loadAllChurches(); }
+                else showToast(d.message || 'فشل في الحذف', 'error');
+            });
         }
 
         // ── Dev Church Switcher ───────────────────────────────────────
@@ -20982,6 +21060,89 @@
                 return response;
             };
         })();
+
+        // ── Delete History Backup & Universal Restore Logic ───────────
+        let _currentDeleteState = null;
+
+        function promptDeleteWithBackup(type, id, name, deleteCallback) {
+            _currentDeleteState = { type, id, name, deleteCallback };
+            const typeMap = { trip: 'الرحلة', student: 'الطفل', uncle: 'الخادم', church: 'الكنيسة' };
+            const typeLabel = typeMap[type] || 'هذا العنصر';
+            document.getElementById('delBackupEntityName').textContent = `تأكيد حذف ${typeLabel}: "${name || id}"`;
+            openModal('deleteHistoryBackupModal');
+        }
+
+        function downloadEntityBackupFile() {
+            if (!_currentDeleteState) return;
+            const url = `${API_URL}?action=exportEntityBackup&type=${_currentDeleteState.type}&id=${_currentDeleteState.id}&download=1`;
+            window.open(url, '_blank');
+            showToast('جاري تحميل سجل البيانات والنسخة الاحتياطية...', 'info');
+        }
+
+        async function confirmDeleteEntityAction() {
+            if (!_currentDeleteState || !_currentDeleteState.deleteCallback) return;
+            const cb = _currentDeleteState.deleteCallback;
+            closeModal('deleteHistoryBackupModal');
+            _currentDeleteState = null;
+            await cb();
+        }
+
+        function showUniversalRestoreModal() {
+            document.getElementById('universalRestoreForm')?.reset();
+            document.getElementById('restoreFilePreview').style.display = 'none';
+            openModal('universalRestoreModal');
+        }
+
+        function previewRestoreFile(input) {
+            const file = input.files[0];
+            const previewDiv = document.getElementById('restoreFilePreview');
+            if (!file) { previewDiv.style.display = 'none'; return; }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    const typeMap = { trip: 'رحلة', student: 'طفل', uncle: 'خادم', church: 'كنيسة كاملة' };
+                    document.getElementById('previewRestoreType').textContent = 'نوع البيانات: ' + (typeMap[data.export_type] || data.export_type || 'غير معروف');
+                    document.getElementById('previewRestoreName').textContent = 'الاسم / المعرف: ' + (data.entity_name || data.entity_id || '-');
+                    document.getElementById('previewRestoreDate').textContent = 'تاريخ التصدير: ' + (data.exported_at || '-');
+                    previewDiv.style.display = 'block';
+                } catch(err) {
+                    previewDiv.style.display = 'none';
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        async function executeUniversalRestore(e) {
+            e.preventDefault();
+            const fileInput = document.getElementById('universalRestoreFile');
+            if (!fileInput.files.length) { showToast('يرجى اختيار ملف النسخة الاحتياطية', 'warning'); return; }
+
+            const submitBtn = document.getElementById('submitRestoreBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الاستعادة وتسكين البيانات...';
+
+            try {
+                const fd = new FormData();
+                fd.append('action', 'restoreEntityBackup');
+                fd.append('backup_file', fileInput.files[0]);
+
+                const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                if (res.success) {
+                    showToast(res.message, 'success');
+                    closeModal('universalRestoreModal');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast(res.message || 'فشلت عملية الاستعادة', 'error');
+                }
+            } catch(err) {
+                showToast('حدث خطأ أثناء الاتصال بالخادم', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-upload"></i> بدء استعادة البيانات';
+            }
+        }
 
         function showClearHistoryModal() {
             showDevCleanAuditModal();

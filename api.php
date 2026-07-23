@@ -3644,6 +3644,22 @@ try {
 
             break;
 
+        case 'exportEntityBackup':
+
+            checkAuth();
+
+            exportEntityBackup();
+
+            break;
+
+        case 'restoreEntityBackup':
+
+            checkAuth();
+
+            restoreEntityBackup();
+
+            break;
+
 
 
         case 'joinTrip':
@@ -40119,6 +40135,9 @@ function devCleanAuditLogs()
 
         if ($stmt->execute()) {
             $deleted = $stmt->affected_rows;
+            if ($deleted > 0) {
+                @$conn->query("OPTIMIZE TABLE audit_logs");
+            }
 
             $logNotes = "نوع السجل: $auditType | المستهدف: " . ($target === 'all' ? 'جميع الكنائس' : 'الكنيسة الحالية');
             if ($rangeType === 'delete_all' || $rangeType === 'all') {
@@ -49160,4 +49179,358 @@ function getSongDownloadStats() {
         ],
         'logs' => $logs
     ]);
+}
+
+// ── Export History Backup for Entity Deletion ────────────────
+function exportEntityBackup()
+{
+    checkAuth();
+    try {
+        $conn = getDBConnection();
+        $churchId = getChurchId();
+
+        $type = sanitize($_GET['type'] ?? $_POST['type'] ?? '');
+        $id = intval($_GET['id'] ?? $_POST['id'] ?? 0);
+        $asDownload = isset($_GET['download']) || isset($_POST['download']) || ($_SERVER['REQUEST_METHOD'] === 'GET');
+
+        if (!$type || !in_array($type, ['trip', 'student', 'uncle', 'church'])) {
+            sendJSON(['success' => false, 'message' => 'نوع التصدير غير صالح']);
+            return;
+        }
+
+        $entityName = '';
+        $data = [];
+
+        if ($type === 'trip') {
+            if ($id <= 0) { sendJSON(['success' => false, 'message' => 'معرف الرحلة غير صحيح']); return; }
+
+            $stmt = $conn->prepare("SELECT * FROM trips WHERE id = ? AND church_id = ?");
+            $stmt->bind_param("ii", $id, $churchId);
+            $stmt->execute();
+            $trip = $stmt->get_result()->fetch_assoc();
+            if (!$trip) { sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة']); return; }
+            $entityName = $trip['title'] ?? "Trip_$id";
+
+            $regStmt = $conn->prepare("SELECT * FROM trip_registrations WHERE trip_id = ?");
+            $regStmt->bind_param("i", $id);
+            $regStmt->execute();
+            $registrations = $regStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+            $wStmt = $conn->prepare("SELECT * FROM trip_waitlist WHERE trip_id = ?");
+            $wStmt->bind_param("i", $id);
+            $wStmt->execute();
+            $waitlist = $wStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+            $rtStmt = $conn->prepare("SELECT * FROM rooms_templates WHERE trip_id = ?");
+            $rtStmt->bind_param("i", $id);
+            $rtStmt->execute();
+            $rooms = $rtStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+            $expStmt = $conn->prepare("SELECT * FROM trip_expenses WHERE trip_id = ?");
+            $expStmt->bind_param("i", $id);
+            $expStmt->execute();
+            $expenses = $expStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+            $auditStmt = $conn->prepare("SELECT * FROM audit_logs WHERE (entity IN ('trip', 'trip_registration') AND (entity_id = ? OR details LIKE ?)) OR notes LIKE ?");
+            $likeId = "%" . $id . "%";
+            $auditStmt->bind_param("iss", $id, $likeId, $likeId);
+            $auditStmt->execute();
+            $auditLogs = $auditStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+            $data = [
+                'trip' => $trip,
+                'registrations' => $registrations,
+                'waitlist' => $waitlist,
+                'rooms_templates' => $rooms,
+                'expenses' => $expenses,
+                'audit_logs' => $auditLogs
+            ];
+
+        } elseif ($type === 'student') {
+            if ($id <= 0) { sendJSON(['success' => false, 'message' => 'معرف الطفل غير صحيح']); return; }
+
+            $stmt = $conn->prepare("SELECT * FROM students WHERE id = ? AND church_id = ?");
+            $stmt->bind_param("ii", $id, $churchId);
+            $stmt->execute();
+            $student = $stmt->get_result()->fetch_assoc();
+            if (!$student) { sendJSON(['success' => false, 'message' => 'بيانات الطفل غير موجودة']); return; }
+            $entityName = $student['name'] ?? "Student_$id";
+
+            $regStmt = $conn->prepare("SELECT * FROM trip_registrations WHERE student_id = ?");
+            $regStmt->bind_param("i", $id);
+            $regStmt->execute();
+            $registrations = $regStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+            $wStmt = $conn->prepare("SELECT * FROM trip_waitlist WHERE student_id = ?");
+            $wStmt->bind_param("i", $id);
+            $wStmt->execute();
+            $waitlist = $wStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+            $attStmt = $conn->prepare("SELECT * FROM uncle_attendance WHERE student_id = ?");
+            $attStmt->bind_param("i", $id);
+            $attStmt->execute();
+            $attendance = $attStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+            $cpStmt = $conn->prepare("SELECT * FROM coupon_withdrawals WHERE student_id = ?");
+            $cpStmt->bind_param("i", $id);
+            $cpStmt->execute();
+            $coupons = $cpStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+            $exStmt = $conn->prepare("SELECT * FROM paper_exam_degrees WHERE student_id = ?");
+            $exStmt->bind_param("i", $id);
+            $exStmt->execute();
+            $exams = $exStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+            $auditStmt = $conn->prepare("SELECT * FROM audit_logs WHERE (entity = 'student' AND entity_id = ?) OR notes LIKE ?");
+            $likeId = "%" . $id . "%";
+            $auditStmt->bind_param("is", $id, $likeId);
+            $auditStmt->execute();
+            $auditLogs = $auditStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+            $data = [
+                'student' => $student,
+                'registrations' => $registrations,
+                'waitlist' => $waitlist,
+                'attendance' => $attendance,
+                'coupons' => $coupons,
+                'exams' => $exams,
+                'audit_logs' => $auditLogs
+            ];
+
+        } elseif ($type === 'uncle') {
+            if ($id <= 0) { sendJSON(['success' => false, 'message' => 'معرف الخادم غير صحيح']); return; }
+
+            $stmt = $conn->prepare("SELECT id, church_id, name, phone, email, role, custom_info, created_at FROM uncles WHERE id = ? AND church_id = ?");
+            $stmt->bind_param("ii", $id, $churchId);
+            $stmt->execute();
+            $uncle = $stmt->get_result()->fetch_assoc();
+            if (!$uncle) { sendJSON(['success' => false, 'message' => 'بيانات الخادم غير موجودة']); return; }
+            $entityName = $uncle['name'] ?? "Uncle_$id";
+
+            $caStmt = $conn->prepare("SELECT * FROM uncle_class_assignments WHERE uncle_id = ?");
+            $caStmt->bind_param("i", $id);
+            $caStmt->execute();
+            $classAssignments = $caStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+            $attStmt = $conn->prepare("SELECT * FROM uncle_attendance WHERE uncle_id = ?");
+            $attStmt->bind_param("i", $id);
+            $attStmt->execute();
+            $attendance = $attStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+            $auditStmt = $conn->prepare("SELECT * FROM audit_logs WHERE (entity = 'uncle' AND entity_id = ?) OR uncle_id = ?");
+            $auditStmt->bind_param("ii", $id, $id);
+            $auditStmt->execute();
+            $auditLogs = $auditStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+            $data = [
+                'uncle' => $uncle,
+                'class_assignments' => $classAssignments,
+                'attendance' => $attendance,
+                'audit_logs' => $auditLogs
+            ];
+
+        } elseif ($type === 'church') {
+            $entityName = "Church_$churchId";
+            $uncles = $conn->query("SELECT id, church_id, name, phone, email, role, custom_info, created_at FROM uncles WHERE church_id = $churchId")->fetch_all(MYSQLI_ASSOC);
+            $students = $conn->query("SELECT * FROM students WHERE church_id = $churchId")->fetch_all(MYSQLI_ASSOC);
+            $trips = $conn->query("SELECT * FROM trips WHERE church_id = $churchId")->fetch_all(MYSQLI_ASSOC);
+            $registrations = $conn->query("SELECT tr.* FROM trip_registrations tr JOIN trips t ON tr.trip_id = t.id WHERE t.church_id = $churchId")->fetch_all(MYSQLI_ASSOC);
+            $auditLogs = $conn->query("SELECT * FROM audit_logs WHERE church_id = $churchId")->fetch_all(MYSQLI_ASSOC);
+
+            $data = [
+                'uncles' => $uncles,
+                'students' => $students,
+                'trips' => $trips,
+                'registrations' => $registrations,
+                'audit_logs' => $auditLogs
+            ];
+        }
+
+        $backup = [
+            'version' => '1.0',
+            'system' => 'SundaySchool',
+            'export_type' => $type,
+            'exported_at' => date('Y-m-d H:i:s'),
+            'church_id' => $churchId,
+            'entity_id' => $id,
+            'entity_name' => $entityName,
+            'data' => $data
+        ];
+
+        $jsonStr = json_encode($backup, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        $safeName = preg_replace('/[^\w\-]/u', '_', $entityName);
+        $filename = "SundaySchool_Backup_{$type}_{$safeName}_" . date('Ymd_His') . ".json";
+
+        if ($asDownload) {
+            header('Content-Type: application/json; charset=utf-8');
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
+            header('Content-Length: ' . strlen($jsonStr));
+            echo $jsonStr;
+            exit;
+        } else {
+            sendJSON([
+                'success' => true,
+                'filename' => $filename,
+                'backup' => $backup
+            ]);
+        }
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => 'خطأ في إنشاء النسخة الاحتياطية: ' . $e->getMessage()]);
+    }
+}
+
+// ── Universal Restore System ──────────────────────────────────
+function restoreEntityBackup()
+{
+    checkAuth();
+    try {
+        $conn = getDBConnection();
+        $churchId = getChurchId();
+
+        $jsonContent = null;
+        if (!empty($_FILES['backup_file']['tmp_name'])) {
+            $jsonContent = file_get_contents($_FILES['backup_file']['tmp_name']);
+        } elseif (!empty($_POST['backup_data'])) {
+            $jsonContent = $_POST['backup_data'];
+        }
+
+        if (!$jsonContent) {
+            sendJSON(['success' => false, 'message' => 'لم يتم رفع ملف النسخة الاحتياطية']);
+            return;
+        }
+
+        $backup = json_decode($jsonContent, true);
+        if (!$backup || empty($backup['export_type']) || empty($backup['data'])) {
+            sendJSON(['success' => false, 'message' => 'تنسيق ملف النسخة الاحتياطية غير صالح أو تالف']);
+            return;
+        }
+
+        $exportType = strtolower($backup['export_type']);
+        $data = $backup['data'];
+
+        if ($exportType === 'trip') {
+            $trip = $data['trip'] ?? null;
+            if (!$trip) { sendJSON(['success' => false, 'message' => 'بيانات الرحلة مفقودة في الملف']); return; }
+
+            $title = $trip['title'] ?? 'رحلة مستعادة';
+            $image_url = $trip['image_url'] ?? null;
+            $start_date = $trip['start_date'] ?? date('Y-m-d');
+            $end_date = $trip['end_date'] ?? date('Y-m-d');
+            $price = floatval($trip['price'] ?? 0);
+            $deposit = floatval($trip['deposit'] ?? 0);
+            $description = $trip['description'] ?? '';
+
+            $insT = $conn->prepare("INSERT INTO trips (church_id, title, image_url, start_date, end_date, price, deposit, description, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+            $insT->bind_param("issssdds", $churchId, $title, $image_url, $start_date, $end_date, $price, $deposit, $description);
+            $insT->execute();
+            $newTripId = $conn->insert_id;
+
+            $regCount = 0;
+            if (!empty($data['registrations']) && is_array($data['registrations'])) {
+                $insR = $conn->prepare("INSERT INTO trip_registrations (trip_id, student_id, guest_id, registration_type, registered_by, deposit, donation, payment_status, payment_history, notes, custom_data, cancelled, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+                foreach ($data['registrations'] as $reg) {
+                    $sId = !empty($reg['student_id']) ? intval($reg['student_id']) : null;
+                    $gId = !empty($reg['guest_id']) ? intval($reg['guest_id']) : null;
+                    $regType = $reg['registration_type'] ?? 'student';
+                    $regBy = !empty($reg['registered_by']) ? intval($reg['registered_by']) : null;
+                    $dep = floatval($reg['deposit'] ?? 0);
+                    $don = floatval($reg['donation'] ?? 0);
+                    $pStat = $reg['payment_status'] ?? 'not_paid';
+                    $pHist = is_array($reg['payment_history']) ? json_encode($reg['payment_history'], JSON_UNESCAPED_UNICODE) : ($reg['payment_history'] ?? null);
+                    $nots = $reg['notes'] ?? null;
+                    $cust = is_array($reg['custom_data']) ? json_encode($reg['custom_data'], JSON_UNESCAPED_UNICODE) : ($reg['custom_data'] ?? null);
+                    $canc = intval($reg['cancelled'] ?? 0);
+
+                    $insR->bind_param("iiisiddssssi", $newTripId, $sId, $gId, $regType, $regBy, $dep, $don, $pStat, $pHist, $nots, $cust, $canc);
+                    $insR->execute();
+                    $regCount++;
+                }
+            }
+
+            $expCount = 0;
+            if (!empty($data['expenses']) && is_array($data['expenses'])) {
+                $insE = $conn->prepare("INSERT INTO trip_expenses (trip_id, church_id, title, amount, category, notes, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
+                foreach ($data['expenses'] as $exp) {
+                    $eTitle = $exp['title'] ?? 'مصروف';
+                    $eAmt = floatval($exp['amount'] ?? 0);
+                    $eCat = $exp['category'] ?? 'other';
+                    $eNot = $exp['notes'] ?? null;
+                    $eBy = !empty($exp['created_by']) ? intval($exp['created_by']) : null;
+
+                    $insE->bind_param("iisdssi", $newTripId, $churchId, $eTitle, $eAmt, $eCat, $eNot, $eBy);
+                    $insE->execute();
+                    $expCount++;
+                }
+            }
+
+            writeAuditLog('trip_restore', 'trip', $newTripId, $title, null, null, "تمت استعادة الرحلة '$title' بـ $regCount تسجيل و $expCount مصروفات.");
+
+            sendJSON([
+                'success' => true,
+                'message' => "تمت استعادة الرحلة '$title' بنجاح (معرف الرحلة الجديد: #$newTripId)",
+                'restored_type' => 'trip',
+                'new_id' => $newTripId,
+                'stats' => ['registrations' => $regCount, 'expenses' => $expCount]
+            ]);
+            return;
+
+        } elseif ($exportType === 'student') {
+            $student = $data['student'] ?? null;
+            if (!$student) { sendJSON(['success' => false, 'message' => 'بيانات الطفل مفقودة في الملف']); return; }
+
+            $name = $student['name'] ?? 'طفل مستعاد';
+            $phone = $student['phone'] ?? null;
+            $parent_phone = $student['parent_phone'] ?? null;
+            $class_id = !empty($student['class_id']) ? intval($student['class_id']) : null;
+            $points = intval($student['points'] ?? 0);
+            $gender = $student['gender'] ?? 'boy';
+
+            $insS = $conn->prepare("INSERT INTO students (church_id, name, phone, parent_phone, class_id, points, gender, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
+            $insS->bind_param("isssiis", $churchId, $name, $phone, $parent_phone, $class_id, $points, $gender);
+            $insS->execute();
+            $newStudentId = $conn->insert_id;
+
+            writeAuditLog('student_restore', 'student', $newStudentId, $name, null, null, "تمت استعادة الطفل '$name'");
+
+            sendJSON([
+                'success' => true,
+                'message' => "تمت استعادة الطفل '$name' بنجاح (معرف الطفل الجديد: #$newStudentId)",
+                'restored_type' => 'student',
+                'new_id' => $newStudentId
+            ]);
+            return;
+
+        } elseif ($exportType === 'uncle') {
+            $uncle = $data['uncle'] ?? null;
+            if (!$uncle) { sendJSON(['success' => false, 'message' => 'بيانات الخادم مفقودة في الملف']); return; }
+
+            $name = $uncle['name'] ?? 'خادم مستعاد';
+            $phone = $uncle['phone'] ?? null;
+            $email = $uncle['email'] ?? null;
+            $role = $uncle['role'] ?? 'uncle';
+            $defPass = password_hash('123456', PASSWORD_DEFAULT);
+
+            $insU = $conn->prepare("INSERT INTO uncles (church_id, name, phone, email, role, password_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())");
+            $insU->bind_param("isssss", $churchId, $name, $phone, $email, $role, $defPass);
+            $insU->execute();
+            $newUncleId = $conn->insert_id;
+
+            writeAuditLog('uncle_restore', 'uncle', $newUncleId, $name, null, null, "تمت استعادة حساب الخادم '$name'");
+
+            sendJSON([
+                'success' => true,
+                'message' => "تمت استعادة حساب الخادم '$name' بنجاح. (كلمة المرور الافتراضية: 123456)",
+                'restored_type' => 'uncle',
+                'new_id' => $newUncleId
+            ]);
+            return;
+
+        } else {
+            sendJSON(['success' => false, 'message' => "نوع التصدير '$exportType' غير مدعوم حالياً للاستعادة"]);
+            return;
+        }
+
+    } catch (Exception $e) {
+        sendJSON(['success' => false, 'message' => 'خطأ في عملية استعادة البيانات: ' . $e->getMessage()]);
+    }
 }

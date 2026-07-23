@@ -70,6 +70,36 @@ function writeAuditLog($action, $entity, $entity_id = null, $entity_name = '', $
             $new_data = !empty($changed_new) ? $changed_new : null;
         }
         
+        // Helper to strip heavy base64 images and truncate massive payloads from logs
+        $cleanPayload = function($data) use (&$cleanPayload) {
+            if (is_array($data)) {
+                $res = [];
+                foreach ($data as $k => $v) {
+                    if (is_string($v)) {
+                        if (strpos($v, 'data:image/') === 0) {
+                            $res[$k] = '[IMAGE_DATA]';
+                        } elseif (strlen($v) > 1500) {
+                            $res[$k] = mb_substr($v, 0, 500) . '... [TRUNCATED]';
+                        } else {
+                            $res[$k] = $v;
+                        }
+                    } elseif (is_array($v)) {
+                        $res[$k] = $cleanPayload($v);
+                    } else {
+                        $res[$k] = $v;
+                    }
+                }
+                return $res;
+            } elseif (is_string($data)) {
+                if (strpos($data, 'data:image/') === 0) return '[IMAGE_DATA]';
+                if (strlen($data) > 1500) return mb_substr($data, 0, 500) . '... [TRUNCATED]';
+            }
+            return $data;
+        };
+
+        $old_data = $cleanPayload($old_data);
+        $new_data = $cleanPayload($new_data);
+
         // Convert arrays to compact JSON strings
         $old_data_json = is_array($old_data) ? json_encode($old_data, JSON_UNESCAPED_UNICODE) : $old_data;
         $new_data_json = is_array($new_data) ? json_encode($new_data, JSON_UNESCAPED_UNICODE) : $new_data;
