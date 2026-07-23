@@ -741,17 +741,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         .dev-church-bar-icon {
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            background: var(--brand);
-            color: white;
-            display: flex;
+            font-size: 0.9rem;
+            color: var(--brand);
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.8rem;
             flex-shrink: 0;
-            box-shadow: 0 2px 5px rgba(124, 58, 237, 0.3);
+            background: transparent;
         }
 
         .dev-church-chevron {
@@ -8265,7 +8261,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border-radius: var(--r-xl);
             border: none !important;
             background: 
-                linear-gradient(to right, transparent, rgba(99, 102, 241, 0.08) 20%, rgba(236, 72, 153, 0.12) 50%, rgba(99, 102, 241, 0.08) 80%, transparent),
+                linear-gradient(to right, transparent, rgba(99, 102, 241, 0.08) 20%, #ffffff00 50%, rgba(99, 102, 241, 0.08) 80%, transparent),
                 linear-gradient(to right, transparent, var(--surface) 20%, var(--surface) 80%, transparent) !important;
             padding: 2px 10px !important;
             width: 100%;
@@ -8342,7 +8338,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         [data-theme="dark"] .bday-banner-wrapper {
             background: 
-                linear-gradient(to right, transparent, rgba(99, 102, 241, 0.14) 20%, rgba(236, 72, 153, 0.20) 50%, rgba(99, 102, 241, 0.14) 80%, transparent),
+                linear-gradient(to right, transparent, rgba(99, 102, 241, 0.14) 20%, #ffffff00 50%, rgba(99, 102, 241, 0.14) 80%, transparent),
                 linear-gradient(to right, transparent, var(--surface) 20%, var(--surface) 80%, transparent) !important;
         }
 
