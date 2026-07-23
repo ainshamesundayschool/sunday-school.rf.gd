@@ -12146,8 +12146,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         border: 1px solid rgba(99, 102, 241, 0.15);
                     }
 
-                    .class-tasks-manage-btn {
-                        font-family: 'Cairo', sans-serif;
                     .class-tasks-footer-action {
                         display: flex;
                         align-items: center;
@@ -12287,6 +12285,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         opacity: 1;
                         transform: translateX(0);
                         color: var(--brand);
+                    }
+
+                    /* Hide scrollbars on task list to prevent temporary flash during expand transition */
+                    #collapsedTasksList {
+                        scrollbar-width: none;
+                        -ms-overflow-style: none;
+                    }
+                    #collapsedTasksList::-webkit-scrollbar {
+                        display: none;
                     }
                     </style>
                     <div id="classTasksCollapsible" class="class-tasks-collapsible">
