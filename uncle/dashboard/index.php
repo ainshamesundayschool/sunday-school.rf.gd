@@ -8261,13 +8261,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         /* ── Today's Birthday Banner (homepage) ── */
         .bday-banner-wrapper {
-            margin: 0 auto 15px auto !important;
+            margin: 0 auto 10px auto !important;
             border-radius: var(--r-xl);
             border: none !important;
             background: 
-                linear-gradient(to right, transparent, rgba(99, 102, 241, 0.03) 20%, rgba(236, 72, 153, 0.03) 50%, rgba(99, 102, 241, 0.03) 80%, transparent),
+                linear-gradient(to right, transparent, rgba(99, 102, 241, 0.08) 20%, rgba(236, 72, 153, 0.12) 50%, rgba(99, 102, 241, 0.08) 80%, transparent),
                 linear-gradient(to right, transparent, var(--surface) 20%, var(--surface) 80%, transparent) !important;
-            padding: 4px 12px !important;
+            padding: 2px 10px !important;
             width: 100%;
             max-width: 640px;
             box-shadow: none !important;
@@ -8342,7 +8342,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         [data-theme="dark"] .bday-banner-wrapper {
             background: 
-                linear-gradient(to right, transparent, rgba(99, 102, 241, 0.06) 20%, rgba(236, 72, 153, 0.06) 50%, rgba(99, 102, 241, 0.06) 80%, transparent),
+                linear-gradient(to right, transparent, rgba(99, 102, 241, 0.14) 20%, rgba(236, 72, 153, 0.20) 50%, rgba(99, 102, 241, 0.14) 80%, transparent),
                 linear-gradient(to right, transparent, var(--surface) 20%, var(--surface) 80%, transparent) !important;
         }
 
@@ -8355,7 +8355,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transition: max-height 0.3s ease, opacity 0.3s ease, margin 0.3s ease;
             max-height: 250px;
             opacity: 1;
-            padding: 8px 0 !important;
+            padding: 4px 0 !important;
         }
 
         .bday-banner-list.collapsed {
@@ -11973,7 +11973,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div class="bday-decor bday-decor-left"><i class="fas fa-birthday-cake"></i></div>
                     <div class="bday-decor bday-decor-right"><i class="fas fa-gift"></i></div>
                     <div class="bday-banner-list" id="todayBirthdayList" style="z-index: 2; position: relative;"></div>
-                    <div class="bday-footer-row" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 2px; margin-bottom: 4px; padding: 0 12px; z-index: 2; position: relative;">
+                    <div class="bday-footer-row" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 0px; margin-bottom: 2px; padding: 0 10px; z-index: 2; position: relative;">
                         <div id="bdayCountSummary" style="font-size: 0.68rem; color: var(--text-3); margin: 0;"></div>
                         <div class="bday-dots-container" style="display: flex; align-items: center; gap: 8px;">
                             <div id="bdayDotsIndicator" style="display: none; gap: 6px; align-items: center;"></div>

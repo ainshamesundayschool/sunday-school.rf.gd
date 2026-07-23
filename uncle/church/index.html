@@ -27451,9 +27451,9 @@
   </script>
 
   <!-- AUDIT LOGS ANALYTICS & VOLUME OVERVIEW MODAL -->
-  <div id="auditAnalyticsModal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:10000; background:rgba(15,23,42,0.6); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:16px;">
-    <div class="modal-content wide" style="max-width:850px; width:100%; background:var(--surface-main,#fff); border-radius:20px; overflow:hidden; box-shadow:0 20px 40px rgba(0,0,0,0.2); border:1px solid var(--border);">
-      <div class="modal-header" style="background:var(--surface-2,#f8fafc); padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between;">
+  <div id="auditAnalyticsModal" class="modal" style="z-index:10000;">
+    <div class="modal-box wide" style="max-width:850px; width:100%;">
+      <div class="modal-head" style="display:flex; align-items:center; justify-content:space-between;">
         <div style="display:flex; align-items:center; gap:10px;">
           <div style="width:38px; height:38px; border-radius:12px; background:rgba(99,102,241,0.12); color:#6366f1; display:flex; align-items:center; justify-content:center; font-size:1.1rem;">
             <i class="fas fa-chart-pie"></i>
@@ -27463,7 +27463,7 @@
             <p style="font-size:0.78rem; color:var(--muted); margin:0;">تحليل دقيق لأكثر الأنشطة والرحلات التي تستهلك مساحة السجل في النظام</p>
           </div>
         </div>
-        <button onclick="closeModal('auditAnalyticsModal')" class="btn-icon" style="background:none; border:none; color:var(--muted); font-size:1.2rem; cursor:pointer;"><i class="fas fa-times"></i></button>
+        <button onclick="closeModal('auditAnalyticsModal')" class="modal-close"><i class="fas fa-times"></i></button>
       </div>
 
       <div class="modal-body" id="auditAnalyticsBody" style="padding:20px; max-height:75vh; overflow-y:auto;">
