@@ -12437,8 +12437,48 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             border-radius: 10px;
                         }
 
-                        #collapsedTasksList::-webkit-scrollbar-thumb:hover {
-                            background: var(--brand, #6366f1);
+                        .task-filter-chips-bar::-webkit-scrollbar {
+                            display: none;
+                        }
+                        .task-filter-chip {
+                            all: unset;
+                            box-sizing: border-box;
+                            font-family: 'Cairo', sans-serif;
+                            font-size: 0.72rem;
+                            font-weight: 700;
+                            padding: 3px 10px;
+                            border-radius: 20px;
+                            cursor: pointer;
+                            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                            white-space: nowrap;
+                            flex-shrink: 0;
+                            background: var(--surface-2);
+                            color: var(--text-2);
+                            border: 1px solid var(--border);
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 4px;
+                        }
+                        .task-filter-chip:hover {
+                            border-color: rgba(99, 102, 241, 0.35);
+                            color: var(--brand);
+                        }
+                        .task-filter-chip.active {
+                            background: var(--brand);
+                            color: #ffffff;
+                            border-color: var(--brand);
+                            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+                        }
+                        .task-filter-count {
+                            font-size: 0.65rem;
+                            padding: 0 5px;
+                            border-radius: 10px;
+                            background: rgba(0, 0, 0, 0.08);
+                            line-height: 1.4;
+                        }
+                        .task-filter-chip.active .task-filter-count {
+                            background: rgba(255, 255, 255, 0.25);
+                            color: #ffffff;
                         }
                     </style>
                     <div id="classTasksCollapsible" class="class-tasks-collapsible">
@@ -12466,15 +12506,37 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             style="display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; width: 100%;">
                             <div
                                 style="min-height: 0; display: flex; flex-direction: column; gap: 8px; position: relative;">
+                                
+                                <!-- Filter Chips Bar -->
+                                <div class="task-filter-chips-bar" style="display: flex; align-items: center; gap: 6px; overflow-x: auto; padding: 6px 2px 2px 2px; -webkit-overflow-scrolling: touch; scrollbar-width: none;">
+                                    <button type="button" class="task-filter-chip active" data-filter="active" onclick="setTaskFilter('active', this)">
+                                        النشطة <span class="task-filter-count" id="countActiveTasks">0</span>
+                                    </button>
+                                    <button type="button" class="task-filter-chip" data-filter="all" onclick="setTaskFilter('all', this)">
+                                        الكل <span class="task-filter-count" id="countAllTasks">0</span>
+                                    </button>
+                                    <button type="button" class="task-filter-chip" data-filter="ended" onclick="setTaskFilter('ended', this)">
+                                        المنتهية <span class="task-filter-count" id="countEndedTasks">0</span>
+                                    </button>
+                                    <button type="button" class="task-filter-chip" data-filter="draft" onclick="setTaskFilter('draft', this)">
+                                        المسودات <span class="task-filter-count" id="countDraftTasks">0</span>
+                                    </button>
+                                </div>
+
                                 <div id="collapsedTasksList"
-                                    style="display: flex; flex-direction: column; gap: 8px; max-height: 240px; overflow-y: auto; padding-inline-start: 2px; padding-inline-end: 4px; padding-top: 6px; padding-bottom: 4px; flex-shrink: 0;">
+                                    style="display: flex; flex-direction: column; gap: 8px; max-height: 240px; overflow-y: auto; padding-inline-start: 2px; padding-inline-end: 4px; padding-top: 2px; padding-bottom: 4px; flex-shrink: 0;">
                                     <!-- Dynamically loaded task pills -->
                                 </div>
-                                <div class="class-tasks-footer-action">
+                                <div class="class-tasks-footer-action" style="display: flex; gap: 8px; margin-top: 4px;">
+                                    <button class="class-tasks-add-btn" onclick="openTasksModal(null, 'new')"
+                                        style="all: unset; box-sizing: border-box; flex: 1; font-family: 'Cairo', sans-serif; font-size: 0.78rem; font-weight: 700; color: #fff; background: var(--brand); border: 1.5px solid var(--brand); padding: 7px 12px; border-radius: 10px; cursor: pointer; transition: all 0.25s ease; display: flex; align-items: center; justify-content: center; gap: 6px; text-align: center;">
+                                        <i class="fas fa-plus-circle" style="font-size: 0.8rem;"></i>
+                                        <span>إضافة تاسك جديد</span>
+                                    </button>
                                     <button class="class-tasks-manage-footer-btn" onclick="openTasksModal()"
-                                        style="all: unset; box-sizing: border-box; width: 100%; font-family: 'Cairo', sans-serif; font-size: 0.78rem; font-weight: 700; color: var(--brand); background: var(--brand-bg); border: 1.5px solid rgba(99, 102, 241, 0.25); padding: 7px 16px; border-radius: 10px; cursor: pointer; transition: all 0.25s ease; display: flex; align-items: center; justify-content: center; gap: 8px; text-align: center;">
+                                        style="all: unset; box-sizing: border-box; flex: 1; font-family: 'Cairo', sans-serif; font-size: 0.78rem; font-weight: 700; color: var(--brand); background: var(--brand-bg); border: 1.5px solid rgba(99, 102, 241, 0.25); padding: 7px 12px; border-radius: 10px; cursor: pointer; transition: all 0.25s ease; display: flex; align-items: center; justify-content: center; gap: 6px; text-align: center;">
                                         <i class="fas fa-sliders-h" style="font-size: 0.75rem;"></i>
-                                        <span>فتح لوحة إدارة التاسكات</span>
+                                        <span>لوحة التحكم</span>
                                     </button>
                                 </div>
                                 <div id="tasksScrollIndicator"
@@ -15273,7 +15335,23 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         // ── TASKS PWA COLLAPSIBLE & MODAL SYSTEM ─────────────────────────
         let classTasks = [];
+        let allRawClassTasks = [];
+        let currentTaskFilter = 'active';
         let isTasksCollapsed = true;
+
+        function setTaskFilter(filter, btnEl) {
+            currentTaskFilter = filter;
+            document.querySelectorAll('.task-filter-chip').forEach(c => {
+                c.classList.remove('active');
+            });
+            if (btnEl) {
+                btnEl.classList.add('active');
+            } else {
+                const target = document.querySelector(`.task-filter-chip[data-filter="${filter}"]`);
+                if (target) target.classList.add('active');
+            }
+            renderCollapsedTasks();
+        }
 
         function openTasksModal(taskId = null, action = null) {
             const pathPrefix = '<?php echo $pathPrefix; ?>';
@@ -15328,21 +15406,32 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 }
 
                 const seenIds = new Set();
-                classTasks = tasksList.filter(t => {
-                    if (t.status === 'published' && !seenIds.has(t.id)) {
+                allRawClassTasks = tasksList.filter(t => {
+                    if (t && t.id && !seenIds.has(t.id)) {
                         seenIds.add(t.id);
                         return true;
                     }
                     return false;
                 });
 
-                document.getElementById('collapsedTasksCount').textContent = classTasks.length;
+                const now = new Date();
+                const activeTasks = allRawClassTasks.filter(t => t.status === 'published' && (t.no_deadline == 1 || !t.end_date || new Date(t.end_date.replace(/-/g, '/')) >= now));
+                const endedTasks = allRawClassTasks.filter(t => t.status === 'published' && t.no_deadline != 1 && t.end_date && new Date(t.end_date.replace(/-/g, '/')) < now);
+                const draftTasks = allRawClassTasks.filter(t => t.status === 'draft');
 
-                const hasAnyNewActivity = classTasks.some(t => {
+                const se = (id) => document.getElementById(id);
+                if (se('countActiveTasks')) se('countActiveTasks').textContent = activeTasks.length;
+                if (se('countAllTasks')) se('countAllTasks').textContent = allRawClassTasks.length;
+                if (se('countEndedTasks')) se('countEndedTasks').textContent = endedTasks.length;
+                if (se('countDraftTasks')) se('countDraftTasks').textContent = draftTasks.length;
+
+                document.getElementById('collapsedTasksCount').textContent = activeTasks.length;
+
+                const hasAnyNewActivity = activeTasks.some(t => {
                     if (t.has_new_activity || t.is_new) return true;
                     if (t.created_at) {
                         const createdDate = new Date(t.created_at.replace(/-/g, '/'));
-                        const daysDiff = (new Date() - createdDate) / (1000 * 60 * 60 * 24);
+                        const daysDiff = (now - createdDate) / (1000 * 60 * 60 * 24);
                         return daysDiff <= 7 && daysDiff >= 0;
                     }
                     return false;
@@ -15353,7 +15442,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     headerPing.style.display = hasAnyNewActivity ? 'inline-flex' : 'none';
                 }
 
-                if (classTasks.length > 0) {
+                if (allRawClassTasks.length > 0) {
                     container.style.display = 'flex';
                     renderCollapsedTasks();
                 } else {
@@ -15369,12 +15458,39 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const list = document.getElementById('collapsedTasksList');
             if (!list) return;
 
-            if (!classTasks.length) {
-                list.innerHTML = `<div style="text-align:center;font-size:0.78rem;color:var(--text-3);padding:12px 0;">لا توجد تاسكات نشطة حالياً</div>`;
+            const now = new Date();
+            let filtered = [];
+            if (currentTaskFilter === 'active') {
+                filtered = allRawClassTasks.filter(t => t.status === 'published' && (t.no_deadline == 1 || !t.end_date || new Date(t.end_date.replace(/-/g, '/')) >= now));
+            } else if (currentTaskFilter === 'ended') {
+                filtered = allRawClassTasks.filter(t => t.status === 'published' && t.no_deadline != 1 && t.end_date && new Date(t.end_date.replace(/-/g, '/')) < now);
+            } else if (currentTaskFilter === 'draft') {
+                filtered = allRawClassTasks.filter(t => t.status === 'draft');
+            } else {
+                filtered = [...allRawClassTasks];
+            }
+
+            document.getElementById('collapsedTasksCount').textContent = filtered.length;
+
+            if (!filtered.length) {
+                const labelMap = {
+                    active: 'تاسكات نشطة',
+                    ended: 'تاسكات منتهية',
+                    draft: 'مسودات',
+                    all: 'تاسكات'
+                };
+                list.innerHTML = `
+                    <div style="text-align:center; padding:16px 12px; display:flex; flex-direction:column; align-items:center; gap:8px;">
+                        <div style="font-size:0.78rem; color:var(--text-3);">لا توجد ${labelMap[currentTaskFilter] || 'تاسكات'} حالياً</div>
+                        <button onclick="openTasksModal(null, 'new')" style="all:unset; box-sizing:border-box; font-family:'Cairo',sans-serif; font-size:0.75rem; font-weight:700; color:#fff; background:var(--brand); border-radius:8px; padding:6px 14px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                            <i class="fas fa-plus-circle"></i> إضافة تاسك جديد
+                        </button>
+                    </div>
+                `;
                 return;
             }
 
-            list.innerHTML = classTasks.map(t => {
+            list.innerHTML = filtered.map(t => {
                 const qCount = (t.questions || []).length;
                 const matrix = t.coupon_matrix ? (typeof t.coupon_matrix === 'string' ? JSON.parse(t.coupon_matrix || '[]') : t.coupon_matrix) : [];
                 const maxCoupons = t.max_coupons ? parseInt(t.max_coupons) : (matrix.length ? Math.max(0, ...matrix.map(m => parseInt(m.val) || 0)) : 0);
@@ -15390,6 +15506,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 }
 
                 const pingHtml = isNewActivity ? `<span class="task-ping-badge" title="نشاط جديد" style="margin-inline-start: 6px;"></span>` : '';
+                const draftBadge = t.status === 'draft' ? `<span style="font-size:0.65rem; font-weight:700; background:var(--warning-bg); color:var(--warning); padding:1px 6px; border-radius:4px; margin-inline-start:6px; border:1px solid rgba(245,158,11,0.25);">مسودة</span>` : '';
 
                 return `
                     <div class="task-pill-item" onclick="openTasksModal(${t.id})"
@@ -15397,6 +15514,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1;">
                             <div class="task-item-title" style="font-size: 0.84rem; font-weight: 700; color: var(--text-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'Cairo', sans-serif; display: flex; align-items: center;">
                                 <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escHtml(t.title)}</span>
+                                ${draftBadge}
                                 ${pingHtml}
                             </div>
                             <div class="task-item-meta" style="font-size: 0.72rem; color: var(--text-3); display: flex; align-items: center; gap: 5px;">
@@ -15412,8 +15530,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             </span>
                             <i class="fas fa-chevron-left task-pill-arrow" style="font-size: 0.75rem; color: var(--text-3); opacity: 0.6;"></i>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             }).join('');
         }
 
