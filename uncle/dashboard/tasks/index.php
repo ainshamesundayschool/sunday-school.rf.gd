@@ -20485,19 +20485,40 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
 
 
-    function fmtDate(iso) { if (!iso) return '—'; return new Date(iso).toLocaleDateString('ar-EG', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+    function parseDateSafe(iso) {
+      if (!iso) return null;
+      let s = String(iso).trim();
+      if (!s) return null;
+      if (s.indexOf('T') === -1 && s.indexOf(' ') !== -1) s = s.replace(' ', 'T');
+      const d = new Date(s);
+      return isNaN(d.getTime()) ? null : d;
+    }
 
+    function fmtDate(iso) {
+      const d = parseDateSafe(iso);
+      if (!d) return '—';
+      return d.toLocaleDateString('ar-EG', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    }
 
+    function toLocalDT(iso) {
+      const d = parseDateSafe(iso);
+      if (!d) return '';
+      const p = n => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+    }
 
-    function toLocalDT(iso) { if (!iso) return ''; const d = new Date(iso); const p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; }
-
-
-
-    function toLocalDateOnly(iso) { if (!iso) return ''; const d = new Date(iso); const p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; }
-
-
+    function toLocalDateOnly(iso) {
+      const d = parseDateSafe(iso);
+      if (!d) return '';
+      const p = n => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+    }
 
     function isEndDateOnly(iso) {
+      const d = parseDateSafe(iso);
+      if (!d) return false;
+      return d.getHours() === 23 && d.getMinutes() === 59;
+    }
 
 
 

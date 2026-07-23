@@ -8924,7 +8924,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
     function fmtDate(iso) {
       if (!iso) return '—';
-      try { return new Date(iso).toLocaleDateString('ar-EG', { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return iso; }
+      try {
+        let s = String(iso).trim();
+        if (s.indexOf('T') === -1 && s.indexOf(' ') !== -1) s = s.replace(' ', 'T');
+        const d = new Date(s);
+        return isNaN(d.getTime()) ? iso : d.toLocaleDateString('ar-EG', { day: 'numeric', month: 'short', year: 'numeric' });
+      } catch (e) { return iso; }
     }
     function openModal(html) {
       const ov = document.getElementById('genericModalOv');
