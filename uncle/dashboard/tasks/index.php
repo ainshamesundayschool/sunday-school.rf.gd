@@ -13463,7 +13463,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }, 300);
   }
   const action = urlParams.get('action');
-  if (action === 'create') {
+  if (action === 'create' || action === 'new') {
       setTimeout(() => {
           openCreate();
       }, 300);

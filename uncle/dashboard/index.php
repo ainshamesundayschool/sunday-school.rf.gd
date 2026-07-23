@@ -12510,7 +12510,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                     <!-- Dynamically loaded task pills -->
                                 </div>
                                 <div class="class-tasks-footer-action" style="display: flex; gap: 8px; margin-top: 4px;">
-                                    <button class="class-tasks-add-btn" onclick="openTasksModal(null, 'new')"
+                                    <button class="class-tasks-add-btn" onclick="openTasksModal(null, 'create')"
                                         style="all: unset; box-sizing: border-box; flex: 1; font-family: 'Cairo', sans-serif; font-size: 0.78rem; font-weight: 700; color: #fff; background: var(--brand); border: 1.5px solid var(--brand); padding: 7px 12px; border-radius: 10px; cursor: pointer; transition: all 0.25s ease; display: flex; align-items: center; justify-content: center; gap: 6px; text-align: center;">
                                         <i class="fas fa-plus-circle" style="font-size: 0.8rem;"></i>
                                         <span>إضافة تاسك</span>
@@ -15505,7 +15505,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 list.innerHTML = `
                     <div style="text-align:center; padding:14px 10px; display:flex; flex-direction:column; align-items:center; gap:6px;">
                         <div style="font-size:0.75rem; color:var(--text-3);">لا توجد ${escHtml(emptyLabel)} حالياً</div>
-                        <button onclick="openTasksModal(null, 'new')" style="all:unset; box-sizing:border-box; font-family:'Cairo',sans-serif; font-size:0.72rem; font-weight:700; color:#fff; background:var(--brand); border-radius:8px; padding:5px 12px; cursor:pointer; display:inline-flex; align-items:center; gap:4px;">
+                        <button onclick="openTasksModal(null, 'create')" style="all:unset; box-sizing:border-box; font-family:'Cairo',sans-serif; font-size:0.72rem; font-weight:700; color:#fff; background:var(--brand); border-radius:8px; padding:5px 12px; cursor:pointer; display:inline-flex; align-items:center; gap:4px;">
                             <i class="fas fa-plus-circle"></i> إضافة تاسك
                         </button>
                     </div>
