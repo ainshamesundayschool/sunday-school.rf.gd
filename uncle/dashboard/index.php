@@ -13984,8 +13984,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <!-- Add Date Button -->
                     <button class="btn btn-warning btn-sm" id="toggleCustomDateSectionBtn"
                         onclick="toggleCustomDateSection()" title="إضافة تاريخ مخصص"
-                        style="width: 34px; height: 34px; padding: 0;">
-                        <i class="fas fa-plus" style="font-size: 0.9rem;"></i>
+                        style="height: 34px; padding: 5px 12px; font-size: 0.78rem; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px;">
+                        <i class="fas fa-plus-circle" style="font-size: 0.82rem;"></i>
+                        <span>إضافة تاريخ</span>
                     </button>
                     <button class="close-btn" id="closePastFridaysModal">&times;</button>
                 </div>
@@ -23455,8 +23456,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             sec.style.display = isOpen ? 'none' : 'block';
             if (btn) {
                 btn.innerHTML = isOpen
-                    ? '<i class="fas fa-plus" style="font-size: 0.9rem;"></i>'
-                    : '<i class="fas fa-times" style="font-size: 0.9rem;"></i>';
+                    ? '<i class="fas fa-plus-circle" style="font-size: 0.82rem;"></i><span>إضافة تاريخ</span>'
+                    : '<i class="fas fa-times-circle" style="font-size: 0.82rem;"></i><span>إلغاء</span>';
             }
             if (!isOpen) {
                 _refreshCustomDatesStrip();
