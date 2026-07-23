@@ -173,11 +173,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 document.head.appendChild(style);
 
                 if ('caches' in window) {
-                    caches.keys().then(function(keys) {
-                        return Promise.all(keys.map(function(key) {
-                            return caches.open(key).then(function(cache) {
-                                return cache.keys().then(function(requests) {
-                                    return Promise.all(requests.map(function(request) {
+                    caches.keys().then(function (keys) {
+                        return Promise.all(keys.map(function (key) {
+                            return caches.open(key).then(function (cache) {
+                                return cache.keys().then(function (requests) {
+                                    return Promise.all(requests.map(function (request) {
                                         if (request.url.indexOf('uncle/dashboard') !== -1) {
                                             return cache.delete(request);
                                         }
@@ -186,9 +186,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 });
                             });
                         }));
-                    }).then(function() {
+                    }).then(function () {
                         window.location.reload();
-                    }).catch(function() {
+                    }).catch(function () {
                         window.location.reload();
                     });
                 } else {
@@ -198,8 +198,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             // Check if we are online and not currently performing a restore
             if (navigator.onLine && sessionStorage.getItem('_ss_restoring') !== '1') {
-                var phpChurchId = <?php echo isset($_SESSION['church_id']) ? (int)$_SESSION['church_id'] : 'null'; ?>;
-                var phpUncleId = <?php echo isset($_SESSION['uncle_id']) ? (int)$_SESSION['uncle_id'] : 'null'; ?>;
+                var phpChurchId = <?php echo isset($_SESSION['church_id']) ? (int) $_SESSION['church_id'] : 'null'; ?>;
+                var phpUncleId = <?php echo isset($_SESSION['uncle_id']) ? (int) $_SESSION['uncle_id'] : 'null'; ?>;
                 var phpChurchCode = <?php echo json_encode($_SESSION['church_code'] ?? null); ?>;
 
                 var storedChurchId = localStorage.getItem('churchId') || localStorage.getItem('church_id');
@@ -226,8 +226,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 fd.append('action', 'getSessionInfo');
 
                 fetch(dynamicApiUrl, { method: 'POST', body: fd, credentials: 'include' })
-                    .then(function(r) { return r.json(); })
-                    .then(function(d) {
+                    .then(function (r) { return r.json(); })
+                    .then(function (d) {
                         var sessionMismatch = false;
                         if (d.success) {
                             var serverChurchId = d.church_id;
@@ -271,7 +271,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             }
                         }
                     })
-                    .catch(function() {});
+                    .catch(function () { });
             }
         })();
     </script>
@@ -286,13 +286,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             // Apply dark/light theme instantly (existing behaviour, kept here for clarity)
             var t = localStorage.getItem('app_theme') || 'light';
             document.documentElement.setAttribute('data-theme', t);
-            
+
             // Dynamically set theme-color to blend status bar seamlessly with current theme
             try {
                 var themeColor = (t === 'dark') ? '#1e293b' : '#f8fafc';
                 var metaTheme = document.querySelector('meta[name="theme-color"]');
                 if (metaTheme) metaTheme.setAttribute('content', themeColor);
-            } catch (e) {}
+            } catch (e) { }
 
             // PHP is the authoritative source for church type — read it first.
             var phpType = <?php echo json_encode($churchType); ?>;
@@ -506,7 +506,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
         onload="this.media='all'">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script src="<?php echo $pathPrefix; ?>/js/qr-scanner.umd.min.js" type="text/javascript"></script>
-    <script src="<?php echo $pathPrefix; ?>/js/search_intelligent.js?v=<?php echo file_exists($rootPath . '/js/search_intelligent.js') ? filemtime($rootPath . '/js/search_intelligent.js') : time(); ?>" type="text/javascript"></script>
+    <script
+        src="<?php echo $pathPrefix; ?>/js/search_intelligent.js?v=<?php echo file_exists($rootPath . '/js/search_intelligent.js') ? filemtime($rootPath . '/js/search_intelligent.js') : time(); ?>"
+        type="text/javascript"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script defer
         src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
@@ -523,6 +525,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             position: relative;
             margin-top: 4px;
         }
+
         .step {
             display: flex;
             align-items: center;
@@ -532,12 +535,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
             color: var(--text-3);
             transition: all 0.2s ease;
         }
+
         .step.active {
             color: var(--brand);
         }
+
         .step.done {
             color: var(--ok);
         }
+
         .step-num {
             width: 24px;
             height: 24px;
@@ -552,12 +558,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-weight: 800;
             transition: all 0.2s ease;
         }
+
         .step.active .step-num {
             background: var(--brand);
             color: #fff;
             border-color: var(--brand);
             box-shadow: 0 0 10px var(--brand-glow);
         }
+
         .step.done .step-num {
             background: var(--ok);
             color: #fff;
@@ -574,6 +582,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             overflow-y: auto;
             max-height: 70vh;
         }
+
         .ans-head {
             display: flex;
             align-items: center;
@@ -585,6 +594,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             box-shadow: var(--shadow-sm);
             margin-bottom: 14px;
         }
+
         .ans-avatar {
             width: 50px;
             height: 50px;
@@ -599,18 +609,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border: 1px solid rgba(124, 58, 237, 0.2);
             box-shadow: 0 4px 10px rgba(124, 58, 237, 0.1);
         }
+
         .ans-name {
             font-size: 1rem;
             font-weight: 900;
             color: var(--text-1);
             line-height: 1.2;
         }
+
         .ans-sub {
             font-size: .75rem;
             color: var(--text-3);
             margin-top: 4px;
             font-weight: 600;
         }
+
         .ans-question {
             margin-bottom: 14px;
             padding: 16px;
@@ -619,12 +632,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
             background: var(--surface-1);
             box-shadow: var(--shadow-sm);
         }
+
         .ans-qhead {
             display: flex;
             gap: 10px;
             align-items: flex-start;
             margin-bottom: 12px;
         }
+
         .ans-qnum {
             width: 28px;
             height: 28px;
@@ -640,6 +655,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             flex-shrink: 0;
             border: 1px solid rgba(124, 58, 237, 0.2);
         }
+
         .ans-qtext {
             font-weight: 800;
             color: var(--text-1);
@@ -647,18 +663,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
             flex: 1;
             word-break: break-word;
         }
+
         .ans-open {
             padding: 12px 14px;
             border-radius: var(--border-radius-md);
             background: var(--surface-3);
             border: 1px solid var(--border-solid);
         }
+
         .ans-open-label {
             font-size: .69rem;
             color: var(--text-3);
             margin-bottom: 5px;
             font-weight: 800;
         }
+
         .ans-open-text {
             color: var(--text-2);
             font-size: .88rem;
@@ -666,6 +685,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             line-height: 1.7;
             word-break: break-word;
         }
+
         .ans-choice {
             display: flex;
             align-items: center;
@@ -678,21 +698,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-size: .84rem;
             transition: all 0.2s ease;
         }
-        .ans-choice + .ans-choice {
+
+        .ans-choice+.ans-choice {
             margin-top: 8px;
         }
+
         .ans-choice.correct {
             border-color: #86efac;
             background: rgba(16, 185, 129, 0.08);
             color: #047857;
             font-weight: 700;
         }
+
         .ans-choice.wrong {
             border-color: #fca5a5;
             background: rgba(239, 68, 68, 0.08);
             color: #dc2626;
             font-weight: 700;
         }
+
         .ans-choice-letter {
             width: 22px;
             height: 22px;
@@ -706,13 +730,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-size: .7rem;
             flex-shrink: 0;
         }
+
         .ans-choice-icon {
             margin-right: auto;
             font-size: .92rem;
             flex-shrink: 0;
         }
 
-        #tasksGroupsTabs button, #tasksGroupsTabs .pill-btn {
+        #tasksGroupsTabs button,
+        #tasksGroupsTabs .pill-btn {
             font-family: 'Cairo', 'Baloo Bhaijaan 2', sans-serif !important;
         }
 
@@ -787,6 +813,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 opacity: 0;
                 transform: translateY(-10px) scale(0.95);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0) scale(1);
@@ -804,7 +831,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             margin-bottom: 8px;
             transition: all 0.2s ease;
         }
-        
+
         .dev-church-dropdown-search-wrap:focus-within {
             background: rgba(255, 255, 255, 0.9);
             border-color: var(--brand);
@@ -1835,7 +1862,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
             gap: 10px;
             flex-wrap: wrap;
             border-radius: var(--r-xl);
-            margin-bottom: 10px;
         }
 
         .class-topbar-left {
@@ -4832,8 +4858,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             display: none !important;
         }
 
-        .modal-header > button,
-        .modal-header > div {
+        .modal-header>button,
+        .modal-header>div {
             margin-right: auto !important;
             margin-left: 0 !important;
         }
@@ -4851,13 +4877,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
             cursor: pointer;
             transition: all var(--t) var(--ease);
         }
+
         .navigation-row:hover {
             background: var(--surface-3);
             transform: translateY(-1px);
         }
+
         .navigation-row:active {
             transform: translateY(0);
         }
+
         .navigation-icon {
             width: 32px;
             height: 32px;
@@ -4868,23 +4897,28 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-size: 0.9rem;
             flex-shrink: 0;
         }
+
         .navigation-icon.purple {
             background: rgba(124, 58, 237, 0.1);
             color: #7c3aed;
         }
+
         .navigation-icon.blue {
             background: rgba(59, 130, 246, 0.1);
             color: #3b82f6;
         }
+
         .navigation-icon.orange {
             background: var(--warning-bg);
             color: var(--warning-dark);
         }
+
         .navigation-label {
             font-size: 0.88rem;
             font-weight: 700;
             color: var(--text);
         }
+
         .navigation-count {
             background: var(--surface-3);
             color: var(--text-2);
@@ -4894,11 +4928,13 @@ if ($hasUncleId && $uncleRole === 'uncle')
             border-radius: 12px;
             border: 1px solid var(--border-solid);
         }
+
         .navigation-arrow {
             color: var(--text-3);
             font-size: 0.8rem;
             margin-inline-start: 4px;
         }
+
         .modal-header h3 .back-btn {
             background: none;
             border: none;
@@ -4913,9 +4949,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transition: all var(--t) var(--ease);
             border-radius: var(--r-md);
         }
+
         .modal-header h3 .back-btn i {
             display: inline-block !important;
         }
+
         .modal-header h3 .back-btn:hover {
             color: var(--brand);
             background: var(--surface-3);
@@ -6017,14 +6055,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
             scrollbar-width: none;
             -ms-overflow-style: none;
         }
+
         .custom-classes-scroll::-webkit-scrollbar {
             display: none;
         }
+
         @media (max-width: 600px) {
             .custom-class-slim-card {
                 width: 175px !important;
             }
         }
+
         .custom-class-slim-card {
             flex: 0 0 auto;
             width: 220px;
@@ -6042,22 +6083,27 @@ if ($hasUncleId && $uncleRole === 'uncle')
             text-decoration: none;
             color: inherit;
         }
+
         .custom-class-slim-card:hover {
             transform: translateY(-2px);
             box-shadow: var(--shadow-md);
         }
+
         .custom-class-slim-card:active {
             transform: scale(0.98);
         }
+
         .custom-class-slim-card.custom-class-card {
             border: none !important;
             background-color: color-mix(in srgb, var(--cls-color) 4%, var(--surface)) !important;
             background-repeat: no-repeat !important;
             background-size: 100% 100% !important;
         }
+
         .custom-class-slim-card.custom-class-card:hover {
             background-color: color-mix(in srgb, var(--cls-color) 8%, var(--surface)) !important;
         }
+
         .custom-class-slim-card .class-icon {
             width: 34px;
             height: 34px;
@@ -6068,6 +6114,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-size: 1rem;
             flex-shrink: 0;
         }
+
         .custom-class-slim-card .class-card-badges {
             position: absolute;
             top: 4px;
@@ -6078,6 +6125,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             gap: 4px;
             z-index: 12;
         }
+
         .custom-class-slim-card .class-progress-bar {
             position: absolute;
             bottom: 0 !important;
@@ -8260,7 +8308,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             margin: 0 auto 10px auto !important;
             border-radius: var(--r-xl);
             border: none !important;
-            background: 
+            background:
                 linear-gradient(to right, transparent, rgba(99, 102, 241, 0.08) 20%, #ffffff00 50%, rgba(99, 102, 241, 0.08) 80%, transparent),
                 linear-gradient(to right, transparent, var(--surface) 20%, var(--surface) 80%, transparent) !important;
             padding: 2px 10px !important;
@@ -8273,26 +8321,33 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
 
         .bday-banner-wrapper .bday-menu-arrow {
-            position: relative;
+            position: absolute;
+            top: 6px;
+            left: 8px;
+            z-index: 4;
             cursor: pointer;
-            width: 20px;
-            height: 20px;
-            display: flex;
+            padding: 2px 8px;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            border-radius: 50%;
+            gap: 4px;
+            border-radius: 20px;
             background: rgba(99, 102, 241, 0.08);
             color: var(--brand);
-            font-size: 0.65rem;
+            font-size: 0.68rem;
+            font-weight: 700;
             transition: all var(--t) var(--ease);
             border: 1px solid rgba(99, 102, 241, 0.15);
+            font-family: 'Cairo', sans-serif;
+            user-select: none;
         }
 
         .bday-banner-wrapper .bday-menu-arrow:hover {
             background: var(--brand);
             color: var(--surface);
-            transform: scale(1.15);
+            transform: scale(1.05);
         }
+
         .bday-decor {
             position: absolute;
             font-size: 1.8rem;
@@ -8319,13 +8374,23 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         @keyframes bdayFloatLeft {
-            0% { transform: translateY(0) rotate(-15deg); }
-            100% { transform: translateY(-6px) rotate(-10deg); }
+            0% {
+                transform: translateY(0) rotate(-15deg);
+            }
+
+            100% {
+                transform: translateY(-6px) rotate(-10deg);
+            }
         }
 
         @keyframes bdayFloatRight {
-            0% { transform: translateY(0) rotate(15deg); }
-            100% { transform: translateY(6px) rotate(20deg); }
+            0% {
+                transform: translateY(0) rotate(15deg);
+            }
+
+            100% {
+                transform: translateY(6px) rotate(20deg);
+            }
         }
 
         .bday-banner-wrapper .section-head {
@@ -8337,7 +8402,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
 
         [data-theme="dark"] .bday-banner-wrapper {
-            background: 
+            background:
                 linear-gradient(to right, transparent, rgba(99, 102, 241, 0.14) 20%, #ffffff00 50%, rgba(99, 102, 241, 0.14) 80%, transparent),
                 linear-gradient(to right, transparent, var(--surface) 20%, var(--surface) 80%, transparent) !important;
         }
@@ -8518,6 +8583,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             font-size: 0.6rem;
             opacity: 0.6;
         }
+
         #syncToTodayBtn {
             transition: all var(--t) var(--ease);
         }
@@ -8532,6 +8598,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         .attendance-item.bday-row {
             /* top border removed */
         }
+
         .bday-row-badge {
             display: inline-flex;
             align-items: center;
@@ -11038,12 +11105,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 gap: 4px !important;
                 padding: 6px 8px !important;
             }
+
             .action-btn-vertical .btn-label {
                 font-size: 0.62rem !important;
                 font-weight: 700;
                 line-height: 1;
                 display: block !important;
             }
+
             .action-btn-vertical i {
                 font-size: 1.1rem !important;
             }
@@ -11052,35 +11121,43 @@ if ($hasUncleId && $uncleRole === 'uncle')
             .sheet-table {
                 min-width: 100% !important;
             }
+
             .col-photo {
                 width: 36px !important;
                 padding: 4px !important;
             }
+
             .col-photo div {
                 width: 28px !important;
                 height: 28px !important;
             }
+
             .col-photo img,
             .col-photo .table-avatar-fallback {
                 width: 28px !important;
                 height: 28px !important;
                 font-size: 0.7rem !important;
             }
+
             .col-class {
                 display: none !important;
             }
+
             .col-answers {
                 width: 60px !important;
                 padding: 4px !important;
             }
+
             .col-grade {
                 width: 90px !important;
                 padding: 4px !important;
             }
+
             .col-name {
                 padding: 4px !important;
                 font-size: 0.8rem !important;
             }
+
             .sheet-degree-input {
                 width: 65px !important;
                 padding: 4px !important;
@@ -11205,7 +11282,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             transition: all var(--t-fast) var(--ease);
         }
     </style>
-    <script src="/js/og-meta.js?v=<?php echo file_exists($rootPath . '/js/og-meta.js') ? filemtime($rootPath . '/js/og-meta.js') : time(); ?>"></script>
+    <script
+        src="/js/og-meta.js?v=<?php echo file_exists($rootPath . '/js/og-meta.js') ? filemtime($rootPath . '/js/og-meta.js') : time(); ?>"></script>
 </head>
 
 <body>
@@ -11414,7 +11492,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <div id="paperExamsListView">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                         <h4 style="margin:0; font-weight:700; color:var(--text);">الامتحانات المسجلة</h4>
-                        <button class="btn btn-success" style="width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: #fff;" onclick="showAddPaperExamForm()" title="إضافة امتحان جديد">
+                        <button class="btn btn-success"
+                            style="width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: #fff;"
+                            onclick="showAddPaperExamForm()" title="إضافة امتحان جديد">
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>
@@ -11441,10 +11521,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         <div class="form-group">
                             <label class="form-label">الفصول المخصصة للامتحان (اختياري - عدم تحديد أي فصل يعني كل
                                 الفصول)</label>
-                            <div id="paperExamClassIdsList"
-                                ontouchstart="event.stopPropagation()"
-                                ontouchmove="event.stopPropagation()"
-                                ontouchend="event.stopPropagation()"
+                            <div id="paperExamClassIdsList" ontouchstart="event.stopPropagation()"
+                                ontouchmove="event.stopPropagation()" ontouchend="event.stopPropagation()"
                                 style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto; padding: 10px; background: var(--surface-3); border: 1.5px solid var(--border-solid); border-radius: var(--r-sm);">
                                 <!-- checkboxes will be populated dynamically -->
                             </div>
@@ -11473,34 +11551,38 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div
                         style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; border-bottom:1px solid var(--border-solid); padding-bottom:12px;">
                         <div style="display:flex; align-items:center; gap:10px;">
-                            <button class="btn btn-secondary" onclick="backToExamsList()" title="رجوع" style="padding:6px 12px; font-size:0.8rem; flex-shrink:0;">
+                            <button class="btn btn-secondary" onclick="backToExamsList()" title="رجوع"
+                                style="padding:6px 12px; font-size:0.8rem; flex-shrink:0;">
                                 <i class="fas fa-arrow-right"></i> <span class="hide-mobile">رجوع</span>
                             </button>
                             <div>
-                                <h4 id="sheetExamName" style="margin:0; font-weight:800; color:var(--brand);">اسم الامتحان</h4>
-                                <span id="sheetExamTotalDegree" style="font-size:0.8rem; color:var(--text-3);">الدرجة الكلية: 100</span>
+                                <h4 id="sheetExamName" style="margin:0; font-weight:800; color:var(--brand);">اسم
+                                    الامتحان</h4>
+                                <span id="sheetExamTotalDegree" style="font-size:0.8rem; color:var(--text-3);">الدرجة
+                                    الكلية: 100</span>
                             </div>
                         </div>
                         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
                             <div id="sheetExamRefLinkContainer"
                                 style="display:inline-flex; align-items:center; gap:4px;"></div>
-                            <button class="btn btn-ghost action-btn-vertical" onclick="triggerRefUploadFromSheet()" title="ملف المرجع"><i
-                                    class="fas fa-paperclip"></i> <span id="sheetRefBtnText" class="btn-label">ملف المرجع</span></button>
+                            <button class="btn btn-ghost action-btn-vertical" onclick="triggerRefUploadFromSheet()"
+                                title="ملف المرجع"><i class="fas fa-paperclip"></i> <span id="sheetRefBtnText"
+                                    class="btn-label">ملف المرجع</span></button>
                             <input type="file" id="sheetRefFileInput" style="display:none;"
                                 onchange="handleSheetRefUpload()"
                                 accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
 
                             <!-- CSV Import Button -->
-                            <button class="btn btn-ghost action-btn-vertical"
-                                style="color:var(--brand);"
-                                onclick="triggerCsvImport()" title="استيراد CSV"><i class="fas fa-file-csv"></i> <span class="btn-label">استيراد CSV</span></button>
+                            <button class="btn btn-ghost action-btn-vertical" style="color:var(--brand);"
+                                onclick="triggerCsvImport()" title="استيراد CSV"><i class="fas fa-file-csv"></i> <span
+                                    class="btn-label">استيراد CSV</span></button>
                             <input type="file" id="sheetCsvFileInput" style="display:none;" onchange="handleCsvImport()"
                                 accept=".csv">
 
                             <!-- CSV Template Download Button -->
-                            <button class="btn btn-ghost action-btn-vertical"
-                                style="color:var(--brand);"
-                                onclick="downloadPaperExamCsvTemplate()" title="تحميل القالب"><i class="fas fa-download"></i> <span class="btn-label">تحميل القالب</span></button>
+                            <button class="btn btn-ghost action-btn-vertical" style="color:var(--brand);"
+                                onclick="downloadPaperExamCsvTemplate()" title="تحميل القالب"><i
+                                    class="fas fa-download"></i> <span class="btn-label">تحميل القالب</span></button>
                         </div>
                     </div>
 
@@ -11515,7 +11597,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         </div>
 
                         <!-- Class Filter Icon Button -->
-                        <div class="icon-select-btn" style="position:relative; width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; background:var(--surface-3); border:1.5px solid var(--border-solid); border-radius:var(--r-md); color:var(--text-2); cursor:pointer; flex-shrink:0;" title="تصفية الفصول">
+                        <div class="icon-select-btn"
+                            style="position:relative; width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; background:var(--surface-3); border:1.5px solid var(--border-solid); border-radius:var(--r-md); color:var(--text-2); cursor:pointer; flex-shrink:0;"
+                            title="تصفية الفصول">
                             <i class="fas fa-filter" style="font-size:0.85rem;"></i>
                             <select id="sheetClassFilter" onchange="filterSheetStudents()"
                                 style="position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; outline:none;">
@@ -11524,7 +11608,9 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         </div>
 
                         <!-- Sort Icon Button -->
-                        <div class="icon-select-btn" style="position:relative; width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; background:var(--surface-3); border:1.5px solid var(--border-solid); border-radius:var(--r-md); color:var(--text-2); cursor:pointer; flex-shrink:0;" title="ترتيب الأطفال">
+                        <div class="icon-select-btn"
+                            style="position:relative; width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; background:var(--surface-3); border:1.5px solid var(--border-solid); border-radius:var(--r-md); color:var(--text-2); cursor:pointer; flex-shrink:0;"
+                            title="ترتيب الأطفال">
                             <i class="fas fa-sort-amount-down" style="font-size:0.85rem;"></i>
                             <select id="sheetSortSelect" onchange="sortSheetStudents()"
                                 style="position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; outline:none;">
@@ -11541,15 +11627,20 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <!-- Sheet table container -->
                     <div
                         style="flex:1; overflow:auto; border:1px solid var(--border-solid); border-radius:var(--r-md); margin-top:8px;">
-                        <table class="sheet-table" style="width:100%; min-width:600px; border-collapse:collapse; text-align:right; font-size:0.85rem;">
+                        <table class="sheet-table"
+                            style="width:100%; min-width:600px; border-collapse:collapse; text-align:right; font-size:0.85rem;">
                             <thead>
                                 <tr
                                     style="background:var(--surface-2); border-bottom:2px solid var(--border-solid); color:var(--text);">
-                                    <th class="col-photo" style="padding:10px; width:50px; text-align:center;">الصورة</th>
+                                    <th class="col-photo" style="padding:10px; width:50px; text-align:center;">الصورة
+                                    </th>
                                     <th class="col-name" style="padding:10px; text-align:right;">الاسم</th>
-                                    <th class="col-grade" style="padding:10px; width:150px; text-align:center;">الدرجة المرصودة</th>
-                                    <th class="col-class" style="padding:10px; width:120px; text-align:right;">الفصل</th>
-                                    <th class="col-answers" style="padding:10px; width:150px; text-align:center;">ورقة الإجابة</th>
+                                    <th class="col-grade" style="padding:10px; width:150px; text-align:center;">الدرجة
+                                        المرصودة</th>
+                                    <th class="col-class" style="padding:10px; width:120px; text-align:right;">الفصل
+                                    </th>
+                                    <th class="col-answers" style="padding:10px; width:150px; text-align:center;">ورقة
+                                        الإجابة</th>
                                 </tr>
                             </thead>
                             <tbody id="sheetStudentsTableBody">
@@ -11566,38 +11657,53 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                 <!-- CSV Import Confirmation/Review View -->
                 <div id="paperExamMatchReviewView" style="display:none; height:100%; flex-direction:column; gap:8px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; border-bottom:1px solid var(--border-solid); padding-bottom:8px;">
+                    <div
+                        style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; border-bottom:1px solid var(--border-solid); padding-bottom:8px;">
                         <div style="display:flex; align-items:center; gap:8px;">
-                            <button class="btn btn-secondary" onclick="backToExamSheet()" title="رجوع للامتحان" style="padding:5px 10px; font-size:0.75rem; flex-shrink:0;">
+                            <button class="btn btn-secondary" onclick="backToExamSheet()" title="رجوع للامتحان"
+                                style="padding:5px 10px; font-size:0.75rem; flex-shrink:0;">
                                 <i class="fas fa-arrow-right"></i> <span class="hide-mobile">رجوع</span>
                             </button>
                             <div>
-                                <h4 style="margin:0; font-weight:800; color:var(--brand); font-size:0.95rem;">مراجعة مطابقة الدرجات المستوردة</h4>
-                                <span style="font-size:0.75rem; color:var(--text-3);">قم بمراجعة وتعديل الأسماء قبل حفظ الدرجات</span>
+                                <h4 style="margin:0; font-weight:800; color:var(--brand); font-size:0.95rem;">مراجعة
+                                    مطابقة الدرجات المستوردة</h4>
+                                <span style="font-size:0.75rem; color:var(--text-3);">قم بمراجعة وتعديل الأسماء قبل حفظ
+                                    الدرجات</span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Search / Counters Row -->
-                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; direction:rtl; text-align:right;">
-                        <div style="flex:1; min-width:180px; display:flex; align-items:center; gap:6px; background:var(--surface-3); border-radius:var(--r-md); padding:5px 8px; border:1.5px solid var(--border-solid);">
+                    <div
+                        style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; direction:rtl; text-align:right;">
+                        <div
+                            style="flex:1; min-width:180px; display:flex; align-items:center; gap:6px; background:var(--surface-3); border-radius:var(--r-md); padding:5px 8px; border:1.5px solid var(--border-solid);">
                             <i class="fas fa-search" style="color:var(--text-3); font-size:.75rem; flex-shrink:0;"></i>
                             <input id="peReviewSearchInput" type="text" placeholder="بحث بالاسم أو الفصل من الملف..."
                                 style="border:none; background:transparent; font-family:Cairo,sans-serif; font-size:.78rem; color:var(--text); width:100%; outline:none;"
                                 oninput="filterPeReviewTable()">
                         </div>
                         <div style="display:flex; gap:6px; flex-wrap:wrap; font-size:0.75rem;">
-                            <span id="peReviewMatchCount" class="badge" style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; padding:4px 8px; border-radius:15px;">مطابقة مؤكدة: 0</span>
-                            <span id="peReviewPossibleCount" class="badge" style="background:#fffbeb; color:#92400e; border:1px solid #fde68a; padding:4px 8px; border-radius:15px;">مطابقة محتملة: 0</span>
-                            <span id="peReviewNotMatchedCount" class="badge" style="background:#fef2f2; color:#991b1b; border:1px solid #fca5a5; padding:4px 8px; border-radius:15px;">غير مطابق: 0</span>
+                            <span id="peReviewMatchCount" class="badge"
+                                style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; padding:4px 8px; border-radius:15px;">مطابقة
+                                مؤكدة: 0</span>
+                            <span id="peReviewPossibleCount" class="badge"
+                                style="background:#fffbeb; color:#92400e; border:1px solid #fde68a; padding:4px 8px; border-radius:15px;">مطابقة
+                                محتملة: 0</span>
+                            <span id="peReviewNotMatchedCount" class="badge"
+                                style="background:#fef2f2; color:#991b1b; border:1px solid #fca5a5; padding:4px 8px; border-radius:15px;">غير
+                                مطابق: 0</span>
                         </div>
                     </div>
 
                     <!-- Responsive Table Container -->
-                    <div style="flex:1; overflow:auto; border:1px solid var(--border-solid); border-radius:var(--r-md); margin-top:4px;">
-                        <table class="sheet-table" style="width:100%; min-width:600px; border-collapse:collapse; text-align:right; font-size:0.78rem;">
+                    <div
+                        style="flex:1; overflow:auto; border:1px solid var(--border-solid); border-radius:var(--r-md); margin-top:4px;">
+                        <table class="sheet-table"
+                            style="width:100%; min-width:600px; border-collapse:collapse; text-align:right; font-size:0.78rem;">
                             <thead>
-                                <tr style="background:var(--surface-2); border-bottom:2px solid var(--border-solid); color:var(--text);">
+                                <tr
+                                    style="background:var(--surface-2); border-bottom:2px solid var(--border-solid); color:var(--text);">
                                     <th style="padding:6px; width:35px; text-align:center;">#</th>
                                     <th style="padding:6px; text-align:right;">الاسم في الملف</th>
                                     <th style="padding:6px; width:90px; text-align:right;">الفصل في الملف</th>
@@ -11615,10 +11721,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                     <!-- Action Buttons -->
                     <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
-                        <button type="button" class="btn btn-success" onclick="submitPeBulkImport()" style="padding:8px 18px; font-size:0.8rem;">
+                        <button type="button" class="btn btn-success" onclick="submitPeBulkImport()"
+                            style="padding:8px 18px; font-size:0.8rem;">
                             <i class="fas fa-check"></i> حفظ ورصد الدرجات المستوردة
                         </button>
-                        <button type="button" class="btn btn-secondary" onclick="backToExamSheet()" style="padding:8px 18px; font-size:0.8rem;">
+                        <button type="button" class="btn btn-secondary" onclick="backToExamSheet()"
+                            style="padding:8px 18px; font-size:0.8rem;">
                             إلغاء
                         </button>
                     </div>
@@ -11965,15 +12073,19 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
 
                 <!-- Birthdays Container -->
-                <div id="mainStatsRow" class="bday-banner-wrapper" style="display:none;">
+                <div id="mainStatsRow" class="bday-banner-wrapper" style="display:none; position: relative;">
+                    <div class="bday-menu-arrow" onclick="showBirthdayModal()" title="كل أعياد الميلاد">
+                        <span>فتح</span>
+                        <i class="fas fa-chevron-left" style="font-size: 0.6rem;"></i>
+                    </div>
                     <div class="bday-decor bday-decor-left"><i class="fas fa-birthday-cake"></i></div>
                     <div class="bday-decor bday-decor-right"><i class="fas fa-gift"></i></div>
                     <div class="bday-banner-list" id="todayBirthdayList" style="z-index: 2; position: relative;"></div>
-                    <div class="bday-footer-row" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 0px; margin-bottom: 2px; padding: 0 10px; z-index: 2; position: relative;">
+                    <div class="bday-footer-row"
+                        style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 0px; margin-bottom: 2px; padding: 0 10px; z-index: 2; position: relative;">
                         <div id="bdayCountSummary" style="font-size: 0.68rem; color: var(--text-3); margin: 0;"></div>
                         <div class="bday-dots-container" style="display: flex; align-items: center; gap: 8px;">
                             <div id="bdayDotsIndicator" style="display: none; gap: 6px; align-items: center;"></div>
-                            <div class="bday-menu-arrow" onclick="showBirthdayModal()" title="كل أعياد الميلاد"><i class="fas fa-chevron-left"></i></div>
                         </div>
                     </div>
                 </div>
@@ -11988,7 +12100,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </button>
                 </div>
                 <div class="trips-horizontal-scroll" id="tripsContainer" style="margin-bottom: 4px;"></div>
-                <div class="custom-classes-scroll" id="customClassesContainer" style="display: none; margin-bottom: 12px;"></div>
+                <div class="custom-classes-scroll" id="customClassesContainer"
+                    style="display: none; margin-bottom: 12px;"></div>
                 <div class="classes-grid" id="classesGrid"></div>
 
                 <footer class="site-footer">
@@ -12071,273 +12184,288 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
                     <!-- Collapsible Tasks Panel -->
                     <style>
-                    @keyframes tasksBounce {
-                        0%, 100% { transform: translateX(-50%) translateY(0); }
-                        50% { transform: translateX(-50%) translateY(4px); }
-                    }
+                        @keyframes tasksBounce {
 
-                    .task-ping-badge {
-                        display: inline-block;
-                        width: 7px;
-                        height: 7px;
-                        border-radius: 50%;
-                        background-color: #ef4444;
-                        flex-shrink: 0;
-                    }
+                            0%,
+                            100% {
+                                transform: translateX(-50%) translateY(0);
+                            }
 
-                    .class-tasks-collapsible {
-                        display: none;
-                        width: 100%;
-                        margin-top: 6px;
-                        margin-bottom: 2px;
-                        border-top: 1px dashed var(--border);
-                        padding-top: 6px;
-                        flex-direction: column;
-                        gap: 6px;
-                    }
+                            50% {
+                                transform: translateX(-50%) translateY(4px);
+                            }
+                        }
 
-                    .class-tasks-header {
-                        display: flex;
-                        align-items: center;
-                        justify-content: space-between;
-                        cursor: pointer;
-                        user-select: none;
-                        padding: 8px 12px;
-                        border-radius: 12px;
-                        background: var(--surface-2);
-                        border: none;
-                        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-                        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
-                    }
+                        .task-ping-badge {
+                            display: inline-block;
+                            width: 7px;
+                            height: 7px;
+                            border-radius: 50%;
+                            background-color: #ef4444;
+                            flex-shrink: 0;
+                        }
 
-                    .class-tasks-header:hover {
-                        background: var(--surface-3);
-                        border-color: transparent;
-                        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.08);
-                        transform: translateY(-1px);
-                    }
+                        .class-tasks-collapsible {
+                            display: none;
+                            width: 100%;
+                            margin-top: 6px;
+                            margin-bottom: 2px;
+                            border-top: 1px dashed var(--border);
+                            padding-top: 6px;
+                            flex-direction: column;
+                            gap: 6px;
+                        }
 
-                    .class-tasks-header .header-title-wrap {
-                        font-size: 0.83rem;
-                        font-weight: 700;
-                        color: var(--text-1);
-                        display: inline-flex;
-                        align-items: center;
-                        gap: 10px;
-                        font-family: 'Cairo', sans-serif;
-                    }
+                        .class-tasks-header {
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                            cursor: pointer;
+                            user-select: none;
+                            padding: 8px 12px;
+                            border-radius: 12px;
+                            background: var(--surface-2);
+                            border: none;
+                            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+                            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+                        }
 
-                    .class-tasks-header .header-icon-box {
-                        width: 28px;
-                        height: 28px;
-                        border-radius: 8px;
-                        background: linear-gradient(135deg, rgba(99, 102, 241, 0.16), rgba(99, 102, 241, 0.06));
-                        color: var(--brand);
-                        display: inline-flex;
-                        align-items: center;
-                        justify-content: center;
-                        font-size: 0.8rem;
-                        border: 1px solid rgba(99, 102, 241, 0.22);
-                        transition: transform 0.25s ease;
-                    }
+                        .class-tasks-header:hover {
+                            background: var(--surface-3);
+                            border-color: transparent;
+                            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.08);
+                            transform: translateY(-1px);
+                        }
 
-                    .class-tasks-header:hover .header-icon-box {
-                        transform: scale(1.08) rotate(-4deg);
-                    }
+                        .class-tasks-header .header-title-wrap {
+                            font-size: 0.83rem;
+                            font-weight: 700;
+                            color: var(--text-1);
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 10px;
+                            font-family: 'Cairo', sans-serif;
+                        }
 
-                    .class-tasks-header .header-count-pill {
-                        background: var(--brand-bg);
-                        color: var(--brand);
-                        padding: 1.5px 8px;
-                        border-radius: 12px;
-                        font-size: 0.72rem;
-                        font-weight: 800;
-                        border: 1px solid rgba(99, 102, 241, 0.15);
-                    }
+                        .class-tasks-header .header-icon-box {
+                            width: 28px;
+                            height: 28px;
+                            border-radius: 8px;
+                            background: linear-gradient(135deg, rgba(99, 102, 241, 0.16), rgba(99, 102, 241, 0.06));
+                            color: var(--brand);
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 0.8rem;
+                            border: 1px solid rgba(99, 102, 241, 0.22);
+                            transition: transform 0.25s ease;
+                        }
 
-                    .class-tasks-footer-action {
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        padding-top: 4px;
-                        padding-bottom: 2px;
-                    }
+                        .class-tasks-header:hover .header-icon-box {
+                            transform: scale(1.08) rotate(-4deg);
+                        }
 
-                    .class-tasks-manage-footer-btn {
-                        font-family: 'Cairo', sans-serif;
-                        font-size: 0.76rem;
-                        font-weight: 700;
-                        color: var(--brand);
-                        background: var(--brand-bg);
-                        border: 1px solid rgba(99, 102, 241, 0.2);
-                        padding: 7px 16px;
-                        border-radius: 10px;
-                        cursor: pointer;
-                        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-                        display: inline-flex;
-                        align-items: center;
-                        justify-content: center;
-                        gap: 8px;
-                        width: 100%;
-                        box-shadow: 0 2px 6px rgba(99, 102, 241, 0.05);
-                    }
+                        .class-tasks-header .header-count-pill {
+                            background: var(--brand-bg);
+                            color: var(--brand);
+                            padding: 1.5px 8px;
+                            border-radius: 12px;
+                            font-size: 0.72rem;
+                            font-weight: 800;
+                            border: 1px solid rgba(99, 102, 241, 0.15);
+                        }
 
-                    .class-tasks-manage-footer-btn:hover {
-                        background: var(--brand);
-                        color: #ffffff;
-                        border-color: var(--brand);
-                        transform: translateY(-1px);
-                        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.25);
-                    }
+                        .class-tasks-footer-action {
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            padding-top: 4px;
+                            padding-bottom: 2px;
+                        }
 
-                    .class-tasks-chevron-btn {
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        width: 28px;
-                        height: 28px;
-                        border-radius: 50%;
-                        background: var(--bg-hover);
-                        color: var(--text-2);
-                        transition: all 0.25s ease;
-                    }
+                        .class-tasks-manage-footer-btn {
+                            font-family: 'Cairo', sans-serif;
+                            font-size: 0.76rem;
+                            font-weight: 700;
+                            color: var(--brand);
+                            background: var(--brand-bg);
+                            border: 1px solid rgba(99, 102, 241, 0.2);
+                            padding: 7px 16px;
+                            border-radius: 10px;
+                            cursor: pointer;
+                            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 8px;
+                            width: 100%;
+                            box-shadow: 0 2px 6px rgba(99, 102, 241, 0.05);
+                        }
 
-                    .class-tasks-header:hover .class-tasks-chevron-btn {
-                        background: rgba(99, 102, 241, 0.12);
-                        color: var(--brand);
-                    }
+                        .class-tasks-manage-footer-btn:hover {
+                            background: var(--brand);
+                            color: #ffffff;
+                            border-color: var(--brand);
+                            transform: translateY(-1px);
+                            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.25);
+                        }
 
-                    .class-tasks-chevron-btn i {
-                        transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-                        font-size: 0.75rem;
-                    }
+                        .class-tasks-chevron-btn {
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            width: 28px;
+                            height: 28px;
+                            border-radius: 50%;
+                            background: var(--bg-hover);
+                            color: var(--text-2);
+                            transition: all 0.25s ease;
+                        }
 
-                    /* Task Card styling */
-                    .task-pill-item {
-                        display: flex;
-                        align-items: center;
-                        justify-content: space-between;
-                        background: var(--surface-2);
-                        border: 1px solid var(--border);
-                        padding: 10px 14px;
-                        border-radius: 12px;
-                        cursor: pointer;
-                        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-                        gap: 12px;
-                        position: relative;
-                        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
-                    }
+                        .class-tasks-header:hover .class-tasks-chevron-btn {
+                            background: rgba(99, 102, 241, 0.12);
+                            color: var(--brand);
+                        }
 
-                    .task-pill-item:hover {
-                        background: var(--surface-3);
-                        border-color: rgba(99, 102, 241, 0.35);
-                        transform: translateY(-2px);
-                        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.12);
-                    }
+                        .class-tasks-chevron-btn i {
+                            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+                            font-size: 0.75rem;
+                        }
 
-                    .task-pill-item .task-item-title {
-                        font-size: 0.82rem;
-                        font-weight: 700;
-                        color: var(--text-1);
-                        overflow: hidden;
-                        text-overflow: ellipsis;
-                        white-space: nowrap;
-                        transition: color 0.2s ease;
-                        font-family: 'Cairo', sans-serif;
-                    }
+                        /* Task Card styling */
+                        .task-pill-item {
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                            background: var(--surface-2);
+                            border: 1px solid var(--border);
+                            padding: 10px 14px;
+                            border-radius: 12px;
+                            cursor: pointer;
+                            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+                            gap: 12px;
+                            position: relative;
+                            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+                        }
 
-                    .task-pill-item:hover .task-item-title {
-                        color: var(--brand);
-                    }
+                        .task-pill-item:hover {
+                            background: var(--surface-3);
+                            border-color: rgba(99, 102, 241, 0.35);
+                            transform: translateY(-2px);
+                            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.12);
+                        }
 
-                    .task-pill-item .task-item-meta {
-                        font-size: 0.7rem;
-                        color: var(--text-3);
-                        display: flex;
-                        align-items: center;
-                        gap: 5px;
-                        margin-top: 2px;
-                    }
+                        .task-pill-item .task-item-title {
+                            font-size: 0.82rem;
+                            font-weight: 700;
+                            color: var(--text-1);
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            white-space: nowrap;
+                            transition: color 0.2s ease;
+                            font-family: 'Cairo', sans-serif;
+                        }
 
-                    .task-badge-pill {
-                        font-size: 0.72rem;
-                        font-weight: 700;
-                        padding: 3px 8px;
-                        border-radius: 8px;
-                        display: inline-flex;
-                        align-items: center;
-                        gap: 4px;
-                        transition: transform 0.2s ease;
-                    }
+                        .task-pill-item:hover .task-item-title {
+                            color: var(--brand);
+                        }
 
-                    .task-badge-pill.questions {
-                        color: var(--brand);
-                        background: var(--brand-bg);
-                        border: 1px solid rgba(99, 102, 241, 0.15);
-                    }
+                        .task-pill-item .task-item-meta {
+                            font-size: 0.7rem;
+                            color: var(--text-3);
+                            display: flex;
+                            align-items: center;
+                            gap: 5px;
+                            margin-top: 2px;
+                        }
 
-                    .task-badge-pill.degree {
-                        color: var(--warning);
-                        background: var(--warning-bg);
-                        border: 1px solid rgba(245, 158, 11, 0.2);
-                    }
+                        .task-badge-pill {
+                            font-size: 0.72rem;
+                            font-weight: 700;
+                            padding: 3px 8px;
+                            border-radius: 8px;
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 4px;
+                            transition: transform 0.2s ease;
+                        }
 
-                    .task-pill-arrow {
-                        font-size: 0.7rem;
-                        color: var(--text-3);
-                        opacity: 0;
-                        transform: translateX(4px);
-                        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-                    }
+                        .task-badge-pill.questions {
+                            color: var(--brand);
+                            background: var(--brand-bg);
+                            border: 1px solid rgba(99, 102, 241, 0.15);
+                        }
 
-                    .task-pill-item:hover .task-pill-arrow {
-                        opacity: 1;
-                        transform: translateX(0);
-                        color: var(--brand);
-                    }
+                        .task-badge-pill.degree {
+                            color: var(--warning);
+                            background: var(--warning-bg);
+                            border: 1px solid rgba(245, 158, 11, 0.2);
+                        }
 
-                    /* Thin custom scrollbar on task list for smooth scrolling */
-                    #collapsedTasksList {
-                        scrollbar-width: thin;
-                        scrollbar-color: rgba(99, 102, 241, 0.35) transparent;
-                        -webkit-overflow-scrolling: touch;
-                        flex-shrink: 0;
-                    }
-                    #collapsedTasksList::-webkit-scrollbar {
-                        width: 5px;
-                    }
-                    #collapsedTasksList::-webkit-scrollbar-track {
-                        background: transparent;
-                    }
-                    #collapsedTasksList::-webkit-scrollbar-thumb {
-                        background: rgba(99, 102, 241, 0.25);
-                        border-radius: 10px;
-                    }
-                    #collapsedTasksList::-webkit-scrollbar-thumb:hover {
-                        background: var(--brand, #6366f1);
-                    }
+                        .task-pill-arrow {
+                            font-size: 0.7rem;
+                            color: var(--text-3);
+                            opacity: 0;
+                            transform: translateX(4px);
+                            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                        }
+
+                        .task-pill-item:hover .task-pill-arrow {
+                            opacity: 1;
+                            transform: translateX(0);
+                            color: var(--brand);
+                        }
+
+                        /* Thin custom scrollbar on task list for smooth scrolling */
+                        #collapsedTasksList {
+                            scrollbar-width: thin;
+                            scrollbar-color: rgba(99, 102, 241, 0.35) transparent;
+                            -webkit-overflow-scrolling: touch;
+                            flex-shrink: 0;
+                        }
+
+                        #collapsedTasksList::-webkit-scrollbar {
+                            width: 5px;
+                        }
+
+                        #collapsedTasksList::-webkit-scrollbar-track {
+                            background: transparent;
+                        }
+
+                        #collapsedTasksList::-webkit-scrollbar-thumb {
+                            background: rgba(99, 102, 241, 0.25);
+                            border-radius: 10px;
+                        }
+
+                        #collapsedTasksList::-webkit-scrollbar-thumb:hover {
+                            background: var(--brand, #6366f1);
+                        }
                     </style>
                     <div id="classTasksCollapsible" class="class-tasks-collapsible">
-                        
+
                         <!-- Accordion Header row -->
                         <div class="class-tasks-header" onclick="toggleTasksCollapse()">
                             <span class="header-title-wrap">
                                 <span class="header-icon-box" style="position: relative;">
                                     <i class="fas fa-tasks"></i>
-                                    <span class="task-ping-badge" id="tasksHeaderPing" style="display: none; position: absolute; top: -2px; right: -2px; width: 7px; height: 7px;" title="نشاط جديد"></span>
+                                    <span class="task-ping-badge" id="tasksHeaderPing"
+                                        style="display: none; position: absolute; top: -2px; right: -2px; width: 7px; height: 7px;"
+                                        title="نشاط جديد"></span>
                                 </span>
                                 <span>التاسكات</span>
                                 <span class="header-count-pill" id="collapsedTasksCount">0</span>
                             </span>
-                            
+
                             <div class="class-tasks-chevron-btn">
                                 <i class="fas fa-chevron-down" id="tasksCollapseIcon"></i>
                             </div>
                         </div>
-                        
+
                         <!-- Dynamic grid-rows height transition wrapper -->
-                        <div id="collapsedTasksWrapper" style="display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; width: 100%;">
-                            <div style="min-height: 0; display: flex; flex-direction: column; gap: 8px; position: relative;">
+                        <div id="collapsedTasksWrapper"
+                            style="display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; width: 100%;">
+                            <div
+                                style="min-height: 0; display: flex; flex-direction: column; gap: 8px; position: relative;">
                                 <div id="collapsedTasksList"
                                     style="display: flex; flex-direction: column; gap: 8px; max-height: 240px; overflow-y: auto; padding-inline-start: 2px; padding-inline-end: 4px; padding-top: 6px; padding-bottom: 4px; flex-shrink: 0;">
                                     <!-- Dynamically loaded task pills -->
@@ -12349,13 +12477,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                         <span>فتح لوحة إدارة التاسكات</span>
                                     </button>
                                 </div>
-                                <div id="tasksScrollIndicator" 
-                                     style="display: none; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); background: linear-gradient(transparent, rgba(0, 0, 0, 0.08) 80%); width: 100%; height: 24px; pointer-events: none; align-items: flex-end; justify-content: center; padding-bottom: 2px;">
-                                    <i class="fas fa-chevron-down" style="font-size: 0.75rem; color: var(--brand); animation: tasksBounce 1.5s infinite;"></i>
+                                <div id="tasksScrollIndicator"
+                                    style="display: none; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); background: linear-gradient(transparent, rgba(0, 0, 0, 0.08) 80%); width: 100%; height: 24px; pointer-events: none; align-items: flex-end; justify-content: center; padding-bottom: 2px;">
+                                    <i class="fas fa-chevron-down"
+                                        style="font-size: 0.75rem; color: var(--brand); animation: tasksBounce 1.5s infinite;"></i>
                                 </div>
                             </div>
                         </div>
-                        
+
                     </div>
                 </div>
 
@@ -12374,7 +12503,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             style="left: 0; right: auto; min-width: 220px;">
                             <div class="dropdown-group-label">الفصل</div>
                             <button class="dropdown-item" id="classTasksMenuItem"
-                                onclick="openTasksModal(null, 'create');closeAllDropdowns()"><i class="fas fa-plus"></i> إضافة تاسك جديد</button>
+                                onclick="openTasksModal(null, 'create');closeAllDropdowns()"><i class="fas fa-plus"></i>
+                                إضافة تاسك جديد</button>
                             <button class="dropdown-item coupon"
                                 onclick="showCustomExportModal();closeAllDropdowns()"><i class="fas fa-table"></i>
                                 حفظ كجدول</button>
@@ -13073,17 +13203,24 @@ if ($hasUncleId && $uncleRole === 'uncle')
     </div>
 
     <!-- Logout Confirm Modal -->
-    <div class="modal-overlay" id="logoutConfirmModal" style="z-index: 1000030;" onclick="if(event.target === this) closeLogoutModal()">
-        <div class="modal" style="max-width:380px; text-align: center; border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.18);">
+    <div class="modal-overlay" id="logoutConfirmModal" style="z-index: 1000030;"
+        onclick="if(event.target === this) closeLogoutModal()">
+        <div class="modal"
+            style="max-width:380px; text-align: center; border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.18);">
             <div class="modal-header" style="border-bottom: none; justify-content: center; padding-bottom: 5px;">
-                <h3 style="font-size: 1.3rem; font-family: 'Baloo Bhaijaan 2', Cairo, sans-serif; font-weight: 700; color: var(--accent2);">تسجيل الخروج</h3>
+                <h3
+                    style="font-size: 1.3rem; font-family: 'Baloo Bhaijaan 2', Cairo, sans-serif; font-weight: 700; color: var(--accent2);">
+                    تسجيل الخروج</h3>
             </div>
             <div style="padding: 15px 20px; font-size: 1.05rem; color: var(--text-desc);">
                 هل أنت متأكد من تسجيل الخروج؟
             </div>
-            <div class="modal-footer" style="display: flex; gap: 12px; justify-content: center; padding: 10px 20px 20px 20px; border-top: none;">
-                <button class="btn btn-outline btn-sm" onclick="closeLogoutModal()" style="border-radius: 12px; min-width: 100px; padding: 8px 16px;">إلغاء</button>
-                <button class="btn btn-danger btn-sm" onclick="confirmLogout()" style="border-radius: 12px; min-width: 100px; padding: 8px 16px;">تسجيل خروج</button>
+            <div class="modal-footer"
+                style="display: flex; gap: 12px; justify-content: center; padding: 10px 20px 20px 20px; border-top: none;">
+                <button class="btn btn-outline btn-sm" onclick="closeLogoutModal()"
+                    style="border-radius: 12px; min-width: 100px; padding: 8px 16px;">إلغاء</button>
+                <button class="btn btn-danger btn-sm" onclick="confirmLogout()"
+                    style="border-radius: 12px; min-width: 100px; padding: 8px 16px;">تسجيل خروج</button>
             </div>
         </div>
     </div>
@@ -13098,13 +13235,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <button class="close-btn" id="closeStudentModal">&times;</button>
             </div>
             <div id="studentDetailsHeader"></div>
-            <div id="studentModalFooter" style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
-                <div id="studentModalTitleFooter" style="font-size:0.95rem;font-weight:700;color:var(--text-3);">معلومات الطفل</div>
-                <button class="btn btn-xs btn-outline" id="editStudentBtn" style="padding:4px 8px;font-size:0.72rem;"><i class="fas fa-edit"></i> تعديل</button>
+            <div id="studentModalFooter"
+                style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+                <div id="studentModalTitleFooter" style="font-size:0.95rem;font-weight:700;color:var(--text-3);">معلومات
+                    الطفل</div>
+                <button class="btn btn-xs btn-outline" id="editStudentBtn" style="padding:4px 8px;font-size:0.72rem;"><i
+                        class="fas fa-edit"></i> تعديل</button>
             </div>
             <div id="studentDetails" style="margin-bottom:14px"></div>
             <div id="studentModalDeleteFooter" style="display:flex;justify-content:center;margin-top:14px;">
-                <button class="btn btn-xs btn-danger" id="deleteStudentBtn" style="width:100%;padding:8px;font-size:0.8rem;"><i class="fas fa-trash"></i> حذف</button>
+                <button class="btn btn-xs btn-danger" id="deleteStudentBtn"
+                    style="width:100%;padding:8px;font-size:0.8rem;"><i class="fas fa-trash"></i> حذف</button>
             </div>
         </div>
     </div>
@@ -13323,8 +13464,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     </div>
                     <div class="form-group" style="margin-bottom:12px;">
                         <label class="form-label">الفصول التي يديرها الخادم *</label>
-                        <div id="editUncleClassesCheckboxes" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:6px; margin-top:6px; max-height:150px; overflow-y:auto; padding:6px; border:1px solid var(--border-solid); border-radius:8px; background:var(--surface-2);">
-                            <div style="color:var(--text-3); font-size:0.8rem; padding:8px;"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>
+                        <div id="editUncleClassesCheckboxes"
+                            style="display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:6px; margin-top:6px; max-height:150px; overflow-y:auto; padding:6px; border:1px solid var(--border-solid); border-radius:8px; background:var(--surface-2);">
+                            <div style="color:var(--text-3); font-size:0.8rem; padding:8px;"><i
+                                    class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>
                         </div>
                         <select id="editUncleClasses" class="form-input" multiple style="display:none;"></select>
                     </div>
@@ -14106,23 +14249,34 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 <button class="close-btn" onclick="closeModal('paperExamMatchReviewModal')">&times;</button>
             </div>
             <div class="mbody" style="padding:16px;">
-                <div style="background:rgba(91,108,245,0.06); padding:12px; border-radius:10px; border:1px solid var(--border-solid); font-size:0.85rem; line-height:1.6; margin-bottom:16px; color:var(--brand); direction:rtl; text-align:right;">
-                    <i class="fas fa-info-circle"></i> <strong>تلميح:</strong> يقوم النظام بمطابقة أسماء الأطفال من ملف الـ CSV مع الأطفال المتاحين في فصول هذا الامتحان. يمكنك مراجعة وتعديل المطابقة وتحديد الدرجات قبل الحفظ النهائي.
+                <div
+                    style="background:rgba(91,108,245,0.06); padding:12px; border-radius:10px; border:1px solid var(--border-solid); font-size:0.85rem; line-height:1.6; margin-bottom:16px; color:var(--brand); direction:rtl; text-align:right;">
+                    <i class="fas fa-info-circle"></i> <strong>تلميح:</strong> يقوم النظام بمطابقة أسماء الأطفال من ملف
+                    الـ CSV مع الأطفال المتاحين في فصول هذا الامتحان. يمكنك مراجعة وتعديل المطابقة وتحديد الدرجات قبل
+                    الحفظ النهائي.
                 </div>
-                
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:10px; flex-wrap:wrap; direction:rtl; text-align:right;">
+
+                <div
+                    style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:10px; flex-wrap:wrap; direction:rtl; text-align:right;">
                     <div style="display:flex; gap:8px;">
-                        <span class="badge" style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;" id="peReviewMatchCount">مطابقة مؤكدة: 0</span>
-                        <span class="badge" style="background:#fffbeb; color:#92400e; border:1px solid #fde68a;" id="peReviewPossibleCount">مطابقة محتملة: 0</span>
-                        <span class="badge" style="background:#fef2f2; color:#991b1b; border:1px solid #fca5a5;" id="peReviewNotMatchedCount">غير مطابق: 0</span>
+                        <span class="badge" style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;"
+                            id="peReviewMatchCount">مطابقة مؤكدة: 0</span>
+                        <span class="badge" style="background:#fffbeb; color:#92400e; border:1px solid #fde68a;"
+                            id="peReviewPossibleCount">مطابقة محتملة: 0</span>
+                        <span class="badge" style="background:#fef2f2; color:#991b1b; border:1px solid #fca5a5;"
+                            id="peReviewNotMatchedCount">غير مطابق: 0</span>
                     </div>
                     <div>
-                        <input type="text" id="peReviewSearchInput" class="form-input form-input-sm" style="width:200px; display:inline-block; font-size:0.8rem; padding:6px 10px;" placeholder="البحث في القائمة..." oninput="filterPeReviewTable()">
+                        <input type="text" id="peReviewSearchInput" class="form-input form-input-sm"
+                            style="width:200px; display:inline-block; font-size:0.8rem; padding:6px 10px;"
+                            placeholder="البحث في القائمة..." oninput="filterPeReviewTable()">
                     </div>
                 </div>
 
-                <div class="table-wrap" style="max-height:55vh; overflow-y:auto; direction:rtl; text-align:right; border:1px solid var(--border-solid); border-radius:10px;">
-                    <table class="table" style="width:100%; min-width:800px; text-align:right; border-collapse:collapse;">
+                <div class="table-wrap"
+                    style="max-height:55vh; overflow-y:auto; direction:rtl; text-align:right; border:1px solid var(--border-solid); border-radius:10px;">
+                    <table class="table"
+                        style="width:100%; min-width:800px; text-align:right; border-collapse:collapse;">
                         <thead style="position:sticky; top:0; background:var(--surface-2); z-index:10;">
                             <tr style="border-bottom:2px solid var(--border-solid);">
                                 <th style="width:50px; text-align:right; padding:10px;">#</th>
@@ -14141,10 +14295,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 </div>
 
                 <div style="display:flex; gap:10px; margin-top:16px; justify-content:flex-end; direction:rtl;">
-                    <button class="btn btn-success" id="btnConfirmPeBulkImport" onclick="submitPeBulkImport()" style="background:#10b981; color:#fff; border:none; padding:8px 20px; font-weight:800; display:flex; align-items:center; gap:6px; border-radius:var(--r-md);">
+                    <button class="btn btn-success" id="btnConfirmPeBulkImport" onclick="submitPeBulkImport()"
+                        style="background:#10b981; color:#fff; border:none; padding:8px 20px; font-weight:800; display:flex; align-items:center; gap:6px; border-radius:var(--r-md);">
                         <i class="fas fa-check-double"></i> حفظ ورصد الدرجات المؤكدة
                     </button>
-                    <button class="btn btn-secondary" onclick="closeModal('paperExamMatchReviewModal')" style="padding:8px 20px; border-radius:var(--r-md);">إلغاء</button>
+                    <button class="btn btn-secondary" onclick="closeModal('paperExamMatchReviewModal')"
+                        style="padding:8px 20px; border-radius:var(--r-md);">إلغاء</button>
                 </div>
             </div>
         </div>
@@ -14367,8 +14523,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const phpUncleName = <?php echo json_encode($uncleName); ?>;
             const phpUncleRole = <?php echo json_encode($uncleRole); ?>;
             const phpChurchCode = <?php echo json_encode($churchCode); ?>;
-            const phpChurchId = <?php echo isset($_SESSION['church_id']) ? (int)$_SESSION['church_id'] : '""'; ?>;
-            const phpUncleId = <?php echo isset($_SESSION['uncle_id']) ? (int)$_SESSION['uncle_id'] : '""'; ?>;
+            const phpChurchId = <?php echo isset($_SESSION['church_id']) ? (int) $_SESSION['church_id'] : '""'; ?>;
+            const phpUncleId = <?php echo isset($_SESSION['uncle_id']) ? (int) $_SESSION['uncle_id'] : '""'; ?>;
 
             // Detect account switch: if stored identity differs from what PHP says,
             // clear account-scoped cached data so another church or uncle's data is not shown.
@@ -16791,7 +16947,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             `;
         }
 
-        window.getDashedBorderSvg = function(color) {
+        window.getDashedBorderSvg = function (color) {
             const encodedColor = encodeURIComponent(color);
             return `background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='20' ry='20' stroke='${encodedColor}' stroke-width='2' stroke-dasharray='10%2c 12' stroke-linecap='round'/%3e%3c/svg%3e");`;
         };
@@ -20244,8 +20400,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
             showDetailsFooter();
 
             const isUncle = !!currentStudentForEdit._isUncle;
-            const dynamicTitle = isUncle 
-                ? 'معلومات الخادم: ' + (currentStudentForEdit.name || currentStudentForEdit['الاسم'] || '') 
+            const dynamicTitle = isUncle
+                ? 'معلومات الخادم: ' + (currentStudentForEdit.name || currentStudentForEdit['الاسم'] || '')
                 : 'معلومات: ' + (currentStudentForEdit['الاسم'] || '');
             setModalHeader('', false);
             const titleFooter = document.getElementById('studentModalTitleFooter');
@@ -20632,8 +20788,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                      style="display:flex; gap:12px; overflow-x:auto; padding:8px 0 2px 0; margin-top:10px; margin-inline-start:42px; scrollbar-width:none; -ms-overflow-style:none;" 
                      onclick="event.stopPropagation()">
                     ${members.map(m => {
-                        const firstName = getStudentFirstName(m);
-                        return `
+                    const firstName = getStudentFirstName(m);
+                    return `
                         <div onclick="showStudentDetails('${escJs(m.name || m['الاسم'] || '')}')" 
                              style="display:flex; flex-direction:column; align-items:center; gap:5px; min-width:58px; max-width:62px; cursor:pointer; text-align:center; transition:transform 0.15s;"
                              onmouseover="this.style.transform='scale(1.06)';"
@@ -20645,7 +20801,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <span style="font-size:0.68rem; color:var(--text-2); font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; width:100%; display:block;">${escHtml(firstName)}</span>
                         </div>
                         `;
-                    }).join('')}
+                }).join('')}
                 </div>
                 `;
             }
@@ -20872,8 +21028,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             لا توجد ملاحظات مسجلة.
                         </div>
                     ` : notesList.map(note => {
-                        const noteDateStr = note.date ? new Date(note.date).toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric' }) : '---';
-                        return `
+                const noteDateStr = note.date ? new Date(note.date).toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric' }) : '---';
+                return `
                             <div class="glass-card note-item-card" style="padding:10px 12px; border:1px solid var(--border-solid); border-radius:10px; position:relative; direction:rtl; text-align:right;">
                                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
                                     <strong style="font-size:0.82rem; color:var(--text);">${escHtml(note.title)}</strong>
@@ -20888,7 +21044,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 </div>
                             </div>
                         `;
-                    }).join('')}
+            }).join('')}
                 </div>
             </div>
             `;
@@ -20901,7 +21057,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const isSiblingsPage = titleEl && (titleEl.textContent.includes('الإخوات') || titleEl.textContent.includes('الأخوات'));
             const isPaperExamsPage = titleEl && titleEl.textContent.includes('الورقية');
             const isNotesPage = titleEl && titleEl.textContent.includes('الملاحظات');
-            
+
             showStudentDetails(name);
 
             if (isSiblingsPage) {
@@ -22254,7 +22410,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         };
                         updateStyles(isChecked);
 
-                        div.addEventListener('click', function(e) {
+                        div.addEventListener('click', function (e) {
                             if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'LABEL') {
                                 const input = div.querySelector('input');
                                 input.checked = !input.checked;
@@ -22263,7 +22419,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         });
 
                         const inp = div.querySelector('input');
-                        inp.addEventListener('change', function() {
+                        inp.addEventListener('change', function () {
                             updateStyles(this.checked);
                             Array.from(ucsSelect.options).forEach(opt => {
                                 if (opt.value === this.value) opt.selected = this.checked;
@@ -23473,7 +23629,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         { val: s['العنوان'] || '', weight: 0.6 }
                     ])
                 })).filter(s => s._score > 0)
-                   .sort((a, b) => b._score - a._score);
+                    .sort((a, b) => b._score - a._score);
             }
             const body = document.getElementById('shareAttendanceTableBody');
             if (!body) return;
@@ -23926,7 +24082,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             si.addEventListener('input', () => { clearTimeout(allStudentsSearchTimeout); if (!si.value.trim()) { clearAllStudentsSearch(); return; } allStudentsSearchTimeout = setTimeout(() => { allStudentsSearchQuery = si.value.trim(); performAllStudentsSearch(); }, 280); });
             si.addEventListener('keyup', e => { if (e.key === 'Enter') { clearTimeout(allStudentsSearchTimeout); allStudentsSearchQuery = si.value.trim(); performAllStudentsSearch(); } });
         }
-         function performAllStudentsSearch() {
+        function performAllStudentsSearch() {
             if (!allStudentsSearchQuery) { clearAllStudentsSearch(); return; }
             const q = allStudentsSearchQuery;
             filteredAllStudents = allStudentsData.map(s => ({
@@ -23939,7 +24095,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     { val: s['عيد الميلاد'] || '', weight: 0.5 }
                 ])
             })).filter(s => s._score > 0)
-               .sort((a, b) => b._score - a._score);
+                .sort((a, b) => b._score - a._score);
             renderAllStudentsTable();
         }
         function clearAllStudentsSearch() { allStudentsSearchQuery = ''; filteredAllStudents = []; const si = document.getElementById('allStudentsSearch'); if (si) si.value = ''; clearTimeout(allStudentsSearchTimeout); allStudentsSearchTimeout = null; renderAllStudentsTable(); }
@@ -25258,7 +25414,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     { val: r['العنوان'] || r.address, weight: 0.8 }
                 ])
             })).filter(r => r._score > 0)
-               .sort((a, b) => b._score - a._score);
+                .sort((a, b) => b._score - a._score);
             renderPendingRegistrations(currentClass, filtered);
         }
 
@@ -25343,7 +25499,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         { val: s['الفصل'] || '', weight: 0.8 }
                     ])
                 })).filter(s => s._score > 0)
-                   .sort((a, b) => b._score - a._score);
+                    .sort((a, b) => b._score - a._score);
             }
             return pool;
         }
@@ -25454,7 +25610,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (studentDetailsEl) {
                 const descriptor = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML') || Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'innerHTML');
                 Object.defineProperty(studentDetailsEl, 'innerHTML', {
-                    set: function(val) {
+                    set: function (val) {
                         const temp = document.createElement('div');
                         temp.innerHTML = val;
                         const avatarWrap = temp.querySelector('.detail-avatar-wrap');
@@ -25467,7 +25623,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             descriptor.set.call(this, val);
                         }
                     },
-                    get: function() {
+                    get: function () {
                         return descriptor.get.call(this);
                     },
                     configurable: true
@@ -25895,7 +26051,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         { val: l.action, weight: 0.8 }
                     ])
                 })).filter(l => l._score > 0)
-                   .sort((a, b) => b._score - a._score);
+                    .sort((a, b) => b._score - a._score);
             }
 
             if (!logs.length) {
@@ -29748,7 +29904,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 try {
                                     const cached = JSON.parse(localStorage.getItem('uncleAssignedClasses') || '[]');
                                     if (Array.isArray(cached)) assignedClassNames.push(...cached);
-                                } catch (e) {}
+                                } catch (e) { }
                             }
 
                             filteredExams = resp.exams.filter(exam => {
@@ -29764,7 +29920,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                 });
                             });
                         }
-                    } catch (e) {}
+                    } catch (e) { }
 
                     if (filteredExams.length === 0) {
                         listContainer.innerHTML = '<div style="width: 100%; text-align:center; padding:20px; color:var(--text-3);">لا توجد امتحانات مسجلة حتى الآن.</div>';
@@ -30248,7 +30404,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             for (let i = 0; i < line.length; i++) {
                 let char = line[i];
                 if (char === '"') {
-                    if (inQuotes && line[i+1] === '"') {
+                    if (inQuotes && line[i + 1] === '"') {
                         current += '"';
                         i++;
                     } else {
@@ -30272,7 +30428,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const file = input.files[0];
             const reader = new FileReader();
 
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 let csvText = e.target.result;
                 csvText = csvText.replace(/^\uFEFF/, '');
                 const lines = csvText.split(/\r?\n/);
@@ -30455,7 +30611,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             body.innerHTML = html || '<tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-3);">لا توجد نتائج مطابقة للبحث.</td></tr>';
         }
 
-        window.updatePeRowMatch = function(index, targetIdStr) {
+        window.updatePeRowMatch = function (index, targetIdStr) {
             const targetId = parseInt(targetIdStr) || 0;
             const row = peReviewRows[index];
             if (!row) return;
@@ -30476,7 +30632,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             filterPeReviewTable();
         };
 
-        window.togglePeRowImport = function(index, isChecked) {
+        window.togglePeRowImport = function (index, isChecked) {
             const row = peReviewRows[index];
             if (!row) return;
             row.import = isChecked;
@@ -30487,12 +30643,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
             filterPeReviewTable();
         };
 
-        window.backToExamSheet = function() {
+        window.backToExamSheet = function () {
             document.getElementById('paperExamMatchReviewView').style.display = 'none';
             document.getElementById('paperExamSheetView').style.display = 'flex';
         };
 
-        window.submitPeBulkImport = async function() {
+        window.submitPeBulkImport = async function () {
             const degrees = [];
             peReviewRows.forEach(r => {
                 if (r.import && r.targetId > 0 && r.csvDegree !== null) {
@@ -30687,7 +30843,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         // Intercept getElementById to target standalone details block
         const originalGetElementById = document.getElementById;
-        document.getElementById = function(id) {
+        document.getElementById = function (id) {
             if (id === 'studentDetails' && window.currentStandaloneKidId) {
                 return originalGetElementById.call(document, 'standaloneDetailsBody');
             }
@@ -30701,8 +30857,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
         };
 
         function getChurchId() {
-            return (typeof devViewChurchId !== 'undefined' && devViewChurchId > 0) 
-                ? devViewChurchId 
+            return (typeof devViewChurchId !== 'undefined' && devViewChurchId > 0)
+                ? devViewChurchId
                 : <?php echo json_encode($_SESSION['church_id'] ?? 0); ?>;
         }
 
@@ -30720,14 +30876,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
             window.currentStandaloneKidId = kidId;
             document.getElementById('kidStandaloneContainer').style.display = 'block';
             document.body.style.overflow = 'hidden'; // Lock background scroll
-            
+
             // Wait for students to load if not already loaded
             let attempts = 0;
             while ((!students || !students.length) && attempts < 25) {
                 await new Promise(r => setTimeout(r, 150));
                 attempts++;
             }
-            
+
             const student = students.find(s => Number(getStudentDbId(s)) === kidId);
             if (!student) {
                 showToast('لم يتم العثور على هذا الطفل في قائمة البيانات', 'error');
@@ -30740,7 +30896,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (dummyEl && !dummyEl._hasHookedSetter) {
                 dummyEl._hasHookedSetter = true;
                 Object.defineProperty(dummyEl, 'innerHTML', {
-                    set: function(val) {
+                    set: function (val) {
                         const temp = document.createElement('div');
                         temp.innerHTML = val;
                         const avatarWrap = temp.querySelector('.detail-avatar-wrap');
@@ -30752,21 +30908,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             originalGetElementById.call(document, 'standaloneDetailsBody_info').innerHTML = val;
                         }
                     },
-                    get: function() {
+                    get: function () {
                         return originalGetElementById.call(document, 'standaloneDetailsBody_info').innerHTML;
                     }
                 });
             }
-            
+
             // 1. Render student info by triggering the existing renderer
             showStudentDetails(student['الاسم'] || student.name);
-            
+
             // 2. Set public profile link
             const pubLink = document.getElementById('standalonePublicProfileLink');
             if (pubLink) {
                 pubLink.href = `/user/profile/index.php?id=${kidId}&noredirect=true`;
             }
-            
+
             // 3. Initialize attendance day
             const cachedSettings = localStorage.getItem('lastSettingsData');
             let attDay = 5;
@@ -30774,17 +30930,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 try {
                     const s = JSON.parse(cachedSettings);
                     attDay = s.attendance_day || 5;
-                } catch(e){}
+                } catch (e) { }
             }
             const targetDate = getLatestAttendanceDate(parseInt(attDay));
             document.getElementById('standaloneAttDate').value = targetDate;
-            
+
             // 4. Fetch standalone attendance details & trips
             await Promise.all([
                 loadStandaloneAttendance(),
                 loadStandaloneTrips()
             ]);
-            
+
             // 5. Update coupons counter
             document.getElementById('standaloneCouponsVal').textContent = student.coupons || student['كوبونات'] || 0;
 
@@ -30812,22 +30968,22 @@ if ($hasUncleId && $uncleRole === 'uncle')
             const today = new Date();
             const dbToJsDay = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 0 };
             const targetDay = dbToJsDay[attendanceDay] !== undefined ? dbToJsDay[attendanceDay] : 5;
-            
+
             const currentDay = today.getDay();
             let diff = currentDay - targetDay;
             if (diff < 0) {
                 diff += 7;
             }
-            
+
             const targetDate = new Date(today);
             targetDate.setDate(today.getDate() - diff);
-            
+
             const y = targetDate.getFullYear();
             const m = String(targetDate.getMonth() + 1).padStart(2, '0');
             const d = String(targetDate.getDate()).padStart(2, '0');
             return `${y}-${m}-${d}`;
         }
-        
+
         function resetToLatestAttendanceDate() {
             const cachedSettings = localStorage.getItem('lastSettingsData');
             let attDay = 5;
@@ -30835,7 +30991,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 try {
                     const s = JSON.parse(cachedSettings);
                     attDay = s.attendance_day || 5;
-                } catch(e){}
+                } catch (e) { }
             }
             const targetDate = getLatestAttendanceDate(parseInt(attDay));
             document.getElementById('standaloneAttDate').value = targetDate;
@@ -30845,34 +31001,34 @@ if ($hasUncleId && $uncleRole === 'uncle')
         async function loadStandaloneAttendance() {
             const kidId = window.currentStandaloneKidId;
             if (!kidId) return;
-            
+
             const fd = new FormData();
             fd.append('action', 'getStudentAttendanceDetails');
             fd.append('studentId', kidId);
-            
+
             try {
                 const res = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
                 window.currentStandaloneAttendance = res.success ? (res.attendance || []) : [];
             } catch (e) {
                 window.currentStandaloneAttendance = [];
             }
-            
+
             updateStandaloneAttendanceUI();
         }
-        
+
         function updateStandaloneAttendanceUI() {
             const selectedDate = document.getElementById('standaloneAttDate').value;
             if (!selectedDate) return;
-            
+
             const record = (window.currentStandaloneAttendance || []).find(r => r.attendance_date === selectedDate);
-            
+
             const statusEl = document.getElementById('standaloneAttStatus');
             const actionsEl = document.getElementById('standaloneAttActions');
-            
+
             if (record) {
                 let statusText = record.status === 'present' ? 'حاضر' : 'غائب';
                 let statusClass = record.status === 'present' ? 'present' : 'absent';
-                
+
                 statusEl.innerHTML = `<span class="standalone-status-badge ${statusClass}">${statusText}</span>`;
                 actionsEl.innerHTML = `
                     <button class="btn btn-xs btn-outline-danger" onclick="deleteStandaloneAttendance()" style="padding: 4px 8px; font-size: 0.75rem;"><i class="fas fa-trash-alt"></i> حذف</button>
@@ -30886,17 +31042,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 `;
             }
         }
-        
+
         async function saveStandaloneAttendance(status) {
             const date = document.getElementById('standaloneAttDate').value;
             if (!date) return;
-            
+
             const fd = new FormData();
             fd.append('action', 'updateStudentAttendance');
             fd.append('studentId', window.currentStandaloneKidId);
             fd.append('date', date);
             fd.append('status', status);
-            
+
             try {
                 const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
                 if (d.success) {
@@ -30909,18 +31065,18 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 showToast('خطأ في الاتصال بالخادم', 'error');
             }
         }
-        
+
         async function deleteStandaloneAttendance() {
             const date = document.getElementById('standaloneAttDate').value;
             if (!date) return;
-            
+
             if (!confirm('هل أنت متأكد من حذف سجل الحضور لهذا اليوم؟')) return;
-            
+
             const fd = new FormData();
             fd.append('action', 'deleteStudentAttendanceByDate');
             fd.append('studentId', window.currentStandaloneKidId);
             fd.append('date', date);
-            
+
             try {
                 const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
                 if (d.success) {
@@ -30933,7 +31089,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 showToast('خطأ في الاتصال بالخادم', 'error');
             }
         }
-        
+
         function toggleStandaloneAttendance(curr) {
             const next = curr === 'present' ? 'absent' : 'present';
             saveStandaloneAttendance(next);
@@ -30954,23 +31110,23 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 showToast('الرجاء إدخال عدد الكوبونات المضاف', 'warning');
                 return;
             }
-            
+
             const student = students.find(s => Number(getStudentDbId(s)) === window.currentStandaloneKidId);
             if (!student) return;
-            
+
             const currentCoupons = parseInt(student.coupons || student['كوبونات'] || 0);
             const newTotal = currentCoupons + amount;
             if (newTotal < 0) {
                 showToast('لا يمكن أن يكون إجمالي الكوبونات أقل من صفر', 'warning');
                 return;
             }
-            
+
             const fd = _appendDevOverride(new FormData());
             fd.append('action', 'updateCouponsWithReason');
             fd.append('studentId', window.currentStandaloneKidId);
             fd.append('coupons', newTotal);
             fd.append('reason', reason || 'إضافة يدوية');
-            
+
             try {
                 const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
                 if (d.success) {
@@ -30988,39 +31144,39 @@ if ($hasUncleId && $uncleRole === 'uncle')
         async function loadStandaloneTrips() {
             const listEl = document.getElementById('standaloneTripsList');
             listEl.innerHTML = `<p style="color:var(--text-3);text-align:center;padding:12px;"><i class="fas fa-spinner fa-spin"></i> جارٍ تحميل الرحلات...</p>`;
-            
+
             const student = students.find(s => Number(getStudentDbId(s)) === window.currentStandaloneKidId);
             if (!student) return;
-            
+
             const churchId = getChurchId();
-            
+
             const fd = new FormData();
             fd.append('action', 'getStudentTrips');
             fd.append('church_id', churchId);
             fd.append('student_id', window.currentStandaloneKidId);
-            
+
             try {
                 const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
                 if (d.success && d.trips && d.trips.length) {
                     const registeredTrips = d.trips.filter(t => t.my_registration !== null);
-                    
+
                     if (registeredTrips.length === 0) {
                         listEl.innerHTML = `<p style="color:var(--text-3);text-align:center;padding:12px;">هذا الطفل غير مسجل في أي رحلات نشطة حالياً</p>`;
                         return;
                     }
-                    
+
                     listEl.innerHTML = registeredTrips.map(t => {
                         const paid = parseFloat(t.my_registration.total_paid || 0);
                         const finalPrice = parseFloat(t.final_price || 0);
                         const remaining = Math.max(0, finalPrice - paid);
-                        
+
                         let payBadge = '';
                         if (remaining <= 0) {
                             payBadge = '<span class="badge badge-success" style="background:var(--success-light);color:var(--success-dark);padding:4px 8px;border-radius:12px;">مدفوع بالكامل</span>';
                         } else {
                             payBadge = `<span class="badge badge-danger" style="background:var(--danger-light);color:var(--danger-dark);padding:4px 8px;border-radius:12px;">متبقي ${remaining.toFixed(0)} ج.م</span>`;
                         }
-                        
+
                         return `
                             <div class="standalone-trip-card" onclick="openTripPointsFromStandalone(${t.id})">
                                 <div>
@@ -31043,7 +31199,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 listEl.innerHTML = `<p style="color:var(--danger);text-align:center;padding:12px;">فشل تحميل الرحلات</p>`;
             }
         }
-        
+
         function openTripPointsFromStandalone(tripId) {
             window.open(`/uncle/trip/index.html?trip_id=${tripId}&student_id=${window.currentStandaloneKidId}`, '_blank');
         }
@@ -31058,7 +31214,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             window.currentStandaloneKidId = null;
             document.getElementById('kidStandaloneContainer').style.display = 'none';
             document.body.style.overflow = ''; // Restore background scroll
-            
+
             // Clean URL query param
             const url = new URL(window.location.href);
             url.searchParams.delete('kid_id');
@@ -31068,227 +31224,277 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
     <!-- Standalone CSS styling and HTML Structure -->
     <style>
-    .standalone-full-screen-container {
-        position: fixed;
-        inset: 0;
-        z-index: 1000025;
-        background: var(--bg);
-        overflow-y: auto;
-        direction: rtl;
-        text-align: right;
-        font-family: 'Cairo', 'Baloo Bhaijaan 2', sans-serif;
-        padding: 0 0 40px;
-    }
-    .standalone-navbar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 16px 24px;
-        background: var(--surface);
-        border-bottom: 1.5px solid var(--border-solid);
-        position: sticky;
-        top: 0;
-        z-index: 100;
-        box-shadow: var(--sh-sm);
-    }
-    .standalone-centered-layout {
-        max-width: 680px;
-        margin: 20px auto;
-        padding: 0 12px;
-    }
-    .standalone-profile-panel {
-        background: var(--surface);
-        border: 1px solid var(--border-solid);
-        border-radius: var(--r-2xl);
-        padding: 24px 8px;
-        box-shadow: var(--sh-sm);
-    }
-    .standalone-card {
-        background: var(--surface-2);
-        border: 1px solid var(--border-solid);
-        border-radius: var(--r-xl);
-        padding: 16px;
-    }
-    .standalone-card-title {
-        font-size: 1rem;
-        font-weight: 800;
-        color: var(--text);
-        margin-bottom: 14px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        border-bottom: 1.5px solid var(--border-solid);
-        padding-bottom: 10px;
-    }
-    .attendance-taking-box {
-        background: var(--surface-3);
-        border: 1px solid var(--border-solid);
-        border-radius: 12px;
-        padding: 12px;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-    .attendance-row-main {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-    .attendance-date-select {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .attendance-status-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-top: 1px dashed var(--border-solid);
-        padding-top: 8px;
-    }
-    .coupon-targets-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 6px;
-    }
-    .coupon-target-btn {
-        background: var(--surface-3);
-        border: 1px solid var(--border-solid);
-        color: var(--text-2);
-        font-weight: 700;
-        font-size: 0.8rem;
-        padding: 6px 0;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.15s ease;
-    }
-    .coupon-target-btn:hover {
-        background: var(--surface-4);
-    }
-    .coupon-target-btn.active {
-        background: var(--brand-light);
-        border-color: var(--brand);
-        color: var(--brand-dark);
-    }
-    .standalone-trip-card {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: var(--surface-3);
-        border: 1px solid var(--border-solid);
-        border-radius: var(--r-md);
-        padding: 10px 14px;
-        text-decoration: none;
-        color: var(--text);
-        transition: all 0.2s ease;
-        cursor: pointer;
-        font-size: 0.88rem;
-    }
-    .standalone-trip-card:hover {
-        background: var(--surface-4);
-        border-color: var(--brand);
-        transform: translateY(-1px);
-    }
-    @media (max-width: 600px) {
+        .standalone-full-screen-container {
+            position: fixed;
+            inset: 0;
+            z-index: 1000025;
+            background: var(--bg);
+            overflow-y: auto;
+            direction: rtl;
+            text-align: right;
+            font-family: 'Cairo', 'Baloo Bhaijaan 2', sans-serif;
+            padding: 0 0 40px;
+        }
+
+        .standalone-navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            background: var(--surface);
+            border-bottom: 1.5px solid var(--border-solid);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--sh-sm);
+        }
+
         .standalone-centered-layout {
-            margin: 8px auto;
-            padding: 0 6px;
+            max-width: 680px;
+            margin: 20px auto;
+            padding: 0 12px;
         }
+
         .standalone-profile-panel {
-            padding: 16px 4px;
-            border-radius: var(--r-xl);
+            background: var(--surface);
+            border: 1px solid var(--border-solid);
+            border-radius: var(--r-2xl);
+            padding: 24px 8px;
+            box-shadow: var(--sh-sm);
         }
+
         .standalone-card {
+            background: var(--surface-2);
+            border: 1px solid var(--border-solid);
+            border-radius: var(--r-xl);
+            padding: 16px;
+        }
+
+        .standalone-card-title {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1.5px solid var(--border-solid);
+            padding-bottom: 10px;
+        }
+
+        .attendance-taking-box {
+            background: var(--surface-3);
+            border: 1px solid var(--border-solid);
+            border-radius: 12px;
             padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
-        .coupons-grid {
-            grid-template-columns: 1fr !important;
-            gap: 12px !important;
+
+        .attendance-row-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
         }
-    }
+
+        .attendance-date-select {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .attendance-status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px dashed var(--border-solid);
+            padding-top: 8px;
+        }
+
+        .coupon-targets-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+
+        .coupon-target-btn {
+            background: var(--surface-3);
+            border: 1px solid var(--border-solid);
+            color: var(--text-2);
+            font-weight: 700;
+            font-size: 0.8rem;
+            padding: 6px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .coupon-target-btn:hover {
+            background: var(--surface-4);
+        }
+
+        .coupon-target-btn.active {
+            background: var(--brand-light);
+            border-color: var(--brand);
+            color: var(--brand-dark);
+        }
+
+        .standalone-trip-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--surface-3);
+            border: 1px solid var(--border-solid);
+            border-radius: var(--r-md);
+            padding: 10px 14px;
+            text-decoration: none;
+            color: var(--text);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            font-size: 0.88rem;
+        }
+
+        .standalone-trip-card:hover {
+            background: var(--surface-4);
+            border-color: var(--brand);
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 600px) {
+            .standalone-centered-layout {
+                margin: 8px auto;
+                padding: 0 6px;
+            }
+
+            .standalone-profile-panel {
+                padding: 16px 4px;
+                border-radius: var(--r-xl);
+            }
+
+            .standalone-card {
+                padding: 12px;
+            }
+
+            .coupons-grid {
+                grid-template-columns: 1fr !important;
+                gap: 12px !important;
+            }
+        }
     </style>
 
     <div id="kidStandaloneContainer" class="standalone-full-screen-container" style="display:none;">
         <div class="standalone-navbar">
-            <span style="font-weight:800; font-size:1.1rem; color:var(--text);" id="standaloneNavbarTitle">لوحة بيانات الطفل</span>
-            <button class="btn btn-outline btn-sm" onclick="closeStandaloneKidView()"><i class="fas fa-times"></i> إغلاق</button>
+            <span style="font-weight:800; font-size:1.1rem; color:var(--text);" id="standaloneNavbarTitle">لوحة بيانات
+                الطفل</span>
+            <button class="btn btn-outline btn-sm" onclick="closeStandaloneKidView()"><i class="fas fa-times"></i>
+                إغلاق</button>
         </div>
-        
+
         <div class="standalone-centered-layout">
             <div class="standalone-profile-panel">
                 <!-- 1. Header (Avatar, Name, Class) -->
-                <div id="standaloneDetailsHeader" style="border-bottom: 1.5px solid var(--border-solid); padding-bottom: 16px; margin-bottom: 20px;">
+                <div id="standaloneDetailsHeader"
+                    style="border-bottom: 1.5px solid var(--border-solid); padding-bottom: 16px; margin-bottom: 20px;">
                     <!-- Header renders here -->
                 </div>
-                
+
                 <!-- 2. Actions (Edit Info, View Profile Link) -->
-                <div id="standaloneDetailsActions" style="display:flex; gap:10px; justify-content:center; margin-bottom: 20px; flex-wrap:wrap; padding: 0 16px;">
-                    <button class="btn btn-sm btn-outline" onclick="editStandaloneKidInfo()" style="flex:1;"><i class="fas fa-edit"></i> تعديل البيانات</button>
-                    <a id="standalonePublicProfileLink" href="#" target="_blank" class="btn btn-sm btn-ghost" style="flex:1; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:6px;"><i class="fas fa-external-link-alt"></i> الملف العام</a>
+                <div id="standaloneDetailsActions"
+                    style="display:flex; gap:10px; justify-content:center; margin-bottom: 20px; flex-wrap:wrap; padding: 0 16px;">
+                    <button class="btn btn-sm btn-outline" onclick="editStandaloneKidInfo()" style="flex:1;"><i
+                            class="fas fa-edit"></i> تعديل البيانات</button>
+                    <a id="standalonePublicProfileLink" href="#" target="_blank" class="btn btn-sm btn-ghost"
+                        style="flex:1; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:6px;"><i
+                            class="fas fa-external-link-alt"></i> الملف العام</a>
                 </div>
-                
+
                 <!-- 3. Standalone Management Panel (Attendance, Coupons, Trips) -->
-                <div class="standalone-management-panel" style="margin-bottom: 24px; padding: 0 16px; display: flex; flex-direction: column; gap: 20px;">
+                <div class="standalone-management-panel"
+                    style="margin-bottom: 24px; padding: 0 16px; display: flex; flex-direction: column; gap: 20px;">
                     <!-- Attendance Card (all in one rectangle) -->
                     <div class="standalone-card">
                         <div class="standalone-card-title">
-                            <div class="detail-icon green" style="width:28px; height:28px; font-size:0.75rem;"><i class="fas fa-calendar-check"></i></div>
+                            <div class="detail-icon green" style="width:28px; height:28px; font-size:0.75rem;"><i
+                                    class="fas fa-calendar-check"></i></div>
                             <span>تسجيل الحضور والغياب</span>
                         </div>
-                        
+
                         <div class="attendance-taking-box">
                             <div class="attendance-row-main">
                                 <div class="attendance-date-select">
-                                    <label class="form-label" style="margin:0; font-weight:700; font-size:0.88rem;">التاريخ:</label>
-                                    <input type="date" id="standaloneAttDate" class="form-input" style="padding: 6px 10px; font-size: 0.88rem;" onchange="updateStandaloneAttendanceUI()">
+                                    <label class="form-label"
+                                        style="margin:0; font-weight:700; font-size:0.88rem;">التاريخ:</label>
+                                    <input type="date" id="standaloneAttDate" class="form-input"
+                                        style="padding: 6px 10px; font-size: 0.88rem;"
+                                        onchange="updateStandaloneAttendanceUI()">
                                 </div>
-                                <button class="btn btn-xs btn-outline" onclick="resetToLatestAttendanceDate()" style="font-size:0.75rem; padding: 4px 8px;"><i class="fas fa-sync-alt"></i> الخدمة الحالية</button>
+                                <button class="btn btn-xs btn-outline" onclick="resetToLatestAttendanceDate()"
+                                    style="font-size:0.75rem; padding: 4px 8px;"><i class="fas fa-sync-alt"></i> الخدمة
+                                    الحالية</button>
                             </div>
                             <div class="attendance-status-row">
-                                <div style="font-size: 0.88rem;">الحالة: <span id="standaloneAttStatus" style="font-weight:800;">—</span></div>
+                                <div style="font-size: 0.88rem;">الحالة: <span id="standaloneAttStatus"
+                                        style="font-weight:800;">—</span></div>
                                 <div id="standaloneAttActions" style="display:flex; gap:8px;"></div>
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Coupons Card -->
                     <div class="standalone-card">
                         <div class="standalone-card-title">
-                            <div class="detail-icon purple" style="width:28px; height:28px; font-size:0.75rem;"><i class="fas fa-coins"></i></div>
+                            <div class="detail-icon purple" style="width:28px; height:28px; font-size:0.75rem;"><i
+                                    class="fas fa-coins"></i></div>
                             <span>إضافة الكوبونات</span>
                         </div>
-                        
-                        <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap:16px; align-items:center;" class="coupons-grid">
-                            <div style="text-align:center; background:var(--brand-bg); padding:16px; border-radius:12px; border:1px solid var(--brand-light);">
-                                <div style="font-size:0.8rem; color:var(--brand-dark); font-weight:700; margin-bottom:4px;"><i class="fas fa-star"></i> كوبونات الطفل</div>
-                                <div style="font-size:2.2rem; font-weight:800; color:var(--brand-dark); line-height:1;" id="standaloneCouponsVal">0</div>
+
+                        <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap:16px; align-items:center;"
+                            class="coupons-grid">
+                            <div
+                                style="text-align:center; background:var(--brand-bg); padding:16px; border-radius:12px; border:1px solid var(--brand-light);">
+                                <div
+                                    style="font-size:0.8rem; color:var(--brand-dark); font-weight:700; margin-bottom:4px;">
+                                    <i class="fas fa-star"></i> كوبونات الطفل</div>
+                                <div style="font-size:2.2rem; font-weight:800; color:var(--brand-dark); line-height:1;"
+                                    id="standaloneCouponsVal">0</div>
                             </div>
-                            
-                            <form onsubmit="addStandaloneCoupons(event)" style="display:flex; flex-direction:column; gap:10px;">
+
+                            <form onsubmit="addStandaloneCoupons(event)"
+                                style="display:flex; flex-direction:column; gap:10px;">
                                 <!-- Predefined Targets -->
                                 <div class="coupon-targets-grid">
-                                    <button type="button" class="coupon-target-btn active" onclick="selectCouponTarget(10, this)">+10</button>
-                                    <button type="button" class="coupon-target-btn" onclick="selectCouponTarget(30, this)">+30</button>
-                                    <button type="button" class="coupon-target-btn" onclick="selectCouponTarget(50, this)">+50</button>
-                                    <button type="button" class="coupon-target-btn" onclick="selectCouponTarget(100, this)">+100</button>
+                                    <button type="button" class="coupon-target-btn active"
+                                        onclick="selectCouponTarget(10, this)">+10</button>
+                                    <button type="button" class="coupon-target-btn"
+                                        onclick="selectCouponTarget(30, this)">+30</button>
+                                    <button type="button" class="coupon-target-btn"
+                                        onclick="selectCouponTarget(50, this)">+50</button>
+                                    <button type="button" class="coupon-target-btn"
+                                        onclick="selectCouponTarget(100, this)">+100</button>
                                 </div>
-                                
+
                                 <input type="hidden" id="standaloneAddCouponsCount" value="10">
-                                
+
                                 <div class="form-group" style="margin:0;">
-                                    <input type="text" id="standaloneAddCouponsReason" class="form-input" placeholder="السبب (التزام بالدرس، إجابة ممتازة...)" style="padding:8px 12px; border-radius:8px; font-size:0.85rem;" required>
+                                    <input type="text" id="standaloneAddCouponsReason" class="form-input"
+                                        placeholder="السبب (التزام بالدرس، إجابة ممتازة...)"
+                                        style="padding:8px 12px; border-radius:8px; font-size:0.85rem;" required>
                                 </div>
-                                <button type="submit" class="btn btn-warning btn-sm" style="font-weight:700; background:var(--brand); border-color:var(--brand); color:#fff; font-size:0.85rem; padding: 8px;"><i class="fas fa-plus"></i> حفظ وإضافة الكوبونات</button>
+                                <button type="submit" class="btn btn-warning btn-sm"
+                                    style="font-weight:700; background:var(--brand); border-color:var(--brand); color:#fff; font-size:0.85rem; padding: 8px;"><i
+                                        class="fas fa-plus"></i> حفظ وإضافة الكوبونات</button>
                             </form>
                         </div>
                     </div>
-                    
+
                     <!-- Trips Card -->
                     <div class="standalone-card">
                         <div class="standalone-card-title">
-                            <div class="detail-icon blue" style="width:28px; height:28px; font-size:0.75rem;"><i class="fas fa-route"></i></div>
+                            <div class="detail-icon blue" style="width:28px; height:28px; font-size:0.75rem;"><i
+                                    class="fas fa-route"></i></div>
                             <span>رحلات الطفل المشترك فيها</span>
                         </div>
                         <div id="standaloneTripsList" style="display:flex; flex-direction:column; gap:8px;">
@@ -31296,12 +31502,12 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- 4. Profile Details Info (ID, phone, address, custom fields, siblings, notes, exams) -->
                 <div id="standaloneDetailsBody_info" style="padding: 0 16px;">
                     <!-- Details render here -->
                 </div>
-                
+
                 <!-- Dummy hidden elements representing the proxy targets for the complex renderer -->
                 <div id="standaloneDetailsBody" style="display:none !important"></div>
                 <div id="standaloneDetailsActionsDummy" style="display:none !important"></div>
