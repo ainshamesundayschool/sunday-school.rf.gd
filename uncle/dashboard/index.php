@@ -12075,40 +12075,230 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         0%, 100% { transform: translateX(-50%) translateY(0); }
                         50% { transform: translateX(-50%) translateY(4px); }
                     }
+
+                    .class-tasks-collapsible {
+                        display: none;
+                        width: 100%;
+                        margin-top: 14px;
+                        border-top: 1px dashed var(--border);
+                        padding-top: 12px;
+                        flex-direction: column;
+                        gap: 10px;
+                    }
+
+                    .class-tasks-header {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        cursor: pointer;
+                        user-select: none;
+                        padding: 8px 12px;
+                        border-radius: 12px;
+                        background: var(--surface-2);
+                        border: 1px solid var(--border);
+                        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+                        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+                    }
+
+                    .class-tasks-header:hover {
+                        background: var(--surface-3);
+                        border-color: rgba(99, 102, 241, 0.35);
+                        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.08);
+                        transform: translateY(-1px);
+                    }
+
+                    .class-tasks-header .header-title-wrap {
+                        font-size: 0.83rem;
+                        font-weight: 700;
+                        color: var(--text-1);
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 10px;
+                        font-family: 'Cairo', sans-serif;
+                    }
+
+                    .class-tasks-header .header-icon-box {
+                        width: 28px;
+                        height: 28px;
+                        border-radius: 8px;
+                        background: linear-gradient(135deg, rgba(99, 102, 241, 0.16), rgba(99, 102, 241, 0.06));
+                        color: var(--brand);
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 0.8rem;
+                        border: 1px solid rgba(99, 102, 241, 0.22);
+                        transition: transform 0.25s ease;
+                    }
+
+                    .class-tasks-header:hover .header-icon-box {
+                        transform: scale(1.08) rotate(-4deg);
+                    }
+
+                    .class-tasks-header .header-count-pill {
+                        background: var(--brand-bg);
+                        color: var(--brand);
+                        padding: 1.5px 8px;
+                        border-radius: 12px;
+                        font-size: 0.72rem;
+                        font-weight: 800;
+                        border: 1px solid rgba(99, 102, 241, 0.15);
+                    }
+
+                    .class-tasks-manage-btn {
+                        font-family: 'Cairo', sans-serif;
+                        font-size: 0.72rem;
+                        font-weight: 700;
+                        color: var(--brand);
+                        background: var(--brand-bg);
+                        border: 1.5px solid rgba(99, 102, 241, 0.25);
+                        padding: 4px 12px;
+                        border-radius: var(--r-full, 999px);
+                        cursor: pointer;
+                        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 5px;
+                    }
+
+                    .class-tasks-manage-btn:hover {
+                        background: var(--brand);
+                        color: #ffffff;
+                        border-color: var(--brand);
+                        transform: translateY(-1px);
+                        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+                    }
+
+                    .class-tasks-chevron-btn {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        width: 28px;
+                        height: 28px;
+                        border-radius: 50%;
+                        background: var(--bg-hover);
+                        color: var(--text-2);
+                        transition: all 0.25s ease;
+                    }
+
+                    .class-tasks-header:hover .class-tasks-chevron-btn {
+                        background: rgba(99, 102, 241, 0.12);
+                        color: var(--brand);
+                    }
+
+                    .class-tasks-chevron-btn i {
+                        transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+                        font-size: 0.75rem;
+                    }
+
+                    /* Task Card styling */
+                    .task-pill-item {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        background: var(--surface-2);
+                        border: 1px solid var(--border);
+                        padding: 10px 14px;
+                        border-radius: 12px;
+                        cursor: pointer;
+                        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+                        gap: 12px;
+                        position: relative;
+                        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+                    }
+
+                    .task-pill-item:hover {
+                        background: var(--surface-3);
+                        border-color: rgba(99, 102, 241, 0.35);
+                        transform: translateY(-2px);
+                        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.12);
+                    }
+
+                    .task-pill-item .task-item-title {
+                        font-size: 0.82rem;
+                        font-weight: 700;
+                        color: var(--text-1);
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                        transition: color 0.2s ease;
+                        font-family: 'Cairo', sans-serif;
+                    }
+
+                    .task-pill-item:hover .task-item-title {
+                        color: var(--brand);
+                    }
+
+                    .task-pill-item .task-item-meta {
+                        font-size: 0.7rem;
+                        color: var(--text-3);
+                        display: flex;
+                        align-items: center;
+                        gap: 5px;
+                        margin-top: 2px;
+                    }
+
+                    .task-badge-pill {
+                        font-size: 0.72rem;
+                        font-weight: 700;
+                        padding: 3px 8px;
+                        border-radius: 8px;
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 4px;
+                        transition: transform 0.2s ease;
+                    }
+
+                    .task-badge-pill.questions {
+                        color: var(--brand);
+                        background: var(--brand-bg);
+                        border: 1px solid rgba(99, 102, 241, 0.15);
+                    }
+
+                    .task-badge-pill.degree {
+                        color: var(--warning);
+                        background: var(--warning-bg);
+                        border: 1px solid rgba(245, 158, 11, 0.2);
+                    }
+
+                    .task-pill-arrow {
+                        font-size: 0.7rem;
+                        color: var(--text-3);
+                        opacity: 0;
+                        transform: translateX(4px);
+                        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                    }
+
+                    .task-pill-item:hover .task-pill-arrow {
+                        opacity: 1;
+                        transform: translateX(0);
+                        color: var(--brand);
+                    }
                     </style>
-                    <div id="classTasksCollapsible"
-                        style="display: none; width: 100%; margin-top: 12px; border-top: 1px dashed var(--border); padding-top: 12px; flex-direction: column; gap: 8px;">
+                    <div id="classTasksCollapsible" class="class-tasks-collapsible">
                         
-                        <!-- Premium Accordion Header row -->
-                        <div style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; padding: 4px 6px; border-radius: 8px; transition: background 0.2s;"
-                            onclick="toggleTasksCollapse()"
-                            onmouseover="this.style.background='var(--bg-hover)'"
-                            onmouseout="this.style.background='none'">
-                            
-                            <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-2); display: inline-flex; align-items: center; gap: 8px; font-family: 'Cairo', sans-serif;">
-                                <span class="detail-icon blue" style="width: 26px; height: 26px; font-size: 0.75rem; border-radius: 6px; display: inline-flex;"><i class="fas fa-tasks"></i></span>
-                                التاسكات المتاحة (<span id="collapsedTasksCount">0</span>)
+                        <!-- Accordion Header row -->
+                        <div class="class-tasks-header" onclick="toggleTasksCollapse()">
+                            <span class="header-title-wrap">
+                                <span class="header-icon-box"><i class="fas fa-tasks"></i></span>
+                                <span>التاسكات المتاحة</span>
+                                <span class="header-count-pill" id="collapsedTasksCount">0</span>
                             </span>
                             
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <!-- Elegant full page link button pill badge style -->
-                                <button onclick="event.stopPropagation(); openTasksModal();"
-                                    style="font-family: 'Cairo', sans-serif; font-size: 0.72rem; font-weight: 700; color: var(--brand); background: var(--brand-bg); border: 1.5px solid var(--brand-l); padding: 4px 10px; border-radius: var(--r-full); cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 4px;"
-                                    onmouseover="this.style.background='var(--brand)'; this.style.color='#fff';"
-                                    onmouseout="this.style.background='var(--brand-bg)'; this.style.color='var(--brand)';">
+                                <button class="class-tasks-manage-btn" onclick="event.stopPropagation(); openTasksModal();">
                                     <i class="fas fa-external-link-alt" style="font-size: 0.65rem;"></i>
                                     <span>إدارة التاسكات</span>
                                 </button>
                                 
-                                <!-- Chevron toggle -->
-                                <div style="display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: var(--bg-hover); color: var(--text-3);">
-                                    <i class="fas fa-chevron-down" id="tasksCollapseIcon" style="transition: transform 0.3s; font-size: 0.75rem;"></i>
+                                <div class="class-tasks-chevron-btn">
+                                    <i class="fas fa-chevron-down" id="tasksCollapseIcon"></i>
                                 </div>
                             </div>
                         </div>
                         
                         <!-- Dynamic grid-rows height transition wrapper -->
-                        <div id="collapsedTasksWrapper" style="display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease-out; overflow: hidden; width: 100%;">
+                        <div id="collapsedTasksWrapper" style="display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; width: 100%;">
                             <div style="min-height: 0; display: flex; flex-direction: column; gap: 8px; position: relative;">
                                 <div id="collapsedTasksList"
                                     style="display: flex; flex-direction: column; gap: 8px; max-height: 240px; overflow-y: auto; padding-inline-start: 2px; padding-inline-end: 4px; padding-top: 6px; padding-bottom: 6px;">
@@ -14964,7 +15154,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (!list) return;
 
             if (!classTasks.length) {
-                list.innerHTML = `<div style="text-align:center;font-size:0.78rem;color:var(--text-3);padding:8px 0;">لا توجد تاسكات نشطة حالياً</div>`;
+                list.innerHTML = `<div style="text-align:center;font-size:0.78rem;color:var(--text-3);padding:12px 0;">لا توجد تاسكات نشطة حالياً</div>`;
                 return;
             }
 
@@ -14974,24 +15164,21 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const deadlineText = t.no_deadline == 1 ? 'مستمر' : (t.end_date ? new Date(t.end_date).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' }) : 'مستمر');
 
                 return `
-                    <div class="task-pill-item" onclick="openTasksModal(${t.id})" 
-                        style="display: flex; align-items: center; justify-content: space-between; background: var(--surface-3); border: 1px solid var(--border-solid); padding: 8px 12px; border-radius: var(--r-md); cursor: pointer; transition: all 0.2s; gap: 8px; position: relative; z-index: 1;"
-                        onmouseover="this.style.background='var(--surface-4)';"
-                        onmouseout="this.style.background='var(--surface-3)';"
-                    >
+                    <div class="task-pill-item" onclick="openTasksModal(${t.id})">
                         <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1;">
-                            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escHtml(t.title)}</div>
-                            <div style="font-size: 0.7rem; color: var(--text-3); display: flex; align-items: center; gap: 4px;">
-                                <i class="fas fa-flag-checkered" style="font-size: 0.65rem;"></i> آخر موعد: ${deadlineText}
+                            <div class="task-item-title">${escHtml(t.title)}</div>
+                            <div class="task-item-meta">
+                                <i class="far fa-clock" style="font-size: 0.65rem;"></i> آخر موعد: ${deadlineText}
                             </div>
                         </div>
                         <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
-                            <span style="font-size: 0.72rem; font-weight: 700; color: var(--brand); background: var(--brand-bg); padding: 2px 6px; border-radius: var(--r-sm); display: inline-flex; align-items: center; gap: 4px;">
+                            <span class="task-badge-pill questions">
                                 <i class="fas fa-question-circle" style="font-size:0.65rem;"></i> ${qCount} أسئلة
                             </span>
-                            <span style="font-size: 0.72rem; font-weight: 700; color: var(--warning); background: var(--warning-bg); padding: 2px 6px; border-radius: var(--r-sm); display: inline-flex; align-items: center; gap: 4px;">
+                            <span class="task-badge-pill degree">
                                 <i class="fas fa-star" style="font-size:0.65rem;"></i> ${totalDegree} درجة
                             </span>
+                            <i class="fas fa-chevron-left task-pill-arrow"></i>
                         </div>
                     </div>
                 `;
