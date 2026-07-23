@@ -12513,7 +12513,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                                     <button class="class-tasks-add-btn" onclick="openTasksModal(null, 'new')"
                                         style="all: unset; box-sizing: border-box; flex: 1; font-family: 'Cairo', sans-serif; font-size: 0.78rem; font-weight: 700; color: #fff; background: var(--brand); border: 1.5px solid var(--brand); padding: 7px 12px; border-radius: 10px; cursor: pointer; transition: all 0.25s ease; display: flex; align-items: center; justify-content: center; gap: 6px; text-align: center;">
                                         <i class="fas fa-plus-circle" style="font-size: 0.8rem;"></i>
-                                        <span>إضافة تاسك جديد</span>
+                                        <span>إضافة تاسك</span>
                                     </button>
                                     <button class="class-tasks-manage-footer-btn" onclick="openTasksModal()"
                                         style="all: unset; box-sizing: border-box; flex: 1; font-family: 'Cairo', sans-serif; font-size: 0.78rem; font-weight: 700; color: var(--brand); background: var(--brand-bg); border: 1.5px solid rgba(99, 102, 241, 0.25); padding: 7px 12px; border-radius: 10px; cursor: pointer; transition: all 0.25s ease; display: flex; align-items: center; justify-content: center; gap: 6px; text-align: center;">
@@ -12548,7 +12548,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                             <div class="dropdown-group-label">الفصل</div>
                             <button class="dropdown-item" id="classTasksMenuItem"
                                 onclick="openTasksModal(null, 'create');closeAllDropdowns()"><i class="fas fa-plus"></i>
-                                إضافة تاسك جديد</button>
+                                إضافة تاسك</button>
                             <button class="dropdown-item coupon"
                                 onclick="showCustomExportModal();closeAllDropdowns()"><i class="fas fa-table"></i>
                                 حفظ كجدول</button>
@@ -15506,7 +15506,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     <div style="text-align:center; padding:14px 10px; display:flex; flex-direction:column; align-items:center; gap:6px;">
                         <div style="font-size:0.75rem; color:var(--text-3);">لا توجد ${escHtml(emptyLabel)} حالياً</div>
                         <button onclick="openTasksModal(null, 'new')" style="all:unset; box-sizing:border-box; font-family:'Cairo',sans-serif; font-size:0.72rem; font-weight:700; color:#fff; background:var(--brand); border-radius:8px; padding:5px 12px; cursor:pointer; display:inline-flex; align-items:center; gap:4px;">
-                            <i class="fas fa-plus-circle"></i> إضافة تاسك جديد
+                            <i class="fas fa-plus-circle"></i> إضافة تاسك
                         </button>
                     </div>
                 `;
