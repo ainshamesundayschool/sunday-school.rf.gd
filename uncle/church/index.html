@@ -5326,6 +5326,29 @@
                 padding: 12px 14px;
             }
 
+            .modal.app-dialog {
+                align-items: center !important;
+                justify-content: center !important;
+                padding: 16px !important;
+            }
+
+            .modal.app-dialog .modal-box {
+                margin: auto !important;
+                width: calc(100% - 32px) !important;
+                max-width: 400px !important;
+                border-radius: var(--radius-xl) !important;
+                overflow: hidden !important;
+                animation: popIn 0.25s var(--ease-out) !important;
+            }
+
+            .modal.app-dialog .modal-head {
+                border-radius: var(--radius-xl) var(--radius-xl) 0 0 !important;
+            }
+
+            .modal.app-dialog .modal-footer {
+                border-radius: 0 0 var(--radius-xl) var(--radius-xl) !important;
+            }
+
             #unclesBulkUploadSection,
             #churchesBulkUploadSection,
             #bulkAddModal .modal-body > div[style*="grid-template-columns"] {
@@ -8840,6 +8863,7 @@
                                         placeholder=""></div>
                                 <div class="form-group" style="grid-column:1/-1;">
                                     <label class="form-label"><i class="fas fa-tag"></i> نوع الكنيسة *</label>
+                                    
                                     <div style="display:flex;gap:12px;margin-top:6px;">
                                         <label
                                             style="display:flex;align-items:center;gap:8px;padding:12px 20px;border:1px solid var(--border-solid);border-radius:var(--radius-sm);cursor:pointer;flex:1;transition:all var(--transition);"
@@ -9134,7 +9158,7 @@
                             <button class="btn btn-success btn-sm" onclick="showUniversalRestoreModal()"><i class="fas fa-file-import"></i> استعادة البيانات (.JSON)</button>
                             <button class="btn btn-outline btn-sm" onclick="exportAuditCSV()"><i
                                     class="fas fa-file-csv"></i> تصدير CSV</button>
-                            <button class="btn btn-primary btn-sm" onclick="showAuditAnalyticsModal()"><i
+                            <button class="btn btn-primary btn-sm dev-only" onclick="showAuditAnalyticsModal()" style="display:none;"><i
                                     class="fas fa-chart-pie"></i> تحليل وحجم السجلات</button>
                             <button class="btn btn-outline btn-sm" onclick="loadAuditLogs()"><i
                                     class="fas fa-sync-alt"></i> تحديث</button>
@@ -27409,6 +27433,10 @@
     }
 
     async function showAuditAnalyticsModal() {
+      if (!isDeveloper) {
+        if (typeof showToast === 'function') showToast('هذه الخاصية متاحة للمطورين فقط', 'err');
+        return;
+      }
       openModal('auditAnalyticsModal');
       const body = document.getElementById('auditAnalyticsBody');
       if (!body) return;
