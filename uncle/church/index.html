@@ -13197,14 +13197,17 @@
             fd.append('action', action);
 
             if (isDeveloper) {
-                // "all churches" overview mode (default devViewChurchId=0 or explicit -1)
-                if (devViewChurchId <= 0) {
+                if (devViewChurchId === -1) {
                     fd.append('all_churches', '1');
-                }
-                // Viewing a specific church as developer
-                else {
+                    fd.append('dev_override_church_id', '-1');
+                } else if (devViewChurchId > 0) {
                     fd.append('dev_override_church_id', devViewChurchId);
                     fd.append('church_id', devViewChurchId);
+                } else {
+                    fd.append('all_churches', '1');
+                    if (sessionChurchId > 0) {
+                        fd.append('church_id', sessionChurchId);
+                    }
                 }
             } else {
                 // Normal mode - use session church ID
@@ -13223,6 +13226,7 @@
         function _appendDevOverride(fd) {
             if (isDeveloper && devViewChurchId === -1) {
                 fd.append('all_churches', '1');
+                fd.append('dev_override_church_id', '-1');
             } else if (isDeveloper && devViewChurchId > 0) {
                 fd.append('dev_override_church_id', devViewChurchId);
                 fd.append('church_id', devViewChurchId);

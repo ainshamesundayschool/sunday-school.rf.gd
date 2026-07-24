@@ -3379,26 +3379,25 @@ function getChurchId()
 
     //    This takes priority over session so devs can view any church.
 
-    if (!empty($_POST['dev_override_church_id'])) {
-
+    if (isset($_POST['dev_override_church_id']) && $_POST['dev_override_church_id'] !== '') {
         $override = intval($_POST['dev_override_church_id']);
-
-        if ($override > 0) {
-
-            // Verify caller is actually a developer
-
+        if ($override != 0) {
             $callerRole = $_SESSION['uncle_role'] ?? '';
-
-            if (in_array(strtolower($callerRole), ['developer', 'dev', 'admin', 'administrator'])) {
-
+            if (in_array(strtolower(trim($callerRole)), ['developer', 'dev', 'admin', 'administrator'])) {
                 error_log("getChurchId - dev override: $override (caller role: $callerRole)");
-
                 return $override;
-
             }
-
         }
-
+    }
+    if (isset($_GET['dev_override_church_id']) && $_GET['dev_override_church_id'] !== '') {
+        $override = intval($_GET['dev_override_church_id']);
+        if ($override != 0) {
+            $callerRole = $_SESSION['uncle_role'] ?? '';
+            if (in_array(strtolower(trim($callerRole)), ['developer', 'dev', 'admin', 'administrator'])) {
+                error_log("getChurchId - dev override GET: $override (caller role: $callerRole)");
+                return $override;
+            }
+        }
     }
 
 
