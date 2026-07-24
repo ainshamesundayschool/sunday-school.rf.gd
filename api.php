@@ -23833,149 +23833,125 @@ function updateCouponsWithReason()
 }
 
 function getClassesForChurch(int $churchId): array
-
 {
-
     $conn = getDBConnection();
-
     ensureChurchClassesOrderColumn($conn);
 
+    if ($churchId <= 0) {
+        $stmt = $conn->prepare("
+            SELECT cc.id, cc.code, cc.arabic_name, cc.display_order,
+                   COALESCE(NULLIF(cc.`order`, 0), cc.display_order) AS class_order,
+                   cc.color, cc.icon, cc.church_id,
+                   COUNT(s.id) AS student_count
+            FROM   church_classes cc
+            LEFT JOIN students s ON s.class_id = cc.id
+            WHERE  cc.is_active = 1
+            GROUP  BY cc.id
+            ORDER  BY class_order, cc.arabic_name
+        ");
+        $stmt->execute();
+        $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-
-    // Check custom classes first
-
-    $stmt = $conn->prepare("
-
-        SELECT cc.id, cc.code, cc.arabic_name, cc.display_order,
-
-               COALESCE(NULLIF(cc.`order`, 0), cc.display_order) AS class_order,
-
-               cc.color, cc.icon,
-
-               COUNT(s.id) AS student_count
-
-        FROM   church_classes cc
-
-        LEFT JOIN students s ON s.class_id = cc.id AND s.church_id = ?
-
-        WHERE  cc.church_id = ? AND cc.is_active = 1
-
-        GROUP  BY cc.id
-
-        ORDER  BY class_order, cc.arabic_name
-
-    ");
-
-    $stmt->bind_param("ii", $churchId, $churchId);
-
-    $stmt->execute();
-
-    $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-
-
-    if (count($rows) > 0) {
-
-        foreach ($rows as &$r) {
-
-            $r['is_custom'] = true;
-
-            $r['student_count'] = (int) $r['student_count'];
-
-            $r['color'] = $r['color'] ?? '#4f46e5';
-
-            $r['icon'] = $r['icon'] ?? '';
-
+        if (count($rows) > 0) {
+            foreach ($rows as &$r) {
+                $r['is_custom'] = true;
+                $r['student_count'] = (int) $r['student_count'];
+                $r['color'] = $r['color'] ?? '#4f46e5';
+                $r['icon'] = $r['icon'] ?? '';
+            }
+            return $rows;
         }
 
-        return $rows;
+        $stmt2 = $conn->prepare("
+            SELECT c.id, c.code, c.arabic_name, c.display_order,
+                   c.color, '' AS icon,
+                   COUNT(s.id) AS student_count
+            FROM   classes c
+            LEFT JOIN students s ON s.class_id = c.id
+            GROUP  BY c.id
+            ORDER  BY c.display_order
+        ");
+        $stmt2->execute();
+        $rows2 = $stmt2->get_result()->fetch_all(MYSQLI_ASSOC);
+        foreach ($rows2 as &$r) {
+            $r['is_custom'] = false;
+            $r['student_count'] = (int) $r['student_count'];
+            $r['color'] = $r['color'] ?? '#4f46e5';
+            $r['icon'] = $r['icon'] ?? '';
+        }
+        return $rows2;
+    } else {
+        $stmt = $conn->prepare("
+            SELECT cc.id, cc.code, cc.arabic_name, cc.display_order,
+                   COALESCE(NULLIF(cc.`order`, 0), cc.display_order) AS class_order,
+                   cc.color, cc.icon,
+                   COUNT(s.id) AS student_count
+            FROM   church_classes cc
+            LEFT JOIN students s ON s.class_id = cc.id AND s.church_id = ?
+            WHERE  cc.church_id = ? AND cc.is_active = 1
+            GROUP  BY cc.id
+            ORDER  BY class_order, cc.arabic_name
+        ");
+        $stmt->bind_param("ii", $churchId, $churchId);
+        $stmt->execute();
+        $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
+        if (count($rows) > 0) {
+            foreach ($rows as &$r) {
+                $r['is_custom'] = true;
+                $r['student_count'] = (int) $r['student_count'];
+                $r['color'] = $r['color'] ?? '#4f46e5';
+                $r['icon'] = $r['icon'] ?? '';
+            }
+            return $rows;
+        }
+
+        $stmt2 = $conn->prepare("
+            SELECT c.id, c.code, c.arabic_name, c.display_order,
+                   c.color, '' AS icon,
+                   COUNT(s.id) AS student_count
+            FROM   classes c
+            LEFT JOIN students s ON s.class_id = c.id AND s.church_id = ?
+            GROUP  BY c.id
+            ORDER  BY c.display_order
+        ");
+        $stmt2->bind_param("i", $churchId);
+        $stmt2->execute();
+        $rows2 = $stmt2->get_result()->fetch_all(MYSQLI_ASSOC);
+        foreach ($rows2 as &$r) {
+            $r['is_custom'] = false;
+            $r['student_count'] = (int) $r['student_count'];
+            $r['color'] = $r['color'] ?? '#4f46e5';
+            $r['icon'] = $r['icon'] ?? '';
+        }
+        return $rows2;
     }
-
-
-
-    // Fall back to global classes
-
-    $stmt2 = $conn->prepare("
-
-        SELECT c.id, c.code, c.arabic_name, c.display_order,
-
-               c.color, '' AS icon,
-
-               COUNT(s.id) AS student_count
-
-        FROM   classes c
-
-        LEFT JOIN students s ON s.class_id = c.id AND s.church_id = ?
-
-        GROUP  BY c.id
-
-        ORDER  BY c.display_order
-
-    ");
-
-    $stmt2->bind_param("i", $churchId);
-
-    $stmt2->execute();
-
-    $rows2 = $stmt2->get_result()->fetch_all(MYSQLI_ASSOC);
-
-    foreach ($rows2 as &$r) {
-
-        $r['is_custom'] = false;
-
-        $r['student_count'] = (int) $r['student_count'];
-
-        $r['color'] = $r['color'] ?? '#4f46e5';
-
-        $r['icon'] = $r['icon'] ?? '';
-
-    }
-
-    return $rows2;
-
 }
 
 // ── GET classes for the authenticated church ─────────────────
-
 function getChurchClasses()
-
 {
-
     try {
-
         checkAuth();
-
         $churchId = getChurchId();
-
         $classes = getClassesForChurch($churchId);
 
-
-
-        // Also return whether custom classes exist
-
         $conn = getDBConnection();
-
-        $chk = $conn->prepare("SELECT COUNT(*) AS cnt FROM church_classes WHERE church_id = ?");
-
-        $chk->bind_param("i", $churchId);
-
-        $chk->execute();
-
-        $hasCustom = (int) $chk->get_result()->fetch_assoc()['cnt'] > 0;
-
-
+        if ($churchId <= 0) {
+            $chk = $conn->query("SELECT COUNT(*) AS cnt FROM church_classes WHERE is_active = 1");
+            $hasCustom = (int) $chk->fetch_assoc()['cnt'] > 0;
+        } else {
+            $chk = $conn->prepare("SELECT COUNT(*) AS cnt FROM church_classes WHERE church_id = ? AND is_active = 1");
+            $chk->bind_param("i", $churchId);
+            $chk->execute();
+            $hasCustom = (int) $chk->get_result()->fetch_assoc()['cnt'] > 0;
+        }
 
         sendJSON([
-
             'success' => true,
-
             'classes' => $classes,
-
             'has_custom' => $hasCustom,
-
         ]);
-
     } catch (Exception $e) {
 
         error_log("getChurchClasses error: " . $e->getMessage());
