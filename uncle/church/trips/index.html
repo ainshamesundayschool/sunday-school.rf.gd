@@ -3437,9 +3437,14 @@
       .modal-box.xl,
       .modal.modal-lg .modal-box {
         max-width: calc(100vw - 24px) !important;
+        min-height: 280px;
         margin: 12px !important;
         height: auto !important;
         border-radius: 12px !important;
+      }
+
+      .modal.app-dialog .modal-box {
+        min-height: auto !important;
       }
 
       .modal-body {
@@ -3874,6 +3879,10 @@
     }
 
     /* ── PRINT MODAL ────────────────────────────────────────────────── */
+    .modal.app-dialog {
+      z-index: 999999 !important;
+    }
+
     .app-dialog .modal-box {
       max-width: 400px !important;
       border-radius: var(--radius-xl, 16px) !important;

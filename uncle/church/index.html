@@ -5297,9 +5297,14 @@
                 margin: 0 !important;
                 width: 100% !important;
                 max-width: 100% !important;
+                min-height: 280px;
                 max-height: 90vh;
                 border-radius: var(--radius-xl) var(--radius-xl) 0 0;
                 animation: slideUp 0.3s var(--ease-out);
+            }
+
+            .modal.app-dialog .modal-box {
+                min-height: auto !important;
             }
 
             .modal-head {
@@ -5959,6 +5964,10 @@
             margin-top: 6px;
             color: var(--text-3);
             font-weight: 600;
+        }
+
+        .modal.app-dialog {
+            z-index: 999999 !important;
         }
 
         .app-dialog .modal-box {
