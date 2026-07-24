@@ -12649,26 +12649,19 @@
             const btn = document.getElementById('nav-' + savedTab) || document.querySelector(`.nav-item[onclick*="'${savedTab}'"]`);
             await switchTab(savedTab, btn);
 
-            // Warm secondary data sequentially after the first screen is usable.
-            runWhenIdle(async () => {
-                try {
-                    if (savedTab !== 'students') {
-                        await runDataLoad('students', loadStudents);
-                        loadedTabs.add('students');
-                    }
-                    if (savedTab !== 'trips') {
-                        await runDataLoad('trips', loadTrips);
-                        loadedTabs.add('trips');
-                    }
-                    if (savedTab !== 'pending') {
-                        await runDataLoad('pending', loadPendingRegistrations);
-                        loadedTabs.add('pending');
-                    }
-                    if (isDeveloper) loadAllChurches();
-                } catch (e) {
-                    console.error("Error warming up idle caches:", e);
-                }
-            }, 1500);
+            // Warm secondary data concurrently in parallel after the initial tab renders
+            runWhenIdle(() => {
+                const tasks = [];
+                if (savedTab !== 'students') tasks.push(runDataLoad('students', loadStudents).then(() => loadedTabs.add('students')));
+                if (savedTab !== 'uncles') tasks.push(runDataLoad('uncles', loadUncles).then(() => loadedTabs.add('uncles')));
+                if (savedTab !== 'trips') tasks.push(runDataLoad('trips', loadTrips).then(() => loadedTabs.add('trips')));
+                if (savedTab !== 'pending') tasks.push(runDataLoad('pending', loadPendingRegistrations).then(() => loadedTabs.add('pending')));
+                if (savedTab !== 'graduates') tasks.push(runDataLoad('graduates', loadGraduates).then(() => loadedTabs.add('graduates')));
+                if (savedTab !== 'guests') tasks.push(runDataLoad('guests', loadGuests).then(() => loadedTabs.add('guests')));
+                if (savedTab !== 'classes') tasks.push(loadClassSettings().then(() => loadedTabs.add('classes')));
+                if (isDeveloper) loadAllChurches();
+                Promise.allSettled(tasks).catch(e => console.error("Error warming up idle caches:", e));
+            }, 800);
 
             // Handle deep links (modals)
             if (savedTab === 'trips' && hashData.params.get('trip_id')) {
@@ -12775,6 +12768,121 @@
             churchSettings: ['إعدادات الكنيسة', 'إعدادات الكنيسة والحساب'],
         };
 
+        function tryRenderTabFromCache(name) {
+            try {
+                if (name === 'overview') {
+                    return _restoreStatisticsFromCache();
+                } else if (name === 'students') {
+                    if (allStudents && allStudents.length) {
+                        renderStudentsTable(allStudents);
+                        populateClassFilters();
+                        calculateTotalCoupons();
+                        populateAddKidClassSelect();
+                        return true;
+                    }
+                    const cached = _readLocalCache('students');
+                    if (cached?.data && cached.data.length) {
+                        allStudents = cached.data;
+                        classes = cached.classes || [];
+                        renderStudentsTable(allStudents);
+                        populateClassFilters();
+                        calculateTotalCoupons();
+                        populateAddKidClassSelect();
+                        return true;
+                    }
+                } else if (name === 'uncles') {
+                    if (allUncles && allUncles.length) {
+                        displayUncles(allUncles);
+                        populateAllowedUnclesCheckboxes();
+                        return true;
+                    }
+                    const cached = _readLocalCache('uncles');
+                    if (cached?.uncles && cached.uncles.length) {
+                        allUncles = cached.uncles;
+                        displayUncles(allUncles);
+                        populateAllowedUnclesCheckboxes();
+                        return true;
+                    }
+                } else if (name === 'trips') {
+                    if (allTripsCache && allTripsCache.length) {
+                        displayTrips(allTripsCache);
+                        return true;
+                    }
+                    const cached = _readLocalCache('trips');
+                    if (cached?.trips && cached.trips.length) {
+                        allTripsCache = cached.trips;
+                        displayTrips(allTripsCache);
+                        return true;
+                    }
+                } else if (name === 'graduates') {
+                    if (_graduatesCache && _graduatesCache.length) {
+                        renderGraduatesTable(_graduatesCache);
+                        return true;
+                    }
+                    const cached = _readLocalCache('graduates');
+                    if (cached?.graduates && cached.graduates.length) {
+                        _graduatesCache = cached.graduates;
+                        _graduateClasses = cached.classes || [];
+                        _graduateDefaultClassId = cached.default_class_id || 0;
+                        renderIncomingTransfers(cached.incoming_transfers || [], _graduateClasses, _graduateDefaultClassId);
+                        renderGraduatesTable(_graduatesCache);
+                        return true;
+                    }
+                } else if (name === 'guests') {
+                    if (allGuests && allGuests.length) {
+                        renderGuestsTable(allGuests);
+                        return true;
+                    }
+                    const cached = _readLocalCache('guests');
+                    if (cached?.data && cached.data.length) {
+                        allGuests = cached.data;
+                        renderGuestsTable(allGuests);
+                        return true;
+                    }
+                } else if (name === 'pending') {
+                    if (pendingRegistrations && pendingRegistrations.length) {
+                        displayPendingRegistrations(pendingRegistrations);
+                        return true;
+                    }
+                    const cached = _readLocalCache('pending');
+                    if (cached?.data && cached.data.length) {
+                        pendingRegistrations = cached.data;
+                        displayPendingRegistrations(pendingRegistrations);
+                        return true;
+                    }
+                } else if (name === 'history') {
+                    if (auditLogsCache && auditLogsCache.length) {
+                        renderAuditStats(auditLogsCache);
+                        filterAuditLogs();
+                        renderRecentAuditOverview(auditLogsCache);
+                        return true;
+                    }
+                    const cached = _readLocalCache('history');
+                    if (cached?.logs && cached.logs.length) {
+                        auditLogsCache = cached.logs;
+                        renderAuditStats(auditLogsCache);
+                        filterAuditLogs();
+                        renderRecentAuditOverview(auditLogsCache);
+                        return true;
+                    }
+                } else if (name === 'classes') {
+                    const cached = _readLocalCache('classes');
+                    if (cached?.classes) {
+                        renderClassSettings(cached.classes, cached.has_custom);
+                        return true;
+                    }
+                } else if (name === 'churchSettings') {
+                    if (typeof loadAndApplyChurchSettings === 'function') {
+                        loadAndApplyChurchSettings();
+                        return true;
+                    }
+                }
+            } catch (e) {
+                console.error("Cache render error for " + name, e);
+            }
+            return false;
+        }
+
         async function switchTab(name, btn) {
             activeTabName = name;
 
@@ -12810,6 +12918,12 @@
             const isColdTab = !loadedTabs.has(name);
             const targetPanel = document.getElementById(name);
 
+            // Attempt instant cache rendering for cold tabs (SWR)
+            let renderedFromCache = false;
+            if (isColdTab) {
+                renderedFromCache = tryRenderTabFromCache(name);
+            }
+
             panels.forEach(p => {
                 p.classList.remove('active');
                 hidePanelSkeleton(p);
@@ -12817,7 +12931,9 @@
 
             if (targetPanel) {
                 targetPanel.classList.add('active');
-                if (isColdTab) showPanelSkeleton(targetPanel, name);
+                if (isColdTab && !renderedFromCache) {
+                    showPanelSkeleton(targetPanel, name);
+                }
             }
 
             setHashTab(name);
@@ -12828,20 +12944,15 @@
                     await loadStatistics();
                     renderKidRegLinks();
                     
-                    // Stagger secondary preloads sequentially to prevent database/network throttling
+                    // Concurrent secondary preloads to prevent database/network throttling
                     (async () => {
                         try {
-                            if (!allStudents.length) {
-                                await runDataLoad('students', loadStudents);
-                                calculateTotalCoupons();
-                            }
-                            if (!allTripsCache.length) {
-                                await runDataLoad('trips', loadTrips);
-                            }
-                            if (!allUncles.length) {
-                                await runDataLoad('uncles', loadUncles);
-                            }
-                            loadAuditLogs();
+                            const tasks = [];
+                            if (!allStudents.length) tasks.push(runDataLoad('students', loadStudents).then(calculateTotalCoupons));
+                            if (!allTripsCache.length) tasks.push(runDataLoad('trips', loadTrips));
+                            if (!allUncles.length) tasks.push(runDataLoad('uncles', loadUncles));
+                            tasks.push(loadAuditLogs());
+                            await Promise.allSettled(tasks);
                         } catch (e) {
                             console.error("Error in overview preloads:", e);
                         }
@@ -12865,8 +12976,13 @@
             // Execute loader
             try {
                 if (loaders[name] && !loadedTabs.has(name)) {
-                    await loaders[name]();
-                    loadedTabs.add(name);
+                    if (renderedFromCache) {
+                        // SWR background refresh: UI is already rendered from cache, fetch silently in background
+                        loaders[name]().then(() => loadedTabs.add(name)).catch(err => console.error('Background tab refresh error:', err));
+                    } else {
+                        await loaders[name]();
+                        loadedTabs.add(name);
+                    }
                 }
             } catch (err) {
                 console.error('Error switching tab:', err);
@@ -14199,7 +14315,10 @@
         async function loadClassSettings() {
             const fd = mkFd('getChurchClasses');
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
-            if (d.success) renderClassSettings(d.classes, d.has_custom);
+            if (d.success) {
+                _saveLocalCache('classes', { classes: d.classes, has_custom: d.has_custom });
+                renderClassSettings(d.classes, d.has_custom);
+            }
         }
 
         function renderCustomClassesList(cls) {
@@ -15009,12 +15128,27 @@
             const fd = mkFd('getGraduates');
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
             if (!d.success) {
+                const cached = _readLocalCache('graduates');
+                if (cached?.graduates) {
+                    _graduatesCache = cached.graduates;
+                    _graduateClasses = cached.classes || [];
+                    _graduateDefaultClassId = cached.default_class_id || 0;
+                    renderIncomingTransfers(cached.incoming_transfers || [], _graduateClasses, _graduateDefaultClassId);
+                    renderGraduatesTable(_graduatesCache);
+                    return;
+                }
                 showToast(d.message || 'خطأ في تحميل الخريجين', 'error');
                 return;
             }
             _graduateClasses = d.classes || [];
             _graduateDefaultClassId = d.default_class_id || (_graduateClasses[0]?.id ?? 0);
             _graduatesCache = d.graduates || [];
+            _saveLocalCache('graduates', {
+                graduates: _graduatesCache,
+                classes: _graduateClasses,
+                default_class_id: _graduateDefaultClassId,
+                incoming_transfers: d.incoming_transfers || []
+            });
             const gs = document.getElementById('graduateSearch');
             if (gs) gs.value = '';
             renderIncomingTransfers(d.incoming_transfers || [], _graduateClasses, _graduateDefaultClassId);
@@ -17040,33 +17174,39 @@
                 const y = f.getFullYear(), mo = String(f.getMonth() + 1).padStart(2, '0'), d = String(f.getDate()).padStart(2, '0');
                 const iso = `${y}-${mo}-${d}`;
                 const ds = f.toLocaleDateString('ar-EG', { weekday: 'long', day: 'numeric', month: 'long' });
+                const cachedAtt = _readLocalCache(`att_stats_${iso}`);
+                const pText = cachedAtt ? `حاضر: ${cachedAtt.p}` : '---';
+                const aText = cachedAtt ? `غائب: ${cachedAtt.a}` : '---';
 
                 return `<div class="friday-card" onclick="loadAttendanceForDate('${iso}')">
             <div class="date"><i class="fas fa-calendar-day" style="color:var(--primary);margin-left:6px;"></i>${ds}</div>
-            <div class="stats"><span style="background:var(--success-light);color:#065f46;" id="p_${iso}">---</span><span style="background:var(--danger-light);color:#991b1b;" id="a_${iso}">---</span></div>
+            <div class="stats"><span style="background:var(--success-light);color:#065f46;" id="p_${iso}">${pText}</span><span style="background:var(--danger-light);color:#991b1b;" id="a_${iso}">${aText}</span></div>
         </div>`;
             }).join('')}</div>`;
 
-            const promises = fridays.map(f => {
+            fridays.forEach(f => {
                 const y = f.getFullYear(), mo = String(f.getMonth() + 1).padStart(2, '0'), d = String(f.getDate()).padStart(2, '0');
                 const iso = `${y}-${mo}-${d}`;
                 const fd2 = mkFd('getAttendanceByDate');
                 fd2.append('date', iso);
 
-                return fetch(API_URL, { method: 'POST', body: fd2 })
+                fetch(API_URL, { method: 'POST', body: fd2 })
                     .then(r => r.json())
                     .then(d => {
                         if (!d.success) return;
                         const att = d.attendance || [];
+                        const pCount = att.filter(a => a.status === 'present').length;
+                        const aCount = att.filter(a => a.status === 'absent').length;
+                        _saveLocalCache(`att_stats_${iso}`, { p: pCount, a: aCount });
+
                         const ep = document.getElementById(`p_${iso}`);
                         const ea = document.getElementById(`a_${iso}`);
-
-                        if (ep) ep.textContent = `حاضر: ${att.filter(a => a.status === 'present').length}`;
-                        if (ea) ea.textContent = `غائب: ${att.filter(a => a.status === 'absent').length}`;
+                        if (ep) ep.textContent = `حاضر: ${pCount}`;
+                        if (ea) ea.textContent = `غائب: ${aCount}`;
                     })
                     .catch(err => console.error('Error loading attendance for date:', iso, err));
             });
-            return Promise.all(promises);
+            return Promise.resolve();
         }
         function filterAttendanceDisplay() {
             renderFridayCards();
@@ -19632,7 +19772,7 @@
 
         async function loadAuditLogs(limit = 1000) {
             const tb = document.getElementById('auditTable');
-            if (tb) {
+            if (tb && !auditLogsCache.length) {
                 tb.innerHTML = panelInlineSkeleton(6);
             }
 
@@ -19645,17 +19785,36 @@
 
                 if (d.success) {
                     auditLogsCache = d.logs || [];
+                    _saveLocalCache('history', { logs: auditLogsCache });
                     auditPage = 1;
                     renderAuditStats(auditLogsCache);
                     filterAuditLogs();
                     renderRecentAuditOverview(auditLogsCache);
                 } else {
+                    const cached = _readLocalCache('history');
+                    if (cached?.logs) {
+                        auditLogsCache = cached.logs;
+                        auditPage = 1;
+                        renderAuditStats(auditLogsCache);
+                        filterAuditLogs();
+                        renderRecentAuditOverview(auditLogsCache);
+                        return;
+                    }
                     if (tb) {
                         tb.innerHTML = `<div class="empty-state" style="padding:28px;"><i class="fas fa-exclamation-triangle"></i><h3>${escHtml(d.message || 'تعذّر تحميل السجل')}</h3></div>`;
                     }
                 }
             } catch (error) {
                 console.error('Error loading audit logs:', error);
+                const cached = _readLocalCache('history');
+                if (cached?.logs) {
+                    auditLogsCache = cached.logs;
+                    auditPage = 1;
+                    renderAuditStats(auditLogsCache);
+                    filterAuditLogs();
+                    renderRecentAuditOverview(auditLogsCache);
+                    return;
+                }
                 if (tb) {
                     tb.innerHTML = `<div class="empty-state" style="padding:28px;"><i class="fas fa-exclamation-triangle"></i><h3>خطأ في الاتصال بالخادم</h3></div>`;
                 }
@@ -23166,30 +23325,38 @@
                 const y = f.getFullYear(), mo = String(f.getMonth() + 1).padStart(2, '0'), d = String(f.getDate()).padStart(2, '0');
                 const iso = `${y}-${mo}-${d}`;
                 const ds = f.toLocaleDateString('ar-EG', { weekday: 'long', day: 'numeric', month: 'long' });
+                const cachedAtt = _readLocalCache(`ua2_att_stats_${iso}`);
+                const pText = cachedAtt ? `حاضر: ${cachedAtt.p}` : '---';
+                const aText = cachedAtt ? `غائب: ${cachedAtt.a}` : '---';
+
                 return `<div class="friday-card" onclick="ua2LoadDate('${iso}')">
                 <div class="date"><i class="fas fa-calendar-day" style="color:var(--primary);margin-left:6px;"></i>${ds}</div>
                 <div class="stats">
-                    <span style="background:var(--success-light);color:#065f46;" id="ua2p_${iso}">---</span>
-                    <span style="background:var(--danger-light);color:#991b1b;" id="ua2a_${iso}">---</span>
+                    <span style="background:var(--success-light);color:#065f46;" id="ua2p_${iso}">${pText}</span>
+                    <span style="background:var(--danger-light);color:#991b1b;" id="ua2a_${iso}">${aText}</span>
                 </div>
             </div>`;
             }).join('')}</div>`;
 
-            const promises = fridays.map(f => {
+            fridays.forEach(f => {
                 const y = f.getFullYear(), mo = String(f.getMonth() + 1).padStart(2, '0'), d = String(f.getDate()).padStart(2, '0');
                 const iso = `${y}-${mo}-${d}`;
                 const fd2 = mkFd('getUncleAttendanceByDate');
                 fd2.append('date', iso);
-                return fetch(API_URL, { method: 'POST', body: fd2 }).then(r => r.json()).then(data => {
+                fetch(API_URL, { method: 'POST', body: fd2 }).then(r => r.json()).then(data => {
                     if (!data.success) return;
                     const att = data.attendance || [];
+                    const pCount = att.filter(a => a.status === 'present').length;
+                    const aCount = att.filter(a => a.status === 'absent').length;
+                    _saveLocalCache(`ua2_att_stats_${iso}`, { p: pCount, a: aCount });
+
                     const ep = document.getElementById(`ua2p_${iso}`);
                     const ea = document.getElementById(`ua2a_${iso}`);
-                    if (ep) ep.textContent = `حاضر: ${att.filter(a => a.status === 'present').length}`;
-                    if (ea) ea.textContent = `غائب: ${att.filter(a => a.status === 'absent').length}`;
+                    if (ep) ep.textContent = `حاضر: ${pCount}`;
+                    if (ea) ea.textContent = `غائب: ${aCount}`;
                 }).catch(() => { });
             });
-            return Promise.all(promises);
+            return Promise.resolve();
         }
 
         // Load detail for a date
