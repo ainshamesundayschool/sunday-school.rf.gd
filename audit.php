@@ -465,7 +465,7 @@ function getAuditAnalytics(): void {
 
         // 5. TOP SERVANTS / UNCLES generating trip logs
         $actorSql = "SELECT 
-                        COALESCE(NULLIF(TRIM(al.actor_name), ''), 'مسؤول غير معروف') as actor_name,
+                        COALESCE(NULLIF(TRIM(al.uncle_name), ''), 'مسؤول غير معروف') as actor_name,
                         COUNT(*) as cnt
                      FROM audit_logs al
                      $tripWhere
