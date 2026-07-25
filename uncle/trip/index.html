@@ -624,6 +624,21 @@
             background: var(--surface);
         }
 
+        @media (max-width: 600px) {
+            .modal-overlay {
+                padding: 10px;
+            }
+            .modal {
+                max-height: 90dvh !important;
+                width: 100% !important;
+                border-radius: var(--r-xl) !important;
+            }
+            .modal-body {
+                padding: 14px;
+                gap: 12px;
+            }
+        }
+
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -2075,45 +2090,34 @@
         <canvas id="fireworks"></canvas>
 
         <!-- Shortcuts Info Modal -->
-        <div id="shortcutsInfoModal"
-            style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; align-items:center; justify-content:center; direction:rtl;">
-            <div
-                style="background:var(--surface); padding:20px; border-radius:var(--r-xl); width:90%; max-width:380px; text-align:center; display:flex; flex-direction:column; border:1px solid var(--border-solid); box-shadow:var(--shadow-xl); overflow:hidden;">
-                <div
-                    style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-solid); padding-bottom:10px; margin-bottom:15px;">
-                    <h3
-                        style="margin:0; font-weight:800; font-size:1.05rem; display:flex; align-items:center; gap:6px;">
-                        <i class="fas fa-info-circle" style="color:var(--brand);"></i> دليل الإجراءات السريعة
+        <div id="shortcutsInfoModal" class="modal-overlay" style="display: none; direction: rtl;">
+            <div class="modal" style="max-width: 440px;">
+                <div class="modal-header">
+                    <h3>
+                        <i class="fas fa-info-circle" style="color: var(--brand);"></i>
+                        دليل الإجراءات السريعة
                     </h3>
-                    <button onclick="closeShortcutsInfoModal()"
-                        style="background:none; border:none; color:var(--text-3); cursor:pointer; font-size:1.3rem; line-height:1; padding:0 4px;">&times;</button>
+                    <button class="close-btn" onclick="closeShortcutsInfoModal()">&times;</button>
                 </div>
-                <div id="shortcutsInfoModalBody"
-                    style="max-height:320px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; text-align:right;">
+                <div class="modal-body" id="shortcutsInfoModalBody">
                     <!-- Loaded dynamically -->
                 </div>
             </div>
         </div>
 
         <!-- Trip Settings Modal -->
-        <div id="tripSettingsModal"
-            style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; align-items:center; justify-content:center; direction:rtl;">
-            <div
-                style="background:var(--surface); padding:20px; border-radius:var(--r-xl); width:90%; max-width:400px; text-align:center; display:flex; flex-direction:column; border:1px solid var(--border-solid); box-shadow:var(--shadow-xl); overflow:hidden;">
-                <div
-                    style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-solid); padding-bottom:10px; margin-bottom:15px;">
-                    <h3
-                        style="margin:0; font-weight:800; font-size:1.05rem; display:flex; align-items:center; gap:6px;">
-                        <i class="fas fa-cog" style="color:var(--brand);"></i> إعدادات الرحلة
+        <div id="tripSettingsModal" class="modal-overlay" style="display: none; direction: rtl;">
+            <div class="modal" style="max-width: 460px;">
+                <div class="modal-header">
+                    <h3>
+                        <i class="fas fa-cog" style="color: var(--brand);"></i>
+                        إعدادات الرحلة
                     </h3>
-                    <button onclick="closeTripSettingsModal()"
-                        style="background:none; border:none; color:var(--text-3); cursor:pointer; font-size:1.3rem; line-height:1; padding:0 4px;">&times;</button>
+                    <button class="close-btn" onclick="closeTripSettingsModal()">&times;</button>
                 </div>
-                <div
-                    style="max-height:360px; overflow-y:auto; display:flex; flex-direction:column; gap:16px; text-align:right; padding: 4px;">
+                <div class="modal-body">
                     <!-- Warning / Info Alert -->
-                    <div
-                        style="background: #e2e6ff; border: 1.5px solid var(--brand); color: var(--brand-dark); padding: 10px 12px; border-radius: 12px; font-size: 0.78rem; line-height: 1.5; font-weight: 700; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="background: #e2e6ff; border: 1.5px solid var(--brand); color: var(--brand-dark); padding: 12px; border-radius: 12px; font-size: 0.8rem; line-height: 1.5; font-weight: 700; display: flex; flex-direction: column; gap: 8px;">
                         <div>
                             <i class="fas fa-info-circle" style="font-size: 0.95rem; margin-left: 4px;"></i>
                             تنبيه: هذه الإعدادات تُطبق على الرحلة كاملة لجميع الخدام، وليست لحسابك الشخصي فقط.
@@ -2125,48 +2129,36 @@
                     </div>
 
                     <!-- Form Control: Leaderboard Notifications -->
-                    <div
-                        style="display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px;">
-                        <div style="display: flex; flex-direction: column; gap: 4px;">
-                            <span style="font-weight: 800; font-size: 0.88rem; color: var(--text);">إشعارات لوحة
-                                الأوائل</span>
-                            <span style="font-size: 0.72rem; color: var(--text-3);">تنبيهات عندما يصعد طفل للمراكز الـ
-                                10 الأولى</span>
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px; flex-wrap: wrap;">
+                        <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 180px;">
+                            <span style="font-weight: 800; font-size: 0.88rem; color: var(--text);">إشعارات لوحة الأوائل</span>
+                            <span style="font-size: 0.72rem; color: var(--text-3);">تنبيهات عندما يصعد طفل للمراكز الـ 10 الأولى</span>
                         </div>
-                        <label class="switch-toggle"
-                            style="position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;">
-                            <input type="checkbox" id="settingLeaderboardNotifs"
-                                style="opacity: 0; width: 0; height: 0;">
-                            <span class="switch-slider"
-                                style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--surface-3); transition: .3s; border-radius: 24px; border: 1.5px solid var(--border-solid);"></span>
+                        <label class="switch-toggle" style="position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;">
+                            <input type="checkbox" id="settingLeaderboardNotifs" style="opacity: 0; width: 0; height: 0;">
+                            <span class="switch-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--surface-3); transition: .3s; border-radius: 24px; border: 1.5px solid var(--border-solid);"></span>
                         </label>
                     </div>
 
                     <!-- Form Control: Naughty Notifications -->
-                    <div
-                        style="display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px;">
-                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px; flex-wrap: wrap;">
+                        <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 180px;">
                             <span style="font-weight: 800; font-size: 0.88rem; color: var(--text);">إشعارات الشغب</span>
                             <span style="font-size: 0.72rem; color: var(--text-3);">تنبيهات عند تسجيل شغب لطفل</span>
                         </div>
-                        <label class="switch-toggle"
-                            style="position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;">
+                        <label class="switch-toggle" style="position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;">
                             <input type="checkbox" id="settingNaughtyNotifs" style="opacity: 0; width: 0; height: 0;">
-                            <span class="switch-slider"
-                                style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--surface-3); transition: .3s; border-radius: 24px; border: 1.5px solid var(--border-solid);"></span>
+                            <span class="switch-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--surface-3); transition: .3s; border-radius: 24px; border: 1.5px solid var(--border-solid);"></span>
                         </label>
                     </div>
 
                     <!-- Form Control: Points Recording Permission -->
-                    <div id="settingPointsPermissionContainer"
-                        style="display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px;">
-                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <div id="settingPointsPermissionContainer" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px; flex-wrap: wrap;">
+                        <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 160px;">
                             <span style="font-weight: 800; font-size: 0.88rem; color: var(--text);">تسجيل النقاط</span>
-                            <span style="font-size: 0.72rem; color: var(--text-3);">تحديد صلاحية تسجيل النقاط
-                                للرحلة</span>
+                            <span style="font-size: 0.72rem; color: var(--text-3);">تحديد صلاحية تسجيل النقاط للرحلة</span>
                         </div>
-                        <select id="settingPointsPermission"
-                            style="font-size: 0.82rem; padding: 6px 10px; border-radius: 8px; border: 1.5px solid var(--border-solid); background: var(--surface); color: var(--text); outline: none; font-weight: 700; max-width: 150px;">
+                        <select id="settingPointsPermission" style="font-size: 0.82rem; padding: 6px 10px; border-radius: 8px; border: 1.5px solid var(--border-solid); background: var(--surface); color: var(--text); outline: none; font-weight: 700; flex-shrink: 0;">
                             <option value="all">الجميع (خدام وأدمن)</option>
                             <option value="admin">الأدمن فقط</option>
                             <option value="disabled">مغلق (تعطيل الإضافة)</option>
@@ -2174,22 +2166,19 @@
                     </div>
 
                     <!-- Form Control: Custom Note Requirement -->
-                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px;">
-                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px; flex-wrap: wrap;">
+                        <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 180px;">
                             <span style="font-weight: 800; font-size: 0.88rem; color: var(--text);">ملاحظة النقاط المخصصة</span>
                             <span style="font-size: 0.72rem; color: var(--text-3);">تحديد ما إذا كانت كتابة سبب النقاط المخصصة إجبارية</span>
                         </div>
-                        <label class="switch-toggle"
-                            style="position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;">
+                        <label class="switch-toggle" style="position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;">
                             <input type="checkbox" id="settingCustomNoteRequired" style="opacity: 0; width: 0; height: 0;">
-                            <span class="switch-slider"
-                                style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--surface-3); transition: .3s; border-radius: 24px; border: 1.5px solid var(--border-solid);"></span>
+                            <span class="switch-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--surface-3); transition: .3s; border-radius: 24px; border: 1.5px solid var(--border-solid);"></span>
                         </label>
                     </div>
 
                     <!-- Save Button -->
-                    <button id="btnSaveTripSettings" onclick="saveTripSettings()" class="btn-action"
-                        style="width: 100%; height: 40px; border-radius: 20px; font-weight: 800; font-size: 0.9rem; background: var(--brand); color: white; border: none; cursor: pointer; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <button id="btnSaveTripSettings" onclick="saveTripSettings()" class="btn-action" style="width: 100%; height: 44px; border-radius: 22px; font-weight: 800; font-size: 0.92rem; background: var(--brand); color: white; border: none; cursor: pointer; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0;">
                         <i class="fas fa-save"></i> حفظ الإعدادات
                     </button>
                 </div>

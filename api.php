@@ -24703,10 +24703,6 @@ function resetChurchClasses()
 
         $del->bind_param("i", $churchId);
 
-        $del->execute();
-
-
-
         sendJSON(['success' => true, 'message' => 'تم إعادة الفصول للإعدادات الافتراضية']);
 
     } catch (Exception $e) {
@@ -24718,7 +24714,6 @@ function resetChurchClasses()
     }
 
 }
-
 
 
 // ── REORDER classes (drag-and-drop save) ─────────────────────

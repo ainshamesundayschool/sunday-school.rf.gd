@@ -3436,11 +3436,13 @@
       .modal-box.wide,
       .modal-box.xl,
       .modal.modal-lg .modal-box {
-        max-width: calc(100vw - 24px) !important;
-        min-height: 280px;
-        margin: 12px !important;
+        width: calc(100vw - 20px) !important;
+        max-width: calc(100vw - 20px) !important;
+        min-height: auto !important;
+        margin: auto !important;
         height: auto !important;
-        border-radius: 12px !important;
+        max-height: 92dvh !important;
+        border-radius: 16px !important;
       }
 
       .modal.app-dialog .modal-box {
@@ -3448,7 +3450,13 @@
       }
 
       .modal-body {
-        max-height: calc(100vh - 160px);
+        max-height: calc(92dvh - 110px) !important;
+        padding: 14px !important;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
       }
     }
 
@@ -10815,6 +10823,59 @@
         return confirm(lines.join('\n'));
       }
 
+      function handleEditTripImageChange(input) {
+        if (input.files && input.files[0]) {
+          const file = input.files[0];
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const previewImg = document.getElementById('editTripCoverPreviewImg');
+            const placeholderIcon = document.getElementById('editTripCoverPlaceholderIcon');
+            const btnRemove = document.getElementById('btnRemoveEditTripCover');
+            if (previewImg) {
+              previewImg.src = e.target.result;
+              previewImg.style.display = 'block';
+            }
+            if (placeholderIcon) placeholderIcon.style.display = 'none';
+            if (btnRemove) btnRemove.style.display = 'inline-flex';
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+
+      function previewEditTripImageUrl(url) {
+        const previewImg = document.getElementById('editTripCoverPreviewImg');
+        const placeholderIcon = document.getElementById('editTripCoverPlaceholderIcon');
+        const btnRemove = document.getElementById('btnRemoveEditTripCover');
+        if (url && url.trim() !== '') {
+          if (previewImg) {
+            previewImg.src = url.trim();
+            previewImg.style.display = 'block';
+          }
+          if (placeholderIcon) placeholderIcon.style.display = 'none';
+          if (btnRemove) btnRemove.style.display = 'inline-flex';
+        } else if (!document.getElementById('editTripImageFile')?.files?.length) {
+          if (previewImg) previewImg.style.display = 'none';
+          if (placeholderIcon) placeholderIcon.style.display = 'block';
+          if (btnRemove) btnRemove.style.display = 'none';
+        }
+      }
+
+      function clearEditTripCoverImage() {
+        const fileInput = document.getElementById('editTripImageFile');
+        if (fileInput) fileInput.value = '';
+        const urlInput = document.getElementById('editTripImageUrl');
+        if (urlInput) urlInput.value = '';
+        const previewImg = document.getElementById('editTripCoverPreviewImg');
+        if (previewImg) {
+          previewImg.src = '';
+          previewImg.style.display = 'none';
+        }
+        const placeholderIcon = document.getElementById('editTripCoverPlaceholderIcon');
+        if (placeholderIcon) placeholderIcon.style.display = 'block';
+        const btnRemove = document.getElementById('btnRemoveEditTripCover');
+        if (btnRemove) btnRemove.style.display = 'none';
+      }
+
       function openEditTrip(id) {
         const t = allTripsCache.find(x => x.id == id) || window.currentTripObj;
         if (!t) return;
@@ -10835,6 +10896,14 @@
         document.getElementById('editTripShowRegisteredKids').value = String(t.show_registered_kids ?? 1);
         document.getElementById('editTripHideFromUncles').value = String(t.hide_from_uncles ?? 0);
         document.getElementById('editTripHasPointsGame').value = String(t.has_points_game ?? 0);
+
+        // Load cover photo
+        const imageUrl = t.image_url || '';
+        const urlInput = document.getElementById('editTripImageUrl');
+        const fileInput = document.getElementById('editTripImageFile');
+        if (urlInput) urlInput.value = imageUrl;
+        if (fileInput) fileInput.value = '';
+        previewEditTripImageUrl(imageUrl);
 
         // Load points config
         document.getElementById('editTripShortcutsList').innerHTML = '';
@@ -11151,6 +11220,16 @@
         fd.append('has_rooms', hasRooms ? '1' : '0');
         fd.append('rooms_config', roomsConfig || '');
         fd.append('points_config', pointsConfig || '');
+
+        const imageFileInput = document.getElementById('editTripImageFile');
+        if (imageFileInput && imageFileInput.files && imageFileInput.files[0]) {
+          fd.append('trip_image', imageFileInput.files[0]);
+        } else {
+          const imageUrlInput = document.getElementById('editTripImageUrl');
+          if (imageUrlInput) {
+            fd.append('image_url', imageUrlInput.value.trim());
+          }
+        }
 
         const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
         if (d.success) {
@@ -19880,6 +19959,34 @@
             <input type="hidden" id="editTripId">
             <div class="form-grid"
               style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
+              
+              <!-- Cover Photo Field -->
+              <div class="form-group" style="grid-column:1/-1;">
+                <label class="form-label" style="font-weight:700; display:flex; align-items:center; gap:6px;">
+                  <i class="fas fa-image" style="color:var(--primary);"></i> صورة غلاف الرحلة (Cover Photo)
+                </label>
+                <div style="display:flex; flex-direction:column; gap:10px; background:var(--surface-3, #f8fafc); padding:12px; border-radius:12px; border:1px dashed var(--border);">
+                  <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+                    <div id="editTripCoverPreviewContainer" style="width:130px; height:75px; border-radius:10px; overflow:hidden; background:var(--surface-2, #e2e8f0); border:1.5px solid var(--border); display:flex; align-items:center; justify-content:center; flex-shrink:0; position:relative;">
+                      <img id="editTripCoverPreviewImg" src="" alt="غلاف الرحلة" style="width:100%; height:100%; object-fit:cover; display:none;">
+                      <i id="editTripCoverPlaceholderIcon" class="fas fa-bus" style="font-size:1.8rem; color:var(--text-3, #94a3b8); opacity:0.6;"></i>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:8px; flex:1; min-width:200px;">
+                      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                        <label class="btn btn-outline btn-sm" style="cursor:pointer; display:inline-flex; align-items:center; gap:6px; font-weight:700; margin:0; padding:6px 12px; font-size:0.82rem;">
+                          <i class="fas fa-upload"></i> اختيار صورة جديدة
+                          <input type="file" id="editTripImageFile" accept="image/*" style="display:none;" onchange="handleEditTripImageChange(this)">
+                        </label>
+                        <button type="button" class="btn btn-sm btn-outline-danger" id="btnRemoveEditTripCover" onclick="clearEditTripCoverImage()" style="display:none; align-items:center; gap:4px; padding:6px 10px; font-size:0.82rem; color:var(--danger, #ef4444); border-color:var(--danger, #ef4444);">
+                          <i class="fas fa-trash"></i> إزالة الغلاف
+                        </button>
+                      </div>
+                      <input type="text" id="editTripImageUrl" class="form-input" placeholder="أو أدخل رابط صورة مباشر (URL)" style="font-size:0.8rem;" oninput="previewEditTripImageUrl(this.value)">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div class="form-group">
                 <label class="form-label">العنوان *</label>
                 <input type="text" id="editTripTitle" class="form-input" required>
