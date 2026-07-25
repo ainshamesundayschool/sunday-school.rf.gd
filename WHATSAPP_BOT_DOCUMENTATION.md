@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS phone_verifications (
   - Rejects unregistered numbers with: *"عذراً، رقم الهاتف غير مسجل في نظام مدارس الأحد"*.
   - Generates 6-digit random code and unique request token (`REQ-XXXXXXXX`).
   - Inserts row into `phone_verifications` with `is_sent = 0`.
+  - **Instant Replit Wake-Up**: Sends a non-blocking cURL ping to `https://baileys-qr-code--sundayschooleg.replit.app/` so the Replit container instantly wakes up from sleep to deliver the OTP.
   - **Zero Leak Policy**: Does **NOT** return `otp_code` in JSON response.
 
 ### 2. `getPendingOTPMessages`

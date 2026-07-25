@@ -19899,6 +19899,20 @@ function sendCustomWhatsAppOTP() {
         $stmt->bind_param("sss", $cleanPhone, $requestToken, $otp);
         $stmt->execute();
         
+        // --- Instant Replit Wake-Up Trigger ---
+        // Pings the Replit app URL so Replit instantly wakes up from sleep state to poll & deliver the OTP
+        try {
+            $ch = curl_init('https://baileys-qr-code--sundayschooleg.replit.app/');
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 3);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_exec($ch);
+            curl_close($ch);
+        } catch (Throwable $t) {
+            // Non-blocking catch
+        }
+        
         sendJSON([
             'success' => true,
             'message' => 'تم إرسال كود التحقق بنجاح إلى حساب الواتساب.',
