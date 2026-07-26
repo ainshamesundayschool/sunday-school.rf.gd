@@ -2960,9 +2960,42 @@
             // Cooldown notification timer
             let toastTimeout = null;
 
-            onDOMReady(() => {
+            function getTripIdFromUrlOrStorage() {
                 const urlParams = new URLSearchParams(window.location.search);
-                tripId = urlParams.get('trip_id');
+                let id = urlParams.get('trip_id') || urlParams.get('id');
+                if (id) {
+                    try {
+                        sessionStorage.setItem('last_active_trip_id', id);
+                        localStorage.setItem('last_active_trip_id', id);
+                    } catch(e) {}
+                    return id;
+                }
+
+                // Check Hash parameters e.g. #trips?trip_id=... or #trip-123
+                const hash = window.location.hash || '';
+                const hashParts = hash.substring(1).split('?');
+                const hashParams = new URLSearchParams(hashParts[1] || hashParts[0] || '');
+                id = hashParams.get('trip_id') || hashParams.get('id');
+                if (!id && hashParts[0].startsWith('trip-')) {
+                    id = hashParts[0].replace('trip-', '');
+                }
+                if (id) {
+                    try {
+                        sessionStorage.setItem('last_active_trip_id', id);
+                        localStorage.setItem('last_active_trip_id', id);
+                    } catch(e) {}
+                    return id;
+                }
+
+                // Fallback to storage
+                try {
+                    id = sessionStorage.getItem('last_active_trip_id') || localStorage.getItem('last_active_trip_id');
+                } catch(e) {}
+                return id;
+            }
+
+            onDOMReady(() => {
+                tripId = getTripIdFromUrlOrStorage();
 
                 if (tripId) {
                     // Load preferred point value
@@ -3099,6 +3132,14 @@
                         document.getElementById('loadingDetails').style.display = 'none';
                     } else {
                         document.getElementById('loadingDetails').style.display = 'none';
+                        const errMsg = res.message || '';
+                        if (errMsg.includes('تسجيل الدخول') || errMsg.includes('غير مصرح') || errMsg.includes('Unauthorized')) {
+                            showToast('جلسة العمل انتهت، يرجى تسجيل الدخول مجدداً', 'warning', 4000);
+                            setTimeout(() => {
+                                window.location.href = pathPrefix + '/user/login/';
+                            }, 1500);
+                            return;
+                        }
                         if (!localTrip) {
                             document.getElementById('fieldsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-3);"><p>' + (res.message || 'لم يتم العثور على الرحلة') + '</p><button class="btn btn-primary" onclick="openTrip(' + tripId + ')" style="margin-top:12px;display:inline-flex;align-items:center;gap:6px;"><i class="fas fa-sync-alt"></i> إعادة المحاولة</button></div>';
                         }
@@ -3475,6 +3516,10 @@
 
                 const reg = regsList.find(r => String(r.student_id) === String(currentStudentId));
                 if (!reg) {
+                    if (!regsList || regsList.length === 0) {
+                        // Data might still be fetching asynchronously
+                        return;
+                    }
                     showToast('لم يتم العثور على بيانات الطفل', 'error');
                     navigateTo('dashboard');
                     return;

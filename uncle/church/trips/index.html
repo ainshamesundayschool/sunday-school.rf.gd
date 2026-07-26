@@ -5077,6 +5077,65 @@
         } catch (e) { }
       }
 
+      function getLocalDB() {
+        return new Promise((resolve, reject) => {
+          const request = indexedDB.open('ss-trip-cache', 1);
+          request.onupgradeneeded = event => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains('trips')) {
+              db.createObjectStore('trips', { keyPath: 'id' });
+            }
+          };
+          request.onsuccess = event => resolve(event.target.result);
+          request.onerror = event => reject(event.target.error);
+        });
+      }
+
+      async function saveTripLocal(tId, tripData) {
+        try {
+          const db = await getLocalDB();
+          const tx = db.transaction('trips', 'readwrite');
+          tx.objectStore('trips').put({ id: String(tId), data: JSON.stringify(tripData), ts: Date.now() });
+          return new Promise((res) => {
+            tx.oncomplete = () => res(true);
+            tx.onerror = () => res(false);
+          });
+        } catch (e) {
+          try {
+            localStorage.setItem(`ss_cached_trip_${tId}`, JSON.stringify(tripData));
+          } catch (err) {}
+          return false;
+        }
+      }
+
+      async function getTripLocal(tId) {
+        try {
+          const db = await Promise.race([
+            getLocalDB(),
+            new Promise((_, rej) => setTimeout(() => rej(new Error("IDB timeout")), 300))
+          ]);
+          return new Promise((res) => {
+            const req = db.transaction('trips', 'readonly').objectStore('trips').get(String(tId));
+            req.onsuccess = () => {
+              if (req.result && req.result.data) {
+                try {
+                  res(JSON.parse(req.result.data));
+                  return;
+                } catch (e) { }
+              }
+              res(null);
+            };
+            req.onerror = () => res(null);
+          });
+        } catch (e) {
+          try {
+            const localStr = localStorage.getItem(`ss_cached_trip_${tId}`);
+            if (localStr) return JSON.parse(localStr);
+          } catch (err) {}
+          return null;
+        }
+      }
+
       function getSelectedTripId() {
         const hash = location.hash || '';
         const parts = hash.substring(1).split('?');
@@ -5380,24 +5439,43 @@
         document.getElementById('tdtab-rooms')?.setAttribute('style', 'display: none;');
         document.getElementById('tdtab-desktop-rooms')?.setAttribute('style', 'display: none;');
         const targetTab = opts.tab || getSelectedTripTab() || currentTripTab;
-        document.getElementById('tripInfoContent').innerHTML = `<div class="container-loading"><div class="spin-icon"></div> جاري التحميل...</div>`;
-        document.getElementById('tripRegsContent').innerHTML = '';
-        document.getElementById('tdRegsCount').textContent = '';
-        document.getElementById('tdRegsCountDesktop').textContent = '';
-        document.getElementById('tdExpCount').textContent = '';
-        document.getElementById('tdExpCountDesktop').textContent = '';
-        document.getElementById('tdWaitlistCount').textContent = '';
-        document.getElementById('tdWaitlistCountDesktop').textContent = '';
-        document.getElementById('tdModalTitle').textContent = 'تفاصيل الرحلة';
-        document.getElementById('tdSubtitle').textContent = '';
-        document.getElementById('tdTotalPricePill').textContent = '...';
-        document.getElementById('tdPriceBreakPill').textContent = '';
-        document.getElementById('tdQuickStats').innerHTML = '';
-        document.getElementById('tdCoverThumb').innerHTML = '<i class="fas fa-bus" style="color:rgba(255,255,255,0.55);font-size:0.95rem;"></i>';
-        document.getElementById('tdStatusBadge').innerHTML = '';
-        switchTripTab(targetTab, false);
-        window.currentTripId = id;
-        openModal('tripDetailsModal');
+        
+        // Try local cache first for instant launch
+        const localTripData = await getTripLocal(id);
+        if (localTripData) {
+          allTripsCache = [localTripData];
+          window.currentWaitlistCache = localTripData.waitlist || [];
+          renderTripDetailsFull(localTripData);
+          const hasRooms = localTripData.has_rooms == 1;
+          const desktopTab = document.getElementById('tdtab-desktop-rooms');
+          const mobileTab = document.getElementById('tdtab-rooms');
+          if (desktopTab) desktopTab.style.display = hasRooms ? '' : 'none';
+          if (mobileTab) mobileTab.style.display = hasRooms ? '' : 'none';
+          let targetTabResolved = targetTab;
+          if (targetTabResolved === 'rooms' && !hasRooms) targetTabResolved = 'info';
+          switchTripTab(targetTabResolved, false);
+          window.currentTripId = id;
+          openModal('tripDetailsModal');
+        } else {
+          document.getElementById('tripInfoContent').innerHTML = `<div class="container-loading"><div class="spin-icon"></div> جاري التحميل...</div>`;
+          document.getElementById('tripRegsContent').innerHTML = '';
+          document.getElementById('tdRegsCount').textContent = '';
+          document.getElementById('tdRegsCountDesktop').textContent = '';
+          document.getElementById('tdExpCount').textContent = '';
+          document.getElementById('tdExpCountDesktop').textContent = '';
+          document.getElementById('tdWaitlistCount').textContent = '';
+          document.getElementById('tdWaitlistCountDesktop').textContent = '';
+          document.getElementById('tdModalTitle').textContent = 'تفاصيل الرحلة';
+          document.getElementById('tdSubtitle').textContent = '';
+          document.getElementById('tdTotalPricePill').textContent = '...';
+          document.getElementById('tdPriceBreakPill').textContent = '';
+          document.getElementById('tdQuickStats').innerHTML = '';
+          document.getElementById('tdCoverThumb').innerHTML = '<i class="fas fa-bus" style="color:rgba(255,255,255,0.55);font-size:0.95rem;"></i>';
+          document.getElementById('tdStatusBadge').innerHTML = '';
+          switchTripTab(targetTab, false);
+          window.currentTripId = id;
+          openModal('tripDetailsModal');
+        }
 
         const fdTrip = mkFd('getTripDetails'); fdTrip.append('trip_id', id);
         const fdExp = mkFd('getTripExpenses'); fdExp.append('trip_id', id);
@@ -5409,6 +5487,7 @@
         if (tripResp.success) {
           allTripsCache = [tripResp.trip];
           window.currentWaitlistCache = tripResp.trip.waitlist || [];
+          saveTripLocal(id, tripResp.trip);
           renderTripDetailsFull(tripResp.trip);
 
           const hasRooms = tripResp.trip.has_rooms == 1;
