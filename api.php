@@ -3469,14 +3469,22 @@ function syncCurrentSessionRoleFromDB()
             $stmt->execute();
             $res = $stmt->get_result();
             if ($row = $res->fetch_assoc()) {
-                $_SESSION['uncle_role'] = $row['role'];
-                $_SESSION['role'] = $row['role'];
+                $dbRole = strtolower(trim($row['role'] ?? ''));
+                $sessRole = strtolower(trim($_SESSION['uncle_role'] ?? $_SESSION['role'] ?? ''));
+                if (in_array($dbRole, ['developer', 'dev'])) {
+                    $_SESSION['uncle_role'] = $dbRole;
+                    $_SESSION['role'] = $dbRole;
+                } elseif (in_array($sessRole, ['developer', 'dev'])) {
+                    $_SESSION['uncle_role'] = $sessRole;
+                    $_SESSION['role'] = $sessRole;
+                } else {
+                    $_SESSION['uncle_role'] = $row['role'];
+                    $_SESSION['role'] = $row['role'];
+                }
                 if (!empty($row['name'])) $_SESSION['uncle_name'] = $row['name'];
                 if (!empty($row['username'])) $_SESSION['uncle_username'] = $row['username'];
                 if (!empty($row['church_id'])) $_SESSION['church_id'] = intval($row['church_id']);
-                return $row['role'];
-            } else {
-                unset($_SESSION['uncle_id'], $_SESSION['uncle_role'], $_SESSION['uncle_name'], $_SESSION['uncle_username']);
+                return $_SESSION['uncle_role'];
             }
         } catch (Exception $e) {
             error_log("syncCurrentSessionRoleFromDB error: " . $e->getMessage());
@@ -33963,15 +33971,15 @@ function getSessionInfo()
 
 
 
-    // For church direct logins, role is always 'admin'
-
-    if ($loginType === 'church' && empty($uncleRole)) {
-
+    $sessRole = strtolower(trim($_SESSION['uncle_role'] ?? $_SESSION['role'] ?? $uncleRole));
+    $isDev = in_array($sessRole, ['developer', 'dev']) || !empty($_SESSION['is_developer']);
+    if ($isDev) {
+        $uncleRole = 'developer';
+        $_SESSION['uncle_role'] = 'developer';
+        $_SESSION['role'] = 'developer';
+    } elseif ($loginType === 'church' && empty($uncleRole)) {
         $uncleRole = 'admin';
-
     }
-
-    $isDev = in_array(strtolower(trim($uncleRole)), ['developer', 'dev']);
 
     sendJSON([
 

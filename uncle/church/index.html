@@ -12920,18 +12920,6 @@
         }
 
         function checkIsDeveloperRole(sessObj) {
-            if (sessObj && sessObj.ok !== false && (sessObj.uncle_role || sessObj.role)) {
-                const sRole = (sessObj.uncle_role || sessObj.role || '').toString().toLowerCase().trim();
-                const isDev = (sessObj.is_developer === true || sRole === 'developer' || sRole === 'dev');
-                localStorage.setItem('uncleRole', sRole);
-                localStorage.setItem('role', sRole);
-                localStorage.setItem('isDeveloper', isDev ? 'true' : 'false');
-                if (!isDev) {
-                    localStorage.removeItem('devViewChurchId');
-                }
-                return isDev;
-            }
-            if (localStorage.getItem('isDeveloper') === 'false') return false;
             const s = sessObj || {};
             const roles = [
                 s.role,
@@ -12941,7 +12929,13 @@
                 localStorage.getItem('role'),
                 localStorage.getItem('userRole')
             ].filter(Boolean).map(r => r.toString().toLowerCase().trim());
-            return roles.some(r => r === 'developer' || r === 'dev');
+            const isDev = (s.is_developer === true || roles.some(r => r === 'developer' || r === 'dev'));
+            if (isDev) {
+                localStorage.setItem('uncleRole', 'developer');
+                localStorage.setItem('role', 'developer');
+                localStorage.setItem('isDeveloper', 'true');
+            }
+            return isDev;
         }
 
         onDOMReady(async () => {
@@ -13019,7 +13013,7 @@
 
             setTimeout(renderKidRegLinks, 100);
 
-            // 5. Developer visibility check (authoritative against server session)
+            // 5. Developer visibility check
             isDeveloper = checkIsDeveloperRole(sess);
             if (isDeveloper) {
                 document.querySelectorAll('.dev-only').forEach(el => {
@@ -13032,21 +13026,6 @@
                 const dbg = document.querySelector('.topbar-btn[onclick="showDebugInfo()"]');
                 if (dbg) dbg.style.display = 'flex';
                 buildDevChurchSwitcher();
-            } else {
-                document.querySelectorAll('.dev-only').forEach(el => {
-                    el.style.display = 'none';
-                });
-                const dbg = document.querySelector('.topbar-btn[onclick="showDebugInfo()"]');
-                if (dbg) dbg.style.display = 'none';
-                const pill = document.getElementById('devChurchSwitcherPill');
-                if (pill) pill.style.display = 'none';
-                const devMenu = document.getElementById('devChurchDropdownMenu');
-                if (devMenu) devMenu.remove();
-                localStorage.removeItem('devViewChurchId');
-                if (typeof devViewChurchId !== 'undefined' && devViewChurchId !== 0) {
-                    devViewChurchId = 0;
-                    sessionChurchId = devOrigChurchId;
-                }
             }
 
             // Periodic session re-validation to ensure live dev status
