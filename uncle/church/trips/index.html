@@ -18553,7 +18553,22 @@
         document.body.removeChild(link);
       };
 
-      window.previewBulkRoomsCSV = function() {
+      async function ensureTripUnclesLoaded(tripId) {
+        if (!window.allUnclesCache || window.allUnclesCacheTripId !== tripId || window.allUnclesCache.length === 0) {
+          try {
+            const fd = mkFd('getAllUncles');
+            fd.append('trip_id', tripId);
+            const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+            if (res.success && Array.isArray(res.uncles)) {
+              window.allUnclesCache = res.uncles;
+              window.allUnclesCacheTripId = tripId;
+            }
+          } catch (e) { }
+        }
+        return window.allUnclesCache || [];
+      }
+
+      window.previewBulkRoomsCSV = async function() {
         const csvText = window.uploadedRoomsCSVData;
         if (!csvText) {
           showToast('يرجى اختيار ملف أولاً', 'warning');
@@ -18564,116 +18579,125 @@
         const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
         if (!trip) return;
 
-        const regs = tripRegistrationsCache[tripId] || [];
-        const existingConfig = getTripRoomsConfig(trip);
+        const btn = document.getElementById('btnPreviewBulkRooms');
+        const origBtnHtml = btn ? btn.innerHTML : '';
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري تحميل الخدام والمعاينة...'; }
 
-        const rows = parseCSV(csvText);
-        if (rows.length <= 1) {
-          showToast('الملف فارغ أو غير صالح', 'warning');
-          return;
-        }
+        try {
+          await ensureTripUnclesLoaded(tripId);
+          const regs = tripRegistrationsCache[tripId] || [];
+          const existingConfig = getTripRoomsConfig(trip);
 
-        // Clean headers to handle BOM and quotes safely
-        const headers = rows[0].map(h => h.replace(/^\uFEFF/, '').replace(/^["']|["']$/g, '').trim().toLowerCase());
-        const bldIdx = headers.findIndex(h => h === 'المبنى' || h.includes('مبنى') || h.includes('building'));
-        const flIdx = headers.findIndex(h => h === 'الدور' || h === 'floor' || (h.includes('دور') && !h.includes('عضو') && !h.includes('role')));
-        const roomIdx = headers.findIndex(h => h === 'الغرفة' || h.includes('غرفة') || h.includes('room'));
-        const capIdx = headers.findIndex(h => h === 'السعة' || h.includes('سعة') || h.includes('capacity'));
-        const genIdx = headers.findIndex(h => h === 'الفئة' || h.includes('فئة') || h.includes('gender'));
-        const roleIdx = headers.findIndex(h => h === 'دور العضو' || h.includes('عضو') || h.includes('role'));
-        const nameIdx = headers.findIndex(h => h === 'الاسم' || h.includes('اسم') || h.includes('name'));
+          const rows = parseCSV(csvText);
+          if (rows.length <= 1) {
+            showToast('الملف فارغ أو غير صالح', 'warning');
+            return;
+          }
 
-        if (bldIdx === -1 || roomIdx === -1 || capIdx === -1) {
-          showToast('تنسيق الملف غير صالح. يجب أن يحتوي على أعمدة (المبنى، الغرفة، السعة)', 'error');
-          return;
-        }
+          // Clean headers to handle BOM and quotes safely
+          const headers = rows[0].map(h => h.replace(/^\uFEFF/, '').replace(/^["']|["']$/g, '').trim().toLowerCase());
+          const bldIdx = headers.findIndex(h => h === 'المبنى' || h.includes('مبنى') || h.includes('building'));
+          const flIdx = headers.findIndex(h => h === 'الدور' || h === 'floor' || (h.includes('دور') && !h.includes('عضو') && !h.includes('role')));
+          const roomIdx = headers.findIndex(h => h === 'الغرفة' || h.includes('غرفة') || h.includes('room'));
+          const capIdx = headers.findIndex(h => h === 'السعة' || h.includes('سعة') || h.includes('capacity'));
+          const genIdx = headers.findIndex(h => h === 'الفئة' || h.includes('فئة') || h.includes('gender'));
+          const roleIdx = headers.findIndex(h => h === 'دور العضو' || h.includes('عضو') || h.includes('role'));
+          const nameIdx = headers.findIndex(h => h === 'الاسم' || h.includes('اسم') || h.includes('name'));
 
-        const existingRoomsMap = {};
-        existingConfig.forEach(bld => {
-          const cleanBldName = bld.name.trim();
-          const processRoom = (flName, r) => {
-            const key = `${cleanBldName}||${flName.trim()}||${r.name.trim()}`;
-            existingRoomsMap[key] = {
-              is_excluded: !!r.is_excluded
+          if (bldIdx === -1 || roomIdx === -1 || capIdx === -1) {
+            showToast('تنسيق الملف غير صالح. يجب أن يحتوي على أعمدة (المبنى، الغرفة، السعة)', 'error');
+            return;
+          }
+
+          const existingRoomsMap = {};
+          existingConfig.forEach(bld => {
+            const cleanBldName = bld.name.trim();
+            const processRoom = (flName, r) => {
+              const key = `${cleanBldName}||${flName.trim()}||${r.name.trim()}`;
+              existingRoomsMap[key] = {
+                is_excluded: !!r.is_excluded
+              };
             };
-          };
-          if (bld.has_floors) {
-            (bld.floors || []).forEach(fl => {
-              (fl.rooms || []).forEach(r => processRoom(fl.name, r));
-            });
-          } else {
-            (bld.rooms || []).forEach(r => processRoom('', r));
-          }
-        });
-
-        const roomsMap = {};
-        window.bulkRoomsParsedResidents = [];
-        let totalBeds = 0;
-        
-        for (let i = 1; i < rows.length; i++) {
-          const row = rows[i];
-          if (row.length <= Math.max(bldIdx, roomIdx, capIdx)) continue;
-
-          const bldName = row[bldIdx]?.trim() || '';
-          const floorName = flIdx !== -1 ? row[flIdx]?.trim() || '' : '';
-          const roomName = row[roomIdx]?.trim() || '';
-          const capVal = parseInt(row[capIdx]?.trim() || '4');
-          const capacity = isNaN(capVal) || capVal <= 0 ? 4 : capVal;
-
-          if (!bldName || !roomName) continue;
-
-          const genderText = genIdx !== -1 ? row[genIdx]?.trim() || '' : '';
-          let genderFilter = null;
-          if (genderText) {
-            const gLower = genderText.toLowerCase();
-            if (gLower.includes('ولد') || gLower.includes('boys') || gLower.includes('male') || gLower.includes('أولاد')) {
-              genderFilter = 'male';
-            } else if (gLower.includes('بنت') || gLower.includes('girls') || gLower.includes('female') || gLower.includes('بنات')) {
-              genderFilter = 'female';
-            }
-          }
-
-          const roleText = roleIdx !== -1 ? row[roleIdx]?.trim().toLowerCase() || '' : '';
-          const nameText = nameIdx !== -1 ? row[nameIdx]?.trim() || '' : '';
-
-          const roomKey = `${bldName}||${floorName}||${roomName}`;
-          if (!roomsMap[roomKey]) {
-            const existing = existingRoomsMap[roomKey] || {};
-            roomsMap[roomKey] = {
-              bldName,
-              floorName,
-              name: roomName,
-              capacity,
-              gender_filter: genderFilter,
-              is_excluded: !!existing.is_excluded
-            };
-            totalBeds += capacity;
-          }
-
-          if (nameText) {
-            const isUncle = roleText.includes('خادم') || roleText.includes('خادمة') || roleText.includes('uncle') || roleText.includes('leader') || roleText.includes('أمين') || roleText.includes('امين');
-            
-            let matchedUncle = null;
-            let matchedKid = null;
-
-            if (isUncle) {
-              matchedUncle = matchUncleByName(nameText);
+            if (bld.has_floors) {
+              (bld.floors || []).forEach(fl => {
+                (fl.rooms || []).forEach(r => processRoom(fl.name, r));
+              });
             } else {
-              matchedKid = matchStudentByName(nameText, regs);
-              if (!matchedKid) {
-                matchedUncle = matchUncleByName(nameText);
+              (bld.rooms || []).forEach(r => processRoom('', r));
+            }
+          });
+
+          const roomsMap = {};
+          window.bulkRoomsParsedResidents = [];
+          let totalBeds = 0;
+          
+          for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            if (row.length <= Math.max(bldIdx, roomIdx, capIdx)) continue;
+
+            const bldName = row[bldIdx]?.trim() || '';
+            const floorName = flIdx !== -1 ? row[flIdx]?.trim() || '' : '';
+            const roomName = row[roomIdx]?.trim() || '';
+            const capVal = parseInt(row[capIdx]?.trim() || '4');
+            const capacity = isNaN(capVal) || capVal <= 0 ? 4 : capVal;
+
+            if (!bldName || !roomName) continue;
+
+            const genderText = genIdx !== -1 ? row[genIdx]?.trim() || '' : '';
+            let genderFilter = null;
+            if (genderText) {
+              const gLower = genderText.toLowerCase();
+              if (gLower.includes('ولد') || gLower.includes('boys') || gLower.includes('male') || gLower.includes('أولاد')) {
+                genderFilter = 'male';
+              } else if (gLower.includes('بنت') || gLower.includes('girls') || gLower.includes('female') || gLower.includes('بنات')) {
+                genderFilter = 'female';
               }
             }
 
-            window.bulkRoomsParsedResidents.push({
-              originalName: nameText,
-              role: matchedUncle ? 'uncle' : 'kid',
-              matchedId: matchedUncle ? matchedUncle.id : (matchedKid ? matchedKid.id : null),
-              bldName: bldName,
-              floorName: floorName,
-              roomName: roomName
-            });
+            const roleText = roleIdx !== -1 ? row[roleIdx]?.trim().toLowerCase() || '' : '';
+            const nameText = nameIdx !== -1 ? row[nameIdx]?.trim() || '' : '';
+
+            const roomKey = `${bldName}||${floorName}||${roomName}`;
+            if (!roomsMap[roomKey]) {
+              const existing = existingRoomsMap[roomKey] || {};
+              roomsMap[roomKey] = {
+                bldName,
+                floorName,
+                name: roomName,
+                capacity,
+                gender_filter: genderFilter,
+                is_excluded: !!existing.is_excluded
+              };
+              totalBeds += capacity;
+            }
+
+            if (nameText) {
+              const isUncle = roleText.includes('خادم') || roleText.includes('خادمة') || roleText.includes('uncle') || roleText.includes('leader') || roleText.includes('أمين') || roleText.includes('امين');
+              
+              let matchedUncle = null;
+              let matchedKid = null;
+
+              if (isUncle) {
+                matchedUncle = matchUncleByName(nameText, regs);
+              } else {
+                matchedKid = matchStudentByName(nameText, regs);
+                if (!matchedKid) {
+                  matchedUncle = matchUncleByName(nameText, regs);
+                }
+              }
+
+              window.bulkRoomsParsedResidents.push({
+                originalName: nameText,
+                role: (isUncle || matchedUncle) ? 'uncle' : 'kid',
+                matchedId: matchedUncle ? matchedUncle.id : (matchedKid ? matchedKid.id : null),
+                bldName: bldName,
+                floorName: floorName,
+                roomName: roomName
+              });
+            }
           }
+        } finally {
+          if (btn) { btn.disabled = false; btn.innerHTML = origBtnHtml; }
         }
 
         // Save rooms template globally
@@ -18879,22 +18903,23 @@
               const resIdx = item.resIdx;
               const isUncle = res.role === 'uncle';
 
-              let matchedName = 'غير مسجل بالرحلة (استبعاد)';
+              let matchedName = isUncle ? res.originalName : 'غير مسجل بالرحلة (استبعاد)';
               let avatarImg = '/profile_default.webp';
-              let subText = isUncle ? 'خادم' : 'طفل';
+              let subText = isUncle ? 'خادم (إضافة بالاسم)' : 'طفل';
               let isMatched = false;
 
               if (res.matchedId) {
                 if (isUncle) {
-                  const u = window.allUnclesCache.find(x => x.id == res.matchedId);
+                  const u = (window.allUnclesCache || []).find(x => String(x.id) === String(res.matchedId)) ||
+                            regs.find(x => (x.isUncle || x.registration_type === 'uncle') && String(x.id) === String(res.matchedId));
                   if (u) {
-                    matchedName = u.name;
-                    avatarImg = u.image || u.avatar || '';
-                    subText = `${u.role || 'خادم'}${u.church_name ? ` • ${u.church_name}` : ''}`;
+                    matchedName = u.name || u.student_name;
+                    avatarImg = u.image || u.avatar || u.student_image || '';
+                    subText = `${u.role || u.student_class || 'خادم'}${u.church_name || u._churchName ? ` • ${u.church_name || u._churchName}` : ''}`;
                     isMatched = true;
                   }
                 } else {
-                  const k = regs.find(x => x.id == res.matchedId);
+                  const k = regs.find(x => String(x.id) === String(res.matchedId));
                   if (k) {
                     matchedName = k.student_name;
                     avatarImg = k.student_image || '';
@@ -18902,6 +18927,10 @@
                     isMatched = true;
                   }
                 }
+              } else if (isUncle) {
+                matchedName = res.originalName;
+                subText = 'خادم (إضافة بالاسم)';
+                isMatched = true;
               }
 
               const cleanImg = avatarImg && avatarImg.trim() !== '' && !avatarImg.includes('placeholder.com') && !avatarImg.includes('via.placeholder')
@@ -18949,7 +18978,7 @@
         // Update stats
         const roomsCount = roomsList.length;
         const kidsCount = window.bulkRoomsParsedResidents.filter(r => r.role === 'kid' && r.matchedId).length;
-        const unclesCount = window.bulkRoomsParsedResidents.filter(r => r.role === 'uncle' && r.matchedId).length;
+        const unclesCount = window.bulkRoomsParsedResidents.filter(r => r.role === 'uncle').length;
 
         document.getElementById('statRoomsCount').textContent = roomsCount;
         document.getElementById('statKidsCount').textContent = kidsCount;
@@ -19018,25 +19047,27 @@
           const room = roomsMap[roomKey];
           if (!room) return;
 
-          if (res.matchedId) {
-            if (res.role === 'uncle') {
-              const matchedUncle = window.allUnclesCache.find(u => u.id == res.matchedId);
-              if (matchedUncle) {
-                if (!room.uncles.some(u => u.id == matchedUncle.id)) {
-                  room.uncles.push({ id: String(matchedUncle.id), name: matchedUncle.name });
-                }
-              }
-            } else if (res.role === 'kid') {
-              const matchedKid = regs.find(k => k.id == res.matchedId);
-              if (matchedKid) {
-                if (!assignedKids.some(k => k.kidId == matchedKid.id)) {
-                  assignedKids.push({
-                    kidId: matchedKid.id,
-                    bldName: res.bldName,
-                    floorName: res.floorName,
-                    roomName: res.roomName
-                  });
-                }
+          if (res.role === 'uncle') {
+            let matchedUncle = (window.allUnclesCache || []).find(u => String(u.id) === String(res.matchedId));
+            if (!matchedUncle && res.matchedId) {
+              matchedUncle = regs.find(r => String(r.id) === String(res.matchedId) || String(r.student_id) === String(res.matchedId));
+            }
+            const uncleName = matchedUncle ? (matchedUncle.name || matchedUncle.student_name || res.originalName) : res.originalName;
+            const uncleId = res.matchedId ? String(res.matchedId) : ('custom_' + Math.random().toString(36).substr(2, 9));
+
+            if (!room.uncles.some(u => String(typeof u === 'object' ? u.id : u) === String(uncleId) || u.name === uncleName)) {
+              room.uncles.push({ id: uncleId, name: uncleName });
+            }
+          } else if (res.role === 'kid' && res.matchedId) {
+            const matchedKid = regs.find(k => k.id == res.matchedId);
+            if (matchedKid) {
+              if (!assignedKids.some(k => k.kidId == matchedKid.id)) {
+                assignedKids.push({
+                  kidId: matchedKid.id,
+                  bldName: res.bldName,
+                  floorName: res.floorName,
+                  roomName: res.roomName
+                });
               }
             }
           }
@@ -19202,21 +19233,42 @@
         return bestScore > 0.15 ? bestMatch : null;
       }
 
-      function matchUncleByName(name) {
-        const cleanName = name.trim();
-        if (!cleanName) return null;
-        
+      function matchUncleByName(name, regs = []) {
+        const rawName = String(name || '').trim();
+        if (!rawName) return null;
+
+        // Clean honorific titles in Arabic
+        const cleanName = rawName.replace(/^(انكل|طنط|الخادم|الخادمة|خادم|خادمة|استاذ|أستاذ|م\.?|د\.?)\s+/i, '').trim();
+
         let bestMatch = null;
         let bestScore = 0;
-        
-        window.allUnclesCache.forEach(u => {
-          const score = getMatchScore(u, cleanName, [{ val: u.name || '', weight: 1.0 }]);
+
+        const candidates = [...(window.allUnclesCache || [])];
+        if (Array.isArray(regs)) {
+          regs.forEach(r => {
+            const isUncleReg = r.isUncle || r.registration_type === 'uncle' || (r.student_class && (r.student_class.includes('خادم') || r.student_class.includes('خادمة')));
+            if (isUncleReg) {
+              const uId = r.uncle_id || r.student_id || r.id;
+              const uName = r.student_name || r.name;
+              if (uName && !candidates.some(c => String(c.id) === String(uId))) {
+                candidates.push({ id: uId, name: uName, church_name: r._churchName || r.church_name || '' });
+              }
+            }
+          });
+        }
+
+        candidates.forEach(u => {
+          const uClean = (u.name || '').replace(/^(انكل|طنط|الخادم|الخادمة|خادم|خادمة|استاذ|أستاذ|م\.?|د\.?)\s+/i, '').trim();
+          const score1 = getMatchScore({ name: uClean }, cleanName, [{ val: uClean, weight: 1.0 }]);
+          const score2 = getMatchScore(u, rawName, [{ val: u.name || '', weight: 1.0 }]);
+          const score = Math.max(score1, score2);
+
           if (score > bestScore) {
             bestScore = score;
             bestMatch = u;
           }
         });
-        
+
         return bestScore > 0.15 ? bestMatch : null;
       }
 
