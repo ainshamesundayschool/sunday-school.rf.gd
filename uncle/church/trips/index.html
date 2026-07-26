@@ -11294,14 +11294,26 @@
             }
             roomsConfig = JSON.stringify(config);
           }
-          const parsedConfig = typeof roomsConfig === 'string' ? (JSON.parse(roomsConfig || '[]')) : (roomsConfig || []);
+          let parsedConfig = typeof roomsConfig === 'string' ? (JSON.parse(roomsConfig || '[]')) : (roomsConfig || []);
+          if (parsedConfig && !Array.isArray(parsedConfig) && Array.isArray(parsedConfig.buildings)) {
+            parsedConfig = parsedConfig.buildings;
+          }
+          if (!Array.isArray(parsedConfig)) parsedConfig = [];
+
           const fieldsList = customFields.split(',').map(x => x.trim()).filter(Boolean);
           if (!fieldsList.includes('السكن')) {
             fieldsList.push('السكن');
           }
           customFields = fieldsList.join(',');
-          customFieldIcons['السكن'] = buildAccommodationCustomFieldMeta(parsedConfig);
+          if (typeof buildAccommodationCustomFieldMeta === 'function') {
+            try {
+              customFieldIcons['السكن'] = buildAccommodationCustomFieldMeta(parsedConfig);
+            } catch (err) { console.error("Error building accommodation meta:", err); }
+          }
         } else {
+          if (t && t.rooms_config) {
+            roomsConfig = typeof t.rooms_config === 'string' ? t.rooms_config : JSON.stringify(t.rooms_config);
+          }
           const fieldsList = customFields.split(',').map(x => x.trim()).filter(Boolean).filter(f => f !== 'السكن');
           customFields = fieldsList.join(',');
           delete customFieldIcons['السكن'];

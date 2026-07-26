@@ -392,22 +392,45 @@ function compileRoomsConfig(prefix) {
  * Convert compiled rooms configuration into standard custom fields metadata representation
  */
 function buildAccommodationCustomFieldMeta(config) {
-    const choices = config.map(b => b.name);
+    if (typeof config === 'string') {
+        try { config = JSON.parse(config); } catch(e) { config = []; }
+    }
+    if (config && !Array.isArray(config) && Array.isArray(config.buildings)) {
+        config = config.buildings;
+    }
+    if (!Array.isArray(config)) {
+        return {
+            "name": "السكن",
+            "icon": "fas fa-home",
+            "type": "sub_group",
+            "choices": [],
+            "sub_fields": {}
+        };
+    }
+
+    const choices = config.map(b => (b && b.name) ? String(b.name) : '').filter(Boolean);
     const subFields = {};
 
     config.forEach(b => {
+        if (!b || typeof b !== 'object') return;
+        const bldName = String(b.name || '');
+        if (!bldName) return;
+
         if (b.has_floors) {
-            const floorChoices = b.floors.map(f => f.name);
+            const floorsArr = Array.isArray(b.floors) ? b.floors : [];
+            const floorChoices = floorsArr.map(f => (f && f.name) ? String(f.name) : '').filter(Boolean);
             const roomChoices = [];
-            b.floors.forEach(f => {
-                f.rooms.forEach(r => {
-                    if (!roomChoices.includes(r.name)) {
-                        roomChoices.push(r.name);
-                    }
-                });
+            floorsArr.forEach(f => {
+                if (f && Array.isArray(f.rooms)) {
+                    f.rooms.forEach(r => {
+                        if (r && r.name && !roomChoices.includes(String(r.name))) {
+                            roomChoices.push(String(r.name));
+                        }
+                    });
+                }
             });
 
-            subFields[b.name] = [
+            subFields[bldName] = [
                 {
                     "name": "الدور",
                     "icon": "fas fa-layer-group",
@@ -422,8 +445,9 @@ function buildAccommodationCustomFieldMeta(config) {
                 }
             ];
         } else {
-            const roomChoices = b.rooms.map(r => r.name);
-            subFields[b.name] = [
+            const roomsArr = Array.isArray(b.rooms) ? b.rooms : [];
+            const roomChoices = roomsArr.map(r => (r && r.name) ? String(r.name) : '').filter(Boolean);
+            subFields[bldName] = [
                 {
                     "name": "الغرفة",
                     "icon": "fas fa-door-closed",
@@ -438,13 +462,9 @@ function buildAccommodationCustomFieldMeta(config) {
         "name": "السكن",
         "icon": "fas fa-home",
         "type": "sub_group",
-
         "choices": choices,
-
         "sub_fields": subFields
-
     };
-
 }
 
 /**
