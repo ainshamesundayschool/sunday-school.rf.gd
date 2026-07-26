@@ -3043,14 +3043,15 @@
 
                         document.getElementById('loadingDetails').style.display = 'none';
                     } else {
+                        document.getElementById('loadingDetails').style.display = 'none';
                         if (!localTrip) {
-                            document.getElementById('fieldsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-3);">لم يتم العثور على الرحلة</div>';
+                            document.getElementById('fieldsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-3);">' + (res.message || 'لم يتم العثور على الرحلة') + '</div>';
                         }
                     }
                 } catch (e) {
                     console.error("openTrip background fetch error:", e);
+                    document.getElementById('loadingDetails').style.display = 'none';
                     if (!localTrip) {
-                        document.getElementById('loadingDetails').style.display = 'none';
                         document.getElementById('fieldsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-3);">حدث خطأ في تحميل البيانات</div>';
                     }
                 }

@@ -26568,75 +26568,46 @@ function getTripDetails()
         $regStmt = $conn->prepare("
 
             SELECT 
-
                 tr.*,
-
                 COALESCE(s.name, g.name, unc.name) as student_name,
-
                 COALESCE(cc.arabic_name, gc.arabic_name, s.class, g.class, CASE WHEN tr.registration_type = 'uncle' THEN 'خادم' ELSE NULL END) as student_class,
-
                 COALESCE(s.phone, g.phone, unc.phone) as student_phone,
-
                 COALESCE(s.image_url, g.image_url, unc.image_url) as student_image,
-
                 s.trip_points as student_trip_points,
-
                 COALESCE(s.gender, g.gender, unc.gender) as student_gender,
-
                 COALESCE(s.emergency_phone, g.guardian_name) as guest_guardian_name,
-
                 u.name as registered_by_name,
-
-                COALESCE((SELECT SUM(amount) FROM trip_payments WHERE registration_id = tr.id AND is_deleted = 0), 0) as total_paid,
-
-                COALESCE((SELECT SUM(donation) FROM trip_payments WHERE registration_id = tr.id AND is_deleted = 0), 0) as total_donation,
-
+                COALESCE(tp.total_paid, 0) as total_paid,
+                COALESCE(tp.total_donation, 0) as total_donation,
                 tr.payment_history,
-
                 s.birthday as student_birthday,
-
                 s.emergency_phone as student_emergency_phone,
-
                 s.medical_notes as student_medical_notes,
-
                 s.address as student_address,
-
                 s.coupons as student_coupons,
-
                 s.attendance_coupons as student_attendance_coupons,
-
                 s.commitment_coupons as student_commitment_coupons,
-
                 s.task_coupons as student_task_coupons,
-
                 s.custom_info as student_custom_info,
-
                 s.is_guest as student_is_guest,
-
                 COALESCE(s.church_id, g.church_id, unc.church_id) as student_church_id,
-
                 ch.church_name as student_church_name,
-
                 ch.church_name as church_name
-
             FROM trip_registrations tr
-
             LEFT JOIN students s ON tr.student_id = s.id
-
             LEFT JOIN guests g ON tr.guest_id = g.id
-
             LEFT JOIN uncles unc ON tr.uncle_id = unc.id
-
             LEFT JOIN church_classes cc ON cc.id = s.class_id AND cc.church_id = s.church_id AND cc.is_active = 1
-
             LEFT JOIN classes gc ON gc.id = s.class_id
-
             LEFT JOIN uncles u ON tr.registered_by = u.id
-
             LEFT JOIN churches ch ON ch.id = COALESCE(s.church_id, g.church_id, unc.church_id)
-
+            LEFT JOIN (
+                SELECT registration_id, SUM(amount) as total_paid, SUM(donation) as total_donation 
+                FROM trip_payments 
+                WHERE is_deleted = 0 
+                GROUP BY registration_id
+            ) tp ON tp.registration_id = tr.id
             WHERE tr.trip_id = ? AND tr.cancelled = 0
-
             ORDER BY tr.registration_date
 
         ");
