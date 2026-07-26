@@ -12568,7 +12568,7 @@
 
         // ── Restore PHP session from stored credentials ───────────────
         // Called when getSessionInfo returns {success:false} but localStorage
-        // says we are logged in. Rebuilds the session silently then reloads.
+        // says we are logged in. Rebuilds the session silently.
         async function restoreSessionAndReload() {
             const loginType = localStorage.getItem('loginType') || '';
             const cc = localStorage.getItem('churchCode');
@@ -12585,7 +12585,6 @@
 
                 const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
                 if (d.success) {
-                    window.location.reload();
                     return true;
                 }
                 // Only clear credentials if server explicitly says the user doesn't exist or is unapproved
@@ -12641,7 +12640,7 @@
                 });
             }
             // 1. Get authoritative session from server
-            const sess = await initSession();
+            let sess = await initSession();
             const hasLocalSession =
                 localStorage.getItem('loggedIn') === 'true' ||
                 localStorage.getItem('uncleLoggedIn') === 'true' ||
@@ -12649,11 +12648,16 @@
                 !!localStorage.getItem('churchCode');
 
             // 2. Silent restoration
-            if (!sess.ok) {
-                if (hasLocalSession && navigator.onLine) {
+            if (!sess.ok && hasLocalSession) {
+                if (navigator.onLine) {
                     const restored = await restoreSessionAndReload();
-                    if (restored) return;
+                    if (restored) {
+                        sess = await initSession();
+                    }
                 }
+            }
+
+            if (!sess.ok && !hasLocalSession) {
                 const dest = encodeURIComponent(window.location.href);
                 window.location.href = '/login/?redirect=' + dest;
                 return;

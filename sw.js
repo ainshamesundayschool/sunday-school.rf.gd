@@ -1,7 +1,7 @@
 // ╔══════════════════════════════════════════════════════════════╗
-// ║  Sunday School PWA — Service Worker v27                     ║
+// ║  Sunday School PWA — Service Worker v28                     ║
 // ╚══════════════════════════════════════════════════════════════╝
-const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v27';
+const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v28';
 const CACHE_NAME        = `sunday-school-${SW_VERSION}`;
 const SYNC_TAG          = 'sync-attendance';
 const PERIODIC_SYNC_TAG = 'check-registrations';
@@ -166,7 +166,7 @@ self.addEventListener('fetch', e => {
         return;
     }
 
-    // API / POST calls
+    // API / POST calls — NEVER force window.reload / client.navigate on transient API cookie challenges
     if (e.request.method === 'POST' || url.pathname.includes('api.php')) {
         e.respondWith(
             (async () => {
@@ -178,33 +178,11 @@ self.addEventListener('fetch', e => {
                     }
                     const isCookieCheck = await _isCookieCheckResponse(r);
                     if (isCookieCheck) {
-                        const now = Date.now();
-                        // If we already tried to bypass cache and reload recently, cookies are blocked
-                        if (now < _bypassCacheUntil) {
-                            return new Response(JSON.stringify({
-                                success: false,
-                                offline: true,
-                                cookies_blocked: true,
-                                message: 'ملفات تعريف الارتباط محجوبة. يرجى تفعيل الكوكيز في المتصفح.'
-                            }), {
-                                status: 403,
-                                headers: { 'Content-Type': 'application/json; charset=utf-8' }
-                            });
-                        }
-                        // Bypass cache-first strategy for the next 10 seconds to let the cookie check run on reload
-                        _bypassCacheUntil = now + 10000;
-                        // Force reload the client window(s) to let the cookie check complete
-                        const clientsList = await self.clients.matchAll({ type: 'window' });
-                        for (const client of clientsList) {
-                            if (client.url) {
-                                client.navigate(client.url).catch(() => {});
-                            }
-                        }
                         return new Response(JSON.stringify({
                             success: false,
                             offline: true,
                             cookie_check: true,
-                            message: 'Checking cookies...'
+                            message: 'رمز التحقق من ملفات الكوكيز نشط'
                         }), {
                             status: 503,
                             headers: { 'Content-Type': 'application/json; charset=utf-8' }
@@ -231,47 +209,45 @@ self.addEventListener('fetch', e => {
         return;
     }
 
-    // Session-sensitive PHP pages must not be served cache-first, otherwise
-    // switching churches can show the previous church's rendered dashboard.
+    // Fast Page Navigation strategy (Stale-While-Revalidate / Immediate Shell Cache)
+    // Instantly returns cached HTML shell so page redirects & transitions take 0ms!
     if (e.request.mode === 'navigate') {
         e.respondWith(
             (async () => {
-                const bypassCache = Date.now() < _bypassCacheUntil;
-                
-                // Network-First strategy: try the network first to get the latest fresh updates, falling back to cache if offline
-                if (!bypassCache) {
+                // 1. Try to serve cached page or offline shell immediately for super-fast navigation
+                const cachedResponse = (isOfflineShellFriendly ? await caches.match(e.request, { ignoreSearch: true }) : null) || await _matchOfflineShell(e.request, url);
+
+                // Revalidate in background to keep cache updated
+                const fetchPromise = (async () => {
                     try {
-                        // Force no-store for all navigations to prevent browser caching the cookie-check pages
-                        const r = await fetch(e.request, { cache: 'no-store' });
-                        if (isOfflineShellFriendly && await _isCacheableAppResponse(r, e.request)) {
-                            const copy = r.clone();
+                        const networkResp = await fetch(e.request, { cache: 'no-store' });
+                        if (networkResp && networkResp.ok && isOfflineShellFriendly && await _isCacheableAppResponse(networkResp, e.request)) {
+                            const copy = networkResp.clone();
                             const cache = await caches.open(CACHE_NAME);
                             await cache.put(e.request, copy);
                         }
-                        return r;
+                        return networkResp;
                     } catch (err) {
-                        // Network failed (offline), try to serve from cache
-                        if (isOfflineShellFriendly) {
-                            const cached = await caches.match(e.request, { ignoreSearch: true });
-                            if (cached) return cached;
-                        }
-                        const cachedShell = await _matchOfflineShell(e.request, url);
-                        if (cachedShell) return cachedShell;
+                        return null;
                     }
+                })();
+
+                if (cachedResponse) {
+                    // Cache exists: serve immediately (instant redirection) and let background fetch update cache
+                    return cachedResponse;
                 }
 
-                // If bypassCache is active (e.g. cookie-check loop) or network fails and there is no cache
-                try {
-                    const r = await fetch(e.request, { cache: 'no-store' });
-                    return r;
-                } catch (_) {
-                    const cached = await _matchOfflineShell(e.request, url);
-                    if (cached) return cached;
-                    return new Response('<!doctype html><meta charset="utf-8"><title>Offline</title><body dir="rtl" style="font-family:sans-serif;padding:24px">غير متصل بالإنترنت</body>', {
-                        status: 503,
-                        headers: { 'Content-Type': 'text/html; charset=utf-8' }
-                    });
-                }
+                // If no cache exists, wait for network fetch with fallback
+                const netResult = await fetchPromise;
+                if (netResult) return netResult;
+
+                const fallbackShell = await _matchOfflineShell(e.request, url);
+                if (fallbackShell) return fallbackShell;
+
+                return new Response('<!doctype html><meta charset="utf-8"><title>Offline</title><body dir="rtl" style="font-family:sans-serif;padding:24px">غير متصل بالإنترنت</body>', {
+                    status: 503,
+                    headers: { 'Content-Type': 'text/html; charset=utf-8' }
+                });
             })()
         );
         return;
@@ -292,22 +268,6 @@ self.addEventListener('fetch', e => {
                     const r = await fetch(e.request, { cache: 'no-store' });
                     const isCookieCheck = await _isCookieCheckResponse(r);
                     if (isCookieCheck) {
-                        const now = Date.now();
-                        // If we already tried to bypass cache and reload recently, cookies are blocked
-                        if (now < _bypassCacheUntil) {
-                            return new Response('<!doctype html><meta charset="utf-8"><title>تفعيل ملفات تعريف الارتباط</title><body dir="rtl" style="font-family:sans-serif;padding:24px;text-align:center;color:#333;"><h2 style="color:#e11d48;">خطأ في الاتصال (ملفات الكوكيز محجوبة)</h2><p>يبدو أن متصفحك يمنع ملفات تعريف الارتباط (Cookies)، أو أنك تستخدم وضع التصفح الخفي.</p><p>يرجى التأكد من <strong>السماح بملفات الكوكيز</strong> وإعادة تحميل الصفحة لتتمكن من استخدام التطبيق.</p></body></html>', {
-                                status: 403,
-                                headers: { 'Content-Type': 'text/html; charset=utf-8' }
-                            });
-                        }
-                        // Bypass cache-first strategy for the next 10 seconds to let the cookie check run on reload
-                        _bypassCacheUntil = now + 10000;
-                        const clientsList = await self.clients.matchAll({ type: 'window' });
-                        for (const client of clientsList) {
-                            if (client.url) {
-                                client.navigate(client.url).catch(() => {});
-                            }
-                        }
                         return new Response('Cookie check required', { status: 503 });
                     }
                     if (e.request.method === 'GET' && await _isCacheableAppResponse(r, e.request)) {

@@ -282,13 +282,6 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (hasLocalStorageCreds) {
                     if (phpChurchId && String(phpChurchId) !== String(storedChurchId)) immediateMismatch = true;
                     if (phpUncleId && String(phpUncleId) !== String(storedUncleId)) immediateMismatch = true;
-                } else {
-                    if (phpChurchId || phpUncleId) immediateMismatch = true;
-                }
-
-                if (immediateMismatch) {
-                    window.triggerCacheBusterAndReload();
-                    return;
                 }
 
                 // Verify with server active session using getSessionInfo
@@ -299,47 +292,32 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 fetch(dynamicApiUrl, { method: 'POST', body: fd, credentials: 'include' })
                     .then(function (r) { return r.json(); })
                     .then(function (d) {
-                        var sessionMismatch = false;
                         if (d.success) {
                             var serverChurchId = d.church_id;
                             var serverUncleId = d.uncle_id;
                             var serverChurchCode = d.church_code;
                             var serverUncleUsername = d.uncle_username || d.username;
 
-                            if (phpChurchId && String(phpChurchId) !== String(serverChurchId)) sessionMismatch = true;
-                            if (phpUncleId && String(phpUncleId) !== String(serverUncleId)) sessionMismatch = true;
-                            if (storedChurchId && String(storedChurchId) !== String(serverChurchId)) sessionMismatch = true;
-                            if (storedUncleId && String(storedUncleId) !== String(serverUncleId)) sessionMismatch = true;
-
-                            if (sessionMismatch) {
-                                if (serverChurchId) {
-                                    localStorage.setItem('churchId', serverChurchId);
-                                    localStorage.setItem('church_id', serverChurchId);
-                                }
-                                if (serverUncleId) {
-                                    localStorage.setItem('uncleId', serverUncleId);
-                                    localStorage.setItem('uncle_id', serverUncleId);
-                                }
-                                if (serverChurchCode) {
-                                    localStorage.setItem('churchCode', serverChurchCode);
-                                    localStorage.setItem('church_code', serverChurchCode);
-                                }
-                                if (serverUncleUsername) {
-                                    localStorage.setItem('uncleUsername', serverUncleUsername);
-                                }
-                                if (d.church_name) localStorage.setItem('churchName', d.church_name);
-                                if (d.uncle_name) localStorage.setItem('uncleName', d.uncle_name);
-                                if (d.church_type) localStorage.setItem('churchType', d.church_type);
-                                if (d.uncle_role) localStorage.setItem('uncleRole', d.uncle_role);
-                                if (d.login_type) localStorage.setItem('loginType', d.login_type);
-
-                                window.triggerCacheBusterAndReload();
+                            if (serverChurchId) {
+                                localStorage.setItem('churchId', serverChurchId);
+                                localStorage.setItem('church_id', serverChurchId);
                             }
-                        } else {
-                            // Server says no session. If page has hardcoded session variables, trigger reload to refresh layout
-                            if (phpChurchId || phpUncleId) {
-                                window.triggerCacheBusterAndReload();
+                            if (serverUncleId) {
+                                localStorage.setItem('uncleId', serverUncleId);
+                                localStorage.setItem('uncle_id', serverUncleId);
                             }
+                            if (serverChurchCode) {
+                                localStorage.setItem('churchCode', serverChurchCode);
+                                localStorage.setItem('church_code', serverChurchCode);
+                            }
+                            if (serverUncleUsername) {
+                                localStorage.setItem('uncleUsername', serverUncleUsername);
+                            }
+                            if (d.church_name) localStorage.setItem('churchName', d.church_name);
+                            if (d.uncle_name) localStorage.setItem('uncleName', d.uncle_name);
+                            if (d.church_type) localStorage.setItem('churchType', d.church_type);
+                            if (d.uncle_role) localStorage.setItem('uncleRole', d.uncle_role);
+                            if (d.login_type) localStorage.setItem('loginType', d.login_type);
                         }
                     })
                     .catch(function () { });
