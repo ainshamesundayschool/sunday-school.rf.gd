@@ -15651,12 +15651,12 @@
                         updateTripsCountUI();
                     } else {
                         const cached = _readLocalCache('trips');
-                        if (cached && cached.trips) {
+                        if (cached && cached.trips && cached.trips.length > 0) {
                             allTripsCache = cached.trips || [];
                             currentTrips = allTripsCache;
                             filterTrips();
                             updateTripsCountUI();
-                            if (_offlineSessionMode || d?.offline) _showOfflineCacheToast();
+                            if (typeof _showOfflineCacheToast === 'function') _showOfflineCacheToast();
                         } else {
                             allTripsCache = [];
                             currentTrips = [];
@@ -15666,19 +15666,31 @@
                     }
                 })
                 .catch(err => {
-                    console.error("loadTrips error:", err);
+                    console.warn("loadTrips network request failed, attempting fallback to cache:", err);
                     const cached = _readLocalCache('trips');
-                    if (cached && cached.trips) {
+                    if (cached && cached.trips && cached.trips.length > 0) {
                         allTripsCache = cached.trips || [];
                         currentTrips = allTripsCache;
                         filterTrips();
                         updateTripsCountUI();
-                        if (_offlineSessionMode) _showOfflineCacheToast();
+                        if (typeof _showOfflineCacheToast === 'function') _showOfflineCacheToast();
                     } else {
                         allTripsCache = [];
                         currentTrips = [];
                         filterTrips();
                         updateTripsCountUI();
+                        if (tripsListEl) {
+                            tripsListEl.innerHTML = `
+                                <div class="empty-state" style="padding:40px 20px; text-align:center;">
+                                    <i class="fas fa-wifi-slash" style="font-size:2.5rem; color:var(--muted); margin-bottom:12px;"></i>
+                                    <h3 style="font-size:1.1rem; margin-bottom:8px;">تعذر الاتصال بالخادم</h3>
+                                    <p style="font-size:0.85rem; color:var(--muted); margin-bottom:16px;">يرجى التحقق من اتصالك بالإنترنت وإعادة المحاولة.</p>
+                                    <button class="btn btn-outline btn-sm" onclick="loadTrips()">
+                                        <i class="fas fa-sync-alt"></i> إعادة المحاولة
+                                    </button>
+                                </div>
+                            `;
+                        }
                     }
                 });
         }
