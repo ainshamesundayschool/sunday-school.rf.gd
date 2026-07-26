@@ -10846,9 +10846,11 @@
         const previewImg = document.getElementById('editTripCoverPreviewImg');
         const placeholderIcon = document.getElementById('editTripCoverPlaceholderIcon');
         const btnRemove = document.getElementById('btnRemoveEditTripCover');
-        if (url && url.trim() !== '') {
+        const cleanUrl = (url || '').trim();
+        const isValid = cleanUrl && !['0', 'null', 'undefined', 'false', 'none'].includes(cleanUrl.toLowerCase());
+        if (isValid) {
           if (previewImg) {
-            previewImg.src = url.trim();
+            previewImg.src = cleanUrl;
             previewImg.style.display = 'block';
           }
           if (placeholderIcon) placeholderIcon.style.display = 'none';
@@ -10898,7 +10900,10 @@
         document.getElementById('editTripHasPointsGame').value = String(t.has_points_game ?? 0);
 
         // Load cover photo
-        const imageUrl = t.image_url || '';
+        let imageUrl = (t.image_url || '').trim();
+        if (['0', 'null', 'undefined', 'false', 'none'].includes(imageUrl.toLowerCase())) {
+          imageUrl = '';
+        }
         const urlInput = document.getElementById('editTripImageUrl');
         const fileInput = document.getElementById('editTripImageFile');
         if (urlInput) urlInput.value = imageUrl;
@@ -11227,7 +11232,9 @@
         } else {
           const imageUrlInput = document.getElementById('editTripImageUrl');
           if (imageUrlInput) {
-            fd.append('image_url', imageUrlInput.value.trim());
+            const rawVal = imageUrlInput.value.trim();
+            const cleanVal = ['0', 'null', 'undefined', 'false', 'none'].includes(rawVal.toLowerCase()) ? '' : rawVal;
+            fd.append('image_url', cleanVal);
           }
         }
 

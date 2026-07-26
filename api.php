@@ -25705,13 +25705,28 @@ function updateTrip()
 
 
         $conn = getDBConnection();
+        @$conn->query("UPDATE trips SET image_url = NULL WHERE image_url IN ('0', 'null', 'undefined', 'false', 'none', '') OR (image_url IS NOT NULL AND TRIM(image_url) = '0')");
+
         $oldTrip = getTripSnapshot($tripId);
         if (!$oldTrip) {
             sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة']);
             return;
         }
 
-        $imageUrl = isset($_POST['image_url']) ? sanitize($_POST['image_url']) : ($oldTrip['image_url'] ?? null);
+        $rawImgUrl = isset($_POST['image_url']) ? trim((string)$_POST['image_url']) : null;
+        if ($rawImgUrl !== null) {
+            if (in_array(strtolower($rawImgUrl), ['0', 'null', 'undefined', 'false', 'none', ''], true)) {
+                $imageUrl = null;
+            } else {
+                $imageUrl = sanitize($rawImgUrl);
+            }
+        } else {
+            $imageUrl = $oldTrip['image_url'] ?? null;
+        }
+        if ($imageUrl !== null && in_array(strtolower(trim((string)$imageUrl)), ['0', 'null', 'undefined', 'false', 'none', ''], true)) {
+            $imageUrl = null;
+        }
+
         if (isset($_FILES['trip_image']) && $_FILES['trip_image']['error'] === UPLOAD_ERR_OK) {
             $uploadDir = __DIR__ . '/uploads/trips/';
             if (!file_exists($uploadDir)) {
