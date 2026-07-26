@@ -12299,7 +12299,8 @@
         let isDeveloper = false;
         let sessionChurchId = 0;
         let sessionChurchCode = '';
-        let devViewChurchId = 0;
+        let devViewChurchId = parseInt(localStorage.getItem('devViewChurchId') || '-1');
+        if (isNaN(devViewChurchId)) devViewChurchId = -1;
         let devOrigChurchId = 0;
         let activeTabName = 'overview';
         const loadedTabs = new Set();
@@ -19743,19 +19744,11 @@
 
             let html = '';
 
-            // Default option
-            const isSelectedDefault = !devViewChurchId;
-            html += `
-                <div class="dev-church-dropdown-item ${isSelectedDefault ? 'selected' : ''}" 
-                     onclick="devSelectChurch('', 'كنيستي الافتراضية')">
-                    كنيستي الافتراضية
-                </div>
-            `;
             const isSelectedAll = devViewChurchId === -1;
             html += `
                 <div class="dev-church-dropdown-item ${isSelectedAll ? 'selected' : ''}" 
                      onclick="devSelectChurch('ALL', '🌍 جميع الكنائس')">
-                    جميع الكنائس
+                    🌍 جميع الكنائس
                 </div>
             `;
 
@@ -19835,7 +19828,7 @@
             bar.innerHTML = `
                 <div class="dev-church-trigger" style="position:relative;display:flex;align-items:center;width:100%;height:100%;cursor:pointer;" onclick="toggleDevChurchDropdown(event)">
                     <i class="fas fa-laptop-code dev-church-bar-icon"></i>
-                    <span id="devChurchSelectedLabel" class="dev-church-selected-label" style="margin-inline-start:6px; margin-inline-end: 18px; font-size: 0.8rem; font-weight: 800; color: var(--brand); font-family: 'Cairo', sans-serif;">كنيستي الافتراضية</span>
+                    <span id="devChurchSelectedLabel" class="dev-church-selected-label" style="margin-inline-start:6px; margin-inline-end: 18px; font-size: 0.8rem; font-weight: 800; color: var(--brand); font-family: 'Cairo', sans-serif;">🌍 جميع الكنائس</span>
                     <i class="fas fa-chevron-down dev-church-chevron"></i>
                 </div>
                 <select id="devChurchSelect" style="display:none;"></select>
@@ -19864,7 +19857,7 @@
             await loadAllChurches();
             const sel = document.getElementById('devChurchSelect');
             if (!sel) return;
-            while (sel.options.length > 2) sel.remove(2);
+            while (sel.options.length > 1) sel.remove(1);
             if (!allChurchesCache.length) return;
             const sep = document.createElement('option');
             sep.disabled = true; sep.textContent = '──────────────────';
@@ -19879,19 +19872,16 @@
             });
 
             if (devViewChurchId > 0) sel.value = devViewChurchId;
-            else if (devViewChurchId === -1) sel.value = 'ALL';
-            else sel.value = '';
+            else sel.value = 'ALL';
 
             // Set custom dropdown label
-            let activeLabel = 'كنيستي الافتراضية';
+            let activeLabel = '🌍 جميع الكنائس';
             if (devViewChurchId > 0) {
                 const target = allChurchesCache.find(c => c.id == devViewChurchId);
                 if (target) {
                     const typeLabel = target.church_type === 'youth' ? 'شباب' : 'أطفال';
                     activeLabel = `[${typeLabel}] ${target.church_name} (${target.church_code}) — ${target.student_count || 0}`;
                 }
-            } else if (devViewChurchId === -1) {
-                activeLabel = '🌍 جميع الكنائس';
             }
             const labelEl = document.getElementById('devChurchSelectedLabel');
             if (labelEl) labelEl.textContent = activeLabel;
@@ -19908,33 +19898,19 @@
             const btn = document.getElementById('devRefreshBtn');
             if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:0.7rem;"></i> جاري...';
 
-            if (churchId === 'ALL') {
+            if (churchId === 'ALL' || churchId === -1 || churchId === '-1') {
                 devViewChurchId = -1;
+                localStorage.setItem('devViewChurchId', '-1');
                 if (pill) pill.style.display = 'flex';
                 if (label) label.textContent = '🌍 جميع الكنائس';
                 if (count) count.textContent = '';
                 document.getElementById('sidebarChurchName').textContent = 'جميع الكنائس';
                 document.getElementById('sidebarChurchCode').textContent = 'عرض مدمج';
-                // links not applicable in "all" mode — hide them
                 sessionChurchCode = '';
-
-            } else if (!churchId || churchId === '') {
-                devViewChurchId = 0;
-                sessionChurchId = devOrigChurchId;
-                if (pill) pill.style.display = 'none';
-                if (label) label.textContent = '';
-                if (count) count.textContent = '';
-                if (!allChurchesCache.length) await loadAllChurches();
-                const ch = allChurchesCache.find(c => c.id == devOrigChurchId);
-                if (ch) {
-                    document.getElementById('sidebarChurchName').textContent = ch.church_name;
-                    document.getElementById('sidebarChurchCode').textContent = 'رمز: ' + ch.church_code;
-                    // Restore original church code so reg links point to own church
-                    sessionChurchCode = ch.church_code;
-                }
 
             } else {
                 devViewChurchId = parseInt(churchId);
+                localStorage.setItem('devViewChurchId', devViewChurchId.toString());
                 if (!allChurchesCache.length) await loadAllChurches();
                 const ch = allChurchesCache.find(c => c.id == devViewChurchId);
                 if (pill) pill.style.display = 'flex';
@@ -19943,7 +19919,6 @@
                 if (ch) {
                     document.getElementById('sidebarChurchName').textContent = ch.church_name;
                     document.getElementById('sidebarChurchCode').textContent = 'رمز: ' + ch.church_code;
-                    // Update reg links to point to selected church
                     sessionChurchCode = ch.church_code;
                 }
             }
@@ -19951,15 +19926,13 @@
             // Sync custom dropdown menu label and list highlight
             if (typeof allChurchesCache !== 'undefined') {
                 renderDevChurchDropdownList(allChurchesCache);
-                let activeLabel = 'كنيستي الافتراضية';
+                let activeLabel = '🌍 جميع الكنائس';
                 if (devViewChurchId > 0 && allChurchesCache.length) {
                     const target = allChurchesCache.find(c => c.id == devViewChurchId);
                     if (target) {
                         const typeLabel = target.church_type === 'youth' ? 'شباب' : 'أطفال';
                         activeLabel = `[${typeLabel}] ${target.church_name} (${target.church_code}) — ${target.student_count || 0}`;
                     }
-                } else if (devViewChurchId === -1) {
-                    activeLabel = '🌍 جميع الكنائس';
                 }
                 const labelEl = document.getElementById('devChurchSelectedLabel');
                 if (labelEl) labelEl.textContent = activeLabel;

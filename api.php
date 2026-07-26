@@ -2188,23 +2188,23 @@ function isTripDeveloperViewerRole()
 
 {
 
-    $role = strtolower($_SESSION['uncle_role'] ?? '');
+    $role = strtolower($_SESSION['uncle_role'] ?? $_SESSION['role'] ?? $_SESSION['user_role'] ?? '');
 
-    return in_array($role, ['developer', 'dev', 'admin', 'administrator'], true);
+    return in_array($role, ['developer', 'dev', 'admin', 'administrator', 'superadmin'], true);
 
 }
 
 
 
-/** Bypass trip ACL only when a developer explicitly switches church context. */
+/** Bypass trip ACL when developer/admin or when explicit override sent. */
 
 function isTripDeveloperViewer()
 
 {
 
-    if (!isTripDeveloperViewerRole()) {
+    if (isTripDeveloperViewerRole()) {
 
-        return false;
+        return true;
 
     }
 
