@@ -1650,8 +1650,8 @@ while ($configRoot && !file_exists($configRoot . '/api.php')) {
 }
 $isTesting = (strpos($configRoot, '/testing') !== false);
 
-// Define SCHEMA_MIGRATED on production to prevent dynamic DDL migration checks on every request
-if (!$isTesting && !defined('SCHEMA_MIGRATED')) {
+// Define SCHEMA_MIGRATED to prevent dynamic DDL migration checks on every request
+if (!defined('SCHEMA_MIGRATED')) {
     define('SCHEMA_MIGRATED', true);
 }
 
@@ -37302,7 +37302,6 @@ function saveQRTemplate()
 
         $conn = getDBConnection();
         ensureChurchSettingsTable($conn);
-        $conn->query("ALTER TABLE trips ADD COLUMN IF NOT EXISTS qr_template LONGTEXT DEFAULT NULL");
 
         if ($target === 'trip' && $tripId > 0) {
             $stmt = $conn->prepare("UPDATE trips SET qr_template = ? WHERE id = ?");
@@ -37345,7 +37344,6 @@ function getQRTemplates()
 
         $conn = getDBConnection();
         ensureChurchSettingsTable($conn);
-        $conn->query("ALTER TABLE trips ADD COLUMN IF NOT EXISTS qr_template LONGTEXT DEFAULT NULL");
 
         // 1. Church template
         $churchStmt = $conn->prepare("SELECT qr_template FROM church_settings WHERE church_id = ?");
