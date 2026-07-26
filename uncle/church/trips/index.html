@@ -14564,7 +14564,7 @@
         cropImage.src = dataUrl;
         cropImage.onload = function () {
           cropCanvas = document.getElementById('cropCanvas');
-          cropCtx = cropCanvas.getContext('2d');
+          cropCtx = cropCanvas.getContext('2d', { willReadFrequently: true });
 
           if (!cropCanvas.dataset.listenersBound) {
             cropCanvas.addEventListener('mousedown', startDrag);
@@ -14737,7 +14737,7 @@
         const exportCanvas = document.createElement('canvas');
         exportCanvas.width = exportW;
         exportCanvas.height = exportH;
-        const exportCtx = exportCanvas.getContext('2d');
+        const exportCtx = exportCanvas.getContext('2d', { willReadFrequently: true });
 
         const scaleX = cropImage.width / cropCanvas.width;
         const scaleY = cropImage.height / cropCanvas.height;
@@ -15321,7 +15321,7 @@
                   const canvas = document.createElement('canvas');
                   canvas.width = width;
                   canvas.height = height;
-                  const ctx = canvas.getContext('2d');
+                  const ctx = canvas.getContext('2d', { willReadFrequently: true });
                   ctx.drawImage(img, 0, 0, width, height);
                   resolve(canvas.toDataURL('image/jpeg', quality));
               };
