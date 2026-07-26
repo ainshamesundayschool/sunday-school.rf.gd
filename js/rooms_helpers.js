@@ -39,12 +39,15 @@ async function loadRoomsTemplates(prefix) {
     try {
         const fd = new FormData();
         fd.append('action', 'getRoomsTemplates');
-        const res = await fetch('/api.php', { method: 'POST', body: fd }).then(r => r.json());
+        const apiUrl = (typeof API_URL !== 'undefined') ? API_URL : (window.location.pathname.indexOf('/testing/') !== -1 ? '/testing/api.php' : '/api.php');
+        const res = await fetch(apiUrl, { method: 'POST', body: fd }).then(r => r.json());
         if (res.success) {
             _roomsTemplatesCache = res.templates || [];
+            const currentVal = select.value;
             select.innerHTML = '<option value="">— اختر قالباً —</option>' +
                 '<option value="custom">— إنشاء توزيع مخصص من الصفر —</option>' +
                 _roomsTemplatesCache.map(t => `<option value="${t.id}">${escHtml(t.name)}</option>`).join('');
+            if (currentVal) select.value = currentVal;
         }
     } catch (e) {
         console.error("Error loading rooms templates", e);
@@ -58,21 +61,32 @@ function onRoomsTemplateChange(prefix) {
     const select = document.getElementById(prefix + 'TripRoomsTemplate');
     const val = select?.value;
     const scratchWizard = document.getElementById(prefix + 'TripRoomsScratchWizard');
+    if (!scratchWizard) return;
 
     if (val === 'custom') {
         scratchWizard.style.display = 'block';
         generateRoomsWizardBldList(prefix);
     } else if (val) {
         scratchWizard.style.display = 'block';
-        const t = _roomsTemplatesCache.find(x => x.id == val);
+        const t = _roomsTemplatesCache.find(x => String(x.id) === String(val));
         if (t && t.config) {
             let parsedConfig = t.config;
             if (typeof parsedConfig === 'string') {
                 try { parsedConfig = JSON.parse(parsedConfig); } catch (e) { }
             }
-            if (Array.isArray(parsedConfig)) {
-                populateRoomsWizardFromConfig(prefix, parsedConfig);
+            if (parsedConfig && !Array.isArray(parsedConfig) && typeof parsedConfig === 'object') {
+                if (Array.isArray(parsedConfig.buildings)) parsedConfig = parsedConfig.buildings;
+                else if (Array.isArray(parsedConfig.config)) parsedConfig = parsedConfig.config;
+                else if (Array.isArray(parsedConfig.rooms)) parsedConfig = parsedConfig.rooms;
+                else if (Array.isArray(parsedConfig.data)) parsedConfig = parsedConfig.data;
             }
+            if (Array.isArray(parsedConfig) && parsedConfig.length > 0) {
+                populateRoomsWizardFromConfig(prefix, parsedConfig);
+            } else {
+                generateRoomsWizardBldList(prefix);
+            }
+        } else {
+            generateRoomsWizardBldList(prefix);
         }
     } else {
         scratchWizard.style.display = 'none';

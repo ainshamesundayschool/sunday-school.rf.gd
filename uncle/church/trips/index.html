@@ -17404,7 +17404,16 @@
 
         await loadRoomsTemplates('roomsTabModal');
         
-        const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+        let roomsConfig = trip.rooms_config || [];
+        if (typeof roomsConfig === 'string') {
+          try { roomsConfig = JSON.parse(roomsConfig); } catch (e) { roomsConfig = []; }
+        }
+        if (roomsConfig && !Array.isArray(roomsConfig) && typeof roomsConfig === 'object') {
+          if (Array.isArray(roomsConfig.buildings)) roomsConfig = roomsConfig.buildings;
+          else if (Array.isArray(roomsConfig.config)) roomsConfig = roomsConfig.config;
+          else if (Array.isArray(roomsConfig.rooms)) roomsConfig = roomsConfig.rooms;
+        }
+
         if (Array.isArray(roomsConfig) && roomsConfig.length > 0) {
           const templateId = roomsConfig[0].rooms_template_id || 'custom';
           const templateSelect = document.getElementById('roomsTabModalTripRoomsTemplate');
