@@ -14994,7 +14994,16 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (params[k] !== undefined && params[k] !== null)
                     fd.append(k, typeof params[k] === 'object' && k !== 'action' ? JSON.stringify(params[k]) : params[k]);
             });
-            if (isDeveloper && devViewChurchId > 0) {
+            if (typeof isDeveloper !== 'undefined' && isDeveloper) {
+                const devId = (typeof devViewChurchId !== 'undefined' && devViewChurchId !== null && devViewChurchId !== '') ? devViewChurchId : (localStorage.getItem('devViewChurchId') || 0);
+                fd.append('dev_override_church_id', devId);
+                fd.append('role', 'developer');
+                if (devId == -1 || devId == 0) {
+                    fd.append('all_churches', '1');
+                } else if (devId > 0 && !fd.has('church_id')) {
+                    fd.append('church_id', devId);
+                }
+            } else if (typeof devViewChurchId !== 'undefined' && devViewChurchId > 0) {
                 fd.append('dev_override_church_id', devViewChurchId);
                 if (!fd.has('church_id')) {
                     fd.append('church_id', devViewChurchId);
