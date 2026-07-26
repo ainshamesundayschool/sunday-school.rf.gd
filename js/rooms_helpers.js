@@ -66,7 +66,13 @@ function onRoomsTemplateChange(prefix) {
         scratchWizard.style.display = 'block';
         const t = _roomsTemplatesCache.find(x => x.id == val);
         if (t && t.config) {
-            populateRoomsWizardFromConfig(prefix, t.config);
+            let parsedConfig = t.config;
+            if (typeof parsedConfig === 'string') {
+                try { parsedConfig = JSON.parse(parsedConfig); } catch (e) { }
+            }
+            if (Array.isArray(parsedConfig)) {
+                populateRoomsWizardFromConfig(prefix, parsedConfig);
+            }
         }
     } else {
         scratchWizard.style.display = 'none';
