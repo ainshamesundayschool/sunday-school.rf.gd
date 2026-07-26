@@ -135,6 +135,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 <html lang="ar" dir="rtl">
 
 <head>
+  <script>
+    // ── SESSION GUARD FOR LOGGED-IN UNCLE / CHURCH ON KID PROFILE PAGE ──
+    (function () {
+      var search = window.location.search;
+      var noredirect = search.indexOf('noredirect=true') !== -1 || search.indexOf('noredirect=1') !== -1;
+      if (noredirect) return;
+
+      var cl = localStorage.getItem('loggedIn') === 'true';
+      var ul = localStorage.getItem('uncleLoggedIn') === 'true';
+      if (!cl && !ul) return;
+
+      var KEY = '_ss_restoring_prof';
+      if (sessionStorage.getItem(KEY) === '1') {
+        sessionStorage.removeItem(KEY);
+        return;
+      }
+
+      var cc = localStorage.getItem('churchCode');
+      var un = localStorage.getItem('uncleUsername');
+      var fd = new FormData();
+      fd.append('action', 'restore_session');
+      if (cl && cc) fd.append('church_code', cc);
+      else if (ul && un) fd.append('username', un);
+      else return;
+
+      sessionStorage.setItem(KEY, '1');
+      var isTesting = window.location.pathname.indexOf('/testing/') !== -1;
+      var apiPath = isTesting ? '/testing/api.php' : '/api.php';
+      fetch(apiPath, { method: 'POST', body: fd, credentials: 'include' })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (d.success) {
+            window.location.reload();
+          } else {
+            sessionStorage.removeItem(KEY);
+          }
+        })
+        .catch(function () {
+          sessionStorage.removeItem(KEY);
+        });
+    })();
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
   <!-- ═══ Social Preview Defaults ═══ -->
