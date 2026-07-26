@@ -26766,7 +26766,7 @@ function getTripDetails()
 
                     $up->execute();
 
-                }
+                } catch (Exception $e) {}
 
             }
 

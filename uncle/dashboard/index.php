@@ -25427,7 +25427,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     ini.style.display = 'flex';
                 }
                 const bav = document.getElementById('accountBigAvatar');
-                if (bav) bav.src = 'https://sunday-school.online/profile_default..webp';
+                if (bav) bav.src = 'https://sunday-school.online/profile_default.webp';
                 if (window.currentUncle) window.currentUncle.image_url = '';
                 try { localStorage.removeItem('uncleImageUrl'); } catch (e) { }
                 const deleteBtn = document.getElementById('deleteAccountPhotoBtn');
@@ -25484,8 +25484,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     bar.style.display = 'flex';
                     list.innerHTML = allowedUncles.map(u =>
                         `<div class="uncle-avatar-wrap">` +
-                        `<img class="uncle-avatar-img" src="${window.photoUrl(u.image_url || u['صورة'] || 'https://sunday-school.online/profile_default..webp')}"` +
-                        ` alt="${u.name}" onerror="this.src='https://sunday-school.online/profile_default..webp'">` +
+                        `<img class="uncle-avatar-img" src="${window.photoUrl(u.image_url || u['صورة'] || 'https://sunday-school.online/profile_default.webp')}"` +
+                        ` alt="${u.name}" onerror="this.src='https://sunday-school.online/profile_default.webp'">` +
                         `<div class="uncle-tooltip">${u.name}</div>` +
                         `</div>`
                     ).join('');
@@ -25505,8 +25505,8 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (r.uncles && r.uncles.length) {
                     list.innerHTML = r.uncles.map(u =>
                         `<div class="uncle-avatar-wrap">` +
-                        `<img class="uncle-avatar-img" src="${window.photoUrl(u.image_url || 'https://sunday-school.online/profile_default..webp')}"` +
-                        ` alt="${u.name}" onerror="this.src='https://sunday-school.online/profile_default..webp'">` +
+                        `<img class="uncle-avatar-img" src="${window.photoUrl(u.image_url || 'https://sunday-school.online/profile_default.webp')}"` +
+                        ` alt="${u.name}" onerror="this.src='https://sunday-school.online/profile_default.webp'">` +
                         `<div class="uncle-tooltip">${u.name}</div>` +
                         `</div>`
                     ).join('');

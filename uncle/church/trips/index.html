@@ -10228,7 +10228,8 @@
           if (r.custom_data) {
             try { values = JSON.parse(r.custom_data); } catch (e) { values = {}; }
           }
-          const studentImg = r.student_image || r.image_url || r['صورة'] || r.photo || '';
+          const rawStudentImg = r.student_image || r.image_url || r['صورة'] || r.photo || '';
+          const studentImg = (rawStudentImg && typeof rawStudentImg === 'string' && !rawStudentImg.includes('${') && !rawStudentImg.includes('%7B')) ? rawStudentImg : '';
           const studentName = r.student_name || '---';
           const studentClass = r.student_class || 'بدون فصل';
           const initials = studentName.trim().charAt(0) || '؟';
@@ -11809,11 +11810,13 @@
           };
         }
 
+        const bWidth = Number(baseWidth) || 300;
+        const bHeight = Number(baseHeight) || 200;
         const rectInset = strokeWidth / 2;
         const dashArray = `${Math.max(2, dashLength)} ${Math.max(0, dashGap)}`;
         const svgMarkup = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${baseWidth} ${baseHeight}" preserveAspectRatio="none">
-          <rect x="${rectInset}" y="${rectInset}" width="${baseWidth - (rectInset * 2)}" height="${baseHeight - (rectInset * 2)}" rx="${borderRadius}" ry="${borderRadius}" fill="none" stroke="${borderColor}" stroke-width="${strokeWidth}" stroke-dasharray="${dashArray}" />
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${bWidth} ${bHeight}" preserveAspectRatio="none">
+          <rect x="${rectInset}" y="${rectInset}" width="${bWidth - (rectInset * 2)}" height="${bHeight - (rectInset * 2)}" rx="${borderRadius}" ry="${borderRadius}" fill="none" stroke="${borderColor}" stroke-width="${strokeWidth}" stroke-dasharray="${dashArray}" />
         </svg>
       `.trim();
 
@@ -11940,8 +11943,8 @@
 
           const sid = getSafeStudentID(student);
           const rawImg = getSafeStudentImage(student);
-          const hasRawImg = rawImg && rawImg.trim() !== '' && !rawImg.includes('placeholder.com') && !rawImg.includes('via.placeholder');
-          const imgUrl = hasRawImg ? rawImg : '/profile_default..webp';
+          const hasRawImg = rawImg && rawImg.trim() !== '' && !rawImg.includes('${') && !rawImg.includes('%7B') && !rawImg.includes('placeholder.com') && !rawImg.includes('via.placeholder');
+          const imgUrl = hasRawImg ? rawImg : '/profile_default.webp';
           
           let avatarHtml = '';
           if (showStudentImg) {
@@ -11953,7 +11956,7 @@
               } else if (showAvatarWhenNoPhoto) {
                   avatarHtml = `
                   <div style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; background:linear-gradient(135deg,#c7d2fe,#a5b4fc); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; align-self:center; position:relative;">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="${sAvatar * 0.7}px" height="${sAvatar * 0.7}px" style="position:absolute; inset:0; margin:auto; z-index:1;">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="${Math.round(sAvatar * 0.7)}" height="${Math.round(sAvatar * 0.7)}" style="position:absolute; inset:0; margin:auto; z-index:1;">
                           <circle cx="40" cy="30" r="18" fill="rgba(255,255,255,0.85)"/>
                           <ellipse cx="40" cy="72" rx="26" ry="18" fill="rgba(255,255,255,0.85)"/>
                       </svg>
@@ -12550,14 +12553,14 @@
                   let avatarHtml = '';
                   if (showStudentImg) {
                       const rawImg = getSafeStudentImage(student);
-                      const hasRawImg = rawImg && rawImg.trim() !== '' && !rawImg.includes('placeholder.com') && !rawImg.includes('via.placeholder');
-                      const imgUrl = hasRawImg ? rawImg : '/profile_default..webp';
+                      const hasRawImg = rawImg && rawImg.trim() !== '' && !rawImg.includes('${') && !rawImg.includes('%7B') && !rawImg.includes('placeholder.com') && !rawImg.includes('via.placeholder');
+                      const imgUrl = hasRawImg ? rawImg : '/profile_default.webp';
                       if (hasRawImg) {
                           avatarHtml = `<img src="${imgUrl}" class="avatar" style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; object-fit:cover; align-self:center; margin-bottom:4px;" onerror="this.style.display='none'">`;
                       } else if (showAvatarWhenNoPhoto) {
                           avatarHtml = `
                             <div style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; background:linear-gradient(135deg,#c7d2fe,#a5b4fc); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; align-self:center; position:relative; margin-bottom:4px;">
-                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="${sAvatar * 0.7}px" height="${sAvatar * 0.7}px" style="position:absolute; inset:0; margin:auto; z-index:1;">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="${Math.round(sAvatar * 0.7)}" height="${Math.round(sAvatar * 0.7)}" style="position:absolute; inset:0; margin:auto; z-index:1;">
                                 <circle cx="40" cy="30" r="18" fill="rgba(255,255,255,0.85)"/>
                                 <ellipse cx="40" cy="72" rx="26" ry="18" fill="rgba(255,255,255,0.85)"/>
                               </svg>
@@ -16863,12 +16866,12 @@
           const isDraft = window.roomsDraftAllocations && window.roomsDraftAllocations[k.id];
           const cleanImg = k.student_image && k.student_image.trim() !== '' && !k.student_image.includes('placeholder.com') && !k.student_image.includes('via.placeholder')
             ? k.student_image
-            : '/profile_default..webp';
+            : '/profile_default.webp';
           return `
                   <div class="ws-kid-badge ${k.student_gender === 'female' ? 'girl' : 'boy'} ${isDraft ? 'draft-assigned' : ''}" 
                        title="${escHtml(k.student_class)} - ${escHtml(k._churchName || '')}"
                        style="display:flex; align-items:center; gap:8px;">
-                    <img src="${cleanImg}" style="width:24px; height:24px; border-radius:50%; object-fit:cover; flex-shrink:0; border:1px solid var(--border);" onerror="this.src='/profile_default..webp'">
+                    <img src="${cleanImg}" style="width:24px; height:24px; border-radius:50%; object-fit:cover; flex-shrink:0; border:1px solid var(--border);" onerror="this.src='/profile_default.webp'">
                     <div class="ws-kid-info" style="flex:1; min-width:0; display:flex; flex-direction:column; text-align:right;">
                       <div class="ws-kid-name" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escHtml(k.student_name)}</div>
                       <div class="ws-kid-sub" style="font-size:0.6rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escHtml(k.student_class)} - ${escHtml(k._churchName || '')}</div>
@@ -16980,12 +16983,12 @@
             ${kidsFiltered.map(k => {
               const cleanImg = k.student_image && k.student_image.trim() !== '' && !k.student_image.includes('placeholder.com') && !k.student_image.includes('via.placeholder')
                 ? k.student_image
-                : '/profile_default..webp';
+                : '/profile_default.webp';
               return `
                 <div class="ws-unassigned-card ${k.student_gender === 'female' ? 'girl' : 'boy'} ${window.selectedKidForAllocation == k.id ? 'selected' : ''}"
                      onclick="selectKidForAllocation(${k.id})"
                      style="display:flex; flex-direction:row; align-items:center; gap:8px;">
-                  <img src="${cleanImg}" style="width:28px; height:28px; border-radius:50%; object-fit:cover; flex-shrink:0; border:1px solid var(--border);" onerror="this.src='/profile_default..webp'">
+                  <img src="${cleanImg}" style="width:28px; height:28px; border-radius:50%; object-fit:cover; flex-shrink:0; border:1px solid var(--border);" onerror="this.src='/profile_default.webp'">
                   <div style="flex:1; min-width:0; display:flex; flex-direction:column; text-align:right;">
                     <div class="ws-kid-name" style="font-size:0.75rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escHtml(k.student_name)}</div>
                     <div class="ws-kid-sub" style="font-size:0.62rem; display:flex; justify-content:space-between; margin-top:2px;">
@@ -18146,11 +18149,11 @@
         resultsDiv.innerHTML = allResults.map(item => {
           const cleanImg = item.image && item.image.trim() !== '' && !item.image.includes('placeholder.com') && !item.image.includes('via.placeholder')
             ? item.image
-            : '/profile_default..webp';
+            : '/profile_default.webp';
           const icon = item.type === 'uncle' ? '<i class="fas fa-user-shield" style="color:var(--warning); font-size:0.6rem;"></i> ' : '';
           return `
             <div class="ws-popover-item" onclick="onPopoverItemClick('${item.type}', ${item.id}, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(roomName)}')">
-              <img src="${cleanImg}" class="ws-popover-avatar" onerror="this.src='/profile_default..webp'">
+              <img src="${cleanImg}" class="ws-popover-avatar" onerror="this.src='/profile_default.webp'">
               <div style="display:flex; flex-direction:column; gap:1px; flex:1; min-width:0;">
                 <div style="font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${icon}${escHtml(item.name)}</div>
                 <div style="font-size:0.6rem; color:var(--muted); display:flex; gap:6px;">
@@ -18652,14 +18655,14 @@
           listDiv.innerHTML = candidates.map(c => {
             const cleanImg = c.avatar && c.avatar.trim() !== '' && !c.avatar.includes('placeholder.com') && !c.avatar.includes('via.placeholder')
               ? c.avatar
-              : '/profile_default..webp';
+              : '/profile_default.webp';
 
             const isSelected = c.id == res.matchedId && c.type === res.role;
             const isUncle = c.type === 'uncle';
 
             return `
               <div class="ws-picker-candidate-row" onclick="selectPickerCandidate(${c.id}, '${c.type}')" style="display:flex; align-items:center; gap:10px; padding:8px; border-radius:6px; cursor:pointer; transition:all 0.2s; border:1px solid ${isSelected ? 'var(--primary)' : 'transparent'}; background:${isSelected ? 'rgba(var(--primary-rgb), 0.1)' : 'transparent'};">
-                <img src="${cleanImg}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; flex-shrink:0; border:1px solid var(--border);" onerror="this.src='/profile_default..webp'">
+                <img src="${cleanImg}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; flex-shrink:0; border:1px solid var(--border);" onerror="this.src='/profile_default.webp'">
                 <div style="flex:1; min-width:0; text-align:right;">
                   <div style="font-weight:700; font-size:0.78rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text);">${escHtml(c.name)}</div>
                   <div style="font-size:0.62rem; color:var(--muted); display:flex; gap:6px; margin-top:2px;">
@@ -18713,7 +18716,7 @@
               const isUncle = res.role === 'uncle';
 
               let matchedName = 'غير مسجل بالرحلة (استبعاد)';
-              let avatarImg = '/profile_default..webp';
+              let avatarImg = '/profile_default.webp';
               let subText = isUncle ? 'خادم' : 'طفل';
               let isMatched = false;
 
@@ -18739,7 +18742,7 @@
 
               const cleanImg = avatarImg && avatarImg.trim() !== '' && !avatarImg.includes('placeholder.com') && !avatarImg.includes('via.placeholder')
                 ? avatarImg
-                : '/profile_default..webp';
+                : '/profile_default.webp';
 
               const borderCol = isMatched ? 'var(--border)' : '#fca5a5';
               const bgCol = isMatched ? 'var(--surface-1)' : '#fef2f2';
@@ -18747,7 +18750,7 @@
               return `
                 <div class="ws-review-resident-badge" onclick="openReviewResidentMatchPicker(${resIdx})" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:8px; border:1px solid ${borderCol}; border-radius:6px; padding:6px 10px; background:${bgCol}; margin-bottom:4px; transition: all 0.2s;">
                   <div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1;">
-                    <img src="${cleanImg}" style="width:24px; height:24px; border-radius:50%; object-fit:cover; border:1px solid var(--border); flex-shrink:0;" onerror="this.src='/profile_default..webp'">
+                    <img src="${cleanImg}" style="width:24px; height:24px; border-radius:50%; object-fit:cover; border:1px solid var(--border); flex-shrink:0;" onerror="this.src='/profile_default.webp'">
                     <div style="display:flex; flex-direction:column; text-align:right; min-width:0; flex:1;">
                       <div style="font-size:0.75rem; font-weight:700; color:${isMatched ? 'var(--text)' : '#991b1b'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escHtml(matchedName)}</div>
                       <div style="font-size:0.6rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escHtml(subText)}</div>

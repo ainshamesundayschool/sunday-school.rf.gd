@@ -24234,7 +24234,7 @@
             const sid = getSafeStudentID(student);
             const rawImg = getSafeStudentImage(student);
             const hasRawImg = rawImg && rawImg.trim() !== '' && !rawImg.includes('placeholder.com') && !rawImg.includes('via.placeholder');
-            const imgUrl = hasRawImg ? rawImg : '/profile_default..webp';
+            const imgUrl = hasRawImg ? rawImg : '/profile_default.webp';
 
             let avatarHtml = '';
             if (showStudentImg) {
@@ -24674,7 +24674,7 @@
                     if (showStudentImg) {
                         const rawImg = getSafeStudentImage(student);
                         const hasRawImg = rawImg && rawImg.trim() !== '' && !rawImg.includes('placeholder.com') && !rawImg.includes('via.placeholder');
-                        const imgUrl = hasRawImg ? rawImg : '/profile_default..webp';
+                        const imgUrl = hasRawImg ? rawImg : '/profile_default.webp';
                         const showAvatarFallback = showStudentImg && showAvatarWhenNoPhoto;
                         if (showAvatarFallback) {
                             avatarHtml = `
