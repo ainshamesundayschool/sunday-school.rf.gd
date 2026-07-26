@@ -17777,6 +17777,68 @@
         renderRoomsWorkspaceData();
       }
 
+      window.executeUncleDirectMove = async function(uncleId, bldName, floorName, roomName) {
+        const tripId = window.currentTripId;
+        const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+        if (!trip) return;
+
+        await ensureTripUnclesLoaded(tripId);
+
+        const regs = tripRegistrationsCache[tripId] || [];
+        const regObj = regs.find(r => String(r.id) === String(uncleId) || String(r.student_id) === String(uncleId));
+
+        if (regObj) {
+          let customData = {};
+          try { customData = JSON.parse(regObj.custom_data || '{}'); } catch (e) { }
+          const nextRoom = {
+            'السكن': bldName,
+            'السكن__sf__الدور': floorName || '',
+            'السكن__sf__الغرفة': roomName
+          };
+          await saveCustomDataPayload(tripId, [{ registration_id: regObj.id, custom_data: { ...customData, ...nextRoom } }]);
+          regObj.custom_data = JSON.stringify({ ...customData, ...nextRoom });
+        }
+
+        const roomsConfig = getTripRoomsConfig(trip);
+
+        let assignedName = '';
+        const selectedUncle = (window.allUnclesCache || []).find(u => String(u.id) === String(uncleId));
+        if (selectedUncle) {
+          assignedName = selectedUncle.name;
+        } else if (regObj) {
+          assignedName = regObj.student_name || regObj.name || 'خادم';
+        }
+        if (!assignedName) assignedName = 'خادم';
+
+        // Prevent duplicate uncle assignments
+        roomsConfig.forEach(bld => {
+          const cleanRoom = (r) => {
+            if (r.uncles) {
+              r.uncles = r.uncles.filter(u => String(typeof u === 'object' ? u.id : u) !== String(uncleId));
+            }
+          };
+          if (bld.has_floors) {
+            (bld.floors || []).forEach(fl => (fl.rooms || []).forEach(cleanRoom));
+          } else {
+            (bld.rooms || []).forEach(cleanRoom);
+          }
+        });
+
+        const targetRoomObj = findRoomInConfig(roomsConfig, bldName, floorName, roomName);
+        if (targetRoomObj) {
+          if (!targetRoomObj.uncles) targetRoomObj.uncles = [];
+          targetRoomObj.uncles.push({ id: String(uncleId), name: assignedName });
+        }
+
+        const success = await saveRoomsConfig(tripId, roomsConfig);
+        if (success) {
+          showToast('تم تسكين الخادم بنجاح! 👮', 'success');
+          renderRoomsWorkspaceData();
+        } else {
+          showToast('فشل تسكين الخادم', 'error');
+        }
+      };
+
       function downloadTaskeenCSV() {
         const tripId = window.currentTripId;
         const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
@@ -18316,70 +18378,6 @@
           await executeDirectMove(id, { bldName, floorName, roomName });
         } else if (type === 'uncle') {
           await executeUncleDirectMove(id, bldName, floorName, roomName);
-        }
-      };
-      
-      window.executeUncleDirectMove = async function(uncleId, bldName, floorName, roomName) {
-        const tripId = window.currentTripId;
-        const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
-        if (!trip) return;
-
-        const regs = tripRegistrationsCache[tripId] || [];
-        const regObj = regs.find(r => String(r.id) === String(uncleId) || String(r.student_id) === String(uncleId));
-
-        if (regObj) {
-          let customData = {};
-          try { customData = JSON.parse(regObj.custom_data || '{}'); } catch (e) { }
-          const nextRoom = {
-            'السكن': bldName,
-            'السكن__sf__الدور': floorName || '',
-            'السكن__sf__الغرفة': roomName
-          };
-          saveCustomDataPayload(tripId, [{ registration_id: regObj.id, custom_data: { ...customData, ...nextRoom } }]);
-          regObj.custom_data = JSON.stringify({ ...customData, ...nextRoom });
-        }
-
-        const roomsConfig = getTripRoomsConfig(trip);
-
-        let assignedName = '';
-        const selectedUncle = (window.allUnclesCache || []).find(u => String(u.id) === String(uncleId));
-        if (selectedUncle) {
-          assignedName = selectedUncle.name;
-        } else if (regObj) {
-          assignedName = regObj.student_name || regObj.name || 'خادم';
-        }
-        if (!assignedName) assignedName = 'خادم';
-
-        const targetBld = String(bldName || '').trim();
-        const targetFloor = String(floorName || '').trim();
-        const targetRoom = String(roomName || '').trim();
-
-        // Prevent duplicate uncle assignments
-        roomsConfig.forEach(bld => {
-          const cleanRoom = (r) => {
-            if (r.uncles) {
-              r.uncles = r.uncles.filter(u => String(typeof u === 'object' ? u.id : u) !== String(uncleId));
-            }
-          };
-          if (bld.has_floors) {
-            (bld.floors || []).forEach(fl => (fl.rooms || []).forEach(cleanRoom));
-          } else {
-            (bld.rooms || []).forEach(cleanRoom);
-          }
-        });
-
-        const targetRoomObj = findRoomInConfig(roomsConfig, bldName, floorName, roomName);
-        if (targetRoomObj) {
-          if (!targetRoomObj.uncles) targetRoomObj.uncles = [];
-          targetRoomObj.uncles.push({ id: String(uncleId), name: assignedName });
-        }
-
-        const success = await saveRoomsConfig(tripId, roomsConfig);
-        if (success) {
-          showToast('تم تسكين الخادم بنجاح! 👮', 'success');
-          renderRoomsWorkspaceData();
-        } else {
-          showToast('فشل تسكين الخادم', 'error');
         }
       };
 

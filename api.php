@@ -26557,7 +26557,7 @@ function updateTrip()
                     WHERE id = ?
                 ");
                 $stmt->bind_param(
-                    "sssssddsisiiisiissii",
+                    "sssssddsisiiisissisi",
                     $title,
                     $description,
                     $type,
@@ -26590,7 +26590,7 @@ function updateTrip()
                     WHERE id = ? AND church_id = ?
                 ");
                 $stmt->bind_param(
-                    "sssssddsisiiisiissiii",
+                    "sssssddsisiiisissisii",
                     $title,
                     $description,
                     $type,
