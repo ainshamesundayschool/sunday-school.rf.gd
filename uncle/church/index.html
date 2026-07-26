@@ -12276,6 +12276,14 @@
         }
 
         const API_URL = '/api.php';
+        const _origFetch = window.fetch;
+        window.fetch = function(input, init) {
+            init = init || {};
+            if (typeof input === 'string' && (input === API_URL || input.includes('api.php'))) {
+                if (!init.credentials) init.credentials = 'include';
+            }
+            return _origFetch.call(this, input, init);
+        };
         let allStudents = [], allUncles = [], classes = [], pendingRegistrations = [], allGuests = [];
         let currentTrips = [], allTripsCache = [];
         let selectedPendingIds = [], currentFileData = [];
