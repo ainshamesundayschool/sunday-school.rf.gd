@@ -16769,12 +16769,13 @@
         regs.forEach(r => {
           let cData = {};
           try { cData = JSON.parse(r.custom_data || '{}'); } catch (e) { }
-          const bldVal = cData['السكن'] || cData['المبنى'] || cData['مبنى'] || '';
-          if (bldVal) {
+          const bldVal = String(cData['السكن'] || cData['المبنى'] || cData['مبنى'] || '').trim();
+          const roomVal = String(cData['السكن__sf__الغرفة'] || cData['الغرفة'] || cData['غرفة'] || cData['رقم الغرفة'] || '').trim();
+          if (bldVal && roomVal) {
             allocatedMap[r.id] = {
               bldName: bldVal,
-              floorName: cData['السكن__sf__الدور'] || cData['الدور'] || '',
-              roomName: cData['السكن__sf__الغرفة'] || cData['الغرفة'] || cData['رقم الغرفة'] || ''
+              floorName: String(cData['السكن__sf__الدور'] || cData['الدور'] || cData['دور'] || '').trim(),
+              roomName: roomVal
             };
           }
         });
@@ -17027,25 +17028,26 @@
       function isAllocatedToRoom(alloc, bldName, floorName, roomName) {
         if (!alloc) return false;
 
-        const targetBld = String(bldName || '').trim();
-        const allocBld = String(alloc.bldName || '').trim();
-        if (allocBld !== targetBld && allocBld.replace(/^(المبنى|مبنى)\s*/, '') !== targetBld.replace(/^(المبنى|مبنى)\s*/, '')) {
-          return false;
+        const normBld = (s) => String(s || '').replace(/^(المبنى|مبنى)\s*/i, '').trim();
+        const normFl = (s) => String(s || '').replace(/^(الدور|دور)\s*/i, '').trim();
+        const normRm = (s) => String(s || '').replace(/^(غرفة|غرف|رقم)\s*/i, '').replace(/[()]/g, '').trim();
+
+        const allocBld = normBld(alloc.bldName);
+        const targetBld = normBld(bldName);
+
+        if (!allocBld || allocBld !== targetBld) return false;
+
+        const targetFloor = normFl(floorName);
+        const allocFloor = normFl(alloc.floorName);
+
+        if (targetFloor && allocFloor) {
+          if (allocFloor !== targetFloor) return false;
         }
 
-        if (floorName && alloc.floorName) {
-          const f1 = String(alloc.floorName).trim();
-          const f2 = String(floorName).trim();
-          if (f1 !== f2 && f1.replace(/^(الدور)\s*/, '') !== f2.replace(/^(الدور)\s*/, '')) return false;
-        }
+        const allocRoom = normRm(alloc.roomName);
+        const targetRoom = normRm(roomName);
 
-        const normAllocRoom = String(alloc.roomName || '').replace(/^(غرفة|غرف)\s*/, '').replace(/[()]/g, '').trim();
-        const normTargetRoom = String(roomName || '').replace(/^(غرفة|غرف)\s*/, '').replace(/[()]/g, '').trim();
-
-        if (normAllocRoom === normTargetRoom) return true;
-        if (String(alloc.roomName || '').trim() === String(roomName || '').trim()) return true;
-
-        return false;
+        return !!allocRoom && allocRoom === targetRoom;
       }
 
       /**
@@ -17457,6 +17459,9 @@
         let customData = {};
         try { customData = JSON.parse(r.custom_data || '{}'); } catch (e) { }
 
+        // Clear alternative keys to prevent stale field conflicts
+        ['المبنى', 'مبنى', 'الدور', 'دور', 'الغرفة', 'غرفة', 'رقم الغرفة'].forEach(k => delete customData[k]);
+
         const nextRoom = {
           'السكن': targetRoomObj.bldName,
           'السكن__sf__الدور': targetRoomObj.floorName || '',
@@ -17499,12 +17504,16 @@
         let sourceData = {};
         try { sourceData = JSON.parse(sourceReg.custom_data || '{}'); } catch (e) { }
 
+        ['المبنى', 'مبنى', 'الدور', 'دور', 'الغرفة', 'غرفة', 'رقم الغرفة'].forEach(k => delete sourceData[k]);
+
         if (targetRegId) {
           // SWAP
           const targetReg = regs.find(r => r.id == targetRegId);
           if (!targetReg) return;
           let targetData = {};
           try { targetData = JSON.parse(targetReg.custom_data || '{}'); } catch (e) { }
+
+          ['المبنى', 'مبنى', 'الدور', 'دور', 'الغرفة', 'غرفة', 'رقم الغرفة'].forEach(k => delete targetData[k]);
 
           const nextSourceRoom = {
             'السكن': targetData['السكن'] || '',
@@ -17548,7 +17557,7 @@
             if (!nextTargetRoom['السكن__sf__الدور']) delete cleanTarget['السكن__sf__الدور'];
             targetReg.custom_data = JSON.stringify(cleanTarget);
 
-            renderRoomsPanel(tripId);
+            renderRoomsWorkspaceData();
           }
         } else {
           // MOVE
@@ -17574,7 +17583,7 @@
             const cleanCustomData = { ...sourceData, ...nextRoom };
             if (!nextRoom['السكن__sf__الدور']) delete cleanCustomData['السكن__sf__الدور'];
             sourceReg.custom_data = JSON.stringify(cleanCustomData);
-            renderRoomsPanel(tripId);
+            renderRoomsWorkspaceData();
           }
         }
         cancelRoomsSwapMode();
@@ -17594,13 +17603,11 @@
         let customData = {};
         try { customData = JSON.parse(r.custom_data || '{}'); } catch (e) { }
 
+        const roomKeys = ['السكن', 'السكن__sf__الدور', 'السكن__sf__الغرفة', 'المبنى', 'مبنى', 'الدور', 'دور', 'الغرفة', 'غرفة', 'رقم الغرفة'];
+
         // Send explicit empty values so PHP bulkUpdateCustomData unsets these keys in the database
-        const payloadCustomData = {
-          ...customData,
-          'السكن': '',
-          'السكن__sf__الدور': '',
-          'السكن__sf__الغرفة': ''
-        };
+        const payloadCustomData = { ...customData };
+        roomKeys.forEach(k => { payloadCustomData[k] = ''; });
 
         if (window.roomsDraftAllocations) {
           delete window.roomsDraftAllocations[r.id];
@@ -17615,9 +17622,7 @@
         const success = await saveCustomDataPayload(tripId, payload);
         if (success) {
           showToast('تم إخراج الطفل من الغرفة', 'info');
-          delete customData['السكن'];
-          delete customData['السكن__sf__الدور'];
-          delete customData['السكن__sf__الغرفة'];
+          roomKeys.forEach(k => delete customData[k]);
           r.custom_data = JSON.stringify(customData);
           renderRoomsWorkspaceData();
         }
@@ -17632,17 +17637,15 @@
         const tripId = window.currentTripId;
         const regs = tripRegistrationsCache[tripId] || [];
         const payload = [];
+        const roomKeys = ['السكن', 'السكن__sf__الدور', 'السكن__sf__الغرفة', 'المبنى', 'مبنى', 'الدور', 'دور', 'الغرفة', 'غرفة', 'رقم الغرفة'];
 
         regs.forEach(r => {
           let customData = {};
           try { customData = JSON.parse(r.custom_data || '{}'); } catch (e) { }
-          if (customData['السكن']) {
-            const payloadCustomData = {
-              ...customData,
-              'السكن': '',
-              'السكن__sf__الدور': '',
-              'السكن__sf__الغرفة': ''
-            };
+          const hasRoom = roomKeys.some(k => !!String(customData[k] || '').trim());
+          if (hasRoom) {
+            const payloadCustomData = { ...customData };
+            roomKeys.forEach(k => payloadCustomData[k] = '');
             payload.push({ registration_id: r.id, custom_data: payloadCustomData });
           }
         });
@@ -17665,9 +17668,7 @@
           regs.forEach(r => {
             let customData = {};
             try { customData = JSON.parse(r.custom_data || '{}'); } catch (e) { }
-            delete customData['السكن'];
-            delete customData['السكن__sf__الدور'];
-            delete customData['السكن__sf__الغرفة'];
+            roomKeys.forEach(k => delete customData[k]);
             r.custom_data = JSON.stringify(customData);
           });
           renderRoomsWorkspaceData();
