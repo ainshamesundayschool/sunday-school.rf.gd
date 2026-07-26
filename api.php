@@ -1630,6 +1630,12 @@ ini_set('session.gc_maxlifetime', 315360000);
 
 ini_set('session.cookie_lifetime', 315360000);
 
+function ensureActiveSession() {
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        @session_start();
+    }
+}
+
 session_start();
 
 if (!empty($_POST['dev_override_church_id'])) {
@@ -1641,6 +1647,9 @@ if (!empty($_POST['dev_override_church_id'])) {
         }
     }
 }
+
+// Release session lock immediately so concurrent API calls execute in parallel
+session_write_close();
 
 
 

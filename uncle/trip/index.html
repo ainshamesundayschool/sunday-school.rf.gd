@@ -2972,7 +2972,7 @@
                 fd.append('trip_id', tripId);
 
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 10000);
+                const timeoutId = setTimeout(() => controller.abort(), 30000);
 
                 try {
                     const res = await fetch(API_URL, { method: 'POST', body: fd, signal: controller.signal }).then(r => r.json());
