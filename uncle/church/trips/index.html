@@ -17212,8 +17212,13 @@
        * Toggle Trip Rooms ON/OFF directly from the Rooms Tab
        */
       async function toggleTripRoomsActive(tripId, enableBool) {
+        if (!tripId) tripId = window.currentTripId;
+        if (!tripId && window.currentTripObj) tripId = window.currentTripObj.id;
         const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
-        if (!trip) return;
+        if (!trip || !tripId) {
+          showToast('لم يتم العثور على بيانات الرحلة', 'error');
+          return;
+        }
 
         if (!enableBool) {
           if (!(await showConfirm({ message: 'تنبيه: هل أنت متأكد من إيقاف نظام السكن والغرف لهذه الرحلة؟ (لن تُحذف بيانات الغرف المسكنة بالفعل)' }))) return;
@@ -17222,6 +17227,8 @@
         const fd = new FormData();
         fd.append('action', 'updateTrip');
         fd.append('trip_id', tripId);
+        if (trip.title) fd.append('title', trip.title);
+        if (trip.start_date) fd.append('start_date', trip.start_date);
         fd.append('has_rooms', enableBool ? '1' : '0');
         if (trip.rooms_config) {
           fd.append('rooms_config', typeof trip.rooms_config === 'string' ? trip.rooms_config : JSON.stringify(trip.rooms_config));
@@ -17249,8 +17256,13 @@
        * Save rooms configuration layout from the Rooms Tab
        */
       async function saveRoomsConfigFromRoomsTab(tripId, prefix = 'roomsTab') {
+        if (!tripId) tripId = window.currentTripId;
+        if (!tripId && window.currentTripObj) tripId = window.currentTripObj.id;
         const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
-        if (!trip) return;
+        if (!trip || !tripId) {
+          showToast('لم يتم العثور على بيانات الرحلة المحددة', 'error');
+          return;
+        }
 
         let config = compileRoomsConfig(prefix);
         if (!config || !config.length) {
@@ -17288,6 +17300,8 @@
         const fd = new FormData();
         fd.append('action', 'updateTrip');
         fd.append('trip_id', tripId);
+        if (trip.title) fd.append('title', trip.title);
+        if (trip.start_date) fd.append('start_date', trip.start_date);
         fd.append('has_rooms', '1');
         fd.append('rooms_config', roomsConfigStr);
         fd.append('rooms_wizard_edited', '1');
