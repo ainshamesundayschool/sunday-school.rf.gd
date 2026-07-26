@@ -208,12 +208,11 @@ if ($hasSession && isset($_GET['kid_id']) && intval($_GET['kid_id']) > 0 && !(is
 $churchName = $_SESSION['church_name'] ?? 'الكنيسة';
 $churchCode = $_SESSION['church_code'] ?? '';
 $uncleName = $_SESSION['uncle_name'] ?? '';
-$uncleRole = $_SESSION['uncle_role'] ?? '';
+$uncleRole = strtolower(trim($_SESSION['uncle_role'] ?? $_SESSION['role'] ?? ''));
 $churchType = $_SESSION['church_type'] ?? 'kids'; // 'kids' or 'youth'
 
-$showSettings = $hasChurchId || ($hasUncleId && in_array($uncleRole, ['developer', 'admin']));
-if ($hasUncleId && $uncleRole === 'uncle')
-    $showSettings = false;
+$isDevOrAdmin = in_array($uncleRole, ['developer', 'dev', 'admin', 'administrator', 'superadmin']) || !empty($_SESSION['is_developer']) || (isset($_SESSION['role']) && in_array(strtolower(trim($_SESSION['role'])), ['developer', 'dev', 'admin', 'administrator']));
+$showSettings = $hasChurchId || $isDevOrAdmin;
 ?>
 <!DOCTYPE html>
 <html lang="ar" dir="rtl" data-theme="light">
@@ -12102,13 +12101,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                         style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:var(--warning);border-radius:50%;border:2px solid var(--bg)"></span>
                 </button>
 
-                <?php if ($showSettings): ?>
-                    <!-- Admin / Church settings -->
-                    <a class="topbar-btn" href="<?php echo $pathPrefix; ?>/uncle/church/" title="لوحة الإدارة والإعدادات"
-                        style="text-decoration:none;">
-                        <i class="fa-solid fa-sliders"></i>
-                    </a>
-                <?php endif; ?>
+                <!-- Admin / Church settings -->
+                <a class="topbar-btn" id="adminChurchBtn" href="<?php echo $pathPrefix; ?>/uncle/church/" title="لوحة الإدارة والإعدادات"
+                    style="display:<?php echo $showSettings ? 'flex' : 'none'; ?>; text-decoration:none;">
+                    <i class="fa-solid fa-sliders"></i>
+                </a>
 
                 <div class="topbar-avatar-btn" id="uncleChip"
                     style="display:<?php echo $hasUncleId ? 'flex' : 'none' ?>; cursor:pointer;"
@@ -15008,6 +15005,14 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (!fd.has('church_id')) {
                     fd.append('church_id', devViewChurchId);
                 }
+            }
+            if (!fd.has('church_id')) {
+                const cc = localStorage.getItem('churchId');
+                if (cc) fd.append('church_id', cc);
+            }
+            if (!fd.has('username')) {
+                const un = localStorage.getItem('uncleUsername');
+                if (un) fd.append('username', un);
             }
             fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' })
                 .then(r => r.json())
@@ -25320,6 +25325,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 const name = localStorage.getItem('uncleName');
                 const cachedImg = localStorage.getItem('uncleImageUrl');
                 const chip = document.getElementById('uncleChip');
+                const adminBtn = document.getElementById('adminChurchBtn');
+                const cachedRole = (localStorage.getItem('uncleRole') || '').toLowerCase();
+                if (adminBtn && (cachedRole === 'developer' || cachedRole === 'dev' || cachedRole === 'admin' || cachedRole === 'administrator' || (typeof isDeveloper !== 'undefined' && isDeveloper))) {
+                    adminBtn.style.display = 'flex';
+                }
                 if (chip && name) {
                     chip.style.display = 'flex';
                     const av = document.getElementById('uncleAvatar');
@@ -25363,6 +25373,11 @@ if ($hasUncleId && $uncleRole === 'uncle')
                     localStorage.setItem('uncleBirthday', r.uncle.birthday || '');
                     const chip = document.getElementById('uncleChip');
                     if (chip) chip.style.display = 'flex';
+                    const adminBtn = document.getElementById('adminChurchBtn');
+                    const rRole = (r.uncle.role || '').toLowerCase();
+                    if (adminBtn && (rRole === 'developer' || rRole === 'dev' || rRole === 'admin' || rRole === 'administrator' || (typeof isDeveloper !== 'undefined' && isDeveloper))) {
+                        adminBtn.style.display = 'flex';
+                    }
                     // Update hero greeting with fresh name from DB
                     const heroEl = document.getElementById('heroName');
                     if (heroEl && r.uncle.name) heroEl.textContent = r.uncle.name;
