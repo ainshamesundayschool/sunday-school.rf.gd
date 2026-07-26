@@ -16387,17 +16387,22 @@
             const hasRooms = document.getElementById('editTripHasRooms').value === '1';
             let roomsConfig = null;
             if (hasRooms) {
-                let config = compileRoomsConfig('edit');
-                if (t && t.rooms_config) {
-                    config = mergeRoomsConfigs(config, t.rooms_config);
+                if (t && t.rooms_config && !window.roomsWizardEditedInModal) {
+                    roomsConfig = typeof t.rooms_config === 'string' ? t.rooms_config : JSON.stringify(t.rooms_config);
+                } else {
+                    let config = compileRoomsConfig('edit');
+                    if (t && t.rooms_config) {
+                        config = mergeRoomsConfigs(config, t.rooms_config);
+                    }
+                    roomsConfig = JSON.stringify(config);
                 }
-                roomsConfig = JSON.stringify(config);
+                const parsedConfig = typeof roomsConfig === 'string' ? (JSON.parse(roomsConfig || '[]')) : (roomsConfig || []);
                 const fieldsList = customFields.split(',').map(x => x.trim()).filter(Boolean);
                 if (!fieldsList.includes('السكن')) {
                     fieldsList.push('السكن');
                 }
                 customFields = fieldsList.join(',');
-                customFieldIcons['السكن'] = buildAccommodationCustomFieldMeta(config);
+                customFieldIcons['السكن'] = buildAccommodationCustomFieldMeta(parsedConfig);
             } else {
                 const fieldsList = customFields.split(',').map(x => x.trim()).filter(Boolean).filter(f => f !== 'السكن');
                 customFields = fieldsList.join(',');

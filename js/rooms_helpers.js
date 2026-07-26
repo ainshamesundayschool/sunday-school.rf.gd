@@ -598,77 +598,122 @@ async function saveCurrentRoomsAsTemplate(prefix) {
  * to preserve custom assignments (like uncles, filters, exclusions)
  */
 function mergeRoomsConfigs(newConfig, oldConfig) {
-    if (!newConfig || !oldConfig) return newConfig;
+    if (!oldConfig) return newConfig;
+    if (!newConfig) return oldConfig;
     
-    const existingRoomsMap = new Map();
     let oldConfigArr = [];
+    let newConfigArr = [];
     try {
         oldConfigArr = typeof oldConfig === 'string' ? JSON.parse(oldConfig) : oldConfig;
     } catch (e) {
         console.error("Error parsing oldConfig in mergeRoomsConfigs", e);
         return newConfig;
     }
+    try {
+        newConfigArr = typeof newConfig === 'string' ? JSON.parse(newConfig) : newConfig;
+    } catch (e) {
+        return oldConfigArr;
+    }
     
-    if (Array.isArray(oldConfigArr)) {
-        oldConfigArr.forEach(bld => {
-            const bldName = (bld.name || '').trim();
-            if (bld.has_floors && Array.isArray(bld.floors)) {
-                bld.floors.forEach(floor => {
-                    const floorName = (floor.name || '').trim();
-                    if (Array.isArray(floor.rooms)) {
-                        floor.rooms.forEach(room => {
-                            const roomName = (room.name || '').trim();
-                            const key = `${bldName}|${floorName}|${roomName}`;
-                            existingRoomsMap.set(key, room);
-                        });
-                    }
-                });
-            } else if (Array.isArray(bld.rooms)) {
-                bld.rooms.forEach(room => {
-                    const roomName = (room.name || '').trim();
-                    const key = `${bldName}||${roomName}`;
-                    existingRoomsMap.set(key, room);
-                });
-            }
-        });
-    }
+    if (!Array.isArray(oldConfigArr) || oldConfigArr.length === 0) return newConfigArr;
+    if (!Array.isArray(newConfigArr) || newConfigArr.length === 0) return oldConfigArr;
 
-    if (Array.isArray(newConfig)) {
-        newConfig.forEach(bld => {
-            const bldName = (bld.name || '').trim();
-            if (bld.has_floors && Array.isArray(bld.floors)) {
-                bld.floors.forEach(floor => {
-                    const floorName = (floor.name || '').trim();
-                    if (Array.isArray(floor.rooms)) {
-                        floor.rooms.forEach(room => {
-                            const roomName = (room.name || '').trim();
-                            const key = `${bldName}|${floorName}|${roomName}`;
-                            if (existingRoomsMap.has(key)) {
-                                const oldRoom = existingRoomsMap.get(key);
-                                room.uncles = oldRoom.uncles || [];
-                                room.is_excluded = oldRoom.is_excluded !== undefined ? oldRoom.is_excluded : false;
-                                room.gender_filter = oldRoom.gender_filter !== undefined ? oldRoom.gender_filter : null;
-                                room.church_filter = oldRoom.church_filter !== undefined ? oldRoom.church_filter : null;
-                            }
-                        });
-                    }
-                });
-            } else if (Array.isArray(bld.rooms)) {
-                bld.rooms.forEach(room => {
-                    const roomName = (room.name || '').trim();
-                    const key = `${bldName}||${roomName}`;
-                    if (existingRoomsMap.has(key)) {
-                        const oldRoom = existingRoomsMap.get(key);
-                        room.uncles = oldRoom.uncles || [];
-                        room.is_excluded = oldRoom.is_excluded !== undefined ? oldRoom.is_excluded : false;
-                        room.gender_filter = oldRoom.gender_filter !== undefined ? oldRoom.gender_filter : null;
-                        room.church_filter = oldRoom.church_filter !== undefined ? oldRoom.church_filter : null;
-                    }
-                });
-            }
-        });
-    }
+    const existingRoomsMap = new Map();
+    oldConfigArr.forEach(bld => {
+        const bldName = (bld.name || '').trim();
+        if (bld.has_floors && Array.isArray(bld.floors)) {
+            bld.floors.forEach(floor => {
+                const floorName = (floor.name || '').trim();
+                if (Array.isArray(floor.rooms)) {
+                    floor.rooms.forEach(room => {
+                        const roomName = (room.name || '').trim();
+                        const key = `${bldName}|${floorName}|${roomName}`;
+                        existingRoomsMap.set(key, room);
+                    });
+                }
+            });
+        } else if (Array.isArray(bld.rooms)) {
+            bld.rooms.forEach(room => {
+                const roomName = (room.name || '').trim();
+                const key = `${bldName}||${roomName}`;
+                existingRoomsMap.set(key, room);
+            });
+        }
+    });
 
-    return newConfig;
+    const mergedKeys = new Set();
+
+    newConfigArr.forEach(bld => {
+        const bldName = (bld.name || '').trim();
+        if (bld.has_floors && Array.isArray(bld.floors)) {
+            bld.floors.forEach(floor => {
+                const floorName = (floor.name || '').trim();
+                if (Array.isArray(floor.rooms)) {
+                    floor.rooms.forEach(room => {
+                        const roomName = (room.name || '').trim();
+                        const key = `${bldName}|${floorName}|${roomName}`;
+                        if (existingRoomsMap.has(key)) {
+                            mergedKeys.add(key);
+                            const oldRoom = existingRoomsMap.get(key);
+                            Object.assign(room, oldRoom);
+                        }
+                    });
+                }
+            });
+        } else if (Array.isArray(bld.rooms)) {
+            bld.rooms.forEach(room => {
+                const roomName = (room.name || '').trim();
+                const key = `${bldName}||${roomName}`;
+                if (existingRoomsMap.has(key)) {
+                    mergedKeys.add(key);
+                    const oldRoom = existingRoomsMap.get(key);
+                    Object.assign(room, oldRoom);
+                }
+            });
+        }
+    });
+
+    // Retain any extra rooms or buildings from oldConfig that were not in newConfig
+    oldConfigArr.forEach(oldBld => {
+        const bldName = (oldBld.name || '').trim();
+        let targetBld = newConfigArr.find(b => (b.name || '').trim() === bldName);
+        if (!targetBld) {
+            newConfigArr.push(oldBld);
+            return;
+        }
+
+        if (oldBld.has_floors && Array.isArray(oldBld.floors)) {
+            oldBld.floors.forEach(oldFloor => {
+                const floorName = (oldFloor.name || '').trim();
+                if (!targetBld.floors) targetBld.floors = [];
+                let targetFloor = targetBld.floors.find(f => (f.name || '').trim() === floorName);
+                if (!targetFloor) {
+                    targetBld.floors.push(oldFloor);
+                    return;
+                }
+                if (Array.isArray(oldFloor.rooms)) {
+                    oldFloor.rooms.forEach(oldRoom => {
+                        const roomName = (oldRoom.name || '').trim();
+                        const key = `${bldName}|${floorName}|${roomName}`;
+                        if (!mergedKeys.has(key)) {
+                            if (!targetFloor.rooms) targetFloor.rooms = [];
+                            targetFloor.rooms.push(oldRoom);
+                        }
+                    });
+                }
+            });
+        } else if (Array.isArray(oldBld.rooms)) {
+            oldBld.rooms.forEach(oldRoom => {
+                const roomName = (oldRoom.name || '').trim();
+                const key = `${bldName}||${roomName}`;
+                if (!mergedKeys.has(key)) {
+                    if (!targetBld.rooms) targetBld.rooms = [];
+                    targetBld.rooms.push(oldRoom);
+                }
+            });
+        }
+    });
+
+    return newConfigArr;
 }
 

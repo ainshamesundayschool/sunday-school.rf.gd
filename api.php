@@ -25666,6 +25666,126 @@ function addTrip()
 
 }
 
+function mergeRoomsConfigsPHP($newConfigJson, $oldConfigJson) {
+    $newConfig = is_string($newConfigJson) ? json_decode($newConfigJson, true) : $newConfigJson;
+    $oldConfig = is_string($oldConfigJson) ? json_decode($oldConfigJson, true) : $oldConfigJson;
+
+    if (!is_array($oldConfig) || empty($oldConfig)) {
+        return is_string($newConfigJson) ? $newConfigJson : json_encode($newConfig, JSON_UNESCAPED_UNICODE);
+    }
+    if (!is_array($newConfig) || empty($newConfig)) {
+        return is_string($oldConfigJson) ? $oldConfigJson : json_encode($oldConfig, JSON_UNESCAPED_UNICODE);
+    }
+
+    $existingRoomsMap = [];
+    foreach ($oldConfig as $bld) {
+        $bldName = trim($bld['name'] ?? '');
+        if (!empty($bld['has_floors']) && isset($bld['floors']) && is_array($bld['floors'])) {
+            foreach ($bld['floors'] as $floor) {
+                $floorName = trim($floor['name'] ?? '');
+                if (isset($floor['rooms']) && is_array($floor['rooms'])) {
+                    foreach ($floor['rooms'] as $room) {
+                        $roomName = trim($room['name'] ?? '');
+                        $key = "{$bldName}|{$floorName}|{$roomName}";
+                        $existingRoomsMap[$key] = $room;
+                    }
+                }
+            }
+        } elseif (isset($bld['rooms']) && is_array($bld['rooms'])) {
+            foreach ($bld['rooms'] as $room) {
+                $roomName = trim($room['name'] ?? '');
+                $key = "{$bldName}||{$roomName}";
+                $existingRoomsMap[$key] = $room;
+            }
+        }
+    }
+
+    $mergedKeys = [];
+    foreach ($newConfig as &$bld) {
+        $bldName = trim($bld['name'] ?? '');
+        if (!empty($bld['has_floors']) && isset($bld['floors']) && is_array($bld['floors'])) {
+            foreach ($bld['floors'] as &$floor) {
+                $floorName = trim($floor['name'] ?? '');
+                if (isset($floor['rooms']) && is_array($floor['rooms'])) {
+                    foreach ($floor['rooms'] as &$room) {
+                        $roomName = trim($room['name'] ?? '');
+                        $key = "{$bldName}|{$floorName}|{$roomName}";
+                        if (isset($existingRoomsMap[$key])) {
+                            $mergedKeys[$key] = true;
+                            $oldRoom = $existingRoomsMap[$key];
+                            $room = array_merge($room, $oldRoom);
+                        }
+                    }
+                }
+            }
+        } elseif (isset($bld['rooms']) && is_array($bld['rooms'])) {
+            foreach ($bld['rooms'] as &$room) {
+                $roomName = trim($room['name'] ?? '');
+                $key = "{$bldName}||{$roomName}";
+                if (isset($existingRoomsMap[$key])) {
+                    $mergedKeys[$key] = true;
+                    $oldRoom = $existingRoomsMap[$key];
+                    $room = array_merge($room, $oldRoom);
+                }
+            }
+        }
+    }
+    unset($bld, $floor, $room);
+
+    foreach ($oldConfig as $oldBld) {
+        $bldName = trim($oldBld['name'] ?? '');
+        $foundBldIdx = null;
+        foreach ($newConfig as $idx => $nb) {
+            if (trim($nb['name'] ?? '') === $bldName) {
+                $foundBldIdx = $idx;
+                break;
+            }
+        }
+        if ($foundBldIdx === null) {
+            $newConfig[] = $oldBld;
+            continue;
+        }
+
+        if (!empty($oldBld['has_floors']) && isset($oldBld['floors']) && is_array($oldBld['floors'])) {
+            foreach ($oldBld['floors'] as $oldFloor) {
+                $floorName = trim($oldFloor['name'] ?? '');
+                $foundFloorIdx = null;
+                if (isset($newConfig[$foundBldIdx]['floors']) && is_array($newConfig[$foundBldIdx]['floors'])) {
+                    foreach ($newConfig[$foundBldIdx]['floors'] as $fidx => $nf) {
+                        if (trim($nf['name'] ?? '') === $floorName) {
+                            $foundFloorIdx = $fidx;
+                            break;
+                        }
+                    }
+                }
+                if ($foundFloorIdx === null) {
+                    $newConfig[$foundBldIdx]['floors'][] = $oldFloor;
+                    continue;
+                }
+                if (isset($oldFloor['rooms']) && is_array($oldFloor['rooms'])) {
+                    foreach ($oldFloor['rooms'] as $oldRoom) {
+                        $roomName = trim($oldRoom['name'] ?? '');
+                        $key = "{$bldName}|{$floorName}|{$roomName}";
+                        if (empty($mergedKeys[$key])) {
+                            $newConfig[$foundBldIdx]['floors'][$foundFloorIdx]['rooms'][] = $oldRoom;
+                        }
+                    }
+                }
+            }
+        } elseif (isset($oldBld['rooms']) && is_array($oldBld['rooms'])) {
+            foreach ($oldBld['rooms'] as $oldRoom) {
+                $roomName = trim($oldRoom['name'] ?? '');
+                $key = "{$bldName}||{$roomName}";
+                if (empty($mergedKeys[$key])) {
+                    $newConfig[$foundBldIdx]['rooms'][] = $oldRoom;
+                }
+            }
+        }
+    }
+
+    return json_encode($newConfig, JSON_UNESCAPED_UNICODE);
+}
+
 function updateTrip()
 
 {
@@ -25762,8 +25882,17 @@ function updateTrip()
         $hasRooms = isset($_POST['has_rooms']) ? intval($_POST['has_rooms']) : intval($oldTrip['has_rooms'] ?? 0);
         $hasRooms = $hasRooms ? 1 : 0;
 
-        $roomsConfig = isset($_POST['rooms_config']) ? $_POST['rooms_config'] : ($oldTrip['rooms_config'] ?? null);
-        if ($roomsConfig === '' || $roomsConfig === 'null') {
+        $incomingRoomsConfig = $_POST['rooms_config'] ?? null;
+        $oldRoomsConfig = $oldTrip['rooms_config'] ?? null;
+        if ($hasRooms === 1) {
+            if (empty($incomingRoomsConfig) || $incomingRoomsConfig === 'null' || $incomingRoomsConfig === '[]' || $incomingRoomsConfig === '') {
+                $roomsConfig = !empty($oldRoomsConfig) && $oldRoomsConfig !== 'null' ? $oldRoomsConfig : null;
+            } elseif (!empty($oldRoomsConfig) && $oldRoomsConfig !== 'null' && $oldRoomsConfig !== '[]' && $oldRoomsConfig !== '') {
+                $roomsConfig = mergeRoomsConfigsPHP($incomingRoomsConfig, $oldRoomsConfig);
+            } else {
+                $roomsConfig = $incomingRoomsConfig;
+            }
+        } else {
             $roomsConfig = null;
         }
 
