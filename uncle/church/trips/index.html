@@ -16311,7 +16311,21 @@
           .rooms-stat-card { text-align: center; }
           .rooms-stat-val { font-size: 1.3rem; font-weight: 800; color: var(--primary); }
           .rooms-stat-lbl { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
-          .rooms-actions-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+          .rooms-actions-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 8px 12px; margin-bottom: 14px; box-shadow: var(--shadow-sm); }
+          .rooms-actions-group { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+          .rooms-act-btn { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; font-size: 0.78rem; font-weight: 800; border-radius: 8px; height: 32px; white-space: nowrap; transition: all 0.2s ease; cursor: pointer; font-family: inherit; }
+          .rooms-act-btn:hover { transform: translateY(-1px); }
+          .rooms-more-menu-wrap { position: relative; display: inline-block; }
+          .rooms-more-dropdown { position: absolute; top: calc(100% + 6px); right: 0; background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.14); z-index: 200; min-width: 170px; padding: 6px; }
+          .rooms-dropdown-item { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 10px; background: transparent; border: none; border-radius: 6px; color: var(--text); font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: inherit; text-align: right; transition: background 0.15s ease; }
+          .rooms-dropdown-item:hover { background: var(--surface-2); }
+          .rooms-dropdown-item.danger { color: var(--danger); }
+          .rooms-dropdown-item.danger:hover { background: var(--danger-light); }
+          .rooms-dropdown-divider { border-top: 1px dashed var(--border); margin: 4px 0; }
+          .rooms-search-box-wrap { position: relative; width: 220px; }
+          .rooms-search-input { font-size: 0.78rem !important; height: 32px !important; padding: 4px 10px 4px 30px !important; width: 100% !important; font-family: 'Cairo', sans-serif !important; border-radius: 8px !important; border: 1.5px solid var(--border) !important; background: var(--bg) !important; transition: all 0.2s ease !important; }
+          .rooms-search-input:focus { border-color: var(--primary) !important; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12) !important; }
+          .rooms-search-box-wrap .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; color: var(--muted); pointer-events: none; }
           .rooms-grid { display: flex; flex-direction: column; gap: 20px; }
           .ws-building-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03); }
           .ws-building-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-solid); padding-bottom: 8px; margin-bottom: 12px; }
@@ -16491,9 +16505,9 @@
           @media (max-width: 768px) {
             .rooms-stats-bar { grid-template-columns: repeat(2, 1fr); }
             .rooms-stats-bar .rooms-stat-card:last-child { grid-column: span 2; }
-            .rooms-actions-row { flex-direction: column; align-items: stretch; gap: 12px; }
-            .rooms-actions-row > div { width: 100%; }
-            .rooms-actions-row > div:last-child input { width: 100% !important; }
+            .rooms-actions-row { flex-direction: column; align-items: stretch; gap: 10px; padding: 10px; }
+            .rooms-actions-group { width: 100%; justify-content: space-between; }
+            .rooms-search-box-wrap { width: 100% !important; }
             .ws-room-search-popover {
               width: auto;
               left: -10px;
@@ -16644,20 +16658,44 @@
 
               <!-- Actions Row -->
               <div class="rooms-actions-row">
-                <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                  <button type="button" class="btn btn-primary btn-sm" onclick="openAutoFillWizardModal()"><i class="fas fa-magic"></i> توزيع تلقائي ذكي</button>
-                  <button type="button" class="btn btn-outline btn-sm" style="color:var(--primary); border-color:var(--primary);" onclick="openBulkRoomsModal()"><i class="fas fa-edit"></i> تعديل وإضافة جماعية (Bulk)</button>
-                  <button type="button" class="btn btn-outline btn-sm" style="color:var(--primary); border-color:var(--primary); font-weight:800;" onclick="openRoomsStructureModal(${tripId})"><i class="fas fa-tools"></i> تعديل إضافة المباني والغرف (الهيكل)</button>
-                  <button type="button" class="btn btn-success btn-sm" style="background:#10b981; color:#fff; border:none;" onclick="downloadTaskeenCSV()"><i class="fas fa-file-csv"></i> تحميل التسكين CSV</button>
-                  <button type="button" class="btn btn-outline btn-sm" style="color:var(--danger); border-color:var(--danger);" onclick="clearAllRoomsAllocations()"><i class="fas fa-trash-alt"></i> مسح كل التسكين</button>
-                  <button type="button" class="btn btn-outline btn-sm" style="color:var(--danger); border-color:var(--danger);" onclick="toggleTripRoomsActive(${tripId}, false)"><i class="fas fa-power-off"></i> إيقاف السكن</button>
-                  ${isDeveloperUser() ? `<button type="button" class="btn btn-outline btn-sm" onclick="saveActiveTripRoomsAsTemplate()"><i class="fas fa-save"></i> حفظ الهيكل كقالب</button>` : ''}
-                </div>
-                <div style="display:flex; gap:6px; align-items:center;">
-                  <div style="position:relative; width:220px;">
-                    <input type="text" id="roomsSearchFilter" class="form-input" placeholder="بحث باسم الطفل أو الغرفة..." style="font-size:0.75rem; height:32px; padding:4px 10px 4px 30px; width:100%; font-family:'Cairo'; border-radius:6px;" oninput="onRoomsSearchChange()">
-                    <i class="fas fa-search" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:0.75rem; color:var(--muted); pointer-events:none;"></i>
+                <div class="rooms-actions-group">
+                  <button type="button" class="btn btn-primary btn-sm rooms-act-btn" onclick="openAutoFillWizardModal()" title="توزيع تلقائي ذكي لجميع الأطفال على الغرف">
+                    <i class="fas fa-magic"></i> <span>توزيع ذكي</span>
+                  </button>
+                  <button type="button" class="btn btn-outline btn-sm rooms-act-btn" style="color:var(--primary); border-color:var(--primary);" onclick="openRoomsStructureModal(${tripId})" title="تعديل هيكل المباني والأدوار والغرف وسعاتها">
+                    <i class="fas fa-tools"></i> <span>الهيكل</span>
+                  </button>
+                  <button type="button" class="btn btn-outline btn-sm rooms-act-btn" style="color:var(--primary); border-color:var(--primary);" onclick="openBulkRoomsModal()" title="رفع واستيراد CSV للتسكين الجماعي">
+                    <i class="fas fa-file-upload"></i> <span>استيراد</span>
+                  </button>
+                  <button type="button" class="btn btn-outline btn-sm rooms-act-btn" style="color:#10b981; border-color:#10b981;" onclick="downloadTaskeenCSV()" title="تحميل ملف CSV بالتسكين الحالي">
+                    <i class="fas fa-file-csv"></i> <span>تصدير</span>
+                  </button>
+
+                  <div class="rooms-more-menu-wrap">
+                    <button type="button" class="btn btn-outline btn-sm rooms-act-btn" onclick="toggleRoomsMoreMenu(event)" title="خيارات إضافية" style="color:var(--muted); border-color:var(--border);">
+                      <i class="fas fa-ellipsis-v"></i> <span>خيارات</span>
+                    </button>
+                    <div id="roomsMoreDropdown" class="rooms-more-dropdown" style="display:none;" onclick="event.stopPropagation()">
+                      <button type="button" class="rooms-dropdown-item danger" onclick="clearAllRoomsAllocations(); closeRoomsMoreMenu();">
+                        <i class="fas fa-trash-alt" style="width:16px;"></i> <span>مسح كل التسكين</span>
+                      </button>
+                      <button type="button" class="rooms-dropdown-item danger" onclick="toggleTripRoomsActive(${tripId}, false); closeRoomsMoreMenu();">
+                        <i class="fas fa-power-off" style="width:16px;"></i> <span>إيقاف السكن</span>
+                      </button>
+                      ${isDeveloperUser() ? `
+                        <div class="rooms-dropdown-divider"></div>
+                        <button type="button" class="rooms-dropdown-item" onclick="saveActiveTripRoomsAsTemplate(); closeRoomsMoreMenu();">
+                          <i class="fas fa-bookmark" style="width:16px; color:var(--primary);"></i> <span>حفظ كقالب</span>
+                        </button>
+                      ` : ''}
+                    </div>
                   </div>
+                </div>
+
+                <div class="rooms-search-box-wrap">
+                  <input type="text" id="roomsSearchFilter" class="form-input rooms-search-input" placeholder="بحث طفل أو غرفة..." oninput="onRoomsSearchChange()">
+                  <i class="fas fa-search search-icon"></i>
                 </div>
               </div>
 
@@ -17319,6 +17357,26 @@
           overlay.classList.remove('open');
         }
       };
+
+      window.toggleRoomsMoreMenu = function(e) {
+        if (e) e.stopPropagation();
+        const dd = document.getElementById('roomsMoreDropdown');
+        if (dd) {
+          const isShown = dd.style.display === 'block';
+          dd.style.display = isShown ? 'none' : 'block';
+        }
+      };
+
+      window.closeRoomsMoreMenu = function() {
+        const dd = document.getElementById('roomsMoreDropdown');
+        if (dd) dd.style.display = 'none';
+      };
+
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('.rooms-more-menu-wrap')) {
+          window.closeRoomsMoreMenu();
+        }
+      });
 
       window.cancelSelectionMode = function() {
         window.selectedKidForAllocation = null;
