@@ -11371,8 +11371,10 @@
         if (d.success) {
           window.optimizedEditTripCoverFile = null;
           const rawVal = document.getElementById('editTripImageUrl')?.value?.trim() || '';
-          const cleanVal = ['0', 'null', 'undefined', 'false', 'none'].includes(rawVal.toLowerCase()) ? '' : rawVal;
-          const finalImgUrl = (d.image_url !== undefined && d.image_url !== null) ? d.image_url : (d.trip && d.trip.image_url !== undefined ? d.trip.image_url : cleanVal);
+          let finalImgUrl = (d.image_url !== undefined && d.image_url !== null) ? d.image_url : (d.trip && d.trip.image_url !== undefined ? d.trip.image_url : cleanVal);
+          if (finalImgUrl && ['0', 'null', 'undefined', 'false', 'none'].includes(String(finalImgUrl).toLowerCase().trim())) {
+            finalImgUrl = '';
+          }
           allTripsCache = allTripsCache.map(item => String(item.id) === String(tripId) ? { ...item, ...d.trip, image_url: finalImgUrl, max_participants: nextMax, points_config: pointsConfig } : item);
           if (window.currentTripObj && String(window.currentTripObj.id) === String(tripId)) {
             window.currentTripObj = { ...window.currentTripObj, ...d.trip, image_url: finalImgUrl, max_participants: nextMax, points_config: pointsConfig };
