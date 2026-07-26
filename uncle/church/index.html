@@ -7811,6 +7811,7 @@
                                 <div class="card-title"><i class="fas fa-child"></i> قائمة الأطفال</div>
                                 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
                                     <button class="btn btn-primary btn-sm mobile-add-trigger" onclick="openMobileAddModal('studentsSidebar')" style="display:none;"><i class="fas fa-plus"></i> إضافة طفل</button>
+                                    <button class="btn btn-primary btn-sm" onclick="openTabCustomExport('students')" style="background:#6366f1; border:none;" title="تصدير مخصص لجميع بيانات الأطفال والخصائص"><i class="fas fa-sliders-h"></i> تصدير مخصص</button>
                                     <button class="btn btn-outline btn-sm" onclick="printAllKidsQRCards()"><i
                                             class="fas fa-qrcode"></i> طباعة QR الكل</button>
                                     <button class="btn btn-success btn-sm" onclick="showBulkAddModal()"><i
@@ -8050,6 +8051,7 @@
                             <select id="attClassFilter" class="form-select" onchange="filterAttendanceDisplay()">
                                 <option value="">جميع الفصول</option>
                             </select>
+                            <button class="btn btn-primary btn-sm" onclick="openTabCustomExport('attendance')" style="background:#6366f1; border:none;" title="تصدير مخصص لسجل حضور الأطفال"><i class="fas fa-sliders-h"></i> تصدير مخصص</button>
                             <button class="btn btn-primary btn-sm" onclick="showAddAttendanceModal()"><i
                                     class="fas fa-plus"></i> إضافة حضور</button>
                         </div>
