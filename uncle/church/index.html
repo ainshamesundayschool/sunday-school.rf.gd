@@ -28404,10 +28404,11 @@
 
         function getItemUniqueId(item, index) {
             if (!item) return 'item_' + index;
-            return item.id || item['_studentId'] || item.username || item.title || item.metric || ('key_' + index);
+            const val = item['_studentId'] || item.id || item.student_id || item.username || item.title || item.metric;
+            return val !== undefined && val !== null ? String(val) : ('key_' + index);
         }
 
-        window.openTabCustomExport = function(tabName) {
+        window.openTabCustomExport = async function(tabName) {
             currentExportTab = tabName || activeTabName || 'students';
 
             const titlesMap = {
@@ -28433,12 +28434,12 @@
                 titleInputEl.value = (titlesMap[currentExportTab] || 'تقرير مخصص') + ' — ' + dateStr;
             }
 
-            // Trigger async data fetch if needed
-            if (currentExportTab === 'uncles' && (!allUncles || !allUncles.length) && typeof loadUncles === 'function') loadUncles();
-            if (currentExportTab === 'students' && (!allStudents || !allStudents.length) && typeof loadStudents === 'function') loadStudents();
-            if (currentExportTab === 'guests' && (!allGuests || !allGuests.length) && typeof loadGuests === 'function') loadGuests();
-            if (currentExportTab === 'pending' && (!pendingRegistrations || !pendingRegistrations.length) && typeof loadPendingRegistrations === 'function') loadPendingRegistrations();
-            if (currentExportTab === 'trips' && (!currentTrips || !currentTrips.length) && typeof loadTrips === 'function') loadTrips();
+            // Trigger async data fetch if needed and await
+            if (currentExportTab === 'uncles' && (!allUncles || !allUncles.length) && typeof loadUncles === 'function') await loadUncles();
+            if (currentExportTab === 'students' && (!allStudents || !allStudents.length) && typeof loadStudents === 'function') await loadStudents();
+            if (currentExportTab === 'guests' && (!allGuests || !allGuests.length) && typeof loadGuests === 'function') await loadGuests();
+            if (currentExportTab === 'pending' && (!pendingRegistrations || !pendingRegistrations.length) && typeof loadPendingRegistrations === 'function') await loadPendingRegistrations();
+            if (currentExportTab === 'trips' && (!currentTrips || !currentTrips.length) && typeof loadTrips === 'function') await loadTrips();
 
             // Init fields & sort layers
             initTabCustomExportFields(true);
