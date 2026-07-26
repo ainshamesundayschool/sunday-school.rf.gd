@@ -25492,28 +25492,33 @@ function addTrip()
         $rawImgUrl = isset($_POST['image_url']) ? trim((string)$_POST['image_url']) : '';
         $imageUrl = in_array(strtolower($rawImgUrl), ['0', 'null', 'undefined', 'false', 'none', ''], true) ? null : sanitize($rawImgUrl);
 
-        if (isset($_FILES['trip_image']) && $_FILES['trip_image']['error'] === UPLOAD_ERR_OK) {
-            $uploadDir = __DIR__ . '/uploads/trips/';
-            if (!is_dir($uploadDir)) {
-                @mkdir($uploadDir, 0777, true);
-            }
-            $origName = $_FILES['trip_image']['name'] ?? 'image.jpg';
-            $ext = strtolower(pathinfo($origName, PATHINFO_EXTENSION));
-            if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true)) {
-                $ext = 'jpg';
-            }
-            $filename = 'trip_' . time() . '_' . uniqid() . '.' . $ext;
-            $uploadPath = $uploadDir . $filename;
-
-            $isImg = @getimagesize($_FILES['trip_image']['tmp_name']);
-            $mime = function_exists('mime_content_type') ? @mime_content_type($_FILES['trip_image']['tmp_name']) : '';
-
-            if ($isImg !== false || (is_string($mime) && strpos($mime, 'image/') === 0)) {
-                if (move_uploaded_file($_FILES['trip_image']['tmp_name'], $uploadPath)) {
-                    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
-                    $host = $_SERVER['HTTP_HOST'] ?? 'sunday-school.online';
-                    $imageUrl = $protocol . $host . "/uploads/trips/" . $filename;
+        if (isset($_FILES['trip_image'])) {
+            if ($_FILES['trip_image']['error'] === UPLOAD_ERR_OK) {
+                $uploadDir = __DIR__ . '/uploads/trips/';
+                if (!is_dir($uploadDir)) {
+                    @mkdir($uploadDir, 0777, true);
                 }
+                $origName = $_FILES['trip_image']['name'] ?? 'image.jpg';
+                $ext = strtolower(pathinfo($origName, PATHINFO_EXTENSION));
+                if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true)) {
+                    $ext = 'jpg';
+                }
+                $filename = 'trip_' . time() . '_' . uniqid() . '.' . $ext;
+                $uploadPath = $uploadDir . $filename;
+
+                $isImg = @getimagesize($_FILES['trip_image']['tmp_name']);
+                $mime = function_exists('mime_content_type') ? @mime_content_type($_FILES['trip_image']['tmp_name']) : '';
+
+                if ($isImg !== false || (is_string($mime) && strpos($mime, 'image/') === 0)) {
+                    if (move_uploaded_file($_FILES['trip_image']['tmp_name'], $uploadPath)) {
+                        $host = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'sunday-school.rf.gd';
+                        $imageUrl = "https://" . $host . "/uploads/trips/" . $filename;
+                    }
+                }
+            } elseif ($_FILES['trip_image']['error'] !== UPLOAD_ERR_NO_FILE) {
+                $errCode = $_FILES['trip_image']['error'];
+                sendJSON(['success' => false, 'message' => 'فشل في رفع صورة الغلاف (كود الخطأ: ' . $errCode . '). اختر صورة بحجم أصغر.']);
+                return;
             }
         }
 
@@ -25833,28 +25838,33 @@ function updateTrip()
             $imageUrl = null;
         }
 
-        if (isset($_FILES['trip_image']) && $_FILES['trip_image']['error'] === UPLOAD_ERR_OK) {
-            $uploadDir = __DIR__ . '/uploads/trips/';
-            if (!is_dir($uploadDir)) {
-                @mkdir($uploadDir, 0777, true);
-            }
-            $origName = $_FILES['trip_image']['name'] ?? 'image.jpg';
-            $ext = strtolower(pathinfo($origName, PATHINFO_EXTENSION));
-            if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true)) {
-                $ext = 'jpg';
-            }
-            $filename = 'trip_' . time() . '_' . uniqid() . '.' . $ext;
-            $uploadPath = $uploadDir . $filename;
-
-            $isImg = @getimagesize($_FILES['trip_image']['tmp_name']);
-            $mime = function_exists('mime_content_type') ? @mime_content_type($_FILES['trip_image']['tmp_name']) : '';
-
-            if ($isImg !== false || (is_string($mime) && strpos($mime, 'image/') === 0)) {
-                if (move_uploaded_file($_FILES['trip_image']['tmp_name'], $uploadPath)) {
-                    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
-                    $host = $_SERVER['HTTP_HOST'] ?? 'sunday-school.online';
-                    $imageUrl = $protocol . $host . "/uploads/trips/" . $filename;
+        if (isset($_FILES['trip_image'])) {
+            if ($_FILES['trip_image']['error'] === UPLOAD_ERR_OK) {
+                $uploadDir = __DIR__ . '/uploads/trips/';
+                if (!is_dir($uploadDir)) {
+                    @mkdir($uploadDir, 0777, true);
                 }
+                $origName = $_FILES['trip_image']['name'] ?? 'image.jpg';
+                $ext = strtolower(pathinfo($origName, PATHINFO_EXTENSION));
+                if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true)) {
+                    $ext = 'jpg';
+                }
+                $filename = 'trip_' . time() . '_' . uniqid() . '.' . $ext;
+                $uploadPath = $uploadDir . $filename;
+
+                $isImg = @getimagesize($_FILES['trip_image']['tmp_name']);
+                $mime = function_exists('mime_content_type') ? @mime_content_type($_FILES['trip_image']['tmp_name']) : '';
+
+                if ($isImg !== false || (is_string($mime) && strpos($mime, 'image/') === 0)) {
+                    if (move_uploaded_file($_FILES['trip_image']['tmp_name'], $uploadPath)) {
+                        $host = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'sunday-school.rf.gd';
+                        $imageUrl = "https://" . $host . "/uploads/trips/" . $filename;
+                    }
+                }
+            } elseif ($_FILES['trip_image']['error'] !== UPLOAD_ERR_NO_FILE) {
+                $errCode = $_FILES['trip_image']['error'];
+                sendJSON(['success' => false, 'message' => 'فشل في رفع صورة الغلاف (كود الخطأ: ' . $errCode . '). اختر صورة بحجم أصغر.']);
+                return;
             }
         }
 
