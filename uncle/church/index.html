@@ -2653,7 +2653,7 @@
             background: rgba(0, 0, 0, 0.45);
             backdrop-filter: blur(6px);
             -webkit-backdrop-filter: blur(6px);
-            z-index: 1000;
+            z-index: 3000 !important;
             justify-content: center;
             align-items: center;
             padding: 16px;
@@ -12915,10 +12915,23 @@
             }
         }
 
+        function checkIsDeveloperRole(sessObj) {
+            const s = sessObj || {};
+            const roles = [
+                s.role,
+                s.uncle_role,
+                s.user_role,
+                localStorage.getItem('uncleRole'),
+                localStorage.getItem('role'),
+                localStorage.getItem('userRole')
+            ].filter(Boolean).map(r => r.toString().toLowerCase().trim());
+            return roles.some(r => r === 'developer' || r === 'dev');
+        }
+
         onDOMReady(async () => {
             localStorage.setItem('lastVisitedPortal', 'uncle_church');
-            const isDev = ['developer', 'dev'].includes(localStorage.getItem('uncleRole') || '');
-            if (isDev) {
+            if (checkIsDeveloperRole()) {
+                isDeveloper = true;
                 document.querySelectorAll('.dev-only').forEach(el => {
                     if (el.classList.contains('nav-item')) {
                         el.style.display = 'flex';
@@ -12926,6 +12939,7 @@
                         el.style.display = 'block';
                     }
                 });
+                buildDevChurchSwitcher();
             }
             // 1. Get authoritative session from server
             let sess = await initSession();
@@ -12955,7 +12969,7 @@
             if (_offlineSessionMode) _showOfflineCacheToast();
 
             // 3. Role & ID
-            const userRole = (sess.role || localStorage.getItem('uncleRole') || '').toLowerCase().trim();
+            const userRole = (sess.role || sess.uncle_role || localStorage.getItem('uncleRole') || localStorage.getItem('role') || '').toLowerCase().trim();
             const loginType = sess.login_type || localStorage.getItem('loginType') || '';
             if (loginType === 'uncle' && userRole === 'uncle') {
                 window.location.href = '/uncle/dashboard/';
@@ -12990,7 +13004,7 @@
             setTimeout(renderKidRegLinks, 100);
 
             // 5. Developer visibility
-            isDeveloper = ['developer', 'dev'].includes(userRole);
+            isDeveloper = checkIsDeveloperRole(sess);
             if (isDeveloper) {
                 document.querySelectorAll('.dev-only').forEach(el => {
                     if (el.classList.contains('nav-item')) {
@@ -19837,15 +19851,16 @@
 
         // ── Developer: Churches ────────────────────────────────────────
         async function loadAllChurches() {
-            if (!isDeveloper) return;
+            if (!isDeveloper && !checkIsDeveloperRole()) return;
+            isDeveloper = true;
             const fd = mkFd('getAllChurchesForAdmin');
             const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
             if (d.success) {
                 allChurchesCache = d.churches || [];
                 renderChurchesGrid(allChurchesCache);
-                document.getElementById('devTotalChurches').textContent = allChurchesCache.length;
-                document.getElementById('devTotalStudents').textContent = allChurchesCache.reduce((s, c) => s + (parseInt(c.student_count) || 0), 0);
-                document.getElementById('devTotalUncles').textContent = allChurchesCache.reduce((s, c) => s + (parseInt(c.uncle_count) || 0), 0);
+                const tc = document.getElementById('devTotalChurches'); if (tc) tc.textContent = allChurchesCache.length;
+                const ts = document.getElementById('devTotalStudents'); if (ts) ts.textContent = allChurchesCache.reduce((s, c) => s + (parseInt(c.student_count) || 0), 0);
+                const tu = document.getElementById('devTotalUncles'); if (tu) tu.textContent = allChurchesCache.reduce((s, c) => s + (parseInt(c.uncle_count) || 0), 0);
 
                 // Populate devBroadcastTarget dropdown dynamically
                 const targetSel = document.getElementById('devBroadcastTarget');
@@ -19855,6 +19870,7 @@
                         targetSel.innerHTML += `<option value="${ch.id}">${escHtml(ch.church_name)} (${ch.church_code})</option>`;
                     });
                 }
+                renderDevChurchDropdownList(allChurchesCache);
             } else showToast('خطأ في تحميل الكنائس', 'error');
         }
 
@@ -20208,68 +20224,78 @@
         });
 
         function buildDevChurchSwitcher() {
-            if (document.getElementById('devChurchBar')) return;
-            const container = document.querySelector('.page-header-actions');
-            if (!container) return;
+            if (!isDeveloper && !checkIsDeveloperRole()) return;
+            isDeveloper = true;
+            let bar = document.getElementById('devChurchBar');
+            if (!bar) {
+                const container = document.querySelector('.page-header-actions');
+                if (!container) return;
 
-            const bar = document.createElement('div');
-            bar.id = 'devChurchBar';
-            bar.className = 'dev-church-bar-pill';
-            bar.setAttribute('onclick', 'toggleDevChurchDropdown(event)');
-            bar.style.cursor = 'pointer';
+                bar = document.createElement('div');
+                bar.id = 'devChurchBar';
+                bar.className = 'dev-church-bar-pill';
+                bar.setAttribute('onclick', 'toggleDevChurchDropdown(event)');
+                bar.style.cursor = 'pointer';
 
-            bar.innerHTML = `
-                <div class="dev-church-trigger" style="position:relative;display:flex;align-items:center;width:100%;height:100%;cursor:pointer;" onclick="toggleDevChurchDropdown(event)">
-                    <i class="fas fa-laptop-code dev-church-bar-icon"></i>
-                    <span id="devChurchSelectedLabel" class="dev-church-selected-label" style="margin-inline-start:6px; margin-inline-end: 18px; font-size: 0.8rem; font-weight: 800; color: var(--brand); font-family: 'Cairo', sans-serif;">🌍 جميع الكنائس</span>
-                    <i class="fas fa-chevron-down dev-church-chevron"></i>
-                </div>
-                <select id="devChurchSelect" style="display:none;"></select>
-                <div class="dev-church-dropdown-menu" id="devChurchDropdownMenu" style="display:none;" onclick="event.stopPropagation()">
-                    <div class="dev-church-dropdown-search-wrap">
-                        <i class="fas fa-search search-icon"></i>
-                        <input type="text" id="devChurchDropdownSearch" class="dev-church-dropdown-search-input" placeholder="ابحث عن كنيسة..." oninput="filterDevChurches(this.value)" onclick="event.stopPropagation()">
+                bar.innerHTML = `
+                    <div class="dev-church-trigger" style="position:relative;display:flex;align-items:center;width:100%;height:100%;cursor:pointer;" onclick="toggleDevChurchDropdown(event)">
+                        <i class="fas fa-laptop-code dev-church-bar-icon"></i>
+                        <span id="devChurchSelectedLabel" class="dev-church-selected-label" style="margin-inline-start:6px; margin-inline-end: 18px; font-size: 0.8rem; font-weight: 800; color: var(--brand); font-family: 'Cairo', sans-serif;">🌍 جميع الكنائس</span>
+                        <i class="fas fa-chevron-down dev-church-chevron"></i>
                     </div>
-                    <div class="dev-church-dropdown-list" id="devChurchDropdownList">
-                        <!-- Option items will be rendered here dynamically -->
+                    <select id="devChurchSelect" style="display:none;"></select>
+                    <div class="dev-church-dropdown-menu" id="devChurchDropdownMenu" style="display:none;" onclick="event.stopPropagation()">
+                        <div class="dev-church-dropdown-search-wrap">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" id="devChurchDropdownSearch" class="dev-church-dropdown-search-input" placeholder="ابحث عن كنيسة..." oninput="filterDevChurches(this.value)" onclick="event.stopPropagation()">
+                        </div>
+                        <div class="dev-church-dropdown-list" id="devChurchDropdownList">
+                            <!-- Option items will be rendered here dynamically -->
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
 
-            // Insert dev switcher after the notifications button
-            const notif = document.getElementById('notifBellBtn');
-            if (notif) {
-                container.insertBefore(bar, notif.nextSibling);
-            } else {
-                container.insertBefore(bar, container.firstChild);
+                // Insert dev switcher after the notifications button
+                const notif = document.getElementById('notifBellBtn');
+                if (notif) {
+                    container.insertBefore(bar, notif.nextSibling);
+                } else {
+                    container.insertBefore(bar, container.firstChild);
+                }
             }
             _devPopulateChurchSelect();
         }
 
         async function _devPopulateChurchSelect() {
-            await loadAllChurches();
+            if (!isDeveloper && !checkIsDeveloperRole()) return;
+            isDeveloper = true;
+            if (!allChurchesCache || !allChurchesCache.length) {
+                await loadAllChurches();
+            }
             const sel = document.getElementById('devChurchSelect');
-            if (!sel) return;
-            while (sel.options.length > 1) sel.remove(1);
-            if (!allChurchesCache.length) return;
-            const sep = document.createElement('option');
-            sep.disabled = true; sep.textContent = '──────────────────';
-            sel.appendChild(sep);
-            allChurchesCache.forEach(c => {
-                const o = document.createElement('option');
-                o.value = c.id;
-                const typeLabel = c.church_type === 'youth' ? 'شباب' : 'أطفال';
-                o.textContent = `[${typeLabel}] ${c.church_name} (${c.church_code}) — ${c.student_count || 0}`;
-                if (c.id == devOrigChurchId) o.style.fontWeight = '800';
-                sel.appendChild(o);
-            });
+            if (sel) {
+                while (sel.options.length > 1) sel.remove(1);
+                if (allChurchesCache.length) {
+                    const sep = document.createElement('option');
+                    sep.disabled = true; sep.textContent = '──────────────────';
+                    sel.appendChild(sep);
+                    allChurchesCache.forEach(c => {
+                        const o = document.createElement('option');
+                        o.value = c.id;
+                        const typeLabel = c.church_type === 'youth' ? 'شباب' : 'أطفال';
+                        o.textContent = `[${typeLabel}] ${c.church_name} (${c.church_code}) — ${c.student_count || 0}`;
+                        if (c.id == devOrigChurchId) o.style.fontWeight = '800';
+                        sel.appendChild(o);
+                    });
 
-            if (devViewChurchId > 0) sel.value = devViewChurchId;
-            else sel.value = 'ALL';
+                    if (devViewChurchId > 0) sel.value = devViewChurchId;
+                    else sel.value = 'ALL';
+                }
+            }
 
             // Set custom dropdown label
             let activeLabel = '🌍 جميع الكنائس';
-            if (devViewChurchId > 0) {
+            if (devViewChurchId > 0 && allChurchesCache.length) {
                 const target = allChurchesCache.find(c => c.id == devViewChurchId);
                 if (target) {
                     const typeLabel = target.church_type === 'youth' ? 'شباب' : 'أطفال';
@@ -20279,7 +20305,7 @@
             const labelEl = document.getElementById('devChurchSelectedLabel');
             if (labelEl) labelEl.textContent = activeLabel;
 
-            renderDevChurchDropdownList(allChurchesCache);
+            renderDevChurchDropdownList(allChurchesCache || []);
         }
 
         async function devSwitchChurch(churchId) {
