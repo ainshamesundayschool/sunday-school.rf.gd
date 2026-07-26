@@ -12733,6 +12733,9 @@
         const printUncles = document.getElementById('printUnclesOption')?.checked || false;
         if (printUncles) {
           const roomsConfig = getTripRoomsConfig(trip);
+          if (printSelectedUncleIds.size === 0) {
+            (window.allUnclesCache || []).forEach(u => printSelectedUncleIds.add(String(u.id)));
+          }
           const selectedUncles = (window.allUnclesCache || []).filter(u => printSelectedUncleIds.has(String(u.id)));
           selectedUncles.forEach(u => {
             regs.push(mapUncleToReg(u, roomsConfig));
@@ -13052,15 +13055,17 @@
 
       function mapUncleToReg(u, roomsConfig) {
         const roomAssignmentText = getUncleRoomAssignmentText(u.id, roomsConfig, document.getElementById('printShowFloorInRoom')?.checked !== false);
+        const rawImg = u.image_url || u['صورة'] || u.photo || '';
+        const imgUrl = (rawImg && typeof window.photoUrl === 'function') ? window.photoUrl(rawImg) : rawImg;
         return {
           id: 'uncle_' + u.id,
           student_id: '',
-          student_name: u.name,
-          student_image: u.image_url,
-          custom_data: { 'السكن': roomAssignmentText },
+          student_name: u.name || 'خادم',
+          student_image: imgUrl,
+          custom_data: JSON.stringify({ 'السكن': roomAssignmentText }),
           isUncle: true,
-          role: u.role,
-          church_name: u.church_name
+          role: u.role || 'خادم',
+          church_name: u.church_name || ''
         };
       }
 
@@ -13080,7 +13085,7 @@
         if (!trip) return;
 
         const search = (document.getElementById('printUncleSearchInput')?.value || '').toLowerCase().trim();
-        const scope = document.getElementById('printUncleScope')?.value || 'assigned';
+        const scope = document.getElementById('printUncleScope')?.value || 'all';
         const uncles = window.allUnclesCache || [];
 
         const roomsConfig = getTripRoomsConfig(trip);
@@ -13118,7 +13123,7 @@
 
         // Initialize: if printSelectedUncleIds is empty, select all filtered ones by default
         if (printSelectedUncleIds.size === 0) {
-          filtered.forEach(u => printSelectedUncleIds.add(String(u.id)));
+          uncles.forEach(u => printSelectedUncleIds.add(String(u.id)));
         }
 
         listDiv.innerHTML = filtered.map(u => {
@@ -13593,6 +13598,9 @@
         const printUncles = document.getElementById('printUnclesOption')?.checked || false;
         if (printUncles) {
           const roomsConfig = getTripRoomsConfig(trip);
+          if (printSelectedUncleIds.size === 0) {
+            (window.allUnclesCache || []).forEach(u => printSelectedUncleIds.add(String(u.id)));
+          }
           const selectedUncles = (window.allUnclesCache || []).filter(u => printSelectedUncleIds.has(String(u.id)));
           selectedUncles.forEach(u => {
             regs.push(mapUncleToReg(u, roomsConfig));
@@ -14004,6 +14012,9 @@
         const printUncles = document.getElementById('printUnclesOption')?.checked || false;
         if (printUncles) {
           const roomsConfig = getTripRoomsConfig(trip);
+          if (printSelectedUncleIds.size === 0) {
+            (window.allUnclesCache || []).forEach(u => printSelectedUncleIds.add(String(u.id)));
+          }
           const selectedUncles = (window.allUnclesCache || []).filter(u => printSelectedUncleIds.has(String(u.id)));
           selectedUncles.forEach(u => {
             regs.push(mapUncleToReg(u, roomsConfig));
@@ -20451,50 +20462,10 @@
         allocateGenderGroup(boys, 'male');
         allocateGenderGroup(girls, 'female');
 
-        // Auto-allocate unassigned uncles from allUnclesCache to rooms with remaining capacity
-        const assignedUncleIds = new Set();
-        const scanUncles = (rm) => {
-          (rm.uncles || []).forEach(unc => assignedUncleIds.add(String(unc.id)));
-        };
-        roomsConfig.forEach(bld => {
-          if (bld.has_floors) {
-            (bld.floors || []).forEach(fl => (fl.rooms || []).forEach(scanUncles));
-          } else {
-            (bld.rooms || []).forEach(scanUncles);
-          }
-        });
-        const unassignedUncles = (window.allUnclesCache || []).filter(u => !assignedUncleIds.has(String(u.id)));
-
-        if (unassignedUncles.length > 0) {
-          unassignedUncles.forEach(unc => {
-            const availRoom = roomState.find(r => r.occupied < r.capacity);
-            if (availRoom) {
-              availRoom.occupied++;
-              availRoom.unclesCount++;
-              const targetBld = roomsConfig.find(b => b.name === availRoom.bldName);
-              if (targetBld) {
-                let targetRoom = null;
-                if (targetBld.has_floors) {
-                  const targetFl = (targetBld.floors || []).find(f => f.name === availRoom.floorName);
-                  if (targetFl) targetRoom = (targetFl.rooms || []).find(r => r.name === availRoom.roomName);
-                } else {
-                  targetRoom = (targetBld.rooms || []).find(r => r.name === availRoom.roomName);
-                }
-                if (targetRoom) {
-                  if (!targetRoom.uncles) targetRoom.uncles = [];
-                  if (!targetRoom.uncles.some(u => String(u.id) === String(unc.id))) {
-                    targetRoom.uncles.push({ id: String(unc.id), name: unc.name });
-                  }
-                }
-              }
-            }
-          });
-        }
-
         window.roomsDraftAllocations = draftAllocations;
 
         closeModal('autoFillRoomsModal');
-        showToast('تم إجراء التوزيع التلقائي للمخدومين والخدام في المسودة! عاين وحفظ.', 'success');
+        showToast('تم إجراء التوزيع التلقائي في المسودة! عاين وحفظ.', 'success');
         renderRoomsWorkspaceData();
       }
       // =========================================================================
