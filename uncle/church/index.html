@@ -11573,7 +11573,10 @@
             const cid = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
             const isOwner = parseInt(trip?.is_owner) === 1 || parseInt(trip?.church_id) === cid;
             if (!isOwner) {
-                regs = regs.filter(r => parseInt(r.student_church_id) === cid);
+                regs = regs.filter(r => {
+                    const scid = parseInt(r.student_church_id || 0);
+                    return scid === cid || scid === 0;
+                });
             }
             const fields = parseCustomFieldsString(trip?.custom_fields);
             if (!trip || !fields.length) return;
@@ -11795,7 +11798,10 @@
             const cid = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
             const isOwner = parseInt(trip?.is_owner) === 1 || parseInt(trip?.church_id) === cid;
             if (!isOwner) {
-                regs = regs.filter(r => parseInt(r.student_church_id) === cid);
+                regs = regs.filter(r => {
+                    const scid = parseInt(r.student_church_id || 0);
+                    return scid === cid || scid === 0;
+                });
             }
             const fields = parseCustomFieldsString(trip?.custom_fields);
             if (!trip || !fields.length) return;

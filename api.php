@@ -27046,17 +27046,18 @@ function getTripDetails()
                 s.task_coupons as student_task_coupons,
                 s.custom_info as student_custom_info,
                 s.is_guest as student_is_guest,
-                COALESCE(s.church_id, g.church_id, unc.church_id) as student_church_id,
+                COALESCE(s.church_id, g.church_id, unc.church_id, tr.church_id, t.church_id) as student_church_id,
                 ch.church_name as student_church_name,
                 ch.church_name as church_name
             FROM trip_registrations tr
+            JOIN trips t ON tr.trip_id = t.id
             LEFT JOIN students s ON tr.student_id = s.id
             LEFT JOIN guests g ON tr.guest_id = g.id
             LEFT JOIN uncles unc ON tr.uncle_id = unc.id
             LEFT JOIN church_classes cc ON cc.id = s.class_id AND cc.church_id = s.church_id AND cc.is_active = 1
             LEFT JOIN classes gc ON gc.id = s.class_id
             LEFT JOIN uncles u ON tr.registered_by = u.id
-            LEFT JOIN churches ch ON ch.id = COALESCE(s.church_id, g.church_id, unc.church_id)
+            LEFT JOIN churches ch ON ch.id = COALESCE(s.church_id, g.church_id, unc.church_id, tr.church_id, t.church_id)
             WHERE tr.trip_id = ? AND tr.cancelled = 0
             ORDER BY tr.registration_date
         ");

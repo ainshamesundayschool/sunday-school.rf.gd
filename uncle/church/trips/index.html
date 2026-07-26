@@ -5065,7 +5065,13 @@
         if (isOwner && (window.showAllChurchesStats || ignoreAllChurchesStats)) {
           return regs;
         }
-        return regs.filter(r => parseInt(r.student_church_id) === cid);
+        if (isOwner && (!activeTrip.collaborating_churches || activeTrip.collaborating_churches === '[]' || activeTrip.collaborating_churches === 'null' || activeTrip.collaborating_churches === '')) {
+          return regs;
+        }
+        return regs.filter(r => {
+          const scid = parseInt(r.student_church_id || r.church_id || 0);
+          return scid === 0 || scid === cid || (isOwner && scid === parseInt(activeTrip.church_id || 0));
+        });
       }
 
       function getFilteredTripWaitlist(trip, waitlistInput = null, ignoreAllChurchesStats = false) {
@@ -5077,7 +5083,13 @@
         if (isOwner && (window.showAllChurchesStats || ignoreAllChurchesStats)) {
           return waitlist;
         }
-        return waitlist.filter(w => parseInt(w.student_church_id) === cid);
+        if (isOwner && (!activeTrip.collaborating_churches || activeTrip.collaborating_churches === '[]' || activeTrip.collaborating_churches === 'null' || activeTrip.collaborating_churches === '')) {
+          return waitlist;
+        }
+        return waitlist.filter(w => {
+          const scid = parseInt(w.student_church_id || w.church_id || 0);
+          return scid === 0 || scid === cid || (isOwner && scid === parseInt(activeTrip.church_id || 0));
+        });
       }
 
       function toggleAllChurchesStats(checked) {
