@@ -23649,9 +23649,17 @@ if ($hasUncleId && $uncleRole === 'uncle')
             renderSheetTable();
         }
 
+        function onDOMReady(fn) {
+            if (document.readyState === 'interactive' || document.readyState === 'complete') {
+                setTimeout(fn, 0);
+            } else {
+                document.addEventListener('DOMContentLoaded', fn);
+            }
+        }
+
         // Pinch-to-zoom on the sheet wrapper
         (function initPinch() {
-            document.addEventListener('DOMContentLoaded', () => {
+            onDOMReady(() => {
                 const wrap = document.getElementById('sheetZoomWrap');
                 if (!wrap) return;
                 let lastDist = 0;
@@ -23682,7 +23690,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         // ── Desktop mouse-drag to scroll (only on empty space, not text) ──
         (function initMouseDragScroll() {
-            document.addEventListener('DOMContentLoaded', () => {
+            onDOMReady(() => {
                 const wrap = document.getElementById('sheetZoomWrap');
                 if (!wrap) return;
 
@@ -26656,7 +26664,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         }
         // Pinch-to-zoom & drag on image modal
         (function initImageModalGestures() {
-            document.addEventListener('DOMContentLoaded', () => {
+            onDOMReady(() => {
                 const body = document.getElementById('imageModalBody');
                 const img = document.getElementById('imageModalImg');
                 if (!body || !img) return;
@@ -27714,7 +27722,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         window.addEventListener('online', _updateOnlineStatus);
         window.addEventListener('offline', _updateOnlineStatus);
-        document.addEventListener('DOMContentLoaded', async () => {
+        onDOMReady(async () => {
             initDevSwitcher();
             localStorage.setItem('lastVisitedPortal', 'uncle_dashboard');
             // On first load: only show the offline banner if we're already offline.
@@ -28286,7 +28294,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
         // ══════════════════════════════════════════════════════════════
         // EXPOSE NEW FUNCTIONS GLOBALLY
         // ══════════════════════════════════════════════════════════════
-        document.addEventListener('DOMContentLoaded', () => {
+        onDOMReady(() => {
             // Instantly render from cache so the user sees content immediately (especially offline)
             const cached = localStorage.getItem('lastStudentsData');
             if (cached) {

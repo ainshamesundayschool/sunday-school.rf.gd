@@ -668,8 +668,16 @@
             setupErrorMessage: document.getElementById('setupErrorMessage')
         };
 
+        function onDOMReady(fn) {
+            if (document.readyState === 'interactive' || document.readyState === 'complete') {
+                setTimeout(fn, 0);
+            } else {
+                document.addEventListener('DOMContentLoaded', fn);
+            }
+        }
+
         // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
+        onDOMReady(function() {
             checkIfLoggedIn();
             setupEventListeners();
             if ('serviceWorker' in navigator) {

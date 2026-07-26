@@ -2293,7 +2293,15 @@
             const API_URL = window.location.pathname.indexOf('/testing/') !== -1 ? '/testing/api.php' : '/api.php';
             const pathPrefix = window.location.pathname.indexOf('/testing/') !== -1 ? '/testing' : '';
 
-            document.addEventListener('DOMContentLoaded', () => {
+            function onDOMReady(fn) {
+                if (document.readyState === 'interactive' || document.readyState === 'complete') {
+                    setTimeout(fn, 0);
+                } else {
+                    document.addEventListener('DOMContentLoaded', fn);
+                }
+            }
+
+            onDOMReady(() => {
                 if (pathPrefix) {
                     document.querySelectorAll('a[href^="/uncle/"], a[href^="/login/"]').forEach(a => {
                         a.setAttribute('href', pathPrefix + a.getAttribute('href'));
@@ -2902,7 +2910,7 @@
             // Cooldown notification timer
             let toastTimeout = null;
 
-            document.addEventListener('DOMContentLoaded', () => {
+            onDOMReady(() => {
                 const urlParams = new URLSearchParams(window.location.search);
                 tripId = urlParams.get('trip_id');
 

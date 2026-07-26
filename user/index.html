@@ -1067,8 +1067,16 @@ function animateCount(id, target){
 }
 loadStats();
 
+function onDOMReady(fn) {
+    if (document.readyState === 'interactive' || document.readyState === 'complete') {
+        setTimeout(fn, 0);
+    } else {
+        document.addEventListener('DOMContentLoaded', fn);
+    }
+}
+
 /* ══ EVENT LISTENERS ══ */
-document.addEventListener('DOMContentLoaded', () => {
+onDOMReady(() => {
     document.getElementById('registerBtn').addEventListener('click', openChurchPanel);
     document.getElementById('churchPanelClose').addEventListener('click', closeChurchPanel);
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeChurchPanel(); });

@@ -12620,7 +12620,15 @@
             });
         }
 
-        document.addEventListener('DOMContentLoaded', async () => {
+        function onDOMReady(fn) {
+            if (document.readyState === 'interactive' || document.readyState === 'complete') {
+                setTimeout(fn, 0);
+            } else {
+                document.addEventListener('DOMContentLoaded', fn);
+            }
+        }
+
+        onDOMReady(async () => {
             localStorage.setItem('lastVisitedPortal', 'uncle_church');
             const isDev = ['developer', 'dev'].includes(localStorage.getItem('uncleRole') || '');
             if (isDev) {

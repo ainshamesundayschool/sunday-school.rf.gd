@@ -5709,8 +5709,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     let maxFetchedTaskAnnId = 0;
 
 
+    function onDOMReady(fn) {
+      if (document.readyState === 'interactive' || document.readyState === 'complete') {
+        setTimeout(fn, 0);
+      } else {
+        document.addEventListener('DOMContentLoaded', fn);
+      }
+    }
+
     // ── Boot ──────────────────────────────────────────────────────────
-    document.addEventListener('DOMContentLoaded', async () => {
+    onDOMReady(async () => {
       if (URL_TEMPID) {
         initTempIdAssignment(URL_TEMPID);
         return;
@@ -9535,7 +9543,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     });
 
     // Show dropdown again on focus if input has value
-    window.addEventListener('DOMContentLoaded', () => {
+    onDOMReady(() => {
       const input = document.getElementById('homeFriendSearch');
       if (input) {
         input.addEventListener('focus', function () {
