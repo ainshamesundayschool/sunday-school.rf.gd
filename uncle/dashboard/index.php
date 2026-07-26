@@ -17078,7 +17078,8 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                     const photo = s['صورة'] || s['photo'] || s['الصورة'] || '';
                     const safe = name.replace(/'/g, "\\'");
                     const initialChar = (name || '').trim().charAt(0) || '👤';
-                    const fallbackSvg = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100%" height="100%" fill="%23f5f3ff" rx="50"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="Cairo, sans-serif" font-weight="bold" font-size="45" fill="%237c3aed">${encodeURIComponent(initialChar)}</text></svg>`;
+                    const rawSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100%" height="100%" fill="#f5f3ff" rx="50"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="Cairo, sans-serif" font-weight="bold" font-size="45" fill="#7c3aed">${initialChar}</text></svg>`;
+                    const fallbackSvg = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(rawSvg)));
                     const avatar = photo ? ((typeof window.photoUrl === 'function') ? window.photoUrl(photo) : photo) : fallbackSvg;
                     return `
                     <div class="bday-banner-chip${item.isToday ? ' today' : ''}" id="bday_chip_${globalIdx}" onclick="showStudentDetails('${safe}')">
