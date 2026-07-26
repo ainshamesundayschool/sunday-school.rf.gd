@@ -26258,9 +26258,9 @@
             }
         }
 
-        async function compressBase64Image(dataUrl, maxDim = 600, quality = 0.75) {
-            if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/') || dataUrl.length < 50000) {
-                return dataUrl;
+        function compressBase64Image(dataUrl, maxDim = 600, quality = 0.75) {
+            if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/') || dataUrl.length < 150000) {
+                return Promise.resolve(dataUrl);
             }
             return new Promise((resolve) => {
                 const img = new Image();
@@ -26289,21 +26289,25 @@
         }
 
         async function serializeQRTemplate() {
-            const compressedKidsFront = await compressBase64Image(customCardBackgroundDataUrl);
-            const compressedKidsBack = await compressBase64Image(customCardBackgroundDataUrlBack);
-            const compressedUncleFront = await compressBase64Image(customCardBackgroundDataUrlUncle);
-            const compressedUncleBack = await compressBase64Image(customCardBackgroundDataUrlUncleBack);
-
-            let compressedLogos = [];
-            if (Array.isArray(window.customLogos)) {
-                compressedLogos = await Promise.all(window.customLogos.map(async (logo) => {
-                    if (logo && logo.url) {
+            const [
+                compressedKidsFront,
+                compressedKidsBack,
+                compressedUncleFront,
+                compressedUncleBack,
+                compressedLogos
+            ] = await Promise.all([
+                compressBase64Image(customCardBackgroundDataUrl),
+                compressBase64Image(customCardBackgroundDataUrlBack),
+                compressBase64Image(customCardBackgroundDataUrlUncle),
+                compressBase64Image(customCardBackgroundDataUrlUncleBack),
+                Array.isArray(window.customLogos) ? Promise.all(window.customLogos.map(async (logo) => {
+                    if (logo && logo.url && typeof logo.url === 'string' && logo.url.startsWith('data:image/') && logo.url.length > 150000) {
                         const u = await compressBase64Image(logo.url, 400, 0.75);
                         return { ...logo, url: u };
                     }
                     return logo;
-                }));
-            }
+                })) : Promise.resolve([])
+            ]);
 
             const data = {
                 scale: document.getElementById('printScale')?.value || '100',
