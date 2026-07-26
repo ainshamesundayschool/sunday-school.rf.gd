@@ -5094,8 +5094,31 @@
       function mkFd(action) {
         const fd = new FormData();
         fd.append('action', action);
+        const devViewChurchId = parseInt(localStorage.getItem('devViewChurchId') || '-1');
+        const role = (localStorage.getItem('uncleRole') || localStorage.getItem('role') || localStorage.getItem('userRole') || '').toLowerCase();
+        const isDev = ['developer', 'dev', 'admin', 'administrator', 'superadmin'].includes(role);
+
+        if (role) {
+          fd.append('uncle_role', role);
+          fd.append('role', role);
+        }
+
+        if (isDev) {
+          if (devViewChurchId === -1) {
+            fd.append('all_churches', '1');
+            fd.append('dev_override_church_id', '-1');
+          } else if (devViewChurchId > 0) {
+            fd.append('dev_override_church_id', devViewChurchId);
+            fd.append('church_id', devViewChurchId);
+          } else {
+            fd.append('all_churches', '1');
+          }
+        }
+
         const cid = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
-        if (cid > 0) fd.append('church_id', cid);
+        if (cid > 0 && !fd.has('church_id')) {
+          fd.append('church_id', cid);
+        }
         return fd;
       }
 
