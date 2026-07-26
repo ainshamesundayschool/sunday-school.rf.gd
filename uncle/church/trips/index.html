@@ -16858,7 +16858,7 @@
           if (bld.has_floors) {
             (bld.floors || []).forEach((fl, fIdx) => {
               let flRooms = fl.rooms || [];
-              if (query) {
+              if (query && !window.roomsSwapSource && !window.selectedKidForAllocation) {
                 flRooms = flRooms.filter(r => isRoomOrResidentsMatched(r, bld.name, fl.name, regs, allocatedMap, query));
               }
               if (flRooms.length > 0) {
@@ -16874,7 +16874,7 @@
             });
           } else {
             let bldRooms = bld.rooms || [];
-            if (query) {
+            if (query && !window.roomsSwapSource && !window.selectedKidForAllocation) {
               bldRooms = bldRooms.filter(r => isRoomOrResidentsMatched(r, bld.name, '', regs, allocatedMap, query));
             }
             if (bldRooms.length > 0) {
@@ -16884,9 +16884,9 @@
             }
           }
 
-          const hasMatches = isBldNameMatch || bldMatchCount > 0;
+          const hasMatches = isBldNameMatch || bldMatchCount > 0 || !!window.roomsSwapSource || !!window.selectedKidForAllocation;
 
-          // When a search query is active, hide building cards that have no matching rooms
+          // When a search query is active, hide building cards that have no matching rooms (unless in swap/move mode)
           if (query && !hasMatches) {
             return;
           }
@@ -17419,7 +17419,9 @@
         const success = await saveCustomDataPayload(tripId, payload);
         if (success) {
           showToast('تم تسكين الطفل بنجاح!', 'success');
-          r.custom_data = JSON.stringify({ ...customData, ...nextRoom });
+          const cleanCustomData = { ...customData, ...nextRoom };
+          if (!nextRoom['السكن__sf__الدور']) delete cleanCustomData['السكن__sf__الدور'];
+          r.custom_data = JSON.stringify(cleanCustomData);
           renderRoomsWorkspaceData();
         }
       }
@@ -17480,8 +17482,14 @@
           const success = await saveCustomDataPayload(tripId, payload);
           if (success) {
             showToast('تمت المبادلة بنجاح!', 'success');
-            sourceReg.custom_data = JSON.stringify({ ...sourceData, ...nextSourceRoom });
-            targetReg.custom_data = JSON.stringify({ ...targetData, ...nextTargetRoom });
+            const cleanSource = { ...sourceData, ...nextSourceRoom };
+            if (!nextSourceRoom['السكن__sf__الدور']) delete cleanSource['السكن__sf__الدور'];
+            sourceReg.custom_data = JSON.stringify(cleanSource);
+
+            const cleanTarget = { ...targetData, ...nextTargetRoom };
+            if (!nextTargetRoom['السكن__sf__الدور']) delete cleanTarget['السكن__sf__الدور'];
+            targetReg.custom_data = JSON.stringify(cleanTarget);
+
             renderRoomsPanel(tripId);
           }
         } else {
@@ -17505,7 +17513,9 @@
           const success = await saveCustomDataPayload(tripId, payload);
           if (success) {
             showToast('تم نقل الطفل بنجاح!', 'success');
-            sourceReg.custom_data = JSON.stringify({ ...sourceData, ...nextRoom });
+            const cleanCustomData = { ...sourceData, ...nextRoom };
+            if (!nextRoom['السكن__sf__الدور']) delete cleanCustomData['السكن__sf__الدور'];
+            sourceReg.custom_data = JSON.stringify(cleanCustomData);
             renderRoomsPanel(tripId);
           }
         }
@@ -17526,9 +17536,13 @@
         let customData = {};
         try { customData = JSON.parse(r.custom_data || '{}'); } catch (e) { }
 
-        delete customData['السكن'];
-        delete customData['السكن__sf__الدور'];
-        delete customData['السكن__sf__الغرفة'];
+        // Send explicit empty values so PHP bulkUpdateCustomData unsets these keys in the database
+        const payloadCustomData = {
+          ...customData,
+          'السكن': '',
+          'السكن__sf__الدور': '',
+          'السكن__sf__الغرفة': ''
+        };
 
         if (window.roomsDraftAllocations) {
           delete window.roomsDraftAllocations[r.id];
@@ -17537,12 +17551,15 @@
         }
 
         const payload = [
-          { registration_id: r.id, custom_data: customData }
+          { registration_id: r.id, custom_data: payloadCustomData }
         ];
 
         const success = await saveCustomDataPayload(tripId, payload);
         if (success) {
           showToast('تم إخراج الطفل من الغرفة', 'info');
+          delete customData['السكن'];
+          delete customData['السكن__sf__الدور'];
+          delete customData['السكن__sf__الغرفة'];
           r.custom_data = JSON.stringify(customData);
           renderRoomsWorkspaceData();
         }
@@ -17562,10 +17579,13 @@
           let customData = {};
           try { customData = JSON.parse(r.custom_data || '{}'); } catch (e) { }
           if (customData['السكن']) {
-            delete customData['السكن'];
-            delete customData['السكن__sf__الدور'];
-            delete customData['السكن__sf__الغرفة'];
-            payload.push({ registration_id: r.id, custom_data: customData });
+            const payloadCustomData = {
+              ...customData,
+              'السكن': '',
+              'السكن__sf__الدور': '',
+              'السكن__sf__الغرفة': ''
+            };
+            payload.push({ registration_id: r.id, custom_data: payloadCustomData });
           }
         });
 
