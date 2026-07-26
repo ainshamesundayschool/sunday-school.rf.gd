@@ -134,6 +134,77 @@ if ($isLoginPage && $hasSession) {
     }
 }
 
+if ($hasSession && isset($_GET['kid_id']) && intval($_GET['kid_id']) > 0 && !(isset($_GET['noredirect']) && ($_GET['noredirect'] === 'true' || $_GET['noredirect'] === '1'))) {
+    $kidIdForTrip = intval($_GET['kid_id']);
+    $targetTripId = isset($_GET['trip_id']) ? intval($_GET['trip_id']) : null;
+    $tripToRedirect = null;
+
+    if (function_exists('getDBConnection')) {
+        try {
+            $conn = getDBConnection();
+
+            if ($targetTripId > 0) {
+                $tstmt = $conn->prepare("SELECT id, points_config FROM trips WHERE id = ? LIMIT 1");
+                $tstmt->bind_param("i", $targetTripId);
+                $tstmt->execute();
+                $tres = $tstmt->get_result();
+                if ($tres && $trow = $tres->fetch_assoc()) {
+                    $pcfg = json_decode($trow['points_config'] ?? '', true) ?? [];
+                    if (!empty($pcfg['direct_kid_profile_to_trip'])) {
+                        $tripToRedirect = intval($trow['id']);
+                    }
+                }
+            }
+
+            if (!$tripToRedirect) {
+                $rstmt = $conn->prepare("SELECT t.id, t.points_config FROM trip_registrations tr JOIN trips t ON tr.trip_id = t.id WHERE tr.student_id = ? AND tr.cancelled = 0 ORDER BY t.id DESC");
+                $rstmt->bind_param("i", $kidIdForTrip);
+                $rstmt->execute();
+                $rres = $rstmt->get_result();
+                while ($rres && $rrow = $rres->fetch_assoc()) {
+                    $pcfg = json_decode($rrow['points_config'] ?? '', true) ?? [];
+                    if (!empty($pcfg['direct_kid_profile_to_trip'])) {
+                        $tripToRedirect = intval($rrow['id']);
+                        break;
+                    }
+                }
+            }
+
+            if (!$tripToRedirect) {
+                $churchId = $_SESSION['church_id'] ?? null;
+                if (!$churchId) {
+                    $sstmt = $conn->prepare("SELECT church_id FROM students WHERE id = ? LIMIT 1");
+                    $sstmt->bind_param("i", $kidIdForTrip);
+                    $sstmt->execute();
+                    $sres = $sstmt->get_result();
+                    if ($sres && $srow = $sres->fetch_assoc()) {
+                        $churchId = intval($srow['church_id']);
+                    }
+                }
+                if ($churchId) {
+                    $cstmt = $conn->prepare("SELECT id, points_config FROM trips WHERE church_id = ? OR FIND_IN_SET(?, collaborating_churches) ORDER BY id DESC");
+                    $cstmt->bind_param("ii", $churchId, $churchId);
+                    $cstmt->execute();
+                    $cres = $cstmt->get_result();
+                    while ($cres && $crow = $cres->fetch_assoc()) {
+                        $pcfg = json_decode($crow['points_config'] ?? '', true) ?? [];
+                        if (!empty($pcfg['direct_kid_profile_to_trip'])) {
+                            $tripToRedirect = intval($crow['id']);
+                            break;
+                        }
+                    }
+                }
+            }
+        } catch (Exception $e) {
+        }
+    }
+
+    if ($tripToRedirect) {
+        header("Location: " . $pathPrefix . "/uncle/trip/index.html?trip_id=" . $tripToRedirect . "&student_id=" . $kidIdForTrip);
+        exit();
+    }
+}
+
 $churchName = $_SESSION['church_name'] ?? 'الكنيسة';
 $churchCode = $_SESSION['church_code'] ?? '';
 $uncleName = $_SESSION['uncle_name'] ?? '';
