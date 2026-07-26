@@ -27383,6 +27383,7 @@ function bulkUpdateCustomData()
 
 
         $updatedCount = 0;
+        $debugRows = [];
 
         foreach ($updates as $row) {
 
@@ -27391,13 +27392,13 @@ function bulkUpdateCustomData()
             $customData = $row['custom_data'] ?? [];
 
             if ($registrationId <= 0 || !is_array($customData)) {
-
+                $debugRows[] = ['reg_id' => $registrationId, 'skipped' => 'invalid_id_or_no_customdata'];
                 continue;
 
             }
 
             if (!verifyRegistrationParticipant($conn, $registrationId, $churchId)) {
-
+                $debugRows[] = ['reg_id' => $registrationId, 'skipped' => 'verify_failed', 'church_id' => $churchId];
                 continue;
 
             }
@@ -27435,13 +27436,16 @@ function bulkUpdateCustomData()
 
             if ($updateStmt->execute()) {
                 $updatedCount++;
+                $debugRows[] = ['reg_id' => $registrationId, 'status' => 'updated', 'new_data' => $existing];
+            } else {
+                $debugRows[] = ['reg_id' => $registrationId, 'status' => 'execute_failed'];
             }
 
         }
 
 
 
-        sendJSON(['success' => true, 'updated' => $updatedCount]);
+        sendJSON(['success' => true, 'updated' => $updatedCount, 'debug' => $debugRows, 'church_id_used' => $churchId]);
 
     } catch (Exception $e) {
 

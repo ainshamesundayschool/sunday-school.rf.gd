@@ -17596,18 +17596,21 @@
         if (event) event.stopPropagation();
 
         const tripId = window.currentTripId;
+        console.log('[Rooms] unassignKidFromRoom called. tripId=', tripId, 'regId=', regId);
         const regs = tripRegistrationsCache[tripId] || [];
         const r = regs.find(x => x.id == regId);
-        if (!r) return;
+        if (!r) { console.warn('[Rooms] FAIL: reg not found in cache for regId', regId); return; }
 
         let customData = {};
         try { customData = JSON.parse(r.custom_data || '{}'); } catch (e) { }
+        console.log('[Rooms] current customData:', JSON.stringify(customData));
 
         const roomKeys = ['السكن', 'السكن__sf__الدور', 'السكن__sf__الغرفة', 'المبنى', 'مبنى', 'الدور', 'دور', 'الغرفة', 'غرفة', 'رقم الغرفة'];
 
         // Send explicit empty values so PHP bulkUpdateCustomData unsets these keys in the database
         const payloadCustomData = { ...customData };
         roomKeys.forEach(k => { payloadCustomData[k] = ''; });
+        console.log('[Rooms] payloadCustomData to send:', JSON.stringify(payloadCustomData));
 
         if (window.roomsDraftAllocations) {
           delete window.roomsDraftAllocations[r.id];
@@ -17620,11 +17623,14 @@
         ];
 
         const success = await saveCustomDataPayload(tripId, payload);
+        console.log('[Rooms] saveCustomDataPayload returned:', success);
         if (success) {
           showToast('تم إخراج الطفل من الغرفة', 'info');
           roomKeys.forEach(k => delete customData[k]);
           r.custom_data = JSON.stringify(customData);
           renderRoomsWorkspaceData();
+        } else {
+          console.error('[Rooms] FAIL: saveCustomDataPayload returned false for unassign');
         }
       }
 
@@ -18176,10 +18182,13 @@
         const fd = mkFd('bulkUpdateCustomData');
         fd.append('trip_id', tripId);
         fd.append('data', JSON.stringify(payload));
+        console.log('[Rooms] saveCustomDataPayload → tripId:', tripId, 'payload:', JSON.stringify(payload));
         try {
           const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+          console.log('[Rooms] API response:', JSON.stringify(res));
           return !!res.success;
         } catch (e) {
+          console.error('[Rooms] fetch error:', e);
           showToast('عفواً، فشل الاتصال بالخادم لحفظ التسكين', 'error');
           return false;
         }
