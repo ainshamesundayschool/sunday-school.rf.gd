@@ -6559,6 +6559,10 @@ function getData()
 
                     '_churchName' => $row['church_name'] ?? '',
 
+                    'الكنيسة' => $row['church_name'] ?? '',
+
+                    '_churchId' => intval($row['church_id_val'] ?? 0),
+
                     'الفصل' => $row['class'] ?? 'بدون فصل',
 
                     '_classCode' => $row['class_code'] ?? '',
@@ -6601,7 +6605,7 @@ function getData()
 
             }
 
-            // Get distinct classes across all churches for the filter dropdown
+            // Get distinct classes across all churches with church_name for developer view
 
             $classRows = $conn->query("
 
@@ -6609,7 +6613,9 @@ function getData()
 
                COALESCE(cc.id, gc.id) as id, COALESCE(cc.code, gc.code) as code,
 
-               COALESCE(cc.display_order, gc.display_order) as display_order
+               COALESCE(cc.display_order, gc.display_order) as display_order,
+
+               c.church_name, s.church_id
 
         FROM students s
 
@@ -6617,7 +6623,9 @@ function getData()
 
         LEFT JOIN classes gc ON s.class_id = gc.id
 
-        ORDER BY display_order
+        LEFT JOIN churches c ON s.church_id = c.id
+
+        ORDER BY c.church_name, display_order
 
     ");
 
@@ -6969,6 +6977,8 @@ function getData()
                 '_churchId' => intval($row['church_id']),
 
                 '_churchName' => $row['church_name'] ?? '',
+
+                'الكنيسة' => $row['church_name'] ?? '',
 
                 'العنوان' => $row['address'] ?? '',
 
@@ -16159,6 +16169,8 @@ function getAllUncles()
                 }
             }
             $row['church_name'] = $row['church_name'] ?? '';
+            $row['_churchName'] = $row['church_name'];
+            $row['الكنيسة'] = $row['church_name'];
             $row['classes'] = getUncleClasses($row['id']);
             $classNames = array_column($row['classes'], 'class_name');
             $row['class'] = !empty($classNames) ? implode(', ', $classNames) : '';

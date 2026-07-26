@@ -12121,8 +12121,7 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                         onclick="toggleDevChurchDropdown(event)">
                         <i class="fas fa-laptop-code dev-church-bar-icon"></i>
                         <span id="devChurchSelectedLabel" class="dev-church-selected-label"
-                            style="margin-inline-start:6px; margin-inline-end: 18px; font-size: 0.8rem; font-weight: 800; color: var(--brand); font-family: 'Cairo', sans-serif;">كنيستي
-                            الافتراضية</span>
+                            style="margin-inline-start:6px; margin-inline-end: 18px; font-size: 0.8rem; font-weight: 800; color: var(--brand); font-family: 'Cairo', sans-serif;">كل الكنائس</span>
                         <i class="fas fa-chevron-down dev-church-chevron"></i>
                     </div>
                     <select id="devChurchSelect" style="display:none;"></select>
@@ -15903,6 +15902,8 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 if (isCouponChanged) badges += `<span class="status-badge coupon-unsaved"><i class="fas fa-star"></i> ${addC >= 0 ? '+' : ''}${addC}</span>`;
                 // Show real class name as a small tag
                 const classBadge = `<span style="font-size:.62rem;background:var(--brand-bg);color:var(--brand);padding:1px 6px;border-radius:10px;margin-right:4px">${s['الفصل']}</span>`;
+                const sChurch2 = s['_churchName'] || s['الكنيسة'] || '';
+                const churchBadge2 = (sChurch2) ? `<span style="font-size:.62rem;background:rgba(79, 70, 229, 0.12);color:var(--brand);border:1px solid rgba(79, 70, 229, 0.25);padding:1px 6px;border-radius:10px;margin-right:4px;display:inline-flex;align-items:center;gap:3px;font-weight:700;"><i class="fas fa-church" style="font-size:.55rem;"></i>${escHtml(sChurch2)}</span>` : '';
                 const gender = (s['النوع'] === 'female' || s['gender'] === 'female') ? 'female' : 'male';
                 let name = s['الاسم'] || '---';
                 if (searchQuery) name = name.replace(new RegExp(`(${searchQuery})`, 'gi'), '<mark style="background:#fde047;border-radius:3px;padding:0 2px;color:#000">$1</mark>');
@@ -15929,7 +15930,7 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 </div>
                 ${img}${fallback}
                 <div>
-                    <div class="student-name profile-link">${name}</div>
+                    <div class="student-name profile-link">${name} ${classBadge}${churchBadge2}</div>
                             <div class="status-indicator">${badges}<span class="student-coupons-inline"><i class="fas fa-star" style="font-size:.7rem"></i> ${totC}${addC > 0 ? `<small style="opacity:.65;font-size:.7em"> +${addC}</small>` : ''}</span></div>
                 </div>
             </div>
@@ -17438,6 +17439,16 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 const pinHtml = isClsHighlighted ? `
                     <i class="fas fa-thumbtack" style="transform: rotate(45deg); font-size: 0.72rem; color: ${color}; margin-left: 6px;" title="فصلي"></i>
                 ` : '';
+
+                // Developer church badge for class card
+                const clsChurchName = cls.church_name || (classStudents.find(s => s['_churchName'] || s['الكنيسة']) || {})['_churchName'] || (classStudents.find(s => s['_churchName'] || s['الكنيسة']) || {})['الكنيسة'] || '';
+                const showChurchBadge = (isDeveloper && (!devViewChurchId || devViewChurchId === 0) && clsChurchName);
+                const churchBadgeHtml = showChurchBadge ? `
+                    <div style="font-size:0.68rem; font-weight:700; color:var(--brand); margin-top:3px; display:flex; align-items:center; gap:4px;">
+                        <i class="fas fa-church" style="font-size:0.62rem;"></i> ${escHtml(clsChurchName)}
+                    </div>
+                ` : '';
+
                 return `<div class="class-card${clsHighlightClass}" onclick="showClassView('${name}')"
             style="--cls-color:${color}">
             <div class="class-card-badges">
@@ -17447,7 +17458,7 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 <div></div>
             </div>
             <div class="class-icon" style="background:color-mix(in srgb,${color} 15%,white);color:${color}">${iconHtml}</div>
-            <div class="class-name">${pinHtml}${name} <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${count})</span></div>
+            <div class="class-name">${pinHtml}${name} <span style="font-size: .8rem; color: var(--text-3); font-weight: 600;">(${count})</span>${churchBadgeHtml}</div>
             ${classProgress}
         </div>`;
             }).join('');
@@ -18179,6 +18190,10 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 if (searchQuery) name = name.replace(new RegExp(`(${searchQuery})`, 'gi'), '<mark style="background:#fde047;border-radius:3px;padding:0 2px;color:#000">$1</mark>');
                 if (s._isGuest) {
                     name += ' <span class="guest-badge" style="font-size:0.65rem; background:#f59e0b; color:#fff; padding:2px 6px; border-radius:4px; margin-right:4px; vertical-align:middle; display:inline-block;">زائر</span>';
+                }
+                const sChurchRow = s['_churchName'] || s['الكنيسة'] || '';
+                if (isDeveloper && (!devViewChurchId || devViewChurchId === 0) && sChurchRow) {
+                    name += ` <span class="guest-badge" style="font-size:0.62rem; background:rgba(79, 70, 229, 0.12); color:var(--brand); border:1px solid rgba(79, 70, 229, 0.25); padding:1px 6px; border-radius:4px; margin-right:4px; vertical-align:middle; display:inline-inline; font-weight:700;"><i class="fas fa-church" style="font-size:0.55rem; margin-left:2px;"></i>${escHtml(sChurchRow)}</span>`;
                 }
                 const safeImg = (s['صورة'] || '').replace(/'/g, "\\'");
                 const safeName = (s['الاسم'] || '').replace(/'/g, "\\'");
@@ -20808,10 +20823,13 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
 
             const gender = (s['النوع'] === 'female' || s['gender'] === 'female') ? 'female' : 'male';
             // Basic avatar + header (kept from local cache)
+            const sChurchDetail = s['_churchName'] || s['الكنيسة'] || '';
+            const detailChurchBadge = sChurchDetail ? ` <span style="font-size:0.75rem; color:var(--brand); font-weight:700; margin-right:6px;"><i class="fas fa-church" style="font-size:0.7rem;"></i> ${escHtml(sChurchDetail)}</span>` : '';
+            const detailClassStr = (s['الفصل'] || '') + detailChurchBadge;
             const detailNameStr = (s['الاسم'] || '') + (s._isGuest ? ' <span class="guest-badge" style="font-size:0.65rem; background:#f59e0b; color:#fff; padding:2px 6px; border-radius:4px; margin-right:4px; vertical-align:middle; display:inline-block;">زائر</span>' : '');
             const img = s['صورة']
-                ? `<div class="detail-avatar-wrap"><img src="${window.photoUrl(s['صورة'])}" class="detail-avatar" onclick="showImageModal('${s['صورة']}')" onerror="this.style.display='none';var el=this.parentElement.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-avatar-fallback ${gender}" style="display:none"><i class="fas fa-user${s._isGuest ? '-tag' : ''}"></i></div><div class="detail-info-text"><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${s['الفصل'] || ''}</div></div></div>`
-                : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user${s._isGuest ? '-tag' : ''}"></i></div><div class="detail-info-text"><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${s['الفصل'] || ''}</div></div></div>`;
+                ? `<div class="detail-avatar-wrap"><img src="${window.photoUrl(s['صورة'])}" class="detail-avatar" onclick="showImageModal('${s['صورة']}')" onerror="this.style.display='none';var el=this.parentElement.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-avatar-fallback ${gender}" style="display:none"><i class="fas fa-user${s._isGuest ? '-tag' : ''}"></i></div><div class="detail-info-text"><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${detailClassStr}</div></div></div>`
+                : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user${s._isGuest ? '-tag' : ''}"></i></div><div class="detail-info-text"><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${detailClassStr}</div></div></div>`;
 
             // Reset edit/delete buttons visibility to default
             const editBtn = document.getElementById('editStudentBtn');
@@ -27778,8 +27796,8 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             const isSelectedDefault = !devViewChurchId;
             html += `
                 <div class="dev-church-dropdown-item ${isSelectedDefault ? 'selected' : ''}" 
-                     onclick="devSelectChurch(0, 'كنيستي الافتراضية')">
-                    كنيستي الافتراضية
+                     onclick="devSelectChurch(0, 'كل الكنائس')">
+                    كل الكنائس
                 </div>
             `;
 
@@ -27855,7 +27873,7 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 makeApiCall({ action: 'getAllChurchesForAdmin' }, r => {
                     if (r.success && Array.isArray(r.churches)) {
                         allChurchesCache = r.churches;
-                        select.innerHTML = '<option value="">كنيستي الافتراضية</option>';
+                        select.innerHTML = '<option value="">كل الكنائس</option>';
                         r.churches.forEach(church => {
                             const opt = document.createElement('option');
                             opt.value = church.id;
@@ -27864,7 +27882,7 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                         });
 
                         // Set active select value & label
-                        let activeLabel = 'كنيستي الافتراضية';
+                        let activeLabel = 'كل الكنائس';
                         if (devViewChurchId > 0) {
                             select.value = devViewChurchId;
                             const target = r.churches.find(c => c.id == devViewChurchId);
@@ -27901,7 +27919,7 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             // Sync custom dropdown menu label and list highlight
             if (typeof allChurchesCache !== 'undefined') {
                 renderDevChurchDropdownList(allChurchesCache);
-                let activeLabel = 'كنيستي الافتراضية';
+                let activeLabel = 'كل الكنائس';
                 if (devViewChurchId > 0 && allChurchesCache.length) {
                     const target = allChurchesCache.find(c => c.id == devViewChurchId);
                     if (target) activeLabel = target.church_name;
