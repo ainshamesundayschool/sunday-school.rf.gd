@@ -13176,12 +13176,20 @@
                     }
                 }
             } else {
-                // Normal mode - use session church ID
+                // Normal mode - use session church ID or local storage credentials
                 const cid = sessionChurchId || getChurchId() ||
                     parseInt(localStorage.getItem('churchId') || 0);
                 if (cid > 0) {
                     fd.append('church_id', cid);
                 }
+                const cc = localStorage.getItem('churchCode');
+                if (cc) fd.append('church_code', cc);
+                const un = localStorage.getItem('uncleUsername');
+                if (un) fd.append('username', un);
+                const uid = localStorage.getItem('uncleId');
+                if (uid) fd.append('uncle_id', uid);
+                const r = localStorage.getItem('uncleRole') || localStorage.getItem('role');
+                if (r) fd.append('role', r);
             }
 
             return fd;

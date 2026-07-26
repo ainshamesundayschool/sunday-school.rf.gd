@@ -5119,6 +5119,12 @@
         if (cid > 0 && !fd.has('church_id')) {
           fd.append('church_id', cid);
         }
+        const cc = localStorage.getItem('churchCode') || localStorage.getItem('church_code');
+        if (cc && !fd.has('church_code')) fd.append('church_code', cc);
+        const un = localStorage.getItem('uncleUsername');
+        if (un && !fd.has('username')) fd.append('username', un);
+        const uid = localStorage.getItem('uncleId');
+        if (uid && !fd.has('uncle_id')) fd.append('uncle_id', uid);
         return fd;
       }
 

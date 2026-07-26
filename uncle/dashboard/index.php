@@ -15014,6 +15014,18 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 const un = localStorage.getItem('uncleUsername');
                 if (un) fd.append('username', un);
             }
+            if (!fd.has('uncle_id')) {
+                const uid = localStorage.getItem('uncleId');
+                if (uid) fd.append('uncle_id', uid);
+            }
+            if (!fd.has('church_code')) {
+                const code = localStorage.getItem('churchCode');
+                if (code) fd.append('church_code', code);
+            }
+            if (!fd.has('role')) {
+                const r = localStorage.getItem('uncleRole') || localStorage.getItem('role');
+                if (r) fd.append('role', r);
+            }
             fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' })
                 .then(r => r.json())
                 .then(d => {
