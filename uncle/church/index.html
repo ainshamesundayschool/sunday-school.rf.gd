@@ -12264,8 +12264,7 @@
                 });
                 return { registration_id: regId, custom_data: customData };
             });
-            const fd = new FormData();
-            fd.append('action', 'bulkUpdateCustomData');
+            const fd = mkFd('bulkUpdateCustomData');
             fd.append('trip_id', tripId);
             fd.append('data', JSON.stringify(payload));
             const btn = document.getElementById('bulkCustomDataSubmitBtn');

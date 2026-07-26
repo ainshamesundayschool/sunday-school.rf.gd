@@ -2511,40 +2511,26 @@ function joinTrip()
 // ── Collaboration Helpers ──────────────────────────────────
 
 function verifyRegistrationParticipant($conn, $registrationId, $churchId)
-
 {
-
     $stmt = $conn->prepare("
-
-        SELECT t.church_id, t.collaborating_churches, COALESCE(s.church_id, g.church_id) as student_church_id
-
+        SELECT t.church_id, t.collaborating_churches, COALESCE(s.church_id, g.church_id, unc.church_id, tr.church_id, t.church_id) as student_church_id
         FROM trip_registrations tr
-
         JOIN trips t ON tr.trip_id = t.id
-
         LEFT JOIN students s ON tr.student_id = s.id
-
         LEFT JOIN guests g ON tr.guest_id = g.id
-
+        LEFT JOIN uncles unc ON tr.uncle_id = unc.id
         WHERE tr.id = ?
-
     ");
-
     $stmt->bind_param("i", $registrationId);
-
     $stmt->execute();
-
     $res = $stmt->get_result()->fetch_assoc();
-
     if (!$res)
-
         return false;
 
     $isOwner = intval($res['church_id']) === intval($churchId);
     $isOwnKid = intval($res['student_church_id']) === intval($churchId);
 
-    return ($isOwner || $isOwnKid);
-
+    return ($isOwner || $isOwnKid || isTripDeveloperViewer());
 }
 
 
@@ -27418,16 +27404,10 @@ function bulkUpdateCustomData()
 
             $json = !empty($existing) ? json_encode($existing, JSON_UNESCAPED_UNICODE) : null;
 
-            $updateStmt->bind_param('sis', $json, $registrationId, $tripId);
+            $updateStmt->bind_param('sii', $json, $registrationId, $tripId);
 
             if ($updateStmt->execute()) {
-
-                if ($updateStmt->affected_rows > 0) {
-
-                    $updatedCount++;
-
-                }
-
+                $updatedCount++;
             }
 
         }
