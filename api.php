@@ -1,5 +1,9 @@
 <?php
 
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
 
 
 // Catch all output and errors
@@ -2146,9 +2150,7 @@ function enhanceImage($imagePath, $targetWidth = 400, $targetHeight = 500)
 
 
 
-    imagedestroy($source);
-
-    imagedestroy($scaled);
+    unset($source, $scaled);
 
 
 
@@ -4394,11 +4396,7 @@ try {
 
             break;
 
-        case 'getAllChurches':
 
-            getAllChurches();
-
-            break;
 
         case 'addChurch':
 
@@ -5285,29 +5283,7 @@ try {
 
             break;
 
-        case 'getClassUncles':
 
-            checkAuth();
-
-            getClassUncles();
-
-            break;
-
-        case 'assignUncleToClass':
-
-            checkAuth();
-
-            assignUncleToClass();
-
-            break;
-
-        case 'removeUncleFromClass':
-
-            checkAuth();
-
-            removeUncleFromClass();
-
-            break;
 
         case 'testAudit':
 
@@ -5739,13 +5715,7 @@ try {
 
 
 
-        case 'deleteSubmission':
 
-            checkUncleAuth();
-
-            deleteSubmission();
-
-            break;
 
 
 
@@ -5977,153 +5947,7 @@ try {
 
 
 
-        case 'getTrips':
 
-            getTrips();
-
-            break;
-
-
-
-        case 'getTripDetails':
-
-            getTripDetails();
-
-            break;
-
-        case 'getRoomsTemplates':
-
-            getRoomsTemplates();
-
-            break;
-
-        case 'saveRoomsTemplate':
-
-            saveRoomsTemplate();
-
-            break;
-
-        case 'deleteRoomsTemplate':
-
-            deleteRoomsTemplate();
-
-            break;
-
-
-
-        case 'addTrip':
-
-            checkAuth();
-
-            addTrip();
-
-            break;
-
-
-
-        case 'updateTrip':
-
-            checkAuth();
-
-            updateTrip();
-
-            break;
-
-
-
-        case 'deleteTrip':
-
-            checkAuth();
-
-            deleteTrip();
-
-            break;
-
-
-
-        case 'sendCollaborationRequest':
-
-            checkAuth();
-
-            sendCollaborationRequest();
-
-            break;
-
-
-
-        case 'getCollaborationRequests':
-
-            checkAuth();
-
-            getCollaborationRequests();
-
-            break;
-
-
-
-        case 'respondToCollaborationRequest':
-
-            checkAuth();
-
-            respondToCollaborationRequest();
-
-            break;
-
-        case 'removeTripCollaborator':
-
-            checkAuth();
-
-            removeTripCollaborator();
-
-            break;
-
-        case 'updateCollaborationLimit':
-
-            checkAuth();
-
-            updateCollaborationLimit();
-
-            break;
-
-
-
-
-
-        case 'registerStudentForTrip':
-
-            registerStudentForTrip();
-
-            break;
-
-
-
-        case 'addTripPayment':
-
-            addTripPayment();
-
-            break;
-
-
-
-        case 'cancelTripRegistration':
-
-            cancelTripRegistration();
-
-            break;
-
-        case 'removeAllTripRegistrations':
-
-            removeAllTripRegistrations();
-
-            break;
-
-
-
-        case 'exportTripData':
-
-            exportTripData();
-
-            break;
 
 
 
@@ -6225,11 +6049,7 @@ try {
 
 
 
-        case 'getSessionInfo':
 
-            getSessionInfo();
-
-            break;
 
 
 
@@ -11723,7 +11543,7 @@ function getStudentByPhone()
 
             $row['birthday'] = formatDateFromDB($row['birthday']);
 
-            $row['class'] = $row['class'];
+
 
             $students[] = $row;
 
@@ -11801,7 +11621,7 @@ function getStudentByPhone()
 
                     $row['birthday'] = formatDateFromDB($row['birthday']);
 
-                    $row['class'] = $row['class'];
+
 
                     $students2[] = $row;
 
@@ -12919,7 +12739,7 @@ function updateRegistration()
 
                 if (!$classId) {
 
-                    $errors[] = "السطر $lineNumber: الفصل '$class' غير موجود";
+                    $errors[] = "الفصل '$class' غير موجود";
 
                     $errorCount++;
 
@@ -16268,7 +16088,7 @@ function sendAsyncRequest($url, $data)
 
     $curlErr = curl_error($ch);
 
-    curl_close($ch);
+    unset($ch);
 
 
 
@@ -18484,10 +18304,12 @@ function generateExcelTemplate()
 
         require_once 'vendor/autoload.php'; // If using PhpSpreadsheet
 
+        if (!class_exists(Spreadsheet::class)) {
+            sendJSON(['success' => false, 'message' => 'مكتبة PhpSpreadsheet غير مثبتة']);
+            return;
+        }
 
-
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-
+        $spreadsheet = new Spreadsheet();
 
 
         // Define all classes
@@ -18530,7 +18352,7 @@ function generateExcelTemplate()
 
             $sheet->getStyle('A1:D1')->getFill()
 
-                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                ->setFillType(Fill::FILL_SOLID)
 
                 ->getStartColor()->setARGB('FF4F46E5');
 
@@ -18574,7 +18396,7 @@ function generateExcelTemplate()
 
         // Create Excel file
 
-        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer = new Xlsx($spreadsheet);
 
 
 
@@ -20160,7 +19982,7 @@ function sendCustomWhatsAppOTP() {
             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_exec($ch);
-            curl_close($ch);
+            unset($ch);
         } catch (Throwable $t) {
             // Non-blocking catch
         }
@@ -31785,7 +31607,7 @@ function exportTripToCSV($trip, $finalPrice, $registrations, $payments = [], $wa
 
 
 
-function exportTripToPDF($trip, $finalPrice, $registrations)
+function exportTripToPDF($trip, $finalPrice, $registrations, $payments = [])
 
 {
 
@@ -46445,7 +46267,7 @@ function _pushToEndpoint($endpoint, $p256dh, $auth, $payload, $vapidPri, $vapidP
 
             $res = curl_exec($ch);
 
-            curl_close($ch);
+            unset($ch);
 
             $r = json_decode($res, true);
 
