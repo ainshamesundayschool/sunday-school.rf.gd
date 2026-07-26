@@ -49470,13 +49470,9 @@ function getSongDownloadStats() {
     checkAuth();
     $role = strtolower($_SESSION['uncle_role'] ?? $_SESSION['role'] ?? $_SESSION['user_role'] ?? $_POST['uncle_role'] ?? $_POST['role'] ?? $_GET['uncle_role'] ?? $_GET['role'] ?? '');
     
-    $isAllowed = in_array($role, ['developer', 'dev', 'admin', 'administrator', 'superadmin', 'church_admin']) 
-                 || isset($_SESSION['church_id']) 
-                 || isset($_SESSION['uncle_id']) 
-                 || isset($_SESSION['loggedIn'])
-                 || isset($_SESSION['uncle_logged_in']);
+    $isDev = in_array($role, ['developer', 'dev']) || (!empty($_SESSION['is_developer']) && $_SESSION['is_developer'] === true);
 
-    if (!$isAllowed && isset($_SESSION['uncle_id'])) {
+    if (!$isDev && isset($_SESSION['uncle_id'])) {
         $connTemp = getDBConnection();
         $stmtTemp = $connTemp->prepare("SELECT role FROM uncles WHERE id = ?");
         if ($stmtTemp) {
@@ -49485,8 +49481,8 @@ function getSongDownloadStats() {
             $stmtTemp->execute();
             $resTemp = $stmtTemp->get_result();
             if ($rowTemp = $resTemp->fetch_assoc()) {
-                if (in_array(strtolower($rowTemp['role'] ?? ''), ['developer', 'dev', 'admin', 'administrator', 'superadmin', 'church_admin', 'khadem'])) {
-                    $isAllowed = true;
+                if (in_array(strtolower($rowTemp['role'] ?? ''), ['developer', 'dev'])) {
+                    $isDev = true;
                     $_SESSION['uncle_role'] = $rowTemp['role'];
                 }
             }
@@ -49494,8 +49490,8 @@ function getSongDownloadStats() {
         }
     }
 
-    if (!$isAllowed) {
-        sendJSON(['success' => false, 'message' => 'غير مصرح للوصول لهذه البيانات']);
+    if (!$isDev) {
+        sendJSON(['success' => false, 'message' => 'غير مصرح - هذه البيانات مخصصة لمطور النظام فقط']);
         return;
     }
 

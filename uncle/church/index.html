@@ -7275,7 +7275,7 @@
                 id="devChurchesBtn">
                 <i class="fas fa-building"></i><span class="label">إدارة الكنائس</span>
             </button>
-            <button class="nav-item dev-item" onclick="switchTab('devSongDownloads', this)"
+            <button class="nav-item dev-item dev-only" onclick="switchTab('devSongDownloads', this)"
                 data-tooltip="تحميلات الترنيمة" id="devSongDownloadsBtn">
                 <i class="fas fa-music"></i><span class="label">تحميلات الترنيمة</span>
             </button>
@@ -9316,7 +9316,7 @@
             </div>
 
             <!-- ── DEVELOPER: EXCLUSIVE SONG DOWNLOADS ── -->
-            <div id="devSongDownloads" class="tab-panel">
+            <div id="devSongDownloads" class="tab-panel dev-only">
                 <div class="stats-row"
                     style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px;">
                     <div class="stat-card">
@@ -13283,6 +13283,10 @@
         }
 
         async function switchTab(name, btn) {
+            if ((name === 'devChurches' || name === 'devSongDownloads') && !isDeveloper) {
+                name = 'overview';
+                btn = document.getElementById('nav-overview');
+            }
             activeTabName = name;
 
             // Reset settings to hub when navigating away
