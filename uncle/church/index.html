@@ -13486,9 +13486,11 @@
                 list = list.map(u => ({
                     ...u,
                     _score: getMatchScore(u, q, [
-                        { val: u.name, weight: 1.0 },
-                        { val: u.username, weight: 1.2 },
-                        { val: u.phone, weight: 0.8 }
+                        { val: u.name || '', weight: 1.0 },
+                        { val: u.username || '', weight: 1.2 },
+                        { val: u.phone || '', weight: 1.0 },
+                        { val: Array.isArray(u.classes) ? u.classes.join(' ') : (u.classes || u.assigned_classes || ''), weight: 0.8 },
+                        { val: u.role || '', weight: 0.6 }
                     ])
                 })).filter(u => u._score > 0)
                     .sort((a, b) => b._score - a._score);
@@ -13859,18 +13861,30 @@
             const sort = document.getElementById('sortStudents').value;
             let list = allStudents.filter(s => !cls || s['الفصل'] === cls);
             if (q) {
-                list = list.map(s => ({
-                    ...s,
-                    _score: getMatchScore(s, q, [
-                        { val: s['الاسم'], weight: 1.0 },
-                        { val: s['رقم التليفون'], weight: 1.1 }
-                    ])
-                })).filter(s => s._score > 0);
+                list = list.map(s => {
+                    let guardianName = '';
+                    try {
+                        const ci = typeof s.custom_info === 'string' ? JSON.parse(s.custom_info) : (s.custom_info || {});
+                        guardianName = ci.guardian_name || ci.father_name || ci.parent_name || ci.mother_name || ci.field_0 || '';
+                    } catch(e) {}
+                    return {
+                        ...s,
+                        _score: getMatchScore(s, q, [
+                            { val: s['الاسم'] || s.student_name || s.name || '', weight: 1.0 },
+                            { val: s['رقم التليفون'] || s.student_phone || s.phone || '', weight: 1.1 },
+                            { val: s['هاتف الطوارئ'] || s.emergency_phone || '', weight: 1.0 },
+                            { val: s['اسم ولي الأمر'] || guardianName || '', weight: 0.9 },
+                            { val: s['الفصل'] || s.student_class || s.class_name || '', weight: 0.7 },
+                            { val: s['العنوان'] || s.address || '', weight: 0.6 },
+                            { val: s['ملاحظات طبية'] || s.medical_notes || '', weight: 0.5 }
+                        ])
+                    };
+                }).filter(s => s._score > 0);
                 if (!sort) {
                     list.sort((a, b) => b._score - a._score);
                 }
             }
-            if (sort === 'name') list.sort((a, b) => a['الاسم'].localeCompare(b['الاسم'], 'ar'));
+            if (sort === 'name') list.sort((a, b) => (a['الاسم'] || '').localeCompare(b['الاسم'] || '', 'ar'));
             else if (sort === 'class') list.sort((a, b) => (a['الفصل'] || '').localeCompare(b['الفصل'] || '', 'ar'));
             else if (sort === 'coupons_desc') list.sort((a, b) => (b['كوبونات'] || 0) - (a['كوبونات'] || 0));
             else if (sort === 'coupons_asc') list.sort((a, b) => (a['كوبونات'] || 0) - (b['كوبونات'] || 0));
@@ -14189,10 +14203,11 @@
                 list = list.map(g => ({
                     ...g,
                     _score: getMatchScore(g, q, [
-                        { val: g.name, weight: 1.0 },
-                        { val: g.phone, weight: 1.1 },
-                        { val: g.guardian_name, weight: 0.9 },
-                        { val: g.class, weight: 0.8 }
+                        { val: g.name || '', weight: 1.0 },
+                        { val: g.phone || '', weight: 1.1 },
+                        { val: g.guardian_name || g.guardian || '', weight: 0.9 },
+                        { val: g.class || g.class_custom || '', weight: 0.8 },
+                        { val: g.notes || '', weight: 0.6 }
                     ])
                 })).filter(g => g._score > 0)
                     .sort((a, b) => b._score - a._score);
@@ -15191,8 +15206,10 @@
             const filtered = _graduatesCache.map(g => ({
                 ...g,
                 _score: getMatchScore(g, q, [
-                    { val: g.name, weight: 1.0 },
-                    { val: g.phone, weight: 1.1 }
+                    { val: g.name || g.student_name || '', weight: 1.0 },
+                    { val: g.phone || g.student_phone || '', weight: 1.1 },
+                    { val: g.guardian_name || g.parent_phone || '', weight: 0.9 },
+                    { val: g.class_name || g.last_class || '', weight: 0.7 }
                 ])
             })).filter(g => g._score > 0)
                 .sort((a, b) => b._score - a._score);
@@ -15747,7 +15764,9 @@
                 trips = trips.map(t => ({
                     ...t,
                     _score: getMatchScore(t, q, [
-                        { val: t.title, weight: 1.0 }
+                        { val: t.title || '', weight: 1.0 },
+                        { val: t.destination || t.location || '', weight: 0.9 },
+                        { val: t.description || t.notes || '', weight: 0.7 }
                     ])
                 })).filter(t => t._score > 0);
             }
@@ -19609,8 +19628,11 @@
             const filtered = allChurchesCache.map(c => ({
                 ...c,
                 _score: getMatchScore(c, q, [
-                    { val: c.church_name, weight: 1.0 },
-                    { val: c.church_code, weight: 1.1 }
+                    { val: c.church_name || '', weight: 1.0 },
+                    { val: c.church_code || '', weight: 1.1 },
+                    { val: c.father_name || c.contact_person || '', weight: 0.9 },
+                    { val: c.phone || c.contact_phone || '', weight: 1.0 },
+                    { val: c.city || c.district || c.address || '', weight: 0.8 }
                 ])
             })).filter(c => c._score > 0)
                 .sort((a, b) => b._score - a._score);

@@ -6409,7 +6409,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
       let churches = window.allChurches.map(c => ({
         ...c,
-        _score: getMatchScore({ name: c.name }, q, ['name'])
+        _score: getMatchScore(c, q, [
+          { val: c.name || c.church_name || '', weight: 1.0 },
+          { val: c.code || c.church_code || '', weight: 1.1 }
+        ])
       })).filter(c => c._score > 0).sort((a, b) => b._score - a._score);
 
       if (churches.length > 0) {
