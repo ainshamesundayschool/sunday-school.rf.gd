@@ -790,6 +790,10 @@ function auditTripEdit(int $tripId, array $oldRow, array $newRow): void {
     $newClean = $newRow;
     if (isset($oldClean['rooms_config'])) $oldClean['rooms_config'] = '[rooms_config]';
     if (isset($newClean['rooms_config'])) $newClean['rooms_config'] = '[rooms_config]';
+    if (isset($oldClean['qr_template'])) $oldClean['qr_template'] = '[qr_template]';
+    if (isset($newClean['qr_template'])) $newClean['qr_template'] = '[qr_template]';
+    if (isset($oldClean['custom_field_icons']) && strlen((string)$oldClean['custom_field_icons']) > 5000) $oldClean['custom_field_icons'] = '[custom_field_icons]';
+    if (isset($newClean['custom_field_icons']) && strlen((string)$newClean['custom_field_icons']) > 5000) $newClean['custom_field_icons'] = '[custom_field_icons]';
     writeAuditLog('trip_edit', 'trip', $tripId, $oldRow['title'] ?? '',
         $oldClean, $newClean, "تعديل رحلة: " . ($oldRow['title'] ?? ''));
 }

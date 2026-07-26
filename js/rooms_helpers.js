@@ -567,7 +567,16 @@ function handleRoomsRegistrationFormInject(trip, preData = {}) {
 /**
  * Save current wizard layout configuration as a new database template
  */
-async function saveCurrentRoomsAsTemplate(prefix) {
+async function saveCurrentRoomsAsTemplate(prefix, btnEl) {
+    let targetBtn = btnEl;
+    if (!targetBtn && typeof event !== 'undefined' && event && event.target) {
+        targetBtn = event.target.closest('button') || event.target;
+    }
+    if (!targetBtn && prefix) {
+        targetBtn = document.querySelector(`button[onclick*="saveCurrentRoomsAsTemplate('${prefix}')"]`) ||
+                    document.querySelector(`button[onclick*='saveCurrentRoomsAsTemplate("${prefix}")']`);
+    }
+
     const config = compileRoomsConfig(prefix);
     const toast = (typeof showToast === 'function') ? showToast : (msg) => alert(msg);
 
@@ -583,6 +592,13 @@ async function saveCurrentRoomsAsTemplate(prefix) {
     if (!trimmedName) {
         toast('اسم القالب لا يمكن أن يكون فارغاً', 'error');
         return;
+    }
+
+    let origBtnHtml = '';
+    if (targetBtn) {
+        origBtnHtml = targetBtn.innerHTML;
+        targetBtn.disabled = true;
+        targetBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري حفظ القالب...';
     }
 
     try {
@@ -610,6 +626,11 @@ async function saveCurrentRoomsAsTemplate(prefix) {
     } catch (e) {
         console.error("Error saving rooms template", e);
         toast('خطأ في الاتصال بالخادم أثناء حفظ القالب', 'error');
+    } finally {
+        if (targetBtn) {
+            targetBtn.disabled = false;
+            targetBtn.innerHTML = origBtnHtml;
+        }
     }
 }
 

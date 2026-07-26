@@ -26232,14 +26232,20 @@ function updateTrip()
             // AFTER update, get new trip data
 
             $newTrip = getTripSnapshot($tripId);
-
-
+            if (isset($newTrip['qr_template'])) {
+                if (strlen($newTrip['qr_template']) > 50000 && strpos($newTrip['qr_template'], 'data:image') !== false) {
+                    $cleanTpl = cleanAndExtractBase64FromTemplate($newTrip['qr_template']);
+                    $updateSql = $conn->prepare("UPDATE trips SET qr_template = ? WHERE id = ?");
+                    if ($updateSql) {
+                        $updateSql->bind_param("si", $cleanTpl, $tripId);
+                        $updateSql->execute();
+                    }
+                }
+                unset($newTrip['qr_template']);
+            }
 
             // ► AUDIT
-
             auditTripEdit($tripId, $oldTrip ?? [], $newTrip ?? []);
-
-
 
             sendJSON(['success' => true, 'message' => 'تم تحديث الرحلة بنجاح', 'image_url' => $imageUrl, 'trip' => $newTrip]);
 
@@ -37203,6 +37209,45 @@ function getDefaultChurchSettings(): array
 
 }
 
+function cleanAndExtractBase64FromTemplate($templateStr) {
+    if (empty($templateStr) || !is_string($templateStr)) return $templateStr;
+    if (strlen($templateStr) < 1000) return $templateStr;
+
+    $decoded = json_decode($templateStr, true);
+    if (!is_array($decoded)) return $templateStr;
+
+    $uploadDir = __DIR__ . '/uploads/qr_templates/';
+    if (!is_dir($uploadDir)) {
+        @mkdir($uploadDir, 0777, true);
+    }
+
+    $host = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'sunday-school.rf.gd';
+
+    $replaceBase64 = function (&$item) use (&$replaceBase64, $uploadDir, $host) {
+        if (is_string($item)) {
+            if (preg_match('/^data:image\/(png|jpeg|jpg|webp|gif);base64,(.+)$/is', $item, $matches)) {
+                $ext = strtolower($matches[1]);
+                if ($ext === 'jpeg') $ext = 'jpg';
+                $binData = base64_decode($matches[2]);
+                if ($binData !== false && strlen($binData) > 0) {
+                    $filename = 'qr_bg_' . time() . '_' . uniqid() . '.' . $ext;
+                    $filePath = $uploadDir . $filename;
+                    if (@file_put_contents($filePath, $binData) !== false) {
+                        $item = "https://" . $host . "/uploads/qr_templates/" . $filename;
+                    }
+                }
+            }
+        } elseif (is_array($item)) {
+            foreach ($item as $k => &$v) {
+                $replaceBase64($v);
+            }
+        }
+    };
+
+    $replaceBase64($decoded);
+    return json_encode($decoded, JSON_UNESCAPED_UNICODE);
+}
+
 function saveQRTemplate()
 {
     try {
@@ -37235,6 +37280,8 @@ function saveQRTemplate()
             sendJSON(['success' => false, 'message' => 'بيانات القالب مطلوبة']);
             return;
         }
+
+        $template = cleanAndExtractBase64FromTemplate($template);
 
         $conn = getDBConnection();
         ensureChurchSettingsTable($conn);
@@ -37288,6 +37335,15 @@ function getQRTemplates()
         $churchRow = $churchStmt->get_result()->fetch_assoc();
         $churchTemplate = $churchRow['qr_template'] ?? null;
 
+        if (!empty($churchTemplate) && strlen($churchTemplate) > 50000 && strpos($churchTemplate, 'data:image') !== false) {
+            $churchTemplate = cleanAndExtractBase64FromTemplate($churchTemplate);
+            $updateSql = $conn->prepare("UPDATE church_settings SET qr_template = ? WHERE church_id = ?");
+            if ($updateSql) {
+                $updateSql->bind_param("si", $churchTemplate, $churchId);
+                $updateSql->execute();
+            }
+        }
+
         // 2. Trip template
         $tripTemplate = null;
         if ($tripId > 0) {
@@ -37296,6 +37352,15 @@ function getQRTemplates()
             $tripStmt->execute();
             $tripRow = $tripStmt->get_result()->fetch_assoc();
             $tripTemplate = $tripRow['qr_template'] ?? null;
+
+            if (!empty($tripTemplate) && strlen($tripTemplate) > 50000 && strpos($tripTemplate, 'data:image') !== false) {
+                $tripTemplate = cleanAndExtractBase64FromTemplate($tripTemplate);
+                $updateSql = $conn->prepare("UPDATE trips SET qr_template = ? WHERE id = ?");
+                if ($updateSql) {
+                    $updateSql->bind_param("si", $tripTemplate, $tripId);
+                    $updateSql->execute();
+                }
+            }
         }
 
         // 3. Other trips templates metadata (lightweight)

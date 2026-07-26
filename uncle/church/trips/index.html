@@ -16387,7 +16387,7 @@
               <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 14px;">
                 <div>
                   <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--text); display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-hotel" style="color: var(--primary);"></i> إعداد هيكل وقوالب الغرف
+                    <i class="fas fa-hotel" style="color: var(--primary);"></i> إعداد الغرف
                   </h3>
                   <div style="font-size: 0.78rem; color: var(--muted); margin-top: 4px;">اختر قالباً جاهزاً للسكن أو أنشئ المباني والأدوار والغرف مخصصاً لهذه الرحلة.</div>
                 </div>
@@ -17294,6 +17294,14 @@
         fd.append('custom_fields', customFields);
         fd.append('custom_field_icons', JSON.stringify(customFieldIcons));
 
+        let targetBtn = (typeof event !== 'undefined' && event && event.target) ? (event.target.closest('button') || event.target) : null;
+        let origBtnHtml = '';
+        if (targetBtn) {
+          origBtnHtml = targetBtn.innerHTML;
+          targetBtn.disabled = true;
+          targetBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري حفظ السكن...';
+        }
+
         try {
           const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
           if (res.success) {
@@ -17316,6 +17324,11 @@
         } catch (e) {
           console.error("Error saving rooms config from tab", e);
           showToast('حدث خطأ أثناء حفظ هيكل السكن', 'error');
+        } finally {
+          if (targetBtn) {
+            targetBtn.disabled = false;
+            targetBtn.innerHTML = origBtnHtml;
+          }
         }
       }
 
@@ -17393,6 +17406,14 @@
           return;
         }
 
+        let targetBtn = (typeof event !== 'undefined' && event && event.target) ? (event.target.closest('button') || event.target) : null;
+        let origTplHtml = '';
+        if (targetBtn) {
+          origTplHtml = targetBtn.innerHTML;
+          targetBtn.disabled = true;
+          targetBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري حفظ القالب...';
+        }
+
         try {
           const fd = new FormData();
           fd.append('action', 'saveRoomsTemplate');
@@ -17408,6 +17429,11 @@
         } catch (e) {
           console.error("Error saving rooms template", e);
           showToast('خطأ في الاتصال بالخادم أثناء حفظ القالب', 'error');
+        } finally {
+          if (targetBtn) {
+            targetBtn.disabled = false;
+            targetBtn.innerHTML = origTplHtml;
+          }
         }
       }
 
@@ -21386,7 +21412,7 @@
       <div class="modal-box" style="max-width:700px; padding:24px;">
         <div class="modal-head" style="margin-bottom:16px; border-bottom:1px solid var(--border); padding-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
           <h2 style="margin:0; font-size:1.15rem; font-weight:800; color:var(--text); display:flex; align-items:center; gap:8px;">
-            <i class="fas fa-hotel" style="color:var(--primary);"></i> إعداد هيكل وقوالب الغرف
+            <i class="fas fa-hotel" style="color:var(--primary);"></i> إعداد الغرف
           </h2>
           <button class="modal-close" onclick="closeModal('roomsStructureModal')"><i class="fas fa-times"></i></button>
         </div>
