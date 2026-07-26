@@ -3458,9 +3458,38 @@ function autoRestoreSessionFromRequest()
     return false;
 }
 
+function syncCurrentSessionRoleFromDB()
+{
+    if (isset($_SESSION['uncle_id']) && intval($_SESSION['uncle_id']) > 0) {
+        try {
+            $conn = getDBConnection();
+            $stmt = $conn->prepare("SELECT role, name, username, church_id FROM uncles WHERE id = ? AND (deleted IS NULL OR deleted = 0) LIMIT 1");
+            $uId = intval($_SESSION['uncle_id']);
+            $stmt->bind_param("i", $uId);
+            $stmt->execute();
+            $res = $stmt->get_result();
+            if ($row = $res->fetch_assoc()) {
+                $_SESSION['uncle_role'] = $row['role'];
+                $_SESSION['role'] = $row['role'];
+                if (!empty($row['name'])) $_SESSION['uncle_name'] = $row['name'];
+                if (!empty($row['username'])) $_SESSION['uncle_username'] = $row['username'];
+                if (!empty($row['church_id'])) $_SESSION['church_id'] = intval($row['church_id']);
+                return $row['role'];
+            } else {
+                unset($_SESSION['uncle_id'], $_SESSION['uncle_role'], $_SESSION['uncle_name'], $_SESSION['uncle_username']);
+            }
+        } catch (Exception $e) {
+            error_log("syncCurrentSessionRoleFromDB error: " . $e->getMessage());
+        }
+    }
+    return $_SESSION['uncle_role'] ?? $_SESSION['role'] ?? '';
+}
+
 // Check if user is logged in
 function checkAuth()
 {
+    syncCurrentSessionRoleFromDB();
+
     if (autoRestoreSessionFromRequest()) {
         return;
     }
@@ -3487,6 +3516,8 @@ function checkAuth()
 
 function checkUncleAuth()
 {
+    syncCurrentSessionRoleFromDB();
+
     if (autoRestoreSessionFromRequest()) {
         return;
     }
@@ -33768,6 +33799,7 @@ function getSessionInfo()
 {
 
     runBackgroundGradeUpChecks();
+    syncCurrentSessionRoleFromDB();
 
     // Works for BOTH church logins and uncle logins
 
@@ -33939,7 +33971,7 @@ function getSessionInfo()
 
     }
 
-
+    $isDev = in_array(strtolower(trim($uncleRole)), ['developer', 'dev']);
 
     sendJSON([
 
@@ -33970,6 +34002,8 @@ function getSessionInfo()
         'uncleRole' => $uncleRole,
 
         'role' => $uncleRole,
+
+        'is_developer' => $isDev,
 
         'login_type' => $loginType,
 

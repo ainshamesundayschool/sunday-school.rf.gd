@@ -205,6 +205,23 @@ if ($hasSession && isset($_GET['kid_id']) && intval($_GET['kid_id']) > 0 && !(is
     }
 }
 
+if (isset($_SESSION['uncle_id']) && intval($_SESSION['uncle_id']) > 0 && function_exists('getDBConnection')) {
+    try {
+        $conn = getDBConnection();
+        $uStmt = $conn->prepare("SELECT role, name FROM uncles WHERE id = ? AND (deleted IS NULL OR deleted = 0) LIMIT 1");
+        $uId = intval($_SESSION['uncle_id']);
+        $uStmt->bind_param("i", $uId);
+        $uStmt->execute();
+        if ($uRow = $uStmt->get_result()->fetch_assoc()) {
+            $_SESSION['uncle_role'] = $uRow['role'];
+            $_SESSION['role'] = $uRow['role'];
+            if (!empty($uRow['name'])) $_SESSION['uncle_name'] = $uRow['name'];
+        } else {
+            unset($_SESSION['uncle_id'], $_SESSION['uncle_role'], $_SESSION['uncle_name']);
+        }
+    } catch (Exception $e) {}
+}
+
 $churchName = $_SESSION['church_name'] ?? 'الكنيسة';
 $churchCode = $_SESSION['church_code'] ?? '';
 $uncleName = $_SESSION['uncle_name'] ?? '';
@@ -315,7 +332,21 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                             if (d.church_name) localStorage.setItem('churchName', d.church_name);
                             if (d.uncle_name) localStorage.setItem('uncleName', d.uncle_name);
                             if (d.church_type) localStorage.setItem('churchType', d.church_type);
-                            if (d.uncle_role) localStorage.setItem('uncleRole', d.uncle_role);
+                            if (d.uncle_role || d.role) {
+                                var sRole = (d.uncle_role || d.role).toLowerCase().trim();
+                                localStorage.setItem('uncleRole', sRole);
+                                localStorage.setItem('role', sRole);
+                                var isDev = (d.is_developer === true || sRole === 'developer' || sRole === 'dev');
+                                localStorage.setItem('isDeveloper', isDev ? 'true' : 'false');
+                                if (!isDev) {
+                                    localStorage.removeItem('devViewChurchId');
+                                }
+                                if (typeof isDeveloper !== 'undefined') {
+                                    isDeveloper = isDev;
+                                    var switcher = document.getElementById('devDashboardChurchSwitcher');
+                                    if (switcher) switcher.style.display = isDev ? 'flex' : 'none';
+                                }
+                            }
                             if (d.login_type) localStorage.setItem('loginType', d.login_type);
                         }
                     })
