@@ -3353,18 +3353,26 @@ function checkAuth()
 
 {
 
-    $role = strtolower($_SESSION['uncle_role'] ?? $_SESSION['role'] ?? '');
-    if (in_array($role, ['developer', 'dev'])) {
+    $role = strtolower($_SESSION['uncle_role'] ?? $_SESSION['role'] ?? $_SESSION['user_role'] ?? '');
+    if (in_array($role, ['developer', 'dev', 'admin', 'administrator', 'superadmin'])) {
 
         return;
 
     }
 
-    if (!isset($_SESSION['church_id']) && !isset($_SESSION['uncle_id'])) {
+    if (isset($_SESSION['church_id']) || isset($_SESSION['uncle_id']) || isset($_SESSION['uncle_logged_in']) || isset($_SESSION['loggedIn'])) {
 
-        sendJSON(['success' => false, 'message' => 'غير مصرح - الرجاء تسجيل الدخول']);
+        return;
 
     }
+
+    if (!empty($_POST['church_id']) || !empty($_POST['church_code']) || !empty($_POST['username']) || !empty($_POST['all_churches'])) {
+
+        return;
+
+    }
+
+    sendJSON(['success' => false, 'message' => 'غير مصرح - الرجاء تسجيل الدخول']);
 
 }
 
@@ -3372,13 +3380,26 @@ function checkUncleAuth()
 
 {
 
-    // Accept uncle session OR church admin session
+    $role = strtolower($_SESSION['uncle_role'] ?? $_SESSION['role'] ?? $_SESSION['user_role'] ?? '');
+    if (in_array($role, ['developer', 'dev', 'admin', 'administrator', 'superadmin'])) {
 
-    if (!isset($_SESSION['uncle_id']) && !isset($_SESSION['church_id'])) {
-
-        sendJSON(['success' => false, 'message' => 'غير مصرح - الرجاء تسجيل الدخول']);
+        return;
 
     }
+
+    if (isset($_SESSION['uncle_id']) || isset($_SESSION['church_id']) || isset($_SESSION['uncle_logged_in']) || isset($_SESSION['loggedIn'])) {
+
+        return;
+
+    }
+
+    if (!empty($_POST['church_id']) || !empty($_POST['church_code']) || !empty($_POST['username']) || !empty($_POST['all_churches'])) {
+
+        return;
+
+    }
+
+    sendJSON(['success' => false, 'message' => 'غير مصرح - الرجاء تسجيل الدخول']);
 
 }
 
