@@ -18207,7 +18207,7 @@
             : '/profile_default.webp';
           const icon = item.type === 'uncle' ? '<i class="fas fa-user-shield" style="color:var(--warning); font-size:0.6rem;"></i> ' : '';
           return `
-            <div class="ws-popover-item" onclick="onPopoverItemClick('${item.type}', ${item.id}, '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(roomName)}')">
+            <div class="ws-popover-item" onclick="onPopoverItemClick('${item.type}', '${item.id}', '${escHtml(bldName)}', '${escHtml(floorName)}', '${escHtml(roomName)}')">
               <img src="${cleanImg}" class="ws-popover-avatar" onerror="this.src='/profile_default.webp'">
               <div style="display:flex; flex-direction:column; gap:1px; flex:1; min-width:0;">
                 <div style="font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${icon}${escHtml(item.name)}</div>
@@ -18241,14 +18241,23 @@
         const roomsConfig = getTripRoomsConfig(trip);
 
         let assignedName = '';
-        const selectedUncle = window.allUnclesCache.find(u => u.id == uncleId);
-        if (selectedUncle) assignedName = selectedUncle.name;
+        const selectedUncle = (window.allUnclesCache || []).find(u => String(u.id) === String(uncleId));
+        if (selectedUncle) {
+          assignedName = selectedUncle.name;
+        } else {
+          const regs = tripRegistrationsCache[tripId] || (trip ? trip.registrations : []) || [];
+          const regUncle = regs.find(r => String(r.id) === String(uncleId) || String(r.student_id) === String(uncleId));
+          if (regUncle) {
+            assignedName = regUncle.student_name || regUncle.name || 'خادم';
+          }
+        }
+        if (!assignedName) assignedName = 'خادم';
 
         // Prevent duplicate uncle assignments
         roomsConfig.forEach(bld => {
           const cleanRoom = (r) => {
             if (r.uncles) {
-              r.uncles = r.uncles.filter(u => u.id != uncleId);
+              r.uncles = r.uncles.filter(u => String(typeof u === 'object' ? u.id : u) !== String(uncleId));
             }
           };
           if (bld.has_floors) {
@@ -18266,7 +18275,7 @@
                   fl.rooms.forEach(r => {
                     if (r.name === roomName) {
                       if (!r.uncles) r.uncles = [];
-                      r.uncles.push({ id: uncleId, name: assignedName });
+                      r.uncles.push({ id: String(uncleId), name: assignedName });
                     }
                   });
                 }
@@ -18275,7 +18284,7 @@
               bld.rooms.forEach(r => {
                 if (r.name === roomName) {
                   if (!r.uncles) r.uncles = [];
-                  r.uncles.push({ id: uncleId, name: assignedName });
+                  r.uncles.push({ id: String(uncleId), name: assignedName });
                 }
               });
             }
