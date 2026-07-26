@@ -27360,9 +27360,9 @@ function bulkUpdateCustomData()
 
         $conn = getDBConnection();
 
-        if (!verifyTripParticipant($conn, $tripId, $churchId)) {
+        if (!verifyTripParticipant($conn, $tripId, $churchId) && !isTripDeveloperViewer()) {
 
-            sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة أو غير مصرح بها']);
+            sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة أو غير مصرح بها', 'debug_church_id' => $churchId]);
 
             return;
 

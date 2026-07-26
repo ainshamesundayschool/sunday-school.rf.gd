@@ -18184,11 +18184,23 @@
         fd.append('data', JSON.stringify(payload));
         console.log('[Rooms] saveCustomDataPayload → tripId:', tripId, 'payload:', JSON.stringify(payload));
         try {
-          const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+          const rawRes = await fetch(API_URL, { method: 'POST', body: fd });
+          const rawText = await rawRes.text();
+          let res;
+          try {
+            res = JSON.parse(rawText);
+          } catch (parseErr) {
+            console.error('[Rooms] JSON parse error. Raw server response:\n', rawText);
+            showToast('عفواً، استجابة غير متوقعة من الخادم', 'error');
+            return false;
+          }
           console.log('[Rooms] API response:', JSON.stringify(res));
+          if (!res.success) {
+            console.error('[Rooms] API returned success:false —', res.message || '(no message)', '| church_id_used:', res.debug_church_id ?? res.church_id_used ?? 'N/A');
+          }
           return !!res.success;
         } catch (e) {
-          console.error('[Rooms] fetch error:', e);
+          console.error('[Rooms] fetch network error:', e);
           showToast('عفواً، فشل الاتصال بالخادم لحفظ التسكين', 'error');
           return false;
         }
