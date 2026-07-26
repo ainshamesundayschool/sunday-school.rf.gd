@@ -2774,6 +2774,7 @@ function updateCollaborationLimit()
 
 function ensureTripCollaborationRequestsTable($conn)
 {
+    if (defined('SCHEMA_MIGRATED')) { return; }
     $sql = "CREATE TABLE IF NOT EXISTS `trip_collaboration_requests` (
         `id` int(11) NOT NULL AUTO_INCREMENT,
         `trip_id` int(11) NOT NULL,
@@ -27136,18 +27137,8 @@ function getTripDiscountedBasePrice($trip)
 
 
 function getTripExpensesPerKid($conn, $tripId)
-
 {
-
-    $tableCheck = @$conn->query("SHOW TABLES LIKE 'trip_expenses'");
-
-    if (!$tableCheck || $tableCheck->num_rows === 0) {
-
-        return 0.0;
-
-    }
-
-    $stmt = $conn->prepare("SELECT COALESCE(SUM(per_kid), 0) AS exp_total FROM trip_expenses WHERE trip_id = ?");
+    $stmt = @$conn->prepare("SELECT COALESCE(SUM(per_kid), 0) AS exp_total FROM trip_expenses WHERE trip_id = ?");
 
     if (!$stmt) {
 

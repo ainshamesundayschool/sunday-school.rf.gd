@@ -2409,13 +2409,7 @@
             }
 
             function prefetchStudentPhotos(registrations) {
-                if (!navigator.onLine) return;
-                registrations.forEach(r => {
-                    const photoUrl = r.student_image;
-                    if (photoUrl) {
-                        fetch(photoUrl, { priority: 'low' }).catch(() => { });
-                    }
-                });
+                // Disabled to prevent network socket congestion on trip page load
             }
 
             async function apiCall(action, params = {}) {
