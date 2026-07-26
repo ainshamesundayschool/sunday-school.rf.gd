@@ -1720,6 +1720,22 @@
 
     <div class="page-wrap">
 
+        <!-- Trial / Testing Mode Banner -->
+        <div id="trialModeBanner" style="display: none; background: linear-gradient(135deg, #6a1b9a, #8e24aa); color: white; padding: 10px 16px; font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid #4a148c; box-shadow: 0 2px 8px rgba(142, 36, 170, 0.25); align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; direction: rtl; z-index: 1000;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-flask" style="font-size: 1.1rem;"></i>
+                <span><strong>وضع التجربة مفعّل 🧪</strong> (تعديل النقاط والعمليات تحفظ محلياً فقط ولا تؤثر على قاعدة البيانات)</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                <button onclick="resetTrialData()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 4px 10px; border-radius: 8px; font-size: 0.78rem; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                    <i class="fas fa-undo"></i> إعادة ضبط التجربة
+                </button>
+                <button onclick="toggleTestingMode(false)" style="background: white; border: none; color: #6a1b9a; padding: 4px 12px; border-radius: 8px; font-size: 0.78rem; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                    خروج من وضع التجربة
+                </button>
+            </div>
+        </div>
+
         <!-- VIEW: TRIP DETAILS -->
         <div id="viewTripDetails" class="view-section active">
             <!-- Hidden element to satisfy JS references without throwing errors -->
@@ -2239,6 +2255,32 @@
                         </label>
                     </div>
 
+                    <!-- Testing / Trial Mode Section -->
+                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1.5px solid var(--border-solid);">
+                        <div style="font-weight: 800; font-size: 0.95rem; color: #8e24aa; display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+                            <i class="fas fa-flask"></i> وضع التجربة والحيطة (Testing Mode)
+                        </div>
+
+                        <!-- Form Control: Testing Mode Toggle -->
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px; flex-wrap: wrap;">
+                            <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 180px;">
+                                <span style="font-weight: 800; font-size: 0.88rem; color: var(--text);">تفعيل وضع التجربة (حفظ محلي)</span>
+                                <span style="font-size: 0.72rem; color: var(--text-3);">تجربة كافة المميزات وإضافة/تعديل النقاط بدون الحفظ في قاعدة البيانات. تحفظ التغييرات في المتصفح فقط.</span>
+                            </div>
+                            <label class="switch-toggle" style="position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;">
+                                <input type="checkbox" id="settingTestingMode" onchange="toggleTestingMode(this.checked)" style="opacity: 0; width: 0; height: 0;">
+                                <span class="switch-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--surface-3); transition: .3s; border-radius: 24px; border: 1.5px solid var(--border-solid);"></span>
+                            </label>
+                        </div>
+
+                        <!-- Button: Reset Trial Data -->
+                        <div id="resetTrialContainer" style="margin-top: 10px; display: none;">
+                            <button type="button" onclick="resetTrialData()" class="btn-action" style="width: 100%; height: 38px; border-radius: 12px; font-weight: 800; font-size: 0.82rem; background: #fff0f0; color: #d32f2f; border: 1.5px solid #ffcdd2; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                <i class="fas fa-undo"></i> إعادة ضبط بيانات التجربة (مسح الحفظ المحلي)
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Save Button -->
                     <button id="btnSaveTripSettings" onclick="saveTripSettings()" class="btn-action"
                         style="width: 100%; height: 44px; border-radius: 22px; font-weight: 800; font-size: 0.92rem; background: var(--brand); color: white; border: none; cursor: pointer; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0;">
@@ -2487,6 +2529,10 @@
             }
 
             async function apiCall(action, params = {}) {
+                if (isTestingMode) {
+                    console.log("[Testing Mode] Intercepted apiCall action:", action, params);
+                    return { success: true, message: "تمت العملية محلياً في وضع التجربة 🧪" };
+                }
                 const fd = new FormData();
                 fd.append('action', action);
                 Object.entries(params).forEach(([k, v]) => fd.append(k, v));
@@ -2549,6 +2595,10 @@
             }
 
             async function triggerBackgroundSync() {
+                if (isTestingMode) {
+                    updateSyncBadge();
+                    return;
+                }
                 if (isSyncingOffline) return;
                 isSyncingOffline = true;
                 updateSyncBadge();
@@ -2811,7 +2861,11 @@
                 }
                 if (currentTrip) {
                     currentTrip.registrations = regsList;
-                    saveTripLocal(tripId, currentTrip);
+                    if (isTestingMode) {
+                        saveTrialSnapshot();
+                    } else {
+                        saveTripLocal(tripId, currentTrip);
+                    }
                 }
 
                 const shouldAddLog = (action === 'processFastScanPoints' && amount !== 0) ||
@@ -2829,16 +2883,21 @@
                             studentId: studentId,
                             studentName: studentName,
                             change: changeVal,
-                            status: 'pending',
+                            status: isTestingMode ? 'success' : 'pending',
                             profilePhoto: student.photo || '',
                             uncleId: currentUncleId,
-                            uncleName: 'أنا',
+                            uncleName: 'أنا (تجريبي 🧪)',
                             unclePhoto: currentUnclePhoto || '',
                             actionNote: actionName,
                             createdAt: new Date().toISOString(),
                             churchName: student.church_name || student.student_church_name || ''
                         });
                     }
+                }
+
+                if (isTestingMode) {
+                    saveTrialSnapshot();
+                    return;
                 }
 
                 const queue = getOfflineActionsQueue();
@@ -2927,6 +2986,109 @@
             let regsList = [];
             let filterPath = []; // Array of { type: 'field'|'choice'|'subfield', name: string, fieldName?: string, choiceVal?: string }
             let currentFilter = null;
+
+            // Testing Mode State & Helpers
+            let isTestingMode = false;
+
+            function getTrialDataKey(tId) {
+                return 'trip_testing_data_' + (tId || tripId || 'default');
+            }
+
+            function getTrialActiveKey(tId) {
+                return 'trip_testing_active_' + (tId || tripId || 'default');
+            }
+
+            function initTestingModeState(tId) {
+                const activeKey = getTrialActiveKey(tId);
+                isTestingMode = localStorage.getItem(activeKey) === 'true';
+                updateTestingUIState();
+            }
+
+            function updateTestingUIState() {
+                const banner = document.getElementById('trialModeBanner');
+                if (banner) {
+                    banner.style.display = isTestingMode ? 'flex' : 'none';
+                }
+                const checkbox = document.getElementById('settingTestingMode');
+                if (checkbox) {
+                    checkbox.checked = isTestingMode;
+                }
+                const resetContainer = document.getElementById('resetTrialContainer');
+                if (resetContainer) {
+                    resetContainer.style.display = isTestingMode ? 'block' : 'none';
+                }
+
+                if (isTestingMode) {
+                    const adminActions = document.getElementById('adminActions');
+                    if (adminActions) adminActions.style.display = 'flex';
+                    const btnTripSettings = document.getElementById('btnTripSettings');
+                    if (btnTripSettings) btnTripSettings.style.display = 'flex';
+                }
+            }
+
+            function toggleTestingMode(enabled) {
+                if (!tripId) {
+                    if (typeof showToast === 'function') showToast("يرجى اختيار رحلة أولاً لتفعيل وضع التجربة", "warning");
+                    return;
+                }
+                isTestingMode = !!enabled;
+                localStorage.setItem(getTrialActiveKey(tripId), isTestingMode ? 'true' : 'false');
+
+                if (isTestingMode) {
+                    const trialKey = getTrialDataKey(tripId);
+                    let trialDataStr = localStorage.getItem(trialKey);
+                    if (!trialDataStr && currentTrip) {
+                        saveTrialSnapshot();
+                    }
+                    if (typeof showToast === 'function') showToast("تم تفعيل وضع التجربة 🧪 (الحفظ محلي في المتصفح فقط)", "success", 4000);
+                    openTrip(tripId);
+                } else {
+                    if (typeof showToast === 'function') showToast("تم إيقاف وضع التجربة، جاري تحميل البيانات من الخادم...", "info", 3000);
+                    openTrip(tripId);
+                }
+                updateTestingUIState();
+            }
+
+            function saveTrialSnapshot() {
+                if (!tripId || !currentTrip) return;
+                try {
+                    const payload = {
+                        currentTrip: currentTrip,
+                        regsList: regsList,
+                        scansLog: scansLog,
+                        savedAt: Date.now()
+                    };
+                    localStorage.setItem(getTrialDataKey(tripId), JSON.stringify(payload));
+                } catch (e) {
+                    console.error("Failed to save trial snapshot:", e);
+                }
+            }
+
+            function loadTrialSnapshot(tId) {
+                try {
+                    const str = localStorage.getItem(getTrialDataKey(tId));
+                    if (str) {
+                        return JSON.parse(str);
+                    }
+                } catch (e) {
+                    console.error("Failed to load trial snapshot:", e);
+                }
+                return null;
+            }
+
+            function resetTrialData() {
+                if (!tripId) return;
+                if (!confirm("هل أنت تأكد من إعادة ضبط بيانات وضع التجربة؟\nسيتم مسح جميع التغييرات التجريبية ورجوع البيانات للحالة الأصلية.")) {
+                    return;
+                }
+
+                localStorage.removeItem(getTrialDataKey(tripId));
+                if (typeof showToast === 'function') showToast("تم إعادة ضبط بيانات التجربة بنجاح 🔄", "success");
+
+                if (isTestingMode) {
+                    openTrip(tripId);
+                }
+            }
 
             // Scan history state
             let scansLog = [];
@@ -3025,28 +3187,58 @@
                 }
             });
 
-            async function openTrip(tripId) {
+            async function openTrip(tId) {
+                tripId = tId;
                 document.getElementById('fieldsGrid').innerHTML = '';
                 regsList = [];
                 currentTrip = null;
 
+                initTestingModeState(tId);
+
+                if (isTestingMode) {
+                    const trialSnapshot = loadTrialSnapshot(tId);
+                    if (trialSnapshot && trialSnapshot.currentTrip) {
+                        currentTrip = trialSnapshot.currentTrip;
+                        regsList = trialSnapshot.regsList || [];
+                        scansLog = trialSnapshot.scansLog || [];
+                        currentUnclePhoto = currentTrip.uncle_photo || null;
+                        updateTopbarUncleAvatar(currentUnclePhoto);
+
+                        const adminActions = document.getElementById('adminActions');
+                        if (adminActions) adminActions.style.display = 'flex';
+                        const btnTripSettings = document.getElementById('btnTripSettings');
+                        if (btnTripSettings) btnTripSettings.style.display = 'flex';
+
+                        document.getElementById('detailTripTitle').textContent = currentTrip.title;
+                        document.getElementById('topbarTripTitle').textContent = currentTrip.title + ' (تجريبي 🧪)';
+
+                        renderFieldCards();
+                        handleUrlParams();
+                        document.getElementById('loadingDetails').style.display = 'none';
+                        updateTestingUIState();
+                        return;
+                    }
+                }
+
                 let urlParamsHandled = false;
 
                 // Try to load and show cached local data immediately
-                const localTrip = await getTripLocal(tripId);
+                const localTrip = await getTripLocal(tId);
                 if (localTrip) {
                     currentTrip = localTrip;
                     currentUnclePhoto = localTrip.uncle_photo || null;
                     updateTopbarUncleAvatar(currentUnclePhoto);
 
                     const adminActions = document.getElementById('adminActions');
-                    if (adminActions) adminActions.style.display = (['admin', 'developer', 'dev'].includes(localTrip.user_role) || localTrip.is_owner === 1) ? 'flex' : 'none';
+                    if (adminActions) adminActions.style.display = (isTestingMode || ['admin', 'developer', 'dev'].includes(localTrip.user_role) || localTrip.is_owner === 1) ? 'flex' : 'none';
                     const btnTripSettings = document.getElementById('btnTripSettings');
                     if (btnTripSettings) btnTripSettings.style.display = 'flex';
                     regsList = applyPendingQueueToRegs(localTrip.registrations || []);
                     currentTrip.registrations = regsList;
                     document.getElementById('detailTripTitle').textContent = currentTrip.title;
-                    document.getElementById('topbarTripTitle').textContent = currentTrip.title;
+                    document.getElementById('topbarTripTitle').textContent = currentTrip.title + (isTestingMode ? ' (تجريبي 🧪)' : '');
+
+                    if (isTestingMode) saveTrialSnapshot();
 
                     // Render UI from cache instantly
                     renderFieldCards();
@@ -3866,12 +4058,18 @@
 
                 const pointsPermContainer = document.getElementById('settingPointsPermissionContainer');
                 if (pointsPermContainer) {
-                    if (currentTrip && currentTrip.is_owner === 1) {
+                    if (isTestingMode || (currentTrip && currentTrip.is_owner === 1)) {
                         pointsPermContainer.style.setProperty('display', 'flex', 'important');
                     } else {
                         pointsPermContainer.style.setProperty('display', 'none', 'important');
                     }
                 }
+
+                const settingTestingElem = document.getElementById('settingTestingMode');
+                if (settingTestingElem) settingTestingElem.checked = isTestingMode;
+
+                const resetContainer = document.getElementById('resetTrialContainer');
+                if (resetContainer) resetContainer.style.display = isTestingMode ? 'block' : 'none';
 
                 document.getElementById('tripSettingsModal').style.setProperty('display', 'flex', 'important');
             }
@@ -3910,6 +4108,16 @@
                 const oldHtml = btn.innerHTML;
                 btn.disabled = true;
                 btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> جاري الحفظ...';
+
+                if (isTestingMode) {
+                    showToast('تم حفظ إعدادات التجربة محلياً 🧪', 'success');
+                    currentTrip.points_config = pointsConfig;
+                    saveTrialSnapshot();
+                    closeTripSettingsModal();
+                    btn.disabled = false;
+                    btn.innerHTML = oldHtml;
+                    return;
+                }
 
                 try {
                     const fd = new FormData();
