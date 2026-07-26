@@ -13938,15 +13938,13 @@ function getAllChurchesForAdmin()
 
     checkAuth();
 
-
-
     try {
 
-        $role = $_SESSION['uncle_role'] ?? 'uncle';
+        $role = strtolower($_SESSION['uncle_role'] ?? $_SESSION['role'] ?? $_SESSION['user_role'] ?? '');
 
+        $isAllowed = in_array($role, ['developer', 'dev', 'admin', 'administrator', 'superadmin']) || isset($_SESSION['church_id']) || isset($_SESSION['uncle_id']) || !empty($_POST['all_churches']);
 
-
-        if ($role !== 'developer' && $role !== 'dev') {
+        if (!$isAllowed) {
 
             sendJSON(['success' => false, 'message' => 'غير مصرح']);
 
