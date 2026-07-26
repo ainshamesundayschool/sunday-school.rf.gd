@@ -11199,7 +11199,7 @@
           </select>
           <input type="text" class="form-input shortcut-name" placeholder="الاسم (مثال: حضور مبكر)" value="${escHtml(name)}" style="flex:2; min-width:120px;" required>
           <input type="text" class="form-input shortcut-desc" placeholder="الوصف (اختياري)" value="${escHtml(desc)}" style="flex:2; min-width:120px;">
-          <input type="number" class="form-input shortcut-points" placeholder="النقاط" value="${points}" style="width:80px; flex-shrink:0;" required>
+          <input type="number" class="form-input shortcut-points" placeholder="النقاط" ${(points !== '' && points !== null && points !== undefined) ? `value="${points}"` : ''} style="width:80px; flex-shrink:0;" required>
           <button type="button" class="btn btn-danger btn-sm" onclick="document.getElementById('${rowId}').remove()" style="padding: 8px 10px; height: 38px; display: flex; align-items: center; justify-content: center; flex-shrink:0;" title="حذف">
             <i class="fas fa-trash"></i>
           </button>
@@ -11666,7 +11666,7 @@
                   <span><i class="${f.icon || 'fas fa-tag'}" style="color:var(--primary); margin-left:6px; width:16px; text-align:center;"></i> ${f.label}</span>
                   <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                       <span style="font-size:0.7rem; color:var(--muted);">حجم الخط:</span>
-                      <input type="number" placeholder="تلقائي" min="0" max="40" value="${f.fontSize || ''}" oninput="updateExtraFieldFontSize('${f.key}', this.value)" style="width:48px; height:24px; font-size:0.75rem; text-align:center; border:1px solid var(--border); border-radius:4px; font-family:'Cairo';">
+                      <input type="number" placeholder="تلقائي" min="0" max="40" ${(f.fontSize !== '' && f.fontSize !== null && f.fontSize !== undefined) ? `value="${f.fontSize}"` : ''} oninput="updateExtraFieldFontSize('${f.key}', this.value)" style="width:48px; height:24px; font-size:0.75rem; text-align:center; border:1px solid var(--border); border-radius:4px; font-family:'Cairo';">
                       
                       <span style="font-size:0.7rem; color:var(--muted); margin-right:4px;">الموضع:</span>
                       <select onchange="updateExtraFieldPlacement('${f.key}', this.value)" style="height:24px; font-size:0.75rem; padding:0 2px; border:1px solid var(--border); border-radius:4px; font-family:'Cairo';">
@@ -14540,7 +14540,7 @@
                         ${isOwner ? `
                         <div style="display:flex;align-items:center;gap:4px;">
                             <span style="font-size:0.7rem;color:var(--text-muted);">تعديل الحد:</span>
-                            <input type="number" min="1" placeholder="مفتوح" value="${ch.limit !== null && ch.limit !== undefined ? ch.limit : ''}" style="width:70px;padding:4px;border:1px solid var(--border);border-radius:6px;font-size:0.75rem;background:var(--bg);color:var(--text);" onchange="changeCollabLimit(${trip.id}, ${ch.id}, this.value)">
+                            <input type="number" min="1" placeholder="مفتوح" ${(ch.limit !== null && ch.limit !== undefined && ch.limit !== '') ? `value="${ch.limit}"` : ''} style="width:70px;padding:4px;border:1px solid var(--border);border-radius:6px;font-size:0.75rem;background:var(--bg);color:var(--text);" onchange="changeCollabLimit(${trip.id}, ${ch.id}, this.value)">
                         </div>
                         <button type="button" class="btn btn-outline btn-sm" style="color:#dc2626;white-space:nowrap;padding:4px 8px;font-size:0.75rem;" data-trip-id="${trip.id}" data-church-id="${ch.id}" data-church-name="${escHtml(ch.name)}" onclick="removeTripCollaboratorBtn(this)"><i class="fas fa-user-minus"></i> إزالة</button>
                         ` : ''}
@@ -16077,15 +16077,15 @@
                   <div style="display:grid; grid-template-columns:0.8fr 0.8fr 0.8fr 1fr 1fr 1fr; gap:6px;">
                       <div>
                           <label style="font-size:0.65rem; font-weight:700;">الموضع X (%):</label>
-                          <input type="number" value="${logo.x}" style="width:100%; height:26px; font-size:0.75rem; padding: 2px 4px; border: 1px solid var(--border); border-radius:4px;" oninput="updatePrintLogoAttr(${idx}, 'x', this.value)">
+                          <input type="number" ${(logo.x !== null && logo.x !== undefined && logo.x !== '') ? `value="${logo.x}"` : ''} style="width:100%; height:26px; font-size:0.75rem; padding: 2px 4px; border: 1px solid var(--border); border-radius:4px;" oninput="updatePrintLogoAttr(${idx}, 'x', this.value)">
                       </div>
                       <div>
                           <label style="font-size:0.65rem; font-weight:700;">الموضع Y (%):</label>
-                          <input type="number" value="${logo.y}" style="width:100%; height:26px; font-size:0.75rem; padding: 2px 4px; border: 1px solid var(--border); border-radius:4px;" oninput="updatePrintLogoAttr(${idx}, 'y', this.value)">
+                          <input type="number" ${(logo.y !== null && logo.y !== undefined && logo.y !== '') ? `value="${logo.y}"` : ''} style="width:100%; height:26px; font-size:0.75rem; padding: 2px 4px; border: 1px solid var(--border); border-radius:4px;" oninput="updatePrintLogoAttr(${idx}, 'y', this.value)">
                       </div>
                       <div>
                           <label style="font-size:0.65rem; font-weight:700;">العرض (%):</label>
-                          <input type="number" value="${logo.width}" style="width:100%; height:26px; font-size:0.75rem; padding: 2px 4px; border: 1px solid var(--border); border-radius:4px;" oninput="updatePrintLogoAttr(${idx}, 'width', this.value)">
+                          <input type="number" ${(logo.width !== null && logo.width !== undefined && logo.width !== '') ? `value="${logo.width}"` : ''} style="width:100%; height:26px; font-size:0.75rem; padding: 2px 4px; border: 1px solid var(--border); border-radius:4px;" oninput="updatePrintLogoAttr(${idx}, 'width', this.value)">
                       </div>
                       <div>
                           <label style="font-size:0.65rem; font-weight:700;">الترتيب (الطبقة):</label>
@@ -16819,7 +16819,7 @@
           const fullUncle = window.allUnclesCache.find(x => x.id == u.id);
           const imgUrl = fullUncle ? fullUncle.image_url : '';
           const imgHtml = imgUrl 
-            ? `<img src="${imgUrl}" style="width:16px; height:16px; border-radius:50%; object-fit:cover; border:1px solid rgba(217,119,6,0.2);" onerror="this.outerHTML='<i class=\\'fas fa-user-shield\\'></i>'">`
+            ? `<img src="${imgUrl}" style="width:16px; height:16px; border-radius:50%; object-fit:cover; border:1px solid rgba(217,119,6,0.2);" onerror="this.outerHTML='<i class=&quot;fas fa-user-shield&quot;></i>'">`
             : `<i class="fas fa-user-shield"></i>`;
           return `
             <span class="ws-uncle-tag">

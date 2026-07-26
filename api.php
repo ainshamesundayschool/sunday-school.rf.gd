@@ -25129,7 +25129,7 @@ function getTrips()
 
                         $u->execute();
 
-                    }
+                    } catch (Exception $e) {}
 
                 }
 
@@ -25145,6 +25145,13 @@ function getTrips()
                         $u->bind_param('si', $synConfig, $row['id']);
                         $u->execute();
                     } catch (Exception $e) {}
+                }
+            }
+
+            if (!empty($row['has_rooms']) && !empty($row['rooms_config'])) {
+                $sakenMeta = buildAccommodationCustomFieldMetaPHP($row['rooms_config']);
+                if ($sakenMeta) {
+                    $row['custom_field_icons']['السكن'] = $sakenMeta;
                 }
             }
 
@@ -25691,6 +25698,90 @@ function addTrip()
         sendJSON(['success' => false, 'message' => 'خطأ في إضافة الرحلة: ' . $e->getMessage()]);
 
     }
+}
+
+function buildAccommodationCustomFieldMetaPHP($roomsConfig) {
+    if (is_string($roomsConfig)) {
+        $roomsConfig = json_decode($roomsConfig, true);
+    }
+    if (!is_array($roomsConfig) || empty($roomsConfig)) {
+        return null;
+    }
+
+    $bldChoices = [];
+    $subFieldsMap = [];
+
+    foreach ($roomsConfig as $bld) {
+        $bldName = trim((string)($bld['name'] ?? ''));
+        if ($bldName === '') continue;
+
+        $bldChoices[] = $bldName;
+        $bldSubs = [];
+
+        if (!empty($bld['has_floors']) && !empty($bld['floors']) && is_array($bld['floors'])) {
+            $floorChoices = [];
+            $allRoomNames = [];
+            foreach ($bld['floors'] as $fl) {
+                $flName = trim((string)($fl['name'] ?? ''));
+                if ($flName !== '') {
+                    $floorChoices[] = $flName;
+                }
+                if (!empty($fl['rooms']) && is_array($fl['rooms'])) {
+                    foreach ($fl['rooms'] as $r) {
+                        if (!empty($r['is_excluded'])) continue;
+                        $rName = trim((string)($r['name'] ?? ''));
+                        if ($rName !== '' && !in_array($rName, $allRoomNames, true)) {
+                            $allRoomNames[] = $rName;
+                        }
+                    }
+                }
+            }
+            if (count($floorChoices) > 0) {
+                $bldSubs[] = [
+                    'name' => 'الدور',
+                    'icon' => 'fas fa-layer-group',
+                    'type' => 'choices',
+                    'choices' => array_values(array_unique($floorChoices))
+                ];
+            }
+            if (count($allRoomNames) > 0) {
+                $bldSubs[] = [
+                    'name' => 'الغرفة',
+                    'icon' => 'fas fa-door-closed',
+                    'type' => 'choices',
+                    'choices' => array_values($allRoomNames)
+                ];
+            }
+        } elseif (!empty($bld['rooms']) && is_array($bld['rooms'])) {
+            $roomChoices = [];
+            foreach ($bld['rooms'] as $r) {
+                if (!empty($r['is_excluded'])) continue;
+                $rName = trim((string)($r['name'] ?? ''));
+                if ($rName !== '' && !in_array($rName, $roomChoices, true)) {
+                    $roomChoices[] = $rName;
+                }
+            }
+            if (count($roomChoices) > 0) {
+                $bldSubs[] = [
+                    'name' => 'الغرفة',
+                    'icon' => 'fas fa-door-closed',
+                    'type' => 'choices',
+                    'choices' => array_values($roomChoices)
+                ];
+            }
+        }
+
+        $subFieldsMap[$bldName] = $bldSubs;
+    }
+
+    if (empty($bldChoices)) return null;
+
+    return [
+        'icon' => 'fas fa-hotel',
+        'type' => 'sub_group',
+        'choices' => array_values(array_unique($bldChoices)),
+        'sub_fields' => $subFieldsMap
+    ];
 }
 
 function synthesizeRoomsConfigFromIconsPHP($customFieldIcons) {
@@ -26691,6 +26782,13 @@ function getTripDetails()
                     $u->bind_param('si', $synConfig, $tripId);
                     $u->execute();
                 } catch (Exception $e) {}
+            }
+        }
+
+        if (!empty($trip['has_rooms']) && !empty($trip['rooms_config'])) {
+            $sakenMeta = buildAccommodationCustomFieldMetaPHP($trip['rooms_config']);
+            if ($sakenMeta) {
+                $trip['custom_field_icons']['السكن'] = $sakenMeta;
             }
         }
 
