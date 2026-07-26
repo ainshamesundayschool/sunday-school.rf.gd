@@ -786,8 +786,12 @@ function auditTripAdd(int $tripId, string $tripTitle, array $data): void {
 }
 
 function auditTripEdit(int $tripId, array $oldRow, array $newRow): void {
+    $oldClean = $oldRow;
+    $newClean = $newRow;
+    if (isset($oldClean['rooms_config'])) $oldClean['rooms_config'] = '[rooms_config]';
+    if (isset($newClean['rooms_config'])) $newClean['rooms_config'] = '[rooms_config]';
     writeAuditLog('trip_edit', 'trip', $tripId, $oldRow['title'] ?? '',
-        $oldRow, $newRow, "تعديل رحلة: " . ($oldRow['title'] ?? ''));
+        $oldClean, $newClean, "تعديل رحلة: " . ($oldRow['title'] ?? ''));
 }
 
 function auditTripDelete(int $tripId, array $oldRow): void {

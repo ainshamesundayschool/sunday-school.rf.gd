@@ -25830,7 +25830,8 @@ function updateTrip()
 
 
         $conn = getDBConnection();
-        @$conn->query("UPDATE trips SET image_url = NULL WHERE image_url IN ('0', 'null', 'undefined', 'false', 'none', '') OR (image_url IS NOT NULL AND TRIM(image_url) = '0')");
+        $safeTripId = intval($tripId);
+        @$conn->query("UPDATE trips SET image_url = NULL WHERE id = {$safeTripId} AND (image_url IN ('0', 'null', 'undefined', 'false', 'none', '') OR (image_url IS NOT NULL AND TRIM(image_url) = '0'))");
 
         $oldTrip = getTripSnapshot($tripId);
         if (!$oldTrip) {

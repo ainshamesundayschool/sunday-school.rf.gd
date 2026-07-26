@@ -16324,6 +16324,7 @@
             }
             const urlInput = document.getElementById('editTripImageUrl');
             const fileInput = document.getElementById('editTripImageFile');
+            window.optimizedEditTripCoverFile = null;
             if (urlInput) urlInput.value = imageUrl;
             if (fileInput) fileInput.value = '';
             previewEditTripImageUrl(imageUrl);
