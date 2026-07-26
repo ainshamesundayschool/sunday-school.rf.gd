@@ -26145,8 +26145,10 @@
         // ══════════════════════════════════════════════════════════════
         let allTemplatesCache = {};
 
-        async function fetchTemplatesFromServer(tripId = 0) {
+        async function fetchTemplatesFromServer(tripId = 0, preferredVal = null) {
             try {
+                const select = document.getElementById('printTemplateSelect');
+                const valToKeep = preferredVal || select?.value || null;
                 const fd = new FormData();
                 fd.append('action', 'getQRTemplates');
                 if (tripId > 0) {
@@ -26155,16 +26157,17 @@
                 const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
                 if (res && res.success) {
                     allTemplatesCache = res;
-                    populateTemplatesDropdown(tripId);
+                    populateTemplatesDropdown(tripId, valToKeep);
                 }
             } catch (e) {
                 console.error("Error loading templates from server", e);
             }
         }
 
-        function populateTemplatesDropdown(currentTripId = 0) {
+        function populateTemplatesDropdown(currentTripId = 0, preferredVal = null) {
             const select = document.getElementById('printTemplateSelect');
             if (!select) return;
+            const oldVal = preferredVal || select.value;
             select.innerHTML = '<option value="">-- اختر قالب للتحميل --</option>';
 
             // Add default Sunday School Template preset
@@ -26194,6 +26197,14 @@
                     opt.textContent = `قالب رحلة: ${trip.title}`;
                     select.appendChild(opt);
                 });
+            }
+
+            if (oldVal && Array.from(select.options).some(o => o.value === oldVal)) {
+                select.value = oldVal;
+            } else if (currentTripId > 0 && allTemplatesCache.trip_template) {
+                select.value = 'trip_' + currentTripId;
+            } else if (allTemplatesCache.church_template) {
+                select.value = 'church';
             }
         }
 

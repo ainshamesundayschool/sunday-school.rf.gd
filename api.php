@@ -37272,9 +37272,28 @@ function saveQRTemplate()
     try {
         checkUncleAuth();
         $churchId = getChurchId();
-        $tripId = intval($_POST['trip_id'] ?? 0);
-        $target = $_POST['target'] ?? ''; // 'church' or 'trip'
+        $tripId = intval($_POST['trip_id'] ?? $_GET['trip_id'] ?? 0);
+        $target = sanitize($_POST['target'] ?? $_GET['target'] ?? '');
         $template = $_POST['template'] ?? '';
+
+        if (empty($template)) {
+            $rawInput = @file_get_contents('php://input');
+            if (!empty($rawInput)) {
+                parse_str($rawInput, $parsedInput);
+                if (!empty($parsedInput['template'])) {
+                    $template = $parsedInput['template'];
+                    $target = $target ?: sanitize($parsedInput['target'] ?? '');
+                    $tripId = $tripId ?: intval($parsedInput['trip_id'] ?? 0);
+                } else {
+                    $jsonInput = @json_decode($rawInput, true);
+                    if (is_array($jsonInput) && !empty($jsonInput['template'])) {
+                        $template = is_string($jsonInput['template']) ? $jsonInput['template'] : json_encode($jsonInput['template'], JSON_UNESCAPED_UNICODE);
+                        $target = $target ?: sanitize($jsonInput['target'] ?? '');
+                        $tripId = $tripId ?: intval($jsonInput['trip_id'] ?? 0);
+                    }
+                }
+            }
+        }
 
         if (empty($template)) {
             sendJSON(['success' => false, 'message' => 'بيانات القالب مطلوبة']);
@@ -37289,9 +37308,9 @@ function saveQRTemplate()
             $stmt = $conn->prepare("UPDATE trips SET qr_template = ? WHERE id = ?");
             $stmt->bind_param("si", $template, $tripId);
             if ($stmt->execute()) {
-                sendJSON(['success' => true, 'message' => 'تم حفظ قالب الرحلة بنجاح']);
+                sendJSON(['success' => true, 'message' => 'تم حفظ قالب الرحلة بنجاح', 'target' => 'trip', 'trip_id' => $tripId]);
             } else {
-                sendJSON(['success' => false, 'message' => 'فشل حفظ قالب الرحلة']);
+                sendJSON(['success' => false, 'message' => 'فشل حفظ قالب الرحلة: ' . $stmt->error]);
             }
         } else {
             // Ensure the church_settings row exists
@@ -37307,9 +37326,9 @@ function saveQRTemplate()
             $stmt = $conn->prepare("UPDATE church_settings SET qr_template = ? WHERE church_id = ?");
             $stmt->bind_param("si", $template, $churchId);
             if ($stmt->execute()) {
-                sendJSON(['success' => true, 'message' => 'تم حفظ قالب الكنيسة بنجاح']);
+                sendJSON(['success' => true, 'message' => 'تم حفظ قالب الكنيسة بنجاح', 'target' => 'church']);
             } else {
-                sendJSON(['success' => false, 'message' => 'فشل حفظ قالب الكنيسة']);
+                sendJSON(['success' => false, 'message' => 'فشل حفظ قالب الكنيسة: ' . $stmt->error]);
             }
         }
     } catch (Exception $e) {

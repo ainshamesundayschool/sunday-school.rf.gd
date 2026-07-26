@@ -15166,8 +15166,10 @@
       // ══════════════════════════════════════════════════════════════
         let allTemplatesCache = {};
 
-      async function fetchTemplatesFromServer(tripId = 0) {
+      async function fetchTemplatesFromServer(tripId = 0, preferredVal = null) {
           try {
+              const select = document.getElementById('printTemplateSelect');
+              const valToKeep = preferredVal || select?.value || null;
               const fd = new FormData();
               fd.append('action', 'getQRTemplates');
               if (tripId > 0) {
@@ -15176,16 +15178,17 @@
               const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
               if (res && res.success) {
                   allTemplatesCache = res;
-                  populateTemplatesDropdown(tripId);
+                  populateTemplatesDropdown(tripId, valToKeep);
               }
           } catch (e) {
               console.error("Error loading templates from server", e);
           }
       }
 
-      function populateTemplatesDropdown(currentTripId = 0) {
+      function populateTemplatesDropdown(currentTripId = 0, preferredVal = null) {
           const select = document.getElementById('printTemplateSelect');
           if (!select) return;
+          const oldVal = preferredVal || select.value;
           select.innerHTML = '<option value="">-- اختر قالب للتحميل --</option>';
              
              // Add default Sunday School Template preset
@@ -15230,6 +15233,14 @@
                   opt.textContent = tName;
                   select.appendChild(opt);
               });
+          }
+
+          if (oldVal && Array.from(select.options).some(o => o.value === oldVal)) {
+              select.value = oldVal;
+          } else if (currentTripId > 0 && allTemplatesCache.trip_template) {
+              select.value = 'trip_' + currentTripId;
+          } else if (allTemplatesCache.church_template) {
+              select.value = 'church';
           }
       }
 
@@ -15720,6 +15731,7 @@
           }
           
           const templateStr = serializeQRTemplate(templateName);
+          const valToKeep = target === 'trip' ? ('trip_' + currentTripId) : 'church';
           
           try {
               const fd = mkFd('saveQRTemplate');
@@ -15733,7 +15745,7 @@
               if (res && res.success) {
                   showToast(res.message || 'تم حفظ القالب بنجاح', 'success');
                   closeModal('saveQRTemplateModal');
-                  fetchTemplatesFromServer(currentTripId);
+                  await fetchTemplatesFromServer(currentTripId, valToKeep);
               } else {
                   showToast(res.message || 'فشل حفظ القالب', 'error');
               }
@@ -15746,10 +15758,19 @@
       async function updateCurrentTemplate() {
           const select = document.getElementById('printTemplateSelect');
           if (!select) return;
-          const val = select.value;
+          let val = select.value;
+          const currentTripId = window.currentTripId || 0;
+
+          if (!val) {
+              if (currentTripId > 0 && allTemplatesCache.trip_template) {
+                  val = 'trip_' + currentTripId;
+              } else if (allTemplatesCache.church_template) {
+                  val = 'church';
+              }
+          }
           
           if (!val) {
-              showToast('يرجى اختيار قالب أولاً لتحديثه', 'warning');
+              showToast('يرجى اختيار قالب أولاً لتحديثه أو استخدم زر "حفظ التصميم كقالب جديد"', 'warning');
               return;
           }
           
@@ -15772,7 +15793,6 @@
               target = 'trip';
               tripId = parseInt(val.split('_')[1]);
               
-              const currentTripId = window.currentTripId || 0;
               if (allTemplatesCache.trip_template && tripId === currentTripId) {
                   try {
                       const tData = typeof allTemplatesCache.trip_template === 'string' ? JSON.parse(allTemplatesCache.trip_template) : allTemplatesCache.trip_template;
@@ -15800,14 +15820,14 @@
               const fd = mkFd('saveQRTemplate');
               fd.append('target', target);
               if (target === 'trip') {
-                  fd.append('trip_id', tripId);
+                  fd.append('trip_id', tripId || currentTripId);
               }
               fd.append('template', templateStr);
               
               const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
               if (res && res.success) {
                   showToast(res.message || 'تم تحديث القالب بنجاح', 'success');
-                  fetchTemplatesFromServer(window.currentTripId || 0);
+                  await fetchTemplatesFromServer(currentTripId, val);
               } else {
                   showToast(res.message || 'فشل تحديث القالب', 'error');
               }
