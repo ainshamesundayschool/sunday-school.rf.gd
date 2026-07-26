@@ -20451,10 +20451,50 @@
         allocateGenderGroup(boys, 'male');
         allocateGenderGroup(girls, 'female');
 
+        // Auto-allocate unassigned uncles from allUnclesCache to rooms with remaining capacity
+        const assignedUncleIds = new Set();
+        const scanUncles = (rm) => {
+          (rm.uncles || []).forEach(unc => assignedUncleIds.add(String(unc.id)));
+        };
+        roomsConfig.forEach(bld => {
+          if (bld.has_floors) {
+            (bld.floors || []).forEach(fl => (fl.rooms || []).forEach(scanUncles));
+          } else {
+            (bld.rooms || []).forEach(scanUncles);
+          }
+        });
+        const unassignedUncles = (window.allUnclesCache || []).filter(u => !assignedUncleIds.has(String(u.id)));
+
+        if (unassignedUncles.length > 0) {
+          unassignedUncles.forEach(unc => {
+            const availRoom = roomState.find(r => r.occupied < r.capacity);
+            if (availRoom) {
+              availRoom.occupied++;
+              availRoom.unclesCount++;
+              const targetBld = roomsConfig.find(b => b.name === availRoom.bldName);
+              if (targetBld) {
+                let targetRoom = null;
+                if (targetBld.has_floors) {
+                  const targetFl = (targetBld.floors || []).find(f => f.name === availRoom.floorName);
+                  if (targetFl) targetRoom = (targetFl.rooms || []).find(r => r.name === availRoom.roomName);
+                } else {
+                  targetRoom = (targetBld.rooms || []).find(r => r.name === availRoom.roomName);
+                }
+                if (targetRoom) {
+                  if (!targetRoom.uncles) targetRoom.uncles = [];
+                  if (!targetRoom.uncles.some(u => String(u.id) === String(unc.id))) {
+                    targetRoom.uncles.push({ id: String(unc.id), name: unc.name });
+                  }
+                }
+              }
+            }
+          });
+        }
+
         window.roomsDraftAllocations = draftAllocations;
 
         closeModal('autoFillRoomsModal');
-        showToast('تم إجراء التوزيع التلقائي في المسودة! عاين وحفظ.', 'success');
+        showToast('تم إجراء التوزيع التلقائي للمخدومين والخدام في المسودة! عاين وحفظ.', 'success');
         renderRoomsWorkspaceData();
       }
       // =========================================================================
