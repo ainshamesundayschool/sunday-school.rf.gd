@@ -3470,16 +3470,31 @@ function getChurchId()
         try {
             $conn = getDBConnection();
             if (!empty($targetUncleId)) {
+                $uid = intval($targetUncleId);
                 $stmt = $conn->prepare("SELECT church_id FROM uncles WHERE id = ? LIMIT 1");
-                $stmt->execute([$targetUncleId]);
-            } else {
+                if ($stmt) {
+                    $stmt->bind_param("i", $uid);
+                    $stmt->execute();
+                    $res = $stmt->get_result();
+                    $row = $res ? $res->fetch_assoc() : null;
+                    if ($row && !empty($row['church_id'])) {
+                        $_SESSION['church_id'] = intval($row['church_id']);
+                        return intval($row['church_id']);
+                    }
+                }
+            } else if (!empty($targetUsername)) {
+                $un = trim($targetUsername);
                 $stmt = $conn->prepare("SELECT church_id FROM uncles WHERE username = ? LIMIT 1");
-                $stmt->execute([$targetUsername]);
-            }
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            if ($row && !empty($row['church_id'])) {
-                $_SESSION['church_id'] = intval($row['church_id']);
-                return intval($row['church_id']);
+                if ($stmt) {
+                    $stmt->bind_param("s", $un);
+                    $stmt->execute();
+                    $res = $stmt->get_result();
+                    $row = $res ? $res->fetch_assoc() : null;
+                    if ($row && !empty($row['church_id'])) {
+                        $_SESSION['church_id'] = intval($row['church_id']);
+                        return intval($row['church_id']);
+                    }
+                }
             }
         } catch (Exception $e) {}
     }
