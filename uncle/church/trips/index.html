@@ -5012,6 +5012,27 @@
       // Standalone trip-detail integration. This page intentionally renders one selected trip only.
       // Sidebar toggle controls removed.
       const API_URL = '/api.php';
+      function isDeveloperUser() {
+        const check = (val) => {
+          if (!val || typeof val !== 'string') return false;
+          const s = val.toLowerCase().trim();
+          return s === 'developer' || s === 'dev' || s === 'admin' || s === 'church';
+        };
+        if (check(localStorage.getItem('uncleRole'))) return true;
+        if (check(localStorage.getItem('role'))) return true;
+        if (check(localStorage.getItem('uncle_role'))) return true;
+        if (check(localStorage.getItem('userRole'))) return true;
+        if (check(sessionStorage.getItem('uncleRole'))) return true;
+        if (check(sessionStorage.getItem('role'))) return true;
+        if (window.currentUncle && check(window.currentUncle.role)) return true;
+        return false;
+      }
+      function updateDevOnlyVisibility() {
+        const isDev = isDeveloperUser();
+        document.querySelectorAll('.dev-only').forEach(el => {
+          el.style.display = isDev ? (el.tagName === 'BUTTON' || el.tagName === 'SPAN' ? 'inline-flex' : 'flex') : 'none';
+        });
+      }
       if (typeof window.photoUrl !== 'function') {
         window.photoUrl = function(rawUrl) {
           if (!rawUrl || typeof rawUrl !== 'string') return '';
@@ -6953,12 +6974,7 @@
       }
 
       onDOMReady(async function () {
-        const isDev = ['developer', 'dev'].includes(localStorage.getItem('uncleRole') || '');
-        if (isDev) {
-          document.querySelectorAll('.dev-only').forEach(el => {
-            el.style.display = 'flex';
-          });
-        }
+        updateDevOnlyVisibility();
         const joinTripId = parseInt(new URLSearchParams(window.location.search).get('joinTrip') || '0');
         if (joinTripId > 0) {
           await handleJoinTrip(joinTripId);
@@ -10513,7 +10529,7 @@
           return;
         }
 
-        const isDev = ['developer', 'dev'].includes(localStorage.getItem('uncleRole') || '');
+        const isDev = isDeveloperUser();
         deleteBtn.style.display = isDev ? 'inline-block' : 'none';
       }
 
@@ -16434,7 +16450,7 @@
         if (!wrap) return;
         wrap.innerHTML = `<div class="container-loading"><div class="spin-icon"></div> جاري تحميل السكن...</div>`;
 
-        const isDev = ['developer', 'dev'].includes(localStorage.getItem('uncleRole') || '');
+        const isDev = isDeveloperUser();
 
         const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
         if (!trip || trip.has_rooms != 1) {
@@ -16559,7 +16575,7 @@
                   <button type="button" class="btn btn-success btn-sm" style="background:#10b981; color:#fff; border:none;" onclick="downloadTaskeenCSV()"><i class="fas fa-file-csv"></i> تحميل التسكين CSV</button>
                   <button type="button" class="btn btn-outline btn-sm" style="color:var(--danger); border-color:var(--danger);" onclick="clearAllRoomsAllocations()"><i class="fas fa-trash-alt"></i> مسح كل التسكين</button>
                   <button type="button" class="btn btn-outline btn-sm" style="color:var(--danger); border-color:var(--danger);" onclick="toggleTripRoomsActive(${tripId}, false)"><i class="fas fa-power-off"></i> إيقاف السكن</button>
-                  ${isDev ? `<button type="button" class="btn btn-outline btn-sm" onclick="saveActiveTripRoomsAsTemplate()"><i class="fas fa-save"></i> حفظ الهيكل كقالب</button>` : ''}
+                  ${isDeveloperUser() ? `<button type="button" class="btn btn-outline btn-sm" onclick="saveActiveTripRoomsAsTemplate()"><i class="fas fa-save"></i> حفظ الهيكل كقالب</button>` : ''}
                 </div>
                 <div style="display:flex; gap:6px;">
                   <input type="text" id="roomsSearchFilter" class="form-input" placeholder="بحث باسم الطفل أو الغرفة..." style="font-size:0.75rem; height:30px; padding:4px 10px; width:200px;" oninput="onRoomsSearchChange()">
