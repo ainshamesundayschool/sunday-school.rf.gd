@@ -6467,7 +6467,9 @@ function getData()
 
 
 
-        if ($churchId === 0) {
+        $isAll = (!empty($_POST['all_churches']) && $_POST['all_churches'] === '1') || (isset($_POST['dev_override_church_id']) && $_POST['dev_override_church_id'] == -1);
+
+        if ($churchId === 0 && !$isAll) {
 
             error_log("ERROR: Church ID is 0 - cannot fetch data");
 
@@ -15841,6 +15843,7 @@ function getAllUncles()
 
     try {
         $churchId = getChurchId();
+        $isAll = (!empty($_POST['all_churches']) && $_POST['all_churches'] === '1') || (isset($_POST['dev_override_church_id']) && $_POST['dev_override_church_id'] == -1);
 
         if ($churchId === 0 && isset($_SESSION['church_id'])) {
             $churchId = $_SESSION['church_id'];
@@ -15848,7 +15851,7 @@ function getAllUncles()
 
         error_log("getAllUncles - Church ID: " . $churchId);
 
-        if ($churchId === 0) {
+        if ($churchId === 0 && !$isAll) {
             sendJSON(['success' => false, 'message' => 'معرف الكنيسة غير موجود']);
             return;
         }
@@ -15856,7 +15859,6 @@ function getAllUncles()
         $conn = getDBConnection();
         ensureUnclesTableCustomInfoColumn($conn);
         $tripId = intval($_POST['trip_id'] ?? 0);
-        $isAll = (!empty($_POST['all_churches']) && $_POST['all_churches'] === '1');
 
         if ($tripId > 0) {
             $churchIds = [$churchId];
