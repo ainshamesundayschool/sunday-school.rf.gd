@@ -870,8 +870,10 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
         .dev-church-dropdown-menu {
             position: absolute;
             top: 48px;
-            right: 0;
-            width: 320px;
+            left: 0;
+            right: auto;
+            width: min(320px, calc(100vw - 20px));
+            max-width: calc(100vw - 20px);
             background: var(--bg-card, rgba(255, 255, 255, 0.98));
             border: 1px solid var(--border-solid, rgba(124, 58, 237, 0.15));
             border-radius: 16px;
@@ -1021,9 +1023,10 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             }
 
             .dev-church-dropdown-menu {
-                width: 290px !important;
+                width: min(290px, calc(100vw - 20px)) !important;
                 right: auto !important;
-                left: -10px !important;
+                left: 0 !important;
+                max-width: calc(100vw - 20px) !important;
             }
         }
 
@@ -17295,6 +17298,14 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 const names = [...new Set(students.map(s => s['الفصل'] || 'بدون فصل'))];
                 list = names.map((n, i) => ({ id: i + 1, code: n, arabic_name: n }));
             }
+            // Deduplicate list by arabic_name
+            const _seenClassNames = new Set();
+            list = list.filter(item => {
+                const name = (item.arabic_name || item.code || '').trim();
+                if (!name || _seenClassNames.has(name)) return false;
+                _seenClassNames.add(name);
+                return true;
+            });
             // If church settings lock classes to assigned uncles, only show those classes
             try {
                 const role = (window.currentUncle && window.currentUncle.role) || localStorage.getItem('uncleRole') || '';

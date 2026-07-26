@@ -6432,17 +6432,15 @@ function getData()
 
             }
 
-            // Get distinct classes across all churches with church_name for developer view
+            // Get distinct classes across all churches for developer view
 
             $classRows = $conn->query("
 
-        SELECT DISTINCT COALESCE(cc.arabic_name, gc.arabic_name) as arabic_name,
+        SELECT COALESCE(cc.arabic_name, gc.arabic_name) as arabic_name,
 
-               COALESCE(cc.id, gc.id) as id, COALESCE(cc.code, gc.code) as code,
+               MIN(COALESCE(cc.id, gc.id)) as id, MIN(COALESCE(cc.code, gc.code)) as code,
 
-               COALESCE(cc.display_order, gc.display_order) as display_order,
-
-               c.church_name, s.church_id
+               MIN(COALESCE(cc.display_order, gc.display_order)) as display_order
 
         FROM students s
 
@@ -6450,9 +6448,11 @@ function getData()
 
         LEFT JOIN classes gc ON s.class_id = gc.id
 
-        LEFT JOIN churches c ON s.church_id = c.id
+        WHERE COALESCE(cc.arabic_name, gc.arabic_name) IS NOT NULL AND COALESCE(cc.arabic_name, gc.arabic_name) != ''
 
-        ORDER BY c.church_name, display_order
+        GROUP BY COALESCE(cc.arabic_name, gc.arabic_name)
+
+        ORDER BY display_order, arabic_name
 
     ");
 
@@ -23927,14 +23927,14 @@ function getClassesForChurch(int $churchId): array
 
     if ($churchId <= 0) {
         $stmt = $conn->prepare("
-            SELECT cc.id, cc.code, cc.arabic_name, cc.display_order,
-                   COALESCE(NULLIF(cc.`order`, 0), cc.display_order) AS class_order,
-                   cc.color, cc.icon, cc.church_id,
+            SELECT MIN(cc.id) AS id, cc.code, cc.arabic_name, MIN(cc.display_order) AS display_order,
+                   COALESCE(NULLIF(MIN(cc.`order`), 0), MIN(cc.display_order)) AS class_order,
+                   MIN(cc.color) AS color, MIN(cc.icon) AS icon, MIN(cc.church_id) AS church_id,
                    COUNT(s.id) AS student_count
             FROM   church_classes cc
             LEFT JOIN students s ON s.class_id = cc.id
             WHERE  cc.is_active = 1
-            GROUP  BY cc.id
+            GROUP  BY cc.arabic_name
             ORDER  BY class_order, cc.arabic_name
         ");
         $stmt->execute();
