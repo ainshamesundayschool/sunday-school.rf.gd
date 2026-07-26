@@ -11077,27 +11077,6 @@
         toggleEditTripPointsGame();
 
         window.roomsWizardEditedInModal = false;
-        const bldWrap = document.getElementById('editTripRoomsBldList');
-        if (bldWrap && !bldWrap.dataset.wizardTracked) {
-          bldWrap.dataset.wizardTracked = 'true';
-          bldWrap.addEventListener('change', () => { window.roomsWizardEditedInModal = true; });
-          bldWrap.addEventListener('input', () => { window.roomsWizardEditedInModal = true; });
-        }
-        document.getElementById('editTripHasRooms').value = String(t.has_rooms ?? 0);
-        toggleTripRoomsConfigurator('edit').then(() => {
-          if (t.has_rooms == 1 && t.rooms_config) {
-            try {
-              const parsed = typeof t.rooms_config === 'string' ? JSON.parse(t.rooms_config) : t.rooms_config;
-              if (Array.isArray(parsed) && parsed.length > 0) {
-                const templateId = parsed[0].rooms_template_id || 'custom';
-                document.getElementById('editTripRoomsTemplate').value = templateId;
-                onRoomsTemplateChange('edit');
-                populateRoomsWizardFromConfig('edit', parsed);
-              }
-            } catch (e) { console.error(e); }
-          }
-          setTimeout(() => { window.roomsWizardEditedInModal = false; }, 150);
-        });
 
         toggleEditTripDates();
         recalcEditTripPrice();
@@ -11284,7 +11263,7 @@
           fd.append('show_registered_kids', document.getElementById('editTripShowRegisteredKids').value);
           fd.append('hide_from_uncles', document.getElementById('editTripHideFromUncles').value);
           fd.append('has_points_game', document.getElementById('editTripHasPointsGame').value);
-          fd.append('rooms_wizard_edited', window.roomsWizardEditedInModal ? '1' : '0');
+          fd.append('rooms_wizard_edited', '0');
 
           let customFields = t ? (t.custom_fields || '') : '';
           let customFieldIcons = {};
@@ -11295,41 +11274,21 @@
             customFieldIcons = {};
           }
 
-          const hasRooms = document.getElementById('editTripHasRooms').value === '1';
-          let roomsConfig = null;
-          if (hasRooms) {
-            if (t && t.rooms_config && !window.roomsWizardEditedInModal) {
-              roomsConfig = typeof t.rooms_config === 'string' ? t.rooms_config : JSON.stringify(t.rooms_config);
-            } else {
-              let config = compileRoomsConfig('edit');
-              if (t && t.rooms_config) {
-                config = mergeRoomsConfigs(config, t.rooms_config);
-              }
-              roomsConfig = JSON.stringify(config);
-            }
-            let parsedConfig = typeof roomsConfig === 'string' ? (JSON.parse(roomsConfig || '[]')) : (roomsConfig || []);
-            if (parsedConfig && !Array.isArray(parsedConfig) && Array.isArray(parsedConfig.buildings)) {
-              parsedConfig = parsedConfig.buildings;
-            }
-            if (!Array.isArray(parsedConfig)) parsedConfig = [];
+          const hasRooms = t ? (t.has_rooms == 1) : false;
+          let roomsConfig = t ? (typeof t.rooms_config === 'string' ? t.rooms_config : JSON.stringify(t.rooms_config || [])) : '';
 
+          if (hasRooms) {
             const fieldsList = customFields.split(',').map(x => x.trim()).filter(Boolean);
             if (!fieldsList.includes('السكن')) {
               fieldsList.push('السكن');
             }
             customFields = fieldsList.join(',');
-            if (typeof buildAccommodationCustomFieldMeta === 'function') {
+            if (typeof buildAccommodationCustomFieldMeta === 'function' && roomsConfig) {
               try {
+                const parsedConfig = typeof roomsConfig === 'string' ? JSON.parse(roomsConfig || '[]') : (roomsConfig || []);
                 customFieldIcons['السكن'] = buildAccommodationCustomFieldMeta(parsedConfig);
               } catch (err) { console.error("Error building accommodation meta:", err); }
             }
-          } else {
-            if (t && t.rooms_config) {
-              roomsConfig = typeof t.rooms_config === 'string' ? t.rooms_config : JSON.stringify(t.rooms_config);
-            }
-            const fieldsList = customFields.split(',').map(x => x.trim()).filter(Boolean).filter(f => f !== 'السكن');
-            customFields = fieldsList.join(',');
-            delete customFieldIcons['السكن'];
           }
 
           const hasGame = document.getElementById('editTripHasPointsGame').value === '1';
@@ -16378,7 +16337,20 @@
 
         const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
         if (!trip || trip.has_rooms != 1) {
-          wrap.innerHTML = '<div class="empty-state">نظام السكن غير مفعل في هذه الرحلة.</div>';
+          wrap.innerHTML = `
+            <div class="empty-state" style="padding: 40px 20px; max-width: 580px; margin: 30px auto; background: var(--surface); border-radius: 16px; border: 1.5px dashed var(--border-solid); box-shadow: var(--shadow-sm); text-align: center;">
+              <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(59, 130, 246, 0.1); color: var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 1.8rem;">
+                <i class="fas fa-bed"></i>
+              </div>
+              <h3 style="margin: 0 0 8px; font-size: 1.2rem; font-weight: 800; color: var(--text);">نظام السكن والغرف غير مفعل</h3>
+              <p style="font-size: 0.85rem; color: var(--muted); margin: 0 0 20px; line-height: 1.6;">
+                تفعيل نظام السكن يتيح لك اختيار قالباً للسكن، إضافة المباني والأدوار والغرف، وتوزيع الأطفال والخدام استناداً إلى الطاقة الاستيعابية.
+              </p>
+              <button type="button" class="btn btn-primary" onclick="toggleTripRoomsActive(${tripId}, true)" style="padding: 10px 24px; border-radius: 20px; font-weight: 800; font-size: 0.92rem; display: inline-flex; align-items: center; gap: 8px;">
+                <i class="fas fa-power-off"></i> تفعيل نظام السكن والغرف لهذه الرحلة
+              </button>
+            </div>
+          `;
           return;
         }
 
@@ -16411,12 +16383,48 @@
         const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
         if (!Array.isArray(roomsConfig) || !roomsConfig.length) {
           wrap.innerHTML = `
-            <div class="empty-state">
-              <i class="fas fa-home" style="font-size:3rem; color:var(--muted); margin-bottom:12px;"></i>
-              <h3>لم يتم ضبط هيكل السكن بعد</h3>
-              <p style="margin-top:6px; font-size:0.85rem; color:var(--muted);">يرجى النقر على زر "تعديل الرحلة" لتشغيل معالج ضبط الغرف والمباني.</p>
+            <div class="card" style="padding: 24px; border-radius: 16px; background: var(--surface); border: 1px solid var(--border); max-width: 750px; margin: 20px auto; box-shadow: var(--shadow-sm);">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 14px;">
+                <div>
+                  <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--text); display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-hotel" style="color: var(--primary);"></i> إعداد هيكل وقوالب الغرف
+                  </h3>
+                  <div style="font-size: 0.78rem; color: var(--muted); margin-top: 4px;">اختر قالباً جاهزاً للسكن أو أنشئ المباني والأدوار والغرف مخصصاً لهذه الرحلة.</div>
+                </div>
+                <button type="button" class="btn btn-outline btn-sm" onclick="toggleTripRoomsActive(${tripId}, false)" style="color: var(--danger); border-color: var(--danger); font-size: 0.78rem; padding: 6px 12px; border-radius: 8px;">
+                  <i class="fas fa-power-off"></i> إيقاف نظام السكن
+                </button>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 16px;">
+                <label class="form-label" style="font-weight: 800; font-size: 0.88rem; color: var(--text); margin-bottom: 6px; display: block;">اختر قالب سكن أو أنشئ من الصفر</label>
+                <div style="display: flex; gap: 10px; align-items: center; width: 100%;">
+                  <select id="roomsTabTripRoomsTemplate" class="form-select" style="flex: 1; height: 40px; border-radius: 10px; border: 1.5px solid var(--border-solid); padding: 0 12px; font-weight: 700;" onchange="onRoomsTemplateChange('roomsTab')">
+                    <!-- Loaded dynamically -->
+                  </select>
+                  ${isDev ? `
+                  <button type="button" class="btn btn-outline" onclick="saveCurrentRoomsAsTemplate('roomsTab')" style="height: 40px; padding: 0 14px; border-radius: 10px; font-size: 0.85rem; font-weight: 700; white-space: nowrap; display: flex; align-items: center; gap: 6px;" title="حفظ كقالب جديد">
+                    <i class="fas fa-save"></i> حفظ كقالب
+                  </button>` : ''}
+                </div>
+              </div>
+
+              <div id="roomsTabTripRoomsScratchWizard" style="display: none; margin-top: 16px; border-top: 1px dashed var(--border-solid); padding-top: 16px;">
+                <div class="form-group" style="margin-bottom: 14px;">
+                  <label class="form-label" style="font-weight: 800; font-size: 0.88rem; color: var(--text); margin-bottom: 6px; display: block;">عدد المباني / الفيلات</label>
+                  <input type="number" id="roomsTabTripRoomsBldCount" class="form-input" value="1" min="1" max="100" style="width: 120px; height: 38px; border-radius: 8px;" onchange="adjustRoomsWizardBldCount('roomsTab')">
+                </div>
+                <div id="roomsTabTripRoomsBldList" style="display: flex; flex-direction: column; gap: 12px;">
+                  <!-- Building cards -->
+                </div>
+              </div>
+
+              <button type="button" class="btn btn-primary" onclick="saveRoomsConfigFromRoomsTab(${tripId})" style="margin-top: 20px; width: 100%; height: 44px; border-radius: 12px; font-weight: 800; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="fas fa-check-circle"></i> حفظ وتطبيق هيكل السكن
+              </button>
             </div>
           `;
+          loadRoomsTemplates('roomsTab');
           return;
         }
 
@@ -16436,8 +16444,10 @@
                 <div style="display:flex; gap:8px; flex-wrap:wrap;">
                   <button type="button" class="btn btn-primary btn-sm" onclick="openAutoFillWizardModal()"><i class="fas fa-magic"></i> توزيع تلقائي ذكي</button>
                   <button type="button" class="btn btn-outline btn-sm" style="color:var(--primary); border-color:var(--primary);" onclick="openBulkRoomsModal()"><i class="fas fa-edit"></i> تعديل وإضافة جماعية (Bulk)</button>
+                  <button type="button" class="btn btn-outline btn-sm" onclick="openRoomsStructureModal(${tripId})"><i class="fas fa-cog"></i> إعدادات الهيكل والقوالب</button>
                   <button type="button" class="btn btn-success btn-sm" style="background:#10b981; color:#fff; border:none;" onclick="downloadTaskeenCSV()"><i class="fas fa-file-csv"></i> تحميل التسكين CSV</button>
                   <button type="button" class="btn btn-outline btn-sm" style="color:var(--danger); border-color:var(--danger);" onclick="clearAllRoomsAllocations()"><i class="fas fa-trash-alt"></i> مسح كل التسكين</button>
+                  <button type="button" class="btn btn-outline btn-sm" style="color:var(--danger); border-color:var(--danger);" onclick="toggleTripRoomsActive(${tripId}, false)"><i class="fas fa-power-off"></i> إيقاف السكن</button>
                   ${isDev ? `<button type="button" class="btn btn-outline btn-sm" onclick="saveActiveTripRoomsAsTemplate()"><i class="fas fa-save"></i> حفظ الهيكل كقالب</button>` : ''}
                 </div>
                 <div style="display:flex; gap:6px;">
@@ -17196,6 +17206,143 @@
           });
           renderRoomsWorkspaceData();
         }
+      }
+
+      /**
+       * Toggle Trip Rooms ON/OFF directly from the Rooms Tab
+       */
+      async function toggleTripRoomsActive(tripId, enableBool) {
+        const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+        if (!trip) return;
+
+        if (!enableBool) {
+          if (!(await showConfirm({ message: 'تنبيه: هل أنت متأكد من إيقاف نظام السكن والغرف لهذه الرحلة؟ (لن تُحذف بيانات الغرف المسكنة بالفعل)' }))) return;
+        }
+
+        const fd = new FormData();
+        fd.append('action', 'updateTrip');
+        fd.append('trip_id', tripId);
+        fd.append('has_rooms', enableBool ? '1' : '0');
+        if (trip.rooms_config) {
+          fd.append('rooms_config', typeof trip.rooms_config === 'string' ? trip.rooms_config : JSON.stringify(trip.rooms_config));
+        }
+
+        try {
+          const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+          if (res.success) {
+            trip.has_rooms = enableBool ? 1 : 0;
+            if (window.currentTripObj && window.currentTripObj.id == tripId) {
+              window.currentTripObj.has_rooms = enableBool ? 1 : 0;
+            }
+            showToast(enableBool ? 'تم تفعيل نظام السكن والغرف بنجاح' : 'تم إيقاف نظام السكن والغرف', 'success');
+            renderRoomsPanel(tripId);
+          } else {
+            showToast(res.message || 'فشل تغيير حالة السكن', 'error');
+          }
+        } catch (e) {
+          console.error("Error toggling trip rooms active state", e);
+          showToast('حدث خطأ أثناء تغيير حالة نظام السكن', 'error');
+        }
+      }
+
+      /**
+       * Save rooms configuration layout from the Rooms Tab
+       */
+      async function saveRoomsConfigFromRoomsTab(tripId, prefix = 'roomsTab') {
+        const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+        if (!trip) return;
+
+        let config = compileRoomsConfig(prefix);
+        if (!config || !config.length) {
+          showToast('برجاء إضافة مبنى واحد على الأقل أولاً لتتمكن من حفظ وتطبيق الهيكل.', 'warning');
+          return;
+        }
+
+        if (trip.rooms_config) {
+          config = mergeRoomsConfigs(config, trip.rooms_config);
+        }
+
+        const roomsConfigStr = JSON.stringify(config);
+
+        let customFields = trip.custom_fields || '';
+        let customFieldIcons = {};
+        try {
+          customFieldIcons = typeof trip.custom_field_icons === 'object' ? trip.custom_field_icons : JSON.parse(trip.custom_field_icons || '{}');
+        } catch (e) { }
+        if (!customFieldIcons || Array.isArray(customFieldIcons) || typeof customFieldIcons !== 'object') {
+          customFieldIcons = {};
+        }
+
+        const fieldsList = customFields.split(',').map(x => x.trim()).filter(Boolean);
+        if (!fieldsList.includes('السكن')) {
+          fieldsList.push('السكن');
+        }
+        customFields = fieldsList.join(',');
+
+        if (typeof buildAccommodationCustomFieldMeta === 'function') {
+          try {
+            customFieldIcons['السكن'] = buildAccommodationCustomFieldMeta(config);
+          } catch (err) { }
+        }
+
+        const fd = new FormData();
+        fd.append('action', 'updateTrip');
+        fd.append('trip_id', tripId);
+        fd.append('has_rooms', '1');
+        fd.append('rooms_config', roomsConfigStr);
+        fd.append('rooms_wizard_edited', '1');
+        fd.append('custom_fields', customFields);
+        fd.append('custom_field_icons', JSON.stringify(customFieldIcons));
+
+        try {
+          const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+          if (res.success) {
+            trip.has_rooms = 1;
+            trip.rooms_config = roomsConfigStr;
+            trip.custom_fields = customFields;
+            trip.custom_field_icons = customFieldIcons;
+            if (window.currentTripObj && window.currentTripObj.id == tripId) {
+              window.currentTripObj.has_rooms = 1;
+              window.currentTripObj.rooms_config = roomsConfigStr;
+              window.currentTripObj.custom_fields = customFields;
+              window.currentTripObj.custom_field_icons = customFieldIcons;
+            }
+            closeModal('roomsStructureModal');
+            showToast('تم حفظ وتطبيق هيكل السكن بنجاح 💾', 'success');
+            renderRoomsPanel(tripId);
+          } else {
+            showToast(res.message || 'فشل حفظ هيكل السكن', 'error');
+          }
+        } catch (e) {
+          console.error("Error saving rooms config from tab", e);
+          showToast('حدث خطأ أثناء حفظ هيكل السكن', 'error');
+        }
+      }
+
+      /**
+       * Open Rooms Structure & Templates Modal from the Rooms Workspace
+       */
+      async function openRoomsStructureModal(tripId) {
+        window.currentTripId = tripId;
+        const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
+        if (!trip) return;
+
+        await loadRoomsTemplates('roomsTabModal');
+        
+        const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+        if (Array.isArray(roomsConfig) && roomsConfig.length > 0) {
+          const templateId = roomsConfig[0].rooms_template_id || 'custom';
+          const templateSelect = document.getElementById('roomsTabModalTripRoomsTemplate');
+          if (templateSelect) templateSelect.value = templateId;
+          onRoomsTemplateChange('roomsTabModal');
+          populateRoomsWizardFromConfig('roomsTabModal', roomsConfig);
+        } else {
+          const templateSelect = document.getElementById('roomsTabModalTripRoomsTemplate');
+          if (templateSelect) templateSelect.value = '';
+          onRoomsTemplateChange('roomsTabModal');
+        }
+
+        openModal('roomsStructureModal');
       }
 
       /**
@@ -20370,44 +20517,8 @@
                     </button>
                   </div>
                 </div>
-              </div>
-              <div class="form-group" style="grid-column:1/-1;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <label class="form-label" style="margin:0; cursor:pointer; font-weight:700;">هل توجد غرف وسكن في هذه
-                    الرحلة؟</label>
-                  <select id="editTripHasRooms" class="form-select" style="width:120px;"
-                    onchange="toggleTripRoomsConfigurator('edit')">
-                    <option value="0">لا</option>
-                    <option value="1">نعم</option>
-                  </select>
-                </div>
-                <div id="editTripRoomsConfigWrap"
-                  style="display:none; margin-top:10px; border:1px solid var(--border); border-radius:10px; padding:14px; background:var(--surface-3);">
-                  <div class="form-group" style="margin-bottom:12px;">
-                    <label class="form-label" style="font-weight:700;">اختر قالب سكن أو أنشئ من الصفر</label>
-                    <div style="display:flex; gap:8px; align-items:center; width:100%;">
-                      <select id="editTripRoomsTemplate" class="form-select" style="flex:1;"
-                        onchange="onRoomsTemplateChange('edit')">
-                        <!-- Loaded dynamically -->
-                      </select>
-                      <button type="button" class="btn btn-outline dev-only" onclick="saveCurrentRoomsAsTemplate('edit')" style="display:none; padding:8px 12px; font-size:0.85rem; white-space:nowrap; align-items:center; gap:6px;" title="حفظ كقالب جديد">
-                        <i class="fas fa-save"></i> حفظ كقالب
-                      </button>
-                    </div>
-                  </div>
-                  <div id="editTripRoomsScratchWizard" style="display:none; margin-top:10px;">
-                    <div class="form-group" style="margin-bottom:12px;">
-                      <label class="form-label" style="font-weight:700;">عدد المباني / الفيلات</label>
-                      <input type="number" id="editTripRoomsBldCount" class="form-input" value="1" min="1" max="100"
-                        onchange="adjustRoomsWizardBldCount('edit')">
-                    </div>
-                    <div id="editTripRoomsBldList" style="display:flex; flex-direction:column; gap:10px;">
-                      <!-- Building cards rendered here -->
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
+          </div>
             <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
               <button type="submit" class="btn btn-primary" style="flex:2; min-width:150px;"><i class="fas fa-save"></i> حفظ
                 التعديلات</button>
@@ -21267,6 +21378,42 @@
               <button type="button" class="btn btn-primary" onclick="confirmCrop()">تأكيد القص</button>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+    <!-- Rooms Structure & Templates Modal -->
+    <div id="roomsStructureModal" class="modal" style="z-index: 2500;">
+      <div class="modal-box" style="max-width:700px; padding:24px;">
+        <div class="modal-head" style="margin-bottom:16px; border-bottom:1px solid var(--border); padding-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+          <h2 style="margin:0; font-size:1.15rem; font-weight:800; color:var(--text); display:flex; align-items:center; gap:8px;">
+            <i class="fas fa-hotel" style="color:var(--primary);"></i> إعداد هيكل وقوالب الغرف
+          </h2>
+          <button class="modal-close" onclick="closeModal('roomsStructureModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group" style="margin-bottom:16px;">
+            <label class="form-label" style="font-weight:800; font-size:0.88rem; color:var(--text); margin-bottom:6px; display:block;">اختر قالب سكن أو أنشئ من الصفر</label>
+            <div style="display:flex; gap:10px; align-items:center; width:100%;">
+              <select id="roomsTabModalTripRoomsTemplate" class="form-select" style="flex:1; height:40px; border-radius:10px; border:1.5px solid var(--border-solid); padding:0 12px; font-weight:700;" onchange="onRoomsTemplateChange('roomsTabModal')">
+                <!-- Loaded dynamically -->
+              </select>
+              <button type="button" class="btn btn-outline dev-only" onclick="saveCurrentRoomsAsTemplate('roomsTabModal')" style="display:none; height:40px; padding:0 14px; border-radius:10px; font-size:0.85rem; font-weight:700; white-space:nowrap; align-items:center; gap:6px;" title="حفظ كقالب جديد">
+                <i class="fas fa-save"></i> حفظ كقالب
+              </button>
+            </div>
+          </div>
+          <div id="roomsTabModalTripRoomsScratchWizard" style="display:none; margin-top:16px; border-top:1px dashed var(--border-solid); padding-top:16px;">
+            <div class="form-group" style="margin-bottom:14px;">
+              <label class="form-label" style="font-weight:800; font-size:0.88rem; color:var(--text); margin-bottom:6px; display:block;">عدد المباني / الفيلات</label>
+              <input type="number" id="roomsTabModalTripRoomsBldCount" class="form-input" value="1" min="1" max="100" style="width:120px; height:38px; border-radius:8px;" onchange="adjustRoomsWizardBldCount('roomsTabModal')">
+            </div>
+            <div id="roomsTabModalTripRoomsBldList" style="display:flex; flex-direction:column; gap:12px;">
+              <!-- Building cards -->
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary" onclick="saveRoomsConfigFromRoomsTab(window.currentTripId, 'roomsTabModal')" style="margin-top:20px; width:100%; height:44px; border-radius:12px; font-weight:800; font-size:0.95rem; display:flex; align-items:center; justify-content:center; gap:8px;">
+            <i class="fas fa-check-circle"></i> حفظ وتطبيق هيكل السكن
+          </button>
         </div>
       </div>
     </div>

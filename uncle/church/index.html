@@ -8018,50 +8018,7 @@
                                         </div>
                                         <div id="tripFieldsContainer" class="custom-fields-container"></div>
                                     </div>
-                                    <div class="form-group" style="grid-column:1/-1;">
-                                        <div style="display:flex; align-items:center; gap:8px;">
-                                            <label class="form-label"
-                                                style="margin:0; cursor:pointer; font-weight:700;">هل توجد غرف وسكن في
-                                                هذه الرحلة؟</label>
-                                            <select id="addTripHasRooms" class="form-select" style="width:120px;"
-                                                onchange="toggleTripRoomsConfigurator('add')">
-                                                <option value="0">لا</option>
-                                                <option value="1">نعم</option>
-                                            </select>
-                                        </div>
-                                        <div id="addTripRoomsConfigWrap"
-                                            style="display:none; margin-top:10px; border:1px solid var(--border); border-radius:10px; padding:14px; background:var(--surface-3);">
-                                            <div class="form-group" style="margin-bottom:12px;">
-                                                <label class="form-label" style="font-weight:700;">اختر قالب سكن أو أنشئ
-                                                    من الصفر</label>
-                                                <div style="display:flex; gap:8px; align-items:center; width:100%;">
-                                                    <select id="addTripRoomsTemplate" class="form-select"
-                                                        style="flex:1;" onchange="onRoomsTemplateChange('add')">
-                                                        <!-- Loaded dynamically -->
-                                                    </select>
-                                                    <button type="button" class="btn btn-outline dev-only"
-                                                        onclick="saveCurrentRoomsAsTemplate('add')"
-                                                        style="display:none; padding:8px 12px; font-size:0.85rem; white-space:nowrap; align-items:center; gap:6px;"
-                                                        title="حفظ كقالب جديد">
-                                                        <i class="fas fa-save"></i> حفظ كقالب
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <div id="addTripRoomsScratchWizard" style="display:none; margin-top:10px;">
-                                                <div class="form-group" style="margin-bottom:12px;">
-                                                    <label class="form-label" style="font-weight:700;">عدد المباني /
-                                                        الفيلات</label>
-                                                    <input type="number" id="addTripRoomsBldCount" class="form-input"
-                                                        value="1" min="1" max="100"
-                                                        onchange="adjustRoomsWizardBldCount('add')">
-                                                </div>
-                                                <div id="addTripRoomsBldList"
-                                                    style="display:flex; flex-direction:column; gap:10px;">
-                                                    <!-- Building cards rendered here -->
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+
                                     <div class="form-group"><label class="form-label">صورة الرحلة</label><input
                                             type="file" id="tripImage" class="form-input" accept="image/*"></div>
                                     <div class="form-group" style="grid-column:1/-1;">
@@ -9722,48 +9679,6 @@
                                         class="fas fa-plus"></i> إضافة</button>
                             </div>
                             <div id="editTripFieldsContainer" class="custom-fields-container"></div>
-                            <script>document.getElementById('editNewFieldType').addEventListener('change', function () { document.getElementById('editNewFieldChoices').style.display = this.value === 'choices' ? 'block' : 'none'; });</script>
-                        </div>
-                        <div class="form-group" style="grid-column:1/-1;">
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                <label class="form-label" style="margin:0; cursor:pointer; font-weight:700;">هل توجد غرف
-                                    وسكن في هذه الرحلة؟</label>
-                                <select id="editTripHasRooms" class="form-select" style="width:120px;"
-                                    onchange="toggleTripRoomsConfigurator('edit')">
-                                    <option value="0">لا</option>
-                                    <option value="1">نعم</option>
-                                </select>
-                            </div>
-                            <div id="editTripRoomsConfigWrap"
-                                style="display:none; margin-top:10px; border:1px solid var(--border); border-radius:10px; padding:14px; background:var(--surface-3);">
-                                <div class="form-group" style="margin-bottom:12px;">
-                                    <label class="form-label" style="font-weight:700;">اختر قالب سكن أو أنشئ من
-                                        الصفر</label>
-                                    <div style="display:flex; gap:8px; align-items:center; width:100%;">
-                                        <select id="editTripRoomsTemplate" class="form-select" style="flex:1;"
-                                            onchange="onRoomsTemplateChange('edit')">
-                                            <!-- Loaded dynamically -->
-                                        </select>
-                                        <button type="button" class="btn btn-outline dev-only"
-                                            onclick="saveCurrentRoomsAsTemplate('edit')"
-                                            style="display:none; padding:8px 12px; font-size:0.85rem; white-space:nowrap; align-items:center; gap:6px;"
-                                            title="حفظ كقالب جديد">
-                                            <i class="fas fa-save"></i> حفظ كقالب
-                                        </button>
-                                    </div>
-                                </div>
-                                <div id="editTripRoomsScratchWizard" style="display:none; margin-top:10px;">
-                                    <div class="form-group" style="margin-bottom:12px;">
-                                        <label class="form-label" style="font-weight:700;">عدد المباني / الفيلات</label>
-                                        <input type="number" id="editTripRoomsBldCount" class="form-input" value="1"
-                                            min="1" max="100" onchange="adjustRoomsWizardBldCount('edit')">
-                                    </div>
-                                    <div id="editTripRoomsBldList"
-                                        style="display:flex; flex-direction:column; gap:10px;">
-                                        <!-- Building cards rendered here -->
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                     <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
@@ -15903,41 +15818,21 @@
                     customFieldIcons = {};
                 }
 
-                const hasRooms = document.getElementById('editTripHasRooms').value === '1';
-                let roomsConfig = null;
-                if (hasRooms) {
-                    if (t && t.rooms_config && !window.roomsWizardEditedInModal) {
-                        roomsConfig = typeof t.rooms_config === 'string' ? t.rooms_config : JSON.stringify(t.rooms_config);
-                    } else {
-                        let config = compileRoomsConfig('edit');
-                        if (t && t.rooms_config) {
-                            config = mergeRoomsConfigs(config, t.rooms_config);
-                        }
-                        roomsConfig = JSON.stringify(config);
-                    }
-                    let parsedConfig = typeof roomsConfig === 'string' ? (JSON.parse(roomsConfig || '[]')) : (roomsConfig || []);
-                    if (parsedConfig && !Array.isArray(parsedConfig) && Array.isArray(parsedConfig.buildings)) {
-                        parsedConfig = parsedConfig.buildings;
-                    }
-                    if (!Array.isArray(parsedConfig)) parsedConfig = [];
+                const hasRooms = t ? (t.has_rooms == 1) : false;
+                let roomsConfig = t ? (typeof t.rooms_config === 'string' ? t.rooms_config : JSON.stringify(t.rooms_config || [])) : '';
 
+                if (hasRooms) {
                     const fieldsList = customFields.split(',').map(x => x.trim()).filter(Boolean);
                     if (!fieldsList.includes('السكن')) {
                         fieldsList.push('السكن');
                     }
                     customFields = fieldsList.join(',');
-                    if (typeof buildAccommodationCustomFieldMeta === 'function') {
+                    if (typeof buildAccommodationCustomFieldMeta === 'function' && roomsConfig) {
                         try {
+                            const parsedConfig = typeof roomsConfig === 'string' ? JSON.parse(roomsConfig || '[]') : (roomsConfig || []);
                             customFieldIcons['السكن'] = buildAccommodationCustomFieldMeta(parsedConfig);
                         } catch (err) { console.error("Error building accommodation meta:", err); }
                     }
-                } else {
-                    if (t && t.rooms_config) {
-                        roomsConfig = typeof t.rooms_config === 'string' ? t.rooms_config : JSON.stringify(t.rooms_config);
-                    }
-                    const fieldsList = customFields.split(',').map(x => x.trim()).filter(Boolean).filter(f => f !== 'السكن');
-                    customFields = fieldsList.join(',');
-                    delete customFieldIcons['السكن'];
                 }
 
                 const hasGame = document.getElementById('editTripHasPointsGame').value === '1';
@@ -16207,23 +16102,10 @@
                 customFieldIcons = {};
             }
 
-            const hasRooms = document.getElementById('addTripHasRooms').value === '1';
-            let roomsConfig = null;
-            if (hasRooms) {
-                const config = compileRoomsConfig('add');
-                roomsConfig = JSON.stringify(config);
-                const fieldsList = customFields.split(',').map(x => x.trim()).filter(Boolean);
-                if (!fieldsList.includes('السكن')) {
-                    fieldsList.push('السكن');
-                }
-                customFields = fieldsList.join(',');
-                customFieldIcons['السكن'] = buildAccommodationCustomFieldMeta(config);
-            }
-
             fd.append('custom_fields', customFields);
             fd.append('custom_field_icons', JSON.stringify(customFieldIcons));
-            fd.append('has_rooms', hasRooms ? '1' : '0');
-            fd.append('rooms_config', roomsConfig || '');
+            fd.append('has_rooms', '0');
+            fd.append('rooms_config', '[]');
 
             const img = document.getElementById('tripImage').files[0];
             if (img) fd.append('trip_image', img);
@@ -16238,8 +16120,6 @@
 
                 e.target.reset();
                 document.getElementById('tripFieldsContainer').innerHTML = '';
-                document.getElementById('addTripHasRooms').value = '0';
-                toggleTripRoomsConfigurator('add');
                 toggleTripDates();
                 recalcTripPrice();
                 document.getElementById('tripBulkCsvWrap').style.display = 'none';
@@ -16378,22 +16258,6 @@
                 if (f === 'السكن') return; // Managed natively
                 const iconClass = (t.custom_field_icons && (t.custom_field_icons[f] || (typeof t.custom_field_icons === 'string' && JSON.parse(t.custom_field_icons)[f]))) ? (typeof t.custom_field_icons === 'object' ? t.custom_field_icons[f] : JSON.parse(t.custom_field_icons)[f]) : 'fas fa-tag';
                 addCustomFieldTagWithValue('editTripFieldsContainer', f, iconClass);
-            });
-
-            document.getElementById('editTripHasRooms').value = String(t.has_rooms ?? 0);
-            toggleTripRoomsConfigurator('edit').then(() => {
-                if (t.has_rooms == 1 && t.rooms_config) {
-                    try {
-                        const parsed = typeof t.rooms_config === 'string' ? JSON.parse(t.rooms_config) : t.rooms_config;
-                        if (Array.isArray(parsed) && parsed.length > 0) {
-                            const templateId = parsed[0].rooms_template_id || 'custom';
-                            document.getElementById('editTripRoomsTemplate').value = templateId;
-                            onRoomsTemplateChange('edit');
-                            populateRoomsWizardFromConfig('edit', parsed);
-                        }
-                    } catch (e) { console.error(e); }
-                }
-                setTimeout(() => { window.roomsWizardEditedInModal = false; }, 150);
             });
 
             toggleEditTripDates(); recalcEditTripPrice();
@@ -16574,41 +16438,21 @@
                 customFieldIcons = {};
             }
 
-            const hasRooms = document.getElementById('editTripHasRooms').value === '1';
-            let roomsConfig = null;
-            if (hasRooms) {
-                if (t && t.rooms_config && !window.roomsWizardEditedInModal) {
-                    roomsConfig = typeof t.rooms_config === 'string' ? t.rooms_config : JSON.stringify(t.rooms_config);
-                } else {
-                    let config = compileRoomsConfig('edit');
-                    if (t && t.rooms_config) {
-                        config = mergeRoomsConfigs(config, t.rooms_config);
-                    }
-                    roomsConfig = JSON.stringify(config);
-                }
-                let parsedConfig = typeof roomsConfig === 'string' ? (JSON.parse(roomsConfig || '[]')) : (roomsConfig || []);
-                if (parsedConfig && !Array.isArray(parsedConfig) && Array.isArray(parsedConfig.buildings)) {
-                    parsedConfig = parsedConfig.buildings;
-                }
-                if (!Array.isArray(parsedConfig)) parsedConfig = [];
+            const hasRooms = t ? (t.has_rooms == 1) : false;
+            let roomsConfig = t ? (typeof t.rooms_config === 'string' ? t.rooms_config : JSON.stringify(t.rooms_config || [])) : '';
 
+            if (hasRooms) {
                 const fieldsList = customFields.split(',').map(x => x.trim()).filter(Boolean);
                 if (!fieldsList.includes('السكن')) {
                     fieldsList.push('السكن');
                 }
                 customFields = fieldsList.join(',');
-                if (typeof buildAccommodationCustomFieldMeta === 'function') {
+                if (typeof buildAccommodationCustomFieldMeta === 'function' && roomsConfig) {
                     try {
+                        const parsedConfig = typeof roomsConfig === 'string' ? JSON.parse(roomsConfig || '[]') : (roomsConfig || []);
                         customFieldIcons['السكن'] = buildAccommodationCustomFieldMeta(parsedConfig);
                     } catch (err) { console.error("Error building accommodation meta:", err); }
                 }
-            } else {
-                if (t && t.rooms_config) {
-                    roomsConfig = typeof t.rooms_config === 'string' ? t.rooms_config : JSON.stringify(t.rooms_config);
-                }
-                const fieldsList = customFields.split(',').map(x => x.trim()).filter(Boolean).filter(f => f !== 'السكن');
-                customFields = fieldsList.join(',');
-                delete customFieldIcons['السكن'];
             }
 
             const hasGame = document.getElementById('editTripHasPointsGame').value === '1';
