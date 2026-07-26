@@ -16361,18 +16361,30 @@
           return;
         }
 
-        // Fetch registrations
+        // Fetch registrations & latest trip details
         let regs = tripRegistrationsCache[tripId] || [];
-        if (!regs.length) {
+        try {
           const fd = new FormData();
           fd.append('action', 'getTripDetails');
           fd.append('trip_id', tripId);
-          const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({}));
-          if (res.success && res.trip && res.trip.registrations) {
-            regs = res.trip.registrations;
-            tripRegistrationsCache[tripId] = regs;
+          const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+          if (res.success && res.trip) {
+            if (res.trip.registrations) {
+              regs = res.trip.registrations;
+              tripRegistrationsCache[tripId] = regs;
+            }
+            const idx = allTripsCache.findIndex(t => t.id == tripId);
+            if (idx > -1) {
+              allTripsCache[idx] = { ...allTripsCache[idx], ...res.trip };
+            } else {
+              allTripsCache.push(res.trip);
+            }
+            if (window.currentTripObj && window.currentTripObj.id == tripId) {
+              window.currentTripObj = { ...window.currentTripObj, ...res.trip };
+            }
+            saveTripLocal(tripId, res.trip);
           }
-        }
+        } catch (e) { }
 
         // Fetch Uncles if not cached for this trip
         if (!window.allUnclesCache || window.allUnclesCacheTripId !== tripId) {
@@ -16387,7 +16399,26 @@
           } catch (e) { }
         }
 
-        const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+        const activeTrip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj || trip;
+        if (!activeTrip || activeTrip.has_rooms != 1) {
+          wrap.innerHTML = `
+            <div class="empty-state" style="padding: 40px 20px; max-width: 580px; margin: 30px auto; background: var(--surface); border-radius: 16px; border: 1.5px dashed var(--border-solid); box-shadow: var(--shadow-sm); text-align: center;">
+              <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(59, 130, 246, 0.1); color: var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 1.8rem;">
+                <i class="fas fa-bed"></i>
+              </div>
+              <h3 style="margin: 0 0 8px; font-size: 1.2rem; font-weight: 800; color: var(--text);">نظام السكن والغرف غير مفعل</h3>
+              <p style="font-size: 0.85rem; color: var(--muted); margin: 0 0 20px; line-height: 1.6;">
+                تفعيل نظام السكن يتيح لك اختيار قالباً للسكن، إضافة المباني والأدوار والغرف، وتوزيع الأطفال والخدام استناداً إلى الطاقة الاستيعابية.
+              </p>
+              <button type="button" class="btn btn-primary" onclick="toggleTripRoomsActive(${tripId}, true)" style="padding: 10px 24px; border-radius: 20px; font-weight: 800; font-size: 0.92rem; display: inline-flex; align-items: center; gap: 8px;">
+                <i class="fas fa-power-off"></i> تفعيل نظام السكن والغرف لهذه الرحلة
+              </button>
+            </div>
+          `;
+          return;
+        }
+
+        const roomsConfig = typeof activeTrip.rooms_config === 'string' ? JSON.parse(activeTrip.rooms_config || '[]') : (activeTrip.rooms_config || []);
         if (!Array.isArray(roomsConfig) || !roomsConfig.length) {
           wrap.innerHTML = `
             <div class="card" style="padding: 24px; border-radius: 16px; background: var(--surface); border: 1px solid var(--border); max-width: 750px; margin: 20px auto; box-shadow: var(--shadow-sm);">
