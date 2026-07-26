@@ -11733,6 +11733,15 @@
                 <input type="text" class="form-input" id="tabCustomExportTitle" oninput="renderTabCustomExportPreview()" placeholder="عنوان التقرير..." style="font-size:0.8rem; height:34px;">
               </div>
 
+              <!-- Sorting Layers Panel -->
+              <div class="tab-export-panel">
+                <div class="tab-export-panel-title" style="display:flex; justify-content:space-between; align-items:center;">
+                  <span><i class="fas fa-sort-amount-down"></i> ترتيب الجدول</span>
+                  <button type="button" class="sort-layer-add-btn" onclick="addTabCustomExportSortLayer()"><i class="fas fa-plus"></i> إضافة شرط</button>
+                </div>
+                <div id="tabCustomExportSortLayersContainer" style="display:flex; flex-direction:column; gap:6px;"></div>
+              </div>
+
               <!-- Filter Panel -->
               <div class="tab-export-panel" id="tabExportFiltersPanel">
                 <div class="tab-export-panel-title"><div style="display:flex; justify-content:space-between; align-items:center; width:100%;"><span><i class="fas fa-filter"></i> الفلاتر والتصفية</span></div></div>
@@ -11762,15 +11771,6 @@
                   <button type="button" class="btn btn-outline btn-xs" onclick="resetTabCustomExportFields()" style="font-size:0.68rem; padding:2px 6px;">إعادة ضبط</button>
                 </div>
                 <div class="tab-export-field-list" id="tabCustomExportFieldsContainer"></div>
-              </div>
-
-              <!-- Sorting Layers Panel -->
-              <div class="tab-export-panel">
-                <div class="tab-export-panel-title" style="display:flex; justify-content:space-between; align-items:center;">
-                  <span><i class="fas fa-sort-amount-down"></i> ترتيب الجدول</span>
-                  <button type="button" class="sort-layer-add-btn" onclick="addTabCustomExportSortLayer()"><i class="fas fa-plus"></i> إضافة شرط</button>
-                </div>
-                <div id="tabCustomExportSortLayersContainer" style="display:flex; flex-direction:column; gap:6px;"></div>
               </div>
             </div>
 
@@ -28321,6 +28321,7 @@
                 { key: 'name', label: 'الاسم الكامل', selected: true },
                 { key: 'username', label: 'اسم المستخدم', selected: true },
                 { key: 'role', label: 'الدور / الصفة', selected: true },
+                { key: 'church', label: 'الكنيسة', selected: false },
                 { key: 'phone', label: 'رقم الهاتف', selected: true },
                 { key: 'emergency_phone', label: 'هاتف الطوارئ', selected: true },
                 { key: 'classes', label: 'الفصول الموكلة', selected: true },
@@ -28335,6 +28336,7 @@
                 { key: 'name', label: 'اسم الطفل الكامل', selected: true },
                 { key: 'username', label: 'اسم المستخدم', selected: false },
                 { key: 'class', label: 'الفصل', selected: true },
+                { key: 'church', label: 'الكنيسة', selected: false },
                 { key: 'phone', label: 'رقم الهاتف', selected: true },
                 { key: 'emergency_phone', label: 'تليفون الطوارئ', selected: true },
                 { key: 'guardian_name', label: 'اسم ولي الأمر', selected: true },
@@ -28352,6 +28354,7 @@
                 { key: 'name', label: 'اسم الخريج', selected: true },
                 { key: 'username', label: 'اسم المستخدم', selected: false },
                 { key: 'last_class', label: 'الفصل السابق', selected: true },
+                { key: 'church', label: 'الكنيسة', selected: false },
                 { key: 'phone', label: 'رقم الهاتف', selected: true },
                 { key: 'emergency_phone', label: 'تليفون الطوارئ', selected: true },
                 { key: 'guardian_name', label: 'اسم ولي الأمر', selected: true },
@@ -28366,6 +28369,7 @@
                 { key: 'username', label: 'اسم المستخدم', selected: false },
                 { key: 'gender', label: 'النوع', selected: true },
                 { key: 'class', label: 'الفصل / المرحلة', selected: true },
+                { key: 'church', label: 'الكنيسة', selected: false },
                 { key: 'phone', label: 'رقم الهاتف', selected: true },
                 { key: 'guardian_name', label: 'اسم ولي الأمر', selected: true },
                 { key: 'notes', label: 'ملاحظات / الداعي', selected: true },
@@ -28376,6 +28380,7 @@
                 { key: 'name', label: 'اسم الطفل', selected: true },
                 { key: 'username', label: 'اسم المستخدم', selected: false },
                 { key: 'class', label: 'الفصل', selected: true },
+                { key: 'church', label: 'الكنيسة', selected: false },
                 { key: 'status', label: 'حالة الحضور', selected: true },
                 { key: 'total_p', label: 'مرات الحضور', selected: true },
                 { key: 'total_a', label: 'مرات الغياب', selected: true },
@@ -28387,6 +28392,7 @@
                 { key: 'name', label: 'اسم الخادم', selected: true },
                 { key: 'username', label: 'اسم المستخدم', selected: false },
                 { key: 'role', label: 'الدور', selected: true },
+                { key: 'church', label: 'الكنيسة', selected: false },
                 { key: 'status', label: 'حالة الحضور', selected: true },
                 { key: 'total_p', label: 'مرات الحضور', selected: true },
                 { key: 'total_a', label: 'مرات الغياب', selected: true },
@@ -28397,6 +28403,7 @@
                 { key: 'index', label: '#', selected: true },
                 { key: 'title', label: 'اسم الرحلة / المؤتمر', selected: true },
                 { key: 'type', label: 'النوع', selected: true },
+                { key: 'church', label: 'الكنيسة', selected: false },
                 { key: 'start_date', label: 'تاريخ البدء', selected: true },
                 { key: 'end_date', label: 'تاريخ الانتهاء', selected: true },
                 { key: 'price', label: 'السعر', selected: true },
@@ -28408,6 +28415,7 @@
                 { key: 'index', label: '#', selected: true },
                 { key: 'class_name', label: 'اسم الفصل', selected: true },
                 { key: 'stage', label: 'المرحلة', selected: true },
+                { key: 'church', label: 'الكنيسة', selected: false },
                 { key: 'students_count', label: 'عدد الأطفال', selected: true },
                 { key: 'uncles_count', label: 'عدد الخدام', selected: true },
                 { key: 'uncles_list', label: 'الخدام الموكلون', selected: true }
@@ -28418,6 +28426,7 @@
                 { key: 'username', label: 'اسم المستخدم', selected: false },
                 { key: 'type', label: 'نوع الطلب', selected: true },
                 { key: 'class_or_role', label: 'الفصل / الدور', selected: true },
+                { key: 'church', label: 'الكنيسة', selected: false },
                 { key: 'phone', label: 'رقم الهاتف', selected: true },
                 { key: 'emergency_phone', label: 'تليفون الطوارئ', selected: false },
                 { key: 'birthday', label: 'تاريخ الميلاد', selected: false },
@@ -28427,6 +28436,7 @@
                 { key: 'index', label: '#', selected: true },
                 { key: 'timestamp', label: 'التاريخ والوقت', selected: true },
                 { key: 'user_name', label: 'المستخدم / الخادم', selected: true },
+                { key: 'church', label: 'الكنيسة', selected: false },
                 { key: 'action_type', label: 'نوع العملية', selected: true },
                 { key: 'description', label: 'تفاصيل العملية', selected: true },
                 { key: 'ip', label: 'عنوان IP', selected: false }
@@ -28612,11 +28622,50 @@
         function getSelectedExportChurchIds() {
             const checks = document.querySelectorAll('.tab-export-church-check');
             if (!checks || !checks.length) return null;
+            
+            let allChecked = true;
             const selected = new Set();
+
             checks.forEach(c => {
-                if (c.checked) selected.add(String(c.value));
+                if (c.checked) {
+                    selected.add(String(c.value));
+                    if (c.dataset.code) selected.add(String(c.dataset.code));
+                } else {
+                    allChecked = false;
+                }
             });
+
+            const mainCheck = document.getElementById('tabExportSelectAllChurchesCheck');
+            if (mainCheck) mainCheck.checked = allChecked;
+
+            if (allChecked) return null;
             return selected;
+        }
+
+        function isItemInSelectedChurches(item, selectedChurchIds) {
+            if (selectedChurchIds === null) return true;
+            if (!selectedChurchIds || !selectedChurchIds.size) return false;
+
+            const itemCId = item.church_id !== undefined && item.church_id !== null ? String(item.church_id) : (item.churchId !== undefined && item.churchId !== null ? String(item.churchId) : null);
+            const itemCCode = item.church_code || item.churchCode || null;
+            const itemId = item.id !== undefined && item.id !== null ? String(item.id) : null;
+
+            if (itemCId && selectedChurchIds.has(itemCId)) return true;
+            if (itemCCode && selectedChurchIds.has(String(itemCCode))) return true;
+            if (currentExportTab === 'devChurches' && itemId && selectedChurchIds.has(itemId)) return true;
+
+            if (Array.isArray(allChurchesCache)) {
+                const matchedChurch = allChurchesCache.find(c =>
+                    (itemCId && String(c.id) === itemCId) ||
+                    (itemCCode && c.church_code === itemCCode) ||
+                    (item.church_name && c.church_name === item.church_name)
+                );
+                if (matchedChurch && (selectedChurchIds.has(String(matchedChurch.id)) || selectedChurchIds.has(String(matchedChurch.church_code)))) {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         window.toggleSelectAllTabExportChurches = function(checked) {
@@ -28659,7 +28708,7 @@
                     const typeText = c.church_type === 'youth' ? 'شباب' : 'أطفال';
                     return `
                         <label style="display:flex; align-items:center; gap:8px; font-size:0.75rem; padding:5px 8px; border-radius:6px; cursor:pointer; background:var(--surface-2); border:1px solid var(--border-solid); transition:all 0.15s ease;">
-                            <input type="checkbox" class="tab-export-church-check" value="${c.id}" checked onchange="onTabExportFilterChange()" style="accent-color:var(--brand); width:15px; height:15px; cursor:pointer;">
+                            <input type="checkbox" class="tab-export-church-check" value="${c.id}" data-code="${escHtml(c.church_code || '')}" checked onchange="onTabExportFilterChange()" style="accent-color:var(--brand); width:15px; height:15px; cursor:pointer;">
                             <span style="flex:1; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escHtml(c.church_name)} <span style="font-size:0.68rem; color:var(--muted); font-weight:600;">(${escHtml(c.church_code)})</span></span>
                             <span style="font-size:0.65rem; font-weight:700; color:var(--brand); background:var(--brand-bg); padding:2px 6px; border-radius:4px; white-space:nowrap;">${typeText}</span>
                         </label>
@@ -28728,10 +28777,7 @@
             const selectedChurchIds = getSelectedExportChurchIds();
 
             const filteredData = baseData.filter(item => {
-                if (selectedChurchIds !== null) {
-                    const itemChurchId = String(item.church_id || item.churchId || item.id || '');
-                    if (!selectedChurchIds.has(itemChurchId)) return false;
-                }
+                if (!isItemInSelectedChurches(item, selectedChurchIds)) return false;
                 if (classVal !== 'all') {
                     const itemClass = item['الفصل'] || item.class || item.target_class || '';
                     if (itemClass !== classVal) return false;
@@ -28753,6 +28799,10 @@
             const defs = TAB_FIELD_DEFINITIONS[currentExportTab] || TAB_FIELD_DEFINITIONS.students;
             if (forceReset || !tabExportFields.length) {
                 tabExportFields = JSON.parse(JSON.stringify(defs));
+                if (isDeveloper && currentExportTab !== 'devChurches') {
+                    const churchField = tabExportFields.find(f => f.key === 'church');
+                    if (churchField) churchField.selected = true;
+                }
             }
             renderTabCustomExportFieldsList();
         }
@@ -28862,10 +28912,7 @@
             const selectedChurchIds = getSelectedExportChurchIds();
 
             const candidates = baseData.filter(item => {
-                if (selectedChurchIds !== null) {
-                    const itemChurchId = String(item.church_id || item.churchId || item.id || '');
-                    if (!selectedChurchIds.has(itemChurchId)) return false;
-                }
+                if (!isItemInSelectedChurches(item, selectedChurchIds)) return false;
                 if (classVal !== 'all') {
                     const itemClass = item['الفصل'] || item.class || item.target_class || '';
                     if (itemClass !== classVal) return false;
@@ -28914,10 +28961,7 @@
             const selectedChurchIds = getSelectedExportChurchIds();
 
             baseData.forEach((item, idx) => {
-                if (selectedChurchIds !== null) {
-                    const itemChurchId = String(item.church_id || item.churchId || item.id || '');
-                    if (!selectedChurchIds.has(itemChurchId)) return;
-                }
+                if (!isItemInSelectedChurches(item, selectedChurchIds)) return;
                 if (classVal !== 'all') {
                     const itemClass = item['الفصل'] || item.class || item.target_class || '';
                     if (itemClass !== classVal) return;
@@ -28954,10 +28998,7 @@
                 const key = getItemUniqueId(item, idx);
                 if (!tabExportSelectedKeys.has(key)) return false;
 
-                if (selectedChurchIds !== null) {
-                    const itemChurchId = String(item.church_id || item.churchId || item.id || '');
-                    if (!selectedChurchIds.has(itemChurchId)) return false;
-                }
+                if (!isItemInSelectedChurches(item, selectedChurchIds)) return false;
                 if (classVal !== 'all') {
                     const itemClass = item['الفصل'] || item.class || item.target_class || '';
                     if (itemClass !== classVal) return false;
@@ -29078,9 +29119,21 @@
                 case 'type':
                     val = item.type === 'one_day' ? 'رحلة (يوم واحد)' : (item.type === 'multiple_days' ? 'مؤتمر (عدة أيام)' : (item.type || '-'));
                     break;
-                case 'church_name':
-                    val = item.church_name || item.name || '-';
+                case 'church':
+                case 'church_name': {
+                    if (item.church_name) val = item.church_name;
+                    else if (item.church_code) val = item.church_code;
+                    else {
+                        const cid = item.church_id || item.churchId;
+                        if (cid && Array.isArray(allChurchesCache)) {
+                            const found = allChurchesCache.find(c => c.id == cid || c.church_code == cid);
+                            val = found ? found.church_name : (`كنيسة ${cid}`);
+                        } else {
+                            val = item.church || '-';
+                        }
+                    }
                     break;
+                }
                 case 'church_code':
                     val = item.church_code || '-';
                     break;
