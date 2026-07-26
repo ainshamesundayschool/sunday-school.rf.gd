@@ -1612,6 +1612,38 @@
             box-shadow: 0 6px 16px rgba(99, 102, 241, 0.1);
         }
 
+        /* Loop Button */
+        .loop-btn {
+            background: rgba(99, 102, 241, 0.08);
+            color: var(--primary-dark);
+            border: 1px solid rgba(99, 102, 241, 0.18);
+        }
+
+        [data-theme="dark"] .loop-btn {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--primary-light);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .loop-btn:hover {
+            background: var(--primary-bg);
+            color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.1);
+        }
+
+        .loop-btn.active {
+            background: linear-gradient(135deg, var(--primary) 0%, #4338ca 100%) !important;
+            color: white !important;
+            border: none !important;
+            box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4) !important;
+        }
+
+        .loop-btn.active:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(79, 70, 229, 0.5) !important;
+        }
+
         [data-theme="dark"] .info-btn:hover {
             background: rgba(255, 255, 255, 0.08);
             color: white;
@@ -1856,8 +1888,12 @@
                                 <span id="duration-time" class="time-label">0:00</span>
                             </div>
                             
-                            <!-- Actions: Download & Share -->
+                            <!-- Actions: Download, Share & Loop -->
                             <div class="song-actions" style="display:flex; gap:6px; flex-shrink:0;">
+                                <button id="loop-btn" class="action-btn loop-btn" title="تكرار الترنيمة" aria-label="تكرار الترنيمة">
+                                    <i class="fas fa-redo"></i>
+                                </button>
+                                
                                 <div class="download-dropdown-wrapper">
                                     <button id="download-btn" class="action-btn download-btn" title="تحميل">
                                         <i class="fas fa-download"></i>
@@ -2516,8 +2552,38 @@
             const downloadDropdown = document.getElementById('download-dropdown');
             const downloadMp3Btn = document.getElementById('download-mp3-btn');
             const downloadWavBtn = document.getElementById('download-wav-btn');
+            const loopBtn = document.getElementById('loop-btn');
 
             if (!audio || !playPauseBtn) return;
+
+            // إدارة وضع التكرار (Loop Mode)
+            let isLoopMode = localStorage.getItem('song_loop_mode') === 'true';
+
+            function updateLoopState() {
+                audio.loop = isLoopMode;
+                if (loopBtn) {
+                    if (isLoopMode) {
+                        loopBtn.classList.add('active');
+                        loopBtn.setAttribute('title', 'التكرار مفعل');
+                        loopBtn.setAttribute('aria-label', 'التكرار مفعل');
+                    } else {
+                        loopBtn.classList.remove('active');
+                        loopBtn.setAttribute('title', 'تكرار الترنيمة');
+                        loopBtn.setAttribute('aria-label', 'تكرار الترنيمة');
+                    }
+                }
+            }
+
+            updateLoopState();
+
+            if (loopBtn) {
+                loopBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    isLoopMode = !isLoopMode;
+                    localStorage.setItem('song_loop_mode', isLoopMode ? 'true' : 'false');
+                    updateLoopState();
+                });
+            }
 
             // الحصول على أو إنشاء معرّف فريد للمتصفح لمنع التكرار حتى لو تشاركوا نفس شبكة الواي فاي
             let trackerUuid = localStorage.getItem('song_tracker_uuid');
@@ -2633,18 +2699,23 @@
                 currentTimeEl.textContent = formatTime(audio.currentTime);
             });
 
-            // إعادة تعيين المشغل عند انتهاء الترنيمة
+            // إعادة تعيين المشغل عند انتهاء الترنيمة (أو إعادة التشغيل في حال تفعيل التكرار)
             audio.addEventListener('ended', function() {
-                const playIcon = '<i class="fas fa-play"></i>';
-                playPauseBtn.innerHTML = playIcon;
-                playPauseBtn.setAttribute('aria-label', 'تشغيل');
-                if (smallPlayBtn) {
-                    smallPlayBtn.innerHTML = playIcon;
-                    smallPlayBtn.setAttribute('aria-label', 'تشغيل');
+                if (isLoopMode) {
+                    audio.currentTime = 0;
+                    audio.play().catch(err => console.error('Loop playback failed:', err));
+                } else {
+                    const playIcon = '<i class="fas fa-play"></i>';
+                    playPauseBtn.innerHTML = playIcon;
+                    playPauseBtn.setAttribute('aria-label', 'تشغيل');
+                    if (smallPlayBtn) {
+                        smallPlayBtn.innerHTML = playIcon;
+                        smallPlayBtn.setAttribute('aria-label', 'تشغيل');
+                    }
+                    progressFilled.style.width = '0%';
+                    progressKnob.style.right = '0%';
+                    currentTimeEl.textContent = '0:00';
                 }
-                progressFilled.style.width = '0%';
-                progressKnob.style.right = '0%';
-                currentTimeEl.textContent = '0:00';
             });
 
             // دالة تغيير موضع التشغيل (Click / Drag)
