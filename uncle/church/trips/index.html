@@ -9738,7 +9738,6 @@
         if (!raw || raw === '0' || raw === 'null' || raw === 'undefined') return [];
         return raw.split(',').map(f => f.trim()).filter(Boolean);
       }
-    </script>
       function getTripRoomsConfig(trip) {
         if (!trip) return [];
         let config = [];
