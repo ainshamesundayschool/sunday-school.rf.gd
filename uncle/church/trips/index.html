@@ -5633,11 +5633,12 @@
         const finalPrice = Math.round(calcFinalPrice(trip));
         const regs = trip.registrations || [];
         const activeLimit = (trip.my_registration_limit !== null && trip.my_registration_limit !== undefined) ? trip.my_registration_limit : (trip.max_participants || '∞');
+        const cleanCoverImg = sanitizeTripImageUrl(trip.image_url);
         document.getElementById('standaloneTripSummary').innerHTML = `
         <div class="trips-grid">
           <div class="trip-card" onclick="showTripDetails(${trip.id})">
-            <div class="trip-img" style="${trip.image_url ? '' : 'background:linear-gradient(135deg,' + col + '22,' + col + '11);'}">
-              ${trip.image_url ? `<img src="${trip.image_url}" loading="lazy">` : `<i class="fas fa-bus" style="font-size:2.5rem;color:${col};opacity:.5;"></i>`}
+            <div class="trip-img" style="${cleanCoverImg ? '' : 'background:linear-gradient(135deg,' + col + '22,' + col + '11);'}">
+              ${cleanCoverImg ? `<img src="${cleanCoverImg}" loading="lazy">` : `<i class="fas fa-bus" style="font-size:2.5rem;color:${col};opacity:.5;"></i>`}
               <span class="trip-status-pill ${sc}">${st}</span>
             </div>
             <div class="trip-body">
@@ -5741,8 +5742,9 @@
         })();
         document.getElementById('tdTotalPricePill').textContent = totalPerKid + ' ج';
         document.getElementById('tdPriceBreakPill').textContent = expPerKid > 0 ? `${basePrice} + ${expPerKid} مصروفات` : `سعر ${tripWordDef}`;
-        if (trip.image_url) {
-          document.getElementById('tdCoverThumb').innerHTML = `<img src="${trip.image_url}" style="width:100%;height:100%;object-fit:cover;">`;
+        const cleanDetailsCover = sanitizeTripImageUrl(trip.image_url);
+        if (cleanDetailsCover) {
+          document.getElementById('tdCoverThumb').innerHTML = `<img src="${cleanDetailsCover}" style="width:100%;height:100%;object-fit:cover;">`;
         } else {
           document.getElementById('tdCoverThumb').innerHTML = `<i class="fas fa-${trip.type === 'one_day' ? 'bus' : 'campground'}" style="color:rgba(255,255,255,0.68);font-size:0.95rem;"></i>`;
         }
@@ -5774,7 +5776,7 @@
         <div class="trip-summary-hero">
           <div class="trip-summary-main">
             <div class="trip-summary-thumb">
-              ${trip.image_url ? `<img src="${trip.image_url}" alt="${escHtml(trip.title)}">` : `<i class="fas fa-${trip.type === 'one_day' ? 'bus' : 'campground'}"></i>`}
+              ${cleanDetailsCover ? `<img src="${cleanDetailsCover}" alt="${escHtml(trip.title)}">` : `<i class="fas fa-${trip.type === 'one_day' ? 'bus' : 'campground'}"></i>`}
             </div>
             <div class="trip-summary-copy">
               <h2>${escHtml(trip.title)}</h2>
@@ -6183,9 +6185,17 @@
         renderCustomExportPreview();
       }
 
+      function sanitizeTripImageUrl(rawUrl) {
+        if (rawUrl === null || rawUrl === undefined) return '';
+        const str = String(rawUrl).trim();
+        if (['0', 'null', 'undefined', 'false', 'none', ''].includes(str.toLowerCase())) return '';
+        return str;
+      }
+
       function getAbsolutePhotoUrl(rawUrl) {
-        if (!rawUrl) return '';
-        const versioned = window.photoUrl ? window.photoUrl(rawUrl) : rawUrl;
+        const clean = sanitizeTripImageUrl(rawUrl);
+        if (!clean) return '';
+        const versioned = window.photoUrl ? window.photoUrl(clean) : clean;
         try { return new URL(versioned, window.location.origin).href; }
         catch (e) { return versioned; }
       }
@@ -11355,10 +11365,7 @@
           const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
           if (d.success) {
             window.optimizedEditTripCoverFile = null;
-            let finalImgUrl = (d.image_url !== undefined && d.image_url !== null) ? d.image_url : (d.trip && d.trip.image_url !== undefined ? d.trip.image_url : cleanVal);
-            if (finalImgUrl && ['0', 'null', 'undefined', 'false', 'none'].includes(String(finalImgUrl).toLowerCase().trim())) {
-              finalImgUrl = '';
-            }
+            let finalImgUrl = sanitizeTripImageUrl(d.image_url) || sanitizeTripImageUrl(d.trip && d.trip.image_url) || sanitizeTripImageUrl(cleanVal);
             allTripsCache = allTripsCache.map(item => String(item.id) === String(tripId) ? { ...item, ...d.trip, image_url: finalImgUrl, max_participants: nextMax, points_config: pointsConfig } : item);
             if (window.currentTripObj && String(window.currentTripObj.id) === String(tripId)) {
               window.currentTripObj = { ...window.currentTripObj, ...d.trip, image_url: finalImgUrl, max_participants: nextMax, points_config: pointsConfig };

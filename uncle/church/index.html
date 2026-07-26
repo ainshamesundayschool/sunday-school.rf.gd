@@ -15754,11 +15754,12 @@
                 const limitDisplay = activeLimit > 0 ? activeLimit : '∞';
                 const pct = activeLimit > 0 ? Math.min(100, Math.round((t.registered_count || 0) / activeLimit * 100)) : null;
                 const isOwner = t.is_owner === undefined || Number(t.is_owner) === 1;
+                const cleanImgUrl = sanitizeTripImageUrl(t.image_url);
                 return `<div class="trip-card trip-card-compact" onclick="window.location.href='/uncle/church/trips/#trips?trip_id=${t.id}'">
             ${isOwner ? `<button type="button" class="trip-delete-fab" title="حذف الرحلة" onclick="event.stopPropagation();deleteTrip(${t.id})"><i class="fas fa-trash"></i></button>` : ''}
             <div class="trip-card-top">
-                <div class="trip-mini-thumb" style="${t.image_url ? '' : 'background:linear-gradient(135deg,' + col + '18,' + col + '08);color:' + col + ';'}">
-                    ${t.image_url ? `<img src="${t.image_url}" loading="lazy" alt="${escHtml(t.title || '')}">` : `<i class="fas fa-bus"></i>`}
+                <div class="trip-mini-thumb" style="${cleanImgUrl ? '' : 'background:linear-gradient(135deg,' + col + '18,' + col + '08);color:' + col + ';'}">
+                    ${cleanImgUrl ? `<img src="${cleanImgUrl}" loading="lazy" alt="${escHtml(t.title || '')}">` : `<i class="fas fa-bus"></i>`}
                 </div>
                 <div class="trip-top-meta">
                     <div class="trip-top-title">
@@ -15889,7 +15890,7 @@
                 const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
                 if (d.success) {
                     window.optimizedEditTripCoverFile = null;
-                    const finalImgUrl = (d.image_url !== undefined && d.image_url !== null) ? d.image_url : (d.trip && d.trip.image_url !== undefined ? d.trip.image_url : cleanVal);
+                    const finalImgUrl = sanitizeTripImageUrl(d.image_url) || sanitizeTripImageUrl(d.trip && d.trip.image_url) || sanitizeTripImageUrl(cleanVal);
                     const idx = allTripsCache.findIndex(item => String(item.id) === String(tripId));
                     if (idx > -1) {
                         allTripsCache[idx] = { ...allTripsCache[idx], ...d.trip, image_url: finalImgUrl, points_config: pointsConfig };
@@ -16289,6 +16290,13 @@
             document.getElementById('editTripShortcutsArea').style.display = (pointsType === 'shortcuts' || pointsType === 'combined') ? 'block' : 'none';
         }
 
+        function sanitizeTripImageUrl(rawUrl) {
+            if (rawUrl === null || rawUrl === undefined) return '';
+            const str = String(rawUrl).trim();
+            if (['0', 'null', 'undefined', 'false', 'none', ''].includes(str.toLowerCase())) return '';
+            return str;
+        }
+
         function escHtml(str) {
             if (!str) return '';
             return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
@@ -16512,7 +16520,7 @@
                 const tripId = document.getElementById('editTripId').value;
                 const rawVal = document.getElementById('editTripImageUrl')?.value?.trim() || '';
                 const cleanVal = ['0', 'null', 'undefined', 'false', 'none'].includes(rawVal.toLowerCase()) ? '' : rawVal;
-                const finalImgUrl = d.image_url !== undefined ? d.image_url : (d.trip ? d.trip.image_url : cleanVal);
+                const finalImgUrl = sanitizeTripImageUrl(d.image_url) || sanitizeTripImageUrl(d.trip && d.trip.image_url) || sanitizeTripImageUrl(cleanVal);
                 const idx = allTripsCache.findIndex(item => String(item.id) === String(tripId));
                 if (idx > -1) {
                     allTripsCache[idx] = { ...allTripsCache[idx], ...d.trip, image_url: finalImgUrl, points_config: pointsConfig };
@@ -16653,10 +16661,12 @@
             document.getElementById('tdExpCount').textContent = exps.length || '';
             document.getElementById('tdTotalPricePill').textContent = totalPerKid + ' ج';
             document.getElementById('tdPriceBreakPill').textContent = expPerKid > 0 ? `${basePrice} + ${expPerKid} مصروفات` : `سعر الرحلة`;
-            if (trip.image_url) {
-                document.getElementById('tdCoverBg').style.backgroundImage = `url('${trip.image_url}')`;
-                document.getElementById('tdCoverThumb').innerHTML = `<img src="${trip.image_url}" style="width:100%;height:100%;object-fit:cover;">`;
+            const cleanCover = sanitizeTripImageUrl(trip.image_url);
+            if (cleanCover) {
+                document.getElementById('tdCoverBg').style.backgroundImage = `url('${cleanCover}')`;
+                document.getElementById('tdCoverThumb').innerHTML = `<img src="${cleanCover}" style="width:100%;height:100%;object-fit:cover;">`;
             } else {
+                document.getElementById('tdCoverBg').style.backgroundImage = '';
                 document.getElementById('tdCoverThumb').innerHTML = `<i class="fas fa-bus" style="color:rgba(255,255,255,0.5);font-size:1.8rem;"></i>`;
             }
             // Quick stats bar
