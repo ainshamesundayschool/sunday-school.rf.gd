@@ -6966,6 +6966,200 @@
                 left: -10px !important;
             }
         }
+
+        /* ── UNIVERSAL TAB CUSTOM EXPORT BUILDER STYLES ── */
+        #tabCustomExportModal {
+            --surface: var(--card, #ffffff);
+            --surface-2: var(--bg, #f5f5f8);
+            --border-solid: var(--border-2, rgba(15, 14, 26, 0.14));
+            --brand: var(--primary, #4f46e5);
+            --brand-bg: var(--primary-light, #eef0ff);
+            --r-lg: var(--radius-lg, 16px);
+            --r-md: var(--radius, 12px);
+        }
+        .tab-export-builder {
+            display: grid;
+            grid-template-columns: minmax(270px, 340px) 1fr;
+            gap: 14px;
+            height: 100%;
+            min-height: 0;
+        }
+        .tab-export-controls {
+            overflow: auto;
+            padding-left: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .tab-export-panel {
+            background: var(--surface-2);
+            border: 1px solid var(--border-solid);
+            border-radius: var(--r-lg);
+            padding: 10px 12px;
+        }
+        .tab-export-panel-title {
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .tab-export-field-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .tab-export-field-row {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            background: var(--surface);
+            border: 1px solid var(--border-solid);
+            border-radius: var(--r-md);
+            padding: 6px 8px;
+            font-size: 0.78rem;
+        }
+        .tab-export-field-row input {
+            accent-color: var(--brand);
+            width: 15px;
+            height: 15px;
+            cursor: pointer;
+        }
+        .tab-export-field-row label {
+            flex: 1;
+            cursor: pointer;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0;
+        }
+        .tab-export-field-actions {
+            display: flex;
+            gap: 3px;
+        }
+        .tab-export-mini-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            border: 1px solid var(--border-solid);
+            background: var(--surface);
+            color: var(--text-2);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+        }
+        .tab-export-mini-btn:hover {
+            border-color: var(--brand);
+            color: var(--brand);
+            background: var(--brand-bg);
+        }
+        .tab-export-preview-wrap {
+            background: #fff;
+            color: #1e293b;
+            border: 1px solid var(--border-solid);
+            border-radius: var(--r-lg);
+            overflow: auto;
+            min-height: 0;
+            box-shadow: var(--shadow-sm);
+        }
+        .tab-custom-export-doc {
+            direction: rtl;
+            font-family: Cairo, Tahoma, Arial, sans-serif;
+            background: #fff;
+            color: #1e293b;
+            padding: 16px;
+            min-width: max-content;
+        }
+        .tab-custom-export-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            border-bottom: 2px solid #1e293b;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .tab-custom-export-header h2 {
+            font-size: 18px;
+            margin: 0;
+            font-weight: 900;
+            color: #1e293b;
+        }
+        .tab-custom-export-header small {
+            display: block;
+            color: #64748b;
+            font-size: 11px;
+            margin-top: 2px;
+        }
+        .tab-custom-export-table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        .tab-custom-export-table th {
+            background: #1e293b;
+            color: #fff;
+            padding: 8px 10px;
+            border: 1px solid #334155;
+            text-align: right;
+            font-weight: 800;
+        }
+        .tab-custom-export-table td {
+            padding: 7px 10px;
+            border: 1px solid #e2e8f0;
+            text-align: right;
+            color: #1e293b;
+        }
+        .tab-custom-export-table tr:nth-child(even) td {
+            background: #f8fafc;
+        }
+        .tab-custom-export-photo {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1.5px solid #cbd5e1;
+            display: block;
+        }
+        .tab-custom-export-photo-fallback {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        @media(max-width:780px) {
+            #mobileTabExportToggleBtn {
+                display: flex !important;
+            }
+            .tab-export-builder {
+                grid-template-columns: 1fr !important;
+            }
+            .tab-export-builder:not(.show-preview-mobile) .tab-export-preview-wrap {
+                display: none !important;
+            }
+            .tab-export-builder:not(.show-preview-mobile) .tab-export-controls {
+                max-height: none !important;
+                display: flex !important;
+            }
+            .tab-export-builder.show-preview-mobile .tab-export-controls {
+                display: none !important;
+            }
+            .tab-export-builder.show-preview-mobile .tab-export-preview-wrap {
+                display: block !important;
+                min-height: 60vh !important;
+            }
+        }
     </style>
     <script src="/js/og-meta.js"></script>
     <script src="/js/rooms_helpers.js"></script>
@@ -7220,8 +7414,9 @@
                         <!-- Right Column (Recent Activities) -->
                         <div style="display:flex; flex-direction:column; gap:20px;">
                             <div class="card">
-                                <div class="card-header">
+                                <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
                                     <div class="card-title"><i class="fas fa-history"></i> الأنشطة الأخيرة</div>
+                                    <button class="btn btn-primary btn-sm" onclick="openTabCustomExport('overview')" style="background:#6366f1; border:none;" title="تصدير ملخص إحصائيات الكنيسة"><i class="fas fa-sliders-h"></i> تصدير مخصص</button>
                                 </div>
                                 <div class="card-body" id="recentActivity" style="max-height: 480px; overflow-y: auto; padding:12px;">
                                     <div class="empty-state">
@@ -7393,6 +7588,7 @@
                                             class="fas fa-file-csv"></i> CSV</button>
                                     <button class="exp-btn exp-copy" onclick="copyUnclesToClipboard()"><i
                                             class="fas fa-copy"></i> نسخ</button>
+                                    <button class="exp-btn" style="background:#6366f1; color:#fff;" onclick="openTabCustomExport('uncles')" title="تصدير مخصص بجميع البيانات والخصائص"><i class="fas fa-sliders-h"></i> تصدير مخصص</button>
                                 </div>
                             </div>
                             <div class="card-body">
@@ -7626,8 +7822,9 @@
                     <!-- Main Content -->
                     <div class="split-main">
                         <div class="card">
-                            <div class="card-header">
+                            <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
                                 <div class="card-title"><i class="fas fa-user-graduate"></i> خريجين</div>
+                                <button class="btn btn-primary btn-sm" onclick="openTabCustomExport('graduates')" style="background:#6366f1; border:none;" title="تصدير مخصص لسجل الخريجين"><i class="fas fa-sliders-h"></i> تصدير مخصص</button>
                             </div>
                             <div class="card-body">
                                 <div class="toolbar" style="margin-bottom:14px;">
@@ -7800,8 +7997,9 @@
             <!-- ── UNCLE ATTENDANCE (standalone tab) ── -->
             <div id="uncleAttendance" class="tab-panel">
                 <div class="card">
-                    <div class="card-header">
+                    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
                         <div class="card-title"><i class="fas fa-user-tie"></i> سجل حضور الخُدام - أيام الجُمعة</div>
+                        <button class="btn btn-primary btn-sm" onclick="openTabCustomExport('uncleAttendance')" style="background:#6366f1; border:none;" title="تصدير مخصص لسجل حضور الخدام"><i class="fas fa-sliders-h"></i> تصدير مخصص</button>
                     </div>
                     <div class="card-body">
                         <!-- Sub-tabs -->
@@ -8068,6 +8266,7 @@
                             <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
                                 <div class="card-title"><i class="fas fa-list"></i> قائمة الرحلات / المؤتمرات</div>
                                 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                                    <button class="btn btn-primary btn-sm" onclick="openTabCustomExport('trips')" style="background:#6366f1; border:none;" title="تصدير مخصص لقائمة الرحلات والمؤتمرات"><i class="fas fa-sliders-h"></i> تصدير مخصص</button>
                                     <button class="btn btn-primary btn-sm mobile-add-trigger" onclick="openMobileAddModal('tripsSidebar')" style="display:none;"><i class="fas fa-plus"></i> إضافة رحلة</button>
                                     <div class="search-wrap" style="min-width:180px;"><i class="fas fa-search"></i><input
                                             type="text" id="tripSearch" placeholder="بحث عن رحلة..." oninput="filterTrips()">
@@ -8110,8 +8309,9 @@
             <!-- ── CLASSES ── -->
             <div id="classes" class="tab-panel">
                 <div class="card">
-                    <div class="card-header">
+                    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
                         <div class="card-title"><i class="fas fa-chalkboard"></i> فصول الكنيسة</div>
+                        <button class="btn btn-primary btn-sm" onclick="openTabCustomExport('classes')" style="background:#6366f1; border:none;" title="تصدير مخصص لبيانات الفصول"><i class="fas fa-sliders-h"></i> تصدير مخصص</button>
                     </div>
                     <div class="card-body">
                         <!-- Integrated Options & Actions -->
@@ -8760,10 +8960,13 @@
             <!-- ── PENDING ── -->
             <div id="pending" class="tab-panel">
                 <div class="card">
-                    <div class="card-header">
+                    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
                         <div class="card-title"><i class="fas fa-hourglass-half"></i> الطلبات المعلقة</div>
-                        <button class="btn btn-success btn-sm" onclick="approveAllPending()"><i
-                                class="fas fa-check-double"></i> قبول المحدد</button>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <button class="btn btn-primary btn-sm" onclick="openTabCustomExport('pending')" style="background:#6366f1; border:none;" title="تصدير مخصص للطلبات المعلقة"><i class="fas fa-sliders-h"></i> تصدير مخصص</button>
+                            <button class="btn btn-success btn-sm" onclick="approveAllPending()"><i
+                                    class="fas fa-check-double"></i> قبول المحدد</button>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div class="toolbar"
@@ -9118,6 +9321,7 @@
                     <div class="card-header">
                         <div class="card-title"><i class="fas fa-scroll"></i> سجل العمليات</div>
                         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                            <button class="btn btn-primary btn-sm" onclick="openTabCustomExport('history')" style="background:#6366f1; border:none;" title="تصدير مخصص لسجل العمليات والأنشطة"><i class="fas fa-sliders-h"></i> تصدير مخصص</button>
                             <button class="btn btn-outline btn-sm" id="bulkSelectAuditToggleBtn"
                                 onclick="toggleAuditBulkSelectMode()"><i class="fas fa-check-circle"></i> تحديد
                                 متعدد</button>
@@ -11419,6 +11623,79 @@
 
     <!-- Print Area -->
     <div id="printArea" style="display:none;"></div>
+
+    <!-- ── UNIVERSAL TAB CUSTOM EXPORT MODAL ── -->
+    <div id="tabCustomExportModal" class="modal">
+      <div class="modal-box wide" style="max-width: 1200px; width: 95%; height: 90vh; display: flex; flex-direction: column;">
+        <div class="modal-head" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <h2><i class="fas fa-file-export" style="color:var(--primary);"></i> تصدير مخصص — <span id="tabCustomExportModalTabTitle"></span></h2>
+          <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+            <button class="btn btn-sm btn-outline" id="mobileTabExportToggleBtn" onclick="toggleMobileTabExportView()" style="display:none; font-size:0.75rem; padding:4px 8px; border-radius:8px; height:30px;"><i class="fas fa-eye"></i> <span>معاينة الجدول</span></button>
+            <button class="btn btn-sm btn-outline" onclick="exportTabCustomAsCSV()" title="تصدير ملف Excel / CSV" style="color:var(--success);"><i class="fas fa-file-csv"></i> CSV</button>
+            <button class="btn btn-sm btn-outline" onclick="printTabCustomExport()" title="طباعة أو حفظ PDF" style="color:var(--danger);"><i class="fas fa-print"></i> طباعة / PDF</button>
+            <button class="btn btn-sm btn-outline" onclick="copyTabCustomExport()" title="نسخ إلى الحافظة" style="color:var(--info);"><i class="fas fa-copy"></i> نسخ</button>
+            <button class="modal-close" onclick="closeModal('tabCustomExportModal')"><i class="fas fa-times"></i></button>
+          </div>
+        </div>
+        <div class="modal-body" style="flex: 1; overflow: hidden; min-height: 0; padding: 10px 0 0 0;">
+          <div class="tab-export-builder" id="tabExportBuilderWrap">
+            <!-- Controls Panel -->
+            <div class="tab-export-controls">
+              <!-- Title Panel -->
+              <div class="tab-export-panel">
+                <div class="tab-export-panel-title"><i class="fas fa-heading"></i> عنوان التقرير</div>
+                <input type="text" class="form-input" id="tabCustomExportTitle" oninput="renderTabCustomExportPreview()" placeholder="عنوان التقرير..." style="font-size:0.8rem; height:34px;">
+              </div>
+
+              <!-- Filter Panel -->
+              <div class="tab-export-panel" id="tabExportFiltersPanel">
+                <div class="tab-export-panel-title"><div style="display:flex; justify-content:space-between; align-items:center; width:100%;"><span><i class="fas fa-filter"></i> الفلاتر والتصفية</span></div></div>
+                <div id="tabExportFiltersContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
+              </div>
+
+              <!-- Item Selection Panel -->
+              <div class="tab-export-panel">
+                <div class="tab-export-panel-title" style="display:flex; justify-content:space-between; align-items:center;">
+                  <span><i class="fas fa-user-check"></i> تحديد العناصر</span>
+                  <span id="tabCustomExportSelectedCount" style="font-size:0.7rem; font-weight:700; color:var(--brand); background:var(--brand-bg); padding:2px 6px; border-radius:4px;">0 / 0</span>
+                </div>
+                <div style="margin-bottom:8px; display:flex; gap:6px;">
+                  <input type="text" class="form-input" id="tabCustomExportSearchInput" oninput="onTabCustomExportSearch(this.value)" placeholder="ابحث بالاسم أو التفاصيل..." style="font-size:0.75rem; padding:4px 8px; height:30px; flex:1;">
+                  <label style="display:flex; align-items:center; gap:4px; font-size:0.72rem; font-weight:700; cursor:pointer; background:var(--surface); border:1px solid var(--border-solid); padding:0 8px; border-radius:8px; white-space:nowrap;">
+                    <input type="checkbox" id="tabCustomExportSelectAllCheck" checked onchange="toggleSelectAllTabCustomExportPeople(this.checked)">
+                    <span>الكل</span>
+                  </label>
+                </div>
+                <div id="tabCustomExportPeopleList" style="max-height: 130px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; border: 1px solid var(--border-solid); border-radius: var(--r-md); padding: 4px; background: var(--surface);"></div>
+              </div>
+
+              <!-- Field Checklist Panel -->
+              <div class="tab-export-panel">
+                <div class="tab-export-panel-title" style="display:flex; justify-content:space-between; align-items:center;">
+                  <span><i class="fas fa-th-list"></i> الأعمدة والحقول المتاحة</span>
+                  <button type="button" class="btn btn-outline btn-xs" onclick="resetTabCustomExportFields()" style="font-size:0.68rem; padding:2px 6px;">إعادة ضبط</button>
+                </div>
+                <div class="tab-export-field-list" id="tabCustomExportFieldsContainer"></div>
+              </div>
+
+              <!-- Sorting Layers Panel -->
+              <div class="tab-export-panel">
+                <div class="tab-export-panel-title" style="display:flex; justify-content:space-between; align-items:center;">
+                  <span><i class="fas fa-sort-amount-down"></i> ترتيب الجدول</span>
+                  <button type="button" class="sort-layer-add-btn" onclick="addTabCustomExportSortLayer()"><i class="fas fa-plus"></i> إضافة شرط</button>
+                </div>
+                <div id="tabCustomExportSortLayersContainer" style="display:flex; flex-direction:column; gap:6px;"></div>
+              </div>
+            </div>
+
+            <!-- Live Document Preview -->
+            <div class="tab-export-preview-wrap">
+              <div class="tab-custom-export-doc" id="tabCustomExportDocPreview"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Image Crop Modal -->
     <div id="imageCropModal" class="modal" style="z-index:3000 !important;">
@@ -27918,6 +28195,820 @@
         if (typeof showToast === 'function') showToast('خطأ في الاتصال بالخادم', 'err');
       }
     }
+    // ── UNIVERSAL TAB CUSTOM EXPORT ENGINE ──
+    (function() {
+        let currentExportTab = 'students';
+        let tabExportFields = [];
+        let tabExportSortLayers = [{ field: 'name', order: 'asc' }];
+        let tabExportSelectedKeys = new Set();
+        let tabExportSearchQuery = '';
+
+        const TAB_FIELD_DEFINITIONS = {
+            uncles: [
+                { key: 'index', label: '#', selected: true },
+                { key: 'name', label: 'الاسم الكامل', selected: true },
+                { key: 'role', label: 'الدور / الصفة', selected: true },
+                { key: 'phone', label: 'رقم الهاتف', selected: true },
+                { key: 'emergency_phone', label: 'هاتف الطوارئ', selected: true },
+                { key: 'classes', label: 'الفصول الموكلة', selected: true },
+                { key: 'birthday', label: 'تاريخ الميلاد', selected: false },
+                { key: 'address', label: 'العنوان', selected: false },
+                { key: 'medical_notes', label: 'ملاحظات', selected: false },
+                { key: 'created_at', label: 'تاريخ الإضافة', selected: false },
+                { key: 'photo', label: 'الصورة الشخصية', selected: false }
+            ],
+            students: [
+                { key: 'index', label: '#', selected: true },
+                { key: 'name', label: 'اسم الطفل الكامل', selected: true },
+                { key: 'class', label: 'الفصل', selected: true },
+                { key: 'phone', label: 'رقم الهاتف', selected: true },
+                { key: 'emergency_phone', label: 'تليفون الطوارئ', selected: true },
+                { key: 'guardian_name', label: 'اسم ولي الأمر', selected: true },
+                { key: 'coupons', label: 'الكوبونات', selected: true },
+                { key: 'attendance_rate', label: 'نسبة الحضور', selected: false },
+                { key: 'birthday', label: 'تاريخ الميلاد', selected: false },
+                { key: 'address', label: 'العنوان', selected: false },
+                { key: 'medical_notes', label: 'ملاحظات طبية', selected: false },
+                { key: 'created_at', label: 'تاريخ التسجيل', selected: false },
+                { key: 'photo', label: 'الصورة', selected: false },
+                { key: 'qr', label: 'رمز QR', selected: false }
+            ],
+            graduates: [
+                { key: 'index', label: '#', selected: true },
+                { key: 'name', label: 'اسم الخريج', selected: true },
+                { key: 'last_class', label: 'الفصل السابق', selected: true },
+                { key: 'phone', label: 'رقم الهاتف', selected: true },
+                { key: 'emergency_phone', label: 'تليفون الطوارئ', selected: true },
+                { key: 'guardian_name', label: 'اسم ولي الأمر', selected: true },
+                { key: 'birthday', label: 'تاريخ الميلاد', selected: false },
+                { key: 'address', label: 'العنوان', selected: false },
+                { key: 'coupons', label: 'الكوبونات المتبقية', selected: false },
+                { key: 'medical_notes', label: 'ملاحظات', selected: false }
+            ],
+            guests: [
+                { key: 'index', label: '#', selected: true },
+                { key: 'name', label: 'اسم الزائر', selected: true },
+                { key: 'gender', label: 'النوع', selected: true },
+                { key: 'class', label: 'الفصل / المرحلة', selected: true },
+                { key: 'phone', label: 'رقم الهاتف', selected: true },
+                { key: 'guardian_name', label: 'اسم ولي الأمر', selected: true },
+                { key: 'notes', label: 'ملاحظات / الداعي', selected: true },
+                { key: 'created_at', label: 'تاريخ الإضافة', selected: false }
+            ],
+            attendance: [
+                { key: 'index', label: '#', selected: true },
+                { key: 'name', label: 'اسم الطفل', selected: true },
+                { key: 'class', label: 'الفصل', selected: true },
+                { key: 'status', label: 'حالة الحضور', selected: true },
+                { key: 'total_p', label: 'مرات الحضور', selected: true },
+                { key: 'total_a', label: 'مرات الغياب', selected: true },
+                { key: 'attendance_rate', label: 'نسبة الحضور %', selected: true },
+                { key: 'phone', label: 'رقم الهاتف', selected: false }
+            ],
+            uncleAttendance: [
+                { key: 'index', label: '#', selected: true },
+                { key: 'name', label: 'اسم الخادم', selected: true },
+                { key: 'role', label: 'الدور', selected: true },
+                { key: 'status', label: 'حالة الحضور', selected: true },
+                { key: 'total_p', label: 'مرات الحضور', selected: true },
+                { key: 'total_a', label: 'مرات الغياب', selected: true },
+                { key: 'attendance_rate', label: 'نسبة الحضور %', selected: true },
+                { key: 'phone', label: 'رقم الهاتف', selected: false }
+            ],
+            trips: [
+                { key: 'index', label: '#', selected: true },
+                { key: 'title', label: 'اسم الرحلة / المؤتمر', selected: true },
+                { key: 'type', label: 'النوع', selected: true },
+                { key: 'start_date', label: 'تاريخ البدء', selected: true },
+                { key: 'end_date', label: 'تاريخ الانتهاء', selected: true },
+                { key: 'price', label: 'السعر', selected: true },
+                { key: 'final_price', label: 'السعر النهائي', selected: true },
+                { key: 'registered_count', label: 'عدد المسجلين', selected: true },
+                { key: 'status', label: 'الحالة', selected: true }
+            ],
+            classes: [
+                { key: 'index', label: '#', selected: true },
+                { key: 'class_name', label: 'اسم الفصل', selected: true },
+                { key: 'stage', label: 'المرحلة', selected: true },
+                { key: 'students_count', label: 'عدد الأطفال', selected: true },
+                { key: 'uncles_count', label: 'عدد الخدام', selected: true },
+                { key: 'uncles_list', label: 'الخدام الموكلون', selected: true }
+            ],
+            pending: [
+                { key: 'index', label: '#', selected: true },
+                { key: 'name', label: 'اسم صاحب الطلب', selected: true },
+                { key: 'type', label: 'نوع الطلب', selected: true },
+                { key: 'class_or_role', label: 'الفصل / الدور', selected: true },
+                { key: 'phone', label: 'رقم الهاتف', selected: true },
+                { key: 'emergency_phone', label: 'تليفون الطوارئ', selected: false },
+                { key: 'birthday', label: 'تاريخ الميلاد', selected: false },
+                { key: 'submitted_at', label: 'تاريخ الطلب', selected: true }
+            ],
+            history: [
+                { key: 'index', label: '#', selected: true },
+                { key: 'timestamp', label: 'التاريخ والوقت', selected: true },
+                { key: 'user_name', label: 'المستخدم / الخادم', selected: true },
+                { key: 'action_type', label: 'نوع العملية', selected: true },
+                { key: 'description', label: 'تفاصيل العملية', selected: true },
+                { key: 'ip', label: 'عنوان IP', selected: false }
+            ],
+            overview: [
+                { key: 'index', label: '#', selected: true },
+                { key: 'metric', label: 'المؤشر / البيان', selected: true },
+                { key: 'value', label: 'القيمة / العدد', selected: true },
+                { key: 'notes', label: 'ملاحظات وتفاصيل', selected: true }
+            ]
+        };
+
+        function getItemUniqueId(item, index) {
+            if (!item) return 'item_' + index;
+            return item.id || item['_studentId'] || item.username || item.title || item.metric || ('key_' + index);
+        }
+
+        window.openTabCustomExport = function(tabName) {
+            currentExportTab = tabName || activeTabName || 'students';
+
+            const titlesMap = {
+                overview: 'ملخص إحصائيات الكنيسة الكلي',
+                uncles: 'قائمة الخُدام المسجلين',
+                students: 'قائمة الأطفال المخدومين',
+                graduates: 'سجل الخريجين',
+                guests: 'قائمة الزوار والضيوف',
+                attendance: 'سجل حضور الأطفال',
+                uncleAttendance: 'سجل حضور الخُدام',
+                trips: 'قائمة الرحلات والمؤتمرات',
+                classes: 'قائمة الفصول الدراسية',
+                pending: 'سجل الطلبات المعلقة',
+                history: 'سجل العمليات والأنشطة'
+            };
+
+            const modalTitleEl = document.getElementById('tabCustomExportModalTabTitle');
+            if (modalTitleEl) modalTitleEl.textContent = titlesMap[currentExportTab] || 'تقرير مخصص';
+
+            const titleInputEl = document.getElementById('tabCustomExportTitle');
+            if (titleInputEl) {
+                const dateStr = new Date().toLocaleDateString('ar-EG');
+                titleInputEl.value = (titlesMap[currentExportTab] || 'تقرير مخصص') + ' — ' + dateStr;
+            }
+
+            // Trigger async data fetch if needed
+            if (currentExportTab === 'uncles' && (!allUncles || !allUncles.length) && typeof loadUncles === 'function') loadUncles();
+            if (currentExportTab === 'students' && (!allStudents || !allStudents.length) && typeof loadStudents === 'function') loadStudents();
+            if (currentExportTab === 'guests' && (!allGuests || !allGuests.length) && typeof loadGuests === 'function') loadGuests();
+            if (currentExportTab === 'pending' && (!pendingRegistrations || !pendingRegistrations.length) && typeof loadPendingRegistrations === 'function') loadPendingRegistrations();
+            if (currentExportTab === 'trips' && (!currentTrips || !currentTrips.length) && typeof loadTrips === 'function') loadTrips();
+
+            // Init fields & sort layers
+            initTabCustomExportFields(true);
+            populateTabExportFilters();
+
+            const baseData = getTabExportBaseData();
+            tabExportSelectedKeys = new Set(baseData.map((item, idx) => getItemUniqueId(item, idx)));
+            tabExportSearchQuery = '';
+            const sInput = document.getElementById('tabCustomExportSearchInput');
+            if (sInput) sInput.value = '';
+
+            renderTabCustomExportPeopleList();
+            renderTabCustomExportSortLayers();
+            renderTabCustomExportPreview();
+
+            if (typeof openModal === 'function') openModal('tabCustomExportModal');
+            else {
+                const m = document.getElementById('tabCustomExportModal');
+                if (m) m.classList.add('active');
+            }
+        };
+
+        function getTabExportBaseData() {
+            switch (currentExportTab) {
+                case 'uncles':
+                    return Array.isArray(allUncles) ? allUncles : [];
+                case 'students':
+                    return Array.isArray(allStudents) ? allStudents : [];
+                case 'graduates':
+                    if (Array.isArray(allStudents)) {
+                        const grads = allStudents.filter(s => {
+                            const cls = s['الفصل'] || s.class || '';
+                            return cls.includes('خريج') || s.stage === 'graduate' || s.is_graduate;
+                        });
+                        if (grads.length) return grads;
+                    }
+                    return Array.isArray(allStudents) ? allStudents : [];
+                case 'guests':
+                    return Array.isArray(allGuests) ? allGuests : [];
+                case 'attendance':
+                    return getAttendanceExportData();
+                case 'uncleAttendance':
+                    return getUncleAttendanceExportData();
+                case 'trips':
+                    return (Array.isArray(currentTrips) && currentTrips.length) ? currentTrips : (Array.isArray(allTripsCache) ? allTripsCache : []);
+                case 'classes':
+                    return Array.isArray(classes) ? classes : [];
+                case 'pending':
+                    return Array.isArray(pendingRegistrations) ? pendingRegistrations : [];
+                case 'history':
+                    return (typeof historyLogs !== 'undefined' && Array.isArray(historyLogs)) ? historyLogs : [];
+                case 'overview':
+                    return getOverviewExportData();
+                default:
+                    return Array.isArray(allStudents) ? allStudents : [];
+            }
+        }
+
+        function getAttendanceExportData() {
+            if (typeof manualAttStudents !== 'undefined' && Object.keys(manualAttStudents).length) {
+                return Object.entries(manualAttStudents).map(([id, st], idx) => {
+                    const student = Array.isArray(allStudents) ? allStudents.find(x => x['_studentId'] == id || x.id == id) : null;
+                    return {
+                        id: id,
+                        name: student ? (student['الاسم'] || student.name) : ('طفل ' + id),
+                        class: student ? (student['الفصل'] || student.class) : '-',
+                        status: st === 'P' ? 'حاضر' : (st === 'A' ? 'غائب' : (st === 'E' ? 'بعذر' : st)),
+                        total_p: student ? (student.att_p || '-') : '-',
+                        total_a: student ? (student.att_a || '-') : '-',
+                        attendance_rate: student ? (student.att_rate ? student.att_rate + '%' : '-') : '-',
+                        phone: student ? (student['الهاتف'] || student.phone) : '-'
+                    };
+                });
+            }
+            if (Array.isArray(allStudents)) {
+                return allStudents.map(s => ({
+                    id: s['_studentId'] || s.id,
+                    name: s['الاسم'] || s.name,
+                    class: s['الفصل'] || s.class,
+                    status: 'مسجل',
+                    total_p: s.att_p || s.attendance_count || '-',
+                    total_a: s.att_a || '-',
+                    attendance_rate: s.att_rate ? s.att_rate + '%' : '-',
+                    phone: s['الهاتف'] || s.phone
+                }));
+            }
+            return [];
+        }
+
+        function getUncleAttendanceExportData() {
+            if (Array.isArray(allUncles)) {
+                return allUncles.map(u => ({
+                    id: u.id,
+                    name: u.name,
+                    role: u.role === 'admin' ? 'مسؤول' : 'خادم',
+                    status: u.att_status || 'مسجل',
+                    total_p: u.att_p || '-',
+                    total_a: u.att_a || '-',
+                    attendance_rate: u.att_rate ? u.att_rate + '%' : '-',
+                    phone: u.phone || '-'
+                }));
+            }
+            return [];
+        }
+
+        function getOverviewExportData() {
+            return [
+                { metric: 'إجمالي عدد الأطفال', value: document.getElementById('totalStudents')?.textContent || (allStudents?.length || 0), notes: 'الأطفال المخدومون المسجلون بالخدمة' },
+                { metric: 'إجمالي عدد الخُدام', value: document.getElementById('totalUncles')?.textContent || (allUncles?.length || 0), notes: 'الخدام والمسؤولون المباشرون' },
+                { metric: 'إجمالي الفصول', value: document.getElementById('totalClasses')?.textContent || (classes?.length || 0), notes: 'الفصول والمراحل الدراسية المنشأة' },
+                { metric: 'الطلبات المعلقة', value: document.getElementById('pendingRequests')?.textContent || (pendingRegistrations?.length || 0), notes: 'طلبات انضمام المخدومين والخدام المتوقفة' },
+                { metric: 'نسبة حضور الجمعة', value: document.getElementById('todayAttendance')?.textContent || '0%', notes: 'نسبة الحضور الفعلية لأخر خدمة' },
+                { metric: 'إجمالي الكوبونات', value: document.getElementById('totalCoupons')?.textContent || '0', notes: 'مجموع الكوبونات المستحقة لجميع الأطفال' },
+                { metric: 'الرحلات والمؤتمرات النشطة', value: document.getElementById('activeTrips')?.textContent || (currentTrips?.length || 0), notes: 'الرحلات والمؤتمرات الجاري تسجيلها' }
+            ];
+        }
+
+        function populateTabExportFilters() {
+            const container = document.getElementById('tabExportFiltersContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (['students', 'attendance', 'guests', 'pending', 'uncles'].includes(currentExportTab)) {
+                const wrap = document.createElement('div');
+                wrap.style.cssText = 'display:flex; flex-direction:column; gap:2px;';
+                const label = document.createElement('label');
+                label.style.cssText = 'font-size:0.73rem; font-weight:700; color:var(--text-2); margin:0;';
+                label.textContent = 'تصفية حسب الفصل:';
+
+                const sel = document.createElement('select');
+                sel.className = 'form-input';
+                sel.id = 'tabExportFilterClass';
+                sel.style.cssText = 'font-size:0.75rem; padding:4px 8px; height:32px; width:100%;';
+                sel.onchange = () => { onTabExportFilterChange(); };
+
+                let uniqueClasses = [];
+                if (Array.isArray(classes) && classes.length) {
+                    uniqueClasses = classes.map(c => c.name || c.class_name || c).filter(Boolean);
+                } else {
+                    const data = getTabExportBaseData();
+                    uniqueClasses = [...new Set(data.map(d => d['الفصل'] || d.class || d.target_class).filter(Boolean))];
+                }
+                uniqueClasses.sort();
+
+                sel.innerHTML = '<option value="all">جميع الفصول</option>' +
+                    uniqueClasses.map(c => `<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('');
+                
+                wrap.appendChild(label);
+                wrap.appendChild(sel);
+                container.appendChild(wrap);
+            }
+
+            if (['uncles', 'uncleAttendance'].includes(currentExportTab)) {
+                const wrap = document.createElement('div');
+                wrap.style.cssText = 'display:flex; flex-direction:column; gap:2px;';
+                const label = document.createElement('label');
+                label.style.cssText = 'font-size:0.73rem; font-weight:700; color:var(--text-2); margin:0;';
+                label.textContent = 'تصفية حسب الدور:';
+
+                const sel = document.createElement('select');
+                sel.className = 'form-input';
+                sel.id = 'tabExportFilterRole';
+                sel.style.cssText = 'font-size:0.75rem; padding:4px 8px; height:32px; width:100%;';
+                sel.onchange = () => { onTabExportFilterChange(); };
+                sel.innerHTML = '<option value="all">جميع الأدوار</option><option value="admin">مسؤول فقط</option><option value="uncle">خادم فقط</option>';
+
+                wrap.appendChild(label);
+                wrap.appendChild(sel);
+                container.appendChild(wrap);
+            }
+        }
+
+        function onTabExportFilterChange() {
+            const baseData = getTabExportBaseData();
+            const classVal = document.getElementById('tabExportFilterClass')?.value || 'all';
+            const roleVal = document.getElementById('tabExportFilterRole')?.value || 'all';
+
+            const filteredData = baseData.filter(item => {
+                if (classVal !== 'all') {
+                    const itemClass = item['الفصل'] || item.class || item.target_class || '';
+                    if (itemClass !== classVal) return false;
+                }
+                if (roleVal !== 'all') {
+                    const itemRole = item.role || '';
+                    if (roleVal === 'admin' && itemRole !== 'admin') return false;
+                    if (roleVal === 'uncle' && itemRole !== 'uncle') return false;
+                }
+                return true;
+            });
+
+            tabExportSelectedKeys = new Set(filteredData.map((item, idx) => getItemUniqueId(item, idx)));
+            renderTabCustomExportPeopleList();
+            renderTabCustomExportPreview();
+        }
+
+        function initTabCustomExportFields(forceReset) {
+            const defs = TAB_FIELD_DEFINITIONS[currentExportTab] || TAB_FIELD_DEFINITIONS.students;
+            if (forceReset || !tabExportFields.length) {
+                tabExportFields = JSON.parse(JSON.stringify(defs));
+            }
+            renderTabCustomExportFieldsList();
+        }
+
+        window.resetTabCustomExportFields = function() {
+            initTabCustomExportFields(true);
+            renderTabCustomExportPreview();
+        };
+
+        function renderTabCustomExportFieldsList() {
+            const container = document.getElementById('tabCustomExportFieldsContainer');
+            if (!container) return;
+
+            container.innerHTML = tabExportFields.map((f, i) => `
+                <div class="tab-export-field-row">
+                    <input type="checkbox" id="tcef_${f.key}" ${f.selected ? 'checked' : ''} onchange="toggleTabCustomExportField('${f.key}', this.checked)">
+                    <label for="tcef_${f.key}">${escHtml(f.label)}</label>
+                    <div class="tab-export-field-actions">
+                        <button class="tab-export-mini-btn" onclick="moveTabCustomExportField(${i}, -1)" title="أعلى"><i class="fas fa-arrow-up"></i></button>
+                        <button class="tab-export-mini-btn" onclick="moveTabCustomExportField(${i}, 1)" title="أسفل"><i class="fas fa-arrow-down"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.toggleTabCustomExportField = function(key, checked) {
+            const field = tabExportFields.find(x => x.key === key);
+            if (field) field.selected = checked;
+            renderTabCustomExportPreview();
+        };
+
+        window.moveTabCustomExportField = function(index, dir) {
+            const targetIndex = index + dir;
+            if (targetIndex < 0 || targetIndex >= tabExportFields.length) return;
+            const temp = tabExportFields[index];
+            tabExportFields[index] = tabExportFields[targetIndex];
+            tabExportFields[targetIndex] = temp;
+            renderTabCustomExportFieldsList();
+            renderTabCustomExportPreview();
+        };
+
+        function renderTabCustomExportSortLayers() {
+            const container = document.getElementById('tabCustomExportSortLayersContainer');
+            if (!container) return;
+
+            container.innerHTML = tabExportSortLayers.map((layer, idx) => {
+                const optionsHtml = tabExportFields.map(f =>
+                    `<option value="${f.key}" ${layer.field === f.key ? 'selected' : ''}>${escHtml(f.label)}</option>`
+                ).join('');
+
+                return `
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <select class="form-input" style="font-size:0.75rem; padding:4px 8px; height:32px; flex:1;" onchange="updateTabCustomExportSortLayerField(${idx}, this.value)">
+                            ${optionsHtml}
+                        </select>
+                        <select class="form-input" style="font-size:0.75rem; padding:4px 8px; height:32px; width:95px;" onchange="updateTabCustomExportSortLayerOrder(${idx}, this.value)">
+                            <option value="asc" ${layer.order === 'asc' ? 'selected' : ''}>تصاعدي</option>
+                            <option value="desc" ${layer.order === 'desc' ? 'selected' : ''}>تنازلي</option>
+                        </select>
+                        ${tabExportSortLayers.length > 1 ? `
+                            <button type="button" class="btn btn-outline btn-sm" onclick="removeTabCustomExportSortLayer(${idx})" style="color:var(--danger); padding:4px 8px; height:32px;"><i class="fas fa-trash"></i></button>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.addTabCustomExportSortLayer = function() {
+            const firstField = tabExportFields[0]?.key || 'name';
+            tabExportSortLayers.push({ field: firstField, order: 'asc' });
+            renderTabCustomExportSortLayers();
+            renderTabCustomExportPreview();
+        };
+
+        window.removeTabCustomExportSortLayer = function(idx) {
+            if (tabExportSortLayers.length > 1) {
+                tabExportSortLayers.splice(idx, 1);
+                renderTabCustomExportSortLayers();
+                renderTabCustomExportPreview();
+            }
+        };
+
+        window.updateTabCustomExportSortLayerField = function(idx, val) {
+            if (tabExportSortLayers[idx]) tabExportSortLayers[idx].field = val;
+            renderTabCustomExportPreview();
+        };
+
+        window.updateTabCustomExportSortLayerOrder = function(idx, val) {
+            if (tabExportSortLayers[idx]) tabExportSortLayers[idx].order = val;
+            renderTabCustomExportSortLayers();
+            renderTabCustomExportPreview();
+        };
+
+        window.onTabCustomExportSearch = function(query) {
+            tabExportSearchQuery = (query || '').toLowerCase().trim();
+            renderTabCustomExportPeopleList();
+        };
+
+        function renderTabCustomExportPeopleList() {
+            const listEl = document.getElementById('tabCustomExportPeopleList');
+            const countEl = document.getElementById('tabCustomExportSelectedCount');
+            if (!listEl) return;
+
+            const baseData = getTabExportBaseData();
+            const classVal = document.getElementById('tabExportFilterClass')?.value || 'all';
+            const roleVal = document.getElementById('tabExportFilterRole')?.value || 'all';
+
+            const candidates = baseData.filter(item => {
+                if (classVal !== 'all') {
+                    const itemClass = item['الفصل'] || item.class || item.target_class || '';
+                    if (itemClass !== classVal) return false;
+                }
+                if (roleVal !== 'all') {
+                    const itemRole = item.role || '';
+                    if (roleVal === 'admin' && itemRole !== 'admin') return false;
+                    if (roleVal === 'uncle' && itemRole !== 'uncle') return false;
+                }
+                return true;
+            });
+
+            const q = tabExportSearchQuery;
+            const searchResults = candidates.filter((item, idx) => {
+                if (!q) return true;
+                const name = (item['الاسم'] || item.name || item.title || item.user_name || item.metric || '').toLowerCase();
+                const phone = (item['الهاتف'] || item.phone || item.tel || '').toLowerCase();
+                const cls = (item['الفصل'] || item.class || item.target_class || '').toLowerCase();
+                return name.includes(q) || phone.includes(q) || cls.includes(q);
+            });
+
+            const selectedCount = candidates.filter((item, idx) => tabExportSelectedKeys.has(getItemUniqueId(item, idx))).length;
+            if (countEl) countEl.textContent = `${selectedCount} / ${candidates.length}`;
+
+            listEl.innerHTML = searchResults.map((item, idx) => {
+                const key = getItemUniqueId(item, idx);
+                const isChecked = tabExportSelectedKeys.has(key);
+                const name = item['الاسم'] || item.name || item.title || item.user_name || item.metric || ('عنصر ' + (idx + 1));
+                const sub = item['الفصل'] || item.class || item.role || item.value || '';
+
+                return `
+                    <label style="display:flex; align-items:center; gap:6px; font-size:0.75rem; padding:4px 6px; border-radius:6px; cursor:pointer; background:var(--surface-2); border:1px solid var(--border-solid);">
+                        <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleTabCustomExportPerson('${escHtml(key)}', this.checked)" style="accent-color:var(--brand); width:14px; height:14px;">
+                        <span style="flex:1; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escHtml(name)}</span>
+                        ${sub ? `<span style="font-size:0.68rem; color:var(--muted);">${escHtml(sub)}</span>` : ''}
+                    </label>
+                `;
+            }).join('');
+        }
+
+        window.toggleSelectAllTabCustomExportPeople = function(checked) {
+            const baseData = getTabExportBaseData();
+            const classVal = document.getElementById('tabExportFilterClass')?.value || 'all';
+            const roleVal = document.getElementById('tabExportFilterRole')?.value || 'all';
+
+            baseData.forEach((item, idx) => {
+                if (classVal !== 'all') {
+                    const itemClass = item['الفصل'] || item.class || item.target_class || '';
+                    if (itemClass !== classVal) return;
+                }
+                if (roleVal !== 'all') {
+                    const itemRole = item.role || '';
+                    if (roleVal === 'admin' && itemRole !== 'admin') return;
+                    if (roleVal === 'uncle' && itemRole !== 'uncle') return;
+                }
+                const key = getItemUniqueId(item, idx);
+                if (checked) tabExportSelectedKeys.add(key);
+                else tabExportSelectedKeys.delete(key);
+            });
+
+            renderTabCustomExportPeopleList();
+            renderTabCustomExportPreview();
+        };
+
+        window.toggleTabCustomExportPerson = function(key, checked) {
+            if (checked) tabExportSelectedKeys.add(key);
+            else tabExportSelectedKeys.delete(key);
+
+            renderTabCustomExportPeopleList();
+            renderTabCustomExportPreview();
+        };
+
+        function getTabExportFilteredSortedData() {
+            const baseData = getTabExportBaseData();
+            const classVal = document.getElementById('tabExportFilterClass')?.value || 'all';
+            const roleVal = document.getElementById('tabExportFilterRole')?.value || 'all';
+
+            const filtered = baseData.filter((item, idx) => {
+                const key = getItemUniqueId(item, idx);
+                if (!tabExportSelectedKeys.has(key)) return false;
+
+                if (classVal !== 'all') {
+                    const itemClass = item['الفصل'] || item.class || item.target_class || '';
+                    if (itemClass !== classVal) return false;
+                }
+                if (roleVal !== 'all') {
+                    const itemRole = item.role || '';
+                    if (roleVal === 'admin' && itemRole !== 'admin') return false;
+                    if (roleVal === 'uncle' && itemRole !== 'uncle') return false;
+                }
+                return true;
+            });
+
+            // Multi-layer sort
+            filtered.sort((a, b) => {
+                for (let layer of tabExportSortLayers) {
+                    let valA = getTabExportCellValue(a, layer.field);
+                    let valB = getTabExportCellValue(b, layer.field);
+
+                    if (typeof valA === 'string') valA = valA.toLowerCase();
+                    if (typeof valB === 'string') valB = valB.toLowerCase();
+
+                    if (valA < valB) return layer.order === 'asc' ? -1 : 1;
+                    if (valA > valB) return layer.order === 'asc' ? 1 : -1;
+                }
+                return 0;
+            });
+
+            return filtered;
+        }
+
+        function getTabExportCellValue(item, fieldKey) {
+            if (!item) return '-';
+            switch (fieldKey) {
+                case 'index':
+                    return ''; // Handled dynamically in loop
+                case 'name':
+                    return item['الاسم'] || item.name || item.title || item.user_name || item.metric || '-';
+                case 'username':
+                    return item.username || item.user_name || '-';
+                case 'role':
+                    return item.role === 'admin' ? 'مسؤول' : (item.role === 'uncle' ? 'خادم' : (item.role || '-'));
+                case 'phone':
+                    return item['الهاتف'] || item.phone || item.tel || '-';
+                case 'emergency_phone':
+                    return item['تليفون الطوارئ'] || item.emergency_phone || item.emergencyPhone || '-';
+                case 'guardian_name':
+                    return item['اسم ولي الأمر'] || item.guardian_name || item.guardian || '-';
+                case 'birthday':
+                    return item['تاريخ الميلاد'] || item.birthday || '-';
+                case 'address':
+                    return item['العنوان'] || item.address || '-';
+                case 'class':
+                case 'last_class':
+                case 'class_or_role':
+                case 'class_name':
+                    return item['الفصل'] || item.class || item.class_name || item.target_class || item.last_class || item.class_or_role || '-';
+                case 'coupons':
+                    return item['كوبونات'] !== undefined ? item['كوبونات'] : (item.coupons !== undefined ? item.coupons : '-');
+                case 'attendance_rate':
+                    return item.attendance_rate !== undefined ? item.attendance_rate : (item.att_rate ? item.att_rate + '%' : '-');
+                case 'medical_notes':
+                case 'notes':
+                    return item['ملاحظات طبية'] || item.medical_notes || item.notes || item.details || '-';
+                case 'created_at':
+                case 'submitted_at':
+                    return item.created_at ? new Date(item.created_at).toLocaleDateString('ar-EG') : (item.submitted_at ? new Date(item.submitted_at).toLocaleDateString('ar-EG') : '-');
+                case 'gender':
+                    return item.gender === 'female' ? 'بنت' : 'ولد';
+                case 'graduation_year':
+                    return item.graduation_year || item.grad_year || '-';
+                case 'price':
+                    return item.price !== undefined ? item.price + ' ج' : '-';
+                case 'final_price':
+                    return item.final_price !== undefined ? item.final_price + ' ج' : (item.price !== undefined ? item.price + ' ج' : '-');
+                case 'registered_count':
+                    return item.registered_count !== undefined ? item.registered_count : '-';
+                case 'status':
+                    return item.status === 'planned' ? 'مخطط لها' : (item.status === 'active' ? 'نشطة' : (item.status === 'completed' ? 'منتهية' : (item.status || '-')));
+                case 'type':
+                    return item.type === 'one_day' ? 'رحلة (يوم واحد)' : (item.type === 'multiple_days' ? 'مؤتمر (عدة أيام)' : (item.type || '-'));
+                case 'stage':
+                    return item.stage || '-';
+                case 'students_count':
+                    return item.student_count || item.students_count || (Array.isArray(item.students) ? item.students.length : 0);
+                case 'uncles_count':
+                    return item.uncle_count || item.uncles_count || (Array.isArray(item.uncles) ? item.uncles.length : 0);
+                case 'uncles_list':
+                    return Array.isArray(item.uncles) ? item.uncles.join(', ') : (item.uncles_list || '-');
+                case 'metric':
+                    return item.metric || '-';
+                case 'value':
+                    return item.value !== undefined ? item.value : '-';
+                case 'timestamp':
+                    return item.timestamp ? new Date(item.timestamp).toLocaleString('ar-EG') : '-';
+                case 'user_name':
+                    return item.user_name || item.username || '-';
+                case 'action_type':
+                    return item.action_type || item.action || '-';
+                case 'description':
+                    return item.description || item.details || '-';
+                case 'ip':
+                    return item.ip || '-';
+                case 'photo': {
+                    const raw = item['صورة'] || item.photo || item.image || item.picture;
+                    if (!raw) return '<div class="tab-custom-export-photo-fallback"><i class="fas fa-user"></i></div>';
+                    const url = window.getAbsolutePhotoUrl ? window.getAbsolutePhotoUrl(raw) : raw;
+                    return `<img class="tab-custom-export-photo" src="${escHtml(url)}" onerror="this.outerHTML='<div class=\\'tab-custom-export-photo-fallback\\'><i class=\\'fas fa-user\\'></i></div>'">`;
+                }
+                case 'qr': {
+                    const code = item['_studentId'] || item.id || item.username;
+                    if (!code) return '-';
+                    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=50x50&data=${encodeURIComponent(code)}`;
+                    return `<img src="${qrUrl}" alt="QR" style="width:36px;height:36px;display:block;margin:0 auto;">`;
+                }
+                default:
+                    return item[fieldKey] !== undefined ? item[fieldKey] : '-';
+            }
+        }
+
+        window.renderTabCustomExportPreview = function() {
+            const previewEl = document.getElementById('tabCustomExportDocPreview');
+            if (!previewEl) return;
+
+            const activeFields = tabExportFields.filter(f => f.selected);
+            if (!activeFields.length) {
+                previewEl.innerHTML = '<div style="text-align:center; padding:40px; color:#64748b;">برجاء اختيار حقل واحد على الأقل للعرض.</div>';
+                return;
+            }
+
+            const data = getTabExportFilteredSortedData();
+            const titleInput = document.getElementById('tabCustomExportTitle')?.value || 'تقرير مخصص';
+            const churchName = window.sidebarChurchName || 'مدارس الأحد';
+
+            let thsHtml = activeFields.map(f => `<th>${escHtml(f.label)}</th>`).join('');
+            let trsHtml = data.map((item, idx) => {
+                let tds = activeFields.map(f => {
+                    if (f.key === 'index') return `<td>${idx + 1}</td>`;
+                    const val = getTabExportCellValue(item, f.key);
+                    return `<td>${val}</td>`;
+                }).join('');
+                return `<tr>${tds}</tr>`;
+            }).join('');
+
+            previewEl.innerHTML = `
+                <div class="tab-custom-export-doc">
+                    <div class="tab-custom-export-header">
+                        <div>
+                            <h2>${escHtml(titleInput)}</h2>
+                            <small>${escHtml(churchName)} — إجمالي العناصر: ${data.length}</small>
+                        </div>
+                        <div style="text-align:left; font-size:11px; color:#64748b;">
+                            <div>تاريخ التصدير: ${new Date().toLocaleDateString('ar-EG')}</div>
+                            <div>الوقت: ${new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}</div>
+                        </div>
+                    </div>
+                    <table class="tab-custom-export-table">
+                        <thead>
+                            <tr>${thsHtml}</tr>
+                        </thead>
+                        <tbody>
+                            ${trsHtml || '<tr><td colspan="' + activeFields.length + '" style="text-align:center; padding:20px;">لا توجد بيانات مطابقة</td></tr>'}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        };
+
+        window.exportTabCustomAsCSV = function() {
+            const activeFields = tabExportFields.filter(f => f.selected && f.key !== 'photo' && f.key !== 'qr');
+            if (!activeFields.length) {
+                if (typeof showToast === 'function') showToast('اختر بيانات للتصدير', 'warning');
+                return;
+            }
+
+            const headers = activeFields.map(f => f.label);
+            const data = getTabExportFilteredSortedData();
+
+            const rows = data.map((item, idx) => {
+                const row = {};
+                activeFields.forEach(f => {
+                    if (f.key === 'index') {
+                        row[f.label] = idx + 1;
+                        return;
+                    }
+                    let val = getTabExportCellValue(item, f.key);
+                    if (typeof val === 'string' && val.includes('<')) {
+                        const tmp = document.createElement('div');
+                        tmp.innerHTML = val;
+                        val = tmp.textContent.trim();
+                    }
+                    row[f.label] = val;
+                });
+                return row;
+            });
+
+            const title = (document.getElementById('tabCustomExportTitle')?.value || 'custom-export').trim();
+            const filename = title.replace(/[\/\s]+/g, '-');
+
+            if (typeof exportToCSV === 'function') {
+                exportToCSV(rows, headers, filename);
+            } else {
+                let csv = '\uFEFF' + headers.join(',') + '\n';
+                csv += rows.map(r => headers.map(h => {
+                    let v = r[h] !== undefined && r[h] !== null ? String(r[h]) : '';
+                    v = v.replace(/"/g, '""');
+                    return `"${v}"`;
+                }).join(',')).join('\n');
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename + '.csv';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+            if (typeof showToast === 'function') showToast('تم تصدير ملف CSV بنجاح', 'success');
+        };
+
+        window.printTabCustomExport = function() {
+            const previewEl = document.getElementById('tabCustomExportDocPreview');
+            if (!previewEl) return;
+            const printArea = document.getElementById('printArea');
+            if (printArea) {
+                printArea.innerHTML = previewEl.innerHTML;
+                printArea.style.display = 'block';
+                window.print();
+                setTimeout(() => { printArea.style.display = 'none'; }, 1000);
+            }
+        };
+
+        window.copyTabCustomExport = function() {
+            const previewEl = document.getElementById('tabCustomExportDocPreview');
+            if (!previewEl) return;
+            const text = previewEl.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                if (typeof showToast === 'function') showToast('تم نسخ التقرير للحافظة', 'success');
+            }).catch(() => {
+                if (typeof showToast === 'function') showToast('تعذر النسخ للحافظة', 'warning');
+            });
+        };
+
+        window.toggleMobileTabExportView = function() {
+            const wrap = document.getElementById('tabExportBuilderWrap');
+            if (wrap) {
+                wrap.classList.toggle('show-preview-mobile');
+                const btnSpan = document.querySelector('#mobileTabExportToggleBtn span');
+                if (btnSpan) {
+                    btnSpan.textContent = wrap.classList.contains('show-preview-mobile') ? 'إعدادات التقرير' : 'معاينة الجدول';
+                }
+            }
+        };
+
+        function escHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+    })();
   </script>
 
   <!-- AUDIT LOGS ANALYTICS & VOLUME OVERVIEW MODAL -->
