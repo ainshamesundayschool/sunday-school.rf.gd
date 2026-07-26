@@ -8546,6 +8546,29 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             box-sizing: border-box;
         }
 
+        .bday-footer-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-top: 0px;
+            margin-bottom: 2px;
+            padding: 0 10px;
+            z-index: 2;
+            position: relative;
+            min-height: 18px;
+        }
+
+        .bday-dots-container {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
         .bday-dot {
             width: 7px;
             height: 7px;
@@ -12183,10 +12206,9 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                     <div class="bday-decor bday-decor-left"><i class="fas fa-birthday-cake"></i></div>
                     <div class="bday-decor bday-decor-right"><i class="fas fa-gift"></i></div>
                     <div class="bday-banner-list" id="todayBirthdayList" style="z-index: 2; position: relative;"></div>
-                    <div class="bday-footer-row"
-                        style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 0px; margin-bottom: 2px; padding: 0 10px; z-index: 2; position: relative;">
+                    <div class="bday-footer-row">
                         <div id="bdayCountSummary" style="font-size: 0.68rem; color: var(--text-3); margin: 0;"></div>
-                        <div class="bday-dots-container" style="display: flex; align-items: center; gap: 8px;">
+                        <div class="bday-dots-container">
                             <div id="bdayDotsIndicator" style="display: none; gap: 6px; align-items: center;"></div>
                         </div>
                     </div>

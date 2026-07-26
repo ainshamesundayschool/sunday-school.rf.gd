@@ -28860,76 +28860,124 @@
 
         function getTabExportCellValue(item, fieldKey) {
             if (!item) return '-';
+            let val;
             switch (fieldKey) {
                 case 'index':
                     return ''; // Handled dynamically in loop
                 case 'name':
-                    return item['الاسم'] || item.name || item.title || item.user_name || item.metric || '-';
+                    val = item['الاسم'] || item.name || item.title || item.user_name || item.metric || '-';
+                    break;
                 case 'username':
-                    return item.username || item.user_name || '-';
+                    val = item.username || item.user_name || '-';
+                    break;
                 case 'role':
-                    return item.role === 'admin' ? 'مسؤول' : (item.role === 'uncle' ? 'خادم' : (item.role || '-'));
+                    val = item.role === 'admin' ? 'مسؤول' : (item.role === 'uncle' ? 'خادم' : (item.role || '-'));
+                    break;
                 case 'phone':
-                    return item['الهاتف'] || item.phone || item.tel || '-';
+                    val = item['الهاتف'] || item.phone || item.tel || '-';
+                    break;
                 case 'emergency_phone':
-                    return item['تليفون الطوارئ'] || item.emergency_phone || item.emergencyPhone || '-';
+                    val = item['تليفون الطوارئ'] || item.emergency_phone || item.emergencyPhone || '-';
+                    break;
                 case 'guardian_name':
-                    return item['اسم ولي الأمر'] || item.guardian_name || item.guardian || '-';
+                    val = item['اسم ولي الأمر'] || item.guardian_name || item.guardian || '-';
+                    break;
                 case 'birthday':
-                    return item['تاريخ الميلاد'] || item.birthday || '-';
+                    val = item['تاريخ الميلاد'] || item.birthday || '-';
+                    break;
                 case 'address':
-                    return item['العنوان'] || item.address || '-';
+                    val = item['العنوان'] || item.address || '-';
+                    break;
                 case 'class':
                 case 'last_class':
                 case 'class_or_role':
                 case 'class_name':
-                    return item['الفصل'] || item.class || item.class_name || item.target_class || item.last_class || item.class_or_role || '-';
+                    val = item['الفصل'] || item.class || item.class_name || item.target_class || item.last_class || item.class_or_role || '-';
+                    break;
+                case 'classes':
+                case 'uncles_list': {
+                    const rawVal = item['classes'] || item['assigned_classes'] || item['uncles_list'] || item['uncles'] || item['الفصول الموكلة'] || item['الخدام الموكلون'];
+                    if (Array.isArray(rawVal)) {
+                        const names = rawVal.map(c => {
+                            if (typeof c === 'object' && c !== null) {
+                                if (c instanceof HTMLElement || c instanceof Element) return c.textContent || c.innerText || '';
+                                return c.class_name || c.name || c.title || c.arabic_name || c.label || '';
+                            }
+                            return String(c || '');
+                        }).filter(Boolean);
+                        val = names.length ? names.join(', ') : (item['class'] || '-');
+                    } else if (typeof rawVal === 'object' && rawVal !== null) {
+                        val = rawVal.class_name || rawVal.name || rawVal.title || rawVal.arabic_name || '-';
+                    } else {
+                        val = rawVal || item['class'] || '-';
+                    }
+                    break;
+                }
                 case 'coupons':
-                    return item['كوبونات'] !== undefined ? item['كوبونات'] : (item.coupons !== undefined ? item.coupons : '-');
+                    val = item['كوبونات'] !== undefined ? item['كوبونات'] : (item.coupons !== undefined ? item.coupons : '-');
+                    break;
                 case 'attendance_rate':
-                    return item.attendance_rate !== undefined ? item.attendance_rate : (item.att_rate ? item.att_rate + '%' : '-');
+                    val = item.attendance_rate !== undefined ? item.attendance_rate : (item.att_rate ? item.att_rate + '%' : '-');
+                    break;
                 case 'medical_notes':
                 case 'notes':
-                    return item['ملاحظات طبية'] || item.medical_notes || item.notes || item.details || '-';
+                    val = item['ملاحظات طبية'] || item.medical_notes || item.notes || item.details || '-';
+                    break;
                 case 'created_at':
                 case 'submitted_at':
-                    return item.created_at ? new Date(item.created_at).toLocaleDateString('ar-EG') : (item.submitted_at ? new Date(item.submitted_at).toLocaleDateString('ar-EG') : '-');
+                    val = item.created_at ? new Date(item.created_at).toLocaleDateString('ar-EG') : (item.submitted_at ? new Date(item.submitted_at).toLocaleDateString('ar-EG') : '-');
+                    break;
                 case 'gender':
-                    return item.gender === 'female' ? 'بنت' : 'ولد';
+                    val = item.gender === 'female' ? 'بنت' : 'ولد';
+                    break;
                 case 'graduation_year':
-                    return item.graduation_year || item.grad_year || '-';
+                    val = item.graduation_year || item.grad_year || '-';
+                    break;
                 case 'price':
-                    return item.price !== undefined ? item.price + ' ج' : '-';
+                    val = item.price !== undefined ? item.price + ' ج' : '-';
+                    break;
                 case 'final_price':
-                    return item.final_price !== undefined ? item.final_price + ' ج' : (item.price !== undefined ? item.price + ' ج' : '-');
+                    val = item.final_price !== undefined ? item.final_price + ' ج' : (item.price !== undefined ? item.price + ' ج' : '-');
+                    break;
                 case 'registered_count':
-                    return item.registered_count !== undefined ? item.registered_count : '-';
+                    val = item.registered_count !== undefined ? item.registered_count : '-';
+                    break;
                 case 'status':
-                    return item.status === 'planned' ? 'مخطط لها' : (item.status === 'active' ? 'نشطة' : (item.status === 'completed' ? 'منتهية' : (item.status || '-')));
+                    val = item.status === 'planned' ? 'مخطط لها' : (item.status === 'active' ? 'نشطة' : (item.status === 'completed' ? 'منتهية' : (item.status || '-')));
+                    break;
                 case 'type':
-                    return item.type === 'one_day' ? 'رحلة (يوم واحد)' : (item.type === 'multiple_days' ? 'مؤتمر (عدة أيام)' : (item.type || '-'));
+                    val = item.type === 'one_day' ? 'رحلة (يوم واحد)' : (item.type === 'multiple_days' ? 'مؤتمر (عدة أيام)' : (item.type || '-'));
+                    break;
                 case 'stage':
-                    return item.stage || '-';
+                    val = item.stage || '-';
+                    break;
                 case 'students_count':
-                    return item.student_count || item.students_count || (Array.isArray(item.students) ? item.students.length : 0);
+                    val = item.student_count || item.students_count || (Array.isArray(item.students) ? item.students.length : 0);
+                    break;
                 case 'uncles_count':
-                    return item.uncle_count || item.uncles_count || (Array.isArray(item.uncles) ? item.uncles.length : 0);
-                case 'uncles_list':
-                    return Array.isArray(item.uncles) ? item.uncles.join(', ') : (item.uncles_list || '-');
+                    val = item.uncle_count || item.uncles_count || (Array.isArray(item.uncles) ? item.uncles.length : 0);
+                    break;
                 case 'metric':
-                    return item.metric || '-';
+                    val = item.metric || '-';
+                    break;
                 case 'value':
-                    return item.value !== undefined ? item.value : '-';
+                    val = item.value !== undefined ? item.value : '-';
+                    break;
                 case 'timestamp':
-                    return item.timestamp ? new Date(item.timestamp).toLocaleString('ar-EG') : '-';
+                    val = item.timestamp ? new Date(item.timestamp).toLocaleString('ar-EG') : '-';
+                    break;
                 case 'user_name':
-                    return item.user_name || item.username || '-';
+                    val = item.user_name || item.username || '-';
+                    break;
                 case 'action_type':
-                    return item.action_type || item.action || '-';
+                    val = item.action_type || item.action || '-';
+                    break;
                 case 'description':
-                    return item.description || item.details || '-';
+                    val = item.description || item.details || '-';
+                    break;
                 case 'ip':
-                    return item.ip || '-';
+                    val = item.ip || '-';
+                    break;
                 case 'photo': {
                     const raw = item['صورة'] || item.photo || item.image || item.picture;
                     if (!raw) return '<div class="tab-custom-export-photo-fallback"><i class="fas fa-user"></i></div>';
@@ -28943,8 +28991,29 @@
                     return `<img src="${qrUrl}" alt="QR" style="width:36px;height:36px;display:block;margin:0 auto;">`;
                 }
                 default:
-                    return item[fieldKey] !== undefined ? item[fieldKey] : '-';
+                    val = item[fieldKey] !== undefined ? item[fieldKey] : '-';
+                    break;
             }
+
+            // Universal sanitization for objects/elements to prevent [object Object] and [object HTMLHeadingElement]
+            if (typeof val === 'object' && val !== null) {
+                if (val instanceof HTMLElement || val instanceof Element) {
+                    val = val.value || val.textContent || val.innerText || '-';
+                } else if (Array.isArray(val)) {
+                    const items = val.map(x => {
+                        if (typeof x === 'object' && x !== null) {
+                            if (x instanceof HTMLElement || x instanceof Element) return x.textContent || x.innerText || '';
+                            return x.class_name || x.name || x.title || x.arabic_name || x.label || '';
+                        }
+                        return String(x || '');
+                    }).filter(Boolean);
+                    val = items.length ? items.join(', ') : '-';
+                } else {
+                    val = val.class_name || val.name || val.title || val.arabic_name || val.label || '-';
+                }
+            }
+
+            return val !== undefined && val !== null ? val : '-';
         }
 
         window.renderTabCustomExportPreview = function() {
@@ -28958,7 +29027,10 @@
             }
 
             const data = getTabExportFilteredSortedData();
-            const titleInput = document.getElementById('tabCustomExportTitle')?.value || 'تقرير مخصص';
+            const titleInputEl = document.getElementById('tabCustomExportTitle');
+            const titleInput = (titleInputEl && titleInputEl.value !== undefined && titleInputEl.value !== null && typeof titleInputEl.value === 'string')
+                ? titleInputEl.value
+                : (titleInputEl?.textContent || 'تقرير مخصص');
             const churchName = window.sidebarChurchName || 'مدارس الأحد';
 
             let thsHtml = activeFields.map(f => `<th>${escHtml(f.label)}</th>`).join('');
@@ -29023,7 +29095,11 @@
                 return row;
             });
 
-            const title = (document.getElementById('tabCustomExportTitle')?.value || 'custom-export').trim();
+            const titleInputEl = document.getElementById('tabCustomExportTitle');
+            const rawTitle = (titleInputEl && titleInputEl.value !== undefined && titleInputEl.value !== null && typeof titleInputEl.value === 'string')
+                ? titleInputEl.value
+                : (titleInputEl?.textContent || 'custom-export');
+            const title = String(rawTitle).trim();
             const filename = title.replace(/[\/\s]+/g, '-');
 
             if (typeof exportToCSV === 'function') {
@@ -29084,6 +29160,15 @@
 
         function escHtml(str) {
             if (str === null || str === undefined) return '';
+            if (typeof str === 'object') {
+                if (str instanceof HTMLElement || str instanceof Element) {
+                    str = str.value || str.textContent || str.innerText || '';
+                } else if (Array.isArray(str)) {
+                    str = str.map(x => (typeof x === 'object' && x) ? (x.class_name || x.name || x.title || '') : String(x)).filter(Boolean).join(', ');
+                } else {
+                    str = str.class_name || str.name || str.title || str.label || '';
+                }
+            }
             return String(str)
                 .replace(/&/g, '&amp;')
                 .replace(/</g, '&lt;')
