@@ -1,7 +1,7 @@
 // ╔══════════════════════════════════════════════════════════════╗
-// ║  Sunday School PWA — Service Worker v26                     ║
+// ║  Sunday School PWA — Service Worker v27                     ║
 // ╚══════════════════════════════════════════════════════════════╝
-const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v26';
+const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v27';
 const CACHE_NAME        = `sunday-school-${SW_VERSION}`;
 const SYNC_TAG          = 'sync-attendance';
 const PERIODIC_SYNC_TAG = 'check-registrations';
@@ -172,6 +172,10 @@ self.addEventListener('fetch', e => {
             (async () => {
                 try {
                     const r = await fetch(e.request.clone());
+                    const contentType = (r.headers && r.headers.get('content-type')) || '';
+                    if (contentType.includes('application/json')) {
+                        return r;
+                    }
                     const isCookieCheck = await _isCookieCheckResponse(r);
                     if (isCookieCheck) {
                         const now = Date.now();
@@ -367,16 +371,19 @@ async function _matchOfflineShell(request, url) {
 }
 
 async function _isCookieCheckResponse(response) {
-    if (!response) return true;
-    if (!response.ok) return false;
+    if (!response || !response.ok) return false;
+
+    const contentType = (response.headers && response.headers.get('content-type')) || '';
+    if (contentType.includes('application/json')) {
+        return false;
+    }
 
     const responseUrl = response.url || '';
     if (responseUrl.indexOf('ifastnet.com/cookies.html') !== -1) {
         return true;
     }
 
-    const contentType = response.headers && response.headers.get('content-type') || '';
-    if (/text\/html|javascript/i.test(contentType) || responseUrl === '' || !contentType) {
+    if (/text\/html/i.test(contentType)) {
         try {
             const copy = response.clone();
             const text = await copy.text();
