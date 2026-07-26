@@ -26210,7 +26210,7 @@
             }
         }
 
-        function loadQRTemplateFromSelect(val) {
+        async function loadQRTemplateFromSelect(val) {
             if (!val) return;
             let templateData = null;
             if (val === 'preset_sundayschool') {
@@ -26242,10 +26242,18 @@
                 const currentTripId = window.currentTripId || 0;
                 if (allTemplatesCache.trip_template && val === 'trip_' + currentTripId) {
                     templateData = allTemplatesCache.trip_template;
-                } else if (Array.isArray(allTemplatesCache.other_trips)) {
-                    const t = allTemplatesCache.other_trips.find(x => x.id == tid);
-                    if (t) {
-                        templateData = typeof t.template === 'string' ? JSON.parse(t.template || '{}') : t.template;
+                } else {
+                    try {
+                        showToast('جاري تحميل القالب...', 'info');
+                        const fd = new FormData();
+                        fd.append('action', 'getQRTemplates');
+                        fd.append('trip_id', tid);
+                        const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                        if (res && res.success && res.trip_template) {
+                            templateData = res.trip_template;
+                        }
+                    } catch (e) {
+                        console.error("Error fetching single trip template", e);
                     }
                 }
             }

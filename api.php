@@ -37333,17 +37333,24 @@ function getQRTemplates()
             $tripTemplate = $tripRow['qr_template'] ?? null;
         }
 
-        // 3. Other trips templates
+        // 3. Other trips templates metadata (lightweight)
         $otherTrips = [];
         $othersStmt = $conn->prepare("SELECT id, title, qr_template FROM trips WHERE church_id = ? AND qr_template IS NOT NULL AND id != ?");
         $othersStmt->bind_param("ii", $churchId, $tripId);
         $othersStmt->execute();
         $res = $othersStmt->get_result();
         while ($row = $res->fetch_assoc()) {
+            $tName = '';
+            if (!empty($row['qr_template'])) {
+                $decoded = json_decode($row['qr_template'], true);
+                if (is_array($decoded) && !empty($decoded['templateName'])) {
+                    $tName = $decoded['templateName'];
+                }
+            }
             $otherTrips[] = [
                 'id' => $row['id'],
                 'title' => $row['title'],
-                'template' => $row['qr_template']
+                'templateName' => $tName
             ];
         }
 
