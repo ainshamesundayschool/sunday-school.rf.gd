@@ -6979,23 +6979,26 @@
         }
         .tab-export-builder {
             display: grid;
-            grid-template-columns: minmax(270px, 340px) 1fr;
-            gap: 14px;
+            grid-template-columns: minmax(280px, 350px) 1fr;
+            gap: 16px;
             height: 100%;
             min-height: 0;
+            padding: 0 16px 16px 16px;
+            box-sizing: border-box;
         }
         .tab-export-controls {
-            overflow: auto;
-            padding-left: 4px;
+            overflow-y: auto;
+            padding: 4px 6px 12px 4px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
+            box-sizing: border-box;
         }
         .tab-export-panel {
             background: var(--surface-2);
             border: 1px solid var(--border-solid);
             border-radius: var(--r-lg);
-            padding: 10px 12px;
+            padding: 12px 14px;
         }
         .tab-export-panel-title {
             font-size: 0.8rem;
@@ -11720,7 +11723,7 @@
             <button class="modal-close" onclick="closeModal('tabCustomExportModal')"><i class="fas fa-times"></i></button>
           </div>
         </div>
-        <div class="modal-body" style="flex: 1; overflow: hidden; min-height: 0; padding: 10px 0 0 0;">
+        <div class="modal-body" style="flex: 1; overflow: hidden; min-height: 0; padding: 12px 0 0 0;">
           <div class="tab-export-builder" id="tabExportBuilderWrap">
             <!-- Controls Panel -->
             <div class="tab-export-controls">
@@ -28599,6 +28602,22 @@
             ];
         }
 
+        function getSelectedExportChurchIds() {
+            const checks = document.querySelectorAll('.tab-export-church-check');
+            if (!checks || !checks.length) return null;
+            const selected = new Set();
+            checks.forEach(c => {
+                if (c.checked) selected.add(String(c.value));
+            });
+            return selected;
+        }
+
+        window.toggleSelectAllTabExportChurches = function(checked) {
+            const checks = document.querySelectorAll('.tab-export-church-check');
+            checks.forEach(c => c.checked = checked);
+            onTabExportFilterChange();
+        };
+
         function populateTabExportFilters() {
             const container = document.getElementById('tabExportFiltersContainer');
             if (!container) return;
@@ -28606,22 +28625,42 @@
 
             if (isDeveloper && Array.isArray(allChurchesCache) && allChurchesCache.length && currentExportTab !== 'devChurches') {
                 const wrap = document.createElement('div');
-                wrap.style.cssText = 'display:flex; flex-direction:column; gap:2px;';
+                wrap.style.cssText = 'display:flex; flex-direction:column; gap:6px; margin-bottom:6px;';
+                
+                const topRow = document.createElement('div');
+                topRow.style.cssText = 'display:flex; justify-content:space-between; align-items:center;';
+                
                 const label = document.createElement('label');
-                label.style.cssText = 'font-size:0.73rem; font-weight:700; color:var(--text-2); margin:0;';
-                label.textContent = 'تصفية حسب الكنيسة:';
+                label.style.cssText = 'font-size:0.75rem; font-weight:800; color:var(--text); margin:0; display:flex; align-items:center; gap:5px;';
+                label.innerHTML = '<i class="fas fa-church" style="color:var(--brand);"></i> الكنائس المستهدفة:';
 
-                const sel = document.createElement('select');
-                sel.className = 'form-input';
-                sel.id = 'tabExportFilterChurch';
-                sel.style.cssText = 'font-size:0.75rem; padding:4px 8px; height:32px; width:100%;';
-                sel.onchange = () => { onTabExportFilterChange(); };
+                const selectAllWrap = document.createElement('label');
+                selectAllWrap.style.cssText = 'font-size:0.7rem; font-weight:700; cursor:pointer; color:var(--brand); display:flex; align-items:center; gap:4px; margin:0;';
+                selectAllWrap.innerHTML = `
+                    <input type="checkbox" id="tabExportSelectAllChurchesCheck" checked onchange="toggleSelectAllTabExportChurches(this.checked)" style="accent-color:var(--brand); width:13px; height:13px; cursor:pointer;">
+                    <span>تحديد الكل</span>
+                `;
 
-                sel.innerHTML = '<option value="all">جميع الكنائس (All Churches)</option>' +
-                    allChurchesCache.map(c => `<option value="${c.id}">[${c.church_type === 'youth' ? 'شباب' : 'أطفال'}] ${escHtml(c.church_name)} (${c.church_code})</option>`).join('');
+                topRow.appendChild(label);
+                topRow.appendChild(selectAllWrap);
 
-                wrap.appendChild(label);
-                wrap.appendChild(sel);
+                const checklistContainer = document.createElement('div');
+                checklistContainer.id = 'tabExportChurchesChecklist';
+                checklistContainer.style.cssText = 'max-height:120px; overflow-y:auto; display:flex; flex-direction:column; gap:4px; border:1px solid var(--border-solid); border-radius:var(--r-md); padding:6px; background:var(--surface);';
+
+                checklistContainer.innerHTML = allChurchesCache.map(c => {
+                    const typeText = c.church_type === 'youth' ? 'شباب' : 'أطفال';
+                    return `
+                        <label style="display:flex; align-items:center; gap:8px; font-size:0.75rem; padding:5px 8px; border-radius:6px; cursor:pointer; background:var(--surface-2); border:1px solid var(--border-solid); transition:all 0.15s ease;">
+                            <input type="checkbox" class="tab-export-church-check" value="${c.id}" checked onchange="onTabExportFilterChange()" style="accent-color:var(--brand); width:15px; height:15px; cursor:pointer;">
+                            <span style="flex:1; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escHtml(c.church_name)} <span style="font-size:0.68rem; color:var(--muted); font-weight:600;">(${escHtml(c.church_code)})</span></span>
+                            <span style="font-size:0.65rem; font-weight:700; color:var(--brand); background:var(--brand-bg); padding:2px 6px; border-radius:4px; white-space:nowrap;">${typeText}</span>
+                        </label>
+                    `;
+                }).join('');
+
+                wrap.appendChild(topRow);
+                wrap.appendChild(checklistContainer);
                 container.appendChild(wrap);
             }
 
@@ -28679,12 +28718,12 @@
             const baseData = getTabExportBaseData();
             const classVal = document.getElementById('tabExportFilterClass')?.value || 'all';
             const roleVal = document.getElementById('tabExportFilterRole')?.value || 'all';
-            const churchVal = document.getElementById('tabExportFilterChurch')?.value || 'all';
+            const selectedChurchIds = getSelectedExportChurchIds();
 
             const filteredData = baseData.filter(item => {
-                if (churchVal !== 'all') {
-                    const itemChurchId = item.church_id || item.churchId || item.id;
-                    if (itemChurchId != churchVal) return false;
+                if (selectedChurchIds !== null) {
+                    const itemChurchId = String(item.church_id || item.churchId || item.id || '');
+                    if (!selectedChurchIds.has(itemChurchId)) return false;
                 }
                 if (classVal !== 'all') {
                     const itemClass = item['الفصل'] || item.class || item.target_class || '';
@@ -28813,12 +28852,12 @@
             const baseData = getTabExportBaseData();
             const classVal = document.getElementById('tabExportFilterClass')?.value || 'all';
             const roleVal = document.getElementById('tabExportFilterRole')?.value || 'all';
-            const churchVal = document.getElementById('tabExportFilterChurch')?.value || 'all';
+            const selectedChurchIds = getSelectedExportChurchIds();
 
             const candidates = baseData.filter(item => {
-                if (churchVal !== 'all') {
-                    const itemChurchId = item.church_id || item.churchId || item.id;
-                    if (itemChurchId != churchVal) return false;
+                if (selectedChurchIds !== null) {
+                    const itemChurchId = String(item.church_id || item.churchId || item.id || '');
+                    if (!selectedChurchIds.has(itemChurchId)) return false;
                 }
                 if (classVal !== 'all') {
                     const itemClass = item['الفصل'] || item.class || item.target_class || '';
@@ -28865,12 +28904,12 @@
             const baseData = getTabExportBaseData();
             const classVal = document.getElementById('tabExportFilterClass')?.value || 'all';
             const roleVal = document.getElementById('tabExportFilterRole')?.value || 'all';
-            const churchVal = document.getElementById('tabExportFilterChurch')?.value || 'all';
+            const selectedChurchIds = getSelectedExportChurchIds();
 
             baseData.forEach((item, idx) => {
-                if (churchVal !== 'all') {
-                    const itemChurchId = item.church_id || item.churchId || item.id;
-                    if (itemChurchId != churchVal) return;
+                if (selectedChurchIds !== null) {
+                    const itemChurchId = String(item.church_id || item.churchId || item.id || '');
+                    if (!selectedChurchIds.has(itemChurchId)) return;
                 }
                 if (classVal !== 'all') {
                     const itemClass = item['الفصل'] || item.class || item.target_class || '';
@@ -28902,15 +28941,15 @@
             const baseData = getTabExportBaseData();
             const classVal = document.getElementById('tabExportFilterClass')?.value || 'all';
             const roleVal = document.getElementById('tabExportFilterRole')?.value || 'all';
-            const churchVal = document.getElementById('tabExportFilterChurch')?.value || 'all';
+            const selectedChurchIds = getSelectedExportChurchIds();
 
             const filtered = baseData.filter((item, idx) => {
                 const key = getItemUniqueId(item, idx);
                 if (!tabExportSelectedKeys.has(key)) return false;
 
-                if (churchVal !== 'all') {
-                    const itemChurchId = item.church_id || item.churchId || item.id;
-                    if (itemChurchId != churchVal) return false;
+                if (selectedChurchIds !== null) {
+                    const itemChurchId = String(item.church_id || item.churchId || item.id || '');
+                    if (!selectedChurchIds.has(itemChurchId)) return false;
                 }
                 if (classVal !== 'all') {
                     const itemClass = item['الفصل'] || item.class || item.target_class || '';
