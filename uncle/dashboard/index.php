@@ -7277,6 +7277,62 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
 
+        /* Kid Info Details Skeleton */
+        .kid-info-skeleton-container {
+            padding: 10px 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .kid-skeleton-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 6px;
+            border-bottom: 1px solid var(--border-solid);
+            border-radius: var(--r-sm);
+        }
+
+        .kid-skeleton-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(90deg, var(--surface-3) 25%, var(--surface-2) 50%, var(--surface-3) 75%);
+            background-size: 200% 100%;
+            animation: shimmerSkeleton 1.4s ease infinite;
+            flex-shrink: 0;
+        }
+
+        .kid-skeleton-label {
+            width: 80px;
+            height: 14px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, var(--surface-3) 25%, var(--surface-2) 50%, var(--surface-3) 75%);
+            background-size: 200% 100%;
+            animation: shimmerSkeleton 1.4s ease infinite;
+            flex-shrink: 0;
+        }
+
+        .kid-skeleton-value {
+            height: 14px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, var(--surface-3) 25%, var(--surface-2) 50%, var(--surface-3) 75%);
+            background-size: 200% 100%;
+            animation: shimmerSkeleton 1.4s ease infinite;
+            margin-right: auto;
+        }
+
+        .kid-skeleton-card {
+            height: 46px;
+            border-radius: var(--r-md, 12px);
+            background: linear-gradient(90deg, var(--surface-3) 25%, var(--surface-2) 50%, var(--surface-3) 75%);
+            background-size: 200% 100%;
+            animation: shimmerSkeleton 1.4s ease infinite;
+            width: 100%;
+            margin-top: 4px;
+        }
+
         .inline-spinner {
             display: inline-flex;
             align-items: center;
@@ -17518,7 +17574,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
             container.innerHTML = activeTrips.map(t => {
                 const dateStr = t.start_date ? new Date(t.start_date).toLocaleDateString('ar-EG', { day: 'numeric', month: 'short' }) : 'قريباً';
-                const img = t.image_url || '';
+                const img = t.image_url ? getAbsolutePhotoUrl(t.image_url) : '';
                 const imgHtml = img ? `<img src="${img}" class="trip-slim-img" onerror="this.parentElement.innerHTML='<div class=\\'trip-slim-img\\' style=\\'display:flex;align-items:center;justify-content:center;background:var(--brand-bg);color:var(--brand);\\'><i class=\\'fas fa-map-marked-alt\\'></i></div>'">` : `<div class="trip-slim-img" style="display:flex;align-items:center;justify-content:center;background:var(--brand-bg);color:var(--brand);"><i class="fas fa-map-marked-alt"></i></div>`;
                 const registeredCount = t.registered_count || 0;
                 const kidsCountHtml = `<span class="trip-slim-kids-count"><i class="fas fa-users"></i> ${registeredCount} طفل</span>`;
@@ -20557,6 +20613,39 @@ if ($hasUncleId && $uncleRole === 'uncle')
             }
         }
 
+        function getKidDetailsSkeletonHtml() {
+            return `
+            <div class="kid-info-skeleton-container">
+                <div class="kid-skeleton-row">
+                    <div class="kid-skeleton-icon"></div>
+                    <div class="kid-skeleton-label"></div>
+                    <div class="kid-skeleton-value" style="width: 110px;"></div>
+                </div>
+                <div class="kid-skeleton-row">
+                    <div class="kid-skeleton-icon"></div>
+                    <div class="kid-skeleton-label"></div>
+                    <div class="kid-skeleton-value" style="width: 150px;"></div>
+                </div>
+                <div class="kid-skeleton-row">
+                    <div class="kid-skeleton-icon"></div>
+                    <div class="kid-skeleton-label"></div>
+                    <div class="kid-skeleton-value" style="width: 80px;"></div>
+                </div>
+                <div class="kid-skeleton-row">
+                    <div class="kid-skeleton-icon"></div>
+                    <div class="kid-skeleton-label"></div>
+                    <div class="kid-skeleton-value" style="width: 130px;"></div>
+                </div>
+                <div class="kid-skeleton-row">
+                    <div class="kid-skeleton-icon"></div>
+                    <div class="kid-skeleton-label"></div>
+                    <div class="kid-skeleton-value" style="width: 100px;"></div>
+                </div>
+                <div class="kid-skeleton-card"></div>
+                <div class="kid-skeleton-card"></div>
+            </div>`;
+        }
+
         // ── STUDENT DETAILS ───────────────────────────────────────────
         function showStudentDetails(name) {
             const s = (currentClass === 'الخدام')
@@ -20606,7 +20695,7 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (editBtn) editBtn.style.display = '';
                 if (deleteBtn) deleteBtn.style.display = '';
 
-                document.getElementById('studentDetails').innerHTML = img + '<div style="padding:14px;text-align:center;color:var(--text-3)">جارٍ التحميل…</div>';
+                document.getElementById('studentDetails').innerHTML = img + getKidDetailsSkeletonHtml();
                 document.getElementById('studentModal').classList.add('active');
                 stopAutoRefresh();
                 const full = (window.allUnclesData || []).find(u => u.id === s.id) || s;
@@ -20619,15 +20708,15 @@ if ($hasUncleId && $uncleRole === 'uncle')
                 if (editBtn) editBtn.style.display = '';
                 if (deleteBtn) deleteBtn.style.display = '';
 
-                document.getElementById('studentDetails').innerHTML = img + '<div style="padding:14px;text-align:center;color:var(--text-3)">جارٍ التحميل…</div>';
+                document.getElementById('studentDetails').innerHTML = img + getKidDetailsSkeletonHtml();
                 document.getElementById('studentModal').classList.add('active');
                 stopAutoRefresh();
                 buildGuestDetails(s);
                 return;
             }
 
-            // Show a loading stub while we fetch full profile (to get trip_points)
-            document.getElementById('studentDetails').innerHTML = img + '<div style="padding:14px;text-align:center;color:var(--text-3)">جارٍ التحميل…</div>';
+            // Show a skeleton loader stub while we fetch full profile (to get trip_points)
+            document.getElementById('studentDetails').innerHTML = img + getKidDetailsSkeletonHtml();
             document.getElementById('studentModal').classList.add('active');
             stopAutoRefresh();
 
