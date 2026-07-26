@@ -16697,7 +16697,7 @@
           if (bld.has_floors) {
             (bld.floors || []).forEach(fl => (fl.rooms || []).forEach(collect));
           } else {
-            (bld.rooms || []).forEach(countUncles);
+            (bld.rooms || []).forEach(collect);
           }
         });
 
