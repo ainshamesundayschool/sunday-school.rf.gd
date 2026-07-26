@@ -11240,9 +11240,12 @@
 
         const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
         if (d.success) {
-          allTripsCache = allTripsCache.map(item => String(item.id) === String(tripId) ? { ...item, max_participants: nextMax, points_config: pointsConfig } : item);
+          const rawVal = document.getElementById('editTripImageUrl')?.value?.trim() || '';
+          const cleanVal = ['0', 'null', 'undefined', 'false', 'none'].includes(rawVal.toLowerCase()) ? '' : rawVal;
+          const finalImgUrl = d.image_url !== undefined ? d.image_url : (d.trip ? d.trip.image_url : cleanVal);
+          allTripsCache = allTripsCache.map(item => String(item.id) === String(tripId) ? { ...item, ...d.trip, image_url: finalImgUrl, max_participants: nextMax, points_config: pointsConfig } : item);
           if (window.currentTripObj && String(window.currentTripObj.id) === String(tripId)) {
-            window.currentTripObj = { ...window.currentTripObj, max_participants: nextMax, points_config: pointsConfig };
+            window.currentTripObj = { ...window.currentTripObj, ...d.trip, image_url: finalImgUrl, max_participants: nextMax, points_config: pointsConfig };
           }
           const syncRes = await syncTripCapacityAfterUpdate(tripId, previousMax, nextMax);
           showToast(syncRes.message || 'تم تحديث الرحلة بنجاح', syncRes.success ? (syncRes.mode === 'grow' ? 'info' : 'success') : 'warning');

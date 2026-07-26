@@ -16447,9 +16447,12 @@
             if (d.success) {
                 // Update local cache
                 const tripId = document.getElementById('editTripId').value;
+                const rawVal = document.getElementById('editTripImageUrl')?.value?.trim() || '';
+                const cleanVal = ['0', 'null', 'undefined', 'false', 'none'].includes(rawVal.toLowerCase()) ? '' : rawVal;
+                const finalImgUrl = d.image_url !== undefined ? d.image_url : (d.trip ? d.trip.image_url : cleanVal);
                 const idx = allTripsCache.findIndex(item => String(item.id) === String(tripId));
                 if (idx > -1) {
-                    allTripsCache[idx].points_config = pointsConfig;
+                    allTripsCache[idx] = { ...allTripsCache[idx], ...d.trip, image_url: finalImgUrl, points_config: pointsConfig };
                 }
                 showToast('تم تحديث الرحلة', 'success');
                 closeModal('editTripModal');

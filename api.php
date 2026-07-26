@@ -25489,46 +25489,32 @@ function addTrip()
 
 
 
-        // معالجة رفع الصورة
-
-        $imageUrl = '';
+        $rawImgUrl = isset($_POST['image_url']) ? trim((string)$_POST['image_url']) : '';
+        $imageUrl = in_array(strtolower($rawImgUrl), ['0', 'null', 'undefined', 'false', 'none', ''], true) ? null : sanitize($rawImgUrl);
 
         if (isset($_FILES['trip_image']) && $_FILES['trip_image']['error'] === UPLOAD_ERR_OK) {
-
             $uploadDir = __DIR__ . '/uploads/trips/';
-
-
-
             if (!is_dir($uploadDir)) {
-
-                mkdir($uploadDir, 0755, true);
-
+                @mkdir($uploadDir, 0777, true);
             }
-
-
-
-            $filename = 'trip_' . time() . '_' . uniqid() . '.jpg';
-
+            $origName = $_FILES['trip_image']['name'] ?? 'image.jpg';
+            $ext = strtolower(pathinfo($origName, PATHINFO_EXTENSION));
+            if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true)) {
+                $ext = 'jpg';
+            }
+            $filename = 'trip_' . time() . '_' . uniqid() . '.' . $ext;
             $uploadPath = $uploadDir . $filename;
 
+            $isImg = @getimagesize($_FILES['trip_image']['tmp_name']);
+            $mime = function_exists('mime_content_type') ? @mime_content_type($_FILES['trip_image']['tmp_name']) : '';
 
-
-            $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-
-            $fileType = mime_content_type($_FILES['trip_image']['tmp_name']);
-
-
-
-            if (in_array($fileType, $allowedTypes)) {
-
+            if ($isImg !== false || (is_string($mime) && strpos($mime, 'image/') === 0)) {
                 if (move_uploaded_file($_FILES['trip_image']['tmp_name'], $uploadPath)) {
-
-                    $imageUrl = "https://" . ($_SERVER['HTTP_HOST'] ?? 'sunday-school.online') . "/uploads/trips/" . $filename;
-
+                    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+                    $host = $_SERVER['HTTP_HOST'] ?? 'sunday-school.online';
+                    $imageUrl = $protocol . $host . "/uploads/trips/" . $filename;
                 }
-
             }
-
         }
 
 
@@ -25729,16 +25715,25 @@ function updateTrip()
 
         if (isset($_FILES['trip_image']) && $_FILES['trip_image']['error'] === UPLOAD_ERR_OK) {
             $uploadDir = __DIR__ . '/uploads/trips/';
-            if (!file_exists($uploadDir)) {
+            if (!is_dir($uploadDir)) {
                 @mkdir($uploadDir, 0777, true);
             }
-            $filename = 'trip_' . time() . '_' . uniqid() . '.jpg';
+            $origName = $_FILES['trip_image']['name'] ?? 'image.jpg';
+            $ext = strtolower(pathinfo($origName, PATHINFO_EXTENSION));
+            if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true)) {
+                $ext = 'jpg';
+            }
+            $filename = 'trip_' . time() . '_' . uniqid() . '.' . $ext;
             $uploadPath = $uploadDir . $filename;
-            $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-            $fileType = mime_content_type($_FILES['trip_image']['tmp_name']);
-            if (in_array($fileType, $allowedTypes, true)) {
+
+            $isImg = @getimagesize($_FILES['trip_image']['tmp_name']);
+            $mime = function_exists('mime_content_type') ? @mime_content_type($_FILES['trip_image']['tmp_name']) : '';
+
+            if ($isImg !== false || (is_string($mime) && strpos($mime, 'image/') === 0)) {
                 if (move_uploaded_file($_FILES['trip_image']['tmp_name'], $uploadPath)) {
-                    $imageUrl = "https://" . ($_SERVER['HTTP_HOST'] ?? 'sunday-school.online') . "/uploads/trips/" . $filename;
+                    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+                    $host = $_SERVER['HTTP_HOST'] ?? 'sunday-school.online';
+                    $imageUrl = $protocol . $host . "/uploads/trips/" . $filename;
                 }
             }
         }
@@ -26092,7 +26087,7 @@ function updateTrip()
 
 
 
-            sendJSON(['success' => true, 'message' => 'تم تحديث الرحلة بنجاح']);
+            sendJSON(['success' => true, 'message' => 'تم تحديث الرحلة بنجاح', 'image_url' => $imageUrl, 'trip' => $newTrip]);
 
         } else {
 
