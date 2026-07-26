@@ -3353,13 +3353,14 @@ function checkAuth()
 
 {
 
-    if (isset($_SESSION['uncle_role']) && in_array(strtolower($_SESSION['uncle_role']), ['developer', 'dev'])) {
+    $role = strtolower($_SESSION['uncle_role'] ?? $_SESSION['role'] ?? '');
+    if (in_array($role, ['developer', 'dev'])) {
 
         return;
 
     }
 
-    if (!isset($_SESSION['church_id'])) {
+    if (!isset($_SESSION['church_id']) && !isset($_SESSION['uncle_id'])) {
 
         sendJSON(['success' => false, 'message' => 'غير مصرح - الرجاء تسجيل الدخول']);
 
