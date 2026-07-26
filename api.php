@@ -3835,11 +3835,16 @@ try {
 
 
         case 'logout':
-
-            session_destroy();
-
+            $_SESSION = [];
+            if (ini_get("session.use_cookies")) {
+                $params = session_get_cookie_params();
+                setcookie(session_name(), '', time() - 42000,
+                    $params["path"], $params["domain"],
+                    $params["secure"], $params["httponly"]
+                );
+            }
+            @session_destroy();
             sendJSON(['success' => true, 'message' => 'تم تسجيل الخروج بنجاح']);
-
             break;
 
 
@@ -6093,7 +6098,8 @@ function handleLogin()
 
                 }
 
-
+                $_SESSION = [];
+                @session_regenerate_id(true);
 
                 $_SESSION['church_id'] = $row['id'];
 
@@ -6104,6 +6110,10 @@ function handleLogin()
                 $_SESSION['church_type'] = $row['church_type'];
 
                 $_SESSION['login_type'] = 'church';
+
+                $_SESSION['uncle_role'] = 'admin';
+
+                $_SESSION['role'] = 'admin';
 
 
 
@@ -16139,7 +16149,12 @@ function handleUncleLogin()
 
                 }
 
+                $_SESSION = [];
+                @session_regenerate_id(true);
 
+                $_SESSION['uncle_logged_in'] = true;
+
+                $_SESSION['user_type'] = 'uncle';
 
                 $_SESSION['uncle_id'] = $row['id'];
 
@@ -16157,7 +16172,11 @@ function handleUncleLogin()
 
                 $_SESSION['uncle_image'] = $row['image_url'];
 
-                $_SESSION['uncle_role'] = $row['role'];
+                $_SESSION['uncle_role'] = $row['role'] ?? 'uncle';
+
+                $_SESSION['role'] = $row['role'] ?? 'uncle';
+
+                $_SESSION['login_type'] = 'uncle';
 
 
 
@@ -33793,11 +33812,16 @@ try {
 
 
         case 'logout':
-
-            session_destroy();
-
+            $_SESSION = [];
+            if (ini_get("session.use_cookies")) {
+                $params = session_get_cookie_params();
+                setcookie(session_name(), '', time() - 42000,
+                    $params["path"], $params["domain"],
+                    $params["secure"], $params["httponly"]
+                );
+            }
+            @session_destroy();
             sendJSON(['success' => true, 'message' => 'تم تسجيل الخروج بنجاح']);
-
             break;
 
 
