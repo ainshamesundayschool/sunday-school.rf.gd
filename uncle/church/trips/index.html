@@ -17311,7 +17311,24 @@
 
         let config = compileRoomsConfig(prefix);
         if (!config || !config.length) {
-          showToast('برجاء إضافة مبنى واحد على الأقل أولاً لتتمكن من حفظ وتطبيق الهيكل.', 'warning');
+          const templateSelect = document.getElementById(prefix + 'TripRoomsTemplate');
+          const selectedTemplateId = templateSelect ? templateSelect.value : '';
+          if (selectedTemplateId && selectedTemplateId !== 'custom') {
+            const t = _roomsTemplatesCache.find(x => x.id == selectedTemplateId);
+            if (t && t.config) {
+              let parsedConfig = t.config;
+              if (typeof parsedConfig === 'string') {
+                try { parsedConfig = JSON.parse(parsedConfig); } catch (e) { }
+              }
+              if (Array.isArray(parsedConfig) && parsedConfig.length > 0) {
+                config = parsedConfig;
+              }
+            }
+          }
+        }
+
+        if (!config || !config.length) {
+          showToast('برجاء اختيار قالب سكن أولاً أو إضافة مبنى واحد على الأقل لتتمكن من حفظ وتطبيق الهيكل.', 'warning');
           return;
         }
 
