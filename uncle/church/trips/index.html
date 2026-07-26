@@ -5061,7 +5061,7 @@
         const regs = regsInput || (activeTrip ? (tripRegistrationsCache[activeTrip.id] || activeTrip.registrations) : []) || [];
         if (!activeTrip) return regs;
         const cid = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
-        const isOwner = activeTrip.church_id == cid || activeTrip.is_owner == 1;
+        const isOwner = activeTrip.church_id == cid || activeTrip.is_owner == 1 || isDeveloperUser();
         if (isOwner && (window.showAllChurchesStats || ignoreAllChurchesStats)) {
           return regs;
         }
@@ -5073,7 +5073,7 @@
         const waitlist = waitlistInput || window.currentWaitlistCache || (activeTrip ? activeTrip.waitlist : []) || [];
         if (!activeTrip) return waitlist;
         const cid = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
-        const isOwner = activeTrip.church_id == cid || activeTrip.is_owner == 1;
+        const isOwner = activeTrip.church_id == cid || activeTrip.is_owner == 1 || isDeveloperUser();
         if (isOwner && (window.showAllChurchesStats || ignoreAllChurchesStats)) {
           return waitlist;
         }
@@ -5720,7 +5720,7 @@
         if (sidebarTripNameEl) sidebarTripNameEl.textContent = trip.title;
 
         const cid = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
-        const isOwner = trip.church_id == cid || trip.is_owner == 1;
+        const isOwner = trip.church_id == cid || trip.is_owner == 1 || isDeveloperUser();
         const activeLimit = (trip.my_registration_limit !== null && trip.my_registration_limit !== undefined) ? trip.my_registration_limit : (trip.max_participants || '∞');
         const statusMap = { planned: ['badge-info', 'مخطط لها', '#3b82f6'], active: ['badge-success', 'نشطة', '#10b981'], completed: ['badge-warning', 'منتهية', '#f59e0b'], cancelled: ['badge-danger', 'ملغية', '#ef4444'] };
         const [sc, st] = statusMap[trip.status] || ['badge-info', trip.status];
