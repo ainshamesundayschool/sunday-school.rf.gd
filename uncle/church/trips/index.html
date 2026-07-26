@@ -17316,16 +17316,22 @@
           return;
         }
 
+        const templateSelect = document.getElementById(prefix + 'TripRoomsTemplate');
+        const selectedTemplateId = templateSelect ? templateSelect.value : '';
+
         let config = compileRoomsConfig(prefix);
         if (!config || !config.length) {
-          const templateSelect = document.getElementById(prefix + 'TripRoomsTemplate');
-          const selectedTemplateId = templateSelect ? templateSelect.value : '';
           if (selectedTemplateId && selectedTemplateId !== 'custom') {
-            const t = _roomsTemplatesCache.find(x => x.id == selectedTemplateId);
+            const t = _roomsTemplatesCache.find(x => String(x.id) === String(selectedTemplateId));
             if (t && t.config) {
               let parsedConfig = t.config;
               if (typeof parsedConfig === 'string') {
                 try { parsedConfig = JSON.parse(parsedConfig); } catch (e) { }
+              }
+              if (parsedConfig && !Array.isArray(parsedConfig) && typeof parsedConfig === 'object') {
+                if (Array.isArray(parsedConfig.buildings)) parsedConfig = parsedConfig.buildings;
+                else if (Array.isArray(parsedConfig.config)) parsedConfig = parsedConfig.config;
+                else if (Array.isArray(parsedConfig.rooms)) parsedConfig = parsedConfig.rooms;
               }
               if (Array.isArray(parsedConfig) && parsedConfig.length > 0) {
                 config = parsedConfig;
@@ -17339,8 +17345,15 @@
           return;
         }
 
-        if (trip.rooms_config) {
+        let forceReplaceRooms = '0';
+        if (selectedTemplateId && selectedTemplateId !== 'custom') {
+          forceReplaceRooms = '1';
+        } else if (trip.rooms_config) {
           config = mergeRoomsConfigs(config, trip.rooms_config);
+        }
+
+        if (selectedTemplateId && Array.isArray(config) && config.length > 0) {
+          config[0].rooms_template_id = selectedTemplateId;
         }
 
         const roomsConfigStr = JSON.stringify(config);
@@ -17374,6 +17387,7 @@
         fd.append('has_rooms', '1');
         fd.append('rooms_config', roomsConfigStr);
         fd.append('rooms_wizard_edited', '1');
+        fd.append('force_replace_rooms', forceReplaceRooms);
         fd.append('custom_fields', customFields);
         fd.append('custom_field_icons', JSON.stringify(customFieldIcons));
 
