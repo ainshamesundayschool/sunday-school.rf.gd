@@ -5126,12 +5126,14 @@
 
       async function saveTripLocal(tId, tripData) {
         try {
+          const currentAccountKey = `${localStorage.getItem('churchId') || '0'}_${localStorage.getItem('uncleId') || '0'}`;
+          const payload = Object.assign({}, tripData, { _cacheAccountKey: currentAccountKey });
           try {
-            localStorage.setItem(`ss_cached_trip_${tId}`, JSON.stringify(tripData));
+            localStorage.setItem(`ss_cached_trip_${tId}`, JSON.stringify(payload));
           } catch (err) {}
           const db = await getLocalDB();
           const tx = db.transaction('trips', 'readwrite');
-          tx.objectStore('trips').put({ id: String(tId), data: JSON.stringify(tripData), ts: Date.now() });
+          tx.objectStore('trips').put({ id: String(tId), data: JSON.stringify(payload), ts: Date.now() });
           return new Promise((res) => {
             tx.oncomplete = () => res(true);
             tx.onerror = () => res(false);
@@ -5142,6 +5144,14 @@
       }
 
       async function getTripLocal(tId) {
+        const currentAccountKey = `${localStorage.getItem('churchId') || '0'}_${localStorage.getItem('uncleId') || '0'}`;
+        const validatePayload = (data) => {
+          if (!data) return null;
+          if (data._cacheAccountKey && data._cacheAccountKey !== currentAccountKey) {
+            return null; // Cache belonged to another account
+          }
+          return data;
+        };
         try {
           const db = await Promise.race([
             getLocalDB(),
@@ -5152,8 +5162,11 @@
             req.onsuccess = () => {
               if (req.result && req.result.data) {
                 try {
-                  res(JSON.parse(req.result.data));
-                  return;
+                  const data = validatePayload(JSON.parse(req.result.data));
+                  if (data) {
+                    res(data);
+                    return;
+                  }
                 } catch (e) { }
               }
               res(null);
@@ -5163,7 +5176,10 @@
         } catch (e) {
           try {
             const localStr = localStorage.getItem(`ss_cached_trip_${tId}`);
-            if (localStr) return JSON.parse(localStr);
+            if (localStr) {
+              const data = validatePayload(JSON.parse(localStr));
+              if (data) return data;
+            }
           } catch (err) {}
           return null;
         }
