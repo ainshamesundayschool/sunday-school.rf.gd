@@ -17482,9 +17482,10 @@ if ($hasUncleId && $uncleRole === 'uncle')
 
         let isFetchingTrips = false;
         function getTripsCacheKey() {
+            const uncleId = (window.currentUncle && window.currentUncle.id) || localStorage.getItem('uncleId') || '0';
             const code = (localStorage.getItem('churchCode') || <?php echo json_encode($churchCode); ?> || '').trim();
-            const id = <?php echo intval($_SESSION['church_id'] ?? 0); ?>;
-            return code ? `lastTripsData_${code}` : (id ? `lastTripsData_id_${id}` : 'lastTripsData');
+            const id = <?php echo intval($_SESSION['church_id'] ?? $_SESSION['uncle_church_id'] ?? 0); ?> || localStorage.getItem('uncleChurchId') || 0;
+            return `lastTripsData_u_${uncleId}_c_${code || id}`;
         }
 
         async function loadDashboardTrips() {
@@ -17493,22 +17494,25 @@ if ($hasUncleId && $uncleRole === 'uncle')
             if (!container || !head) return;
 
             const tripsCacheKey = getTripsCacheKey();
-            try { localStorage.removeItem('lastTripsData'); } catch (e) { }
 
-            // Load from cache first (scoped to this church only)
+            // Load from cache first (scoped to this uncle & church) for instant launch (0ms)
             const cachedTrips = localStorage.getItem(tripsCacheKey);
             if (cachedTrips) {
                 try {
                     const trips = JSON.parse(cachedTrips);
-                    renderDashboardTripsHtml(trips);
+                    if (Array.isArray(trips) && trips.length > 0) {
+                        renderDashboardTripsHtml(trips);
+                    }
                 } catch (e) { }
             }
 
-            // Show skeleton if empty and no cache
-            if (!container.innerHTML.trim()) {
+            // Show skeleton only if container is empty
+            if (!container.innerHTML.trim() || container.querySelector('.trip-skeleton')) {
                 head.style.display = 'flex';
                 container.style.display = 'flex';
-                container.innerHTML = '<div class="trip-skeleton"></div><div class="trip-skeleton"></div><div class="trip-skeleton"></div>';
+                if (!container.querySelector('.trip-slim-card')) {
+                    container.innerHTML = '<div class="trip-skeleton"></div><div class="trip-skeleton"></div><div class="trip-skeleton"></div>';
+                }
             }
 
             if (isFetchingTrips) return;
