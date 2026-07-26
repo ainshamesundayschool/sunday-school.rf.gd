@@ -21,6 +21,10 @@ ini_set('error_log', __DIR__ . '/php_errors.log');
 // Ensure system-wide Cairo Egypt Timezone
 date_default_timezone_set('Africa/Cairo');
 
+if (!defined('SCHEMA_MIGRATED')) {
+    define('SCHEMA_MIGRATED', true);
+}
+
 
 
 // Set headers
@@ -26564,10 +26568,40 @@ function getTripDetails()
 
 
 
-        // قائمة المسجلين
+        $registrations = [];
+        $totalPaid = 0;
+        $totalDonations = 0;
+        $pendingAmount = 0;
 
+        // Fetch all payments for this trip to build history and compute totals efficiently
+        $paymentsStmt = $conn->prepare("
+            SELECT tp.*, u.name as received_by_name
+            FROM trip_payments tp
+            LEFT JOIN uncles u ON tp.received_by = u.id
+            JOIN trip_registrations tr ON tp.registration_id = tr.id
+            WHERE tr.trip_id = ?
+            ORDER BY tp.id ASC
+        ");
+        $paymentsStmt->bind_param("i", $tripId);
+        $paymentsStmt->execute();
+        $paymentsResult = $paymentsStmt->get_result();
+
+        $allPayments = [];
+        $paymentTotals = [];
+        while ($p = $paymentsResult->fetch_assoc()) {
+            $regId = intval($p['registration_id']);
+            $allPayments[$regId][] = $p;
+            if (empty($p['is_deleted'])) {
+                if (!isset($paymentTotals[$regId])) {
+                    $paymentTotals[$regId] = ['paid' => 0.0, 'donation' => 0.0];
+                }
+                $paymentTotals[$regId]['paid'] += floatval($p['amount']);
+                $paymentTotals[$regId]['donation'] += floatval($p['donation']);
+            }
+        }
+
+        // قائمة المسجلين (Fast indexed query)
         $regStmt = $conn->prepare("
-
             SELECT 
                 tr.*,
                 COALESCE(s.name, g.name, unc.name) as student_name,
@@ -26578,8 +26612,6 @@ function getTripDetails()
                 COALESCE(s.gender, g.gender, unc.gender) as student_gender,
                 COALESCE(s.emergency_phone, g.guardian_name) as guest_guardian_name,
                 u.name as registered_by_name,
-                COALESCE(tp.total_paid, 0) as total_paid,
-                COALESCE(tp.total_donation, 0) as total_donation,
                 tr.payment_history,
                 s.birthday as student_birthday,
                 s.emergency_phone as student_emergency_phone,
@@ -26602,74 +26634,17 @@ function getTripDetails()
             LEFT JOIN classes gc ON gc.id = s.class_id
             LEFT JOIN uncles u ON tr.registered_by = u.id
             LEFT JOIN churches ch ON ch.id = COALESCE(s.church_id, g.church_id, unc.church_id)
-            LEFT JOIN (
-                SELECT registration_id, SUM(amount) as total_paid, SUM(donation) as total_donation 
-                FROM trip_payments 
-                WHERE is_deleted = 0 
-                GROUP BY registration_id
-            ) tp ON tp.registration_id = tr.id
             WHERE tr.trip_id = ? AND tr.cancelled = 0
             ORDER BY tr.registration_date
-
         ");
-
         $regStmt->bind_param("i", $tripId);
-
         $regStmt->execute();
-
         $regResult = $regStmt->get_result();
 
-
-
-        $registrations = [];
-
-        $totalPaid = 0;
-
-        $totalDonations = 0;
-
-        $pendingAmount = 0;
-
-
-
-        // Fetch all payments for this trip to build history with real IDs
-
-        $paymentsStmt = $conn->prepare("
-
-            SELECT tp.*, u.name as received_by_name
-
-            FROM trip_payments tp
-
-            LEFT JOIN uncles u ON tp.received_by = u.id
-
-            JOIN trip_registrations tr ON tp.registration_id = tr.id
-
-            WHERE tr.trip_id = ?
-
-            ORDER BY tp.id ASC
-
-        ");
-
-        $paymentsStmt->bind_param("i", $tripId);
-
-        $paymentsStmt->execute();
-
-        $paymentsResult = $paymentsStmt->get_result();
-
-        $allPayments = [];
-
-        while ($p = $paymentsResult->fetch_assoc()) {
-
-            $allPayments[$p['registration_id']][] = $p;
-
-        }
-
-
-
         while ($row = $regResult->fetch_assoc()) {
-
-            $row['total_paid'] = floatval($row['total_paid'] ?? 0);
-
-            $row['total_donation'] = floatval($row['total_donation'] ?? 0);
+            $regId = intval($row['id']);
+            $row['total_paid'] = floatval($paymentTotals[$regId]['paid'] ?? 0);
+            $row['total_donation'] = floatval($paymentTotals[$regId]['donation'] ?? 0);
 
 
 
