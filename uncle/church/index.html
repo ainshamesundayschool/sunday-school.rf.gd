@@ -19796,7 +19796,7 @@
                     </div>
                 `;
 
-                const userTypeLabel = l.user_type === 'uncle' ? '<span class="badge badge-info">خادم</span>' : l.user_type === 'student' ? '<span class="badge badge-success">طفل</span>' : '<span style="color:var(--muted);">-</span>';
+                const userTypeLabel = l.user_type === 'uncle' ? '<span class="badge badge-info">خادم</span>' : l.user_type === 'student' ? '<span class="badge badge-success">طفل</span>' : l.user_type === 'church' ? '<span class="badge badge-warning">كنيسة</span>' : '<span style="color:var(--muted);">-</span>';
                 const actionBadge = actionMap[l.format] || l.format || '-';
                 const formattedDate = new Date(l.created_at).toLocaleString('ar-EG');
 

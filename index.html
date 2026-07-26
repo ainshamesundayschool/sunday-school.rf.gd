@@ -2526,6 +2526,30 @@
                 localStorage.setItem('song_tracker_uuid', trackerUuid);
             }
 
+            function sendSongTrackingRequest(format) {
+                const fd = new FormData();
+                fd.append('action', 'trackSongDownload');
+                fd.append('format', format);
+                fd.append('tracker_uuid', trackerUuid);
+
+                const uId = localStorage.getItem('uncleId') || localStorage.getItem('uncle_id');
+                const sId = localStorage.getItem('studentId') || localStorage.getItem('student_id');
+                const cId = localStorage.getItem('churchId') || localStorage.getItem('church_id');
+                if (uId) {
+                    fd.append('uncle_id', uId);
+                } else if (sId) {
+                    fd.append('student_id', sId);
+                } else if (cId) {
+                    fd.append('church_id', cId);
+                }
+
+                fetch('/api.php', {
+                    method: 'POST',
+                    body: fd,
+                    credentials: 'include'
+                }).catch(err => console.error('Tracking failed:', err));
+            }
+
             // دالة تنسيق الوقت (ثواني -> د:ث)
             function formatTime(secs) {
                 if (isNaN(secs)) return '0:00';
@@ -2568,11 +2592,7 @@
                 // تتبع أول عملية تشغيل في الجلسة لمنع التكرار المزعج
                 if (!playTrackedThisSession) {
                     playTrackedThisSession = true;
-                    const fd = new FormData();
-                    fd.append('action', 'trackSongDownload');
-                    fd.append('format', 'play');
-                    fd.append('tracker_uuid', trackerUuid);
-                    fetch('/api.php', { method: 'POST', body: fd }).catch(err => console.error(err));
+                    sendSongTrackingRequest('play');
                 }
             });
 
@@ -2703,15 +2723,7 @@
                 downloadDropdown.classList.remove('show');
 
                 // إرسال طلب تتبع التحميل للخلفية
-                const fd = new FormData();
-                fd.append('action', 'trackSongDownload');
-                fd.append('format', format);
-                fd.append('tracker_uuid', trackerUuid);
-
-                fetch('/api.php', {
-                    method: 'POST',
-                    body: fd
-                }).catch(err => console.error('Tracking failed:', err));
+                sendSongTrackingRequest(format);
             }
 
             downloadMp3Btn.addEventListener('click', function() {
@@ -2737,11 +2749,7 @@
                             url: shareUrl
                         }).then(() => {
                             // تتبع المشاركة الناجحة
-                            const fd = new FormData();
-                            fd.append('action', 'trackSongDownload');
-                            fd.append('format', 'share');
-                            fd.append('tracker_uuid', trackerUuid);
-                            fetch('/api.php', { method: 'POST', body: fd }).catch(err => console.error(err));
+                            sendSongTrackingRequest('share');
                         }).catch(err => console.log('Share canceled:', err));
                     } else {
                         // Fallback: نسخ للكلاب بورد
@@ -2749,11 +2757,7 @@
                             alert('تم نسخ رابط الترنيمة بنجاح! شاركها الآن.');
                             
                             // تتبع نسخ الرابط كمشاركة
-                            const fd = new FormData();
-                            fd.append('action', 'trackSongDownload');
-                            fd.append('format', 'share');
-                            fd.append('tracker_uuid', trackerUuid);
-                            fetch('/api.php', { method: 'POST', body: fd }).catch(err => console.error(err));
+                            sendSongTrackingRequest('share');
                         }).catch(err => console.error('Copy failed:', err));
                     }
                 });

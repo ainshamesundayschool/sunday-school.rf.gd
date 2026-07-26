@@ -49426,11 +49426,28 @@ function trackSongDownload() {
     $userType = null;
     
     if (isset($_SESSION['uncle_id'])) {
-        $userId = $_SESSION['uncle_id'];
+        $userId = intval($_SESSION['uncle_id']);
         $userType = 'uncle';
     } elseif (isset($_SESSION['student_id'])) {
-        $userId = $_SESSION['student_id'];
+        $userId = intval($_SESSION['student_id']);
         $userType = 'student';
+    } elseif (isset($_SESSION['church_id'])) {
+        $userId = intval($_SESSION['church_id']);
+        $userType = 'church';
+    }
+
+    if (!$userId && !empty($_POST['uncle_id'])) {
+        $userId = intval($_POST['uncle_id']);
+        $userType = 'uncle';
+    } elseif (!$userId && !empty($_POST['student_id'])) {
+        $userId = intval($_POST['student_id']);
+        $userType = 'student';
+    } elseif (!$userId && !empty($_POST['church_id'])) {
+        $userId = intval($_POST['church_id']);
+        $userType = 'church';
+    } elseif (!$userId && !empty($_POST['user_id']) && !empty($_POST['user_type'])) {
+        $userId = intval($_POST['user_id']);
+        $userType = sanitize($_POST['user_type']);
     }
 
     $ipAddress = $_SERVER['REMOTE_ADDR'] ?? '';
@@ -49538,21 +49555,25 @@ function getSongDownloadStats() {
                    CASE 
                      WHEN l.user_type = 'uncle' THEN u.name 
                      WHEN l.user_type = 'student' THEN s.name 
+                     WHEN l.user_type = 'church' THEN c.church_name
                      ELSE NULL 
                    END as user_display_name,
                    CASE 
                      WHEN l.user_type = 'uncle' THEN u.username 
                      WHEN l.user_type = 'student' THEN s.phone 
+                     WHEN l.user_type = 'church' THEN c.church_code
                      ELSE NULL 
                    END as user_username,
                    CASE 
                      WHEN l.user_type = 'uncle' THEN u.image_url 
                      WHEN l.user_type = 'student' THEN s.image_url 
+                     WHEN l.user_type = 'church' THEN NULL
                      ELSE NULL 
                    END as user_image_url
             FROM song_download_logs l
             LEFT JOIN uncles u ON l.user_type = 'uncle' AND l.user_id = u.id
             LEFT JOIN students s ON l.user_type = 'student' AND l.user_id = s.id
+            LEFT JOIN churches c ON l.user_type = 'church' AND l.user_id = c.id
             ORDER BY l.created_at DESC
             LIMIT 1000";
             
