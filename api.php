@@ -25906,9 +25906,11 @@ function updateTrip()
         $hasRooms = isset($_POST['has_rooms']) ? intval($_POST['has_rooms']) : intval($oldTrip['has_rooms'] ?? 0);
         $hasRooms = $hasRooms ? 1 : 0;
 
+        $roomsWizardEdited = ($_POST['rooms_wizard_edited'] ?? '0') === '1';
         $incomingRoomsConfig = $_POST['rooms_config'] ?? null;
         $oldRoomsConfig = $oldTrip['rooms_config'] ?? null;
-        if (!empty($incomingRoomsConfig) && $incomingRoomsConfig !== 'null' && $incomingRoomsConfig !== '[]' && $incomingRoomsConfig !== '') {
+
+        if ($roomsWizardEdited && !empty($incomingRoomsConfig) && $incomingRoomsConfig !== 'null' && $incomingRoomsConfig !== '[]' && $incomingRoomsConfig !== '') {
             if (!empty($oldRoomsConfig) && $oldRoomsConfig !== 'null' && $oldRoomsConfig !== '[]' && $oldRoomsConfig !== '') {
                 $roomsConfig = mergeRoomsConfigsPHP($incomingRoomsConfig, $oldRoomsConfig);
             } else {

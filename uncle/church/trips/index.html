@@ -11095,7 +11095,7 @@
               }
             } catch (e) { console.error(e); }
           }
-          window.roomsWizardEditedInModal = false;
+          setTimeout(() => { window.roomsWizardEditedInModal = false; }, 150);
         });
 
         toggleEditTripDates();
@@ -11249,158 +11249,179 @@
 
       async function updateTrip(e) {
         e.preventDefault();
-        const tripId = document.getElementById('editTripId').value;
-        const t = allTripsCache.find(x => x.id == tripId) || window.currentTripObj;
-        const previousMax = parseInt(t?.max_participants || 0);
-        const nextMax = parseInt(document.getElementById('editTripMaxParticipants').value || 0);
-        const approved = await confirmTripCapacityChange(tripId, previousMax, nextMax);
-        if (!approved) return;
-        const fd = new FormData();
-        fd.append('action', 'updateTrip');
-        fd.append('trip_id', tripId);
-        fd.append('title', document.getElementById('editTripTitle').value);
-        fd.append('type', document.getElementById('editTripType').value);
-        fd.append('start_date', document.getElementById('editTripStartDate').value);
-        fd.append('end_date', document.getElementById('editTripEndDate').value);
-        fd.append('price', Math.round(parseFloat(document.getElementById('editTripPrice').value) || 0));
-        fd.append('discount', Math.round(parseFloat(document.getElementById('editTripDiscount').value) || 0));
-        fd.append('discount_type', document.getElementById('editTripDiscountType').value);
-        fd.append('max_participants', document.getElementById('editTripMaxParticipants').value || 0);
-        fd.append('collab_limit_mode', document.getElementById('editTripCollabLimitMode').value);
-        fd.append('collab_max_participants', document.getElementById('editTripCollabMaxParticipants').value || '');
-        fd.append('status', document.getElementById('editTripStatus').value);
-        fd.append('description', document.getElementById('editTripDescription').value);
-        fd.append('show_registered_kids', document.getElementById('editTripShowRegisteredKids').value);
-        fd.append('hide_from_uncles', document.getElementById('editTripHideFromUncles').value);
-        fd.append('has_points_game', document.getElementById('editTripHasPointsGame').value);
-        let customFields = t ? (t.custom_fields || '') : '';
-        let customFieldIcons = {};
+        const saveBtn = (e.target && e.target.querySelector) ? e.target.querySelector('button[type="submit"]') : document.getElementById('btnSaveEditTrip');
+        const origBtnHtml = saveBtn ? saveBtn.innerHTML : '';
+
         try {
-          customFieldIcons = t ? (typeof t.custom_field_icons === 'object' ? t.custom_field_icons : JSON.parse(t.custom_field_icons || '{}')) : {};
-        } catch (e) { }
-        if (!customFieldIcons || Array.isArray(customFieldIcons) || typeof customFieldIcons !== 'object') {
-          customFieldIcons = {};
-        }
+          const tripId = document.getElementById('editTripId').value;
+          const t = allTripsCache.find(x => x.id == tripId) || window.currentTripObj;
+          const previousMax = parseInt(t?.max_participants || 0);
+          const nextMax = parseInt(document.getElementById('editTripMaxParticipants').value || 0);
+          const approved = await confirmTripCapacityChange(tripId, previousMax, nextMax);
+          if (!approved) return;
 
-        const hasRooms = document.getElementById('editTripHasRooms').value === '1';
-        let roomsConfig = null;
-        if (hasRooms) {
-          if (t && t.rooms_config && !window.roomsWizardEditedInModal) {
-            roomsConfig = typeof t.rooms_config === 'string' ? t.rooms_config : JSON.stringify(t.rooms_config);
-          } else {
-            let config = compileRoomsConfig('edit');
-            if (t && t.rooms_config) {
-              config = mergeRoomsConfigs(config, t.rooms_config);
-            }
-            roomsConfig = JSON.stringify(config);
+          if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري حفظ التعديلات...';
           }
-          let parsedConfig = typeof roomsConfig === 'string' ? (JSON.parse(roomsConfig || '[]')) : (roomsConfig || []);
-          if (parsedConfig && !Array.isArray(parsedConfig) && Array.isArray(parsedConfig.buildings)) {
-            parsedConfig = parsedConfig.buildings;
-          }
-          if (!Array.isArray(parsedConfig)) parsedConfig = [];
 
-          const fieldsList = customFields.split(',').map(x => x.trim()).filter(Boolean);
-          if (!fieldsList.includes('السكن')) {
-            fieldsList.push('السكن');
-          }
-          customFields = fieldsList.join(',');
-          if (typeof buildAccommodationCustomFieldMeta === 'function') {
-            try {
-              customFieldIcons['السكن'] = buildAccommodationCustomFieldMeta(parsedConfig);
-            } catch (err) { console.error("Error building accommodation meta:", err); }
-          }
-        } else {
-          if (t && t.rooms_config) {
-            roomsConfig = typeof t.rooms_config === 'string' ? t.rooms_config : JSON.stringify(t.rooms_config);
-          }
-          const fieldsList = customFields.split(',').map(x => x.trim()).filter(Boolean).filter(f => f !== 'السكن');
-          customFields = fieldsList.join(',');
-          delete customFieldIcons['السكن'];
-        }
+          const fd = new FormData();
+          fd.append('action', 'updateTrip');
+          fd.append('trip_id', tripId);
+          fd.append('title', document.getElementById('editTripTitle').value);
+          fd.append('type', document.getElementById('editTripType').value);
+          fd.append('start_date', document.getElementById('editTripStartDate').value);
+          fd.append('end_date', document.getElementById('editTripEndDate').value);
+          fd.append('price', Math.round(parseFloat(document.getElementById('editTripPrice').value) || 0));
+          fd.append('discount', Math.round(parseFloat(document.getElementById('editTripDiscount').value) || 0));
+          fd.append('discount_type', document.getElementById('editTripDiscountType').value);
+          fd.append('max_participants', document.getElementById('editTripMaxParticipants').value || 0);
+          fd.append('collab_limit_mode', document.getElementById('editTripCollabLimitMode').value);
+          fd.append('collab_max_participants', document.getElementById('editTripCollabMaxParticipants').value || '');
+          fd.append('status', document.getElementById('editTripStatus').value);
+          fd.append('description', document.getElementById('editTripDescription').value);
+          fd.append('show_registered_kids', document.getElementById('editTripShowRegisteredKids').value);
+          fd.append('hide_from_uncles', document.getElementById('editTripHideFromUncles').value);
+          fd.append('has_points_game', document.getElementById('editTripHasPointsGame').value);
+          fd.append('rooms_wizard_edited', window.roomsWizardEditedInModal ? '1' : '0');
 
-        const hasGame = document.getElementById('editTripHasPointsGame').value === '1';
-        let pointsConfig = null;
-        if (hasGame) {
-          const modes = [];
-          if (document.getElementById('editTripModeDirect').checked) modes.push('direct');
-          if (document.getElementById('editTripModeShortcuts').checked) modes.push('shortcuts');
-          if (document.getElementById('editTripModeCustom').checked) modes.push('custom');
+          let customFields = t ? (t.custom_fields || '') : '';
+          let customFieldIcons = {};
+          try {
+            customFieldIcons = t ? (typeof t.custom_field_icons === 'object' ? t.custom_field_icons : JSON.parse(t.custom_field_icons || '{}')) : {};
+          } catch (e) { }
+          if (!customFieldIcons || Array.isArray(customFieldIcons) || typeof customFieldIcons !== 'object') {
+            customFieldIcons = {};
+          }
 
-          const directPointsRaw = document.getElementById('editTripDirectPointsList').value;
-          const direct_points = directPointsRaw.split(',')
-            .map(x => parseInt(x.trim()))
-            .filter(x => !isNaN(x) && x > 0);
-
-          const shortcuts = [];
-          if (modes.includes('shortcuts')) {
-            document.querySelectorAll('#editTripShortcutsList .shortcut-editor-row').forEach(row => {
-              const icon = row.querySelector('.shortcut-icon').value;
-              const name = row.querySelector('.shortcut-name').value.trim();
-              const desc = row.querySelector('.shortcut-desc').value.trim();
-              const points = parseInt(row.querySelector('.shortcut-points').value || 0);
-              if (name) {
-                shortcuts.push({ icon, name, desc, points });
+          const hasRooms = document.getElementById('editTripHasRooms').value === '1';
+          let roomsConfig = null;
+          if (hasRooms) {
+            if (t && t.rooms_config && !window.roomsWizardEditedInModal) {
+              roomsConfig = typeof t.rooms_config === 'string' ? t.rooms_config : JSON.stringify(t.rooms_config);
+            } else {
+              let config = compileRoomsConfig('edit');
+              if (t && t.rooms_config) {
+                config = mergeRoomsConfigs(config, t.rooms_config);
               }
+              roomsConfig = JSON.stringify(config);
+            }
+            let parsedConfig = typeof roomsConfig === 'string' ? (JSON.parse(roomsConfig || '[]')) : (roomsConfig || []);
+            if (parsedConfig && !Array.isArray(parsedConfig) && Array.isArray(parsedConfig.buildings)) {
+              parsedConfig = parsedConfig.buildings;
+            }
+            if (!Array.isArray(parsedConfig)) parsedConfig = [];
+
+            const fieldsList = customFields.split(',').map(x => x.trim()).filter(Boolean);
+            if (!fieldsList.includes('السكن')) {
+              fieldsList.push('السكن');
+            }
+            customFields = fieldsList.join(',');
+            if (typeof buildAccommodationCustomFieldMeta === 'function') {
+              try {
+                customFieldIcons['السكن'] = buildAccommodationCustomFieldMeta(parsedConfig);
+              } catch (err) { console.error("Error building accommodation meta:", err); }
+            }
+          } else {
+            if (t && t.rooms_config) {
+              roomsConfig = typeof t.rooms_config === 'string' ? t.rooms_config : JSON.stringify(t.rooms_config);
+            }
+            const fieldsList = customFields.split(',').map(x => x.trim()).filter(Boolean).filter(f => f !== 'السكن');
+            customFields = fieldsList.join(',');
+            delete customFieldIcons['السكن'];
+          }
+
+          const hasGame = document.getElementById('editTripHasPointsGame').value === '1';
+          let pointsConfig = null;
+          if (hasGame) {
+            const modes = [];
+            if (document.getElementById('editTripModeDirect').checked) modes.push('direct');
+            if (document.getElementById('editTripModeShortcuts').checked) modes.push('shortcuts');
+            if (document.getElementById('editTripModeCustom').checked) modes.push('custom');
+
+            const directPointsRaw = document.getElementById('editTripDirectPointsList').value;
+            const direct_points = directPointsRaw.split(',')
+              .map(x => parseInt(x.trim()))
+              .filter(x => !isNaN(x) && x > 0);
+
+            const shortcuts = [];
+            if (modes.includes('shortcuts')) {
+              document.querySelectorAll('#editTripShortcutsList .shortcut-editor-row').forEach(row => {
+                const icon = row.querySelector('.shortcut-icon').value;
+                const name = row.querySelector('.shortcut-name').value.trim();
+                const desc = row.querySelector('.shortcut-desc').value.trim();
+                const points = parseInt(row.querySelector('.shortcut-points').value || 0);
+                if (name) {
+                  shortcuts.push({ icon, name, desc, points });
+                }
+              });
+            }
+
+            let legacyPointsType = 'direct';
+            if (modes.includes('direct') && modes.includes('shortcuts')) {
+              legacyPointsType = 'combined';
+            } else if (modes.includes('shortcuts')) {
+              legacyPointsType = 'shortcuts';
+            }
+
+            pointsConfig = JSON.stringify({
+              points_type: legacyPointsType,
+              modes,
+              direct_points,
+              shortcuts
             });
           }
 
-          let legacyPointsType = 'direct';
-          if (modes.includes('direct') && modes.includes('shortcuts')) {
-            legacyPointsType = 'combined';
-          } else if (modes.includes('shortcuts')) {
-            legacyPointsType = 'shortcuts';
+          fd.append('custom_fields', customFields);
+          fd.append('custom_field_icons', JSON.stringify(customFieldIcons));
+          fd.append('has_rooms', hasRooms ? '1' : '0');
+          fd.append('rooms_config', roomsConfig || '');
+          fd.append('points_config', pointsConfig || '');
+
+          const imageFileInput = document.getElementById('editTripImageFile');
+          if (window.optimizedEditTripCoverFile) {
+            fd.append('trip_image', window.optimizedEditTripCoverFile);
+          } else if (imageFileInput && imageFileInput.files && imageFileInput.files[0]) {
+            fd.append('trip_image', imageFileInput.files[0]);
+          }
+          const imageUrlInput = document.getElementById('editTripImageUrl');
+          let cleanVal = '';
+          if (imageUrlInput) {
+            const rawVal = imageUrlInput.value.trim();
+            cleanVal = ['0', 'null', 'undefined', 'false', 'none'].includes(rawVal.toLowerCase()) ? '' : rawVal;
+            fd.append('image_url', cleanVal);
           }
 
-          pointsConfig = JSON.stringify({
-            points_type: legacyPointsType,
-            modes,
-            direct_points,
-            shortcuts
-          });
-        }
-
-        fd.append('custom_fields', customFields);
-        fd.append('custom_field_icons', JSON.stringify(customFieldIcons));
-        fd.append('has_rooms', hasRooms ? '1' : '0');
-        fd.append('rooms_config', roomsConfig || '');
-        fd.append('points_config', pointsConfig || '');
-
-        const imageFileInput = document.getElementById('editTripImageFile');
-        if (window.optimizedEditTripCoverFile) {
-          fd.append('trip_image', window.optimizedEditTripCoverFile);
-        } else if (imageFileInput && imageFileInput.files && imageFileInput.files[0]) {
-          fd.append('trip_image', imageFileInput.files[0]);
-        }
-        const imageUrlInput = document.getElementById('editTripImageUrl');
-        if (imageUrlInput) {
-          const rawVal = imageUrlInput.value.trim();
-          const cleanVal = ['0', 'null', 'undefined', 'false', 'none'].includes(rawVal.toLowerCase()) ? '' : rawVal;
-          fd.append('image_url', cleanVal);
-        }
-
-        const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
-        if (d.success) {
-          window.optimizedEditTripCoverFile = null;
-          const rawVal = document.getElementById('editTripImageUrl')?.value?.trim() || '';
-          let finalImgUrl = (d.image_url !== undefined && d.image_url !== null) ? d.image_url : (d.trip && d.trip.image_url !== undefined ? d.trip.image_url : cleanVal);
-          if (finalImgUrl && ['0', 'null', 'undefined', 'false', 'none'].includes(String(finalImgUrl).toLowerCase().trim())) {
-            finalImgUrl = '';
+          const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+          if (d.success) {
+            window.optimizedEditTripCoverFile = null;
+            let finalImgUrl = (d.image_url !== undefined && d.image_url !== null) ? d.image_url : (d.trip && d.trip.image_url !== undefined ? d.trip.image_url : cleanVal);
+            if (finalImgUrl && ['0', 'null', 'undefined', 'false', 'none'].includes(String(finalImgUrl).toLowerCase().trim())) {
+              finalImgUrl = '';
+            }
+            allTripsCache = allTripsCache.map(item => String(item.id) === String(tripId) ? { ...item, ...d.trip, image_url: finalImgUrl, max_participants: nextMax, points_config: pointsConfig } : item);
+            if (window.currentTripObj && String(window.currentTripObj.id) === String(tripId)) {
+              window.currentTripObj = { ...window.currentTripObj, ...d.trip, image_url: finalImgUrl, max_participants: nextMax, points_config: pointsConfig };
+            }
+            const syncRes = await syncTripCapacityAfterUpdate(tripId, previousMax, nextMax);
+            showToast(syncRes.message || 'تم تحديث الرحلة بنجاح', syncRes.success ? (syncRes.mode === 'grow' ? 'info' : 'success') : 'warning');
+            closeModal('editTripModal');
+            loadTrips();
+            await showTripDetails(tripId);
+            if (document.getElementById('tdpanel-waitlist')?.style.display !== 'none') {
+              await loadWaitlist(tripId);
+            }
+          } else {
+            showToast(d.message || 'فشل التحديث', 'error');
           }
-          allTripsCache = allTripsCache.map(item => String(item.id) === String(tripId) ? { ...item, ...d.trip, image_url: finalImgUrl, max_participants: nextMax, points_config: pointsConfig } : item);
-          if (window.currentTripObj && String(window.currentTripObj.id) === String(tripId)) {
-            window.currentTripObj = { ...window.currentTripObj, ...d.trip, image_url: finalImgUrl, max_participants: nextMax, points_config: pointsConfig };
+        } catch (err) {
+          console.error("updateTrip error:", err);
+          showToast('حدث خطأ أثناء حفظ التعديلات', 'error');
+        } finally {
+          if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = origBtnHtml;
           }
-          const syncRes = await syncTripCapacityAfterUpdate(tripId, previousMax, nextMax);
-          showToast(syncRes.message || 'تم تحديث الرحلة بنجاح', syncRes.success ? (syncRes.mode === 'grow' ? 'info' : 'success') : 'warning');
-          closeModal('editTripModal');
-          loadTrips();
-          await showTripDetails(tripId);
-          if (document.getElementById('tdpanel-waitlist')?.style.display !== 'none') {
-            await loadWaitlist(tripId);
-          }
-        } else {
-          showToast(d.message || 'فشل التحديث', 'error');
         }
       }
 
