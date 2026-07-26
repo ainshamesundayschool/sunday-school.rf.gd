@@ -628,11 +628,13 @@
             .modal-overlay {
                 padding: 10px;
             }
+
             .modal {
                 max-height: 90dvh !important;
                 width: 100% !important;
                 border-radius: var(--r-xl) !important;
             }
+
             .modal-body {
                 padding: 14px;
                 gap: 12px;
@@ -1640,20 +1642,24 @@
             transition: all var(--t) var(--ease);
             cursor: pointer;
         }
+
         .sync-badge.success {
             background: var(--success-bg);
             color: var(--success-dark);
             border: 1px solid var(--success);
         }
+
         .sync-badge.offline {
             background: var(--danger-bg);
             color: var(--danger-dark);
             border: 1px solid var(--danger);
         }
+
         @media (max-width: 450px) {
             .sync-badge {
                 padding: 6px 8px;
             }
+
             .sync-badge .sync-text {
                 display: none;
             }
@@ -1676,7 +1682,8 @@
         </a>
         <div class="topbar-actions">
             <!-- Sync Status Badge -->
-            <div id="syncBadge" class="sync-badge success" onclick="retrySyncOfflineActionsManual()" title="حالة المزامنة" style="display: none;">
+            <div id="syncBadge" class="sync-badge success" onclick="retrySyncOfflineActionsManual()"
+                title="حالة المزامنة" style="display: none;">
                 <i class="fas fa-check-circle"></i>
                 <span class="sync-text">تم الحفظ</span>
             </div>
@@ -1701,8 +1708,12 @@
             </button>
 
             <!-- Uncle Profile Avatar -->
-            <div id="topbarUncleAvatar" style="display: none; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; overflow: hidden; border: 1.5px solid var(--border-solid); background: var(--surface-3); cursor: pointer;" title="بروفايل الخادم" onclick="if(currentUncleId) navigateTo('uncle_profile', { uncle_id: currentUncleId })">
-                <img src="" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.parentElement.style.display='none'">
+            <div id="topbarUncleAvatar"
+                style="display: none; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; overflow: hidden; border: 1.5px solid var(--border-solid); background: var(--surface-3); cursor: pointer;"
+                title="بروفايل الخادم"
+                onclick="if(currentUncleId) navigateTo('uncle_profile', { uncle_id: currentUncleId })">
+                <img src="" style="width: 100%; height: 100%; object-fit: cover;"
+                    onerror="this.parentElement.style.display='none'">
             </div>
         </div>
     </div>
@@ -1737,32 +1748,33 @@
                             placeholder="ابحث عن طفل بالاسم..."
                             oninput="topbarSearchHandler('topbarSearchMain', 'topbarSearchResultsMain')"
                             style="padding: 10px 14px 10px 40px; font-size: 0.95rem; border-radius: 24px; border: 1.5px solid var(--border-solid); width: 100%; box-sizing: border-box; text-align: right; background: var(--surface); transition: all 0.2s; outline: none;">
-                        
+
                         <!-- Scan QR Icon (Left, instead of search icon) -->
-                        <button type="button" onclick="toggleScanDropdown(event)" 
+                        <button type="button" onclick="toggleScanDropdown(event)"
                             style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); border: none; background: none; color: var(--brand); cursor: pointer; padding: 4px; font-size: 1.15rem; display: flex; align-items: center; justify-content: center; outline: none; transition: transform 0.2s; z-index: 15;"
                             onmouseover="this.style.transform='translateY(-50%) scale(1.15)'"
-                            onmouseout="this.style.transform='translateY(-50%) scale(1)'"
-                            title="مسح كود QR">
+                            onmouseout="this.style.transform='translateY(-50%) scale(1)'" title="مسح كود QR">
                             <i class="fas fa-qrcode"></i>
                         </button>
                     </div>
 
                     <!-- Scan Dropdown Menu (Aligned Left) -->
-                    <div id="scanDropdownMenu" class="glass-card" 
+                    <div id="scanDropdownMenu" class="glass-card"
                         style="display: none; position: absolute; left: 8px; top: 100%; margin-top: 6px; width: 200px; border-radius: var(--r-md, 12px); border: 1.5px solid var(--border-solid); background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: var(--shadow-lg); z-index: 10000; overflow: hidden; direction: rtl;">
-                        <a href="javascript:void(0)" onclick="selectScanOption('profile')" 
-                            onmouseover="this.style.background='var(--surface-3)'" 
+                        <a href="javascript:void(0)" onclick="selectScanOption('profile')"
+                            onmouseover="this.style.background='var(--surface-3)'"
                             onmouseout="this.style.background='transparent'"
                             style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; font-size: 0.85rem; font-weight: 700; color: var(--text-1); text-decoration: none; border-bottom: 1px solid var(--border-solid); transition: background 0.2s;">
-                            <i class="fas fa-user" style="color: var(--success); font-size: 0.95rem; width: 18px; text-align: center;"></i>
+                            <i class="fas fa-user"
+                                style="color: var(--success); font-size: 0.95rem; width: 18px; text-align: center;"></i>
                             <span>مسح ملف الطفل</span>
                         </a>
-                        <a href="javascript:void(0)" onclick="selectScanOption('fast')" 
-                            onmouseover="this.style.background='var(--surface-3)'" 
+                        <a href="javascript:void(0)" onclick="selectScanOption('fast')"
+                            onmouseover="this.style.background='var(--surface-3)'"
                             onmouseout="this.style.background='transparent'"
                             style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; font-size: 0.85rem; font-weight: 700; color: var(--text-1); text-decoration: none; transition: background 0.2s;">
-                            <i class="fas fa-bolt" style="color: var(--brand); font-size: 0.95rem; width: 18px; text-align: center;"></i>
+                            <i class="fas fa-bolt"
+                                style="color: var(--brand); font-size: 0.95rem; width: 18px; text-align: center;"></i>
                             <span>مسح إضافة فورية</span>
                         </a>
                     </div>
@@ -1832,29 +1844,30 @@
                         oninput="topbarSearchHandler('topbarSearchProfile', 'topbarSearchResultsProfile')"
                         style="padding: 10px 14px 10px 40px; font-size: 0.95rem; border-radius: 24px; border: 1.5px solid var(--border-solid); width: 100%; box-sizing: border-box; text-align: right; background: var(--surface); transition: all 0.2s; outline: none;">
                     <!-- Scan QR Icon (Left, instead of search icon) -->
-                    <button type="button" onclick="toggleScanDropdownProfile(event)" 
+                    <button type="button" onclick="toggleScanDropdownProfile(event)"
                         style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); border: none; background: none; color: var(--brand); cursor: pointer; padding: 4px; font-size: 1.15rem; display: flex; align-items: center; justify-content: center; outline: none; transition: transform 0.2s; z-index: 15;"
                         onmouseover="this.style.transform='translateY(-50%) scale(1.15)'"
-                        onmouseout="this.style.transform='translateY(-50%) scale(1)'"
-                        title="مسح كود QR">
+                        onmouseout="this.style.transform='translateY(-50%) scale(1)'" title="مسح كود QR">
                         <i class="fas fa-qrcode"></i>
                     </button>
                 </div>
                 <!-- Scan Dropdown Menu (Aligned Left) -->
-                <div id="scanDropdownMenuProfile" class="glass-card" 
+                <div id="scanDropdownMenuProfile" class="glass-card"
                     style="display: none; position: absolute; left: 8px; top: 100%; margin-top: 6px; width: 200px; border-radius: var(--r-md, 12px); border: 1.5px solid var(--border-solid); background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: var(--shadow-lg); z-index: 10000; overflow: hidden; direction: rtl;">
-                    <a href="javascript:void(0)" onclick="selectScanOption('profile')" 
-                        onmouseover="this.style.background='var(--surface-3)'" 
+                    <a href="javascript:void(0)" onclick="selectScanOption('profile')"
+                        onmouseover="this.style.background='var(--surface-3)'"
                         onmouseout="this.style.background='transparent'"
                         style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; font-size: 0.85rem; font-weight: 700; color: var(--text-1); text-decoration: none; border-bottom: 1px solid var(--border-solid); transition: background 0.2s;">
-                        <i class="fas fa-user" style="color: var(--success); font-size: 0.95rem; width: 18px; text-align: center;"></i>
+                        <i class="fas fa-user"
+                            style="color: var(--success); font-size: 0.95rem; width: 18px; text-align: center;"></i>
                         <span>مسح ملف الطفل</span>
                     </a>
-                    <a href="javascript:void(0)" onclick="selectScanOption('fast')" 
-                        onmouseover="this.style.background='var(--surface-3)'" 
+                    <a href="javascript:void(0)" onclick="selectScanOption('fast')"
+                        onmouseover="this.style.background='var(--surface-3)'"
                         onmouseout="this.style.background='transparent'"
                         style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; font-size: 0.85rem; font-weight: 700; color: var(--text-1); text-decoration: none; transition: background 0.2s;">
-                        <i class="fas fa-bolt" style="color: var(--brand); font-size: 0.95rem; width: 18px; text-align: center;"></i>
+                        <i class="fas fa-bolt"
+                            style="color: var(--brand); font-size: 0.95rem; width: 18px; text-align: center;"></i>
                         <span>مسح إضافة فورية</span>
                     </a>
                 </div>
@@ -1907,7 +1920,7 @@
                         <button type="button" class="history-tab-btn active" onclick="switchProfileHistoryTab('all')"
                             id="profHistTabAll"
                             style="flex: 1; padding: 6px 12px; border-radius: var(--r-sm); border: none; font-weight: 800; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; background: var(--surface); color: var(--text);">
-                            <span>جميع نقاط الأعمام</span>
+                            <span>جميع نقاط</span>
                             <span class="tab-count-badge" id="allCount"
                                 style="font-size: 0.7rem; background: var(--brand-glow); color: var(--brand); padding: 1px 5px; border-radius: var(--r-xs);">0</span>
                         </button>
@@ -1946,39 +1959,52 @@
                 <div class="hero-greeting">ملف الخادم</div>
             </div>
 
-            <div class="profile-card" style="width:100%; max-width:480px; margin: 0 auto; background:var(--surface); border:1px solid var(--border-solid); border-radius:var(--r-xl); padding:24px; box-sizing:border-box; text-align:center; box-shadow:var(--shadow-lg); direction:rtl;">
+            <div class="profile-card"
+                style="width:100%; max-width:480px; margin: 0 auto; background:var(--surface); border:1px solid var(--border-solid); border-radius:var(--r-xl); padding:24px; box-sizing:border-box; text-align:center; box-shadow:var(--shadow-lg); direction:rtl;">
                 <!-- Avatar Container -->
-                <div id="uncleProfilePhotoContainer" style="position:relative; width:100px; height:100px; margin:0 auto 16px auto; border-radius:50%; overflow:hidden; border:3px solid var(--brand); background:var(--surface-3); display:flex; align-items:center; justify-content:center;">
+                <div id="uncleProfilePhotoContainer"
+                    style="position:relative; width:100px; height:100px; margin:0 auto 16px auto; border-radius:50%; overflow:hidden; border:3px solid var(--brand); background:var(--surface-3); display:flex; align-items:center; justify-content:center;">
                 </div>
 
                 <!-- Name & Role -->
-                <h2 id="uncleProfileName" style="font-size:1.4rem; font-weight:800; color:var(--text); margin-bottom:6px;"></h2>
+                <h2 id="uncleProfileName"
+                    style="font-size:1.4rem; font-weight:800; color:var(--text); margin-bottom:6px;"></h2>
                 <div style="display:flex; justify-content:center; gap:8px; margin-bottom:20px; align-items:center;">
-                    <span id="uncleProfileRole" class="badge-role" style="font-size:0.75rem; font-weight:700; color:white; background:var(--brand); padding:2px 8px; border-radius:var(--r-sm);"></span>
-                    <span id="uncleProfileChurch" style="font-size:0.75rem; font-weight:700; color:var(--text-2); background:var(--surface-3); padding:2px 8px; border-radius:var(--r-sm);"><i class="fas fa-church"></i> </span>
+                    <span id="uncleProfileRole" class="badge-role"
+                        style="font-size:0.75rem; font-weight:700; color:white; background:var(--brand); padding:2px 8px; border-radius:var(--r-sm);"></span>
+                    <span id="uncleProfileChurch"
+                        style="font-size:0.75rem; font-weight:700; color:var(--text-2); background:var(--surface-3); padding:2px 8px; border-radius:var(--r-sm);"><i
+                            class="fas fa-church"></i> </span>
                 </div>
 
                 <!-- Info Grid -->
-                <div style="display:flex; flex-direction:column; gap:12px; text-align:right; border-top:1px solid var(--border-solid); padding-top:16px;">
+                <div
+                    style="display:flex; flex-direction:column; gap:12px; text-align:right; border-top:1px solid var(--border-solid); padding-top:16px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.9rem;">
-                        <span style="color:var(--text-3); font-weight:700;"><i class="fas fa-user"></i> اسم المستخدم:</span>
+                        <span style="color:var(--text-3); font-weight:700;"><i class="fas fa-user"></i> اسم
+                            المستخدم:</span>
                         <span id="uncleProfileUsername" style="color:var(--text); font-weight:800;"></span>
                     </div>
                     <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.9rem;">
-                        <span style="color:var(--text-3); font-weight:700;"><i class="fas fa-phone"></i> رقم الموبايل:</span>
+                        <span style="color:var(--text-3); font-weight:700;"><i class="fas fa-phone"></i> رقم
+                            الموبايل:</span>
                         <span id="uncleProfilePhone" style="color:var(--text); font-weight:800;"></span>
                     </div>
                     <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.9rem;">
-                        <span style="color:var(--text-3); font-weight:700;"><i class="fas fa-envelope"></i> البريد الإلكتروني:</span>
+                        <span style="color:var(--text-3); font-weight:700;"><i class="fas fa-envelope"></i> البريد
+                            الإلكتروني:</span>
                         <span id="uncleProfileEmail" style="color:var(--text); font-weight:800;"></span>
                     </div>
                     <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.9rem;">
-                        <span style="color:var(--text-3); font-weight:700;"><i class="fas fa-venus-mars"></i> النوع:</span>
+                        <span style="color:var(--text-3); font-weight:700;"><i class="fas fa-venus-mars"></i>
+                            النوع:</span>
                         <span id="uncleProfileGender" style="color:var(--text); font-weight:800;"></span>
                     </div>
                     <div style="display:flex; flex-direction:column; gap:6px; font-size:0.9rem; margin-top:8px;">
-                        <span style="color:var(--text-3); font-weight:700;"><i class="fas fa-chalkboard-teacher"></i> الفصول المسندة:</span>
-                        <div id="uncleProfileClasses" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:4px;"></div>
+                        <span style="color:var(--text-3); font-weight:700;"><i class="fas fa-chalkboard-teacher"></i>
+                            الفصول المسندة:</span>
+                        <div id="uncleProfileClasses" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:4px;">
+                        </div>
                     </div>
                     <div id="uncleProfileEditLink" style="text-align:center;"></div>
                 </div>
@@ -1993,7 +2019,8 @@
                     style="border:none;background:var(--border-solid);color:var(--text-2);padding:8px 12px;border-radius:var(--r-md);margin:0;">
                     <i class="fas fa-arrow-right"></i> عودة
                 </button>
-                <div class="hero-greeting"><i class="fas fa-bolt" style="color:var(--brand); margin-left:8px;"></i> إضافة فورية</div>
+                <div class="hero-greeting"><i class="fas fa-bolt" style="color:var(--brand); margin-left:8px;"></i>
+                    إضافة فورية</div>
 
                 <div id="fastScanSourceTabs" class="scanner-source-tabs"
                     style="display:flex;background:var(--surface-3);padding:3px;border-radius:var(--r-md);margin-bottom:0;gap:4px;direction:rtl;margin-right:auto;flex:1;max-width:200px;">
@@ -2117,7 +2144,8 @@
                 </div>
                 <div class="modal-body">
                     <!-- Warning / Info Alert -->
-                    <div style="background: #e2e6ff; border: 1.5px solid var(--brand); color: var(--brand-dark); padding: 12px; border-radius: 12px; font-size: 0.8rem; line-height: 1.5; font-weight: 700; display: flex; flex-direction: column; gap: 8px;">
+                    <div
+                        style="background: #e2e6ff; border: 1.5px solid var(--brand); color: var(--brand-dark); padding: 12px; border-radius: 12px; font-size: 0.8rem; line-height: 1.5; font-weight: 700; display: flex; flex-direction: column; gap: 8px;">
                         <div>
                             <i class="fas fa-info-circle" style="font-size: 0.95rem; margin-left: 4px;"></i>
                             تنبيه: هذه الإعدادات تُطبق على الرحلة كاملة لجميع الخدام، وليست لحسابك الشخصي فقط.
@@ -2129,36 +2157,48 @@
                     </div>
 
                     <!-- Form Control: Leaderboard Notifications -->
-                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px; flex-wrap: wrap;">
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px; flex-wrap: wrap;">
                         <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 180px;">
-                            <span style="font-weight: 800; font-size: 0.88rem; color: var(--text);">إشعارات لوحة الأوائل</span>
-                            <span style="font-size: 0.72rem; color: var(--text-3);">تنبيهات عندما يصعد طفل للمراكز الـ 10 الأولى</span>
+                            <span style="font-weight: 800; font-size: 0.88rem; color: var(--text);">إشعارات لوحة
+                                الأوائل</span>
+                            <span style="font-size: 0.72rem; color: var(--text-3);">تنبيهات عندما يصعد طفل للمراكز الـ
+                                10 الأولى</span>
                         </div>
-                        <label class="switch-toggle" style="position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;">
-                            <input type="checkbox" id="settingLeaderboardNotifs" style="opacity: 0; width: 0; height: 0;">
-                            <span class="switch-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--surface-3); transition: .3s; border-radius: 24px; border: 1.5px solid var(--border-solid);"></span>
+                        <label class="switch-toggle"
+                            style="position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;">
+                            <input type="checkbox" id="settingLeaderboardNotifs"
+                                style="opacity: 0; width: 0; height: 0;">
+                            <span class="switch-slider"
+                                style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--surface-3); transition: .3s; border-radius: 24px; border: 1.5px solid var(--border-solid);"></span>
                         </label>
                     </div>
 
                     <!-- Form Control: Naughty Notifications -->
-                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px; flex-wrap: wrap;">
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px; flex-wrap: wrap;">
                         <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 180px;">
                             <span style="font-weight: 800; font-size: 0.88rem; color: var(--text);">إشعارات الشغب</span>
                             <span style="font-size: 0.72rem; color: var(--text-3);">تنبيهات عند تسجيل شغب لطفل</span>
                         </div>
-                        <label class="switch-toggle" style="position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;">
+                        <label class="switch-toggle"
+                            style="position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;">
                             <input type="checkbox" id="settingNaughtyNotifs" style="opacity: 0; width: 0; height: 0;">
-                            <span class="switch-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--surface-3); transition: .3s; border-radius: 24px; border: 1.5px solid var(--border-solid);"></span>
+                            <span class="switch-slider"
+                                style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--surface-3); transition: .3s; border-radius: 24px; border: 1.5px solid var(--border-solid);"></span>
                         </label>
                     </div>
 
                     <!-- Form Control: Points Recording Permission -->
-                    <div id="settingPointsPermissionContainer" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px; flex-wrap: wrap;">
+                    <div id="settingPointsPermissionContainer"
+                        style="display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px; flex-wrap: wrap;">
                         <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 160px;">
                             <span style="font-weight: 800; font-size: 0.88rem; color: var(--text);">تسجيل النقاط</span>
-                            <span style="font-size: 0.72rem; color: var(--text-3);">تحديد صلاحية تسجيل النقاط للرحلة</span>
+                            <span style="font-size: 0.72rem; color: var(--text-3);">تحديد صلاحية تسجيل النقاط
+                                للرحلة</span>
                         </div>
-                        <select id="settingPointsPermission" style="font-size: 0.82rem; padding: 6px 10px; border-radius: 8px; border: 1.5px solid var(--border-solid); background: var(--surface); color: var(--text); outline: none; font-weight: 700; flex-shrink: 0;">
+                        <select id="settingPointsPermission"
+                            style="font-size: 0.82rem; padding: 6px 10px; border-radius: 8px; border: 1.5px solid var(--border-solid); background: var(--surface); color: var(--text); outline: none; font-weight: 700; flex-shrink: 0;">
                             <option value="all">الجميع (خدام وأدمن)</option>
                             <option value="admin">الأدمن فقط</option>
                             <option value="disabled">مغلق (تعطيل الإضافة)</option>
@@ -2166,19 +2206,26 @@
                     </div>
 
                     <!-- Form Control: Custom Note Requirement -->
-                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px; flex-wrap: wrap;">
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px; flex-wrap: wrap;">
                         <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 180px;">
-                            <span style="font-weight: 800; font-size: 0.88rem; color: var(--text);">ملاحظة النقاط المخصصة</span>
-                            <span style="font-size: 0.72rem; color: var(--text-3);">تحديد ما إذا كانت كتابة سبب النقاط المخصصة إجبارية</span>
+                            <span style="font-weight: 800; font-size: 0.88rem; color: var(--text);">ملاحظة النقاط
+                                المخصصة</span>
+                            <span style="font-size: 0.72rem; color: var(--text-3);">تحديد ما إذا كانت كتابة سبب النقاط
+                                المخصصة إجبارية</span>
                         </div>
-                        <label class="switch-toggle" style="position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;">
-                            <input type="checkbox" id="settingCustomNoteRequired" style="opacity: 0; width: 0; height: 0;">
-                            <span class="switch-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--surface-3); transition: .3s; border-radius: 24px; border: 1.5px solid var(--border-solid);"></span>
+                        <label class="switch-toggle"
+                            style="position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;">
+                            <input type="checkbox" id="settingCustomNoteRequired"
+                                style="opacity: 0; width: 0; height: 0;">
+                            <span class="switch-slider"
+                                style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--surface-3); transition: .3s; border-radius: 24px; border: 1.5px solid var(--border-solid);"></span>
                         </label>
                     </div>
 
                     <!-- Save Button -->
-                    <button id="btnSaveTripSettings" onclick="saveTripSettings()" class="btn-action" style="width: 100%; height: 44px; border-radius: 22px; font-weight: 800; font-size: 0.92rem; background: var(--brand); color: white; border: none; cursor: pointer; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0;">
+                    <button id="btnSaveTripSettings" onclick="saveTripSettings()" class="btn-action"
+                        style="width: 100%; height: 44px; border-radius: 22px; font-weight: 800; font-size: 0.92rem; background: var(--brand); color: white; border: none; cursor: pointer; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0;">
                         <i class="fas fa-save"></i> حفظ الإعدادات
                     </button>
                 </div>
@@ -2190,7 +2237,8 @@
             style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center; padding: 16px;">
             <div
                 style="background:var(--surface); padding:16px; border-radius:var(--r-xl); width:100%; max-width:320px; text-align:center; box-shadow: var(--shadow-lg);">
-                <h3 style="margin-bottom:12px; font-weight: 800; font-size: 1.1rem;"><i class="fas fa-qrcode"></i> مسح كود المسابقة</h3>
+                <h3 style="margin-bottom:12px; font-weight: 800; font-size: 1.1rem;"><i class="fas fa-qrcode"></i> مسح
+                    كود المسابقة</h3>
 
                 <!-- Scanner source selector (Camera vs. USB) -->
                 <div class="scanner-source-tabs"
@@ -2207,8 +2255,7 @@
                     </button>
                 </div>
 
-                <div id="reader"
-                    style="width:100%; background:#000; border-radius: var(--r-lg); overflow: hidden;">
+                <div id="reader" style="width:100%; background:#000; border-radius: var(--r-lg); overflow: hidden;">
                 </div>
                 <button class="topbar-btn" onclick="stopScanner()"
                     style="margin:16px auto 0; width:100%; justify-content:center; background:var(--danger); color:white; border-color:var(--danger);"><i
@@ -2337,10 +2384,10 @@
                         const reg = await navigator.serviceWorker.ready;
                         if (reg.active) reg.active.postMessage({ type: 'FLUSH_QUEUE' });
                     } catch (e) { }
-                    
+
                     if (typeof updateSyncBadge === 'function') updateSyncBadge();
                     if (typeof triggerBackgroundSync === 'function') triggerBackgroundSync();
-                    
+
                     setTimeout(() => { if (navigator.onLine && tripId) openTrip(tripId); }, 1000);
                 });
 
@@ -2584,7 +2631,7 @@
                                     }
                                     student.trip_points = JSON.stringify(pts);
                                     student.trip_points_val = revVal;
-                                    
+
                                     if (currentView === 'student_profile' && String(item.params.student_id) === String(currentStudentId)) {
                                         // Use outer isNaughtyNow
                                         updatePointsDisplay(revVal, isNaughtyNow);
@@ -2640,7 +2687,7 @@
                 }, 5000);
             }
 
-            window.retrySyncOfflineActionsManual = function() {
+            window.retrySyncOfflineActionsManual = function () {
                 showToast("جاري إعادة محاولة المزامنة...", "success", 1500);
                 triggerBackgroundSync();
             };
@@ -2697,17 +2744,17 @@
                 if (isShortcut && actionName && !undoingLogId) {
                     const trimmedAction = actionName.trim().toLowerCase();
                     const thirtyMinsAgo = Date.now() - 30 * 60 * 1000;
-                    
+
                     // Check scansLog for duplicate shortcut in last 30 minutes
                     const hasRecentScan = scansLog.some(item => {
                         if (String(item.studentId) !== String(studentId)) return false;
                         if (!item.actionNote) return false;
                         if (item.actionNote.trim().toLowerCase() !== trimmedAction) return false;
-                        
+
                         const itemTime = new Date(item.createdAt).getTime();
                         return !isNaN(itemTime) && itemTime > thirtyMinsAgo;
                     });
-                    
+
                     if (hasRecentScan) {
                         playErrorSound();
                         showToast(`عذراً، تم تسجيل (${actionName}) مؤخراً خلال 30 دقيقة!`, 'warning');
@@ -2715,13 +2762,13 @@
                         return;
                     }
                 }
-                
+
                 let pts = {};
                 try { pts = JSON.parse(student.trip_points || '{}'); } catch (e) { }
                 const oldVal = parseInt(student.trip_points_val, 10) || 0;
                 let isNaughtyNow = student.trip_points_naughty === 1 || false;
                 let newVal = oldVal;
-                
+
                 const numericAmount = parseInt(amount, 10) || 0;
                 if (action === 'processFastScanPoints') {
                     newVal = oldVal + numericAmount;
@@ -2736,13 +2783,13 @@
                         isNaughtyNow = !isNaughtyNow;
                     }
                 }
-                
+
                 pts[tripId] = newVal;
                 pts["n_" + tripId] = isNaughtyNow ? 1 : 0;
                 student.trip_points = JSON.stringify(pts);
                 student.trip_points_val = newVal;
                 student.trip_points_naughty = isNaughtyNow ? 1 : 0;
-                
+
                 if (currentView === 'student_profile' && String(studentId) === String(currentStudentId)) {
                     updatePointsDisplay(newVal, isNaughtyNow);
                 }
@@ -2750,16 +2797,16 @@
                     currentTrip.registrations = regsList;
                     saveTripLocal(tripId, currentTrip);
                 }
-                
+
                 const shouldAddLog = (action === 'processFastScanPoints' && amount !== 0) ||
-                                     (action === 'processGameQRCode' && (gameAction === 'naughty' || amount !== 0));
-                                     
+                    (action === 'processGameQRCode' && (gameAction === 'naughty' || amount !== 0));
+
                 if (shouldAddLog) {
                     const studentName = student.student_name || student.name || `طالب ${studentId}`;
-                    const changeVal = (action === 'processFastScanPoints') 
-                        ? amount 
+                    const changeVal = (action === 'processFastScanPoints')
+                        ? amount
                         : (gameAction === 'increment' ? amount : (gameAction === 'decrement' ? -amount : 0));
-                        
+
                     if (undoingLogId === 0) {
                         scansLog.unshift({
                             id: clientTxId,
@@ -2777,7 +2824,7 @@
                         });
                     }
                 }
-                
+
                 const queue = getOfflineActionsQueue();
                 queue.push({
                     txId: clientTxId,
@@ -2794,13 +2841,13 @@
                     },
                     timestamp: Date.now(),
                     studentName: student.student_name || student.name || `طالب ${studentId}`,
-                    changeVal: (action === 'processFastScanPoints') 
-                        ? amount 
+                    changeVal: (action === 'processFastScanPoints')
+                        ? amount
                         : (gameAction === 'increment' ? amount : (gameAction === 'decrement' ? -amount : 0)),
                     status: 'pending'
                 });
                 saveOfflineActionsQueue(queue);
-                
+
                 renderScansList();
                 updateSyncBadge();
                 triggerBackgroundSync();
@@ -2819,7 +2866,7 @@
                         let ptsObj = {};
                         try {
                             ptsObj = typeof studentData.trip_points === 'string' ? JSON.parse(studentData.trip_points || '{}') : (studentData.trip_points || {});
-                        } catch(e) {}
+                        } catch (e) { }
                         const pointsVal = ptsObj[tripId] || 0;
                         const isNaughty = studentData.trip_points_naughty === 1 || (ptsObj["n_" + tripId] === 1);
                         updatePointsDisplay(pointsVal, isNaughty);
@@ -2929,7 +2976,7 @@
                 }
             });
 
-             async function openTrip(tripId) {
+            async function openTrip(tripId) {
                 document.getElementById('fieldsGrid').innerHTML = '';
                 regsList = [];
                 currentTrip = null;
@@ -3156,8 +3203,8 @@
 
             function goBackFromProfile() {
                 if (currentFilterField) {
-                    navigateTo('group_filter', { 
-                        field: currentFilterField, 
+                    navigateTo('group_filter', {
+                        field: currentFilterField,
                         value: currentFilterValue,
                         parentField: currentFilterParentField,
                         parentValue: currentFilterParentValue
@@ -3214,20 +3261,20 @@
                             `;
                         }
                         document.getElementById('uncleProfileName').textContent = unc.name || '';
-                        
+
                         // Set translated role
                         let roleAr = unc.role;
                         if (unc.role === 'admin') roleAr = 'أدمن الكنيسة';
                         else if (unc.role === 'developer' || unc.role === 'dev') roleAr = 'مطور البرنامج';
                         else if (unc.role === 'uncle') roleAr = 'خادم';
-                        
+
                         document.getElementById('uncleProfileRole').textContent = roleAr;
                         document.getElementById('uncleProfileChurch').innerHTML = `<i class="fas fa-church"></i> ${unc.church_name || ''}`;
                         document.getElementById('uncleProfileUsername').textContent = unc.username || '';
                         document.getElementById('uncleProfilePhone').textContent = unc.phone || 'غير مسجل';
                         document.getElementById('uncleProfileEmail').textContent = unc.email || 'غير مسجل';
                         document.getElementById('uncleProfileGender').textContent = unc.gender === 'male' ? 'ذكر' : (unc.gender === 'female' ? 'أنثى' : 'غير مسجل');
-                        
+
                         // Classes
                         const classesWrap = document.getElementById('uncleProfileClasses');
                         if (unc.classes && unc.classes.length > 0) {
@@ -4216,7 +4263,7 @@
                 }
 
                 playSuccessSound();
-                
+
                 let isNaughtyNow = regsList[matchIdx].trip_points_naughty === 1 || false;
                 showToast(!isNaughtyNow ? 'تم تعيين شغب للطفل' : 'تم إلغاء شغب الطفل', 'success');
 
@@ -4432,7 +4479,7 @@
                 try {
                     setTimeout(() => {
                         if (!scannerInstance || !videoElement) return;
-                        
+
                         let capabilities = null;
                         let track = null;
                         try {
@@ -4451,7 +4498,7 @@
                             const zoomContainer = document.createElement('div');
                             zoomContainer.id = readerId + '-zoom-container';
                             zoomContainer.style.cssText = 'display:flex; align-items:center; justify-content:center; gap:8px; margin-top:8px; padding: 6px 12px; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); direction: rtl; width: 100%; max-width: 220px; box-sizing: border-box;';
-                            
+
                             const label = document.createElement('span');
                             label.style.cssText = 'font-family: "Cairo", sans-serif; font-size: 0.72rem; font-weight: 700; color: var(--text-2, #888); min-width: 55px; text-align: left;';
                             label.innerText = 'التكبير: 1.0x';
@@ -4578,7 +4625,7 @@
                     fastScanScanner = null;
                     try {
                         scanner.destroy();
-                    } catch (e) {}
+                    } catch (e) { }
                 }
                 const reader = document.getElementById('fastReader');
                 if (reader) {
@@ -4938,7 +4985,7 @@
 
                 if (last.type === 'subfield') {
                     const sfKey = last.fieldName;
-                    
+
                     // Find the parent choice to filter by (e.g. Building name)
                     const choiceItem = filterPath.length >= 2 ? filterPath[filterPath.length - 2] : null;
                     const parentField = choiceItem ? choiceItem.fieldName : null;
@@ -5066,7 +5113,7 @@
                 }
             }
 
-            document.addEventListener('click', function(e) {
+            document.addEventListener('click', function (e) {
                 const menu = document.getElementById('scanDropdownMenu');
                 if (menu && !menu.contains(e.target)) {
                     menu.style.display = 'none';
@@ -5096,8 +5143,8 @@
                         { val: r.student_emergency_phone, weight: 1.1 }
                     ])
                 })).filter(r => r._searchScore > 0)
-                   .sort((a, b) => b._searchScore - a._searchScore)
-                   .slice(0, 15);
+                    .sort((a, b) => b._searchScore - a._searchScore)
+                    .slice(0, 15);
 
                 if (results.length === 0) {
                     resultsDiv.innerHTML = '<div class="search-result-item" style="cursor:default; text-align:center; padding:12px; color:var(--text-3);">لا توجد نتائج</div>';
@@ -5171,7 +5218,7 @@
                         try {
                             const url = new URL(cleaned.startsWith('/') || !cleaned.includes('://') ? window.location.origin + (cleaned.startsWith('/') ? '' : '/') + cleaned : cleaned);
                             tempid = url.searchParams.get('tempid');
-                        } catch(e) {
+                        } catch (e) {
                             const match = cleaned.match(/[?&]tempid=([^&]+)/);
                             if (match) tempid = match[1];
                         }
@@ -5391,7 +5438,7 @@
                     htmlQrcodeScannerModal = null;
                     try {
                         scanner.destroy();
-                    } catch (e) {}
+                    } catch (e) { }
                 }
                 document.getElementById('scannerModal').style.display = 'none';
                 const reader = document.getElementById('reader');
@@ -5720,7 +5767,7 @@
                             { val: item.studentId, weight: 1.1 }
                         ])
                     })).filter(item => item._score > 0)
-                       .sort((a, b) => b._score - a._score);
+                        .sort((a, b) => b._score - a._score);
                 }
 
                 const myScans = filtered.filter(item => item.uncleId === currentUncleId);
@@ -5861,7 +5908,7 @@
                         pts[tripId] = newVal;
                         student.trip_points = JSON.stringify(pts);
                         student.trip_points_val = newVal;
-                        
+
                         if (currentView === 'student_profile' && String(studentId) === String(currentStudentId)) {
                             const isNaughtyNow = document.getElementById('pointsDisplay')?.classList.contains('naughty') || false;
                             updatePointsDisplay(newVal, isNaughtyNow);
@@ -5887,7 +5934,7 @@
 
                 playSuccessSound();
                 showToast(`تم التراجع بنجاح!`, 'success');
-                
+
                 const matchIdx = regsList.findIndex(r => String(r.student_id) === String(studentId));
                 if (matchIdx > -1) {
                     const student = regsList[matchIdx];
@@ -5898,7 +5945,7 @@
                     pts[tripId] = newVal;
                     student.trip_points = JSON.stringify(pts);
                     student.trip_points_val = newVal;
-                    
+
                     if (currentView === 'student_profile' && String(studentId) === String(currentStudentId)) {
                         const isNaughtyNow = document.getElementById('pointsDisplay')?.classList.contains('naughty') || false;
                         updatePointsDisplay(newVal, isNaughtyNow);
@@ -5908,7 +5955,7 @@
                         saveTripLocal(tripId, currentTrip);
                     }
                 }
-                
+
                 scansLog = scansLog.filter(item => String(item.id) !== String(logId));
                 renderScansList();
 
@@ -6174,7 +6221,7 @@
                     if (cd['السكن']) roomParts.push(cd['السكن']);
                     if (cd['السكن__sf__الدور']) roomParts.push(cd['السكن__sf__الدور']);
                     if (cd['السكن__sf__الغرفة']) roomParts.push(`غرفة ${cd['السكن__sf__الغرفة']}`);
-                    
+
                     // Fallback search for any other room keys in custom_data
                     Object.entries(cd).forEach(([k, v]) => {
                         if (k !== 'السكن' && k !== 'السكن__sf__الدور' && k !== 'السكن__sf__الغرفة') {
