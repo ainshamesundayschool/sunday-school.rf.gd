@@ -7058,6 +7058,88 @@
             color: var(--brand);
             background: var(--brand-bg);
         }
+        .sort-layer-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            background: var(--surface);
+            border: 1px solid var(--border-solid);
+            border-radius: var(--r-md);
+            padding: 6px 8px;
+        }
+        .sort-layer-select {
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+            background-repeat: no-repeat !important;
+            background-position: left 10px center !important;
+            background-size: 14px !important;
+            padding-left: 28px !important;
+            padding-right: 10px !important;
+            border: 1px solid var(--border-solid) !important;
+            border-radius: var(--radius-sm, 8px) !important;
+            background-color: var(--surface-2) !important;
+            font-family: 'Cairo', sans-serif !important;
+            font-size: 0.78rem !important;
+            font-weight: 700 !important;
+            color: var(--text) !important;
+            outline: none !important;
+            cursor: pointer !important;
+            height: 32px !important;
+            transition: all 0.15s ease !important;
+            direction: rtl !important;
+        }
+        .sort-layer-select:hover {
+            border-color: var(--brand) !important;
+            background-color: var(--brand-bg) !important;
+        }
+        .sort-layer-delete-btn {
+            width: 28px !important;
+            height: 28px !important;
+            min-width: 28px !important;
+            min-height: 28px !important;
+            border-radius: 50% !important;
+            border: 1px solid rgba(239, 68, 68, 0.2) !important;
+            background: rgba(239, 68, 68, 0.08) !important;
+            color: var(--danger, #ef4444) !important;
+            cursor: pointer !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 0.75rem !important;
+            transition: all 0.15s ease !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            flex-shrink: 0 !important;
+        }
+        .sort-layer-delete-btn:hover {
+            background: var(--danger, #ef4444) !important;
+            color: #fff !important;
+            border-color: var(--danger, #ef4444) !important;
+        }
+        .sort-layer-add-btn {
+            padding: 4px 10px !important;
+            font-size: 0.72rem !important;
+            font-weight: 700 !important;
+            border-radius: 10px !important;
+            background: var(--brand-bg, #eef0ff) !important;
+            color: var(--brand, #4f46e5) !important;
+            border: 1px solid rgba(79, 70, 229, 0.2) !important;
+            cursor: pointer !important;
+            font-family: 'Cairo', sans-serif !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 4px !important;
+            transition: all 0.15s ease !important;
+            outline: none !important;
+        }
+        .sort-layer-add-btn:hover {
+            background: var(--brand, #4f46e5) !important;
+            color: #fff !important;
+            border-color: var(--brand, #4f46e5) !important;
+            transform: translateY(-1px);
+        }
         .tab-export-preview-wrap {
             background: #fff;
             color: #1e293b;
@@ -28607,16 +28689,16 @@
                 ).join('');
 
                 return `
-                    <div style="display:flex; gap:6px; align-items:center;">
-                        <select class="form-input" style="font-size:0.75rem; padding:4px 8px; height:32px; flex:1;" onchange="updateTabCustomExportSortLayerField(${idx}, this.value)">
+                    <div class="sort-layer-row">
+                        <select class="sort-layer-select" style="flex:1;" onchange="updateTabCustomExportSortLayerField(${idx}, this.value)">
                             ${optionsHtml}
                         </select>
-                        <select class="form-input" style="font-size:0.75rem; padding:4px 8px; height:32px; width:95px;" onchange="updateTabCustomExportSortLayerOrder(${idx}, this.value)">
+                        <select class="sort-layer-select" style="width:95px;" onchange="updateTabCustomExportSortLayerOrder(${idx}, this.value)">
                             <option value="asc" ${layer.order === 'asc' ? 'selected' : ''}>تصاعدي</option>
                             <option value="desc" ${layer.order === 'desc' ? 'selected' : ''}>تنازلي</option>
                         </select>
                         ${tabExportSortLayers.length > 1 ? `
-                            <button type="button" class="btn btn-outline btn-sm" onclick="removeTabCustomExportSortLayer(${idx})" style="color:var(--danger); padding:4px 8px; height:32px;"><i class="fas fa-trash"></i></button>
+                            <button type="button" class="sort-layer-delete-btn" onclick="removeTabCustomExportSortLayer(${idx})" title="حذف الشرط"><i class="fas fa-times"></i></button>
                         ` : ''}
                     </div>
                 `;
