@@ -12866,13 +12866,15 @@
                     }
                 } else if (name === 'trips') {
                     if (allTripsCache && allTripsCache.length) {
-                        displayTrips(allTripsCache);
+                        currentTrips = allTripsCache;
+                        filterTrips();
                         return true;
                     }
                     const cached = _readLocalCache('trips');
                     if (cached?.trips && cached.trips.length) {
                         allTripsCache = cached.trips;
-                        displayTrips(allTripsCache);
+                        currentTrips = allTripsCache;
+                        filterTrips();
                         return true;
                     }
                 } else if (name === 'graduates') {
