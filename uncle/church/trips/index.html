@@ -16347,8 +16347,9 @@
           .ws-building-card.bld-search-dimmed { opacity: 0.38; filter: grayscale(35%); transition: opacity 0.3s ease; }
           .ws-building-card.bld-search-dimmed:hover { opacity: 0.85; filter: none; }
           .ws-room-card.search-match { border: 2px solid var(--primary) !important; box-shadow: 0 0 14px rgba(99,102,241,0.35) !important; animation: roomMatchPulse 2s ease-in-out infinite alternate; }
-          .ws-kid-badge.search-kid-match { border: 1.5px solid var(--primary) !important; background: rgba(99,102,241,0.14) !important; font-weight: 800 !important; box-shadow: 0 0 8px rgba(99,102,241,0.3); }
-          .ws-uncle-tag.search-uncle-match { border: 1.5px solid #d97706 !important; background: #fef3c7 !important; font-weight: 800 !important; box-shadow: 0 0 8px rgba(217,119,6,0.35); }
+          .ws-kid-badge.search-kid-match { border: 2px solid var(--primary) !important; background: rgba(99,102,241,0.18) !important; font-weight: 800 !important; box-shadow: 0 0 10px rgba(99,102,241,0.4) !important; transform: scale(1.01); transition: all 0.2s ease; }
+          .ws-kid-badge.search-kid-match .ws-kid-name { color: var(--primary) !important; font-weight: 900 !important; }
+          .ws-uncle-tag.search-uncle-match { border: 2px solid #d97706 !important; background: #fef3c7 !important; color: #78350f !important; font-weight: 800 !important; box-shadow: 0 0 10px rgba(217,119,6,0.4) !important; transform: scale(1.02); }
           @keyframes roomMatchPulse {
             0% { box-shadow: 0 0 8px rgba(99,102,241,0.25); }
             100% { box-shadow: 0 0 18px rgba(99,102,241,0.45); }
@@ -16857,7 +16858,7 @@
           if (bld.has_floors) {
             (bld.floors || []).forEach((fl, fIdx) => {
               let flRooms = fl.rooms || [];
-              if (query && !isBldNameMatch) {
+              if (query) {
                 flRooms = flRooms.filter(r => isRoomOrResidentsMatched(r, bld.name, fl.name, regs, allocatedMap, query));
               }
               if (flRooms.length > 0) {
@@ -16873,7 +16874,7 @@
             });
           } else {
             let bldRooms = bld.rooms || [];
-            if (query && !isBldNameMatch) {
+            if (query) {
               bldRooms = bldRooms.filter(r => isRoomOrResidentsMatched(r, bld.name, '', regs, allocatedMap, query));
             }
             if (bldRooms.length > 0) {
@@ -16922,24 +16923,65 @@
         gridContainer.innerHTML = gridHtml;
       }
 
+      function isKidMatchedByQuery(k, qClean, normQ) {
+        if (!k || !qClean) return false;
+        const name = String(k.student_name || '').trim();
+        const cls = String(k.student_class || '').trim();
+        const church = String(k._churchName || k.church_name || '').trim();
+        const phone = String(k.student_phone || k.phone || '').trim();
+        const parentPhone = String(k.parent_phone || '').trim();
+
+        const normName = typeof normalizeArabic === 'function' ? normalizeArabic(name) : name.toLowerCase();
+        const normCls = typeof normalizeArabic === 'function' ? normalizeArabic(cls) : cls.toLowerCase();
+        const normChurch = typeof normalizeArabic === 'function' ? normalizeArabic(church) : church.toLowerCase();
+
+        if (normName && normName.includes(normQ)) return true;
+        if (normCls && normCls.includes(normQ)) return true;
+        if (normChurch && normChurch.includes(normQ)) return true;
+        if (phone && phone.includes(qClean)) return true;
+        if (parentPhone && parentPhone.includes(qClean)) return true;
+
+        if (typeof getMatchScore === 'function') {
+          const score = getMatchScore(k, qClean, [
+            { val: name, weight: 1.0 },
+            { val: cls, weight: 0.8 },
+            { val: church, weight: 0.6 },
+            { val: phone, weight: 0.9 },
+            { val: parentPhone, weight: 0.9 }
+          ]);
+          if (score > 0) return true;
+        }
+        return false;
+      }
+
       function isRoomOrResidentsMatched(room, bldName, floorName, allRegs, allocatedMap, query) {
         if (!query) return false;
-        const scoreRoomName = getMatchScore({ name: room.name }, query, [{ val: room.name, weight: 1.0 }]);
-        if (scoreRoomName > 0) return true;
+        const qClean = String(query).trim();
+        if (!qClean) return false;
+        const normQ = typeof normalizeArabic === 'function' ? normalizeArabic(qClean) : qClean.toLowerCase();
 
+        // 1. Room Name Match
+        const rName = String(room.name || '').trim();
+        const normRName = typeof normalizeArabic === 'function' ? normalizeArabic(rName) : rName.toLowerCase();
+        if (normRName && (normRName.includes(normQ) || (typeof normalizeArabic === 'function' && normalizeArabic("غرفة " + rName).includes(normQ)))) {
+          return true;
+        }
+        if (typeof getMatchScore === 'function' && getMatchScore({ name: rName }, qClean, [{ val: rName, weight: 1.0 }]) > 0) {
+          return true;
+        }
+
+        // 2. Kids / Residents Match
         const roomKids = allRegs.filter(r => isAllocatedToRoom(allocatedMap[r.id], bldName, floorName, room.name));
-        const kidMatched = roomKids.some(k => {
-          return getMatchScore(k, query, [
-            { val: k.student_name || '', weight: 1.0 },
-            { val: k.student_class || '', weight: 0.8 },
-            { val: k._churchName || '', weight: 0.6 }
-          ]) > 0;
-        });
+        const kidMatched = roomKids.some(k => isKidMatchedByQuery(k, qClean, normQ));
         if (kidMatched) return true;
 
+        // 3. Uncles / Servants Match
         const uncleMatched = (room.uncles || []).some(u => {
-          const uName = (typeof u === 'object' && u !== null) ? u.name : u;
-          return getMatchScore({ name: uName }, query, [{ val: uName || '', weight: 1.0 }]) > 0;
+          const uName = String((typeof u === 'object' && u !== null) ? (u.name || u.uncle_name || u.id || '') : u).trim();
+          const normU = typeof normalizeArabic === 'function' ? normalizeArabic(uName) : uName.toLowerCase();
+          if (normU && normU.includes(normQ)) return true;
+          if (typeof getMatchScore === 'function' && getMatchScore({ name: uName }, qClean, [{ val: uName, weight: 1.0 }]) > 0) return true;
+          return false;
         });
         return uncleMatched;
       }
@@ -17080,11 +17122,9 @@
                 const isUncle = k.isUncle || k.registration_type === 'uncle' || k.student_class === 'خادم' || k.student_class === 'خادمة';
                 const badgeClass = isUncle ? 'uncle-servant' : (k.student_gender === 'female' ? 'girl' : 'boy');
                 const badgeStyle = isUncle ? 'background:#fffbebf5; border:1px solid #fde68a; color:#92400e;' : '';
-                const isKidMatch = query && getMatchScore(k, query, [
-                  { val: k.student_name || '', weight: 1.0 },
-                  { val: k.student_class || '', weight: 0.8 },
-                  { val: k._churchName || '', weight: 0.6 }
-                ]) > 0;
+                const qClean = String(query || '').trim();
+                const normQ = typeof normalizeArabic === 'function' ? normalizeArabic(qClean) : qClean.toLowerCase();
+                const isKidMatch = qClean ? isKidMatchedByQuery(k, qClean, normQ) : false;
 
                 return `
                   <div class="ws-kid-badge ${badgeClass} ${isDraft ? 'draft-assigned' : ''} ${isKidMatch ? 'search-kid-match' : ''}" 
@@ -17092,7 +17132,11 @@
                        style="display:flex; align-items:center; gap:8px; ${badgeStyle}">
                     <img src="${cleanImg}" style="width:24px; height:24px; border-radius:50%; object-fit:cover; flex-shrink:0; border:1px solid var(--border);" onerror="this.src='/profile_default.webp'">
                     <div class="ws-kid-info" style="flex:1; min-width:0; display:flex; flex-direction:column; text-align:right;">
-                      <div class="ws-kid-name" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${isUncle ? '<i class="fas fa-user-shield" style="font-size:0.7rem; color:#d97706; margin-left:3px;"></i>' : ''}${escHtml(k.student_name)}</div>
+                      <div class="ws-kid-name" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:4px;">
+                        ${isUncle ? '<i class="fas fa-user-shield" style="font-size:0.7rem; color:#d97706; margin-left:1px;"></i>' : ''}
+                        <span style="overflow:hidden; text-overflow:ellipsis;">${escHtml(k.student_name)}</span>
+                        ${isKidMatch ? '<span style="background:var(--primary); color:#fff; font-size:0.55rem; padding:1px 5px; border-radius:8px; font-weight:800; flex-shrink:0; display:inline-flex; align-items:center; gap:2px;"><i class="fas fa-search" style="font-size:0.5rem;"></i> مطابق</span>' : ''}
+                      </div>
                       <div class="ws-kid-sub" style="font-size:0.6rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escHtml(k.student_class || 'خادم')} - ${escHtml(k._churchName || '')}</div>
                     </div>
                     <div class="ws-kid-actions" style="flex-shrink:0;">
