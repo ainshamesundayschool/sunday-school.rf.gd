@@ -5016,7 +5016,7 @@
         const check = (val) => {
           if (!val || typeof val !== 'string') return false;
           const s = val.toLowerCase().trim();
-          return s === 'developer' || s === 'dev' || s === 'admin' || s === 'church';
+          return s === 'developer' || s === 'dev';
         };
         if (check(localStorage.getItem('uncleRole'))) return true;
         if (check(localStorage.getItem('role'))) return true;
