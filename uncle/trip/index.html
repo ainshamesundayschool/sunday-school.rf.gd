@@ -1700,9 +1700,9 @@
                 <i class="fas fa-history" style="font-size:1.05rem;"></i>
             </button>
 
-            <!-- Trip Settings Button (visible only to admins) -->
+            <!-- Trip Settings Button -->
             <button id="btnTripSettings" onclick="openTripSettingsModal()" class="topbar-btn"
-                style="display: none; height:36px; width:36px; padding:0; border-radius:var(--r-md); cursor:pointer; justify-content:center; align-items:center;"
+                style="display: flex; height:36px; width:36px; padding:0; border-radius:var(--r-md); cursor:pointer; justify-content:center; align-items:center;"
                 title="إعدادات الرحلة">
                 <i class="fas fa-cog" style="font-size: 1.05rem;"></i>
             </button>
@@ -3039,15 +3039,10 @@
                     currentUnclePhoto = localTrip.uncle_photo || null;
                     updateTopbarUncleAvatar(currentUnclePhoto);
 
-                    if (['admin', 'developer', 'dev'].includes(localTrip.user_role)) {
-                        const adminActions = document.getElementById('adminActions');
-                        if (adminActions) adminActions.style.display = 'flex';
-                        const btnTripSettings = document.getElementById('btnTripSettings');
-                        if (btnTripSettings) btnTripSettings.style.display = 'flex';
-                    } else {
-                        const btnTripSettings = document.getElementById('btnTripSettings');
-                        if (btnTripSettings) btnTripSettings.style.display = 'none';
-                    }
+                    const adminActions = document.getElementById('adminActions');
+                    if (adminActions) adminActions.style.display = (['admin', 'developer', 'dev'].includes(localTrip.user_role) || localTrip.is_owner === 1) ? 'flex' : 'none';
+                    const btnTripSettings = document.getElementById('btnTripSettings');
+                    if (btnTripSettings) btnTripSettings.style.display = 'flex';
                     regsList = applyPendingQueueToRegs(localTrip.registrations || []);
                     currentTrip.registrations = regsList;
                     document.getElementById('detailTripTitle').textContent = currentTrip.title;
@@ -3096,14 +3091,9 @@
                             document.getElementById('topbarTripTitle').textContent = currentTrip.title;
 
                             const adminActions = document.getElementById('adminActions');
+                            if (adminActions) adminActions.style.display = (['admin', 'developer', 'dev'].includes(res.user_role) || (res.trip && res.trip.is_owner === 1)) ? 'flex' : 'none';
                             const btnTripSettings = document.getElementById('btnTripSettings');
-                            if (['admin', 'developer', 'dev'].includes(res.user_role)) {
-                                if (adminActions) adminActions.style.display = 'flex';
-                                if (btnTripSettings) btnTripSettings.style.display = 'flex';
-                            } else {
-                                if (adminActions) adminActions.style.display = 'none';
-                                if (btnTripSettings) btnTripSettings.style.display = 'none';
-                            }
+                            if (btnTripSettings) btnTripSettings.style.display = 'flex';
 
                             // Save to local cache
                             await saveTripLocal(tripId, currentTrip);
