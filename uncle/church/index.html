@@ -15827,8 +15827,7 @@
                     saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري حفظ التعديلات...';
                 }
 
-                const fd = new FormData();
-                fd.append('action', 'updateTrip');
+                const fd = mkFd('updateTrip');
                 fd.append('trip_id', tripId);
                 fd.append('title', document.getElementById('editTripTitle').value);
                 fd.append('type', document.getElementById('editTripType').value);
@@ -16457,7 +16456,7 @@
 
         async function updateTrip(e) {
             e.preventDefault();
-            const fd = new FormData(); fd.append('action', 'updateTrip');
+            const fd = mkFd('updateTrip');
             fd.append('trip_id', document.getElementById('editTripId').value);
             fd.append('title', document.getElementById('editTripTitle').value);
             fd.append('type', document.getElementById('editTripType').value);

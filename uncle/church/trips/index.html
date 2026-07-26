@@ -10878,8 +10878,8 @@
           customFieldIcons[fieldName] = payload;
         });
 
-        const fd = new FormData();
-        fd.append('action', 'updateTrip'); fd.append('trip_id', tripId);
+        const fd = mkFd('updateTrip');
+        fd.append('trip_id', tripId);
         fd.append('custom_fields', customFields);
         fd.append('custom_field_icons', JSON.stringify(customFieldIcons));
 
@@ -11394,8 +11394,7 @@
             saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري حفظ التعديلات...';
           }
 
-          const fd = new FormData();
-          fd.append('action', 'updateTrip');
+          const fd = mkFd('updateTrip');
           fd.append('trip_id', tripId);
           fd.append('title', document.getElementById('editTripTitle').value);
           fd.append('type', document.getElementById('editTripType').value);
@@ -17459,8 +17458,7 @@
           if (!(await showConfirm({ message: 'تنبيه: هل أنت متأكد من إيقاف نظام السكن والغرف لهذه الرحلة؟ (لن تُحذف بيانات الغرف المسكنة بالفعل)' }))) return;
         }
 
-        const fd = new FormData();
-        fd.append('action', 'updateTrip');
+        const fd = mkFd('updateTrip');
         fd.append('trip_id', tripId);
         if (trip.title) fd.append('title', trip.title);
         if (trip.start_date) fd.append('start_date', trip.start_date);
@@ -17569,8 +17567,7 @@
           } catch (err) { }
         }
 
-        const fd = new FormData();
-        fd.append('action', 'updateTrip');
+        const fd = mkFd('updateTrip');
         fd.append('trip_id', tripId);
         if (trip.title) fd.append('title', trip.title);
         if (trip.start_date) fd.append('start_date', trip.start_date);
@@ -19245,8 +19242,7 @@
         }
         customFields = fieldsList.join(',');
 
-        const fd = new FormData();
-        fd.append('action', 'updateTrip');
+        const fd = mkFd('updateTrip');
         fd.append('trip_id', tripId);
         fd.append('custom_fields', customFields);
         fd.append('custom_field_icons', JSON.stringify(customFieldIcons));
