@@ -16542,11 +16542,12 @@
         regs.forEach(r => {
           let cData = {};
           try { cData = JSON.parse(r.custom_data || '{}'); } catch (e) { }
-          if (cData['السكن']) {
+          const bldVal = cData['السكن'] || cData['المبنى'] || cData['مبنى'] || '';
+          if (bldVal) {
             allocatedMap[r.id] = {
-              bldName: cData['السكن'],
-              floorName: cData['السكن__sf__الدور'] || '',
-              roomName: cData['السكن__sf__الغرفة'] || ''
+              bldName: bldVal,
+              floorName: cData['السكن__sf__الدور'] || cData['الدور'] || '',
+              roomName: cData['السكن__sf__الغرفة'] || cData['الغرفة'] || cData['رقم الغرفة'] || ''
             };
           }
         });
@@ -16643,7 +16644,7 @@
           if (bld.has_floors) {
             (bld.floors || []).forEach(fl => (fl.rooms || []).forEach(collect));
           } else {
-            (bld.rooms || []).forEach(collect);
+            (bld.rooms || []).forEach(countUncles);
           }
         });
 
@@ -16653,7 +16654,13 @@
 
         let gridHtml = '';
         roomsConfig.forEach((bld, bldIdx) => {
-          const bldAllocatedKids = regs.filter(r => allocatedMap[r.id] && allocatedMap[r.id].bldName === bld.name);
+          const bldAllocatedKids = regs.filter(r => {
+            const alloc = allocatedMap[r.id];
+            if (!alloc) return false;
+            const targetBld = String(bld.name || '').trim();
+            const allocBld = String(alloc.bldName || '').trim();
+            return allocBld === targetBld || allocBld.replace(/^(المبنى|مبنى)\s*/, '') === targetBld.replace(/^(المبنى|مبنى)\s*/, '');
+          });
 
           let bldSubHtml = '';
           if (bld.has_floors) {
@@ -16685,14 +16692,35 @@
         gridContainer.innerHTML = gridHtml;
       }
 
+      function isAllocatedToRoom(alloc, bldName, floorName, roomName) {
+        if (!alloc) return false;
+
+        const targetBld = String(bldName || '').trim();
+        const allocBld = String(alloc.bldName || '').trim();
+        if (allocBld !== targetBld && allocBld.replace(/^(المبنى|مبنى)\s*/, '') !== targetBld.replace(/^(المبنى|مبنى)\s*/, '')) {
+          return false;
+        }
+
+        if (floorName && alloc.floorName) {
+          const f1 = String(alloc.floorName).trim();
+          const f2 = String(floorName).trim();
+          if (f1 !== f2 && f1.replace(/^(الدور)\s*/, '') !== f2.replace(/^(الدور)\s*/, '')) return false;
+        }
+
+        const normAllocRoom = String(alloc.roomName || '').replace(/^(غرفة|غرف)\s*/, '').replace(/[()]/g, '').trim();
+        const normTargetRoom = String(roomName || '').replace(/^(غرفة|غرف)\s*/, '').replace(/[()]/g, '').trim();
+
+        if (normAllocRoom === normTargetRoom) return true;
+        if (String(alloc.roomName || '').trim() === String(roomName || '').trim()) return true;
+
+        return false;
+      }
+
       /**
        * HTML Generator for a single Room Card
        */
       function renderRoomCardHTML(tripId, bldName, floorName, room, allRegs, allocatedMap, query = '', assignedUncleIds = new Set()) {
-        const roomKids = allRegs.filter(r => {
-          const alloc = allocatedMap[r.id];
-          return alloc && alloc.bldName === bldName && alloc.floorName === floorName && alloc.roomName === room.name;
-        });
+        const roomKids = allRegs.filter(r => isAllocatedToRoom(allocatedMap[r.id], bldName, floorName, room.name));
 
         // Determine room gender
         let boyCount = 0;
@@ -17590,10 +17618,7 @@
 
         roomsConfig.forEach(bld => {
           const processRoom = (floorName, room) => {
-            const roomKids = regs.filter(r => {
-              const alloc = allocatedMap[r.id];
-              return alloc && alloc.bldName === bld.name && alloc.floorName === floorName && alloc.roomName === room.name;
-            });
+            const roomKids = regs.filter(r => isAllocatedToRoom(allocatedMap[r.id], bld.name, floorName, room.name));
 
             const occupied = roomKids.length;
             const capacity = room.capacity;
