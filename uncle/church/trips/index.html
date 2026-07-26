@@ -5518,10 +5518,16 @@
         ]);
         tripExpensesCache[id] = expResp.success ? (expResp.expenses || []) : (tripExpensesCache[id] || []);
         if (tripResp.success) {
+          const respRole = tripResp.user_role || tripResp.role || tripResp.uncle_role || tripResp.uncle?.role;
+          if (respRole) {
+            localStorage.setItem('uncleRole', respRole);
+            localStorage.setItem('role', respRole);
+          }
           allTripsCache = [tripResp.trip];
           window.currentWaitlistCache = tripResp.trip.waitlist || [];
           saveTripLocal(id, tripResp.trip);
           renderTripDetailsFull(tripResp.trip);
+          updateDevOnlyVisibility();
 
           const hasRooms = tripResp.trip.has_rooms == 1;
           const desktopTab = document.getElementById('tdtab-desktop-rooms');
