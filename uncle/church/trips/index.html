@@ -17900,6 +17900,45 @@
       // =========================================================================
       // UNCLE ROOM ASSIGNMENT PERSISTENCE
       // =========================================================================
+      function findRoomInConfig(roomsConfig, bldName, floorName, roomName) {
+        if (!Array.isArray(roomsConfig)) return null;
+        const norm = (s) => String(s || '').replace(/^(المبنى|مبنى|الدور|دور|الغرفة|غرفة|رقم)\s*/i, '').trim();
+
+        const targetB = norm(bldName);
+        const targetF = norm(floorName);
+        const targetR = norm(roomName);
+
+        for (const bld of roomsConfig) {
+          const bName = norm(bld.name);
+          const bMatch = bName === targetB || !targetB || String(bld.name || '').trim() === String(bldName || '').trim();
+          if (bMatch) {
+            if (bld.has_floors && Array.isArray(bld.floors)) {
+              for (const fl of bld.floors) {
+                const fName = norm(fl.name);
+                const fMatch = fName === targetF || !targetF || String(fl.name || '').trim() === String(floorName || '').trim();
+                if (fMatch && Array.isArray(fl.rooms)) {
+                  for (const r of fl.rooms) {
+                    const rName = norm(r.name);
+                    if (rName === targetR || String(r.name || '').trim() === String(roomName || '').trim()) {
+                      return r;
+                    }
+                  }
+                }
+              }
+            }
+            if (Array.isArray(bld.rooms)) {
+              for (const r of bld.rooms) {
+                const rName = norm(r.name);
+                if (rName === targetR || String(r.name || '').trim() === String(roomName || '').trim()) {
+                  return r;
+                }
+              }
+            }
+          }
+        }
+        return null;
+      }
+
       async function onUncleAssignSelect(selectEl, bldName, floorName, roomName) {
         const uncleId = selectEl.value;
         if (!uncleId) return;
@@ -17912,14 +17951,14 @@
 
         // Find room and assign uncle
         let assignedName = '';
-        const selectedUncle = window.allUnclesCache.find(u => u.id == uncleId);
+        const selectedUncle = (window.allUnclesCache || []).find(u => String(u.id) === String(uncleId));
         if (selectedUncle) assignedName = selectedUncle.name;
 
         // Prevent duplicate uncle assignments by removing them from any other room first
         roomsConfig.forEach(bld => {
           const cleanRoom = (r) => {
             if (r.uncles) {
-              r.uncles = r.uncles.filter(u => u.id != uncleId);
+              r.uncles = r.uncles.filter(u => String(typeof u === 'object' ? u.id : u) !== String(uncleId));
             }
           };
           if (bld.has_floors) {
@@ -17929,29 +17968,11 @@
           }
         });
 
-        roomsConfig.forEach(bld => {
-          if (bld.name === bldName) {
-            if (bld.has_floors) {
-              bld.floors.forEach(fl => {
-                if (fl.name === floorName) {
-                  fl.rooms.forEach(r => {
-                    if (r.name === roomName) {
-                      if (!r.uncles) r.uncles = [];
-                      r.uncles.push({ id: uncleId, name: assignedName });
-                    }
-                  });
-                }
-              });
-            } else {
-              bld.rooms.forEach(r => {
-                if (r.name === roomName) {
-                  if (!r.uncles) r.uncles = [];
-                  r.uncles.push({ id: uncleId, name: assignedName });
-                }
-              });
-            }
-          }
-        });
+        const targetRoomObj = findRoomInConfig(roomsConfig, bldName, floorName, roomName);
+        if (targetRoomObj) {
+          if (!targetRoomObj.uncles) targetRoomObj.uncles = [];
+          targetRoomObj.uncles.push({ id: String(uncleId), name: assignedName });
+        }
 
         selectEl.disabled = true;
         const success = await saveRoomsConfig(tripId, roomsConfig);
@@ -17974,28 +17995,10 @@
         if (!trip) return;
 
         const roomsConfig = getTripRoomsConfig(trip);
-
-        roomsConfig.forEach(bld => {
-          if (bld.name === bldName) {
-            if (bld.has_floors) {
-              bld.floors.forEach(fl => {
-                if (fl.name === floorName) {
-                  fl.rooms.forEach(r => {
-                    if (r.name === roomName && r.uncles) {
-                      r.uncles.splice(uncleIdx, 1);
-                    }
-                  });
-                }
-              });
-            } else {
-              bld.rooms.forEach(r => {
-                if (r.name === roomName && r.uncles) {
-                  r.uncles.splice(uncleIdx, 1);
-                }
-              });
-            }
-          }
-        });
+        const targetRoomObj = findRoomInConfig(roomsConfig, bldName, floorName, roomName);
+        if (targetRoomObj && Array.isArray(targetRoomObj.uncles)) {
+          targetRoomObj.uncles.splice(uncleIdx, 1);
+        }
 
         const success = await saveRoomsConfig(tripId, roomsConfig);
         if (success) {
@@ -18365,31 +18368,11 @@
           }
         });
 
-        roomsConfig.forEach(bld => {
-          const bName = String(bld.name || '').trim();
-          if (bName === targetBld || bName.replace(/^(المبنى|مبنى)\s*/, '') === targetBld.replace(/^(المبنى|مبنى)\s*/, '')) {
-            if (bld.has_floors) {
-              (bld.floors || []).forEach(fl => {
-                const fName = String(fl.name || '').trim();
-                if (!targetFloor || fName === targetFloor) {
-                  (fl.rooms || []).forEach(r => {
-                    if (String(r.name || '').trim() === targetRoom) {
-                      if (!r.uncles) r.uncles = [];
-                      r.uncles.push({ id: String(uncleId), name: assignedName });
-                    }
-                  });
-                }
-              });
-            } else {
-              (bld.rooms || []).forEach(r => {
-                if (String(r.name || '').trim() === targetRoom) {
-                  if (!r.uncles) r.uncles = [];
-                  r.uncles.push({ id: String(uncleId), name: assignedName });
-                }
-              });
-            }
-          }
-        });
+        const targetRoomObj = findRoomInConfig(roomsConfig, bldName, floorName, roomName);
+        if (targetRoomObj) {
+          if (!targetRoomObj.uncles) targetRoomObj.uncles = [];
+          targetRoomObj.uncles.push({ id: String(uncleId), name: assignedName });
+        }
 
         const success = await saveRoomsConfig(tripId, roomsConfig);
         if (success) {
