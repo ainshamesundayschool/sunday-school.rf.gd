@@ -25707,6 +25707,23 @@ function updateTrip()
             return;
         }
 
+        $imageUrl = isset($_POST['image_url']) ? sanitize($_POST['image_url']) : ($oldTrip['image_url'] ?? null);
+        if (isset($_FILES['trip_image']) && $_FILES['trip_image']['error'] === UPLOAD_ERR_OK) {
+            $uploadDir = __DIR__ . '/uploads/trips/';
+            if (!file_exists($uploadDir)) {
+                @mkdir($uploadDir, 0777, true);
+            }
+            $filename = 'trip_' . time() . '_' . uniqid() . '.jpg';
+            $uploadPath = $uploadDir . $filename;
+            $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+            $fileType = mime_content_type($_FILES['trip_image']['tmp_name']);
+            if (in_array($fileType, $allowedTypes, true)) {
+                if (move_uploaded_file($_FILES['trip_image']['tmp_name'], $uploadPath)) {
+                    $imageUrl = "https://" . ($_SERVER['HTTP_HOST'] ?? 'sunday-school.online') . "/uploads/trips/" . $filename;
+                }
+            }
+        }
+
         $title = isset($_POST['title']) ? sanitize($_POST['title']) : ($oldTrip['title'] ?? '');
         $description = isset($_POST['description']) ? sanitize($_POST['description']) : ($oldTrip['description'] ?? '');
         $type = isset($_POST['type']) ? sanitize($_POST['type']) : ($oldTrip['type'] ?? 'one_day');
@@ -25998,12 +26015,11 @@ function updateTrip()
                     start_date = ?, end_date = ?, price = ?, 
                     discount = ?, discount_type = ?, max_participants = ?, 
                     status = ?, show_registered_kids = ?, has_points_game = ?, custom_fields = ?, custom_field_icons = ?,
-                    has_rooms = ?, rooms_config = ?, points_config = ?, hide_from_uncles = ?, updated_at = NOW()
+                    has_rooms = ?, rooms_config = ?, points_config = ?, hide_from_uncles = ?, image_url = ?, updated_at = NOW()
                 WHERE id = ? AND church_id = ?
             ");
-            // Corrected type specifier string: index 15 (has_rooms) is i, index 16 (rooms_config) is s
             $stmt->bind_param(
-                "sssssddsisiiisissiii",
+                "sssssddsisiiisisssiii",
                 $title,
                 $description,
                 $type,
@@ -26022,6 +26038,7 @@ function updateTrip()
                 $roomsConfig,
                 $pointsConfig,
                 $hideFromUncles,
+                $imageUrl,
                 $tripId,
                 $churchId
             );
