@@ -25147,6 +25147,10 @@ function getTrips()
 
             }
 
+            if (empty($row['image_url']) || in_array(strtolower(trim((string)$row['image_url'])), ['0', 'null', 'undefined', 'false', 'none'], true)) {
+                $row['image_url'] = null;
+            }
+
             $trips[] = $row;
 
         }

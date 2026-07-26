@@ -8404,10 +8404,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       document.getElementById('tripSub').textContent = trips.length + ' رحلة';
       const stLbl = { planned: 'مخطط', active: 'نشط', completed: 'مكتمل', cancelled: 'ملغي' };
       el.innerHTML = trips.map(t => {
-        const thumb = t.image_url
+        const hasTripImg = t.image_url && !['0', 'null', 'undefined', 'false', 'none', ''].includes(String(t.image_url).trim().toLowerCase());
+        const thumb = hasTripImg
           ? `<img class="trip-thumb" src="${esc(t.image_url)}" alt="${esc(t.title)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">`
           : '';
-        const ph = `<div class="trip-thumb-placeholder" ${t.image_url ? 'style="display:none"' : ''}><i class="fas fa-bus"></i><span>${esc(t.title)}</span></div>`;
+        const ph = `<div class="trip-thumb-placeholder" ${hasTripImg ? 'style="display:none"' : ''}><i class="fas fa-bus"></i><span>${esc(t.title)}</span></div>`;
         const priceOverlay = parseFloat(t.final_price) > 0
           ? `<span class="trip-price-pill main"><i class="fas fa-tag"></i>${parseFloat(t.final_price).toFixed(0)} ج.م</span>`
           : `<span class="trip-price-pill main"><i class="fas fa-gift"></i> مجانية</span>`;
@@ -8487,7 +8488,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       </div>`).join('')}
     </div>`: `<div class="empty-st"><i class="fas fa-user-slash"></i><p>لا يوجد مستخدمون مسجّلون بعد</p></div>`);
       document.getElementById('tripOvBody').innerHTML = `
-    ${t.image_url ? `<img class="trip-detail-thumb" src="${esc(t.image_url)}" alt="">` :
+    ${(t.image_url && !['0', 'null', 'undefined', 'false', 'none', ''].includes(String(t.image_url).trim().toLowerCase())) ? `<img class="trip-detail-thumb" src="${esc(t.image_url)}" alt="">` :
           `<div class="trip-detail-ph"><i class="fas fa-bus"></i></div>`}
     ${contactHtml}
     ${myRegHtml}
