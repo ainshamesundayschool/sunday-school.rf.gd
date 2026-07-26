@@ -9739,7 +9739,52 @@
         return raw.split(',').map(f => f.trim()).filter(Boolean);
       }
     </script>
-    <script>
+      function getTripRoomsConfig(trip) {
+        if (!trip) return [];
+        let config = [];
+        if (trip.rooms_config) {
+          try {
+            config = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config) : trip.rooms_config;
+          } catch (e) { }
+        }
+        if (Array.isArray(config) && config.length > 0) return config;
+
+        let icons = {};
+        if (trip.custom_field_icons) {
+          icons = (typeof trip.custom_field_icons === 'object') ? trip.custom_field_icons : JSON.parse(trip.custom_field_icons || '{}');
+        }
+        const sakenMeta = icons['السكن'];
+        if (sakenMeta && sakenMeta.type === 'sub_group' && Array.isArray(sakenMeta.choices) && sakenMeta.choices.length > 0) {
+          const subFields = sakenMeta.sub_fields || {};
+          const synthesizedConfig = [];
+          sakenMeta.choices.forEach(bldName => {
+            const bldSubs = subFields[bldName] || [];
+            const floorField = Array.isArray(bldSubs) ? bldSubs.find(sf => sf.name === 'الدور' && sf.type === 'choices') : null;
+            const roomField = Array.isArray(bldSubs) ? bldSubs.find(sf => (sf.name === 'الغرفة' || sf.name === 'رقم الغرفة') && sf.type === 'choices') : null;
+
+            if (floorField && Array.isArray(floorField.choices) && floorField.choices.length > 0) {
+              const floors = [];
+              floorField.choices.forEach(floorName => {
+                const roomChoices = (roomField && Array.isArray(roomField.choices)) ? roomField.choices : ['1', '2', '3', '4'];
+                const rooms = roomChoices.map(rName => ({ name: String(rName).trim(), capacity: 4, is_excluded: false, uncles: [] }));
+                floors.push({ name: String(floorName).trim(), rooms });
+              });
+              synthesizedConfig.push({ name: String(bldName).trim(), has_floors: true, floors });
+            } else if (roomField && Array.isArray(roomField.choices) && roomField.choices.length > 0) {
+              const rooms = roomField.choices.map(rName => ({ name: String(rName).trim(), capacity: 4, is_excluded: false, uncles: [] }));
+              synthesizedConfig.push({ name: String(bldName).trim(), has_floors: false, rooms });
+            } else {
+              synthesizedConfig.push({ name: String(bldName).trim(), has_floors: false, rooms: [{ name: '1', capacity: 4, is_excluded: false, uncles: [] }, { name: '2', capacity: 4, is_excluded: false, uncles: [] }] });
+            }
+          });
+          if (synthesizedConfig.length > 0) {
+            trip.rooms_config = synthesizedConfig;
+            return synthesizedConfig;
+          }
+        }
+        return [];
+      }
+
       function getTripCustomFieldIcons(trip) {
         let icons = {};
         if (trip && trip.custom_field_icons) {
@@ -12667,7 +12712,7 @@
 
         const printUncles = document.getElementById('printUnclesOption')?.checked || false;
         if (printUncles) {
-          const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+          const roomsConfig = getTripRoomsConfig(trip);
           const selectedUncles = (window.allUnclesCache || []).filter(u => printSelectedUncleIds.has(String(u.id)));
           selectedUncles.forEach(u => {
             regs.push(mapUncleToReg(u, roomsConfig));
@@ -13018,7 +13063,7 @@
         const scope = document.getElementById('printUncleScope')?.value || 'assigned';
         const uncles = window.allUnclesCache || [];
 
-        const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+        const roomsConfig = getTripRoomsConfig(trip);
 
         const isUncleAssigned = (uid) => {
           let assigned = false;
@@ -13527,7 +13572,7 @@
 
         const printUncles = document.getElementById('printUnclesOption')?.checked || false;
         if (printUncles) {
-          const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+          const roomsConfig = getTripRoomsConfig(trip);
           const selectedUncles = (window.allUnclesCache || []).filter(u => printSelectedUncleIds.has(String(u.id)));
           selectedUncles.forEach(u => {
             regs.push(mapUncleToReg(u, roomsConfig));
@@ -13938,7 +13983,7 @@
         let regs = [...getSelectedPrintRegistrations(rawRegs)];
         const printUncles = document.getElementById('printUnclesOption')?.checked || false;
         if (printUncles) {
-          const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+          const roomsConfig = getTripRoomsConfig(trip);
           const selectedUncles = (window.allUnclesCache || []).filter(u => printSelectedUncleIds.has(String(u.id)));
           selectedUncles.forEach(u => {
             regs.push(mapUncleToReg(u, roomsConfig));
@@ -16418,7 +16463,7 @@
           return;
         }
 
-        let roomsConfig = typeof activeTrip.rooms_config === 'string' ? JSON.parse(activeTrip.rooms_config || '[]') : (activeTrip.rooms_config || []);
+        let roomsConfig = getTripRoomsConfig(activeTrip);
         if (!Array.isArray(roomsConfig) || !roomsConfig.length) {
           // Auto-initialize a default room structure so housing immediately opens the Rooms Assigning Workspace
           roomsConfig = [
@@ -16517,7 +16562,7 @@
         const tripId = window.currentTripId;
         const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
         const regs = tripRegistrationsCache[tripId] || [];
-        const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+        const roomsConfig = getTripRoomsConfig(trip);
         const query = document.getElementById('roomsSearchFilter')?.value || '';
 
         // Extract assignments
@@ -17482,7 +17527,7 @@
           return;
         }
 
-        const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+        const roomsConfig = getTripRoomsConfig(trip);
         if (!Array.isArray(roomsConfig) || !roomsConfig.length) {
           showToast('لا يوجد هيكل غرف حالي لحفظه كقالب', 'warning');
           return;
@@ -17599,7 +17644,7 @@
         }
 
         const regs = tripRegistrationsCache[tripId] || [];
-        const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+        const roomsConfig = getTripRoomsConfig(trip);
         if (!Array.isArray(roomsConfig) || !roomsConfig.length) {
           showToast('لا توجد بيانات غرف لتحميلها', 'warning');
           return;
@@ -17722,7 +17767,7 @@
         const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
         if (!trip) return;
 
-        const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+        const roomsConfig = getTripRoomsConfig(trip);
 
         // Find room and assign uncle
         let assignedName = '';
@@ -17787,7 +17832,7 @@
         const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
         if (!trip) return;
 
-        const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+        const roomsConfig = getTripRoomsConfig(trip);
 
         roomsConfig.forEach(bld => {
           if (bld.name === bldName) {
@@ -18135,7 +18180,7 @@
         const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
         if (!trip) return;
 
-        const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+        const roomsConfig = getTripRoomsConfig(trip);
 
         let assignedName = '';
         const selectedUncle = window.allUnclesCache.find(u => u.id == uncleId);
@@ -18267,7 +18312,7 @@
         if (!trip) return;
 
         const regs = tripRegistrationsCache[tripId] || [];
-        const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+        const roomsConfig = getTripRoomsConfig(trip);
 
         const allocatedMap = {};
         regs.forEach(r => {
@@ -18353,7 +18398,7 @@
         if (!trip) return;
 
         const regs = tripRegistrationsCache[tripId] || [];
-        const existingConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+        const existingConfig = getTripRoomsConfig(trip);
 
         const rows = parseCSV(csvText);
         if (rows.length <= 1) {
@@ -19075,7 +19120,7 @@
         const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
         if (!trip) return;
 
-        const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+        const roomsConfig = getTripRoomsConfig(trip);
 
         roomsConfig.forEach(bld => {
           if (bld.name === bldName) {
@@ -19115,7 +19160,7 @@
         const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
         if (!trip) return;
 
-        const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+        const roomsConfig = getTripRoomsConfig(trip);
 
         roomsConfig.forEach(bld => {
           if (bld.name === bldName) {
@@ -19740,7 +19785,7 @@
         const tripId = window.currentTripId;
         const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
         const regs = tripRegistrationsCache[tripId] || [];
-        const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+        const roomsConfig = getTripRoomsConfig(trip);
 
         await loadSystemChurches();
 
@@ -19962,7 +20007,7 @@
         const tripId = window.currentTripId;
         const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
         const regs = tripRegistrationsCache[tripId] || [];
-        const roomsConfig = typeof trip.rooms_config === 'string' ? JSON.parse(trip.rooms_config || '[]') : (trip.rooms_config || []);
+        const roomsConfig = getTripRoomsConfig(trip);
 
         const scope = document.getElementById('afScope').value;
         const priority = document.getElementById('afPriority').value;

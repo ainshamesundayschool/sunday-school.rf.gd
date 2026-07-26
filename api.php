@@ -25129,14 +25129,23 @@ function getTrips()
 
                         $u->execute();
 
-                    } catch (Exception $e) {
-
-                        // don't break listing on failure to update
-
                     }
 
                 }
 
+            }
+
+            if ((empty($row['rooms_config']) || $row['rooms_config'] === '[]' || $row['rooms_config'] === 'null') && !empty($row['custom_field_icons']['السكن'])) {
+                $synConfig = synthesizeRoomsConfigFromIconsPHP($row['custom_field_icons']);
+                if ($synConfig) {
+                    $row['rooms_config'] = $synConfig;
+                    $row['has_rooms'] = 1;
+                    try {
+                        $u = $conn->prepare("UPDATE trips SET rooms_config = ?, has_rooms = 1 WHERE id = ?");
+                        $u->bind_param('si', $synConfig, $row['id']);
+                        $u->execute();
+                    } catch (Exception $e) {}
+                }
             }
 
 
@@ -25682,7 +25691,100 @@ function addTrip()
         sendJSON(['success' => false, 'message' => 'خطأ في إضافة الرحلة: ' . $e->getMessage()]);
 
     }
+}
 
+function synthesizeRoomsConfigFromIconsPHP($customFieldIcons) {
+    if (empty($customFieldIcons['السكن']) || !is_array($customFieldIcons['السكن'])) {
+        return null;
+    }
+    $sakenMeta = $customFieldIcons['السكن'];
+    if (($sakenMeta['type'] ?? '') !== 'sub_group' || empty($sakenMeta['choices']) || !is_array($sakenMeta['choices'])) {
+        return null;
+    }
+
+    $subFields = $sakenMeta['sub_fields'] ?? [];
+    $synthesizedConfig = [];
+
+    foreach ($sakenMeta['choices'] as $bldName) {
+        $bldNameStr = trim((string)$bldName);
+        if ($bldNameStr === '') continue;
+
+        $bldSubs = $subFields[$bldNameStr] ?? [];
+        $floorField = null;
+        $roomField = null;
+
+        if (is_array($bldSubs)) {
+            foreach ($bldSubs as $sf) {
+                if (is_array($sf)) {
+                    $name = $sf['name'] ?? '';
+                    if ($name === 'الدور' && ($sf['type'] ?? '') === 'choices') {
+                        $floorField = $sf;
+                    }
+                    if (($name === 'الغرفة' || $name === 'رقم الغرفة') && ($sf['type'] ?? '') === 'choices') {
+                        $roomField = $sf;
+                    }
+                }
+            }
+        }
+
+        if (!empty($floorField['choices']) && is_array($floorField['choices'])) {
+            $floors = [];
+            foreach ($floorField['choices'] as $floorName) {
+                $fNameStr = trim((string)$floorName);
+                if ($fNameStr === '') continue;
+
+                $roomChoices = (!empty($roomField['choices']) && is_array($roomField['choices'])) ? $roomField['choices'] : ['1', '2', '3', '4'];
+                $rooms = [];
+                foreach ($roomChoices as $rName) {
+                    $rNameStr = trim((string)$rName);
+                    if ($rNameStr === '') continue;
+                    $rooms[] = [
+                        'name' => $rNameStr,
+                        'capacity' => 4,
+                        'is_excluded' => false,
+                        'uncles' => []
+                    ];
+                }
+                $floors[] = [
+                    'name' => $fNameStr,
+                    'rooms' => $rooms
+                ];
+            }
+            $synthesizedConfig[] = [
+                'name' => $bldNameStr,
+                'has_floors' => true,
+                'floors' => $floors
+            ];
+        } elseif (!empty($roomField['choices']) && is_array($roomField['choices'])) {
+            $rooms = [];
+            foreach ($roomField['choices'] as $rName) {
+                $rNameStr = trim((string)$rName);
+                if ($rNameStr === '') continue;
+                $rooms[] = [
+                    'name' => $rNameStr,
+                    'capacity' => 4,
+                    'is_excluded' => false,
+                    'uncles' => []
+                ];
+            }
+            $synthesizedConfig[] = [
+                'name' => $bldNameStr,
+                'has_floors' => false,
+                'rooms' => $rooms
+            ];
+        } else {
+            $synthesizedConfig[] = [
+                'name' => $bldNameStr,
+                'has_floors' => false,
+                'rooms' => [
+                    ['name' => '1', 'capacity' => 4, 'is_excluded' => false, 'uncles' => []],
+                    ['name' => '2', 'capacity' => 4, 'is_excluded' => false, 'uncles' => []]
+                ]
+            ];
+        }
+    }
+
+    return !empty($synthesizedConfig) ? json_encode($synthesizedConfig, JSON_UNESCAPED_UNICODE) : null;
 }
 
 function mergeRoomsConfigsPHP($newConfigJson, $oldConfigJson) {
@@ -26573,14 +26675,23 @@ function getTripDetails()
 
                     $up->execute();
 
-                } catch (Exception $e) {
-
-                    // ignore update failure
-
                 }
 
             }
 
+        }
+
+        if ((empty($trip['rooms_config']) || $trip['rooms_config'] === '[]' || $trip['rooms_config'] === 'null') && !empty($trip['custom_field_icons']['السكن'])) {
+            $synConfig = synthesizeRoomsConfigFromIconsPHP($trip['custom_field_icons']);
+            if ($synConfig) {
+                $trip['rooms_config'] = $synConfig;
+                $trip['has_rooms'] = 1;
+                try {
+                    $u = $conn->prepare("UPDATE trips SET rooms_config = ?, has_rooms = 1 WHERE id = ?");
+                    $u->bind_param('si', $synConfig, $tripId);
+                    $u->execute();
+                } catch (Exception $e) {}
+            }
         }
 
 
