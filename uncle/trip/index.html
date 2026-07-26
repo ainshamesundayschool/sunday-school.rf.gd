@@ -2535,9 +2535,15 @@
                 }
                 const fd = new FormData();
                 fd.append('action', action);
+                const uId = localStorage.getItem('uncleId') || localStorage.getItem('uncle_id');
+                const cId = localStorage.getItem('churchId') || localStorage.getItem('church_id');
+                const cCode = localStorage.getItem('churchCode') || localStorage.getItem('church_code');
+                if (uId && !params.uncle_id) fd.append('uncle_id', uId);
+                if (cId && !params.church_id) fd.append('church_id', cId);
+                if (cCode && !params.church_code) fd.append('church_code', cCode);
                 Object.entries(params).forEach(([k, v]) => fd.append(k, v));
                 try {
-                    return await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                    return await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
                 } catch (e) {
                     console.error("API Call error:", e);
                     return { success: false, message: "Network connection error" };
@@ -3253,12 +3259,18 @@
                 const fd = new FormData();
                 fd.append('action', 'getTripDetails');
                 fd.append('trip_id', tripId);
+                const uId = localStorage.getItem('uncleId') || localStorage.getItem('uncle_id');
+                const cId = localStorage.getItem('churchId') || localStorage.getItem('church_id');
+                const cCode = localStorage.getItem('churchCode') || localStorage.getItem('church_code');
+                if (uId) fd.append('uncle_id', uId);
+                if (cId) fd.append('church_id', cId);
+                if (cCode) fd.append('church_code', cCode);
 
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 30000);
 
                 try {
-                    const res = await fetch(API_URL, { method: 'POST', body: fd, signal: controller.signal }).then(r => r.json());
+                    const res = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include', signal: controller.signal }).then(r => r.json());
                     clearTimeout(timeoutId);
 
                     if (res.success && res.trip) {

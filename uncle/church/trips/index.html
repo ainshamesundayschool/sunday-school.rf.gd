@@ -5227,11 +5227,15 @@
       }
 
       function getSelectedTripId() {
+        const searchParams = new URLSearchParams(location.search);
+        const fromSearch = parseInt(searchParams.get('trip_id') || searchParams.get('id') || 0);
+        if (fromSearch) return fromSearch;
+
         const hash = location.hash || '';
         const parts = hash.substring(1).split('?');
-        const params = new URLSearchParams(parts[1] || '');
-        const fromParam = parseInt(params.get('trip_id') || params.get('id') || 0);
-        if (fromParam) return fromParam;
+        const params = new URLSearchParams(parts[1] || parts[0] || '');
+        const fromHash = parseInt(params.get('trip_id') || params.get('id') || 0);
+        if (fromHash) return fromHash;
 
         // Legacy fallback
         const tabAndParams = parts[0];
@@ -7075,7 +7079,7 @@
         }
       });
 
-      function renderTripsPageDefaultState() {
+      async function renderTripsPageDefaultState() {
         document.getElementById('tripInfoContent').innerHTML = `
           <div id="tripCollaborationInvitesCard" class="card" style="margin-bottom:20px; display:none; border:1px solid #0ea5e9; text-align:right; direction:rtl;">
               <div class="card-header" style="background:#f0f9ff; color:#0369a1; border-bottom:1px solid #e0f2fe; padding:12px 16px;">
@@ -7085,12 +7089,66 @@
                   <!-- Requests will load here -->
               </div>
           </div>
-          <div class="empty-state">
-              <i class="fas fa-route"></i>
-              <h3>افتح الرحلة من لوحة الكنيسة لعرض بياناتها هنا</h3>
+          <div id="defaultTripsListContainer" style="direction:rtl; text-align:right; margin-top:10px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+                  <h3 style="margin:0; font-size:1.1rem; font-weight:700; color:var(--text);"><i class="fas fa-bus" style="color:var(--primary); margin-left:6px;"></i> اختر رحلة لإدارتها أو تعديل بياناتها</h3>
+              </div>
+              <div id="defaultTripsGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:14px;">
+                  <div style="grid-column:1/-1; text-align:center; padding:30px; color:var(--muted);"><i class="fas fa-spinner fa-spin"></i> جاري تحميل الرحلات والمؤتمرات...</div>
+              </div>
           </div>
         `;
         loadCollaborationRequests();
+        await loadDefaultTripsList();
+      }
+
+      async function loadDefaultTripsList() {
+        const grid = document.getElementById('defaultTripsGrid');
+        if (!grid) return;
+        try {
+          const fd = mkFd('getTrips');
+          const res = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
+          if (res.success && res.trips && res.trips.length > 0) {
+            allTripsCache = res.trips;
+            const cid = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || 0);
+            grid.innerHTML = res.trips.map(t => {
+              const tripWord = t.type === 'one_day' ? 'رحلة' : 'مؤتمر';
+              const dateStr = t.start_date_formatted || t.start_date || 'قريباً';
+              const isOwner = t.is_owner == 1 || parseInt(t.church_id) === cid || isDeveloperUser();
+              const img = sanitizeTripImageUrl(t.image_url);
+              const imgHtml = img ? `<img src="${img}" style="width:100%; height:130px; object-fit:cover; border-radius:10px 10px 0 0;">` : `<div style="height:110px; background:linear-gradient(135deg, var(--primary) 0%, #4338ca 100%); display:flex; align-items:center; justify-content:center; color:white; border-radius:10px 10px 0 0;"><i class="fas fa-${t.type === 'one_day' ? 'bus' : 'campground'}" style="font-size:2.4rem; opacity:0.85;"></i></div>`;
+              return `
+                <div class="card" style="border:1px solid var(--border); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; background:var(--surface); transition:transform 0.15s ease;">
+                  ${imgHtml}
+                  <div style="padding:14px; flex:1; display:flex; flex-direction:column; justify-content:space-between;">
+                    <div>
+                      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:6px;">
+                        <h4 style="margin:0; font-size:0.98rem; font-weight:700; color:var(--text);">${t.title}</h4>
+                        <span class="badge badge-info" style="font-size:0.7rem; flex-shrink:0;">${tripWord}</span>
+                      </div>
+                      <div style="font-size:0.8rem; color:var(--muted); margin-bottom:12px;"><i class="far fa-calendar-alt"></i> ${dateStr}</div>
+                    </div>
+                    <div style="display:flex; gap:8px; margin-top:10px; padding-top:10px; border-top:1px solid var(--border);">
+                      <button type="button" class="btn btn-primary btn-sm" style="flex:1; font-size:0.82rem;" onclick="showTripDetails(${t.id})"><i class="fas fa-cog"></i> إدارة</button>
+                      ${isOwner ? `<button type="button" class="btn btn-secondary btn-sm" style="font-size:0.82rem;" onclick="openEditTrip(${t.id})"><i class="fas fa-edit"></i> تعديل</button>` : ''}
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('');
+          } else {
+            grid.innerHTML = `
+              <div style="grid-column:1/-1; text-align:center; padding:40px 20px; background:var(--surface); border:1px solid var(--border); border-radius:12px;">
+                <i class="fas fa-route" style="font-size:2.5rem; color:var(--muted); margin-bottom:12px; display:block;"></i>
+                <h4 style="margin:0 0 8px; font-weight:700;">لا توجد رحلات أو مؤتمرات حالياً</h4>
+                <p style="margin:0; font-size:0.85rem; color:var(--muted);">يمكنك إضافة رحلة جديدة من القائمة الخاصة بإنشاء رحلة.</p>
+              </div>
+            `;
+          }
+        } catch (e) {
+          console.error("Error loading default trips list", e);
+          grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:30px; color:var(--danger);"><i class="fas fa-exclamation-circle"></i> تعذر تحميل قائمة الرحلات. يرجى المحاولة لاحقاً.</div>`;
+        }
       }
 
       async function loadCollaborationRequests() {
