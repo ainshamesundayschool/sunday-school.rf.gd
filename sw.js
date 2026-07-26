@@ -1,7 +1,7 @@
 // ╔══════════════════════════════════════════════════════════════╗
-// ║  Sunday School PWA — Service Worker v28                     ║
+// ║  Sunday School PWA — Service Worker v29                     ║
 // ╚══════════════════════════════════════════════════════════════╝
-const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v28';
+const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v29';
 const CACHE_NAME        = `sunday-school-${SW_VERSION}`;
 const SYNC_TAG          = 'sync-attendance';
 const PERIODIC_SYNC_TAG = 'check-registrations';
@@ -209,45 +209,30 @@ self.addEventListener('fetch', e => {
         return;
     }
 
-    // Fast Page Navigation strategy (Stale-While-Revalidate / Immediate Shell Cache)
-    // Instantly returns cached HTML shell so page redirects & transitions take 0ms!
+    // ── PAGE NAVIGATION (Network-First when online, fallback to Cache when offline) ──
     if (e.request.mode === 'navigate') {
         e.respondWith(
             (async () => {
-                // 1. Try to serve cached page or offline shell immediately for super-fast navigation
-                const cachedResponse = (isOfflineShellFriendly ? await caches.match(e.request, { ignoreSearch: true }) : null) || await _matchOfflineShell(e.request, url);
-
-                // Revalidate in background to keep cache updated
-                const fetchPromise = (async () => {
-                    try {
-                        const networkResp = await fetch(e.request, { cache: 'no-store' });
-                        if (networkResp && networkResp.ok && isOfflineShellFriendly && await _isCacheableAppResponse(networkResp, e.request)) {
-                            const copy = networkResp.clone();
-                            const cache = await caches.open(CACHE_NAME);
-                            await cache.put(e.request, copy);
-                        }
-                        return networkResp;
-                    } catch (err) {
-                        return null;
+                try {
+                    const networkResp = await fetch(e.request, { cache: 'no-store' });
+                    if (networkResp && networkResp.ok && isOfflineShellFriendly && await _isCacheableAppResponse(networkResp, e.request)) {
+                        const copy = networkResp.clone();
+                        const cache = await caches.open(CACHE_NAME);
+                        await cache.put(e.request, copy);
                     }
-                })();
+                    return networkResp;
+                } catch (err) {
+                    const cachedResponse = (isOfflineShellFriendly ? await caches.match(e.request, { ignoreSearch: true }) : null) || await _matchOfflineShell(e.request, url);
+                    if (cachedResponse) return cachedResponse;
 
-                if (cachedResponse) {
-                    // Cache exists: serve immediately (instant redirection) and let background fetch update cache
-                    return cachedResponse;
+                    const fallbackShell = await _matchOfflineShell(e.request, url);
+                    if (fallbackShell) return fallbackShell;
+
+                    return new Response('<!doctype html><meta charset="utf-8"><title>Offline</title><body dir="rtl" style="font-family:sans-serif;padding:24px">غير متصل بالإنترنت</body>', {
+                        status: 503,
+                        headers: { 'Content-Type': 'text/html; charset=utf-8' }
+                    });
                 }
-
-                // If no cache exists, wait for network fetch with fallback
-                const netResult = await fetchPromise;
-                if (netResult) return netResult;
-
-                const fallbackShell = await _matchOfflineShell(e.request, url);
-                if (fallbackShell) return fallbackShell;
-
-                return new Response('<!doctype html><meta charset="utf-8"><title>Offline</title><body dir="rtl" style="font-family:sans-serif;padding:24px">غير متصل بالإنترنت</body>', {
-                    status: 503,
-                    headers: { 'Content-Type': 'text/html; charset=utf-8' }
-                });
             })()
         );
         return;
@@ -259,7 +244,30 @@ self.addEventListener('fetch', e => {
         return;
     }
 
-    // Static assets — cache-first
+    // Static JS / CSS Code Assets — Network-First when online, Cache fallback when offline
+    const isCodeAsset = isSameOrigin && (url.pathname.endsWith('.js') || url.pathname.endsWith('.css') || url.pathname.includes('/js/'));
+    if (isCodeAsset) {
+        e.respondWith(
+            (async () => {
+                try {
+                    const networkResp = await fetch(e.request, { cache: 'no-store' });
+                    if (networkResp && networkResp.ok && await _isCacheableAppResponse(networkResp, e.request)) {
+                        const copy = networkResp.clone();
+                        const cache = await caches.open(CACHE_NAME);
+                        await cache.put(e.request, copy);
+                    }
+                    return networkResp;
+                } catch (err) {
+                    const cached = await caches.match(e.request);
+                    if (cached) return cached;
+                    return new Response('Offline', { status: 503 });
+                }
+            })()
+        );
+        return;
+    }
+
+    // Media & Image assets — cache-first
     e.respondWith(
         caches.match(e.request).then(cached => {
             if (cached) return cached;
