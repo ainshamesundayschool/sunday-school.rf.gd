@@ -86,8 +86,6 @@
             visibility: hidden !important;
         }
 
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap');
-
 
         #printSettingsModal input[type="color"] {
             -webkit-appearance: none;
@@ -19724,7 +19722,6 @@
         let devSongLogsCache = [];
 
         async function loadSongDownloadStats() {
-            if (!isDeveloper) return;
             try {
                 const fd = mkFd('getSongDownloadStats');
                 const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
