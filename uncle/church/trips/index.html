@@ -18564,6 +18564,7 @@
         const origBtnHtml = btn ? btn.innerHTML : '';
         if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري تحميل الخدام والمعاينة...'; }
 
+        const roomsMap = {};
         try {
           await ensureTripUnclesLoaded(tripId);
           const regs = tripRegistrationsCache[tripId] || [];
@@ -18608,7 +18609,6 @@
             }
           });
 
-          const roomsMap = {};
           window.bulkRoomsParsedResidents = [];
           let totalBeds = 0;
           
