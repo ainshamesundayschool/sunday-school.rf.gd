@@ -2396,7 +2396,10 @@
 
             async function getTripLocal(tId) {
                 try {
-                    const db = await getLocalDB();
+                    const db = await Promise.race([
+                        getLocalDB(),
+                        new Promise((_, rej) => setTimeout(() => rej(new Error("IDB timeout")), 400))
+                    ]);
                     return new Promise((res) => {
                         const req = db.transaction('trips', 'readonly').objectStore('trips').get(String(tId));
                         req.onsuccess = () => {
@@ -2411,7 +2414,7 @@
                         req.onerror = () => res(null);
                     });
                 } catch (e) {
-                    console.error("getTripLocal error:", e);
+                    console.warn("getTripLocal fallback:", e);
                     return null;
                 }
             }
@@ -2964,13 +2967,16 @@
                     document.getElementById('loadingDetails').style.display = 'block';
                 }
 
-                // Fetch the fresh data from the server in background
                 const fd = new FormData();
                 fd.append('action', 'getTripDetails');
                 fd.append('trip_id', tripId);
 
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+
                 try {
-                    const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+                    const res = await fetch(API_URL, { method: 'POST', body: fd, signal: controller.signal }).then(r => r.json());
+                    clearTimeout(timeoutId);
 
                     if (res.success && res.trip) {
                         // Include user meta in cached trip object
@@ -3047,14 +3053,15 @@
                     } else {
                         document.getElementById('loadingDetails').style.display = 'none';
                         if (!localTrip) {
-                            document.getElementById('fieldsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-3);">' + (res.message || 'لم يتم العثور على الرحلة') + '</div>';
+                            document.getElementById('fieldsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-3);"><p>' + (res.message || 'لم يتم العثور على الرحلة') + '</p><button class="btn btn-primary" onclick="openTrip(' + tripId + ')" style="margin-top:12px;display:inline-flex;align-items:center;gap:6px;"><i class="fas fa-sync-alt"></i> إعادة المحاولة</button></div>';
                         }
                     }
                 } catch (e) {
+                    clearTimeout(timeoutId);
                     console.error("openTrip background fetch error:", e);
                     document.getElementById('loadingDetails').style.display = 'none';
                     if (!localTrip) {
-                        document.getElementById('fieldsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-3);">حدث خطأ في تحميل البيانات</div>';
+                        document.getElementById('fieldsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-3);"><p>تعذر تحميل البيانات من الخادم</p><button class="btn btn-primary" onclick="openTrip(' + tripId + ')" style="margin-top:12px;display:inline-flex;align-items:center;gap:6px;"><i class="fas fa-sync-alt"></i> إعادة المحاولة</button></div>';
                     }
                 }
 

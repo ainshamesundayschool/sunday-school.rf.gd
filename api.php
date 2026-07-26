@@ -32856,32 +32856,21 @@ function getTripExpenses()
 
 
         // Ensure table exists
-
-        $conn->query("CREATE TABLE IF NOT EXISTS `trip_expenses` (
-
-            `id` INT AUTO_INCREMENT PRIMARY KEY,
-
-            `trip_id` INT NOT NULL,
-
-            `church_id` INT NOT NULL,
-
-            `name` VARCHAR(200) DEFAULT NULL,
-
-            `type` ENUM('bus','food','entry','other') NOT NULL DEFAULT 'other',
-
-            `amount` DECIMAL(10,2) NOT NULL DEFAULT 0,
-
-            `funding` ENUM('kids','funded','partial') NOT NULL DEFAULT 'kids',
-
-            `per_kid` DECIMAL(10,2) NOT NULL DEFAULT 0,
-
-            `notes` TEXT DEFAULT NULL,
-
-            `created_by` INT DEFAULT NULL,
-
-            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        if (!defined('SCHEMA_MIGRATED')) {
+            $conn->query("CREATE TABLE IF NOT EXISTS `trip_expenses` (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                `trip_id` INT NOT NULL,
+                `church_id` INT NOT NULL,
+                `name` VARCHAR(200) DEFAULT NULL,
+                `type` ENUM('bus','food','entry','other') NOT NULL DEFAULT 'other',
+                `amount` DECIMAL(10,2) NOT NULL DEFAULT 0,
+                `funding` ENUM('kids','funded','partial') NOT NULL DEFAULT 'kids',
+                `per_kid` DECIMAL(10,2) NOT NULL DEFAULT 0,
+                `notes` TEXT DEFAULT NULL,
+                `created_by` INT DEFAULT NULL,
+                `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        }
 
 
 
