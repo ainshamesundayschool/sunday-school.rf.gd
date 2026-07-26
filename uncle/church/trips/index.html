@@ -5093,6 +5093,9 @@
 
       async function saveTripLocal(tId, tripData) {
         try {
+          try {
+            localStorage.setItem(`ss_cached_trip_${tId}`, JSON.stringify(tripData));
+          } catch (err) {}
           const db = await getLocalDB();
           const tx = db.transaction('trips', 'readwrite');
           tx.objectStore('trips').put({ id: String(tId), data: JSON.stringify(tripData), ts: Date.now() });
@@ -5101,9 +5104,6 @@
             tx.onerror = () => res(false);
           });
         } catch (e) {
-          try {
-            localStorage.setItem(`ss_cached_trip_${tId}`, JSON.stringify(tripData));
-          } catch (err) {}
           return false;
         }
       }
@@ -17248,6 +17248,13 @@
             if (window.currentTripObj && window.currentTripObj.id == tripId) {
               window.currentTripObj.has_rooms = enableBool ? 1 : 0;
             }
+            if (res.trip) {
+              const idx = allTripsCache.findIndex(t => t.id == tripId);
+              if (idx > -1) allTripsCache[idx] = { ...allTripsCache[idx], ...res.trip };
+              saveTripLocal(tripId, { ...trip, ...res.trip });
+            } else {
+              saveTripLocal(tripId, trip);
+            }
             showToast(enableBool ? 'تم تفعيل نظام السكن والغرف بنجاح' : 'تم إيقاف نظام السكن والغرف', 'success');
             renderRoomsPanel(tripId);
           } else {
@@ -17335,6 +17342,13 @@
               window.currentTripObj.rooms_config = roomsConfigStr;
               window.currentTripObj.custom_fields = customFields;
               window.currentTripObj.custom_field_icons = customFieldIcons;
+            }
+            if (res.trip) {
+              const idx = allTripsCache.findIndex(t => t.id == tripId);
+              if (idx > -1) allTripsCache[idx] = { ...allTripsCache[idx], ...res.trip };
+              saveTripLocal(tripId, { ...trip, ...res.trip });
+            } else {
+              saveTripLocal(tripId, trip);
             }
             closeModal('roomsStructureModal');
             showToast('تم حفظ وتطبيق هيكل السكن بنجاح 💾', 'success');
@@ -18958,6 +18972,13 @@
             window.currentTripObj.custom_fields = customFields;
             window.currentTripObj.custom_field_icons = customFieldIcons;
             window.currentTripObj.rooms_config = config;
+          }
+          if (res.trip) {
+            const idx = allTripsCache.findIndex(t => t.id == tripId);
+            if (idx > -1) allTripsCache[idx] = { ...allTripsCache[idx], ...res.trip };
+            saveTripLocal(tripId, { ...trip, ...res.trip });
+          } else {
+            saveTripLocal(tripId, trip);
           }
           return true;
         }
