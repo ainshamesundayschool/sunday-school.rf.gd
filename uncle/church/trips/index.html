@@ -19279,10 +19279,14 @@
 
         const fd = mkFd('updateTrip');
         fd.append('trip_id', tripId);
+        fd.append('title', trip.title || '');
+        fd.append('start_date', trip.start_date || '');
         fd.append('custom_fields', customFields);
         fd.append('custom_field_icons', JSON.stringify(customFieldIcons));
         fd.append('has_rooms', '1');
-        fd.append('rooms_config', JSON.stringify(config));
+        fd.append('rooms_config', typeof config === 'string' ? config : JSON.stringify(config));
+        fd.append('force_replace_rooms', '1');
+        fd.append('rooms_wizard_edited', '1');
 
         const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
         if (res.success) {

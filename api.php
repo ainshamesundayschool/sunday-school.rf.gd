@@ -26280,17 +26280,11 @@ function updateTrip()
         $hasRooms = isset($_POST['has_rooms']) ? intval($_POST['has_rooms']) : intval($oldTrip['has_rooms'] ?? 0);
         $hasRooms = $hasRooms ? 1 : 0;
 
-        $roomsWizardEdited = ($_POST['rooms_wizard_edited'] ?? '0') === '1';
-        $forceReplaceRooms = ($_POST['force_replace_rooms'] ?? '0') === '1' || ($_POST['replace_rooms'] ?? '0') === '1';
         $incomingRoomsConfig = $_POST['rooms_config'] ?? null;
         $oldRoomsConfig = $oldTrip['rooms_config'] ?? null;
 
-        if ($roomsWizardEdited && !empty($incomingRoomsConfig) && $incomingRoomsConfig !== 'null' && $incomingRoomsConfig !== '[]' && $incomingRoomsConfig !== '') {
-            if ($forceReplaceRooms || empty($oldRoomsConfig) || $oldRoomsConfig === 'null' || $oldRoomsConfig === '[]' || $oldRoomsConfig === '') {
-                $roomsConfig = $incomingRoomsConfig;
-            } else {
-                $roomsConfig = mergeRoomsConfigsPHP($incomingRoomsConfig, $oldRoomsConfig);
-            }
+        if (isset($_POST['rooms_config']) && !empty($incomingRoomsConfig) && $incomingRoomsConfig !== 'null' && $incomingRoomsConfig !== '[]' && $incomingRoomsConfig !== '') {
+            $roomsConfig = $incomingRoomsConfig;
         } else {
             $roomsConfig = (!empty($oldRoomsConfig) && $oldRoomsConfig !== 'null' && $oldRoomsConfig !== '[]') ? $oldRoomsConfig : null;
         }
