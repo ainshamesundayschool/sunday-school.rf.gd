@@ -17097,25 +17097,30 @@
           </h4>
           <div style="display:flex; flex-direction:column; gap:6px; overflow-y:auto; flex:1; padding-right:2px;">
             ${kidsFiltered.map(k => {
+              const isUncle = k.isUncle || k.registration_type === 'uncle' || k.student_class === 'خادم' || k.student_class === 'خادمة';
               const cleanImg = k.student_image && k.student_image.trim() !== '' && !k.student_image.includes('placeholder.com') && !k.student_image.includes('via.placeholder')
                 ? k.student_image
                 : '/profile_default.webp';
+              const badgeClass = isUncle ? 'uncle-servant' : (k.student_gender === 'female' ? 'girl' : 'boy');
+              const badgeStyle = isUncle ? 'background:#fffbebf5; border:1px solid #fde68a; color:#92400e;' : '';
               return `
-                <div class="ws-unassigned-card ${k.student_gender === 'female' ? 'girl' : 'boy'} ${window.selectedKidForAllocation == k.id ? 'selected' : ''}"
+                <div class="ws-unassigned-card ${badgeClass} ${window.selectedKidForAllocation == k.id ? 'selected' : ''}"
                      onclick="selectKidForAllocation(${k.id})"
-                     style="display:flex; flex-direction:row; align-items:center; gap:8px;">
+                     style="display:flex; flex-direction:row; align-items:center; gap:8px; ${badgeStyle}">
                   <img src="${cleanImg}" style="width:28px; height:28px; border-radius:50%; object-fit:cover; flex-shrink:0; border:1px solid var(--border);" onerror="this.src='/profile_default.webp'">
                   <div style="flex:1; min-width:0; display:flex; flex-direction:column; text-align:right;">
-                    <div class="ws-kid-name" style="font-size:0.75rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escHtml(k.student_name)}</div>
+                    <div class="ws-kid-name" style="font-size:0.75rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                      ${isUncle ? '<i class="fas fa-user-shield" style="font-size:0.7rem; color:#d97706; margin-left:3px;"></i>' : ''}${escHtml(k.student_name)}
+                    </div>
                     <div class="ws-kid-sub" style="font-size:0.62rem; display:flex; justify-content:space-between; margin-top:2px;">
-                      <span>${escHtml(k.student_class)}</span>
+                      <span>${escHtml(k.student_class || 'خادم')}</span>
                       <span>${escHtml(k._churchName || '')}</span>
                     </div>
                   </div>
                 </div>
               `;
             }).join('')}
-            ${kidsFiltered.length === 0 ? `<div style="text-align:center; font-size:0.75rem; color:var(--muted); padding:15px 0;">لا يوجد أطفال غير مسكنين</div>` : ''}
+            ${kidsFiltered.length === 0 ? `<div style="text-align:center; font-size:0.75rem; color:var(--muted); padding:15px 0;">لا يوجد مشاركين غير مسكنين</div>` : ''}
           </div>
         `;
       }
@@ -18299,20 +18304,35 @@
         const trip = allTripsCache.find(t => t.id == tripId) || window.currentTripObj;
         if (!trip) return;
 
+        const regs = tripRegistrationsCache[tripId] || [];
+        const regObj = regs.find(r => String(r.id) === String(uncleId) || String(r.student_id) === String(uncleId));
+
+        if (regObj) {
+          let customData = {};
+          try { customData = JSON.parse(regObj.custom_data || '{}'); } catch (e) { }
+          const nextRoom = {
+            'السكن': bldName,
+            'السكن__sf__الدور': floorName || '',
+            'السكن__sf__الغرفة': roomName
+          };
+          saveCustomDataPayload(tripId, [{ registration_id: regObj.id, custom_data: { ...customData, ...nextRoom } }]);
+          regObj.custom_data = JSON.stringify({ ...customData, ...nextRoom });
+        }
+
         const roomsConfig = getTripRoomsConfig(trip);
 
         let assignedName = '';
         const selectedUncle = (window.allUnclesCache || []).find(u => String(u.id) === String(uncleId));
         if (selectedUncle) {
           assignedName = selectedUncle.name;
-        } else {
-          const regs = tripRegistrationsCache[tripId] || (trip ? trip.registrations : []) || [];
-          const regUncle = regs.find(r => String(r.id) === String(uncleId) || String(r.student_id) === String(uncleId));
-          if (regUncle) {
-            assignedName = regUncle.student_name || regUncle.name || 'خادم';
-          }
+        } else if (regObj) {
+          assignedName = regObj.student_name || regObj.name || 'خادم';
         }
         if (!assignedName) assignedName = 'خادم';
+
+        const targetBld = String(bldName || '').trim();
+        const targetFloor = String(floorName || '').trim();
+        const targetRoom = String(roomName || '').trim();
 
         // Prevent duplicate uncle assignments
         roomsConfig.forEach(bld => {
@@ -18329,12 +18349,14 @@
         });
 
         roomsConfig.forEach(bld => {
-          if (bld.name === bldName) {
+          const bName = String(bld.name || '').trim();
+          if (bName === targetBld || bName.replace(/^(المبنى|مبنى)\s*/, '') === targetBld.replace(/^(المبنى|مبنى)\s*/, '')) {
             if (bld.has_floors) {
-              bld.floors.forEach(fl => {
-                if (fl.name === floorName) {
-                  fl.rooms.forEach(r => {
-                    if (r.name === roomName) {
+              (bld.floors || []).forEach(fl => {
+                const fName = String(fl.name || '').trim();
+                if (!targetFloor || fName === targetFloor) {
+                  (fl.rooms || []).forEach(r => {
+                    if (String(r.name || '').trim() === targetRoom) {
                       if (!r.uncles) r.uncles = [];
                       r.uncles.push({ id: String(uncleId), name: assignedName });
                     }
@@ -18342,8 +18364,8 @@
                 }
               });
             } else {
-              bld.rooms.forEach(r => {
-                if (r.name === roomName) {
+              (bld.rooms || []).forEach(r => {
+                if (String(r.name || '').trim() === targetRoom) {
                   if (!r.uncles) r.uncles = [];
                   r.uncles.push({ id: String(uncleId), name: assignedName });
                 }
@@ -18354,10 +18376,10 @@
 
         const success = await saveRoomsConfig(tripId, roomsConfig);
         if (success) {
-          showToast('تم تعيين انكل / طنط بنجاح! 👮', 'success');
+          showToast('تم تسكين الخادم بنجاح! 👮', 'success');
           renderRoomsWorkspaceData();
         } else {
-          showToast('فشل تعيين انكل / طنط', 'error');
+          showToast('فشل تسكين الخادم', 'error');
         }
       };
 
