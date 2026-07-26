@@ -10227,8 +10227,8 @@
           if (r.custom_data) {
             try { values = JSON.parse(r.custom_data); } catch (e) { values = {}; }
           }
-          const rawStudentImg = r.student_image || r.image_url || r['صورة'] || r.photo || '';
-          const studentImg = (rawStudentImg && typeof rawStudentImg === 'string' && !rawStudentImg.includes('${') && !rawStudentImg.includes('%7B')) ? rawStudentImg : '';
+          const rawStudentImg = r.student_image || r.image_url || r['صورة'] || r['الصورة'] || r.photo || values['صورة'] || values['الصورة'] || values.student_image || values.image_url || values.photo || '';
+          const studentImg = (rawStudentImg && typeof rawStudentImg === 'string' && !rawStudentImg.includes('${') && !rawStudentImg.includes('%7B')) ? ((typeof window.photoUrl === 'function') ? window.photoUrl(rawStudentImg) : rawStudentImg) : '';
           const studentName = r.student_name || '---';
           const studentClass = r.student_class || 'بدون فصل';
           const initials = studentName.trim().charAt(0) || '؟';
@@ -11842,7 +11842,19 @@
         }
         function getSafeStudentImage(student) {
             if (!student) return '';
-            return student['صورة'] || student.student_image || student.image_url || student.photo || '';
+            let img = student['صورة'] || student['الصورة'] || student.student_image || student.image_url || student.photo || student.image || '';
+            if (!img && student.custom_data) {
+                try {
+                    const cd = typeof student.custom_data === 'string' ? JSON.parse(student.custom_data) : student.custom_data;
+                    if (cd && typeof cd === 'object') {
+                        img = cd['صورة'] || cd['الصورة'] || cd.student_image || cd.image_url || cd.photo || cd.image || '';
+                    }
+                } catch(e) {}
+            }
+            if (img && typeof window.photoUrl === 'function') {
+                img = window.photoUrl(img);
+            }
+            return (typeof img === 'string' && !img.includes('${') && !img.includes('%7B')) ? img : '';
         }
         function getSafeStudentClass(student) {
             if (!student) return '';
