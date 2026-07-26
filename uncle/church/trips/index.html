@@ -11789,7 +11789,7 @@
         };
       }
 
-      function buildPrintCardOutline(scale, outlineStyle, dashLength, dashGap, baseWidth, baseHeight) {
+      function buildPrintCardOutline(scale = 1, outlineStyle = 'none', dashLength = 5, dashGap = 3, baseWidth = 300, baseHeight = 200) {
         if (outlineStyle === 'none') {
           return {
             cardBorderStyle: 'border:none;',
@@ -11797,11 +11797,17 @@
           };
         }
 
+        scale = Number(scale) || 1;
+        dashLength = Number(dashLength) || 5;
+        dashGap = Number(dashGap) || 3;
+        const bWidth = Math.round(Number(baseWidth) || 300);
+        const bHeight = Math.round(Number(baseHeight) || 200);
+
         const borderColor = '#000000';
         const isCardRounded = document.getElementById('printCardRounded')?.checked ?? true;
         const borderRadius = isCardRounded ? 10 : 0;
         const strokeWidth = 2;
-        const solidStrokeWidth = Math.max(1.5, 2 * scale);
+        const solidStrokeWidth = Math.max(1.5, Math.round(2 * scale * 10) / 10);
 
         if (outlineStyle === 'solid') {
           return {
@@ -11810,15 +11816,11 @@
           };
         }
 
-        const bWidth = Number(baseWidth) || 300;
-        const bHeight = Number(baseHeight) || 200;
         const rectInset = strokeWidth / 2;
+        const rectW = Math.max(0, bWidth - (rectInset * 2));
+        const rectH = Math.max(0, bHeight - (rectInset * 2));
         const dashArray = `${Math.max(2, dashLength)} ${Math.max(0, dashGap)}`;
-        const svgMarkup = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${bWidth} ${bHeight}" preserveAspectRatio="none">
-          <rect x="${rectInset}" y="${rectInset}" width="${bWidth - (rectInset * 2)}" height="${bHeight - (rectInset * 2)}" rx="${borderRadius}" ry="${borderRadius}" fill="none" stroke="${borderColor}" stroke-width="${strokeWidth}" stroke-dasharray="${dashArray}" />
-        </svg>
-      `.trim();
+        const svgMarkup = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${bWidth} ${bHeight}" preserveAspectRatio="none"><rect x="${rectInset}" y="${rectInset}" width="${rectW}" height="${rectH}" rx="${borderRadius}" ry="${borderRadius}" fill="none" stroke="${borderColor}" stroke-width="${strokeWidth}" stroke-dasharray="${dashArray}" /></svg>`;
 
         return {
           cardBorderStyle: 'border:none;',
@@ -11954,9 +11956,11 @@
               } else if (hasRawImg) {
                   avatarHtml = `<img src="${imgUrl}" class="avatar" style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; object-fit:cover; align-self:center;" onerror="this.style.display='none'">`;
               } else if (showAvatarWhenNoPhoto) {
+                  const safeAvatarSize = Math.max(20, Math.round(sAvatar) || 40);
+                  const avatarSvgDim = Math.round(safeAvatarSize * 0.7);
                   avatarHtml = `
-                  <div style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; background:linear-gradient(135deg,#c7d2fe,#a5b4fc); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; align-self:center; position:relative;">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="${Math.round(sAvatar * 0.7)}" height="${Math.round(sAvatar * 0.7)}" style="position:absolute; inset:0; margin:auto; z-index:1;">
+                  <div style="width:${safeAvatarSize}px; height:${safeAvatarSize}px; border-radius:50%; background:linear-gradient(135deg,#c7d2fe,#a5b4fc); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; align-self:center; position:relative;">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="${avatarSvgDim}" height="${avatarSvgDim}" style="position:absolute; inset:0; margin:auto; z-index:1;">
                           <circle cx="40" cy="30" r="18" fill="rgba(255,255,255,0.85)"/>
                           <ellipse cx="40" cy="72" rx="26" ry="18" fill="rgba(255,255,255,0.85)"/>
                       </svg>
@@ -12558,9 +12562,11 @@
                       if (hasRawImg) {
                           avatarHtml = `<img src="${imgUrl}" class="avatar" style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; object-fit:cover; align-self:center; margin-bottom:4px;" onerror="this.style.display='none'">`;
                       } else if (showAvatarWhenNoPhoto) {
+                          const safeAvatarSize = Math.max(20, Math.round(sAvatar) || 40);
+                          const avatarSvgDim = Math.round(safeAvatarSize * 0.7);
                           avatarHtml = `
-                            <div style="width:${sAvatar}px; height:${sAvatar}px; border-radius:50%; background:linear-gradient(135deg,#c7d2fe,#a5b4fc); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; align-self:center; position:relative; margin-bottom:4px;">
-                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="${Math.round(sAvatar * 0.7)}" height="${Math.round(sAvatar * 0.7)}" style="position:absolute; inset:0; margin:auto; z-index:1;">
+                            <div style="width:${safeAvatarSize}px; height:${safeAvatarSize}px; border-radius:50%; background:linear-gradient(135deg,#c7d2fe,#a5b4fc); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; align-self:center; position:relative; margin-bottom:4px;">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="${avatarSvgDim}" height="${avatarSvgDim}" style="position:absolute; inset:0; margin:auto; z-index:1;">
                                 <circle cx="40" cy="30" r="18" fill="rgba(255,255,255,0.85)"/>
                                 <ellipse cx="40" cy="72" rx="26" ry="18" fill="rgba(255,255,255,0.85)"/>
                               </svg>
