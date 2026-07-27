@@ -74,8 +74,8 @@ if (!$hasSession && !$isLoginPage) { ?>
             // Build restore request
             var fd = new FormData();
             fd.append('action', 'restore_session');
-            if (cl && cc) fd.append('church_code', cc);
-            else if (ul && un) fd.append('username', un);
+            if (ul && un) fd.append('username', un);
+            else if (cl && cc) fd.append('church_code', cc);
             else { window.location.href = prefix + '/login/'; return; }
 
             // Mark that we're attempting a restore so the reload won't loop
@@ -17675,6 +17675,14 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 const fd = new FormData();
                 fd.append('action', 'getTrips');
                 fd.append('uncles_view', '1');
+                const uId = localStorage.getItem('uncleId') || localStorage.getItem('uncle_id');
+                const cId = localStorage.getItem('churchId') || localStorage.getItem('church_id');
+                const cCode = localStorage.getItem('churchCode') || localStorage.getItem('church_code');
+                const uRole = localStorage.getItem('uncleRole') || localStorage.getItem('role');
+                if (uId) fd.append('uncle_id', uId);
+                if (cId) fd.append('church_id', cId);
+                if (cCode) fd.append('church_code', cCode);
+                if (uRole) fd.append('uncle_role', uRole);
                 const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
 
                 if (!d.success || !d.trips || !d.trips.length) {
