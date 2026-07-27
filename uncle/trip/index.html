@@ -1248,11 +1248,6 @@
             border-color: var(--brand) !important;
         }
 
-        .switch-toggle-purple input:checked+.switch-slider {
-            background-color: #8e24aa !important;
-            border-color: #7b1fa2 !important;
-        }
-
         .switch-toggle input:checked+.switch-slider::before {
             transform: translateX(-16px);
             background-color: white !important;
@@ -1264,10 +1259,57 @@
             height: 16px;
             width: 16px;
             right: 3px;
-            bottom: 2.5px;
+            top: 50%;
+            transform: translateY(-50%);
             background-color: var(--text-3);
             transition: .3s;
             border-radius: 50%;
+        }
+
+        /* Compact Topbar Testing Switch */
+        .switch-toggle-topbar {
+            position: relative;
+            display: inline-block;
+            width: 36px;
+            height: 20px;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .switch-toggle-topbar .switch-slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--surface-3);
+            transition: all 0.25s ease;
+            border-radius: 20px;
+            border: 1.5px solid var(--border-solid);
+        }
+
+        .switch-toggle-topbar .switch-slider::before {
+            position: absolute;
+            content: "";
+            height: 13px;
+            width: 13px;
+            right: 2px;
+            top: 50%;
+            bottom: auto;
+            transform: translateY(-50%);
+            background-color: var(--text-3);
+            transition: all 0.25s ease;
+            border-radius: 50%;
+        }
+
+        .switch-toggle-topbar input:checked + .switch-slider {
+            background-color: #8e24aa !important;
+            border-color: #7b1fa2 !important;
+        }
+
+        .switch-toggle-topbar input:checked + .switch-slider::before {
+            transform: translate(-16px, -50%) !important;
+            background-color: #ffffff !important;
         }
 
         .points-selector {
@@ -1682,7 +1724,7 @@
                     onerror="this.outerHTML='<i class=\'fas fa-cross\'></i>'"></div>
             <div>
                 <div class="topbar-title" id="topbarTripTitle">Sunday School</div>
-                <div class="topbar-subtitle">لوحة الرحلة</div>
+                <div class="topbar-subtitle" id="topbarTripSubtitle" style="margin-bottom: 4px; transition: all 0.2s ease;">لوحة الرحلة</div>
             </div>
         </a>
         <div class="topbar-actions">
@@ -1696,9 +1738,9 @@
             <!-- Compact Testing Mode Slide Switch (Outside Settings - Icon Only) -->
             <div class="testing-toggle-container" title="تفعيل / إيقاف وضع التجربة (حفظ محلي)" style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border-radius: var(--r-md); background: var(--surface-2); border: 1px solid var(--border-solid); height: 36px;">
                 <i class="fas fa-flask" id="quickTestingModeIcon" style="font-size: 0.95rem; color: var(--text-3); transition: all 0.25s ease;"></i>
-                <label class="switch-toggle switch-toggle-purple" style="position: relative; display: inline-block; width: 34px; height: 20px; margin: 0; cursor: pointer;">
+                <label class="switch-toggle-topbar">
                     <input type="checkbox" id="settingTestingMode" onchange="toggleTestingMode(this.checked)" style="opacity: 0; width: 0; height: 0;">
-                    <span class="switch-slider" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--surface-3); transition: .3s; border-radius: 20px; border: 1.5px solid var(--border-solid);"></span>
+                    <span class="switch-slider"></span>
                 </label>
             </div>
 
@@ -3020,9 +3062,29 @@
                     }
                 }
 
-                const resetContainer = document.getElementById('resetTrialContainer');
-                if (resetContainer) {
-                    resetContainer.style.display = isTestingMode ? 'block' : 'none';
+                const subtitleElem = document.getElementById('topbarTripSubtitle');
+                if (subtitleElem) {
+                    if (isTestingMode) {
+                        subtitleElem.textContent = 'تجريبي';
+                        subtitleElem.style.display = 'inline-block';
+                        subtitleElem.style.marginBottom = '4px';
+                        subtitleElem.style.padding = '2px 8px';
+                        subtitleElem.style.borderRadius = '10px';
+                        subtitleElem.style.background = 'linear-gradient(135deg, #7e22ce, #9333ea)';
+                        subtitleElem.style.color = '#ffffff';
+                        subtitleElem.style.fontWeight = '800';
+                        subtitleElem.style.fontSize = '0.7rem';
+                    } else {
+                        subtitleElem.textContent = 'لوحة الرحلة';
+                        subtitleElem.style.display = 'block';
+                        subtitleElem.style.marginBottom = '4px';
+                        subtitleElem.style.padding = '0';
+                        subtitleElem.style.borderRadius = '0';
+                        subtitleElem.style.background = 'transparent';
+                        subtitleElem.style.color = 'var(--text-3)';
+                        subtitleElem.style.fontWeight = 'normal';
+                        subtitleElem.style.fontSize = '0.78rem';
+                    }
                 }
 
                 if (isTestingMode) {
@@ -3217,7 +3279,7 @@
                         if (btnTripSettings) btnTripSettings.style.display = 'flex';
 
                         document.getElementById('detailTripTitle').textContent = currentTrip.title;
-                        document.getElementById('topbarTripTitle').textContent = currentTrip.title + ' (تجريبي)';
+                        document.getElementById('topbarTripTitle').textContent = currentTrip.title;
 
                         renderFieldCards();
                         handleUrlParams();
@@ -3243,7 +3305,7 @@
                     regsList = applyPendingQueueToRegs(localTrip.registrations || []);
                     currentTrip.registrations = regsList;
                     document.getElementById('detailTripTitle').textContent = currentTrip.title;
-                    document.getElementById('topbarTripTitle').textContent = currentTrip.title + (isTestingMode ? ' (تجريبي)' : '');
+                    document.getElementById('topbarTripTitle').textContent = currentTrip.title;
 
                     if (isTestingMode) saveTrialSnapshot();
 
