@@ -1688,6 +1688,14 @@
                 <span class="sync-text">تم الحفظ</span>
             </div>
 
+            <!-- Quick Testing Mode Toggle Button (Outside Settings) -->
+            <button id="btnTestingModeQuickToggle" type="button" onclick="toggleTestingMode(!isTestingMode)" class="topbar-btn"
+                title="تفعيل أو إيقاف وضع التجربة (حفظ محلي)"
+                style="height:36px; padding:0 12px; border-radius:var(--r-md); cursor:pointer; display:inline-flex; align-items:center; gap:6px; font-weight:800; font-size:0.8rem; border:1.5px solid var(--border-solid); transition:all 0.25s ease;">
+                <i class="fas fa-flask" id="quickTestingModeIcon" style="font-size:0.95rem;"></i>
+                <span id="quickTestingModeText">وضع التجربة</span>
+            </button>
+
             <!-- Excel Export Button -->
             <button class="topbar-btn" onclick="exportTripToExcel()" title="تصدير كشيت إكسيل"
                 style="height:36px; width:36px; padding:0; border-radius:var(--r-md); cursor:pointer; display:flex; justify-content:center; align-items:center;">
@@ -1721,17 +1729,19 @@
     <div class="page-wrap">
 
         <!-- Trial / Testing Mode Banner -->
-        <div id="trialModeBanner" style="display: none; background: linear-gradient(135deg, #6a1b9a, #8e24aa); color: white; padding: 10px 16px; font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid #4a148c; box-shadow: 0 2px 8px rgba(142, 36, 170, 0.25); align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; direction: rtl; z-index: 1000;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-flask" style="font-size: 1.1rem;"></i>
-                <span><strong>وضع التجربة مفعّل 🧪</strong> (تعديل النقاط والعمليات تحفظ محلياً فقط ولا تؤثر على قاعدة البيانات)</span>
+        <div id="trialModeBanner" style="display: none; background: linear-gradient(135deg, #581c87 0%, #7e22ce 100%); color: #ffffff; padding: 10px 20px; font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid #3b0764; box-shadow: 0 4px 14px rgba(126, 34, 206, 0.28); align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; direction: rtl; z-index: 1000;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255, 255, 255, 0.18); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0;">
+                    <i class="fas fa-flask"></i>
+                </div>
+                <span><strong>وضع التجربة مفعّل</strong> — جميع تعديلات النقاط والعمليات تحفظ محلياً فقط في المتصفح ولا تؤثر على قاعدة البيانات.</span>
             </div>
-            <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                <button onclick="resetTrialData()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 4px 10px; border-radius: 8px; font-size: 0.78rem; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
-                    <i class="fas fa-undo"></i> إعادة ضبط التجربة
+            <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
+                <button type="button" onclick="resetTrialData()" style="background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.35); color: #ffffff; padding: 6px 12px; border-radius: 8px; font-size: 0.78rem; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                    <i class="fas fa-rotate-left"></i> إعادة ضبط البيانات
                 </button>
-                <button onclick="toggleTestingMode(false)" style="background: white; border: none; color: #6a1b9a; padding: 4px 12px; border-radius: 8px; font-size: 0.78rem; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
-                    خروج من وضع التجربة
+                <button type="button" onclick="toggleTestingMode(false)" style="background: #ffffff; border: none; color: #6b21a8; padding: 6px 14px; border-radius: 8px; font-size: 0.78rem; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); transition: all 0.2s;">
+                    <i class="fas fa-power-off"></i> إيقاف التجربة
                 </button>
             </div>
         </div>
@@ -2255,32 +2265,6 @@
                         </label>
                     </div>
 
-                    <!-- Testing / Trial Mode Section -->
-                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1.5px solid var(--border-solid);">
-                        <div style="font-weight: 800; font-size: 0.95rem; color: #8e24aa; display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
-                            <i class="fas fa-flask"></i> وضع التجربة والحيطة (Testing Mode)
-                        </div>
-
-                        <!-- Form Control: Testing Mode Toggle -->
-                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px dashed var(--border-solid); padding-bottom: 12px; flex-wrap: wrap;">
-                            <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 180px;">
-                                <span style="font-weight: 800; font-size: 0.88rem; color: var(--text);">تفعيل وضع التجربة (حفظ محلي)</span>
-                                <span style="font-size: 0.72rem; color: var(--text-3);">تجربة كافة المميزات وإضافة/تعديل النقاط بدون الحفظ في قاعدة البيانات. تحفظ التغييرات في المتصفح فقط.</span>
-                            </div>
-                            <label class="switch-toggle" style="position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;">
-                                <input type="checkbox" id="settingTestingMode" onchange="toggleTestingMode(this.checked)" style="opacity: 0; width: 0; height: 0;">
-                                <span class="switch-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--surface-3); transition: .3s; border-radius: 24px; border: 1.5px solid var(--border-solid);"></span>
-                            </label>
-                        </div>
-
-                        <!-- Button: Reset Trial Data -->
-                        <div id="resetTrialContainer" style="margin-top: 10px; display: none;">
-                            <button type="button" onclick="resetTrialData()" class="btn-action" style="width: 100%; height: 38px; border-radius: 12px; font-weight: 800; font-size: 0.82rem; background: #fff0f0; color: #d32f2f; border: 1.5px solid #ffcdd2; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                                <i class="fas fa-undo"></i> إعادة ضبط بيانات التجربة (مسح الحفظ المحلي)
-                            </button>
-                        </div>
-                    </div>
-
                     <!-- Save Button -->
                     <button id="btnSaveTripSettings" onclick="saveTripSettings()" class="btn-action"
                         style="width: 100%; height: 44px; border-radius: 22px; font-weight: 800; font-size: 0.92rem; background: var(--brand); color: white; border: none; cursor: pointer; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0;">
@@ -2531,7 +2515,7 @@
             async function apiCall(action, params = {}) {
                 if (isTestingMode) {
                     console.log("[Testing Mode] Intercepted apiCall action:", action, params);
-                    return { success: true, message: "تمت العملية محلياً في وضع التجربة 🧪" };
+                    return { success: true, message: "تمت العملية محلياً في وضع التجربة" };
                 }
                 const fd = new FormData();
                 fd.append('action', action);
@@ -2892,7 +2876,7 @@
                             status: isTestingMode ? 'success' : 'pending',
                             profilePhoto: student.photo || '',
                             uncleId: currentUncleId,
-                            uncleName: 'أنا (تجريبي 🧪)',
+                            uncleName: 'أنا (تجريبي)',
                             unclePhoto: currentUnclePhoto || '',
                             actionNote: actionName,
                             createdAt: new Date().toISOString(),
@@ -3015,6 +2999,28 @@
                 if (banner) {
                     banner.style.display = isTestingMode ? 'flex' : 'none';
                 }
+
+                const quickBtn = document.getElementById('btnTestingModeQuickToggle');
+                const quickIcon = document.getElementById('quickTestingModeIcon');
+                const quickText = document.getElementById('quickTestingModeText');
+                if (quickBtn) {
+                    if (isTestingMode) {
+                        quickBtn.style.background = 'linear-gradient(135deg, #7e22ce 0%, #9333ea 100%)';
+                        quickBtn.style.color = '#ffffff';
+                        quickBtn.style.borderColor = '#6b21a8';
+                        quickBtn.style.boxShadow = '0 2px 8px rgba(147, 51, 234, 0.35)';
+                        if (quickIcon) quickIcon.className = 'fas fa-vial-circle-check';
+                        if (quickText) quickText.textContent = 'وضع التجربة: مفعّل';
+                    } else {
+                        quickBtn.style.background = 'var(--surface)';
+                        quickBtn.style.color = 'var(--text-2)';
+                        quickBtn.style.borderColor = 'var(--border-solid)';
+                        quickBtn.style.boxShadow = 'none';
+                        if (quickIcon) quickIcon.className = 'fas fa-flask';
+                        if (quickText) quickText.textContent = 'وضع التجربة';
+                    }
+                }
+
                 const checkbox = document.getElementById('settingTestingMode');
                 if (checkbox) {
                     checkbox.checked = isTestingMode;
@@ -3046,7 +3052,7 @@
                     if (!trialDataStr && currentTrip) {
                         saveTrialSnapshot();
                     }
-                    if (typeof showToast === 'function') showToast("تم تفعيل وضع التجربة 🧪 (الحفظ محلي في المتصفح فقط)", "success", 4000);
+                    if (typeof showToast === 'function') showToast("تم تفعيل وضع التجربة (الحفظ محلي في المتصفح فقط)", "success", 4000);
                     openTrip(tripId);
                 } else {
                     if (typeof showToast === 'function') showToast("تم إيقاف وضع التجربة، جاري تحميل البيانات من الخادم...", "info", 3000);
@@ -3216,7 +3222,7 @@
                         if (btnTripSettings) btnTripSettings.style.display = 'flex';
 
                         document.getElementById('detailTripTitle').textContent = currentTrip.title;
-                        document.getElementById('topbarTripTitle').textContent = currentTrip.title + ' (تجريبي 🧪)';
+                        document.getElementById('topbarTripTitle').textContent = currentTrip.title + ' (تجريبي)';
 
                         renderFieldCards();
                         handleUrlParams();
@@ -3242,7 +3248,7 @@
                     regsList = applyPendingQueueToRegs(localTrip.registrations || []);
                     currentTrip.registrations = regsList;
                     document.getElementById('detailTripTitle').textContent = currentTrip.title;
-                    document.getElementById('topbarTripTitle').textContent = currentTrip.title + (isTestingMode ? ' (تجريبي 🧪)' : '');
+                    document.getElementById('topbarTripTitle').textContent = currentTrip.title + (isTestingMode ? ' (تجريبي)' : '');
 
                     if (isTestingMode) saveTrialSnapshot();
 
@@ -4122,7 +4128,7 @@
                 btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> جاري الحفظ...';
 
                 if (isTestingMode) {
-                    showToast('تم حفظ إعدادات التجربة محلياً 🧪', 'success');
+                    showToast('تم حفظ إعدادات التجربة محلياً', 'success');
                     currentTrip.points_config = pointsConfig;
                     saveTrialSnapshot();
                     closeTripSettingsModal();
