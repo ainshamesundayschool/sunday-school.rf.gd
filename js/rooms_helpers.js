@@ -37,20 +37,35 @@ async function loadRoomsTemplates(prefix) {
     if (!select) return;
 
     try {
-        const fd = new FormData();
-        fd.append('action', 'getRoomsTemplates');
+        const fd = (typeof mkFd === 'function') ? mkFd('getRoomsTemplates') : new FormData();
+        if (typeof mkFd !== 'function') {
+            fd.append('action', 'getRoomsTemplates');
+            const uId = localStorage.getItem('uncleId') || localStorage.getItem('uncle_id');
+            const cId = localStorage.getItem('churchId') || localStorage.getItem('church_id');
+            const cCode = localStorage.getItem('churchCode') || localStorage.getItem('church_code');
+            const uRole = localStorage.getItem('uncleRole') || localStorage.getItem('role');
+            if (uId) fd.append('uncle_id', uId);
+            if (cId) fd.append('church_id', cId);
+            if (cCode) fd.append('church_code', cCode);
+            if (uRole) fd.append('uncle_role', uRole);
+        }
         const apiUrl = (typeof API_URL !== 'undefined') ? API_URL : (window.location.pathname.indexOf('/testing/') !== -1 ? '/testing/api.php' : '/api.php');
-        const res = await fetch(apiUrl, { method: 'POST', body: fd }).then(r => r.json());
+        const res = await fetch(apiUrl, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
         if (res.success) {
             _roomsTemplatesCache = res.templates || [];
             const currentVal = select.value;
             select.innerHTML = '<option value="">— اختر قالباً —</option>' +
                 '<option value="custom">— إنشاء توزيع مخصص من الصفر —</option>' +
-                _roomsTemplatesCache.map(t => `<option value="${t.id}">${escHtml(t.name)}</option>`).join('');
+                _roomsTemplatesCache.map(t => `<option value="${t.id}">${typeof escHtml === 'function' ? escHtml(t.name) : t.name}</option>`).join('');
             if (currentVal) select.value = currentVal;
+        } else {
+            select.innerHTML = '<option value="">— اختر قالباً —</option>' +
+                '<option value="custom">— إنشاء توزيع مخصص من الصفر —</option>';
         }
     } catch (e) {
         console.error("Error loading rooms templates", e);
+        select.innerHTML = '<option value="">— اختر قالباً —</option>' +
+            '<option value="custom">— إنشاء توزيع مخصص من الصفر —</option>';
     }
 }
 

@@ -5781,7 +5781,9 @@
         if (sidebarTripNameEl) sidebarTripNameEl.textContent = trip.title;
 
         const cid = parseInt(localStorage.getItem('churchId') || localStorage.getItem('church_id') || localStorage.getItem('uncle_church_id') || localStorage.getItem('uncleChurchId') || 0);
-        const isOwner = trip.church_id == cid || trip.is_owner == 1 || isDeveloperUser();
+        const userRole = (localStorage.getItem('uncleRole') || localStorage.getItem('role') || localStorage.getItem('userRole') || '').toLowerCase();
+        const isChurchAdminOrDev = ['developer', 'dev', 'admin', 'administrator', 'superadmin', 'church_admin'].includes(userRole);
+        const isOwner = trip.is_owner == 1 || String(trip.is_owner) === 'true' || (parseInt(trip.church_id || 0) > 0 && parseInt(trip.church_id) === cid) || isChurchAdminOrDev || isDeveloperUser();
         const activeLimit = (trip.my_registration_limit !== null && trip.my_registration_limit !== undefined) ? trip.my_registration_limit : (trip.max_participants || '∞');
         const statusMap = { planned: ['badge-info', 'مخطط لها', '#3b82f6'], active: ['badge-success', 'نشطة', '#10b981'], completed: ['badge-warning', 'منتهية', '#f59e0b'], cancelled: ['badge-danger', 'ملغية', '#ef4444'] };
         const [sc, st] = statusMap[trip.status] || ['badge-info', trip.status];
@@ -5819,6 +5821,7 @@
         document.getElementById('tdStatusBadge').innerHTML = `
         <span class="badge ${sc}" style="font-size:0.72rem;">${st}</span>
         ${!isOwner ? `<span class="badge" style="font-size:0.72rem;background:#e0f2fe;color:#0ea5e9;border:1px solid #0ea5e9;margin-right:6px;"><i class="fas fa-handshake"></i> مشاركة</span>` : ''}
+        ${isOwner ? `<button type="button" class="btn btn-secondary btn-sm" onclick="openEditTrip(${trip.id})" style="margin-right:10px;padding:3px 10px;font-size:0.78rem;border-radius:8px;display:inline-flex;align-items:center;gap:4px;"><i class="fas fa-edit"></i> تعديل بيانات ${tripWordDef}</button>` : ''}
       `;
         document.getElementById('tdSubtitle').textContent = `${trip.start_date_formatted || trip.start_date || ''}  •  ${trip.type === 'one_day' ? 'رحلة (يوم واحد)' : 'مؤتمر (عدة أيام)'}`;
         document.getElementById('tdRegsCount').textContent = regs.length || '';
@@ -22111,7 +22114,8 @@
             <label class="form-label" style="font-weight:800; font-size:0.88rem; color:var(--text); margin-bottom:6px; display:block;">اختر قالب سكن أو أنشئ من الصفر</label>
             <div style="display:flex; gap:10px; align-items:center; width:100%;">
               <select id="roomsTabModalTripRoomsTemplate" class="form-select" style="flex:1; height:40px; border-radius:10px; border:1.5px solid var(--border-solid); padding:0 12px; font-weight:700;" onchange="onRoomsTemplateChange('roomsTabModal')">
-                <!-- Loaded dynamically -->
+                <option value="">— اختر قالباً —</option>
+                <option value="custom">— إنشاء توزيع مخصص من الصفر —</option>
               </select>
               <button type="button" class="btn btn-outline dev-only" onclick="saveCurrentRoomsAsTemplate('roomsTabModal')" style="display:none; height:40px; padding:0 14px; border-radius:10px; font-size:0.85rem; font-weight:700; white-space:nowrap; align-items:center; gap:6px;" title="حفظ كقالب جديد">
                 <i class="fas fa-save"></i> حفظ كقالب
