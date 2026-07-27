@@ -3260,6 +3260,8 @@
                 const fd = new FormData();
                 fd.append('action', 'getTripDetails');
                 fd.append('trip_id', tripId);
+                const studentIdParam = urlParams.get('student_id') || urlParams.get('kid_id');
+                if (studentIdParam) fd.append('student_id', studentIdParam);
                 const uId = localStorage.getItem('uncleId') || localStorage.getItem('uncle_id');
                 const cId = localStorage.getItem('churchId') || localStorage.getItem('church_id');
                 const cCode = localStorage.getItem('churchCode') || localStorage.getItem('church_code');
@@ -3344,7 +3346,7 @@
                     } else {
                         document.getElementById('loadingDetails').style.display = 'none';
                         const errMsg = res.message || '';
-                        if (errMsg.includes('تسجيل الدخول') || errMsg.includes('غير مصرح') || errMsg.includes('Unauthorized')) {
+                        if ((errMsg.includes('تسجيل الدخول') || errMsg.includes('غير مصرح') || errMsg.includes('Unauthorized')) && !studentIdParam) {
                             showToast('جلسة العمل انتهت، يرجى تسجيل الدخول مجدداً', 'warning', 4000);
                             setTimeout(() => {
                                 window.location.href = pathPrefix + '/user/login/';
