@@ -3322,6 +3322,7 @@
                 const fd = new FormData();
                 fd.append('action', 'getTripDetails');
                 fd.append('trip_id', tripId);
+                const urlParams = new URLSearchParams(window.location.search);
                 const studentIdParam = urlParams.get('student_id') || urlParams.get('kid_id');
                 if (studentIdParam) fd.append('student_id', studentIdParam);
                 const uId = localStorage.getItem('uncleId') || localStorage.getItem('uncle_id');
