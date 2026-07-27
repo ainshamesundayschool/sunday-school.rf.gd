@@ -1248,8 +1248,13 @@
             border-color: var(--brand) !important;
         }
 
+        .switch-toggle-purple input:checked+.switch-slider {
+            background-color: #8e24aa !important;
+            border-color: #7b1fa2 !important;
+        }
+
         .switch-toggle input:checked+.switch-slider::before {
-            transform: translateX(-20px);
+            transform: translateX(-16px);
             background-color: white !important;
         }
 
@@ -1688,13 +1693,14 @@
                 <span class="sync-text">تم الحفظ</span>
             </div>
 
-            <!-- Quick Testing Mode Toggle Button (Outside Settings) -->
-            <button id="btnTestingModeQuickToggle" type="button" onclick="toggleTestingMode(!isTestingMode)" class="topbar-btn"
-                title="تفعيل أو إيقاف وضع التجربة (حفظ محلي)"
-                style="height:36px; padding:0 12px; border-radius:var(--r-md); cursor:pointer; display:inline-flex; align-items:center; gap:6px; font-weight:800; font-size:0.8rem; border:1.5px solid var(--border-solid); transition:all 0.25s ease;">
-                <i class="fas fa-flask" id="quickTestingModeIcon" style="font-size:0.95rem;"></i>
-                <span id="quickTestingModeText">وضع التجربة</span>
-            </button>
+            <!-- Compact Testing Mode Slide Switch (Outside Settings - Icon Only) -->
+            <div class="testing-toggle-container" title="تفعيل / إيقاف وضع التجربة (حفظ محلي)" style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border-radius: var(--r-md); background: var(--surface-2); border: 1px solid var(--border-solid); height: 36px;">
+                <i class="fas fa-flask" id="quickTestingModeIcon" style="font-size: 0.95rem; color: var(--text-3); transition: all 0.25s ease;"></i>
+                <label class="switch-toggle switch-toggle-purple" style="position: relative; display: inline-block; width: 34px; height: 20px; margin: 0; cursor: pointer;">
+                    <input type="checkbox" id="settingTestingMode" onchange="toggleTestingMode(this.checked)" style="opacity: 0; width: 0; height: 0;">
+                    <span class="switch-slider" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--surface-3); transition: .3s; border-radius: 20px; border: 1.5px solid var(--border-solid);"></span>
+                </label>
+            </div>
 
             <!-- Excel Export Button -->
             <button class="topbar-btn" onclick="exportTripToExcel()" title="تصدير كشيت إكسيل"
@@ -1728,20 +1734,18 @@
 
     <div class="page-wrap">
 
-        <!-- Trial / Testing Mode Banner -->
-        <div id="trialModeBanner" style="display: none; background: linear-gradient(135deg, #581c87 0%, #7e22ce 100%); color: #ffffff; padding: 10px 20px; font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid #3b0764; box-shadow: 0 4px 14px rgba(126, 34, 206, 0.28); align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; direction: rtl; z-index: 1000;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255, 255, 255, 0.18); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0;">
-                    <i class="fas fa-flask"></i>
-                </div>
-                <span><strong>وضع التجربة مفعّل</strong> — جميع تعديلات النقاط والعمليات تحفظ محلياً فقط في المتصفح ولا تؤثر على قاعدة البيانات.</span>
+        <!-- Refined Compact Trial / Testing Mode Banner -->
+        <div id="trialModeBanner" style="display: none; background: linear-gradient(135deg, #4c1d95 0%, #6d28d9 100%); color: #ffffff; padding: 6px 16px; font-weight: 700; font-size: 0.78rem; border-bottom: 1px solid #5b21b6; box-shadow: 0 2px 8px rgba(109, 40, 217, 0.25); align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; direction: rtl; z-index: 1000;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-flask" style="color: #e9d5ff; font-size: 0.9rem;"></i>
+                <span><strong>وضع التجربة مفعّل</strong> — التغييرات والعمليات تُحفظ محلياً في المتصفح فقط</span>
             </div>
-            <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
-                <button type="button" onclick="resetTrialData()" style="background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.35); color: #ffffff; padding: 6px 12px; border-radius: 8px; font-size: 0.78rem; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;">
-                    <i class="fas fa-rotate-left"></i> إعادة ضبط البيانات
+            <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                <button type="button" onclick="resetTrialData()" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #ffffff; padding: 3px 9px; border-radius: 6px; font-size: 0.74rem; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;">
+                    <i class="fas fa-rotate-left"></i> ضبط
                 </button>
-                <button type="button" onclick="toggleTestingMode(false)" style="background: #ffffff; border: none; color: #6b21a8; padding: 6px 14px; border-radius: 8px; font-size: 0.78rem; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); transition: all 0.2s;">
-                    <i class="fas fa-power-off"></i> إيقاف التجربة
+                <button type="button" onclick="toggleTestingMode(false)" style="background: #ffffff; border: none; color: #5b21b6; padding: 3px 10px; border-radius: 6px; font-size: 0.74rem; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.15); transition: all 0.2s;">
+                    <i class="fas fa-power-off"></i> إيقاف
                 </button>
             </div>
         </div>
@@ -3000,31 +3004,22 @@
                     banner.style.display = isTestingMode ? 'flex' : 'none';
                 }
 
-                const quickBtn = document.getElementById('btnTestingModeQuickToggle');
-                const quickIcon = document.getElementById('quickTestingModeIcon');
-                const quickText = document.getElementById('quickTestingModeText');
-                if (quickBtn) {
-                    if (isTestingMode) {
-                        quickBtn.style.background = 'linear-gradient(135deg, #7e22ce 0%, #9333ea 100%)';
-                        quickBtn.style.color = '#ffffff';
-                        quickBtn.style.borderColor = '#6b21a8';
-                        quickBtn.style.boxShadow = '0 2px 8px rgba(147, 51, 234, 0.35)';
-                        if (quickIcon) quickIcon.className = 'fas fa-vial-circle-check';
-                        if (quickText) quickText.textContent = 'وضع التجربة: مفعّل';
-                    } else {
-                        quickBtn.style.background = 'var(--surface)';
-                        quickBtn.style.color = 'var(--text-2)';
-                        quickBtn.style.borderColor = 'var(--border-solid)';
-                        quickBtn.style.boxShadow = 'none';
-                        if (quickIcon) quickIcon.className = 'fas fa-flask';
-                        if (quickText) quickText.textContent = 'وضع التجربة';
-                    }
-                }
-
                 const checkbox = document.getElementById('settingTestingMode');
                 if (checkbox) {
                     checkbox.checked = isTestingMode;
                 }
+
+                const quickIcon = document.getElementById('quickTestingModeIcon');
+                if (quickIcon) {
+                    if (isTestingMode) {
+                        quickIcon.style.color = '#8e24aa';
+                        quickIcon.className = 'fas fa-vial-circle-check';
+                    } else {
+                        quickIcon.style.color = 'var(--text-3)';
+                        quickIcon.className = 'fas fa-flask';
+                    }
+                }
+
                 const resetContainer = document.getElementById('resetTrialContainer');
                 if (resetContainer) {
                     resetContainer.style.display = isTestingMode ? 'block' : 'none';
