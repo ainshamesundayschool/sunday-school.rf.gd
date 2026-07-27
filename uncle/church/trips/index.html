@@ -5574,8 +5574,8 @@
         const fdTrip = mkFd('getTripDetails'); fdTrip.append('trip_id', id);
         const fdExp = mkFd('getTripExpenses'); fdExp.append('trip_id', id);
         const [tripResp, expResp] = await Promise.all([
-          fetch(API_URL, { method: 'POST', body: fdTrip }).then(r => r.json()).catch((err) => ({ success: false, _network_error: true, message: err?.message || '' })),
-          fetch(API_URL, { method: 'POST', body: fdExp }).then(r => r.json()).catch(() => ({ success: false }))
+          fetch(API_URL, { method: 'POST', body: fdTrip, credentials: 'include' }).then(r => r.json()).catch((err) => ({ success: false, _network_error: true, message: err?.message || '' })),
+          fetch(API_URL, { method: 'POST', body: fdExp, credentials: 'include' }).then(r => r.json()).catch(() => ({ success: false }))
         ]);
         tripExpensesCache[id] = expResp.success ? (expResp.expenses || []) : (tripExpensesCache[id] || []);
         if (tripResp.success) {
@@ -11200,9 +11200,22 @@
         if (btnRemove) btnRemove.style.display = 'none';
       }
 
-      function openEditTrip(id) {
-        const t = allTripsCache.find(x => x.id == id) || window.currentTripObj;
-        if (!t) return;
+      async function openEditTrip(id) {
+        let t = (Array.isArray(allTripsCache) ? allTripsCache.find(x => x.id == id) : null) || (window.currentTripObj && window.currentTripObj.id == id ? window.currentTripObj : null);
+        if (!t && id) {
+          try {
+            const fd = mkFd('getTripDetails');
+            fd.append('trip_id', id);
+            const res = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json());
+            if (res.success && res.trip) {
+              t = res.trip;
+            }
+          } catch(e) {}
+        }
+        if (!t) {
+          if (typeof showToast === 'function') showToast('لم يتم العثور على بيانات الرحلة لتعديلها', 'error');
+          return;
+        }
         document.getElementById('editTripId').value = t.id;
         document.getElementById('editTripTitle').value = t.title;
         document.getElementById('editTripType').value = t.type;
