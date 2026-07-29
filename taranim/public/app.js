@@ -140,8 +140,6 @@ document.addEventListener('DOMContentLoaded', () => {
     searchDropdown: document.getElementById('search-results-dropdown'),
     totalSongsCount: document.getElementById('total-songs-count'),
     francoToggleBtn: document.getElementById('franco-toggle-btn'),
-    francoTranslateBadge: document.getElementById('franco-translate-badge'),
-    francoTextVal: document.getElementById('franco-text-val'),
     
     btnMenuStyle: document.getElementById('btn-menu-style'),
     popoverStyle: document.getElementById('popover-style'),
@@ -221,6 +219,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function bindEvents() {
+    window.addEventListener('online', () => {
+      loadInitialData();
+    });
+
     els.btnMenuStyle.addEventListener('click', (e) => {
       e.stopPropagation();
       els.popoverCast.classList.add('hidden');
@@ -370,25 +372,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (query) els.clearSearchBtn.classList.remove('hidden');
       else {
         els.clearSearchBtn.classList.add('hidden');
-        els.francoTranslateBadge.classList.add('hidden');
-      }
-
-      if (state.francoAutoTranslate && /[a-z0-9]/i.test(query)) {
-        const translated = francoToArabic(query);
-        if (translated) {
-          els.francoTextVal.textContent = translated;
-          els.francoTranslateBadge.classList.remove('hidden');
-        } else {
-          els.francoTranslateBadge.classList.add('hidden');
-        }
-      } else {
-        els.francoTranslateBadge.classList.add('hidden');
       }
 
       clearTimeout(searchTimer);
       searchTimer = setTimeout(() => {
         performIntelligentSearch(query);
-      }, 100);
+      }, 50);
     });
 
     els.intelligentSearch.addEventListener('focus', () => {
@@ -401,7 +390,6 @@ document.addEventListener('DOMContentLoaded', () => {
       els.intelligentSearch.value = '';
       els.clearSearchBtn.classList.add('hidden');
       els.searchDropdown.classList.add('hidden');
-      els.francoTranslateBadge.classList.add('hidden');
     });
 
     els.btnPrevLine.addEventListener('click', prevLine);
@@ -600,16 +588,19 @@ document.addEventListener('DOMContentLoaded', () => {
     syncLiveState();
   }
 
-  // DYNAMICALLY FETCH LIVE TARANIM COUNT DIRECTLY FROM ACTIVE DATABASE
+  // DYNAMICALLY LOAD CATALOG (LOCAL STATIC OR API)
   async function loadInitialData() {
     try {
-      const res = await fetch('/api/songs?limit=250');
+      let res = await fetch('./songs_catalog.json');
+      if (!res.ok) res = await fetch('/api/songs?limit=500');
       const data = await res.json();
-      if (data && data.songs) {
+      if (Array.isArray(data)) {
+        state.allSongs = data;
+      } else if (data && data.songs) {
         state.allSongs = data.songs;
       }
       
-      const realTotalCount = (data && data.total_songs) ? data.total_songs : (state.allSongs.length || 11611);
+      const realTotalCount = state.allSongs.length > 0 ? state.allSongs.length : 11611;
       
       if (els.totalSongsCount) {
         const formatted = Number(realTotalCount).toLocaleString('ar-EG');
@@ -622,7 +613,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // FAIL-PROOF DUAL HYBRID INTELLIGENT SEARCH ENGINE (API + IN-MEMORY FALLBACK)
+  // FAST ULTRA-ROBUST DUAL HYBRID INTELLIGENT SEARCH ENGINE
   async function performIntelligentSearch(query) {
     if (!query || !query.trim()) {
       els.searchDropdown.classList.add('hidden');
@@ -632,31 +623,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchTarget = query.trim();
     let songsList = [];
 
-    // 1. Fetch API
-    try {
-      let res = await fetch(`/api/songs?q=${encodeURIComponent(searchTarget)}&limit=150`);
-      if (res.ok) {
-        let data = await res.json();
-        if (data && data.songs) songsList = data.songs;
-      }
-    } catch (err) {}
-
-    // 2. Try Franco fallback
-    if (songsList.length === 0 && state.francoAutoTranslate && /[a-z0-9]/i.test(searchTarget)) {
-      const arTrans = francoToArabic(searchTarget);
-      if (arTrans) {
-        try {
-          let res = await fetch(`/api/songs?q=${encodeURIComponent(arTrans)}&limit=150`);
-          if (res.ok) {
-            let data = await res.json();
-            if (data && data.songs) songsList = data.songs;
-          }
-        } catch (err) {}
-      }
-    }
-
-    // 3. FAIL-PROOF FALLBACK: Filter state.allSongs locally if API returned 0 results
-    if (songsList.length === 0 && state.allSongs && state.allSongs.length > 0) {
+    // 1. Instant local search if catalog loaded
+    if (state.allSongs && state.allSongs.length > 0) {
       const qNorm = normalizeArabic(searchTarget);
       const qFranco = francoToArabic(searchTarget);
 
@@ -667,7 +635,33 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // 4. Deduplicate
+    // 2. Fetch API if local catalog empty or short
+    if (songsList.length < 5) {
+      try {
+        let res = await fetch(`/api/songs?q=${encodeURIComponent(searchTarget)}&limit=150`);
+        if (res.ok) {
+          let data = await res.json();
+          if (data && data.songs && data.songs.length > 0) {
+            songsList = songsList.concat(data.songs);
+          }
+        }
+      } catch (err) {}
+
+      if (songsList.length === 0 && state.francoAutoTranslate && /[a-z0-9]/i.test(searchTarget)) {
+        const arTrans = francoToArabic(searchTarget);
+        if (arTrans) {
+          try {
+            let res = await fetch(`/api/songs?q=${encodeURIComponent(arTrans)}&limit=150`);
+            if (res.ok) {
+              let data = await res.json();
+              if (data && data.songs) songsList = songsList.concat(data.songs);
+            }
+          } catch (err) {}
+        }
+      }
+    }
+
+    // 3. Deduplicate
     const uniqueMap = new Map();
     songsList.forEach(song => {
       if (song && (song.id !== undefined && song.id !== null)) {
@@ -677,7 +671,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const uniqueSongs = Array.from(uniqueMap.values());
 
-    // 5. Score and sort
+    // 4. Score & Sort
     const scored = uniqueSongs.map(song => ({
       ...song,
       _score: getMatchScore(song, query)
@@ -687,12 +681,20 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderSearchDropdown(songs, query) {
+    let francoHeaderHtml = '';
+    if (state.francoAutoTranslate && /[a-z0-9]/i.test(query)) {
+      const translated = francoToArabic(query);
+      if (translated) {
+        francoHeaderHtml = `<div class="franco-translation-header"><i class="fa-solid fa-language"></i> الترجمة الحية: <strong>${escapeHtml(translated)}</strong></div>`;
+      }
+    }
+
     if (!songs || songs.length === 0) {
-      els.searchDropdown.innerHTML = `<div class="search-item no-results-item"><span class="item-title">لم يتم العثور على ترنيمة أو شاهد كتابي</span></div>`;
+      els.searchDropdown.innerHTML = francoHeaderHtml + `<div class="search-item no-results-item"><span class="item-title">لم يتم العثور على ترنيمة أو شاهد كتابي</span></div>`;
     } else {
       const qClean = normalizeArabic(query);
 
-      els.searchDropdown.innerHTML = songs.slice(0, 14).map(s => {
+      const itemsHtml = songs.slice(0, 14).map(s => {
         let snippetHtml = '';
         const rawNotes = s.notes || '';
 
@@ -730,6 +732,8 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         `;
       }).join('');
+
+      els.searchDropdown.innerHTML = francoHeaderHtml + itemsHtml;
     }
 
     els.searchDropdown.classList.remove('hidden');
@@ -742,7 +746,6 @@ document.addEventListener('DOMContentLoaded', () => {
         els.searchDropdown.classList.add('hidden');
         els.intelligentSearch.value = '';
         els.clearSearchBtn.classList.add('hidden');
-        els.francoTranslateBadge.classList.add('hidden');
         openAndPresentItem(id);
       });
     });
@@ -750,6 +753,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function openAndPresentItem(songId) {
     if (!songId) return;
+
+    // Check local catalog first
+    if (state.allSongs && state.allSongs.length > 0) {
+      const localSong = state.allSongs.find(s => String(s.id) === String(songId));
+      if (localSong && localSong.verses && localSong.verses.length > 0) {
+        state.activeSong = localSong;
+        addToSessionRecents(localSong);
+        loadSongIntoPresentation(localSong);
+        return;
+      }
+    }
+
     try {
       const res = await fetch(`/api/song/${songId}`);
       if (!res.ok) throw new Error('Failed to load song');
@@ -766,30 +781,45 @@ document.addEventListener('DOMContentLoaded', () => {
   function loadSongIntoPresentation(song) {
     let linesList = [];
 
-    if (state.presentationMode === 'oneline') {
-      song.verses.forEach((verse, vIdx) => {
-        verse.slides.forEach((slide, sIdx) => {
-          slide.lines.forEach(line => {
-            if (line && line.trim()) {
-              linesList.push({
-                text: line.trim(),
-                label: `بيت ${vIdx + 1}`
-              });
-            }
-          });
-        });
-      });
-    } else {
-      song.verses.forEach((verse, vIdx) => {
-        verse.slides.forEach((slide, sIdx) => {
-          if (slide.text && slide.text.trim()) {
-            linesList.push({
-              text: slide.text.trim(),
-              label: `شريحة ${sIdx + 1}`
+    if (song.verses && Array.isArray(song.verses)) {
+      if (state.presentationMode === 'oneline') {
+        song.verses.forEach((verse, vIdx) => {
+          if (verse.slides && Array.isArray(verse.slides)) {
+            verse.slides.forEach((slide) => {
+              if (slide.lines && Array.isArray(slide.lines)) {
+                slide.lines.forEach(line => {
+                  if (line && line.trim()) {
+                    linesList.push({
+                      text: line.trim(),
+                      label: `بيت ${vIdx + 1}`
+                    });
+                  }
+                });
+              }
             });
           }
         });
-      });
+      } else {
+        song.verses.forEach((verse) => {
+          if (verse.slides && Array.isArray(verse.slides)) {
+            verse.slides.forEach((slide, sIdx) => {
+              if (slide.text && slide.text.trim()) {
+                linesList.push({
+                  text: slide.text.trim(),
+                  label: `شريحة ${sIdx + 1}`
+                });
+              }
+            });
+          }
+        });
+      }
+    } else if (song.notes) {
+      // Fallback notes splitting into lines
+      const splitLines = song.notes.split(/[\n,]+/).map(l => l.trim()).filter(l => l.length > 0);
+      linesList = splitLines.map((line, idx) => ({
+        text: line,
+        label: `بيت ${idx + 1}`
+      }));
     }
 
     state.presentationLines = linesList;
