@@ -16,7 +16,10 @@
   <!-- Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <link rel="stylesheet" href="style.css?v=20260729_v8">
+  <!-- HTML5 QR Code Scanner -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+
+  <link rel="stylesheet" href="style.css?v=20260729_v9">
 </head>
 <body>
 
@@ -122,6 +125,87 @@
               </button>
               <button id="btn-copy-obs-url" class="btn btn-sm btn-secondary">
                 <i class="fa-solid fa-link fa-lg"></i> نسخ رابط المصدر للمصمم
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- DROPDOWN 3: OBS WEBSOCKET & TRANSITIONS -->
+        <div class="dropdown-wrapper">
+          <button class="icon-menu-btn" id="btn-menu-obs-ws" title="الربط المباشر مع برنامج OBS Studio والتحكم بالحركات">
+            <i class="fa-solid fa-plug-circle-bolt"></i>
+            <span id="obs-ws-status-badge" class="badge-status disconnected"></span>
+          </button>
+
+          <div class="dropdown-popover hidden" id="popover-obs-ws">
+            <div class="popover-title">
+              <i class="fa-solid fa-plug-circle-bolt"></i> الاتصال بـ OBS Studio
+              <span id="obs-connection-status-text" class="status-pill offline">غير متصل</span>
+            </div>
+
+            <div class="popover-row" style="flex-wrap:wrap; gap:6px;">
+              <button id="btn-scan-qr" class="btn btn-sm btn-secondary" style="width:100%;">
+                <i class="fa-solid fa-qrcode"></i> مسح QR Code للربط التلقائي
+              </button>
+            </div>
+
+            <div class="popover-row">
+              <label><i class="fa-solid fa-network-wired"></i> العنوان / IP:</label>
+              <input type="text" id="obs-ws-ip" class="control-input" placeholder="192.168.1.50 أو localhost" value="localhost">
+            </div>
+
+            <div class="popover-row">
+              <label><i class="fa-solid fa-hashtag"></i> المنفذ (Port):</label>
+              <input type="number" id="obs-ws-port" class="control-input" placeholder="4455" value="4455">
+            </div>
+
+            <div class="popover-row">
+              <label><i class="fa-solid fa-key"></i> الباسورد:</label>
+              <input type="password" id="obs-ws-password" class="control-input" placeholder="كلمة سر OBS (إن وجدت)">
+            </div>
+
+            <div class="popover-actions">
+              <button id="btn-connect-obs-ws" class="btn btn-sm btn-primary">
+                <i class="fa-solid fa-plug"></i> اتصال مباشر
+              </button>
+              <button id="btn-disconnect-obs-ws" class="btn btn-sm btn-danger hidden">
+                <i class="fa-solid fa-power-off"></i> قطع الاتصال
+              </button>
+            </div>
+
+            <hr class="popover-divider">
+
+            <div class="popover-title"><i class="fa-solid fa-film"></i> المشاهد والحركات (Transitions)</div>
+
+            <div class="popover-row">
+              <label><i class="fa-solid fa-clapperboard"></i> المشهد الحالي:</label>
+              <select id="obs-scene-select" class="control-select" disabled>
+                <option value="">(قم بالاتصال بـ OBS أولاً)</option>
+              </select>
+            </div>
+
+            <div class="popover-row">
+              <label><i class="fa-solid fa-shuffle"></i> حركة التنقل:</label>
+              <select id="obs-transition-select" class="control-select" disabled>
+                <option value="Cut">Cut (قطع مباشر)</option>
+                <option value="Fade">Fade (تلاشي)</option>
+                <option value="Swipe">Swipe (سحب)</option>
+                <option value="Slide">Slide (إنزلاق)</option>
+                <option value="Stinger">Stinger (ستينجر)</option>
+              </select>
+            </div>
+
+            <div class="popover-row">
+              <label><i class="fa-solid fa-stopwatch"></i> مدة الحركة (ms):</label>
+              <div class="compact-control-group">
+                <input type="range" id="obs-transition-duration-range" min="100" max="3000" step="50" value="300" class="slider-input" disabled>
+                <span id="obs-transition-duration-badge" class="counter-text">300ms</span>
+              </div>
+            </div>
+
+            <div class="popover-actions">
+              <button id="btn-trigger-obs-transition" class="btn btn-sm btn-primary" style="width:100%;" disabled>
+                <i class="fa-solid fa-play"></i> تنفيذ حركة التنقل المباشرة
               </button>
             </div>
           </div>
@@ -250,6 +334,21 @@
     </div>
   </div>
 
-  <script src="app.js?v=20260729_v8"></script>
+  <!-- CAMERA QR SCANNER MODAL -->
+  <div id="obs-qr-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-qrcode"></i> مسح QR Code الخاص بـ OBS</h3>
+        <button id="btn-close-qr-modal" class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="qr-instructions">وجه كاميرا الموبايل أو الجهاز نحو QR Code الخادم بـ OBS Studio للربط الفوري.</p>
+        <div id="qr-reader-viewport"></div>
+        <div id="qr-scan-result-msg" class="qr-status-msg hidden"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js?v=20260729_v9"></script>
 </body>
 </html>

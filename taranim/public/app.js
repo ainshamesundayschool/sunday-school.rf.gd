@@ -196,6 +196,192 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// SHA256 HELPER FOR OBS WEBSOCKET V5 AUTHENTICATION
+async function sha256Base64(str) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(str);
+  const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const binary = hashArray.map(b => String.fromCharCode(b)).join('');
+  return window.btoa(binary);
+}
+
+// OBS WEBSOCKET V5 PROTOCOL CLIENT
+class OBSWSClient {
+  constructor(options = {}) {
+    this.ws = null;
+    this.isConnected = false;
+    this.ip = options.ip || 'localhost';
+    this.port = options.port || 4455;
+    this.password = options.password || '';
+    this.onStatusChange = options.onStatusChange || (() => {});
+    this.onScenesUpdated = options.onScenesUpdated || (() => {});
+    this.onTransitionsUpdated = options.onTransitionsUpdated || (() => {});
+    this.requestIdCounter = 1;
+    this.pendingRequests = new Map();
+  }
+
+  connect(ip, port, password) {
+    if (ip) this.ip = ip;
+    if (port) this.port = port;
+    if (password !== undefined) this.password = password;
+
+    this.disconnect();
+
+    let protocol = 'ws://';
+    let host = `${this.ip}:${this.port}`;
+    if (this.ip.startsWith('ws://') || this.ip.startsWith('wss://')) {
+      protocol = '';
+      host = this.ip.includes(':') ? this.ip : `${this.ip}:${this.port}`;
+    }
+
+    const wsUrl = `${protocol}${host}`;
+    try {
+      this.ws = new WebSocket(wsUrl);
+    } catch (e) {
+      this.onStatusChange(false, 'فشل الاتصال: عنوان غير صالح');
+      return;
+    }
+
+    this.onStatusChange(false, 'جاري الاتصال بـ OBS...');
+
+    this.ws.onopen = () => {};
+
+    this.ws.onmessage = async (event) => {
+      try {
+        const msg = JSON.parse(event.data);
+        await this.handleMessage(msg);
+      } catch (err) {}
+    };
+
+    this.ws.onerror = () => {
+      this.onStatusChange(false, 'خطأ في الاتصال بالخادم');
+    };
+
+    this.ws.onclose = () => {
+      this.isConnected = false;
+      this.onStatusChange(false, 'غير متصل');
+    };
+  }
+
+  disconnect() {
+    if (this.ws) {
+      try { this.ws.close(); } catch(e) {}
+      this.ws = null;
+    }
+    this.isConnected = false;
+    this.onStatusChange(false, 'غير متصل');
+  }
+
+  async handleMessage(msg) {
+    if (!msg || typeof msg !== 'object') return;
+
+    if (msg.op === 0) {
+      const d = msg.d || {};
+      let authObj = null;
+      if (d.authentication && this.password) {
+        try {
+          const secret = await sha256Base64(this.password + d.authentication.salt);
+          const authString = await sha256Base64(secret + d.authentication.challenge);
+          authObj = authString;
+        } catch(e) {}
+      }
+
+      const identifyPayload = {
+        op: 1,
+        d: {
+          rpcVersion: 1,
+          eventSubscriptions: 33
+        }
+      };
+      if (authObj) {
+        identifyPayload.d.authentication = authObj;
+      }
+      this.ws.send(JSON.stringify(identifyPayload));
+    } else if (msg.op === 2) {
+      this.isConnected = true;
+      this.onStatusChange(true, 'متصل بـ OBS Studio');
+      this.fetchScenes();
+      this.fetchTransitions();
+    } else if (msg.op === 7) {
+      const d = msg.d || {};
+      const reqId = d.requestId;
+      if (reqId && this.pendingRequests.has(reqId)) {
+        const resolve = this.pendingRequests.get(reqId);
+        this.pendingRequests.delete(reqId);
+        resolve(d.responseData || {});
+      }
+    }
+  }
+
+  sendRequest(requestType, requestData = {}) {
+    return new Promise((resolve) => {
+      if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+        resolve(null);
+        return;
+      }
+      const reqId = `req_${this.requestIdCounter++}`;
+      this.pendingRequests.set(reqId, resolve);
+
+      const payload = {
+        op: 6,
+        d: {
+          requestType: requestType,
+          requestId: reqId,
+          requestData: requestData
+        }
+      };
+      this.ws.send(JSON.stringify(payload));
+    });
+  }
+
+  async fetchScenes() {
+    const res = await this.sendRequest('GetSceneList');
+    if (res && res.scenes) {
+      const scenes = res.scenes.map(s => s.sceneName);
+      const current = res.currentProgramSceneName || res.currentPreviewSceneName || '';
+      this.onScenesUpdated(scenes, current);
+    }
+  }
+
+  async fetchTransitions() {
+    const res = await this.sendRequest('GetSceneTransitionList');
+    if (res && res.transitions) {
+      const transitions = res.transitions.map(t => t.transitionName);
+      const current = res.currentSceneTransitionName || '';
+      this.onTransitionsUpdated(transitions, current);
+    }
+  }
+
+  setCurrentScene(sceneName) {
+    if (!sceneName) return;
+    this.sendRequest('SetCurrentProgramScene', { sceneName: sceneName });
+  }
+
+  setTransition(transitionName) {
+    if (!transitionName) return;
+    this.sendRequest('SetCurrentSceneTransition', { transitionName: transitionName });
+  }
+
+  setTransitionDuration(durationMs) {
+    const ms = parseInt(durationMs);
+    if (isNaN(ms)) return;
+    this.sendRequest('SetSetSceneTransitionDuration', { transitionDuration: ms });
+  }
+
+  triggerTransition() {
+    this.sendRequest('TriggerStudioModeTransition');
+  }
+
+  sendLineTextToObsSource(text, sourceName = 'TaranimText') {
+    if (!this.isConnected) return;
+    this.sendRequest('SetInputSettings', {
+      inputName: sourceName,
+      inputSettings: { text: text }
+    });
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 
   const broadcastChannel = new BroadcastChannel('sunday_school_taranim_obs_channel');
@@ -308,7 +494,26 @@ document.addEventListener('DOMContentLoaded', () => {
     obsLowerThirdBox: document.getElementById('obs-lower-third-box'),
     obsLineText: document.getElementById('obs-line-text'),
     snapGuideH: document.getElementById('snap-guide-h'),
-    snapGuideV: document.getElementById('snap-guide-v')
+    snapGuideV: document.getElementById('snap-guide-v'),
+
+    btnMenuObsWs: document.getElementById('btn-menu-obs-ws'),
+    popoverObsWs: document.getElementById('popover-obs-ws'),
+    obsWsStatusBadge: document.getElementById('obs-ws-status-badge'),
+    obsConnectionStatusText: document.getElementById('obs-connection-status-text'),
+    btnScanQr: document.getElementById('btn-scan-qr'),
+    obsWsIp: document.getElementById('obs-ws-ip'),
+    obsWsPort: document.getElementById('obs-ws-port'),
+    obsWsPassword: document.getElementById('obs-ws-password'),
+    btnConnectObsWs: document.getElementById('btn-connect-obs-ws'),
+    btnDisconnectObsWs: document.getElementById('btn-disconnect-obs-ws'),
+    obsSceneSelect: document.getElementById('obs-scene-select'),
+    obsTransitionSelect: document.getElementById('obs-transition-select'),
+    obsTransitionDurationRange: document.getElementById('obs-transition-duration-range'),
+    obsTransitionDurationBadge: document.getElementById('obs-transition-duration-badge'),
+    btnTriggerObsTransition: document.getElementById('btn-trigger-obs-transition'),
+    obsQrModal: document.getElementById('obs-qr-modal'),
+    btnCloseQrModal: document.getElementById('btn-close-qr-modal'),
+    qrScanResultMsg: document.getElementById('qr-scan-result-msg')
   };
 
   init();
@@ -1220,6 +1425,8 @@ document.addEventListener('DOMContentLoaded', () => {
       els.obsLowerThirdBox.style.top = `${yPct}%`;
       els.obsLowerThirdBox.style.transform = 'translate(-50%, -50%)';
     }
+
+    obsWsClient.sendLineTextToObsSource(text);
   }
 
   function nextLine() {
@@ -1246,6 +1453,175 @@ document.addEventListener('DOMContentLoaded', () => {
   function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  // OBS WEBSOCKET POP-OVER & QR SCANNER CONTROLLER
+  const obsWsClient = new OBSWSClient({
+    onStatusChange: (connected, statusText) => {
+      if (els.obsWsStatusBadge) {
+        els.obsWsStatusBadge.className = `badge-status ${connected ? 'connected' : 'disconnected'}`;
+      }
+      if (els.obsConnectionStatusText) {
+        els.obsConnectionStatusText.className = `status-pill ${connected ? 'online' : 'offline'}`;
+        els.obsConnectionStatusText.textContent = statusText;
+      }
+      if (els.btnConnectObsWs) els.btnConnectObsWs.classList.toggle('hidden', connected);
+      if (els.btnDisconnectObsWs) els.btnDisconnectObsWs.classList.toggle('hidden', !connected);
+
+      if (els.obsSceneSelect) els.obsSceneSelect.disabled = !connected;
+      if (els.obsTransitionSelect) els.obsTransitionSelect.disabled = !connected;
+      if (els.obsTransitionDurationRange) els.obsTransitionDurationRange.disabled = !connected;
+      if (els.btnTriggerObsTransition) els.btnTriggerObsTransition.disabled = !connected;
+    },
+    onScenesUpdated: (scenes, currentScene) => {
+      if (!els.obsSceneSelect) return;
+      els.obsSceneSelect.innerHTML = scenes.map(s => `<option value="${escapeHtml(s)}" ${s === currentScene ? 'selected' : ''}>${escapeHtml(s)}</option>`).join('');
+    },
+    onTransitionsUpdated: (transitions, currentTransition) => {
+      if (!els.obsTransitionSelect) return;
+      els.obsTransitionSelect.innerHTML = transitions.map(t => `<option value="${escapeHtml(t)}" ${t === currentTransition ? 'selected' : ''}>${escapeHtml(t)}</option>`).join('');
+    }
+  });
+
+  const savedObsWsRaw = localStorage.getItem('sunday_school_taranim_obs_ws_config');
+  if (savedObsWsRaw) {
+    try {
+      const conf = JSON.parse(savedObsWsRaw);
+      if (conf.ip && els.obsWsIp) els.obsWsIp.value = conf.ip;
+      if (conf.port && els.obsWsPort) els.obsWsPort.value = conf.port;
+      if (conf.password !== undefined && els.obsWsPassword) els.obsWsPassword.value = conf.password;
+    } catch(e) {}
+  }
+
+  if (els.btnMenuObsWs && els.popoverObsWs) {
+    els.btnMenuObsWs.addEventListener('click', (e) => {
+      e.stopPropagation();
+      els.popoverObsWs.classList.toggle('hidden');
+      if (els.popoverStyle) els.popoverStyle.classList.add('hidden');
+      if (els.popoverCast) els.popoverCast.classList.add('hidden');
+    });
+
+    els.popoverObsWs.addEventListener('click', (e) => e.stopPropagation());
+  }
+
+  if (els.btnConnectObsWs) {
+    els.btnConnectObsWs.addEventListener('click', () => {
+      const ip = els.obsWsIp ? els.obsWsIp.value.trim() : 'localhost';
+      const port = els.obsWsPort ? parseInt(els.obsWsPort.value.trim()) || 4455 : 4455;
+      const password = els.obsWsPassword ? els.obsWsPassword.value : '';
+
+      localStorage.setItem('sunday_school_taranim_obs_ws_config', JSON.stringify({ ip, port, password }));
+      obsWsClient.connect(ip, port, password);
+    });
+  }
+
+  if (els.btnDisconnectObsWs) {
+    els.btnDisconnectObsWs.addEventListener('click', () => obsWsClient.disconnect());
+  }
+
+  if (els.obsSceneSelect) {
+    els.obsSceneSelect.addEventListener('change', (e) => obsWsClient.setCurrentScene(e.target.value));
+  }
+
+  if (els.obsTransitionSelect) {
+    els.obsTransitionSelect.addEventListener('change', (e) => obsWsClient.setTransition(e.target.value));
+  }
+
+  if (els.obsTransitionDurationRange) {
+    els.obsTransitionDurationRange.addEventListener('input', (e) => {
+      const val = e.target.value;
+      if (els.obsTransitionDurationBadge) els.obsTransitionDurationBadge.textContent = `${val}ms`;
+      obsWsClient.setTransitionDuration(val);
+    });
+  }
+
+  if (els.btnTriggerObsTransition) {
+    els.btnTriggerObsTransition.addEventListener('click', () => obsWsClient.triggerTransition());
+  }
+
+  // QR CODE SCANNER CONTROLLER
+  let html5QrCodeScanner = null;
+
+  function parseObsQrPayload(qrText) {
+    if (!qrText) return null;
+    let s = qrText.trim();
+
+    if (s.startsWith('{') && s.endsWith('}')) {
+      try {
+        const obj = JSON.parse(s);
+        return {
+          ip: obj.ip || obj.host || 'localhost',
+          port: obj.port || 4455,
+          password: obj.password || obj.pass || ''
+        };
+      } catch(e) {}
+    }
+
+    s = s.replace(/^(obs-websocket:\/\/|ws:\/\/|wss:\/\/)/i, '');
+    let password = '';
+    if (s.includes('@')) {
+      const parts = s.split('@');
+      password = parts[0];
+      s = parts[1];
+    }
+    const hostParts = s.split(':');
+    const ip = hostParts[0] || 'localhost';
+    const port = hostParts[1] ? parseInt(hostParts[1]) || 4455 : 4455;
+    return { ip, port, password };
+  }
+
+  if (els.btnScanQr && els.obsQrModal) {
+    els.btnScanQr.addEventListener('click', () => {
+      els.obsQrModal.classList.remove('hidden');
+      if (els.popoverObsWs) els.popoverObsWs.classList.add('hidden');
+
+      if (window.Html5Qrcode) {
+        if (!html5QrCodeScanner) {
+          html5QrCodeScanner = new Html5Qrcode('qr-reader-viewport');
+        }
+        html5QrCodeScanner.start(
+          { facingMode: 'environment' },
+          { fps: 10, qrbox: { width: 220, height: 220 } },
+          (decodedText) => {
+            const parsed = parseObsQrPayload(decodedText);
+            if (parsed) {
+              if (els.obsWsIp) els.obsWsIp.value = parsed.ip;
+              if (els.obsWsPort) els.obsWsPort.value = parsed.port;
+              if (els.obsWsPassword) els.obsWsPassword.value = parsed.password;
+
+              showToast('تم مسح بيانات OBS بنجاح!');
+              stopQrScanner();
+              els.obsQrModal.classList.add('hidden');
+              if (els.btnConnectObsWs) els.btnConnectObsWs.click();
+            }
+          },
+          () => {}
+        ).catch(() => {
+          if (els.qrScanResultMsg) {
+            els.qrScanResultMsg.className = 'qr-status-msg error';
+            els.qrScanResultMsg.textContent = 'تعذر فتح الكاميرا. يرجى السماح بإذن الكاميرا.';
+            els.qrScanResultMsg.classList.remove('hidden');
+          }
+        });
+      } else {
+        alert('تعذر تحميل مكتبة مسح QR Code.');
+      }
+    });
+  }
+
+  function stopQrScanner() {
+    if (html5QrCodeScanner) {
+      try {
+        html5QrCodeScanner.stop().catch(() => {});
+      } catch(e) {}
+    }
+  }
+
+  if (els.btnCloseQrModal && els.obsQrModal) {
+    els.btnCloseQrModal.addEventListener('click', () => {
+      stopQrScanner();
+      els.obsQrModal.classList.add('hidden');
+    });
   }
 
   // WAKE LOCK & VISIBILITY AUTO-RESYNC TO PREVENT STALE STATE WHEN UN-MINIMIZING ON MOBILE
