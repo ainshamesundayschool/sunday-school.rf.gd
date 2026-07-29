@@ -127,7 +127,10 @@ html, body {
   border-radius: 14px;
   box-shadow: var(--shadow-popover);
   padding: 0.85rem 1rem;
-  min-width: 290px;
+  min-width: 280px;
+  max-width: min(340px, calc(100vw - 2rem));
+  max-height: calc(100vh - 90px);
+  overflow-y: auto;
   z-index: 500;
   display: flex;
   flex-direction: column;
@@ -1106,4 +1109,89 @@ html, body {
 .qr-status-msg.error {
   background-color: #fee2e2;
   color: #dc2626;
+}
+
+/* COMPACT OBS TRANSITION CONTROL STRIP */
+.obs-compact-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.8rem;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  flex-wrap: wrap;
+}
+
+.strip-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+}
+
+.strip-icon {
+  color: var(--accent-blue);
+  font-size: 0.85rem;
+}
+
+.strip-select {
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-main);
+  outline: none;
+  cursor: pointer;
+  padding: 2px 0;
+}
+
+.strip-range-item {
+  flex: 1;
+  min-width: 130px;
+}
+
+.strip-range {
+  width: 100%;
+  accent-color: var(--accent-blue);
+  cursor: pointer;
+}
+
+.strip-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  min-width: 42px;
+  text-align: right;
+}
+
+.strip-btn {
+  background: var(--accent-blue);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.35rem 0.75rem;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.strip-btn:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.strip-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

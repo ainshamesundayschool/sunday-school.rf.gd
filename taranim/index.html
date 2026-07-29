@@ -130,16 +130,16 @@
           </div>
         </div>
 
-        <!-- DROPDOWN 3: OBS WEBSOCKET & TRANSITIONS -->
+        <!-- DROPDOWN 3: OBS WEBSOCKET CONNECTIVITY -->
         <div class="dropdown-wrapper">
-          <button class="icon-menu-btn" id="btn-menu-obs-ws" title="الربط المباشر مع برنامج OBS Studio والتحكم بالحركات">
-            <i class="fa-solid fa-plug-circle-bolt"></i>
+          <button class="icon-menu-btn" id="btn-menu-obs-ws" title="الربط المباشر مع برنامج OBS Studio">
+            <i class="fa-brands fa-obs"></i>
             <span id="obs-ws-status-badge" class="badge-status disconnected"></span>
           </button>
 
           <div class="dropdown-popover hidden" id="popover-obs-ws">
             <div class="popover-title">
-              <i class="fa-solid fa-plug-circle-bolt"></i> الاتصال بـ OBS Studio
+              <i class="fa-brands fa-obs"></i> الاتصال بـ OBS Studio
               <span id="obs-connection-status-text" class="status-pill offline">غير متصل</span>
             </div>
 
@@ -170,42 +170,6 @@
               </button>
               <button id="btn-disconnect-obs-ws" class="btn btn-sm btn-danger hidden">
                 <i class="fa-solid fa-power-off"></i> قطع الاتصال
-              </button>
-            </div>
-
-            <hr class="popover-divider">
-
-            <div class="popover-title"><i class="fa-solid fa-film"></i> المشاهد والحركات (Transitions)</div>
-
-            <div class="popover-row">
-              <label><i class="fa-solid fa-clapperboard"></i> المشهد الحالي:</label>
-              <select id="obs-scene-select" class="control-select" disabled>
-                <option value="">(قم بالاتصال بـ OBS أولاً)</option>
-              </select>
-            </div>
-
-            <div class="popover-row">
-              <label><i class="fa-solid fa-shuffle"></i> حركة التنقل:</label>
-              <select id="obs-transition-select" class="control-select" disabled>
-                <option value="Cut">Cut (قطع مباشر)</option>
-                <option value="Fade">Fade (تلاشي)</option>
-                <option value="Swipe">Swipe (سحب)</option>
-                <option value="Slide">Slide (إنزلاق)</option>
-                <option value="Stinger">Stinger (ستينجر)</option>
-              </select>
-            </div>
-
-            <div class="popover-row">
-              <label><i class="fa-solid fa-stopwatch"></i> مدة الحركة (ms):</label>
-              <div class="compact-control-group">
-                <input type="range" id="obs-transition-duration-range" min="100" max="3000" step="50" value="300" class="slider-input" disabled>
-                <span id="obs-transition-duration-badge" class="counter-text">300ms</span>
-              </div>
-            </div>
-
-            <div class="popover-actions">
-              <button id="btn-trigger-obs-transition" class="btn btn-sm btn-primary" style="width:100%;" disabled>
-                <i class="fa-solid fa-play"></i> تنفيذ حركة التنقل المباشرة
               </button>
             </div>
           </div>
@@ -276,6 +240,37 @@
             <button id="btn-next-line" class="mini-btn-flat" title="السطر التالي (Left/Down/Space)"><i class="fa-solid fa-chevron-left"></i></button>
             <button id="btn-toggle-blank" class="mini-btn-flat" title="إخفاء النص (B)"><i class="fa-solid fa-eye-slash"></i></button>
           </div>
+        </div>
+
+        <!-- COMPACT OBS TRANSITION CONTROL STRIP -->
+        <div class="obs-compact-strip">
+          <div class="strip-item">
+            <i class="fa-solid fa-clapperboard strip-icon" title="المشهد الحالي"></i>
+            <select id="obs-scene-select" class="strip-select" disabled>
+              <option value="">(المشهد)</option>
+            </select>
+          </div>
+
+          <div class="strip-item">
+            <i class="fa-solid fa-shuffle strip-icon" title="حركة التنقل"></i>
+            <select id="obs-transition-select" class="strip-select" disabled>
+              <option value="Cut">Cut (قطع)</option>
+              <option value="Fade">Fade (تلاشي)</option>
+              <option value="Swipe">Swipe (سحب)</option>
+              <option value="Slide">Slide (إنزلاق)</option>
+              <option value="Stinger">Stinger</option>
+            </select>
+          </div>
+
+          <div class="strip-item strip-range-item">
+            <i class="fa-solid fa-stopwatch strip-icon" title="مدة الحركة"></i>
+            <input type="range" id="obs-transition-duration-range" min="100" max="3000" step="50" value="300" class="strip-range" disabled>
+            <span id="obs-transition-duration-badge" class="strip-badge">300ms</span>
+          </div>
+
+          <button id="btn-trigger-obs-transition" class="strip-btn" title="تنفيذ حركة التنقل المباشرة" disabled>
+            <i class="fa-solid fa-play"></i> تنقل
+          </button>
         </div>
 
         <div id="presentation-lines-container" class="lines-list-box">

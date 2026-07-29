@@ -576,27 +576,52 @@ document.addEventListener('DOMContentLoaded', () => {
       loadInitialData();
     });
 
+    function closeAllPopovers(exceptPopover = null) {
+      if (els.popoverStyle && els.popoverStyle !== exceptPopover) {
+        els.popoverStyle.classList.add('hidden');
+      }
+      if (els.popoverCast && els.popoverCast !== exceptPopover) {
+        els.popoverCast.classList.add('hidden');
+      }
+      if (els.popoverObsWs && els.popoverObsWs !== exceptPopover) {
+        els.popoverObsWs.classList.add('hidden');
+      }
+    }
+
     els.btnMenuStyle.addEventListener('click', (e) => {
       e.stopPropagation();
-      els.popoverCast.classList.add('hidden');
-      els.popoverStyle.classList.toggle('hidden');
+      const willShow = els.popoverStyle.classList.contains('hidden');
+      closeAllPopovers(els.popoverStyle);
+      if (willShow) {
+        els.popoverStyle.classList.remove('hidden');
+      } else {
+        els.popoverStyle.classList.add('hidden');
+      }
     });
 
     els.btnMenuCast.addEventListener('click', async (e) => {
       e.stopPropagation();
-      els.popoverStyle.classList.add('hidden');
-      els.popoverCast.classList.toggle('hidden');
-      await detectConnectedScreens();
+      const willShow = els.popoverCast.classList.contains('hidden');
+      closeAllPopovers(els.popoverCast);
+      if (willShow) {
+        els.popoverCast.classList.remove('hidden');
+        await detectConnectedScreens();
+      } else {
+        els.popoverCast.classList.add('hidden');
+      }
     });
 
     document.addEventListener('click', (e) => {
-      if (!els.popoverStyle.contains(e.target) && e.target !== els.btnMenuStyle) {
+      if (els.popoverStyle && !els.popoverStyle.contains(e.target) && e.target !== els.btnMenuStyle && !els.btnMenuStyle.contains(e.target)) {
         els.popoverStyle.classList.add('hidden');
       }
-      if (!els.popoverCast.contains(e.target) && e.target !== els.btnMenuCast) {
+      if (els.popoverCast && !els.popoverCast.contains(e.target) && e.target !== els.btnMenuCast && !els.btnMenuCast.contains(e.target)) {
         els.popoverCast.classList.add('hidden');
       }
-      if (!els.searchDropdown.contains(e.target) && e.target !== els.intelligentSearch) {
+      if (els.popoverObsWs && !els.popoverObsWs.contains(e.target) && e.target !== els.btnMenuObsWs && !els.btnMenuObsWs.contains(e.target)) {
+        els.popoverObsWs.classList.add('hidden');
+      }
+      if (els.searchDropdown && !els.searchDropdown.contains(e.target) && e.target !== els.intelligentSearch) {
         els.searchDropdown.classList.add('hidden');
       }
     });
@@ -1496,9 +1521,13 @@ document.addEventListener('DOMContentLoaded', () => {
   if (els.btnMenuObsWs && els.popoverObsWs) {
     els.btnMenuObsWs.addEventListener('click', (e) => {
       e.stopPropagation();
-      els.popoverObsWs.classList.toggle('hidden');
-      if (els.popoverStyle) els.popoverStyle.classList.add('hidden');
-      if (els.popoverCast) els.popoverCast.classList.add('hidden');
+      const willShow = els.popoverObsWs.classList.contains('hidden');
+      closeAllPopovers(els.popoverObsWs);
+      if (willShow) {
+        els.popoverObsWs.classList.remove('hidden');
+      } else {
+        els.popoverObsWs.classList.add('hidden');
+      }
     });
 
     els.popoverObsWs.addEventListener('click', (e) => e.stopPropagation());
