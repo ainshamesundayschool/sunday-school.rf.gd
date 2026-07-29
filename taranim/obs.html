@@ -388,23 +388,27 @@
 
     let isFetching = false;
 
+    let activeLiveApiUrl = null;
+
     async function fetchLiveHTTP() {
       if (isFetching || isDragging || (Date.now() - lastDragTime < 6000)) return;
       isFetching = true;
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 800);
+      const timeoutId = setTimeout(() => controller.abort(), 500);
       const ts = Date.now();
 
       try {
-        let urls = [
-          getApiUrl() + '?action=live&_t=' + ts,
-          'api.php?action=live&_t=' + ts,
-          '../api.php?action=live&_t=' + ts,
-          '/taranim/api.php?action=live&_t=' + ts,
-          './api/live?_t=' + ts,
-          '/api/live?_t=' + ts
-        ];
+        let urls = activeLiveApiUrl
+          ? [activeLiveApiUrl + (activeLiveApiUrl.includes('?') ? '&' : '?') + '_t=' + ts]
+          : [
+              getApiUrl() + '?action=live',
+              'api.php?action=live',
+              '../api.php?action=live',
+              '/taranim/api.php?action=live',
+              './api/live',
+              '/api/live'
+            ].map(u => u + (u.includes('?') ? '&' : '?') + '_t=' + ts);
 
         let data = null;
         for (let url of urls) {
@@ -412,10 +416,14 @@
             let res = await fetch(url, { cache: 'no-cache', signal: controller.signal });
             if (res.ok) {
               data = await res.json();
+              if (!activeLiveApiUrl) {
+                activeLiveApiUrl = url.replace(/[?&]_t=\d+/, '');
+              }
               break;
             }
           } catch (e) {
             if (e.name === 'AbortError') break;
+            activeLiveApiUrl = null;
           }
         }
 
@@ -429,17 +437,17 @@
       }
     }
 
-    // ULTRA-FAST WEB WORKER TIMER (100MS TICKS FOR INSTANT WIFI SYNC)
+    // ULTRA-FAST WEB WORKER TIMER (50MS TICKS FOR INSTANT REAL-TIME SYNC)
     let workerTimer = null;
     try {
       const workerBlob = new Blob([
-        "let t = null; onmessage = function(e) { if (e.data === 'start') { clearInterval(t); t = setInterval(function() { postMessage('tick'); }, 100); } else if (e.data === 'stop') { clearInterval(t); } };"
+        "let t = null; onmessage = function(e) { if (e.data === 'start') { clearInterval(t); t = setInterval(function() { postMessage('tick'); }, 50); } else if (e.data === 'stop') { clearInterval(t); } };"
       ], { type: 'application/javascript' });
       workerTimer = new Worker(URL.createObjectURL(workerBlob));
       workerTimer.onmessage = function() { fetchLiveHTTP(); };
       workerTimer.postMessage('start');
     } catch (e) {
-      setInterval(fetchLiveHTTP, 100);
+      setInterval(fetchLiveHTTP, 50);
     }
 
     // IMMEDIATE RE-FETCH ON VISIBILITY OR FOCUS RESTORATION

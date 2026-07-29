@@ -320,8 +320,7 @@ class OBSWSClient {
     } else if (msg.op === 2) {
       this.isConnected = true;
       this.onStatusChange(true, 'متصل بـ OBS Studio');
-      this.fetchScenes();
-      this.fetchTransitions();
+      Promise.all([this.fetchScenes(), this.fetchTransitions()]).catch(() => {});
     } else if (msg.op === 7) {
       const d = msg.d || {};
       const reqId = d.requestId;
@@ -533,7 +532,8 @@ document.addEventListener('DOMContentLoaded', () => {
     obsQrModal: document.getElementById('obs-qr-modal'),
     btnCloseQrModal: document.getElementById('btn-close-qr-modal'),
     qrScanResultMsg: document.getElementById('qr-scan-result-msg'),
-    obsCompactStrip: document.getElementById('obs-compact-strip')
+    obsCompactStrip: document.getElementById('obs-compact-strip'),
+    obsHttpsWarning: document.getElementById('obs-https-warning')
   };
 
   function closeAllPopovers(exceptPopover = null) {
@@ -1427,6 +1427,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  let activePostUrl = null;
+
+  function sendLivePayload(postBody) {
+    const headers = { 'Content-Type': 'application/json' };
+    const targetUrl = activePostUrl || (getApiUrl() + '?action=live');
+
+    fetch(targetUrl, { method: 'POST', headers, body: postBody, keepalive: true })
+      .then(res => {
+        if (res.ok && !activePostUrl) {
+          activePostUrl = targetUrl;
+        }
+      })
+      .catch(() => {
+        activePostUrl = null;
+        fetch('api.php?action=live', { method: 'POST', headers, body: postBody, keepalive: true })
+          .then(res => { if (res.ok) activePostUrl = 'api.php?action=live'; })
+          .catch(() => {});
+      });
+  }
+
   function syncLiveState(isExplicitPositionUpdate = false) {
     const currentLine = state.presentationLines[state.currentLineIndex];
     const text = currentLine ? currentLine.text : '';
@@ -1456,16 +1476,7 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem('sunday_school_taranim_live_presentation', JSON.stringify(payload));
 
     const postBody = JSON.stringify(payload);
-    const headers = { 'Content-Type': 'application/json' };
-    const mainUrl = getApiUrl() + '?action=live';
-
-    fetch(mainUrl, { method: 'POST', headers, body: postBody }).catch(() => {
-      fetch('api.php?action=live', { method: 'POST', headers, body: postBody }).catch(() => {
-        fetch('../api.php?action=live', { method: 'POST', headers, body: postBody }).catch(() => {
-          fetch('/api/live', { method: 'POST', headers, body: postBody }).catch(() => {});
-        });
-      });
-    });
+    sendLivePayload(postBody);
 
     if (els.obsLineText) {
       els.obsLineText.style.fontFamily = state.selectedFont;
@@ -1538,6 +1549,18 @@ document.addEventListener('DOMContentLoaded', () => {
       if (els.obsTransitionSelect) els.obsTransitionSelect.disabled = !connected;
       if (els.obsTransitionDurationRange) els.obsTransitionDurationRange.disabled = !connected;
       if (els.btnTriggerObsTransition) els.btnTriggerObsTransition.disabled = !connected;
+
+      if (els.obsHttpsWarning) {
+        if (window.location.protocol === 'https:' && !connected && statusText.includes('HTTPS')) {
+          els.obsHttpsWarning.innerHTML = `
+            <i class="fa-solid fa-triangle-exclamation"></i> يمنع المتصفح الاتصال بالشبكة المحلية <code>ws://</code> على صفحات HTTPS.<br>
+            <a href="http://sunday-school.online/taranim/" style="color:#2563eb; font-weight:bold; text-decoration:underline;" target="_blank">انقر هنا لفتح الصفحة عبر HTTP للربط بـ OBS</a>
+          `;
+          els.obsHttpsWarning.classList.remove('hidden');
+        } else {
+          els.obsHttpsWarning.classList.add('hidden');
+        }
+      }
     },
     onScenesUpdated: (scenes, currentScene) => {
       availableObsScenes = scenes;
@@ -1615,26 +1638,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function parseObsQrPayload(qrText) {
     if (!qrText) return null;
-    let s = qrText.trim();
+    let s = String(qrText).trim();
 
     if (s.startsWith('{') && s.endsWith('}')) {
       try {
         const obj = JSON.parse(s);
         return {
-          ip: obj.ip || obj.host || 'localhost',
+          ip: obj.ip || obj.host || obj.server || 'localhost',
           port: obj.port || 4455,
-          password: obj.password || obj.pass || ''
+          password: obj.password || obj.pass || obj.auth || ''
         };
       } catch(e) {}
     }
 
-    s = s.replace(/^(obs-websocket:\/\/|ws:\/\/|wss:\/\/)/i, '');
+    s = s.replace(/^(obs-websocket:\/\/|ws:\/\/|wss:\/\/|http:\/\/|https:\/\/)/i, '');
+
     let password = '';
-    if (s.includes('@')) {
+    if (s.includes('?auth=')) {
+      const parts = s.split('?auth=');
+      s = parts[0];
+      password = parts[1] || '';
+    } else if (s.includes('?password=')) {
+      const parts = s.split('?password=');
+      s = parts[0];
+      password = parts[1] || '';
+    } else if (s.includes('@')) {
       const parts = s.split('@');
-      password = parts[0];
+      password = parts[0].replace(/^:/, '');
       s = parts[1];
+    } else if (s.includes('/')) {
+      const parts = s.split('/');
+      s = parts[0];
+      password = parts.slice(1).join('/');
     }
+
     const hostParts = s.split(':');
     const ip = hostParts[0] || 'localhost';
     const port = hostParts[1] ? parseInt(hostParts[1]) || 4455 : 4455;
@@ -1663,7 +1700,8 @@ document.addEventListener('DOMContentLoaded', () => {
               showToast('تم مسح بيانات OBS بنجاح!');
               stopQrScanner();
               els.obsQrModal.classList.add('hidden');
-              if (els.btnConnectObsWs) els.btnConnectObsWs.click();
+              localStorage.setItem('sunday_school_taranim_obs_ws_config', JSON.stringify(parsed));
+              obsWsClient.connect(parsed.ip, parsed.port, parsed.password);
             }
           },
           () => {}
