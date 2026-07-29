@@ -92,6 +92,7 @@ self.addEventListener('fetch', e => {
     if (
         url.pathname.includes('aes.js') || 
         url.pathname.includes('cookies.html') || 
+        url.pathname.includes('/taranim') ||
         url.hostname.includes('ifastnet.com')
     ) {
         return;

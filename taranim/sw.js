@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sunday_school_taranim_v20260729_v10';
+const CACHE_NAME = 'sunday_school_taranim_v20260729_v12';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -15,7 +15,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// DIRECT BROWSER NATIVE FETCH FOR API & LIVE SYNC (ZERO SERVICE WORKER OVERHEAD)
+// PASS-THROUGH NATIVE FETCH WITH CACHE-FALLBACK (NO 503 INJECTIONS)
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') {
     return;
@@ -30,21 +30,17 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith(
-    fetch(event.request, { cache: 'no-cache' })
-      .then((networkResponse) => {
+    caches.match(event.request).then((cachedResponse) => {
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+      return fetch(event.request).then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200) {
           const responseClone = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
         }
         return networkResponse;
-      })
-      .catch(() => {
-        return caches.match(event.request).then((cachedResponse) => {
-          if (cachedResponse) return cachedResponse;
-          if (event.request.mode === 'navigate') {
-            return caches.match('./index.html') || caches.match('./');
-          }
-        });
-      })
+      });
+    })
   );
 });
