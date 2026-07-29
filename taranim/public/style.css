@@ -196,11 +196,17 @@ html, body {
   background: #f8fafc;
   border: 1px solid var(--border-card);
   color: var(--text-main);
-  padding: 0.25rem 0.5rem;
+  padding: 0.25rem 0.45rem;
   border-radius: 6px;
   font-size: 0.76rem;
   outline: none;
   font-weight: 500;
+  max-width: 180px;
+  width: 100%;
+  box-sizing: border-box;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .control-select:focus, .control-input:focus {

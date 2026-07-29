@@ -538,6 +538,7 @@ document.addEventListener('DOMContentLoaded', () => {
     obsBoxOpacityRange: document.getElementById('obs-box-opacity-range'),
     obsBoxRadiusRange: document.getElementById('obs-box-radius-range'),
     obsBoxPaddingRange: document.getElementById('obs-box-padding-range'),
+    btnResetDefaultTemplate: document.getElementById('btn-reset-default-template'),
 
     presentationLinesContainer: document.getElementById('presentation-lines-container'),
     recentSessionContainer: document.getElementById('recent-session-container'),
