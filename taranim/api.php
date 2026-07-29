@@ -47,11 +47,24 @@ $requestUri = $_SERVER['REQUEST_URI'];
 $parsedUrl  = parse_url($requestUri, PHP_URL_PATH);
 
 // LIVE PRESENTATION STATE SYNC ENDPOINT
-if (strpos($parsedUrl, '/api/live') !== false || isset($_GET['action']) && $_GET['action'] === 'live' || isset($_GET['live'])) {
+if (strpos($parsedUrl, '/api/live') !== false || (isset($_GET['action']) && $_GET['action'] === 'live') || isset($_GET['live'])) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $input = file_get_contents('php://input');
-        if (!empty($input)) {
-            file_put_contents($liveFile, $input);
+        $inputRaw = file_get_contents('php://input');
+        if (!empty($inputRaw)) {
+            $newData = @json_decode($inputRaw, true);
+            if (is_array($newData) && isset($newData['updatedAt']) && file_exists($liveFile)) {
+                $existingRaw = @file_get_contents($liveFile);
+                if ($existingRaw) {
+                    $existingData = @json_decode($existingRaw, true);
+                    if (is_array($existingData) && isset($existingData['updatedAt'])) {
+                        if ($newData['updatedAt'] < $existingData['updatedAt']) {
+                            echo json_encode(['status' => 'ignored_stale']);
+                            exit;
+                        }
+                    }
+                }
+            }
+            file_put_contents($liveFile, $inputRaw, LOCK_EX);
         }
         echo json_encode(['status' => 'success']);
         exit;

@@ -273,6 +273,7 @@
           try { payload = JSON.parse(currentLiveRaw); } catch(err) {}
         }
         payload.pos = currentPivot;
+        payload.updatedAt = Date.now();
         localStorage.setItem('sunday_school_taranim_live_presentation', JSON.stringify(payload));
         localStorage.setItem('sunday_school_taranim_drag_pivot', JSON.stringify(currentPivot));
 
@@ -288,12 +289,22 @@
       }
     });
 
+    let lastAppliedUpdatedAt = 0;
+
     function applyState(data, source = 'local') {
       if (!data || typeof data !== 'object') return;
 
       // PREVENT OVERWRITES WHILE USER IS DRAGGING OR RECENTLY DRAGGED
       if (isDragging || (Date.now() - lastDragTime < 6000)) {
         return;
+      }
+
+      // IGNORE OUT-OF-ORDER STALE UPDATES
+      if (data.updatedAt && data.updatedAt < lastAppliedUpdatedAt) {
+        return;
+      }
+      if (data.updatedAt) {
+        lastAppliedUpdatedAt = data.updatedAt;
       }
 
       if (data.status && !data.type && data.text === undefined) return;
@@ -379,24 +390,47 @@
       try { applyState(JSON.parse(initialLiveRaw), 'local'); } catch(err) {}
     }
 
+    let isFetching = false;
+
     async function fetchLiveHTTP() {
-      if (isDragging || (Date.now() - lastDragTime < 6000)) return;
+      if (isFetching || isDragging || (Date.now() - lastDragTime < 6000)) return;
+      isFetching = true;
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
       const ts = Date.now();
+
       try {
-        let mainUrl = getApiUrl() + '?action=live&_t=' + ts;
-        let res = await fetch(mainUrl, { cache: 'no-cache' });
-        if (!res.ok) res = await fetch('api.php?action=live&_t=' + ts, { cache: 'no-cache' });
-        if (!res.ok) res = await fetch('../api.php?action=live&_t=' + ts, { cache: 'no-cache' });
-        if (!res.ok) res = await fetch('/taranim/api.php?action=live&_t=' + ts, { cache: 'no-cache' });
-        if (!res.ok) res = await fetch('./api/live?_t=' + ts, { cache: 'no-cache' });
-        if (!res.ok) res = await fetch('/api/live?_t=' + ts, { cache: 'no-cache' });
-        if (res.ok) {
-          const data = await res.json();
-          if (data && (data.type === 'PRESENT_LINE' || data.text !== undefined)) {
-            applyState(data, 'http');
+        let urls = [
+          getApiUrl() + '?action=live&_t=' + ts,
+          'api.php?action=live&_t=' + ts,
+          '../api.php?action=live&_t=' + ts,
+          '/taranim/api.php?action=live&_t=' + ts,
+          './api/live?_t=' + ts,
+          '/api/live?_t=' + ts
+        ];
+
+        let data = null;
+        for (let url of urls) {
+          try {
+            let res = await fetch(url, { cache: 'no-cache', signal: controller.signal });
+            if (res.ok) {
+              data = await res.json();
+              break;
+            }
+          } catch (e) {
+            if (e.name === 'AbortError') break;
           }
         }
-      } catch (err) {}
+
+        if (data && (data.type === 'PRESENT_LINE' || data.text !== undefined)) {
+          applyState(data, 'http');
+        }
+      } catch (err) {
+      } finally {
+        clearTimeout(timeoutId);
+        isFetching = false;
+      }
     }
 
     // WEB WORKER TIMER TO CONTINUOUSLY POLL EVEN WHEN TAB IS MINIMIZED / BACKGROUNDED

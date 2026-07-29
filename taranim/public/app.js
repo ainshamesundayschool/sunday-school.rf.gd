@@ -1180,6 +1180,8 @@ document.addEventListener('DOMContentLoaded', () => {
       payload.pos = state.dragPivot;
     }
 
+    payload.updatedAt = Date.now();
+
     broadcastChannel.postMessage(payload);
     localStorage.setItem('sunday_school_taranim_live_presentation', JSON.stringify(payload));
 
