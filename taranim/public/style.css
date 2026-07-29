@@ -50,7 +50,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.5rem 2rem;
+  padding: 0.5rem 1.5rem;
   background: #ffffff;
   border-bottom: 1px solid var(--border-card);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
@@ -649,8 +649,8 @@ html, body {
   top: 75%;
   transform: translate(-50%, -50%);
   width: auto;
-  max-width: 96vw;
-  max-height: 90vh;
+  max-width: 90vw;
+  max-height: 85vh;
   text-align: center;
   background: transparent !important;
   border: none !important;
@@ -671,7 +671,7 @@ html, body {
   white-space: pre-line;
   text-align: center;
   cursor: grab;
-  max-width: 96vw;
+  max-width: 90vw;
   word-break: break-word;
   padding: 25px 45px;
   overflow: visible !important;
@@ -681,3 +681,46 @@ html, body {
 }
 
 .hidden { display: none !important; }
+
+/* MOBILE RESPONSIVE OPTIMIZATION */
+@media (max-width: 768px) {
+  html, body {
+    height: auto;
+    overflow-y: auto;
+  }
+
+  .app-container {
+    height: auto;
+    overflow: visible;
+  }
+
+  /* REMOVE SUNDAY SCHOOL TARANIM TITLE ON MOBILE DEVICES */
+  .brand-text-centered {
+    display: none !important;
+  }
+
+  .top-nav {
+    padding: 0.6rem 1rem;
+  }
+
+  .search-hero {
+    padding: 0.6rem 1rem;
+  }
+
+  .centered-search-box input {
+    font-size: 0.92rem;
+    padding: 0.65rem 2.8rem 0.65rem 2.2rem;
+  }
+
+  .dashboard-halves {
+    grid-template-columns: 1fr;
+    height: auto;
+    overflow: visible;
+    padding: 0 0.85rem 1.5rem 0.85rem;
+    gap: 1rem;
+  }
+
+  .half-panel {
+    height: 380px;
+  }
+}

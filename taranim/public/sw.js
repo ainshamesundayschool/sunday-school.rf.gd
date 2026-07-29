@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sunday_school_taranim_v2';
+const CACHE_NAME = 'sunday_school_taranim_v3';
 
 const ASSETS_TO_CACHE = [
   './',
@@ -12,7 +12,6 @@ const ASSETS_TO_CACHE = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      // Use Promise.allSettled so a single missing or CORS resource won't break SW installation
       return Promise.allSettled(
         ASSETS_TO_CACHE.map((url) => {
           return cache.add(new Request(url, { cache: 'reload' })).catch((err) => {
@@ -41,8 +40,13 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Cache API responses for Taranim so all data works offline
+  // Cache API GET responses for Taranim offline usage (Skip POST requests like /api/live)
   if (url.pathname.includes('/api/')) {
+    if (event.request.method !== 'GET') {
+      event.respondWith(fetch(event.request));
+      return;
+    }
+
     event.respondWith(
       fetch(event.request)
         .then((response) => {
@@ -62,7 +66,6 @@ self.addEventListener('fetch', (event) => {
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) return cachedResponse;
       return fetch(event.request).catch(() => {
-        // Fallback for offline navigation
         if (event.request.mode === 'navigate') {
           return caches.match('./index.html') || caches.match('./');
         }

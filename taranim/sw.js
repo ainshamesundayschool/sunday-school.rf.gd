@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sunday_school_taranim_v2';
+const CACHE_NAME = 'sunday_school_taranim_v3';
 
 const ASSETS_TO_CACHE = [
   './',
@@ -41,6 +41,11 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
   if (url.pathname.includes('/api/')) {
+    if (event.request.method !== 'GET') {
+      event.respondWith(fetch(event.request));
+      return;
+    }
+
     event.respondWith(
       fetch(event.request)
         .then((response) => {
