@@ -6467,6 +6467,20 @@
           return cInfo['field_' + field.customIndex] || (field.customIndex === 0 ? (cInfo.value || '') : '') || '';
         }
 
+        if (field.key === 'phone' || field.source === 'student_phone') {
+          const val = String(r.student_phone || r.phone || r.guest_phone || r.mobile || r.phone_father || r['رقم التليفون'] || r['الهاتف'] || (field.source ? r[field.source] : '') || '').trim();
+          if (!val) return '';
+          if (forCsv) return val;
+          return `<span dir="ltr" style="display:inline-block; unicode-bidi:embed; direction:ltr !important; font-family:monospace, 'Cairo', sans-serif;">${escHtml(val)}</span>`;
+        }
+
+        if (field.key === 'emergency_phone' || field.source === 'student_emergency_phone') {
+          const val = String(r.student_emergency_phone || r.emergency_phone || r.phone_mother || r.guardian_phone || r['تليفون الطوارئ'] || r['هاتف الطوارئ'] || (field.source ? r[field.source] : '') || '').trim();
+          if (!val) return '';
+          if (forCsv) return val;
+          return `<span dir="ltr" style="display:inline-block; unicode-bidi:embed; direction:ltr !important; font-family:monospace, 'Cairo', sans-serif;">${escHtml(val)}</span>`;
+        }
+
         return r[field.source] || '';
       }
 
