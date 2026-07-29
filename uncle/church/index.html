@@ -11698,6 +11698,29 @@
                                 </a>
                             </div>
                         </div>
+
+                        <!-- Save directly as PDF section -->
+                        <div style="border-top: 1px dashed var(--border); padding-top: 10px; margin-top: 10px; width: 100%;">
+                            <div style="font-size: 0.8rem; font-weight: bold; color: var(--muted); text-align: right; margin-bottom: 6px;">
+                                <i class="fas fa-file-pdf"></i> حفظ كـ PDF مباشرة من الموقع (Save directly as PDF)
+                            </div>
+                            <div style="display: flex; gap: 8px; width: 100%;">
+                                <button type="button" class="btn btn-outline" onclick="executeSaveQRCardsAsPDF('front')"
+                                    style="flex: 1; height: 40px; font-size: 0.85rem; font-weight: 800; border-color: var(--success); color: var(--success); justify-content: center; gap: 6px;"
+                                    onmouseover="this.style.background='rgba(46, 204, 113, 0.05)'" onmouseout="this.style.background='none'">
+                                    <i class="fas fa-id-card"></i> PDF للوجه
+                                </button>
+                                <button type="button" class="btn btn-outline" onclick="executeSaveQRCardsAsPDF('back')"
+                                    style="flex: 1; height: 40px; font-size: 0.85rem; font-weight: 800; border-color: var(--success); color: var(--success); justify-content: center; gap: 6px;"
+                                    onmouseover="this.style.background='rgba(46, 204, 113, 0.05)'" onmouseout="this.style.background='none'">
+                                    <i class="fas fa-undo"></i> PDF للظهر
+                                </button>
+                                <button type="button" class="btn btn-success" onclick="executeSaveQRCardsAsPDF('combined')"
+                                    style="flex: 1.2; height: 40px; font-size: 0.85rem; font-weight: 800; justify-content: center; gap: 6px; background: var(--success); border-color: var(--success);">
+                                    <i class="fas fa-copy"></i> PDF كامل
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -25949,6 +25972,233 @@
                     if (dynStyle) dynStyle.remove();
                 }, 1000);
             }, 1200);
+        }
+
+        async function executeSaveQRCardsAsPDF(mode = 'combined') {
+            closeModal('printSettingsModal');
+            showToast('جاري تحضير الكروت لملف PDF...', 'info');
+
+            if (!window.html2canvas) {
+                await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+            }
+            if (!window.jspdf) {
+                await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+            }
+            const { jsPDF } = window.jspdf || {};
+            if (!jsPDF) {
+                showToast('فشل تحميل مكتبة PDF', 'error');
+                return;
+            }
+
+            const kids = getSelectedPrintKids();
+            if (!kids.length) {
+                showToast('لا يوجد أطفال مختارين لطباعة PDF', 'warning');
+                return;
+            }
+
+            const scaleVal = parseFloat(document.getElementById('printScale')?.value || 100) / 100;
+            let wValVal = parseFloat(document.getElementById('printCardWidth')?.value || 9);
+            let hValVal = parseFloat(document.getElementById('printCardHeight')?.value || 6);
+            if (wValVal > 50) wValVal = wValVal / 37.795;
+            if (hValVal > 50) hValVal = hValVal / 37.795;
+            const scale = scaleVal;
+            const baseWidth = wValVal * 37.795;
+            const baseHeight = hValVal * 37.795;
+            const gapXVal = parseFloat(document.getElementById('printGapX')?.value || 0) * 37.795;
+            const gapYVal = parseFloat(document.getElementById('printGapY')?.value || 0) * 37.795;
+
+            const paperSize = document.getElementById('printPaperSize')?.value || 'custom';
+            const grid = getPageGridDimensions(paperSize, baseWidth, baseHeight, gapXVal, gapYVal, scale);
+            const cardsPerPage = grid.cardsPerPage;
+
+            let pw = 29.7, ph = 21.0;
+            if (paperSize === 'a4-portrait') { pw = 21.0; ph = 29.7; }
+            else if (paperSize === 'a4-landscape') { pw = 29.7; ph = 21.0; }
+            else if (paperSize === 'a3-portrait') { pw = 29.7; ph = 42.0; }
+            else if (paperSize === 'a3-landscape') { pw = 42.0; ph = 29.7; }
+            else if (paperSize === 'custom') {
+                pw = parseFloat(document.getElementById('printPaperCustomWidth')?.value || 48.0);
+                ph = parseFloat(document.getElementById('printPaperCustomHeight')?.value || 32.0);
+            }
+
+            const pages = [];
+            for (let i = 0; i < kids.length; i += cardsPerPage) {
+                pages.push(kids.slice(i, i + cardsPerPage));
+            }
+
+            const paddedPages = pages.map(pKids => {
+                const padded = [...pKids];
+                while (padded.length < cardsPerPage) {
+                    padded.push(null);
+                }
+                return padded;
+            });
+
+            let tempPdfArea = document.createElement('div');
+            tempPdfArea.className = 'pdf-render-temp-area';
+            document.body.appendChild(tempPdfArea);
+            tempPdfArea.style.setProperty('position', 'fixed', 'important');
+            tempPdfArea.style.setProperty('left', '0', 'important');
+            tempPdfArea.style.setProperty('top', '0', 'important');
+            tempPdfArea.style.setProperty('width', '100%', 'important');
+            tempPdfArea.style.setProperty('height', '100%', 'important');
+            tempPdfArea.style.setProperty('z-index', '9999998', 'important');
+            tempPdfArea.style.setProperty('background', '#ffffff', 'important');
+            tempPdfArea.style.setProperty('overflow', 'auto', 'important');
+
+            let html = '';
+            const qrTasks = [];
+            const textReadability = document.getElementById('printTextReadability')?.value || 'none';
+            const readabilityBgColor = document.getElementById('printTextReadabilityBgColor')?.value || '#ffffff';
+            const readabilityBgOpacity = document.getElementById('printTextReadabilityBgOpacity')?.value || '92';
+            const readabilityPadding = parseFloat(document.getElementById('printTextReadabilityPadding')?.value || '6');
+            const readabilityWidth = document.getElementById('printTextReadabilityWidth')?.value || 'fitted';
+            const readabilityBgShadow = document.getElementById('printTextReadabilityShadow')?.checked ?? true;
+            const fontColor = document.getElementById('printFontColor')?.value || '#000000';
+            const strokeColor = document.getElementById('printStrokeColor')?.value || '#dddddd';
+            const { outlineStyle, dashLength, dashGap } = getPrintBorderSettings();
+            const padding = document.getElementById('printPadding')?.value || '15px';
+
+            const cardBorderStyle = getCardBorderStyle(outlineStyle, dashLength, dashGap);
+            const isUncle = false;
+            const churchName = window.churchName || 'الكنيسة';
+            const extraFields = Array.isArray(cardExtraFields) ? cardExtraFields : [];
+            const backPageDir = (document.getElementById('printBackMirrorRTL')?.checked ?? true) ? 'rtl' : 'ltr';
+
+            function renderFrontCard(s, globalIdx) {
+                if (!s) {
+                    return `<div class="print-card-placeholder" style="width:${baseWidth * scale}px; height:${baseHeight * scale}px;"></div>`;
+                }
+                const sid = getSafeStudentID(s);
+                const cardId = 'pdf_qrcode_kid_' + sid + '_' + globalIdx;
+                qrTasks.push({ id: cardId, text: String(sid) });
+
+                return generateCardMarkup(s, {
+                    isUncle,
+                    scaledWidth: baseWidth * scale,
+                    scaledHeight: baseHeight * scale,
+                    scaledPadding: parseFloat(padding) * scale,
+                    cardBorderStyle,
+                    fontColor,
+                    strokeColor,
+                    extraFields,
+                    scale,
+                    churchName,
+                    cardId,
+                    textReadability,
+                    readBgColor: readabilityBgColor,
+                    readOpacity: readabilityBgOpacity,
+                    readPadding: readabilityPadding + 'px',
+                    readabilityWidth,
+                    readabilityBgShadow
+                });
+            }
+
+            function renderBackCard(s) {
+                if (!s) {
+                    return `<div class="print-card-placeholder" style="width:${baseWidth * scale}px; height:${baseHeight * scale}px;"></div>`;
+                }
+                return generateBackCardMarkup(s, {
+                    isUncle,
+                    scaledWidth: baseWidth * scale,
+                    scaledHeight: baseHeight * scale,
+                    scaledPadding: parseFloat(padding) * scale,
+                    cardBorderStyle,
+                    fontColor,
+                    strokeColor,
+                    extraFields,
+                    scale,
+                    churchName,
+                    textReadability,
+                    readBgColor: readabilityBgColor,
+                    readOpacity: readabilityBgOpacity,
+                    readPadding: readabilityPadding + 'px',
+                    readabilityWidth,
+                    readabilityBgShadow
+                });
+            }
+
+            paddedPages.forEach((pageElements, pageIdx) => {
+                if (mode === 'front' || mode === 'combined') {
+                    html += `<div class="pdf-paper-page print-page" style="width:${pw}cm; height:${ph}cm;">`;
+                    pageElements.forEach((s, elementIdx) => {
+                        const globalIdx = pageIdx * cardsPerPage + elementIdx;
+                        html += renderFrontCard(s, globalIdx);
+                    });
+                    html += `</div>`;
+                }
+
+                if (mode === 'back' || mode === 'combined') {
+                    const rowsOfPage = [];
+                    for (let rIdx = 0; rIdx < pageElements.length; rIdx += grid.cols) {
+                        rowsOfPage.push(pageElements.slice(rIdx, rIdx + grid.cols));
+                    }
+                    const backPageElements = rowsOfPage.map(row => [...row].reverse()).flat();
+
+                    html += `<div class="pdf-paper-page print-page" style="width:${pw}cm; height:${ph}cm; direction:${backPageDir} !important;">`;
+                    backPageElements.forEach(s => {
+                        html += renderBackCard(s);
+                    });
+                    html += `</div>`;
+                }
+            });
+
+            tempPdfArea.innerHTML = html;
+
+            const layout = calculateCardLayout(baseWidth, baseHeight, scale, padding);
+            const qrSize = layout.qrSize;
+            qrTasks.forEach(task => {
+                const el = document.getElementById(task.id);
+                if (el) {
+                    new QRCode(el, { text: task.text, width: qrSize, height: qrSize, colorDark: "#000000", colorLight: textReadability === 'rect' ? "transparent" : "#ffffff", correctLevel: QRCode.CorrectLevel.M });
+                }
+            });
+
+            await new Promise(resolve => setTimeout(resolve, 800));
+
+            try {
+                const pdfPages = [...tempPdfArea.querySelectorAll('.pdf-paper-page')];
+                if (pdfPages.length === 0) {
+                    showToast('لا توجد صفحات لحفظها', 'error');
+                    return;
+                }
+
+                const pw_mm = pw * 10;
+                const ph_mm = ph * 10;
+                const orientation = pw_mm > ph_mm ? 'landscape' : 'portrait';
+
+                const pdf = new jsPDF({
+                    orientation: orientation,
+                    unit: 'mm',
+                    format: [pw_mm, ph_mm]
+                });
+
+                showToast('جاري إنشاء الصفحات...', 'info');
+
+                for (let i = 0; i < pdfPages.length; i++) {
+                    const pageEl = pdfPages[i];
+                    const canvas = await html2canvas(pageEl, {
+                        scale: 2,
+                        backgroundColor: '#ffffff',
+                        logging: false,
+                        useCORS: true,
+                        allowTaint: false
+                    });
+                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                    if (i > 0) {
+                        pdf.addPage([pw_mm, ph_mm], orientation);
+                    }
+                    pdf.addImage(imgData, 'JPEG', 0, 0, pw_mm, ph_mm);
+                }
+
+                pdf.save(`church-kids-cards-${mode}.pdf`);
+                showToast('تم تحميل ملف PDF بنجاح', 'success');
+            } catch (e) {
+                console.error(e);
+                showToast('حدث خطأ أثناء حفظ الـ PDF: ' + e.message, 'error');
+            } finally {
+                if (tempPdfArea) tempPdfArea.remove();
+            }
         }
 
         function loadScript(src) {
