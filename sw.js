@@ -513,6 +513,7 @@ async function _maybeQueueRequest(req) {
 
         const db = await _openDB();
         await new Promise((resolve, reject) => {
+            if (!db || !db.objectStoreNames.contains('queue')) return reject('No queue store');
             const tx = db.transaction('queue', 'readwrite');
             const store = tx.objectStore('queue');
             store.add({
@@ -546,9 +547,11 @@ function _parseFormField(body, field) {
 
 // ── FLUSH QUEUE ───────────────────────────────────────────────
 async function _flushQueue() {
-    const db = await _openDB();
-    const records = await _idbGetAll(db.transaction('queue', 'readonly').objectStore('queue'));
-    if (!records.length) return;
+    try {
+        const db = await _openDB();
+        if (!db || !db.objectStoreNames.contains('queue')) return;
+        const records = await _idbGetAll(db.transaction('queue', 'readonly').objectStore('queue'));
+        if (!records.length) return;
 
     let flushed = 0;
     for (const rec of records) {
@@ -586,6 +589,7 @@ async function _flushQueue() {
             data: { url: '/uncle/dashboard/', type: 'sync' }
         }).catch(() => {});
     }
+    } catch(err) {}
 }
 
 // ── BACKGROUND REGISTRATION CHECK ────────────────────────────
@@ -637,7 +641,7 @@ async function _registerPeriodicSync() {
 // ── IDB helpers ───────────────────────────────────────────────
 function _openDB() {
     return new Promise((res, rej) => {
-        const req = indexedDB.open('ss-queue', 2);
+        const req = indexedDB.open('ss-queue', 3);
         req.onupgradeneeded = ev => {
             const db = ev.target.result;
             if (!db.objectStoreNames.contains('queue'))
@@ -661,6 +665,7 @@ function _idbGetAll(store) {
 async function _idbGetMeta() {
     try {
         const db = await _openDB();
+        if (!db || !db.objectStoreNames.contains('meta')) return null;
         return await new Promise((res, rej) => {
             const req = db.transaction('meta', 'readonly').objectStore('meta').get('uncle');
             req.onsuccess = e => res(e.target.result?.value || null);
@@ -670,11 +675,14 @@ async function _idbGetMeta() {
 }
 
 async function _idbSetMeta(value) {
-    const db = await _openDB();
-    return new Promise((res, rej) => {
-        const tx = db.transaction('meta', 'readwrite');
-        tx.objectStore('meta').put({ key: 'uncle', value });
-        tx.oncomplete = res;
-        tx.onerror    = rej;
-    });
+    try {
+        const db = await _openDB();
+        if (!db || !db.objectStoreNames.contains('meta')) return;
+        return new Promise((res, rej) => {
+            const tx = db.transaction('meta', 'readwrite');
+            tx.objectStore('meta').put({ key: 'uncle', value });
+            tx.oncomplete = res;
+            tx.onerror    = rej;
+        });
+    } catch(err) {}
 }

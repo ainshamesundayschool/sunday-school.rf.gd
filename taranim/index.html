@@ -243,7 +243,7 @@
         </div>
 
         <!-- COMPACT OBS TRANSITION CONTROL STRIP -->
-        <div class="obs-compact-strip">
+        <div id="obs-compact-strip" class="obs-compact-strip hidden">
           <div class="strip-item">
             <i class="fa-solid fa-clapperboard strip-icon" title="المشهد الحالي"></i>
             <select id="obs-scene-select" class="strip-select" disabled>
@@ -256,8 +256,10 @@
             <select id="obs-transition-select" class="strip-select" disabled>
               <option value="Cut">Cut (قطع)</option>
               <option value="Fade">Fade (تلاشي)</option>
+              <option value="Luma Wipe">Luma Wipe (مسح لوما)</option>
               <option value="Swipe">Swipe (سحب)</option>
               <option value="Slide">Slide (إنزلاق)</option>
+              <option value="Fade to Color">Fade to Color (تلاشي ملون)</option>
               <option value="Stinger">Stinger</option>
             </select>
           </div>

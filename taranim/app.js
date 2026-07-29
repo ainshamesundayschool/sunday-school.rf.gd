@@ -222,20 +222,31 @@ class OBSWSClient {
   }
 
   connect(ip, port, password) {
-    if (ip) this.ip = ip;
+    if (ip) this.ip = String(ip).trim();
     if (port) this.port = port;
-    if (password !== undefined) this.password = password;
+    if (password !== undefined) this.password = String(password);
 
     this.disconnect();
 
-    let protocol = 'ws://';
-    let host = `${this.ip}:${this.port}`;
-    if (this.ip.startsWith('ws://') || this.ip.startsWith('wss://')) {
-      protocol = '';
-      host = this.ip.includes(':') ? this.ip : `${this.ip}:${this.port}`;
+    let rawHost = this.ip;
+    let scheme = 'ws://';
+
+    if (rawHost.startsWith('wss://')) {
+      scheme = 'wss://';
+      rawHost = rawHost.replace(/^wss:\/\//i, '');
+    } else if (rawHost.startsWith('ws://')) {
+      scheme = 'ws://';
+      rawHost = rawHost.replace(/^ws:\/\//i, '');
     }
 
-    const wsUrl = `${protocol}${host}`;
+    rawHost = rawHost.replace(/\/+$/, '');
+
+    let finalHost = rawHost;
+    if (!rawHost.includes(':')) {
+      finalHost = `${rawHost}:${this.port}`;
+    }
+
+    const wsUrl = `${scheme}${finalHost}`;
     try {
       this.ws = new WebSocket(wsUrl);
     } catch (e) {
@@ -243,7 +254,7 @@ class OBSWSClient {
       return;
     }
 
-    this.onStatusChange(false, 'جاري الاتصال بـ OBS...');
+    this.onStatusChange(false, `جاري الاتصال بـ ${finalHost}...`);
 
     this.ws.onopen = () => {};
 
@@ -255,12 +266,20 @@ class OBSWSClient {
     };
 
     this.ws.onerror = () => {
-      this.onStatusChange(false, 'خطأ في الاتصال بالخادم');
+      let errMsg = 'تعذر الاتصال بـ OBS.';
+      if (window.location.protocol === 'https:' && scheme === 'ws://') {
+        errMsg = 'ملاحظة: قد يمنع المتصفح الاتصال بـ ws:// على صفحة HTTPS. استخدم wss:// أو افتح الموقع عبر HTTP.';
+      }
+      this.onStatusChange(false, errMsg);
     };
 
-    this.ws.onclose = () => {
+    this.ws.onclose = (e) => {
       this.isConnected = false;
-      this.onStatusChange(false, 'غير متصل');
+      let reason = 'غير متصل';
+      if (e && (e.code === 4009 || e.code === 4008)) {
+        reason = 'كلمة السر غير صحيحة';
+      }
+      this.onStatusChange(false, reason);
     };
   }
 
@@ -366,7 +385,7 @@ class OBSWSClient {
   setTransitionDuration(durationMs) {
     const ms = parseInt(durationMs);
     if (isNaN(ms)) return;
-    this.sendRequest('SetSetSceneTransitionDuration', { transitionDuration: ms });
+    this.sendRequest('SetSceneTransitionDuration', { transitionDuration: ms });
   }
 
   triggerTransition() {
@@ -513,7 +532,8 @@ document.addEventListener('DOMContentLoaded', () => {
     btnTriggerObsTransition: document.getElementById('btn-trigger-obs-transition'),
     obsQrModal: document.getElementById('obs-qr-modal'),
     btnCloseQrModal: document.getElementById('btn-close-qr-modal'),
-    qrScanResultMsg: document.getElementById('qr-scan-result-msg')
+    qrScanResultMsg: document.getElementById('qr-scan-result-msg'),
+    obsCompactStrip: document.getElementById('obs-compact-strip')
   };
 
   init();
@@ -1158,6 +1178,24 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  let availableObsScenes = [];
+
+  function autoToggleObsSceneForRecentItem(songId) {
+    if (!obsWsClient || !obsWsClient.isConnected || !availableObsScenes || availableObsScenes.length < 2) {
+      return;
+    }
+
+    const recentIndex = state.sessionRecents.findIndex(r => String(r.id) === String(songId));
+    if (recentIndex !== -1) {
+      const sceneIndex = recentIndex % availableObsScenes.length;
+      const targetScene = availableObsScenes[sceneIndex];
+      if (targetScene) {
+        obsWsClient.setCurrentScene(targetScene);
+        if (els.obsSceneSelect) els.obsSceneSelect.value = targetScene;
+      }
+    }
+  }
+
   async function openAndPresentItem(songId) {
     if (!songId) return;
 
@@ -1166,6 +1204,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (localSong) {
         state.activeSong = localSong;
         addToSessionRecents(localSong);
+        autoToggleObsSceneForRecentItem(songId);
         loadSongIntoPresentation(localSong);
         return;
       }
@@ -1178,6 +1217,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (song && song.title) {
           state.activeSong = song;
           addToSessionRecents(song);
+          autoToggleObsSceneForRecentItem(songId);
           loadSongIntoPresentation(song);
           return;
         }
@@ -1492,6 +1532,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (els.btnConnectObsWs) els.btnConnectObsWs.classList.toggle('hidden', connected);
       if (els.btnDisconnectObsWs) els.btnDisconnectObsWs.classList.toggle('hidden', !connected);
+      if (els.obsCompactStrip) els.obsCompactStrip.classList.toggle('hidden', !connected);
 
       if (els.obsSceneSelect) els.obsSceneSelect.disabled = !connected;
       if (els.obsTransitionSelect) els.obsTransitionSelect.disabled = !connected;
@@ -1499,6 +1540,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (els.btnTriggerObsTransition) els.btnTriggerObsTransition.disabled = !connected;
     },
     onScenesUpdated: (scenes, currentScene) => {
+      availableObsScenes = scenes;
       if (!els.obsSceneSelect) return;
       els.obsSceneSelect.innerHTML = scenes.map(s => `<option value="${escapeHtml(s)}" ${s === currentScene ? 'selected' : ''}>${escapeHtml(s)}</option>`).join('');
     },
