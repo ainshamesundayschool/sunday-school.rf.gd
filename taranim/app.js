@@ -1534,17 +1534,6 @@ document.addEventListener('DOMContentLoaded', () => {
       els.obsLineText.style.fontFamily = state.selectedFont;
       els.obsLineText.style.color = state.styleOptions.textColor;
 
-      if (els.obsLineText.textContent !== text || currentPresenterAnim !== state.textAnimation) {
-        els.obsLineText.textContent = text;
-        currentPresenterAnim = state.textAnimation;
-
-        els.obsLineText.classList.remove('animate-appear-slide', 'animate-appear-drop', 'animate-appear-pop', 'animate-appear-flip', 'animate-appear-glow');
-        if (state.textAnimation !== 'none' && text) {
-          void els.obsLineText.offsetWidth;
-          els.obsLineText.classList.add(`animate-appear-${state.textAnimation}`);
-        }
-      }
-      
       let size = state.fontSize || 54;
       els.obsLineText.style.fontSize = `${size}px`;
 
@@ -1554,6 +1543,17 @@ document.addEventListener('DOMContentLoaded', () => {
       while ((els.obsLineText.scrollWidth > maxW || els.obsLineText.scrollHeight > maxH) && size > 18) {
         size -= 2;
         els.obsLineText.style.fontSize = `${size}px`;
+      }
+
+      if (els.obsLineText.textContent !== text || currentPresenterAnim !== state.textAnimation) {
+        els.obsLineText.textContent = text;
+        currentPresenterAnim = state.textAnimation;
+
+        els.obsLineText.classList.remove('animate-appear-slide', 'animate-appear-drop', 'animate-appear-pop', 'animate-appear-flip', 'animate-appear-glow');
+        if (state.textAnimation !== 'none' && text) {
+          void els.obsLineText.offsetWidth;
+          els.obsLineText.classList.add(`animate-appear-${state.textAnimation}`);
+        }
       }
       
       const xPct = state.dragPivot.xPct !== undefined ? state.dragPivot.xPct : 50;

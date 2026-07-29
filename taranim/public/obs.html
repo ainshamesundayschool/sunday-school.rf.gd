@@ -389,6 +389,38 @@
 
       const animType = data.anim || 'slide';
 
+      if (data.font) {
+        textEl.style.fontFamily = data.font;
+      }
+
+      if (data.fontSize) {
+        stateFontSize = data.fontSize;
+      }
+
+      const textColor = data.textColor || '#ffffff';
+      const strokeWidth = parseInt(data.strokeWidth || 0);
+      const strokeColor = data.strokeColor || '#000000';
+      const shadowBlur = parseInt(data.shadowBlur || 0);
+
+      textEl.style.color = textColor;
+
+      if (strokeWidth === 0) {
+        textEl.style.textShadow = shadowBlur > 0 ? `0 6px ${shadowBlur}px rgba(0, 0, 0, 0.95)` : '0 4px 18px rgba(0, 0, 0, 0.95)';
+      } else {
+        const s = strokeWidth;
+        textEl.style.textShadow = `
+          -${s}px -${s}px 0 ${strokeColor},
+           ${s}px -${s}px 0 ${strokeColor},
+          -${s}px  ${s}px 0 ${strokeColor},
+           ${s}px  ${s}px 0 ${strokeColor},
+          -${s + 1}px 0 0 ${strokeColor},
+           ${s + 1}px 0 0 ${strokeColor},
+           0 -${s + 1}px 0 ${strokeColor},
+           0  ${s + 1}px 0 ${strokeColor},
+           0 8px ${shadowBlur}px rgba(0, 0, 0, 0.95)
+        `;
+      }
+
       if (data.isBlank) {
         textEl.style.visibility = 'hidden';
         currentIsBlankState = true;
@@ -399,6 +431,8 @@
           currentTextState = data.text;
           currentAnimState = animType;
 
+          fitTextToSafeArea();
+
           textEl.classList.remove('animate-appear-slide', 'animate-appear-drop', 'animate-appear-pop', 'animate-appear-flip', 'animate-appear-glow');
           if (animType !== 'none' && data.text) {
             void textEl.offsetWidth;
@@ -407,21 +441,6 @@
         }
         currentIsBlankState = false;
       }
-
-      if (data.font) {
-        textEl.style.fontFamily = data.font;
-      }
-
-      if (data.fontSize) {
-        stateFontSize = data.fontSize;
-      }
-
-      fitTextToSafeArea();
-
-      const textColor = data.textColor || '#ffffff';
-      const strokeWidth = parseInt(data.strokeWidth || 0);
-      const strokeColor = data.strokeColor || '#000000';
-      const shadowBlur = parseInt(data.shadowBlur || 0);
 
       textEl.style.color = textColor;
 
