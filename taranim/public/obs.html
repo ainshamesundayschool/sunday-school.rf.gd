@@ -21,7 +21,7 @@
       width: 100vw;
       height: 100vh;
       overflow: hidden;
-      background-color: #000000;
+      background-color: transparent;
       font-family: 'Alexandria', sans-serif;
       cursor: default;
     }
@@ -87,12 +87,13 @@
       word-break: break-word;
       padding: 20px 35px;
       overflow: visible !important;
+      text-shadow: 0 4px 18px rgba(0, 0, 0, 0.95);
     }
 
     .hidden { display: none !important; }
   </style>
 </head>
-<body>
+<body data-chroma="transparent">
 
   <!-- MAGNETIC SNAP GUIDES -->
   <div id="snap-guide-h" class="snap-guide horizontal hidden"></div>
@@ -110,7 +111,32 @@
 
     let stateFontSize = 54;
 
-    // Restore permanently saved drag location from LocalStorage
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramChroma = urlParams.get('chroma');
+    if (paramChroma) {
+      document.body.setAttribute('data-chroma', paramChroma);
+    }
+
+    const screenLeft = urlParams.get('screenLeft');
+    const screenTop = urlParams.get('screenTop');
+    const isAutoFS = urlParams.get('autofs') === 'true';
+
+    if (screenLeft !== null && screenTop !== null) {
+      try {
+        window.moveTo(parseInt(screenLeft), parseInt(screenTop));
+      } catch (e) {}
+    }
+
+    if (isAutoFS) {
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(() => {});
+          }
+        }, 300);
+      });
+    }
+
     const savedPivotRaw = localStorage.getItem('sunday_school_taranim_drag_pivot');
     let currentPivot = { left: window.innerWidth / 2, top: window.innerHeight * 0.75 };
     if (savedPivotRaw) {
@@ -148,7 +174,6 @@
       }
     }
 
-    // DRAGGABLE WITH MAGNETIC SNAP ALIGNMENT
     let isDragging = false;
     let startX, startY;
     const SNAP_THRESHOLD = 22;
@@ -216,7 +241,7 @@
     function applyState(data) {
       if (!data) return;
 
-      if (data.chroma) {
+      if (data.chroma && !paramChroma) {
         document.body.setAttribute('data-chroma', data.chroma);
       }
 
@@ -245,7 +270,7 @@
       textEl.style.color = textColor;
 
       if (strokeWidth === 0) {
-        textEl.style.textShadow = shadowBlur > 0 ? `0 6px ${shadowBlur}px rgba(0, 0, 0, 0.95)` : 'none';
+        textEl.style.textShadow = shadowBlur > 0 ? `0 6px ${shadowBlur}px rgba(0, 0, 0, 0.95)` : '0 4px 18px rgba(0, 0, 0, 0.95)';
       } else {
         const s = strokeWidth;
         textEl.style.textShadow = `
@@ -279,16 +304,24 @@
       }
     });
 
+    const initialLiveRaw = localStorage.getItem('sunday_school_taranim_live_presentation');
+    if (initialLiveRaw) {
+      try { applyState(JSON.parse(initialLiveRaw)); } catch(err) {}
+    }
+
     async function fetchLiveHTTP() {
       if (isDragging) return;
       try {
-        const res = await fetch('/api/live');
-        const data = await res.json();
-        applyState(data);
+        let res = await fetch('./api/live');
+        if (!res.ok) res = await fetch('api.php?live=1');
+        if (res.ok) {
+          const data = await res.json();
+          applyState(data);
+        }
       } catch (err) {}
     }
 
-    setInterval(fetchLiveHTTP, 100);
+    setInterval(fetchLiveHTTP, 150);
     fetchLiveHTTP();
   </script>
 </body>

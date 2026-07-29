@@ -312,7 +312,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function bindEvents() {
-    // CREDITS INFO MODAL HANDLERS
     if (els.btnCreditsInfo && els.modalCredits && els.btnCloseCredits) {
       els.btnCreditsInfo.addEventListener('click', () => {
         els.modalCredits.classList.remove('hidden');
@@ -339,11 +338,11 @@ document.addEventListener('DOMContentLoaded', () => {
       els.popoverStyle.classList.toggle('hidden');
     });
 
-    els.btnMenuCast.addEventListener('click', (e) => {
+    els.btnMenuCast.addEventListener('click', async (e) => {
       e.stopPropagation();
       els.popoverStyle.classList.add('hidden');
       els.popoverCast.classList.toggle('hidden');
-      detectConnectedScreens();
+      await detectConnectedScreens();
     });
 
     document.addEventListener('click', (e) => {
@@ -587,25 +586,44 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function launchPresenterOnSelectedScreen() {
+    // 1. Request multi-screen placement permissions if API available
+    if ('getScreenDetails' in window && !screenDetails) {
+      try {
+        screenDetails = await window.getScreenDetails();
+        renderScreenOptions();
+      } catch (err) {}
+    }
+
     const select = els.connectedScreensSelect;
     const val = select.value;
 
-    let isExternalScreen = false;
     let targetScreen = null;
-
-    if (val === 'external') {
-      isExternalScreen = true;
-    } else if (screenDetails && screenDetails.screens) {
+    if (screenDetails && screenDetails.screens) {
       const idx = parseInt(val);
       if (!isNaN(idx) && screenDetails.screens[idx]) {
         targetScreen = screenDetails.screens[idx];
-        if (!targetScreen.isPrimary) {
-          isExternalScreen = true;
-        }
       }
     }
 
-    if (!isExternalScreen) {
+    // Determine target coordinates for secondary/external display
+    let left = (window.screen.availWidth || 1920);
+    let top = 0;
+    let width = 1920;
+    let height = 1080;
+
+    if (targetScreen) {
+      left = targetScreen.availLeft;
+      top = targetScreen.availTop;
+      width = targetScreen.availWidth;
+      height = targetScreen.availHeight;
+    } else if (val === 'external') {
+      // Common dual-monitor placement offset on macOS / Windows
+      left = window.screen.width || 1920;
+      top = 0;
+    }
+
+    // Handle Primary Screen selection
+    if (val === 'primary' && (!targetScreen || targetScreen.isPrimary || !screenDetails)) {
       if (els.obsOverlay) {
         els.obsOverlay.classList.remove('hidden');
         const docEl = document.documentElement || els.obsOverlay;
@@ -613,24 +631,24 @@ document.addEventListener('DOMContentLoaded', () => {
           docEl.requestFullscreen().catch(() => {});
         }
       }
-    } else {
-      let left = window.screen.width;
-      let top = 0;
-      let width = window.screen.width || 1920;
-      let height = window.screen.height || 1080;
+      syncLiveState();
+      return;
+    }
 
-      if (targetScreen) {
-        left = targetScreen.availLeft;
-        top = targetScreen.availTop;
-        width = targetScreen.availWidth;
-        height = targetScreen.availHeight;
-      }
+    // Launch popup window explicitly targeted at external display screen coordinates
+    const windowFeatures = `left=${left},top=${top},width=${width},height=${height},menubar=no,toolbar=no,location=no,status=no,resizable=yes`;
+    const obsUrl = `obs.html?autofs=true&screenLeft=${left}&screenTop=${top}`;
+    const popup = window.open(obsUrl, 'SundaySchoolPresenterWindow', windowFeatures);
 
-      const features = `left=${left},top=${top},width=${width},height=${height},menubar=no,toolbar=no,location=no,status=no,resizable=yes`;
-      const popup = window.open('obs.html?autofs=true', 'SundaySchoolPresenterWindow', features);
-      if (popup) {
-        popup.focus();
-      }
+    if (popup) {
+      popup.focus();
+      // Force move window to target screen coordinates
+      setTimeout(() => {
+        try {
+          popup.moveTo(left, top);
+          popup.resizeTo(width, height);
+        } catch (e) {}
+      }, 100);
     }
 
     syncLiveState();
