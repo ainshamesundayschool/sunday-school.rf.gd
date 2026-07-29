@@ -891,14 +891,42 @@ html, body {
 
 .obs-line-text:active { cursor: grabbing; }
 
-/* TEXT APPEARANCE ANIMATIONS FOR CONTAINER & PREVIEW */
-@keyframes textAppearSlide {
+/* TEXT APPEARANCE ANIMATIONS FOR CONTAINER & PREVIEW (WITH MOBILE SAFARI WEBKIT COMPATIBILITY) */
+@-webkit-keyframes textAppearSlide {
   0% {
     opacity: 0;
+    -webkit-transform: translate(-50%, calc(-50% + 50px)) scale(0.92);
     transform: translate(-50%, calc(-50% + 50px)) scale(0.92);
   }
   100% {
     opacity: 1;
+    -webkit-transform: translate(-50%, -50%) scale(1);
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes textAppearSlide {
+  0% {
+    opacity: 0;
+    -webkit-transform: translate(-50%, calc(-50% + 50px)) scale(0.92);
+    transform: translate(-50%, calc(-50% + 50px)) scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    -webkit-transform: translate(-50%, -50%) scale(1);
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@-webkit-keyframes textAppearDrop {
+  0% {
+    opacity: 0;
+    -webkit-transform: translate(-50%, calc(-50% - 50px)) scale(0.92);
+    transform: translate(-50%, calc(-50% - 50px)) scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    -webkit-transform: translate(-50%, -50%) scale(1);
     transform: translate(-50%, -50%) scale(1);
   }
 }
@@ -906,10 +934,30 @@ html, body {
 @keyframes textAppearDrop {
   0% {
     opacity: 0;
+    -webkit-transform: translate(-50%, calc(-50% - 50px)) scale(0.92);
     transform: translate(-50%, calc(-50% - 50px)) scale(0.92);
   }
   100% {
     opacity: 1;
+    -webkit-transform: translate(-50%, -50%) scale(1);
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@-webkit-keyframes textAppearPop {
+  0% {
+    opacity: 0;
+    -webkit-transform: translate(-50%, -50%) scale(0.2);
+    transform: translate(-50%, -50%) scale(0.2);
+  }
+  70% {
+    opacity: 1;
+    -webkit-transform: translate(-50%, -50%) scale(1.08);
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    -webkit-transform: translate(-50%, -50%) scale(1);
     transform: translate(-50%, -50%) scale(1);
   }
 }
@@ -917,59 +965,103 @@ html, body {
 @keyframes textAppearPop {
   0% {
     opacity: 0;
+    -webkit-transform: translate(-50%, -50%) scale(0.2);
     transform: translate(-50%, -50%) scale(0.2);
   }
   70% {
     opacity: 1;
+    -webkit-transform: translate(-50%, -50%) scale(1.08);
     transform: translate(-50%, -50%) scale(1.08);
   }
   100% {
     opacity: 1;
+    -webkit-transform: translate(-50%, -50%) scale(1);
     transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@-webkit-keyframes textAppearFlip {
+  0% {
+    opacity: 0;
+    -webkit-transform: translate(-50%, -50%) perspective(600px) rotateX(-85deg);
+    transform: translate(-50%, -50%) perspective(600px) rotateX(-85deg);
+  }
+  100% {
+    opacity: 1;
+    -webkit-transform: translate(-50%, -50%) perspective(600px) rotateX(0deg);
+    transform: translate(-50%, -50%) perspective(600px) rotateX(0deg);
   }
 }
 
 @keyframes textAppearFlip {
   0% {
     opacity: 0;
+    -webkit-transform: translate(-50%, -50%) perspective(600px) rotateX(-85deg);
     transform: translate(-50%, -50%) perspective(600px) rotateX(-85deg);
   }
   100% {
     opacity: 1;
+    -webkit-transform: translate(-50%, -50%) perspective(600px) rotateX(0deg);
     transform: translate(-50%, -50%) perspective(600px) rotateX(0deg);
+  }
+}
+
+@-webkit-keyframes textAppearGlow {
+  0% {
+    opacity: 0;
+    -webkit-filter: blur(30px);
+    filter: blur(30px);
+    -webkit-transform: translate(-50%, -50%) scale(1.25);
+    transform: translate(-50%, -50%) scale(1.25);
+  }
+  100% {
+    opacity: 1;
+    -webkit-filter: blur(0px);
+    filter: blur(0px);
+    -webkit-transform: translate(-50%, -50%) scale(1);
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 
 @keyframes textAppearGlow {
   0% {
     opacity: 0;
+    -webkit-filter: blur(30px);
     filter: blur(30px);
+    -webkit-transform: translate(-50%, -50%) scale(1.25);
     transform: translate(-50%, -50%) scale(1.25);
   }
   100% {
     opacity: 1;
+    -webkit-filter: blur(0px);
     filter: blur(0px);
+    -webkit-transform: translate(-50%, -50%) scale(1);
     transform: translate(-50%, -50%) scale(1);
   }
 }
 
 .animate-appear-slide {
+  -webkit-animation: textAppearSlide 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
   animation: textAppearSlide 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
 }
 
 .animate-appear-drop {
+  -webkit-animation: textAppearDrop 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
   animation: textAppearDrop 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
 }
 
 .animate-appear-pop {
+  -webkit-animation: textAppearPop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
   animation: textAppearPop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
 }
 
 .animate-appear-flip {
+  -webkit-animation: textAppearFlip 0.2s ease-out forwards !important;
   animation: textAppearFlip 0.2s ease-out forwards !important;
 }
 
 .animate-appear-glow {
+  -webkit-animation: textAppearGlow 0.2s ease-out forwards !important;
   animation: textAppearGlow 0.2s ease-out forwards !important;
 }
 

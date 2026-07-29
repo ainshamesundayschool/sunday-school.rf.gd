@@ -741,11 +741,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (els.obsTextAnimSelect) {
-      els.obsTextAnimSelect.addEventListener('change', (e) => {
-        state.textAnimation = e.target.value;
-        saveUserSettings();
-        syncLiveState();
-      });
+      const handleAnimChange = (e) => {
+        const val = e.target.value;
+        if (state.textAnimation !== val) {
+          state.textAnimation = val;
+          saveUserSettings();
+          syncLiveState();
+        }
+      };
+      els.obsTextAnimSelect.addEventListener('change', handleAnimChange);
+      els.obsTextAnimSelect.addEventListener('input', handleAnimChange);
+      els.obsTextAnimSelect.addEventListener('blur', handleAnimChange);
     }
 
     els.obsTextColor.addEventListener('input', (e) => {
