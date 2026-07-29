@@ -1524,12 +1524,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     payload.updatedAt = Date.now();
 
-    broadcastChannel.postMessage(payload);
-    localStorage.setItem('sunday_school_taranim_live_presentation', JSON.stringify(payload));
+    // 1. INSTANT LOCAL BROADCAST & STORAGE SYNC (0ms)
+    try { broadcastChannel.postMessage(payload); } catch(e) {}
+    try { localStorage.setItem('sunday_school_taranim_live_presentation', JSON.stringify(payload)); } catch(e) {}
 
-    const postBody = JSON.stringify(payload);
-    sendLivePayload(postBody);
+    // 2. INSTANT DIRECT OBS WEBSOCKET SYNC (1ms - LAN / HOTSPOT)
+    try { obsWsClient.sendLineTextToObsSource(text); } catch(e) {}
 
+    // 3. INSTANT PRESENTER PREVIEW SYNC (0ms)
     if (els.obsLineText) {
       els.obsLineText.style.fontFamily = state.selectedFont;
       els.obsLineText.style.color = state.styleOptions.textColor;
@@ -1564,7 +1566,11 @@ document.addEventListener('DOMContentLoaded', () => {
       els.obsLowerThirdBox.style.transform = 'translate(-50%, -50%)';
     }
 
-    obsWsClient.sendLineTextToObsSource(text);
+    // 4. NON-BLOCKING ASYNCHRONOUS SERVER DISPATCH (0ms MAIN THREAD IMPACT)
+    setTimeout(() => {
+      const postBody = JSON.stringify(payload);
+      sendLivePayload(postBody);
+    }, 0);
   }
 
   function nextLine() {

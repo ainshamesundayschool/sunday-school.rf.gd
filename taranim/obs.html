@@ -374,9 +374,18 @@
     let currentTextState = null;
     let currentIsBlankState = null;
     let currentAnimState = null;
+    let lastProcessedTimestamp = 0;
 
     function applyState(data, source = 'local') {
       if (!data || typeof data !== 'object') return;
+
+      // TIMESTAMP DEDUPLICATION: Ignore stale server payloads if a newer local message was already rendered
+      if (data.updatedAt) {
+        if (data.updatedAt < lastProcessedTimestamp) {
+          return;
+        }
+        lastProcessedTimestamp = data.updatedAt;
+      }
 
       // PREVENT OVERWRITES WHILE USER IS DRAGGING OR RECENTLY DRAGGED
       if (isDragging || (Date.now() - lastDragTime < 6000)) {
