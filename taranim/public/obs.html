@@ -239,7 +239,10 @@
     });
 
     function applyState(data) {
-      if (!data) return;
+      if (!data || typeof data !== 'object') return;
+
+      // DO NOT OVERWRITE WITH NON-PRESENTATION STATUS OBJECTS
+      if (data.status && !data.type && data.text === undefined) return;
 
       if (data.chroma && !paramChroma) {
         document.body.setAttribute('data-chroma', data.chroma);
@@ -313,15 +316,16 @@
       if (isDragging) return;
       try {
         let res = await fetch('./api/live');
-        if (!res.ok) res = await fetch('api.php?live=1');
         if (res.ok) {
           const data = await res.json();
-          applyState(data);
+          if (data && (data.type === 'PRESENT_LINE' || data.text !== undefined)) {
+            applyState(data);
+          }
         }
       } catch (err) {}
     }
 
-    setInterval(fetchLiveHTTP, 150);
+    setInterval(fetchLiveHTTP, 300);
     fetchLiveHTTP();
   </script>
 </body>
