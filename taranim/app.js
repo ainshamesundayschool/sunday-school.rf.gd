@@ -1225,6 +1225,15 @@ document.addEventListener('DOMContentLoaded', () => {
   async function openAndPresentItem(songId) {
     if (!songId) return;
 
+    const recentMatch = state.sessionRecents.find(r => String(r.id) === String(songId));
+    if (recentMatch && (recentMatch.verses || recentMatch.notes)) {
+      state.activeSong = recentMatch;
+      addToSessionRecents(recentMatch);
+      autoToggleObsSceneForRecentItem(songId);
+      loadSongIntoPresentation(recentMatch);
+      return;
+    }
+
     if (state.allSongs && state.allSongs.length > 0) {
       const localSong = state.allSongs.find(s => String(s.id) === String(songId));
       if (localSong) {
@@ -1237,10 +1246,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
-      const res = await fetch(`/api/song/${songId}`);
+      let res = await fetch(`api.php?action=song&id=${songId}`);
+      if (!res.ok) res = await fetch(`/api/song/${songId}`);
+      if (!res.ok) res = await fetch(`../api.php?action=song&id=${songId}`);
       if (res.ok) {
         const song = await res.json();
-        if (song && song.title) {
+        if (song && (song.title || song.id)) {
           state.activeSong = song;
           addToSessionRecents(song);
           autoToggleObsSceneForRecentItem(songId);
@@ -1353,16 +1364,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const activeEl = els.presentationLinesContainer.querySelector('.line-item.active');
     if (activeEl) {
-      activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      activeEl.scrollIntoView({ block: 'nearest', behavior: 'auto' });
     }
   }
 
   function addToSessionRecents(song) {
-    const exists = state.sessionRecents.some(r => r.id === song.id);
-    if (!exists) {
-      state.sessionRecents.unshift({ id: song.id, title: song.title });
-      sessionStorage.setItem('sunday_school_taranim_session_recents', JSON.stringify(state.sessionRecents));
+    if (!song || (!song.id && song.id !== 0)) return;
+    const existsIndex = state.sessionRecents.findIndex(r => String(r.id) === String(song.id));
+    if (existsIndex !== -1) {
+      const [existing] = state.sessionRecents.splice(existsIndex, 1);
+      if (song.verses) existing.verses = song.verses;
+      if (song.notes) existing.notes = song.notes;
+      state.sessionRecents.unshift(existing);
+    } else {
+      state.sessionRecents.unshift({
+        id: song.id,
+        title: song.title,
+        verses: song.verses || null,
+        notes: song.notes || null,
+        is_bible: song.is_bible || false
+      });
     }
+    sessionStorage.setItem('sunday_school_taranim_session_recents', JSON.stringify(state.sessionRecents));
     renderRecentSession();
   }
 
@@ -1515,7 +1538,7 @@ document.addEventListener('DOMContentLoaded', () => {
         els.obsLineText.textContent = text;
         currentPresenterAnim = state.textAnimation;
 
-        els.obsLineText.classList.remove('animate-appear-slide', 'animate-appear-pop', 'animate-appear-glow');
+        els.obsLineText.classList.remove('animate-appear-slide', 'animate-appear-drop', 'animate-appear-pop', 'animate-appear-flip', 'animate-appear-glow');
         if (state.textAnimation !== 'none' && text) {
           void els.obsLineText.offsetWidth;
           els.obsLineText.classList.add(`animate-appear-${state.textAnimation}`);
