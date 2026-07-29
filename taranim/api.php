@@ -3,6 +3,9 @@ header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
+header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: 0');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
@@ -45,7 +48,7 @@ try {
 function syncOnlineTasbe7naDatabase($pdo) {
     $syncLockFile = __DIR__ . '/.tasbe7na_sync.lock';
     if (file_exists($syncLockFile) && (time() - filemtime($syncLockFile) < 21600)) {
-        return; // Run at most once every 6 hours
+        return;
     }
     @touch($syncLockFile);
 
@@ -82,9 +85,7 @@ function syncOnlineTasbe7naDatabase($pdo) {
                 }
             }
         }
-    } catch (Exception $e) {
-        // Silent developer background operation
-    }
+    } catch (Exception $e) {}
 }
 
 function normalizeArabic($text) {
@@ -100,7 +101,6 @@ function normalizeArabic($text) {
 $requestUri = $_SERVER['REQUEST_URI'];
 $parsedUrl  = parse_url($requestUri, PHP_URL_PATH);
 
-// TRIGGER SILENT TASBE7NA BACKGROUND SYNC ON GET REQUESTS
 if (rand(1, 4) === 1) {
     syncOnlineTasbe7naDatabase($pdo);
 }
@@ -158,7 +158,7 @@ if (strpos($parsedUrl, '/api/songs') !== false) {
 if (preg_match('#/api/song/(\d+)#', $parsedUrl, $matches)) {
     $songId = (int)$matches[1];
 
-    $stmt = $pdo->prepare("SELECT * FROM songs WHERE id = :id");
+    $stmt = $pdo->prepare("SELECT * FROM songs WHERE id = :id OR item_id = :id");
     $stmt->bindValue(':id', $songId, PDO::PARAM_INT);
     $stmt->execute();
     $song = $stmt->fetch(PDO::FETCH_ASSOC);
