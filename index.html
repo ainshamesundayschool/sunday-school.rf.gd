@@ -1764,6 +1764,177 @@
             to { opacity: 1; }
         }
 
+        /* ===== TARANIM & OBS FEATURE SECTION ===== */
+        .taranim-feature-section {
+            margin-bottom: var(--spacing-lg);
+            position: relative;
+            z-index: 10;
+        }
+
+        .taranim-card-container {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.07) 0%, rgba(139, 92, 246, 0.12) 100%), rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(99, 102, 241, 0.18);
+            border-radius: var(--radius-lg);
+            padding: 16px 20px;
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.12);
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition-normal);
+        }
+
+        [data-theme="dark"] .taranim-card-container {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.18) 100%), rgba(24, 27, 38, 0.92);
+            border-color: rgba(99, 102, 241, 0.28);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .taranim-card-container:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 36px rgba(99, 102, 241, 0.18);
+            border-color: rgba(99, 102, 241, 0.35);
+        }
+
+        .taranim-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .taranim-title-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .taranim-icon-badge {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+            flex-shrink: 0;
+        }
+
+        .taranim-eyebrow {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #6366f1;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 2px;
+        }
+
+        [data-theme="dark"] .taranim-eyebrow {
+            color: #a5b4fc;
+        }
+
+        .taranim-eyebrow .badge-new {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: #ffffff;
+            font-size: 0.68rem;
+            font-weight: 800;
+            padding: 1px 7px;
+            border-radius: 20px;
+            letter-spacing: 0.3px;
+        }
+
+        .taranim-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--dark);
+            margin: 0;
+        }
+
+        [data-theme="dark"] .taranim-title {
+            color: #ffffff;
+        }
+
+        .taranim-cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 18px;
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: #ffffff !important;
+            font-weight: 700;
+            font-size: 0.88rem;
+            border-radius: 24px;
+            text-decoration: none !important;
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+            transition: all 0.25s ease;
+        }
+
+        .taranim-cta-btn:hover {
+            transform: scale(1.04);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+        }
+
+        .taranim-features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 8px;
+            padding-top: 10px;
+            border-top: 1px dashed rgba(99, 102, 241, 0.18);
+        }
+
+        [data-theme="dark"] .taranim-features-grid {
+            border-top-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .taranim-feature-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #475569;
+            background: rgba(255, 255, 255, 0.6);
+            padding: 6px 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        [data-theme="dark"] .taranim-feature-item {
+            color: #cbd5e1;
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .taranim-feature-item i {
+            color: #6366f1;
+            font-size: 0.88rem;
+        }
+
+        [data-theme="dark"] .taranim-feature-item i {
+            color: #818cf8;
+        }
+
+        @media (max-width: 576px) {
+            .taranim-card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .taranim-cta-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            .taranim-features-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
         /* Touch target size booster for PageSpeed / Lighthouse audits */
         .ss-lb-close,
         .ss-lb-fullscreen,
@@ -1918,6 +2089,45 @@
                         
                         <!-- Audio Element (hidden) -->
                         <audio id="exclusive-audio" src="/exclusive/song/2026/files/song.mp3" preload="none"></audio>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ NEW TARANIM & OBS FEATURE PROMO BANNER ═══ -->
+        <section class="taranim-feature-section">
+            <div class="taranim-card-container">
+                <div class="taranim-card-header">
+                    <div class="taranim-title-group">
+                        <div class="taranim-icon-badge">
+                            <i class="fas fa-music"></i>
+                        </div>
+                        <div>
+                            <div class="taranim-eyebrow"><span class="badge-new">جديد 2026</span> محرك الترانيم والعرض الشاشي</div>
+                            <h3 class="taranim-title">مكتبة الترانيم والعرض المباشر OBS</h3>
+                        </div>
+                    </div>
+                    <a href="/taranim/" class="taranim-cta-btn">
+                        <span>فتح مكتبة الترانيم</span>
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                </div>
+                <div class="taranim-features-grid">
+                    <div class="taranim-feature-item">
+                        <i class="fas fa-book-open"></i>
+                        <span>+11,600 ترنيمة وألحان</span>
+                    </div>
+                    <div class="taranim-feature-item">
+                        <i class="fas fa-search"></i>
+                        <span>بحث ذكي (فرانكو وعربي)</span>
+                    </div>
+                    <div class="taranim-feature-item">
+                        <i class="fas fa-tv"></i>
+                        <span>عرض OBS و Chromakey</span>
+                    </div>
+                    <div class="taranim-feature-item">
+                        <i class="fas fa-wifi"></i>
+                        <span>تحكم مباشر عبر الـ WiFi</span>
                     </div>
                 </div>
             </div>
