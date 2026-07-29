@@ -452,7 +452,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     select.innerHTML = screenDetails.screens.map((s, idx) => {
-      const type = s.isPrimary ? ' (الشاشة الحالية)' : ' (خارجية / TV)';
+      const type = s.isPrimary ? ' (الشاشة الحالية)' : ' (خارية / TV)';
       const label = s.label || `شاشة ${idx + 1}`;
       return `<option value="${idx}">${label} (${s.width} × ${s.height})${type}</option>`;
     }).join('');
@@ -758,10 +758,10 @@ document.addEventListener('DOMContentLoaded', () => {
   async function openAndPresentItem(songId) {
     if (!songId) return;
 
-    // Check local catalog first
+    // 1. INSTANT LOCAL DISPLAY FROM CATALOG (ZERO-LATENCY)
     if (state.allSongs && state.allSongs.length > 0) {
       const localSong = state.allSongs.find(s => String(s.id) === String(songId));
-      if (localSong && localSong.verses && localSong.verses.length > 0) {
+      if (localSong) {
         state.activeSong = localSong;
         addToSessionRecents(localSong);
         loadSongIntoPresentation(localSong);
@@ -769,56 +769,61 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    // 2. FALLBACK TO SERVER API
     try {
       const res = await fetch(`/api/song/${songId}`);
-      if (!res.ok) throw new Error('Failed to load song');
-      const song = await res.json();
-      state.activeSong = song;
-
-      addToSessionRecents(song);
-      loadSongIntoPresentation(song);
+      if (res.ok) {
+        const song = await res.json();
+        if (song && song.title) {
+          state.activeSong = song;
+          addToSessionRecents(song);
+          loadSongIntoPresentation(song);
+          return;
+        }
+      }
     } catch (err) {
       showToast('تعذر تحميل بيانات الترنيمة.');
     }
   }
 
   function loadSongIntoPresentation(song) {
+    if (!song) return;
+
     let linesList = [];
 
-    if (song.verses && Array.isArray(song.verses)) {
-      if (state.presentationMode === 'oneline') {
-        song.verses.forEach((verse, vIdx) => {
-          if (verse.slides && Array.isArray(verse.slides)) {
-            verse.slides.forEach((slide) => {
-              if (slide.lines && Array.isArray(slide.lines)) {
-                slide.lines.forEach(line => {
-                  if (line && line.trim()) {
-                    linesList.push({
-                      text: line.trim(),
-                      label: `بيت ${vIdx + 1}`
-                    });
-                  }
-                });
-              }
-            });
-          }
-        });
-      } else {
-        song.verses.forEach((verse) => {
-          if (verse.slides && Array.isArray(verse.slides)) {
-            verse.slides.forEach((slide, sIdx) => {
-              if (slide.text && slide.text.trim()) {
-                linesList.push({
-                  text: slide.text.trim(),
-                  label: `شريحة ${sIdx + 1}`
-                });
-              }
-            });
-          }
-        });
-      }
-    } else if (song.notes) {
-      const splitLines = song.notes.split(/[\n,]+/).map(l => l.trim()).filter(l => l.length > 0);
+    // Mode A: Verses Array (Structured slides and lines)
+    if (song.verses && Array.isArray(song.verses) && song.verses.length > 0) {
+      song.verses.forEach((verse, vIdx) => {
+        if (verse.slides && Array.isArray(verse.slides)) {
+          verse.slides.forEach((slide, sIdx) => {
+            if (slide.lines && Array.isArray(slide.lines) && slide.lines.length > 0) {
+              slide.lines.forEach(line => {
+                if (line && line.trim()) {
+                  linesList.push({
+                    text: line.trim(),
+                    label: state.presentationMode === 'oneline' ? `بيت ${vIdx + 1}` : `شريحة ${sIdx + 1}`
+                  });
+                }
+              });
+            } else if (slide.text && slide.text.trim()) {
+              slide.text.split('\n').forEach(line => {
+                if (line && line.trim()) {
+                  linesList.push({
+                    text: line.trim(),
+                    label: state.presentationMode === 'oneline' ? `بيت ${vIdx + 1}` : `شريحة ${sIdx + 1}`
+                  });
+                }
+              });
+            }
+          });
+        }
+      });
+    }
+
+    // Mode B: Plain Notes Fallback String
+    if (linesList.length === 0 && song.notes) {
+      const rawNotes = String(song.notes);
+      const splitLines = rawNotes.split('\n').map(l => l.trim()).filter(l => l.length > 0);
       linesList = splitLines.map((line, idx) => ({
         text: line,
         label: `بيت ${idx + 1}`
