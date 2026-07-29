@@ -873,6 +873,7 @@ html, body {
 }
 
 .obs-line-text {
+  display: inline-block !important;
   font-size: 54px;
   font-weight: 800;
   color: #ffffff;
@@ -885,6 +886,7 @@ html, body {
   padding: 25px 45px;
   overflow: visible !important;
   box-sizing: border-box;
+  will-change: transform, opacity;
 }
 
 .obs-line-text:active { cursor: grabbing; }

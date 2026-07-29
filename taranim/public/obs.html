@@ -77,6 +77,7 @@
     }
 
     .line-text {
+      display: inline-block !important;
       font-size: 54px;
       font-weight: 800;
       color: #ffffff;
@@ -86,6 +87,7 @@
       max-width: 90vw;
       word-break: break-word;
       text-shadow: 0 4px 18px rgba(0, 0, 0, 0.95);
+      will-change: transform, opacity;
     }
 
     /* TEXT APPEARANCE ANIMATIONS */
@@ -440,25 +442,6 @@
           }
         }
         currentIsBlankState = false;
-      }
-
-      textEl.style.color = textColor;
-
-      if (strokeWidth === 0) {
-        textEl.style.textShadow = shadowBlur > 0 ? `0 6px ${shadowBlur}px rgba(0, 0, 0, 0.95)` : '0 4px 18px rgba(0, 0, 0, 0.95)';
-      } else {
-        const s = strokeWidth;
-        textEl.style.textShadow = `
-          -${s}px -${s}px 0 ${strokeColor},
-           ${s}px -${s}px 0 ${strokeColor},
-          -${s}px  ${s}px 0 ${strokeColor},
-           ${s}px  ${s}px 0 ${strokeColor},
-          -${s + 1}px 0 0 ${strokeColor},
-           ${s + 1}px 0 0 ${strokeColor},
-           0 -${s + 1}px 0 ${strokeColor},
-           0  ${s + 1}px 0 ${strokeColor},
-           0 8px ${shadowBlur}px rgba(0, 0, 0, 0.95)
-        `;
       }
 
       // ONLY UPDATE POSITION IF EXPLICITLY SENT IN PAYLOAD
