@@ -26060,6 +26060,19 @@
             }, 1200);
         }
 
+        function waitForImages(root) {
+            const imgs = [...root.querySelectorAll('img')];
+            if (!imgs.length) return Promise.resolve();
+            return Promise.all(imgs.map(img => {
+                if (img.complete) return Promise.resolve();
+                return new Promise(resolve => {
+                    img.onload = resolve;
+                    img.onerror = resolve;
+                    setTimeout(resolve, 3000);
+                });
+            }));
+        }
+
         async function executeSaveQRCardsAsPDF(mode = 'combined') {
             closeModal('printSettingsModal');
             showToast('جاري تحضير الكروت لملف PDF...', 'info');
@@ -26082,26 +26095,6 @@
                 return;
             }
 
-            let pdfLoaderOverlay = document.getElementById('qrPdfExportOverlay');
-            if (!pdfLoaderOverlay) {
-                pdfLoaderOverlay = document.createElement('div');
-                pdfLoaderOverlay.id = 'qrPdfExportOverlay';
-                pdfLoaderOverlay.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.75); backdrop-filter:blur(8px); z-index:9999999; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; font-family:inherit; direction:rtl; gap:16px; transition:opacity 0.3s ease;';
-                pdfLoaderOverlay.innerHTML = `
-                    <div style="background:var(--bg-glass, rgba(30,30,45,0.95)); border:1px solid rgba(255,255,255,0.2); padding:32px 42px; border-radius:24px; text-align:center; box-shadow:0 25px 50px rgba(0,0,0,0.6); display:flex; flex-direction:column; align-items:center; gap:16px; max-width:90vw;">
-                        <i class="fas fa-file-pdf fa-spin" style="font-size:3.5rem; color:#818cf8;"></i>
-                        <div style="font-size:1.35rem; font-weight:700;">جاري إنشاء وتجهيز ملف الـ PDF...</div>
-                        <div id="qrPdfExportStatusText" style="font-size:0.95rem; color:#c7d2fe; font-weight:600;">جاري تجهيز الصفحات بالكروت والـ QR...</div>
-                    </div>
-                `;
-                document.body.appendChild(pdfLoaderOverlay);
-            } else {
-                pdfLoaderOverlay.style.display = 'flex';
-                pdfLoaderOverlay.style.opacity = '1';
-                const statusTxt = document.getElementById('qrPdfExportStatusText');
-                if (statusTxt) statusTxt.textContent = 'جاري تجهيز الصفحات بالكروت والـ QR...';
-            }
-
             const scaleVal = parseFloat(document.getElementById('printScale')?.value || 100) / 100;
             let wValVal = parseFloat(document.getElementById('printCardWidth')?.value || 9);
             let hValVal = parseFloat(document.getElementById('printCardHeight')?.value || 6);
@@ -26112,19 +26105,65 @@
             const baseHeight = hValVal * 37.795;
             const gapXVal = parseFloat(document.getElementById('printGapX')?.value || 0) * 37.795;
             const gapYVal = parseFloat(document.getElementById('printGapY')?.value || 0) * 37.795;
+            const gapX = gapXVal + 'px';
+            const gapY = gapYVal + 'px';
 
-            const paperSize = document.getElementById('printPaperSize')?.value || 'custom';
+            const padding = document.getElementById('printPadding')?.value || '15px';
+            const showChurch = cardExtraFields.some(f => f.key === 'church_header' && f.placement === 'front');
+            const showStudentImg = cardExtraFields.some(f => f.key === 'student_image' && f.placement === 'front');
+            const showStudentName = cardExtraFields.some(f => f.key === 'student_name' && f.placement === 'front');
+            const showStudentId = cardExtraFields.some(f => f.key === 'student_id' && f.placement === 'front');
+
+            const textReadability = document.getElementById('printTextReadability')?.value || 'none';
+            const readabilityBgColor = document.getElementById('printTextReadabilityBgColor')?.value || '#ffffff';
+            const readabilityBgOpacity = document.getElementById('printTextReadabilityBgOpacity')?.value || '92';
+            const readabilityPadding = parseFloat(document.getElementById('printTextReadabilityPadding')?.value || '6');
+            const readabilityWidth = document.getElementById('printTextReadabilityWidth')?.value || 'fitted';
+            const readabilityBgShadow = document.getElementById('printTextReadabilityShadow')?.checked !== false;
+
+            const fontColor = document.getElementById('printFontColor')?.value || '#000000';
+            const strokeColor = document.getElementById('printStrokeColor')?.value || '#dddddd';
+            const { outlineStyle, dashLength, dashGap } = getPrintBorderSettings();
+            const showAvatarWhenNoPhoto = document.getElementById('printShowAvatarFallback')?.checked || false;
+
+            const paperSize = document.getElementById('printPaperSize')?.value || 'a4-landscape';
             const grid = getPageGridDimensions(paperSize, baseWidth, baseHeight, gapXVal, gapYVal, scale);
             const cardsPerPage = grid.cardsPerPage;
+            const cols = grid.cols;
+            const rows = grid.rows;
 
-            let pw = 29.7, ph = 21.0;
-            if (paperSize === 'a4-portrait') { pw = 21.0; ph = 29.7; }
-            else if (paperSize === 'a4-landscape') { pw = 29.7; ph = 21.0; }
-            else if (paperSize === 'a3-portrait') { pw = 29.7; ph = 42.0; }
-            else if (paperSize === 'a3-landscape') { pw = 42.0; ph = 29.7; }
-            else if (paperSize === 'custom') {
-                pw = parseFloat(document.getElementById('printPaperCustomWidth')?.value || 48.0);
-                ph = parseFloat(document.getElementById('printPaperCustomHeight')?.value || 32.0);
+            const autoFit = document.getElementById('printAutoFitPage')?.checked || false;
+            let finalBaseWidth = baseWidth;
+            let finalBaseHeight = baseHeight;
+            let finalScale = scale;
+
+            if (autoFit) {
+                let pw = 29.7, ph = 21.0;
+                if (paperSize === 'a4-portrait') { pw = 21.0; ph = 29.7; }
+                else if (paperSize === 'a4-landscape') { pw = 29.7; ph = 21.0; }
+                else if (paperSize === 'a3-portrait') { pw = 29.7; ph = 42.0; }
+                else if (paperSize === 'a3-landscape') { pw = 42.0; ph = 29.7; }
+                else if (paperSize === 'custom') {
+                    pw = parseFloat(document.getElementById('printPaperCustomWidth')?.value || 21.0);
+                    ph = parseFloat(document.getElementById('printPaperCustomHeight')?.value || 29.7);
+                }
+                const pxPerCm = 37.795;
+                const pageW = pw * pxPerCm;
+                const pageH = ph * pxPerCm;
+                const margin = 0.4 * pxPerCm;
+                const availW = pageW - 2 * margin;
+                const availH = pageH - 2 * margin;
+
+                const cardW = baseWidth * scale;
+                const cardH = baseHeight * scale;
+
+                const cardW_px = (availW - (cols - 1) * gapXVal) / cols;
+                const cardH_px = (availH - (rows - 1) * gapYVal) / rows;
+
+                const scaleMultX = cardW_px / cardW;
+                const scaleMultY = cardH_px / cardH;
+
+                finalScale = scale * Math.min(scaleMultX, scaleMultY);
             }
 
             const pages = [];
@@ -26132,41 +26171,112 @@
                 pages.push(kids.slice(i, i + cardsPerPage));
             }
 
+            const fillWithEmptyCopies = document.getElementById('printFillEmptyCopies')?.checked || false;
             const paddedPages = pages.map(pKids => {
                 const padded = [...pKids];
                 while (padded.length < cardsPerPage) {
-                    padded.push(null);
+                    if (fillWithEmptyCopies) {
+                        const randId = Math.random().toString(36).substr(2, 8).toUpperCase();
+                        padded.push({
+                            is_empty_copy: true,
+                            id: 'empty_copy_PAD_' + randId,
+                            name: '',
+                            class: ''
+                        });
+                    } else {
+                        padded.push(null);
+                    }
                 }
                 return padded;
             });
 
-            let tempPdfArea = document.createElement('div');
-            tempPdfArea.className = 'pdf-render-temp-area';
+            const originalKidsBg = customCardBackgroundDataUrl;
+            const originalKidsBgBack = customCardBackgroundDataUrlBack;
+            const originalLogos = window.customLogos;
+
+            function base64ToObjectURL(b64) {
+                if (!b64 || !b64.startsWith('data:')) return b64;
+                try {
+                    const parts = b64.split(',');
+                    const mime = parts[0].match(/:(.*?);/)[1];
+                    const bstr = atob(parts[1]);
+                    let n = bstr.length;
+                    const u8arr = new Uint8Array(n);
+                    while (n--) {
+                        u8arr[n] = bstr.charCodeAt(n);
+                    }
+                    const blob = new Blob([u8arr], { type: mime });
+                    return URL.createObjectURL(blob);
+                } catch(e) {
+                    return b64;
+                }
+            }
+
+            customCardBackgroundDataUrl = base64ToObjectURL(customCardBackgroundDataUrl);
+            customCardBackgroundDataUrlBack = base64ToObjectURL(customCardBackgroundDataUrlBack);
+            window.customLogos = (window.customLogos || []).map(logo => ({
+                ...logo,
+                src: base64ToObjectURL(logo.src)
+            }));
+
+            let sizeCss = 'auto';
+            let pageW_cm = 29.7, pageH_cm = 21.0;
+            if (paperSize === 'a4-portrait') { sizeCss = 'A4 portrait'; pageW_cm = 21.0; pageH_cm = 29.7; }
+            else if (paperSize === 'a4-landscape') { sizeCss = 'A4 landscape'; pageW_cm = 29.7; pageH_cm = 21.0; }
+            else if (paperSize === 'a3-portrait') { sizeCss = 'A3 portrait'; pageW_cm = 29.7; pageH_cm = 42.0; }
+            else if (paperSize === 'a3-landscape') { sizeCss = 'A3 landscape'; pageW_cm = 42.0; pageH_cm = 29.7; }
+            else if (paperSize === 'custom') {
+                pageW_cm = parseFloat(document.getElementById('printPaperCustomWidth')?.value || 21.0);
+                pageH_cm = parseFloat(document.getElementById('printPaperCustomHeight')?.value || 29.7);
+                sizeCss = `${pageW_cm}cm ${pageH_cm}cm`;
+            }
+
+            let pageStyleEl = document.getElementById('print-dynamic-page-size');
+            if (!pageStyleEl) {
+                pageStyleEl = document.createElement('style');
+                pageStyleEl.id = 'print-dynamic-page-size';
+                document.head.appendChild(pageStyleEl);
+            }
+            pageStyleEl.innerHTML = `
+                #pdfPrintArea .print-page {
+                    display: flex !important;
+                    flex-wrap: wrap !important;
+                    justify-content: center !important;
+                    align-content: center !important;
+                    gap: var(--print-gap-y, 0px) var(--print-gap-x, 0px) !important;
+                    width: 100% !important;
+                    height: 100% !important;
+                    max-width: 100% !important;
+                    max-height: 100% !important;
+                    box-sizing: border-box !important;
+                    padding: 0.4cm !important;
+                    margin: 0 auto !important;
+                    overflow: hidden !important;
+                }
+                #pdfPrintArea .print-card,
+                #pdfPrintArea .print-card-placeholder {
+                    margin: 0 !important;
+                    flex-shrink: 0 !important;
+                }
+            `;
+
+            const tempPdfArea = document.createElement('div');
+            tempPdfArea.id = 'pdfPrintArea';
+            tempPdfArea.style.setProperty('--print-gap-x', gapX);
+            tempPdfArea.style.setProperty('--print-gap-y', gapY);
+            tempPdfArea.style.setProperty('--card-print-width', (finalBaseWidth * finalScale) + 'px');
             document.body.appendChild(tempPdfArea);
-            tempPdfArea.style.setProperty('position', 'fixed', 'important');
-            tempPdfArea.style.setProperty('left', '0', 'important');
-            tempPdfArea.style.setProperty('top', '0', 'important');
-            tempPdfArea.style.setProperty('width', '100%', 'important');
-            tempPdfArea.style.setProperty('height', '100%', 'important');
-            tempPdfArea.style.setProperty('z-index', '9999998', 'important');
-            tempPdfArea.style.setProperty('background', '#ffffff', 'important');
-            tempPdfArea.style.setProperty('overflow', 'auto', 'important');
+
+            const scaledWidth = finalBaseWidth * finalScale;
+            const scaledHeight = finalBaseHeight * finalScale;
+            const placeholderHtml = `<div class="print-card-placeholder" style="width:${scaledWidth}px; height:${scaledHeight}px; visibility:hidden; flex-shrink:0;"></div>`;
 
             let html = '';
             const qrTasks = [];
-            const textReadability = document.getElementById('printTextReadability')?.value || 'none';
-            const readabilityBgColor = document.getElementById('printTextReadabilityBgColor')?.value || '#ffffff';
-            const readabilityBgOpacity = document.getElementById('printTextReadabilityBgOpacity')?.value || '92';
-            const readabilityPadding = parseFloat(document.getElementById('printTextReadabilityPadding')?.value || '6');
-            const readabilityWidth = document.getElementById('printTextReadabilityWidth')?.value || 'fitted';
-            const readabilityBgShadow = document.getElementById('printTextReadabilityShadow')?.checked ?? true;
-            const fontColor = document.getElementById('printFontColor')?.value || '#000000';
-            const strokeColor = document.getElementById('printStrokeColor')?.value || '#dddddd';
-            const { outlineStyle, dashLength, dashGap } = getPrintBorderSettings();
-            const padding = document.getElementById('printPadding')?.value || '15px';
             const churchName = localStorage.getItem('churchName') || localStorage.getItem('uncle_church_name') || 'مدارس الأحد';
-            const backPageDir = (document.getElementById('printBackMirrorRTL')?.checked ?? true) ? 'rtl' : 'ltr';
-            const placeholderHtml = `<div class="print-card-placeholder" style="width:${baseWidth * scale}px; height:${baseHeight * scale}px; visibility:hidden; flex-shrink:0;"></div>`;
+
+            const docDir = document.documentElement.dir || 'ltr';
+            const backPageDir = (docDir === 'rtl') ? 'ltr' : 'rtl';
 
             function renderFrontCard(s, globalIdx) {
                 if (!s) return placeholderHtml;
@@ -26179,9 +26289,9 @@
                 qrTasks.push({ id: cardId, text: link });
 
                 return generateCardMarkup({
-                    s, scale, padding, churchName, cardId,
-                    textReadability, fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto: true,
-                    baseWidth, baseHeight,
+                    s, scale: finalScale, padding, showChurch, showStudentImg, showStudentName, showStudentId, churchName, cardId,
+                    textReadability, fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto,
+                    baseWidth: finalBaseWidth, baseHeight: finalBaseHeight,
                     readabilityBgColor, readabilityBgOpacity, readabilityPadding, readabilityWidth,
                     readabilityBgShadow,
                     extraFields: cardExtraFields
@@ -26191,8 +26301,8 @@
             function renderBackCard(s) {
                 if (!s) return placeholderHtml;
                 return generateBackCardMarkup({
-                    r: s, scale, padding, churchName, fontColor, strokeColor, outlineStyle, dashLength, dashGap,
-                    baseWidth, baseHeight, textReadability,
+                    r: s, scale: finalScale, padding, churchName, fontColor, strokeColor, outlineStyle, dashLength, dashGap,
+                    baseWidth: finalBaseWidth, baseHeight: finalBaseHeight, textReadability,
                     extraFields: cardExtraFields.filter(f => f.placement === 'back'),
                     readabilityBgColor, readabilityBgOpacity, readabilityPadding, readabilityWidth,
                     readabilityBgShadow
@@ -26201,33 +26311,46 @@
 
             paddedPages.forEach((pageElements, pageIdx) => {
                 if (mode === 'front' || mode === 'combined') {
-                    html += `<div class="pdf-paper-page print-page" style="width:${pw}cm; height:${ph}cm;">`;
+                    html += `
+                        <div class="pdf-paper-page" style="width:${pageW_cm}cm; height:${pageH_cm}cm; display:flex; align-items:center; justify-content:center; box-sizing:border-box; background:#ffffff; overflow:hidden;">
+                            <div class="print-page" style="margin:0 !important;">`;
                     pageElements.forEach((s, elementIdx) => {
                         const globalIdx = pageIdx * cardsPerPage + elementIdx;
                         html += renderFrontCard(s, globalIdx);
                     });
-                    html += `</div>`;
+                    html += `
+                            </div>
+                        </div>`;
                 }
 
                 if (mode === 'back' || mode === 'combined') {
                     const rowsOfPage = [];
-                    for (let rIdx = 0; rIdx < pageElements.length; rIdx += grid.cols) {
-                        rowsOfPage.push(pageElements.slice(rIdx, rIdx + grid.cols));
+                    for (let rIdx = 0; rIdx < pageElements.length; rIdx += cols) {
+                        rowsOfPage.push(pageElements.slice(rIdx, rIdx + cols));
                     }
                     const backPageElements = rowsOfPage.map(row => [...row].reverse()).flat();
 
-                    html += `<div class="pdf-paper-page print-page" style="width:${pw}cm; height:${ph}cm; direction:${backPageDir} !important;">`;
+                    html += `
+                        <div class="pdf-paper-page" style="width:${pageW_cm}cm; height:${pageH_cm}cm; display:flex; align-items:center; justify-content:center; box-sizing:border-box; background:#ffffff; overflow:hidden;">
+                            <div class="print-page" style="direction:${backPageDir} !important; margin:0 !important;">`;
                     backPageElements.forEach(s => {
                         html += renderBackCard(s);
                     });
-                    html += `</div>`;
+                    html += `
+                            </div>
+                        </div>`;
                 }
             });
 
             tempPdfArea.innerHTML = html;
 
+            customCardBackgroundDataUrl = originalKidsBg;
+            customCardBackgroundDataUrlBack = originalKidsBgBack;
+            window.customLogos = originalLogos;
+
             const layout = calculateCardLayout(baseWidth, baseHeight, scale, padding);
             const qrSize = layout.qrSize;
+
             qrTasks.forEach(task => {
                 const el = document.getElementById(task.id);
                 if (el) {
@@ -26235,7 +26358,35 @@
                 }
             });
 
+            let loader = document.getElementById('pdf-render-loader');
+            if (!loader) {
+                loader = document.createElement('div');
+                loader.id = 'pdf-render-loader';
+                loader.innerHTML = `
+                    <div style="position:fixed; left:0; top:0; width:100%; height:100%; background:rgba(255,255,255,0.95); z-index:9999999; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:'Cairo', sans-serif;">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: var(--primary, #6366f1); margin-bottom: 20px;"></i>
+                        <h3 style="margin:0; color:#1e293b;">جاري إنشاء ملف PDF...</h3>
+                        <p style="margin:8px 0 0 0; color:#64748b; font-size:0.9rem;">الرجاء الانتظار وعدم إغلاق الصفحة</p>
+                    </div>
+                `;
+                document.body.appendChild(loader);
+            } else {
+                loader.style.display = 'block';
+            }
+
+            tempPdfArea.style.setProperty('position', 'fixed', 'important');
+            tempPdfArea.style.setProperty('left', '0', 'important');
+            tempPdfArea.style.setProperty('top', '0', 'important');
+            tempPdfArea.style.setProperty('width', '100%', 'important');
+            tempPdfArea.style.setProperty('height', '100%', 'important');
+            tempPdfArea.style.setProperty('z-index', '9999998', 'important');
+            tempPdfArea.style.setProperty('background', '#ffffff', 'important');
+            tempPdfArea.style.setProperty('overflow', 'auto', 'important');
+            tempPdfArea.style.setProperty('display', 'block', 'important');
+            tempPdfArea.style.setProperty('visibility', 'visible', 'important');
+
             await new Promise(resolve => setTimeout(resolve, 800));
+            await waitForImages(tempPdfArea);
 
             try {
                 const pdfPages = [...tempPdfArea.querySelectorAll('.pdf-paper-page')];
@@ -26244,8 +26395,8 @@
                     return;
                 }
 
-                const pw_mm = pw * 10;
-                const ph_mm = ph * 10;
+                const pw_mm = pageW_cm * 10;
+                const ph_mm = pageH_cm * 10;
                 const orientation = pw_mm > ph_mm ? 'landscape' : 'portrait';
 
                 const pdf = new jsPDF({
@@ -26254,9 +26405,9 @@
                     format: [pw_mm, ph_mm]
                 });
 
+                showToast('جاري إنشاء الصفحات...', 'info');
+
                 for (let i = 0; i < pdfPages.length; i++) {
-                    const statusTxt = document.getElementById('qrPdfExportStatusText');
-                    if (statusTxt) statusTxt.textContent = `جاري استخراج وتحويل صفحة ${i + 1} من ${pdfPages.length}...`;
                     const pageEl = pdfPages[i];
                     const canvas = await html2canvas(pageEl, {
                         scale: 2,
@@ -26278,11 +26429,9 @@
                 console.error(e);
                 showToast('حدث خطأ أثناء حفظ الـ PDF: ' + e.message, 'error');
             } finally {
-                if (pdfLoaderOverlay) {
-                    pdfLoaderOverlay.style.opacity = '0';
-                    setTimeout(() => { pdfLoaderOverlay.style.display = 'none'; }, 300);
-                }
                 if (tempPdfArea) tempPdfArea.remove();
+                if (pageStyleEl) pageStyleEl.remove();
+                if (loader) loader.style.display = 'none';
             }
         }
 
