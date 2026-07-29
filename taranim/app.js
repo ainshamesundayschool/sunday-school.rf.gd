@@ -266,18 +266,22 @@ class OBSWSClient {
     };
 
     this.ws.onerror = () => {
-      let errMsg = 'تعذر الاتصال بـ OBS.';
+      let errMsg = 'تعذر الوصول لخادم OBS.';
       if (window.location.protocol === 'https:' && scheme === 'ws://') {
-        errMsg = 'ملاحظة: قد يمنع المتصفح الاتصال بـ ws:// على صفحة HTTPS. استخدم wss:// أو افتح الموقع عبر HTTP.';
+        errMsg = 'HTTPS يحظر الاتصال المحلي ws://. افتح الموقع عبر HTTP للاتصال بـ OBS.';
       }
       this.onStatusChange(false, errMsg);
     };
 
     this.ws.onclose = (e) => {
       this.isConnected = false;
-      let reason = 'غير متصل';
-      if (e && (e.code === 4009 || e.code === 4008)) {
-        reason = 'كلمة السر غير صحيحة';
+      let reason = 'غير متصل بـ OBS';
+      if (e) {
+        if (e.code === 4008 || e.code === 4009) {
+          reason = 'كلمة سر OBS مطلوبة أو غير صحيحة';
+        } else if (e.code === 1006) {
+          reason = 'لم يتم العثور على خادم OBS. تأكد من تفعيل WebSocket في OBS (Tools -> WebSocket Server Settings)';
+        }
       }
       this.onStatusChange(false, reason);
     };
