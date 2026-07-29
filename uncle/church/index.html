@@ -23574,6 +23574,7 @@
             }
         }
 
+
         async function loadChurchInfoSettings() {
             try {
                 const fd = mkFd('getSessionInfo');
@@ -25959,7 +25960,31 @@
                 new QRCode(document.getElementById(task.id), { text: task.text, width: qrSize, height: qrSize, colorDark: "#000000", colorLight: textReadability === 'rect' ? "transparent" : "#ffffff", correctLevel: QRCode.CorrectLevel.M });
             });
 
+            // Display print preparation loader overlay
+            showToast('جاري تجهيز الكروت والصفحات للطباعة...', 'info');
+            let printLoader = document.getElementById('qrPrintPreparingOverlay');
+            if (!printLoader) {
+                printLoader = document.createElement('div');
+                printLoader.id = 'qrPrintPreparingOverlay';
+                printLoader.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.65); backdrop-filter:blur(6px); z-index:9999999; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; font-family:inherit; direction:rtl; gap:16px; transition:opacity 0.3s ease;';
+                printLoader.innerHTML = `
+                    <div style="background:var(--bg-glass, rgba(30,30,45,0.92)); border:1px solid rgba(255,255,255,0.2); padding:28px 36px; border-radius:20px; text-align:center; box-shadow:0 20px 40px rgba(0,0,0,0.5); display:flex; flex-direction:column; align-items:center; gap:16px;">
+                        <i class="fas fa-spinner fa-spin" style="font-size:3rem; color:#6366f1;"></i>
+                        <div style="font-size:1.25rem; font-weight:700;">جاري تحضير الصفحات والكروت للطباعة...</div>
+                        <div style="font-size:0.9rem; opacity:0.8;">سيتم فتح نافذة الطباعة تلقائياً خلال لحظات</div>
+                    </div>
+                `;
+                document.body.appendChild(printLoader);
+            } else {
+                printLoader.style.display = 'flex';
+                printLoader.style.opacity = '1';
+            }
+
             setTimeout(() => {
+                if (printLoader) {
+                    printLoader.style.opacity = '0';
+                    setTimeout(() => { printLoader.style.display = 'none'; }, 300);
+                }
                 window.print();
                 setTimeout(() => {
                     printArea.innerHTML = '';
