@@ -536,6 +536,18 @@ document.addEventListener('DOMContentLoaded', () => {
     obsCompactStrip: document.getElementById('obs-compact-strip')
   };
 
+  function closeAllPopovers(exceptPopover = null) {
+    if (els.popoverStyle && els.popoverStyle !== exceptPopover) {
+      els.popoverStyle.classList.add('hidden');
+    }
+    if (els.popoverCast && els.popoverCast !== exceptPopover) {
+      els.popoverCast.classList.add('hidden');
+    }
+    if (els.popoverObsWs && els.popoverObsWs !== exceptPopover) {
+      els.popoverObsWs.classList.add('hidden');
+    }
+  }
+
   init();
 
   function init() {
@@ -595,18 +607,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('online', () => {
       loadInitialData();
     });
-
-    function closeAllPopovers(exceptPopover = null) {
-      if (els.popoverStyle && els.popoverStyle !== exceptPopover) {
-        els.popoverStyle.classList.add('hidden');
-      }
-      if (els.popoverCast && els.popoverCast !== exceptPopover) {
-        els.popoverCast.classList.add('hidden');
-      }
-      if (els.popoverObsWs && els.popoverObsWs !== exceptPopover) {
-        els.popoverObsWs.classList.add('hidden');
-      }
-    }
 
     els.btnMenuStyle.addEventListener('click', (e) => {
       e.stopPropagation();
