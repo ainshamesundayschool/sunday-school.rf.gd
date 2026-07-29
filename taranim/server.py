@@ -33,6 +33,24 @@ LIVE_STATE = {
     'pos': {'left': 960, 'top': 540}
 }
 
+FRANCO_MAPPINGS = [
+    ("shabahak", "شبهك"), ("yasou3", "يسوع"), ("kirolos", "كيرلس"),
+    ("3ajel", "عجل"), ("rabby", "ربي"), ("7abib", "حبيب"),
+    ("allah", "الله"), ("alla", "الله"), ("3ashan", "عشان"), ("3shan", "عشان"),
+    ("alhan", "ألحان"), ("tarnima", "ترنيمة"), ("taranim", "ترانيم"),
+    ("3a", "عا"), ("3i", "عي"), ("3u", "عو"), ("3", "ع"),
+    ("7a", "حا"), ("7i", "حي"), ("7u", "حو"), ("7", "ح"),
+    ("5", "خ"), ("2", "أ"), ("kh", "خ"), ("sh", "ش"),
+    ("th", "ث"), ("gh", "غ"), ("ou", "و"), ("oo", "و"),
+    ("ee", "ي"), ("y", "ي"), ("g", "ج"), ("k", "ك"),
+    ("c", "ك"), ("q", "ق"), ("z", "ز"), ("s", "س"),
+    ("t", "ت"), ("d", "د"), ("r", "ر"), ("f", "ف"),
+    ("l", "ل"), ("m", "م"), ("n", "ن"), ("h", "ه"),
+    ("w", "و"), ("b", "ب"), ("p", "ب"), ("v", "ف"),
+    ("i", "ي"), ("e", "ي"), ("o", "و"), ("u", "و"),
+    ("a", "ا")
+]
+
 def normalize_arabic(text):
     if not text:
         return ""
@@ -43,6 +61,16 @@ def normalize_arabic(text):
     text = re.sub(r'ؤ', 'و', text)
     text = re.sub(r'[\u064B-\u0652]', '', text)
     return text.strip()
+
+def franco_to_arabic(text):
+    if not text:
+        return ""
+    s = text.lower().strip()
+    if not re.search(r'[a-z0-9]', s):
+        return ""
+    for f, a in FRANCO_MAPPINGS:
+        s = s.replace(f, a)
+    return s
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)
@@ -176,6 +204,8 @@ class SundaySchoolTaranimHandler(http.server.SimpleHTTPRequestHandler):
 
             if q:
                 q_norm = normalize_arabic(q)
+                q_franco = franco_to_arabic(q)
+                
                 cursor.execute('''
                     SELECT s.id, s.item_id, s.title, s.media_url, 
                            GROUP_CONCAT(DISTINCT sg.content) as notes
@@ -183,10 +213,17 @@ class SundaySchoolTaranimHandler(http.server.SimpleHTTPRequestHandler):
                     LEFT JOIN verses v ON v.item_id = s.item_id
                     LEFT JOIN slides sl ON sl.verse = v.id
                     LEFT JOIN segments sg ON sg.slide = sl.id
-                    WHERE s.title LIKE ? OR sg.content LIKE ? OR s.title LIKE ? OR sg.content LIKE ?
+                    WHERE s.title LIKE ? OR sg.content LIKE ? 
+                       OR s.title LIKE ? OR sg.content LIKE ?
+                       OR (LENGTH(?) > 0 AND (s.title LIKE ? OR sg.content LIKE ?))
                     GROUP BY s.id
                     LIMIT ? OFFSET ?;
-                ''', (f'%{q}%', f'%{q}%', f'%{q_norm}%', f'%{q_norm}%', limit, offset))
+                ''', (
+                    f'%{q}%', f'%{q}%',
+                    f'%{q_norm}%', f'%{q_norm}%',
+                    q_franco, f'%{q_franco}%', f'%{q_franco}%',
+                    limit, offset
+                ))
             else:
                 cursor.execute('''
                     SELECT id, item_id, title, media_url, notes

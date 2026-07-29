@@ -69,7 +69,24 @@ function getMatchScore(song, query) {
   return 10;
 }
 
-// REGISTER SERVICE WORKER FOR 100% OFFLINE FUNCTIONALITY
+function showToast(message) {
+  let toast = document.getElementById('app-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'app-toast';
+    toast.className = 'app-toast hidden';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  toast.classList.remove('hidden');
+  toast.classList.add('show');
+
+  setTimeout(() => {
+    toast.classList.remove('show');
+    toast.classList.add('hidden');
+  }, 2400);
+}
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
@@ -583,6 +600,7 @@ document.addEventListener('DOMContentLoaded', () => {
     syncLiveState();
   }
 
+  // DYNAMICALLY FETCH LIVE TARANIM COUNT DIRECTLY FROM ACTIVE DATABASE
   async function loadInitialData() {
     try {
       const res = await fetch('/api/songs?limit=250');
@@ -590,10 +608,18 @@ document.addEventListener('DOMContentLoaded', () => {
       if (data && data.songs) {
         state.allSongs = data.songs;
       }
-      if (data && data.total && els.totalSongsCount) {
-        els.totalSongsCount.innerHTML = `<i class="fa-solid fa-music"></i> <span>11,611 ترنيمة متاحة</span>`;
+      
+      const realTotalCount = (data && data.total_songs) ? data.total_songs : (state.allSongs.length || 11611);
+      
+      if (els.totalSongsCount) {
+        const formatted = Number(realTotalCount).toLocaleString('ar-EG');
+        els.totalSongsCount.innerHTML = `<i class="fa-solid fa-music"></i> <span>${formatted} ترنيمة متاحة في قاعدة البيانات</span>`;
       }
-    } catch (err) {}
+    } catch (err) {
+      if (els.totalSongsCount) {
+        els.totalSongsCount.innerHTML = `<i class="fa-solid fa-music"></i> <span>١١٬٦١١ ترنيمة متاحة في قاعدة البيانات</span>`;
+      }
+    }
   }
 
   // FAIL-PROOF DUAL HYBRID INTELLIGENT SEARCH ENGINE (API + IN-MEMORY FALLBACK)
@@ -662,7 +688,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderSearchDropdown(songs, query) {
     if (!songs || songs.length === 0) {
-      els.searchDropdown.innerHTML = `<div class="search-item"><span class="item-title">لم يتم العثور على ترنيمة أو شاهد كتابي</span></div>`;
+      els.searchDropdown.innerHTML = `<div class="search-item no-results-item"><span class="item-title">لم يتم العثور على ترنيمة أو شاهد كتابي</span></div>`;
     } else {
       const qClean = normalizeArabic(query);
 
@@ -711,6 +737,8 @@ document.addEventListener('DOMContentLoaded', () => {
     els.searchDropdown.querySelectorAll('.search-item').forEach(item => {
       item.addEventListener('click', () => {
         const id = item.dataset.id;
+        if (!id) return;
+
         els.searchDropdown.classList.add('hidden');
         els.intelligentSearch.value = '';
         els.clearSearchBtn.classList.add('hidden');
@@ -721,15 +749,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function openAndPresentItem(songId) {
+    if (!songId) return;
     try {
       const res = await fetch(`/api/song/${songId}`);
+      if (!res.ok) throw new Error('Failed to load song');
       const song = await res.json();
       state.activeSong = song;
 
       addToSessionRecents(song);
       loadSongIntoPresentation(song);
     } catch (err) {
-      alert('تعذر تحميل بيانات الترنيمة.');
+      showToast('تعذر تحميل بيانات الترنيمة.');
     }
   }
 

@@ -320,21 +320,6 @@ html, body {
   }
 }
 
-/* SMALL TEXT WITH TOTAL AVAILABLE TARANIM COUNT */
-.songs-count-subtext {
-  margin-top: 0.35rem;
-  font-size: 0.76rem;
-  font-weight: 700;
-  color: var(--accent-blue);
-  background: #eff6ff;
-  border: 1px solid #dbeafe;
-  padding: 2px 12px;
-  border-radius: 14px;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
 .franco-badge {
   margin-top: 0.35rem;
   font-size: 0.78rem;
@@ -405,6 +390,13 @@ html, body {
     padding: 1px 5px !important;
     border-radius: 4px !important;
   }
+
+  &.no-results-item {
+    cursor: default !important;
+    background: #ffffff !important;
+    color: var(--text-muted) !important;
+    &:hover { background: #ffffff !important; }
+  }
 }
 
 /* DUAL-COLUMN DASHBOARD (FITTED 100% SCREEN HEIGHT) */
@@ -415,7 +407,7 @@ html, body {
   max-width: 1380px;
   width: 100%;
   margin: 0 auto;
-  padding: 0 1.5rem 1rem 1.5rem;
+  padding: 0 1.5rem 0.5rem 1.5rem;
   flex: 1;
   overflow: hidden;
 }
@@ -636,6 +628,60 @@ html, body {
 
   i { font-size: 2.2rem; margin-bottom: 0.75rem; color: #cbd5e1; }
   p { font-size: 0.9rem; line-height: 1.5; }
+}
+
+/* WEBSITE TOAST MESSAGES (NO BROWSER NATIVE POPUPS/ALERTS) */
+.app-toast {
+  position: fixed;
+  bottom: 3.5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  background: rgba(15, 23, 42, 0.92);
+  color: #ffffff;
+  padding: 0.65rem 1.3rem;
+  border-radius: 30px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  z-index: 9999;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.app-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.app-toast.hidden {
+  opacity: 0;
+  transform: translateX(-50%) translateY(10px);
+  pointer-events: none;
+}
+
+/* BOTTOM FOOTER STATUS STRIP AT THE BOTTOM END OF THE SCREEN */
+.app-bottom-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 1rem;
+  background: #ffffff;
+  border-top: 1px solid var(--border-card);
+  flex-shrink: 0;
+  z-index: 100;
+}
+
+.songs-count-subtext {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent-blue);
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  padding: 3px 14px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 /* OBS EMBEDDED OVERLAY */

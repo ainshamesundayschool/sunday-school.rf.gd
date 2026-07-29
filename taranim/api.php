@@ -8,59 +8,101 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
-$dbPath = __DIR__ . '/database.sqlite';
-$liveFile = __DIR__ . '/live.json';
+// MYSQL CONFIGURATION (INFINITYFREE / ONLINE SERVER)
+$mysqlHost = 'sql311.infinityfree.com';
+$mysqlPort = 3306;
+$mysqlDb   = 'if0_42112851_taranim';
+$mysqlUser = 'if0_42112851';
+$mysqlPass = 'MwfgtlTqep1';
 
+$sqlitePath = __DIR__ . '/database.sqlite';
+$liveFile   = __DIR__ . '/live.json';
+
+$pdo = null;
+$isMysql = false;
+
+// 1. TRY MYSQL FIRST
 try {
-    $pdo = new PDO('sqlite:' . $dbPath);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo = new PDO("mysql:host=$mysqlHost;port=$mysqlPort;dbname=$mysqlDb;charset=utf8mb4", $mysqlUser, $mysqlPass, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_TIMEOUT => 3,
+        PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4"
+    ]);
+    $isMysql = true;
 } catch (PDOException $e) {
-    echo json_encode(['songs' => [], 'error' => 'Database connection failed']);
-    exit;
+    // 2. FALLBACK TO SQLITE FOR LOCAL DESKTOP USE
+    try {
+        $pdo = new PDO('sqlite:' . $sqlitePath);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $isMysql = false;
+    } catch (PDOException $ex) {
+        echo json_encode(['songs' => [], 'error' => 'Database connection failed']);
+        exit;
+    }
+}
+
+function normalizeArabic($text) {
+    if (empty($text)) return '';
+    $text = preg_replace('/[أإآٱ]/u', 'ا', $text);
+    $text = preg_replace('/[ىئ]/u', 'ي', $text);
+    $text = preg_replace('/ة/u', 'ه', $text);
+    $text = preg_replace('/ؤ/u', 'و', $text);
+    $text = preg_replace('/[\x{064B}-\x{0652}]/u', '', $text);
+    return trim(mb_strtolower($text, 'UTF-8'));
 }
 
 $requestUri = $_SERVER['REQUEST_URI'];
-$parsedUrl = parse_url($requestUri, PHP_URL_PATH);
+$parsedUrl  = parse_url($requestUri, PHP_URL_PATH);
 
 // SEARCH SONGS ENDPOINT
 if (strpos($parsedUrl, '/api/songs') !== false) {
-    $q = isset($_GET['q']) ? trim($_GET['q']) : '';
-    $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 50;
+    $q      = isset($_GET['q']) ? trim($_GET['q']) : '';
+    $limit  = isset($_GET['limit']) ? (int)$_GET['limit'] : 50;
     $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
 
     $results = [];
 
     if (!empty($q)) {
-        $stmt = $pdo->prepare("
+        $qNorm = normalizeArabic($q);
+        
+        $sql = "
             SELECT s.id, s.item_id, s.title, s.media_url, 
                    GROUP_CONCAT(DISTINCT sg.content) as notes
             FROM songs s
             LEFT JOIN verses v ON v.item_id = s.item_id
             LEFT JOIN slides sl ON sl.verse = v.id
             LEFT JOIN segments sg ON sg.slide = sl.id
-            WHERE s.title LIKE :q OR sg.content LIKE :q
+            WHERE s.title LIKE :q OR sg.content LIKE :q OR s.title LIKE :qNorm OR sg.content LIKE :qNorm
             GROUP BY s.id
-            LIMIT :limit OFFSET :offset
-        ");
+            LIMIT " . (int)$limit . " OFFSET " . (int)$offset . "
+        ";
+        
+        $stmt = $pdo->prepare($sql);
         $stmt->bindValue(':q', '%' . $q . '%', PDO::PARAM_STR);
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->bindValue(':qNorm', '%' . $qNorm . '%', PDO::PARAM_STR);
         $stmt->execute();
     } else {
-        $stmt = $pdo->prepare("
+        $sql = "
             SELECT s.id, s.item_id, s.title, s.media_url, s.notes
             FROM songs s
             GROUP BY s.id
             ORDER BY s.id ASC
-            LIMIT :limit OFFSET :offset
-        ");
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            LIMIT " . (int)$limit . " OFFSET " . (int)$offset . "
+        ";
+        $stmt = $pdo->prepare($sql);
         $stmt->execute();
     }
 
     $songs = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    echo json_encode(['songs' => $songs, 'total' => count($songs)]);
+
+    // Get total count
+    $totalCount = 11611;
+    try {
+        $cStmt = $pdo->query("SELECT COUNT(*) FROM songs");
+        $totalCount = (int)$cStmt->fetchColumn();
+    } catch (Exception $e) {}
+
+    echo json_encode(['songs' => $songs, 'total' => count($songs), 'total_songs' => $totalCount, 'db_type' => $isMysql ? 'mysql' : 'sqlite']);
     exit;
 }
 
@@ -135,4 +177,4 @@ if (strpos($parsedUrl, '/api/live') !== false) {
     }
 }
 
-echo json_encode(['status' => 'online', 'server' => 'PHP Sunday School Taranim API']);
+echo json_encode(['status' => 'online', 'server' => 'PHP Sunday School Taranim API', 'db_type' => $isMysql ? 'mysql' : 'sqlite']);
