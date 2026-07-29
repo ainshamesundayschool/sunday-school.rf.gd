@@ -344,6 +344,7 @@
 
     let currentTextState = null;
     let currentIsBlankState = null;
+    let currentAnimState = null;
 
     function applyState(data, source = 'local') {
       if (!data || typeof data !== 'object') return;
@@ -359,18 +360,20 @@
         document.body.setAttribute('data-chroma', data.chroma);
       }
 
+      const animType = data.anim || 'slide';
+
       if (data.isBlank) {
         textEl.style.visibility = 'hidden';
         currentIsBlankState = true;
       } else if (data.text !== undefined) {
         textEl.style.visibility = data.text ? 'visible' : 'hidden';
-        if (currentTextState !== data.text) {
+        if (currentTextState !== data.text || currentAnimState !== animType) {
           textEl.textContent = data.text;
           currentTextState = data.text;
+          currentAnimState = animType;
 
-          const animType = data.anim || 'slide';
           textEl.classList.remove('animate-appear-slide', 'animate-appear-pop', 'animate-appear-glow');
-          if (animType !== 'none') {
+          if (animType !== 'none' && data.text) {
             void textEl.offsetWidth;
             textEl.classList.add(`animate-appear-${animType}`);
           }

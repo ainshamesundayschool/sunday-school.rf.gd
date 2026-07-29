@@ -1473,6 +1473,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
 
+  let currentPresenterAnim = null;
+
   function syncLiveState(isExplicitPositionUpdate = false) {
     const currentLine = state.presentationLines[state.currentLineIndex];
     const text = currentLine ? currentLine.text : '';
@@ -1509,10 +1511,12 @@ document.addEventListener('DOMContentLoaded', () => {
       els.obsLineText.style.fontFamily = state.selectedFont;
       els.obsLineText.style.color = state.styleOptions.textColor;
 
-      if (els.obsLineText.textContent !== text) {
+      if (els.obsLineText.textContent !== text || currentPresenterAnim !== state.textAnimation) {
         els.obsLineText.textContent = text;
+        currentPresenterAnim = state.textAnimation;
+
         els.obsLineText.classList.remove('animate-appear-slide', 'animate-appear-pop', 'animate-appear-glow');
-        if (state.textAnimation !== 'none') {
+        if (state.textAnimation !== 'none' && text) {
           void els.obsLineText.offsetWidth;
           els.obsLineText.classList.add(`animate-appear-${state.textAnimation}`);
         }
