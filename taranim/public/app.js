@@ -186,10 +186,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const broadcastChannel = new BroadcastChannel('sunday_school_taranim_obs_channel');
   let screenDetails = null;
 
+  // PERCENTAGE BASED POSITION COORDINATES (DEFAULT: 50% LEFT / 75% TOP)
   const savedPivotRaw = localStorage.getItem('sunday_school_taranim_drag_pivot');
-  let initialPivot = { left: window.innerWidth / 2, top: window.innerHeight * 0.75 };
+  let initialPivot = { xPct: 50, yPct: 75 };
   if (savedPivotRaw) {
-    try { initialPivot = JSON.parse(savedPivotRaw); } catch(e) {}
+    try {
+      const parsed = JSON.parse(savedPivotRaw);
+      if (parsed.xPct !== undefined && parsed.yPct !== undefined) {
+        initialPivot = parsed;
+      }
+    } catch(e) {}
   }
 
   const savedSettingsRaw = localStorage.getItem('sunday_school_taranim_user_settings');
@@ -222,6 +228,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     dragPivot: initialPivot
   };
+
+  // LISTEN TO BROADCAST CHANNEL FOR POSITION UPDATES FROM OBS PRESENTER WINDOW
+  broadcastChannel.onmessage = (event) => {
+    if (event.data && (event.data.type === 'UPDATE_POS' || event.data.pos)) {
+      if (event.data.pos) {
+        state.dragPivot = event.data.pos;
+        localStorage.setItem('sunday_school_taranim_drag_pivot', JSON.stringify(state.dragPivot));
+      }
+    }
+  };
+
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'sunday_school_taranim_drag_pivot' && e.newValue) {
+      try {
+        state.dragPivot = JSON.parse(e.newValue);
+      } catch (err) {}
+    }
+  });
 
   const els = {
     intelligentSearch: document.getElementById('intelligent-search'),
@@ -668,8 +692,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const screenW = window.innerWidth;
       const screenH = window.innerHeight;
 
-      let targetX = state.dragPivot.left + (e.clientX - startX);
-      let targetY = state.dragPivot.top + (e.clientY - startY);
+      let currentXPixels = (state.dragPivot.xPct / 100) * screenW;
+      let currentYPixels = (state.dragPivot.yPct / 100) * screenH;
+
+      let targetX = currentXPixels + (e.clientX - startX);
+      let targetY = currentYPixels + (e.clientY - startY);
 
       let snappedV = false;
       let snappedH = false;
@@ -693,8 +720,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (snappedH && els.snapGuideH) els.snapGuideH.classList.remove('hidden');
       else if (els.snapGuideH) els.snapGuideH.classList.add('hidden');
 
-      state.dragPivot.left = targetX;
-      state.dragPivot.top = targetY;
+      state.dragPivot.xPct = (targetX / screenW) * 100;
+      state.dragPivot.yPct = (targetY / screenH) * 100;
 
       localStorage.setItem('sunday_school_taranim_drag_pivot', JSON.stringify(state.dragPivot));
 
@@ -707,8 +734,8 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('mouseup', () => {
       if (isDragging) {
         isDragging = false;
-        if (guideV) guideV.classList.add('hidden');
-        if (guideH) guideH.classList.add('hidden');
+        if (els.snapGuideV) els.snapGuideV.classList.add('hidden');
+        if (els.snapGuideH) els.snapGuideH.classList.add('hidden');
       }
     });
   }
@@ -1062,7 +1089,6 @@ document.addEventListener('DOMContentLoaded', () => {
         state.sessionRecents.splice(index, 1);
         sessionStorage.setItem('sunday_school_taranim_session_recents', JSON.stringify(state.sessionRecents));
 
-        // IF THE DELETED TARNIMA IS CURRENTLY PRESENTING, CLEAR IT FROM PRESENTATION TOO
         if (songToDelete && state.activeSong && String(state.activeSong.id) === String(songToDelete.id)) {
           state.activeSong = null;
           state.presentationLines = [];
@@ -1139,7 +1165,6 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem('sunday_school_taranim_live_presentation', JSON.stringify(payload));
     localStorage.setItem('sunday_school_taranim_drag_pivot', JSON.stringify(state.dragPivot));
 
-    // DUAL POST TO PHP & PYTHON ENDPOINTS
     fetch('api.php?action=live', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1168,8 +1193,11 @@ document.addEventListener('DOMContentLoaded', () => {
         els.obsLineText.style.fontSize = `${size}px`;
       }
       
-      els.obsLowerThirdBox.style.left = `${state.dragPivot.left}px`;
-      els.obsLowerThirdBox.style.top = `${state.dragPivot.top}px`;
+      const xPct = state.dragPivot.xPct !== undefined ? state.dragPivot.xPct : 50;
+      const yPct = state.dragPivot.yPct !== undefined ? state.dragPivot.yPct : 75;
+
+      els.obsLowerThirdBox.style.left = `${xPct}%`;
+      els.obsLowerThirdBox.style.top = `${yPct}%`;
       els.obsLowerThirdBox.style.transform = 'translate(-50%, -50%)';
     }
   }

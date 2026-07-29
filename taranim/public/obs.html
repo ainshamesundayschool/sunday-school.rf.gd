@@ -138,13 +138,18 @@
     }
 
     const savedPivotRaw = localStorage.getItem('sunday_school_taranim_drag_pivot');
-    let currentPivot = { left: window.innerWidth / 2, top: window.innerHeight * 0.75 };
+    let currentPivot = { xPct: 50, yPct: 75 };
     if (savedPivotRaw) {
-      try { currentPivot = JSON.parse(savedPivotRaw); } catch(e) {}
+      try {
+        const parsed = JSON.parse(savedPivotRaw);
+        if (parsed.xPct !== undefined && parsed.yPct !== undefined) {
+          currentPivot = parsed;
+        }
+      } catch(e) {}
     }
 
-    box.style.left = currentPivot.left + 'px';
-    box.style.top = currentPivot.top + 'px';
+    box.style.left = currentPivot.xPct + '%';
+    box.style.top = currentPivot.yPct + '%';
     box.style.transform = 'translate(-50%, -50%)';
 
     function requestFS() {
@@ -190,8 +195,11 @@
       const screenW = window.innerWidth;
       const screenH = window.innerHeight;
 
-      let targetX = currentPivot.left + (e.clientX - startX);
-      let targetY = currentPivot.top + (e.clientY - startY);
+      let currentX = (currentPivot.xPct / 100) * screenW;
+      let currentY = (currentPivot.yPct / 100) * screenH;
+
+      let targetX = currentX + (e.clientX - startX);
+      let targetY = currentY + (e.clientY - startY);
 
       let snappedV = false;
       let snappedH = false;
@@ -215,11 +223,11 @@
       if (snappedH && guideH) guideH.classList.remove('hidden');
       else if (guideH) guideH.classList.add('hidden');
 
-      currentPivot.left = targetX;
-      currentPivot.top = targetY;
+      currentPivot.xPct = (targetX / screenW) * 100;
+      currentPivot.yPct = (targetY / screenH) * 100;
 
-      box.style.left = targetX + 'px';
-      box.style.top = targetY + 'px';
+      box.style.left = currentPivot.xPct + '%';
+      box.style.top = currentPivot.yPct + '%';
       box.style.transform = 'translate(-50%, -50%)';
 
       localStorage.setItem('sunday_school_taranim_drag_pivot', JSON.stringify(currentPivot));
@@ -299,9 +307,12 @@
       }
 
       if (data.pos && !isDragging) {
-        currentPivot = data.pos;
-        box.style.left = data.pos.left + 'px';
-        box.style.top = data.pos.top + 'px';
+        const xPct = data.pos.xPct !== undefined ? data.pos.xPct : 50;
+        const yPct = data.pos.yPct !== undefined ? data.pos.yPct : 75;
+
+        currentPivot = { xPct, yPct };
+        box.style.left = xPct + '%';
+        box.style.top = yPct + '%';
         box.style.transform = 'translate(-50%, -50%)';
         localStorage.setItem('sunday_school_taranim_drag_pivot', JSON.stringify(currentPivot));
       }
