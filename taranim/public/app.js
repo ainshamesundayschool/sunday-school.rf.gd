@@ -421,12 +421,11 @@ class OBSWSClient {
     let rawHost = this.ip;
     let scheme = 'ws://';
 
-    if (rawHost.startsWith('wss://')) {
+    if (/^wss:\/\//i.test(rawHost)) {
       scheme = 'wss://';
       rawHost = rawHost.replace(/^wss:\/\//i, '');
-    } else if (rawHost.startsWith('ws://')) {
-      scheme = 'ws://';
-      rawHost = rawHost.replace(/^ws:\/\//i, '');
+    } else {
+      rawHost = rawHost.replace(/^[a-z0-9+\-.]+:\/\//i, '');
     }
 
     rawHost = rawHost.replace(/\/+$/, '');
@@ -2276,7 +2275,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch(e) {}
     }
 
-    s = s.replace(/^(obs-websocket:\/\/|ws:\/\/|wss:\/\/|http:\/\/|https:\/\/)/i, '');
+    s = s.replace(/^[a-z0-9+\-.]+:\/\//i, '');
 
     let password = '';
     if (s.includes('?auth=')) {
