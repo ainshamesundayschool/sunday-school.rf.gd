@@ -454,25 +454,26 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
-  // DUAL MODE: CURRENT SCREEN = FULLSCREEN ON MAIN WINDOW; EXTERNAL SCREEN = OPEN TV WINDOW ON SECONDARY DISPLAY COORDS!
   async function launchPresenterOnSelectedScreen() {
     const select = els.connectedScreensSelect;
     const val = select.value;
 
-    let targetScreen = null;
     let isExternalScreen = false;
+    let targetScreen = null;
 
-    if (screenDetails && screenDetails.screens[parseInt(val)]) {
-      targetScreen = screenDetails.screens[parseInt(val)];
-      if (!targetScreen.isPrimary) {
-        isExternalScreen = true;
-      }
-    } else if (val === 'external') {
+    if (val === 'external') {
       isExternalScreen = true;
+    } else if (screenDetails && screenDetails.screens) {
+      const idx = parseInt(val);
+      if (!isNaN(idx) && screenDetails.screens[idx]) {
+        targetScreen = screenDetails.screens[idx];
+        if (!targetScreen.isPrimary) {
+          isExternalScreen = true;
+        }
+      }
     }
 
     if (!isExternalScreen) {
-      // PRIMARY / CURRENT DISPLAY: Switch current page to Fullscreen directly (no popup)
       if (els.obsOverlay) {
         els.obsOverlay.classList.remove('hidden');
         const docEl = document.documentElement || els.obsOverlay;
@@ -481,15 +482,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     } else {
-      // EXTERNAL SECONDARY DISPLAY: Open window on target external screen coordinates!
-      let windowFeatures = 'width=1920,height=1080,menubar=no,toolbar=no,location=no,status=no';
+      let left = window.screen.width;
+      let top = 0;
+      let width = window.screen.width || 1920;
+      let height = window.screen.height || 1080;
+
       if (targetScreen) {
-        windowFeatures = `left=${targetScreen.availLeft},top=${targetScreen.availTop},width=${targetScreen.availWidth},height=${targetScreen.availHeight},menubar=no,toolbar=no,location=no,status=no`;
-      } else {
-        windowFeatures = `left=${window.screen.width},top=0,width=${window.screen.width},height=${window.screen.height},menubar=no,toolbar=no,location=no,status=no`;
+        left = targetScreen.availLeft;
+        top = targetScreen.availTop;
+        width = targetScreen.availWidth;
+        height = targetScreen.availHeight;
       }
 
-      const popup = window.open('obs.html?autofs=true', 'SundaySchoolPresenterWindow', windowFeatures);
+      const features = `left=${left},top=${top},width=${width},height=${height},menubar=no,toolbar=no,location=no,status=no,resizable=yes`;
+      const popup = window.open('obs.html?autofs=true', 'SundaySchoolPresenterWindow', features);
       if (popup) {
         popup.focus();
       }
@@ -578,8 +584,9 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {}
   }
 
+  // ROBUST MULTI-FALLBACK INTELLIGENT SEARCH ENGINE
   async function performIntelligentSearch(query) {
-    if (!query.trim()) {
+    if (!query || !query.trim()) {
       els.searchDropdown.classList.add('hidden');
       return;
     }
@@ -591,12 +598,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
-      const res = await fetch(`/api/songs?q=${encodeURIComponent(searchTarget)}&limit=150`);
-      const data = await res.json();
+      let res = await fetch(`/api/songs?q=${encodeURIComponent(searchTarget)}&limit=150`);
+      let data = await res.json();
+      let songsList = (data && data.songs) ? data.songs : [];
+
+      if (songsList.length === 0 && searchTarget !== query.trim()) {
+        res = await fetch(`/api/songs?q=${encodeURIComponent(query.trim())}&limit=150`);
+        data = await res.json();
+        songsList = (data && data.songs) ? data.songs : [];
+      }
 
       const uniqueMap = new Map();
-      data.songs.forEach(song => {
-        if (!uniqueMap.has(song.id)) {
+      songsList.forEach(song => {
+        if (song && song.id && !uniqueMap.has(song.id)) {
           uniqueMap.set(song.id, song);
         }
       });
@@ -608,19 +622,19 @@ document.addEventListener('DOMContentLoaded', () => {
         _score: getMatchScore(song.title, query)
       })).sort((a, b) => b._score - a._score);
 
-      renderSearchDropdown(scored, searchTarget);
+      renderSearchDropdown(scored, query);
     } catch (err) {
       els.searchDropdown.classList.add('hidden');
     }
   }
 
   function renderSearchDropdown(songs, query) {
-    if (songs.length === 0) {
+    if (!songs || songs.length === 0) {
       els.searchDropdown.innerHTML = `<div class="search-item"><span class="item-title">لم يتم العثور على ترنيمة أو شاهد كتابي</span></div>`;
     } else {
       const qClean = normalizeArabic(query);
 
-      els.searchDropdown.innerHTML = songs.slice(0, 12).map(s => {
+      els.searchDropdown.innerHTML = songs.slice(0, 14).map(s => {
         let snippetHtml = '';
         const rawNotes = s.notes || '';
 
