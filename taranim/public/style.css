@@ -912,20 +912,33 @@ html, body {
     padding: 0.6rem 1rem;
   }
 
+  /* PREVENT MOBILE AUTO-ZOOM ON INPUT FOCUS BY SETTING FONT-SIZE TO 16PX MINIMUM */
   .centered-search-box input {
-    font-size: 0.92rem;
+    font-size: 16px !important;
     padding: 0.65rem 2.8rem 0.65rem 2.2rem;
   }
 
+  .control-select, .control-input {
+    font-size: 16px !important;
+  }
+
+  /* ON MOBILE: PRESENTATION LINES PANEL ABOVE / RECENT SESSION PANEL BELOW */
   .dashboard-halves {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
     height: auto;
     overflow: visible;
     padding: 0 0.85rem 1.5rem 0.85rem;
     gap: 1rem;
   }
 
-  .half-panel {
-    height: 380px;
+  .presentation-lines-panel {
+    order: 1;
+    height: 400px;
+  }
+
+  .recent-session-panel {
+    order: 2;
+    height: 320px;
   }
 }
