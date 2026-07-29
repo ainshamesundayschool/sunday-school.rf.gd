@@ -26164,62 +26164,37 @@
             const strokeColor = document.getElementById('printStrokeColor')?.value || '#dddddd';
             const { outlineStyle, dashLength, dashGap } = getPrintBorderSettings();
             const padding = document.getElementById('printPadding')?.value || '15px';
-
-            const cardBorderStyle = getCardBorderStyle(outlineStyle, dashLength, dashGap);
-            const isUncle = false;
-            const churchName = window.churchName || 'الكنيسة';
-            const extraFields = Array.isArray(cardExtraFields) ? cardExtraFields : [];
+            const churchName = localStorage.getItem('churchName') || localStorage.getItem('uncle_church_name') || 'مدارس الأحد';
             const backPageDir = (document.getElementById('printBackMirrorRTL')?.checked ?? true) ? 'rtl' : 'ltr';
+            const placeholderHtml = `<div class="print-card-placeholder" style="width:${baseWidth * scale}px; height:${baseHeight * scale}px; visibility:hidden; flex-shrink:0;"></div>`;
 
             function renderFrontCard(s, globalIdx) {
-                if (!s) {
-                    return `<div class="print-card-placeholder" style="width:${baseWidth * scale}px; height:${baseHeight * scale}px;"></div>`;
-                }
+                if (!s) return placeholderHtml;
                 const sid = getSafeStudentID(s);
                 const cardId = 'pdf_qrcode_kid_' + sid + '_' + globalIdx;
-                qrTasks.push({ id: cardId, text: String(sid) });
+                const link = s.is_empty_copy
+                    ? `${window.location.origin}/user/profile/?tempid=${encodeURIComponent(sid)}`
+                    : `${window.location.origin}/user/profile/?id=${encodeURIComponent(sid)}`;
 
-                return generateCardMarkup(s, {
-                    isUncle,
-                    scaledWidth: baseWidth * scale,
-                    scaledHeight: baseHeight * scale,
-                    scaledPadding: parseFloat(padding) * scale,
-                    cardBorderStyle,
-                    fontColor,
-                    strokeColor,
-                    extraFields,
-                    scale,
-                    churchName,
-                    cardId,
-                    textReadability,
-                    readBgColor: readabilityBgColor,
-                    readOpacity: readabilityBgOpacity,
-                    readPadding: readabilityPadding + 'px',
-                    readabilityWidth,
-                    readabilityBgShadow
+                qrTasks.push({ id: cardId, text: link });
+
+                return generateCardMarkup({
+                    s, scale, padding, churchName, cardId,
+                    textReadability, fontColor, strokeColor, outlineStyle, dashLength, dashGap, showAvatarWhenNoPhoto: true,
+                    baseWidth, baseHeight,
+                    readabilityBgColor, readabilityBgOpacity, readabilityPadding, readabilityWidth,
+                    readabilityBgShadow,
+                    extraFields: cardExtraFields
                 });
             }
 
             function renderBackCard(s) {
-                if (!s) {
-                    return `<div class="print-card-placeholder" style="width:${baseWidth * scale}px; height:${baseHeight * scale}px;"></div>`;
-                }
-                return generateBackCardMarkup(s, {
-                    isUncle,
-                    scaledWidth: baseWidth * scale,
-                    scaledHeight: baseHeight * scale,
-                    scaledPadding: parseFloat(padding) * scale,
-                    cardBorderStyle,
-                    fontColor,
-                    strokeColor,
-                    extraFields,
-                    scale,
-                    churchName,
-                    textReadability,
-                    readBgColor: readabilityBgColor,
-                    readOpacity: readabilityBgOpacity,
-                    readPadding: readabilityPadding + 'px',
-                    readabilityWidth,
+                if (!s) return placeholderHtml;
+                return generateBackCardMarkup({
+                    r: s, scale, padding, churchName, fontColor, strokeColor, outlineStyle, dashLength, dashGap,
+                    baseWidth, baseHeight, textReadability,
+                    extraFields: cardExtraFields.filter(f => f.placement === 'back'),
+                    readabilityBgColor, readabilityBgOpacity, readabilityPadding, readabilityWidth,
                     readabilityBgShadow
                 });
             }
