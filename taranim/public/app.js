@@ -589,7 +589,9 @@ document.addEventListener('DOMContentLoaded', () => {
     btnCloseQrModal: document.getElementById('btn-close-qr-modal'),
     qrScanResultMsg: document.getElementById('qr-scan-result-msg'),
     obsCompactStrip: document.getElementById('obs-compact-strip'),
-    obsHttpsWarning: document.getElementById('obs-https-warning')
+    obsHttpsWarning: document.getElementById('obs-https-warning'),
+    obsHttpFallback: document.getElementById('obs-http-fallback'),
+    obsHttpLink: document.getElementById('obs-http-link')
   };
 
   function closeAllPopovers(exceptPopover = null) {
@@ -786,7 +788,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (els.popoverInstall) {
           els.popoverInstall.classList.add('hidden');
         }
-        showToastNotification('تطبيق الترانيم جاهز للعمل أوفلاين بنجاح 🟢');
+        showToast('تطبيق الترانيم جاهز للعمل أوفلاين بنجاح 🟢');
       });
     }
 
@@ -804,7 +806,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const { outcome } = await deferredPrompt.userChoice;
         if (outcome === 'accepted') {
           if (els.dropdownPwaInstallRow) els.dropdownPwaInstallRow.classList.add('hidden');
-          showToastNotification('تم تثبيت تطبيق الترانيم بنجاح! 🎉');
+          showToast('تم تثبيت تطبيق الترانيم بنجاح! 🎉');
         }
         deferredPrompt = null;
       });
@@ -1928,13 +1930,20 @@ document.addEventListener('DOMContentLoaded', () => {
       if (els.obsTransitionDurationRange) els.obsTransitionDurationRange.disabled = !connected;
       if (els.btnTriggerObsTransition) els.btnTriggerObsTransition.disabled = !connected;
 
-      if (els.obsHttpsWarning) {
-        if (window.location.protocol === 'https:' && !connected && statusText.includes('HTTPS')) {
-          els.obsHttpsWarning.innerHTML = `
-            <i class="fa-solid fa-triangle-exclamation"></i> يمنع المتصفح الاتصال بالشبكة المحلية <code>ws://</code> على صفحات HTTPS.<br>
-            <a href="http://sunday-school.online/taranim/" style="color:#2563eb; font-weight:bold; text-decoration:underline;" target="_blank">انقر هنا لفتح الصفحة عبر HTTP للربط بـ OBS</a>
-          `;
+      const isHttps = window.location.protocol === 'https:';
+      const isLanIp = els.obsWsIp && /^(192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.|localhost|127\.0\.0\.1)/.test(els.obsWsIp.value.trim());
+
+      if (els.obsHttpsWarning && els.obsHttpFallback && els.obsHttpLink) {
+        if (isHttps && !connected && statusText && (statusText.includes('تعذر') || statusText.includes('HTTPS') || statusText.includes('لم يتم'))) {
+          const ip = els.obsWsIp ? els.obsWsIp.value.trim() || '192.168.1.x' : '192.168.x.x';
+          const httpUrl = `http://sunday-school.online/taranim/?obs_ip=${encodeURIComponent(ip)}&obs_port=${els.obsWsPort ? els.obsWsPort.value || '4455' : '4455'}`;
+          els.obsHttpLink.href = httpUrl;
+          els.obsHttpFallback.classList.remove('hidden');
+          els.obsHttpsWarning.innerHTML = `⚠️ الموقع HTTPS يمنع الاتصال بـ ws:// المحلي. الحل: افتح عبر HTTP أو استخدم QR من نفس الشبكة.`;
           els.obsHttpsWarning.classList.remove('hidden');
+        } else if (connected) {
+          els.obsHttpsWarning.classList.add('hidden');
+          els.obsHttpFallback.classList.add('hidden');
         } else {
           els.obsHttpsWarning.classList.add('hidden');
         }
@@ -2058,13 +2067,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (els.btnScanQr && els.obsQrModal) {
     els.btnScanQr.addEventListener('click', () => {
+      // Always stop and recreate scanner to avoid "already running" errors
+      stopQrScanner();
+      html5QrCodeScanner = null;
+
       els.obsQrModal.classList.remove('hidden');
       if (els.popoverObsWs) els.popoverObsWs.classList.add('hidden');
 
+      // Clear previous messages
+      if (els.qrScanResultMsg) {
+        els.qrScanResultMsg.classList.add('hidden');
+        els.qrScanResultMsg.textContent = '';
+      }
+
       if (window.Html5Qrcode) {
-        if (!html5QrCodeScanner) {
-          html5QrCodeScanner = new Html5Qrcode('qr-reader-viewport');
-        }
+        // Ensure clean DOM container
+        const viewport = document.getElementById('qr-reader-viewport');
+        if (viewport) viewport.innerHTML = '';
+
+        html5QrCodeScanner = new Html5Qrcode('qr-reader-viewport');
         html5QrCodeScanner.start(
           { facingMode: 'environment' },
           { fps: 10, qrbox: { width: 220, height: 220 } },
@@ -2075,23 +2096,28 @@ document.addEventListener('DOMContentLoaded', () => {
               if (els.obsWsPort) els.obsWsPort.value = parsed.port;
               if (els.obsWsPassword) els.obsWsPassword.value = parsed.password;
 
-              showToast('تم مسح بيانات OBS بنجاح!');
+              showToast('✅ تم مسح بيانات OBS بنجاح! جاري الاتصال...');
               stopQrScanner();
+              html5QrCodeScanner = null;
               els.obsQrModal.classList.add('hidden');
               localStorage.setItem('sunday_school_taranim_obs_ws_config', JSON.stringify(parsed));
               obsWsClient.connect(parsed.ip, parsed.port, parsed.password);
             }
           },
           () => {}
-        ).catch(() => {
+        ).catch((err) => {
           if (els.qrScanResultMsg) {
             els.qrScanResultMsg.className = 'qr-status-msg error';
-            els.qrScanResultMsg.textContent = 'تعذر فتح الكاميرا. يرجى السماح بإذن الكاميرا.';
+            els.qrScanResultMsg.textContent = 'تعذر فتح الكاميرا. تأكد من السماح بإذن الكاميرا في المتصفح ثم أعد المحاولة.';
             els.qrScanResultMsg.classList.remove('hidden');
           }
         });
       } else {
-        alert('تعذر تحميل مكتبة مسح QR Code.');
+        if (els.qrScanResultMsg) {
+          els.qrScanResultMsg.className = 'qr-status-msg error';
+          els.qrScanResultMsg.textContent = 'تعذر تحميل مكتبة QR. تأكد من الاتصال بالإنترنت وأعد تحميل الصفحة.';
+          els.qrScanResultMsg.classList.remove('hidden');
+        }
       }
     });
   }
@@ -2101,6 +2127,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         html5QrCodeScanner.stop().catch(() => {});
       } catch(e) {}
+      html5QrCodeScanner = null;
     }
   }
 

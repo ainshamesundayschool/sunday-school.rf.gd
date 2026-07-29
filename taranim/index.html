@@ -270,29 +270,31 @@
             <span id="obs-ws-status-badge" class="badge-status disconnected"></span>
           </button>
 
-          <div class="dropdown-popover hidden" id="popover-obs-ws">
+          <div class="dropdown-popover hidden" id="popover-obs-ws" style="min-width:310px;">
             <div class="popover-title">
               <i class="fa-solid fa-tower-broadcast"></i> الاتصال بـ OBS Studio
               <span id="obs-connection-status-text" class="status-pill offline">غير متصل</span>
             </div>
 
+            <!-- HTTPS WARNING BANNER -->
+            <div id="obs-https-warning" class="qr-status-msg error hidden" style="margin-top:0; margin-bottom:0.4rem; font-size:0.75rem; text-align:right; border-radius:8px; padding:8px 10px;"></div>
+
+            <!-- QR SCAN BUTTON -->
             <div class="popover-row" style="flex-wrap:wrap; gap:6px;">
-              <button id="btn-scan-qr" class="btn btn-sm btn-secondary" style="width:100%;">
-                <i class="fa-solid fa-qrcode"></i> مسح QR Code للربط التلقائي
+              <button id="btn-scan-qr" class="btn btn-sm btn-primary" style="width:100%;">
+                <i class="fa-solid fa-qrcode"></i> مسح QR Code للربط الفوري
               </button>
-              <a href="sunday_school_taranim_obs.py" download="sunday_school_taranim_obs.py" class="btn btn-sm btn-secondary" style="width:100%; text-decoration:none; text-align:center; display:block;">
-                <i class="fa-brands fa-python"></i> تحميل سكربت OBS الأصلي (.py)
-              </a>
+            </div>
+
+            <!-- MANUAL FIELDS -->
+            <div class="popover-row">
+              <label><i class="fa-solid fa-network-wired"></i> عنوان IP الجهاز:</label>
+              <input type="text" id="obs-ws-ip" class="control-input" placeholder="192.168.x.x أو localhost" value="192.168.1.9">
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-network-wired"></i> العنوان / IP:</label>
-              <input type="text" id="obs-ws-ip" class="control-input" placeholder="192.168.1.9 أو localhost" value="192.168.1.9">
-            </div>
-
-            <div class="popover-row">
-              <label><i class="fa-solid fa-hashtag"></i> المنفذ (Port):</label>
-              <input type="number" id="obs-ws-port" class="control-input" placeholder="4455" value="4455">
+              <label><i class="fa-solid fa-hashtag"></i> Port:</label>
+              <input type="number" id="obs-ws-port" class="control-input" placeholder="4455" value="4455" style="max-width:90px;">
             </div>
 
             <div class="popover-row">
@@ -302,14 +304,19 @@
 
             <div class="popover-actions">
               <button id="btn-connect-obs-ws" class="btn btn-sm btn-primary">
-                <i class="fa-solid fa-plug"></i> اتصال مباشر
+                <i class="fa-solid fa-plug"></i> اتصال
               </button>
               <button id="btn-disconnect-obs-ws" class="btn btn-sm btn-danger hidden">
                 <i class="fa-solid fa-power-off"></i> قطع الاتصال
               </button>
             </div>
 
-            <div id="obs-https-warning" class="qr-status-msg error hidden" style="margin-top:0.4rem; font-size:0.75rem; text-align:right;"></div>
+            <!-- HTTP FALLBACK LINK -->
+            <div id="obs-http-fallback" class="hidden" style="margin-top:6px; text-align:center; font-size:0.75rem;">
+              <a id="obs-http-link" href="" target="_blank" rel="noopener" style="color:#60a5fa; font-weight:700; text-decoration:underline;">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> افتح عبر HTTP للاتصال بـ OBS
+              </a>
+            </div>
           </div>
         </div>
 
@@ -484,6 +491,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=20260729_v15"></script>
+  <script src="app.js?v=20260729_v16"></script>
 </body>
 </html>
