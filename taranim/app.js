@@ -505,6 +505,17 @@ document.addEventListener('DOMContentLoaded', () => {
     btnMenuCast: document.getElementById('btn-menu-cast'),
     popoverCast: document.getElementById('popover-cast'),
 
+    btnMenuInstall: document.getElementById('btn-menu-install'),
+    popoverInstall: document.getElementById('popover-install'),
+    btnDropdownPrecache: document.getElementById('btn-dropdown-precache'),
+    popoverProgressWrapper: document.getElementById('popover-progress-wrapper'),
+    popoverProgressFill: document.getElementById('popover-progress-fill'),
+    popoverProgressText: document.getElementById('popover-progress-text'),
+    btnDropdownStartOffline: document.getElementById('btn-dropdown-start-offline'),
+    btnDropdownPwaInstall: document.getElementById('btn-dropdown-pwa-install'),
+    dropdownPwaInstallRow: document.getElementById('dropdown-pwa-install-row'),
+    popoverOfflineStatusText: document.getElementById('popover-offline-status-text'),
+
     btnCreditsInfo: document.getElementById('btn-credits-info'),
     modalCredits: document.getElementById('modal-credits'),
     btnCloseCredits: document.getElementById('btn-close-credits'),
@@ -590,6 +601,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (els.popoverObsWs && els.popoverObsWs !== exceptPopover) {
       els.popoverObsWs.classList.add('hidden');
+    }
+    if (els.popoverInstall && els.popoverInstall !== exceptPopover) {
+      els.popoverInstall.classList.add('hidden');
     }
   }
 
@@ -696,6 +710,106 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
+    if (els.btnMenuInstall && els.popoverInstall) {
+      els.btnMenuInstall.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const willShow = els.popoverInstall.classList.contains('hidden');
+        closeAllPopovers(els.popoverInstall);
+        if (willShow) {
+          els.popoverInstall.classList.remove('hidden');
+        } else {
+          els.popoverInstall.classList.add('hidden');
+        }
+      });
+
+      els.popoverInstall.addEventListener('click', (e) => e.stopPropagation());
+    }
+
+    if (els.btnDropdownPrecache) {
+      els.btnDropdownPrecache.addEventListener('click', async () => {
+        els.btnDropdownPrecache.disabled = true;
+        if (els.popoverProgressWrapper) els.popoverProgressWrapper.style.display = 'block';
+
+        const ASSETS_TO_CACHE = [
+          './',
+          './index.html',
+          './obs.html',
+          './install.html',
+          './app.js',
+          './style.css',
+          './logo.png',
+          './manifest.webmanifest',
+          './songs_catalog.json',
+          './arabic_dictionary.json',
+          './playlists.json'
+        ];
+
+        let loadedCount = 0;
+        const total = ASSETS_TO_CACHE.length;
+
+        try {
+          const cache = await caches.open('sunday_school_taranim_v20260729_v16');
+
+          for (let i = 0; i < total; i++) {
+            const url = ASSETS_TO_CACHE[i];
+            if (els.popoverProgressText) {
+              els.popoverProgressText.textContent = `تحميل: ${url.replace('./', '')}...`;
+            }
+            try {
+              const res = await fetch(url, { cache: 'no-cache' });
+              if (res && res.ok) {
+                await cache.put(url, res);
+              }
+            } catch (err) {}
+
+            loadedCount++;
+            const pct = Math.round((loadedCount / total) * 100);
+            if (els.popoverProgressFill) els.popoverProgressFill.style.width = pct + '%';
+            if (els.popoverProgressText) {
+              els.popoverProgressText.textContent = `تم حفظ ${loadedCount} من ${total} ملفات (${pct}%)`;
+            }
+          }
+
+          if (els.btnDropdownPrecache) els.btnDropdownPrecache.innerHTML = '<i class="fa-solid fa-circle-check"></i> تم حفظ جميع البيانات أوفلاين';
+          if (els.popoverOfflineStatusText) els.popoverOfflineStatusText.textContent = '🟢 تم حفظ الكتالوج والبيانات بالكامل محلياً';
+        } catch (err) {
+          if (els.btnDropdownPrecache) {
+            els.btnDropdownPrecache.disabled = false;
+            els.btnDropdownPrecache.textContent = 'إعادة المحاولة';
+          }
+        }
+      });
+    }
+
+    if (els.btnDropdownStartOffline) {
+      els.btnDropdownStartOffline.addEventListener('click', () => {
+        if (els.popoverInstall) {
+          els.popoverInstall.classList.add('hidden');
+        }
+        showToastNotification('تطبيق الترانيم جاهز للعمل أوفلاين بنجاح 🟢');
+      });
+    }
+
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      if (els.dropdownPwaInstallRow) els.dropdownPwaInstallRow.classList.remove('hidden');
+    });
+
+    if (els.btnDropdownPwaInstall) {
+      els.btnDropdownPwaInstall.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          if (els.dropdownPwaInstallRow) els.dropdownPwaInstallRow.classList.add('hidden');
+          showToastNotification('تم تثبيت تطبيق الترانيم بنجاح! 🎉');
+        }
+        deferredPrompt = null;
+      });
+    }
+
     document.addEventListener('click', (e) => {
       if (els.popoverStyle && !els.popoverStyle.contains(e.target) && e.target !== els.btnMenuStyle && !els.btnMenuStyle.contains(e.target)) {
         els.popoverStyle.classList.add('hidden');
@@ -705,6 +819,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (els.popoverObsWs && !els.popoverObsWs.contains(e.target) && e.target !== els.btnMenuObsWs && !els.btnMenuObsWs.contains(e.target)) {
         els.popoverObsWs.classList.add('hidden');
+      }
+      if (els.popoverInstall && !els.popoverInstall.contains(e.target) && e.target !== els.btnMenuInstall && !els.btnMenuInstall.contains(e.target)) {
+        els.popoverInstall.classList.add('hidden');
       }
       if (els.searchDropdown && !els.searchDropdown.contains(e.target) && e.target !== els.intelligentSearch) {
         els.searchDropdown.classList.add('hidden');

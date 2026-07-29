@@ -34,10 +34,53 @@
       <!-- RIGHT SIDE: DROPDOWN MENU ICONS -->
       <div class="top-options">
 
-        <!-- BUTTON / LINK: INSTALL & OFFLINE HUB -->
-        <a href="install.html" class="icon-menu-btn" id="btn-install-offline" title="تثبيت التطبيق والعمل بدون إنترنت">
-          <i class="fa-solid fa-download"></i>
-        </a>
+        <!-- DROPDOWN: INSTALL & OFFLINE HUB -->
+        <div class="dropdown-wrapper">
+          <button class="icon-menu-btn" id="btn-menu-install" title="التجهيز والعمل بدون إنترنت (أوفلاين)">
+            <i class="fa-solid fa-cloud-arrow-down"></i>
+          </button>
+
+          <div class="dropdown-popover hidden" id="popover-install" style="min-width:320px;">
+            <div class="popover-title">
+              <i class="fa-solid fa-wifi"></i> تجهيز العمل أوفلاين (بدون إنترنت)
+            </div>
+
+            <!-- STEP 1: PRECACHE DATA -->
+            <div class="popover-row" style="flex-direction:column; align-items:stretch; gap:6px;">
+              <label style="font-weight:700; font-size:0.85rem;">
+                <i class="fa-solid fa-cloud-arrow-down"></i> الخطوة 1: تنزيل وحفظ البيانات محلياً
+              </label>
+              <button id="btn-dropdown-precache" class="btn btn-sm btn-secondary" style="width:100%;">
+                <i class="fa-solid fa-database"></i> تنزيل جميع الأغاني والمعجم الآن
+              </button>
+              
+              <div id="popover-progress-wrapper" style="display:none; margin-top:4px;">
+                <div style="width:100%; height:8px; background:rgba(0,0,0,0.15); border-radius:4px; overflow:hidden;">
+                  <div id="popover-progress-fill" style="width:0%; height:100%; background:linear-gradient(90deg, #10b981, #34d399); transition:width 0.25s;"></div>
+                </div>
+                <div id="popover-progress-text" style="font-size:0.75rem; color:rgba(255,255,255,0.7); margin-top:4px; text-align:center;"></div>
+              </div>
+            </div>
+
+            <!-- OPTIONAL STEP: PWA INSTALLATION BUTTON -->
+            <div class="popover-row hidden" id="dropdown-pwa-install-row" style="margin-top:0.2rem;">
+              <button id="btn-dropdown-pwa-install" class="btn btn-sm btn-secondary" style="width:100%;">
+                <i class="fa-solid fa-mobile-screen-button"></i> تثبيت تطبيق الترانيم (PWA)
+              </button>
+            </div>
+
+            <!-- STEP 2: START / DONE -->
+            <div class="popover-row" style="margin-top:0.4rem;">
+              <button id="btn-dropdown-start-offline" class="btn btn-sm btn-primary" style="width:100%;">
+                <i class="fa-solid fa-play"></i> الخطوة 2: بدء الاستخدام
+              </button>
+            </div>
+            
+            <div id="popover-offline-status-text" style="font-size:0.75rem; text-align:center; color:#10b981; margin-top:6px; font-weight:600;">
+              🟢 جاهز للعمل أوفلاين مباشرة
+            </div>
+          </div>
+        </div>
         
         <!-- DROPDOWN 1: STYLES & FONTS -->
         <div class="dropdown-wrapper">
