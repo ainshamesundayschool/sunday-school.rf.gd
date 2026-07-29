@@ -79,8 +79,58 @@
             </div>
 
             <div class="popover-row">
+              <label><i class="fa-solid fa-bold"></i> سُمْك الخط:</label>
+              <select id="obs-font-weight-select" class="control-select">
+                <option value="400">عادي (Regular 400)</option>
+                <option value="600">شبه عريض (Semi-Bold 600)</option>
+                <option value="700">عريض (Bold 700)</option>
+                <option value="800" selected>عريض جداً (Extra-Bold 800)</option>
+                <option value="900">أسود (Black 900)</option>
+              </select>
+            </div>
+
+            <div class="popover-row">
+              <label><i class="fa-solid fa-align-center"></i> المحاذاة والتنسيق:</label>
+              <div class="btn-group-row" style="display:flex; gap:4px;">
+                <button type="button" class="btn btn-sm btn-secondary active" id="btn-align-center" title="محاذاة للوسط"><i class="fa-solid fa-align-center"></i></button>
+                <button type="button" class="btn btn-sm btn-secondary" id="btn-align-right" title="محاذاة لليمين"><i class="fa-solid fa-align-right"></i></button>
+                <button type="button" class="btn btn-sm btn-secondary" id="btn-align-left" title="محاذاة لليسار"><i class="fa-solid fa-align-left"></i></button>
+                <span style="border-right:1px solid rgba(255,255,255,0.15); margin:0 2px;"></span>
+                <button type="button" class="btn btn-sm btn-secondary" id="btn-toggle-bold" title="عريض B"><i class="fa-solid fa-bold"></i></button>
+                <button type="button" class="btn btn-sm btn-secondary" id="btn-toggle-italic" title="مائل I"><i class="fa-solid fa-italic"></i></button>
+                <button type="button" class="btn btn-sm btn-secondary" id="btn-toggle-underline" title="تحته خط U"><i class="fa-solid fa-underline"></i></button>
+              </div>
+            </div>
+
+            <div class="popover-row">
+              <label><i class="fa-solid fa-arrows-left-right"></i> تباعد الحروف:</label>
+              <input type="range" id="obs-letter-spacing-range" min="-2" max="15" value="0" class="slider-input">
+            </div>
+
+            <div class="popover-row">
+              <label><i class="fa-solid fa-arrows-up-down"></i> ارتفاع السطر:</label>
+              <input type="range" id="obs-line-height-range" min="1.0" max="2.5" step="0.1" value="1.5" class="slider-input">
+            </div>
+
+            <div class="popover-row">
               <label><i class="fa-solid fa-sun"></i> الظل:</label>
               <input type="range" id="obs-shadow-range" min="0" max="40" value="0" class="slider-input">
+            </div>
+
+            <div class="popover-row">
+              <label><i class="fa-solid fa-square"></i> لون خلفية الصندوق:</label>
+              <div class="compact-control-group">
+                <input type="color" id="obs-box-bg-color" value="#000000" class="color-picker-input">
+                <input type="range" id="obs-box-opacity-range" min="0" max="100" value="0" class="slider-input" title="شفافية الخلفية">
+              </div>
+            </div>
+
+            <div class="popover-row">
+              <label><i class="fa-solid fa-vector-square"></i> حواف الحاوية:</label>
+              <div class="compact-control-group">
+                <input type="range" id="obs-box-radius-range" min="0" max="40" value="12" class="slider-input" title="استدوار الحواف">
+                <input type="range" id="obs-box-padding-range" min="0" max="50" value="20" class="slider-input" title="الهامش الداخلي">
+              </div>
             </div>
 
             <div class="popover-row">

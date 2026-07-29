@@ -454,11 +454,21 @@ document.addEventListener('DOMContentLoaded', () => {
     francoAutoTranslate: savedSettings.francoAutoTranslate !== undefined ? savedSettings.francoAutoTranslate : true,
     textAnimation: savedSettings.textAnimation || "slide",
     
-    styleOptions: savedSettings.styleOptions || {
-      textColor: "#ffffff",
-      strokeWidth: 0,
-      strokeColor: "#000000",
-      shadowBlur: 0
+    styleOptions: {
+      textColor: savedSettings.styleOptions?.textColor || "#ffffff",
+      strokeWidth: savedSettings.styleOptions?.strokeWidth || 0,
+      strokeColor: savedSettings.styleOptions?.strokeColor || "#000000",
+      shadowBlur: savedSettings.styleOptions?.shadowBlur || 0,
+      fontWeight: savedSettings.styleOptions?.fontWeight || "800",
+      fontStyle: savedSettings.styleOptions?.fontStyle || "normal",
+      textDecoration: savedSettings.styleOptions?.textDecoration || "none",
+      textAlign: savedSettings.styleOptions?.textAlign || "center",
+      letterSpacing: savedSettings.styleOptions?.letterSpacing || 0,
+      lineHeight: savedSettings.styleOptions?.lineHeight || 1.5,
+      boxBgColor: savedSettings.styleOptions?.boxBgColor || "#000000",
+      boxOpacity: savedSettings.styleOptions?.boxOpacity || 0,
+      boxRadius: savedSettings.styleOptions?.boxRadius || 12,
+      boxPadding: savedSettings.styleOptions?.boxPadding || 20
     },
 
     dragPivot: getLatestSavedPivot()
@@ -514,6 +524,20 @@ document.addEventListener('DOMContentLoaded', () => {
     obsStrokeColor: document.getElementById('obs-stroke-color'),
     obsShadowRange: document.getElementById('obs-shadow-range'),
     obsTextAnimSelect: document.getElementById('obs-text-anim-select'),
+
+    obsFontWeightSelect: document.getElementById('obs-font-weight-select'),
+    btnAlignCenter: document.getElementById('btn-align-center'),
+    btnAlignRight: document.getElementById('btn-align-right'),
+    btnAlignLeft: document.getElementById('btn-align-left'),
+    btnToggleBold: document.getElementById('btn-toggle-bold'),
+    btnToggleItalic: document.getElementById('btn-toggle-italic'),
+    btnToggleUnderline: document.getElementById('btn-toggle-underline'),
+    obsLetterSpacingRange: document.getElementById('obs-letter-spacing-range'),
+    obsLineHeightRange: document.getElementById('obs-line-height-range'),
+    obsBoxBgColor: document.getElementById('obs-box-bg-color'),
+    obsBoxOpacityRange: document.getElementById('obs-box-opacity-range'),
+    obsBoxRadiusRange: document.getElementById('obs-box-radius-range'),
+    obsBoxPaddingRange: document.getElementById('obs-box-padding-range'),
 
     presentationLinesContainer: document.getElementById('presentation-lines-container'),
     recentSessionContainer: document.getElementById('recent-session-container'),
@@ -601,6 +625,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.obsStrokeRange) els.obsStrokeRange.value = state.styleOptions.strokeWidth;
     if (els.obsStrokeColor) els.obsStrokeColor.value = state.styleOptions.strokeColor;
     if (els.obsShadowRange) els.obsShadowRange.value = state.styleOptions.shadowBlur;
+
+    if (els.obsFontWeightSelect) els.obsFontWeightSelect.value = state.styleOptions.fontWeight;
+    if (els.obsLetterSpacingRange) els.obsLetterSpacingRange.value = state.styleOptions.letterSpacing;
+    if (els.obsLineHeightRange) els.obsLineHeightRange.value = state.styleOptions.lineHeight;
+    if (els.obsBoxBgColor) els.obsBoxBgColor.value = state.styleOptions.boxBgColor;
+    if (els.obsBoxOpacityRange) els.obsBoxOpacityRange.value = state.styleOptions.boxOpacity;
+    if (els.obsBoxRadiusRange) els.obsBoxRadiusRange.value = state.styleOptions.boxRadius;
+    if (els.obsBoxPaddingRange) els.obsBoxPaddingRange.value = state.styleOptions.boxPadding;
+
+    if (els.btnToggleBold) els.btnToggleBold.classList.toggle('active', state.styleOptions.fontStyle === 'bold');
+    if (els.btnToggleItalic) els.btnToggleItalic.classList.toggle('active', state.styleOptions.fontStyle === 'italic');
+    if (els.btnToggleUnderline) els.btnToggleUnderline.classList.toggle('active', state.styleOptions.textDecoration === 'underline');
+
+    if (els.btnAlignCenter) els.btnAlignCenter.classList.toggle('active', state.styleOptions.textAlign === 'center');
+    if (els.btnAlignRight) els.btnAlignRight.classList.toggle('active', state.styleOptions.textAlign === 'right');
+    if (els.btnAlignLeft) els.btnAlignLeft.classList.toggle('active', state.styleOptions.textAlign === 'left');
 
     if (els.obsOverlay) els.obsOverlay.setAttribute('data-chroma', state.chromaKey);
   }
@@ -777,6 +817,98 @@ document.addEventListener('DOMContentLoaded', () => {
       saveUserSettings();
       syncLiveState();
     });
+
+    if (els.obsFontWeightSelect) {
+      els.obsFontWeightSelect.addEventListener('change', (e) => {
+        state.styleOptions.fontWeight = e.target.value;
+        saveUserSettings();
+        syncLiveState();
+      });
+    }
+
+    if (els.obsLetterSpacingRange) {
+      els.obsLetterSpacingRange.addEventListener('input', (e) => {
+        state.styleOptions.letterSpacing = parseInt(e.target.value);
+        saveUserSettings();
+        syncLiveState();
+      });
+    }
+
+    if (els.obsLineHeightRange) {
+      els.obsLineHeightRange.addEventListener('input', (e) => {
+        state.styleOptions.lineHeight = parseFloat(e.target.value);
+        saveUserSettings();
+        syncLiveState();
+      });
+    }
+
+    if (els.obsBoxBgColor || els.obsBoxOpacityRange) {
+      const updateBoxBg = () => {
+        state.styleOptions.boxBgColor = els.obsBoxBgColor.value;
+        state.styleOptions.boxOpacity = parseInt(els.obsBoxOpacityRange.value);
+        saveUserSettings();
+        syncLiveState();
+      };
+      if (els.obsBoxBgColor) els.obsBoxBgColor.addEventListener('input', updateBoxBg);
+      if (els.obsBoxOpacityRange) els.obsBoxOpacityRange.addEventListener('input', updateBoxBg);
+    }
+
+    if (els.obsBoxRadiusRange) {
+      els.obsBoxRadiusRange.addEventListener('input', (e) => {
+        state.styleOptions.boxRadius = parseInt(e.target.value);
+        saveUserSettings();
+        syncLiveState();
+      });
+    }
+
+    if (els.obsBoxPaddingRange) {
+      els.obsBoxPaddingRange.addEventListener('input', (e) => {
+        state.styleOptions.boxPadding = parseInt(e.target.value);
+        saveUserSettings();
+        syncLiveState();
+      });
+    }
+
+    if (els.btnAlignCenter && els.btnAlignRight && els.btnAlignLeft) {
+      const setAlign = (align) => {
+        state.styleOptions.textAlign = align;
+        els.btnAlignCenter.classList.toggle('active', align === 'center');
+        els.btnAlignRight.classList.toggle('active', align === 'right');
+        els.btnAlignLeft.classList.toggle('active', align === 'left');
+        saveUserSettings();
+        syncLiveState();
+      };
+      els.btnAlignCenter.addEventListener('click', () => setAlign('center'));
+      els.btnAlignRight.addEventListener('click', () => setAlign('right'));
+      els.btnAlignLeft.addEventListener('click', () => setAlign('left'));
+    }
+
+    if (els.btnToggleBold) {
+      els.btnToggleBold.addEventListener('click', () => {
+        state.styleOptions.fontStyle = state.styleOptions.fontStyle === 'bold' ? 'normal' : 'bold';
+        els.btnToggleBold.classList.toggle('active', state.styleOptions.fontStyle === 'bold');
+        saveUserSettings();
+        syncLiveState();
+      });
+    }
+
+    if (els.btnToggleItalic) {
+      els.btnToggleItalic.addEventListener('click', () => {
+        state.styleOptions.fontStyle = state.styleOptions.fontStyle === 'italic' ? 'normal' : 'italic';
+        els.btnToggleItalic.classList.toggle('active', state.styleOptions.fontStyle === 'italic');
+        saveUserSettings();
+        syncLiveState();
+      });
+    }
+
+    if (els.btnToggleUnderline) {
+      els.btnToggleUnderline.addEventListener('click', () => {
+        state.styleOptions.textDecoration = state.styleOptions.textDecoration === 'underline' ? 'none' : 'underline';
+        els.btnToggleUnderline.classList.toggle('active', state.styleOptions.textDecoration === 'underline');
+        saveUserSettings();
+        syncLiveState();
+      });
+    }
 
     els.btnOpenTvWindow.addEventListener('click', () => {
       launchPresenterOnSelectedScreen();
@@ -1520,7 +1652,17 @@ document.addEventListener('DOMContentLoaded', () => {
       textColor: state.styleOptions.textColor,
       strokeWidth: state.styleOptions.strokeWidth,
       strokeColor: state.styleOptions.strokeColor,
-      shadowBlur: state.styleOptions.shadowBlur
+      shadowBlur: state.styleOptions.shadowBlur,
+      fontWeight: state.styleOptions.fontWeight,
+      fontStyle: state.styleOptions.fontStyle,
+      textDecoration: state.styleOptions.textDecoration,
+      textAlign: state.styleOptions.textAlign,
+      letterSpacing: state.styleOptions.letterSpacing,
+      lineHeight: state.styleOptions.lineHeight,
+      boxBgColor: state.styleOptions.boxBgColor,
+      boxOpacity: state.styleOptions.boxOpacity,
+      boxRadius: state.styleOptions.boxRadius,
+      boxPadding: state.styleOptions.boxPadding
     };
 
     // ONLY ATTACH POSITION IF IT WAS EXPLICITLY DRAGGED/MODIFIED
@@ -1541,6 +1683,26 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.obsLineText) {
       els.obsLineText.style.fontFamily = state.selectedFont;
       els.obsLineText.style.color = state.styleOptions.textColor;
+      els.obsLineText.style.fontWeight = state.styleOptions.fontWeight;
+      els.obsLineText.style.fontStyle = state.styleOptions.fontStyle === 'bold' ? 'normal' : state.styleOptions.fontStyle;
+      els.obsLineText.style.textDecoration = state.styleOptions.textDecoration;
+      els.obsLineText.style.textAlign = state.styleOptions.textAlign;
+      els.obsLineText.style.letterSpacing = `${state.styleOptions.letterSpacing}px`;
+      els.obsLineText.style.lineHeight = state.styleOptions.lineHeight;
+
+      if (state.styleOptions.boxOpacity > 0) {
+        const hex = state.styleOptions.boxBgColor || '#000000';
+        const r = parseInt(hex.slice(1, 3), 16) || 0;
+        const g = parseInt(hex.slice(3, 5), 16) || 0;
+        const b = parseInt(hex.slice(5, 7), 16) || 0;
+        const alpha = state.styleOptions.boxOpacity / 100;
+        els.obsLowerThirdBox.style.background = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      } else {
+        els.obsLowerThirdBox.style.background = 'transparent';
+      }
+
+      els.obsLowerThirdBox.style.borderRadius = `${state.styleOptions.boxRadius || 12}px`;
+      els.obsLowerThirdBox.style.padding = `${state.styleOptions.boxPadding || 20}px`;
 
       let size = state.fontSize || 54;
       els.obsLineText.style.fontSize = `${size}px`;
