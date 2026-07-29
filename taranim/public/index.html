@@ -1,34 +1,30 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl" data-theme="light">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sunday School Taranim | لوحة تحكم العرض والترنيم</title>
-
+  
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&family=Cairo:wght@400;600;700&family=Almarai:wght@400;700&family=Tajawal:wght@400;700&display=swap"
-    rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&family=Cairo:wght@400;600;700&family=Almarai:wght@400;700&family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+  
   <!-- Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+  
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
   <div id="app" class="app-container">
-
+    
     <!-- TOP NAVIGATION BAR -->
     <header class="top-nav">
-
+      
       <!-- RIGHT SIDE: DROPDOWN MENU ICONS -->
       <div class="top-options">
-
+        
         <!-- DROPDOWN 1: STYLES & FONTS -->
         <div class="dropdown-wrapper">
           <button class="icon-menu-btn" id="btn-menu-style" title="إعدادات الخطوط والألوان">
@@ -137,14 +133,14 @@
 
       <!-- LEFT SIDE LOGO -->
       <div class="brand-left-logo">
-        <img src="logo.png" alt="Sunday School Logo" class="brand-logo-img">
+        <img src="/logo.png" alt="Sunday School Logo" class="brand-logo-img">
       </div>
 
     </header>
 
     <!-- CENTERED INTELLIGENT SEARCH HERO -->
     <section class="search-hero">
-
+      
       <!-- FRANCO TRANSLATION TOGGLE TOOLBAR -->
       <div class="search-toolbar">
         <label class="toggle-switch" title="ترجمة الفرانكو تلقائياً إلى العربية">
@@ -156,8 +152,7 @@
 
       <div class="centered-search-box">
         <i class="fa-solid fa-magnifying-glass search-icon-glow"></i>
-        <input type="text" id="intelligent-search" placeholder="ابحث باسم الترنيمة أو الشاهد الكتابي..." autofocus
-          autocomplete="off">
+        <input type="text" id="intelligent-search" placeholder="ابحث باسم الترنيمة أو الشاهد الكتابي..." autofocus autocomplete="off">
         <button id="clear-search-btn" class="clear-btn hidden"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
@@ -173,12 +168,11 @@
 
     <!-- DUAL-COLUMN DASHBOARD LAYOUT (RIGHT = RECENT SESSION, LEFT = PRESENTATION LINES) -->
     <main class="dashboard-halves">
-
+      
       <!-- RIGHT HALF IN RTL: SESSION RECENT OPENED LIST -->
       <section class="half-panel recent-session-panel">
         <div class="panel-bar">
-          <span class="panel-title"><i class="fa-solid fa-clock-rotate-left"></i> الترانيم والأصحاحات المفتوحة في هذه
-            الجلسة</span>
+          <span class="panel-title"><i class="fa-solid fa-clock-rotate-left"></i> الترانيم والأصحاحات المفتوحة في هذه الجلسة</span>
           <span id="recent-count" class="badge-count">0</span>
         </div>
 
@@ -192,13 +186,10 @@
         <div class="panel-bar">
           <span class="panel-title"><i class="fa-solid fa-display"></i> كلمات العرض الحالي</span>
           <div class="panel-controls">
-            <button id="btn-prev-line" class="mini-btn-flat" title="السطر السابق (Right/Up)"><i
-                class="fa-solid fa-chevron-right"></i></button>
+            <button id="btn-prev-line" class="mini-btn-flat" title="السطر السابق (Right/Up)"><i class="fa-solid fa-chevron-right"></i></button>
             <span id="current-line-counter" class="counter-text">0 / 0</span>
-            <button id="btn-next-line" class="mini-btn-flat" title="السطر التالي (Left/Down/Space)"><i
-                class="fa-solid fa-chevron-left"></i></button>
-            <button id="btn-toggle-blank" class="mini-btn-flat" title="إخفاء النص (B)"><i
-                class="fa-solid fa-eye-slash"></i></button>
+            <button id="btn-next-line" class="mini-btn-flat" title="السطر التالي (Left/Down/Space)"><i class="fa-solid fa-chevron-left"></i></button>
+            <button id="btn-toggle-blank" class="mini-btn-flat" title="إخفاء النص (B)"><i class="fa-solid fa-eye-slash"></i></button>
           </div>
         </div>
 
@@ -226,5 +217,4 @@
 
   <script src="app.js"></script>
 </body>
-
 </html>

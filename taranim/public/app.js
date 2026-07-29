@@ -228,7 +228,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Handle Window Resize for Auto Text Safe-Area Fitting
     window.addEventListener('resize', () => {
       syncLiveState();
     });
@@ -323,7 +322,6 @@ document.addEventListener('DOMContentLoaded', () => {
       syncLiveState();
     });
 
-    // ABSOLUTELY ZERO POPUP WINDOWS - ALWAYS FULLSCREEN PRESENTATION DIRECTLY ON CURRENT PAGE!
     els.btnOpenTvWindow.addEventListener('click', () => {
       launchPresenterOnSelectedScreen();
     });
@@ -451,19 +449,52 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderFallbackScreenOptions() {
     const select = els.connectedScreensSelect;
     select.innerHTML = `
-      <option value="primary">الشاشة الحالية (العرض ملء الشاشة)</option>
+      <option value="primary">الشاشة الحالية (بدون فتح نافذة جديدة)</option>
+      <option value="external">الشاشة الخارجية الثانية (TV / البروجيكتور)</option>
     `;
   }
 
-  // ALWAYS SWITCH CURRENT PAGE TO FULLSCREEN PRESENTATION DIRECTLY (ABSOLUTELY ZERO POPUP WINDOWS)
+  // DUAL MODE: CURRENT SCREEN = FULLSCREEN ON MAIN WINDOW; EXTERNAL SCREEN = OPEN TV WINDOW ON SECONDARY DISPLAY COORDS!
   async function launchPresenterOnSelectedScreen() {
-    if (els.obsOverlay) {
-      els.obsOverlay.classList.remove('hidden');
-      const docEl = document.documentElement || els.obsOverlay;
-      if (docEl.requestFullscreen) {
-        docEl.requestFullscreen().catch(() => {});
+    const select = els.connectedScreensSelect;
+    const val = select.value;
+
+    let targetScreen = null;
+    let isExternalScreen = false;
+
+    if (screenDetails && screenDetails.screens[parseInt(val)]) {
+      targetScreen = screenDetails.screens[parseInt(val)];
+      if (!targetScreen.isPrimary) {
+        isExternalScreen = true;
+      }
+    } else if (val === 'external') {
+      isExternalScreen = true;
+    }
+
+    if (!isExternalScreen) {
+      // PRIMARY / CURRENT DISPLAY: Switch current page to Fullscreen directly (no popup)
+      if (els.obsOverlay) {
+        els.obsOverlay.classList.remove('hidden');
+        const docEl = document.documentElement || els.obsOverlay;
+        if (docEl.requestFullscreen) {
+          docEl.requestFullscreen().catch(() => {});
+        }
+      }
+    } else {
+      // EXTERNAL SECONDARY DISPLAY: Open window on target external screen coordinates!
+      let windowFeatures = 'width=1920,height=1080,menubar=no,toolbar=no,location=no,status=no';
+      if (targetScreen) {
+        windowFeatures = `left=${targetScreen.availLeft},top=${targetScreen.availTop},width=${targetScreen.availWidth},height=${targetScreen.availHeight},menubar=no,toolbar=no,location=no,status=no`;
+      } else {
+        windowFeatures = `left=${window.screen.width},top=0,width=${window.screen.width},height=${window.screen.height},menubar=no,toolbar=no,location=no,status=no`;
+      }
+
+      const popup = window.open('obs.html?autofs=true', 'SundaySchoolPresenterWindow', windowFeatures);
+      if (popup) {
+        popup.focus();
       }
     }
+
     syncLiveState();
   }
 
@@ -873,7 +904,6 @@ document.addEventListener('DOMContentLoaded', () => {
       els.obsLineText.style.color = state.styleOptions.textColor;
       els.obsLineText.textContent = text;
       
-      // AUTO SAFE-AREA TEXT FITTING MATH (90vw x 85vh)
       let size = state.fontSize || 54;
       els.obsLineText.style.fontSize = `${size}px`;
 
