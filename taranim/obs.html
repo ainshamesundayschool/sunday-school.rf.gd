@@ -253,7 +253,7 @@
         if (guideV) guideV.classList.add('hidden');
         if (guideH) guideH.classList.add('hidden');
 
-        // PERSIST NEW DRAG POSITION TO SERVER
+        // PERSIST NEW DRAG POSITION TO LOCAL STORAGE & SERVER
         const currentLiveRaw = localStorage.getItem('sunday_school_taranim_live_presentation');
         let payload = {};
         if (currentLiveRaw) {
@@ -261,6 +261,7 @@
         }
         payload.pos = currentPivot;
         localStorage.setItem('sunday_school_taranim_live_presentation', JSON.stringify(payload));
+        localStorage.setItem('sunday_school_taranim_drag_pivot', JSON.stringify(currentPivot));
 
         fetch('api.php?action=live', {
           method: 'POST',
@@ -334,6 +335,7 @@
         `;
       }
 
+      // ONLY UPDATE POSITION IF EXPLICITLY SENT IN PAYLOAD
       if (data.pos && !isDragging) {
         let x = data.pos.xPct;
         let y = data.pos.yPct;
@@ -369,7 +371,6 @@
       try { applyState(JSON.parse(initialLiveRaw), 'local'); } catch(err) {}
     }
 
-    // ULTRA HIGH-SPEED 50MS POLING FOR ZERO-DELAY WI-FI & LOCAL NETWORK SYNC
     async function fetchLiveHTTP() {
       if (isDragging || (Date.now() - lastDragTime < 6000)) return;
       try {

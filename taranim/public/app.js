@@ -728,7 +728,7 @@ document.addEventListener('DOMContentLoaded', () => {
       startX = e.clientX;
       startY = e.clientY;
 
-      syncLiveState();
+      syncLiveState(true); // Explicit position change
     });
 
     window.addEventListener('mouseup', () => {
@@ -1142,10 +1142,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function syncLiveState() {
-    // ALWAYS READ THE LATEST PERMANENT DRAG PIVOT BEFORE SENDING PAYLOAD ON SLIDE SWITCH
-    state.dragPivot = getLatestSavedPivot();
-
+  function syncLiveState(isExplicitPositionUpdate = false) {
     const currentLine = state.presentationLines[state.currentLineIndex];
     const text = currentLine ? currentLine.text : '';
 
@@ -1160,9 +1157,13 @@ document.addEventListener('DOMContentLoaded', () => {
       textColor: state.styleOptions.textColor,
       strokeWidth: state.styleOptions.strokeWidth,
       strokeColor: state.styleOptions.strokeColor,
-      shadowBlur: state.styleOptions.shadowBlur,
-      pos: state.dragPivot
+      shadowBlur: state.styleOptions.shadowBlur
     };
+
+    // ONLY ATTACH POSITION IF IT WAS EXPLICITLY DRAGGED/MODIFIED
+    if (isExplicitPositionUpdate) {
+      payload.pos = state.dragPivot;
+    }
 
     broadcastChannel.postMessage(payload);
     localStorage.setItem('sunday_school_taranim_live_presentation', JSON.stringify(payload));
