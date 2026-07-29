@@ -6568,9 +6568,15 @@
 
         /* ── PRINT STYLES ── */
         @media print {
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+
             @page {
                 size: auto;
-                margin: 4mm;
+                margin: 6mm;
             }
 
             body>*:not(#printArea) {
@@ -6580,9 +6586,9 @@
             html,
             body {
                 width: 100% !important;
-                height: 100% !important;
+                height: auto !important;
                 background: #fff !important;
-                color: #000 !important;
+                color: #0f172a !important;
                 margin: 0 !important;
                 padding: 0 !important;
             }
@@ -6591,10 +6597,62 @@
                 display: block !important;
                 width: 100% !important;
                 max-width: 100% !important;
-                height: 100% !important;
+                height: auto !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 background: #fff !important;
+                color: #0f172a !important;
+            }
+
+            #printArea .tab-custom-export-doc {
+                width: 100% !important;
+                min-width: 100% !important;
+                box-sizing: border-box !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+                padding: 0 !important;
+            }
+
+            #printArea .tab-custom-export-header {
+                border-bottom: 2px solid #0f172a !important;
+                color: #0f172a !important;
+            }
+
+            #printArea .tab-custom-export-header h2 {
+                color: #0f172a !important;
+            }
+
+            #printArea .tab-custom-export-header small,
+            #printArea .tab-custom-export-header div {
+                color: #475569 !important;
+            }
+
+            #printArea .tab-custom-export-table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                background: #ffffff !important;
+            }
+
+            #printArea .tab-custom-export-table th {
+                background: #1e293b !important;
+                color: #ffffff !important;
+                border: 1px solid #334155 !important;
+                padding: 8px 10px !important;
+                font-weight: 800 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            #printArea .tab-custom-export-table td {
+                color: #0f172a !important;
+                border: 1px solid #cbd5e1 !important;
+                padding: 7px 10px !important;
+            }
+
+            #printArea .tab-custom-export-table tr:nth-child(even) td {
+                background: #f8fafc !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
 
             .print-page {
@@ -25700,10 +25758,7 @@
             }
         });
 
-        let currentPrintMode = 'combined';
-
-        async function executePrintQRCards(mode = 'combined', force = false) {
-            currentPrintMode = mode;
+        function getSelectedPrintKids() {
             const scope = document.getElementById('printTargetScope')?.value || 'all';
             let kids = [];
             if (scope === 'empty') {
@@ -25723,6 +25778,12 @@
                     ? allKids.filter(s => printSelectedStudentIds.has(s['_studentId'] || s.id || s.student_id))
                     : allKids;
             }
+            return kids;
+        }
+
+        async function executePrintQRCards(mode = 'combined', force = false) {
+            currentPrintMode = mode;
+            let kids = getSelectedPrintKids();
             if (!kids.length) { showToast('لا يوجد أطفال لطباعة QR لهم', 'warning'); return; }
 
             const wValInput = parseFloat(document.getElementById('printCardWidth')?.value || 7);
@@ -26021,6 +26082,26 @@
                 return;
             }
 
+            let pdfLoaderOverlay = document.getElementById('qrPdfExportOverlay');
+            if (!pdfLoaderOverlay) {
+                pdfLoaderOverlay = document.createElement('div');
+                pdfLoaderOverlay.id = 'qrPdfExportOverlay';
+                pdfLoaderOverlay.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.75); backdrop-filter:blur(8px); z-index:9999999; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; font-family:inherit; direction:rtl; gap:16px; transition:opacity 0.3s ease;';
+                pdfLoaderOverlay.innerHTML = `
+                    <div style="background:var(--bg-glass, rgba(30,30,45,0.95)); border:1px solid rgba(255,255,255,0.2); padding:32px 42px; border-radius:24px; text-align:center; box-shadow:0 25px 50px rgba(0,0,0,0.6); display:flex; flex-direction:column; align-items:center; gap:16px; max-width:90vw;">
+                        <i class="fas fa-file-pdf fa-spin" style="font-size:3.5rem; color:#818cf8;"></i>
+                        <div style="font-size:1.35rem; font-weight:700;">جاري إنشاء وتجهيز ملف الـ PDF...</div>
+                        <div id="qrPdfExportStatusText" style="font-size:0.95rem; color:#c7d2fe; font-weight:600;">جاري تجهيز الصفحات بالكروت والـ QR...</div>
+                    </div>
+                `;
+                document.body.appendChild(pdfLoaderOverlay);
+            } else {
+                pdfLoaderOverlay.style.display = 'flex';
+                pdfLoaderOverlay.style.opacity = '1';
+                const statusTxt = document.getElementById('qrPdfExportStatusText');
+                if (statusTxt) statusTxt.textContent = 'جاري تجهيز الصفحات بالكروت والـ QR...';
+            }
+
             const scaleVal = parseFloat(document.getElementById('printScale')?.value || 100) / 100;
             let wValVal = parseFloat(document.getElementById('printCardWidth')?.value || 9);
             let hValVal = parseFloat(document.getElementById('printCardHeight')?.value || 6);
@@ -26198,9 +26279,9 @@
                     format: [pw_mm, ph_mm]
                 });
 
-                showToast('جاري إنشاء الصفحات...', 'info');
-
                 for (let i = 0; i < pdfPages.length; i++) {
+                    const statusTxt = document.getElementById('qrPdfExportStatusText');
+                    if (statusTxt) statusTxt.textContent = `جاري استخراج وتحويل صفحة ${i + 1} من ${pdfPages.length}...`;
                     const pageEl = pdfPages[i];
                     const canvas = await html2canvas(pageEl, {
                         scale: 2,
@@ -26222,6 +26303,10 @@
                 console.error(e);
                 showToast('حدث خطأ أثناء حفظ الـ PDF: ' + e.message, 'error');
             } finally {
+                if (pdfLoaderOverlay) {
+                    pdfLoaderOverlay.style.opacity = '0';
+                    setTimeout(() => { pdfLoaderOverlay.style.display = 'none'; }, 300);
+                }
                 if (tempPdfArea) tempPdfArea.remove();
             }
         }
@@ -29677,8 +29762,22 @@
             if (printArea) {
                 printArea.innerHTML = previewEl.innerHTML;
                 printArea.style.display = 'block';
-                window.print();
-                setTimeout(() => { printArea.style.display = 'none'; }, 1000);
+
+                const images = printArea.querySelectorAll('img');
+                const imagePromises = Array.from(images).map(img => {
+                    if (img.complete) return Promise.resolve();
+                    return new Promise(resolve => {
+                        img.onload = resolve;
+                        img.onerror = resolve;
+                    });
+                });
+
+                Promise.all(imagePromises).then(() => {
+                    setTimeout(() => {
+                        window.print();
+                        setTimeout(() => { printArea.style.display = 'none'; }, 1000);
+                    }, 200);
+                });
             }
         };
 
