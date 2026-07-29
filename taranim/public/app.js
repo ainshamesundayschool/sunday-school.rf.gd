@@ -43,6 +43,96 @@ function francoToArabic(text) {
   return s;
 }
 
+// ACCURATE RELATIVE OBS ROUTING CALCULATOR
+function getObsUrl() {
+  const loc = window.location;
+  let path = loc.pathname;
+  if (path.endsWith('.html') || path.endsWith('.php')) {
+    path = path.substring(0, path.lastIndexOf('/') + 1);
+  } else if (!path.endsWith('/')) {
+    path += '/';
+  }
+  return `${loc.origin}${path}obs.html`;
+}
+
+// UNIVERSAL FAIL-SAFE CLIPBOARD COPY FUNCTION
+function copyToClipboard(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    return navigator.clipboard.writeText(text);
+  }
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  textArea.style.position = 'fixed';
+  textArea.style.opacity = '0';
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  try {
+    document.execCommand('copy');
+  } catch (err) {}
+  document.body.removeChild(textArea);
+  return Promise.resolve();
+}
+
+function levenshteinDistance(a, b) {
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+
+  const matrix = [];
+  for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+  for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j] + 1
+        );
+      }
+    }
+  }
+  return matrix[b.length][a.length];
+}
+
+function correctWithArabicDictionary(draftArabic, dictionary) {
+  if (!draftArabic || !dictionary || dictionary.length === 0) return draftArabic;
+
+  const words = draftArabic.split(/\s+/);
+  const correctedWords = words.map(w => {
+    const normW = normalizeArabic(w);
+    if (!normW || normW.length < 2) return w;
+
+    const directMatch = dictionary.find(dictWord => normalizeArabic(dictWord) === normW);
+    if (directMatch) return directMatch;
+
+    const maxDist = normW.length <= 4 ? 1 : 2;
+    let bestWord = w;
+    let minDist = maxDist + 1;
+
+    for (let i = 0; i < Math.min(dictionary.length, 6000); i++) {
+      const dictWord = dictionary[i];
+      const normDict = normalizeArabic(dictWord);
+
+      if (Math.abs(normDict.length - normW.length) > maxDist) continue;
+
+      const dist = levenshteinDistance(normW, normDict);
+      if (dist < minDist) {
+        minDist = dist;
+        bestWord = dictWord;
+        if (minDist === 0) break;
+      }
+    }
+
+    return bestWord;
+  });
+
+  return correctedWords.join(' ');
+}
+
 function getMatchScore(song, query) {
   if (!song || !query) return 0;
   const title = song.title || '';
@@ -112,6 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const state = {
     allSongs: [],
+    arabicDictionary: [],
     sessionRecents: JSON.parse(sessionStorage.getItem('sunday_school_taranim_session_recents') || '[]'),
     activeSong: null,
     presentationLines: [],
@@ -352,9 +443,16 @@ document.addEventListener('DOMContentLoaded', () => {
       launchPresenterOnSelectedScreen();
     });
 
-    els.btnCopyObsUrl.addEventListener('click', () => {
-      const obsUrl = `${window.location.origin}/obs.html`;
-      navigator.clipboard.writeText(obsUrl);
+    // FIXED OBS COPY LINK ROUTING & UNIVERSAL COPY
+    els.btnCopyObsUrl.addEventListener('click', async () => {
+      const obsUrl = getObsUrl();
+      
+      try {
+        await copyToClipboard(obsUrl);
+        showToast('تم نسخ رابط OBS Browser Source بنجاح!');
+      } catch (e) {
+        showToast('رابط OBS: ' + obsUrl);
+      }
 
       const originalHtml = els.btnCopyObsUrl.innerHTML;
       els.btnCopyObsUrl.innerHTML = `<i class="fa-solid fa-check fa-lg"></i> تم النسخ!`;
@@ -452,7 +550,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     select.innerHTML = screenDetails.screens.map((s, idx) => {
-      const type = s.isPrimary ? ' (الشاشة الحالية)' : ' (خارية / TV)';
+      const type = s.isPrimary ? ' (الشاشة الحالية)' : ' (خارجية / TV)';
       const label = s.label || `شاشة ${idx + 1}`;
       return `<option value="${idx}">${label} (${s.width} × ${s.height})${type}</option>`;
     }).join('');
@@ -588,8 +686,13 @@ document.addEventListener('DOMContentLoaded', () => {
     syncLiveState();
   }
 
-  // DYNAMICALLY LOAD CATALOG (LOCAL STATIC OR API) WITH MULTI-PATH FALLBACKS
+  // DYNAMICALLY LOAD CATALOG & 15,000-WORD ARABIC DICTIONARY
   async function loadInitialData() {
+    fetch('arabic_dictionary.json')
+      .then(r => r.json())
+      .then(dict => { state.arabicDictionary = dict; })
+      .catch(() => {});
+
     try {
       let res = await fetch('songs_catalog.json');
       if (!res.ok) res = await fetch('./songs_catalog.json');
@@ -617,7 +720,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // FAST ULTRA-ROBUST DUAL HYBRID INTELLIGENT SEARCH ENGINE
+  // FAST ULTRA-ROBUST DUAL HYBRID INTELLIGENT SEARCH ENGINE WITH DICTIONARY FUZZY CORRECTION
   async function performIntelligentSearch(query) {
     if (!query || !query.trim()) {
       els.searchDropdown.classList.add('hidden');
@@ -627,19 +730,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchTarget = query.trim();
     let songsList = [];
 
-    // 1. Instant local search if catalog loaded
     if (state.allSongs && state.allSongs.length > 0) {
-      const qNorm = normalizeArabic(searchTarget);
-      const qFranco = francoToArabic(searchTarget);
+      let qNorm = normalizeArabic(searchTarget);
+      let qFrancoRaw = francoToArabic(searchTarget);
+      let qFrancoCorrected = qFrancoRaw ? correctWithArabicDictionary(qFrancoRaw, state.arabicDictionary) : '';
+      let qArabicCorrected = correctWithArabicDictionary(qNorm, state.arabicDictionary);
 
       songsList = state.allSongs.filter(song => {
         const tNorm = normalizeArabic(song.title || '');
         const nNorm = normalizeArabic(song.notes || '');
-        return tNorm.includes(qNorm) || nNorm.includes(qNorm) || (qFranco && (tNorm.includes(qFranco) || nNorm.includes(qFranco)));
+
+        return tNorm.includes(qNorm) || 
+               nNorm.includes(qNorm) || 
+               (qFrancoRaw && (tNorm.includes(qFrancoRaw) || nNorm.includes(qFrancoRaw))) ||
+               (qFrancoCorrected && (tNorm.includes(qFrancoCorrected) || nNorm.includes(qFrancoCorrected))) ||
+               (qArabicCorrected && (tNorm.includes(qArabicCorrected) || nNorm.includes(qArabicCorrected)));
       });
     }
 
-    // 2. Fetch API if local catalog empty or short
     if (songsList.length < 5) {
       try {
         let res = await fetch(`/api/songs?q=${encodeURIComponent(searchTarget)}&limit=150`);
@@ -650,22 +758,8 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
       } catch (err) {}
-
-      if (songsList.length === 0 && state.francoAutoTranslate && /[a-z0-9]/i.test(searchTarget)) {
-        const arTrans = francoToArabic(searchTarget);
-        if (arTrans) {
-          try {
-            let res = await fetch(`/api/songs?q=${encodeURIComponent(arTrans)}&limit=150`);
-            if (res.ok) {
-              let data = await res.json();
-              if (data && data.songs) songsList = songsList.concat(data.songs);
-            }
-          } catch (err) {}
-        }
-      }
     }
 
-    // 3. Deduplicate
     const uniqueMap = new Map();
     songsList.forEach(song => {
       if (song && (song.id !== undefined && song.id !== null)) {
@@ -675,7 +769,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const uniqueSongs = Array.from(uniqueMap.values());
 
-    // 4. Score & Sort
     const scored = uniqueSongs.map(song => ({
       ...song,
       _score: getMatchScore(song, query)
@@ -687,9 +780,15 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderSearchDropdown(songs, query) {
     let francoHeaderHtml = '';
     if (state.francoAutoTranslate && /[a-z0-9]/i.test(query)) {
-      const translated = francoToArabic(query);
-      if (translated) {
-        francoHeaderHtml = `<div class="franco-translation-header"><i class="fa-solid fa-language"></i> الترجمة الحية: <strong>${escapeHtml(translated)}</strong></div>`;
+      const rawTranslated = francoToArabic(query);
+      if (rawTranslated) {
+        const corrected = correctWithArabicDictionary(rawTranslated, state.arabicDictionary);
+        francoHeaderHtml = `<div class="franco-translation-header"><i class="fa-solid fa-wand-magic-sparkles"></i> الترجمة الحية والمصححة: <strong>${escapeHtml(corrected)}</strong></div>`;
+      }
+    } else if (query && !/[a-z0-9]/i.test(query)) {
+      const correctedAr = correctWithArabicDictionary(normalizeArabic(query), state.arabicDictionary);
+      if (correctedAr && correctedAr !== normalizeArabic(query)) {
+        francoHeaderHtml = `<div class="franco-translation-header"><i class="fa-solid fa-wand-magic-sparkles"></i> التصحيح الإملائي المقترح: <strong>${escapeHtml(correctedAr)}</strong></div>`;
       }
     }
 
@@ -758,7 +857,6 @@ document.addEventListener('DOMContentLoaded', () => {
   async function openAndPresentItem(songId) {
     if (!songId) return;
 
-    // 1. INSTANT LOCAL DISPLAY FROM CATALOG (ZERO-LATENCY)
     if (state.allSongs && state.allSongs.length > 0) {
       const localSong = state.allSongs.find(s => String(s.id) === String(songId));
       if (localSong) {
@@ -769,7 +867,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // 2. FALLBACK TO SERVER API
     try {
       const res = await fetch(`/api/song/${songId}`);
       if (res.ok) {
@@ -791,7 +888,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let linesList = [];
 
-    // Mode A: Verses Array (Structured slides and lines)
     if (song.verses && Array.isArray(song.verses) && song.verses.length > 0) {
       song.verses.forEach((verse, vIdx) => {
         if (verse.slides && Array.isArray(verse.slides)) {
@@ -820,7 +916,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Mode B: Plain Notes Fallback String
     if (linesList.length === 0 && song.notes) {
       const rawNotes = String(song.notes);
       const splitLines = rawNotes.split('\n').map(l => l.trim()).filter(l => l.length > 0);
