@@ -16,10 +16,13 @@
   <!-- Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.webmanifest">
+
   <!-- HTML5 QR Code Scanner -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 
-  <link rel="stylesheet" href="style.css?v=20260729_v15">
+  <link rel="stylesheet" href="style.css?v=20260729_v16">
 </head>
 <body>
 
@@ -30,6 +33,11 @@
       
       <!-- RIGHT SIDE: DROPDOWN MENU ICONS -->
       <div class="top-options">
+
+        <!-- BUTTON / LINK: INSTALL & OFFLINE HUB -->
+        <a href="install.html" class="icon-menu-btn" id="btn-install-offline" title="تثبيت التطبيق والعمل بدون إنترنت">
+          <i class="fa-solid fa-download"></i>
+        </a>
         
         <!-- DROPDOWN 1: STYLES & FONTS -->
         <div class="dropdown-wrapper">
@@ -113,8 +121,22 @@
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-sun"></i> الظل:</label>
-              <input type="range" id="obs-shadow-range" min="0" max="40" value="0" class="slider-input">
+              <label><i class="fa-solid fa-sun"></i> نمط وشدة الظل:</label>
+              <div class="compact-control-group">
+                <select id="obs-shadow-style" class="control-select" title="نمط الظل" style="max-width:110px;">
+                  <option value="soft" selected>ظل ناعم</option>
+                  <option value="deep">عميق 3D</option>
+                  <option value="glow">توهج خارجي</option>
+                  <option value="sharp">ظل حاد</option>
+                  <option value="multi">طبقات سينمائية</option>
+                </select>
+                <input type="range" id="obs-shadow-range" min="0" max="60" value="0" class="slider-input" title="شدة/حجم الظل">
+              </div>
+            </div>
+
+            <div class="popover-row">
+              <label><i class="fa-solid fa-palette"></i> لون الظل:</label>
+              <input type="color" id="obs-shadow-color" value="#000000" class="color-picker-input">
             </div>
 
             <div class="popover-row">

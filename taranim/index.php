@@ -7,6 +7,18 @@ if (strpos($uri, '/api/') !== false) {
     exit;
 }
 
+if (strpos($uri, 'install.html') !== false && file_exists(__DIR__ . '/public/install.html')) {
+    header('Content-Type: text/html; charset=utf-8');
+    readfile(__DIR__ . '/public/install.html');
+    exit;
+}
+
+if (strpos($uri, 'manifest.webmanifest') !== false && file_exists(__DIR__ . '/public/manifest.webmanifest')) {
+    header('Content-Type: application/manifest+json; charset=utf-8');
+    readfile(__DIR__ . '/public/manifest.webmanifest');
+    exit;
+}
+
 if (strpos($uri, 'obs.html') !== false && file_exists(__DIR__ . '/public/obs.html')) {
     header('Content-Type: text/html; charset=utf-8');
     readfile(__DIR__ . '/public/obs.html');

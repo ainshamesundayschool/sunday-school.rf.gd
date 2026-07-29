@@ -459,6 +459,8 @@ document.addEventListener('DOMContentLoaded', () => {
       strokeWidth: savedSettings.styleOptions?.strokeWidth || 0,
       strokeColor: savedSettings.styleOptions?.strokeColor || "#000000",
       shadowBlur: savedSettings.styleOptions?.shadowBlur || 0,
+      shadowColor: savedSettings.styleOptions?.shadowColor || "#000000",
+      shadowStyle: savedSettings.styleOptions?.shadowStyle || "soft",
       fontWeight: savedSettings.styleOptions?.fontWeight || "800",
       fontStyle: savedSettings.styleOptions?.fontStyle || "normal",
       textDecoration: savedSettings.styleOptions?.textDecoration || "none",
@@ -523,6 +525,8 @@ document.addEventListener('DOMContentLoaded', () => {
     obsStrokeRange: document.getElementById('obs-stroke-range'),
     obsStrokeColor: document.getElementById('obs-stroke-color'),
     obsShadowRange: document.getElementById('obs-shadow-range'),
+    obsShadowColor: document.getElementById('obs-shadow-color'),
+    obsShadowStyle: document.getElementById('obs-shadow-style'),
     obsTextAnimSelect: document.getElementById('obs-text-anim-select'),
 
     obsFontWeightSelect: document.getElementById('obs-font-weight-select'),
@@ -626,6 +630,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.obsStrokeRange) els.obsStrokeRange.value = state.styleOptions.strokeWidth;
     if (els.obsStrokeColor) els.obsStrokeColor.value = state.styleOptions.strokeColor;
     if (els.obsShadowRange) els.obsShadowRange.value = state.styleOptions.shadowBlur;
+    if (els.obsShadowColor) els.obsShadowColor.value = state.styleOptions.shadowColor || '#000000';
+    if (els.obsShadowStyle) els.obsShadowStyle.value = state.styleOptions.shadowStyle || 'soft';
 
     if (els.obsFontWeightSelect) els.obsFontWeightSelect.value = state.styleOptions.fontWeight;
     if (els.obsLetterSpacingRange) els.obsLetterSpacingRange.value = state.styleOptions.letterSpacing;
@@ -818,6 +824,22 @@ document.addEventListener('DOMContentLoaded', () => {
       saveUserSettings();
       syncLiveState();
     });
+
+    if (els.obsShadowColor) {
+      els.obsShadowColor.addEventListener('input', (e) => {
+        state.styleOptions.shadowColor = e.target.value;
+        saveUserSettings();
+        syncLiveState();
+      });
+    }
+
+    if (els.obsShadowStyle) {
+      els.obsShadowStyle.addEventListener('change', (e) => {
+        state.styleOptions.shadowStyle = e.target.value;
+        saveUserSettings();
+        syncLiveState();
+      });
+    }
 
     if (els.obsFontWeightSelect) {
       els.obsFontWeightSelect.addEventListener('change', (e) => {
@@ -1654,6 +1676,8 @@ document.addEventListener('DOMContentLoaded', () => {
       strokeWidth: state.styleOptions.strokeWidth,
       strokeColor: state.styleOptions.strokeColor,
       shadowBlur: state.styleOptions.shadowBlur,
+      shadowColor: state.styleOptions.shadowColor || '#000000',
+      shadowStyle: state.styleOptions.shadowStyle || 'soft',
       fontWeight: state.styleOptions.fontWeight,
       fontStyle: state.styleOptions.fontStyle,
       textDecoration: state.styleOptions.textDecoration,
