@@ -110,6 +110,7 @@
     const guideH = document.getElementById('snap-guide-h');
 
     let stateFontSize = 54;
+    let lastDragTime = 0;
 
     const urlParams = new URLSearchParams(window.location.search);
     const paramChroma = urlParams.get('chroma');
@@ -144,6 +145,9 @@
         const parsed = JSON.parse(savedPivotRaw);
         if (parsed.xPct !== undefined && parsed.yPct !== undefined) {
           currentPivot = parsed;
+        } else if (parsed.left !== undefined) {
+          currentPivot.xPct = (parsed.left / window.innerWidth) * 100;
+          currentPivot.yPct = (parsed.top / window.innerHeight) * 100;
         }
       } catch(e) {}
     }
@@ -179,27 +183,35 @@
       }
     }
 
+    // RELIABLE SMOOTH DRAGGING LOGIC
     let isDragging = false;
-    let startX, startY;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let initialXPct = 50;
+    let initialYPct = 75;
     const SNAP_THRESHOLD = 22;
 
     box.addEventListener('mousedown', (e) => {
       isDragging = true;
-      startX = e.clientX;
-      startY = e.clientY;
+      lastDragTime = Date.now();
+      dragStartX = e.clientX;
+      dragStartY = e.clientY;
+      initialXPct = currentPivot.xPct;
+      initialYPct = currentPivot.yPct;
     });
 
     window.addEventListener('mousemove', (e) => {
       if (!isDragging) return;
+      lastDragTime = Date.now();
 
       const screenW = window.innerWidth;
       const screenH = window.innerHeight;
 
-      let currentX = (currentPivot.xPct / 100) * screenW;
-      let currentY = (currentPivot.yPct / 100) * screenH;
+      const deltaXPixels = e.clientX - dragStartX;
+      const deltaYPixels = e.clientY - dragStartY;
 
-      let targetX = currentX + (e.clientX - startX);
-      let targetY = currentY + (e.clientY - startY);
+      let targetX = (initialXPct / 100 * screenW) + deltaXPixels;
+      let targetY = (initialYPct / 100 * screenH) + deltaYPixels;
 
       let snappedV = false;
       let snappedH = false;
@@ -231,18 +243,30 @@
       box.style.transform = 'translate(-50%, -50%)';
 
       localStorage.setItem('sunday_school_taranim_drag_pivot', JSON.stringify(currentPivot));
-
-      startX = e.clientX;
-      startY = e.clientY;
-
       channel.postMessage({ type: 'UPDATE_POS', pos: currentPivot });
     });
 
     window.addEventListener('mouseup', () => {
       if (isDragging) {
         isDragging = false;
+        lastDragTime = Date.now();
         if (guideV) guideV.classList.add('hidden');
         if (guideH) guideH.classList.add('hidden');
+
+        // PERSIST NEW DRAG POSITION TO SERVER
+        const currentLiveRaw = localStorage.getItem('sunday_school_taranim_live_presentation');
+        let payload = {};
+        if (currentLiveRaw) {
+          try { payload = JSON.parse(currentLiveRaw); } catch(err) {}
+        }
+        payload.pos = currentPivot;
+        localStorage.setItem('sunday_school_taranim_live_presentation', JSON.stringify(payload));
+
+        fetch('api.php?action=live', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).catch(() => {});
       }
     });
 
@@ -250,6 +274,11 @@
 
     function applyState(data, source = 'local') {
       if (!data || typeof data !== 'object') return;
+
+      // PREVENT HTTP OVERWRITES WHILE USER IS DRAGGING OR RECENTLY DRAGGED
+      if (isDragging || (Date.now() - lastDragTime < 6000)) {
+        return;
+      }
 
       if (source === 'http' && (Date.now() - lastLocalUpdateTime < 4000)) {
         return;
@@ -307,14 +336,23 @@
       }
 
       if (data.pos && !isDragging) {
-        const xPct = data.pos.xPct !== undefined ? data.pos.xPct : 50;
-        const yPct = data.pos.yPct !== undefined ? data.pos.yPct : 75;
+        let x = data.pos.xPct;
+        let y = data.pos.yPct;
 
-        currentPivot = { xPct, yPct };
-        box.style.left = xPct + '%';
-        box.style.top = yPct + '%';
-        box.style.transform = 'translate(-50%, -50%)';
-        localStorage.setItem('sunday_school_taranim_drag_pivot', JSON.stringify(currentPivot));
+        if (x === undefined && data.pos.left !== undefined) {
+          x = (data.pos.left / window.innerWidth) * 100;
+        }
+        if (y === undefined && data.pos.top !== undefined) {
+          y = (data.pos.top / window.innerHeight) * 100;
+        }
+
+        if (x !== undefined && y !== undefined && !isNaN(x) && !isNaN(y)) {
+          currentPivot = { xPct: x, yPct: y };
+          box.style.left = x + '%';
+          box.style.top = y + '%';
+          box.style.transform = 'translate(-50%, -50%)';
+          localStorage.setItem('sunday_school_taranim_drag_pivot', JSON.stringify(currentPivot));
+        }
       }
     }
 
@@ -333,7 +371,7 @@
     }
 
     async function fetchLiveHTTP() {
-      if (isDragging) return;
+      if (isDragging || (Date.now() - lastDragTime < 6000)) return;
       try {
         let res = await fetch('api.php?action=live');
         if (!res.ok) res = await fetch('./api/live');
@@ -347,7 +385,7 @@
       } catch (err) {}
     }
 
-    setInterval(fetchLiveHTTP, 200);
+    setInterval(fetchLiveHTTP, 300);
     fetchLiveHTTP();
   </script>
 </body>
