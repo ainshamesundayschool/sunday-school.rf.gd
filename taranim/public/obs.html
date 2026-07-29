@@ -289,7 +289,8 @@
       }
     });
 
-    let lastAppliedUpdatedAt = 0;
+    let currentTextState = null;
+    let currentIsBlankState = null;
 
     function applyState(data, source = 'local') {
       if (!data || typeof data !== 'object') return;
@@ -297,14 +298,6 @@
       // PREVENT OVERWRITES WHILE USER IS DRAGGING OR RECENTLY DRAGGED
       if (isDragging || (Date.now() - lastDragTime < 6000)) {
         return;
-      }
-
-      // IGNORE OUT-OF-ORDER STALE UPDATES
-      if (data.updatedAt && data.updatedAt < lastAppliedUpdatedAt) {
-        return;
-      }
-      if (data.updatedAt) {
-        lastAppliedUpdatedAt = data.updatedAt;
       }
 
       if (data.status && !data.type && data.text === undefined) return;
@@ -315,9 +308,12 @@
 
       if (data.isBlank) {
         textEl.style.visibility = 'hidden';
+        currentIsBlankState = true;
       } else if (data.text !== undefined) {
         textEl.style.visibility = data.text ? 'visible' : 'hidden';
         textEl.textContent = data.text;
+        currentTextState = data.text;
+        currentIsBlankState = false;
       }
 
       if (data.font) {
@@ -397,7 +393,7 @@
       isFetching = true;
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2500);
+      const timeoutId = setTimeout(() => controller.abort(), 800);
       const ts = Date.now();
 
       try {
@@ -433,17 +429,17 @@
       }
     }
 
-    // WEB WORKER TIMER TO CONTINUOUSLY POLL EVEN WHEN TAB IS MINIMIZED / BACKGROUNDED
+    // ULTRA-FAST WEB WORKER TIMER (100MS TICKS FOR INSTANT WIFI SYNC)
     let workerTimer = null;
     try {
       const workerBlob = new Blob([
-        "let t = null; onmessage = function(e) { if (e.data === 'start') { clearInterval(t); t = setInterval(function() { postMessage('tick'); }, 200); } else if (e.data === 'stop') { clearInterval(t); } };"
+        "let t = null; onmessage = function(e) { if (e.data === 'start') { clearInterval(t); t = setInterval(function() { postMessage('tick'); }, 100); } else if (e.data === 'stop') { clearInterval(t); } };"
       ], { type: 'application/javascript' });
       workerTimer = new Worker(URL.createObjectURL(workerBlob));
       workerTimer.onmessage = function() { fetchLiveHTTP(); };
       workerTimer.postMessage('start');
     } catch (e) {
-      setInterval(fetchLiveHTTP, 200);
+      setInterval(fetchLiveHTTP, 100);
     }
 
     // IMMEDIATE RE-FETCH ON VISIBILITY OR FOCUS RESTORATION

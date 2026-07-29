@@ -51,19 +51,6 @@ if (strpos($parsedUrl, '/api/live') !== false || (isset($_GET['action']) && $_GE
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $inputRaw = file_get_contents('php://input');
         if (!empty($inputRaw)) {
-            $newData = @json_decode($inputRaw, true);
-            if (is_array($newData) && isset($newData['updatedAt']) && file_exists($liveFile)) {
-                $existingRaw = @file_get_contents($liveFile);
-                if ($existingRaw) {
-                    $existingData = @json_decode($existingRaw, true);
-                    if (is_array($existingData) && isset($existingData['updatedAt'])) {
-                        if ($newData['updatedAt'] < $existingData['updatedAt']) {
-                            echo json_encode(['status' => 'ignored_stale']);
-                            exit;
-                        }
-                    }
-                }
-            }
             file_put_contents($liveFile, $inputRaw, LOCK_EX);
         }
         echo json_encode(['status' => 'success']);

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sunday_school_taranim_v20260729_v9';
+const CACHE_NAME = 'sunday_school_taranim_v20260729_v10';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -15,7 +15,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// NETWORK-FIRST WITH CACHE FALLBACK (NEVER CACHES DYNAMIC API REQUESTS)
+// DIRECT BROWSER NATIVE FETCH FOR API & LIVE SYNC (ZERO SERVICE WORKER OVERHEAD)
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') {
     return;
@@ -24,21 +24,21 @@ self.addEventListener('fetch', (event) => {
   const url = event.request.url;
   const isApi = url.includes('api.php') || url.includes('/api/') || url.includes('action=live');
 
+  // Let browser handle dynamic API requests natively with zero Service Worker proxy delays
+  if (isApi) {
+    return;
+  }
+
   event.respondWith(
     fetch(event.request, { cache: 'no-cache' })
       .then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200 && !isApi) {
+        if (networkResponse && networkResponse.status === 200) {
           const responseClone = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
         }
         return networkResponse;
       })
       .catch(() => {
-        if (isApi) {
-          return new Response(JSON.stringify({ error: 'Network offline' }), {
-            headers: { 'Content-Type': 'application/json' }
-          });
-        }
         return caches.match(event.request).then((cachedResponse) => {
           if (cachedResponse) return cachedResponse;
           if (event.request.mode === 'navigate') {
