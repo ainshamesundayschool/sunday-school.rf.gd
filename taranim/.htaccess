@@ -1,15 +1,7 @@
-RewriteEngine On
-
-# Route API requests to PHP backend
-RewriteRule ^api/(.*)$ api.php [L,QSA]
-
-# Fallback: Serve static files from public folder
-RewriteCond %{REQUEST_URI} !^/public/
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^$ public/index.html [L]
-RewriteRule ^obs\.html$ public/obs.html [L]
-RewriteRule ^sw\.js$ public/sw.js [L]
-RewriteRule ^style\.css$ public/style.css [L]
-RewriteRule ^app\.js$ public/app.js [L]
-RewriteRule ^logo\.png$ public/logo.png [L]
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /taranim/
+    RewriteRule ^api/live$ api.php?action=live [L,QSA]
+    RewriteRule ^api/songs$ api.php?action=songs [L,QSA]
+    RewriteRule ^api/song/(.*)$ api.php?action=song&id=$1 [L,QSA]
+</IfModule>

@@ -1,0 +1,6 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^api/live$ ../api.php?action=live [L,QSA]
+    RewriteRule ^api/songs$ ../api.php?action=songs [L,QSA]
+    RewriteRule ^api/song/(.*)$ ../api.php?action=song&id=$1 [L,QSA]
+</IfModule>

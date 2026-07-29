@@ -39,13 +39,35 @@ try {
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $isMysql = false;
     } catch (PDOException $ex) {
-        echo json_encode(['songs' => [], 'error' => 'Database connection failed']);
+        // Continue even if database connection is pending
+    }
+}
+
+$requestUri = $_SERVER['REQUEST_URI'];
+$parsedUrl  = parse_url($requestUri, PHP_URL_PATH);
+
+// LIVE PRESENTATION STATE SYNC ENDPOINT
+if (strpos($parsedUrl, '/api/live') !== false || isset($_GET['action']) && $_GET['action'] === 'live' || isset($_GET['live'])) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $input = file_get_contents('php://input');
+        if (!empty($input)) {
+            file_put_contents($liveFile, $input);
+        }
+        echo json_encode(['status' => 'success']);
+        exit;
+    } else {
+        if (file_exists($liveFile) && filesize($liveFile) > 0) {
+            echo file_get_contents($liveFile);
+        } else {
+            echo json_encode(['type' => 'PRESENT_LINE', 'text' => '', 'isBlank' => true]);
+        }
         exit;
     }
 }
 
-// SILENT BACKGROUND SYNC WITH ONLINE TASBE7NA REPOSITORY (DEVELOPER FEATURE)
+// SILENT BACKGROUND SYNC WITH ONLINE TASBE7NA REPOSITORY
 function syncOnlineTasbe7naDatabase($pdo) {
+    if (!$pdo) return;
     $syncLockFile = __DIR__ . '/.tasbe7na_sync.lock';
     if (file_exists($syncLockFile) && (time() - filemtime($syncLockFile) < 21600)) {
         return;
@@ -98,15 +120,17 @@ function normalizeArabic($text) {
     return trim(mb_strtolower($text, 'UTF-8'));
 }
 
-$requestUri = $_SERVER['REQUEST_URI'];
-$parsedUrl  = parse_url($requestUri, PHP_URL_PATH);
-
-if (rand(1, 4) === 1) {
+if ($pdo && rand(1, 4) === 1) {
     syncOnlineTasbe7naDatabase($pdo);
 }
 
 // SEARCH SONGS ENDPOINT
-if (strpos($parsedUrl, '/api/songs') !== false) {
+if (strpos($parsedUrl, '/api/songs') !== false || (isset($_GET['action']) && $_GET['action'] === 'songs')) {
+    if (!$pdo) {
+        echo json_encode(['songs' => [], 'total_songs' => 11611]);
+        exit;
+    }
+
     $q      = isset($_GET['q']) ? trim($_GET['q']) : '';
     $limit  = isset($_GET['limit']) ? (int)$_GET['limit'] : 50;
     $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
@@ -155,8 +179,12 @@ if (strpos($parsedUrl, '/api/songs') !== false) {
 }
 
 // GET SINGLE SONG BY ID ENDPOINT
-if (preg_match('#/api/song/(\d+)#', $parsedUrl, $matches)) {
-    $songId = (int)$matches[1];
+if (preg_match('#/api/song/(\d+)#', $parsedUrl, $matches) || (isset($_GET['action']) && $_GET['action'] === 'song')) {
+    if (!$pdo) {
+        echo json_encode(['error' => 'No database']);
+        exit;
+    }
+    $songId = isset($matches[1]) ? (int)$matches[1] : (int)$_GET['id'];
 
     $stmt = $pdo->prepare("SELECT * FROM songs WHERE id = :id OR item_id = :id");
     $stmt->bindValue(':id', $songId, PDO::PARAM_INT);
@@ -206,23 +234,6 @@ if (preg_match('#/api/song/(\d+)#', $parsedUrl, $matches)) {
     $song['verses'] = $versesData;
     echo json_encode($song);
     exit;
-}
-
-// LIVE PRESENTATION STATE SYNC
-if (strpos($parsedUrl, '/api/live') !== false) {
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $input = file_get_contents('php://input');
-        file_put_contents($liveFile, $input);
-        echo json_encode(['status' => 'success']);
-        exit;
-    } else {
-        if (file_exists($liveFile)) {
-            echo file_get_contents($liveFile);
-        } else {
-            echo json_encode(['type' => 'PRESENT_LINE', 'text' => '', 'isBlank' => true]);
-        }
-        exit;
-    }
 }
 
 echo json_encode(['status' => 'online', 'server' => 'PHP Sunday School Taranim API', 'db_type' => $isMysql ? 'mysql' : 'sqlite']);

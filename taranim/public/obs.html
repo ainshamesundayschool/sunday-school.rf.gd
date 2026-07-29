@@ -243,8 +243,7 @@
     function applyState(data, source = 'local') {
       if (!data || typeof data !== 'object') return;
 
-      // Ignore HTTP polling if local BroadcastChannel/localStorage updated recently (within 5 seconds)
-      if (source === 'http' && (Date.now() - lastLocalUpdateTime < 5000)) {
+      if (source === 'http' && (Date.now() - lastLocalUpdateTime < 4000)) {
         return;
       }
 
@@ -252,18 +251,16 @@
         lastLocalUpdateTime = Date.now();
       }
 
-      // DO NOT OVERWRITE WITH NON-PRESENTATION STATUS OBJECTS
       if (data.status && !data.type && data.text === undefined) return;
 
       if (data.chroma && !paramChroma) {
         document.body.setAttribute('data-chroma', data.chroma);
       }
 
-      // ONLY HIDE TEXT IF EXPLICITLY SET TO BLANK BY USER
       if (data.isBlank) {
         textEl.style.visibility = 'hidden';
-      } else if (data.text && data.text.trim()) {
-        textEl.style.visibility = 'visible';
+      } else if (data.text !== undefined) {
+        textEl.style.visibility = data.text ? 'visible' : 'hidden';
         textEl.textContent = data.text;
       }
 
@@ -326,20 +323,20 @@
 
     async function fetchLiveHTTP() {
       if (isDragging) return;
-      if (Date.now() - lastLocalUpdateTime < 5000) return; // Skip HTTP poll if local updates active
-
       try {
-        let res = await fetch('./api/live');
+        let res = await fetch('api.php?action=live');
+        if (!res.ok) res = await fetch('./api/live');
+        if (!res.ok) res = await fetch('/api/live');
         if (res.ok) {
           const data = await res.json();
-          if (data && data.text && data.text.trim()) {
+          if (data && (data.type === 'PRESENT_LINE' || data.text !== undefined)) {
             applyState(data, 'http');
           }
         }
       } catch (err) {}
     }
 
-    setInterval(fetchLiveHTTP, 500);
+    setInterval(fetchLiveHTTP, 200);
     fetchLiveHTTP();
   </script>
 </body>

@@ -586,7 +586,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function launchPresenterOnSelectedScreen() {
-    // 1. Request multi-screen placement permissions if API available
     if ('getScreenDetails' in window && !screenDetails) {
       try {
         screenDetails = await window.getScreenDetails();
@@ -605,7 +604,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Determine target coordinates for secondary/external display
     let left = (window.screen.availWidth || 1920);
     let top = 0;
     let width = 1920;
@@ -617,12 +615,10 @@ document.addEventListener('DOMContentLoaded', () => {
       width = targetScreen.availWidth;
       height = targetScreen.availHeight;
     } else if (val === 'external') {
-      // Common dual-monitor placement offset on macOS / Windows
       left = window.screen.width || 1920;
       top = 0;
     }
 
-    // Handle Primary Screen selection
     if (val === 'primary' && (!targetScreen || targetScreen.isPrimary || !screenDetails)) {
       if (els.obsOverlay) {
         els.obsOverlay.classList.remove('hidden');
@@ -635,14 +631,12 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Launch popup window explicitly targeted at external display screen coordinates
     const windowFeatures = `left=${left},top=${top},width=${width},height=${height},menubar=no,toolbar=no,location=no,status=no,resizable=yes`;
     const obsUrl = `obs.html?autofs=true&screenLeft=${left}&screenTop=${top}`;
     const popup = window.open(obsUrl, 'SundaySchoolPresenterWindow', windowFeatures);
 
     if (popup) {
       popup.focus();
-      // Force move window to target screen coordinates
       setTimeout(() => {
         try {
           popup.moveTo(left, top);
@@ -713,8 +707,8 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('mouseup', () => {
       if (isDragging) {
         isDragging = false;
-        if (els.snapGuideV) els.snapGuideV.classList.add('hidden');
-        if (els.snapGuideH) els.snapGuideH.classList.add('hidden');
+        if (guideV) guideV.classList.add('hidden');
+        if (guideH) guideH.classList.add('hidden');
       }
     });
   }
@@ -1048,12 +1042,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     els.recentSessionContainer.innerHTML = state.sessionRecents.map((r, idx) => `
-      <div class="recent-item ${state.activeSong && state.activeSong.id === r.id ? 'active' : ''}" data-id="${r.id}" data-index="${idx}" draggable="true">
+      <div class="recent-item ${state.activeSong && String(state.activeSong.id) === String(r.id) ? 'active' : ''}" data-id="${r.id}" data-index="${idx}" draggable="true">
         <div class="recent-title-group">
           <i class="fa-solid fa-grip-vertical drag-handle-icon" title="سحب لإعادة الترتيب"></i>
           <span class="recent-title">${escapeHtml(r.title)}</span>
         </div>
-        <button class="delete-recent-btn" data-index="${idx}" title="حذف الترنيمة من القائمة">
+        <button class="delete-recent-btn" data-index="${idx}" title="حذف الترنيمة من القائمة وإخفاء العرض">
           <i class="fa-solid fa-trash-can"></i> حذف
         </button>
       </div>
@@ -1063,8 +1057,21 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const index = parseInt(btn.dataset.index);
+        const songToDelete = state.sessionRecents[index];
+
         state.sessionRecents.splice(index, 1);
         sessionStorage.setItem('sunday_school_taranim_session_recents', JSON.stringify(state.sessionRecents));
+
+        // IF THE DELETED TARNIMA IS CURRENTLY PRESENTING, CLEAR IT FROM PRESENTATION TOO
+        if (songToDelete && state.activeSong && String(state.activeSong.id) === String(songToDelete.id)) {
+          state.activeSong = null;
+          state.presentationLines = [];
+          state.currentLineIndex = 0;
+          state.isBlank = true;
+          renderPresentationLinesList();
+          syncLiveState();
+        }
+
         renderRecentSession();
       });
     });
@@ -1131,6 +1138,13 @@ document.addEventListener('DOMContentLoaded', () => {
     broadcastChannel.postMessage(payload);
     localStorage.setItem('sunday_school_taranim_live_presentation', JSON.stringify(payload));
     localStorage.setItem('sunday_school_taranim_drag_pivot', JSON.stringify(state.dragPivot));
+
+    // DUAL POST TO PHP & PYTHON ENDPOINTS
+    fetch('api.php?action=live', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).catch(() => {});
 
     fetch('/api/live', {
       method: 'POST',
