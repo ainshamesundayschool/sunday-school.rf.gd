@@ -402,26 +402,60 @@ html, body {
   flex-direction: column;
   gap: 0.35rem;
   text-align: right;
+  transition: background 0.12s;
 }
 
-.search-item:hover { background: #f8fafc; }
-.search-item .item-top { display: flex; align-items: center; justify-content: space-between; }
-.search-item .item-title { font-weight: 800; color: #0f172a; font-size: 0.95rem; }
-.search-item .item-badge { font-size: 0.72rem; color: var(--accent-blue); background: #eff6ff; padding: 2px 8px; border-radius: 8px; font-weight: 700; }
+.search-item:hover { background: #f0f6ff; }
+.search-item .item-top { display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; }
+.search-item .item-title { font-weight: 800; color: #0f172a; font-size: 0.95rem; flex: 1; min-width: 0; }
+.search-item .item-badges-group { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
+
+.search-item .item-badge {
+  font-size: 0.7rem;
+  color: var(--accent-blue);
+  background: #eff6ff;
+  padding: 2px 7px;
+  border-radius: 8px;
+  font-weight: 700;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.search-item .item-badge.bible-badge {
+  color: #7c3aed;
+  background: #f5f3ff;
+}
+
+.search-item .item-badge.lyrics-match-badge {
+  color: #0e7490;
+  background: #ecfeff;
+  border: 1px solid #a5f3fc;
+}
+
+/* Highlight matched text in search results */
+.search-highlight {
+  background: #fef08a;
+  color: #78350f;
+  border-radius: 3px;
+  padding: 0 2px;
+  font-weight: 800;
+}
 
 .search-item .item-preview-box {
   padding: 0.5rem 0.8rem;
   background: #f8fafc;
   border-radius: 10px;
   border-right: 3px solid var(--accent-blue);
-  font-size: 0.85rem;
-  color: #334155;
-  line-height: 1.5;
+  font-size: 0.82rem;
+  color: #475569;
+  line-height: 1.65;
   word-break: break-word;
 }
 
 .search-item .line-num-mini {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 700;
   color: var(--accent-blue);
   background: #e0f2fe;
@@ -431,12 +465,26 @@ html, body {
   display: inline-block;
 }
 
+.search-item .line-num-mini.matched-line-badge {
+  color: #7c3aed;
+  background: #ede9fe;
+}
+
+.search-item .preview-sep {
+  color: #cbd5e1;
+  margin: 0 6px;
+  font-size: 0.75rem;
+}
+
 .search-item.no-results-item {
   cursor: default !important;
   background: #ffffff !important;
   color: var(--text-muted) !important;
+  display: flex;
+  align-items: center;
 }
 .search-item.no-results-item:hover { background: #ffffff !important; }
+
 
 /* DUAL-COLUMN DASHBOARD (FITTED 100% SCREEN HEIGHT) */
 .dashboard-halves {

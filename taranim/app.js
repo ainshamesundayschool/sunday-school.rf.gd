@@ -20,27 +20,254 @@ const FRANCO_MAPPINGS = [
   ["a", "ا"]
 ];
 
+// ==========================================================================
+// ENHANCED ARABIC NORMALIZATION
+// Handles: harakat, hamzat forms, alef variants, Egyptian dialect substitutions,
+// common prefix/suffix stripping (al-, wa-, bi-, etc.), ta-marbouta
+// ==========================================================================
 function normalizeArabic(text) {
-  if (!text) return "";
+  if (!text) return '';
   return String(text)
-    .replace(/[أإآٱ]/g, "ا")
-    .replace(/[ىئ]/g, "ي")
-    .replace(/ة/g, "ه")
-    .replace(/ؤ/g, "و")
-    .replace(/[\u064B-\u0652]/g, "")
+    // Alef variants
+    .replace(/[أإآٱاٲٳ]/g, 'ا')
+    // Ya variants
+    .replace(/[ىئ]/g, 'ي')
+    // Ta-marbouta → ha
+    .replace(/ة/g, 'ه')
+    // Waw variants
+    .replace(/[ؤۇۈ]/g, 'و')
+    // Remove all diacritics (harakat, shadda, sukun, maddah, etc.)
+    .replace(/[\u064B-\u065F\u0670\u0610-\u061A]/g, '')
+    // Tatweel (kashida)
+    .replace(/\u0640/g, '')
+    // Egyptian dialect: ق often pronounced/written as أ → normalize both to q base
+    // Don't collapse ق/ء since they're distinct — but strip leading ال
+    .replace(/^ال/g, '')
+    // Normalize space sequences
+    .replace(/\s+/g, ' ')
     .toLowerCase()
     .trim();
 }
 
+// Strip common Arabic prefixes AND suffixes for root matching
+function arabicStem(word) {
+  let w = normalizeArabic(word);
+  // Strip prefixes: و ف ب ل ك ال
+  w = w.replace(/^(وال|فال|بال|لل|ال|و|ف|ب|ل|ك)/, '');
+  // Strip suffixes: ها هم هن كم ون ين ات ه
+  w = w.replace(/(ها|هم|هن|كم|ون|ين|ات|ه|ي|ك|ا|وا)$/, '');
+  return w.length > 1 ? w : normalizeArabic(word);
+}
+
 function francoToArabic(text) {
-  if (!text) return "";
+  if (!text) return '';
   let s = text.toLowerCase().trim();
-  if (!/[a-z0-9]/.test(s)) return "";
+  if (!/[a-z0-9]/.test(s)) return '';
 
   FRANCO_MAPPINGS.forEach(([f, a]) => {
     s = s.split(f).join(a);
   });
   return s;
+}
+
+// ==========================================================================
+// MULTI-SIGNAL MATCH SCORER
+// Returns a score 0–100 based on multiple match strategies
+// ==========================================================================
+function getMatchScore(song, query) {
+  if (!song || !query) return 0;
+  const title = song.title || '';
+  const notes = song.notes || '';
+
+  const qRaw    = query.trim().toLowerCase();
+  const qNorm   = normalizeArabic(query);
+  const qFranco = francoToArabic(query);
+  const qWords  = qNorm.split(/\s+/).filter(Boolean);
+  const qStems  = qWords.map(arabicStem);
+
+  const tRaw   = title.toLowerCase();
+  const tNorm  = normalizeArabic(title);
+  const tWords = tNorm.split(/\s+/).filter(Boolean);
+  const tStems = tWords.map(arabicStem);
+  const nNorm  = normalizeArabic(notes);
+  const nLines = notes.split(/[\n,]+/).map(l => normalizeArabic(l.trim())).filter(Boolean);
+
+  // --- Tier 1: Exact or full-phrase ---
+  if (tRaw === qRaw || tNorm === qNorm) return 100;
+  if (qFranco && (tNorm === qFranco)) return 98;
+
+  // --- Tier 2: Starts with query ---
+  if (tNorm.startsWith(qNorm)) return 90;
+  if (qFranco && tNorm.startsWith(qFranco)) return 88;
+
+  // --- Tier 3: Substring match in title ---
+  if (tNorm.includes(qNorm)) return 78;
+  if (qFranco && tNorm.includes(qFranco)) return 74;
+
+  // --- Tier 4: All query words appear somewhere in title ---
+  if (qWords.length > 1) {
+    const allWordsInTitle = qWords.every(w => tNorm.includes(w));
+    if (allWordsInTitle) return 70;
+    const allStemsInTitle = qStems.every(s => tStems.some(ts => ts.includes(s) || s.includes(ts)));
+    if (allStemsInTitle) return 65;
+  }
+
+  // --- Tier 5: Any query word matches a title word (stem-aware) ---
+  let wordHits = 0;
+  for (const qStem of qStems) {
+    if (qStem.length < 2) continue;
+    for (const tStem of tStems) {
+      if (tStem.includes(qStem) || qStem.includes(tStem)) {
+        wordHits++;
+        break;
+      }
+    }
+  }
+  if (wordHits > 0) {
+    const wordScore = 40 + Math.round((wordHits / Math.max(qStems.length, 1)) * 20);
+    // Word score is a fallback — but bump if majority matched
+    if (wordHits >= qStems.length) return Math.max(wordScore, 62);
+    return wordScore;
+  }
+
+  // --- Tier 6: Fuzzy per-word (Levenshtein) on title words ---
+  if (qNorm.length >= 3) {
+    for (const qW of qWords) {
+      if (qW.length < 3) continue;
+      for (const tW of tWords) {
+        const maxDist = qW.length <= 4 ? 1 : 2;
+        if (Math.abs(tW.length - qW.length) <= maxDist) {
+          const dist = levenshteinDistance(qW, tW);
+          if (dist <= maxDist) return 38;
+        }
+      }
+    }
+  }
+
+  // --- Tier 7: Match in lyrics/notes ---
+  if (qNorm.length >= 2) {
+    // Check if any lyric line contains the full query
+    const lineMatch = nLines.some(l => l.includes(qNorm));
+    if (lineMatch) return 52;
+
+    // Check if all words appear in any single lyric line
+    if (qWords.length > 1) {
+      const lineWordMatch = nLines.some(l => qWords.every(w => l.includes(w)));
+      if (lineWordMatch) return 45;
+    }
+
+    // Any word in notes
+    if (nNorm.includes(qNorm)) return 30;
+    if (qFranco && nNorm.includes(qFranco)) return 25;
+  }
+
+  return 0;
+}
+
+// Find the best matching lyric line and its index for a given query
+function findBestLyricMatch(linesRaw, qNorm, qWords) {
+  if (!linesRaw || !linesRaw.length) return null;
+
+  let bestScore = -1;
+  let bestIdx = -1;
+
+  for (let i = 0; i < linesRaw.length; i++) {
+    const lineNorm = normalizeArabic(linesRaw[i]);
+    let score = 0;
+    if (lineNorm.includes(qNorm)) {
+      score = 100;
+    } else if (qWords.length > 1 && qWords.every(w => lineNorm.includes(w))) {
+      score = 80;
+    } else {
+      for (const w of qWords) {
+        if (w.length >= 2 && lineNorm.includes(w)) score += 30;
+      }
+    }
+    if (score > bestScore) {
+      bestScore = score;
+      bestIdx = i;
+    }
+  }
+
+  return bestScore > 0 ? { idx: bestIdx, score: bestScore } : null;
+}
+
+// Highlight matched text inside a string with <mark>
+function highlightMatches(rawText, qNorm, qWords) {
+  if (!rawText) return '';
+  let escaped = rawText
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  // Build array of match regions from the normalized version
+  const normText = normalizeArabic(rawText);
+
+  // Collect all ranges to highlight (from qNorm full phrase and each word)
+  const toMark = [];
+
+  function addMatchRanges(needle) {
+    if (!needle || needle.length < 2) return;
+    let start = 0;
+    while (true) {
+      const pos = normText.indexOf(needle, start);
+      if (pos === -1) break;
+      toMark.push({ start: pos, end: pos + needle.length });
+      start = pos + 1;
+    }
+  }
+
+  addMatchRanges(qNorm);
+  for (const w of qWords) {
+    if (w.length >= 2) addMatchRanges(w);
+  }
+
+  if (!toMark.length) return escaped;
+
+  // Sort and merge overlapping regions
+  toMark.sort((a, b) => a.start - b.start);
+  const merged = [];
+  for (const r of toMark) {
+    if (merged.length && r.start <= merged[merged.length - 1].end) {
+      merged[merged.length - 1].end = Math.max(merged[merged.length - 1].end, r.end);
+    } else {
+      merged.push({ ...r });
+    }
+  }
+
+  // Build output: rawText characters with <mark> wrapping matched ranges
+  // Since normalization may differ in length from rawText, we use rawText directly
+  // but use normText positions as a guide (they're character-aligned for Arabic text)
+  let result = '';
+  let lastEnd = 0;
+  for (const { start, end } of merged) {
+    const before = rawText.substring(lastEnd, start)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const match  = rawText.substring(start, end)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    result += before + `<mark class="search-highlight">${match}</mark>`;
+    lastEnd = end;
+  }
+  result += rawText.substring(lastEnd)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  return result;
+}
+
+function showToast(message) {
+  let toast = document.getElementById('app-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'app-toast';
+    toast.className = 'app-toast hidden';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  toast.classList.remove('hidden');
+  toast.classList.add('show');
+
+  setTimeout(() => {
+    toast.classList.remove('show');
+    toast.classList.add('hidden');
+  }, 2400);
 }
 
 function getApiUrl() {
@@ -52,9 +279,7 @@ function getApiUrl() {
   if (path.endsWith('.html') || path.endsWith('.php')) {
     return path.substring(0, path.lastIndexOf('/') + 1) + 'api.php';
   }
-  if (!path.endsWith('/')) {
-    path += '/';
-  }
+  if (!path.endsWith('/')) path += '/';
   return path + 'api.php';
 }
 
@@ -80,9 +305,7 @@ function copyToClipboard(text) {
   document.body.appendChild(textArea);
   textArea.focus();
   textArea.select();
-  try {
-    document.execCommand('copy');
-  } catch (err) {}
+  try { document.execCommand('copy'); } catch (err) {}
   document.body.removeChild(textArea);
   return Promise.resolve();
 }
@@ -90,11 +313,9 @@ function copyToClipboard(text) {
 function levenshteinDistance(a, b) {
   if (a.length === 0) return b.length;
   if (b.length === 0) return a.length;
-
   const matrix = [];
   for (let i = 0; i <= b.length; i++) matrix[i] = [i];
   for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
-
   for (let i = 1; i <= b.length; i++) {
     for (let j = 1; j <= a.length; j++) {
       if (b.charAt(i - 1) === a.charAt(j - 1)) {
@@ -113,25 +334,19 @@ function levenshteinDistance(a, b) {
 
 function correctWithArabicDictionary(draftArabic, dictionary) {
   if (!draftArabic || !dictionary || dictionary.length === 0) return draftArabic;
-
   const words = draftArabic.split(/\s+/);
   const correctedWords = words.map(w => {
     const normW = normalizeArabic(w);
     if (!normW || normW.length < 2) return w;
-
     const directMatch = dictionary.find(dictWord => normalizeArabic(dictWord) === normW);
     if (directMatch) return directMatch;
-
     const maxDist = normW.length <= 4 ? 1 : 2;
     let bestWord = w;
     let minDist = maxDist + 1;
-
     for (let i = 0; i < Math.min(dictionary.length, 6000); i++) {
       const dictWord = dictionary[i];
       const normDict = normalizeArabic(dictWord);
-
       if (Math.abs(normDict.length - normW.length) > maxDist) continue;
-
       const dist = levenshteinDistance(normW, normDict);
       if (dist < minDist) {
         minDist = dist;
@@ -139,55 +354,9 @@ function correctWithArabicDictionary(draftArabic, dictionary) {
         if (minDist === 0) break;
       }
     }
-
     return bestWord;
   });
-
   return correctedWords.join(' ');
-}
-
-function getMatchScore(song, query) {
-  if (!song || !query) return 0;
-  const title = song.title || '';
-  const notes = song.notes || '';
-
-  const qNorm = normalizeArabic(query);
-  const qRaw = query.trim().toLowerCase();
-  const qFranco = francoToArabic(query);
-
-  const tNorm = normalizeArabic(title);
-  const tRaw = title.toLowerCase();
-  const nNorm = normalizeArabic(notes);
-
-  if (tRaw === qRaw || tNorm === qNorm) return 100;
-  if (tRaw.startsWith(qRaw) || tNorm.startsWith(qNorm)) return 85;
-  if (tRaw.includes(qRaw) || tNorm.includes(qNorm)) return 70;
-
-  if (qFranco && (tNorm === qFranco || tNorm.startsWith(qFranco))) return 80;
-  if (qFranco && tNorm.includes(qFranco)) return 65;
-
-  if (nNorm.includes(qNorm)) return 50;
-  if (qFranco && nNorm.includes(qFranco)) return 40;
-
-  return 10;
-}
-
-function showToast(message) {
-  let toast = document.getElementById('app-toast');
-  if (!toast) {
-    toast = document.createElement('div');
-    toast.id = 'app-toast';
-    toast.className = 'app-toast hidden';
-    document.body.appendChild(toast);
-  }
-  toast.textContent = message;
-  toast.classList.remove('hidden');
-  toast.classList.add('show');
-
-  setTimeout(() => {
-    toast.classList.remove('show');
-    toast.classList.add('hidden');
-  }, 2400);
 }
 
 if ('serviceWorker' in navigator) {
@@ -1435,6 +1604,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderSearchDropdown(songs, query) {
+    const qNorm  = normalizeArabic(query);
+    const qWords = qNorm.split(/\s+/).filter(w => w.length >= 2);
+
     let francoHeaderHtml = '';
     if (state.francoAutoTranslate && /[a-z0-9]/i.test(query)) {
       const rawTranslated = francoToArabic(query);
@@ -1443,50 +1615,66 @@ document.addEventListener('DOMContentLoaded', () => {
         francoHeaderHtml = `<div class="franco-translation-header"><i class="fa-solid fa-wand-magic-sparkles"></i> الترجمة الحية والمصححة: <strong>${escapeHtml(corrected)}</strong></div>`;
       }
     } else if (query && !/[a-z0-9]/i.test(query)) {
-      const correctedAr = correctWithArabicDictionary(normalizeArabic(query), state.arabicDictionary);
-      if (correctedAr && correctedAr !== normalizeArabic(query)) {
+      const correctedAr = correctWithArabicDictionary(qNorm, state.arabicDictionary);
+      if (correctedAr && correctedAr !== qNorm) {
         francoHeaderHtml = `<div class="franco-translation-header"><i class="fa-solid fa-wand-magic-sparkles"></i> التصحيح الإملائي المقترح: <strong>${escapeHtml(correctedAr)}</strong></div>`;
       }
     }
 
     if (!songs || songs.length === 0) {
-      els.searchDropdown.innerHTML = francoHeaderHtml + `<div class="search-item no-results-item"><span class="item-title">لم يتم العثور على ترنيمة أو شاهد كتابي</span></div>`;
+      els.searchDropdown.innerHTML = francoHeaderHtml + `<div class="search-item no-results-item"><i class="fa-solid fa-circle-exclamation" style="color:#94a3b8; margin-left:6px;"></i><span class="item-title">لم يتم العثور على ترنيمة أو شاهد كتابي</span></div>`;
     } else {
-      const qClean = normalizeArabic(query);
-
-      const itemsHtml = songs.slice(0, 14).map(s => {
-        let snippetHtml = '';
+      const itemsHtml = songs.slice(0, 16).map(s => {
         const rawNotes = s.notes || '';
+        const allLines = rawNotes.split(/[\n,]+/).map(l => l.trim()).filter(l => l.length > 0);
 
-        if (rawNotes) {
+        // Highlighted title
+        const titleHighlighted = highlightMatches(s.title || '', qNorm, qWords);
+
+        // Is the match in the title or lyrics?
+        const titleNorm = normalizeArabic(s.title || '');
+        const matchIsInTitle = qNorm && (titleNorm.includes(qNorm) || qWords.some(w => titleNorm.includes(w)));
+        const matchIsInLyrics = !matchIsInTitle && allLines.length > 0;
+
+        // Build lyric preview snippet
+        let snippetHtml = '';
+        if (allLines.length > 0) {
           try {
-            const allLines = rawNotes.split(/[\n,]+/).map(l => l.trim()).filter(l => l.length > 0);
-            
-            if (allLines.length > 0) {
-              let bestIdx = 0;
-              if (qClean) {
-                const matchedIdx = allLines.findIndex(line => normalizeArabic(line).includes(qClean));
-                if (matchedIdx !== -1) bestIdx = matchedIdx;
-              }
+            // Find the best-matching lyric line
+            const bestMatch = findBestLyricMatch(allLines, qNorm, qWords);
+            const startIdx = bestMatch ? Math.max(0, bestMatch.idx - 1) : 0;
+            const previewSlice = allLines.slice(startIdx, startIdx + 3);
 
-              const previewSlice = allLines.slice(bestIdx, bestIdx + 3);
-              
-              snippetHtml = previewSlice.map((line, idx) => {
-                const lineNum = bestIdx + idx + 1;
-                const formattedLine = escapeHtml(line);
-                return `<span class="line-num-mini">(${lineNum})</span> ${formattedLine}`;
-              }).join(' ');
-            }
+            snippetHtml = previewSlice.map((line, idx) => {
+              const lineNum = startIdx + idx + 1;
+              const isMatchedLine = bestMatch && (startIdx + idx) === bestMatch.idx;
+              const formattedLine = matchIsInLyrics && isMatchedLine
+                ? highlightMatches(line, qNorm, qWords)
+                : escapeHtml(line);
+              const numBadge = isMatchedLine
+                ? `<span class="line-num-mini matched-line-badge">${lineNum}</span>`
+                : `<span class="line-num-mini">${lineNum}</span>`;
+              return `${numBadge} ${formattedLine}`;
+            }).join('<span class="preview-sep">•</span>');
           } catch (err) {
-            snippetHtml = escapeHtml(rawNotes.substring(0, 100));
+            snippetHtml = escapeHtml(rawNotes.substring(0, 120));
           }
         }
+
+        // Badge: ترنيمة / شاهد كتابي / matched-in-lyrics
+        const typeBadge = s.is_bible
+          ? `<span class="item-badge bible-badge"><i class="fa-solid fa-book-open"></i> شاهد كتابي</span>`
+          : `<span class="item-badge"><i class="fa-solid fa-music"></i> ترنيمة</span>`;
+
+        const lyricsMatchBadge = matchIsInLyrics
+          ? `<span class="item-badge lyrics-match-badge"><i class="fa-solid fa-align-left"></i> كلمات</span>`
+          : '';
 
         return `
           <div class="search-item" data-id="${s.id}">
             <div class="item-top">
-              <span class="item-title">${escapeHtml(s.title)}</span>
-              <span class="item-badge">${s.is_bible ? 'شاهد كتابي' : 'ترنيمة'}</span>
+              <span class="item-title">${titleHighlighted}</span>
+              <div class="item-badges-group">${lyricsMatchBadge}${typeBadge}</div>
             </div>
             ${snippetHtml ? `<div class="item-preview-box">${snippetHtml}</div>` : ''}
           </div>
@@ -1502,7 +1690,6 @@ document.addEventListener('DOMContentLoaded', () => {
       item.addEventListener('click', () => {
         const id = item.dataset.id;
         if (!id) return;
-
         els.searchDropdown.classList.add('hidden');
         els.intelligentSearch.value = '';
         els.clearSearchBtn.classList.add('hidden');
@@ -1510,6 +1697,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   }
+
 
   let availableObsScenes = [];
 
