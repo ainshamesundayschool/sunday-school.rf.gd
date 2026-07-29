@@ -588,27 +588,31 @@ document.addEventListener('DOMContentLoaded', () => {
     syncLiveState();
   }
 
-  // DYNAMICALLY LOAD CATALOG (LOCAL STATIC OR API)
+  // DYNAMICALLY LOAD CATALOG (LOCAL STATIC OR API) WITH MULTI-PATH FALLBACKS
   async function loadInitialData() {
     try {
-      let res = await fetch('./songs_catalog.json');
+      let res = await fetch('songs_catalog.json');
+      if (!res.ok) res = await fetch('./songs_catalog.json');
       if (!res.ok) res = await fetch('/api/songs?limit=500');
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        state.allSongs = data;
-      } else if (data && data.songs) {
-        state.allSongs = data.songs;
-      }
       
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          state.allSongs = data;
+        } else if (data && data.songs) {
+          state.allSongs = data.songs;
+        }
+      }
+
       const realTotalCount = state.allSongs.length > 0 ? state.allSongs.length : 11611;
       
       if (els.totalSongsCount) {
         const formatted = Number(realTotalCount).toLocaleString('ar-EG');
-        els.totalSongsCount.innerHTML = `<i class="fa-solid fa-music"></i> <span>${formatted} ترنيمة متاحة في قاعدة البيانات</span>`;
+        els.totalSongsCount.innerHTML = `<i class="fa-solid fa-music"></i> <span>${formatted} ترنيمة</span>`;
       }
     } catch (err) {
       if (els.totalSongsCount) {
-        els.totalSongsCount.innerHTML = `<i class="fa-solid fa-music"></i> <span>١١٬٦١١ ترنيمة متاحة في قاعدة البيانات</span>`;
+        els.totalSongsCount.innerHTML = `<i class="fa-solid fa-music"></i> <span>١١٬٦١١ ترنيمة</span>`;
       }
     }
   }
@@ -814,7 +818,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
     } else if (song.notes) {
-      // Fallback notes splitting into lines
       const splitLines = song.notes.split(/[\n,]+/).map(l => l.trim()).filter(l => l.length > 0);
       linesList = splitLines.map((line, idx) => ({
         text: line,
