@@ -87,7 +87,9 @@
       max-width: 90vw;
       word-break: break-word;
       text-shadow: 0 4px 18px rgba(0, 0, 0, 0.95);
-      will-change: transform, opacity;
+      will-change: transform, opacity, contents;
+      transform: translateZ(0);
+      backface-visibility: hidden;
     }
 
     /* TEXT APPEARANCE ANIMATIONS FOR CONTAINER (WITH MOBILE SAFARI WEBKIT COMPATIBILITY) */
@@ -559,8 +561,8 @@
         lastProcessedTimestamp = data.updatedAt;
       }
 
-      // PREVENT OVERWRITES WHILE USER IS DRAGGING OR RECENTLY DRAGGED
-      if (isDragging || (Date.now() - lastDragTime < 6000)) {
+      // PREVENT OVERWRITES WHILE USER IS DRAGGING OR RECENTLY DRAGGED (1200ms is enough)
+      if (isDragging || (Date.now() - lastDragTime < 1200)) {
         return;
       }
 
@@ -673,16 +675,17 @@
     let activeLiveApiUrl = null;
 
     async function fetchLiveHTTP() {
-      // AUTO-HEALING DEADLOCK BREAKER: If isFetching stayed locked > 2500ms due to network drop, auto-reset!
-      if (isFetching && (Date.now() - lastFetchStartTime > 2500)) {
+      // AUTO-HEALING DEADLOCK BREAKER: Reset after 1000ms (was 2500ms)
+      if (isFetching && (Date.now() - lastFetchStartTime > 1000)) {
         isFetching = false;
       }
-      if (isFetching || isDragging || (Date.now() - lastDragTime < 6000)) return;
+      if (isFetching || isDragging || (Date.now() - lastDragTime < 1200)) return;
       isFetching = true;
       lastFetchStartTime = Date.now();
 
+      // 800ms abort timeout (was 2000ms) — fail fast, retry fast
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000);
+      const timeoutId = setTimeout(() => controller.abort(), 800);
       const ts = Date.now();
 
       try {
@@ -696,11 +699,15 @@
             applyState(data, 'http');
           }
         } else {
+          activeLiveApiUrl = null;
           fetchFallbackLive(ts);
         }
       } catch (err) {
         if (!activeLiveApiUrl) {
           fetchFallbackLive(ts);
+        } else {
+          // Cached URL failed — reset and retry with fallback discovery
+          activeLiveApiUrl = null;
         }
       } finally {
         clearTimeout(timeoutId);
@@ -709,40 +716,55 @@
     }
 
     async function fetchFallbackLive(ts) {
+      // PARALLEL RACE: All fallback URLs fire simultaneously — fastest one wins
       const fallbackUrls = [
         'api.php?action=live',
         '../api.php?action=live',
         '/taranim/api.php?action=live',
-        './api/live',
-        '/api/live'
+        '/api.php?action=live'
       ].map(u => u + (u.includes('?') ? '&' : '?') + '_t=' + ts);
 
-      for (let url of fallbackUrls) {
-        try {
-          let res = await fetch(url, { cache: 'no-cache' });
-          if (res.ok) {
-            let data = await res.json();
-            if (data && (data.type === 'PRESENT_LINE' || data.text !== undefined)) {
-              activeLiveApiUrl = url.replace(/[?&]_t=\d+/, '');
-              applyState(data, 'http');
-              break;
+      const raceController = new AbortController();
+      const raceTimeout = setTimeout(() => raceController.abort(), 800);
+
+      const promises = fallbackUrls.map(url =>
+        fetch(url, { cache: 'no-cache', signal: raceController.signal })
+          .then(async res => {
+            if (res.ok) {
+              const data = await res.json();
+              if (data && (data.type === 'PRESENT_LINE' || data.text !== undefined)) {
+                return { url: url.replace(/[?&]_t=\d+/, ''), data };
+              }
             }
-          }
-        } catch(e) {}
-      }
+            return null;
+          })
+          .catch(() => null)
+      );
+
+      try {
+        // Wait for all, pick the first non-null result
+        const results = await Promise.all(promises);
+        const winner = results.find(r => r !== null);
+        if (winner) {
+          raceController.abort(); // Cancel remaining
+          activeLiveApiUrl = winner.url;
+          applyState(winner.data, 'http');
+        }
+      } catch(e) {}
+      clearTimeout(raceTimeout);
     }
 
-    // ULTRA-FAST WEB WORKER TIMER (50MS TICKS FOR INSTANT REAL-TIME SYNC)
+    // ULTRA-FAST WEB WORKER TIMER (30MS TICKS — FASTER THAN DISPLAY REFRESH FOR INSTANT SYNC)
     let workerTimer = null;
     try {
       const workerBlob = new Blob([
-        "let t = null; onmessage = function(e) { if (e.data === 'start') { clearInterval(t); t = setInterval(function() { postMessage('tick'); }, 50); } else if (e.data === 'stop') { clearInterval(t); } };"
+        "let t = null; onmessage = function(e) { if (e.data === 'start') { clearInterval(t); t = setInterval(function() { postMessage('tick'); }, 30); } else if (e.data === 'stop') { clearInterval(t); } };"
       ], { type: 'application/javascript' });
       workerTimer = new Worker(URL.createObjectURL(workerBlob));
       workerTimer.onmessage = function() { fetchLiveHTTP(); };
       workerTimer.postMessage('start');
     } catch (e) {
-      setInterval(fetchLiveHTTP, 50);
+      setInterval(fetchLiveHTTP, 30);
     }
 
     // IMMEDIATE RE-FETCH ON VISIBILITY OR FOCUS RESTORATION

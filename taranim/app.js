@@ -229,6 +229,10 @@ class OBSWSClient {
     this.onTransitionsUpdated = options.onTransitionsUpdated || (() => {});
     this.requestIdCounter = 1;
     this.pendingRequests = new Map();
+    // AUTO-RECONNECT STATE
+    this._reconnectTimer = null;
+    this._userDisconnected = false;  // true only when user explicitly clicks disconnect
+    this._reconnectAttempts = 0;
   }
 
   connect(ip, port, password) {
@@ -236,7 +240,14 @@ class OBSWSClient {
     if (port) this.port = port;
     if (password !== undefined) this.password = String(password);
 
+    // Mark as user-initiated connect — clears the disconnect flag
+    this._userDisconnected = false;
+    this._reconnectAttempts = 0;
+    clearTimeout(this._reconnectTimer);
+
     this.disconnect();
+    // Restore flag after disconnect() sets it to true
+    this._userDisconnected = false;
 
     let rawHost = this.ip;
     let scheme = 'ws://';
@@ -294,10 +305,26 @@ class OBSWSClient {
         }
       }
       this.onStatusChange(false, reason);
+
+      // AUTO-RECONNECT: retry every 3s unless user explicitly disconnected or wrong password
+      if (!this._userDisconnected && e && e.code !== 4008 && e.code !== 4009) {
+        this._reconnectAttempts++;
+        const delay = Math.min(3000, 1000 + (this._reconnectAttempts - 1) * 500);
+        clearTimeout(this._reconnectTimer);
+        this._reconnectTimer = setTimeout(() => {
+          if (!this._userDisconnected && !this.isConnected) {
+            this.onStatusChange(false, `إعادة الاتصال... (محاولة ${this._reconnectAttempts})`);
+            this.connect(this.ip, this.port, this.password);
+          }
+        }, delay);
+      }
     };
   }
 
   disconnect() {
+    this._userDisconnected = true;
+    this._reconnectAttempts = 0;
+    clearTimeout(this._reconnectTimer);
     if (this.ws) {
       try { this.ws.close(); } catch(e) {}
       this.ws = null;
@@ -1757,6 +1784,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   let activePostUrl = null;
+  let lastHttpPushTime = 0;
+  let pendingHttpPush = null;
 
   function sendLivePayload(postBody) {
     const headers = { 'Content-Type': 'application/json' };
@@ -1770,10 +1799,25 @@ document.addEventListener('DOMContentLoaded', () => {
       })
       .catch(() => {
         activePostUrl = null;
-        fetch('api.php?action=live', { method: 'POST', headers, body: postBody, keepalive: true })
-          .then(res => { if (res.ok) activePostUrl = 'api.php?action=live'; })
+        fetch('/api.php?action=live', { method: 'POST', headers, body: postBody, keepalive: true })
+          .then(res => { if (res.ok) activePostUrl = '/api.php?action=live'; })
           .catch(() => {});
       });
+  }
+
+  // THROTTLED HTTP PUSH: fires at most once per 30ms to avoid hammering server
+  // BroadcastChannel + localStorage still fire instantly on every call
+  function throttledHttpPush(postBody) {
+    const now = Date.now();
+    if (pendingHttpPush) {
+      clearTimeout(pendingHttpPush);
+    }
+    const delay = Math.max(0, 30 - (now - lastHttpPushTime));
+    pendingHttpPush = setTimeout(() => {
+      lastHttpPushTime = Date.now();
+      pendingHttpPush = null;
+      sendLivePayload(postBody);
+    }, delay);
   }
 
   let currentPresenterAnim = null;
@@ -1820,7 +1864,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try { broadcastChannel.postMessage(payload); } catch(e) {}
     try { localStorage.setItem('sunday_school_taranim_live_presentation', JSON.stringify(payload)); } catch(e) {}
 
-    // 2. INSTANT DIRECT OBS WEBSOCKET SYNC (1ms - LAN / HOTSPOT)
+    // 2. INSTANT DIRECT OBS WEBSOCKET SYNC (~1ms LAN)
     try { obsWsClient.sendLineTextToObsSource(text); } catch(e) {}
 
     // 3. INSTANT PRESENTER PREVIEW SYNC (0ms)
@@ -1848,16 +1892,9 @@ document.addEventListener('DOMContentLoaded', () => {
       els.obsLowerThirdBox.style.borderRadius = `${state.styleOptions.boxRadius || 12}px`;
       els.obsLowerThirdBox.style.padding = `${state.styleOptions.boxPadding || 20}px`;
 
+      // TEXT FIT: Set initial size immediately, refine on next animation frame to avoid layout-blocking reflow loop
       let size = state.fontSize || 54;
       els.obsLineText.style.fontSize = `${size}px`;
-
-      const maxW = window.innerWidth * 0.90;
-      const maxH = window.innerHeight * 0.85;
-
-      while ((els.obsLineText.scrollWidth > maxW || els.obsLineText.scrollHeight > maxH) && size > 18) {
-        size -= 2;
-        els.obsLineText.style.fontSize = `${size}px`;
-      }
 
       if (els.obsLineText.textContent !== text || currentPresenterAnim !== state.textAnimation) {
         els.obsLineText.textContent = text;
@@ -1869,7 +1906,22 @@ document.addEventListener('DOMContentLoaded', () => {
           els.obsLineText.classList.add(`animate-appear-${state.textAnimation}`);
         }
       }
-      
+
+      // Defer text-fit reflow to next rAF so it doesn't block keyboard/click response
+      const snapText = text;
+      const snapSize = size;
+      requestAnimationFrame(() => {
+        if (els.obsLineText && els.obsLineText.textContent === snapText) {
+          let fitSize = snapSize;
+          const maxW = (els.obsOverlay ? els.obsOverlay.clientWidth : window.innerWidth) * 0.90;
+          const maxH = (els.obsOverlay ? els.obsOverlay.clientHeight : window.innerHeight) * 0.85;
+          while ((els.obsLineText.scrollWidth > maxW || els.obsLineText.scrollHeight > maxH) && fitSize > 18) {
+            fitSize -= 2;
+            els.obsLineText.style.fontSize = `${fitSize}px`;
+          }
+        }
+      });
+
       const xPct = state.dragPivot.xPct !== undefined ? state.dragPivot.xPct : 50;
       const yPct = state.dragPivot.yPct !== undefined ? state.dragPivot.yPct : 75;
 
@@ -1878,11 +1930,9 @@ document.addEventListener('DOMContentLoaded', () => {
       els.obsLowerThirdBox.style.transform = 'translate(-50%, -50%)';
     }
 
-    // 4. NON-BLOCKING ASYNCHRONOUS SERVER DISPATCH (0ms MAIN THREAD IMPACT)
-    setTimeout(() => {
-      const postBody = JSON.stringify(payload);
-      sendLivePayload(postBody);
-    }, 0);
+    // 4. NON-BLOCKING INSTANT SERVER DISPATCH (throttled to 30ms to protect server)
+    const postBody = JSON.stringify(payload);
+    throttledHttpPush(postBody);
   }
 
   function nextLine() {
