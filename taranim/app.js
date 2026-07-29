@@ -2168,15 +2168,19 @@ document.addEventListener('DOMContentLoaded', () => {
       if (els.btnTriggerObsTransition) els.btnTriggerObsTransition.disabled = !connected;
 
       const isHttps = window.location.protocol === 'https:';
-      const isLanIp = els.obsWsIp && /^(192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.|localhost|127\.0\.0\.1)/.test(els.obsWsIp.value.trim());
 
       if (els.obsHttpsWarning && els.obsHttpFallback && els.obsHttpLink) {
         if (isHttps && !connected && statusText && (statusText.includes('تعذر') || statusText.includes('HTTPS') || statusText.includes('لم يتم'))) {
-          const ip = els.obsWsIp ? els.obsWsIp.value.trim() || '192.168.1.x' : '192.168.x.x';
-          const httpUrl = `http://sunday-school.online/taranim/?obs_ip=${encodeURIComponent(ip)}&obs_port=${els.obsWsPort ? els.obsWsPort.value || '4455' : '4455'}`;
+          const ip = els.obsWsIp ? els.obsWsIp.value.trim() || '192.168.1.9' : '192.168.1.9';
+          const port = els.obsWsPort ? els.obsWsPort.value || '4455' : '4455';
+          const pass = els.obsWsPassword ? els.obsWsPassword.value || '' : '';
+          const currentHost = window.location.host;
+          const currentPath = window.location.pathname;
+          
+          const httpUrl = `http://${currentHost}${currentPath}?obs_ip=${encodeURIComponent(ip)}&obs_port=${encodeURIComponent(port)}&obs_password=${encodeURIComponent(pass)}&obs_autoconnect=1`;
           els.obsHttpLink.href = httpUrl;
           els.obsHttpFallback.classList.remove('hidden');
-          els.obsHttpsWarning.innerHTML = `⚠️ الموقع HTTPS يمنع الاتصال بـ ws:// المحلي. الحل: افتح عبر HTTP أو استخدم QR من نفس الشبكة.`;
+          els.obsHttpsWarning.innerHTML = `⚠️ المتصفح يمنع الاتصال بـ <code>ws://</code> على صفحات HTTPS.<br><strong>انقر زر HTTP بالأسفل للربط التلقائي بـ OBS</strong>`;
           els.obsHttpsWarning.classList.remove('hidden');
         } else if (connected) {
           els.obsHttpsWarning.classList.add('hidden');
@@ -2206,6 +2210,34 @@ document.addEventListener('DOMContentLoaded', () => {
       if (conf.password !== undefined && els.obsWsPassword) els.obsWsPassword.value = conf.password;
     } catch(e) {}
   }
+
+  // AUTO-CONNECT FROM URL QUERY PARAMETERS (E.G. WHEN OPENED VIA HTTP FALLBACK LINK)
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlObsIp = urlParams.get('obs_ip');
+    const urlObsPort = urlParams.get('obs_port');
+    const urlObsPass = urlParams.get('obs_password');
+    const urlAutoConnect = urlParams.get('obs_autoconnect') === '1';
+
+    if (urlObsIp) {
+      if (els.obsWsIp) els.obsWsIp.value = urlObsIp;
+      if (urlObsPort && els.obsWsPort) els.obsWsPort.value = urlObsPort;
+      if (urlObsPass !== null && els.obsWsPassword) els.obsWsPassword.value = urlObsPass;
+
+      const conf = {
+        ip: urlObsIp,
+        port: parseInt(urlObsPort) || 4455,
+        password: urlObsPass || ''
+      };
+      localStorage.setItem('sunday_school_taranim_obs_ws_config', JSON.stringify(conf));
+
+      if (urlAutoConnect || window.location.protocol === 'http:') {
+        setTimeout(() => {
+          obsWsClient.connect(conf.ip, conf.port, conf.password);
+        }, 300);
+      }
+    }
+  } catch(e) {}
 
   if (els.btnMenuObsWs && els.popoverObsWs) {
     els.btnMenuObsWs.addEventListener('click', (e) => {
