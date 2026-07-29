@@ -311,6 +311,30 @@
               </button>
             </div>
 
+            <!-- ACTIVE SCENE & TRANSITION CONTROLS (WHEN CONNECTED) -->
+            <div id="obs-popover-controls" class="hidden" style="margin-top:10px; border-top:1px dashed #cbd5e1; padding-top:8px;">
+              <div style="font-size:0.78rem; font-weight:800; color:#1e293b; margin-bottom:6px; display:flex; align-items:center; justify-content:space-between;">
+                <span><i class="fa-solid fa-clapperboard" style="color:var(--accent-blue);"></i> التحكم في المشاهد والحركة</span>
+                <span class="badge-status connected" style="font-size:0.68rem;">متصل</span>
+              </div>
+              <div class="popover-row">
+                <label><i class="fa-solid fa-layer-group"></i> المشهد:</label>
+                <select id="popover-obs-scene-select" class="control-input"></select>
+              </div>
+              <div class="popover-row">
+                <label><i class="fa-solid fa-shuffle"></i> الحركة:</label>
+                <select id="popover-obs-transition-select" class="control-input"></select>
+              </div>
+              <div class="popover-row">
+                <label><i class="fa-solid fa-stopwatch"></i> المدة:</label>
+                <input type="range" id="popover-obs-duration-range" min="100" max="3000" step="50" value="300" style="flex:1; accent-color:var(--accent-blue); cursor:pointer;">
+                <span id="popover-obs-duration-badge" style="font-size:0.75rem; font-weight:700; color:var(--text-muted);">300ms</span>
+              </div>
+              <button id="popover-btn-trigger-transition" class="btn btn-sm btn-primary" style="width:100%; margin-top:6px; background:linear-gradient(135deg, #10b981, #059669); border:none;">
+                <i class="fa-solid fa-play"></i> تنقل مـبـاشـر (Transition)
+              </button>
+            </div>
+
             <!-- HTTP FALLBACK LINK -->
             <div id="obs-http-fallback" class="hidden" style="margin-top:8px; text-align:center;">
               <a id="obs-http-link" href="" target="_blank" rel="noopener" class="btn btn-sm btn-primary" style="width:100%; display:block; text-align:center; text-decoration:none; font-weight:700; background: linear-gradient(135deg, #2563eb, #1d4ed8); border:none; padding:8px 12px; border-radius:10px; color:#ffffff; box-shadow:0 4px 12px rgba(37,99,235,0.35);">

@@ -786,7 +786,13 @@ document.addEventListener('DOMContentLoaded', () => {
     obsCompactStrip: document.getElementById('obs-compact-strip'),
     obsHttpsWarning: document.getElementById('obs-https-warning'),
     obsHttpFallback: document.getElementById('obs-http-fallback'),
-    obsHttpLink: document.getElementById('obs-http-link')
+    obsHttpLink: document.getElementById('obs-http-link'),
+    obsPopoverControls: document.getElementById('obs-popover-controls'),
+    popoverObsSceneSelect: document.getElementById('popover-obs-scene-select'),
+    popoverObsTransitionSelect: document.getElementById('popover-obs-transition-select'),
+    popoverObsDurationRange: document.getElementById('popover-obs-duration-range'),
+    popoverObsDurationBadge: document.getElementById('popover-obs-duration-badge'),
+    popoverBtnTriggerTransition: document.getElementById('popover-btn-trigger-transition')
   };
 
   function closeAllPopovers(exceptPopover = null) {
@@ -2161,11 +2167,16 @@ document.addEventListener('DOMContentLoaded', () => {
       if (els.btnConnectObsWs) els.btnConnectObsWs.classList.toggle('hidden', connected);
       if (els.btnDisconnectObsWs) els.btnDisconnectObsWs.classList.toggle('hidden', !connected);
       if (els.obsCompactStrip) els.obsCompactStrip.classList.toggle('hidden', !connected);
+      if (els.obsPopoverControls) els.obsPopoverControls.classList.toggle('hidden', !connected);
 
       if (els.obsSceneSelect) els.obsSceneSelect.disabled = !connected;
+      if (els.popoverObsSceneSelect) els.popoverObsSceneSelect.disabled = !connected;
       if (els.obsTransitionSelect) els.obsTransitionSelect.disabled = !connected;
+      if (els.popoverObsTransitionSelect) els.popoverObsTransitionSelect.disabled = !connected;
       if (els.obsTransitionDurationRange) els.obsTransitionDurationRange.disabled = !connected;
+      if (els.popoverObsDurationRange) els.popoverObsDurationRange.disabled = !connected;
       if (els.btnTriggerObsTransition) els.btnTriggerObsTransition.disabled = !connected;
+      if (els.popoverBtnTriggerTransition) els.popoverBtnTriggerTransition.disabled = !connected;
 
       const isHttps = window.location.protocol === 'https:';
 
@@ -2192,12 +2203,14 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     onScenesUpdated: (scenes, currentScene) => {
       availableObsScenes = scenes;
-      if (!els.obsSceneSelect) return;
-      els.obsSceneSelect.innerHTML = scenes.map(s => `<option value="${escapeHtml(s)}" ${s === currentScene ? 'selected' : ''}>${escapeHtml(s)}</option>`).join('');
+      const optionsHtml = scenes.map(s => `<option value="${escapeHtml(s)}" ${s === currentScene ? 'selected' : ''}>${escapeHtml(s)}</option>`).join('');
+      if (els.obsSceneSelect) els.obsSceneSelect.innerHTML = optionsHtml;
+      if (els.popoverObsSceneSelect) els.popoverObsSceneSelect.innerHTML = optionsHtml;
     },
     onTransitionsUpdated: (transitions, currentTransition) => {
-      if (!els.obsTransitionSelect) return;
-      els.obsTransitionSelect.innerHTML = transitions.map(t => `<option value="${escapeHtml(t)}" ${t === currentTransition ? 'selected' : ''}>${escapeHtml(t)}</option>`).join('');
+      const optionsHtml = transitions.map(t => `<option value="${escapeHtml(t)}" ${t === currentTransition ? 'selected' : ''}>${escapeHtml(t)}</option>`).join('');
+      if (els.obsTransitionSelect) els.obsTransitionSelect.innerHTML = optionsHtml;
+      if (els.popoverObsTransitionSelect) els.popoverObsTransitionSelect.innerHTML = optionsHtml;
     }
   });
 
@@ -2270,23 +2283,63 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (els.obsSceneSelect) {
-    els.obsSceneSelect.addEventListener('change', (e) => obsWsClient.setCurrentScene(e.target.value));
+    els.obsSceneSelect.addEventListener('change', (e) => {
+      const val = e.target.value;
+      if (els.popoverObsSceneSelect) els.popoverObsSceneSelect.value = val;
+      obsWsClient.setCurrentScene(val);
+    });
+  }
+
+  if (els.popoverObsSceneSelect) {
+    els.popoverObsSceneSelect.addEventListener('change', (e) => {
+      const val = e.target.value;
+      if (els.obsSceneSelect) els.obsSceneSelect.value = val;
+      obsWsClient.setCurrentScene(val);
+    });
   }
 
   if (els.obsTransitionSelect) {
-    els.obsTransitionSelect.addEventListener('change', (e) => obsWsClient.setTransition(e.target.value));
+    els.obsTransitionSelect.addEventListener('change', (e) => {
+      const val = e.target.value;
+      if (els.popoverObsTransitionSelect) els.popoverObsTransitionSelect.value = val;
+      obsWsClient.setTransition(val);
+    });
+  }
+
+  if (els.popoverObsTransitionSelect) {
+    els.popoverObsTransitionSelect.addEventListener('change', (e) => {
+      const val = e.target.value;
+      if (els.obsTransitionSelect) els.obsTransitionSelect.value = val;
+      obsWsClient.setTransition(val);
+    });
   }
 
   if (els.obsTransitionDurationRange) {
     els.obsTransitionDurationRange.addEventListener('input', (e) => {
       const val = e.target.value;
       if (els.obsTransitionDurationBadge) els.obsTransitionDurationBadge.textContent = `${val}ms`;
+      if (els.popoverObsDurationBadge) els.popoverObsDurationBadge.textContent = `${val}ms`;
+      if (els.popoverObsDurationRange) els.popoverObsDurationRange.value = val;
+      obsWsClient.setTransitionDuration(val);
+    });
+  }
+
+  if (els.popoverObsDurationRange) {
+    els.popoverObsDurationRange.addEventListener('input', (e) => {
+      const val = e.target.value;
+      if (els.obsTransitionDurationBadge) els.obsTransitionDurationBadge.textContent = `${val}ms`;
+      if (els.popoverObsDurationBadge) els.popoverObsDurationBadge.textContent = `${val}ms`;
+      if (els.obsTransitionDurationRange) els.obsTransitionDurationRange.value = val;
       obsWsClient.setTransitionDuration(val);
     });
   }
 
   if (els.btnTriggerObsTransition) {
     els.btnTriggerObsTransition.addEventListener('click', () => obsWsClient.triggerTransition());
+  }
+
+  if (els.popoverBtnTriggerTransition) {
+    els.popoverBtnTriggerTransition.addEventListener('click', () => obsWsClient.triggerTransition());
   }
 
   // QR CODE SCANNER CONTROLLER
