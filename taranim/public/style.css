@@ -239,7 +239,7 @@ html, body {
 
 /* HERO COMPACT CENTERED SEARCH (FITTED NO SCROLL) */
 .search-hero {
-  padding: 0.75rem 1.5rem 0.5rem 1.5rem;
+  padding: 0.65rem 1.5rem 0.4rem 1.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -250,7 +250,7 @@ html, body {
 }
 
 .search-toolbar {
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.35rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -318,6 +318,21 @@ html, body {
     font-size: 1.05rem;
     cursor: pointer;
   }
+}
+
+/* SMALL TEXT WITH TOTAL AVAILABLE TARANIM COUNT */
+.songs-count-subtext {
+  margin-top: 0.35rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--accent-blue);
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  padding: 2px 12px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .franco-badge {
@@ -694,7 +709,6 @@ html, body {
     overflow: visible;
   }
 
-  /* REMOVE SUNDAY SCHOOL TARANIM TITLE ON MOBILE DEVICES */
   .brand-text-centered {
     display: none !important;
   }

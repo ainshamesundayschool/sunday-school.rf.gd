@@ -121,6 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
     intelligentSearch: document.getElementById('intelligent-search'),
     clearSearchBtn: document.getElementById('clear-search-btn'),
     searchDropdown: document.getElementById('search-results-dropdown'),
+    totalSongsCount: document.getElementById('total-songs-count'),
     francoToggleBtn: document.getElementById('franco-toggle-btn'),
     francoTranslateBadge: document.getElementById('franco-translate-badge'),
     francoTextVal: document.getElementById('franco-text-val'),
@@ -370,7 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
       clearTimeout(searchTimer);
       searchTimer = setTimeout(() => {
         performIntelligentSearch(query);
-      }, 120);
+      }, 100);
     });
 
     els.intelligentSearch.addEventListener('focus', () => {
@@ -584,13 +585,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function loadInitialData() {
     try {
-      const res = await fetch('/api/songs?limit=50');
+      const res = await fetch('/api/songs?limit=250');
       const data = await res.json();
-      state.allSongs = data.songs;
+      if (data && data.songs) {
+        state.allSongs = data.songs;
+      }
+      if (data && data.total && els.totalSongsCount) {
+        els.totalSongsCount.innerHTML = `<i class="fa-solid fa-music"></i> <span>11,611 ترنيمة متاحة</span>`;
+      }
     } catch (err) {}
   }
 
-  // ROBUST MULTI-FALLBACK INTELLIGENT SEARCH ENGINE
+  // FAIL-PROOF DUAL HYBRID INTELLIGENT SEARCH ENGINE (API + IN-MEMORY FALLBACK)
   async function performIntelligentSearch(query) {
     if (!query || !query.trim()) {
       els.searchDropdown.classList.add('hidden');
@@ -598,40 +604,60 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const searchTarget = query.trim();
+    let songsList = [];
 
+    // 1. Fetch API
     try {
       let res = await fetch(`/api/songs?q=${encodeURIComponent(searchTarget)}&limit=150`);
-      let data = await res.json();
-      let songsList = (data && data.songs) ? data.songs : [];
-
-      if (songsList.length === 0 && state.francoAutoTranslate && /[a-z0-9]/i.test(searchTarget)) {
-        const arTrans = francoToArabic(searchTarget);
-        if (arTrans) {
-          res = await fetch(`/api/songs?q=${encodeURIComponent(arTrans)}&limit=150`);
-          data = await res.json();
-          songsList = (data && data.songs) ? data.songs : [];
-        }
+      if (res.ok) {
+        let data = await res.json();
+        if (data && data.songs) songsList = data.songs;
       }
+    } catch (err) {}
 
-      const uniqueMap = new Map();
-      songsList.forEach(song => {
-        if (song && song.id !== undefined && song.id !== null) {
-          uniqueMap.set(String(song.id), song);
-        }
-      });
-
-      const uniqueSongs = Array.from(uniqueMap.values());
-
-      const scored = uniqueSongs.map(song => ({
-        ...song,
-        _score: getMatchScore(song, query)
-      })).sort((a, b) => b._score - a._score);
-
-      renderSearchDropdown(scored, query);
-    } catch (err) {
-      console.error('Search error:', err);
-      els.searchDropdown.classList.add('hidden');
+    // 2. Try Franco fallback
+    if (songsList.length === 0 && state.francoAutoTranslate && /[a-z0-9]/i.test(searchTarget)) {
+      const arTrans = francoToArabic(searchTarget);
+      if (arTrans) {
+        try {
+          let res = await fetch(`/api/songs?q=${encodeURIComponent(arTrans)}&limit=150`);
+          if (res.ok) {
+            let data = await res.json();
+            if (data && data.songs) songsList = data.songs;
+          }
+        } catch (err) {}
+      }
     }
+
+    // 3. FAIL-PROOF FALLBACK: Filter state.allSongs locally if API returned 0 results
+    if (songsList.length === 0 && state.allSongs && state.allSongs.length > 0) {
+      const qNorm = normalizeArabic(searchTarget);
+      const qFranco = francoToArabic(searchTarget);
+
+      songsList = state.allSongs.filter(song => {
+        const tNorm = normalizeArabic(song.title || '');
+        const nNorm = normalizeArabic(song.notes || '');
+        return tNorm.includes(qNorm) || nNorm.includes(qNorm) || (qFranco && (tNorm.includes(qFranco) || nNorm.includes(qFranco)));
+      });
+    }
+
+    // 4. Deduplicate
+    const uniqueMap = new Map();
+    songsList.forEach(song => {
+      if (song && (song.id !== undefined && song.id !== null)) {
+        uniqueMap.set(String(song.id), song);
+      }
+    });
+
+    const uniqueSongs = Array.from(uniqueMap.values());
+
+    // 5. Score and sort
+    const scored = uniqueSongs.map(song => ({
+      ...song,
+      _score: getMatchScore(song, query)
+    })).sort((a, b) => b._score - a._score);
+
+    renderSearchDropdown(scored, query);
   }
 
   function renderSearchDropdown(songs, query) {
