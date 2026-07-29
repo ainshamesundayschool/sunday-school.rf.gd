@@ -238,8 +238,19 @@
       }
     });
 
-    function applyState(data) {
+    let lastLocalUpdateTime = 0;
+
+    function applyState(data, source = 'local') {
       if (!data || typeof data !== 'object') return;
+
+      // Ignore HTTP polling if local BroadcastChannel/localStorage updated recently (within 5 seconds)
+      if (source === 'http' && (Date.now() - lastLocalUpdateTime < 5000)) {
+        return;
+      }
+
+      if (source === 'local') {
+        lastLocalUpdateTime = Date.now();
+      }
 
       // DO NOT OVERWRITE WITH NON-PRESENTATION STATUS OBJECTS
       if (data.status && !data.type && data.text === undefined) return;
@@ -248,9 +259,10 @@
         document.body.setAttribute('data-chroma', data.chroma);
       }
 
-      if (data.isBlank || !data.text) {
+      // ONLY HIDE TEXT IF EXPLICITLY SET TO BLANK BY USER
+      if (data.isBlank) {
         textEl.style.visibility = 'hidden';
-      } else {
+      } else if (data.text && data.text.trim()) {
         textEl.style.visibility = 'visible';
         textEl.textContent = data.text;
       }
@@ -299,33 +311,35 @@
     }
 
     const channel = new BroadcastChannel('sunday_school_taranim_obs_channel');
-    channel.onmessage = (event) => applyState(event.data);
+    channel.onmessage = (event) => applyState(event.data, 'local');
 
     window.addEventListener('storage', (e) => {
       if (e.key === 'sunday_school_taranim_live_presentation') {
-        try { applyState(JSON.parse(e.newValue)); } catch(err) {}
+        try { applyState(JSON.parse(e.newValue), 'local'); } catch(err) {}
       }
     });
 
     const initialLiveRaw = localStorage.getItem('sunday_school_taranim_live_presentation');
     if (initialLiveRaw) {
-      try { applyState(JSON.parse(initialLiveRaw)); } catch(err) {}
+      try { applyState(JSON.parse(initialLiveRaw), 'local'); } catch(err) {}
     }
 
     async function fetchLiveHTTP() {
       if (isDragging) return;
+      if (Date.now() - lastLocalUpdateTime < 5000) return; // Skip HTTP poll if local updates active
+
       try {
         let res = await fetch('./api/live');
         if (res.ok) {
           const data = await res.json();
-          if (data && (data.type === 'PRESENT_LINE' || data.text !== undefined)) {
-            applyState(data);
+          if (data && data.text && data.text.trim()) {
+            applyState(data, 'http');
           }
         }
       } catch (err) {}
     }
 
-    setInterval(fetchLiveHTTP, 300);
+    setInterval(fetchLiveHTTP, 500);
     fetchLiveHTTP();
   </script>
 </body>
