@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sunday School Taranim - OBS & TV Presenter Window</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&family=Cairo:wght@400;600;700&family=Almarai:wght@400;700&family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+  
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+    
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background-color: transparent;
+      font-family: 'Alexandria', sans-serif;
+      cursor: default;
+    }
+
+    body[data-chroma="green"] { background-color: #00FF00 !important; }
+    body[data-chroma="blue"] { background-color: #0000FF !important; }
+    body[data-chroma="black"] { background-color: #000000 !important; }
+    body[data-chroma="transparent"] { background-color: transparent !important; }
+
+    /* MAGNETIC SNAP GUIDES */
+    .snap-guide {
+      position: absolute;
+      z-index: 50;
+      pointer-events: none;
+      border-color: #f59e0b;
+      box-shadow: 0 0 10px #f59e0b;
+    }
+
+    .snap-guide.vertical {
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      border-left: 2px dashed #f59e0b;
+    }
+
+    .snap-guide.horizontal {
+      left: 0;
+      right: 0;
+      top: 50%;
+      border-top: 2px dashed #f59e0b;
+    }
+
+    .lower-third-container {
+      position: absolute;
+      left: 50%;
+      top: 75%;
+      transform: translate(-50%, -50%);
+      width: auto;
+      max-width: 90vw;
+      max-height: 85vh;
+      text-align: center;
+      padding: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: visible !important;
+      cursor: grab;
+
+      &:active {
+        cursor: grabbing;
+      }
+    }
+
+    .line-text {
+      font-size: 54px;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.5;
+      white-space: pre-line;
+      text-align: center;
+      max-width: 90vw;
+      word-break: break-word;
+      padding: 20px 35px;
+      overflow: visible !important;
+      text-shadow: 0 4px 18px rgba(0, 0, 0, 0.95);
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body data-chroma="transparent">
+
+  <!-- MAGNETIC SNAP GUIDES -->
+  <div id="snap-guide-h" class="snap-guide horizontal hidden"></div>
+  <div id="snap-guide-v" class="snap-guide vertical hidden"></div>
+
+  <div class="lower-third-container" id="presenter-box">
+    <div class="line-text" id="presenter-text"></div>
+  </div>
+
+  <script>
+    const box = document.getElementById('presenter-box');
+    const textEl = document.getElementById('presenter-text');
+    const guideV = document.getElementById('snap-guide-v');
+    const guideH = document.getElementById('snap-guide-h');
+
+    let stateFontSize = 54;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramChroma = urlParams.get('chroma');
+    if (paramChroma) {
+      document.body.setAttribute('data-chroma', paramChroma);
+    }
+
+    const screenLeft = urlParams.get('screenLeft');
+    const screenTop = urlParams.get('screenTop');
+    const isAutoFS = urlParams.get('autofs') === 'true';
+
+    if (screenLeft !== null && screenTop !== null) {
+      try {
+        window.moveTo(parseInt(screenLeft), parseInt(screenTop));
+      } catch (e) {}
+    }
+
+    if (isAutoFS) {
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(() => {});
+          }
+        }, 300);
+      });
+    }
+
+    const savedPivotRaw = localStorage.getItem('sunday_school_taranim_drag_pivot');
+    let currentPivot = { left: window.innerWidth / 2, top: window.innerHeight * 0.75 };
+    if (savedPivotRaw) {
+      try { currentPivot = JSON.parse(savedPivotRaw); } catch(e) {}
+    }
+
+    box.style.left = currentPivot.left + 'px';
+    box.style.top = currentPivot.top + 'px';
+    box.style.transform = 'translate(-50%, -50%)';
+
+    function requestFS() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
+    }
+
+    document.body.addEventListener('click', () => {
+      if (!isDragging) requestFS();
+    });
+
+    window.addEventListener('resize', () => {
+      fitTextToSafeArea();
+    });
+
+    function fitTextToSafeArea() {
+      let size = stateFontSize || 54;
+      textEl.style.fontSize = size + 'px';
+
+      const maxW = window.innerWidth * 0.90;
+      const maxH = window.innerHeight * 0.85;
+
+      while ((textEl.scrollWidth > maxW || textEl.scrollHeight > maxH) && size > 18) {
+        size -= 2;
+        textEl.style.fontSize = size + 'px';
+      }
+    }
+
+    let isDragging = false;
+    let startX, startY;
+    const SNAP_THRESHOLD = 22;
+
+    box.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+
+      const screenW = window.innerWidth;
+      const screenH = window.innerHeight;
+
+      let targetX = currentPivot.left + (e.clientX - startX);
+      let targetY = currentPivot.top + (e.clientY - startY);
+
+      let snappedV = false;
+      let snappedH = false;
+
+      if (Math.abs(targetX - screenW / 2) < SNAP_THRESHOLD) {
+        targetX = screenW / 2;
+        snappedV = true;
+      }
+
+      if (Math.abs(targetY - screenH / 2) < SNAP_THRESHOLD) {
+        targetY = screenH / 2;
+        snappedH = true;
+      } else if (Math.abs(targetY - (screenH * 0.75)) < SNAP_THRESHOLD) {
+        targetY = screenH * 0.75;
+        snappedH = true;
+      }
+
+      if (snappedV && guideV) guideV.classList.remove('hidden');
+      else if (guideV) guideV.classList.add('hidden');
+
+      if (snappedH && guideH) guideH.classList.remove('hidden');
+      else if (guideH) guideH.classList.add('hidden');
+
+      currentPivot.left = targetX;
+      currentPivot.top = targetY;
+
+      box.style.left = targetX + 'px';
+      box.style.top = targetY + 'px';
+      box.style.transform = 'translate(-50%, -50%)';
+
+      localStorage.setItem('sunday_school_taranim_drag_pivot', JSON.stringify(currentPivot));
+
+      startX = e.clientX;
+      startY = e.clientY;
+
+      channel.postMessage({ type: 'UPDATE_POS', pos: currentPivot });
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        if (guideV) guideV.classList.add('hidden');
+        if (guideH) guideH.classList.add('hidden');
+      }
+    });
+
+    let lastLocalUpdateTime = 0;
+
+    function applyState(data, source = 'local') {
+      if (!data || typeof data !== 'object') return;
+
+      if (source === 'http' && (Date.now() - lastLocalUpdateTime < 4000)) {
+        return;
+      }
+
+      if (source === 'local') {
+        lastLocalUpdateTime = Date.now();
+      }
+
+      if (data.status && !data.type && data.text === undefined) return;
+
+      if (data.chroma && !paramChroma) {
+        document.body.setAttribute('data-chroma', data.chroma);
+      }
+
+      if (data.isBlank) {
+        textEl.style.visibility = 'hidden';
+      } else if (data.text !== undefined) {
+        textEl.style.visibility = data.text ? 'visible' : 'hidden';
+        textEl.textContent = data.text;
+      }
+
+      if (data.font) {
+        textEl.style.fontFamily = data.font;
+      }
+
+      if (data.fontSize) {
+        stateFontSize = data.fontSize;
+      }
+
+      fitTextToSafeArea();
+
+      const textColor = data.textColor || '#ffffff';
+      const strokeWidth = parseInt(data.strokeWidth || 0);
+      const strokeColor = data.strokeColor || '#000000';
+      const shadowBlur = parseInt(data.shadowBlur || 0);
+
+      textEl.style.color = textColor;
+
+      if (strokeWidth === 0) {
+        textEl.style.textShadow = shadowBlur > 0 ? `0 6px ${shadowBlur}px rgba(0, 0, 0, 0.95)` : '0 4px 18px rgba(0, 0, 0, 0.95)';
+      } else {
+        const s = strokeWidth;
+        textEl.style.textShadow = `
+          -${s}px -${s}px 0 ${strokeColor},
+           ${s}px -${s}px 0 ${strokeColor},
+          -${s}px  ${s}px 0 ${strokeColor},
+           ${s}px  ${s}px 0 ${strokeColor},
+          -${s + 1}px 0 0 ${strokeColor},
+           ${s + 1}px 0 0 ${strokeColor},
+           0 -${s + 1}px 0 ${strokeColor},
+           0  ${s + 1}px 0 ${strokeColor},
+           0 8px ${shadowBlur}px rgba(0, 0, 0, 0.95)
+        `;
+      }
+
+      if (data.pos && !isDragging) {
+        currentPivot = data.pos;
+        box.style.left = data.pos.left + 'px';
+        box.style.top = data.pos.top + 'px';
+        box.style.transform = 'translate(-50%, -50%)';
+        localStorage.setItem('sunday_school_taranim_drag_pivot', JSON.stringify(currentPivot));
+      }
+    }
+
+    const channel = new BroadcastChannel('sunday_school_taranim_obs_channel');
+    channel.onmessage = (event) => applyState(event.data, 'local');
+
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'sunday_school_taranim_live_presentation') {
+        try { applyState(JSON.parse(e.newValue), 'local'); } catch(err) {}
+      }
+    });
+
+    const initialLiveRaw = localStorage.getItem('sunday_school_taranim_live_presentation');
+    if (initialLiveRaw) {
+      try { applyState(JSON.parse(initialLiveRaw), 'local'); } catch(err) {}
+    }
+
+    async function fetchLiveHTTP() {
+      if (isDragging) return;
+      try {
+        let res = await fetch('api.php?action=live');
+        if (!res.ok) res = await fetch('./api/live');
+        if (!res.ok) res = await fetch('/api/live');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && (data.type === 'PRESENT_LINE' || data.text !== undefined)) {
+            applyState(data, 'http');
+          }
+        }
+      } catch (err) {}
+    }
+
+    setInterval(fetchLiveHTTP, 200);
+    fetchLiveHTTP();
+  </script>
+</body>
+</html>
