@@ -370,12 +370,12 @@ document.addEventListener('DOMContentLoaded', () => {
       clearTimeout(searchTimer);
       searchTimer = setTimeout(() => {
         performIntelligentSearch(query);
-      }, 150);
+      }, 120);
     });
 
     els.intelligentSearch.addEventListener('focus', () => {
       if (els.intelligentSearch.value.trim()) {
-        els.searchDropdown.classList.remove('hidden');
+        performIntelligentSearch(els.intelligentSearch.value);
       }
     });
 
@@ -597,27 +597,26 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    let searchTarget = query.trim();
-    if (state.francoAutoTranslate && /[a-z0-9]/i.test(searchTarget)) {
-      const arTrans = francoToArabic(searchTarget);
-      if (arTrans) searchTarget = arTrans;
-    }
+    const searchTarget = query.trim();
 
     try {
       let res = await fetch(`/api/songs?q=${encodeURIComponent(searchTarget)}&limit=150`);
       let data = await res.json();
       let songsList = (data && data.songs) ? data.songs : [];
 
-      if (songsList.length === 0 && searchTarget !== query.trim()) {
-        res = await fetch(`/api/songs?q=${encodeURIComponent(query.trim())}&limit=150`);
-        data = await res.json();
-        songsList = (data && data.songs) ? data.songs : [];
+      if (songsList.length === 0 && state.francoAutoTranslate && /[a-z0-9]/i.test(searchTarget)) {
+        const arTrans = francoToArabic(searchTarget);
+        if (arTrans) {
+          res = await fetch(`/api/songs?q=${encodeURIComponent(arTrans)}&limit=150`);
+          data = await res.json();
+          songsList = (data && data.songs) ? data.songs : [];
+        }
       }
 
       const uniqueMap = new Map();
       songsList.forEach(song => {
-        if (song && song.id && !uniqueMap.has(song.id)) {
-          uniqueMap.set(song.id, song);
+        if (song && song.id !== undefined && song.id !== null) {
+          uniqueMap.set(String(song.id), song);
         }
       });
 
@@ -630,6 +629,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       renderSearchDropdown(scored, query);
     } catch (err) {
+      console.error('Search error:', err);
       els.searchDropdown.classList.add('hidden');
     }
   }
@@ -645,34 +645,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const rawNotes = s.notes || '';
 
         if (rawNotes) {
-          const allLines = rawNotes.split(/[\n,]+/).map(l => l.trim()).filter(l => l.length > 0);
-          
-          if (allLines.length > 0) {
-            let bestIdx = 0;
-            if (qClean) {
-              const matchedIdx = allLines.findIndex(line => normalizeArabic(line).includes(qClean));
-              if (matchedIdx !== -1) bestIdx = matchedIdx;
-            }
-
-            const previewSlice = allLines.slice(bestIdx, bestIdx + 3);
+          try {
+            const allLines = rawNotes.split(/[\n,]+/).map(l => l.trim()).filter(l => l.length > 0);
             
-            snippetHtml = previewSlice.map((line, idx) => {
-              const lineNum = bestIdx + idx + 1;
-              let formattedLine = escapeHtml(line);
-
+            if (allLines.length > 0) {
+              let bestIdx = 0;
               if (qClean) {
-                const normLine = normalizeArabic(line);
-                const matchPos = normLine.indexOf(qClean);
-                if (matchPos !== -1) {
-                  const matchText = line.substring(matchPos, matchPos + qClean.length);
-                  formattedLine = escapeHtml(line.substring(0, matchPos)) +
-                    `<mark class="highlight-query">${escapeHtml(matchText)}</mark>` +
-                    escapeHtml(line.substring(matchPos + qClean.length));
-                }
+                const matchedIdx = allLines.findIndex(line => normalizeArabic(line).includes(qClean));
+                if (matchedIdx !== -1) bestIdx = matchedIdx;
               }
 
-              return `<span class="line-num-mini">(${lineNum})</span> ${formattedLine}`;
-            }).join(' ');
+              const previewSlice = allLines.slice(bestIdx, bestIdx + 3);
+              
+              snippetHtml = previewSlice.map((line, idx) => {
+                const lineNum = bestIdx + idx + 1;
+                const formattedLine = escapeHtml(line);
+                return `<span class="line-num-mini">(${lineNum})</span> ${formattedLine}`;
+              }).join(' ');
+            }
+          } catch (err) {
+            snippetHtml = escapeHtml(rawNotes.substring(0, 100));
           }
         }
 
