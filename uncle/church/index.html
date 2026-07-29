@@ -25612,14 +25612,8 @@
             }
             updatePrintSelectedCount();
 
-            cardExtraFields = [
-                { key: 'church_name_only', label: 'اسم الكنيسة فقط', placement: 'front', icon: 'fas fa-church' },
-                { key: 'student_image', label: 'صورة الطفل', placement: 'front', icon: 'fas fa-user-circle' },
-                { key: 'student_name', label: 'اسم الطفل', placement: 'front', icon: 'fas fa-user' },
-                { key: 'class', label: 'الفصل', placement: 'front', icon: 'fas fa-graduation-cap' },
-                { key: 'student_id', label: 'كود الطفل ID', placement: 'front', icon: 'fas fa-id-badge' },
-                { key: 'السكن', label: 'السكن', placement: 'front', icon: 'fas fa-bed' }
-            ];
+            // Load Sunday School template as default layout
+            applyRecommendedQRTemplate();
             renderPrintExtraFieldsList();
             openModal('printSettingsModal');
             document.getElementById('printPreviewContent').innerHTML = '<div style="color:var(--muted);font-size:0.9rem;"><i class="fas fa-circle-notch fa-spin"></i> جاري تحميل المعاينة...</div>';
@@ -26382,6 +26376,14 @@
         }
 
         function applyRecommendedQRTemplate() {
+            // Paper Size: Custom (48x32 cm)
+            const paperSizeSelect = document.getElementById('printPaperSize');
+            if (paperSizeSelect) paperSizeSelect.value = 'custom';
+            const paperWidthInput = document.getElementById('printPaperCustomWidth');
+            if (paperWidthInput) paperWidthInput.value = 48;
+            const paperHeightInput = document.getElementById('printPaperCustomHeight');
+            if (paperHeightInput) paperHeightInput.value = 32;
+
             // Apply scale
             const scaleInput = document.getElementById('printScale');
             if (scaleInput) {
@@ -26389,11 +26391,11 @@
                 document.getElementById('printScaleVal').textContent = '100%';
             }
 
-            // Dimensions: Width = 10, Height = 7
+            // Card Dimensions: Width = 9 cm, Height = 6 cm
             const widthInput = document.getElementById('printCardWidth');
-            if (widthInput) widthInput.value = 10;
+            if (widthInput) widthInput.value = 9;
             const heightInput = document.getElementById('printCardHeight');
-            if (heightInput) heightInput.value = 7;
+            if (heightInput) heightInput.value = 6;
 
             // Gaps
             const gapXInput = document.getElementById('printGapX');
