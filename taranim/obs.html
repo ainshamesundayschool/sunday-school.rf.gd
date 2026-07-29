@@ -275,12 +275,11 @@
     function applyState(data, source = 'local') {
       if (!data || typeof data !== 'object') return;
 
-      // PREVENT HTTP OVERWRITES WHILE USER IS DRAGGING OR RECENTLY DRAGGED
       if (isDragging || (Date.now() - lastDragTime < 6000)) {
         return;
       }
 
-      if (source === 'http' && (Date.now() - lastLocalUpdateTime < 4000)) {
+      if (source === 'http' && (Date.now() - lastLocalUpdateTime < 2000)) {
         return;
       }
 
@@ -370,12 +369,13 @@
       try { applyState(JSON.parse(initialLiveRaw), 'local'); } catch(err) {}
     }
 
+    // ULTRA HIGH-SPEED 50MS POLING FOR ZERO-DELAY WI-FI & LOCAL NETWORK SYNC
     async function fetchLiveHTTP() {
       if (isDragging || (Date.now() - lastDragTime < 6000)) return;
       try {
-        let res = await fetch('api.php?action=live');
-        if (!res.ok) res = await fetch('./api/live');
-        if (!res.ok) res = await fetch('/api/live');
+        let res = await fetch('api.php?action=live', { cache: 'no-cache' });
+        if (!res.ok) res = await fetch('./api/live', { cache: 'no-cache' });
+        if (!res.ok) res = await fetch('/api/live', { cache: 'no-cache' });
         if (res.ok) {
           const data = await res.json();
           if (data && (data.type === 'PRESENT_LINE' || data.text !== undefined)) {
@@ -385,7 +385,7 @@
       } catch (err) {}
     }
 
-    setInterval(fetchLiveHTTP, 300);
+    setInterval(fetchLiveHTTP, 50);
     fetchLiveHTTP();
   </script>
 </body>
