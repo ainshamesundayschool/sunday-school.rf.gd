@@ -90,65 +90,65 @@
       will-change: transform, opacity;
     }
 
-    /* TEXT APPEARANCE ANIMATIONS */
+    /* TEXT APPEARANCE ANIMATIONS FOR CONTAINER */
     @keyframes textAppearSlide {
       0% {
         opacity: 0;
-        transform: translateY(45px) scale(0.93);
+        transform: translate(-50%, calc(-50% + 50px)) scale(0.92);
       }
       100% {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: translate(-50%, -50%) scale(1);
       }
     }
 
     @keyframes textAppearDrop {
       0% {
         opacity: 0;
-        transform: translateY(-45px) scale(0.93);
+        transform: translate(-50%, calc(-50% - 50px)) scale(0.92);
       }
       100% {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: translate(-50%, -50%) scale(1);
       }
     }
 
     @keyframes textAppearPop {
       0% {
         opacity: 0;
-        transform: scale(0.3);
+        transform: translate(-50%, -50%) scale(0.2);
       }
       70% {
         opacity: 1;
-        transform: scale(1.08);
+        transform: translate(-50%, -50%) scale(1.08);
       }
       100% {
         opacity: 1;
-        transform: scale(1);
+        transform: translate(-50%, -50%) scale(1);
       }
     }
 
     @keyframes textAppearFlip {
       0% {
         opacity: 0;
-        transform: perspective(600px) rotateX(-80deg);
+        transform: translate(-50%, -50%) perspective(600px) rotateX(-85deg);
       }
       100% {
         opacity: 1;
-        transform: perspective(600px) rotateX(0deg);
+        transform: translate(-50%, -50%) perspective(600px) rotateX(0deg);
       }
     }
 
     @keyframes textAppearGlow {
       0% {
         opacity: 0;
-        filter: blur(25px);
-        transform: scale(1.25);
+        filter: blur(30px);
+        transform: translate(-50%, -50%) scale(1.25);
       }
       100% {
         opacity: 1;
         filter: blur(0px);
-        transform: scale(1);
+        transform: translate(-50%, -50%) scale(1);
       }
     }
 
@@ -435,10 +435,12 @@
 
           fitTextToSafeArea();
 
+          box.classList.remove('animate-appear-slide', 'animate-appear-drop', 'animate-appear-pop', 'animate-appear-flip', 'animate-appear-glow');
           textEl.classList.remove('animate-appear-slide', 'animate-appear-drop', 'animate-appear-pop', 'animate-appear-flip', 'animate-appear-glow');
+
           if (animType !== 'none' && data.text) {
-            void textEl.offsetWidth;
-            textEl.classList.add(`animate-appear-${animType}`);
+            void box.offsetWidth;
+            box.classList.add(`animate-appear-${animType}`);
           }
         }
         currentIsBlankState = false;
