@@ -908,6 +908,20 @@ html, body {
     padding: 0.6rem 1rem;
   }
 
+  /* DROPDOWN POPOVER ON MOBILE (ALWAYS 100% IN VIEW CENTERED UNDER TOP NAV) */
+  .dropdown-popover {
+    position: fixed !important;
+    top: 56px !important;
+    left: 1rem !important;
+    right: 1rem !important;
+    width: calc(100vw - 2rem) !important;
+    min-width: unset !important;
+    max-width: 440px !important;
+    margin: 0 auto !important;
+    box-shadow: 0 15px 45px rgba(15, 23, 42, 0.28) !important;
+    z-index: 9999 !important;
+  }
+
   .search-hero {
     padding: 0.6rem 1rem;
   }

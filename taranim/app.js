@@ -186,16 +186,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const broadcastChannel = new BroadcastChannel('sunday_school_taranim_obs_channel');
   let screenDetails = null;
 
-  // PERCENTAGE BASED POSITION COORDINATES (DEFAULT: 50% LEFT / 75% TOP)
-  const savedPivotRaw = localStorage.getItem('sunday_school_taranim_drag_pivot');
-  let initialPivot = { xPct: 50, yPct: 75 };
-  if (savedPivotRaw) {
-    try {
-      const parsed = JSON.parse(savedPivotRaw);
-      if (parsed.xPct !== undefined && parsed.yPct !== undefined) {
-        initialPivot = parsed;
-      }
-    } catch(e) {}
+  function getLatestSavedPivot() {
+    const savedPivotRaw = localStorage.getItem('sunday_school_taranim_drag_pivot');
+    if (savedPivotRaw) {
+      try {
+        const parsed = JSON.parse(savedPivotRaw);
+        if (parsed && parsed.xPct !== undefined && parsed.yPct !== undefined) {
+          return parsed;
+        }
+      } catch(e) {}
+    }
+    return { xPct: 50, yPct: 75 };
   }
 
   const savedSettingsRaw = localStorage.getItem('sunday_school_taranim_user_settings');
@@ -226,10 +227,9 @@ document.addEventListener('DOMContentLoaded', () => {
       shadowBlur: 0
     },
 
-    dragPivot: initialPivot
+    dragPivot: getLatestSavedPivot()
   };
 
-  // LISTEN TO BROADCAST CHANNEL FOR POSITION UPDATES FROM OBS PRESENTER WINDOW
   broadcastChannel.onmessage = (event) => {
     if (event.data && (event.data.type === 'UPDATE_POS' || event.data.pos)) {
       if (event.data.pos) {
@@ -1143,6 +1143,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function syncLiveState() {
+    // ALWAYS READ THE LATEST PERMANENT DRAG PIVOT BEFORE SENDING PAYLOAD ON SLIDE SWITCH
+    state.dragPivot = getLatestSavedPivot();
+
     const currentLine = state.presentationLines[state.currentLineIndex];
     const text = currentLine ? currentLine.text : '';
 
@@ -1163,7 +1166,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     broadcastChannel.postMessage(payload);
     localStorage.setItem('sunday_school_taranim_live_presentation', JSON.stringify(payload));
-    localStorage.setItem('sunday_school_taranim_drag_pivot', JSON.stringify(state.dragPivot));
 
     fetch('api.php?action=live', {
       method: 'POST',
