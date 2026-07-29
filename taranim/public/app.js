@@ -43,7 +43,6 @@ function francoToArabic(text) {
   return s;
 }
 
-// ACCURATE RELATIVE OBS ROUTING CALCULATOR
 function getObsUrl() {
   const loc = window.location;
   let path = loc.pathname;
@@ -55,7 +54,6 @@ function getObsUrl() {
   return `${loc.origin}${path}obs.html`;
 }
 
-// UNIVERSAL FAIL-SAFE CLIPBOARD COPY FUNCTION
 function copyToClipboard(text) {
   if (navigator.clipboard && navigator.clipboard.writeText) {
     return navigator.clipboard.writeText(text);
@@ -237,6 +235,10 @@ document.addEventListener('DOMContentLoaded', () => {
     btnMenuCast: document.getElementById('btn-menu-cast'),
     popoverCast: document.getElementById('popover-cast'),
 
+    btnCreditsInfo: document.getElementById('btn-credits-info'),
+    modalCredits: document.getElementById('modal-credits'),
+    btnCloseCredits: document.getElementById('btn-close-credits'),
+
     connectedScreensSelect: document.getElementById('connected-screens-select'),
     fontSelect: document.getElementById('font-family-select'),
     customFontWrapper: document.getElementById('custom-font-wrapper'),
@@ -310,6 +312,23 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function bindEvents() {
+    // CREDITS INFO MODAL HANDLERS
+    if (els.btnCreditsInfo && els.modalCredits && els.btnCloseCredits) {
+      els.btnCreditsInfo.addEventListener('click', () => {
+        els.modalCredits.classList.remove('hidden');
+      });
+
+      els.btnCloseCredits.addEventListener('click', () => {
+        els.modalCredits.classList.add('hidden');
+      });
+
+      els.modalCredits.addEventListener('click', (e) => {
+        if (e.target === els.modalCredits) {
+          els.modalCredits.classList.add('hidden');
+        }
+      });
+    }
+
     window.addEventListener('online', () => {
       loadInitialData();
     });
@@ -443,7 +462,6 @@ document.addEventListener('DOMContentLoaded', () => {
       launchPresenterOnSelectedScreen();
     });
 
-    // FIXED OBS COPY LINK ROUTING & UNIVERSAL COPY
     els.btnCopyObsUrl.addEventListener('click', async () => {
       const obsUrl = getObsUrl();
       
@@ -497,6 +515,10 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         e.preventDefault();
+        if (els.modalCredits && !els.modalCredits.classList.contains('hidden')) {
+          els.modalCredits.classList.add('hidden');
+          return;
+        }
         els.intelligentSearch.focus();
         els.intelligentSearch.select();
         els.searchDropdown.classList.add('hidden');
@@ -686,7 +708,6 @@ document.addEventListener('DOMContentLoaded', () => {
     syncLiveState();
   }
 
-  // DYNAMICALLY LOAD CATALOG & 15,000-WORD ARABIC DICTIONARY
   async function loadInitialData() {
     fetch('arabic_dictionary.json')
       .then(r => r.json())
@@ -720,7 +741,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // FAST ULTRA-ROBUST DUAL HYBRID INTELLIGENT SEARCH ENGINE WITH DICTIONARY FUZZY CORRECTION
   async function performIntelligentSearch(query) {
     if (!query || !query.trim()) {
       els.searchDropdown.classList.add('hidden');
