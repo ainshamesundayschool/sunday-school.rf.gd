@@ -43,6 +43,21 @@ function francoToArabic(text) {
   return s;
 }
 
+function getApiUrl() {
+  const loc = window.location;
+  let path = loc.pathname;
+  if (path.includes('/public/')) {
+    return path.replace(/\/public\/.*$/, '/api.php');
+  }
+  if (path.endsWith('.html') || path.endsWith('.php')) {
+    return path.substring(0, path.lastIndexOf('/') + 1) + 'api.php';
+  }
+  if (!path.endsWith('/')) {
+    path += '/';
+  }
+  return path + 'api.php';
+}
+
 function getObsUrl() {
   const loc = window.location;
   let path = loc.pathname;
@@ -1168,17 +1183,17 @@ document.addEventListener('DOMContentLoaded', () => {
     broadcastChannel.postMessage(payload);
     localStorage.setItem('sunday_school_taranim_live_presentation', JSON.stringify(payload));
 
-    fetch('api.php?action=live', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    }).catch(() => {});
+    const postBody = JSON.stringify(payload);
+    const headers = { 'Content-Type': 'application/json' };
+    const mainUrl = getApiUrl() + '?action=live';
 
-    fetch('/api/live', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    }).catch(() => {});
+    fetch(mainUrl, { method: 'POST', headers, body: postBody }).catch(() => {
+      fetch('api.php?action=live', { method: 'POST', headers, body: postBody }).catch(() => {
+        fetch('../api.php?action=live', { method: 'POST', headers, body: postBody }).catch(() => {
+          fetch('/api/live', { method: 'POST', headers, body: postBody }).catch(() => {});
+        });
+      });
+    });
 
     if (els.obsLineText) {
       els.obsLineText.style.fontFamily = state.selectedFont;
@@ -1230,4 +1245,27 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!str) return '';
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
+
+  // WAKE LOCK & VISIBILITY AUTO-RESYNC TO PREVENT STALE STATE WHEN UN-MINIMIZING ON MOBILE
+  let wakeLock = null;
+  async function requestWakeLock() {
+    if ('wakeLock' in navigator) {
+      try {
+        wakeLock = await navigator.wakeLock.request('screen');
+      } catch (err) {}
+    }
+  }
+  requestWakeLock();
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      if (wakeLock === null || (wakeLock && wakeLock.released)) {
+        requestWakeLock();
+      }
+      syncLiveState();
+    }
+  });
+
+  window.addEventListener('focus', () => syncLiveState());
+  window.addEventListener('online', () => syncLiveState());
 });

@@ -246,6 +246,19 @@
       channel.postMessage({ type: 'UPDATE_POS', pos: currentPivot });
     });
 
+    function getApiUrl() {
+      const loc = window.location;
+      let path = loc.pathname;
+      if (path.includes('/public/')) {
+        return path.replace(/\/public\/.*$/, '/api.php');
+      }
+      if (path.endsWith('.html') || path.endsWith('.php')) {
+        return path.substring(0, path.lastIndexOf('/') + 1) + 'api.php';
+      }
+      if (!path.endsWith('/')) path += '/';
+      return path + 'api.php';
+    }
+
     window.addEventListener('mouseup', () => {
       if (isDragging) {
         isDragging = false;
@@ -263,29 +276,24 @@
         localStorage.setItem('sunday_school_taranim_live_presentation', JSON.stringify(payload));
         localStorage.setItem('sunday_school_taranim_drag_pivot', JSON.stringify(currentPivot));
 
-        fetch('api.php?action=live', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        }).catch(() => {});
+        const postBody = JSON.stringify(payload);
+        const headers = { 'Content-Type': 'application/json' };
+        const mainUrl = getApiUrl() + '?action=live';
+
+        fetch(mainUrl, { method: 'POST', headers, body: postBody }).catch(() => {
+          fetch('api.php?action=live', { method: 'POST', headers, body: postBody }).catch(() => {
+            fetch('../api.php?action=live', { method: 'POST', headers, body: postBody }).catch(() => {});
+          });
+        });
       }
     });
-
-    let lastLocalUpdateTime = 0;
 
     function applyState(data, source = 'local') {
       if (!data || typeof data !== 'object') return;
 
+      // PREVENT OVERWRITES WHILE USER IS DRAGGING OR RECENTLY DRAGGED
       if (isDragging || (Date.now() - lastDragTime < 6000)) {
         return;
-      }
-
-      if (source === 'http' && (Date.now() - lastLocalUpdateTime < 2000)) {
-        return;
-      }
-
-      if (source === 'local') {
-        lastLocalUpdateTime = Date.now();
       }
 
       if (data.status && !data.type && data.text === undefined) return;
@@ -373,10 +381,15 @@
 
     async function fetchLiveHTTP() {
       if (isDragging || (Date.now() - lastDragTime < 6000)) return;
+      const ts = Date.now();
       try {
-        let res = await fetch('api.php?action=live', { cache: 'no-cache' });
-        if (!res.ok) res = await fetch('./api/live', { cache: 'no-cache' });
-        if (!res.ok) res = await fetch('/api/live', { cache: 'no-cache' });
+        let mainUrl = getApiUrl() + '?action=live&_t=' + ts;
+        let res = await fetch(mainUrl, { cache: 'no-cache' });
+        if (!res.ok) res = await fetch('api.php?action=live&_t=' + ts, { cache: 'no-cache' });
+        if (!res.ok) res = await fetch('../api.php?action=live&_t=' + ts, { cache: 'no-cache' });
+        if (!res.ok) res = await fetch('/taranim/api.php?action=live&_t=' + ts, { cache: 'no-cache' });
+        if (!res.ok) res = await fetch('./api/live?_t=' + ts, { cache: 'no-cache' });
+        if (!res.ok) res = await fetch('/api/live?_t=' + ts, { cache: 'no-cache' });
         if (res.ok) {
           const data = await res.json();
           if (data && (data.type === 'PRESENT_LINE' || data.text !== undefined)) {
@@ -386,7 +399,26 @@
       } catch (err) {}
     }
 
-    setInterval(fetchLiveHTTP, 50);
+    // WEB WORKER TIMER TO CONTINUOUSLY POLL EVEN WHEN TAB IS MINIMIZED / BACKGROUNDED
+    let workerTimer = null;
+    try {
+      const workerBlob = new Blob([
+        "let t = null; onmessage = function(e) { if (e.data === 'start') { clearInterval(t); t = setInterval(function() { postMessage('tick'); }, 200); } else if (e.data === 'stop') { clearInterval(t); } };"
+      ], { type: 'application/javascript' });
+      workerTimer = new Worker(URL.createObjectURL(workerBlob));
+      workerTimer.onmessage = function() { fetchLiveHTTP(); };
+      workerTimer.postMessage('start');
+    } catch (e) {
+      setInterval(fetchLiveHTTP, 200);
+    }
+
+    // IMMEDIATE RE-FETCH ON VISIBILITY OR FOCUS RESTORATION
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') fetchLiveHTTP();
+    });
+    window.addEventListener('focus', fetchLiveHTTP);
+    window.addEventListener('online', fetchLiveHTTP);
+    window.addEventListener('pageshow', fetchLiveHTTP);
     fetchLiveHTTP();
   </script>
 </body>
