@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sunday School Taranim | لوحة تحكم العرض والترنيم</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&family=Cairo:wght@400;600;700&family=Almarai:wght@400;700&family=Tajawal:wght@400;700&display=swap"
+    rel="stylesheet">
+
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <div id="app" class="app-container">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="top-nav">
+
+      <!-- RIGHT SIDE: DROPDOWN MENU ICONS -->
+      <div class="top-options">
+
+        <!-- DROPDOWN 1: STYLES & FONTS -->
+        <div class="dropdown-wrapper">
+          <button class="icon-menu-btn" id="btn-menu-style" title="إعدادات الخطوط والألوان">
+            <i class="fa-solid fa-palette"></i>
+          </button>
+
+          <div class="dropdown-popover hidden" id="popover-style">
+            <div class="popover-title"><i class="fa-solid fa-sliders"></i> إعدادات الخط والظل</div>
+
+            <div class="popover-row">
+              <label><i class="fa-solid fa-font"></i> الخط:</label>
+              <select id="font-family-select" class="control-select">
+                <option value="'Alexandria', sans-serif">Alexandria (الافتراضي)</option>
+                <option value="'Cairo', sans-serif">Cairo (القاهرة)</option>
+                <option value="'Almarai', sans-serif">Almarai (المرعي)</option>
+                <option value="'Amiri', serif">Amiri (أميري)</option>
+                <option value="'Tajawal', sans-serif">Tajawal (تجوال)</option>
+                <option value="custom">خط محلي...</option>
+              </select>
+            </div>
+
+            <div class="popover-row hidden" id="custom-font-wrapper">
+              <label><i class="fa-solid fa-pen"></i> خط خاص:</label>
+              <input type="text" id="custom-font-input" class="control-input" placeholder="اسم الخط..." value="Tahoma">
+            </div>
+
+            <div class="popover-row">
+              <label><i class="fa-solid fa-text-height"></i> حجم الخط:</label>
+              <div class="compact-control-group">
+                <input type="range" id="obs-font-size-range" min="24" max="120" value="54" class="slider-input">
+                <span id="font-size-val-badge" class="counter-text">54px</span>
+              </div>
+            </div>
+
+            <div class="popover-row">
+              <label><i class="fa-solid fa-droplet"></i> لون النص:</label>
+              <input type="color" id="obs-text-color" value="#ffffff" class="color-picker-input">
+            </div>
+
+            <div class="popover-row">
+              <label><i class="fa-solid fa-border-all"></i> الحدود:</label>
+              <div class="compact-control-group">
+                <input type="range" id="obs-stroke-range" min="0" max="10" value="0" class="slider-input">
+                <input type="color" id="obs-stroke-color" value="#000000" class="color-picker-input">
+              </div>
+            </div>
+
+            <div class="popover-row">
+              <label><i class="fa-solid fa-sun"></i> الظل:</label>
+              <input type="range" id="obs-shadow-range" min="0" max="40" value="0" class="slider-input">
+            </div>
+          </div>
+        </div>
+
+        <!-- DROPDOWN 2: DISPLAY & CAST OUTPUT -->
+        <div class="dropdown-wrapper">
+          <button class="icon-menu-btn" id="btn-menu-cast" title="البث والشاشات الخارجية (TV / OBS)">
+            <i class="fa-solid fa-tv"></i>
+          </button>
+
+          <div class="dropdown-popover hidden" id="popover-cast">
+            <div class="popover-title"><i class="fa-solid fa-display"></i> إعدادات الشاشات والبث</div>
+
+            <div class="popover-row">
+              <label><i class="fa-solid fa-desktop"></i> الشاشة:</label>
+              <select id="connected-screens-select" class="control-select">
+                <option value="primary">الشاشة الحالية (بدون فتح نافذة جديدة)</option>
+              </select>
+            </div>
+
+            <div class="popover-row">
+              <label><i class="fa-solid fa-fill-drip"></i> الخلفية:</label>
+              <select id="chroma-select" class="control-select">
+                <option value="black" selected>أسود داكن</option>
+                <option value="green">خلفية خضراء</option>
+                <option value="blue">خلفية زرقاء</option>
+                <option value="transparent">خلفية شفافة</option>
+              </select>
+            </div>
+
+            <div class="popover-row">
+              <label><i class="fa-solid fa-layer-group"></i> نمط العرض:</label>
+              <select id="pres-mode-select" class="control-select">
+                <option value="oneline">سطر واحد أسفل الشاشة</option>
+                <option value="fullslide">شريحة كاملة بمنتصف الشاشة</option>
+              </select>
+            </div>
+
+            <div class="popover-actions">
+              <button id="btn-open-tv-window" class="btn btn-sm btn-primary">
+                <i class="fa-solid fa-up-right-from-square fa-lg"></i> بدء العرض ملء الشاشة
+              </button>
+              <button id="btn-copy-obs-url" class="btn btn-sm btn-secondary">
+                <i class="fa-solid fa-link fa-lg"></i> نسخ رابط المصدر للمصمم
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- CENTERED TEXT TITLE -->
+      <div class="brand-text-centered">
+        <span class="brand-main">Sunday School Taranim</span>
+      </div>
+
+      <!-- LEFT SIDE LOGO -->
+      <div class="brand-left-logo">
+        <img src="logo.png" alt="Sunday School Logo" class="brand-logo-img">
+      </div>
+
+    </header>
+
+    <!-- CENTERED INTELLIGENT SEARCH HERO -->
+    <section class="search-hero">
+
+      <!-- FRANCO TRANSLATION TOGGLE TOOLBAR -->
+      <div class="search-toolbar">
+        <label class="toggle-switch" title="ترجمة الفرانكو تلقائياً إلى العربية">
+          <input type="checkbox" id="franco-toggle-btn" checked>
+          <span class="toggle-slider"></span>
+          <span class="toggle-label"><i class="fa-solid fa-language"></i> ترجمة</span>
+        </label>
+      </div>
+
+      <div class="centered-search-box">
+        <i class="fa-solid fa-magnifying-glass search-icon-glow"></i>
+        <input type="text" id="intelligent-search" placeholder="ابحث باسم الترنيمة أو الشاهد الكتابي..." autofocus
+          autocomplete="off">
+        <button id="clear-search-btn" class="clear-btn hidden"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div id="franco-translate-badge" class="franco-badge hidden">
+        <span>الترجمة الحية: <strong id="franco-text-val">...</strong></span>
+      </div>
+
+      <!-- SEARCH RESULTS DROPDOWN WITH PROMINENT PREVIEW SNIPPET BOX -->
+      <div id="search-results-dropdown" class="search-dropdown hidden">
+        <!-- Results list -->
+      </div>
+    </section>
+
+    <!-- DUAL-COLUMN DASHBOARD LAYOUT (RIGHT = RECENT SESSION, LEFT = PRESENTATION LINES) -->
+    <main class="dashboard-halves">
+
+      <!-- RIGHT HALF IN RTL: SESSION RECENT OPENED LIST -->
+      <section class="half-panel recent-session-panel">
+        <div class="panel-bar">
+          <span class="panel-title"><i class="fa-solid fa-clock-rotate-left"></i> الترانيم والأصحاحات المفتوحة في هذه
+            الجلسة</span>
+          <span id="recent-count" class="badge-count">0</span>
+        </div>
+
+        <div id="recent-session-container" class="recent-list-box">
+          <!-- Session recent items -->
+        </div>
+      </section>
+
+      <!-- LEFT HALF IN RTL: ACTIVE PRESENTATION LINES LIST -->
+      <section class="half-panel presentation-lines-panel">
+        <div class="panel-bar">
+          <span class="panel-title"><i class="fa-solid fa-display"></i> كلمات العرض الحالي</span>
+          <div class="panel-controls">
+            <button id="btn-prev-line" class="mini-btn-flat" title="السطر السابق (Right/Up)"><i
+                class="fa-solid fa-chevron-right"></i></button>
+            <span id="current-line-counter" class="counter-text">0 / 0</span>
+            <button id="btn-next-line" class="mini-btn-flat" title="السطر التالي (Left/Down/Space)"><i
+                class="fa-solid fa-chevron-left"></i></button>
+            <button id="btn-toggle-blank" class="mini-btn-flat" title="إخفاء النص (B)"><i
+                class="fa-solid fa-eye-slash"></i></button>
+          </div>
+        </div>
+
+        <div id="presentation-lines-container" class="lines-list-box">
+          <div class="empty-state">
+            <i class="fa-solid fa-music"></i>
+            <p>اختر ترنيمة أو إصحاحاً من القائمة الجانبية أو من البحث للبدء في العرض سطر بسطر.</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- EMBEDDED PRESENTATION OVERLAY -->
+  <div id="obs-presentation-overlay" class="obs-overlay hidden" data-chroma="black">
+    <div id="snap-guide-h" class="snap-guide horizontal hidden"></div>
+    <div id="snap-guide-v" class="snap-guide vertical hidden"></div>
+
+    <div class="obs-lower-third-box" id="obs-lower-third-box">
+      <div id="obs-line-text" class="obs-line-text"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>

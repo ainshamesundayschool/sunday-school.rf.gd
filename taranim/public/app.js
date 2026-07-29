@@ -1,0 +1,919 @@
+// ==========================================================================
+// SUNDAY SCHOOL TARANIM - MULTI-SCREEN & CONTROL DASHBOARD ENGINE
+// ==========================================================================
+
+const FRANCO_MAPPINGS = [
+  ["shabahak", "شبهك"], ["yasou3", "يسوع"], ["kirolos", "كيرلس"],
+  ["3ajel", "عجل"], ["rabby", "ربي"], ["7abib", "حبيب"],
+  ["allah", "الله"], ["alla", "الله"], ["3ashan", "عشان"], ["3shan", "عشان"],
+  ["alhan", "ألحان"], ["tarnima", "ترنيمة"], ["taranim", "ترانيم"],
+  ["3a", "عا"], ["3i", "عي"], ["3u", "عو"], ["3", "ع"],
+  ["7a", "حا"], ["7i", "حي"], ["7u", "حو"], ["7", "ح"],
+  ["5", "خ"], ["2", "أ"], ["kh", "خ"], ["sh", "ش"],
+  ["th", "ث"], ["gh", "غ"], ["ou", "و"], ["oo", "و"],
+  ["ee", "ي"], ["y", "ي"], ["g", "ج"], ["k", "ك"],
+  ["c", "ك"], ["q", "ق"], ["z", "ز"], ["s", "س"],
+  ["t", "ت"], ["d", "د"], ["r", "ر"], ["f", "ف"],
+  ["l", "ل"], ["m", "م"], ["n", "ن"], ["h", "ه"],
+  ["w", "و"], ["b", "ب"], ["p", "ب"], ["v", "ف"],
+  ["i", "ي"], ["e", "ي"], ["o", "و"], ["u", "و"],
+  ["a", "ا"]
+];
+
+function normalizeArabic(text) {
+  if (!text) return "";
+  return String(text)
+    .replace(/[أإآٱ]/g, "ا")
+    .replace(/[ىئ]/g, "ي")
+    .replace(/ة/g, "ه")
+    .replace(/ؤ/g, "و")
+    .replace(/[\u064B-\u0652]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function francoToArabic(text) {
+  if (!text) return "";
+  let s = text.toLowerCase().trim();
+  if (!/[a-z0-9]/.test(s)) return "";
+
+  FRANCO_MAPPINGS.forEach(([f, a]) => {
+    s = s.split(f).join(a);
+  });
+  return s;
+}
+
+function getMatchScore(title, query) {
+  if (!title || !query) return 0;
+  const qNorm = normalizeArabic(query);
+  const qRaw = query.trim().toLowerCase();
+  const qFranco = francoToArabic(query);
+
+  const tNorm = normalizeArabic(title);
+  const tRaw = title.toLowerCase();
+
+  if (tRaw === qRaw || tNorm === qNorm) return 100;
+  if (tRaw.startsWith(qRaw) || tNorm.startsWith(qNorm)) return 85;
+  if (tRaw.includes(qRaw) || tNorm.includes(qNorm)) return 65;
+
+  if (qFranco && tNorm === qFranco) return 92;
+  if (qFranco && tNorm.startsWith(qFranco)) return 75;
+  if (qFranco && tNorm.includes(qFranco)) return 55;
+
+  return 0;
+}
+
+// REGISTER SERVICE WORKER FOR 100% OFFLINE FUNCTIONALITY
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+
+  const broadcastChannel = new BroadcastChannel('sunday_school_taranim_obs_channel');
+  let screenDetails = null;
+
+  const savedPivotRaw = localStorage.getItem('sunday_school_taranim_drag_pivot');
+  let initialPivot = { left: window.innerWidth / 2, top: window.innerHeight * 0.75 };
+  if (savedPivotRaw) {
+    try { initialPivot = JSON.parse(savedPivotRaw); } catch(e) {}
+  }
+
+  const savedSettingsRaw = localStorage.getItem('sunday_school_taranim_user_settings');
+  let savedSettings = {};
+  if (savedSettingsRaw) {
+    try { savedSettings = JSON.parse(savedSettingsRaw); } catch(e) {}
+  }
+
+  const state = {
+    allSongs: [],
+    sessionRecents: JSON.parse(sessionStorage.getItem('sunday_school_taranim_session_recents') || '[]'),
+    activeSong: null,
+    presentationLines: [],
+    currentLineIndex: 0,
+    isBlank: false,
+
+    selectedFont: savedSettings.selectedFont || "'Alexandria', sans-serif",
+    fontSize: savedSettings.fontSize || 54,
+    chromaKey: savedSettings.chromaKey || "black",
+    presentationMode: savedSettings.presentationMode || "oneline",
+    francoAutoTranslate: savedSettings.francoAutoTranslate !== undefined ? savedSettings.francoAutoTranslate : true,
+    
+    styleOptions: savedSettings.styleOptions || {
+      textColor: "#ffffff",
+      strokeWidth: 0,
+      strokeColor: "#000000",
+      shadowBlur: 0
+    },
+
+    dragPivot: initialPivot
+  };
+
+  const els = {
+    intelligentSearch: document.getElementById('intelligent-search'),
+    clearSearchBtn: document.getElementById('clear-search-btn'),
+    searchDropdown: document.getElementById('search-results-dropdown'),
+    francoToggleBtn: document.getElementById('franco-toggle-btn'),
+    francoTranslateBadge: document.getElementById('franco-translate-badge'),
+    francoTextVal: document.getElementById('franco-text-val'),
+    
+    btnMenuStyle: document.getElementById('btn-menu-style'),
+    popoverStyle: document.getElementById('popover-style'),
+    btnMenuCast: document.getElementById('btn-menu-cast'),
+    popoverCast: document.getElementById('popover-cast'),
+
+    connectedScreensSelect: document.getElementById('connected-screens-select'),
+    fontSelect: document.getElementById('font-family-select'),
+    customFontWrapper: document.getElementById('custom-font-wrapper'),
+    customFontInput: document.getElementById('custom-font-input'),
+    chromaSelect: document.getElementById('chroma-select'),
+    presModeSelect: document.getElementById('pres-mode-select'),
+
+    btnOpenTvWindow: document.getElementById('btn-open-tv-window'),
+    btnCopyObsUrl: document.getElementById('btn-copy-obs-url'),
+
+    obsFontSizeRange: document.getElementById('obs-font-size-range'),
+    fontSizeValBadge: document.getElementById('font-size-val-badge'),
+    obsTextColor: document.getElementById('obs-text-color'),
+    obsStrokeRange: document.getElementById('obs-stroke-range'),
+    obsStrokeColor: document.getElementById('obs-stroke-color'),
+    obsShadowRange: document.getElementById('obs-shadow-range'),
+
+    presentationLinesContainer: document.getElementById('presentation-lines-container'),
+    recentSessionContainer: document.getElementById('recent-session-container'),
+    currentLineCounter: document.getElementById('current-line-counter'),
+    recentCount: document.getElementById('recent-count'),
+
+    btnPrevLine: document.getElementById('btn-prev-line'),
+    btnNextLine: document.getElementById('btn-next-line'),
+    btnToggleBlank: document.getElementById('btn-toggle-blank'),
+
+    obsOverlay: document.getElementById('obs-presentation-overlay'),
+    obsLowerThirdBox: document.getElementById('obs-lower-third-box'),
+    obsLineText: document.getElementById('obs-line-text'),
+    snapGuideH: document.getElementById('snap-guide-h'),
+    snapGuideV: document.getElementById('snap-guide-v')
+  };
+
+  init();
+
+  function init() {
+    applyInitialUIState();
+    bindEvents();
+    makeDraggableCenterPivot();
+    detectConnectedScreens();
+    loadInitialData();
+    renderRecentSession();
+  }
+
+  function saveUserSettings() {
+    const settings = {
+      selectedFont: state.selectedFont,
+      fontSize: state.fontSize,
+      chromaKey: state.chromaKey,
+      presentationMode: state.presentationMode,
+      francoAutoTranslate: state.francoAutoTranslate,
+      styleOptions: state.styleOptions
+    };
+    localStorage.setItem('sunday_school_taranim_user_settings', JSON.stringify(settings));
+  }
+
+  function applyInitialUIState() {
+    if (els.fontSelect) els.fontSelect.value = state.selectedFont;
+    if (els.obsFontSizeRange) els.obsFontSizeRange.value = state.fontSize;
+    if (els.fontSizeValBadge) els.fontSizeValBadge.textContent = `${state.fontSize}px`;
+    if (els.chromaSelect) els.chromaSelect.value = state.chromaKey;
+    if (els.presModeSelect) els.presModeSelect.value = state.presentationMode;
+    if (els.francoToggleBtn) els.francoToggleBtn.checked = state.francoAutoTranslate;
+
+    if (els.obsTextColor) els.obsTextColor.value = state.styleOptions.textColor;
+    if (els.obsStrokeRange) els.obsStrokeRange.value = state.styleOptions.strokeWidth;
+    if (els.obsStrokeColor) els.obsStrokeColor.value = state.styleOptions.strokeColor;
+    if (els.obsShadowRange) els.obsShadowRange.value = state.styleOptions.shadowBlur;
+
+    if (els.obsOverlay) els.obsOverlay.setAttribute('data-chroma', state.chromaKey);
+  }
+
+  function bindEvents() {
+    els.btnMenuStyle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      els.popoverCast.classList.add('hidden');
+      els.popoverStyle.classList.toggle('hidden');
+    });
+
+    els.btnMenuCast.addEventListener('click', (e) => {
+      e.stopPropagation();
+      els.popoverStyle.classList.add('hidden');
+      els.popoverCast.classList.toggle('hidden');
+      detectConnectedScreens();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!els.popoverStyle.contains(e.target) && e.target !== els.btnMenuStyle) {
+        els.popoverStyle.classList.add('hidden');
+      }
+      if (!els.popoverCast.contains(e.target) && e.target !== els.btnMenuCast) {
+        els.popoverCast.classList.add('hidden');
+      }
+      if (!els.searchDropdown.contains(e.target) && e.target !== els.intelligentSearch) {
+        els.searchDropdown.classList.add('hidden');
+      }
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement && els.obsOverlay) {
+        els.obsOverlay.classList.add('hidden');
+      }
+    });
+
+    // Handle Window Resize for Auto Text Safe-Area Fitting
+    window.addEventListener('resize', () => {
+      syncLiveState();
+    });
+
+    els.francoToggleBtn.addEventListener('change', (e) => {
+      state.francoAutoTranslate = e.target.checked;
+      saveUserSettings();
+      if (els.intelligentSearch.value.trim()) {
+        performIntelligentSearch(els.intelligentSearch.value);
+      }
+    });
+
+    els.fontSelect.addEventListener('change', (e) => {
+      const val = e.target.value;
+      if (val === 'custom') {
+        els.customFontWrapper.classList.remove('hidden');
+        applyFont(els.customFontInput.value || 'Tahoma');
+      } else {
+        els.customFontWrapper.classList.add('hidden');
+        applyFont(val);
+      }
+    });
+
+    els.customFontInput.addEventListener('input', (e) => {
+      applyFont(e.target.value || 'sans-serif');
+    });
+
+    els.obsFontSizeRange.addEventListener('input', (e) => {
+      state.fontSize = parseInt(e.target.value);
+      if (els.fontSizeValBadge) els.fontSizeValBadge.textContent = `${state.fontSize}px`;
+      saveUserSettings();
+      syncLiveState();
+    });
+
+    els.chromaSelect.addEventListener('change', (e) => {
+      state.chromaKey = e.target.value;
+
+      if (state.chromaKey === 'green' || state.chromaKey === 'blue') {
+        state.styleOptions.textColor = '#ffffff';
+        state.styleOptions.strokeWidth = 3;
+        state.styleOptions.strokeColor = '#000000';
+        state.styleOptions.shadowBlur = 18;
+
+        els.obsTextColor.value = '#ffffff';
+        els.obsStrokeRange.value = 3;
+        els.obsStrokeColor.value = '#000000';
+        els.obsShadowRange.value = 18;
+      } else if (state.chromaKey === 'black') {
+        state.styleOptions.textColor = '#ffffff';
+        state.styleOptions.strokeWidth = 0;
+        state.styleOptions.shadowBlur = 0;
+
+        els.obsTextColor.value = '#ffffff';
+        els.obsStrokeRange.value = 0;
+        els.obsShadowRange.value = 0;
+      }
+
+      if (els.obsOverlay) els.obsOverlay.setAttribute('data-chroma', state.chromaKey);
+      saveUserSettings();
+      syncLiveState();
+    });
+
+    els.presModeSelect.addEventListener('change', (e) => {
+      state.presentationMode = e.target.value;
+      saveUserSettings();
+      if (state.activeSong) {
+        loadSongIntoPresentation(state.activeSong);
+      }
+    });
+
+    els.obsTextColor.addEventListener('input', (e) => {
+      state.styleOptions.textColor = e.target.value;
+      saveUserSettings();
+      syncLiveState();
+    });
+
+    els.obsStrokeRange.addEventListener('input', (e) => {
+      state.styleOptions.strokeWidth = parseInt(e.target.value);
+      saveUserSettings();
+      syncLiveState();
+    });
+
+    els.obsStrokeColor.addEventListener('input', (e) => {
+      state.styleOptions.strokeColor = e.target.value;
+      saveUserSettings();
+      syncLiveState();
+    });
+
+    els.obsShadowRange.addEventListener('input', (e) => {
+      state.styleOptions.shadowBlur = parseInt(e.target.value);
+      saveUserSettings();
+      syncLiveState();
+    });
+
+    // ABSOLUTELY ZERO POPUP WINDOWS - ALWAYS FULLSCREEN PRESENTATION DIRECTLY ON CURRENT PAGE!
+    els.btnOpenTvWindow.addEventListener('click', () => {
+      launchPresenterOnSelectedScreen();
+    });
+
+    els.btnCopyObsUrl.addEventListener('click', () => {
+      const obsUrl = `${window.location.origin}/obs.html`;
+      navigator.clipboard.writeText(obsUrl);
+
+      const originalHtml = els.btnCopyObsUrl.innerHTML;
+      els.btnCopyObsUrl.innerHTML = `<i class="fa-solid fa-check fa-lg"></i> تم النسخ!`;
+      els.btnCopyObsUrl.classList.add('btn-copied-anim');
+
+      setTimeout(() => {
+        els.btnCopyObsUrl.innerHTML = originalHtml;
+        els.btnCopyObsUrl.classList.remove('btn-copied-anim');
+      }, 1400);
+    });
+
+    let searchTimer;
+    els.intelligentSearch.addEventListener('input', (e) => {
+      const query = e.target.value;
+      if (query) els.clearSearchBtn.classList.remove('hidden');
+      else {
+        els.clearSearchBtn.classList.add('hidden');
+        els.francoTranslateBadge.classList.add('hidden');
+      }
+
+      if (state.francoAutoTranslate && /[a-z0-9]/i.test(query)) {
+        const translated = francoToArabic(query);
+        if (translated) {
+          els.francoTextVal.textContent = translated;
+          els.francoTranslateBadge.classList.remove('hidden');
+        } else {
+          els.francoTranslateBadge.classList.add('hidden');
+        }
+      } else {
+        els.francoTranslateBadge.classList.add('hidden');
+      }
+
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+        performIntelligentSearch(query);
+      }, 150);
+    });
+
+    els.intelligentSearch.addEventListener('focus', () => {
+      if (els.intelligentSearch.value.trim()) {
+        els.searchDropdown.classList.remove('hidden');
+      }
+    });
+
+    els.clearSearchBtn.addEventListener('click', () => {
+      els.intelligentSearch.value = '';
+      els.clearSearchBtn.classList.add('hidden');
+      els.searchDropdown.classList.add('hidden');
+      els.francoTranslateBadge.classList.add('hidden');
+    });
+
+    els.btnPrevLine.addEventListener('click', prevLine);
+    els.btnNextLine.addEventListener('click', nextLine);
+    els.btnToggleBlank.addEventListener('click', toggleBlank);
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        els.intelligentSearch.focus();
+        els.intelligentSearch.select();
+        els.searchDropdown.classList.add('hidden');
+        if (document.fullscreenElement) {
+          document.exitFullscreen().catch(() => {});
+        }
+        return;
+      }
+
+      if (document.activeElement === els.intelligentSearch || document.activeElement.tagName === 'INPUT') {
+        return;
+      }
+
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowDown' || e.key === ' ') {
+        e.preventDefault();
+        nextLine();
+      } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        prevLine();
+      } else if (e.key === 'b' || e.key === 'B') {
+        toggleBlank();
+      }
+    });
+  }
+
+  async function detectConnectedScreens() {
+    const select = els.connectedScreensSelect;
+    if (!select) return;
+
+    if ('getScreenDetails' in window) {
+      try {
+        screenDetails = await window.getScreenDetails();
+        renderScreenOptions();
+
+        screenDetails.addEventListener('screenschange', () => {
+          renderScreenOptions();
+        });
+      } catch (err) {
+        renderFallbackScreenOptions();
+      }
+    } else {
+      renderFallbackScreenOptions();
+    }
+  }
+
+  function renderScreenOptions() {
+    const select = els.connectedScreensSelect;
+    if (!screenDetails || !screenDetails.screens.length) {
+      renderFallbackScreenOptions();
+      return;
+    }
+
+    select.innerHTML = screenDetails.screens.map((s, idx) => {
+      const type = s.isPrimary ? ' (الشاشة الحالية)' : ' (خارجية / TV)';
+      const label = s.label || `شاشة ${idx + 1}`;
+      return `<option value="${idx}">${label} (${s.width} × ${s.height})${type}</option>`;
+    }).join('');
+  }
+
+  function renderFallbackScreenOptions() {
+    const select = els.connectedScreensSelect;
+    select.innerHTML = `
+      <option value="primary">الشاشة الحالية (العرض ملء الشاشة)</option>
+    `;
+  }
+
+  // ALWAYS SWITCH CURRENT PAGE TO FULLSCREEN PRESENTATION DIRECTLY (ABSOLUTELY ZERO POPUP WINDOWS)
+  async function launchPresenterOnSelectedScreen() {
+    if (els.obsOverlay) {
+      els.obsOverlay.classList.remove('hidden');
+      const docEl = document.documentElement || els.obsOverlay;
+      if (docEl.requestFullscreen) {
+        docEl.requestFullscreen().catch(() => {});
+      }
+    }
+    syncLiveState();
+  }
+
+  function makeDraggableCenterPivot() {
+    const box = els.obsLowerThirdBox;
+    if (!box) return;
+
+    let isDragging = false;
+    let startX, startY;
+    const SNAP_THRESHOLD = 22;
+
+    box.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+
+      const screenW = window.innerWidth;
+      const screenH = window.innerHeight;
+
+      let targetX = state.dragPivot.left + (e.clientX - startX);
+      let targetY = state.dragPivot.top + (e.clientY - startY);
+
+      let snappedV = false;
+      let snappedH = false;
+
+      if (Math.abs(targetX - screenW / 2) < SNAP_THRESHOLD) {
+        targetX = screenW / 2;
+        snappedV = true;
+      }
+
+      if (Math.abs(targetY - screenH / 2) < SNAP_THRESHOLD) {
+        targetY = screenH / 2;
+        snappedH = true;
+      } else if (Math.abs(targetY - (screenH * 0.75)) < SNAP_THRESHOLD) {
+        targetY = screenH * 0.75;
+        snappedH = true;
+      }
+
+      if (snappedV && els.snapGuideV) els.snapGuideV.classList.remove('hidden');
+      else if (els.snapGuideV) els.snapGuideV.classList.add('hidden');
+
+      if (snappedH && els.snapGuideH) els.snapGuideH.classList.remove('hidden');
+      else if (els.snapGuideH) els.snapGuideH.classList.add('hidden');
+
+      state.dragPivot.left = targetX;
+      state.dragPivot.top = targetY;
+
+      localStorage.setItem('sunday_school_taranim_drag_pivot', JSON.stringify(state.dragPivot));
+
+      startX = e.clientX;
+      startY = e.clientY;
+
+      syncLiveState();
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        if (els.snapGuideV) els.snapGuideV.classList.add('hidden');
+        if (els.snapGuideH) els.snapGuideH.classList.add('hidden');
+      }
+    });
+  }
+
+  function applyFont(fontFamily) {
+    state.selectedFont = fontFamily;
+    document.documentElement.style.setProperty('--font-family', fontFamily);
+    saveUserSettings();
+    syncLiveState();
+  }
+
+  async function loadInitialData() {
+    try {
+      const res = await fetch('/api/songs?limit=50');
+      const data = await res.json();
+      state.allSongs = data.songs;
+    } catch (err) {}
+  }
+
+  async function performIntelligentSearch(query) {
+    if (!query.trim()) {
+      els.searchDropdown.classList.add('hidden');
+      return;
+    }
+
+    let searchTarget = query.trim();
+    if (state.francoAutoTranslate && /[a-z0-9]/i.test(searchTarget)) {
+      const arTrans = francoToArabic(searchTarget);
+      if (arTrans) searchTarget = arTrans;
+    }
+
+    try {
+      const res = await fetch(`/api/songs?q=${encodeURIComponent(searchTarget)}&limit=150`);
+      const data = await res.json();
+
+      const uniqueMap = new Map();
+      data.songs.forEach(song => {
+        if (!uniqueMap.has(song.id)) {
+          uniqueMap.set(song.id, song);
+        }
+      });
+
+      const uniqueSongs = Array.from(uniqueMap.values());
+
+      const scored = uniqueSongs.map(song => ({
+        ...song,
+        _score: getMatchScore(song.title, query)
+      })).sort((a, b) => b._score - a._score);
+
+      renderSearchDropdown(scored, searchTarget);
+    } catch (err) {
+      els.searchDropdown.classList.add('hidden');
+    }
+  }
+
+  function renderSearchDropdown(songs, query) {
+    if (songs.length === 0) {
+      els.searchDropdown.innerHTML = `<div class="search-item"><span class="item-title">لم يتم العثور على ترنيمة أو شاهد كتابي</span></div>`;
+    } else {
+      const qClean = normalizeArabic(query);
+
+      els.searchDropdown.innerHTML = songs.slice(0, 12).map(s => {
+        let snippetHtml = '';
+        const rawNotes = s.notes || '';
+
+        if (rawNotes) {
+          const allLines = rawNotes.split(/[\n,]+/).map(l => l.trim()).filter(l => l.length > 0);
+          
+          if (allLines.length > 0) {
+            let bestIdx = 0;
+            if (qClean) {
+              const matchedIdx = allLines.findIndex(line => normalizeArabic(line).includes(qClean));
+              if (matchedIdx !== -1) bestIdx = matchedIdx;
+            }
+
+            const previewSlice = allLines.slice(bestIdx, bestIdx + 3);
+            
+            snippetHtml = previewSlice.map((line, idx) => {
+              const lineNum = bestIdx + idx + 1;
+              let formattedLine = escapeHtml(line);
+
+              if (qClean) {
+                const normLine = normalizeArabic(line);
+                const matchPos = normLine.indexOf(qClean);
+                if (matchPos !== -1) {
+                  const matchText = line.substring(matchPos, matchPos + qClean.length);
+                  formattedLine = escapeHtml(line.substring(0, matchPos)) +
+                    `<mark class="highlight-query">${escapeHtml(matchText)}</mark>` +
+                    escapeHtml(line.substring(matchPos + qClean.length));
+                }
+              }
+
+              return `<span class="line-num-mini">(${lineNum})</span> ${formattedLine}`;
+            }).join(' ');
+          }
+        }
+
+        return `
+          <div class="search-item" data-id="${s.id}">
+            <div class="item-top">
+              <span class="item-title">${escapeHtml(s.title)}</span>
+              <span class="item-badge">${s.is_bible ? 'شاهد كتابي' : 'ترنيمة'}</span>
+            </div>
+            ${snippetHtml ? `<div class="item-preview-box">${snippetHtml}</div>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    els.searchDropdown.classList.remove('hidden');
+
+    els.searchDropdown.querySelectorAll('.search-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const id = item.dataset.id;
+        els.searchDropdown.classList.add('hidden');
+        els.intelligentSearch.value = '';
+        els.clearSearchBtn.classList.add('hidden');
+        els.francoTranslateBadge.classList.add('hidden');
+        openAndPresentItem(id);
+      });
+    });
+  }
+
+  async function openAndPresentItem(songId) {
+    try {
+      const res = await fetch(`/api/song/${songId}`);
+      const song = await res.json();
+      state.activeSong = song;
+
+      addToSessionRecents(song);
+      loadSongIntoPresentation(song);
+    } catch (err) {
+      alert('تعذر تحميل بيانات الترنيمة.');
+    }
+  }
+
+  function loadSongIntoPresentation(song) {
+    let linesList = [];
+
+    if (state.presentationMode === 'oneline') {
+      song.verses.forEach((verse, vIdx) => {
+        verse.slides.forEach((slide, sIdx) => {
+          slide.lines.forEach(line => {
+            if (line && line.trim()) {
+              linesList.push({
+                text: line.trim(),
+                label: `بيت ${vIdx + 1}`
+              });
+            }
+          });
+        });
+      });
+    } else {
+      song.verses.forEach((verse, vIdx) => {
+        verse.slides.forEach((slide, sIdx) => {
+          if (slide.text && slide.text.trim()) {
+            linesList.push({
+              text: slide.text.trim(),
+              label: `شريحة ${sIdx + 1}`
+            });
+          }
+        });
+      });
+    }
+
+    state.presentationLines = linesList;
+    state.currentLineIndex = 0;
+    state.isBlank = false;
+
+    renderPresentationLinesList();
+    syncLiveState();
+  }
+
+  function renderPresentationLinesList() {
+    const { presentationLines, currentLineIndex } = state;
+    els.currentLineCounter.textContent = `${presentationLines.length ? currentLineIndex + 1 : 0} / ${presentationLines.length}`;
+
+    if (presentationLines.length === 0) {
+      els.presentationLinesContainer.innerHTML = `
+        <div class="empty-state">
+          <i class="fa-solid fa-music"></i>
+          <p>اختر ترنيمة أو إصحاحاً لعرض الأبيات مرتبة هنا.</p>
+        </div>
+      `;
+      return;
+    }
+
+    els.presentationLinesContainer.innerHTML = presentationLines.map((l, idx) => `
+      <div class="line-item ${idx === currentLineIndex ? 'active' : ''}" data-idx="${idx}">
+        <span class="line-num">(${idx + 1})</span>
+        <span class="line-content">${escapeHtml(l.text)}</span>
+        <button class="copy-line-btn" data-text="${escapeHtml(l.text)}" title="نسخ هذا السطر للحافظة">
+          <i class="fa-solid fa-copy"></i>
+        </button>
+      </div>
+    `).join('');
+
+    els.presentationLinesContainer.querySelectorAll('.copy-line-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const textToCopy = btn.dataset.text;
+        navigator.clipboard.writeText(textToCopy);
+
+        btn.innerHTML = `<i class="fa-solid fa-check"></i>`;
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerHTML = `<i class="fa-solid fa-copy"></i>`;
+          btn.classList.remove('copied');
+        }, 1200);
+      });
+    });
+
+    els.presentationLinesContainer.querySelectorAll('.line-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        if (e.target.closest('.copy-line-btn')) return;
+        state.currentLineIndex = parseInt(item.dataset.idx);
+        renderPresentationLinesList();
+        syncLiveState();
+      });
+    });
+
+    const activeEl = els.presentationLinesContainer.querySelector('.line-item.active');
+    if (activeEl) {
+      activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }
+
+  function addToSessionRecents(song) {
+    const exists = state.sessionRecents.some(r => r.id === song.id);
+    if (!exists) {
+      state.sessionRecents.unshift({ id: song.id, title: song.title });
+      sessionStorage.setItem('sunday_school_taranim_session_recents', JSON.stringify(state.sessionRecents));
+    }
+    renderRecentSession();
+  }
+
+  function renderRecentSession() {
+    els.recentCount.textContent = state.sessionRecents.length;
+
+    if (state.sessionRecents.length === 0) {
+      els.recentSessionContainer.innerHTML = `
+        <div class="empty-state">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+          <p>سوف تظهر الترانيم والأصحاحات المفتوحة مؤخراً هنا لتنقل سريع خلال الخدمة.</p>
+        </div>
+      `;
+      return;
+    }
+
+    els.recentSessionContainer.innerHTML = state.sessionRecents.map((r, idx) => `
+      <div class="recent-item ${state.activeSong && state.activeSong.id === r.id ? 'active' : ''}" data-id="${r.id}" data-index="${idx}" draggable="true">
+        <div class="recent-title-group">
+          <i class="fa-solid fa-grip-vertical drag-handle-icon" title="سحب لإعادة الترتيب"></i>
+          <span class="recent-title">${escapeHtml(r.title)}</span>
+        </div>
+        <button class="delete-recent-btn" data-index="${idx}" title="حذف الترنيمة من القائمة">
+          <i class="fa-solid fa-trash-can"></i> حذف
+        </button>
+      </div>
+    `).join('');
+
+    els.recentSessionContainer.querySelectorAll('.delete-recent-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const index = parseInt(btn.dataset.index);
+        state.sessionRecents.splice(index, 1);
+        sessionStorage.setItem('sunday_school_taranim_session_recents', JSON.stringify(state.sessionRecents));
+        renderRecentSession();
+      });
+    });
+
+    els.recentSessionContainer.querySelectorAll('.recent-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        if (e.target.closest('.delete-recent-btn')) return;
+        const id = item.dataset.id;
+        openAndPresentItem(id);
+      });
+    });
+
+    let draggedIndex = null;
+
+    els.recentSessionContainer.querySelectorAll('.recent-item').forEach(item => {
+      item.addEventListener('dragstart', (e) => {
+        draggedIndex = parseInt(item.dataset.index);
+        item.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+      });
+
+      item.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+      });
+
+      item.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const dropIndex = parseInt(item.dataset.index);
+        if (draggedIndex !== null && draggedIndex !== dropIndex) {
+          const movedItem = state.sessionRecents.splice(draggedIndex, 1)[0];
+          state.sessionRecents.splice(dropIndex, 0, movedItem);
+          sessionStorage.setItem('sunday_school_taranim_session_recents', JSON.stringify(state.sessionRecents));
+          renderRecentSession();
+        }
+      });
+
+      item.addEventListener('dragend', () => {
+        item.classList.remove('dragging');
+        draggedIndex = null;
+      });
+    });
+  }
+
+  function syncLiveState() {
+    const currentLine = state.presentationLines[state.currentLineIndex];
+    const text = currentLine ? currentLine.text : '';
+
+    const payload = {
+      type: 'PRESENT_LINE',
+      text: text,
+      songTitle: state.activeSong ? state.activeSong.title : '',
+      font: state.selectedFont,
+      fontSize: state.fontSize,
+      chroma: state.chromaKey,
+      isBlank: state.isBlank,
+      textColor: state.styleOptions.textColor,
+      strokeWidth: state.styleOptions.strokeWidth,
+      strokeColor: state.styleOptions.strokeColor,
+      shadowBlur: state.styleOptions.shadowBlur,
+      pos: state.dragPivot
+    };
+
+    broadcastChannel.postMessage(payload);
+    localStorage.setItem('sunday_school_taranim_live_presentation', JSON.stringify(payload));
+    localStorage.setItem('sunday_school_taranim_drag_pivot', JSON.stringify(state.dragPivot));
+
+    fetch('/api/live', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).catch(() => {});
+
+    if (els.obsLineText) {
+      els.obsLineText.style.fontFamily = state.selectedFont;
+      els.obsLineText.style.color = state.styleOptions.textColor;
+      els.obsLineText.textContent = text;
+      
+      // AUTO SAFE-AREA TEXT FITTING MATH (90vw x 85vh)
+      let size = state.fontSize || 54;
+      els.obsLineText.style.fontSize = `${size}px`;
+
+      const maxW = window.innerWidth * 0.90;
+      const maxH = window.innerHeight * 0.85;
+
+      while ((els.obsLineText.scrollWidth > maxW || els.obsLineText.scrollHeight > maxH) && size > 18) {
+        size -= 2;
+        els.obsLineText.style.fontSize = `${size}px`;
+      }
+      
+      els.obsLowerThirdBox.style.left = `${state.dragPivot.left}px`;
+      els.obsLowerThirdBox.style.top = `${state.dragPivot.top}px`;
+      els.obsLowerThirdBox.style.transform = 'translate(-50%, -50%)';
+    }
+  }
+
+  function nextLine() {
+    if (state.currentLineIndex < state.presentationLines.length - 1) {
+      state.currentLineIndex++;
+      renderPresentationLinesList();
+      syncLiveState();
+    }
+  }
+
+  function prevLine() {
+    if (state.currentLineIndex > 0) {
+      state.currentLineIndex--;
+      renderPresentationLinesList();
+      syncLiveState();
+    }
+  }
+
+  function toggleBlank() {
+    state.isBlank = !state.isBlank;
+    syncLiveState();
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+});
