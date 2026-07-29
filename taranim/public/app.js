@@ -442,6 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
     chromaKey: savedSettings.chromaKey || "black",
     presentationMode: savedSettings.presentationMode || "oneline",
     francoAutoTranslate: savedSettings.francoAutoTranslate !== undefined ? savedSettings.francoAutoTranslate : true,
+    textAnimation: savedSettings.textAnimation || "slide",
     
     styleOptions: savedSettings.styleOptions || {
       textColor: "#ffffff",
@@ -502,6 +503,7 @@ document.addEventListener('DOMContentLoaded', () => {
     obsStrokeRange: document.getElementById('obs-stroke-range'),
     obsStrokeColor: document.getElementById('obs-stroke-color'),
     obsShadowRange: document.getElementById('obs-shadow-range'),
+    obsTextAnimSelect: document.getElementById('obs-text-anim-select'),
 
     presentationLinesContainer: document.getElementById('presentation-lines-container'),
     recentSessionContainer: document.getElementById('recent-session-container'),
@@ -570,6 +572,7 @@ document.addEventListener('DOMContentLoaded', () => {
       chromaKey: state.chromaKey,
       presentationMode: state.presentationMode,
       francoAutoTranslate: state.francoAutoTranslate,
+      textAnimation: state.textAnimation,
       styleOptions: state.styleOptions
     };
     localStorage.setItem('sunday_school_taranim_user_settings', JSON.stringify(settings));
@@ -582,6 +585,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.chromaSelect) els.chromaSelect.value = state.chromaKey;
     if (els.presModeSelect) els.presModeSelect.value = state.presentationMode;
     if (els.francoToggleBtn) els.francoToggleBtn.checked = state.francoAutoTranslate;
+    if (els.obsTextAnimSelect) els.obsTextAnimSelect.value = state.textAnimation;
 
     if (els.obsTextColor) els.obsTextColor.value = state.styleOptions.textColor;
     if (els.obsStrokeRange) els.obsStrokeRange.value = state.styleOptions.strokeWidth;
@@ -725,6 +729,14 @@ document.addEventListener('DOMContentLoaded', () => {
         loadSongIntoPresentation(state.activeSong);
       }
     });
+
+    if (els.obsTextAnimSelect) {
+      els.obsTextAnimSelect.addEventListener('change', (e) => {
+        state.textAnimation = e.target.value;
+        saveUserSettings();
+        syncLiveState();
+      });
+    }
 
     els.obsTextColor.addEventListener('input', (e) => {
       state.styleOptions.textColor = e.target.value;
@@ -1463,6 +1475,7 @@ document.addEventListener('DOMContentLoaded', () => {
       fontSize: state.fontSize,
       chroma: state.chromaKey,
       isBlank: state.isBlank,
+      anim: state.textAnimation,
       textColor: state.styleOptions.textColor,
       strokeWidth: state.styleOptions.strokeWidth,
       strokeColor: state.styleOptions.strokeColor,
@@ -1485,7 +1498,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.obsLineText) {
       els.obsLineText.style.fontFamily = state.selectedFont;
       els.obsLineText.style.color = state.styleOptions.textColor;
-      els.obsLineText.textContent = text;
+
+      if (els.obsLineText.textContent !== text) {
+        els.obsLineText.textContent = text;
+        els.obsLineText.classList.remove('animate-appear-slide', 'animate-appear-pop', 'animate-appear-glow');
+        if (state.textAnimation !== 'none') {
+          void els.obsLineText.offsetWidth;
+          els.obsLineText.classList.add(`animate-appear-${state.textAnimation}`);
+        }
+      }
       
       let size = state.fontSize || 54;
       els.obsLineText.style.fontSize = `${size}px`;

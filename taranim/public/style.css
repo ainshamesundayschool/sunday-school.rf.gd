@@ -889,6 +889,61 @@ html, body {
 
 .obs-line-text:active { cursor: grabbing; }
 
+/* TEXT APPEARANCE ANIMATIONS */
+@keyframes textAppearSlide {
+  0% {
+    opacity: 0;
+    transform: translateY(22px) scale(0.97);
+    filter: blur(4px);
+  }
+  60% {
+    filter: blur(0px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0px);
+  }
+}
+
+@keyframes textAppearPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.86);
+    filter: blur(5px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0px);
+  }
+}
+
+@keyframes textAppearGlow {
+  0% {
+    opacity: 0;
+    filter: blur(10px);
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0px);
+    transform: scale(1);
+  }
+}
+
+.animate-appear-slide {
+  animation: textAppearSlide 0.42s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-appear-pop {
+  animation: textAppearPop 0.38s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.animate-appear-glow {
+  animation: textAppearGlow 0.4s ease-out forwards;
+}
+
 .hidden { display: none !important; }
 
 /* MOBILE RESPONSIVE OPTIMIZATION */

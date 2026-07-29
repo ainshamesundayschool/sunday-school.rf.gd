@@ -311,8 +311,17 @@
         currentIsBlankState = true;
       } else if (data.text !== undefined) {
         textEl.style.visibility = data.text ? 'visible' : 'hidden';
-        textEl.textContent = data.text;
-        currentTextState = data.text;
+        if (currentTextState !== data.text) {
+          textEl.textContent = data.text;
+          currentTextState = data.text;
+
+          const animType = data.anim || 'slide';
+          textEl.classList.remove('animate-appear-slide', 'animate-appear-pop', 'animate-appear-glow');
+          if (animType !== 'none') {
+            void textEl.offsetWidth;
+            textEl.classList.add(`animate-appear-${animType}`);
+          }
+        }
         currentIsBlankState = false;
       }
 
