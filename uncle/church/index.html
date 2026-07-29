@@ -9316,7 +9316,7 @@
             </div>
 
             <!-- ── DEVELOPER: EXCLUSIVE SONG DOWNLOADS ── -->
-            <div id="devSongDownloads" class="tab-panel dev-only">
+            <div id="devSongDownloads" class="tab-panel">
                 <div class="stats-row"
                     style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px;">
                     <div class="stat-card">
@@ -12932,7 +12932,7 @@
                 localStorage.getItem('role'),
                 localStorage.getItem('userRole')
             ].filter(Boolean).map(r => r.toString().toLowerCase().trim());
-            const isDev = (s.is_developer === true || roles.some(r => r === 'developer' || r === 'dev'));
+            const isDev = (s.is_developer === true || s.is_developer == 1 || s.is_developer === 'true' || s.is_developer === '1' || roles.some(r => r === 'developer' || r === 'dev'));
             if (isDev) {
                 localStorage.setItem('uncleRole', 'developer');
                 localStorage.setItem('role', 'developer');
@@ -12946,6 +12946,7 @@
             if (checkIsDeveloperRole()) {
                 isDeveloper = true;
                 document.querySelectorAll('.dev-only').forEach(el => {
+                    if (el.classList.contains('tab-panel')) return;
                     if (el.classList.contains('nav-item')) {
                         el.style.display = 'flex';
                     } else {
@@ -13020,6 +13021,7 @@
             isDeveloper = checkIsDeveloperRole(sess);
             if (isDeveloper) {
                 document.querySelectorAll('.dev-only').forEach(el => {
+                    if (el.classList.contains('tab-panel')) return;
                     if (el.classList.contains('nav-item')) {
                         el.style.display = 'flex';
                     } else {

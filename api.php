@@ -49468,11 +49468,11 @@ function trackSongDownload() {
 
 function getSongDownloadStats() {
     checkAuth();
-    $role = strtolower($_SESSION['uncle_role'] ?? $_SESSION['role'] ?? $_SESSION['user_role'] ?? $_POST['uncle_role'] ?? $_POST['role'] ?? $_GET['uncle_role'] ?? $_GET['role'] ?? '');
+    $role = strtolower(trim($_SESSION['uncle_role'] ?? $_SESSION['role'] ?? $_SESSION['user_role'] ?? $_POST['uncle_role'] ?? $_POST['role'] ?? $_GET['uncle_role'] ?? $_GET['role'] ?? ''));
     
-    $isDev = in_array($role, ['developer', 'dev']) || (!empty($_SESSION['is_developer']) && $_SESSION['is_developer'] === true);
+    $isDev = in_array($role, ['developer', 'dev']) || !empty($_SESSION['is_developer']);
 
-    if (!$isDev && isset($_SESSION['uncle_id'])) {
+    if (!$isDev && !empty($_SESSION['uncle_id'])) {
         $connTemp = getDBConnection();
         $stmtTemp = $connTemp->prepare("SELECT role FROM uncles WHERE id = ?");
         if ($stmtTemp) {
@@ -49481,9 +49481,27 @@ function getSongDownloadStats() {
             $stmtTemp->execute();
             $resTemp = $stmtTemp->get_result();
             if ($rowTemp = $resTemp->fetch_assoc()) {
-                if (in_array(strtolower($rowTemp['role'] ?? ''), ['developer', 'dev'])) {
+                if (in_array(strtolower(trim($rowTemp['role'] ?? '')), ['developer', 'dev'])) {
                     $isDev = true;
                     $_SESSION['uncle_role'] = $rowTemp['role'];
+                }
+            }
+            $stmtTemp->close();
+        }
+    }
+
+    if (!$isDev && !empty($_SESSION['church_id'])) {
+        $connTemp = getDBConnection();
+        $stmtTemp = $connTemp->prepare("SELECT role FROM churches WHERE id = ?");
+        if ($stmtTemp) {
+            $cId = intval($_SESSION['church_id']);
+            $stmtTemp->bind_param("i", $cId);
+            $stmtTemp->execute();
+            $resTemp = $stmtTemp->get_result();
+            if ($rowTemp = $resTemp->fetch_assoc()) {
+                if (in_array(strtolower(trim($rowTemp['role'] ?? '')), ['developer', 'dev'])) {
+                    $isDev = true;
+                    $_SESSION['role'] = $rowTemp['role'];
                 }
             }
             $stmtTemp->close();
