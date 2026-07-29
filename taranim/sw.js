@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sunday_school_taranim_v20260729_v12';
+const CACHE_NAME = 'sunday_school_taranim_v20260729_v15';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
