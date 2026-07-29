@@ -43,24 +43,30 @@ function francoToArabic(text) {
   return s;
 }
 
-function getMatchScore(title, query) {
-  if (!title || !query) return 0;
+function getMatchScore(song, query) {
+  if (!song || !query) return 0;
+  const title = song.title || '';
+  const notes = song.notes || '';
+
   const qNorm = normalizeArabic(query);
   const qRaw = query.trim().toLowerCase();
   const qFranco = francoToArabic(query);
 
   const tNorm = normalizeArabic(title);
   const tRaw = title.toLowerCase();
+  const nNorm = normalizeArabic(notes);
 
   if (tRaw === qRaw || tNorm === qNorm) return 100;
   if (tRaw.startsWith(qRaw) || tNorm.startsWith(qNorm)) return 85;
-  if (tRaw.includes(qRaw) || tNorm.includes(qNorm)) return 65;
+  if (tRaw.includes(qRaw) || tNorm.includes(qNorm)) return 70;
 
-  if (qFranco && tNorm === qFranco) return 92;
-  if (qFranco && tNorm.startsWith(qFranco)) return 75;
-  if (qFranco && tNorm.includes(qFranco)) return 55;
+  if (qFranco && (tNorm === qFranco || tNorm.startsWith(qFranco))) return 80;
+  if (qFranco && tNorm.includes(qFranco)) return 65;
 
-  return 0;
+  if (nNorm.includes(qNorm)) return 50;
+  if (qFranco && nNorm.includes(qFranco)) return 40;
+
+  return 10;
 }
 
 // REGISTER SERVICE WORKER FOR 100% OFFLINE FUNCTIONALITY
@@ -619,7 +625,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const scored = uniqueSongs.map(song => ({
         ...song,
-        _score: getMatchScore(song.title, query)
+        _score: getMatchScore(song, query)
       })).sort((a, b) => b._score - a._score);
 
       renderSearchDropdown(scored, query);

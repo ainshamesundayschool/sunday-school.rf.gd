@@ -18,7 +18,6 @@ if not os.path.exists(PLAYLISTS_FILE):
     with open(PLAYLISTS_FILE, 'w', encoding='utf-8') as f:
         json.dump([], f)
 
-# Global Live Presentation State for OBS HTTP Sync
 LIVE_STATE = {
     'type': 'PRESENT_LINE',
     'text': '',
@@ -34,16 +33,25 @@ LIVE_STATE = {
     'pos': {'left': 960, 'top': 540}
 }
 
+def normalize_arabic(text):
+    if not text:
+        return ""
+    text = str(text)
+    text = re.sub(r'[أإآٱ]', 'ا', text)
+    text = re.sub(r'[ىئ]', 'ي', text)
+    text = re.sub(r'ة', 'ه', text)
+    text = re.sub(r'ؤ', 'و', text)
+    text = re.sub(r'[\u064B-\u0652]', '', text)
+    return text.strip()
+
 def get_db():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
-# AUTOMATIC ONLINE DATABASE SYNC BACKGROUND WORKER
 def sync_online_database():
-    """Background worker to keep local SQLite database synced with online catalog."""
-    time.sleep(5) # Wait for server startup
-    print("🔄 Checking for new online songs database updates...")
+    time.sleep(5)
+    print("Checking for online songs database updates...")
     try:
         req = urllib.request.Request(
             'https://raw.githubusercontent.com/tashbe7na/database/main/latest.json',
@@ -67,9 +75,9 @@ def sync_online_database():
                     conn.commit()
                     conn.close()
                     if inserted > 0:
-                        print(f"✅ Auto-synced {inserted} new songs into local database!")
+                        print(f"Auto-synced {inserted} new songs into local database!")
     except Exception as e:
-        print("ℹ️ Local database active (offline mode ready).")
+        print("Local database active.")
 
 class SundaySchoolTaranimHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -123,7 +131,6 @@ class SundaySchoolTaranimHandler(http.server.SimpleHTTPRequestHandler):
 
             results = []
 
-            # Check if Bible Reference query (e.g. "رو 1", "1 صم 3", "مز 23", "يو 3")
             if q:
                 match = re.match(r'^([0-9]?\s*[\u0600-\u06FF]+)\s+([0-9]+)', q)
                 if match:
@@ -167,8 +174,8 @@ class SundaySchoolTaranimHandler(http.server.SimpleHTTPRequestHandler):
                                 'is_bible': True
                             })
 
-            # Search songs (STRICT DEDUPLICATION BY SONG ID USING GROUP BY)
             if q:
+                q_norm = normalize_arabic(q)
                 cursor.execute('''
                     SELECT s.id, s.item_id, s.title, s.media_url, 
                            GROUP_CONCAT(DISTINCT sg.content) as notes
@@ -176,10 +183,10 @@ class SundaySchoolTaranimHandler(http.server.SimpleHTTPRequestHandler):
                     LEFT JOIN verses v ON v.item_id = s.item_id
                     LEFT JOIN slides sl ON sl.verse = v.id
                     LEFT JOIN segments sg ON sg.slide = sl.id
-                    WHERE s.title LIKE ? OR sg.content LIKE ?
+                    WHERE s.title LIKE ? OR sg.content LIKE ? OR s.title LIKE ? OR sg.content LIKE ?
                     GROUP BY s.id
                     LIMIT ? OFFSET ?;
-                ''', (f'%{q}%', f'%{q}%', limit, offset))
+                ''', (f'%{q}%', f'%{q}%', f'%{q_norm}%', f'%{q_norm}%', limit, offset))
             else:
                 cursor.execute('''
                     SELECT id, item_id, title, media_url, notes
@@ -276,23 +283,9 @@ class SundaySchoolTaranimHandler(http.server.SimpleHTTPRequestHandler):
                     v['slides'] = slides
 
                 song['verses'] = verses
-
-                segment_ids = [sl['id'] for v in verses for sl in v['slides']]
-                if segment_ids:
-                    placeholders = ','.join(['?'] * len(segment_ids))
-                    cursor.execute(f'SELECT * FROM chords_position WHERE segment IN ({placeholders});', segment_ids)
-                    song['chords'] = [dict(r) for r in cursor.fetchall()]
-                else:
-                    song['chords'] = []
-
+                song['chords'] = []
                 conn.close()
                 self.send_json(song)
-
-        elif path == '/api/playlists':
-            conn.close()
-            with open(PLAYLISTS_FILE, 'r', encoding='utf-8') as f:
-                playlists = json.load(f)
-            self.send_json(playlists)
 
         else:
             conn.close()
@@ -310,7 +303,6 @@ class SundaySchoolTaranimHandler(http.server.SimpleHTTPRequestHandler):
 if __name__ == '__main__':
     os.makedirs(os.path.join(os.path.dirname(__file__), 'public'), exist_ok=True)
 
-    # Start background online database sync worker thread
     sync_thread = threading.Thread(target=sync_online_database, daemon=True)
     sync_thread.start()
 
