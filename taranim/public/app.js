@@ -2318,7 +2318,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchTarget = bibleInfo ? bibleInfo.searchQuery : query.trim();
     let songsList = [];
 
-    // ALWAYS QUERY SERVER API IF BIBLE SHORTCUT IS DETECTED OR IF LOCAL MATCHES ARE SMALL
+    // ALWAYS QUERY SERVER API FOR BIBLE / SEARCH QUERY
     try {
       let res = await fetch(`api.php?q=${encodeURIComponent(query)}&limit=150`);
       if (!res.ok) res = await fetch(`/api/songs?q=${encodeURIComponent(query)}&limit=150`);
@@ -2326,6 +2326,16 @@ document.addEventListener('DOMContentLoaded', () => {
         let data = await res.json();
         if (data && data.songs && data.songs.length > 0) {
           songsList = songsList.concat(data.songs);
+        }
+      }
+
+      if (bibleInfo && bibleInfo.searchQuery && bibleInfo.searchQuery !== query) {
+        let bRes = await fetch(`api.php?q=${encodeURIComponent(bibleInfo.searchQuery)}&limit=150`);
+        if (bRes.ok) {
+          let bData = await bRes.json();
+          if (bData && bData.songs && bData.songs.length > 0) {
+            songsList = songsList.concat(bData.songs);
+          }
         }
       }
     } catch (err) {}
@@ -2353,7 +2363,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const uniqueMap = new Map();
     songsList.forEach(song => {
       if (song && (song.id !== undefined && song.id !== null)) {
-        uniqueMap.set(String(song.id), song);
+        const isBible = Boolean(song.is_bible || song.chapter_number !== undefined);
+        const key = (isBible ? 'bible_' : 'song_') + song.id;
+        uniqueMap.set(key, song);
       }
     });
 
@@ -2361,7 +2373,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const scored = uniqueSongs.map(song => {
       let score = getMatchScore(song, query);
-      if (song.is_bible) score = 99999;
+      if (song.is_bible || song.chapter_number !== undefined) score = 99999;
       return {
         ...song,
         _score: score
@@ -2424,7 +2436,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Badge: ترنيمة / شاهد كتابي / matched-in-lyrics
-        const typeBadge = s.is_bible
+        const isBibleItem = Boolean(s.is_bible || s.chapter_number !== undefined);
+        const typeBadge = isBibleItem
           ? `<span class="item-badge bible-badge"><i class="fa-solid fa-book-open"></i> شاهد كتابي</span>`
           : `<span class="item-badge"><i class="fa-solid fa-music"></i> ترنيمة</span>`;
 
@@ -2433,7 +2446,7 @@ document.addEventListener('DOMContentLoaded', () => {
           : '';
 
         return `
-          <div class="search-item" data-id="${s.id}" data-is-bible="${s.is_bible ? '1' : '0'}">
+          <div class="search-item" data-id="${s.id}" data-is-bible="${isBibleItem ? '1' : '0'}">
             <div class="item-top">
               <span class="item-title">${titleHighlighted}</span>
               <div class="item-badges-group">${lyricsMatchBadge}${typeBadge}</div>
