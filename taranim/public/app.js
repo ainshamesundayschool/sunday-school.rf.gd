@@ -1675,10 +1675,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const val = select ? select.value : 'primary';
 
     let targetScreen = null;
+    let targetIdx = -1;
     if (screenDetails && screenDetails.screens) {
       const idx = parseInt(val);
       if (!isNaN(idx) && screenDetails.screens[idx]) {
         targetScreen = screenDetails.screens[idx];
+        targetIdx = idx;
       }
     }
 
@@ -1688,10 +1690,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let height = 1080;
 
     if (targetScreen) {
-      left = targetScreen.availLeft;
-      top = targetScreen.availTop;
-      width = targetScreen.availWidth;
-      height = targetScreen.availHeight;
+      left = targetScreen.availLeft !== undefined ? targetScreen.availLeft : (targetScreen.left || 0);
+      top = targetScreen.availTop !== undefined ? targetScreen.availTop : (targetScreen.top || 0);
+      width = targetScreen.availWidth !== undefined ? targetScreen.availWidth : (targetScreen.width || 1920);
+      height = targetScreen.availHeight !== undefined ? targetScreen.availHeight : (targetScreen.height || 1080);
     } else if (val === 'external') {
       left = window.screen.width || 1920;
       top = 0;
@@ -1710,17 +1712,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const windowFeatures = `left=${left},top=${top},width=${width},height=${height},menubar=no,toolbar=no,location=no,status=no,resizable=yes`;
-    const obsUrl = `obs.html?autofs=true&screenLeft=${left}&screenTop=${top}`;
+    const obsUrl = `obs.html?autofs=true&screenIdx=${targetIdx}&screenLeft=${left}&screenTop=${top}`;
     const popup = window.open(obsUrl, 'SundaySchoolPresenterWindow', windowFeatures);
 
     if (popup) {
       popup.focus();
-      setTimeout(() => {
-        try {
-          popup.moveTo(left, top);
-          popup.resizeTo(width, height);
-        } catch (e) {}
-      }, 100);
+      try {
+        popup.moveTo(left, top);
+        popup.resizeTo(width, height);
+      } catch (e) {}
+
+      if (targetScreen && popup.document) {
+        setTimeout(() => {
+          try {
+            if (popup.document.documentElement.requestFullscreen) {
+              popup.document.documentElement.requestFullscreen({ screen: targetScreen }).catch(() => {});
+            }
+          } catch (e) {}
+        }, 300);
+      }
     }
 
     syncLiveState();
@@ -2005,7 +2015,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (recentMatch && (recentMatch.verses || recentMatch.notes)) {
       state.activeSong = recentMatch;
       addToSessionRecents(recentMatch);
-      autoToggleObsSceneForRecentItem(songId);
       loadSongIntoPresentation(recentMatch);
       return;
     }
@@ -2015,7 +2024,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (localSong) {
         state.activeSong = localSong;
         addToSessionRecents(localSong);
-        autoToggleObsSceneForRecentItem(songId);
         loadSongIntoPresentation(localSong);
         return;
       }
@@ -2030,7 +2038,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (song && (song.title || song.id)) {
           state.activeSong = song;
           addToSessionRecents(song);
-          autoToggleObsSceneForRecentItem(songId);
           loadSongIntoPresentation(song);
           return;
         }

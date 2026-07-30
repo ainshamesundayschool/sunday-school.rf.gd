@@ -327,6 +327,7 @@
 
     const screenLeft = urlParams.get('screenLeft');
     const screenTop = urlParams.get('screenTop');
+    const screenIdx = urlParams.get('screenIdx');
     const isAutoFS = urlParams.get('autofs') === 'true';
 
     if (screenLeft !== null && screenTop !== null) {
@@ -337,7 +338,20 @@
 
     if (isAutoFS) {
       window.addEventListener('load', () => {
-        setTimeout(() => {
+        setTimeout(async () => {
+          if ('getScreenDetails' in window && screenIdx !== null && screenIdx !== '-1') {
+            try {
+              const details = await window.getScreenDetails();
+              const idx = parseInt(screenIdx);
+              if (details && details.screens && details.screens[idx]) {
+                const targetScreen = details.screens[idx];
+                if (document.documentElement.requestFullscreen) {
+                  await document.documentElement.requestFullscreen({ screen: targetScreen });
+                  return;
+                }
+              }
+            } catch (err) {}
+          }
           if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
             document.documentElement.requestFullscreen().catch(() => {});
           }

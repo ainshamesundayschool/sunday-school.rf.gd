@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sunday_school_taranim_v20260729_v16';
+const CACHE_NAME = 'sunday_school_taranim_v20260730_v18';
 
 const PRECACHE_URLS = [
   './',
@@ -31,7 +31,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// ACTIVATE: CLEANUP OLD CACHES
+// ACTIVATE: CLEANUP OLD CACHES AND CLAIM CLIENTS IMMEDIATELY
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -43,7 +43,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// FETCH STRATEGY: CACHE-FIRST FOR OFFLINE COMPATIBILITY, FALLBACK TO NETWORK
+// FETCH STRATEGY: NETWORK-FIRST FOR CODE & NAVIGATION, CACHE-FIRST FOR DATA/FONTS
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') {
     return;
@@ -57,53 +57,50 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  const isNavigation = event.request.mode === 'navigate' || url.endsWith('/taranim/') || url.includes('index.html') || url.includes('obs.html') || url.includes('install.html');
-  const isStaticAsset = url.includes('songs_catalog.json') || url.includes('arabic_dictionary.json') || url.includes('playlists.json') || url.includes('app.js') || url.includes('style.css') || url.includes('logo.png') || url.includes('manifest.webmanifest') || url.includes('fonts.googleapis') || url.includes('fontawesome');
+  const isCodeOrNav = event.request.mode === 'navigate' ||
+                      url.endsWith('/taranim/') ||
+                      url.includes('index.html') ||
+                      url.includes('obs.html') ||
+                      url.includes('install.html') ||
+                      url.includes('app.js') ||
+                      url.includes('style.css') ||
+                      url.includes('sw.js');
 
-  // Cache-First with Network fallback for Navigation and Static Assets
-  if (isNavigation || isStaticAsset) {
+  // Network-First strategy for application code (HTML, JS, CSS) to guarantee fresh code on every normal refresh when online
+  if (isCodeOrNav) {
     event.respondWith(
-      caches.match(event.request, { ignoreSearch: true }).then((cached) => {
-        if (cached) {
-          // Asynchronously update cache from network if online
-          fetch(event.request).then((networkRes) => {
-            if (networkRes && networkRes.status === 200) {
-              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkRes));
-            }
-          }).catch(() => {});
-          return cached;
-        }
-
-        return fetch(event.request)
-          .then((networkResponse) => {
-            if (networkResponse && networkResponse.status === 200) {
-              const clone = networkResponse.clone();
-              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-            }
-            return networkResponse;
-          })
-          .catch(() => {
-            if (isNavigation) {
-              return caches.match('./index.html') || caches.match('./install.html');
-            }
+      fetch(event.request, { cache: 'no-cache' })
+        .then((networkRes) => {
+          if (networkRes && networkRes.status === 200) {
+            const clone = networkRes.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return networkRes;
+        })
+        .catch(() => {
+          return caches.match(event.request, { ignoreSearch: true }).then((cached) => {
+            return cached || caches.match('./index.html');
           });
-      })
+        })
     );
     return;
   }
 
-  // Network-First for other requests
+  // Cache-First strategy for large static data files (songs catalog, dictionary, images, fonts)
   event.respondWith(
-    fetch(event.request)
-      .then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200) {
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
-        }
-        return networkResponse;
-      })
-      .catch(() => {
-        return caches.match(event.request);
-      })
+    caches.match(event.request, { ignoreSearch: true }).then((cached) => {
+      if (cached) return cached;
+      return fetch(event.request)
+        .then((networkRes) => {
+          if (networkRes && networkRes.status === 200) {
+            const clone = networkRes.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return networkRes;
+        })
+        .catch(() => {
+          return caches.match('./index.html');
+        });
+    })
   );
 });
