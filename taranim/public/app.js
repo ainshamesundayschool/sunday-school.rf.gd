@@ -3689,12 +3689,23 @@ document.addEventListener('DOMContentLoaded', () => {
   function nextLine() {
     if (state.currentLineIndex < state.presentationLines.length - 1) {
       state.currentLineIndex++;
+      state.isBlank = false;
       renderPresentationLinesList();
       syncLiveState();
+    } else if (state.currentLineIndex === state.presentationLines.length - 1) {
+      if (!state.isBlank) {
+        state.isBlank = true;
+        syncLiveState();
+      }
     }
   }
 
   function prevLine() {
+    if (state.isBlank) {
+      state.isBlank = false;
+      syncLiveState();
+      return;
+    }
     if (state.currentLineIndex > 0) {
       state.currentLineIndex--;
       renderPresentationLinesList();
