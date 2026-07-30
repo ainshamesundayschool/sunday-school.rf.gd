@@ -449,10 +449,19 @@
     box.style.top = currentPivot.yPct + '%';
     box.style.transform = 'translate3d(-50%, -50%, 0)';
 
-    function requestFS() {
+    window.triggerFullscreen = function() {
       if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
+        const docEl = document.documentElement;
+        if (docEl.requestFullscreen) {
+          docEl.requestFullscreen().catch(() => {});
+        } else if (docEl.webkitRequestFullscreen) {
+          docEl.webkitRequestFullscreen();
+        }
       }
+    };
+
+    function requestFS() {
+      window.triggerFullscreen();
     }
 
     // AGGRESSIVE AUTO-FULLSCREEN: try on load, focus, visibility, and via parent BroadcastChannel
@@ -474,12 +483,18 @@
       });
     }
 
+    window.addEventListener('message', (evt) => {
+      if (evt.data && (evt.data.action === 'REQUEST_FULLSCREEN' || evt.data.action === 'TRIGGER_FULLSCREEN')) {
+        window.triggerFullscreen();
+      }
+    });
+
     // Listen for parent window to explicitly request fullscreen via BroadcastChannel
     try {
       const fsChannel = new BroadcastChannel('sunday_school_taranim_fs');
       fsChannel.onmessage = (evt) => {
-        if (evt.data && evt.data.action === 'REQUEST_FULLSCREEN') {
-          requestFS();
+        if (evt.data && (evt.data.action === 'REQUEST_FULLSCREEN' || evt.data.action === 'TRIGGER_FULLSCREEN')) {
+          window.triggerFullscreen();
         }
       };
     } catch(e) {}

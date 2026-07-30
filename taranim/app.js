@@ -914,20 +914,22 @@ document.addEventListener('DOMContentLoaded', () => {
         fsBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           if (presenterWindow && !presenterWindow.closed) {
+            try { presenterWindow.focus(); } catch(err) {}
             try {
-              const pDoc = presenterWindow.document;
-              if (pDoc && pDoc.documentElement) {
-                if (!pDoc.fullscreenElement) {
-                  pDoc.documentElement.requestFullscreen().catch(() => {});
-                }
+              if (typeof presenterWindow.triggerFullscreen === 'function') {
+                presenterWindow.triggerFullscreen();
               }
             } catch(err) {}
-            // Also signal via BroadcastChannel as backup
+            try {
+              presenterWindow.postMessage({ action: 'TRIGGER_FULLSCREEN' }, '*');
+            } catch(err) {}
             try {
               const fsChannel = new BroadcastChannel('sunday_school_taranim_fs');
-              fsChannel.postMessage({ action: 'REQUEST_FULLSCREEN' });
+              fsChannel.postMessage({ action: 'TRIGGER_FULLSCREEN' });
               setTimeout(() => fsChannel.close(), 500);
             } catch(err) {}
+          } else {
+            launchPresenterOnSelectedScreen();
           }
         });
       }
