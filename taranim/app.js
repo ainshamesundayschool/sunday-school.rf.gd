@@ -2241,14 +2241,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.screensCastList) {
       els.screensCastList.innerHTML = screens.map((s, idx) => {
         const name = s.label || `شاشة ${idx + 1}`;
-        const badge = s.isPrimary 
-          ? `<span class="badge-main-screen"><i class="fa-solid fa-house-laptop"></i> الرئيسية (لوحة التحكم)</span>` 
-          : `<span class="badge-ext-screen"><i class="fa-solid fa-tv"></i> خارجية (العرض)</span>`;
+        const isMain = Boolean(s.isPrimary || idx === 0 || s.val === 'primary');
+        const cardClass = isMain ? 'screen-cast-card main-screen-card' : 'screen-cast-card';
         const val = s.val !== undefined ? s.val : idx;
         return `
-          <div class="screen-cast-card" data-val="${val}">
+          <div class="${cardClass}" data-val="${val}">
             <div class="screen-info">
-              <span class="screen-name"><i class="fa-solid fa-desktop"></i> ${escapeHtml(name)} ${badge}</span>
+              <span class="screen-name"><i class="fa-solid fa-desktop"></i> ${escapeHtml(name)}</span>
               <span class="screen-res">${s.width} × ${s.height} px</span>
             </div>
             <i class="fa-solid fa-expand launch-btn-icon"></i>
@@ -2312,7 +2311,7 @@ document.addEventListener('DOMContentLoaded', () => {
       top = window.screen.availTop || 0;
     }
 
-    const isCurrentWindowScreen = (val === 'in_app_overlay' || val === 'primary' || val === '0' || (targetScreen && targetScreen.isPrimary));
+    let isCurrentWindowScreen = (val === 'in_app_overlay');
 
     if (isCurrentWindowScreen) {
       if (presenterWindow && !presenterWindow.closed) {
@@ -2322,7 +2321,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       state.selectedScreen = {
         val: String(val),
-        label: targetScreen ? (targetScreen.label || `Built-in Retina Display (الرئيسية)`) : 'Built-in Retina Display (الرئيسية)',
+        label: targetScreen ? (targetScreen.label || `شاشة ${targetIdx + 1}`) : 'الشاشة الرئيسية (هذا الجهاز)',
         width: window.screen.width || 1920,
         height: window.screen.height || 1080,
         isPrimary: true
