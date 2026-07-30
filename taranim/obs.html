@@ -499,20 +499,9 @@
       window.triggerFullscreen();
     }
 
-    // AGGRESSIVE AUTO-FULLSCREEN: try on load, focus, visibility, and via parent BroadcastChannel
+    // AUTO-FULLSCREEN: try on focus, user interaction, or via parent BroadcastChannel
     if (urlParams.get('autofs') === 'true') {
-      // Try immediately
-      requestFS();
-
-      // Retry at multiple intervals
-      [100, 300, 600, 1200, 2500].forEach(delay => {
-        setTimeout(requestFS, delay);
-      });
-
-      // Try on focus (when user switches to this window)
       window.addEventListener('focus', requestFS);
-
-      // Try when page becomes visible
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') requestFS();
       });

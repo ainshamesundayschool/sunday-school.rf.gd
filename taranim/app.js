@@ -2238,14 +2238,14 @@ document.addEventListener('DOMContentLoaded', () => {
       screens = screenDetails.screens;
     } else {
       screens = [
-        { label: 'الشاشة الرئيسية (هذا الجهاز)', width: window.screen.width || 1920, height: window.screen.height || 1080, isPrimary: true, val: 'primary' },
+        { label: 'Built-in Retina Display', width: window.screen.width || 1920, height: window.screen.height || 1080, isPrimary: true, val: 'primary' },
         { label: 'شاشة عرض خارجية 2 (TV / البروجيكتور)', width: 1920, height: 1080, isPrimary: false, val: 'external' }
       ];
     }
 
     if (els.connectedScreensSelect) {
       els.connectedScreensSelect.innerHTML = screens.map((s, idx) => {
-        const type = s.isPrimary ? ' (الشاشة الحالية)' : ' (خارجية / TV)';
+        const type = s.isPrimary ? ' (الرئيسية - لوحة التحكم)' : ' (خارجية / TV)';
         const label = s.label || `شاشة ${idx + 1}`;
         const val = s.val !== undefined ? s.val : idx;
         return `<option value="${val}">${escapeHtml(label)} (${s.width} × ${s.height})${type}</option>`;
@@ -2255,12 +2255,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.screensCastList) {
       els.screensCastList.innerHTML = screens.map((s, idx) => {
         const name = s.label || `شاشة ${idx + 1}`;
-        const badge = s.isPrimary ? ' (الرئيسية)' : ' (خارجية)';
+        const badge = s.isPrimary 
+          ? `<span class="badge-main-screen"><i class="fa-solid fa-house-laptop"></i> الرئيسية (لوحة التحكم)</span>` 
+          : `<span class="badge-ext-screen"><i class="fa-solid fa-tv"></i> خارجية (العرض)</span>`;
         const val = s.val !== undefined ? s.val : idx;
         return `
           <div class="screen-cast-card" data-val="${val}">
             <div class="screen-info">
-              <span class="screen-name"><i class="fa-solid fa-desktop"></i> ${escapeHtml(name)}${badge}</span>
+              <span class="screen-name"><i class="fa-solid fa-desktop"></i> ${escapeHtml(name)} ${badge}</span>
               <span class="screen-res">${s.width} × ${s.height} px</span>
             </div>
             <i class="fa-solid fa-expand launch-btn-icon"></i>
@@ -2368,11 +2370,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const windowFeatures = `left=${left},top=${top},width=${width},height=${height},menubar=no,toolbar=no,location=no,status=no,resizable=yes,fullscreen=yes`;
     const obsUrl = `obs.html?autofs=true&screenIdx=${targetIdx}&screenLeft=${left}&screenTop=${top}`;
     
-    if (presenterWindow && !presenterWindow.closed) {
-      try { presenterWindow.close(); } catch(e) {}
+    // REUSE WINDOW IF ALREADY OPEN
+    if (!presenterWindow || presenterWindow.closed) {
+      presenterWindow = window.open(obsUrl, 'SundaySchoolPresenterWindow', windowFeatures);
+    } else {
+      try {
+        presenterWindow.location.href = obsUrl;
+      } catch(e) {
+        presenterWindow = window.open(obsUrl, 'SundaySchoolPresenterWindow', windowFeatures);
+      }
     }
-
-    presenterWindow = window.open(obsUrl, 'SundaySchoolPresenterWindow_' + Date.now(), windowFeatures);
 
     if (presenterWindow) {
       presenterWindow.focus();
