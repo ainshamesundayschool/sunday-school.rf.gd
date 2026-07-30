@@ -70,6 +70,109 @@ function francoToArabic(text) {
   return s;
 }
 
+const BIBLE_BOOK_SHORTCUTS = [
+  { shortcuts: ['تك'], name: 'تكوين' },
+  { shortcuts: ['خر'], name: 'خروج' },
+  { shortcuts: ['لا'], name: 'لاويين' },
+  { shortcuts: ['عد'], name: 'عدد' },
+  { shortcuts: ['تث'], name: 'تثنية' },
+  { shortcuts: ['يش'], name: 'يشوع' },
+  { shortcuts: ['قض'], name: 'قضاة' },
+  { shortcuts: ['رو'], name: 'راعوث' },
+  { shortcuts: ['صم'], name: 'صموئيل', numbered: true },
+  { shortcuts: ['مل'], name: 'ملوك', numbered: true },
+  { shortcuts: ['أخ', 'اخ', 'ايام', 'أيام'], name: 'أخبار الأيام', numbered: true },
+  { shortcuts: ['عز'], name: 'عزرا' },
+  { shortcuts: ['نه'], name: 'نحميا' },
+  { shortcuts: ['إس', 'اس'], name: 'استير' },
+  { shortcuts: ['أي', 'اي'], name: 'أيوب' },
+  { shortcuts: ['مز'], name: 'مزامير' },
+  { shortcuts: ['أم', 'ام'], name: 'أمثال' },
+  { shortcuts: ['جا'], name: 'جامعة' },
+  { shortcuts: ['نش'], name: 'نشيد الأنشاد' },
+  { shortcuts: ['إش', 'اش'], name: 'إشعياء' },
+  { shortcuts: ['إر', 'ار'], name: 'إرميا' },
+  { shortcuts: ['مرا'], name: 'مراثي إرميا' },
+  { shortcuts: ['حز'], name: 'حزقيال' },
+  { shortcuts: ['دا'], name: 'دانيال' },
+  { shortcuts: ['هو'], name: 'هوشع' },
+  { shortcuts: ['يوء', 'يؤ'], name: 'يوئيل' },
+  { shortcuts: ['عا'], name: 'عاموس' },
+  { shortcuts: ['عو'], name: 'عوبديا' },
+  { shortcuts: ['يون'], name: 'يونان' },
+  { shortcuts: ['مي'], name: 'ميخا' },
+  { shortcuts: ['نا'], name: 'ناحوم' },
+  { shortcuts: ['حب'], name: 'حبقوق' },
+  { shortcuts: ['صف'], name: 'صفنيا' },
+  { shortcuts: ['حج'], name: 'حجي' },
+  { shortcuts: ['زك'], name: 'زكريا' },
+  { shortcuts: ['ملأ', 'ملا'], name: 'ملاخي' },
+  { shortcuts: ['طو'], name: 'طوبيا' },
+  { shortcuts: ['يه'], name: 'يهوديت' },
+  { shortcuts: ['حك'], name: 'حكمة سليمان' },
+  { shortcuts: ['سي', 'يش بن'], name: 'يشوع بن سيراخ' },
+  { shortcuts: ['بار'], name: 'باروخ' },
+  { shortcuts: ['مك'], name: 'مكابيين', numbered: true },
+  { shortcuts: ['مت'], name: 'متى' },
+  { shortcuts: ['مر'], name: 'مرقس' },
+  { shortcuts: ['لو'], name: 'لوقا' },
+  { shortcuts: ['يو'], name: 'يوحنا', numbered: true },
+  { shortcuts: ['اع', 'أع'], name: 'أعمال الرسل' },
+  { shortcuts: ['روم'], name: 'رومية' },
+  { shortcuts: ['كور', 'كو'], name: 'كورنثوس', numbered: true },
+  { shortcuts: ['غل'], name: 'غلاطية' },
+  { shortcuts: ['أف', 'اف'], name: 'أفسس' },
+  { shortcuts: ['في'], name: 'فيلبي' },
+  { shortcuts: ['كول'], name: 'كولوسي' },
+  { shortcuts: ['تس'], name: 'تسالونيكي', numbered: true },
+  { shortcuts: ['تيم'], name: 'تيموثاوس', numbered: true },
+  { shortcuts: ['طيط', 'تي'], name: 'طيطس' },
+  { shortcuts: ['فيل'], name: 'فيليمون' },
+  { shortcuts: ['عب'], name: 'عبرانيين' },
+  { shortcuts: ['يع'], name: 'يعقوب' },
+  { shortcuts: ['بط'], name: 'بطرس', numbered: true },
+  { shortcuts: ['يهو'], name: 'يهوذا' },
+  { shortcuts: ['رؤ'], name: 'رؤيا يوحنا' }
+];
+
+function parseBibleSearchShortcut(query) {
+  if (!query) return null;
+
+  let q = query.trim()
+    .replace(/[٠]/g, '0').replace(/[١]/g, '1').replace(/[٢]/g, '2')
+    .replace(/[٣]/g, '3').replace(/[٤]/g, '4').replace(/[٥]/g, '5')
+    .replace(/[٦]/g, '6').replace(/[٧]/g, '7').replace(/[٨]/g, '8')
+    .replace(/[٩]/g, '9');
+
+  const m = q.match(/^([123])?\s*([أ-ي\s]+?)\s*(\d+)?$/);
+  if (!m) return null;
+
+  const numPrefix = m[1] || '';
+  const shortcutStr = normalizeArabic(m[2]);
+  const chNum = m[3] || '';
+
+  if (!shortcutStr) return null;
+
+  for (const b of BIBLE_BOOK_SHORTCUTS) {
+    if (b.shortcuts.some(s => normalizeArabic(s) === shortcutStr)) {
+      let fullBookName = b.name;
+      if (b.numbered && numPrefix) {
+        const isFeminine = ['كورنثوس', 'تسالونيكي', 'تيموثاوس', 'بطرس', 'يوحنا'].includes(b.name);
+        const ordinals = isFeminine 
+          ? { '1': 'الأولى', '2': 'الثانية', '3': 'الثالثة' }
+          : { '1': 'الأول', '2': 'الثاني', '3': 'الثالث' };
+        fullBookName = `${b.name} ${ordinals[numPrefix] || ''}`.trim();
+      }
+      return {
+        bookName: fullBookName,
+        chapter: chNum,
+        searchQuery: chNum ? `${fullBookName} ${chNum}` : fullBookName
+      };
+    }
+  }
+  return null;
+}
+
 // ==========================================================================
 // MULTI-SIGNAL MATCH SCORER
 // Returns a score 0–100 based on multiple match strategies
@@ -91,6 +194,21 @@ function getMatchScore(song, query) {
   const tStems = tWords.map(arabicStem);
   const nNorm  = normalizeArabic(notes);
   const nLines = notes.split(/[\n,]+/).map(l => normalizeArabic(l.trim())).filter(Boolean);
+
+  const bibleInfo = parseBibleSearchShortcut(query);
+  if (bibleInfo) {
+    const bookNorm = normalizeArabic(bibleInfo.bookName);
+    if (tNorm.includes(bookNorm) || nNorm.includes(bookNorm)) {
+      if (bibleInfo.chapter) {
+        const chStr = bibleInfo.chapter;
+        if (tNorm.includes(chStr) || nNorm.includes(chStr) || nNorm.includes(`اصحاح ${chStr}`) || nNorm.includes(`إصحاح ${chStr}`)) {
+          return 99;
+        }
+        return 85;
+      }
+      return 95;
+    }
+  }
 
   // --- Tier 1: Exact or full-phrase ---
   if (tRaw === qRaw || tNorm === qNorm) return 100;
@@ -766,41 +884,13 @@ document.addEventListener('DOMContentLoaded', () => {
     btnPrevLine: document.getElementById('btn-prev-line'),
     btnNextLine: document.getElementById('btn-next-line'),
     btnToggleBlank: document.getElementById('btn-toggle-blank'),
+    btnPresenterFullscreen: document.getElementById('btn-presenter-fullscreen'),
 
     obsOverlay: document.getElementById('obs-presentation-overlay'),
     obsLowerThirdBox: document.getElementById('obs-lower-third-box'),
     obsLineText: document.getElementById('obs-line-text'),
     snapGuideH: document.getElementById('snap-guide-h'),
-    snapGuideV: document.getElementById('snap-guide-v'),
-
-    btnMenuObsWs: document.getElementById('btn-menu-obs-ws'),
-    popoverObsWs: document.getElementById('popover-obs-ws'),
-    obsWsStatusBadge: document.getElementById('obs-ws-status-badge'),
-    obsConnectionStatusText: document.getElementById('obs-connection-status-text'),
-    btnScanQr: document.getElementById('btn-scan-qr'),
-    obsWsIp: document.getElementById('obs-ws-ip'),
-    obsWsPort: document.getElementById('obs-ws-port'),
-    obsWsPassword: document.getElementById('obs-ws-password'),
-    btnConnectObsWs: document.getElementById('btn-connect-obs-ws'),
-    btnDisconnectObsWs: document.getElementById('btn-disconnect-obs-ws'),
-    obsSceneSelect: document.getElementById('obs-scene-select'),
-    obsTransitionSelect: document.getElementById('obs-transition-select'),
-    obsTransitionDurationRange: document.getElementById('obs-transition-duration-range'),
-    obsTransitionDurationBadge: document.getElementById('obs-transition-duration-badge'),
-    btnTriggerObsTransition: document.getElementById('btn-trigger-obs-transition'),
-    obsQrModal: document.getElementById('obs-qr-modal'),
-    btnCloseQrModal: document.getElementById('btn-close-qr-modal'),
-    qrScanResultMsg: document.getElementById('qr-scan-result-msg'),
-    obsCompactStrip: document.getElementById('obs-compact-strip'),
-    obsHttpsWarning: document.getElementById('obs-https-warning'),
-    obsHttpFallback: document.getElementById('obs-http-fallback'),
-    obsHttpLink: document.getElementById('obs-http-link'),
-    obsPopoverControls: document.getElementById('obs-popover-controls'),
-    popoverObsSceneSelect: document.getElementById('popover-obs-scene-select'),
-    popoverObsTransitionSelect: document.getElementById('popover-obs-transition-select'),
-    popoverObsDurationRange: document.getElementById('popover-obs-duration-range'),
-    popoverObsDurationBadge: document.getElementById('popover-obs-duration-badge'),
-    popoverBtnTriggerTransition: document.getElementById('popover-btn-trigger-transition')
+    snapGuideV: document.getElementById('snap-guide-v')
   };
 
   function closeAllPopovers(exceptPopover = null) {
@@ -883,6 +973,25 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.btnAlignJustify) els.btnAlignJustify.classList.toggle('active', state.styleOptions.textAlign === 'justify');
 
     if (els.obsOverlay) els.obsOverlay.setAttribute('data-chroma', state.chromaKey);
+    checkOfflineStatusAndToggleInstallBtn();
+  }
+
+  async function checkOfflineStatusAndToggleInstallBtn() {
+    if (!els.btnMenuInstall) return;
+    try {
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        if (keys.some(k => k.includes('sunday_school_taranim'))) {
+          const cacheName = keys.find(k => k.includes('sunday_school_taranim'));
+          const cache = await caches.open(cacheName);
+          const matched = await cache.match('./songs_catalog.json');
+          if (matched) {
+            els.btnMenuInstall.style.display = 'none';
+            return;
+          }
+        }
+      }
+    } catch (e) {}
   }
 
   function bindEvents() {
@@ -1283,6 +1392,21 @@ document.addEventListener('DOMContentLoaded', () => {
     els.btnNextLine.addEventListener('click', nextLine);
     els.btnToggleBlank.addEventListener('click', toggleBlank);
 
+    if (els.btnPresenterFullscreen) {
+      els.btnPresenterFullscreen.addEventListener('click', () => {
+        if (els.obsOverlay) {
+          els.obsOverlay.classList.remove('hidden');
+          const docEl = document.documentElement || els.obsOverlay;
+          if (docEl.requestFullscreen) {
+            docEl.requestFullscreen().catch(() => {});
+          } else if (docEl.webkitRequestFullscreen) {
+            docEl.webkitRequestFullscreen();
+          }
+          syncLiveState();
+        }
+      });
+    }
+
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         e.preventDefault();
@@ -1649,7 +1773,8 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const searchTarget = query.trim();
+    const bibleInfo = parseBibleSearchShortcut(query);
+    const searchTarget = bibleInfo ? bibleInfo.searchQuery : query.trim();
     let songsList = [];
 
     if (state.allSongs && state.allSongs.length > 0) {
@@ -1661,6 +1786,15 @@ document.addEventListener('DOMContentLoaded', () => {
       songsList = state.allSongs.filter(song => {
         const tNorm = normalizeArabic(song.title || '');
         const nNorm = normalizeArabic(song.notes || '');
+
+        if (bibleInfo) {
+          const bookNorm = normalizeArabic(bibleInfo.bookName);
+          if (tNorm.includes(bookNorm) || nNorm.includes(bookNorm)) {
+            if (!bibleInfo.chapter) return true;
+            const chStr = bibleInfo.chapter;
+            return tNorm.includes(chStr) || nNorm.includes(chStr) || nNorm.includes(`اصحاح ${chStr}`) || nNorm.includes(`إصحاح ${chStr}`);
+          }
+        }
 
         return tNorm.includes(qNorm) || 
                nNorm.includes(qNorm) || 
@@ -1795,23 +1929,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
 
-  let availableObsScenes = [];
 
-  function autoToggleObsSceneForRecentItem(songId) {
-    if (!obsWsClient || !obsWsClient.isConnected || !availableObsScenes || availableObsScenes.length < 2) {
-      return;
-    }
-
-    const recentIndex = state.sessionRecents.findIndex(r => String(r.id) === String(songId));
-    if (recentIndex !== -1) {
-      const sceneIndex = recentIndex % availableObsScenes.length;
-      const targetScene = availableObsScenes[sceneIndex];
-      if (targetScene) {
-        obsWsClient.setCurrentScene(targetScene);
-        if (els.obsSceneSelect) els.obsSceneSelect.value = targetScene;
-      }
-    }
-  }
 
   async function openAndPresentItem(songId) {
     if (!songId) return;
@@ -2150,10 +2268,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try { broadcastChannel.postMessage(payload); } catch(e) {}
     try { localStorage.setItem('sunday_school_taranim_live_presentation', JSON.stringify(payload)); } catch(e) {}
 
-    // 2. INSTANT DIRECT OBS WEBSOCKET SYNC (~1ms LAN)
-    try { obsWsClient.sendLineTextToObsSource(text); } catch(e) {}
-
-    // 3. INSTANT PRESENTER PREVIEW SYNC (0ms)
+    // 2. INSTANT PRESENTER PREVIEW SYNC (0ms)
     if (els.obsLineText) {
       els.obsLineText.style.fontFamily = state.selectedFont;
       els.obsLineText.style.color = state.styleOptions.textColor;
@@ -2245,312 +2360,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
-
-  // OBS WEBSOCKET POP-OVER & QR SCANNER CONTROLLER
-  const obsWsClient = new OBSWSClient({
-    onStatusChange: (connected, statusText) => {
-      if (els.obsWsStatusBadge) {
-        els.obsWsStatusBadge.className = `badge-status ${connected ? 'connected' : 'disconnected'}`;
-      }
-      if (els.obsConnectionStatusText) {
-        els.obsConnectionStatusText.className = `status-pill ${connected ? 'online' : 'offline'}`;
-        els.obsConnectionStatusText.textContent = statusText;
-      }
-      if (els.btnConnectObsWs) els.btnConnectObsWs.classList.toggle('hidden', connected);
-      if (els.btnDisconnectObsWs) els.btnDisconnectObsWs.classList.toggle('hidden', !connected);
-      if (els.obsCompactStrip) els.obsCompactStrip.classList.toggle('hidden', !connected);
-      if (els.obsPopoverControls) els.obsPopoverControls.classList.toggle('hidden', !connected);
-
-      if (els.obsSceneSelect) els.obsSceneSelect.disabled = !connected;
-      if (els.popoverObsSceneSelect) els.popoverObsSceneSelect.disabled = !connected;
-      if (els.obsTransitionSelect) els.obsTransitionSelect.disabled = !connected;
-      if (els.popoverObsTransitionSelect) els.popoverObsTransitionSelect.disabled = !connected;
-      if (els.obsTransitionDurationRange) els.obsTransitionDurationRange.disabled = !connected;
-      if (els.popoverObsDurationRange) els.popoverObsDurationRange.disabled = !connected;
-      if (els.btnTriggerObsTransition) els.btnTriggerObsTransition.disabled = !connected;
-      if (els.popoverBtnTriggerTransition) els.popoverBtnTriggerTransition.disabled = !connected;
-
-      const isHttps = window.location.protocol === 'https:';
-
-      if (els.obsHttpsWarning && els.obsHttpFallback && els.obsHttpLink) {
-        if (isHttps && !connected && statusText && (statusText.includes('تعذر') || statusText.includes('HTTPS') || statusText.includes('لم يتم'))) {
-          const ip = els.obsWsIp ? els.obsWsIp.value.trim() || '192.168.1.9' : '192.168.1.9';
-          const port = els.obsWsPort ? els.obsWsPort.value || '4455' : '4455';
-          const pass = els.obsWsPassword ? els.obsWsPassword.value || '' : '';
-          const currentHost = window.location.host;
-          const currentPath = window.location.pathname;
-          
-          const httpUrl = `http://${currentHost}${currentPath}?obs_ip=${encodeURIComponent(ip)}&obs_port=${encodeURIComponent(port)}&obs_password=${encodeURIComponent(pass)}&obs_autoconnect=1`;
-          els.obsHttpLink.href = httpUrl;
-          els.obsHttpFallback.classList.remove('hidden');
-          els.obsHttpsWarning.innerHTML = `⚠️ المتصفح يمنع الاتصال بـ <code>ws://</code> على صفحات HTTPS.<br><strong>انقر زر HTTP بالأسفل للربط التلقائي بـ OBS</strong>`;
-          els.obsHttpsWarning.classList.remove('hidden');
-        } else if (connected) {
-          els.obsHttpsWarning.classList.add('hidden');
-          els.obsHttpFallback.classList.add('hidden');
-        } else {
-          els.obsHttpsWarning.classList.add('hidden');
-        }
-      }
-    },
-    onScenesUpdated: (scenes, currentScene) => {
-      availableObsScenes = scenes;
-      const optionsHtml = scenes.map(s => `<option value="${escapeHtml(s)}" ${s === currentScene ? 'selected' : ''}>${escapeHtml(s)}</option>`).join('');
-      if (els.obsSceneSelect) els.obsSceneSelect.innerHTML = optionsHtml;
-      if (els.popoverObsSceneSelect) els.popoverObsSceneSelect.innerHTML = optionsHtml;
-    },
-    onTransitionsUpdated: (transitions, currentTransition) => {
-      const optionsHtml = transitions.map(t => `<option value="${escapeHtml(t)}" ${t === currentTransition ? 'selected' : ''}>${escapeHtml(t)}</option>`).join('');
-      if (els.obsTransitionSelect) els.obsTransitionSelect.innerHTML = optionsHtml;
-      if (els.popoverObsTransitionSelect) els.popoverObsTransitionSelect.innerHTML = optionsHtml;
-    }
-  });
-
-  const savedObsWsRaw = localStorage.getItem('sunday_school_taranim_obs_ws_config');
-  if (savedObsWsRaw) {
-    try {
-      const conf = JSON.parse(savedObsWsRaw);
-      if (conf.ip && els.obsWsIp) els.obsWsIp.value = conf.ip;
-      if (conf.port && els.obsWsPort) els.obsWsPort.value = conf.port;
-      if (conf.password !== undefined && els.obsWsPassword) els.obsWsPassword.value = conf.password;
-    } catch(e) {}
-  }
-
-  // AUTO-CONNECT FROM URL QUERY PARAMETERS (E.G. WHEN OPENED VIA HTTP FALLBACK LINK)
-  try {
-    const urlParams = new URLSearchParams(window.location.search);
-    const urlObsIp = urlParams.get('obs_ip');
-    const urlObsPort = urlParams.get('obs_port');
-    const urlObsPass = urlParams.get('obs_password');
-    const urlAutoConnect = urlParams.get('obs_autoconnect') === '1';
-
-    if (urlObsIp) {
-      if (els.obsWsIp) els.obsWsIp.value = urlObsIp;
-      if (urlObsPort && els.obsWsPort) els.obsWsPort.value = urlObsPort;
-      if (urlObsPass !== null && els.obsWsPassword) els.obsWsPassword.value = urlObsPass;
-
-      const conf = {
-        ip: urlObsIp,
-        port: parseInt(urlObsPort) || 4455,
-        password: urlObsPass || ''
-      };
-      localStorage.setItem('sunday_school_taranim_obs_ws_config', JSON.stringify(conf));
-
-      if (urlAutoConnect || window.location.protocol === 'http:') {
-        setTimeout(() => {
-          obsWsClient.connect(conf.ip, conf.port, conf.password);
-        }, 300);
-      }
-    }
-  } catch(e) {}
-
-  if (els.btnMenuObsWs && els.popoverObsWs) {
-    els.btnMenuObsWs.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const willShow = els.popoverObsWs.classList.contains('hidden');
-      closeAllPopovers(els.popoverObsWs);
-      if (willShow) {
-        els.popoverObsWs.classList.remove('hidden');
-      } else {
-        els.popoverObsWs.classList.add('hidden');
-      }
-    });
-
-    els.popoverObsWs.addEventListener('click', (e) => e.stopPropagation());
-  }
-
-  if (els.btnConnectObsWs) {
-    els.btnConnectObsWs.addEventListener('click', () => {
-      const ip = els.obsWsIp ? els.obsWsIp.value.trim() : 'localhost';
-      const port = els.obsWsPort ? parseInt(els.obsWsPort.value.trim()) || 4455 : 4455;
-      const password = els.obsWsPassword ? els.obsWsPassword.value : '';
-
-      localStorage.setItem('sunday_school_taranim_obs_ws_config', JSON.stringify({ ip, port, password }));
-      obsWsClient.connect(ip, port, password);
-    });
-  }
-
-  if (els.btnDisconnectObsWs) {
-    els.btnDisconnectObsWs.addEventListener('click', () => obsWsClient.disconnect());
-  }
-
-  if (els.obsSceneSelect) {
-    els.obsSceneSelect.addEventListener('change', (e) => {
-      const val = e.target.value;
-      if (els.popoverObsSceneSelect) els.popoverObsSceneSelect.value = val;
-      obsWsClient.setCurrentScene(val);
-    });
-  }
-
-  if (els.popoverObsSceneSelect) {
-    els.popoverObsSceneSelect.addEventListener('change', (e) => {
-      const val = e.target.value;
-      if (els.obsSceneSelect) els.obsSceneSelect.value = val;
-      obsWsClient.setCurrentScene(val);
-    });
-  }
-
-  if (els.obsTransitionSelect) {
-    els.obsTransitionSelect.addEventListener('change', (e) => {
-      const val = e.target.value;
-      if (els.popoverObsTransitionSelect) els.popoverObsTransitionSelect.value = val;
-      obsWsClient.setTransition(val);
-    });
-  }
-
-  if (els.popoverObsTransitionSelect) {
-    els.popoverObsTransitionSelect.addEventListener('change', (e) => {
-      const val = e.target.value;
-      if (els.obsTransitionSelect) els.obsTransitionSelect.value = val;
-      obsWsClient.setTransition(val);
-    });
-  }
-
-  if (els.obsTransitionDurationRange) {
-    els.obsTransitionDurationRange.addEventListener('input', (e) => {
-      const val = e.target.value;
-      if (els.obsTransitionDurationBadge) els.obsTransitionDurationBadge.textContent = `${val}ms`;
-      if (els.popoverObsDurationBadge) els.popoverObsDurationBadge.textContent = `${val}ms`;
-      if (els.popoverObsDurationRange) els.popoverObsDurationRange.value = val;
-      obsWsClient.setTransitionDuration(val);
-    });
-  }
-
-  if (els.popoverObsDurationRange) {
-    els.popoverObsDurationRange.addEventListener('input', (e) => {
-      const val = e.target.value;
-      if (els.obsTransitionDurationBadge) els.obsTransitionDurationBadge.textContent = `${val}ms`;
-      if (els.popoverObsDurationBadge) els.popoverObsDurationBadge.textContent = `${val}ms`;
-      if (els.obsTransitionDurationRange) els.obsTransitionDurationRange.value = val;
-      obsWsClient.setTransitionDuration(val);
-    });
-  }
-
-  if (els.btnTriggerObsTransition) {
-    els.btnTriggerObsTransition.addEventListener('click', () => obsWsClient.triggerTransition());
-  }
-
-  if (els.popoverBtnTriggerTransition) {
-    els.popoverBtnTriggerTransition.addEventListener('click', () => obsWsClient.triggerTransition());
-  }
-
-  // QR CODE SCANNER CONTROLLER
-  let html5QrCodeScanner = null;
-
-  function parseObsQrPayload(qrText) {
-    if (!qrText) return null;
-    let s = String(qrText).trim();
-
-    if (s.startsWith('{') && s.endsWith('}')) {
-      try {
-        const obj = JSON.parse(s);
-        return {
-          ip: obj.ip || obj.host || obj.server || 'localhost',
-          port: obj.port || 4455,
-          password: obj.password || obj.pass || obj.auth || ''
-        };
-      } catch(e) {}
-    }
-
-    s = s.replace(/^[a-z0-9+\-.]+:\/\//i, '');
-
-    let password = '';
-    if (s.includes('?auth=')) {
-      const parts = s.split('?auth=');
-      s = parts[0];
-      password = parts[1] || '';
-    } else if (s.includes('?password=')) {
-      const parts = s.split('?password=');
-      s = parts[0];
-      password = parts[1] || '';
-    } else if (s.includes('@')) {
-      const parts = s.split('@');
-      password = parts[0].replace(/^:/, '');
-      s = parts[1];
-    } else if (s.includes('/')) {
-      const parts = s.split('/');
-      s = parts[0];
-      password = parts.slice(1).join('/');
-    }
-
-    const hostParts = s.split(':');
-    const ip = hostParts[0] || 'localhost';
-    const port = hostParts[1] ? parseInt(hostParts[1]) || 4455 : 4455;
-    return { ip, port, password };
-  }
-
-  if (els.btnScanQr && els.obsQrModal) {
-    els.btnScanQr.addEventListener('click', () => {
-      // Always stop and recreate scanner to avoid "already running" errors
-      stopQrScanner();
-      html5QrCodeScanner = null;
-
-      els.obsQrModal.classList.remove('hidden');
-      if (els.popoverObsWs) els.popoverObsWs.classList.add('hidden');
-
-      // Clear previous messages
-      if (els.qrScanResultMsg) {
-        els.qrScanResultMsg.classList.add('hidden');
-        els.qrScanResultMsg.textContent = '';
-      }
-
-      if (window.Html5Qrcode) {
-        // Ensure clean DOM container
-        const viewport = document.getElementById('qr-reader-viewport');
-        if (viewport) viewport.innerHTML = '';
-
-        html5QrCodeScanner = new Html5Qrcode('qr-reader-viewport');
-        html5QrCodeScanner.start(
-          { facingMode: 'environment' },
-          { fps: 10, qrbox: { width: 220, height: 220 } },
-          (decodedText) => {
-            const parsed = parseObsQrPayload(decodedText);
-            if (parsed) {
-              if (els.obsWsIp) els.obsWsIp.value = parsed.ip;
-              if (els.obsWsPort) els.obsWsPort.value = parsed.port;
-              if (els.obsWsPassword) els.obsWsPassword.value = parsed.password;
-
-              showToast('✅ تم مسح بيانات OBS بنجاح! جاري الاتصال...');
-              stopQrScanner();
-              html5QrCodeScanner = null;
-              els.obsQrModal.classList.add('hidden');
-              localStorage.setItem('sunday_school_taranim_obs_ws_config', JSON.stringify(parsed));
-              obsWsClient.connect(parsed.ip, parsed.port, parsed.password);
-            }
-          },
-          () => {}
-        ).catch((err) => {
-          if (els.qrScanResultMsg) {
-            els.qrScanResultMsg.className = 'qr-status-msg error';
-            els.qrScanResultMsg.textContent = 'تعذر فتح الكاميرا. تأكد من السماح بإذن الكاميرا في المتصفح ثم أعد المحاولة.';
-            els.qrScanResultMsg.classList.remove('hidden');
-          }
-        });
-      } else {
-        if (els.qrScanResultMsg) {
-          els.qrScanResultMsg.className = 'qr-status-msg error';
-          els.qrScanResultMsg.textContent = 'تعذر تحميل مكتبة QR. تأكد من الاتصال بالإنترنت وأعد تحميل الصفحة.';
-          els.qrScanResultMsg.classList.remove('hidden');
-        }
-      }
-    });
-  }
-
-  function stopQrScanner() {
-    if (html5QrCodeScanner) {
-      try {
-        html5QrCodeScanner.stop().catch(() => {});
-      } catch(e) {}
-      html5QrCodeScanner = null;
-    }
-  }
-
-  if (els.btnCloseQrModal && els.obsQrModal) {
-    els.btnCloseQrModal.addEventListener('click', () => {
-      stopQrScanner();
-      els.obsQrModal.classList.add('hidden');
-    });
   }
 
   // WAKE LOCK & VISIBILITY AUTO-RESYNC TO PREVENT STALE STATE WHEN UN-MINIMIZING ON MOBILE
