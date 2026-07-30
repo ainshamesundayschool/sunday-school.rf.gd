@@ -2858,7 +2858,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 badgeClass = 'stanza-badge-side';
               }
 
-              const fullText = lines.join('\n');
+              let fullText = lines.join('\n');
+              if (badgeText && !fullText.startsWith('(') && !fullText.startsWith('（')) {
+                fullText = `${badgeText} ${fullText}`;
+              }
 
               linesList.push({
                 text: fullText,
@@ -2882,10 +2885,15 @@ document.addEventListener('DOMContentLoaded', () => {
       for (let i = 0; i < splitLines.length; i += chunkSize) {
         stanzaCount++;
         const chunk = splitLines.slice(i, i + chunkSize);
+        const bText = `(${stanzaCount})`;
+        let fullText = chunk.join('\n');
+        if (!fullText.startsWith('(')) {
+          fullText = `${bText} ${fullText}`;
+        }
         linesList.push({
-          text: chunk.join('\n'),
+          text: fullText,
           lines: chunk,
-          badgeText: `(${stanzaCount})`,
+          badgeText: bText,
           badgeClass: 'stanza-badge-side',
           label: `بيت ${stanzaCount}`
         });
@@ -2924,9 +2932,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return `
         <div class="line-item ${idx === currentLineIndex ? 'active' : ''}" data-idx="${idx}">
           <div class="slide-card-inner">
-            <div class="slide-lines-body">
-              ${linesPreviewHtml}
-            </div>
             <div class="slide-badge-side ${l.badgeClass || ''}">
               ${escapeHtml(l.badgeText || '')}
             </div>
