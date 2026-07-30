@@ -3036,6 +3036,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let linesList = [];
 
     const isBible = Boolean(song.is_bible || song.chapter_number !== undefined);
+    const mode = state.presentationMode || 'oneline';
 
     if (song.verses && Array.isArray(song.verses) && song.verses.length > 0) {
       let currentStanzaNum = 0;
@@ -3045,11 +3046,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (verseType === 0) currentStanzaNum++;
 
         if (verse.slides && Array.isArray(verse.slides)) {
-          verse.slides.forEach((slide, sIdx) => {
-            let lines = slide.lines || (slide.text ? slide.text.split('\n') : []);
-            lines = lines.map(l => l.trim()).filter(l => l.length > 0);
+          verse.slides.forEach((slide) => {
+            let rawLines = slide.lines || (slide.text ? slide.text.split('\n') : []);
+            let cleanLines = rawLines.map(l => l.trim()).filter(l => l.length > 0);
 
-            if (lines.length > 0) {
+            // Clean any redundant leading badges in text
+            cleanLines = cleanLines.map(l => {
+              return l.replace(/^\(?(القرار|قرار|ق)\)?[:\s\-]\s*/i, '')
+                      .replace(/^\(القرار\)$/i, '')
+                      .replace(/^\(ق\)$/i, '')
+                      .replace(/^\(?[\d٠-٩]+\)?[:\s\-]\s*/, '')
+                      .trim();
+            }).filter(l => l.length > 0);
+
+            if (cleanLines.length > 0) {
               let badgeText = '';
               let badgeClass = '';
 
@@ -3064,18 +3074,42 @@ document.addEventListener('DOMContentLoaded', () => {
                 badgeClass = 'stanza-badge-side';
               }
 
-              let fullText = lines.join('\n');
-              if (badgeText && !fullText.startsWith('(') && !fullText.startsWith('（')) {
-                fullText = `${badgeText} ${fullText}`;
-              }
+              const labelText = isBible ? `آية ${vIdx + 1}` : (verseType === 1 ? `قرار` : `بيت ${currentStanzaNum}`);
 
-              linesList.push({
-                text: fullText,
-                lines: lines,
-                badgeText: badgeText,
-                badgeClass: badgeClass,
-                label: isBible ? `آية ${vIdx + 1}` : (verseType === 1 ? `قرار` : `بيت ${currentStanzaNum}`)
-              });
+              if (mode === 'oneline') {
+                cleanLines.forEach((singleLine) => {
+                  let fullText = `${badgeText} ${singleLine}`;
+                  linesList.push({
+                    text: fullText,
+                    lines: [singleLine],
+                    badgeText: badgeText,
+                    badgeClass: badgeClass,
+                    label: labelText
+                  });
+                });
+              } else if (mode === 'twolines') {
+                for (let i = 0; i < cleanLines.length; i += 2) {
+                  const pair = cleanLines.slice(i, i + 2);
+                  let fullText = `${badgeText} ${pair.join('\n')}`;
+                  linesList.push({
+                    text: fullText,
+                    lines: pair,
+                    badgeText: badgeText,
+                    badgeClass: badgeClass,
+                    label: labelText
+                  });
+                }
+              } else {
+                // fullslide
+                let fullText = `${badgeText} ${cleanLines.join('\n')}`;
+                linesList.push({
+                  text: fullText,
+                  lines: cleanLines,
+                  badgeText: badgeText,
+                  badgeClass: badgeClass,
+                  label: labelText
+                });
+              }
             }
           });
         }
@@ -3083,27 +3117,88 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (linesList.length === 0 && song.notes) {
-      const rawNotes = String(song.notes);
-      const splitLines = rawNotes.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      const rawNotes = String(song.notes).replace(/\r\n/g, '\n');
+      const blocks = rawNotes.split(/\n\s*\n/).map(b => b.trim()).filter(b => b.length > 0);
       
-      const chunkSize = 4;
-      let stanzaCount = 0;
-      for (let i = 0; i < splitLines.length; i += chunkSize) {
-        stanzaCount++;
-        const chunk = splitLines.slice(i, i + chunkSize);
-        const bText = `(${stanzaCount})`;
-        let fullText = chunk.join('\n');
-        if (!fullText.startsWith('(')) {
-          fullText = `${bText} ${fullText}`;
+      let currentStanzaNum = 0;
+      blocks.forEach((block) => {
+        let lines = block.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        if (lines.length === 0) return;
+
+        let isChorus = false;
+        let foundStanzaNum = null;
+
+        const firstLine = lines[0];
+        if (/^\(?(القرار|قرار|ق)\)?[:\s\-]/i.test(firstLine) || /^\(القرار\)$/i.test(firstLine) || /^\(ق\)$/i.test(firstLine)) {
+          isChorus = true;
+        } else {
+          const matchNum = firstLine.match(/^\(?([\d٠-٩]+)\)?[:\s\-]/);
+          if (matchNum) {
+            foundStanzaNum = matchNum[1];
+          }
         }
-        linesList.push({
-          text: fullText,
-          lines: chunk,
-          badgeText: bText,
-          badgeClass: 'stanza-badge-side',
-          label: `بيت ${stanzaCount}`
-        });
-      }
+
+        // Clean redundant headers
+        lines = lines.map(l => {
+          return l.replace(/^\(?(القرار|قرار|ق)\)?[:\s\-]\s*/i, '')
+                  .replace(/^\(القرار\)$/i, '')
+                  .replace(/^\(ق\)$/i, '')
+                  .replace(/^\(?[\d٠-٩]+\)?[:\s\-]\s*/, '')
+                  .trim();
+        }).filter(l => l.length > 0);
+
+        if (lines.length === 0) return;
+
+        let badgeText = '';
+        let badgeClass = '';
+        let labelText = '';
+
+        if (isChorus) {
+          badgeText = '(ق)';
+          badgeClass = 'chorus-badge-side';
+          labelText = 'قرار';
+        } else {
+          if (foundStanzaNum) {
+            currentStanzaNum = parseInt(foundStanzaNum.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))) || (currentStanzaNum + 1);
+          } else {
+            currentStanzaNum++;
+          }
+          badgeText = `(${currentStanzaNum})`;
+          badgeClass = 'stanza-badge-side';
+          labelText = `بيت ${currentStanzaNum}`;
+        }
+
+        if (mode === 'oneline') {
+          lines.forEach((singleLine) => {
+            linesList.push({
+              text: `${badgeText} ${singleLine}`,
+              lines: [singleLine],
+              badgeText: badgeText,
+              badgeClass: badgeClass,
+              label: labelText
+            });
+          });
+        } else if (mode === 'twolines') {
+          for (let i = 0; i < lines.length; i += 2) {
+            const pair = lines.slice(i, i + 2);
+            linesList.push({
+              text: `${badgeText} ${pair.join('\n')}`,
+              lines: pair,
+              badgeText: badgeText,
+              badgeClass: badgeClass,
+              label: labelText
+            });
+          }
+        } else {
+          linesList.push({
+            text: `${badgeText} ${lines.join('\n')}`,
+            lines: lines,
+            badgeText: badgeText,
+            badgeClass: badgeClass,
+            label: labelText
+          });
+        }
+      });
     }
 
     state.presentationLines = linesList;
