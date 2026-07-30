@@ -73,11 +73,6 @@ html, body {
 
 .brand-accent {
   color: var(--accent-blue, #2563eb);
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  display: inline-block;
   font-weight: 800;
 }
 

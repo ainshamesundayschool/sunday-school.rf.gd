@@ -93,133 +93,134 @@
 
     /* TEXT APPEARANCE ANIMATIONS FOR CONTAINER (WITH MOBILE SAFARI WEBKIT COMPATIBILITY) */
     /* HIGH-PERFORMANCE 60FPS GPU ACCELERATED TEXT APPEARANCE ANIMATIONS */
+    /* NOTE: In obs.html, animation is applied to the CONTAINER box which uses translate(-50%,-50%) for centering */
     @-webkit-keyframes textAppearSlide {
       0% {
         opacity: 0;
-        -webkit-transform: translate3d(0, 25px, 0) scale3d(0.96, 0.96, 1);
-        transform: translate3d(0, 25px, 0) scale3d(0.96, 0.96, 1);
+        -webkit-transform: translate3d(-50%, calc(-50% + 25px), 0) scale3d(0.96, 0.96, 1);
+        transform: translate3d(-50%, calc(-50% + 25px), 0) scale3d(0.96, 0.96, 1);
       }
       100% {
         opacity: 1;
-        -webkit-transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
-        transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
+        transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
       }
     }
 
     @keyframes textAppearSlide {
       0% {
         opacity: 0;
-        -webkit-transform: translate3d(0, 25px, 0) scale3d(0.96, 0.96, 1);
-        transform: translate3d(0, 25px, 0) scale3d(0.96, 0.96, 1);
+        -webkit-transform: translate3d(-50%, calc(-50% + 25px), 0) scale3d(0.96, 0.96, 1);
+        transform: translate3d(-50%, calc(-50% + 25px), 0) scale3d(0.96, 0.96, 1);
       }
       100% {
         opacity: 1;
-        -webkit-transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
-        transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
+        transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
       }
     }
 
     @-webkit-keyframes textAppearDrop {
       0% {
         opacity: 0;
-        -webkit-transform: translate3d(0, -25px, 0) scale3d(0.96, 0.96, 1);
-        transform: translate3d(0, -25px, 0) scale3d(0.96, 0.96, 1);
+        -webkit-transform: translate3d(-50%, calc(-50% - 25px), 0) scale3d(0.96, 0.96, 1);
+        transform: translate3d(-50%, calc(-50% - 25px), 0) scale3d(0.96, 0.96, 1);
       }
       100% {
         opacity: 1;
-        -webkit-transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
-        transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
+        transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
       }
     }
 
     @keyframes textAppearDrop {
       0% {
         opacity: 0;
-        -webkit-transform: translate3d(0, -25px, 0) scale3d(0.96, 0.96, 1);
-        transform: translate3d(0, -25px, 0) scale3d(0.96, 0.96, 1);
+        -webkit-transform: translate3d(-50%, calc(-50% - 25px), 0) scale3d(0.96, 0.96, 1);
+        transform: translate3d(-50%, calc(-50% - 25px), 0) scale3d(0.96, 0.96, 1);
       }
       100% {
         opacity: 1;
-        -webkit-transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
-        transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
+        transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
       }
     }
 
     @-webkit-keyframes textAppearPop {
       0% {
         opacity: 0;
-        -webkit-transform: scale3d(0.85, 0.85, 1);
-        transform: scale3d(0.85, 0.85, 1);
+        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(0.85, 0.85, 1);
+        transform: translate3d(-50%, -50%, 0) scale3d(0.85, 0.85, 1);
       }
       100% {
         opacity: 1;
-        -webkit-transform: scale3d(1, 1, 1);
-        transform: scale3d(1, 1, 1);
+        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
+        transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
       }
     }
 
     @keyframes textAppearPop {
       0% {
         opacity: 0;
-        -webkit-transform: scale3d(0.85, 0.85, 1);
-        transform: scale3d(0.85, 0.85, 1);
+        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(0.85, 0.85, 1);
+        transform: translate3d(-50%, -50%, 0) scale3d(0.85, 0.85, 1);
       }
       100% {
         opacity: 1;
-        -webkit-transform: scale3d(1, 1, 1);
-        transform: scale3d(1, 1, 1);
+        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
+        transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
       }
     }
 
     @-webkit-keyframes textAppearFlip {
       0% {
         opacity: 0;
-        -webkit-transform: perspective(600px) rotateX(-45deg);
-        transform: perspective(600px) rotateX(-45deg);
+        -webkit-transform: translate3d(-50%, -50%, 0) perspective(600px) rotateX(-45deg);
+        transform: translate3d(-50%, -50%, 0) perspective(600px) rotateX(-45deg);
       }
       100% {
         opacity: 1;
-        -webkit-transform: perspective(600px) rotateX(0deg);
-        transform: perspective(600px) rotateX(0deg);
+        -webkit-transform: translate3d(-50%, -50%, 0) perspective(600px) rotateX(0deg);
+        transform: translate3d(-50%, -50%, 0) perspective(600px) rotateX(0deg);
       }
     }
 
     @keyframes textAppearFlip {
       0% {
         opacity: 0;
-        -webkit-transform: perspective(600px) rotateX(-45deg);
-        transform: perspective(600px) rotateX(-45deg);
+        -webkit-transform: translate3d(-50%, -50%, 0) perspective(600px) rotateX(-45deg);
+        transform: translate3d(-50%, -50%, 0) perspective(600px) rotateX(-45deg);
       }
       100% {
         opacity: 1;
-        -webkit-transform: perspective(600px) rotateX(0deg);
-        transform: perspective(600px) rotateX(0deg);
+        -webkit-transform: translate3d(-50%, -50%, 0) perspective(600px) rotateX(0deg);
+        transform: translate3d(-50%, -50%, 0) perspective(600px) rotateX(0deg);
       }
     }
 
     @-webkit-keyframes textAppearGlow {
       0% {
         opacity: 0;
-        -webkit-transform: scale3d(1.06, 1.06, 1);
-        transform: scale3d(1.06, 1.06, 1);
+        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1.06, 1.06, 1);
+        transform: translate3d(-50%, -50%, 0) scale3d(1.06, 1.06, 1);
       }
       100% {
         opacity: 1;
-        -webkit-transform: scale3d(1, 1, 1);
-        transform: scale3d(1, 1, 1);
+        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
+        transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
       }
     }
 
     @keyframes textAppearGlow {
       0% {
         opacity: 0;
-        -webkit-transform: scale3d(1.06, 1.06, 1);
-        transform: scale3d(1.06, 1.06, 1);
+        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1.06, 1.06, 1);
+        transform: translate3d(-50%, -50%, 0) scale3d(1.06, 1.06, 1);
       }
       100% {
         opacity: 1;
-        -webkit-transform: scale3d(1, 1, 1);
-        transform: scale3d(1, 1, 1);
+        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
+        transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
       }
     }
 
@@ -281,6 +282,11 @@
       margin: 0;
       text-shadow: 0 4px 18px rgba(0, 0, 0, 0.85);
       letter-spacing: 0.5px;
+    }
+
+    .brand-accent {
+      color: #60a5fa;
+      font-weight: 800;
     }
 
     /* Sleek bottom footer info bar for presenter display */
@@ -465,6 +471,38 @@
       if (!isDragging) {
         requestFS();
         try { channel.postMessage({ action: 'NEXT_SLIDE' }); } catch(e) {}
+      }
+    });
+
+    // TOUCH SWIPE GESTURE SUPPORT FOR SLIDE NAVIGATION
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartTime = 0;
+    const SWIPE_THRESHOLD = 50;
+    const SWIPE_MAX_TIME = 500;
+
+    document.body.addEventListener('touchstart', (e) => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      touchStartTime = Date.now();
+    }, { passive: true });
+
+    document.body.addEventListener('touchend', (e) => {
+      const deltaX = e.changedTouches[0].clientX - touchStartX;
+      const deltaY = e.changedTouches[0].clientY - touchStartY;
+      const elapsed = Date.now() - touchStartTime;
+
+      if (elapsed > SWIPE_MAX_TIME) return;
+      if (Math.abs(deltaX) < SWIPE_THRESHOLD) return;
+      if (Math.abs(deltaY) > Math.abs(deltaX)) return; // vertical swipe, ignore
+
+      e.preventDefault();
+      if (deltaX < 0) {
+        // Swipe left → next slide
+        try { channel.postMessage({ action: 'NEXT_SLIDE' }); } catch(err) {}
+      } else {
+        // Swipe right → previous slide
+        try { channel.postMessage({ action: 'PREV_SLIDE' }); } catch(err) {}
       }
     });
 
