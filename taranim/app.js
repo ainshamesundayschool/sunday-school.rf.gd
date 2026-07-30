@@ -3466,7 +3466,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (Array.isArray(parsed) && parsed.length > 0) {
           state.playlists = parsed.map(p => ({
             ...p,
-            items: deduplicateItems(p.items)
+            items: deduplicateItems((p.items || []).map(item => ensureSongVerses(item)))
           }));
         }
       } else {
@@ -3475,7 +3475,7 @@ document.addEventListener('DOMContentLoaded', () => {
           try {
             const parsedRecents = JSON.parse(legacyRecents);
             if (Array.isArray(parsedRecents)) {
-              state.playlists[0].items = deduplicateItems(parsedRecents);
+              state.playlists[0].items = deduplicateItems(parsedRecents.map(item => ensureSongVerses(item)));
             }
           } catch(e) {}
         }
@@ -3488,13 +3488,13 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch(e) {}
 
     const active = getActivePlaylist();
-    active.items = deduplicateItems(active.items);
+    active.items = deduplicateItems((active.items || []).map(item => ensureSongVerses(item)));
     state.sessionRecents = active.items;
   }
 
   function savePlaylists() {
     const active = getActivePlaylist();
-    active.items = deduplicateItems(state.sessionRecents);
+    active.items = deduplicateItems((state.sessionRecents || []).map(item => ensureSongVerses(item)));
     state.sessionRecents = active.items;
     try {
       localStorage.setItem('sunday_school_taranim_playlists', JSON.stringify(state.playlists));

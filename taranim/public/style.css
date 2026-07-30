@@ -1014,8 +1014,22 @@ html, body {
   user-select: none;
 }
 
-.slide-badge-side.chorus-badge-side {
-  color: #b91c1c; /* Reddish brown matching user screenshot */
+.slide-badge-side.chorus-badge-side,
+.chorus-badge-side,
+.badge-num.chorus-num,
+.chorus-num {
+  color: #ef4444 !important; /* Bright vivid red accent matching control panel */
+  font-weight: 800 !important;
+}
+
+.badge-num {
+  font-weight: 800;
+  display: inline-block;
+  margin-left: 4px;
+}
+
+.badge-num.verse-num {
+  color: #38bdf8 !important;
 }
 
 .slide-index-corner {
