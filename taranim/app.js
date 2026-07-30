@@ -2709,6 +2709,14 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }).sort((a, b) => b._score - a._score);
 
+    if (bibleInfo && bibleInfo.bookName) {
+      const bibleOnly = scored.filter(s => Boolean(s.is_bible || s.chapter_number !== undefined));
+      if (bibleOnly.length > 0) {
+        renderSearchDropdown(bibleOnly, query);
+        return;
+      }
+    }
+
     renderSearchDropdown(scored, query);
   }
 
