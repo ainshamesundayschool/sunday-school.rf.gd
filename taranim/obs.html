@@ -432,6 +432,35 @@
       }
     }
 
+    // AGGRESSIVE AUTO-FULLSCREEN: try on load, focus, visibility, and via parent BroadcastChannel
+    if (urlParams.get('autofs') === 'true') {
+      // Try immediately
+      requestFS();
+
+      // Retry at multiple intervals
+      [100, 300, 600, 1200, 2500].forEach(delay => {
+        setTimeout(requestFS, delay);
+      });
+
+      // Try on focus (when user switches to this window)
+      window.addEventListener('focus', requestFS);
+
+      // Try when page becomes visible
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') requestFS();
+      });
+    }
+
+    // Listen for parent window to explicitly request fullscreen via BroadcastChannel
+    try {
+      const fsChannel = new BroadcastChannel('sunday_school_taranim_fs');
+      fsChannel.onmessage = (evt) => {
+        if (evt.data && evt.data.action === 'REQUEST_FULLSCREEN') {
+          requestFS();
+        }
+      };
+    } catch(e) {}
+
     document.body.addEventListener('click', () => {
       if (!isDragging) {
         requestFS();

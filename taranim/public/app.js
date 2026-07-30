@@ -1912,17 +1912,43 @@ document.addEventListener('DOMContentLoaded', () => {
         presenterWindow.resizeTo(width, height);
       } catch (e) {}
 
-      // CALL IMMEDIATELY WITHIN ACTIVE USER GESTURE TICK
-      try {
-        const pDocEl = presenterWindow.document ? presenterWindow.document.documentElement : null;
-        if (pDocEl && pDocEl.requestFullscreen) {
-          if (targetScreen) {
-            pDocEl.requestFullscreen({ screen: targetScreen }).catch(() => {});
-          } else {
-            pDocEl.requestFullscreen().catch(() => {});
+      // AGGRESSIVE AUTO-FULLSCREEN: retry within the 5s transient user activation window
+      const fsRetryDelays = [50, 200, 500, 1000, 1500, 2000, 3000, 4000];
+      let fsAchieved = false;
+
+      function tryFullscreenFromParent() {
+        if (fsAchieved || !presenterWindow || presenterWindow.closed) return;
+        try {
+          const pDoc = presenterWindow.document;
+          if (pDoc && pDoc.documentElement) {
+            if (pDoc.fullscreenElement) { fsAchieved = true; return; }
+            const fsOpts = targetScreen ? { screen: targetScreen } : undefined;
+            pDoc.documentElement.requestFullscreen(fsOpts).then(() => { fsAchieved = true; }).catch(() => {});
           }
-        }
-      } catch (e) {}
+        } catch (e) {}
+      }
+
+      // Try immediately
+      tryFullscreenFromParent();
+
+      // Retry at multiple intervals within the user activation window
+      fsRetryDelays.forEach(delay => {
+        setTimeout(() => {
+          if (!fsAchieved) tryFullscreenFromParent();
+        }, delay);
+      });
+
+      // Also tell the child window to try fullscreen itself via BroadcastChannel
+      try {
+        const fsChannel = new BroadcastChannel('sunday_school_taranim_fs');
+        setTimeout(() => {
+          fsChannel.postMessage({ action: 'REQUEST_FULLSCREEN' });
+        }, 600);
+        setTimeout(() => {
+          fsChannel.postMessage({ action: 'REQUEST_FULLSCREEN' });
+          fsChannel.close();
+        }, 2000);
+      } catch(e) {}
     } else {
       if (els.obsOverlay) {
         els.obsOverlay.classList.remove('hidden');
