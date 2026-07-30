@@ -508,8 +508,13 @@
         const params = new URLSearchParams(window.location.search);
         const sLeft = parseInt(params.get('screenLeft'));
         const sTop = parseInt(params.get('screenTop'));
+        const sWidth = parseInt(params.get('screenWidth'));
+        const sHeight = parseInt(params.get('screenHeight'));
         if (!isNaN(sLeft) && !isNaN(sTop)) {
           window.moveTo(sLeft, sTop);
+          if (!isNaN(sWidth) && !isNaN(sHeight)) {
+            window.resizeTo(sWidth, sHeight);
+          }
         }
       } catch(e) {}
     })();

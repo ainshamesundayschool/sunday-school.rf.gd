@@ -2373,8 +2373,8 @@ document.addEventListener('DOMContentLoaded', () => {
     lastWindowOpenTime = Date.now();
     updateDisplayButtonUI();
 
-    const windowFeatures = `left=${left},top=${top},width=${width},height=${height},menubar=no,toolbar=no,location=no,status=no,resizable=yes,fullscreen=yes`;
-    const obsUrl = `obs.html?autofs=true&screenIdx=${targetIdx}&screenLeft=${left}&screenTop=${top}`;
+    const windowFeatures = `left=${left},top=${top},screenX=${left},screenY=${top},width=${width},height=${height},outerWidth=${width},outerHeight=${height},menubar=no,toolbar=no,location=no,status=no,resizable=yes,fullscreen=yes`;
+    const obsUrl = `obs.html?autofs=true&screenIdx=${targetIdx}&screenLeft=${left}&screenTop=${top}&screenWidth=${width}&screenHeight=${height}`;
     
     if (!presenterWindow || presenterWindow.closed) {
       presenterWindow = window.open(obsUrl, 'SundaySchoolPresenterWindow', windowFeatures);
@@ -2396,7 +2396,7 @@ document.addEventListener('DOMContentLoaded', () => {
       };
       moveWin();
       setTimeout(moveWin, 150);
-      setTimeout(moveWin, 400);
+      setTimeout(moveWin, 450);
     }
 
     syncLiveState();
