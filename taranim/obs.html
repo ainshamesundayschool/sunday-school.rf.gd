@@ -1184,8 +1184,9 @@
     });
     window.addEventListener('focus', fetchLiveHTTP);
     window.addEventListener('online', fetchLiveHTTP);
-    window.addEventListener('pageshow', fetchLiveHTTP);
-    fetchLiveHTTP();
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
   </script>
 </body>
 </html>
