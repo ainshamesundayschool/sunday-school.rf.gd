@@ -150,7 +150,7 @@ function parseBibleSearchShortcut(query) {
     .replace(/[٦]/g, '6').replace(/[٧]/g, '7').replace(/[٨]/g, '8')
     .replace(/[٩]/g, '9');
 
-  const m = q.match(/^([123])?\s*([أ-ي\s]+?)\s*(\d+)?$/);
+  const m = q.match(/^([123])?\s*([^\d]+?)\s*(\d+)?$/);
   if (!m) return null;
 
   const numPrefix = m[1] || '';
@@ -2158,23 +2158,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchTarget = bibleInfo ? bibleInfo.searchQuery : query.trim();
     let songsList = [];
 
+    // ALWAYS QUERY SERVER API IF BIBLE SHORTCUT IS DETECTED OR IF LOCAL MATCHES ARE SMALL
+    try {
+      let res = await fetch(`api.php?q=${encodeURIComponent(query)}&limit=150`);
+      if (!res.ok) res = await fetch(`/api/songs?q=${encodeURIComponent(query)}&limit=150`);
+      if (res.ok) {
+        let data = await res.json();
+        if (data && data.songs && data.songs.length > 0) {
+          songsList = songsList.concat(data.songs);
+        }
+      }
+    } catch (err) {}
+
+    // ALSO FILTER LOCAL SONGS CATALOG
     if (state.allSongs && state.allSongs.length > 0) {
       let qNorm = normalizeArabic(searchTarget);
       let isFrancoInput = state.francoAutoTranslate && /[a-z0-9]/i.test(searchTarget);
       let qFrancoRaw = isFrancoInput ? francoToArabic(searchTarget) : '';
 
-      songsList = state.allSongs.filter(song => {
+      const localMatches = state.allSongs.filter(song => {
         const tNorm = normalizeArabic(song.title || '');
         const nNorm = normalizeArabic(song.notes || '');
-
-        if (bibleInfo) {
-          const bookNorm = normalizeArabic(bibleInfo.bookName);
-          if (tNorm.includes(bookNorm) || nNorm.includes(bookNorm)) {
-            if (!bibleInfo.chapter) return true;
-            const chStr = bibleInfo.chapter;
-            return tNorm.includes(chStr) || nNorm.includes(chStr) || nNorm.includes(`اصحاح ${chStr}`) || nNorm.includes(`إصحاح ${chStr}`);
-          }
-        }
 
         if (isFrancoInput) {
           return (qFrancoRaw && (tNorm.includes(qFrancoRaw) || nNorm.includes(qFrancoRaw)));
@@ -2182,18 +2186,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         return tNorm.includes(qNorm) || nNorm.includes(qNorm);
       });
-    }
 
-    if (songsList.length < 5) {
-      try {
-        let res = await fetch(`/api/songs?q=${encodeURIComponent(searchTarget)}&limit=150`);
-        if (res.ok) {
-          let data = await res.json();
-          if (data && data.songs && data.songs.length > 0) {
-            songsList = songsList.concat(data.songs);
-          }
-        }
-      } catch (err) {}
+      songsList = songsList.concat(localMatches);
     }
 
     const uniqueMap = new Map();
@@ -2205,10 +2199,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const uniqueSongs = Array.from(uniqueMap.values());
 
-    const scored = uniqueSongs.map(song => ({
-      ...song,
-      _score: getMatchScore(song, query)
-    })).sort((a, b) => b._score - a._score);
+    const scored = uniqueSongs.map(song => {
+      let score = getMatchScore(song, query);
+      if (song.is_bible) score = 99999;
+      return {
+        ...song,
+        _score: score
+      };
+    }).sort((a, b) => b._score - a._score);
 
     renderSearchDropdown(scored, query);
   }

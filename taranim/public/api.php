@@ -163,24 +163,34 @@ if (strpos($parsedUrl, '/api/songs') !== false || (isset($_GET['action']) && $_G
 
         // SEARCH BIBLE CHAPTERS TABLE AS WELL
         try {
-            $qDigits = preg_replace('/[٠]/u', '0', $q);
-            $qDigits = preg_replace('/[١]/u', '1', $qDigits);
-            $qDigits = preg_replace('/[٢]/u', '2', $qDigits);
-            $qDigits = preg_replace('/[٣]/u', '3', $qDigits);
-            $qDigits = preg_replace('/[٤]/u', '4', $qDigits);
-            $qDigits = preg_replace('/[٥]/u', '5', $qDigits);
-            $qDigits = preg_replace('/[٦]/u', '6', $qDigits);
-            $qDigits = preg_replace('/[٧]/u', '7', $qDigits);
-            $qDigits = preg_replace('/[٨]/u', '8', $qDigits);
-            $qDigits = preg_replace('/[٩]/u', '9', $qDigits);
+            $qClean = preg_replace('/[٠]/u', '0', $q);
+            $qClean = preg_replace('/[١]/u', '1', $qClean);
+            $qClean = preg_replace('/[٢]/u', '2', $qClean);
+            $qClean = preg_replace('/[٣]/u', '3', $qClean);
+            $qClean = preg_replace('/[٤]/u', '4', $qClean);
+            $qClean = preg_replace('/[٥]/u', '5', $qClean);
+            $qClean = preg_replace('/[٦]/u', '6', $qClean);
+            $qClean = preg_replace('/[٧]/u', '7', $qClean);
+            $qClean = preg_replace('/[٨]/u', '8', $qClean);
+            $qClean = preg_replace('/[٩]/u', '9', $qClean);
 
-            $numMatch = [];
+            $bookNum = '';
+            $bookText = '';
             $chNum = null;
-            if (preg_match('/(\d+)/', $qDigits, $numMatch)) {
-                $chNum = (int)$numMatch[1];
+
+            if (preg_match('/^([123])?\s*([^\d]+?)\s*(\d+)$/u', trim($qClean), $m)) {
+                $bookNum = $m[1];
+                $bookText = trim($m[2]);
+                $chNum = (int)$m[3];
+            } else {
+                $bookText = trim(preg_replace('/\d+/', '', $qClean));
+                if (preg_match('/(\d+)/', $qClean, $nm)) {
+                    $chNum = (int)$nm[1];
+                }
             }
-            $cleanBookStr = trim(preg_replace('/\d+/', '', $qDigits));
-            $cleanBookNorm = normalizeArabic($cleanBookStr);
+
+            $qBookStr = trim($bookNum . ' ' . $bookText);
+            $qBookNorm = normalizeArabic($qBookStr);
 
             if ($chNum !== null) {
                 $bStmt = $pdo->prepare("
@@ -192,12 +202,12 @@ if (strpos($parsedUrl, '/api/songs') !== false || (isset($_GET['action']) && $_G
                     FROM chapters c
                     JOIN bible_chapters bc ON c.bible_chapter = bc.id
                     JOIN books b ON bc.book = b.id
-                    WHERE (b.title LIKE :q OR b.abbr LIKE :q OR :qNorm LIKE ('%' || b.title || '%'))
+                    WHERE (b.title LIKE :q OR b.abbr LIKE :q OR :qNorm LIKE ('%' || b.title || '%') OR :qNorm LIKE ('%' || b.abbr || '%'))
                       AND bc.number = :chNum
                     LIMIT 10
                 ");
-                $bStmt->bindValue(':q', '%' . $cleanBookStr . '%', PDO::PARAM_STR);
-                $bStmt->bindValue(':qNorm', '%' . $cleanBookNorm . '%', PDO::PARAM_STR);
+                $bStmt->bindValue(':q', '%' . $qBookStr . '%', PDO::PARAM_STR);
+                $bStmt->bindValue(':qNorm', '%' . $qBookNorm . '%', PDO::PARAM_STR);
                 $bStmt->bindValue(':chNum', $chNum, PDO::PARAM_INT);
                 $bStmt->execute();
                 $bibleChapters = $bStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -214,8 +224,8 @@ if (strpos($parsedUrl, '/api/songs') !== false || (isset($_GET['action']) && $_G
                     WHERE b.title LIKE :q OR b.abbr LIKE :q OR :qNorm LIKE ('%' || b.title || '%')
                     LIMIT 10
                 ");
-                $bStmt->bindValue(':q', '%' . $q . '%', PDO::PARAM_STR);
-                $bStmt->bindValue(':qNorm', '%' . $qNorm . '%', PDO::PARAM_STR);
+                $bStmt->bindValue(':q', '%' . $qBookStr . '%', PDO::PARAM_STR);
+                $bStmt->bindValue(':qNorm', '%' . $qBookNorm . '%', PDO::PARAM_STR);
                 $bStmt->execute();
                 $bibleChapters = $bStmt->fetchAll(PDO::FETCH_ASSOC);
             }
