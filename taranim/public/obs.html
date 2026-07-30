@@ -515,7 +515,7 @@
 
     window.addEventListener('resize', fitTextToSafeArea);
 
-    // AUTO FULLSCREEN REQUEST ON CLICK OR TOUCH
+    // AUTO FULLSCREEN REQUEST ON CLICK, TOUCH, POINTER, KEY, OR FOCUS
     function requestAutoFullscreen() {
       if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen().catch(() => {});
@@ -523,6 +523,9 @@
     }
     window.addEventListener('click', requestAutoFullscreen);
     window.addEventListener('touchstart', requestAutoFullscreen);
+    window.addEventListener('pointerdown', requestAutoFullscreen);
+    window.addEventListener('focus', requestAutoFullscreen);
+    window.addEventListener('keydown', requestAutoFullscreen);
 
     // DRAGGING LOGIC (ONLY ENABLED IN GREEN SCREEN CHROMA MODE)
     let isDragging = false;

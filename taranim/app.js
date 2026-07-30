@@ -1870,7 +1870,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try { localStorage.setItem('sunday_school_taranim_locked_screen', JSON.stringify(state.selectedScreen)); } catch(e) {}
     updateDisplayButtonUI();
 
-    const windowFeatures = `left=${left},top=${top},width=${width},height=${height},menubar=no,toolbar=no,location=no,status=no,resizable=yes`;
+    const windowFeatures = `left=${left},top=${top},width=${width},height=${height},menubar=no,toolbar=no,location=no,status=no,resizable=yes,fullscreen=yes`;
     const obsUrl = `obs.html?autofs=true&screenIdx=${targetIdx}&screenLeft=${left}&screenTop=${top}`;
     
     if (presenterWindow && !presenterWindow.closed) {
@@ -1886,17 +1886,17 @@ document.addEventListener('DOMContentLoaded', () => {
         presenterWindow.resizeTo(width, height);
       } catch (e) {}
 
-      setTimeout(() => {
-        try {
-          if (presenterWindow && presenterWindow.document && presenterWindow.document.documentElement && presenterWindow.document.documentElement.requestFullscreen) {
-            if (targetScreen) {
-              presenterWindow.document.documentElement.requestFullscreen({ screen: targetScreen }).catch(() => {});
-            } else {
-              presenterWindow.document.documentElement.requestFullscreen().catch(() => {});
-            }
+      // CALL IMMEDIATELY WITHIN ACTIVE USER GESTURE TICK
+      try {
+        const pDocEl = presenterWindow.document ? presenterWindow.document.documentElement : null;
+        if (pDocEl && pDocEl.requestFullscreen) {
+          if (targetScreen) {
+            pDocEl.requestFullscreen({ screen: targetScreen }).catch(() => {});
+          } else {
+            pDocEl.requestFullscreen().catch(() => {});
           }
-        } catch (e) {}
-      }, 300);
+        }
+      } catch (e) {}
     } else {
       if (els.obsOverlay) {
         els.obsOverlay.classList.remove('hidden');
