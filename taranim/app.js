@@ -3139,10 +3139,10 @@ document.addEventListener('DOMContentLoaded', () => {
     els.recentSessionContainer.innerHTML = state.sessionRecents.map((r, idx) => `
       <div class="recent-item ${state.activeSong && String(state.activeSong.id) === String(r.id) && Boolean(state.activeSong.is_bible) === Boolean(r.is_bible) ? 'active' : ''}" data-id="${r.id}" data-is-bible="${r.is_bible ? '1' : '0'}" data-index="${idx}" draggable="true">
         <div class="recent-item-start">
+          <input type="checkbox" class="recent-item-cb" data-index="${idx}">
           <i class="fa-solid fa-grip-vertical drag-handle-icon" title="سحب لإعادة الترتيب"></i>
           <span class="recent-title">${escapeHtml(r.title)}</span>
         </div>
-        <input type="checkbox" class="recent-item-cb" data-index="${idx}">
       </div>
     `).join('');
 
@@ -3526,12 +3526,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (els.obsLineText && snapText.trim() && els.obsLineText.style.display !== 'none') {
           const vW = els.obsOverlay ? els.obsOverlay.clientWidth : window.innerWidth;
           const vH = els.obsOverlay ? els.obsOverlay.clientHeight : window.innerHeight;
-          const maxW = vW * 0.92;
-          const maxH = vH * 0.86;
+          const maxW = vW * 0.90;
+          const maxH = vH * 0.82;
 
-          let low = 16;
-          let high = Math.min(140, Math.round(vH * 0.16));
+          let low = 18;
+          let high = Math.min(82, Math.round(vH * 0.09));
           let bestSize = low;
+
+          els.obsLineText.style.lineHeight = '1.45';
 
           while (low <= high) {
             const mid = Math.floor((low + high) / 2);

@@ -653,12 +653,15 @@
 
       const viewportW = window.innerWidth;
       const viewportH = window.innerHeight;
-      const maxW = viewportW * 0.92;
-      const maxH = viewportH * 0.86;
+      const maxW = viewportW * 0.90;
+      const maxH = viewportH * 0.82;
 
-      let low = 16;
-      let high = Math.min(140, Math.round(viewportH * 0.16));
+      let low = 18;
+      // Cap maximum font size for optimal readability (max 82px or 9% viewport height)
+      let high = Math.min(82, Math.round(viewportH * 0.09));
       let bestSize = low;
+
+      textEl.style.lineHeight = '1.45';
 
       while (low <= high) {
         const mid = Math.floor((low + high) / 2);
