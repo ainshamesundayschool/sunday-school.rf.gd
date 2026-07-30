@@ -92,177 +92,165 @@
     }
 
     /* TEXT APPEARANCE ANIMATIONS FOR CONTAINER (WITH MOBILE SAFARI WEBKIT COMPATIBILITY) */
+    /* HIGH-PERFORMANCE 60FPS GPU ACCELERATED TEXT APPEARANCE ANIMATIONS */
     @-webkit-keyframes textAppearSlide {
       0% {
         opacity: 0;
-        -webkit-transform: translate(-50%, calc(-50% + 50px)) scale(0.92);
-        transform: translate(-50%, calc(-50% + 50px)) scale(0.92);
+        -webkit-transform: translate3d(-50%, calc(-50% + 30px), 0) scale3d(0.96, 0.96, 1);
+        transform: translate3d(-50%, calc(-50% + 30px), 0) scale3d(0.96, 0.96, 1);
       }
       100% {
         opacity: 1;
-        -webkit-transform: translate(-50%, -50%) scale(1);
-        transform: translate(-50%, -50%) scale(1);
+        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
+        transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
       }
     }
 
     @keyframes textAppearSlide {
       0% {
         opacity: 0;
-        -webkit-transform: translate(-50%, calc(-50% + 50px)) scale(0.92);
-        transform: translate(-50%, calc(-50% + 50px)) scale(0.92);
+        -webkit-transform: translate3d(-50%, calc(-50% + 30px), 0) scale3d(0.96, 0.96, 1);
+        transform: translate3d(-50%, calc(-50% + 30px), 0) scale3d(0.96, 0.96, 1);
       }
       100% {
         opacity: 1;
-        -webkit-transform: translate(-50%, -50%) scale(1);
-        transform: translate(-50%, -50%) scale(1);
+        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
+        transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
       }
     }
 
     @-webkit-keyframes textAppearDrop {
       0% {
         opacity: 0;
-        -webkit-transform: translate(-50%, calc(-50% - 50px)) scale(0.92);
-        transform: translate(-50%, calc(-50% - 50px)) scale(0.92);
+        -webkit-transform: translate3d(-50%, calc(-50% - 30px), 0) scale3d(0.96, 0.96, 1);
+        transform: translate3d(-50%, calc(-50% - 30px), 0) scale3d(0.96, 0.96, 1);
       }
       100% {
         opacity: 1;
-        -webkit-transform: translate(-50%, -50%) scale(1);
-        transform: translate(-50%, -50%) scale(1);
+        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
+        transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
       }
     }
 
     @keyframes textAppearDrop {
       0% {
         opacity: 0;
-        -webkit-transform: translate(-50%, calc(-50% - 50px)) scale(0.92);
-        transform: translate(-50%, calc(-50% - 50px)) scale(0.92);
+        -webkit-transform: translate3d(-50%, calc(-50% - 30px), 0) scale3d(0.96, 0.96, 1);
+        transform: translate3d(-50%, calc(-50% - 30px), 0) scale3d(0.96, 0.96, 1);
       }
       100% {
         opacity: 1;
-        -webkit-transform: translate(-50%, -50%) scale(1);
-        transform: translate(-50%, -50%) scale(1);
+        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
+        transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
       }
     }
 
     @-webkit-keyframes textAppearPop {
       0% {
         opacity: 0;
-        -webkit-transform: translate(-50%, -50%) scale(0.2);
-        transform: translate(-50%, -50%) scale(0.2);
-      }
-      70% {
-        opacity: 1;
-        -webkit-transform: translate(-50%, -50%) scale(1.08);
-        transform: translate(-50%, -50%) scale(1.08);
+        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(0.85, 0.85, 1);
+        transform: translate3d(-50%, -50%, 0) scale3d(0.85, 0.85, 1);
       }
       100% {
         opacity: 1;
-        -webkit-transform: translate(-50%, -50%) scale(1);
-        transform: translate(-50%, -50%) scale(1);
+        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
+        transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
       }
     }
 
     @keyframes textAppearPop {
       0% {
         opacity: 0;
-        -webkit-transform: translate(-50%, -50%) scale(0.2);
-        transform: translate(-50%, -50%) scale(0.2);
-      }
-      70% {
-        opacity: 1;
-        -webkit-transform: translate(-50%, -50%) scale(1.08);
-        transform: translate(-50%, -50%) scale(1.08);
+        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(0.85, 0.85, 1);
+        transform: translate3d(-50%, -50%, 0) scale3d(0.85, 0.85, 1);
       }
       100% {
         opacity: 1;
-        -webkit-transform: translate(-50%, -50%) scale(1);
-        transform: translate(-50%, -50%) scale(1);
+        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
+        transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
       }
     }
 
     @-webkit-keyframes textAppearFlip {
       0% {
         opacity: 0;
-        -webkit-transform: translate(-50%, -50%) perspective(600px) rotateX(-85deg);
-        transform: translate(-50%, -50%) perspective(600px) rotateX(-85deg);
+        -webkit-transform: translate3d(-50%, -50%, 0) perspective(600px) rotateX(-45deg);
+        transform: translate3d(-50%, -50%, 0) perspective(600px) rotateX(-45deg);
       }
       100% {
         opacity: 1;
-        -webkit-transform: translate(-50%, -50%) perspective(600px) rotateX(0deg);
-        transform: translate(-50%, -50%) perspective(600px) rotateX(0deg);
+        -webkit-transform: translate3d(-50%, -50%, 0) perspective(600px) rotateX(0deg);
+        transform: translate3d(-50%, -50%, 0) perspective(600px) rotateX(0deg);
       }
     }
 
     @keyframes textAppearFlip {
       0% {
         opacity: 0;
-        -webkit-transform: translate(-50%, -50%) perspective(600px) rotateX(-85deg);
-        transform: translate(-50%, -50%) perspective(600px) rotateX(-85deg);
+        -webkit-transform: translate3d(-50%, -50%, 0) perspective(600px) rotateX(-45deg);
+        transform: translate3d(-50%, -50%, 0) perspective(600px) rotateX(-45deg);
       }
       100% {
         opacity: 1;
-        -webkit-transform: translate(-50%, -50%) perspective(600px) rotateX(0deg);
-        transform: translate(-50%, -50%) perspective(600px) rotateX(0deg);
+        -webkit-transform: translate3d(-50%, -50%, 0) perspective(600px) rotateX(0deg);
+        transform: translate3d(-50%, -50%, 0) perspective(600px) rotateX(0deg);
       }
     }
 
     @-webkit-keyframes textAppearGlow {
       0% {
         opacity: 0;
-        -webkit-filter: blur(30px);
-        filter: blur(30px);
-        -webkit-transform: translate(-50%, -50%) scale(1.25);
-        transform: translate(-50%, -50%) scale(1.25);
+        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1.08, 1.08, 1);
+        transform: translate3d(-50%, -50%, 0) scale3d(1.08, 1.08, 1);
       }
       100% {
         opacity: 1;
-        -webkit-filter: blur(0px);
-        filter: blur(0px);
-        -webkit-transform: translate(-50%, -50%) scale(1);
-        transform: translate(-50%, -50%) scale(1);
+        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
+        transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
       }
     }
 
     @keyframes textAppearGlow {
       0% {
         opacity: 0;
-        -webkit-filter: blur(30px);
-        filter: blur(30px);
-        -webkit-transform: translate(-50%, -50%) scale(1.25);
-        transform: translate(-50%, -50%) scale(1.25);
+        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1.08, 1.08, 1);
+        transform: translate3d(-50%, -50%, 0) scale3d(1.08, 1.08, 1);
       }
       100% {
         opacity: 1;
-        -webkit-filter: blur(0px);
-        filter: blur(0px);
-        -webkit-transform: translate(-50%, -50%) scale(1);
-        transform: translate(-50%, -50%) scale(1);
+        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
+        transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
       }
     }
 
     .animate-appear-slide {
-      -webkit-animation: textAppearSlide 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
-      animation: textAppearSlide 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+      -webkit-animation: textAppearSlide 0.14s cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
+      animation: textAppearSlide 0.14s cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
+      will-change: transform, opacity;
     }
 
     .animate-appear-drop {
-      -webkit-animation: textAppearDrop 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
-      animation: textAppearDrop 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+      -webkit-animation: textAppearDrop 0.14s cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
+      animation: textAppearDrop 0.14s cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
+      will-change: transform, opacity;
     }
 
     .animate-appear-pop {
-      -webkit-animation: textAppearPop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
-      animation: textAppearPop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+      -webkit-animation: textAppearPop 0.14s cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
+      animation: textAppearPop 0.14s cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
+      will-change: transform, opacity;
     }
 
     .animate-appear-flip {
-      -webkit-animation: textAppearFlip 0.2s ease-out forwards !important;
-      animation: textAppearFlip 0.2s ease-out forwards !important;
+      -webkit-animation: textAppearFlip 0.14s cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
+      animation: textAppearFlip 0.14s cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
+      will-change: transform, opacity;
     }
 
     .animate-appear-glow {
-      -webkit-animation: textAppearGlow 0.2s ease-out forwards !important;
-      animation: textAppearGlow 0.2s ease-out forwards !important;
+      -webkit-animation: textAppearGlow 0.14s cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
+      animation: textAppearGlow 0.14s cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
+      will-change: transform, opacity;
     }
 
     .standby-branding {
