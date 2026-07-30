@@ -1848,12 +1848,29 @@ document.addEventListener('DOMContentLoaded', () => {
       top = window.screen.availTop || 0;
     }
 
-    if (val === 'primary' && targetScreen && targetScreen.isPrimary) {
+    if (val === 'primary' || (targetScreen && targetScreen.isPrimary)) {
+      if (presenterWindow && !presenterWindow.closed) {
+        try { presenterWindow.close(); } catch(e) {}
+        presenterWindow = null;
+      }
+
+      state.selectedScreen = {
+        val: 'primary',
+        label: 'الشاشة الرئيسية (هذا الجهاز)',
+        width: window.screen.width || 1920,
+        height: window.screen.height || 1080,
+        isPrimary: true
+      };
+      try { localStorage.setItem('sunday_school_taranim_locked_screen', JSON.stringify(state.selectedScreen)); } catch(e) {}
+      updateDisplayButtonUI();
+
       if (els.obsOverlay) {
         els.obsOverlay.classList.remove('hidden');
         const docEl = document.documentElement || els.obsOverlay;
         if (docEl.requestFullscreen) {
           docEl.requestFullscreen().catch(() => {});
+        } else if (docEl.webkitRequestFullscreen) {
+          docEl.webkitRequestFullscreen();
         }
       }
       syncLiveState();

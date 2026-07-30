@@ -326,6 +326,42 @@
       letter-spacing: 0.3px;
     }
 
+    /* SLEEK FULLSCREEN PROMPT BANNER FOR PRESENTER WINDOW */
+    .fullscreen-prompt-banner {
+      position: fixed;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(6, 182, 212, 0.95));
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      color: #ffffff;
+      padding: 10px 24px;
+      border-radius: 30px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      z-index: 10000;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      font-family: 'Baloo Bhaijaan 2', 'Alexandria', sans-serif;
+      letter-spacing: 0.3px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+      animation: pulseBanner 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseBanner {
+      0%, 100% { transform: translateX(-50%) scale(1); }
+      50% { transform: translateX(-50%) scale(1.04); }
+    }
+
+    .fullscreen-prompt-banner:hover {
+      transform: translateX(-50%) scale(1.08);
+      box-shadow: 0 12px 36px rgba(16, 185, 129, 0.6);
+    }
+
     .hidden { display: none !important; }
   </style>
 </head>
@@ -353,15 +389,51 @@
     </div>
   </div>
 
+  <!-- SLEEK AUTO-FULLSCREEN PROMPT BANNER -->
+  <div id="fullscreen-prompt-banner" class="fullscreen-prompt-banner">
+    <i class="fa-solid fa-expand"></i> انقر هنا أو اضغط أي زر للعرض ملء الشاشة (Fullscreen)
+  </div>
+
   <script>
     const box = document.getElementById('presenter-box');
     const textEl = document.getElementById('presenter-text');
     const standbyEl = document.getElementById('standby-branding');
     const guideV = document.getElementById('snap-guide-v');
     const guideH = document.getElementById('snap-guide-h');
+    const fsBanner = document.getElementById('fullscreen-prompt-banner');
 
     let stateFontSize = 54;
     let lastDragTime = 0;
+
+    function checkAndToggleFullscreen() {
+      if (document.fullscreenElement) {
+        if (fsBanner) fsBanner.classList.add('hidden');
+      } else {
+        if (fsBanner) fsBanner.classList.remove('hidden');
+      }
+    }
+
+    function requestAutoFullscreen() {
+      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().then(() => {
+          if (fsBanner) fsBanner.classList.add('hidden');
+        }).catch(() => {});
+      }
+    }
+
+    if (fsBanner) {
+      fsBanner.addEventListener('click', (e) => {
+        e.stopPropagation();
+        requestAutoFullscreen();
+      });
+    }
+
+    document.addEventListener('fullscreenchange', checkAndToggleFullscreen);
+    window.addEventListener('click', requestAutoFullscreen);
+    window.addEventListener('touchstart', requestAutoFullscreen);
+    window.addEventListener('pointerdown', requestAutoFullscreen);
+    window.addEventListener('focus', requestAutoFullscreen);
+    window.addEventListener('keydown', requestAutoFullscreen);
 
     const urlParams = new URLSearchParams(window.location.search);
     const paramChroma = urlParams.get('chroma');

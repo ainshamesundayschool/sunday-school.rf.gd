@@ -1768,24 +1768,27 @@ html, body {
 }
 
 .display-pill-close-btn {
-  background: rgba(255, 255, 255, 0.12);
-  border: none;
-  color: #e2e8f0;
-  width: 20px;
-  height: 20px;
+  background: rgba(239, 68, 68, 0.22);
+  border: 1px solid rgba(239, 68, 68, 0.55);
+  color: #fca5a5;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 0.75rem;
-  transition: all 0.18s ease;
-  margin-right: 2px;
+  font-size: 0.8rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-right: 4px;
+  padding: 0;
 }
 
 .display-pill-close-btn:hover {
   background: #ef4444;
   color: #ffffff;
-  transform: scale(1.1);
+  border-color: #ef4444;
+  transform: scale(1.18);
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
 }
 
