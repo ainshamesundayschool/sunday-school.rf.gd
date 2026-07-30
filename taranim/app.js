@@ -223,13 +223,19 @@ function parseBibleSearchShortcut(query) {
   if (!m) return null;
 
   const numPrefix = m[1] || '';
-  const shortcutStr = normalizeArabic(m[2]);
+  const rawText = m[2].trim();
+  const cleanText = rawText.replace(/^(سفر|إنجيل|انجيل|رسالة|رساله)\s+/i, '').trim();
+  const searchStr = normalizeArabic(cleanText);
   const chNum = m[3] || '';
 
-  if (!shortcutStr) return null;
+  if (!searchStr) return null;
 
+  // 1. Check BIBLE_BOOK_SHORTCUTS
   for (const b of BIBLE_BOOK_SHORTCUTS) {
-    if (b.shortcuts.some(s => normalizeArabic(s) === shortcutStr)) {
+    const isShortcutMatch = b.shortcuts.some(s => normalizeArabic(s) === searchStr);
+    const isNameMatch = normalizeArabic(b.name) === searchStr || normalizeArabic(b.name).includes(searchStr) || searchStr.includes(normalizeArabic(b.name));
+
+    if (isShortcutMatch || isNameMatch) {
       let fullBookName = b.name;
       if (b.numbered && numPrefix) {
         const isFeminine = ['كورنثوس', 'تسالونيكي', 'تيموثاوس', 'بطرس', 'يوحنا'].includes(b.name);
@@ -245,6 +251,23 @@ function parseBibleSearchShortcut(query) {
       };
     }
   }
+
+  // 2. Check BIBLE_BOOKS_DATA catalog
+  if (typeof BIBLE_BOOKS_DATA !== 'undefined' && Array.isArray(BIBLE_BOOKS_DATA)) {
+    for (const b of BIBLE_BOOKS_DATA) {
+      const bTitleNorm = normalizeArabic(b.title);
+      const bAbbrNorm = normalizeArabic(b.abbr);
+
+      if (bTitleNorm === searchStr || bTitleNorm.includes(searchStr) || searchStr.includes(bTitleNorm) || bAbbrNorm === searchStr) {
+        return {
+          bookName: b.title,
+          chapter: chNum,
+          searchQuery: chNum ? `${b.title} ${chNum}` : b.title
+        };
+      }
+    }
+  }
+
   return null;
 }
 
@@ -318,15 +341,17 @@ function getMatchScore(song, query) {
   const bibleInfo = parseBibleSearchShortcut(query);
   if (bibleInfo) {
     const bookNorm = normalizeArabic(bibleInfo.bookName);
-    if (tNorm.includes(bookNorm) || nNorm.includes(bookNorm)) {
+    const isBibleItem = Boolean(song.is_bible || song.chapter_number !== undefined);
+    if (isBibleItem || tNorm.includes(bookNorm)) {
       if (bibleInfo.chapter) {
-        const chStr = bibleInfo.chapter;
-        if (tNorm.includes(chStr) || nNorm.includes(chStr) || nNorm.includes(`اصحاح ${chStr}`) || nNorm.includes(`إصحاح ${chStr}`)) {
-          return 99;
+        const chStr = String(bibleInfo.chapter);
+        const songCh = String(song.chapter_number || '');
+        if (songCh === chStr || tNorm.includes(` <sup>${chStr}</sup>`) || tNorm.includes(`اصحاح ${chStr}`) || tNorm.includes(`إصحاح ${chStr}`) || tNorm.endsWith(` ${chStr}`) || tNorm.includes(` ${chStr} `)) {
+          return 1000000;
         }
-        return 85;
+        return 50000;
       }
-      return 95;
+      return 90000;
     }
   }
 
@@ -2318,9 +2343,15 @@ document.addEventListener('DOMContentLoaded', () => {
       top = window.screen.availTop || 0;
     }
 
-    const isCurrentWindowScreen = (val === 'in_app_overlay' || val === 'primary' || (val === '0' && targetScreen && targetScreen.isPrimary));
+    const isMainDisplay = (
+      val === 'primary' || 
+      val === 'in_app_overlay' || 
+      val === '0' || 
+      val === 0 || 
+      (targetScreen && targetScreen.isPrimary)
+    ) && (val !== 'external' && val !== '1' && val !== 1);
 
-    if (isCurrentWindowScreen) {
+    if (isMainDisplay) {
       if (presenterWindow && !presenterWindow.closed) {
         try { presenterWindow.close(); } catch(e) {}
         presenterWindow = null;
@@ -2672,7 +2703,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const scored = uniqueSongs.map(song => {
       let score = getMatchScore(song, query);
-      if (song.is_bible || song.chapter_number !== undefined) score = 99999;
       return {
         ...song,
         _score: score

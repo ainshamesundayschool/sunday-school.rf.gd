@@ -1068,11 +1068,14 @@ html, body {
 }
 
 .drag-handle-icon, .recent-item .drag-handle-icon {
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
   color: #94a3b8;
-  font-size: 0.82rem;
-  opacity: 0.6;
+  font-size: 0.85rem;
+  opacity: 0.65;
   cursor: grab;
   padding: 2px 4px;
+  display: inline-block;
 }
 
 .recent-title, .recent-item .recent-title {
@@ -2378,8 +2381,10 @@ html, body {
 }
 
 .bible-book-count {
-  font-size: 0.72rem;
-  color: #64748b;
+  font-size: 0.58rem !important;
+  color: #94a3b8;
+  font-weight: 600;
+  opacity: 0.8;
 }
 
 .bible-selected-book-banner {

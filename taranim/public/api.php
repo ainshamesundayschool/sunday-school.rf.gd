@@ -189,9 +189,13 @@ if (strpos($parsedUrl, '/api/songs') !== false || (isset($_GET['action']) && $_G
                 }
             }
 
-            $qBookStr = trim($bookNum . ' ' . $bookText);
-            $qBookNorm = normalizeArabic($qBookStr);
-            $qSubText = '%' . trim($bookText) . '%';
+            $cleanText = trim(preg_replace('/^(سفر|إنجيل|انجيل|رسالة|رساله)\s+/iu', '', $bookText));
+            $textWithAl = 'ال' . preg_replace('/^ال/iu', '', $cleanText);
+            $textNoAl = preg_replace('/^ال/iu', '', $cleanText);
+
+            $q1 = '%' . $cleanText . '%';
+            $q2 = '%' . $textWithAl . '%';
+            $q3 = '%' . $textNoAl . '%';
 
             if ($chNum !== null) {
                 $bStmt = $pdo->prepare("
@@ -203,13 +207,17 @@ if (strpos($parsedUrl, '/api/songs') !== false || (isset($_GET['action']) && $_G
                     FROM chapters c
                     JOIN bible_chapters bc ON c.bible_chapter = bc.id
                     JOIN books b ON bc.book = b.id
-                    WHERE (b.title LIKE :q OR b.abbr LIKE :q OR b.title LIKE :qSub OR b.abbr LIKE :qSub OR :qNorm LIKE ('%' || b.title || '%') OR :qNorm LIKE ('%' || b.abbr || '%'))
-                      AND bc.number = :chNum
-                    LIMIT 10
+                    WHERE (
+                      b.title LIKE :q1 OR b.abbr LIKE :q1
+                      OR b.title LIKE :q2 OR b.abbr LIKE :q2
+                      OR b.title LIKE :q3 OR b.abbr LIKE :q3
+                    )
+                    AND bc.number = :chNum
+                    LIMIT 15
                 ");
-                $bStmt->bindValue(':q', '%' . $qBookStr . '%', PDO::PARAM_STR);
-                $bStmt->bindValue(':qSub', $qSubText, PDO::PARAM_STR);
-                $bStmt->bindValue(':qNorm', '%' . $qBookNorm . '%', PDO::PARAM_STR);
+                $bStmt->bindValue(':q1', $q1, PDO::PARAM_STR);
+                $bStmt->bindValue(':q2', $q2, PDO::PARAM_STR);
+                $bStmt->bindValue(':q3', $q3, PDO::PARAM_STR);
                 $bStmt->bindValue(':chNum', $chNum, PDO::PARAM_INT);
                 $bStmt->execute();
                 $bibleChapters = $bStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -223,12 +231,16 @@ if (strpos($parsedUrl, '/api/songs') !== false || (isset($_GET['action']) && $_G
                     FROM chapters c
                     JOIN bible_chapters bc ON c.bible_chapter = bc.id
                     JOIN books b ON bc.book = b.id
-                    WHERE b.title LIKE :q OR b.abbr LIKE :q OR b.title LIKE :qSub OR b.abbr LIKE :qSub OR :qNorm LIKE ('%' || b.title || '%')
-                    LIMIT 10
+                    WHERE (
+                      b.title LIKE :q1 OR b.abbr LIKE :q1
+                      OR b.title LIKE :q2 OR b.abbr LIKE :q2
+                      OR b.title LIKE :q3 OR b.abbr LIKE :q3
+                    )
+                    LIMIT 15
                 ");
-                $bStmt->bindValue(':q', '%' . $qBookStr . '%', PDO::PARAM_STR);
-                $bStmt->bindValue(':qSub', $qSubText, PDO::PARAM_STR);
-                $bStmt->bindValue(':qNorm', '%' . $qBookNorm . '%', PDO::PARAM_STR);
+                $bStmt->bindValue(':q1', $q1, PDO::PARAM_STR);
+                $bStmt->bindValue(':q2', $q2, PDO::PARAM_STR);
+                $bStmt->bindValue(':q3', $q3, PDO::PARAM_STR);
                 $bStmt->execute();
                 $bibleChapters = $bStmt->fetchAll(PDO::FETCH_ASSOC);
             }
