@@ -516,55 +516,73 @@
 
     const channel = new BroadcastChannel('sunday_school_taranim_obs_channel');
 
-    document.body.addEventListener('click', (e) => {
-      const currentChroma = document.body.getAttribute('data-chroma');
-      if (currentChroma === 'green' && isDragging) return;
-
+    function triggerNextSlide() {
       requestFS();
       try {
         if (channel) channel.postMessage({ action: 'NEXT_SLIDE' });
       } catch(err) {}
+    }
+
+    function triggerPrevSlide() {
+      requestFS();
+      try {
+        if (channel) channel.postMessage({ action: 'PREV_SLIDE' });
+      } catch(err) {}
+    }
+
+    window.addEventListener('click', (e) => {
+      const currentChroma = document.body.getAttribute('data-chroma');
+      if (currentChroma === 'green' && isDragging) return;
+      triggerNextSlide();
     });
 
-    // TOUCH SWIPE GESTURE SUPPORT FOR SLIDE NAVIGATION
+    // TOUCH SWIPE & TAP GESTURE SUPPORT FOR SLIDE NAVIGATION
     let touchStartX = 0;
     let touchStartY = 0;
     let touchStartTime = 0;
-    const SWIPE_THRESHOLD = 40;
-    const SWIPE_MAX_TIME = 500;
 
-    document.body.addEventListener('touchstart', (e) => {
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
-      touchStartTime = Date.now();
+    window.addEventListener('touchstart', (e) => {
+      if (e.touches && e.touches.length > 0) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        touchStartTime = Date.now();
+      }
     }, { passive: true });
 
-    document.body.addEventListener('touchend', (e) => {
+    window.addEventListener('touchend', (e) => {
+      if (!e.changedTouches || e.changedTouches.length === 0) return;
+      const currentChroma = document.body.getAttribute('data-chroma');
+      if (currentChroma === 'green' && isDragging) return;
+
       const deltaX = e.changedTouches[0].clientX - touchStartX;
       const deltaY = e.changedTouches[0].clientY - touchStartY;
       const elapsed = Date.now() - touchStartTime;
 
-      if (elapsed > SWIPE_MAX_TIME) return;
-      if (Math.abs(deltaX) < SWIPE_THRESHOLD) return;
-      if (Math.abs(deltaY) > Math.abs(deltaX)) return; // vertical swipe, ignore
+      if (elapsed > 600) return;
 
-      e.preventDefault();
-      if (deltaX < 0) {
-        // Swipe left → next slide
-        try { if (channel) channel.postMessage({ action: 'NEXT_SLIDE' }); } catch(err) {}
-      } else {
-        // Swipe right → previous slide
-        try { if (channel) channel.postMessage({ action: 'PREV_SLIDE' }); } catch(err) {}
+      // Small touch movement (< 12px) = Tap / Click → Next slide
+      if (Math.abs(deltaX) < 12 && Math.abs(deltaY) < 12) {
+        triggerNextSlide();
+        return;
+      }
+
+      // Horizontal swipe
+      if (Math.abs(deltaX) >= 30 && Math.abs(deltaX) > Math.abs(deltaY)) {
+        if (deltaX < 0) {
+          triggerNextSlide();
+        } else {
+          triggerPrevSlide();
+        }
       }
     });
 
     window.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ' || e.key === 'PageDown') {
         e.preventDefault();
-        try { if (channel) channel.postMessage({ action: 'NEXT_SLIDE' }); } catch(err) {}
+        triggerNextSlide();
       } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') {
         e.preventDefault();
-        try { if (channel) channel.postMessage({ action: 'PREV_SLIDE' }); } catch(err) {}
+        triggerPrevSlide();
       }
     });
 
@@ -667,7 +685,12 @@
     box.addEventListener('mousedown', (e) => {
       // ONLY ALLOW DRAGGING IN GREEN SCREEN MODE
       const currentChroma = document.body.getAttribute('data-chroma');
-      if (currentChroma !== 'green') return;
+      if (currentChroma !== 'green') {
+        isDragging = false;
+        if (guideV) guideV.classList.add('hidden');
+        if (guideH) guideH.classList.add('hidden');
+        return;
+      }
 
       isDragging = true;
       lastDragTime = Date.now();
@@ -678,6 +701,13 @@
     });
 
     window.addEventListener('mousemove', (e) => {
+      const currentChroma = document.body.getAttribute('data-chroma');
+      if (currentChroma !== 'green') {
+        isDragging = false;
+        if (guideV) guideV.classList.add('hidden');
+        if (guideH) guideH.classList.add('hidden');
+        return;
+      }
       if (!isDragging) return;
       lastDragTime = Date.now();
 
