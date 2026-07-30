@@ -1481,24 +1481,80 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const cleanWord = word.trim().toLowerCase();
+    const suggestionsSet = new Set();
     const suggestions = [];
 
-    if (state.francoAutoTranslate && /[a-z0-9]/i.test(cleanWord)) {
-      const rawTrans = francoToArabic(cleanWord);
-      if (rawTrans) {
-        const corrected = correctWithArabicDictionary(rawTrans, state.arabicDictionary) || rawTrans;
-        suggestions.push({ original: cleanWord, text: corrected, type: 'ترجمة' });
+    function addSuggestion(text) {
+      if (!text) return;
+      const clean = text.trim();
+      if (!clean || clean.length < 2 || clean.toLowerCase() === cleanWord) return;
+      if (!suggestionsSet.has(clean)) {
+        suggestionsSet.add(clean);
+        suggestions.push({ text: clean });
       }
     }
 
-    if (state.arabicDictionary && typeof state.arabicDictionary === 'object' && !/[a-z0-9]/i.test(cleanWord)) {
-      const normW = normalizeArabic(cleanWord);
+    // 1. Franco Translation Candidates
+    if (state.francoAutoTranslate && /[a-z0-9]/i.test(cleanWord)) {
+      const rawTrans = francoToArabic(cleanWord);
+      if (rawTrans) {
+        addSuggestion(rawTrans);
+        const corrected = correctWithArabicDictionary(rawTrans, state.arabicDictionary);
+        if (corrected) addSuggestion(corrected);
+
+        const normRaw = normalizeArabic(rawTrans);
+        if (state.arabicDictionary && typeof state.arabicDictionary === 'object') {
+          const dictKeys = Object.keys(state.arabicDictionary);
+          for (let i = 0; i < dictKeys.length && suggestions.length < 8; i++) {
+            const k = dictKeys[i];
+            if (normalizeArabic(k).startsWith(normRaw)) {
+              addSuggestion(k);
+            }
+          }
+        }
+      }
+    }
+
+    // 2. Arabic Autocomplete & Correction Candidates
+    const normW = normalizeArabic(cleanWord);
+    const stemW = arabicStem(cleanWord);
+
+    if (state.arabicDictionary && typeof state.arabicDictionary === 'object') {
       const keys = Object.keys(state.arabicDictionary);
-      for (let i = 0; i < keys.length; i++) {
+      
+      // Prefix matching
+      for (let i = 0; i < keys.length && suggestions.length < 8; i++) {
         const k = keys[i];
-        if (normalizeArabic(k).startsWith(normW) && k !== cleanWord) {
-          suggestions.push({ original: cleanWord, text: k, type: 'مقترح' });
-          if (suggestions.length >= 6) break;
+        if (normalizeArabic(k).startsWith(normW)) {
+          addSuggestion(k);
+        }
+      }
+
+      // Root / Stem matching
+      if (suggestions.length < 5) {
+        for (let i = 0; i < keys.length && suggestions.length < 8; i++) {
+          const k = keys[i];
+          if (arabicStem(k) === stemW) {
+            addSuggestion(k);
+          }
+        }
+      }
+    }
+
+    // 3. Song Catalog Word Candidates
+    if (allSongs && allSongs.length > 0 && suggestions.length < 8) {
+      for (let i = 0; i < allSongs.length && suggestions.length < 8; i++) {
+        const songTitle = allSongs[i].title;
+        if (!songTitle) continue;
+        const words = songTitle.split(/\s+/);
+        for (let j = 0; j < words.length && suggestions.length < 8; j++) {
+          const w = words[j].replace(/[^\u0600-\u06FF]/g, '').trim();
+          if (w && w.length >= 2) {
+            const normSongW = normalizeArabic(w);
+            if (normSongW.startsWith(normW) || (stemW.length > 2 && arabicStem(w) === stemW)) {
+              addSuggestion(w);
+            }
+          }
         }
       }
     }
@@ -1511,7 +1567,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     els.searchSuggestionsChips.innerHTML = suggestions.map(s => `
       <button class="suggestion-chip" type="button" data-replacement="${escapeHtml(s.text)}" data-start="${start}" data-end="${end}">
-        <i class="fa-solid fa-wand-magic-sparkles"></i> ${escapeHtml(s.text)} <span class="chip-sub">(${s.type})</span>
+        <i class="fa-solid fa-wand-magic-sparkles"></i> ${escapeHtml(s.text)}
       </button>
     `).join('');
 
