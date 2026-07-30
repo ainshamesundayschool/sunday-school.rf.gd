@@ -1244,6 +1244,7 @@ document.addEventListener('DOMContentLoaded', () => {
     obsShadowColor: document.getElementById('obs-shadow-color'),
     obsShadowStyle: document.getElementById('obs-shadow-style'),
     obsTextAnimSelect: document.getElementById('obs-text-anim-select'),
+    btnShareStyleLink: document.getElementById('btn-share-style-link'),
 
     obsFontWeightSelect: document.getElementById('obs-font-weight-select'),
     btnAlignCenter: document.getElementById('btn-align-center'),
@@ -1298,6 +1299,7 @@ document.addEventListener('DOMContentLoaded', () => {
   init();
 
   function init() {
+    applyUrlStyleSettings();
     applyInitialUIState();
     bindEvents();
     initBiblePopover();
@@ -1470,6 +1472,52 @@ document.addEventListener('DOMContentLoaded', () => {
       styleOptions: state.styleOptions
     };
     localStorage.setItem('sunday_school_taranim_user_settings', JSON.stringify(settings));
+  }
+
+  function generateShareableStyleUrl() {
+    const url = new URL(window.location.href.split('?')[0].split('#')[0]);
+    if (state.selectedFont) url.searchParams.set('font', state.selectedFont);
+    if (state.fontSize) url.searchParams.set('size', state.fontSize);
+    if (state.styleOptions?.textColor) url.searchParams.set('color', state.styleOptions.textColor);
+    if (state.styleOptions?.strokeWidth) url.searchParams.set('sw', state.styleOptions.strokeWidth);
+    if (state.styleOptions?.strokeColor) url.searchParams.set('sc', state.styleOptions.strokeColor);
+    if (state.styleOptions?.shadowDistance) url.searchParams.set('sd', state.styleOptions.shadowDistance);
+    if (state.styleOptions?.shadowBlur) url.searchParams.set('sb', state.styleOptions.shadowBlur);
+    if (state.styleOptions?.shadowColor) url.searchParams.set('sh', state.styleOptions.shadowColor);
+    if (state.chromaKey) url.searchParams.set('chroma', state.chromaKey);
+    if (state.presentationMode) url.searchParams.set('mode', state.presentationMode);
+    if (state.styleOptions?.boxBgColor) url.searchParams.set('boxBg', state.styleOptions.boxBgColor);
+    if (state.styleOptions?.boxOpacity !== undefined) url.searchParams.set('boxOp', state.styleOptions.boxOpacity);
+    if (state.styleOptions?.boxRadius !== undefined) url.searchParams.set('boxRad', state.styleOptions.boxRadius);
+    if (state.styleOptions?.boxPadding !== undefined) url.searchParams.set('boxPad', state.styleOptions.boxPadding);
+    if (state.textAnimation) url.searchParams.set('anim', state.textAnimation);
+
+    return url.toString();
+  }
+
+  function applyUrlStyleSettings() {
+    const params = new URLSearchParams(window.location.search);
+    let changed = false;
+
+    if (params.has('font')) { state.selectedFont = params.get('font'); changed = true; }
+    if (params.has('size')) { state.fontSize = parseInt(params.get('size')) || 54; changed = true; }
+    if (params.has('color')) { state.styleOptions.textColor = params.get('color'); changed = true; }
+    if (params.has('sw')) { state.styleOptions.strokeWidth = parseInt(params.get('sw')) || 0; changed = true; }
+    if (params.has('sc')) { state.styleOptions.strokeColor = params.get('sc'); changed = true; }
+    if (params.has('sd')) { state.styleOptions.shadowDistance = parseInt(params.get('sd')) || 0; changed = true; }
+    if (params.has('sb')) { state.styleOptions.shadowBlur = parseInt(params.get('sb')) || 0; changed = true; }
+    if (params.has('sh')) { state.styleOptions.shadowColor = params.get('sh'); changed = true; }
+    if (params.has('chroma')) { state.chromaKey = params.get('chroma'); changed = true; }
+    if (params.has('mode')) { state.presentationMode = params.get('mode'); changed = true; }
+    if (params.has('boxBg')) { state.styleOptions.boxBgColor = params.get('boxBg'); changed = true; }
+    if (params.has('boxOp')) { state.styleOptions.boxOpacity = parseInt(params.get('boxOp')) || 0; changed = true; }
+    if (params.has('boxRad')) { state.styleOptions.boxRadius = parseInt(params.get('boxRad')) || 0; changed = true; }
+    if (params.has('boxPad')) { state.styleOptions.boxPadding = parseInt(params.get('boxPad')) || 0; changed = true; }
+    if (params.has('anim')) { state.textAnimation = params.get('anim'); changed = true; }
+
+    if (changed) {
+      saveUserSettings();
+    }
   }
 
   function applyInitialUIState() {
@@ -1964,6 +2012,27 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.btnOpenTvWindow) {
       els.btnOpenTvWindow.addEventListener('click', () => {
         launchPresenterOnSelectedScreen('external');
+      });
+    }
+
+    if (els.btnShareStyleLink) {
+      els.btnShareStyleLink.addEventListener('click', async () => {
+        const shareUrl = generateShareableStyleUrl();
+        try {
+          await copyToClipboard(shareUrl);
+          showToast('تم نسخ رابط التنسيق والإعدادات بنجاح!');
+        } catch (e) {
+          showToast('رابط الإعدادات: ' + shareUrl);
+        }
+
+        const originalHtml = els.btnShareStyleLink.innerHTML;
+        els.btnShareStyleLink.innerHTML = `<i class="fa-solid fa-check fa-lg"></i> تم نسخ الرابط!`;
+        els.btnShareStyleLink.classList.add('btn-copied-anim');
+
+        setTimeout(() => {
+          els.btnShareStyleLink.innerHTML = originalHtml;
+          els.btnShareStyleLink.classList.remove('btn-copied-anim');
+        }, 1400);
       });
     }
 
