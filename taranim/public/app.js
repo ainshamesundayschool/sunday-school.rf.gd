@@ -988,21 +988,33 @@ document.addEventListener('DOMContentLoaded', () => {
       if (fsBtn) {
         fsBtn.addEventListener('click', (e) => {
           e.stopPropagation();
+
           if (presenterWindow && !presenterWindow.closed) {
             try { presenterWindow.focus(); } catch(err) {}
-            try {
-              if (typeof presenterWindow.triggerFullscreen === 'function') {
-                presenterWindow.triggerFullscreen();
-              }
-            } catch(err) {}
-            try {
-              presenterWindow.postMessage({ action: 'TRIGGER_FULLSCREEN' }, '*');
-            } catch(err) {}
-            try {
-              const fsChannel = new BroadcastChannel('sunday_school_taranim_fs');
-              fsChannel.postMessage({ action: 'TRIGGER_FULLSCREEN' });
-              setTimeout(() => fsChannel.close(), 500);
-            } catch(err) {}
+
+            const triggerFS = () => {
+              try {
+                if (presenterWindow && !presenterWindow.closed && typeof presenterWindow.triggerFullscreen === 'function') {
+                  presenterWindow.triggerFullscreen();
+                }
+              } catch(err) {}
+              try {
+                if (presenterWindow && !presenterWindow.closed) {
+                  presenterWindow.postMessage({ action: 'TRIGGER_FULLSCREEN' }, '*');
+                }
+              } catch(err) {}
+              try {
+                const fsChannel = new BroadcastChannel('sunday_school_taranim_fs');
+                fsChannel.postMessage({ action: 'TRIGGER_FULLSCREEN' });
+                setTimeout(() => fsChannel.close(), 200);
+              } catch(err) {}
+            };
+
+            // Trigger immediately and at small staggered delays to allow OS window focus switch
+            triggerFS();
+            setTimeout(triggerFS, 150);
+            setTimeout(triggerFS, 350);
+            setTimeout(triggerFS, 700);
           } else {
             launchPresenterOnSelectedScreen();
           }
