@@ -993,7 +993,7 @@ html, body {
   white-space: pre-line;
   text-align: center;
   margin: 0 auto;
-  cursor: grab;
+  cursor: pointer;
   max-width: 92vw;
   word-break: break-word;
   padding: 15px 25px;
@@ -1002,7 +1002,13 @@ html, body {
   will-change: transform, opacity;
 }
 
-.obs-line-text:active { cursor: grabbing; }
+.obs-overlay[data-chroma="green"] .obs-line-text {
+  cursor: grab;
+}
+
+.obs-overlay[data-chroma="green"] .obs-line-text:active {
+  cursor: grabbing;
+}
 
 /* TEXT APPEARANCE ANIMATIONS FOR CONTAINER & PREVIEW (WITH MOBILE SAFARI WEBKIT COMPATIBILITY) */
 /* HIGH-PERFORMANCE 60FPS GPU ACCELERATED TEXT APPEARANCE ANIMATIONS */

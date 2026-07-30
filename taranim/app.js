@@ -2912,18 +2912,23 @@ document.addEventListener('DOMContentLoaded', () => {
           const len = snapText.trim().length;
 
           let targetSize = snapSize || 54;
-          if (len > 0) {
-            if (len < 30) targetSize = Math.max(targetSize, Math.round(vH * 0.10));
-            else if (len < 60) targetSize = Math.max(targetSize, Math.round(vH * 0.08));
-            else if (len < 100) targetSize = Math.max(targetSize, Math.round(vH * 0.065));
+          if (vW < 600) {
+            const scaleFactor = Math.max(0.4, vW / 600);
+            targetSize = Math.round(targetSize * scaleFactor);
+          } else {
+            if (len > 0) {
+              if (len < 30) targetSize = Math.max(targetSize, Math.round(vH * 0.10));
+              else if (len < 60) targetSize = Math.max(targetSize, Math.round(vH * 0.08));
+              else if (len < 100) targetSize = Math.max(targetSize, Math.round(vH * 0.065));
+            }
           }
 
           let fitSize = Math.min(targetSize, 96);
           els.obsLineText.style.fontSize = `${fitSize}px`;
 
-          const maxW = vW * 0.92;
+          const maxW = vW * 0.90;
           const maxH = vH * 0.86;
-          while ((els.obsLineText.scrollWidth > maxW || els.obsLineText.scrollHeight > maxH) && fitSize > 20) {
+          while ((els.obsLineText.scrollWidth > maxW || els.obsLineText.scrollHeight > maxH) && fitSize > 14) {
             fitSize -= 2;
             els.obsLineText.style.fontSize = `${fitSize}px`;
           }

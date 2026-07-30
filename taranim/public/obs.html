@@ -514,18 +514,23 @@
       };
     } catch(e) {}
 
-    document.body.addEventListener('click', () => {
-      if (!isDragging) {
-        requestFS();
-        try { channel.postMessage({ action: 'NEXT_SLIDE' }); } catch(e) {}
-      }
+    const channel = new BroadcastChannel('sunday_school_taranim_obs_channel');
+
+    document.body.addEventListener('click', (e) => {
+      const currentChroma = document.body.getAttribute('data-chroma');
+      if (currentChroma === 'green' && isDragging) return;
+
+      requestFS();
+      try {
+        if (channel) channel.postMessage({ action: 'NEXT_SLIDE' });
+      } catch(err) {}
     });
 
     // TOUCH SWIPE GESTURE SUPPORT FOR SLIDE NAVIGATION
     let touchStartX = 0;
     let touchStartY = 0;
     let touchStartTime = 0;
-    const SWIPE_THRESHOLD = 50;
+    const SWIPE_THRESHOLD = 40;
     const SWIPE_MAX_TIME = 500;
 
     document.body.addEventListener('touchstart', (e) => {
@@ -546,20 +551,20 @@
       e.preventDefault();
       if (deltaX < 0) {
         // Swipe left → next slide
-        try { channel.postMessage({ action: 'NEXT_SLIDE' }); } catch(err) {}
+        try { if (channel) channel.postMessage({ action: 'NEXT_SLIDE' }); } catch(err) {}
       } else {
         // Swipe right → previous slide
-        try { channel.postMessage({ action: 'PREV_SLIDE' }); } catch(err) {}
+        try { if (channel) channel.postMessage({ action: 'PREV_SLIDE' }); } catch(err) {}
       }
     });
 
     window.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ' || e.key === 'PageDown') {
         e.preventDefault();
-        try { channel.postMessage({ action: 'NEXT_SLIDE' }); } catch(err) {}
+        try { if (channel) channel.postMessage({ action: 'NEXT_SLIDE' }); } catch(err) {}
       } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') {
         e.preventDefault();
-        try { channel.postMessage({ action: 'PREV_SLIDE' }); } catch(err) {}
+        try { if (channel) channel.postMessage({ action: 'PREV_SLIDE' }); } catch(err) {}
       }
     });
 
@@ -612,19 +617,24 @@
       const viewportH = window.innerHeight;
 
       let targetSize = stateFontSize || 54;
-      if (len > 0) {
-        if (len < 30) targetSize = Math.max(targetSize, Math.round(viewportH * 0.10));
-        else if (len < 60) targetSize = Math.max(targetSize, Math.round(viewportH * 0.08));
-        else if (len < 100) targetSize = Math.max(targetSize, Math.round(viewportH * 0.065));
+      if (viewportW < 600) {
+        const scaleFactor = Math.max(0.4, viewportW / 600);
+        targetSize = Math.round(targetSize * scaleFactor);
+      } else {
+        if (len > 0) {
+          if (len < 30) targetSize = Math.max(targetSize, Math.round(viewportH * 0.10));
+          else if (len < 60) targetSize = Math.max(targetSize, Math.round(viewportH * 0.08));
+          else if (len < 100) targetSize = Math.max(targetSize, Math.round(viewportH * 0.065));
+        }
       }
 
       let size = Math.min(targetSize, 96);
       textEl.style.fontSize = size + 'px';
 
-      const maxW = viewportW * 0.92;
+      const maxW = viewportW * 0.90;
       const maxH = viewportH * 0.86;
 
-      while ((textEl.scrollWidth > maxW || textEl.scrollHeight > maxH) && size > 20) {
+      while ((textEl.scrollWidth > maxW || textEl.scrollHeight > maxH) && size > 14) {
         size -= 2;
         textEl.style.fontSize = size + 'px';
       }
@@ -915,8 +925,7 @@
       }
     }
 
-    const channel = new BroadcastChannel('sunday_school_taranim_obs_channel');
-    channel.onmessage = (event) => applyState(event.data, 'local');
+      if (channel) channel.onmessage = (event) => applyState(event.data, 'local');
 
     window.addEventListener('storage', (e) => {
       if (e.key === 'sunday_school_taranim_live_presentation') {
