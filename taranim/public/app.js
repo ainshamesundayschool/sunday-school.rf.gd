@@ -61,13 +61,19 @@ function arabicStem(word) {
 
 function francoToArabic(text) {
   if (!text) return '';
-  let s = text.toLowerCase().trim();
-  if (!/[a-z0-9]/.test(s)) return '';
+  let s = String(text).trim();
+  if (!s || !/[a-z0-9]/i.test(s)) return '';
 
-  FRANCO_MAPPINGS.forEach(([f, a]) => {
-    s = s.split(f).join(a);
+  let words = s.split(/\s+/);
+  let translated = words.map(w => {
+    if (!/[a-z0-9]/i.test(w)) return w;
+    let tw = w.toLowerCase();
+    FRANCO_MAPPINGS.forEach(([f, a]) => {
+      tw = tw.split(f).join(a);
+    });
+    return tw;
   });
-  return s;
+  return translated.join(' ');
 }
 
 const BIBLE_BOOK_SHORTCUTS = [
@@ -942,7 +948,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.fontSizeValBadge) els.fontSizeValBadge.textContent = `${state.fontSize}px`;
     if (els.chromaSelect) els.chromaSelect.value = state.chromaKey;
     if (els.presModeSelect) els.presModeSelect.value = state.presentationMode;
-    if (els.francoToggleBtn) els.francoToggleBtn.checked = state.francoAutoTranslate;
+    if (els.francoToggleBtn) els.francoToggleBtn.classList.toggle('active', state.francoAutoTranslate);
     if (els.obsTextAnimSelect) els.obsTextAnimSelect.value = state.textAnimation;
 
     if (els.obsTextColor) els.obsTextColor.value = state.styleOptions.textColor;
@@ -1378,6 +1384,19 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
+    if (els.francoToggleBtn) {
+      els.francoToggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        state.francoAutoTranslate = !state.francoAutoTranslate;
+        saveUserSettings();
+        els.francoToggleBtn.classList.toggle('active', state.francoAutoTranslate);
+        if (els.intelligentSearch && els.intelligentSearch.value.trim()) {
+          renderSearchWordSuggestions(els.intelligentSearch.value);
+          performIntelligentSearch(els.intelligentSearch.value);
+        }
+      });
+    }
+
     els.clearSearchBtn.addEventListener('click', () => {
       els.intelligentSearch.value = '';
       els.clearSearchBtn.classList.add('hidden');
@@ -1605,7 +1624,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const select = els.connectedScreensSelect;
-    const val = select.value;
+    const val = select ? select.value : 'primary';
 
     let targetScreen = null;
     if (screenDetails && screenDetails.screens) {

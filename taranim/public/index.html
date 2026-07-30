@@ -284,15 +284,6 @@
     <!-- CENTERED INTELLIGENT SEARCH HERO -->
     <section class="search-hero">
       
-      <!-- TRANSLATION TOGGLE TOOLBAR -->
-      <div class="search-toolbar">
-        <label class="toggle-switch" title="ترجمة تلقائياً إلى العربية">
-          <input type="checkbox" id="franco-toggle-btn" checked>
-          <span class="toggle-slider"></span>
-          <span class="toggle-label"><i class="fa-solid fa-language"></i> ترجمة</span>
-        </label>
-      </div>
-
       <!-- DYNAMIC FLOATING SEARCH SUGGESTIONS CHIPS -->
       <div id="search-suggestions-chips" class="search-suggestions-chips hidden"></div>
 
@@ -300,7 +291,10 @@
       <div class="centered-search-box">
         <i class="fa-solid fa-magnifying-glass search-icon-glow"></i>
         <input type="text" id="intelligent-search" placeholder="ابحث باسم الترنيمة أو الشاهد الكتابي..." autofocus autocomplete="off">
-        <button id="clear-search-btn" class="clear-btn hidden"><i class="fa-solid fa-xmark"></i></button>
+        <button id="clear-search-btn" class="clear-btn hidden" type="button"><i class="fa-solid fa-xmark"></i></button>
+        <button id="franco-toggle-btn" class="search-inside-toggle active" type="button" title="ترجمة الفرانكو والتصحيح الإملائي">
+          <i class="fa-solid fa-language"></i>
+        </button>
 
         <!-- SEARCH RESULTS DROPDOWN FLUSH ATTACHED STUCK TO THE SEARCH BAR -->
         <div id="search-results-dropdown" class="search-dropdown hidden">
