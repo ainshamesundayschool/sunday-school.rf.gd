@@ -742,19 +742,44 @@ html, body {
 }
 
 .recent-item-cb, #recent-select-all-cb {
+  appearance: none;
+  -webkit-appearance: none;
   width: 18px !important;
   height: 18px !important;
   min-width: 18px !important;
   min-height: 18px !important;
-  accent-color: #2563eb;
-  cursor: pointer;
-  flex-shrink: 0;
-  margin: 0;
-  vertical-align: middle;
-  border: 1.5px solid #cbd5e1 !important;
+  background-color: #e2e8f0;
+  border: none !important;
   outline: none !important;
   box-shadow: none !important;
   border-radius: 50% !important;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease;
+  position: relative;
+}
+
+.recent-item-cb:hover, #recent-select-all-cb:hover {
+  background-color: #cbd5e1;
+}
+
+.recent-item-cb:checked, #recent-select-all-cb:checked {
+  background-color: #2563eb;
+  border: none !important;
+}
+
+.recent-item-cb:checked::after, #recent-select-all-cb:checked::after {
+  content: '';
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) translate(-1px, -1px);
+  display: block;
 }
 
 /* POPOVER PLAYLIST MATCHING APP SLEEK CLEAN DESIGN SYSTEM */
@@ -1044,8 +1069,8 @@ html, body {
 
 .drag-handle-icon, .recent-item .drag-handle-icon {
   color: #94a3b8;
-  font-size: 0.85rem;
-  font-weight: 400 !important;
+  font-size: 0.82rem;
+  opacity: 0.6;
   cursor: grab;
   padding: 2px 4px;
 }
