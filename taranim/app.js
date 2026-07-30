@@ -1848,18 +1848,26 @@ document.addEventListener('DOMContentLoaded', () => {
       top = window.screen.availTop || 0;
     }
 
-    if (val === 'primary' || (targetScreen && targetScreen.isPrimary)) {
+    let isCurrentWindowScreen = false;
+    if (screenDetails && screenDetails.currentScreen && targetScreen) {
+      isCurrentWindowScreen = (targetScreen === screenDetails.currentScreen) ||
+                              (targetScreen.left === screenDetails.currentScreen.left && targetScreen.top === screenDetails.currentScreen.top);
+    } else if (val === 'primary' && (!screenDetails || !screenDetails.currentScreen || screenDetails.currentScreen.isPrimary)) {
+      isCurrentWindowScreen = true;
+    }
+
+    if (isCurrentWindowScreen) {
       if (presenterWindow && !presenterWindow.closed) {
         try { presenterWindow.close(); } catch(e) {}
         presenterWindow = null;
       }
 
       state.selectedScreen = {
-        val: 'primary',
-        label: 'الشاشة الرئيسية (هذا الجهاز)',
+        val: String(val),
+        label: targetScreen ? (targetScreen.label || `شاشة ${targetIdx + 1}`) : 'الشاشة الرئيسية (هذا الجهاز)',
         width: window.screen.width || 1920,
         height: window.screen.height || 1080,
-        isPrimary: true
+        isPrimary: targetScreen ? targetScreen.isPrimary : true
       };
       try { localStorage.setItem('sunday_school_taranim_locked_screen', JSON.stringify(state.selectedScreen)); } catch(e) {}
       updateDisplayButtonUI();
