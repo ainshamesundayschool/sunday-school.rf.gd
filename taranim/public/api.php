@@ -135,6 +135,9 @@ if (strpos($parsedUrl, '/api/songs') !== false || (isset($_GET['action']) && $_G
     $limit  = isset($_GET['limit']) ? (int)$_GET['limit'] : 50;
     $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
 
+    $songs = [];
+    $bibleChapters = [];
+
     if (!empty($q)) {
         $qNorm = normalizeArabic($q);
         
@@ -156,6 +159,68 @@ if (strpos($parsedUrl, '/api/songs') !== false || (isset($_GET['action']) && $_G
         $stmt->bindValue(':q', '%' . $q . '%', PDO::PARAM_STR);
         $stmt->bindValue(':qNorm', '%' . $qNorm . '%', PDO::PARAM_STR);
         $stmt->execute();
+        $songs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // SEARCH BIBLE CHAPTERS TABLE AS WELL
+        try {
+            $qDigits = preg_replace('/[٠]/u', '0', $q);
+            $qDigits = preg_replace('/[١]/u', '1', $qDigits);
+            $qDigits = preg_replace('/[٢]/u', '2', $qDigits);
+            $qDigits = preg_replace('/[٣]/u', '3', $qDigits);
+            $qDigits = preg_replace('/[٤]/u', '4', $qDigits);
+            $qDigits = preg_replace('/[٥]/u', '5', $qDigits);
+            $qDigits = preg_replace('/[٦]/u', '6', $qDigits);
+            $qDigits = preg_replace('/[٧]/u', '7', $qDigits);
+            $qDigits = preg_replace('/[٨]/u', '8', $qDigits);
+            $qDigits = preg_replace('/[٩]/u', '9', $qDigits);
+
+            $numMatch = [];
+            $chNum = null;
+            if (preg_match('/(\d+)/', $qDigits, $numMatch)) {
+                $chNum = (int)$numMatch[1];
+            }
+            $cleanBookStr = trim(preg_replace('/\d+/', '', $qDigits));
+            $cleanBookNorm = normalizeArabic($cleanBookStr);
+
+            if ($chNum !== null) {
+                $bStmt = $pdo->prepare("
+                    SELECT c.id, c.item_id, 
+                           (b.title || ' - الأصحاح ' || bc.number) as title,
+                           b.title as book_title,
+                           bc.number as chapter_number,
+                           1 as is_bible
+                    FROM chapters c
+                    JOIN bible_chapters bc ON c.bible_chapter = bc.id
+                    JOIN books b ON bc.book = b.id
+                    WHERE (b.title LIKE :q OR b.abbr LIKE :q OR :qNorm LIKE ('%' || b.title || '%'))
+                      AND bc.number = :chNum
+                    LIMIT 10
+                ");
+                $bStmt->bindValue(':q', '%' . $cleanBookStr . '%', PDO::PARAM_STR);
+                $bStmt->bindValue(':qNorm', '%' . $cleanBookNorm . '%', PDO::PARAM_STR);
+                $bStmt->bindValue(':chNum', $chNum, PDO::PARAM_INT);
+                $bStmt->execute();
+                $bibleChapters = $bStmt->fetchAll(PDO::FETCH_ASSOC);
+            } else {
+                $bStmt = $pdo->prepare("
+                    SELECT c.id, c.item_id, 
+                           (b.title || ' - الأصحاح ' || bc.number) as title,
+                           b.title as book_title,
+                           bc.number as chapter_number,
+                           1 as is_bible
+                    FROM chapters c
+                    JOIN bible_chapters bc ON c.bible_chapter = bc.id
+                    JOIN books b ON bc.book = b.id
+                    WHERE b.title LIKE :q OR b.abbr LIKE :q OR :qNorm LIKE ('%' || b.title || '%')
+                    LIMIT 10
+                ");
+                $bStmt->bindValue(':q', '%' . $q . '%', PDO::PARAM_STR);
+                $bStmt->bindValue(':qNorm', '%' . $qNorm . '%', PDO::PARAM_STR);
+                $bStmt->execute();
+                $bibleChapters = $bStmt->fetchAll(PDO::FETCH_ASSOC);
+            }
+        } catch (Exception $ex) {}
+
     } else {
         $sql = "
             SELECT s.id, s.item_id, s.title, s.media_url, s.notes, sc.scale as scale_id
@@ -167,9 +232,10 @@ if (strpos($parsedUrl, '/api/songs') !== false || (isset($_GET['action']) && $_G
         ";
         $stmt = $pdo->prepare($sql);
         $stmt->execute();
+        $songs = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    $songs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $allResults = array_merge($bibleChapters, $songs);
 
     $totalCount = 11611;
     try {
@@ -177,7 +243,7 @@ if (strpos($parsedUrl, '/api/songs') !== false || (isset($_GET['action']) && $_G
         $totalCount = (int)$cStmt->fetchColumn();
     } catch (Exception $e) {}
 
-    echo json_encode(['songs' => $songs, 'total' => count($songs), 'total_songs' => $totalCount, 'db_type' => $isMysql ? 'mysql' : 'sqlite']);
+    echo json_encode(['songs' => $allResults, 'total' => count($allResults), 'total_songs' => $totalCount, 'db_type' => $isMysql ? 'mysql' : 'sqlite']);
     exit;
 }
 
@@ -193,6 +259,21 @@ if (preg_match('#/api/song/(\d+)#', $parsedUrl, $matches) || (isset($_GET['actio
     $stmt->bindValue(':id', $songId, PDO::PARAM_INT);
     $stmt->execute();
     $song = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$song) {
+        try {
+            $cStmt = $pdo->prepare("
+                SELECT c.id, c.item_id, (b.title || ' - الأصحاح ' || bc.number) as title, 1 as is_bible
+                FROM chapters c
+                JOIN bible_chapters bc ON c.bible_chapter = bc.id
+                JOIN books b ON bc.book = b.id
+                WHERE c.id = :id OR c.item_id = :id
+            ");
+            $cStmt->bindValue(':id', $songId, PDO::PARAM_INT);
+            $cStmt->execute();
+            $song = $cStmt->fetch(PDO::FETCH_ASSOC);
+        } catch (Exception $ex) {}
+    }
 
     if (!$song) {
         http_response_code(404);

@@ -1954,7 +1954,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       startX = e.clientX;
       startY = e.clientY;
-
       syncLiveState(true); // Explicit position change
     });
 
@@ -1964,6 +1963,116 @@ document.addEventListener('DOMContentLoaded', () => {
         if (els.snapGuideV) els.snapGuideV.classList.add('hidden');
         if (els.snapGuideH) els.snapGuideH.classList.add('hidden');
       }
+    });
+  }
+
+  function renderSearchWordSuggestions(text) {
+    const cursor = els.intelligentSearch.selectionStart;
+    const words = text.split(/\s+/);
+    let currentPos = 0;
+    let cleanWord = '';
+    let start = 0;
+    let end = 0;
+
+    for (const w of words) {
+      start = currentPos;
+      end = currentPos + w.length;
+      if (cursor >= start && cursor <= end) {
+        cleanWord = w.replace(/[^\u0600-\u06FF]/g, '');
+        break;
+      }
+      currentPos = end + 1;
+    }
+
+    if (!cleanWord || cleanWord.length < 2) {
+      els.searchSuggestionsChips.classList.add('hidden');
+      return;
+    }
+
+    const suggestions = [];
+    const addSuggestion = (text) => {
+      if (!suggestions.find(s => s.text === text)) suggestions.push({ text });
+    };
+
+    // 2. Arabic Autocomplete & Correction Candidates
+    const normW = normalizeArabic(cleanWord);
+    const stemW = arabicStem(cleanWord);
+
+    if (state.arabicDictionary && typeof state.arabicDictionary === 'object') {
+      const arCorrected = correctWithArabicDictionary(cleanWord, state.arabicDictionary);
+      if (arCorrected && arCorrected !== cleanWord) addSuggestion(arCorrected);
+
+      const keys = Object.keys(state.arabicDictionary);
+      
+      // Prefix matching
+      for (let i = 0; i < keys.length && suggestions.length < 8; i++) {
+        const k = keys[i];
+        if (normalizeArabic(k).startsWith(normW)) {
+          addSuggestion(k);
+        }
+      }
+
+      // Root / Stem matching
+      if (suggestions.length < 5) {
+        for (let i = 0; i < keys.length && suggestions.length < 8; i++) {
+          const k = keys[i];
+          if (arabicStem(k) === stemW) {
+            addSuggestion(k);
+          }
+        }
+      }
+    }
+
+    // 3. Song Catalog Word Candidates
+    if (state.allSongs && state.allSongs.length > 0 && suggestions.length < 8) {
+      for (let i = 0; i < state.allSongs.length && suggestions.length < 8; i++) {
+        const songTitle = state.allSongs[i].title;
+        if (!songTitle) continue;
+        const words = songTitle.split(/\s+/);
+        for (let j = 0; j < words.length && suggestions.length < 8; j++) {
+          const w = words[j].replace(/[^\u0600-\u06FF]/g, '').trim();
+          if (w && w.length >= 2) {
+            const normSongW = normalizeArabic(w);
+            if (normSongW.startsWith(normW) || (stemW.length > 2 && arabicStem(w) === stemW)) {
+              addSuggestion(w);
+            }
+          }
+        }
+      }
+    }
+
+    if (suggestions.length === 0) {
+      els.searchSuggestionsChips.classList.add('hidden');
+      els.searchSuggestionsChips.innerHTML = '';
+      return;
+    }
+
+    els.searchSuggestionsChips.innerHTML = suggestions.map(s => `
+      <button class="suggestion-chip" type="button" data-replacement="${escapeHtml(s.text)}" data-start="${start}" data-end="${end}">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> ${escapeHtml(s.text)}
+      </button>
+    `).join('');
+
+    els.searchSuggestionsChips.classList.remove('hidden');
+
+    els.searchSuggestionsChips.querySelectorAll('.suggestion-chip').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const rep = btn.dataset.replacement;
+        const sPos = parseInt(btn.dataset.start);
+        const ePos = parseInt(btn.dataset.end);
+
+        const fullText = els.intelligentSearch.value;
+        const newText = fullText.slice(0, sPos) + rep + fullText.slice(ePos);
+        els.intelligentSearch.value = newText;
+
+        const newCursor = sPos + rep.length;
+        els.intelligentSearch.setSelectionRange(newCursor, newCursor);
+        els.intelligentSearch.focus();
+
+        renderSearchWordSuggestions(newText);
+        performIntelligentSearch(newText);
+      });
     });
   }
 
@@ -2019,9 +2128,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (state.allSongs && state.allSongs.length > 0) {
       let qNorm = normalizeArabic(searchTarget);
-      let qFrancoRaw = francoToArabic(searchTarget);
-      let qFrancoCorrected = qFrancoRaw ? correctWithArabicDictionary(qFrancoRaw, state.arabicDictionary) : '';
-      let qArabicCorrected = correctWithArabicDictionary(qNorm, state.arabicDictionary);
+      let isFrancoInput = state.francoAutoTranslate && /[a-z0-9]/i.test(searchTarget);
+      let qFrancoRaw = isFrancoInput ? francoToArabic(searchTarget) : '';
 
       songsList = state.allSongs.filter(song => {
         const tNorm = normalizeArabic(song.title || '');
@@ -2036,11 +2144,11 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
 
-        return tNorm.includes(qNorm) || 
-               nNorm.includes(qNorm) || 
-               (qFrancoRaw && (tNorm.includes(qFrancoRaw) || nNorm.includes(qFrancoRaw))) ||
-               (qFrancoCorrected && (tNorm.includes(qFrancoCorrected) || nNorm.includes(qFrancoCorrected))) ||
-               (qArabicCorrected && (tNorm.includes(qArabicCorrected) || nNorm.includes(qArabicCorrected)));
+        if (isFrancoInput) {
+          return (qFrancoRaw && (tNorm.includes(qFrancoRaw) || nNorm.includes(qFrancoRaw)));
+        }
+
+        return tNorm.includes(qNorm) || nNorm.includes(qNorm);
       });
     }
 
@@ -2081,13 +2189,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (state.francoAutoTranslate && /[a-z0-9]/i.test(query)) {
       const rawTranslated = francoToArabic(query);
       if (rawTranslated) {
-        const corrected = correctWithArabicDictionary(rawTranslated, state.arabicDictionary);
-        francoHeaderHtml = `<div class="franco-translation-header"><i class="fa-solid fa-wand-magic-sparkles"></i> الترجمة الحية والمصححة: <strong>${escapeHtml(corrected)}</strong></div>`;
-      }
-    } else if (query && !/[a-z0-9]/i.test(query)) {
-      const correctedAr = correctWithArabicDictionary(qNorm, state.arabicDictionary);
-      if (correctedAr && correctedAr !== qNorm) {
-        francoHeaderHtml = `<div class="franco-translation-header"><i class="fa-solid fa-wand-magic-sparkles"></i> التصحيح الإملائي المقترح: <strong>${escapeHtml(correctedAr)}</strong></div>`;
+        francoHeaderHtml = `<div class="franco-translation-header"><i class="fa-solid fa-wand-magic-sparkles"></i> الترجمة الحية: <strong>${escapeHtml(rawTranslated)}</strong></div>`;
       }
     }
 
@@ -2174,38 +2276,33 @@ document.addEventListener('DOMContentLoaded', () => {
   async function openAndPresentItem(songId) {
     if (!songId) return;
 
-    const recentMatch = state.sessionRecents.find(r => String(r.id) === String(songId));
-    if (recentMatch && (recentMatch.verses || recentMatch.notes)) {
-      state.activeSong = recentMatch;
-      addToSessionRecents(recentMatch);
-      loadSongIntoPresentation(recentMatch);
-      return;
-    }
-
-    if (state.allSongs && state.allSongs.length > 0) {
-      const localSong = state.allSongs.find(s => String(s.id) === String(songId));
-      if (localSong) {
-        state.activeSong = localSong;
-        addToSessionRecents(localSong);
-        loadSongIntoPresentation(localSong);
-        return;
+    let targetSong = state.sessionRecents.find(r => String(r.id) === String(songId) || String(r.item_id) === String(songId));
+    if (!targetSong || !targetSong.verses || !Array.isArray(targetSong.verses) || targetSong.verses.length === 0) {
+      if (state.allSongs && state.allSongs.length > 0) {
+        const local = state.allSongs.find(s => String(s.id) === String(songId) || String(s.item_id) === String(songId));
+        if (local) targetSong = local;
       }
     }
 
-    try {
-      let res = await fetch(`api.php?action=song&id=${songId}`);
-      if (!res.ok) res = await fetch(`/api/song/${songId}`);
-      if (!res.ok) res = await fetch(`../api.php?action=song&id=${songId}`);
-      if (res.ok) {
-        const song = await res.json();
-        if (song && (song.title || song.id)) {
-          state.activeSong = song;
-          addToSessionRecents(song);
-          loadSongIntoPresentation(song);
-          return;
+    if (!targetSong || !targetSong.verses || !Array.isArray(targetSong.verses) || targetSong.verses.length === 0) {
+      try {
+        let res = await fetch(`api.php?action=song&id=${songId}`);
+        if (!res.ok) res = await fetch(`/api/song/${songId}`);
+        if (!res.ok) res = await fetch(`../api.php?action=song&id=${songId}`);
+        if (res.ok) {
+          const fullSong = await res.json();
+          if (fullSong && (fullSong.title || fullSong.id)) {
+            targetSong = fullSong;
+          }
         }
-      }
-    } catch (err) {
+      } catch (err) {}
+    }
+
+    if (targetSong) {
+      state.activeSong = targetSong;
+      addToSessionRecents(targetSong);
+      loadSongIntoPresentation(targetSong);
+    } else {
       showToast('تعذر تحميل بيانات الترنيمة.');
     }
   }

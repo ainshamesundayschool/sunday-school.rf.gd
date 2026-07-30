@@ -515,14 +515,14 @@
 
     window.addEventListener('resize', fitTextToSafeArea);
 
-    // AUTO FULLSCREEN REQUEST ON CLICK OR LAUNCH
+    // AUTO FULLSCREEN REQUEST ON CLICK OR TOUCH
     function requestAutoFullscreen() {
       if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen().catch(() => {});
       }
     }
     window.addEventListener('click', requestAutoFullscreen);
-    window.addEventListener('load', requestAutoFullscreen);
+    window.addEventListener('touchstart', requestAutoFullscreen);
 
     // DRAGGING LOGIC (ONLY ENABLED IN GREEN SCREEN CHROMA MODE)
     let isDragging = false;
