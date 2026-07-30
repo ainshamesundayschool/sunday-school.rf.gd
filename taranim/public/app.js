@@ -1991,12 +1991,11 @@ document.addEventListener('DOMContentLoaded', () => {
         els.clearSearchBtn.classList.add('hidden');
       }
 
-      renderSearchWordSuggestions(query);
-
       clearTimeout(searchTimer);
       searchTimer = setTimeout(() => {
+        renderSearchWordSuggestions(query);
         performIntelligentSearch(query);
-      }, 50);
+      }, 70);
     });
 
     els.intelligentSearch.addEventListener('focus', () => {
@@ -2033,7 +2032,50 @@ document.addEventListener('DOMContentLoaded', () => {
     els.btnNextLine.addEventListener('click', nextLine);
     els.btnToggleBlank.addEventListener('click', toggleBlank);
 
-    if (els.btnPresenterFullscreen) {
+    if (els.obsOverlay) {
+      let overlayTouchStartX = 0;
+      let overlayTouchStartY = 0;
+      let overlayTouchStartTime = 0;
+      let overlayLastTouchTime = 0;
+
+      els.obsOverlay.addEventListener('click', (e) => {
+        if (Date.now() - overlayLastTouchTime < 500) return;
+        nextLine();
+      });
+
+      els.obsOverlay.addEventListener('touchstart', (e) => {
+        if (e.touches && e.touches.length > 0) {
+          overlayTouchStartX = e.touches[0].clientX;
+          overlayTouchStartY = e.touches[0].clientY;
+          overlayTouchStartTime = Date.now();
+        }
+      }, { passive: true });
+
+      els.obsOverlay.addEventListener('touchend', (e) => {
+        if (!e.changedTouches || e.changedTouches.length === 0) return;
+
+        overlayLastTouchTime = Date.now();
+
+        const deltaX = e.changedTouches[0].clientX - overlayTouchStartX;
+        const deltaY = e.changedTouches[0].clientY - overlayTouchStartY;
+        const elapsed = Date.now() - overlayTouchStartTime;
+
+        if (elapsed > 700) return;
+
+        if (Math.abs(deltaX) < 15 && Math.abs(deltaY) < 15) {
+          nextLine();
+          return;
+        }
+
+        if (Math.abs(deltaX) >= 25 && Math.abs(deltaX) > Math.abs(deltaY)) {
+          if (deltaX < 0) {
+            nextLine();
+          } else {
+            prevLine();
+          }
+        }
+      });
+
       els.btnPresenterFullscreen.addEventListener('click', () => {
         if (els.obsOverlay) {
           els.obsOverlay.classList.remove('hidden');
@@ -2511,10 +2553,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const arCorrected = correctWithArabicDictionary(cleanWord, state.arabicDictionary);
       if (arCorrected && arCorrected !== cleanWord) addSuggestion(arCorrected);
 
-      const keys = Object.keys(state.arabicDictionary);
+      const keys = state.dictKeys || Object.keys(state.arabicDictionary);
+      const maxScan = Math.min(keys.length, 1500);
       
       // Prefix matching
-      for (let i = 0; i < keys.length && suggestions.length < 8; i++) {
+      for (let i = 0; i < maxScan && suggestions.length < 8; i++) {
         const k = keys[i];
         if (normalizeArabic(k).startsWith(normW)) {
           addSuggestion(k);
@@ -2595,7 +2638,10 @@ document.addEventListener('DOMContentLoaded', () => {
   async function loadInitialData() {
     fetch('arabic_dictionary.json')
       .then(r => r.json())
-      .then(dict => { state.arabicDictionary = dict; })
+      .then(dict => { 
+        state.arabicDictionary = dict; 
+        state.dictKeys = Object.keys(dict);
+      })
       .catch(() => {});
 
     try {
@@ -2605,11 +2651,17 @@ document.addEventListener('DOMContentLoaded', () => {
       
       if (res.ok) {
         const data = await res.json();
+        let rawList = [];
         if (Array.isArray(data)) {
-          state.allSongs = data;
+          rawList = data;
         } else if (data && data.songs) {
-          state.allSongs = data.songs;
+          rawList = data.songs;
         }
+        state.allSongs = rawList.map(song => ({
+          ...song,
+          _tNorm: normalizeArabic(song.title || ''),
+          _nNorm: normalizeArabic(song.notes || '')
+        }));
       }
 
       const realTotalCount = state.allSongs.length > 0 ? state.allSongs.length : 11611;
@@ -2625,47 +2677,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  async function performIntelligentSearch(query) {
+  let searchAbortController = null;
+  let searchDebounceTimeout = null;
+
+  function performIntelligentSearch(query) {
     if (!query || !query.trim()) {
+      if (searchDebounceTimeout) clearTimeout(searchDebounceTimeout);
+      if (searchAbortController) searchAbortController.abort();
       els.searchDropdown.classList.add('hidden');
       return;
     }
 
-    const bibleInfo = parseBibleSearchShortcut(query);
-    const searchTarget = bibleInfo ? bibleInfo.searchQuery : query.trim();
-    let songsList = [];
+    const trimmedQuery = query.trim();
+    const bibleInfo = parseBibleSearchShortcut(trimmedQuery);
+    const searchTarget = bibleInfo ? bibleInfo.searchQuery : trimmedQuery;
 
-    // ALWAYS QUERY SERVER API FOR BIBLE / SEARCH QUERY
-    try {
-      let res = await fetch(`api.php?q=${encodeURIComponent(query)}&limit=150`);
-      if (!res.ok) res = await fetch(`/api/songs?q=${encodeURIComponent(query)}&limit=150`);
-      if (res.ok) {
-        let data = await res.json();
-        if (data && data.songs && data.songs.length > 0) {
-          songsList = songsList.concat(data.songs);
-        }
-      }
-
-      if (bibleInfo && bibleInfo.searchQuery && bibleInfo.searchQuery !== query) {
-        let bRes = await fetch(`api.php?q=${encodeURIComponent(bibleInfo.searchQuery)}&limit=150`);
-        if (bRes.ok) {
-          let bData = await bRes.json();
-          if (bData && bData.songs && bData.songs.length > 0) {
-            songsList = songsList.concat(bData.songs);
-          }
-        }
-      }
-    } catch (err) {}
-
-    // ALSO FILTER LOCAL SONGS CATALOG
+    // 1. INSTANT LOCAL SEARCH (0ms UI RESPONSE TIME!)
+    let localMatches = [];
     if (state.allSongs && state.allSongs.length > 0) {
       let qNorm = normalizeArabic(searchTarget);
       let isFrancoInput = state.francoAutoTranslate && /[a-z]/i.test(searchTarget) && !/[\u0600-\u06FF]/.test(searchTarget);
       let qFrancoRaw = isFrancoInput ? francoToArabic(searchTarget) : '';
 
-      const localMatches = state.allSongs.filter(song => {
-        const tNorm = normalizeArabic(song.title || '');
-        const nNorm = normalizeArabic(song.notes || '');
+      localMatches = state.allSongs.filter(song => {
+        const tNorm = song._tNorm || normalizeArabic(song.title || '');
+        const nNorm = song._nNorm || normalizeArabic(song.notes || '');
 
         if (isFrancoInput) {
           return (qFrancoRaw && (tNorm.includes(qFrancoRaw) || nNorm.includes(qFrancoRaw)));
@@ -2673,9 +2709,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         return tNorm.includes(qNorm) || nNorm.includes(qNorm);
       });
-
-      songsList = songsList.concat(localMatches);
     }
+
+    let songsList = [...localMatches];
 
     // GUARANTEE BIBLE CHAPTER RESULT IF SHORTCUT/BIBLE QUERY WAS TYPED
     if (bibleInfo && bibleInfo.bookName) {
@@ -2710,8 +2746,48 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    // RENDER LOCAL RESULTS INSTANTLY (0ms DELAY)
+    renderProcessedResults(songsList, trimmedQuery, bibleInfo);
+
+    // 2. ASYNC NON-BLOCKING SERVER FETCH (DEBOUNCED BY 120MS & ABORTABLE)
+    if (searchDebounceTimeout) clearTimeout(searchDebounceTimeout);
+    if (searchAbortController) searchAbortController.abort();
+
+    searchDebounceTimeout = setTimeout(async () => {
+      searchAbortController = new AbortController();
+      const signal = searchAbortController.signal;
+
+      try {
+        let apiResults = [];
+        let res = await fetch(`api.php?q=${encodeURIComponent(trimmedQuery)}&limit=60`, { signal });
+        if (res.ok) {
+          let data = await res.json();
+          if (data && data.songs && data.songs.length > 0) {
+            apiResults = apiResults.concat(data.songs);
+          }
+        }
+
+        if (bibleInfo && bibleInfo.searchQuery && bibleInfo.searchQuery !== trimmedQuery) {
+          let bRes = await fetch(`api.php?q=${encodeURIComponent(bibleInfo.searchQuery)}&limit=60`, { signal });
+          if (bRes.ok) {
+            let bData = await bRes.json();
+            if (bData && bData.songs && bData.songs.length > 0) {
+              apiResults = apiResults.concat(bData.songs);
+            }
+          }
+        }
+
+        if (apiResults.length > 0) {
+          const mergedList = [...apiResults, ...songsList];
+          renderProcessedResults(mergedList, trimmedQuery, bibleInfo);
+        }
+      } catch (err) {}
+    }, 120);
+  }
+
+  function renderProcessedResults(rawSongsList, query, bibleInfo) {
     const uniqueMap = new Map();
-    songsList.forEach(song => {
+    rawSongsList.forEach(song => {
       if (song && (song.id !== undefined && song.id !== null)) {
         const isBible = Boolean(song.is_bible || song.chapter_number !== undefined);
         const key = (isBible ? 'bible_' : 'song_') + song.id;
