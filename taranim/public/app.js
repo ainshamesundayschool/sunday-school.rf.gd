@@ -1234,6 +1234,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     btnOpenTvWindow: document.getElementById('btn-open-tv-window'),
     btnCopyObsUrl: document.getElementById('btn-copy-obs-url'),
+    btnClosePresentationOverlay: document.getElementById('btn-close-presentation-overlay'),
 
     obsFontSizeRange: document.getElementById('obs-font-size-range'),
     fontSizeValBadge: document.getElementById('font-size-val-badge'),
@@ -2109,6 +2110,10 @@ document.addEventListener('DOMContentLoaded', () => {
     els.btnPrevLine.addEventListener('click', prevLine);
     els.btnNextLine.addEventListener('click', nextLine);
     els.btnToggleBlank.addEventListener('click', toggleBlank);
+
+    if (els.btnClosePresentationOverlay) {
+      els.btnClosePresentationOverlay.addEventListener('click', exitPresentation);
+    }
 
     if (els.currentLineCounter) {
       els.currentLineCounter.style.cursor = 'pointer';
@@ -3091,9 +3096,65 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function ensureSongVerses(song) {
+    if (!song) return song;
+    if (song.verses && Array.isArray(song.verses) && song.verses.length > 0) {
+      return song;
+    }
+    if (!song.notes) return song;
+
+    const rawNotes = String(song.notes).replace(/\r\n/g, '\n');
+    const blocks = rawNotes.split(/\n\s*\n/).map(b => b.trim()).filter(b => b.length > 0);
+    const verses = [];
+    let currentStanzaNum = 0;
+
+    blocks.forEach((block) => {
+      let lines = block.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      if (lines.length === 0) return;
+
+      let isChorus = false;
+      let foundStanzaNum = null;
+
+      const firstLine = lines[0];
+      if (/^\(?(القرار|قرار|ق)\)?[:\s\-]/i.test(firstLine) || /^\(القرار\)$/i.test(firstLine) || /^\(ق\)$/i.test(firstLine)) {
+        isChorus = true;
+      } else {
+        const matchNum = firstLine.match(/^\(?([\d٠-٩]+)\)?[:\s\-]/);
+        if (matchNum) {
+          foundStanzaNum = matchNum[1];
+        }
+      }
+
+      lines = lines.map(l => {
+        return l.replace(/^\(?(القرار|قرار|ق)\)?[:\s\-]\s*/i, '')
+                .replace(/^\(القرار\)$/i, '')
+                .replace(/^\(ق\)$/i, '')
+                .replace(/^\(?[\d٠-٩]+\)?[:\s\-]\s*/, '')
+                .trim();
+      }).filter(l => l.length > 0);
+
+      if (lines.length === 0) return;
+
+      if (isChorus) {
+        verses.push({ type: 1, slides: [{ text: lines.join('\n'), lines: lines }] });
+      } else {
+        if (foundStanzaNum) {
+          currentStanzaNum = parseInt(foundStanzaNum.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))) || (currentStanzaNum + 1);
+        } else {
+          currentStanzaNum++;
+        }
+        verses.push({ type: 0, stanzaNum: currentStanzaNum, slides: [{ text: lines.join('\n'), lines: lines }] });
+      }
+    });
+
+    song.verses = verses;
+    return song;
+  }
+
   function loadSongIntoPresentation(song) {
     if (!song) return;
 
+    song = ensureSongVerses(song);
     state.activeSong = song;
     let linesList = [];
 
@@ -3432,6 +3493,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function addToSessionRecents(song) {
     if (!song || (song.id === undefined && song.id === null && song.item_id === undefined)) return;
     
+    song = ensureSongVerses(song);
     const targetKey = getItemKey(song);
     if (!targetKey) return;
 
@@ -3891,8 +3953,9 @@ document.addEventListener('DOMContentLoaded', () => {
         let htmlText = escapeHtml(text);
         htmlText = htmlText.replace(/\((ق|قرار)\)/gi, '<span class="badge-num chorus-num">($1)</span>');
         htmlText = htmlText.replace(/\((\d+|[٠-٩]+)\)/g, '<span class="badge-num verse-num">($1)</span>');
-        htmlText = htmlText.replace(/\n/g, '<br>');
-        els.obsLineText.innerHTML = htmlText;
+        
+        const lineSegs = htmlText.split('\n');
+        els.obsLineText.innerHTML = lineSegs.map(l => `<span class="obs-line-segment" style="display: block; white-space: nowrap; text-align: center;">${l}</span>`).join('');
 
         // Re-trigger animation on EVERY text change, not just animation type change
         const textChanged = (currentPresenterText !== text);
@@ -3922,11 +3985,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
           els.obsLineText.style.lineHeight = '1.45';
 
+          const segments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
+
           while (low <= high) {
             const mid = Math.floor((low + high) / 2);
             els.obsLineText.style.fontSize = `${mid}px`;
 
-            if (els.obsLineText.scrollWidth <= maxW && els.obsLineText.scrollHeight <= maxH) {
+            let maxSegW = els.obsLineText.scrollWidth;
+            if (segments.length > 0) {
+              maxSegW = Math.max(...segments.map(s => s.scrollWidth));
+            }
+
+            if (maxSegW <= maxW && els.obsLineText.scrollHeight <= maxH) {
               bestSize = mid;
               low = mid + 1;
             } else {

@@ -2121,23 +2121,52 @@ html, body {
   font-family: 'Baloo Bhaijaan 2', 'Alexandria', sans-serif;
 }
 
-.presenter-scale-badge,
+.presenter-scale-badge {
+  display: none !important;
+}
+
 .presenter-slide-counter {
-  background: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 0.82rem;
-  font-weight: 600;
-  padding: 4px 14px;
-  border-radius: 20px;
-  display: flex;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  color: rgba(255, 255, 255, 0.88) !important;
+  font-size: 0.92rem !important;
+  font-weight: 700 !important;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9) !important;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
-  letter-spacing: 0.3px;
+}
+
+.btn-close-overlay-bottom {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  z-index: 999;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s cubic-bezier(0.2, 0.9, 0.3, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+  pointer-events: auto;
+}
+
+.btn-close-overlay-bottom:hover {
+  background: rgba(239, 68, 68, 0.88);
+  border-color: rgba(239, 68, 68, 0.5);
+  transform: translateX(-50%) scale(1.05);
 }
 
 /* DISPLAY SELECTED RECTANGLE PILL BUTTON IN HEADER */

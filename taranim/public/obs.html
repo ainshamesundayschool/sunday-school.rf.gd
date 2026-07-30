@@ -402,15 +402,17 @@
     <div class="line-text hidden" id="presenter-text"></div>
   </div>
 
-  <!-- PRESENTATION FOOTER BAR (SCALE & SLIDE COUNTER) -->
+  <!-- PRESENTATION FOOTER BAR (SLIDE COUNTER) -->
   <div id="presenter-footer-bar" class="presenter-footer-bar hidden">
-    <div id="presenter-scale-badge" class="presenter-scale-badge hidden">
-      <i class="fa-solid fa-music"></i> <span id="scale-text"></span>
-    </div>
     <div id="presenter-slide-counter" class="presenter-slide-counter hidden">
-      <i class="fa-solid fa-layer-group"></i> <span id="counter-text"></span>
+      <span id="counter-text"></span>
     </div>
   </div>
+
+  <!-- SMALL SLEEK BOTTOM EXIT BUTTON -->
+  <button id="btn-close-window-bottom" class="btn-close-overlay-bottom" onclick="window.close()" title="إغلاق النافذة (Esc)">
+    <i class="fa-solid fa-xmark"></i> إنهاء العرض
+  </button>
 
   <script>
     const box = document.getElementById('presenter-box');
@@ -680,17 +682,23 @@
       const maxH = viewportH * 0.82;
 
       let low = 18;
-      // Cap maximum font size for optimal readability (max 82px or 9% viewport height)
       let high = Math.min(82, Math.round(viewportH * 0.09));
       let bestSize = low;
 
       textEl.style.lineHeight = '1.45';
 
+      const segments = Array.from(textEl.querySelectorAll('.obs-line-segment'));
+
       while (low <= high) {
         const mid = Math.floor((low + high) / 2);
         textEl.style.fontSize = mid + 'px';
 
-        if (textEl.scrollWidth <= maxW && textEl.scrollHeight <= maxH) {
+        let maxSegW = textEl.scrollWidth;
+        if (segments.length > 0) {
+          maxSegW = Math.max(...segments.map(s => s.scrollWidth));
+        }
+
+        if (maxSegW <= maxW && textEl.scrollHeight <= maxH) {
           bestSize = mid;
           low = mid + 1;
         } else {
@@ -862,10 +870,9 @@
       // 2. Format Stanza / Verse numbers or repeat multipliers like (1), (2), (3), (١), (٢) with verse-num class
       html = html.replace(/\((\d+|[٠-٩]+)\)/g, '<span class="badge-num verse-num">($1)</span>');
 
-      // Preserve newlines
-      html = html.replace(/\n/g, '<br>');
-
-      return html;
+      // Wrap each segment line in a nowrap span for fit-to-width single-line guarantee
+      const lines = html.split('\n');
+      return lines.map(l => `<span class="obs-line-segment" style="display: block; white-space: nowrap; text-align: center;">${l}</span>`).join('');
     }
 
     function applyState(data, source = 'local') {
