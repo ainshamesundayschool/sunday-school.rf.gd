@@ -347,12 +347,8 @@
       <section class="half-panel recent-session-panel" id="recents-panel">
         <div class="panel-bar">
           <div class="panel-bar-start">
-            <label class="recent-select-all-label" title="تحديد / إلغاء تحديد الكل">
-              <input type="checkbox" id="recent-select-all-cb">
-            </label>
-            <button id="btn-delete-selected-recents" class="mini-btn-danger hidden" title="حذف العناصر المحددة">
-              <i class="fa-solid fa-trash-can"></i> (<span id="selected-recents-count">0</span>)
-            </button>
+            <span class="panel-title"><i class="fa-solid fa-clock-rotate-left"></i> الترانيم المفتوحة</span>
+            <span id="recent-count" class="badge-count">0</span>
           </div>
 
           <div class="panel-bar-center dropdown-wrapper">
@@ -362,37 +358,40 @@
               <i class="fa-solid fa-chevron-down"></i>
             </button>
 
-            <!-- POPOVER PLAYLIST MANAGER -->
+            <!-- POPOVER PLAYLIST MANAGER MATCHING REFERENCE IMAGE -->
             <div class="dropdown-popover hidden" id="popover-playlist">
-              <div class="popover-title"><i class="fa-solid fa-layer-group"></i> إدارة قوائم التشغيل</div>
+              <div class="playlist-popover-header">
+                <span class="playlist-popover-title">قائمة التشغيل</span>
+                <button type="button" id="btn-close-playlist-popover" class="close-popover-x" title="إغلاق">&times;</button>
+              </div>
 
               <!-- PLAYLISTS LIST -->
               <div id="playlists-list-container" class="playlists-list-container">
                 <!-- Dynamically populated -->
               </div>
 
-              <!-- CREATE NEW PLAYLIST FORM -->
-              <div class="popover-row" style="margin-top:8px; gap:6px;">
-                <input type="text" id="new-playlist-name-input" class="control-input" placeholder="اسم قائمة جديدة..." autocomplete="off">
-                <button id="btn-create-playlist" class="btn btn-sm btn-primary" type="button">
-                  <i class="fa-solid fa-plus"></i> إضافة
-                </button>
+              <!-- CREATE NEW PLAYLIST INPUT FORM (TOGGLED) -->
+              <div id="new-playlist-input-wrapper" class="new-playlist-input-wrapper hidden">
+                <input type="text" id="new-playlist-name-input" class="control-input" placeholder="اسم القائمة الجديدة..." autocomplete="off">
+                <button id="btn-create-playlist" class="btn btn-sm btn-primary" type="button">حفظ</button>
               </div>
 
-              <div class="popover-actions-row">
-                <button id="btn-export-playlist" class="btn btn-sm btn-secondary" type="button" title="تصدير القائمة لملف JSON">
-                  <i class="fa-solid fa-download"></i> تصدير (Export)
-                </button>
-                <label for="import-playlist-file-input" class="btn btn-sm btn-secondary" style="cursor:pointer;" title="استيراد قائمة من ملف JSON">
-                  <i class="fa-solid fa-upload"></i> استيراد (Import)
-                </label>
-                <input type="file" id="import-playlist-file-input" accept=".json" class="hidden">
-              </div>
+              <!-- BOTTOM PILL BUTTON -->
+              <button id="btn-show-new-playlist-input" class="btn-create-playlist-pill" type="button">
+                <i class="fa-solid fa-plus"></i> قائمة جديدة
+              </button>
+
+              <input type="file" id="import-playlist-file-input" accept=".json" class="hidden">
             </div>
           </div>
 
           <div class="panel-bar-end">
-            <span id="recent-count" class="badge-count">0</span>
+            <label class="recent-select-all-label" title="تحديد / إلغاء تحديد الكل">
+              <input type="checkbox" id="recent-select-all-cb">
+            </label>
+            <button id="btn-delete-selected-recents" class="mini-btn-danger hidden" title="حذف العناصر المحددة">
+              <i class="fa-solid fa-trash-can"></i> (<span id="selected-recents-count">0</span>)
+            </button>
           </div>
         </div>
 

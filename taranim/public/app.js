@@ -1174,9 +1174,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     btnPlaylistSelector: document.getElementById('btn-playlist-selector'),
     popoverPlaylist: document.getElementById('popover-playlist'),
+    btnClosePlaylistPopover: document.getElementById('btn-close-playlist-popover'),
     playlistCurrentName: document.getElementById('playlist-current-name'),
     playlistsListContainer: document.getElementById('playlists-list-container'),
     newPlaylistNameInput: document.getElementById('new-playlist-name-input'),
+    newPlaylistInputWrapper: document.getElementById('new-playlist-input-wrapper'),
+    btnShowNewPlaylistInput: document.getElementById('btn-show-new-playlist-input'),
     btnCreatePlaylist: document.getElementById('btn-create-playlist'),
     btnExportPlaylist: document.getElementById('btn-export-playlist'),
     importPlaylistFileInput: document.getElementById('import-playlist-file-input'),
@@ -1718,6 +1721,22 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    if (els.btnClosePlaylistPopover) {
+      els.btnClosePlaylistPopover.addEventListener('click', (e) => {
+        e.stopPropagation();
+        els.popoverPlaylist.classList.add('hidden');
+      });
+    }
+
+    if (els.btnShowNewPlaylistInput && els.newPlaylistInputWrapper) {
+      els.btnShowNewPlaylistInput.addEventListener('click', () => {
+        els.newPlaylistInputWrapper.classList.toggle('hidden');
+        if (!els.newPlaylistInputWrapper.classList.contains('hidden')) {
+          els.newPlaylistNameInput.focus();
+        }
+      });
+    }
+
     if (els.btnCreatePlaylist) {
       els.btnCreatePlaylist.addEventListener('click', () => {
         const name = els.newPlaylistNameInput.value.trim();
@@ -1730,6 +1749,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         state.activePlaylistId = newId;
         els.newPlaylistNameInput.value = '';
+        if (els.newPlaylistInputWrapper) els.newPlaylistInputWrapper.classList.add('hidden');
         savePlaylists();
         renderRecentSession();
         renderPlaylistsList();
@@ -3000,13 +3020,28 @@ document.addEventListener('DOMContentLoaded', () => {
     return state.playlists.find(p => p.id === state.activePlaylistId) || state.playlists[0];
   }
 
+  function deduplicateItems(items) {
+    if (!Array.isArray(items)) return [];
+    const seen = new Set();
+    return items.filter(item => {
+      if (!item || (item.id === undefined && item.id === null)) return false;
+      const key = `${item.is_bible ? 'bible' : 'song'}_${item.id}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
   function loadPlaylists() {
     try {
       const saved = localStorage.getItem('sunday_school_taranim_playlists');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          state.playlists = parsed;
+          state.playlists = parsed.map(p => ({
+            ...p,
+            items: deduplicateItems(p.items)
+          }));
         }
       } else {
         const legacyRecents = sessionStorage.getItem('sunday_school_taranim_session_recents');
@@ -3014,7 +3049,7 @@ document.addEventListener('DOMContentLoaded', () => {
           try {
             const parsedRecents = JSON.parse(legacyRecents);
             if (Array.isArray(parsedRecents)) {
-              state.playlists[0].items = parsedRecents;
+              state.playlists[0].items = deduplicateItems(parsedRecents);
             }
           } catch(e) {}
         }
@@ -3027,12 +3062,14 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch(e) {}
 
     const active = getActivePlaylist();
+    active.items = deduplicateItems(active.items);
     state.sessionRecents = active.items;
   }
 
   function savePlaylists() {
     const active = getActivePlaylist();
-    active.items = state.sessionRecents;
+    active.items = deduplicateItems(state.sessionRecents);
+    state.sessionRecents = active.items;
     try {
       localStorage.setItem('sunday_school_taranim_playlists', JSON.stringify(state.playlists));
       localStorage.setItem('sunday_school_taranim_active_playlist_id', state.activePlaylistId);
@@ -3040,11 +3077,16 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function addToSessionRecents(song) {
-    if (!song || (!song.id && song.id !== 0)) return;
+    if (!song || (song.id === undefined && song.id === null)) return;
     
     const isBibleItem = Boolean(song.is_bible || song.chapter_number !== undefined);
+    
     const existsIndex = state.sessionRecents.findIndex(r => 
-      String(r.id) === String(song.id) && Boolean(r.is_bible) === isBibleItem
+      Boolean(r.is_bible) === isBibleItem &&
+      (String(r.id) === String(song.id) || 
+       String(r.item_id) === String(song.id) || 
+       (song.item_id && String(r.id) === String(song.item_id)) ||
+       (song.item_id && String(r.item_id) === String(song.item_id)))
     );
 
     let fullSongData = {
@@ -3059,13 +3101,15 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     if (existsIndex !== -1) {
+      // DO NOT REORDER OR DUPLICATE! Update existing item in place
       const existing = state.sessionRecents[existsIndex];
-      if (!fullSongData.verses && existing.verses) fullSongData.verses = existing.verses;
-      state.sessionRecents.splice(existsIndex, 1);
+      if (fullSongData.verses) existing.verses = fullSongData.verses;
+      if (fullSongData.title) existing.title = fullSongData.title;
+    } else {
+      // NEW ITEM ONLY -> ADD TO LIST
+      state.sessionRecents.unshift(fullSongData);
     }
 
-    // UNSHIFT TO PLACE AT THE VERY TOP (MOST RECENT FIRST!)
-    state.sessionRecents.unshift(fullSongData);
     savePlaylists();
     renderRecentSession();
   }
@@ -3095,10 +3139,10 @@ document.addEventListener('DOMContentLoaded', () => {
     els.recentSessionContainer.innerHTML = state.sessionRecents.map((r, idx) => `
       <div class="recent-item ${state.activeSong && String(state.activeSong.id) === String(r.id) && Boolean(state.activeSong.is_bible) === Boolean(r.is_bible) ? 'active' : ''}" data-id="${r.id}" data-is-bible="${r.is_bible ? '1' : '0'}" data-index="${idx}" draggable="true">
         <div class="recent-item-start">
-          <input type="checkbox" class="recent-item-cb" data-index="${idx}">
           <i class="fa-solid fa-grip-vertical drag-handle-icon" title="سحب لإعادة الترتيب"></i>
           <span class="recent-title">${escapeHtml(r.title)}</span>
         </div>
+        <input type="checkbox" class="recent-item-cb" data-index="${idx}">
       </div>
     `).join('');
 
@@ -3176,14 +3220,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     els.playlistsListContainer.innerHTML = state.playlists.map(p => `
       <div class="playlist-entry-row ${p.id === state.activePlaylistId ? 'active' : ''}" data-id="${p.id}">
-        <span><i class="fa-solid fa-list-check"></i> ${escapeHtml(p.name)} (${p.items.length})</span>
-        ${p.id !== 'default' ? `<button class="playlist-del-btn" data-id="${p.id}" title="حذف القائمة"><i class="fa-solid fa-trash"></i></button>` : ''}
+        <div class="playlist-row-actions">
+          <button class="pl-icon-btn btn-export-pl" data-id="${p.id}" title="تصدير القائمة">
+            <i class="fa-solid fa-download"></i>
+          </button>
+          <label class="pl-icon-btn btn-import-pl" title="استيراد قائمة" style="cursor:pointer; margin:0;">
+            <i class="fa-solid fa-arrow-up-from-bracket"></i>
+            <input type="file" class="import-pl-file-item hidden" data-id="${p.id}" accept=".json">
+          </label>
+          ${p.id !== 'default' ? `
+            <button class="pl-icon-btn btn-delete-pl" data-id="${p.id}" title="حذف القائمة">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          ` : ''}
+        </div>
+        <div class="playlist-row-info">
+          <span class="playlist-name-text">${escapeHtml(p.name)}</span>
+          <span class="playlist-count-text">(${p.items.length})</span>
+        </div>
       </div>
     `).join('');
 
     els.playlistsListContainer.querySelectorAll('.playlist-entry-row').forEach(row => {
       row.addEventListener('click', (e) => {
-        if (e.target.closest('.playlist-del-btn')) return;
+        if (e.target.closest('.pl-icon-btn')) return;
         const pid = row.dataset.id;
         state.activePlaylistId = pid;
         savePlaylists();
@@ -3192,7 +3252,24 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    els.playlistsListContainer.querySelectorAll('.playlist-del-btn').forEach(btn => {
+    els.playlistsListContainer.querySelectorAll('.btn-export-pl').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const pid = btn.dataset.id;
+        const targetPl = state.playlists.find(p => p.id === pid) || getActivePlaylist();
+        exportPlaylistObj(targetPl);
+      });
+    });
+
+    els.playlistsListContainer.querySelectorAll('.import-pl-file-item').forEach(input => {
+      input.addEventListener('change', (e) => {
+        e.stopPropagation();
+        const file = e.target.files[0];
+        if (file) importPlaylistFromFile(file);
+      });
+    });
+
+    els.playlistsListContainer.querySelectorAll('.btn-delete-pl').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const pid = btn.dataset.id;
@@ -3203,6 +3280,19 @@ document.addEventListener('DOMContentLoaded', () => {
         renderPlaylistsList();
       });
     });
+  }
+
+  function exportPlaylistObj(targetPl) {
+    const pl = targetPl || getActivePlaylist();
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(pl, null, 2));
+    const downloadAnchor = document.createElement('a');
+    const filename = `قائمة_${pl.name.replace(/\s+/g, '_')}.json`;
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", filename);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+    showToast(`تم تصدير قائمة "${pl.name}" بنجاح!`);
   }
 
   function exportActivePlaylist() {
