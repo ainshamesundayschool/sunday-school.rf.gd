@@ -908,6 +908,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let lastPushTimestamp = 0;
   let searchAbortController = null;
   let searchDebounceTimeout = null;
+  let currentPresenterText = null;
+  let currentPresenterAnim = null;
 
   const state = {
     allSongs: [],
@@ -3789,9 +3791,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }, delay);
   }
 
-  let currentPresenterAnim = null;
-  let currentPresenterText = null;
-
   function syncLiveState(isExplicitPositionUpdate = false) {
     const currentLine = state.presentationLines[state.currentLineIndex];
     const text = currentLine ? currentLine.text : '';
@@ -4203,6 +4202,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function toggleBlank() {
     state.isBlank = !state.isBlank;
+    syncLiveState();
+  }
+
+  function exitPresentation() {
+    state.isBlank = true;
+    if (els.obsOverlay) {
+      els.obsOverlay.classList.add('hidden');
+    }
     syncLiveState();
   }
 
