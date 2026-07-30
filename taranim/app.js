@@ -2355,8 +2355,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (screenDetails && screenDetails.screens && screenDetails.screens.length > 1) {
       const extScreen = screenDetails.screens.find(s => !s.isPrimary) || screenDetails.screens[1];
       if (extScreen) {
-        left = extScreen.left !== undefined ? extScreen.left : (extScreen.availLeft || 1920);
-        top = extScreen.top !== undefined ? extScreen.top : 0;
+        left = extScreen.left !== undefined ? extScreen.left : (extScreen.availLeft !== undefined ? extScreen.availLeft : 1920);
+        top = extScreen.top !== undefined ? extScreen.top : (extScreen.availTop !== undefined ? extScreen.availTop : 0);
         width = extScreen.width || extScreen.availWidth || 1920;
         height = extScreen.height || extScreen.availHeight || 1080;
         targetIdx = screenDetails.screens.indexOf(extScreen);
@@ -2387,11 +2387,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (presenterWindow) {
-      try {
-        presenterWindow.focus();
-        presenterWindow.moveTo(left, top);
-        presenterWindow.resizeTo(width, height);
-      } catch (e) {}
+      const moveWin = () => {
+        try {
+          presenterWindow.moveTo(left, top);
+          presenterWindow.resizeTo(width, height);
+          presenterWindow.focus();
+        } catch (e) {}
+      };
+      moveWin();
+      setTimeout(moveWin, 150);
+      setTimeout(moveWin, 400);
     }
 
     syncLiveState();

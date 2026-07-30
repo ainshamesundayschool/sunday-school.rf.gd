@@ -502,6 +502,18 @@
       } catch(err) {}
     }
 
+    // AUTO-POSITION ON EXTERNAL DISPLAY IF COORDINATES ARE PASSED IN QUERY PARAMS
+    (function positionOnTargetScreen() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const sLeft = parseInt(params.get('screenLeft'));
+        const sTop = parseInt(params.get('screenTop'));
+        if (!isNaN(sLeft) && !isNaN(sTop)) {
+          window.moveTo(sLeft, sTop);
+        }
+      } catch(e) {}
+    })();
+
     function triggerPrevSlide() {
       requestFS();
       try {
