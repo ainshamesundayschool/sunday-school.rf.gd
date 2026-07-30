@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sunday School Taranim - Presenter & Display Screen</title>
+  <title>Sunday School Taranim - OBS & TV Presenter Window</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -266,6 +266,33 @@
       animation: textAppearGlow 0.2s ease-out forwards !important;
     }
 
+    .standby-branding {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      text-align: center;
+      padding: 20px 30px;
+    }
+
+    .standby-branding .standby-logo {
+      width: 120px;
+      height: 120px;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.6));
+    }
+
+    .standby-branding .standby-title {
+      font-family: 'Alexandria', sans-serif;
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: #ffffff;
+      margin: 0;
+      text-shadow: 0 4px 18px rgba(0, 0, 0, 0.85);
+      letter-spacing: 0.5px;
+    }
+
     .hidden { display: none !important; }
   </style>
 </head>
@@ -276,12 +303,17 @@
   <div id="snap-guide-v" class="snap-guide vertical hidden"></div>
 
   <div class="lower-third-container" id="presenter-box">
-    <div class="line-text" id="presenter-text"></div>
+    <div id="standby-branding" class="standby-branding">
+      <img src="logo.png" alt="Sunday School Logo" class="standby-logo">
+      <div class="standby-title">Sunday School Taranim</div>
+    </div>
+    <div class="line-text hidden" id="presenter-text"></div>
   </div>
 
   <script>
     const box = document.getElementById('presenter-box');
     const textEl = document.getElementById('presenter-text');
+    const standbyEl = document.getElementById('standby-branding');
     const guideV = document.getElementById('snap-guide-v');
     const guideH = document.getElementById('snap-guide-h');
 
@@ -584,11 +616,16 @@
 
       applyDynamicShadow(data);
 
-      if (data.isBlank) {
-        textEl.style.visibility = 'hidden';
+      const hasText = Boolean(data.text && data.text.trim() && !data.isBlank);
+
+      if (!hasText) {
+        textEl.style.display = 'none';
+        if (standbyEl) standbyEl.classList.remove('hidden');
         currentIsBlankState = true;
-      } else if (data.text !== undefined) {
-        textEl.style.visibility = data.text ? 'visible' : 'hidden';
+      } else {
+        if (standbyEl) standbyEl.classList.add('hidden');
+        textEl.style.display = 'inline-block';
+        textEl.style.visibility = 'visible';
         if (currentTextState !== data.text || currentAnimState !== animType) {
           textEl.textContent = data.text;
           currentTextState = data.text;

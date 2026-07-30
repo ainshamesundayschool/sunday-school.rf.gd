@@ -2289,41 +2289,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. INSTANT PRESENTER PREVIEW SYNC (0ms)
     if (els.obsLineText) {
-      els.obsLineText.style.fontFamily = state.selectedFont;
-      els.obsLineText.style.color = state.styleOptions.textColor;
-      els.obsLineText.style.fontWeight = state.styleOptions.fontWeight;
-      els.obsLineText.style.fontStyle = state.styleOptions.fontStyle === 'bold' ? 'normal' : state.styleOptions.fontStyle;
-      els.obsLineText.style.textDecoration = state.styleOptions.textDecoration;
-      els.obsLineText.style.textAlign = state.styleOptions.textAlign;
-      els.obsLineText.style.letterSpacing = `${state.styleOptions.letterSpacing}px`;
-      els.obsLineText.style.lineHeight = state.styleOptions.lineHeight;
+      const standbyEl = document.getElementById('obs-standby-branding');
+      const hasText = Boolean(text && text.trim() && !state.isBlank);
 
-      if (state.styleOptions.boxOpacity > 0) {
-        const hex = state.styleOptions.boxBgColor || '#000000';
-        const r = parseInt(hex.slice(1, 3), 16) || 0;
-        const g = parseInt(hex.slice(3, 5), 16) || 0;
-        const b = parseInt(hex.slice(5, 7), 16) || 0;
-        const alpha = state.styleOptions.boxOpacity / 100;
-        els.obsLowerThirdBox.style.background = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      if (!hasText) {
+        els.obsLineText.style.display = 'none';
+        if (standbyEl) standbyEl.classList.remove('hidden');
       } else {
-        els.obsLowerThirdBox.style.background = 'transparent';
-      }
+        if (standbyEl) standbyEl.classList.add('hidden');
+        els.obsLineText.style.display = 'inline-block';
+        els.obsLineText.style.visibility = 'visible';
 
-      els.obsLowerThirdBox.style.borderRadius = `${state.styleOptions.boxRadius || 12}px`;
-      els.obsLowerThirdBox.style.padding = `${state.styleOptions.boxPadding || 20}px`;
+        els.obsLineText.style.fontFamily = state.selectedFont;
+        els.obsLineText.style.color = state.styleOptions.textColor;
+        els.obsLineText.style.fontWeight = state.styleOptions.fontWeight;
+        els.obsLineText.style.fontStyle = state.styleOptions.fontStyle === 'bold' ? 'normal' : state.styleOptions.fontStyle;
+        els.obsLineText.style.textDecoration = state.styleOptions.textDecoration;
+        els.obsLineText.style.textAlign = state.styleOptions.textAlign;
+        els.obsLineText.style.letterSpacing = `${state.styleOptions.letterSpacing}px`;
+        els.obsLineText.style.lineHeight = state.styleOptions.lineHeight;
 
-      // TEXT FIT: Set initial size immediately, refine on next animation frame to avoid layout-blocking reflow loop
-      let size = state.fontSize || 54;
-      els.obsLineText.style.fontSize = `${size}px`;
+        if (state.styleOptions.boxOpacity > 0) {
+          const hex = state.styleOptions.boxBgColor || '#000000';
+          const r = parseInt(hex.slice(1, 3), 16) || 0;
+          const g = parseInt(hex.slice(3, 5), 16) || 0;
+          const b = parseInt(hex.slice(5, 7), 16) || 0;
+          const alpha = state.styleOptions.boxOpacity / 100;
+          els.obsLowerThirdBox.style.background = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        } else {
+          els.obsLowerThirdBox.style.background = 'transparent';
+        }
 
-      if (els.obsLineText.textContent !== text || currentPresenterAnim !== state.textAnimation) {
-        els.obsLineText.textContent = text;
-        currentPresenterAnim = state.textAnimation;
+        els.obsLowerThirdBox.style.borderRadius = `${state.styleOptions.boxRadius || 12}px`;
+        els.obsLowerThirdBox.style.padding = `${state.styleOptions.boxPadding || 20}px`;
 
-        els.obsLineText.classList.remove('animate-appear-slide', 'animate-appear-drop', 'animate-appear-pop', 'animate-appear-flip', 'animate-appear-glow');
-        if (state.textAnimation !== 'none' && text) {
-          void els.obsLineText.offsetWidth;
-          els.obsLineText.classList.add(`animate-appear-${state.textAnimation}`);
+        let size = state.fontSize || 54;
+        els.obsLineText.style.fontSize = `${size}px`;
+
+        if (els.obsLineText.textContent !== text || currentPresenterAnim !== state.textAnimation) {
+          els.obsLineText.textContent = text;
+          currentPresenterAnim = state.textAnimation;
+
+          els.obsLineText.classList.remove('animate-appear-slide', 'animate-appear-drop', 'animate-appear-pop', 'animate-appear-flip', 'animate-appear-glow');
+          if (state.textAnimation !== 'none' && text) {
+            void els.obsLineText.offsetWidth;
+            els.obsLineText.classList.add(`animate-appear-${state.textAnimation}`);
+          }
         }
       }
 
