@@ -916,7 +916,12 @@ document.addEventListener('DOMContentLoaded', () => {
       boxPadding: savedSettings.styleOptions?.boxPadding || 20
     },
 
-    dragPivot: getLatestSavedPivot()
+    dragPivot: getLatestSavedPivot(),
+    playlists: [
+      { id: 'default', name: 'القائمة الافتراضية', items: [] }
+    ],
+    activePlaylistId: 'default',
+    selectedRecentIndexes: new Set()
   };
 
   let presentationTimerInterval = null;
@@ -2988,14 +2993,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // PLAYLIST STATE
-  state.playlists = [
-    { id: 'default', name: 'القائمة الافتراضية', items: [] }
-  ];
-  state.activePlaylistId = 'default';
-  state.selectedRecentIndexes = new Set();
-
   function getActivePlaylist() {
+    if (!state.playlists || !Array.isArray(state.playlists) || state.playlists.length === 0) {
+      state.playlists = [{ id: 'default', name: 'القائمة الافتراضية', items: [] }];
+    }
     return state.playlists.find(p => p.id === state.activePlaylistId) || state.playlists[0];
   }
 

@@ -485,20 +485,7 @@
     window.triggerFullscreen = function() {
       if (!document.fullscreenElement) {
         const docEl = document.documentElement;
-        setTimeout(async () => {
-          if ('getScreenDetails' in window && screenIdx !== null && screenIdx !== '-1') {
-            try {
-              const details = await window.getScreenDetails();
-              const idx = parseInt(screenIdx);
-              if (details && details.screens && details.screens[idx]) {
-                const targetScreen = details.screens[idx];
-                if (docEl.requestFullscreen) {
-                  await docEl.requestFullscreen({ screen: targetScreen });
-                  return;
-                }
-              }
-            } catch (err) {}
-          }
+        setTimeout(() => {
           if (docEl.requestFullscreen) {
             docEl.requestFullscreen().catch(() => {});
           } else if (docEl.webkitRequestFullscreen) {
