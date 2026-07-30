@@ -259,6 +259,40 @@ if (strpos($parsedUrl, '/api/songs') !== false || (isset($_GET['action']) && $_G
     echo json_encode(['songs' => $allResults, 'total' => count($allResults), 'total_songs' => $totalCount, 'db_type' => $isMysql ? 'mysql' : 'sqlite']);
     exit;
 }
+// GET BIBLE CHAPTER ID BY BOOK ID AND CHAPTER NUMBER
+if (isset($_GET['action']) && $_GET['action'] === 'bible_chapter') {
+    if (!$pdo) {
+        echo json_encode(['error' => 'No database']);
+        exit;
+    }
+    $bookId = isset($_GET['book_id']) ? (int)$_GET['book_id'] : 0;
+    $chNum = isset($_GET['chapter']) ? (int)$_GET['chapter'] : 0;
+
+    if ($bookId > 0 && $chNum > 0) {
+        try {
+            $stmt = $pdo->prepare("
+                SELECT c.id, c.item_id, (b.title || ' - الأصحاح ' || bc.number) as title, 1 as is_bible
+                FROM chapters c
+                JOIN bible_chapters bc ON c.bible_chapter = bc.id
+                JOIN books b ON bc.book = b.id
+                WHERE bc.book = :bookId AND bc.number = :chNum
+                LIMIT 1
+            ");
+            $stmt->bindValue(':bookId', $bookId, PDO::PARAM_INT);
+            $stmt->bindValue(':chNum', $chNum, PDO::PARAM_INT);
+            $stmt->execute();
+            $chapter = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($chapter) {
+                echo json_encode($chapter);
+                exit;
+            }
+        } catch (Exception $ex) {}
+    }
+    http_response_code(404);
+    echo json_encode(['error' => 'Chapter not found']);
+    exit;
+}
 
 // GET SINGLE SONG OR BIBLE CHAPTER BY ID ENDPOINT
 if (preg_match('#/api/song/(\d+)#', $parsedUrl, $matches) || (isset($_GET['action']) && $_GET['action'] === 'song')) {

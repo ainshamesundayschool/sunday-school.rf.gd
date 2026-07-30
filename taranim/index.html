@@ -285,6 +285,50 @@
           <i class="fa-solid fa-language"></i>
           <span>ترجمة</span>
         </button>
+        <button id="btn-menu-bible" class="search-inside-toggle icon-only-toggle" type="button" title="الكتاب المقدس - تصفح الأسفار والأصحاحات">
+          <i class="fa-solid fa-book-bible"></i>
+        </button>
+
+        <!-- BIBLE NAVIGATOR POPOVER -->
+        <div id="popover-bible" class="search-dropdown bible-popover-box hidden">
+          <div class="bible-popover-header">
+            <button id="btn-bible-back" class="bible-back-btn hidden" type="button" title="رجوع لقائمة الأسفار">
+              <i class="fa-solid fa-arrow-right"></i>
+            </button>
+            <span id="bible-popover-heading" class="bible-header-title">
+              <i class="fa-solid fa-book-open"></i> أسفار الكتاب المقدس
+            </span>
+            <button id="btn-close-bible-popover" class="bible-close-btn" type="button" title="إغلاق">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <!-- STEP 1: BOOKS LIST VIEW -->
+          <div id="bible-books-step" class="bible-step-view">
+            <div class="bible-search-input-box">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="bible-book-filter" placeholder="تصفية اسم السفر (تكوين، متى)..." autocomplete="off">
+            </div>
+
+            <div class="bible-testament-tabs">
+              <button class="bible-tab-btn active" data-testament="all" type="button">الكل (66)</button>
+              <button class="bible-tab-btn" data-testament="ot" type="button">العهد القديم (39)</button>
+              <button class="bible-tab-btn" data-testament="nt" type="button">العهد الجديد (27)</button>
+            </div>
+
+            <div id="bible-books-grid" class="bible-books-grid">
+              <!-- Dynamically populated with Bible books -->
+            </div>
+          </div>
+
+          <!-- STEP 2: CHAPTERS GRID VIEW -->
+          <div id="bible-chapters-step" class="bible-step-view hidden">
+            <div id="bible-book-selected-title" class="bible-selected-book-banner"></div>
+            <div id="bible-chapters-grid" class="bible-chapters-grid">
+              <!-- Dynamically populated with chapter numbers 1, 2, 3... -->
+            </div>
+          </div>
+        </div>
 
         <!-- SEARCH RESULTS DROPDOWN FLUSH ATTACHED STUCK TO THE SEARCH BAR -->
         <div id="search-results-dropdown" class="search-dropdown hidden">

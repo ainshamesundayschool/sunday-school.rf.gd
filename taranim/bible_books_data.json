@@ -1,0 +1,464 @@
+[
+  {
+    "id": 1,
+    "title": "تكوين",
+    "abbr": "تك",
+    "totalChapters": 50,
+    "testament": "ot"
+  },
+  {
+    "id": 2,
+    "title": "خروج",
+    "abbr": "خر",
+    "totalChapters": 40,
+    "testament": "ot"
+  },
+  {
+    "id": 3,
+    "title": "لاويِّين",
+    "abbr": "لا",
+    "totalChapters": 27,
+    "testament": "ot"
+  },
+  {
+    "id": 4,
+    "title": "عدد",
+    "abbr": "عد",
+    "totalChapters": 36,
+    "testament": "ot"
+  },
+  {
+    "id": 5,
+    "title": "تثنية",
+    "abbr": "تث",
+    "totalChapters": 34,
+    "testament": "ot"
+  },
+  {
+    "id": 6,
+    "title": "يشوع",
+    "abbr": "يش",
+    "totalChapters": 24,
+    "testament": "ot"
+  },
+  {
+    "id": 7,
+    "title": "قضاة",
+    "abbr": "قض",
+    "totalChapters": 21,
+    "testament": "ot"
+  },
+  {
+    "id": 8,
+    "title": "راعوث",
+    "abbr": "را",
+    "totalChapters": 4,
+    "testament": "ot"
+  },
+  {
+    "id": 9,
+    "title": "صموئيل الأول",
+    "abbr": "1 صم",
+    "totalChapters": 31,
+    "testament": "ot"
+  },
+  {
+    "id": 10,
+    "title": "صموئيل الثاني",
+    "abbr": "2 صم",
+    "totalChapters": 24,
+    "testament": "ot"
+  },
+  {
+    "id": 11,
+    "title": "ملوك الأول",
+    "abbr": "1 مل",
+    "totalChapters": 22,
+    "testament": "ot"
+  },
+  {
+    "id": 12,
+    "title": "ملوك الثاني",
+    "abbr": "2 مل",
+    "totalChapters": 25,
+    "testament": "ot"
+  },
+  {
+    "id": 13,
+    "title": "أخبار الأيام الأول",
+    "abbr": "1 أخ",
+    "totalChapters": 29,
+    "testament": "ot"
+  },
+  {
+    "id": 14,
+    "title": "أخبار الأيام الثاني",
+    "abbr": "2 أخ",
+    "totalChapters": 36,
+    "testament": "ot"
+  },
+  {
+    "id": 15,
+    "title": "عزرا",
+    "abbr": "عز",
+    "totalChapters": 10,
+    "testament": "ot"
+  },
+  {
+    "id": 16,
+    "title": "نحميا",
+    "abbr": "نح",
+    "totalChapters": 13,
+    "testament": "ot"
+  },
+  {
+    "id": 17,
+    "title": "أستير",
+    "abbr": "أس",
+    "totalChapters": 10,
+    "testament": "ot"
+  },
+  {
+    "id": 18,
+    "title": "أيوب",
+    "abbr": "أي",
+    "totalChapters": 42,
+    "testament": "ot"
+  },
+  {
+    "id": 19,
+    "title": "مزامير",
+    "abbr": "مز",
+    "totalChapters": 150,
+    "testament": "ot"
+  },
+  {
+    "id": 20,
+    "title": "أمثال",
+    "abbr": "أم",
+    "totalChapters": 31,
+    "testament": "ot"
+  },
+  {
+    "id": 21,
+    "title": "جامعة",
+    "abbr": "جا",
+    "totalChapters": 12,
+    "testament": "ot"
+  },
+  {
+    "id": 22,
+    "title": "نشيد الأنشاد",
+    "abbr": "نش",
+    "totalChapters": 8,
+    "testament": "ot"
+  },
+  {
+    "id": 23,
+    "title": "إشعياء",
+    "abbr": "إش",
+    "totalChapters": 66,
+    "testament": "ot"
+  },
+  {
+    "id": 24,
+    "title": "إرميا",
+    "abbr": "إر",
+    "totalChapters": 52,
+    "testament": "ot"
+  },
+  {
+    "id": 25,
+    "title": "مراثي إرميا",
+    "abbr": "مرا",
+    "totalChapters": 5,
+    "testament": "ot"
+  },
+  {
+    "id": 26,
+    "title": "حزقيال",
+    "abbr": "حز",
+    "totalChapters": 48,
+    "testament": "ot"
+  },
+  {
+    "id": 27,
+    "title": "دانيآل",
+    "abbr": "دا",
+    "totalChapters": 12,
+    "testament": "ot"
+  },
+  {
+    "id": 28,
+    "title": "هوشع",
+    "abbr": "هو",
+    "totalChapters": 14,
+    "testament": "ot"
+  },
+  {
+    "id": 29,
+    "title": "يوئيل",
+    "abbr": "يؤ",
+    "totalChapters": 3,
+    "testament": "ot"
+  },
+  {
+    "id": 30,
+    "title": "عاموس",
+    "abbr": "عا",
+    "totalChapters": 9,
+    "testament": "ot"
+  },
+  {
+    "id": 31,
+    "title": "عوبديا",
+    "abbr": "عو",
+    "totalChapters": 1,
+    "testament": "ot"
+  },
+  {
+    "id": 32,
+    "title": "يونان",
+    "abbr": "يون",
+    "totalChapters": 4,
+    "testament": "ot"
+  },
+  {
+    "id": 33,
+    "title": "ميخا",
+    "abbr": "مي",
+    "totalChapters": 7,
+    "testament": "ot"
+  },
+  {
+    "id": 34,
+    "title": "ناحوم",
+    "abbr": "نا",
+    "totalChapters": 3,
+    "testament": "ot"
+  },
+  {
+    "id": 35,
+    "title": "حبقُّوق",
+    "abbr": "حب",
+    "totalChapters": 3,
+    "testament": "ot"
+  },
+  {
+    "id": 36,
+    "title": "صفنيا",
+    "abbr": "صف",
+    "totalChapters": 3,
+    "testament": "ot"
+  },
+  {
+    "id": 37,
+    "title": "حجَّي",
+    "abbr": "حج",
+    "totalChapters": 2,
+    "testament": "ot"
+  },
+  {
+    "id": 38,
+    "title": "زكريا",
+    "abbr": "زك",
+    "totalChapters": 14,
+    "testament": "ot"
+  },
+  {
+    "id": 39,
+    "title": "ملاخي",
+    "abbr": "مل",
+    "totalChapters": 4,
+    "testament": "ot"
+  },
+  {
+    "id": 40,
+    "title": "متَّى",
+    "abbr": "مت",
+    "totalChapters": 28,
+    "testament": "nt"
+  },
+  {
+    "id": 41,
+    "title": "مَرقُس",
+    "abbr": "مر",
+    "totalChapters": 16,
+    "testament": "nt"
+  },
+  {
+    "id": 42,
+    "title": "لوقا",
+    "abbr": "لو",
+    "totalChapters": 24,
+    "testament": "nt"
+  },
+  {
+    "id": 43,
+    "title": "يوحنا",
+    "abbr": "يو",
+    "totalChapters": 21,
+    "testament": "nt"
+  },
+  {
+    "id": 44,
+    "title": "أعمال الرسل",
+    "abbr": "أع",
+    "totalChapters": 28,
+    "testament": "nt"
+  },
+  {
+    "id": 45,
+    "title": "رومية",
+    "abbr": "رو",
+    "totalChapters": 16,
+    "testament": "nt"
+  },
+  {
+    "id": 46,
+    "title": "كورنثوس الأولى",
+    "abbr": "1 كو",
+    "totalChapters": 16,
+    "testament": "nt"
+  },
+  {
+    "id": 47,
+    "title": "كورنثوس الثانية",
+    "abbr": "2 كو",
+    "totalChapters": 13,
+    "testament": "nt"
+  },
+  {
+    "id": 48,
+    "title": "غلاطيَّة",
+    "abbr": "غل",
+    "totalChapters": 6,
+    "testament": "nt"
+  },
+  {
+    "id": 49,
+    "title": "أفسس",
+    "abbr": "أف",
+    "totalChapters": 6,
+    "testament": "nt"
+  },
+  {
+    "id": 50,
+    "title": "فيلبِّي",
+    "abbr": "في",
+    "totalChapters": 4,
+    "testament": "nt"
+  },
+  {
+    "id": 51,
+    "title": "كولوسي",
+    "abbr": "كو",
+    "totalChapters": 4,
+    "testament": "nt"
+  },
+  {
+    "id": 52,
+    "title": "تسالونيكي الأولى",
+    "abbr": "1 تس",
+    "totalChapters": 5,
+    "testament": "nt"
+  },
+  {
+    "id": 53,
+    "title": "تسالونيكي الثانية",
+    "abbr": "2 تس",
+    "totalChapters": 3,
+    "testament": "nt"
+  },
+  {
+    "id": 54,
+    "title": "تيموثاوس الأولى",
+    "abbr": "1 تي",
+    "totalChapters": 6,
+    "testament": "nt"
+  },
+  {
+    "id": 55,
+    "title": "تيموثاوس الثانية",
+    "abbr": "2 تي",
+    "totalChapters": 4,
+    "testament": "nt"
+  },
+  {
+    "id": 56,
+    "title": "تيطس",
+    "abbr": "تي",
+    "totalChapters": 3,
+    "testament": "nt"
+  },
+  {
+    "id": 57,
+    "title": "فليمون",
+    "abbr": "فل",
+    "totalChapters": 1,
+    "testament": "nt"
+  },
+  {
+    "id": 58,
+    "title": "عبرانيِّين",
+    "abbr": "عب",
+    "totalChapters": 13,
+    "testament": "nt"
+  },
+  {
+    "id": 59,
+    "title": "يعقوب",
+    "abbr": "يع",
+    "totalChapters": 5,
+    "testament": "nt"
+  },
+  {
+    "id": 60,
+    "title": "بطرس الأولى",
+    "abbr": "1 بط",
+    "totalChapters": 5,
+    "testament": "nt"
+  },
+  {
+    "id": 61,
+    "title": "بطرس الثانية",
+    "abbr": "2 بط",
+    "totalChapters": 3,
+    "testament": "nt"
+  },
+  {
+    "id": 62,
+    "title": "يوحنا الأولى",
+    "abbr": "1 يو",
+    "totalChapters": 5,
+    "testament": "nt"
+  },
+  {
+    "id": 63,
+    "title": "يوحنا الثانية",
+    "abbr": "2 يو",
+    "totalChapters": 1,
+    "testament": "nt"
+  },
+  {
+    "id": 64,
+    "title": "يوحنا الثالثة",
+    "abbr": "3 يو",
+    "totalChapters": 1,
+    "testament": "nt"
+  },
+  {
+    "id": 65,
+    "title": "يهوذا",
+    "abbr": "يه",
+    "totalChapters": 1,
+    "testament": "nt"
+  },
+  {
+    "id": 66,
+    "title": "رؤيا",
+    "abbr": "رؤ",
+    "totalChapters": 22,
+    "testament": "nt"
+  }
+]

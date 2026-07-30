@@ -141,6 +141,75 @@ const BIBLE_BOOK_SHORTCUTS = [
   { shortcuts: ['رؤ'], name: 'رؤيا يوحنا' }
 ];
 
+const BIBLE_BOOKS_DATA = [
+  { id: 1, title: "تكوين", abbr: "تك", totalChapters: 50, testament: "ot" },
+  { id: 2, title: "خروج", abbr: "خر", totalChapters: 40, testament: "ot" },
+  { id: 3, title: "لاويِّين", abbr: "لا", totalChapters: 27, testament: "ot" },
+  { id: 4, title: "عدد", abbr: "عد", totalChapters: 36, testament: "ot" },
+  { id: 5, title: "تثنية", abbr: "تث", totalChapters: 34, testament: "ot" },
+  { id: 6, title: "يشوع", abbr: "يش", totalChapters: 24, testament: "ot" },
+  { id: 7, title: "قضاة", abbr: "قض", totalChapters: 21, testament: "ot" },
+  { id: 8, title: "راعوث", abbr: "را", totalChapters: 4, testament: "ot" },
+  { id: 9, title: "صموئيل الأول", abbr: "1 صم", totalChapters: 31, testament: "ot" },
+  { id: 10, title: "صموئيل الثاني", abbr: "2 صم", totalChapters: 24, testament: "ot" },
+  { id: 11, title: "ملوك الأول", abbr: "1 مل", totalChapters: 22, testament: "ot" },
+  { id: 12, title: "ملوك الثاني", abbr: "2 مل", totalChapters: 25, testament: "ot" },
+  { id: 13, title: "أخبار الأيام الأول", abbr: "1 أخ", totalChapters: 29, testament: "ot" },
+  { id: 14, title: "أخبار الأيام الثاني", abbr: "2 أخ", totalChapters: 36, testament: "ot" },
+  { id: 15, title: "عزرا", abbr: "عز", totalChapters: 10, testament: "ot" },
+  { id: 16, title: "نحميا", abbr: "نه", totalChapters: 13, testament: "ot" },
+  { id: 17, title: "استير", abbr: "إس", totalChapters: 10, testament: "ot" },
+  { id: 18, title: "أيوب", abbr: "أي", totalChapters: 42, testament: "ot" },
+  { id: 19, title: "مزامير", abbr: "مز", totalChapters: 150, testament: "ot" },
+  { id: 20, title: "أمثال", abbr: "أم", totalChapters: 31, testament: "ot" },
+  { id: 21, title: "جامعة", abbr: "جا", totalChapters: 12, testament: "ot" },
+  { id: 22, title: "نشيد الأنشاد", abbr: "نش", totalChapters: 8, testament: "ot" },
+  { id: 23, title: "إشعياء", abbr: "إش", totalChapters: 66, testament: "ot" },
+  { id: 24, title: "إرميا", abbr: "إر", totalChapters: 52, testament: "ot" },
+  { id: 25, title: "مراثي إرميا", abbr: "مرا", totalChapters: 5, testament: "ot" },
+  { id: 26, title: "حزقيال", abbr: "حز", totalChapters: 48, testament: "ot" },
+  { id: 27, title: "دانيال", abbr: "دا", totalChapters: 14, testament: "ot" },
+  { id: 28, title: "هوشع", abbr: "هو", totalChapters: 14, testament: "ot" },
+  { id: 29, title: "يوئيل", abbr: "يو", totalChapters: 3, testament: "ot" },
+  { id: 30, title: "عاموس", abbr: "عا", totalChapters: 9, testament: "ot" },
+  { id: 31, title: "عوبديا", abbr: "عو", totalChapters: 1, testament: "ot" },
+  { id: 32, title: "يونان", abbr: "يون", totalChapters: 4, testament: "ot" },
+  { id: 33, title: "ميخا", abbr: "مي", totalChapters: 7, testament: "ot" },
+  { id: 34, title: "ناحوم", abbr: "نا", totalChapters: 3, testament: "ot" },
+  { id: 35, title: "حبقوق", abbr: "حب", totalChapters: 3, testament: "ot" },
+  { id: 36, title: "صفنيا", abbr: "صف", totalChapters: 3, testament: "ot" },
+  { id: 37, title: "حجي", abbr: "حج", totalChapters: 2, testament: "ot" },
+  { id: 38, title: "زكريا", abbr: "زك", totalChapters: 14, testament: "ot" },
+  { id: 39, title: "ملاخي", abbr: "مل", totalChapters: 4, testament: "ot" },
+  { id: 40, title: "متَّى", abbr: "مت", totalChapters: 28, testament: "nt" },
+  { id: 41, title: "مرقس", abbr: "مر", totalChapters: 16, testament: "nt" },
+  { id: 42, title: "لوقا", abbr: "لو", totalChapters: 24, testament: "nt" },
+  { id: 43, title: "يوحنا", abbr: "يو", totalChapters: 21, testament: "nt" },
+  { id: 44, title: "أعمال الرسل", abbr: "أع", totalChapters: 28, testament: "nt" },
+  { id: 45, title: "رومية", abbr: "رو", totalChapters: 16, testament: "nt" },
+  { id: 46, title: "كورنثوس الأولى", abbr: "1 كو", totalChapters: 16, testament: "nt" },
+  { id: 47, title: "كورنثوس الثانية", abbr: "2 كو", totalChapters: 13, testament: "nt" },
+  { id: 48, title: "غلاطية", abbr: "غل", totalChapters: 6, testament: "nt" },
+  { id: 49, title: "أفسس", abbr: "أف", totalChapters: 6, testament: "nt" },
+  { id: 50, title: "فيلبي", abbr: "في", totalChapters: 4, testament: "nt" },
+  { id: 51, title: "كولوسي", abbr: "كو", totalChapters: 4, testament: "nt" },
+  { id: 52, title: "تسالونيكي الأولى", abbr: "1 تس", totalChapters: 5, testament: "nt" },
+  { id: 53, title: "تسالونيكي الثانية", abbr: "2 تس", totalChapters: 3, testament: "nt" },
+  { id: 54, title: "تيموثاوس الأولى", abbr: "1 تي", totalChapters: 6, testament: "nt" },
+  { id: 55, title: "تيموثاوس الثانية", abbr: "2 تي", totalChapters: 4, testament: "nt" },
+  { id: 56, title: "طيطس", abbr: "طيط", totalChapters: 3, testament: "nt" },
+  { id: 57, title: "فيليمون", abbr: "فل", totalChapters: 1, testament: "nt" },
+  { id: 58, title: "عبرانيين", abbr: "عب", totalChapters: 13, testament: "nt" },
+  { id: 59, title: "يعقوب", abbr: "يع", totalChapters: 5, testament: "nt" },
+  { id: 60, title: "بطرس الأولى", abbr: "1 بط", totalChapters: 5, testament: "nt" },
+  { id: 61, title: "بطرس الثانية", abbr: "2 بط", totalChapters: 3, testament: "nt" },
+  { id: 62, title: "يوحنا الأولى", abbr: "1 يو", totalChapters: 5, testament: "nt" },
+  { id: 63, title: "يوحنا الثانية", abbr: "2 يو", totalChapters: 1, testament: "nt" },
+  { id: 64, title: "يوحنا الثالثة", abbr: "3 يو", totalChapters: 1, testament: "nt" },
+  { id: 65, title: "يهوذا", abbr: "يه", totalChapters: 1, testament: "nt" },
+  { id: 66, title: "رؤيا", abbr: "رؤ", totalChapters: 22, testament: "nt" }
+];
+
 function parseBibleSearchShortcut(query) {
   if (!query) return null;
 
@@ -1088,6 +1157,18 @@ document.addEventListener('DOMContentLoaded', () => {
     btnMenuCast: document.getElementById('btn-menu-cast'),
     popoverCast: document.getElementById('popover-cast'),
 
+    btnMenuBible: document.getElementById('btn-menu-bible'),
+    popoverBible: document.getElementById('popover-bible'),
+    btnBibleBack: document.getElementById('btn-bible-back'),
+    btnCloseBiblePopover: document.getElementById('btn-close-bible-popover'),
+    bibleBookFilter: document.getElementById('bible-book-filter'),
+    bibleBooksGrid: document.getElementById('bible-books-grid'),
+    bibleChaptersGrid: document.getElementById('bible-chapters-grid'),
+    bibleBooksStep: document.getElementById('bible-books-step'),
+    bibleChaptersStep: document.getElementById('bible-chapters-step'),
+    biblePopoverHeading: document.getElementById('bible-popover-heading'),
+    bibleBookSelectedTitle: document.getElementById('bible-book-selected-title'),
+
     btnMenuInstall: document.getElementById('btn-menu-install'),
     popoverInstall: document.getElementById('popover-install'),
     btnDropdownPrecache: document.getElementById('btn-dropdown-precache'),
@@ -1176,6 +1257,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.popoverInstall && els.popoverInstall !== exceptPopover) {
       els.popoverInstall.classList.add('hidden');
     }
+    if (els.popoverBible && els.popoverBible !== exceptPopover) {
+      els.popoverBible.classList.add('hidden');
+    }
   }
 
   init();
@@ -1183,10 +1267,163 @@ document.addEventListener('DOMContentLoaded', () => {
   function init() {
     applyInitialUIState();
     bindEvents();
+    initBiblePopover();
     makeDraggableCenterPivot();
     detectConnectedScreens();
     loadInitialData();
     renderRecentSession();
+  }
+
+  let activeBibleTestament = 'all';
+  let selectedBibleBook = null;
+
+  function initBiblePopover() {
+    if (!els.btnMenuBible || !els.popoverBible) return;
+
+    els.btnMenuBible.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const willShow = els.popoverBible.classList.contains('hidden');
+      closeAllPopovers(els.popoverBible);
+      if (willShow) {
+        els.popoverBible.classList.remove('hidden');
+        showBibleBooksStep();
+      } else {
+        els.popoverBible.classList.add('hidden');
+      }
+    });
+
+    if (els.btnCloseBiblePopover) {
+      els.btnCloseBiblePopover.addEventListener('click', (e) => {
+        e.stopPropagation();
+        els.popoverBible.classList.add('hidden');
+      });
+    }
+
+    if (els.btnBibleBack) {
+      els.btnBibleBack.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showBibleBooksStep();
+      });
+    }
+
+    if (els.bibleBookFilter) {
+      els.bibleBookFilter.addEventListener('input', () => {
+        renderBibleBooksGrid();
+      });
+    }
+
+    const tabBtns = els.popoverBible.querySelectorAll('.bible-tab-btn');
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        tabBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeBibleTestament = btn.dataset.testament;
+        renderBibleBooksGrid();
+      });
+    });
+  }
+
+  function showBibleBooksStep() {
+    selectedBibleBook = null;
+    if (els.bibleBooksStep) els.bibleBooksStep.classList.remove('hidden');
+    if (els.bibleChaptersStep) els.bibleChaptersStep.classList.add('hidden');
+    if (els.btnBibleBack) els.btnBibleBack.classList.add('hidden');
+    if (els.biblePopoverHeading) els.biblePopoverHeading.innerHTML = `<i class="fa-solid fa-book-open"></i> أسفار الكتاب المقدس`;
+    renderBibleBooksGrid();
+  }
+
+  function renderBibleBooksGrid() {
+    if (!els.bibleBooksGrid) return;
+
+    const filterVal = els.bibleBookFilter ? normalizeArabic(els.bibleBookFilter.value.trim()) : '';
+
+    const filtered = BIBLE_BOOKS_DATA.filter(b => {
+      if (activeBibleTestament !== 'all' && b.testament !== activeBibleTestament) {
+        return false;
+      }
+      if (filterVal) {
+        const bNorm = normalizeArabic(b.title);
+        const aNorm = normalizeArabic(b.abbr || '');
+        return bNorm.includes(filterVal) || aNorm.includes(filterVal);
+      }
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      els.bibleBooksGrid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:20px; color:#94a3b8; font-size:0.85rem;">لم يتم العثور على سفر ينطبق عليه البحث</div>`;
+      return;
+    }
+
+    els.bibleBooksGrid.innerHTML = filtered.map(b => `
+      <div class="bible-book-card" data-book-id="${b.id}">
+        <span class="bible-book-name">${escapeHtml(b.title)}</span>
+        <span class="bible-book-count">${b.totalChapters} أصحاح</span>
+      </div>
+    `).join('');
+
+    els.bibleBooksGrid.querySelectorAll('.bible-book-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const bId = parseInt(card.dataset.bookId);
+        const bookObj = BIBLE_BOOKS_DATA.find(b => b.id === bId);
+        if (bookObj) {
+          showBibleChaptersStep(bookObj);
+        }
+      });
+    });
+  }
+
+  function showBibleChaptersStep(bookObj) {
+    selectedBibleBook = bookObj;
+    if (els.bibleBooksStep) els.bibleBooksStep.classList.add('hidden');
+    if (els.bibleChaptersStep) els.bibleChaptersStep.classList.remove('hidden');
+    if (els.btnBibleBack) els.btnBibleBack.classList.remove('hidden');
+
+    if (els.biblePopoverHeading) {
+      els.biblePopoverHeading.innerHTML = `<i class="fa-solid fa-book-bookmark"></i> ${escapeHtml(bookObj.title)}`;
+    }
+    if (els.bibleBookSelectedTitle) {
+      els.bibleBookSelectedTitle.innerHTML = `سفر ${escapeHtml(bookObj.title)} (${bookObj.totalChapters} أصحاح)`;
+    }
+
+    renderBibleChaptersGrid(bookObj);
+  }
+
+  function renderBibleChaptersGrid(bookObj) {
+    if (!els.bibleChaptersGrid || !bookObj) return;
+
+    let chaptersHtml = '';
+    for (let i = 1; i <= bookObj.totalChapters; i++) {
+      chaptersHtml += `<button class="bible-chapter-btn" data-chapter="${i}" type="button">${i}</button>`;
+    }
+
+    els.bibleChaptersGrid.innerHTML = chaptersHtml;
+
+    els.bibleChaptersGrid.querySelectorAll('.bible-chapter-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const chNum = parseInt(btn.dataset.chapter);
+        if (chNum > 0 && selectedBibleBook) {
+          if (els.popoverBible) els.popoverBible.classList.add('hidden');
+          await openBibleChapterByBookAndChapter(selectedBibleBook.id, chNum);
+        }
+      });
+    });
+  }
+
+  async function openBibleChapterByBookAndChapter(bookId, chNum) {
+    try {
+      let res = await fetch(`api.php?action=bible_chapter&book_id=${bookId}&chapter=${chNum}`);
+      if (!res.ok) res = await fetch(`../api.php?action=bible_chapter&book_id=${bookId}&chapter=${chNum}`);
+      if (res.ok) {
+        const chapterData = await res.json();
+        if (chapterData && (chapterData.id || chapterData.item_id)) {
+          const targetId = chapterData.id || chapterData.item_id;
+          await openAndPresentItem(targetId, true);
+        }
+      }
+    } catch(err) {}
   }
 
   function saveUserSettings() {
