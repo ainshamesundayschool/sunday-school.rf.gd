@@ -3146,10 +3146,10 @@ document.addEventListener('DOMContentLoaded', () => {
     els.recentSessionContainer.innerHTML = state.sessionRecents.map((r, idx) => `
       <div class="recent-item ${state.activeSong && String(state.activeSong.id) === String(r.id) && Boolean(state.activeSong.is_bible) === Boolean(r.is_bible) ? 'active' : ''}" data-id="${r.id}" data-is-bible="${r.is_bible ? '1' : '0'}" data-index="${idx}" draggable="true">
         <div class="recent-item-start">
-          <input type="checkbox" class="recent-item-cb" data-index="${idx}">
           <i class="fa-solid fa-grip-vertical drag-handle-icon" title="سحب لإعادة الترتيب"></i>
           <span class="recent-title">${escapeHtml(r.title)}</span>
         </div>
+        <input type="checkbox" class="recent-item-cb" data-index="${idx}">
       </div>
     `).join('');
 

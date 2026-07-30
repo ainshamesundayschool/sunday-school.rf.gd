@@ -242,7 +242,6 @@
             <div class="popover-title"><i class="fa-solid fa-display"></i> اختيار الشاشة واختصار البث</div>
 
             <div id="screens-cast-container" style="display:flex; flex-direction:column; gap:6px; margin-bottom:4px;">
-              <div style="font-size:0.8rem; font-weight:700; color:var(--text-muted);">الشاشات المتاحة للعرض الفوري:</div>
               <div id="screens-cast-list" style="display:flex; flex-direction:column; gap:4px;">
                 <!-- Screens will be rendered dynamically -->
               </div>
@@ -347,13 +346,8 @@
       <section class="half-panel recent-session-panel" id="recents-panel">
         <div class="panel-bar">
           <div class="panel-bar-start">
-            <label class="recent-select-all-label" title="تحديد / إلغاء تحديد الكل">
-              <input type="checkbox" id="recent-select-all-cb">
-            </label>
-            <button id="btn-delete-selected-recents" class="mini-btn-danger hidden" title="حذف العناصر المحددة">
-              <i class="fa-solid fa-trash-can"></i> (<span id="selected-recents-count">0</span>)
-            </button>
             <span class="panel-title"><i class="fa-solid fa-clock-rotate-left"></i> الترانيم المفتوحة</span>
+            <span id="recent-count" class="badge-count">0</span>
           </div>
 
           <div class="panel-bar-center dropdown-wrapper">
@@ -363,7 +357,7 @@
               <i class="fa-solid fa-chevron-down"></i>
             </button>
 
-            <!-- POPOVER PLAYLIST MANAGER MATCHING REFERENCE IMAGE -->
+            <!-- POPOVER PLAYLIST MANAGER -->
             <div class="dropdown-popover hidden" id="popover-playlist">
               <div class="playlist-popover-header">
                 <span class="playlist-popover-title">قائمة التشغيل</span>
@@ -391,7 +385,12 @@
           </div>
 
           <div class="panel-bar-end">
-            <span id="recent-count" class="badge-count">0</span>
+            <label class="recent-select-all-label" title="تحديد / إلغاء تحديد الكل">
+              <input type="checkbox" id="recent-select-all-cb">
+            </label>
+            <button id="btn-delete-selected-recents" class="mini-btn-danger hidden" title="حذف العناصر المحددة">
+              <i class="fa-solid fa-trash-can"></i> (<span id="selected-recents-count">0</span>)
+            </button>
           </div>
         </div>
 
