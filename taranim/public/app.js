@@ -2105,6 +2105,24 @@ document.addEventListener('DOMContentLoaded', () => {
     els.btnNextLine.addEventListener('click', nextLine);
     els.btnToggleBlank.addEventListener('click', toggleBlank);
 
+    if (els.currentLineCounter) {
+      els.currentLineCounter.style.cursor = 'pointer';
+      els.currentLineCounter.title = 'انقر للانتقال إلى رقم شريحة معين';
+      els.currentLineCounter.addEventListener('click', () => {
+        if (!state.presentationLines || state.presentationLines.length === 0) return;
+        const inputVal = prompt(`أدخل رقم الشريحة للانتقال (1 - ${state.presentationLines.length}):`, state.currentLineIndex + 1);
+        if (inputVal !== null) {
+          const targetNum = parseInt(inputVal);
+          if (!isNaN(targetNum) && targetNum >= 1 && targetNum <= state.presentationLines.length) {
+            state.currentLineIndex = targetNum - 1;
+            state.isBlank = false;
+            renderPresentationLinesList();
+            syncLiveState();
+          }
+        }
+      });
+    }
+
     if (els.obsOverlay) {
       let overlayTouchStartX = 0;
       let overlayTouchStartY = 0;
@@ -2188,7 +2206,28 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      if (document.activeElement === els.intelligentSearch || document.activeElement.tagName === 'INPUT') {
+      if (document.activeElement === els.intelligentSearch || (document.activeElement && document.activeElement.tagName === 'INPUT') || (document.activeElement && document.activeElement.tagName === 'TEXTAREA')) {
+        return;
+      }
+
+      // Check for numeric keys (0-9 or Numpad 0-9 or Arabic digits ٠-٩)
+      const isDigit = /^[0-9٠-٩]$/.test(e.key);
+      if (isDigit) {
+        const standardDigit = e.key.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+        numberJumpBuffer += standardDigit;
+        showToast(`رقم الشريحة: ${numberJumpBuffer} (اضغط Enter للانتقال)`);
+
+        if (numberJumpTimer) clearTimeout(numberJumpTimer);
+        numberJumpTimer = setTimeout(() => {
+          jumpToBufferedSlide();
+        }, 2200);
+        return;
+      }
+
+      if (e.key === 'Enter' && numberJumpBuffer) {
+        e.preventDefault();
+        if (numberJumpTimer) clearTimeout(numberJumpTimer);
+        jumpToBufferedSlide();
         return;
       }
 
@@ -2202,6 +2241,24 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleBlank();
       }
     });
+
+    let numberJumpBuffer = '';
+    let numberJumpTimer = null;
+
+    function jumpToBufferedSlide() {
+      if (!numberJumpBuffer) return;
+      const targetNum = parseInt(numberJumpBuffer);
+      if (!isNaN(targetNum) && targetNum >= 1 && targetNum <= state.presentationLines.length) {
+        state.currentLineIndex = targetNum - 1;
+        state.isBlank = false;
+        renderPresentationLinesList();
+        syncLiveState();
+        showToast(`الانتقال إلى الشريحة ${targetNum}`);
+      } else if (!isNaN(targetNum)) {
+        showToast(`رقم الشريحة غير موجود (${targetNum})`);
+      }
+      numberJumpBuffer = '';
+    }
   }
 
   function getActiveWordAtCursor(input) {
