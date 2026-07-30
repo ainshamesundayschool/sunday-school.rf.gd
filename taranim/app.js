@@ -850,11 +850,69 @@ document.addEventListener('DOMContentLoaded', () => {
     dragPivot: getLatestSavedPivot()
   };
 
+  let presentationTimerInterval = null;
+  let presentationStartTime = null;
+  let displayMonitorInterval = null;
+
+  function startPresentationTimer() {
+    if (!presentationStartTime) {
+      presentationStartTime = Date.now();
+    }
+    if (presentationTimerInterval) clearInterval(presentationTimerInterval);
+    
+    presentationTimerInterval = setInterval(() => {
+      if (!state.selectedScreen) {
+        stopPresentationTimer();
+        return;
+      }
+      const el = document.getElementById('display-pill-timer');
+      if (el && presentationStartTime) {
+        const elapsedSecs = Math.floor((Date.now() - presentationStartTime) / 1000);
+        const hrs = Math.floor(elapsedSecs / 3600);
+        const mins = Math.floor((elapsedSecs % 3600) / 60);
+        const secs = elapsedSecs % 60;
+        const timeStr = hrs > 0 
+          ? `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+          : `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        el.innerHTML = `<span class="live-dot"></span> ${timeStr}`;
+      }
+    }, 1000);
+  }
+
+  function stopPresentationTimer() {
+    if (presentationTimerInterval) {
+      clearInterval(presentationTimerInterval);
+      presentationTimerInterval = null;
+    }
+    presentationStartTime = null;
+  }
+
+  function startDisplayMonitor() {
+    if (displayMonitorInterval) clearInterval(displayMonitorInterval);
+    displayMonitorInterval = setInterval(() => {
+      if (!state.selectedScreen) {
+        clearInterval(displayMonitorInterval);
+        displayMonitorInterval = null;
+        return;
+      }
+      const isPrimary = state.selectedScreen.isPrimary || state.selectedScreen.val === 'primary' || state.selectedScreen.val === '0';
+      if (!isPrimary) {
+        if (presenterWindow && presenterWindow.closed) {
+          closeActiveDisplay();
+        }
+      } else {
+        if (els.obsOverlay && els.obsOverlay.classList.contains('hidden')) {
+          closeActiveDisplay();
+        }
+      }
+    }, 500);
+  }
+
   function closeActiveDisplay() {
     if (presenterWindow && !presenterWindow.closed) {
       try { presenterWindow.close(); } catch(e) {}
-      presenterWindow = null;
     }
+    presenterWindow = null;
     if (els.obsOverlay) {
       els.obsOverlay.classList.add('hidden');
       if (document.fullscreenElement && document.exitFullscreen) {
@@ -862,6 +920,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
     state.selectedScreen = null;
+    stopPresentationTimer();
+    if (displayMonitorInterval) {
+      clearInterval(displayMonitorInterval);
+      displayMonitorInterval = null;
+    }
     try { localStorage.removeItem('sunday_school_taranim_locked_screen'); } catch(e) {}
     updateDisplayButtonUI();
   }
@@ -871,18 +934,30 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!container) return;
 
     if (state.selectedScreen) {
-      const name = state.selectedScreen.label || 'شاشة العرض';
-      const isPrimary = state.selectedScreen.isPrimary;
+      const isPrimary = state.selectedScreen.isPrimary || state.selectedScreen.val === 'primary' || state.selectedScreen.val === '0';
+      const screenNum = isPrimary ? '1' : '2';
+
+      if (!presentationStartTime) {
+        presentationStartTime = Date.now();
+      }
+
       container.innerHTML = `
         <div class="display-selected-pill" id="btn-menu-cast" title="اضغط لفتح قائمة اختيار الشاشات">
-          <i class="fa-solid fa-tv display-pill-icon"></i>
-          <span class="display-pill-name">${escapeHtml(name)}</span>
-          ${!isPrimary ? '<button class="display-pill-fs-btn" id="btn-fs-display-pill" title="ملء الشاشة" type="button"><i class="fa-solid fa-expand"></i></button>' : ''}
+          <span class="display-pill-badge" title="رقم الشاشة">
+            <i class="fa-solid fa-tv"></i> ${screenNum}
+          </span>
+          <span class="display-pill-timer" id="display-pill-timer" title="مدة العرض المباشر">
+            <span class="live-dot"></span> 00:00
+          </span>
+          ${!isPrimary ? '<button class="display-pill-fs-btn" id="btn-fs-display-pill" title="تفعيل ملء الشاشة" type="button"><i class="fa-solid fa-expand"></i></button>' : ''}
           <button class="display-pill-close-btn" id="btn-close-display-pill" title="إغلاق الشاشة وإلغاء التحديد" type="button">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
       `;
+
+      startPresentationTimer();
+      startDisplayMonitor();
 
       const pillBtn = container.querySelector('#btn-menu-cast');
       const closeBtn = container.querySelector('#btn-close-display-pill');
@@ -934,6 +1009,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
     } else {
+      stopPresentationTimer();
+      if (displayMonitorInterval) {
+        clearInterval(displayMonitorInterval);
+        displayMonitorInterval = null;
+      }
       container.innerHTML = `
         <button class="icon-menu-btn" id="btn-menu-cast" title="البث والشاشات الخارجية (TV / OBS)" type="button">
           <i class="fa-solid fa-tv"></i>
