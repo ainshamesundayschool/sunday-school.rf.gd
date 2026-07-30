@@ -1972,13 +1972,7 @@ document.addEventListener('DOMContentLoaded', () => {
       top = window.screen.availTop || 0;
     }
 
-    let isCurrentWindowScreen = false;
-    if (screenDetails && screenDetails.currentScreen && targetScreen) {
-      isCurrentWindowScreen = (targetScreen === screenDetails.currentScreen) ||
-                              (targetScreen.left === screenDetails.currentScreen.left && targetScreen.top === screenDetails.currentScreen.top);
-    } else if (val === 'primary' && (!screenDetails || !screenDetails.currentScreen || screenDetails.currentScreen.isPrimary)) {
-      isCurrentWindowScreen = true;
-    }
+    let isCurrentWindowScreen = (val === 'primary' || val === '0');
 
     if (isCurrentWindowScreen) {
       if (presenterWindow && !presenterWindow.closed) {
@@ -1991,7 +1985,7 @@ document.addEventListener('DOMContentLoaded', () => {
         label: targetScreen ? (targetScreen.label || `شاشة ${targetIdx + 1}`) : 'الشاشة الرئيسية (هذا الجهاز)',
         width: window.screen.width || 1920,
         height: window.screen.height || 1080,
-        isPrimary: targetScreen ? targetScreen.isPrimary : true
+        isPrimary: true
       };
       try { localStorage.setItem('sunday_school_taranim_locked_screen', JSON.stringify(state.selectedScreen)); } catch(e) {}
       updateDisplayButtonUI();
@@ -2014,7 +2008,7 @@ document.addEventListener('DOMContentLoaded', () => {
       label: targetScreen ? (targetScreen.label || `شاشة ${targetIdx + 1}`) : (val === 'primary' ? 'الشاشة الرئيسية' : 'شاشة عرض خارجية 2'),
       width: width,
       height: height,
-      isPrimary: targetScreen ? targetScreen.isPrimary : (val === 'primary')
+      isPrimary: false
     };
     try { localStorage.setItem('sunday_school_taranim_locked_screen', JSON.stringify(state.selectedScreen)); } catch(e) {}
     updateDisplayButtonUI();
@@ -2036,55 +2030,29 @@ document.addEventListener('DOMContentLoaded', () => {
         presenterWindow.resizeTo(width, height);
       } catch (e) {}
 
-      // AGGRESSIVE AUTO-FULLSCREEN: retry within the 5s transient user activation window
-      const fsRetryDelays = [50, 200, 500, 1000, 1500, 2000, 3000, 4000];
-      let fsAchieved = false;
-
-      function tryFullscreenFromParent() {
-        if (fsAchieved || !presenterWindow || presenterWindow.closed) return;
+      // SAFE AUTO-FULLSCREEN: signal child window to trigger fullscreen inside its own context
+      const triggerChildFS = () => {
         try {
-          const pDoc = presenterWindow.document;
-          if (pDoc && pDoc.documentElement) {
-            if (pDoc.fullscreenElement) { fsAchieved = true; return; }
-            const fsOpts = targetScreen ? { screen: targetScreen } : undefined;
-            pDoc.documentElement.requestFullscreen(fsOpts).then(() => { fsAchieved = true; }).catch(() => {});
+          if (presenterWindow && !presenterWindow.closed && typeof presenterWindow.triggerFullscreen === 'function') {
+            presenterWindow.triggerFullscreen();
           }
-        } catch (e) {}
-      }
-
-      // Try immediately
-      tryFullscreenFromParent();
-
-      // Retry at multiple intervals within the user activation window
-      fsRetryDelays.forEach(delay => {
-        setTimeout(() => {
-          if (!fsAchieved) tryFullscreenFromParent();
-        }, delay);
-      });
-
-      // Also tell the child window to try fullscreen itself via BroadcastChannel
-      try {
-        const fsChannel = new BroadcastChannel('sunday_school_taranim_fs');
-        setTimeout(() => {
-          fsChannel.postMessage({ action: 'REQUEST_FULLSCREEN' });
-        }, 600);
-        setTimeout(() => {
-          fsChannel.postMessage({ action: 'REQUEST_FULLSCREEN' });
-          fsChannel.close();
-        }, 2000);
-      } catch(e) {}
-    } else {
-      if (els.obsOverlay) {
-        els.obsOverlay.classList.remove('hidden');
-        const docEl = document.documentElement || els.obsOverlay;
-        if (docEl.requestFullscreen) {
-          if (targetScreen) {
-            docEl.requestFullscreen({ screen: targetScreen }).catch(() => {});
-          } else {
-            docEl.requestFullscreen().catch(() => {});
+        } catch(e) {}
+        try {
+          if (presenterWindow && !presenterWindow.closed) {
+            presenterWindow.postMessage({ action: 'TRIGGER_FULLSCREEN' }, '*');
           }
-        }
-      }
+        } catch(e) {}
+        try {
+          const fsChannel = new BroadcastChannel('sunday_school_taranim_fs');
+          fsChannel.postMessage({ action: 'TRIGGER_FULLSCREEN' });
+          setTimeout(() => fsChannel.close(), 200);
+        } catch(e) {}
+      };
+
+      triggerChildFS();
+      setTimeout(triggerChildFS, 150);
+      setTimeout(triggerChildFS, 400);
+      setTimeout(triggerChildFS, 800);
     }
 
     syncLiveState();
