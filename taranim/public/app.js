@@ -911,6 +911,16 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentPresenterText = null;
   let currentPresenterAnim = null;
 
+  function exitPresentation() {
+    state.isBlank = true;
+    if (els && els.obsOverlay) {
+      els.obsOverlay.classList.add('hidden');
+    }
+    if (typeof syncLiveState === 'function') {
+      syncLiveState();
+    }
+  }
+
   const state = {
     allSongs: [],
     arabicDictionary: [],
