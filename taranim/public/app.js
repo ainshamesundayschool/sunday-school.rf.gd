@@ -1329,9 +1329,11 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    els.btnOpenTvWindow.addEventListener('click', () => {
-      launchPresenterOnSelectedScreen();
-    });
+    if (els.btnOpenTvWindow) {
+      els.btnOpenTvWindow.addEventListener('click', () => {
+        launchPresenterOnSelectedScreen();
+      });
+    }
 
     els.btnCopyObsUrl.addEventListener('click', async () => {
       const obsUrl = getObsUrl();
@@ -2395,7 +2397,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Defer text-fit reflow to next rAF so it doesn't block keyboard/click response
       const snapText = text;
-      const snapSize = size;
+      const snapSize = state.fontSize || 54;
       requestAnimationFrame(() => {
         if (els.obsLineText && els.obsLineText.textContent === snapText && els.obsLineText.style.display !== 'none') {
           const vW = els.obsOverlay ? els.obsOverlay.clientWidth : window.innerWidth;
