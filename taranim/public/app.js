@@ -1167,6 +1167,18 @@ document.addEventListener('DOMContentLoaded', () => {
     biblePopoverHeading: document.getElementById('bible-popover-heading'),
     bibleBookSelectedTitle: document.getElementById('bible-book-selected-title'),
 
+    btnPlaylistSelector: document.getElementById('btn-playlist-selector'),
+    popoverPlaylist: document.getElementById('popover-playlist'),
+    playlistCurrentName: document.getElementById('playlist-current-name'),
+    playlistsListContainer: document.getElementById('playlists-list-container'),
+    newPlaylistNameInput: document.getElementById('new-playlist-name-input'),
+    btnCreatePlaylist: document.getElementById('btn-create-playlist'),
+    btnExportPlaylist: document.getElementById('btn-export-playlist'),
+    importPlaylistFileInput: document.getElementById('import-playlist-file-input'),
+    recentSelectAllCb: document.getElementById('recent-select-all-cb'),
+    btnDeleteSelectedRecents: document.getElementById('btn-delete-selected-recents'),
+    selectedRecentsCount: document.getElementById('selected-recents-count'),
+
     btnMenuInstall: document.getElementById('btn-menu-install'),
     popoverInstall: document.getElementById('popover-install'),
     btnDropdownPrecache: document.getElementById('btn-dropdown-precache'),
@@ -1478,6 +1490,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.btnAlignJustify) els.btnAlignJustify.classList.toggle('active', state.styleOptions.textAlign === 'justify');
 
     if (els.obsOverlay) els.obsOverlay.setAttribute('data-chroma', state.chromaKey);
+    loadPlaylists();
+    renderRecentSession();
     checkOfflineStatusAndToggleInstallBtn();
     detectConnectedScreens();
     updateDisplayButtonUI();
@@ -1649,10 +1663,88 @@ document.addEventListener('DOMContentLoaded', () => {
       if (els.popoverInstall && !els.popoverInstall.contains(e.target) && e.target !== els.btnMenuInstall && !els.btnMenuInstall.contains(e.target)) {
         els.popoverInstall.classList.add('hidden');
       }
+      if (els.popoverPlaylist && !els.popoverPlaylist.contains(e.target) && e.target !== els.btnPlaylistSelector && !els.btnPlaylistSelector.contains(e.target)) {
+        els.popoverPlaylist.classList.add('hidden');
+      }
       if (els.searchDropdown && !els.searchDropdown.contains(e.target) && e.target !== els.intelligentSearch) {
         els.searchDropdown.classList.add('hidden');
       }
     });
+
+    if (els.btnPlaylistSelector) {
+      els.btnPlaylistSelector.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const willShow = els.popoverPlaylist.classList.contains('hidden');
+        closeAllPopovers(els.popoverPlaylist);
+        if (willShow) {
+          renderPlaylistsList();
+          els.popoverPlaylist.classList.remove('hidden');
+        } else {
+          els.popoverPlaylist.classList.add('hidden');
+        }
+      });
+    }
+
+    if (els.recentSelectAllCb) {
+      els.recentSelectAllCb.addEventListener('change', (e) => {
+        const isChecked = e.target.checked;
+        state.selectedRecentIndexes.clear();
+        if (isChecked) {
+          state.sessionRecents.forEach((_, idx) => state.selectedRecentIndexes.add(idx));
+        }
+        els.recentSessionContainer.querySelectorAll('.recent-item-cb').forEach(cb => {
+          cb.checked = isChecked;
+        });
+        updateBulkDeleteUI();
+      });
+    }
+
+    if (els.btnDeleteSelectedRecents) {
+      els.btnDeleteSelectedRecents.addEventListener('click', () => {
+        if (state.selectedRecentIndexes.size === 0) return;
+        const sortedIndexes = Array.from(state.selectedRecentIndexes).sort((a, b) => b - a);
+        sortedIndexes.forEach(idx => {
+          state.sessionRecents.splice(idx, 1);
+        });
+        state.selectedRecentIndexes.clear();
+        savePlaylists();
+        renderRecentSession();
+        showToast('تم حذف العناصر المحددة.');
+      });
+    }
+
+    if (els.btnCreatePlaylist) {
+      els.btnCreatePlaylist.addEventListener('click', () => {
+        const name = els.newPlaylistNameInput.value.trim();
+        if (!name) return;
+        const newId = 'pl_' + Date.now();
+        state.playlists.push({
+          id: newId,
+          name: name,
+          items: []
+        });
+        state.activePlaylistId = newId;
+        els.newPlaylistNameInput.value = '';
+        savePlaylists();
+        renderRecentSession();
+        renderPlaylistsList();
+        showToast(`تم إنشاء قائمة "${name}"!`);
+      });
+    }
+
+    if (els.btnExportPlaylist) {
+      els.btnExportPlaylist.addEventListener('click', exportActivePlaylist);
+    }
+
+    if (els.importPlaylistFileInput) {
+      els.importPlaylistFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          importPlaylistFromFile(file);
+          e.target.value = '';
+        }
+      });
+    }
 
     document.addEventListener('fullscreenchange', () => {
       if (!document.fullscreenElement && els.obsOverlay) {
@@ -2891,6 +2983,56 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // PLAYLIST STATE
+  state.playlists = [
+    { id: 'default', name: 'القائمة الافتراضية', items: [] }
+  ];
+  state.activePlaylistId = 'default';
+  state.selectedRecentIndexes = new Set();
+
+  function getActivePlaylist() {
+    return state.playlists.find(p => p.id === state.activePlaylistId) || state.playlists[0];
+  }
+
+  function loadPlaylists() {
+    try {
+      const saved = localStorage.getItem('sunday_school_taranim_playlists');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          state.playlists = parsed;
+        }
+      } else {
+        const legacyRecents = sessionStorage.getItem('sunday_school_taranim_session_recents');
+        if (legacyRecents) {
+          try {
+            const parsedRecents = JSON.parse(legacyRecents);
+            if (Array.isArray(parsedRecents)) {
+              state.playlists[0].items = parsedRecents;
+            }
+          } catch(e) {}
+        }
+      }
+      
+      const savedActiveId = localStorage.getItem('sunday_school_taranim_active_playlist_id');
+      if (savedActiveId && state.playlists.some(p => p.id === savedActiveId)) {
+        state.activePlaylistId = savedActiveId;
+      }
+    } catch(e) {}
+
+    const active = getActivePlaylist();
+    state.sessionRecents = active.items;
+  }
+
+  function savePlaylists() {
+    const active = getActivePlaylist();
+    active.items = state.sessionRecents;
+    try {
+      localStorage.setItem('sunday_school_taranim_playlists', JSON.stringify(state.playlists));
+      localStorage.setItem('sunday_school_taranim_active_playlist_id', state.activePlaylistId);
+    } catch(e) {}
+  }
+
   function addToSessionRecents(song) {
     if (!song || (!song.id && song.id !== 0)) return;
     
@@ -2918,68 +3060,65 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // UNSHIFT TO PLACE AT THE VERY TOP (MOST RECENT FIRST!)
     state.sessionRecents.unshift(fullSongData);
-
-    sessionStorage.setItem('sunday_school_taranim_session_recents', JSON.stringify(state.sessionRecents));
+    savePlaylists();
     renderRecentSession();
   }
 
   function renderRecentSession() {
+    const activePlaylist = getActivePlaylist();
+    state.sessionRecents = activePlaylist.items;
+
+    if (els.playlistCurrentName) {
+      els.playlistCurrentName.textContent = activePlaylist.name;
+    }
+
     els.recentCount.textContent = state.sessionRecents.length;
+    state.selectedRecentIndexes.clear();
+    updateBulkDeleteUI();
 
     if (state.sessionRecents.length === 0) {
       els.recentSessionContainer.innerHTML = `
         <div class="empty-state">
           <i class="fa-solid fa-clock-rotate-left"></i>
-          <p>سوف تظهر الترانيم والأصحاحات المفتوحة مؤخراً هنا لتنقل سريع خلال الخدمة.</p>
+          <p>تظهر العناصر المضافة في <strong>"${escapeHtml(activePlaylist.name)}"</strong> هنا.</p>
         </div>
       `;
       return;
     }
 
     els.recentSessionContainer.innerHTML = state.sessionRecents.map((r, idx) => `
-      <div class="recent-item ${state.activeSong && String(state.activeSong.id) === String(r.id) ? 'active' : ''}" data-id="${r.id}" data-index="${idx}" draggable="true">
-        <div class="recent-title-group">
+      <div class="recent-item ${state.activeSong && String(state.activeSong.id) === String(r.id) && Boolean(state.activeSong.is_bible) === Boolean(r.is_bible) ? 'active' : ''}" data-id="${r.id}" data-is-bible="${r.is_bible ? '1' : '0'}" data-index="${idx}" draggable="true">
+        <div class="recent-item-start">
+          <input type="checkbox" class="recent-item-cb" data-index="${idx}">
           <i class="fa-solid fa-grip-vertical drag-handle-icon" title="سحب لإعادة الترتيب"></i>
           <span class="recent-title">${escapeHtml(r.title)}</span>
         </div>
-        <button class="delete-recent-btn" data-index="${idx}" title="حذف الترنيمة من القائمة وإخفاء العرض">
-          <i class="fa-solid fa-trash-can"></i> حذف
-        </button>
       </div>
     `).join('');
 
-    els.recentSessionContainer.querySelectorAll('.delete-recent-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+    els.recentSessionContainer.querySelectorAll('.recent-item-cb').forEach(cb => {
+      cb.addEventListener('change', (e) => {
         e.stopPropagation();
-        const index = parseInt(btn.dataset.index);
-        const songToDelete = state.sessionRecents[index];
-
-        state.sessionRecents.splice(index, 1);
-        sessionStorage.setItem('sunday_school_taranim_session_recents', JSON.stringify(state.sessionRecents));
-
-        if (songToDelete && state.activeSong && String(state.activeSong.id) === String(songToDelete.id)) {
-          state.activeSong = null;
-          state.presentationLines = [];
-          state.currentLineIndex = 0;
-          state.isBlank = true;
-          renderPresentationLinesList();
-          syncLiveState();
+        const idx = parseInt(cb.dataset.index);
+        if (cb.checked) {
+          state.selectedRecentIndexes.add(idx);
+        } else {
+          state.selectedRecentIndexes.delete(idx);
         }
-
-        renderRecentSession();
+        updateBulkDeleteUI();
       });
     });
 
     els.recentSessionContainer.querySelectorAll('.recent-item').forEach(item => {
       item.addEventListener('click', (e) => {
-        if (e.target.closest('.delete-recent-btn')) return;
+        if (e.target.closest('.recent-item-cb')) return;
         const id = item.dataset.id;
-        openAndPresentItem(id);
+        const isBible = item.dataset.isBible === '1';
+        openAndPresentItem(id, isBible);
       });
     });
 
     let draggedIndex = null;
-
     els.recentSessionContainer.querySelectorAll('.recent-item').forEach(item => {
       item.addEventListener('dragstart', (e) => {
         draggedIndex = parseInt(item.dataset.index);
@@ -2995,10 +3134,11 @@ document.addEventListener('DOMContentLoaded', () => {
       item.addEventListener('drop', (e) => {
         e.preventDefault();
         const dropIndex = parseInt(item.dataset.index);
-        if (draggedIndex !== null && draggedIndex !== dropIndex) {
-          const movedItem = state.sessionRecents.splice(draggedIndex, 1)[0];
-          state.sessionRecents.splice(dropIndex, 0, movedItem);
-          sessionStorage.setItem('sunday_school_taranim_session_recents', JSON.stringify(state.sessionRecents));
+        if (draggedIndex !== null && dropIndex !== null && draggedIndex !== dropIndex) {
+          const itemToMove = state.sessionRecents[draggedIndex];
+          state.sessionRecents.splice(draggedIndex, 1);
+          state.sessionRecents.splice(dropIndex, 0, itemToMove);
+          savePlaylists();
           renderRecentSession();
         }
       });
@@ -3008,6 +3148,99 @@ document.addEventListener('DOMContentLoaded', () => {
         draggedIndex = null;
       });
     });
+  }
+
+  function updateBulkDeleteUI() {
+    const selCount = state.selectedRecentIndexes.size;
+    if (els.selectedRecentsCount) els.selectedRecentsCount.textContent = selCount;
+
+    if (selCount > 0) {
+      if (els.btnDeleteSelectedRecents) els.btnDeleteSelectedRecents.classList.remove('hidden');
+    } else {
+      if (els.btnDeleteSelectedRecents) els.btnDeleteSelectedRecents.classList.add('hidden');
+    }
+
+    if (els.recentSelectAllCb) {
+      els.recentSelectAllCb.checked = (state.sessionRecents.length > 0 && selCount === state.sessionRecents.length);
+    }
+  }
+
+  function renderPlaylistsList() {
+    if (!els.playlistsListContainer) return;
+
+    els.playlistsListContainer.innerHTML = state.playlists.map(p => `
+      <div class="playlist-entry-row ${p.id === state.activePlaylistId ? 'active' : ''}" data-id="${p.id}">
+        <span><i class="fa-solid fa-list-check"></i> ${escapeHtml(p.name)} (${p.items.length})</span>
+        ${p.id !== 'default' ? `<button class="playlist-del-btn" data-id="${p.id}" title="حذف القائمة"><i class="fa-solid fa-trash"></i></button>` : ''}
+      </div>
+    `).join('');
+
+    els.playlistsListContainer.querySelectorAll('.playlist-entry-row').forEach(row => {
+      row.addEventListener('click', (e) => {
+        if (e.target.closest('.playlist-del-btn')) return;
+        const pid = row.dataset.id;
+        state.activePlaylistId = pid;
+        savePlaylists();
+        renderRecentSession();
+        renderPlaylistsList();
+      });
+    });
+
+    els.playlistsListContainer.querySelectorAll('.playlist-del-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const pid = btn.dataset.id;
+        state.playlists = state.playlists.filter(p => p.id !== pid);
+        if (state.activePlaylistId === pid) state.activePlaylistId = 'default';
+        savePlaylists();
+        renderRecentSession();
+        renderPlaylistsList();
+      });
+    });
+  }
+
+  function exportActivePlaylist() {
+    const active = getActivePlaylist();
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(active, null, 2));
+    const downloadAnchor = document.createElement('a');
+    const filename = `قائمة_${active.name.replace(/\s+/g, '_')}.json`;
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", filename);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+    showToast(`تم تصدير قائمة "${active.name}" بنجاح!`);
+  }
+
+  function importPlaylistFromFile(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const importedData = JSON.parse(e.target.result);
+        if (importedData && (importedData.items || Array.isArray(importedData))) {
+          const items = importedData.items || importedData;
+          const newName = importedData.name || file.name.replace(/\.json$/i, '');
+          const newId = 'pl_' + Date.now();
+
+          state.playlists.push({
+            id: newId,
+            name: newName,
+            items: items
+          });
+          state.activePlaylistId = newId;
+          savePlaylists();
+          renderRecentSession();
+          renderPlaylistsList();
+          showToast(`تم استيراد قائمة "${newName}" بنجاح!`);
+        } else {
+          showToast('ملف القائمة غير صالح.');
+        }
+      } catch (err) {
+        showToast('تعذر قراءة ملف JSON.');
+      }
+    };
+    reader.readAsText(file);
   }
 
   let activePostUrl = null;

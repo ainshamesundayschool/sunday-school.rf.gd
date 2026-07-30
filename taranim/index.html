@@ -343,11 +343,57 @@
     <!-- DUAL-COLUMN DASHBOARD LAYOUT (RIGHT = RECENT SESSION, LEFT = PRESENTATION LINES) -->
     <main class="dashboard-halves">
       
-      <!-- RIGHT HALF IN RTL: SESSION RECENT OPENED LIST -->
-      <section class="half-panel recent-session-panel">
+      <!-- RIGHT HALF IN RTL: SESSION RECENT OPENED LIST & PLAYLIST MANAGER -->
+      <section class="half-panel recent-session-panel" id="recents-panel">
         <div class="panel-bar">
-          <span class="panel-title"><i class="fa-solid fa-clock-rotate-left"></i> الترانيم المفتوحة</span>
-          <span id="recent-count" class="badge-count">0</span>
+          <div class="panel-bar-start">
+            <label class="recent-select-all-label" title="تحديد / إلغاء تحديد الكل">
+              <input type="checkbox" id="recent-select-all-cb">
+            </label>
+            <button id="btn-delete-selected-recents" class="mini-btn-danger hidden" title="حذف العناصر المحددة">
+              <i class="fa-solid fa-trash-can"></i> (<span id="selected-recents-count">0</span>)
+            </button>
+          </div>
+
+          <div class="panel-bar-center dropdown-wrapper">
+            <button id="btn-playlist-selector" class="playlist-selector-btn" type="button" title="قوائم التشغيل والتحكم">
+              <i class="fa-solid fa-list-check"></i>
+              <span id="playlist-current-name">القائمة الافتراضية</span>
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+
+            <!-- POPOVER PLAYLIST MANAGER -->
+            <div class="dropdown-popover hidden" id="popover-playlist">
+              <div class="popover-title"><i class="fa-solid fa-layer-group"></i> إدارة قوائم التشغيل</div>
+
+              <!-- PLAYLISTS LIST -->
+              <div id="playlists-list-container" class="playlists-list-container">
+                <!-- Dynamically populated -->
+              </div>
+
+              <!-- CREATE NEW PLAYLIST FORM -->
+              <div class="popover-row" style="margin-top:8px; gap:6px;">
+                <input type="text" id="new-playlist-name-input" class="control-input" placeholder="اسم قائمة جديدة..." autocomplete="off">
+                <button id="btn-create-playlist" class="btn btn-sm btn-primary" type="button">
+                  <i class="fa-solid fa-plus"></i> إضافة
+                </button>
+              </div>
+
+              <div class="popover-actions-row">
+                <button id="btn-export-playlist" class="btn btn-sm btn-secondary" type="button" title="تصدير القائمة لملف JSON">
+                  <i class="fa-solid fa-download"></i> تصدير (Export)
+                </button>
+                <label for="import-playlist-file-input" class="btn btn-sm btn-secondary" style="cursor:pointer;" title="استيراد قائمة من ملف JSON">
+                  <i class="fa-solid fa-upload"></i> استيراد (Import)
+                </label>
+                <input type="file" id="import-playlist-file-input" accept=".json" class="hidden">
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-bar-end">
+            <span id="recent-count" class="badge-count">0</span>
+          </div>
         </div>
 
         <div id="recent-session-container" class="recent-list-box">
