@@ -734,11 +734,13 @@
     function applyState(data, source = 'local') {
       if (!data || typeof data !== 'object') return;
 
-      // TIMESTAMP DEDUPLICATION: Ignore stale server payloads if a newer local message was already rendered
-      if (data.updatedAt && source === 'server') {
+      // TIMESTAMP DEDUPLICATION: Ignore stale server/HTTP payloads if a newer local message was already rendered
+      if (data.updatedAt && (source === 'server' || source === 'http')) {
         if (data.updatedAt < lastProcessedTimestamp) {
           return;
         }
+        lastProcessedTimestamp = data.updatedAt;
+      } else if (data.updatedAt && source === 'local') {
         lastProcessedTimestamp = data.updatedAt;
       }
 

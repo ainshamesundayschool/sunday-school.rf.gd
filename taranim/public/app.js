@@ -826,7 +826,7 @@ document.addEventListener('DOMContentLoaded', () => {
     chromaKey: savedSettings.chromaKey || "black",
     presentationMode: savedSettings.presentationMode || "oneline",
     francoAutoTranslate: savedSettings.francoAutoTranslate !== undefined ? savedSettings.francoAutoTranslate : true,
-    textAnimation: savedSettings.textAnimation || "slide",
+    textAnimation: savedSettings.textAnimation || "none",
     
     styleOptions: {
       textColor: savedSettings.styleOptions?.textColor || "#ffffff",
@@ -872,10 +872,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (state.selectedScreen) {
       const name = state.selectedScreen.label || 'شاشة العرض';
+      const isPrimary = state.selectedScreen.isPrimary;
       container.innerHTML = `
         <div class="display-selected-pill" id="btn-menu-cast" title="اضغط لفتح قائمة اختيار الشاشات">
           <i class="fa-solid fa-tv display-pill-icon"></i>
           <span class="display-pill-name">${escapeHtml(name)}</span>
+          ${!isPrimary ? '<button class="display-pill-fs-btn" id="btn-fs-display-pill" title="ملء الشاشة" type="button"><i class="fa-solid fa-expand"></i></button>' : ''}
           <button class="display-pill-close-btn" id="btn-close-display-pill" title="إغلاق الشاشة وإلغاء التحديد" type="button">
             <i class="fa-solid fa-xmark"></i>
           </button>
@@ -884,10 +886,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const pillBtn = container.querySelector('#btn-menu-cast');
       const closeBtn = container.querySelector('#btn-close-display-pill');
+      const fsBtn = container.querySelector('#btn-fs-display-pill');
 
       if (pillBtn) {
         pillBtn.addEventListener('click', (e) => {
-          if (e.target.closest('#btn-close-display-pill')) return;
+          if (e.target.closest('#btn-close-display-pill') || e.target.closest('#btn-fs-display-pill')) return;
           e.stopPropagation();
           const willShow = els.popoverCast.classList.contains('hidden');
           closeAllPopovers(els.popoverCast);
@@ -904,6 +907,28 @@ document.addEventListener('DOMContentLoaded', () => {
         closeBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           closeActiveDisplay();
+        });
+      }
+
+      if (fsBtn) {
+        fsBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (presenterWindow && !presenterWindow.closed) {
+            try {
+              const pDoc = presenterWindow.document;
+              if (pDoc && pDoc.documentElement) {
+                if (!pDoc.fullscreenElement) {
+                  pDoc.documentElement.requestFullscreen().catch(() => {});
+                }
+              }
+            } catch(err) {}
+            // Also signal via BroadcastChannel as backup
+            try {
+              const fsChannel = new BroadcastChannel('sunday_school_taranim_fs');
+              fsChannel.postMessage({ action: 'REQUEST_FULLSCREEN' });
+              setTimeout(() => fsChannel.close(), 500);
+            } catch(err) {}
+          }
         });
       }
     } else {
@@ -2640,6 +2665,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   let currentPresenterAnim = null;
+  let currentPresenterText = null;
 
   function syncLiveState(isExplicitPositionUpdate = false) {
     const currentLine = state.presentationLines[state.currentLineIndex];
@@ -2764,14 +2790,16 @@ document.addEventListener('DOMContentLoaded', () => {
         els.obsLineText.style.fontSize = `${size}px`;
         els.obsLineText.textContent = text;
 
-        if (currentPresenterAnim !== state.textAnimation) {
-          currentPresenterAnim = state.textAnimation;
+        // Re-trigger animation on EVERY text change, not just animation type change
+        const textChanged = (currentPresenterText !== text);
+        const animChanged = (currentPresenterAnim !== state.textAnimation);
+        currentPresenterText = text;
+        currentPresenterAnim = state.textAnimation;
 
-          els.obsLineText.classList.remove('animate-appear-slide', 'animate-appear-drop', 'animate-appear-pop', 'animate-appear-flip', 'animate-appear-glow');
-          if (state.textAnimation !== 'none' && text) {
-            void els.obsLineText.offsetWidth;
-            els.obsLineText.classList.add(`animate-appear-${state.textAnimation}`);
-          }
+        els.obsLineText.classList.remove('animate-appear-slide', 'animate-appear-drop', 'animate-appear-pop', 'animate-appear-flip', 'animate-appear-glow');
+        if (state.textAnimation !== 'none' && text && (textChanged || animChanged)) {
+          void els.obsLineText.offsetWidth;
+          els.obsLineText.classList.add(`animate-appear-${state.textAnimation}`);
         }
       }
 
