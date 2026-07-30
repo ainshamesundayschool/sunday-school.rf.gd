@@ -3981,12 +3981,105 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  const ARABIC_GLYPH_MAP = {
+    '\u0621': ['\uFE80', '\uFE80', '\uFE80', '\uFE80'],
+    '\u0622': ['\uFE81', '\uFE82', '\uFE82', '\uFE81'],
+    '\u0623': ['\uFE83', '\uFE84', '\uFE84', '\uFE83'],
+    '\u0624': ['\uFE85', '\uFE86', '\uFE86', '\uFE85'],
+    '\u0625': ['\uFE87', '\uFE88', '\uFE88', '\uFE87'],
+    '\u0626': ['\uFE89', '\uFE8A', '\uFE8C', '\uFE8B'],
+    '\u0627': ['\uFE8D', '\uFE8E', '\uFE8E', '\uFE8D'],
+    '\u0628': ['\uFE8F', '\uFE90', '\uFE92', '\uFE91'],
+    '\u0629': ['\uFE93', '\uFE94', '\uFE94', '\uFE93'],
+    '\u062A': ['\uFE95', '\uFE96', '\uFE98', '\uFE97'],
+    '\u062B': ['\uFE99', '\uFE9A', '\uFE9C', '\uFE9B'],
+    '\u062C': ['\uFE9D', '\uFE9E', '\uFEA0', '\uFE9F'],
+    '\u062D': ['\uFEA1', '\uFEA2', '\uFEA4', '\uFEA3'],
+    '\u062E': ['\uFEA5', '\uFEA6', '\uFEA8', '\uFEA7'],
+    '\u062F': ['\uFEA9', '\uFEAA', '\uFEAA', '\uFEA9'],
+    '\u0630': ['\uFEAB', '\uFEAC', '\uFEAC', '\uFEAB'],
+    '\u0631': ['\uFEAD', '\uFEAE', '\uFEAE', '\uFEAD'],
+    '\u0632': ['\uFEAF', '\uFEB0', '\uFEB0', '\uFEAF'],
+    '\u0633': ['\uFEB1', '\uFEB2', '\uFEB4', '\uFEB3'],
+    '\u0634': ['\uFEB5', '\uFEB6', '\uFEB8', '\uFEB7'],
+    '\u0635': ['\uFEB9', '\uFEBA', '\uFEBC', '\uFEBB'],
+    '\u0636': ['\uFEBD', '\uFEBE', '\uFEC0', '\uFEBF'],
+    '\u0637': ['\uFEC1', '\uFEC2', '\uFEC4', '\uFEC3'],
+    '\u0638': ['\uFEC5', '\uFEC6', '\uFEC8', '\uFEC7'],
+    '\u0639': ['\uFEC9', '\uFECA', '\uFECC', '\uFECB'],
+    '\u063A': ['\uFECD', '\uFECE', '\uFED0', '\uFECF'],
+    '\u0641': ['\uFED1', '\uFED2', '\uFED4', '\uFED3'],
+    '\u0642': ['\uFED5', '\uFED6', '\uFED8', '\uFED7'],
+    '\u0643': ['\uFED9', '\uFEDA', '\uFEDC', '\uFEDB'],
+    '\u0644': ['\uFEDD', '\uFEDE', '\uFEE0', '\uFEDF'],
+    '\u0645': ['\uFEE1', '\uFEE2', '\uFEE4', '\uFEE3'],
+    '\u0646': ['\uFEE5', '\uFEE6', '\uFEE8', '\uFEE7'],
+    '\u0647': ['\uFEE9', '\uFEEA', '\uFEEC', '\uFEEB'],
+    '\u0648': ['\uFEED', '\uFEEE', '\uFEEE', '\uFEED'],
+    '\u0649': ['\uFEEF', '\uFEF0', '\uFEF0', '\uFEEF'],
+    '\u064A': ['\uFEF1', '\uFEF2', '\uFEF4', '\uFEF3'],
+  };
+
+  const NON_CONNECTING_ARABIC_SET = new Set(['\u0621', '\u0622', '\u0623', '\u0625', '\u0627', '\u062F', '\u0630', '\u0631', '\u0632', '\u0648', '\u0649']);
+
+  function reshapeArabicStringForObs(text) {
+    if (!text) return '';
+    const lines = text.split('\n');
+    const reshapedLines = [];
+
+    for (let line of lines) {
+      const words = line.split(' ');
+      const reshapedWords = [];
+      for (let word of words) {
+        let hasArabic = false;
+        for (let ch of word) {
+          if (ARABIC_GLYPH_MAP[ch]) { hasArabic = true; break; }
+        }
+        if (hasArabic) {
+          let res = [];
+          const len = word.length;
+          for (let i = 0; i < len; i++) {
+            const c = word[i];
+            if (!ARABIC_GLYPH_MAP[c]) { res.push(c); continue; }
+            const prevC = i > 0 ? word[i-1] : null;
+            const nextC = i < len - 1 ? word[i+1] : null;
+
+            const prevConn = prevC && ARABIC_GLYPH_MAP[prevC] && !NON_CONNECTING_ARABIC_SET.has(prevC);
+            const nextConn = nextC && ARABIC_GLYPH_MAP[nextC];
+
+            if (c === '\u0644' && ['\u0627', '\u0622', '\u0623', '\u0625'].includes(nextC)) continue;
+            if (i > 0 && word[i-1] === '\u0644' && ['\u0627', '\u0622', '\u0623', '\u0625'].includes(c)) {
+              if (c === '\u0627') res.push(prevConn ? '\uFEFC' : '\uFEFB');
+              else if (c === '\u0622') res.push(prevConn ? '\uFEF6' : '\uFEF5');
+              else if (c === '\u0623') res.push(prevConn ? '\uFEF8' : '\uFEF7');
+              else if (c === '\u0625') res.push(prevConn ? '\uFEFA' : '\uFEF9');
+              continue;
+            }
+
+            const forms = ARABIC_GLYPH_MAP[c];
+            if (prevConn && nextConn) res.push(forms[2]);
+            else if (prevConn) res.push(forms[1]);
+            else if (nextConn) res.push(forms[3]);
+            else res.push(forms[0]);
+          }
+          reshapedWords.push(res.join('').split('').reverse().join(''));
+        } else {
+          reshapedWords.push(word);
+        }
+      }
+      reshapedWords.reverse();
+      reshapedLines.push(reshapedWords.join(' '));
+    }
+    return reshapedLines.join('\n');
+  }
+
   async function saveLiveTextToDisk(text) {
     if (!liveFileHandle) return;
     try {
       const writable = await liveFileHandle.createWritable();
       const cleanText = state.isBlank ? '' : (text || '').replace(/<[^>]*>/g, '');
-      await writable.write(cleanText);
+      const formattedObsText = reshapeArabicStringForObs(cleanText);
+      await writable.write(formattedObsText);
       await writable.close();
     } catch (err) {
       liveFileHandle = null;
