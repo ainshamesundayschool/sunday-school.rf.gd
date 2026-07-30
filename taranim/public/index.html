@@ -345,17 +345,13 @@
       <!-- RIGHT HALF IN RTL: SESSION RECENT OPENED LIST & PLAYLIST MANAGER -->
       <section class="half-panel recent-session-panel" id="recents-panel">
         <div class="panel-bar">
-          <div class="panel-bar-start">
-            <span class="panel-title"><i class="fa-solid fa-clock-rotate-left"></i> الترانيم المفتوحة</span>
-            <span id="recent-count" class="badge-count">0</span>
-          </div>
-
-          <div class="panel-bar-center dropdown-wrapper">
-            <button id="btn-playlist-selector" class="playlist-selector-btn" type="button" title="قوائم التشغيل والتحكم">
-              <i class="fa-solid fa-list-check"></i>
-              <span id="playlist-current-name">القائمة الافتراضية</span>
-              <i class="fa-solid fa-chevron-down"></i>
+          <div class="panel-bar-start dropdown-wrapper">
+            <button id="btn-playlist-selector" class="panel-title-btn" type="button" title="فتح قوائم التشغيل">
+              <i class="fa-solid fa-clock-rotate-left"></i>
+              <span>الترانيم المفتوحة</span>
+              <i class="fa-solid fa-chevron-down title-chevron"></i>
             </button>
+            <span id="recent-count" class="badge-count">0</span>
 
             <!-- POPOVER PLAYLIST MANAGER -->
             <div class="dropdown-popover hidden" id="popover-playlist">
