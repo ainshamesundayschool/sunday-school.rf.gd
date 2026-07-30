@@ -2674,10 +2674,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       if (!hasText) {
+        els.obsLineText.classList.add('hidden');
         els.obsLineText.style.display = 'none';
         if (standbyEl) standbyEl.classList.remove('hidden');
       } else {
         if (standbyEl) standbyEl.classList.add('hidden');
+        els.obsLineText.classList.remove('hidden');
         els.obsLineText.style.display = 'inline-block';
         els.obsLineText.style.visibility = 'visible';
 

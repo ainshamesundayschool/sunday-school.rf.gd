@@ -706,11 +706,13 @@
       const hasText = Boolean(data.text && String(data.text).trim() && !data.isBlank);
 
       if (!hasText) {
+        textEl.classList.add('hidden');
         textEl.style.display = 'none';
         if (standbyEl) standbyEl.classList.remove('hidden');
         currentIsBlankState = true;
       } else {
         if (standbyEl) standbyEl.classList.add('hidden');
+        textEl.classList.remove('hidden');
         textEl.style.display = 'inline-block';
         textEl.style.visibility = 'visible';
         textEl.textContent = data.text;
