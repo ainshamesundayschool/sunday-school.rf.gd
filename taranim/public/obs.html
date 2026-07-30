@@ -412,9 +412,10 @@
     if (savedPivotRaw) {
       try {
         const parsed = JSON.parse(savedPivotRaw);
-        if (parsed.xPct !== undefined && parsed.yPct !== undefined) {
+        if (parsed && parsed.xPct !== undefined && parsed.yPct !== undefined) {
+          if (parsed.yPct === 75) parsed.yPct = 50;
           currentPivot = parsed;
-        } else if (parsed.left !== undefined) {
+        } else if (parsed && parsed.left !== undefined) {
           currentPivot.xPct = (parsed.left / window.innerWidth) * 100;
           currentPivot.yPct = (parsed.top / window.innerHeight) * 100;
         }
@@ -423,7 +424,7 @@
 
     box.style.left = currentPivot.xPct + '%';
     box.style.top = currentPivot.yPct + '%';
-    box.style.transform = 'translate(-50%, -50%)';
+    box.style.transform = 'translate3d(-50%, -50%, 0)';
 
     function requestFS() {
       if (!document.fullscreenElement) {

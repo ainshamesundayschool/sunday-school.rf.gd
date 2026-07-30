@@ -789,6 +789,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         const parsed = JSON.parse(savedPivotRaw);
         if (parsed && parsed.xPct !== undefined && parsed.yPct !== undefined) {
+          if (parsed.yPct === 75) parsed.yPct = 50;
           return parsed;
         }
       } catch(e) {}
@@ -2776,17 +2777,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
 
-      const currentChroma = els.obsOverlay ? els.obsOverlay.getAttribute('data-chroma') : 'black';
-      if (currentChroma !== 'green') {
-        els.obsLowerThirdBox.style.left = '50%';
-        els.obsLowerThirdBox.style.top = '50%';
-        els.obsLowerThirdBox.style.transform = 'translate(-50%, -50%)';
-      } else {
-        const xPct = state.dragPivot.xPct !== undefined ? state.dragPivot.xPct : 50;
-        const yPct = state.dragPivot.yPct !== undefined ? state.dragPivot.yPct : 50;
+      if (els.obsLowerThirdBox) {
+        const xPct = (state.dragPivot && state.dragPivot.xPct !== undefined) ? state.dragPivot.xPct : 50;
+        let yPct = (state.dragPivot && state.dragPivot.yPct !== undefined) ? state.dragPivot.yPct : 50;
+        if (yPct === 75) yPct = 50;
         els.obsLowerThirdBox.style.left = `${xPct}%`;
         els.obsLowerThirdBox.style.top = `${yPct}%`;
-        els.obsLowerThirdBox.style.transform = 'translate(-50%, -50%)';
+        els.obsLowerThirdBox.style.transform = 'translate3d(-50%, -50%, 0)';
       }
     }
 
