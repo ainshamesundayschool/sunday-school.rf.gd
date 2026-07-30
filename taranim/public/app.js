@@ -2318,7 +2318,7 @@ document.addEventListener('DOMContentLoaded', () => {
       top = window.screen.availTop || 0;
     }
 
-    const isCurrentWindowScreen = (val === 'in_app_overlay' || val === 'primary' || val === '0' || (targetScreen && targetScreen.isPrimary));
+    const isCurrentWindowScreen = (val === 'in_app_overlay' || val === 'primary' || (val === '0' && targetScreen && targetScreen.isPrimary));
 
     if (isCurrentWindowScreen) {
       if (presenterWindow && !presenterWindow.closed) {
