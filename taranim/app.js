@@ -2685,20 +2685,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   async function openAndPresentItem(songId, isBible = false) {
-    if (!songId) return;
+    if (!songId && songId !== 0) return;
 
     let targetSong = null;
-    if (!isBible) {
-      targetSong = state.sessionRecents.find(r => !r.is_bible && (String(r.id) === String(songId) || String(r.item_id) === String(songId)));
-      if (!targetSong || !targetSong.verses || !Array.isArray(targetSong.verses) || targetSong.verses.length === 0) {
-        if (state.allSongs && state.allSongs.length > 0) {
-          const local = state.allSongs.find(s => !s.is_bible && (String(s.id) === String(songId) || String(s.item_id) === String(songId)));
-          if (local) targetSong = local;
-        }
-      }
+
+    // 1. Search in active session recents matching id AND is_bible type
+    const foundInRecents = state.sessionRecents.find(r => 
+      Boolean(r.is_bible) === Boolean(isBible) && 
+      (String(r.id) === String(songId) || String(r.item_id) === String(songId))
+    );
+
+    if (foundInRecents && foundInRecents.verses && Array.isArray(foundInRecents.verses) && foundInRecents.verses.length > 0) {
+      targetSong = foundInRecents;
     }
 
-    if (!targetSong || !targetSong.verses || !Array.isArray(targetSong.verses) || targetSong.verses.length === 0) {
+    // 2. Fetch full structured data from API if not in recents or missing verses
+    if (!targetSong) {
       try {
         const bibleParam = isBible ? '&type=bible&is_bible=1' : '';
         let res = await fetch(`api.php?action=song&id=${songId}${bibleParam}`);
@@ -2708,9 +2710,16 @@ document.addEventListener('DOMContentLoaded', () => {
           const fullSong = await res.json();
           if (fullSong && (fullSong.title || fullSong.id)) {
             targetSong = fullSong;
+            if (isBible) targetSong.is_bible = true;
           }
         }
       } catch (err) {}
+    }
+
+    // 3. Fallback to local catalog if not Bible
+    if (!targetSong && !isBible && state.allSongs && state.allSongs.length > 0) {
+      const local = state.allSongs.find(s => !s.is_bible && (String(s.id) === String(songId) || String(s.item_id) === String(songId)));
+      if (local) targetSong = local;
     }
 
     if (targetSong) {
@@ -2718,7 +2727,7 @@ document.addEventListener('DOMContentLoaded', () => {
       addToSessionRecents(targetSong);
       loadSongIntoPresentation(targetSong);
     } else {
-      showToast('تعذر تحميل بيانات الترنيمة.');
+      showToast('تعذر تحميل بيانات العناصر.');
     }
   }
 
@@ -2775,10 +2784,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (linesList.length === 0 && song.notes) {
       const rawNotes = String(song.notes);
       const splitLines = rawNotes.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-      linesList = splitLines.map((line, idx) => ({
-        text: line,
-        label: `بيت ${idx + 1}`
-      }));
+      
+      const chunkSize = 4;
+      let stanzaCount = 0;
+      for (let i = 0; i < splitLines.length; i += chunkSize) {
+        stanzaCount++;
+        const chunk = splitLines.slice(i, i + chunkSize);
+        linesList.push({
+          text: chunk.join('\n'),
+          lines: chunk,
+          badgeText: `(${stanzaCount})`,
+          badgeClass: 'stanza-badge-side',
+          label: `بيت ${stanzaCount}`
+        });
+      }
     }
 
     state.presentationLines = linesList;
@@ -2803,15 +2822,30 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    els.presentationLinesContainer.innerHTML = presentationLines.map((l, idx) => `
-      <div class="line-item ${idx === currentLineIndex ? 'active' : ''}" data-idx="${idx}">
-        <span class="line-num">(${idx + 1})</span>
-        <span class="line-content">${escapeHtml(l.text)}</span>
-        <button class="copy-line-btn" data-text="${escapeHtml(l.text)}" title="نسخ هذا السطر للحافظة">
-          <i class="fa-solid fa-copy"></i>
-        </button>
-      </div>
-    `).join('');
+    els.presentationLinesContainer.innerHTML = presentationLines.map((l, idx) => {
+      const linesPreviewHtml = (l.lines || [l.text]).map(lineText => {
+        let text = escapeHtml(lineText);
+        text = text.replace(/\((\d+|[٠-٩]+)\)$/g, '<span class="repeat-tag">($1)</span>');
+        return `<div class="slide-line-row"><span>${text}</span></div>`;
+      }).join('');
+
+      return `
+        <div class="line-item ${idx === currentLineIndex ? 'active' : ''}" data-idx="${idx}">
+          <div class="slide-card-inner">
+            <div class="slide-lines-body">
+              ${linesPreviewHtml}
+            </div>
+            <div class="slide-badge-side ${l.badgeClass || ''}">
+              ${escapeHtml(l.badgeText || '')}
+            </div>
+          </div>
+          <span class="slide-index-corner">${idx + 1}</span>
+          <button class="copy-line-btn" data-text="${escapeHtml(l.text)}" title="نسخ هذا المقطع">
+            <i class="fa-solid fa-copy"></i>
+          </button>
+        </div>
+      `;
+    }).join('');
 
     els.presentationLinesContainer.querySelectorAll('.copy-line-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -2859,19 +2893,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function addToSessionRecents(song) {
     if (!song || (!song.id && song.id !== 0)) return;
-    const existsIndex = state.sessionRecents.findIndex(r => String(r.id) === String(song.id));
+    
+    const isBibleItem = Boolean(song.is_bible || song.chapter_number !== undefined);
+    const existsIndex = state.sessionRecents.findIndex(r => 
+      String(r.id) === String(song.id) && Boolean(r.is_bible) === isBibleItem
+    );
+
+    let fullSongData = {
+      id: song.id,
+      item_id: song.item_id || song.id,
+      title: song.title,
+      verses: song.verses || null,
+      notes: song.notes || null,
+      abbr: song.abbr || null,
+      chapter_number: song.chapter_number || null,
+      is_bible: isBibleItem
+    };
+
     if (existsIndex !== -1) {
-      if (song.verses) state.sessionRecents[existsIndex].verses = song.verses;
-      if (song.notes) state.sessionRecents[existsIndex].notes = song.notes;
-    } else {
-      state.sessionRecents.push({
-        id: song.id,
-        title: song.title,
-        verses: song.verses || null,
-        notes: song.notes || null,
-        is_bible: song.is_bible || false
-      });
+      const existing = state.sessionRecents[existsIndex];
+      if (!fullSongData.verses && existing.verses) fullSongData.verses = existing.verses;
+      state.sessionRecents.splice(existsIndex, 1);
     }
+
+    // UNSHIFT TO PLACE AT THE VERY TOP (MOST RECENT FIRST!)
+    state.sessionRecents.unshift(fullSongData);
+
     sessionStorage.setItem('sunday_school_taranim_session_recents', JSON.stringify(state.sessionRecents));
     renderRecentSession();
   }
