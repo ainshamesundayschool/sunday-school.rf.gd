@@ -3077,9 +3077,14 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           </div>
           <span class="slide-index-corner">${idx + 1}</span>
-          <button class="copy-line-btn" data-text="${escapeHtml(l.text)}" title="نسخ هذا المقطع">
-            <i class="fa-solid fa-copy"></i>
-          </button>
+          <div class="line-item-actions">
+            <button class="copy-line-btn" data-text="${escapeHtml(l.text)}" title="نسخ هذا المقطع">
+              <i class="fa-solid fa-copy"></i>
+            </button>
+            <button class="launch-fullscreen-btn" data-idx="${idx}" title="عرض ملء الشاشة">
+              <i class="fa-solid fa-expand"></i>
+            </button>
+          </div>
         </div>
       `;
     }).join('');
@@ -3099,26 +3104,26 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
+    els.presentationLinesContainer.querySelectorAll('.launch-fullscreen-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const idx = parseInt(btn.dataset.idx);
+        if (!isNaN(idx)) {
+          state.currentLineIndex = idx;
+          state.isBlank = false;
+          renderPresentationLinesList();
+        }
+        launchPresenterOnSelectedScreen('primary');
+      });
+    });
+
     els.presentationLinesContainer.querySelectorAll('.line-item').forEach(item => {
       item.addEventListener('click', (e) => {
-        if (e.target.closest('.copy-line-btn')) return;
+        if (e.target.closest('.copy-line-btn') || e.target.closest('.launch-fullscreen-btn')) return;
         state.currentLineIndex = parseInt(item.dataset.idx);
+        state.isBlank = false;
         renderPresentationLinesList();
         syncLiveState();
-
-        // ONLY IF NO DISPLAY IS SELECTED / ACTIVE -> OPEN FULLSCREEN OVERLAY ON THIS DEVICE
-        const hasExternalWindow = presenterWindow && !presenterWindow.closed;
-        if (!state.selectedScreen && !hasExternalWindow) {
-          if (els.obsOverlay) {
-            els.obsOverlay.classList.remove('hidden');
-            const docEl = document.documentElement || els.obsOverlay;
-            if (docEl.requestFullscreen) {
-              docEl.requestFullscreen().catch(() => {});
-            } else if (docEl.webkitRequestFullscreen) {
-              docEl.webkitRequestFullscreen();
-            }
-          }
-        }
       });
     });
 

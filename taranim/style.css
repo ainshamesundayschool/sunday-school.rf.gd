@@ -1022,13 +1022,21 @@ html, body {
   color: #d97706;
 }
 
-.copy-line-btn {
+.line-item-actions {
   position: absolute;
   top: 8px;
   left: 8px;
-  background: #f1f5f9;
-  border: 1px solid var(--border-card);
-  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 5;
+}
+
+.copy-line-btn,
+.launch-fullscreen-btn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
   width: 26px;
   height: 26px;
   border-radius: 6px;
@@ -1038,12 +1046,14 @@ html, body {
   font-size: 0.78rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  z-index: 5;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
-.copy-line-btn:hover {
-  background: #e2e8f0;
-  color: var(--accent-blue);
+.copy-line-btn:hover,
+.launch-fullscreen-btn:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #2563eb;
 }
 
 .copy-line-btn.copied {
