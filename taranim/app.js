@@ -2192,22 +2192,22 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    let left = (window.screen.availLeft !== undefined) ? window.screen.availLeft : 0;
-    let top = (window.screen.availTop !== undefined) ? window.screen.availTop : 0;
+    let left = 0;
+    let top = 0;
     let width = 1920;
     let height = 1080;
 
     if (targetScreen) {
-      left = targetScreen.availLeft !== undefined ? targetScreen.availLeft : (targetScreen.left !== undefined ? targetScreen.left : 0);
-      top = targetScreen.availTop !== undefined ? targetScreen.availTop : (targetScreen.top !== undefined ? targetScreen.top : 0);
-      width = targetScreen.availWidth !== undefined ? targetScreen.availWidth : (targetScreen.width || 1920);
-      height = targetScreen.availHeight !== undefined ? targetScreen.availHeight : (targetScreen.height || 1080);
+      left = targetScreen.left !== undefined ? targetScreen.left : (targetScreen.availLeft !== undefined ? targetScreen.availLeft : 0);
+      top = targetScreen.top !== undefined ? targetScreen.top : (targetScreen.availTop !== undefined ? targetScreen.availTop : 0);
+      width = targetScreen.width || targetScreen.availWidth || 1920;
+      height = targetScreen.height || targetScreen.availHeight || 1080;
     } else if (val === 'external' || val === '1') {
       left = (window.screen.availLeft || 0) + (window.screen.width || 1920);
       top = window.screen.availTop || 0;
     }
 
-    let isCurrentWindowScreen = (val === 'primary' || val === '0');
+    let isCurrentWindowScreen = (val === 'in_app_overlay');
 
     if (isCurrentWindowScreen) {
       if (presenterWindow && !presenterWindow.closed) {
@@ -2243,7 +2243,7 @@ document.addEventListener('DOMContentLoaded', () => {
       label: targetScreen ? (targetScreen.label || `شاشة ${targetIdx + 1}`) : (val === 'primary' ? 'الشاشة الرئيسية' : 'شاشة عرض خارجية 2'),
       width: width,
       height: height,
-      isPrimary: false
+      isPrimary: (targetScreen && targetScreen.isPrimary) ? true : false
     };
     lastWindowOpenTime = Date.now();
     updateDisplayButtonUI();
@@ -3124,7 +3124,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let size = state.fontSize || 54;
         els.obsLineText.style.fontSize = `${size}px`;
-        els.obsLineText.textContent = text;
+        
+        let htmlText = escapeHtml(text);
+        htmlText = htmlText.replace(/\((ق|قرار)\)/gi, '<span class="badge-num chorus-num">($1)</span>');
+        htmlText = htmlText.replace(/\((\d+|[٠-٩]+)\)/g, '<span class="badge-num verse-num">($1)</span>');
+        htmlText = htmlText.replace(/\n/g, '<br>');
+        els.obsLineText.innerHTML = htmlText;
 
         // Re-trigger animation on EVERY text change, not just animation type change
         const textChanged = (currentPresenterText !== text);
@@ -3141,34 +3146,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Defer text-fit reflow to next rAF so it doesn't block keyboard/click response
       const snapText = text;
-      const snapSize = state.fontSize || 54;
       requestAnimationFrame(() => {
-        if (els.obsLineText && els.obsLineText.textContent === snapText && els.obsLineText.style.display !== 'none') {
+        if (els.obsLineText && snapText.trim() && els.obsLineText.style.display !== 'none') {
           const vW = els.obsOverlay ? els.obsOverlay.clientWidth : window.innerWidth;
           const vH = els.obsOverlay ? els.obsOverlay.clientHeight : window.innerHeight;
-          const len = snapText.trim().length;
+          const maxW = vW * 0.92;
+          const maxH = vH * 0.86;
 
-          let targetSize = snapSize || 54;
-          if (vW < 600) {
-            const scaleFactor = Math.max(0.4, vW / 600);
-            targetSize = Math.round(targetSize * scaleFactor);
-          } else {
-            if (len > 0) {
-              if (len < 30) targetSize = Math.max(targetSize, Math.round(vH * 0.10));
-              else if (len < 60) targetSize = Math.max(targetSize, Math.round(vH * 0.08));
-              else if (len < 100) targetSize = Math.max(targetSize, Math.round(vH * 0.065));
+          let low = 16;
+          let high = Math.min(140, Math.round(vH * 0.16));
+          let bestSize = low;
+
+          while (low <= high) {
+            const mid = Math.floor((low + high) / 2);
+            els.obsLineText.style.fontSize = `${mid}px`;
+
+            if (els.obsLineText.scrollWidth <= maxW && els.obsLineText.scrollHeight <= maxH) {
+              bestSize = mid;
+              low = mid + 1;
+            } else {
+              high = mid - 1;
             }
           }
 
-          let fitSize = Math.min(targetSize, 96);
-          els.obsLineText.style.fontSize = `${fitSize}px`;
-
-          const maxW = vW * 0.90;
-          const maxH = vH * 0.86;
-          while ((els.obsLineText.scrollWidth > maxW || els.obsLineText.scrollHeight > maxH) && fitSize > 14) {
-            fitSize -= 2;
-            els.obsLineText.style.fontSize = `${fitSize}px`;
-          }
+          els.obsLineText.style.fontSize = `${bestSize}px`;
         }
       });
 

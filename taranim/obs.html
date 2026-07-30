@@ -662,34 +662,30 @@
     function fitTextToSafeArea() {
       if (!textEl) return;
       const text = textEl.textContent || '';
-      const len = text.trim().length;
+      if (!text.trim()) return;
 
       const viewportW = window.innerWidth;
       const viewportH = window.innerHeight;
+      const maxW = viewportW * 0.92;
+      const maxH = viewportH * 0.86;
 
-      let targetSize = stateFontSize || 54;
-      if (viewportW < 600) {
-        const scaleFactor = Math.max(0.4, viewportW / 600);
-        targetSize = Math.round(targetSize * scaleFactor);
-      } else {
-        if (len > 0) {
-          if (len < 30) targetSize = Math.max(targetSize, Math.round(viewportH * 0.10));
-          else if (len < 60) targetSize = Math.max(targetSize, Math.round(viewportH * 0.08));
-          else if (len < 100) targetSize = Math.max(targetSize, Math.round(viewportH * 0.065));
+      let low = 16;
+      let high = Math.min(140, Math.round(viewportH * 0.16));
+      let bestSize = low;
+
+      while (low <= high) {
+        const mid = Math.floor((low + high) / 2);
+        textEl.style.fontSize = mid + 'px';
+
+        if (textEl.scrollWidth <= maxW && textEl.scrollHeight <= maxH) {
+          bestSize = mid;
+          low = mid + 1;
+        } else {
+          high = mid - 1;
         }
       }
 
-      let size = Math.min(targetSize, 96);
-      textEl.style.fontSize = size + 'px';
-
-      const maxW = viewportW * 0.90;
-      const maxH = viewportH * 0.86;
-
-      while ((textEl.scrollWidth > maxW || textEl.scrollHeight > maxH) && size > 14) {
-        size -= 2;
-        textEl.style.fontSize = size + 'px';
-      }
-
+      textEl.style.fontSize = bestSize + 'px';
       applyDynamicShadow();
     }
 
