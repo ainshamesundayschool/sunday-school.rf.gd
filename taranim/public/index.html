@@ -141,12 +141,18 @@
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-align-center"></i> المحاذاة والتنسيق:</label>
+              <label><i class="fa-solid fa-align-center"></i> المحاذاة:</label>
               <div class="btn-group-row" style="display:flex; gap:4px;">
                 <button type="button" class="btn btn-sm btn-secondary active" id="btn-align-center" title="محاذاة للوسط"><i class="fa-solid fa-align-center"></i></button>
                 <button type="button" class="btn btn-sm btn-secondary" id="btn-align-right" title="محاذاة لليمين"><i class="fa-solid fa-align-right"></i></button>
                 <button type="button" class="btn btn-sm btn-secondary" id="btn-align-left" title="محاذاة لليسار"><i class="fa-solid fa-align-left"></i></button>
-                <span style="border-right:1px solid rgba(255,255,255,0.15); margin:0 2px;"></span>
+                <button type="button" class="btn btn-sm btn-secondary" id="btn-align-justify" title="ضبط المحاذاة"><i class="fa-solid fa-align-justify"></i></button>
+              </div>
+            </div>
+
+            <div class="popover-row">
+              <label><i class="fa-solid fa-font"></i> التنسيق:</label>
+              <div class="btn-group-row" style="display:flex; gap:4px;">
                 <button type="button" class="btn btn-sm btn-secondary" id="btn-toggle-bold" title="عريض B"><i class="fa-solid fa-bold"></i></button>
                 <button type="button" class="btn btn-sm btn-secondary" id="btn-toggle-italic" title="مائل I"><i class="fa-solid fa-italic"></i></button>
                 <button type="button" class="btn btn-sm btn-secondary" id="btn-toggle-underline" title="تحته خط U"><i class="fa-solid fa-underline"></i></button>
@@ -164,22 +170,47 @@
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-sun"></i> نمط وشدة الظل:</label>
+              <label><i class="fa-solid fa-compass"></i> زاوية الظل:</label>
               <div class="compact-control-group">
-                <select id="obs-shadow-style" class="control-select" title="نمط الظل" style="max-width:110px;">
-                  <option value="soft" selected>ظل ناعم</option>
-                  <option value="deep">عميق 3D</option>
-                  <option value="glow">توهج خارجي</option>
-                  <option value="sharp">ظل حاد</option>
-                  <option value="multi">طبقات سينمائية</option>
-                </select>
-                <input type="range" id="obs-shadow-range" min="0" max="60" value="0" class="slider-input" title="شدة/حجم الظل">
+                <input type="range" id="obs-shadow-angle-range" min="0" max="360" value="90" class="slider-input" title="زاوية الظل بالدرجات">
+                <span id="shadow-angle-badge" class="counter-text">90°</span>
               </div>
+            </div>
+
+            <div class="popover-row">
+              <label><i class="fa-solid fa-arrows-up-down-left-right"></i> مسافة الظل:</label>
+              <div class="compact-control-group">
+                <input type="range" id="obs-shadow-distance-range" min="0" max="50" value="6" class="slider-input" title="مسافة الظل بالبكسل">
+                <span id="shadow-distance-badge" class="counter-text">6px</span>
+              </div>
+            </div>
+
+            <div class="popover-row">
+              <label><i class="fa-solid fa-sun"></i> ضبابية الظل:</label>
+              <input type="range" id="obs-shadow-range" min="0" max="60" value="12" class="slider-input" title="شدة/حجم الظل">
             </div>
 
             <div class="popover-row">
               <label><i class="fa-solid fa-palette"></i> لون الظل:</label>
               <input type="color" id="obs-shadow-color" value="#000000" class="color-picker-input">
+            </div>
+
+            <div class="popover-row">
+              <label><i class="fa-solid fa-fill-drip"></i> الخلفية:</label>
+              <select id="chroma-select" class="control-select">
+                <option value="black" selected>أسود داكن</option>
+                <option value="green">خلفية خضراء</option>
+                <option value="blue">خلفية زرقاء</option>
+                <option value="transparent">خلفية شفافة</option>
+              </select>
+            </div>
+
+            <div class="popover-row">
+              <label><i class="fa-solid fa-layer-group"></i> نمط العرض:</label>
+              <select id="pres-mode-select" class="control-select">
+                <option value="oneline">سطر واحد أسفل الشاشة</option>
+                <option value="fullslide">شريحة كاملة بمنتصف الشاشة</option>
+              </select>
             </div>
 
             <div class="popover-row">
@@ -209,12 +240,6 @@
                 <option value="none">بدون حركة (Instant)</option>
               </select>
             </div>
-
-            <div class="popover-actions" style="margin-top:0.4rem;">
-              <button id="btn-reset-default-template" class="btn btn-sm btn-secondary" style="width:100%;">
-                <i class="fa-solid fa-rotate-left"></i> تطبيق قالب مدارس الأحد الافتراضي
-              </button>
-            </div>
           </div>
         </div>
 
@@ -224,40 +249,22 @@
             <i class="fa-solid fa-tv"></i>
           </button>
 
-          <div class="dropdown-popover hidden" id="popover-cast">
-            <div class="popover-title"><i class="fa-solid fa-display"></i> إعدادات الشاشات والبث</div>
+          <div class="dropdown-popover hidden" id="popover-cast" style="min-width:320px;">
+            <div class="popover-title"><i class="fa-solid fa-display"></i> اختيار الشاشة واختصار البث</div>
 
-            <div class="popover-row">
-              <label><i class="fa-solid fa-desktop"></i> الشاشة:</label>
-              <select id="connected-screens-select" class="control-select">
-                <option value="primary">الشاشة الحالية (بدون فتح نافذة جديدة)</option>
-              </select>
+            <div id="screens-cast-container" style="display:flex; flex-direction:column; gap:8px; margin-bottom:8px;">
+              <div style="font-size:0.8rem; font-weight:700; color:var(--text-muted);">الشاشات المتاحة للعرض الفوري:</div>
+              <div id="screens-cast-list" style="display:flex; flex-direction:column; gap:6px;">
+                <!-- Screens will be rendered dynamically -->
+              </div>
             </div>
 
-            <div class="popover-row">
-              <label><i class="fa-solid fa-fill-drip"></i> الخلفية:</label>
-              <select id="chroma-select" class="control-select">
-                <option value="black" selected>أسود داكن</option>
-                <option value="green">خلفية خضراء</option>
-                <option value="blue">خلفية زرقاء</option>
-                <option value="transparent">خلفية شفافة</option>
-              </select>
-            </div>
-
-            <div class="popover-row">
-              <label><i class="fa-solid fa-layer-group"></i> نمط العرض:</label>
-              <select id="pres-mode-select" class="control-select">
-                <option value="oneline">سطر واحد أسفل الشاشة</option>
-                <option value="fullslide">شريحة كاملة بمنتصف الشاشة</option>
-              </select>
-            </div>
-
-            <div class="popover-actions">
-              <button id="btn-open-tv-window" class="btn btn-sm btn-primary">
-                <i class="fa-solid fa-up-right-from-square fa-lg"></i> بدء العرض ملء الشاشة
+            <div class="popover-actions" style="margin-top:8px; display:flex; flex-direction:column; gap:6px;">
+              <button id="btn-open-tv-window" class="btn btn-sm btn-primary" style="width:100%;">
+                <i class="fa-solid fa-expand"></i> فتح شاشة العرض الرئيسية
               </button>
-              <button id="btn-copy-obs-url" class="btn btn-sm btn-secondary">
-                <i class="fa-solid fa-link fa-lg"></i> نسخ رابط المصدر للمصمم
+              <button id="btn-copy-obs-url" class="btn btn-sm btn-secondary" style="width:100%;">
+                <i class="fa-solid fa-copy"></i> نسخ رابط الشاشة للمصمم (OBS)
               </button>
             </div>
           </div>
@@ -366,14 +373,17 @@
     <!-- CENTERED INTELLIGENT SEARCH HERO -->
     <section class="search-hero">
       
-      <!-- FRANCO TRANSLATION TOGGLE TOOLBAR -->
+      <!-- TRANSLATION TOGGLE TOOLBAR -->
       <div class="search-toolbar">
-        <label class="toggle-switch" title="ترجمة الفرانكو تلقائياً إلى العربية">
+        <label class="toggle-switch" title="ترجمة تلقائياً إلى العربية">
           <input type="checkbox" id="franco-toggle-btn" checked>
           <span class="toggle-slider"></span>
-          <span class="toggle-label"><i class="fa-solid fa-language"></i> ترجمة الفرانكو</span>
+          <span class="toggle-label"><i class="fa-solid fa-language"></i> ترجمة</span>
         </label>
       </div>
+
+      <!-- DYNAMIC FLOATING SEARCH SUGGESTIONS CHIPS -->
+      <div id="search-suggestions-chips" class="search-suggestions-chips hidden"></div>
 
       <!-- CENTERED SEARCH BOX CONTAINER WITH SEARCH DROPDOWN FLUSH ATTACHED INSIDE -->
       <div class="centered-search-box">

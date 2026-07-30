@@ -711,6 +711,14 @@ document.addEventListener('DOMContentLoaded', () => {
     dropdownPwaInstallRow: document.getElementById('dropdown-pwa-install-row'),
     popoverOfflineStatusText: document.getElementById('popover-offline-status-text'),
 
+    searchSuggestionsChips: document.getElementById('search-suggestions-chips'),
+    obsShadowAngleRange: document.getElementById('obs-shadow-angle-range'),
+    shadowAngleBadge: document.getElementById('shadow-angle-badge'),
+    obsShadowDistanceRange: document.getElementById('obs-shadow-distance-range'),
+    shadowDistanceBadge: document.getElementById('shadow-distance-badge'),
+    btnAlignJustify: document.getElementById('btn-align-justify'),
+    screensCastList: document.getElementById('screens-cast-list'),
+
     btnCreditsInfo: document.getElementById('btn-credits-info'),
     modalCredits: document.getElementById('modal-credits'),
     btnCloseCredits: document.getElementById('btn-close-credits'),
@@ -835,6 +843,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function applyInitialUIState() {
+    if (state.selectedFont) {
+      document.documentElement.style.setProperty('--font-family', state.selectedFont);
+      document.body.style.fontFamily = state.selectedFont;
+    }
     if (els.fontSelect) els.fontSelect.value = state.selectedFont;
     if (els.obsFontSizeRange) els.obsFontSizeRange.value = state.fontSize;
     if (els.fontSizeValBadge) els.fontSizeValBadge.textContent = `${state.fontSize}px`;
@@ -848,7 +860,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.obsStrokeColor) els.obsStrokeColor.value = state.styleOptions.strokeColor;
     if (els.obsShadowRange) els.obsShadowRange.value = state.styleOptions.shadowBlur;
     if (els.obsShadowColor) els.obsShadowColor.value = state.styleOptions.shadowColor || '#000000';
-    if (els.obsShadowStyle) els.obsShadowStyle.value = state.styleOptions.shadowStyle || 'soft';
+    if (els.obsShadowAngleRange) els.obsShadowAngleRange.value = state.styleOptions.shadowAngle !== undefined ? state.styleOptions.shadowAngle : 90;
+    if (els.shadowAngleBadge) els.shadowAngleBadge.textContent = `${state.styleOptions.shadowAngle !== undefined ? state.styleOptions.shadowAngle : 90}°`;
+    if (els.obsShadowDistanceRange) els.obsShadowDistanceRange.value = state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 6;
+    if (els.shadowDistanceBadge) els.shadowDistanceBadge.textContent = `${state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 6}px`;
 
     if (els.obsFontWeightSelect) els.obsFontWeightSelect.value = state.styleOptions.fontWeight;
     if (els.obsLetterSpacingRange) els.obsLetterSpacingRange.value = state.styleOptions.letterSpacing;
@@ -865,6 +880,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.btnAlignCenter) els.btnAlignCenter.classList.toggle('active', state.styleOptions.textAlign === 'center');
     if (els.btnAlignRight) els.btnAlignRight.classList.toggle('active', state.styleOptions.textAlign === 'right');
     if (els.btnAlignLeft) els.btnAlignLeft.classList.toggle('active', state.styleOptions.textAlign === 'left');
+    if (els.btnAlignJustify) els.btnAlignJustify.classList.toggle('active', state.styleOptions.textAlign === 'justify');
 
     if (els.obsOverlay) els.obsOverlay.setAttribute('data-chroma', state.chromaKey);
   }
@@ -1145,68 +1161,19 @@ document.addEventListener('DOMContentLoaded', () => {
       syncLiveState();
     });
 
-    if (els.obsShadowColor) {
-      els.obsShadowColor.addEventListener('input', (e) => {
-        state.styleOptions.shadowColor = e.target.value;
+    if (els.obsShadowAngleRange) {
+      els.obsShadowAngleRange.addEventListener('input', (e) => {
+        state.styleOptions.shadowAngle = parseInt(e.target.value);
+        if (els.shadowAngleBadge) els.shadowAngleBadge.textContent = `${state.styleOptions.shadowAngle}°`;
         saveUserSettings();
         syncLiveState();
       });
     }
 
-    if (els.obsShadowStyle) {
-      els.obsShadowStyle.addEventListener('change', (e) => {
-        state.styleOptions.shadowStyle = e.target.value;
-        saveUserSettings();
-        syncLiveState();
-      });
-    }
-
-    if (els.obsFontWeightSelect) {
-      els.obsFontWeightSelect.addEventListener('change', (e) => {
-        state.styleOptions.fontWeight = e.target.value;
-        saveUserSettings();
-        syncLiveState();
-      });
-    }
-
-    if (els.obsLetterSpacingRange) {
-      els.obsLetterSpacingRange.addEventListener('input', (e) => {
-        state.styleOptions.letterSpacing = parseInt(e.target.value);
-        saveUserSettings();
-        syncLiveState();
-      });
-    }
-
-    if (els.obsLineHeightRange) {
-      els.obsLineHeightRange.addEventListener('input', (e) => {
-        state.styleOptions.lineHeight = parseFloat(e.target.value);
-        saveUserSettings();
-        syncLiveState();
-      });
-    }
-
-    if (els.obsBoxBgColor || els.obsBoxOpacityRange) {
-      const updateBoxBg = () => {
-        state.styleOptions.boxBgColor = els.obsBoxBgColor.value;
-        state.styleOptions.boxOpacity = parseInt(els.obsBoxOpacityRange.value);
-        saveUserSettings();
-        syncLiveState();
-      };
-      if (els.obsBoxBgColor) els.obsBoxBgColor.addEventListener('input', updateBoxBg);
-      if (els.obsBoxOpacityRange) els.obsBoxOpacityRange.addEventListener('input', updateBoxBg);
-    }
-
-    if (els.obsBoxRadiusRange) {
-      els.obsBoxRadiusRange.addEventListener('input', (e) => {
-        state.styleOptions.boxRadius = parseInt(e.target.value);
-        saveUserSettings();
-        syncLiveState();
-      });
-    }
-
-    if (els.obsBoxPaddingRange) {
-      els.obsBoxPaddingRange.addEventListener('input', (e) => {
-        state.styleOptions.boxPadding = parseInt(e.target.value);
+    if (els.obsShadowDistanceRange) {
+      els.obsShadowDistanceRange.addEventListener('input', (e) => {
+        state.styleOptions.shadowDistance = parseInt(e.target.value);
+        if (els.shadowDistanceBadge) els.shadowDistanceBadge.textContent = `${state.styleOptions.shadowDistance}px`;
         saveUserSettings();
         syncLiveState();
       });
@@ -1218,12 +1185,14 @@ document.addEventListener('DOMContentLoaded', () => {
         els.btnAlignCenter.classList.toggle('active', align === 'center');
         els.btnAlignRight.classList.toggle('active', align === 'right');
         els.btnAlignLeft.classList.toggle('active', align === 'left');
+        if (els.btnAlignJustify) els.btnAlignJustify.classList.toggle('active', align === 'justify');
         saveUserSettings();
         syncLiveState();
       };
       els.btnAlignCenter.addEventListener('click', () => setAlign('center'));
       els.btnAlignRight.addEventListener('click', () => setAlign('right'));
       els.btnAlignLeft.addEventListener('click', () => setAlign('left'));
+      if (els.btnAlignJustify) els.btnAlignJustify.addEventListener('click', () => setAlign('justify'));
     }
 
     if (els.btnToggleBold) {
@@ -1285,6 +1254,8 @@ document.addEventListener('DOMContentLoaded', () => {
         els.clearSearchBtn.classList.add('hidden');
       }
 
+      renderSearchWordSuggestions(query);
+
       clearTimeout(searchTimer);
       searchTimer = setTimeout(() => {
         performIntelligentSearch(query);
@@ -1293,6 +1264,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     els.intelligentSearch.addEventListener('focus', () => {
       if (els.intelligentSearch.value.trim()) {
+        renderSearchWordSuggestions(els.intelligentSearch.value);
         performIntelligentSearch(els.intelligentSearch.value);
       }
     });
@@ -1301,6 +1273,10 @@ document.addEventListener('DOMContentLoaded', () => {
       els.intelligentSearch.value = '';
       els.clearSearchBtn.classList.add('hidden');
       els.searchDropdown.classList.add('hidden');
+      if (els.searchSuggestionsChips) {
+        els.searchSuggestionsChips.classList.add('hidden');
+        els.searchSuggestionsChips.innerHTML = '';
+      }
     });
 
     els.btnPrevLine.addEventListener('click', prevLine);
@@ -1339,15 +1315,100 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  async function detectConnectedScreens() {
-    const select = els.connectedScreensSelect;
-    if (!select) return;
+  function getActiveWordAtCursor(input) {
+    if (!input) return { word: '', start: 0, end: 0 };
+    const text = input.value || '';
+    const cursor = input.selectionStart !== null ? input.selectionStart : text.length;
 
+    let start = text.lastIndexOf(' ', cursor - 1);
+    if (start === -1) start = 0; else start = start + 1;
+
+    let end = text.indexOf(' ', cursor);
+    if (end === -1) end = text.length;
+
+    const word = text.slice(start, end);
+    return { word, start, end };
+  }
+
+  function renderSearchWordSuggestions(query) {
+    if (!els.searchSuggestionsChips) return;
+    if (!query || !query.trim()) {
+      els.searchSuggestionsChips.classList.add('hidden');
+      els.searchSuggestionsChips.innerHTML = '';
+      return;
+    }
+
+    const { word, start, end } = getActiveWordAtCursor(els.intelligentSearch);
+    if (!word || word.trim().length < 2) {
+      els.searchSuggestionsChips.classList.add('hidden');
+      els.searchSuggestionsChips.innerHTML = '';
+      return;
+    }
+
+    const cleanWord = word.trim().toLowerCase();
+    const suggestions = [];
+
+    if (state.francoAutoTranslate && /[a-z0-9]/i.test(cleanWord)) {
+      const rawTrans = francoToArabic(cleanWord);
+      if (rawTrans) {
+        const corrected = correctWithArabicDictionary(rawTrans, state.arabicDictionary) || rawTrans;
+        suggestions.push({ original: cleanWord, text: corrected, type: 'ترجمة' });
+      }
+    }
+
+    if (state.arabicDictionary && typeof state.arabicDictionary === 'object' && !/[a-z0-9]/i.test(cleanWord)) {
+      const normW = normalizeArabic(cleanWord);
+      const keys = Object.keys(state.arabicDictionary);
+      for (let i = 0; i < keys.length; i++) {
+        const k = keys[i];
+        if (normalizeArabic(k).startsWith(normW) && k !== cleanWord) {
+          suggestions.push({ original: cleanWord, text: k, type: 'مقترح' });
+          if (suggestions.length >= 6) break;
+        }
+      }
+    }
+
+    if (suggestions.length === 0) {
+      els.searchSuggestionsChips.classList.add('hidden');
+      els.searchSuggestionsChips.innerHTML = '';
+      return;
+    }
+
+    els.searchSuggestionsChips.innerHTML = suggestions.map(s => `
+      <button class="suggestion-chip" type="button" data-replacement="${escapeHtml(s.text)}" data-start="${start}" data-end="${end}">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> ${escapeHtml(s.text)} <span class="chip-sub">(${s.type})</span>
+      </button>
+    `).join('');
+
+    els.searchSuggestionsChips.classList.remove('hidden');
+
+    els.searchSuggestionsChips.querySelectorAll('.suggestion-chip').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const rep = btn.dataset.replacement;
+        const sPos = parseInt(btn.dataset.start);
+        const ePos = parseInt(btn.dataset.end);
+
+        const fullText = els.intelligentSearch.value;
+        const newText = fullText.slice(0, sPos) + rep + fullText.slice(ePos);
+        els.intelligentSearch.value = newText;
+
+        const newCursor = sPos + rep.length;
+        els.intelligentSearch.setSelectionRange(newCursor, newCursor);
+        els.intelligentSearch.focus();
+
+        renderSearchWordSuggestions(newText);
+        performIntelligentSearch(newText);
+      });
+    });
+  }
+
+  async function detectConnectedScreens() {
+    let screens = [];
     if ('getScreenDetails' in window) {
       try {
         screenDetails = await window.getScreenDetails();
-        renderScreenOptions();
-
+        screens = screenDetails.screens || [];
         screenDetails.addEventListener('screenschange', () => {
           renderScreenOptions();
         });
@@ -1357,28 +1418,58 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       renderFallbackScreenOptions();
     }
+
+    renderScreenOptions();
   }
 
   function renderScreenOptions() {
-    const select = els.connectedScreensSelect;
-    if (!screenDetails || !screenDetails.screens.length) {
-      renderFallbackScreenOptions();
-      return;
+    let screens = [];
+    if (screenDetails && screenDetails.screens && screenDetails.screens.length > 0) {
+      screens = screenDetails.screens;
+    } else {
+      screens = [
+        { label: 'الشاشة الرئيسية (هذا الجهاز)', width: window.screen.width || 1920, height: window.screen.height || 1080, isPrimary: true, val: 'primary' },
+        { label: 'شاشة عرض خارجية 2 (TV / البروجيكتور)', width: 1920, height: 1080, isPrimary: false, val: 'external' }
+      ];
     }
 
-    select.innerHTML = screenDetails.screens.map((s, idx) => {
-      const type = s.isPrimary ? ' (الشاشة الحالية)' : ' (خارجية / TV)';
-      const label = s.label || `شاشة ${idx + 1}`;
-      return `<option value="${idx}">${label} (${s.width} × ${s.height})${type}</option>`;
-    }).join('');
+    if (els.connectedScreensSelect) {
+      els.connectedScreensSelect.innerHTML = screens.map((s, idx) => {
+        const type = s.isPrimary ? ' (الشاشة الحالية)' : ' (خارجية / TV)';
+        const label = s.label || `شاشة ${idx + 1}`;
+        const val = s.val !== undefined ? s.val : idx;
+        return `<option value="${val}">${escapeHtml(label)} (${s.width} × ${s.height})${type}</option>`;
+      }).join('');
+    }
+
+    if (els.screensCastList) {
+      els.screensCastList.innerHTML = screens.map((s, idx) => {
+        const name = s.label || `شاشة ${idx + 1}`;
+        const badge = s.isPrimary ? ' (الرئيسية)' : ' (خارجية)';
+        const val = s.val !== undefined ? s.val : idx;
+        return `
+          <div class="screen-cast-card" data-val="${val}">
+            <div class="screen-info">
+              <span class="screen-name"><i class="fa-solid fa-desktop"></i> ${escapeHtml(name)}${badge}</span>
+              <span class="screen-res">${s.width} × ${s.height} px</span>
+            </div>
+            <i class="fa-solid fa-expand launch-btn-icon"></i>
+          </div>
+        `;
+      }).join('');
+
+      els.screensCastList.querySelectorAll('.screen-cast-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const val = card.dataset.val;
+          if (els.connectedScreensSelect) els.connectedScreensSelect.value = val;
+          launchPresenterOnSelectedScreen();
+        });
+      });
+    }
   }
 
   function renderFallbackScreenOptions() {
-    const select = els.connectedScreensSelect;
-    select.innerHTML = `
-      <option value="primary">الشاشة الحالية (بدون فتح نافذة جديدة)</option>
-      <option value="external">الشاشة الخارجية الثانية (TV / البروجيكتور)</option>
-    `;
+    renderScreenOptions();
   }
 
   async function launchPresenterOnSelectedScreen() {
@@ -2033,6 +2124,8 @@ document.addEventListener('DOMContentLoaded', () => {
       strokeColor: state.styleOptions.strokeColor,
       shadowBlur: state.styleOptions.shadowBlur,
       shadowColor: state.styleOptions.shadowColor || '#000000',
+      shadowAngle: state.styleOptions.shadowAngle !== undefined ? state.styleOptions.shadowAngle : 90,
+      shadowDistance: state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 6,
       shadowStyle: state.styleOptions.shadowStyle || 'soft',
       fontWeight: state.styleOptions.fontWeight,
       fontStyle: state.styleOptions.fontStyle,

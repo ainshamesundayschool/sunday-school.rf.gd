@@ -1463,3 +1463,166 @@ html, body {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* ROUNDED COLOR PICKER INPUTS */
+.color-picker-input {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  border: 2px solid #cbd5e1 !important;
+  cursor: pointer;
+  padding: 0 !important;
+  background: none !important;
+  overflow: hidden !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.color-picker-input:hover {
+  transform: scale(1.1);
+  border-color: var(--accent-blue) !important;
+}
+
+.color-picker-input::-webkit-color-swatch-wrapper {
+  padding: 0;
+  border-radius: 50%;
+}
+
+.color-picker-input::-webkit-color-swatch {
+  border: none;
+  border-radius: 50%;
+}
+
+/* SEARCH FLOATING SUGGESTION CHIPS */
+.search-suggestions-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 8px;
+  z-index: 20;
+  animation: fadeInChips 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeInChips {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.suggestion-chip {
+  background: rgba(37, 99, 235, 0.09);
+  color: var(--accent-blue);
+  border: 1px solid rgba(37, 99, 235, 0.25);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.suggestion-chip:hover {
+  background: var(--accent-blue);
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.suggestion-chip .chip-sub {
+  font-size: 0.7rem;
+  opacity: 0.8;
+  font-weight: 500;
+}
+
+/* CAST SCREEN CARDS */
+.screen-cast-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.screen-cast-card:hover {
+  background: #eff6ff;
+  border-color: var(--accent-blue);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.1);
+}
+
+.screen-cast-card .screen-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.screen-cast-card .screen-name {
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.screen-cast-card .screen-res {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.screen-cast-card .launch-btn-icon {
+  color: var(--accent-blue);
+  font-size: 0.9rem;
+}
+
+/* COMPACT MOBILE RESPONSIVENESS (< 768px) */
+@media (max-width: 768px) {
+  .top-nav {
+    padding: 0.4rem 0.75rem;
+  }
+
+  .brand-text-centered .brand-main {
+    font-size: 0.95rem;
+  }
+
+  .icon-menu-btn {
+    width: 34px;
+    height: 34px;
+    font-size: 0.9rem;
+  }
+
+  .search-hero {
+    padding: 0.4rem 0.75rem 0.6rem;
+  }
+
+  .centered-search-box input {
+    font-size: 0.9rem;
+    padding: 0.6rem 2.4rem 0.6rem 2rem;
+  }
+
+  .dashboard-halves {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.4rem 0.75rem;
+  }
+
+  .half-panel {
+    height: auto;
+    max-height: 46vh;
+  }
+
+  .line-item {
+    padding: 8px 10px;
+    font-size: 0.9rem;
+  }
+}
+
