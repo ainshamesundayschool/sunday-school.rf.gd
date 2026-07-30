@@ -1048,8 +1048,11 @@
       }
     }
 
+    let lastFallbackTime = 0;
     async function fetchFallbackLive(ts) {
-      // PARALLEL RACE: All fallback URLs fire simultaneously — fastest one wins
+      if (Date.now() - lastFallbackTime < 1500) return;
+      lastFallbackTime = Date.now();
+
       const fallbackUrls = [
         'api.php?action=live',
         '../api.php?action=live',
@@ -1075,11 +1078,10 @@
       );
 
       try {
-        // Wait for all, pick the first non-null result
         const results = await Promise.all(promises);
         const winner = results.find(r => r !== null);
         if (winner) {
-          raceController.abort(); // Cancel remaining
+          raceController.abort();
           activeLiveApiUrl = winner.url;
           applyState(winner.data, 'http');
         }
@@ -1087,17 +1089,17 @@
       clearTimeout(raceTimeout);
     }
 
-    // ULTRA-FAST WEB WORKER TIMER (30MS TICKS — FASTER THAN DISPLAY REFRESH FOR INSTANT SYNC)
+    // WORKER TIMER (80MS TICKS — OPTIMAL FOR MOBILE HOTSPOT & LOCAL DISPLAY SYNC)
     let workerTimer = null;
     try {
       const workerBlob = new Blob([
-        "let t = null; onmessage = function(e) { if (e.data === 'start') { clearInterval(t); t = setInterval(function() { postMessage('tick'); }, 30); } else if (e.data === 'stop') { clearInterval(t); } };"
+        "let t = null; onmessage = function(e) { if (e.data === 'start') { clearInterval(t); t = setInterval(function() { postMessage('tick'); }, 80); } else if (e.data === 'stop') { clearInterval(t); } };"
       ], { type: 'application/javascript' });
       workerTimer = new Worker(URL.createObjectURL(workerBlob));
       workerTimer.onmessage = function() { fetchLiveHTTP(); };
       workerTimer.postMessage('start');
     } catch (e) {
-      setInterval(fetchLiveHTTP, 30);
+      setInterval(fetchLiveHTTP, 80);
     }
 
     // IMMEDIATE RE-FETCH ON VISIBILITY OR FOCUS RESTORATION
