@@ -2153,34 +2153,34 @@ html, body {
   gap: 6px;
 }
 
-.btn-close-overlay-bottom {
+.btn-close-overlay-left {
   position: absolute;
   bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 24px;
+  width: 36px;
+  height: 36px;
   background: rgba(15, 23, 42, 0.65);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.18);
   color: #ffffff;
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-size: 0.82rem;
-  font-weight: 600;
+  border-radius: 50%;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   z-index: 999;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
   transition: all 0.2s cubic-bezier(0.2, 0.9, 0.3, 1);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   pointer-events: auto;
 }
 
-.btn-close-overlay-bottom:hover {
+.btn-close-overlay-left:hover {
   background: rgba(239, 68, 68, 0.88);
-  border-color: rgba(239, 68, 68, 0.5);
-  transform: translateX(-50%) scale(1.05);
+  border-color: rgba(239, 68, 68, 0.6);
+  transform: scale(1.12);
+  color: #ffffff;
 }
 
 /* DISPLAY SELECTED RECTANGLE PILL BUTTON IN HEADER */
