@@ -27,8 +27,15 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: var(--font-family);
   -webkit-font-smoothing: antialiased;
+}
+
+body, input, button, select, textarea {
+  font-family: var(--font-family);
+}
+
+.fa, .fas, .far, .fab, .fa-solid, .fa-regular, .fa-brands, [class*=" fa-"], [class^="fa-"] {
+  font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands" !important;
 }
 
 html, body {
