@@ -3193,7 +3193,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="playlist-entry-row ${p.id === state.activePlaylistId ? 'active' : ''}" data-id="${p.id}">
         <div class="playlist-row-actions">
           <button class="pl-icon-btn btn-export-pl" data-id="${p.id}" title="تصدير القائمة">
-            <i class="fa-solid fa-download"></i>
+            <i class="fa-solid fa-arrow-down-to-bracket"></i>
           </button>
           <label class="pl-icon-btn btn-import-pl" title="استيراد قائمة" style="cursor:pointer; margin:0;">
             <i class="fa-solid fa-arrow-up-from-bracket"></i>

@@ -827,8 +827,9 @@ html, body {
 
 .playlist-entry-row.active {
   background: #eff6ff;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 1px #2563eb;
+  border: 1px solid #bfdbfe;
+  box-shadow: none;
+  outline: none;
 }
 
 .playlist-row-info {
