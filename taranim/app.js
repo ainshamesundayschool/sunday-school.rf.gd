@@ -2030,6 +2030,13 @@ document.addEventListener('DOMContentLoaded', () => {
           els.modalCredits.classList.add('hidden');
           return;
         }
+        if (els.obsOverlay && !els.obsOverlay.classList.contains('hidden')) {
+          els.obsOverlay.classList.add('hidden');
+          if (document.fullscreenElement) {
+            document.exitFullscreen().catch(() => {});
+          }
+          return;
+        }
         els.intelligentSearch.focus();
         els.intelligentSearch.select();
         els.searchDropdown.classList.add('hidden');
@@ -2311,7 +2318,7 @@ document.addEventListener('DOMContentLoaded', () => {
       top = window.screen.availTop || 0;
     }
 
-    let isCurrentWindowScreen = (val === 'in_app_overlay');
+    const isCurrentWindowScreen = (val === 'in_app_overlay' || val === 'primary' || val === '0' || (targetScreen && targetScreen.isPrimary));
 
     if (isCurrentWindowScreen) {
       if (presenterWindow && !presenterWindow.closed) {
@@ -2321,7 +2328,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       state.selectedScreen = {
         val: String(val),
-        label: targetScreen ? (targetScreen.label || `شاشة ${targetIdx + 1}`) : 'الشاشة الرئيسية (هذا الجهاز)',
+        label: targetScreen ? (targetScreen.label || 'Built-in Retina Display (الرئيسية)') : 'Built-in Retina Display (الرئيسية)',
         width: window.screen.width || 1920,
         height: window.screen.height || 1080,
         isPrimary: true
@@ -2331,6 +2338,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (els.obsOverlay) {
         els.obsOverlay.classList.remove('hidden');
+        const elem = els.obsOverlay;
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen().catch(() => {});
+        } else if (document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        }
       }
       syncLiveState();
       return;
