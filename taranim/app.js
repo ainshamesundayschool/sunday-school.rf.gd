@@ -2459,12 +2459,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!song || (!song.id && song.id !== 0)) return;
     const existsIndex = state.sessionRecents.findIndex(r => String(r.id) === String(song.id));
     if (existsIndex !== -1) {
-      const [existing] = state.sessionRecents.splice(existsIndex, 1);
-      if (song.verses) existing.verses = song.verses;
-      if (song.notes) existing.notes = song.notes;
-      state.sessionRecents.unshift(existing);
+      if (song.verses) state.sessionRecents[existsIndex].verses = song.verses;
+      if (song.notes) state.sessionRecents[existsIndex].notes = song.notes;
     } else {
-      state.sessionRecents.unshift({
+      state.sessionRecents.push({
         id: song.id,
         title: song.title,
         verses: song.verses || null,
