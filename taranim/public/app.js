@@ -2725,31 +2725,44 @@ document.addEventListener('DOMContentLoaded', () => {
   function loadSongIntoPresentation(song) {
     if (!song) return;
 
+    state.activeSong = song;
     let linesList = [];
 
+    const isBible = Boolean(song.is_bible || song.chapter_number !== undefined);
+
     if (song.verses && Array.isArray(song.verses) && song.verses.length > 0) {
+      let currentStanzaNum = 0;
+
       song.verses.forEach((verse, vIdx) => {
+        const verseType = (verse.type !== undefined && verse.type !== null) ? parseInt(verse.type) : 0; // 0 = stanza, 1 = chorus
+        if (verseType === 0) currentStanzaNum++;
+
         if (verse.slides && Array.isArray(verse.slides)) {
           verse.slides.forEach((slide, sIdx) => {
-            if (slide.lines && Array.isArray(slide.lines) && slide.lines.length > 0) {
-              slide.lines.forEach(line => {
-                if (line && line.trim()) {
-                  linesList.push({
-                    text: line.trim(),
-                    label: state.presentationMode === 'oneline' ? `بيت ${vIdx + 1}` : `شريحة ${sIdx + 1}`
-                  });
+            let lines = slide.lines || (slide.text ? slide.text.split('\n') : []);
+            lines = lines.map(l => l.trim()).filter(l => l.length > 0);
+
+            lines.forEach((line, lIdx) => {
+              let formattedLine = line;
+
+              if (lIdx === 0 && !line.startsWith('(') && !line.startsWith('（')) {
+                if (isBible) {
+                  // Bible verse: prepend (vIdx+1)
+                  formattedLine = `(${vIdx + 1}) ${line}`;
+                } else if (verseType === 1) {
+                  // Chorus: prepend (ق)
+                  formattedLine = `(${'ق'}) ${line}`;
+                } else if (verseType === 0) {
+                  // Stanza: prepend (currentStanzaNum)
+                  formattedLine = `(${currentStanzaNum}) ${line}`;
                 }
+              }
+
+              linesList.push({
+                text: formattedLine,
+                label: isBible ? `آية ${vIdx + 1}` : (verseType === 1 ? `قرار` : `بيت ${currentStanzaNum}`)
               });
-            } else if (slide.text && slide.text.trim()) {
-              slide.text.split('\n').forEach(line => {
-                if (line && line.trim()) {
-                  linesList.push({
-                    text: line.trim(),
-                    label: state.presentationMode === 'oneline' ? `بيت ${vIdx + 1}` : `شريحة ${sIdx + 1}`
-                  });
-                }
-              });
-            }
+            });
           });
         }
       });

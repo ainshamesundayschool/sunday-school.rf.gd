@@ -323,10 +323,43 @@
       letter-spacing: 0.3px;
     }
 
+    .obs-top-left-header {
+      position: absolute;
+      top: 1.8rem;
+      left: 2.2rem;
+      color: rgba(255, 255, 255, 0.75);
+      font-size: 1.5rem;
+      font-weight: 800;
+      z-index: 100;
+      letter-spacing: 0.5px;
+      pointer-events: none;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
+      font-family: inherit;
+    }
+
+    .badge-num {
+      display: inline-block;
+      font-weight: 800;
+      font-size: 0.88em;
+      margin: 0 4px;
+      line-height: 1;
+    }
+
+    .verse-num {
+      color: rgba(255, 255, 255, 0.65);
+    }
+
+    .chorus-num {
+      color: #ef4444; /* Reddish accent matching Image 3 */
+    }
+
     .hidden { display: none !important; }
   </style>
 </head>
 <body data-chroma="transparent">
+
+  <!-- TOP-LEFT BIBLE / CHAPTER REFERENCE HEADER -->
+  <div id="obs-top-left-header" class="obs-top-left-header hidden"></div>
 
   <!-- MAGNETIC SNAP GUIDES -->
   <div id="snap-guide-h" class="snap-guide horizontal hidden"></div>
@@ -801,6 +834,31 @@
     let currentAnimState = null;
     let lastProcessedTimestamp = 0;
 
+    function formatPresenterText(rawText) {
+      if (!rawText) return '';
+
+      let text = String(rawText);
+
+      // Escape HTML special chars
+      let html = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+
+      // 1. Format Chorus indicators like (ق) or (قرار) with reddish accent class
+      html = html.replace(/\((ق|قرار)\)/gi, '<span class="badge-num chorus-num">($1)</span>');
+
+      // 2. Format Stanza / Verse numbers or repeat multipliers like (1), (2), (3), (١), (٢) with verse-num class
+      html = html.replace(/\((\d+|[٠-٩]+)\)/g, '<span class="badge-num verse-num">($1)</span>');
+
+      // Preserve newlines
+      html = html.replace(/\n/g, '<br>');
+
+      return html;
+    }
+
     function applyState(data, source = 'local') {
       if (!data || typeof data !== 'object') return;
 
@@ -864,6 +922,16 @@
 
       applyDynamicShadow(data);
 
+      const topLeftHeaderEl = document.getElementById('obs-top-left-header');
+      if (topLeftHeaderEl) {
+        if (data.bibleRef && !data.isBlank) {
+          topLeftHeaderEl.textContent = data.bibleRef;
+          topLeftHeaderEl.classList.remove('hidden');
+        } else {
+          topLeftHeaderEl.classList.add('hidden');
+        }
+      }
+
       const hasText = Boolean(data.text && String(data.text).trim() && !data.isBlank);
 
       if (!hasText) {
@@ -876,7 +944,7 @@
         textEl.classList.remove('hidden');
         textEl.style.display = 'inline-block';
         textEl.style.visibility = 'visible';
-        textEl.textContent = data.text;
+        textEl.innerHTML = formatPresenterText(data.text);
         fitTextToSafeArea();
 
         if (currentTextState !== data.text || currentAnimState !== animType) {
