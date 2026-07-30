@@ -2256,26 +2256,27 @@ document.addEventListener('DOMContentLoaded', () => {
       screens = screenDetails.screens;
     } else {
       screens = [
-        { label: 'Built-in Retina Display', width: window.screen.width || 1920, height: window.screen.height || 1080, isPrimary: true, val: 'primary' },
-        { label: 'شاشة عرض خارجية 2 (TV / البروجيكتور)', width: 1920, height: 1080, isPrimary: false, val: 'external' }
+        { label: 'Built-in Retina Display', width: window.screen.width || 1920, height: window.screen.height || 1080, isPrimary: true },
+        { label: 'شاشة عرض خارجية 2 (TV / البروجيكتور)', width: 1920, height: 1080, isPrimary: false }
       ];
     }
 
     if (els.connectedScreensSelect) {
       els.connectedScreensSelect.innerHTML = screens.map((s, idx) => {
-        const type = s.isPrimary ? ' (الرئيسية - لوحة التحكم)' : ' (خارجية / TV)';
-        const label = s.label || `شاشة ${idx + 1}`;
-        const val = s.val !== undefined ? s.val : idx;
+        const isMain = Boolean(s.isPrimary || idx === 0);
+        const type = isMain ? ' (الرئيسية - بنفس التبويب)' : ' (خارجية - نافذة منبثقة)';
+        const label = s.label || (isMain ? 'الشاشة الرئيسية' : `شاشة خارجية ${idx + 1}`);
+        const val = isMain ? 'primary' : 'external';
         return `<option value="${val}">${escapeHtml(label)} (${s.width} × ${s.height})${type}</option>`;
       }).join('');
     }
 
     if (els.screensCastList) {
       els.screensCastList.innerHTML = screens.map((s, idx) => {
-        const name = s.label || `شاشة ${idx + 1}`;
-        const isMain = Boolean(s.isPrimary || idx === 0 || s.val === 'primary');
+        const isMain = Boolean(s.isPrimary || idx === 0);
+        const name = s.label || (isMain ? 'الشاشة الرئيسية (هذا الجهاز)' : `شاشة عرض خارجية 2`);
         const cardClass = isMain ? 'screen-cast-card main-screen-card' : 'screen-cast-card';
-        const val = s.val !== undefined ? s.val : idx;
+        const val = isMain ? 'primary' : 'external';
         return `
           <div class="${cardClass}" data-val="${val}">
             <div class="screen-info">
@@ -2310,56 +2311,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const select = els.connectedScreensSelect;
-    const val = selectedVal !== undefined ? String(selectedVal) : (select && select.value ? String(select.value) : 'primary');
+    const val = (selectedVal !== undefined && selectedVal !== null && selectedVal !== '') 
+      ? String(selectedVal) 
+      : (select && select.value ? String(select.value) : 'primary');
 
-    let targetScreen = null;
-    let targetIdx = -1;
-    if (screenDetails && screenDetails.screens && screenDetails.screens.length > 0) {
-      const idx = parseInt(val);
-      if (!isNaN(idx) && screenDetails.screens[idx]) {
-        targetScreen = screenDetails.screens[idx];
-        targetIdx = idx;
-      } else if (val === 'external' || val === '1') {
-        targetScreen = screenDetails.screens.find(s => !s.isPrimary) || screenDetails.screens[1] || screenDetails.screens[0];
-        targetIdx = screenDetails.screens.indexOf(targetScreen);
-      } else if (val === 'primary' || val === '0') {
-        targetScreen = screenDetails.screens.find(s => s.isPrimary) || screenDetails.screens[0];
-        targetIdx = screenDetails.screens.indexOf(targetScreen);
-      }
-    }
-
-    let left = 0;
-    let top = 0;
-    let width = 1920;
-    let height = 1080;
-
-    if (targetScreen) {
-      left = targetScreen.left !== undefined ? targetScreen.left : (targetScreen.availLeft !== undefined ? targetScreen.availLeft : 0);
-      top = targetScreen.top !== undefined ? targetScreen.top : (targetScreen.availTop !== undefined ? targetScreen.availTop : 0);
-      width = targetScreen.width || targetScreen.availWidth || 1920;
-      height = targetScreen.height || targetScreen.availHeight || 1080;
-    } else if (val === 'external' || val === '1') {
-      left = (window.screen.availLeft || 0) + (window.screen.width || 1920);
-      top = window.screen.availTop || 0;
-    }
-
-    const isMainDisplay = (
-      val === 'primary' || 
-      val === 'in_app_overlay' || 
-      val === '0' || 
-      val === 0 || 
-      (targetScreen && targetScreen.isPrimary)
-    ) && (val !== 'external' && val !== '1' && val !== 1);
-
-    if (isMainDisplay) {
+    // 1. MAIN DISPLAY (Built-in Screen) -> OPEN IN SAME TAB IN FULLSCREEN!
+    if (val === 'primary' || val === 'in_app_overlay' || val === '0') {
       if (presenterWindow && !presenterWindow.closed) {
         try { presenterWindow.close(); } catch(e) {}
         presenterWindow = null;
       }
 
       state.selectedScreen = {
-        val: String(val),
-        label: targetScreen ? (targetScreen.label || 'Built-in Retina Display (الرئيسية)') : 'Built-in Retina Display (الرئيسية)',
+        val: 'primary',
+        label: 'الشاشة الرئيسية (هذا الجهاز)',
         width: window.screen.width || 1920,
         height: window.screen.height || 1080,
         isPrimary: true
@@ -2380,12 +2345,30 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    // 2. EXTERNAL DISPLAY (TV / Projector) -> OPEN POPUP WINDOW ON OTHER MONITOR!
+    let left = (window.screen.availLeft || 0) + (window.screen.width || 1920);
+    let top = window.screen.availTop || 0;
+    let width = 1920;
+    let height = 1080;
+    let targetIdx = 1;
+
+    if (screenDetails && screenDetails.screens && screenDetails.screens.length > 1) {
+      const extScreen = screenDetails.screens.find(s => !s.isPrimary) || screenDetails.screens[1];
+      if (extScreen) {
+        left = extScreen.left !== undefined ? extScreen.left : (extScreen.availLeft || 1920);
+        top = extScreen.top !== undefined ? extScreen.top : 0;
+        width = extScreen.width || extScreen.availWidth || 1920;
+        height = extScreen.height || extScreen.availHeight || 1080;
+        targetIdx = screenDetails.screens.indexOf(extScreen);
+      }
+    }
+
     state.selectedScreen = {
-      val: String(val),
-      label: targetScreen ? (targetScreen.label || `شاشة ${targetIdx + 1}`) : (val === 'primary' ? 'الشاشة الرئيسية' : 'شاشة عرض خارجية 2'),
+      val: 'external',
+      label: 'شاشة عرض خارجية 2 (TV / البروجيكتور)',
       width: width,
       height: height,
-      isPrimary: (targetScreen && targetScreen.isPrimary) ? true : false
+      isPrimary: false
     };
     lastWindowOpenTime = Date.now();
     updateDisplayButtonUI();
@@ -2393,7 +2376,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const windowFeatures = `left=${left},top=${top},width=${width},height=${height},menubar=no,toolbar=no,location=no,status=no,resizable=yes,fullscreen=yes`;
     const obsUrl = `obs.html?autofs=true&screenIdx=${targetIdx}&screenLeft=${left}&screenTop=${top}`;
     
-    // REUSE WINDOW IF ALREADY OPEN
     if (!presenterWindow || presenterWindow.closed) {
       presenterWindow = window.open(obsUrl, 'SundaySchoolPresenterWindow', windowFeatures);
     } else {
@@ -2688,6 +2670,39 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       songsList = songsList.concat(localMatches);
+    }
+
+    // GUARANTEE BIBLE CHAPTER RESULT IF SHORTCUT/BIBLE QUERY WAS TYPED
+    if (bibleInfo && bibleInfo.bookName) {
+      const targetBookData = typeof BIBLE_BOOKS_DATA !== 'undefined' ? BIBLE_BOOKS_DATA.find(b => 
+        normalizeArabic(b.title) === normalizeArabic(bibleInfo.bookName) || 
+        normalizeArabic(b.title).includes(normalizeArabic(bibleInfo.bookName)) ||
+        normalizeArabic(b.abbr) === normalizeArabic(bibleInfo.bookName)
+      ) : null;
+
+      if (targetBookData) {
+        const bookId = targetBookData.id;
+        const chNum = parseInt(bibleInfo.chapter) || 1;
+        const fallbackTitle = `${targetBookData.title} - الأصحاح ${chNum}`;
+
+        const existingInList = songsList.find(s => 
+          Boolean(s.is_bible) && 
+          String(s.chapter_number) === String(chNum) &&
+          (normalizeArabic(s.title).includes(normalizeArabic(targetBookData.title)) || String(s.book_id) === String(bookId))
+        );
+
+        if (!existingInList) {
+          songsList.unshift({
+            id: `bible_${bookId}_${chNum}`,
+            item_id: `bible_${bookId}_${chNum}`,
+            title: fallbackTitle,
+            is_bible: true,
+            book_id: bookId,
+            chapter_number: chNum,
+            notes: `سفر ${targetBookData.title} - الإصحاح ${chNum}`
+          });
+        }
+      }
     }
 
     const uniqueMap = new Map();

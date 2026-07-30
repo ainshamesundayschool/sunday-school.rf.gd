@@ -125,7 +125,7 @@ if ($pdo && rand(1, 4) === 1) {
 }
 
 // SEARCH SONGS ENDPOINT
-if (strpos($parsedUrl, '/api/songs') !== false || (isset($_GET['action']) && $_GET['action'] === 'songs')) {
+if (strpos($parsedUrl, '/api/songs') !== false || (isset($_GET['action']) && $_GET['action'] === 'songs') || isset($_GET['q'])) {
     if (!$pdo) {
         echo json_encode(['songs' => [], 'total_songs' => 11611]);
         exit;
