@@ -1999,6 +1999,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderSearchWordSuggestions(text) {
+    if (parseBibleSearchShortcut(text)) {
+      els.searchSuggestionsChips.classList.add('hidden');
+      els.searchSuggestionsChips.innerHTML = '';
+      return;
+    }
+
     const cursor = els.intelligentSearch.selectionStart;
     const words = text.split(/\s+/);
     let currentPos = 0;
@@ -2173,7 +2179,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ALSO FILTER LOCAL SONGS CATALOG
     if (state.allSongs && state.allSongs.length > 0) {
       let qNorm = normalizeArabic(searchTarget);
-      let isFrancoInput = state.francoAutoTranslate && /[a-z0-9]/i.test(searchTarget);
+      let isFrancoInput = state.francoAutoTranslate && /[a-z]/i.test(searchTarget) && !/[\u0600-\u06FF]/.test(searchTarget);
       let qFrancoRaw = isFrancoInput ? francoToArabic(searchTarget) : '';
 
       const localMatches = state.allSongs.filter(song => {
@@ -2216,7 +2222,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const qWords = qNorm.split(/\s+/).filter(w => w.length >= 2);
 
     let francoHeaderHtml = '';
-    if (state.francoAutoTranslate && /[a-z0-9]/i.test(query)) {
+    if (state.francoAutoTranslate && /[a-z]/i.test(query) && !/[\u0600-\u06FF]/.test(query)) {
       const rawTranslated = francoToArabic(query);
       if (rawTranslated) {
         francoHeaderHtml = `<div class="franco-translation-header"><i class="fa-solid fa-wand-magic-sparkles"></i> الترجمة الحية: <strong>${escapeHtml(rawTranslated)}</strong></div>`;
