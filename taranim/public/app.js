@@ -793,7 +793,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } catch(e) {}
     }
-    return { xPct: 50, yPct: 75 };
+    return { xPct: 50, yPct: 50 };
   }
 
   const savedSettingsRaw = localStorage.getItem('sunday_school_taranim_user_settings');
