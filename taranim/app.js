@@ -1796,7 +1796,7 @@ document.addEventListener('DOMContentLoaded', () => {
         card.addEventListener('click', () => {
           const val = card.dataset.val;
           if (els.connectedScreensSelect) els.connectedScreensSelect.value = val;
-          launchPresenterOnSelectedScreen();
+          launchPresenterOnSelectedScreen(val);
         });
       });
     }
@@ -1806,8 +1806,8 @@ document.addEventListener('DOMContentLoaded', () => {
     renderScreenOptions();
   }
 
-  async function launchPresenterOnSelectedScreen() {
-    if ('getScreenDetails' in window && !screenDetails) {
+  async function launchPresenterOnSelectedScreen(selectedVal) {
+    if ('getScreenDetails' in window) {
       try {
         screenDetails = await window.getScreenDetails();
         renderScreenOptions();
@@ -1815,7 +1815,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const select = els.connectedScreensSelect;
-    const val = select ? select.value : 'primary';
+    const val = selectedVal !== undefined ? selectedVal : (select ? select.value : 'external');
 
     let targetScreen = null;
     let targetIdx = -1;
@@ -1833,8 +1833,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    let left = 0;
-    let top = 0;
+    let left = (window.screen.availLeft !== undefined) ? window.screen.availLeft : 0;
+    let top = (window.screen.availTop !== undefined) ? window.screen.availTop : 0;
     let width = 1920;
     let height = 1080;
 
@@ -1843,12 +1843,12 @@ document.addEventListener('DOMContentLoaded', () => {
       top = targetScreen.availTop !== undefined ? targetScreen.availTop : (targetScreen.top !== undefined ? targetScreen.top : 0);
       width = targetScreen.availWidth !== undefined ? targetScreen.availWidth : (targetScreen.width || 1920);
       height = targetScreen.availHeight !== undefined ? targetScreen.availHeight : (targetScreen.height || 1080);
-    } else if (val === 'external') {
-      left = window.screen.width || 1920;
-      top = 0;
+    } else if (val === 'external' || val === '1') {
+      left = (window.screen.availLeft || 0) + (window.screen.width || 1920);
+      top = window.screen.availTop || 0;
     }
 
-    if (val === 'primary' && (!targetScreen || targetScreen.isPrimary || !screenDetails)) {
+    if (val === 'primary' && targetScreen && targetScreen.isPrimary) {
       if (els.obsOverlay) {
         els.obsOverlay.classList.remove('hidden');
         const docEl = document.documentElement || els.obsOverlay;
@@ -1860,24 +1860,39 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    state.selectedScreen = {
+      val: String(val),
+      label: targetScreen ? (targetScreen.label || `شاشة ${targetIdx + 1}`) : (val === 'primary' ? 'الشاشة الرئيسية' : 'شاشة عرض خارجية 2'),
+      width: width,
+      height: height,
+      isPrimary: targetScreen ? targetScreen.isPrimary : (val === 'primary')
+    };
+    try { localStorage.setItem('sunday_school_taranim_locked_screen', JSON.stringify(state.selectedScreen)); } catch(e) {}
+    updateDisplayButtonUI();
+
     const windowFeatures = `left=${left},top=${top},width=${width},height=${height},menubar=no,toolbar=no,location=no,status=no,resizable=yes`;
     const obsUrl = `obs.html?autofs=true&screenIdx=${targetIdx}&screenLeft=${left}&screenTop=${top}`;
-    const popup = window.open(obsUrl, 'SundaySchoolPresenterWindow', windowFeatures);
+    
+    if (presenterWindow && !presenterWindow.closed) {
+      try { presenterWindow.close(); } catch(e) {}
+    }
 
-    if (popup) {
-      popup.focus();
+    presenterWindow = window.open(obsUrl, 'SundaySchoolPresenterWindow_' + Date.now(), windowFeatures);
+
+    if (presenterWindow) {
+      presenterWindow.focus();
       try {
-        popup.moveTo(left, top);
-        popup.resizeTo(width, height);
+        presenterWindow.moveTo(left, top);
+        presenterWindow.resizeTo(width, height);
       } catch (e) {}
 
       setTimeout(() => {
         try {
-          if (popup.document && popup.document.documentElement && popup.document.documentElement.requestFullscreen) {
+          if (presenterWindow && presenterWindow.document && presenterWindow.document.documentElement && presenterWindow.document.documentElement.requestFullscreen) {
             if (targetScreen) {
-              popup.document.documentElement.requestFullscreen({ screen: targetScreen }).catch(() => {});
+              presenterWindow.document.documentElement.requestFullscreen({ screen: targetScreen }).catch(() => {});
             } else {
-              popup.document.documentElement.requestFullscreen().catch(() => {});
+              presenterWindow.document.documentElement.requestFullscreen().catch(() => {});
             }
           }
         } catch (e) {}
