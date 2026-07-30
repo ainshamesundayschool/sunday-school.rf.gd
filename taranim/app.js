@@ -887,6 +887,8 @@ document.addEventListener('DOMContentLoaded', () => {
     presentationStartTime = null;
   }
 
+  let lastWindowOpenTime = 0;
+
   function startDisplayMonitor() {
     if (displayMonitorInterval) clearInterval(displayMonitorInterval);
     displayMonitorInterval = setInterval(() => {
@@ -897,15 +899,17 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       const isPrimary = state.selectedScreen.isPrimary || state.selectedScreen.val === 'primary' || state.selectedScreen.val === '0';
       if (!isPrimary) {
-        if (presenterWindow && presenterWindow.closed) {
-          closeActiveDisplay();
+        if (Date.now() - lastWindowOpenTime >= 3000) {
+          if (!presenterWindow || presenterWindow.closed) {
+            closeActiveDisplay();
+          }
         }
       } else {
         if (els.obsOverlay && els.obsOverlay.classList.contains('hidden')) {
           closeActiveDisplay();
         }
       }
-    }, 500);
+    }, 1000);
   }
 
   function closeActiveDisplay() {
@@ -2022,6 +2026,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try { presenterWindow.close(); } catch(e) {}
     }
 
+    lastWindowOpenTime = Date.now();
     presenterWindow = window.open(obsUrl, 'SundaySchoolPresenterWindow_' + Date.now(), windowFeatures);
 
     if (presenterWindow) {
