@@ -2923,6 +2923,9 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="slide-badge-side ${l.badgeClass || ''}">
               ${escapeHtml(l.badgeText || '')}
             </div>
+            <div class="slide-lines-body">
+              ${linesPreviewHtml}
+            </div>
           </div>
           <span class="slide-index-corner">${idx + 1}</span>
           <button class="copy-line-btn" data-text="${escapeHtml(l.text)}" title="نسخ هذا المقطع">
@@ -2983,12 +2986,19 @@ document.addEventListener('DOMContentLoaded', () => {
     return state.playlists.find(p => p.id === state.activePlaylistId) || state.playlists[0];
   }
 
+  function getItemKey(item) {
+    if (!item) return '';
+    const isBible = Boolean(item.is_bible || item.chapter_number !== undefined || item.type === 'bible');
+    const rawId = item.id !== undefined && item.id !== null ? item.id : item.item_id;
+    return `${isBible ? 'bible' : 'song'}_${String(rawId)}`;
+  }
+
   function deduplicateItems(items) {
     if (!Array.isArray(items)) return [];
     const seen = new Set();
     return items.filter(item => {
-      if (!item || (item.id === undefined && item.id === null)) return false;
-      const key = `${item.is_bible ? 'bible' : 'song'}_${item.id}`;
+      const key = getItemKey(item);
+      if (!key || key.endsWith('_undefined') || key.endsWith('_null')) return false;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -3040,20 +3050,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function addToSessionRecents(song) {
-    if (!song || (song.id === undefined && song.id === null)) return;
+    if (!song || (song.id === undefined && song.id === null && song.item_id === undefined)) return;
     
-    const isBibleItem = Boolean(song.is_bible || song.chapter_number !== undefined);
-    
-    const existsIndex = state.sessionRecents.findIndex(r => 
-      Boolean(r.is_bible) === isBibleItem &&
-      (String(r.id) === String(song.id) || 
-       String(r.item_id) === String(song.id) || 
-       (song.item_id && String(r.id) === String(song.item_id)) ||
-       (song.item_id && String(r.item_id) === String(song.item_id)))
-    );
+    const targetKey = getItemKey(song);
+    if (!targetKey) return;
+
+    const isBibleItem = Boolean(song.is_bible || song.chapter_number !== undefined || song.type === 'bible');
 
     let fullSongData = {
-      id: song.id,
+      id: song.id !== undefined ? song.id : song.item_id,
       item_id: song.item_id || song.id,
       title: song.title,
       verses: song.verses || null,
@@ -3063,13 +3068,17 @@ document.addEventListener('DOMContentLoaded', () => {
       is_bible: isBibleItem
     };
 
+    const existsIndex = state.sessionRecents.findIndex(r => getItemKey(r) === targetKey);
+
     if (existsIndex !== -1) {
-      // DO NOT REORDER OR DUPLICATE! Update existing item in place
+      // DO NOT REORDER OR MOVE TO TOP! Update existing item in place
       const existing = state.sessionRecents[existsIndex];
-      if (fullSongData.verses) existing.verses = fullSongData.verses;
+      if (fullSongData.verses && Array.isArray(fullSongData.verses) && fullSongData.verses.length > 0) {
+        existing.verses = fullSongData.verses;
+      }
       if (fullSongData.title) existing.title = fullSongData.title;
     } else {
-      // NEW ITEM ONLY -> ADD TO LIST
+      // NEW ITEM OPENED FROM SEARCH -> ADD TO TOP OF LIST
       state.sessionRecents.unshift(fullSongData);
     }
 
