@@ -57,23 +57,21 @@
     .lower-third-container {
       position: absolute;
       left: 50%;
-      top: 75%;
+      top: 50%;
       transform: translate(-50%, -50%);
       width: auto;
-      max-width: 90vw;
-      max-height: 85vh;
+      max-width: 92vw;
+      max-height: 88vh;
       text-align: center;
       padding: 0;
       z-index: 10;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      margin: 0 auto;
       overflow: visible !important;
       cursor: grab;
-
-      &:active {
-        cursor: grabbing;
-      }
     }
 
     .line-text {
@@ -81,13 +79,14 @@
       font-size: 54px;
       font-weight: 800;
       color: #ffffff;
-      line-height: 1.5;
+      line-height: 1.4;
       white-space: pre-line;
       text-align: center;
-      max-width: 90vw;
+      margin: 0 auto;
+      max-width: 92vw;
       word-break: break-word;
       text-shadow: 0 4px 18px rgba(0, 0, 0, 0.95);
-      will-change: transform, opacity, contents;
+      will-change: transform, opacity;
       transform: translateZ(0);
       backface-visibility: hidden;
     }
@@ -415,13 +414,27 @@
     }
 
     function fitTextToSafeArea() {
-      let size = stateFontSize || 54;
+      if (!textEl) return;
+      const text = textEl.textContent || '';
+      const len = text.trim().length;
+
+      const viewportW = window.innerWidth;
+      const viewportH = window.innerHeight;
+
+      let targetSize = stateFontSize || 54;
+      if (len > 0) {
+        if (len < 30) targetSize = Math.max(targetSize, Math.round(viewportH * 0.10));
+        else if (len < 60) targetSize = Math.max(targetSize, Math.round(viewportH * 0.08));
+        else if (len < 100) targetSize = Math.max(targetSize, Math.round(viewportH * 0.065));
+      }
+
+      let size = Math.min(targetSize, 96);
       textEl.style.fontSize = size + 'px';
 
-      const maxW = window.innerWidth * 0.90;
-      const maxH = window.innerHeight * 0.85;
+      const maxW = viewportW * 0.92;
+      const maxH = viewportH * 0.86;
 
-      while ((textEl.scrollWidth > maxW || textEl.scrollHeight > maxH) && size > 18) {
+      while ((textEl.scrollWidth > maxW || textEl.scrollHeight > maxH) && size > 20) {
         size -= 2;
         textEl.style.fontSize = size + 'px';
       }

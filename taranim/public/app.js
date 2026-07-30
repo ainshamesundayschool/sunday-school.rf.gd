@@ -2334,23 +2334,42 @@ document.addEventListener('DOMContentLoaded', () => {
       const snapText = text;
       const snapSize = size;
       requestAnimationFrame(() => {
-        if (els.obsLineText && els.obsLineText.textContent === snapText) {
-          let fitSize = snapSize;
-          const maxW = (els.obsOverlay ? els.obsOverlay.clientWidth : window.innerWidth) * 0.90;
-          const maxH = (els.obsOverlay ? els.obsOverlay.clientHeight : window.innerHeight) * 0.85;
-          while ((els.obsLineText.scrollWidth > maxW || els.obsLineText.scrollHeight > maxH) && fitSize > 18) {
+        if (els.obsLineText && els.obsLineText.textContent === snapText && els.obsLineText.style.display !== 'none') {
+          const vW = els.obsOverlay ? els.obsOverlay.clientWidth : window.innerWidth;
+          const vH = els.obsOverlay ? els.obsOverlay.clientHeight : window.innerHeight;
+          const len = snapText.trim().length;
+
+          let targetSize = snapSize || 54;
+          if (len > 0) {
+            if (len < 30) targetSize = Math.max(targetSize, Math.round(vH * 0.10));
+            else if (len < 60) targetSize = Math.max(targetSize, Math.round(vH * 0.08));
+            else if (len < 100) targetSize = Math.max(targetSize, Math.round(vH * 0.065));
+          }
+
+          let fitSize = Math.min(targetSize, 96);
+          els.obsLineText.style.fontSize = `${fitSize}px`;
+
+          const maxW = vW * 0.92;
+          const maxH = vH * 0.86;
+          while ((els.obsLineText.scrollWidth > maxW || els.obsLineText.scrollHeight > maxH) && fitSize > 20) {
             fitSize -= 2;
             els.obsLineText.style.fontSize = `${fitSize}px`;
           }
         }
       });
 
-      const xPct = state.dragPivot.xPct !== undefined ? state.dragPivot.xPct : 50;
-      const yPct = state.dragPivot.yPct !== undefined ? state.dragPivot.yPct : 75;
-
-      els.obsLowerThirdBox.style.left = `${xPct}%`;
-      els.obsLowerThirdBox.style.top = `${yPct}%`;
-      els.obsLowerThirdBox.style.transform = 'translate(-50%, -50%)';
+      const currentChroma = els.obsOverlay ? els.obsOverlay.getAttribute('data-chroma') : 'black';
+      if (currentChroma !== 'green') {
+        els.obsLowerThirdBox.style.left = '50%';
+        els.obsLowerThirdBox.style.top = '50%';
+        els.obsLowerThirdBox.style.transform = 'translate(-50%, -50%)';
+      } else {
+        const xPct = state.dragPivot.xPct !== undefined ? state.dragPivot.xPct : 50;
+        const yPct = state.dragPivot.yPct !== undefined ? state.dragPivot.yPct : 50;
+        els.obsLowerThirdBox.style.left = `${xPct}%`;
+        els.obsLowerThirdBox.style.top = `${yPct}%`;
+        els.obsLowerThirdBox.style.transform = 'translate(-50%, -50%)';
+      }
     }
 
     // 4. NON-BLOCKING INSTANT SERVER DISPATCH (throttled to 30ms to protect server)
