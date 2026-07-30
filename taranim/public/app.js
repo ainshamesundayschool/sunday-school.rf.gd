@@ -3177,39 +3177,53 @@ document.addEventListener('DOMContentLoaded', () => {
       let currentStanzaNum = 0;
 
       song.verses.forEach((verse, vIdx) => {
-        const verseType = (verse.type !== undefined && verse.type !== null) ? parseInt(verse.type) : 0; // 0 = stanza, 1 = chorus
-        if (verseType === 0) currentStanzaNum++;
+        const rawVerseType = verse.type;
+        const slides = verse.slides || [];
 
-        if (verse.slides && Array.isArray(verse.slides)) {
-          verse.slides.forEach((slide) => {
-            let rawLines = slide.lines || (slide.text ? slide.text.split('\n') : []);
-            let cleanLines = rawLines.map(l => l.trim()).filter(l => l.length > 0);
+        slides.forEach((slide) => {
+          let rawLines = slide.lines || (slide.text ? slide.text.split('\n') : []);
+          let cleanLines = rawLines.map(l => l.trim()).filter(l => l.length > 0);
+          const firstRawLine = rawLines[0] || '';
 
-            // Clean any redundant leading badges in text
-            cleanLines = cleanLines.map(l => {
-              return l.replace(/^\(?(القرار|قرار|ق)\)?[:\s\-]\s*/i, '')
-                      .replace(/^\(القرار\)$/i, '')
-                      .replace(/^\(ق\)$/i, '')
-                      .replace(/^\(?[\d٠-٩]+\)?[:\s\-]\s*/, '')
-                      .trim();
-            }).filter(l => l.length > 0);
+          const isChorusVerse = (!isBible) && (
+            rawVerseType === 1 ||
+            rawVerseType === '1' ||
+            String(rawVerseType).toLowerCase() === 'chorus' ||
+            /القرار|قرار|^ق$/i.test(verse.title || '') ||
+            /^\(?(القرار|قرار|ق)\)?[:\s\-]?/i.test(firstRawLine)
+          );
 
-            if (cleanLines.length > 0) {
-              let badgeText = '';
-              let badgeClass = '';
+          if (!isBible) {
+            if (!isChorusVerse) {
+              currentStanzaNum++;
+            }
+          }
 
-              if (isBible) {
-                badgeText = `(${vIdx + 1})`;
-                badgeClass = 'verse-badge-side';
-              } else if (verseType === 1) {
-                badgeText = `(ق)`;
-                badgeClass = 'chorus-badge-side';
-              } else {
-                badgeText = `(${currentStanzaNum})`;
-                badgeClass = 'stanza-badge-side';
-              }
+          // Clean any redundant leading badges in text
+          cleanLines = cleanLines.map(l => {
+            return l.replace(/^\(?(القرار|قرار|ق)\)?[:\s\-]\s*/i, '')
+                    .replace(/^\(القرار\)$/i, '')
+                    .replace(/^\(ق\)$/i, '')
+                    .replace(/^\(?[\d٠-٩]+\)?[:\s\-]\s*/, '')
+                    .trim();
+          }).filter(l => l.length > 0);
 
-              const labelText = isBible ? `آية ${vIdx + 1}` : (verseType === 1 ? `قرار` : `بيت ${currentStanzaNum}`);
+          if (cleanLines.length > 0) {
+            let badgeText = '';
+            let badgeClass = '';
+
+            if (isBible) {
+              badgeText = `(${vIdx + 1})`;
+              badgeClass = 'verse-badge-side';
+            } else if (isChorusVerse) {
+              badgeText = `(ق)`;
+              badgeClass = 'chorus-badge-side';
+            } else {
+              badgeText = `(${currentStanzaNum})`;
+              badgeClass = 'stanza-badge-side';
+            }
+
+            const labelText = isBible ? `آية ${vIdx + 1}` : (isChorusVerse ? `قرار` : `بيت ${currentStanzaNum}`);
 
               if (mode === 'oneline') {
                 cleanLines.forEach((singleLine) => {
@@ -3247,9 +3261,8 @@ document.addEventListener('DOMContentLoaded', () => {
               }
             }
           });
-        }
-      });
-    }
+        });
+      }
 
     if (linesList.length === 0 && song.notes) {
       const rawNotes = String(song.notes).replace(/\r\n/g, '\n');
