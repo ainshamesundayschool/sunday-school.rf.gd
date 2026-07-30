@@ -2056,6 +2056,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 1400);
     });
 
+    const btnSyncLiveFile = document.getElementById('btn-sync-live-file');
+    if (btnSyncLiveFile) {
+      btnSyncLiveFile.addEventListener('click', setLiveSyncFile);
+    }
+
     let searchTimer;
     els.intelligentSearch.addEventListener('input', (e) => {
       const query = e.target.value;
@@ -3946,6 +3951,46 @@ document.addEventListener('DOMContentLoaded', () => {
     // 4. NON-BLOCKING INSTANT SERVER DISPATCH (throttled to 30ms to protect server)
     const postBody = JSON.stringify(payload);
     throttledHttpPush(postBody);
+
+    // 5. OFFLINE DISK FILE SYNC FOR NATIVE OBS TEXT SOURCE (live.txt)
+    saveLiveTextToDisk(text);
+  }
+
+  let liveFileHandle = null;
+
+  async function setLiveSyncFile() {
+    if ('showSaveFilePicker' in window) {
+      try {
+        liveFileHandle = await window.showSaveFilePicker({
+          suggestedName: 'live.txt',
+          types: [{
+            description: 'Text File for OBS',
+            accept: { 'text/plain': ['.txt'] },
+          }],
+        });
+        showToast('تم ربط ملف live.txt بنجاح! اختر خيار "قراءة من ملف" داخل مصدر النص في OBS.');
+        const currentLine = state.presentationLines[state.currentLineIndex];
+        saveLiveTextToDisk(currentLine ? currentLine.text : '');
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          showToast('تعذر ربط الملف، يرجى اختيار مكان الحفظ.');
+        }
+      }
+    } else {
+      alert('لتحديث ملف النص أوفلاين تلقائياً على جهازك، يرجى استخدام متصفح Chrome أو Edge أو فتح النافذة المنبثقة.');
+    }
+  }
+
+  async function saveLiveTextToDisk(text) {
+    if (!liveFileHandle) return;
+    try {
+      const writable = await liveFileHandle.createWritable();
+      const cleanText = state.isBlank ? '' : (text || '').replace(/<[^>]*>/g, '');
+      await writable.write(cleanText);
+      await writable.close();
+    } catch (err) {
+      liveFileHandle = null;
+    }
   }
 
   function nextLine() {
