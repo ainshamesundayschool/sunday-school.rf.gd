@@ -4070,6 +4070,17 @@ document.addEventListener('DOMContentLoaded', () => {
       reshapedWords.reverse();
       reshapedLines.push(reshapedWords.join(' '));
     }
+
+    if (reshapedLines.length > 1) {
+      const maxLen = Math.max(...reshapedLines.map(l => l.length));
+      return reshapedLines.map(l => {
+        const pad = maxLen - l.length;
+        const left = Math.floor(pad / 2);
+        const right = pad - left;
+        return ' '.repeat(left) + l + ' '.repeat(right);
+      }).join('\n');
+    }
+
     return reshapedLines.join('\n');
   }
 

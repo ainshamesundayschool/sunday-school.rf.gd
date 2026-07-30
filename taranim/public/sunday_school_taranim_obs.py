@@ -10,15 +10,15 @@ interval = 30
 fix_arabic = True
 last_text = ""
 
-# PURE PYTHON ARABIC GLYPH MAP & RESHAPER FOR OBS FREETYPE2 / GDI+
+# PURE PYTHON SAFE ARABIC GLYPH MAP & RESHAPER FOR OBS FREETYPE2 / GDI+
 ARABIC_GLYPHS = {
-    '\u0621': ('\uFE80', '\uFE80', '\uFE80', '\uFE80'),
-    '\u0622': ('\uFE81', '\uFE82', '\uFE82', '\uFE81'),
-    '\u0623': ('\uFE83', '\uFE84', '\uFE84', '\uFE83'),
-    '\u0624': ('\uFE85', '\uFE86', '\uFE86', '\uFE85'),
-    '\u0625': ('\uFE87', '\uFE88', '\uFE88', '\uFE87'),
-    '\u0626': ('\uFE89', '\uFE8A', '\uFE8C', '\uFE8B'),
-    '\u0627': ('\uFE8D', '\uFE8E', '\uFE8E', '\uFE8D'),
+    '\u0621': ('\u0621', '\u0621', '\u0621', '\u0621'),
+    '\u0622': ('\u0622', '\uFE82', '\uFE82', '\u0622'),
+    '\u0623': ('\u0623', '\uFE84', '\uFE84', '\u0623'),
+    '\u0624': ('\u0624', '\uFE86', '\uFE86', '\u0624'),
+    '\u0625': ('\u0625', '\uFE88', '\uFE88', '\u0625'),
+    '\u0626': ('\u0626', '\uFE8A', '\uFE8C', '\uFE8B'),
+    '\u0627': ('\u0627', '\uFE8E', '\uFE8E', '\u0627'),
     '\u0628': ('\uFE8F', '\uFE90', '\uFE92', '\uFE91'),
     '\u0629': ('\uFE93', '\uFE94', '\uFE94', '\uFE93'),
     '\u062A': ('\uFE95', '\uFE96', '\uFE98', '\uFE97'),
@@ -111,6 +111,17 @@ def format_arabic_text_for_obs(text):
         reshaped_words.reverse()
         reshaped_lines.append(" ".join(reshaped_words))
 
+    # Multi-line visual center padding for OBS text engine
+    if len(reshaped_lines) > 1:
+        max_len = max(len(l) for l in reshaped_lines)
+        padded_lines = []
+        for l in reshaped_lines:
+            pad = max_len - len(l)
+            left = pad // 2
+            right = pad - left
+            padded_lines.append((' ' * left) + l + (' ' * right))
+        return "\n".join(padded_lines)
+
     return "\n".join(reshaped_lines)
 
 def fetch_live_text():
@@ -155,6 +166,8 @@ def update_obs_text_source(name, text):
     if source is not None:
         settings = obs.obs_data_create()
         obs.obs_data_set_string(settings, "text", text)
+        obs.obs_data_set_string(settings, "align", "center")
+        obs.obs_data_set_string(settings, "valign", "center")
         obs.obs_source_update(source, settings)
         obs.obs_data_release(settings)
         obs.obs_source_release(source)
@@ -171,7 +184,7 @@ def script_update(settings):
         obs.timer_add(fetch_live_text, interval)
 
 def script_description():
-    return "<b>Sunday School Taranim Instant Text Sync + Arabic Shaping</b><br>ربط فوري وإصلاح تشبيك الكلمات العربية تلقائياً لمصادر النص في OBS Studio.<br><br>1. أدخل مسار ملف live.txt أو رابط الأونلاين.<br>2. حدد اسم مصدر النص (Text Source) في OBS."
+    return "<b>Sunday School Taranim Instant Text Sync + Safe Arabic Shaping</b><br>ربط فوري وإصلاح آمن لتشبيك الكلمات العربية بدون مربعات لمصادر النص في OBS Studio.<br><br>1. أدخل مسار ملف live.txt أو رابط الأونلاين.<br>2. حدد اسم مصدر النص (Text Source) في OBS.<br>3. استخدم خط مثل Geeza Pro, Cairo, Baghdad, Arial للحصول على أفضل ريندر."
 
 def script_defaults(settings):
     obs.obs_data_set_default_string(settings, "file_or_url", "live.txt")
