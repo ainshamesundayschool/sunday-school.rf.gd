@@ -655,23 +655,30 @@ html, body {
 
 .playlist-selector-btn {
   background: #ffffff;
-  border: 1px solid var(--border-card, #cbd5e1);
-  color: var(--accent-blue, #2563eb);
-  padding: 4px 12px;
+  border: 1px solid #cbd5e1;
+  color: #1e293b;
+  padding: 5px 14px;
   border-radius: 20px;
   font-size: 0.82rem;
   font-weight: 800;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: all 0.2s cubic-bezier(0.2, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+.playlist-selector-btn i.fa-list-check {
+  color: #2563eb;
 }
 
 .playlist-selector-btn:hover {
-  background: #eff6ff;
+  background: #f8fafc;
   border-color: #93c5fd;
+  color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(37, 99, 235, 0.12);
 }
 
 .mini-btn-danger {
@@ -720,14 +727,14 @@ html, body {
   vertical-align: middle;
 }
 
-/* POPOVER PLAYLIST MATCHING REFERENCE DESIGN */
+/* POPOVER PLAYLIST MATCHING APP SLEEK CLEAN DESIGN SYSTEM */
 #popover-playlist {
   min-width: 320px;
   padding: 16px;
-  background: #fbf3f0;
-  border: 1px solid #ebd8d1;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 16px;
-  box-shadow: 0 10px 25px rgba(45, 30, 24, 0.12);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.10);
 }
 
 .playlist-popover-header {
@@ -735,31 +742,31 @@ html, body {
   align-items: center;
   justify-content: space-between;
   padding-bottom: 10px;
-  border-bottom: 1px solid #ebdad3;
+  border-bottom: 1px solid #f1f5f9;
   margin-bottom: 12px;
 }
 
 .playlist-popover-title {
-  font-size: 1.05rem;
+  font-size: 0.98rem;
   font-weight: 800;
-  color: #2d1e18;
+  color: #0f172a;
 }
 
 .close-popover-x {
   background: transparent;
   border: none;
-  font-size: 1.25rem;
-  color: #7c6860;
+  font-size: 1.2rem;
+  color: #94a3b8;
   cursor: pointer;
   line-height: 1;
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: 6px;
   transition: all 0.15s ease;
 }
 
 .close-popover-x:hover {
-  color: #8c433b;
-  background: #f2e3de;
+  color: #ef4444;
+  background: #fee2e2;
 }
 
 .playlists-list-container {
@@ -775,51 +782,51 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 14px;
+  padding: 10px 14px;
   border-radius: 10px;
-  background: #f3e6e1;
-  border: 1px solid #e7d5cd;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   cursor: pointer;
   transition: all 0.18s ease;
 }
 
 .playlist-entry-row:hover {
-  background: #ebdcd5;
-  border-color: #dfcac0;
+  background: #eff6ff;
+  border-color: #bfdbfe;
 }
 
 .playlist-entry-row.active {
-  background: #ebdcd5;
-  border-color: #8c433b;
-  box-shadow: 0 0 0 1px #8c433b;
+  background: #eff6ff;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px #2563eb;
 }
 
 .playlist-row-info {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.92rem;
+  font-size: 0.88rem;
   font-weight: 800;
-  color: #2d1e18;
+  color: #0f172a;
 }
 
 .playlist-count-text {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  color: #8c766e;
+  color: #64748b;
 }
 
 .playlist-row-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .pl-icon-btn {
   background: transparent;
   border: none;
-  color: #8c766e;
-  font-size: 0.9rem;
+  color: #64748b;
+  font-size: 0.88rem;
   cursor: pointer;
   padding: 4px 6px;
   border-radius: 6px;
@@ -830,17 +837,17 @@ html, body {
 }
 
 .pl-icon-btn:hover {
-  color: #8c433b;
-  background: rgba(140, 67, 59, 0.1);
+  color: #2563eb;
+  background: #e0f2fe;
 }
 
 .btn-create-playlist-pill {
   width: 100%;
-  border-radius: 28px;
-  background: #8c433b;
+  border-radius: 24px;
+  background: #2563eb;
   color: #ffffff;
-  padding: 11px 0;
-  font-size: 0.95rem;
+  padding: 10px 0;
+  font-size: 0.9rem;
   font-weight: 800;
   border: none;
   cursor: pointer;
@@ -849,12 +856,12 @@ html, body {
   justify-content: center;
   gap: 8px;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(140, 67, 59, 0.22);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
 }
 
 .btn-create-playlist-pill:hover {
-  background: #753730;
-  box-shadow: 0 6px 16px rgba(140, 67, 59, 0.32);
+  background: #1d4ed8;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
 }
 
 .new-playlist-input-wrapper {
