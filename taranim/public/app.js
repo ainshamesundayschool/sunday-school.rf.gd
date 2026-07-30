@@ -2742,27 +2742,31 @@ document.addEventListener('DOMContentLoaded', () => {
             let lines = slide.lines || (slide.text ? slide.text.split('\n') : []);
             lines = lines.map(l => l.trim()).filter(l => l.length > 0);
 
-            lines.forEach((line, lIdx) => {
-              let formattedLine = line;
+            if (lines.length > 0) {
+              let badgeText = '';
+              let badgeClass = '';
 
-              if (lIdx === 0 && !line.startsWith('(') && !line.startsWith('（')) {
-                if (isBible) {
-                  // Bible verse: prepend (vIdx+1)
-                  formattedLine = `(${vIdx + 1}) ${line}`;
-                } else if (verseType === 1) {
-                  // Chorus: prepend (ق)
-                  formattedLine = `(${'ق'}) ${line}`;
-                } else if (verseType === 0) {
-                  // Stanza: prepend (currentStanzaNum)
-                  formattedLine = `(${currentStanzaNum}) ${line}`;
-                }
+              if (isBible) {
+                badgeText = `(${vIdx + 1})`;
+                badgeClass = 'verse-badge-side';
+              } else if (verseType === 1) {
+                badgeText = `(ق)`;
+                badgeClass = 'chorus-badge-side';
+              } else {
+                badgeText = `(${currentStanzaNum})`;
+                badgeClass = 'stanza-badge-side';
               }
 
+              const fullText = lines.join('\n');
+
               linesList.push({
-                text: formattedLine,
+                text: fullText,
+                lines: lines,
+                badgeText: badgeText,
+                badgeClass: badgeClass,
                 label: isBible ? `آية ${vIdx + 1}` : (verseType === 1 ? `قرار` : `بيت ${currentStanzaNum}`)
               });
-            });
+            }
           });
         }
       });
