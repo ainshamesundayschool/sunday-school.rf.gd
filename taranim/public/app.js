@@ -802,6 +802,14 @@ document.addEventListener('DOMContentLoaded', () => {
     try { savedSettings = JSON.parse(savedSettingsRaw); } catch(e) {}
   }
 
+  let savedLockedScreen = null;
+  try {
+    const raw = localStorage.getItem('sunday_school_taranim_locked_screen');
+    if (raw) savedLockedScreen = JSON.parse(raw);
+  } catch(e) {}
+
+  let presenterWindow = null;
+
   const state = {
     allSongs: [],
     arabicDictionary: [],
@@ -810,6 +818,7 @@ document.addEventListener('DOMContentLoaded', () => {
     presentationLines: [],
     currentLineIndex: 0,
     isBlank: false,
+    selectedScreen: savedLockedScreen,
 
     selectedFont: savedSettings.selectedFont || "'Alexandria', sans-serif",
     fontSize: savedSettings.fontSize || 54,
@@ -839,6 +848,85 @@ document.addEventListener('DOMContentLoaded', () => {
 
     dragPivot: getLatestSavedPivot()
   };
+
+  function closeActiveDisplay() {
+    if (presenterWindow && !presenterWindow.closed) {
+      try { presenterWindow.close(); } catch(e) {}
+      presenterWindow = null;
+    }
+    if (els.obsOverlay) {
+      els.obsOverlay.classList.add('hidden');
+      if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+    state.selectedScreen = null;
+    try { localStorage.removeItem('sunday_school_taranim_locked_screen'); } catch(e) {}
+    updateDisplayButtonUI();
+  }
+
+  function updateDisplayButtonUI() {
+    const container = document.getElementById('btn-menu-cast-wrapper');
+    if (!container) return;
+
+    if (state.selectedScreen) {
+      const name = state.selectedScreen.label || 'شاشة العرض';
+      container.innerHTML = `
+        <div class="display-selected-pill" id="btn-menu-cast" title="اضغط لفتح قائمة اختيار الشاشات">
+          <i class="fa-solid fa-tv display-pill-icon"></i>
+          <span class="display-pill-name">${escapeHtml(name)}</span>
+          <button class="display-pill-close-btn" id="btn-close-display-pill" title="إغلاق الشاشة وإلغاء التحديد" type="button">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      `;
+
+      const pillBtn = container.querySelector('#btn-menu-cast');
+      const closeBtn = container.querySelector('#btn-close-display-pill');
+
+      if (pillBtn) {
+        pillBtn.addEventListener('click', (e) => {
+          if (e.target.closest('#btn-close-display-pill')) return;
+          e.stopPropagation();
+          const willShow = els.popoverCast.classList.contains('hidden');
+          closeAllPopovers(els.popoverCast);
+          if (willShow) {
+            els.popoverCast.classList.remove('hidden');
+            detectConnectedScreens();
+          } else {
+            els.popoverCast.classList.add('hidden');
+          }
+        });
+      }
+
+      if (closeBtn) {
+        closeBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          closeActiveDisplay();
+        });
+      }
+    } else {
+      container.innerHTML = `
+        <button class="icon-menu-btn" id="btn-menu-cast" title="البث والشاشات الخارجية (TV / OBS)" type="button">
+          <i class="fa-solid fa-tv"></i>
+        </button>
+      `;
+      const castBtn = container.querySelector('#btn-menu-cast');
+      if (castBtn) {
+        castBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const willShow = els.popoverCast.classList.contains('hidden');
+          closeAllPopovers(els.popoverCast);
+          if (willShow) {
+            els.popoverCast.classList.remove('hidden');
+            detectConnectedScreens();
+          } else {
+            els.popoverCast.classList.add('hidden');
+          }
+        });
+      }
+    }
+  }
 
   broadcastChannel.onmessage = (event) => {
     if (event.data) {
@@ -1033,6 +1121,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.obsOverlay) els.obsOverlay.setAttribute('data-chroma', state.chromaKey);
     checkOfflineStatusAndToggleInstallBtn();
     detectConnectedScreens();
+    updateDisplayButtonUI();
   }
 
   async function checkOfflineStatusAndToggleInstallBtn() {
@@ -2216,6 +2305,20 @@ document.addEventListener('DOMContentLoaded', () => {
         state.currentLineIndex = parseInt(item.dataset.idx);
         renderPresentationLinesList();
         syncLiveState();
+
+        // ONLY IF NO DISPLAY IS SELECTED / ACTIVE -> OPEN FULLSCREEN OVERLAY ON THIS DEVICE
+        const hasExternalWindow = presenterWindow && !presenterWindow.closed;
+        if (!state.selectedScreen && !hasExternalWindow) {
+          if (els.obsOverlay) {
+            els.obsOverlay.classList.remove('hidden');
+            const docEl = document.documentElement || els.obsOverlay;
+            if (docEl.requestFullscreen) {
+              docEl.requestFullscreen().catch(() => {});
+            } else if (docEl.webkitRequestFullscreen) {
+              docEl.webkitRequestFullscreen();
+            }
+          }
+        }
       });
     });
 
