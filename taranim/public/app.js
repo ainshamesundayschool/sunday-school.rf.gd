@@ -904,6 +904,10 @@ document.addEventListener('DOMContentLoaded', () => {
   } catch(e) {}
 
   let presenterWindow = null;
+  let pendingHttpPush = null;
+  let lastPushTimestamp = 0;
+  let searchAbortController = null;
+  let searchDebounceTimeout = null;
 
   const state = {
     allSongs: [],
@@ -2076,18 +2080,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
 
-      els.btnPresenterFullscreen.addEventListener('click', () => {
-        if (els.obsOverlay) {
-          els.obsOverlay.classList.remove('hidden');
-          const docEl = document.documentElement || els.obsOverlay;
-          if (docEl.requestFullscreen) {
-            docEl.requestFullscreen().catch(() => {});
-          } else if (docEl.webkitRequestFullscreen) {
-            docEl.webkitRequestFullscreen();
+      if (els.btnPresenterFullscreen) {
+        els.btnPresenterFullscreen.addEventListener('click', () => {
+          if (els.obsOverlay) {
+            els.obsOverlay.classList.remove('hidden');
+            const docEl = document.documentElement || els.obsOverlay;
+            if (docEl.requestFullscreen) {
+              docEl.requestFullscreen().catch(() => {});
+            } else if (docEl.webkitRequestFullscreen) {
+              docEl.webkitRequestFullscreen();
+            }
+            syncLiveState();
           }
-          syncLiveState();
-        }
-      });
+        });
+      }
     }
 
     window.addEventListener('keydown', (e) => {
@@ -2676,9 +2682,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   }
-
-  let searchAbortController = null;
-  let searchDebounceTimeout = null;
 
   function performIntelligentSearch(query) {
     if (!query || !query.trim()) {
@@ -3459,7 +3462,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let activePostUrl = null;
   let lastHttpPushTime = 0;
-  let pendingHttpPush = null;
 
   function sendLivePayload(postBody) {
     const headers = { 'Content-Type': 'application/json' };
