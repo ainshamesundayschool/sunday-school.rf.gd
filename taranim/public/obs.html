@@ -643,7 +643,7 @@
       if (!data || typeof data !== 'object') return;
 
       // TIMESTAMP DEDUPLICATION: Ignore stale server payloads if a newer local message was already rendered
-      if (data.updatedAt) {
+      if (data.updatedAt && source === 'server') {
         if (data.updatedAt < lastProcessedTimestamp) {
           return;
         }
@@ -700,7 +700,7 @@
 
       applyDynamicShadow(data);
 
-      const hasText = Boolean(data.text && data.text.trim() && !data.isBlank);
+      const hasText = Boolean(data.text && String(data.text).trim() && !data.isBlank);
 
       if (!hasText) {
         textEl.style.display = 'none';
@@ -710,12 +710,12 @@
         if (standbyEl) standbyEl.classList.add('hidden');
         textEl.style.display = 'inline-block';
         textEl.style.visibility = 'visible';
+        textEl.textContent = data.text;
+        fitTextToSafeArea();
+
         if (currentTextState !== data.text || currentAnimState !== animType) {
-          textEl.textContent = data.text;
           currentTextState = data.text;
           currentAnimState = animType;
-
-          fitTextToSafeArea();
 
           box.classList.remove('animate-appear-slide', 'animate-appear-drop', 'animate-appear-pop', 'animate-appear-flip', 'animate-appear-glow');
           textEl.classList.remove('animate-appear-slide', 'animate-appear-drop', 'animate-appear-pop', 'animate-appear-flip', 'animate-appear-glow');

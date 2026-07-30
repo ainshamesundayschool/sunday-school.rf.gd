@@ -2706,9 +2706,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let size = state.fontSize || 54;
         els.obsLineText.style.fontSize = `${size}px`;
+        els.obsLineText.textContent = text;
 
-        if (els.obsLineText.textContent !== text || currentPresenterAnim !== state.textAnimation) {
-          els.obsLineText.textContent = text;
+        if (currentPresenterAnim !== state.textAnimation) {
           currentPresenterAnim = state.textAnimation;
 
           els.obsLineText.classList.remove('animate-appear-slide', 'animate-appear-drop', 'animate-appear-pop', 'animate-appear-flip', 'animate-appear-glow');
