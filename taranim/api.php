@@ -191,6 +191,7 @@ if (strpos($parsedUrl, '/api/songs') !== false || (isset($_GET['action']) && $_G
 
             $qBookStr = trim($bookNum . ' ' . $bookText);
             $qBookNorm = normalizeArabic($qBookStr);
+            $qSubText = '%' . trim($bookText) . '%';
 
             if ($chNum !== null) {
                 $bStmt = $pdo->prepare("
@@ -202,11 +203,12 @@ if (strpos($parsedUrl, '/api/songs') !== false || (isset($_GET['action']) && $_G
                     FROM chapters c
                     JOIN bible_chapters bc ON c.bible_chapter = bc.id
                     JOIN books b ON bc.book = b.id
-                    WHERE (b.title LIKE :q OR b.abbr LIKE :q OR :qNorm LIKE ('%' || b.title || '%') OR :qNorm LIKE ('%' || b.abbr || '%'))
+                    WHERE (b.title LIKE :q OR b.abbr LIKE :q OR b.title LIKE :qSub OR b.abbr LIKE :qSub OR :qNorm LIKE ('%' || b.title || '%') OR :qNorm LIKE ('%' || b.abbr || '%'))
                       AND bc.number = :chNum
                     LIMIT 10
                 ");
                 $bStmt->bindValue(':q', '%' . $qBookStr . '%', PDO::PARAM_STR);
+                $bStmt->bindValue(':qSub', $qSubText, PDO::PARAM_STR);
                 $bStmt->bindValue(':qNorm', '%' . $qBookNorm . '%', PDO::PARAM_STR);
                 $bStmt->bindValue(':chNum', $chNum, PDO::PARAM_INT);
                 $bStmt->execute();
@@ -221,10 +223,11 @@ if (strpos($parsedUrl, '/api/songs') !== false || (isset($_GET['action']) && $_G
                     FROM chapters c
                     JOIN bible_chapters bc ON c.bible_chapter = bc.id
                     JOIN books b ON bc.book = b.id
-                    WHERE b.title LIKE :q OR b.abbr LIKE :q OR :qNorm LIKE ('%' || b.title || '%')
+                    WHERE b.title LIKE :q OR b.abbr LIKE :q OR b.title LIKE :qSub OR b.abbr LIKE :qSub OR :qNorm LIKE ('%' || b.title || '%')
                     LIMIT 10
                 ");
                 $bStmt->bindValue(':q', '%' . $qBookStr . '%', PDO::PARAM_STR);
+                $bStmt->bindValue(':qSub', $qSubText, PDO::PARAM_STR);
                 $bStmt->bindValue(':qNorm', '%' . $qBookNorm . '%', PDO::PARAM_STR);
                 $bStmt->execute();
                 $bibleChapters = $bStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -257,18 +260,38 @@ if (strpos($parsedUrl, '/api/songs') !== false || (isset($_GET['action']) && $_G
     exit;
 }
 
-// GET SINGLE SONG BY ID ENDPOINT
+// GET SINGLE SONG OR BIBLE CHAPTER BY ID ENDPOINT
 if (preg_match('#/api/song/(\d+)#', $parsedUrl, $matches) || (isset($_GET['action']) && $_GET['action'] === 'song')) {
     if (!$pdo) {
         echo json_encode(['error' => 'No database']);
         exit;
     }
     $songId = isset($matches[1]) ? (int)$matches[1] : (int)$_GET['id'];
+    $isBibleReq = (isset($_GET['type']) && $_GET['type'] === 'bible') || (isset($_GET['is_bible']) && ($_GET['is_bible'] == '1' || $_GET['is_bible'] === 'true'));
 
-    $stmt = $pdo->prepare("SELECT s.*, sc.scale as scale_id FROM songs s LEFT JOIN song_scales sc ON sc.song = s.id WHERE s.id = :id OR s.item_id = :id");
-    $stmt->bindValue(':id', $songId, PDO::PARAM_INT);
-    $stmt->execute();
-    $song = $stmt->fetch(PDO::FETCH_ASSOC);
+    $song = null;
+
+    if ($isBibleReq) {
+        try {
+            $cStmt = $pdo->prepare("
+                SELECT c.id, c.item_id, (b.title || ' - الأصحاح ' || bc.number) as title, 1 as is_bible
+                FROM chapters c
+                JOIN bible_chapters bc ON c.bible_chapter = bc.id
+                JOIN books b ON bc.book = b.id
+                WHERE c.id = :id OR c.item_id = :id
+            ");
+            $cStmt->bindValue(':id', $songId, PDO::PARAM_INT);
+            $cStmt->execute();
+            $song = $cStmt->fetch(PDO::FETCH_ASSOC);
+        } catch (Exception $ex) {}
+    }
+
+    if (!$song) {
+        $stmt = $pdo->prepare("SELECT s.*, sc.scale as scale_id FROM songs s LEFT JOIN song_scales sc ON sc.song = s.id WHERE s.id = :id OR s.item_id = :id");
+        $stmt->bindValue(':id', $songId, PDO::PARAM_INT);
+        $stmt->execute();
+        $song = $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 
     if (!$song) {
         try {

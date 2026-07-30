@@ -2339,7 +2339,7 @@ document.addEventListener('DOMContentLoaded', () => {
           : '';
 
         return `
-          <div class="search-item" data-id="${s.id}">
+          <div class="search-item" data-id="${s.id}" data-is-bible="${s.is_bible ? '1' : '0'}">
             <div class="item-top">
               <span class="item-title">${titleHighlighted}</span>
               <div class="item-badges-group">${lyricsMatchBadge}${typeBadge}</div>
@@ -2357,11 +2357,12 @@ document.addEventListener('DOMContentLoaded', () => {
     els.searchDropdown.querySelectorAll('.search-item').forEach(item => {
       item.addEventListener('click', () => {
         const id = item.dataset.id;
+        const isBible = item.dataset.isBible === '1';
         if (!id) return;
         els.searchDropdown.classList.add('hidden');
         els.intelligentSearch.value = '';
         els.clearSearchBtn.classList.add('hidden');
-        openAndPresentItem(id);
+        openAndPresentItem(id, isBible);
       });
     });
   }
@@ -2369,22 +2370,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-  async function openAndPresentItem(songId) {
+  async function openAndPresentItem(songId, isBible = false) {
     if (!songId) return;
 
-    let targetSong = state.sessionRecents.find(r => String(r.id) === String(songId) || String(r.item_id) === String(songId));
-    if (!targetSong || !targetSong.verses || !Array.isArray(targetSong.verses) || targetSong.verses.length === 0) {
-      if (state.allSongs && state.allSongs.length > 0) {
-        const local = state.allSongs.find(s => String(s.id) === String(songId) || String(s.item_id) === String(songId));
-        if (local) targetSong = local;
+    let targetSong = null;
+    if (!isBible) {
+      targetSong = state.sessionRecents.find(r => !r.is_bible && (String(r.id) === String(songId) || String(r.item_id) === String(songId)));
+      if (!targetSong || !targetSong.verses || !Array.isArray(targetSong.verses) || targetSong.verses.length === 0) {
+        if (state.allSongs && state.allSongs.length > 0) {
+          const local = state.allSongs.find(s => !s.is_bible && (String(s.id) === String(songId) || String(s.item_id) === String(songId)));
+          if (local) targetSong = local;
+        }
       }
     }
 
     if (!targetSong || !targetSong.verses || !Array.isArray(targetSong.verses) || targetSong.verses.length === 0) {
       try {
-        let res = await fetch(`api.php?action=song&id=${songId}`);
-        if (!res.ok) res = await fetch(`/api/song/${songId}`);
-        if (!res.ok) res = await fetch(`../api.php?action=song&id=${songId}`);
+        const bibleParam = isBible ? '&type=bible&is_bible=1' : '';
+        let res = await fetch(`api.php?action=song&id=${songId}${bibleParam}`);
+        if (!res.ok) res = await fetch(`/api/song/${songId}?${bibleParam}`);
+        if (!res.ok) res = await fetch(`../api.php?action=song&id=${songId}${bibleParam}`);
         if (res.ok) {
           const fullSong = await res.json();
           if (fullSong && (fullSong.title || fullSong.id)) {
