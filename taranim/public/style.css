@@ -653,6 +653,48 @@ html, body {
   position: relative;
 }
 
+.panel-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mini-btn-flat {
+  background: #ffffff;
+  border: 1px solid var(--border-card, #cbd5e1);
+  color: var(--text-main, #0f172a);
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.mini-btn-flat:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #2563eb;
+}
+
+.counter-text {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent-blue, #2563eb);
+}
+
+.badge-count {
+  background: var(--accent-blue, #2563eb);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
 .playlist-selector-btn {
   background: #ffffff;
   border: 1px solid #cbd5e1;
