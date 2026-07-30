@@ -614,9 +614,12 @@
       const offX = Math.round(distPx * Math.cos(rad));
       const offY = Math.round(distPx * Math.sin(rad));
 
+      textEl.style.paintOrder = 'stroke fill markers';
+      textEl.style.webkitPaintOrder = 'stroke fill markers';
+
       let shadowParts = [];
       if (strokeWidth > 0) {
-        const s = Math.max(1, Math.round(strokeWidth * scale * 0.7));
+        const s = Math.max(1, Math.round(strokeWidth * scale * 1.2));
         textEl.style.webkitTextStroke = `${s}px ${strokeColor}`;
         textEl.style.textStroke = `${s}px ${strokeColor}`;
         

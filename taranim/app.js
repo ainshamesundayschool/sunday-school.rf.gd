@@ -3784,9 +3784,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const offX = Math.round(shadowD * Math.cos(radA));
         const offY = Math.round(shadowD * Math.sin(radA));
 
+        els.obsLineText.style.paintOrder = 'stroke fill markers';
+        els.obsLineText.style.webkitPaintOrder = 'stroke fill markers';
+
         let shadowParts = [];
         if (strokeW > 0) {
-          const s = Math.max(1, Math.round(strokeW * 0.7));
+          const s = Math.max(1, Math.round(strokeW * 1.2));
           els.obsLineText.style.webkitTextStroke = `${s}px ${strokeC}`;
           els.obsLineText.style.textStroke = `${s}px ${strokeC}`;
 

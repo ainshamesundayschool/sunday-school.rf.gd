@@ -1394,6 +1394,8 @@ html, body {
   overflow: visible !important;
   box-sizing: border-box;
   will-change: transform, opacity;
+  paint-order: stroke fill markers;
+  -webkit-paint-order: stroke fill markers;
 }
 
 .obs-overlay[data-chroma="green"] .obs-line-text {

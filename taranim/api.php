@@ -21,6 +21,28 @@ $mysqlPass = 'MwfgtlTqep1';
 $sqlitePath = __DIR__ . '/database.sqlite';
 $liveFile   = __DIR__ . '/live.json';
 
+$requestUri = $_SERVER['REQUEST_URI'];
+$parsedUrl  = parse_url($requestUri, PHP_URL_PATH);
+
+// LIVE PRESENTATION STATE SYNC ENDPOINT (INSTANT 0.001s RESPONSE WITHOUT WAITING FOR DATABASE)
+if (strpos($parsedUrl, '/api/live') !== false || (isset($_GET['action']) && $_GET['action'] === 'live') || isset($_GET['live'])) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $inputRaw = file_get_contents('php://input');
+        if (!empty($inputRaw)) {
+            file_put_contents($liveFile, $inputRaw, LOCK_EX);
+        }
+        echo json_encode(['status' => 'success']);
+        exit;
+    } else {
+        if (file_exists($liveFile) && filesize($liveFile) > 0) {
+            echo file_get_contents($liveFile);
+        } else {
+            echo json_encode(['type' => 'PRESENT_LINE', 'text' => '', 'isBlank' => true]);
+        }
+        exit;
+    }
+}
+
 $pdo = null;
 $isMysql = false;
 
@@ -40,28 +62,6 @@ try {
         $isMysql = false;
     } catch (PDOException $ex) {
         // Continue even if database connection is pending
-    }
-}
-
-$requestUri = $_SERVER['REQUEST_URI'];
-$parsedUrl  = parse_url($requestUri, PHP_URL_PATH);
-
-// LIVE PRESENTATION STATE SYNC ENDPOINT
-if (strpos($parsedUrl, '/api/live') !== false || (isset($_GET['action']) && $_GET['action'] === 'live') || isset($_GET['live'])) {
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $inputRaw = file_get_contents('php://input');
-        if (!empty($inputRaw)) {
-            file_put_contents($liveFile, $inputRaw, LOCK_EX);
-        }
-        echo json_encode(['status' => 'success']);
-        exit;
-    } else {
-        if (file_exists($liveFile) && filesize($liveFile) > 0) {
-            echo file_get_contents($liveFile);
-        } else {
-            echo json_encode(['type' => 'PRESENT_LINE', 'text' => '', 'isBlank' => true]);
-        }
-        exit;
     }
 }
 
