@@ -3773,6 +3773,39 @@ document.addEventListener('DOMContentLoaded', () => {
         els.obsLineText.style.letterSpacing = `${state.styleOptions.letterSpacing}px`;
         els.obsLineText.style.lineHeight = state.styleOptions.lineHeight;
 
+        const strokeW = parseInt(state.styleOptions.strokeWidth || 0);
+        const strokeC = state.styleOptions.strokeColor || '#000000';
+        const shadowB = parseInt(state.styleOptions.shadowBlur || 0);
+        const shadowD = parseInt(state.styleOptions.shadowDistance || 0);
+        const shadowA = parseInt(state.styleOptions.shadowAngle !== undefined ? state.styleOptions.shadowAngle : 90);
+        const shadowC = state.styleOptions.shadowColor || '#000000';
+
+        const radA = shadowA * Math.PI / 180;
+        const offX = Math.round(shadowD * Math.cos(radA));
+        const offY = Math.round(shadowD * Math.sin(radA));
+
+        let shadowParts = [];
+        if (strokeW > 0) {
+          const s = Math.max(1, Math.round(strokeW * 0.7));
+          els.obsLineText.style.webkitTextStroke = `${s}px ${strokeC}`;
+          els.obsLineText.style.textStroke = `${s}px ${strokeC}`;
+
+          for (let a = 0; a < 360; a += 22.5) {
+            const rA = a * Math.PI / 180;
+            const sx = (s * Math.cos(rA)).toFixed(1);
+            const sy = (s * Math.sin(rA)).toFixed(1);
+            shadowParts.push(`${sx}px ${sy}px 0 ${strokeC}`);
+          }
+        } else {
+          els.obsLineText.style.webkitTextStroke = '0px transparent';
+          els.obsLineText.style.textStroke = '0px transparent';
+        }
+
+        if (shadowB > 0 || shadowD > 0) {
+          shadowParts.push(`${offX}px ${offY}px ${shadowB}px ${shadowC}`);
+        }
+        els.obsLineText.style.textShadow = shadowParts.length > 0 ? shadowParts.join(', ') : 'none';
+
         if (state.styleOptions.boxOpacity > 0) {
           const hex = state.styleOptions.boxBgColor || '#000000';
           const r = parseInt(hex.slice(1, 3), 16) || 0;

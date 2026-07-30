@@ -616,15 +616,25 @@
 
       let shadowParts = [];
       if (strokeWidth > 0) {
-        const s = Math.max(1, Math.round(strokeWidth * scale));
-        shadowParts.push(`-${s}px -${s}px 0 ${strokeColor}`);
-        shadowParts.push(`${s}px -${s}px 0 ${strokeColor}`);
-        shadowParts.push(`-${s}px  ${s}px 0 ${strokeColor}`);
-        shadowParts.push(`${s}px  ${s}px 0 ${strokeColor}`);
+        const s = Math.max(1, Math.round(strokeWidth * scale * 0.7));
+        textEl.style.webkitTextStroke = `${s}px ${strokeColor}`;
+        textEl.style.textStroke = `${s}px ${strokeColor}`;
+        
+        for (let angle = 0; angle < 360; angle += 22.5) {
+          const rA = angle * Math.PI / 180;
+          const sx = (s * Math.cos(rA)).toFixed(1);
+          const sy = (s * Math.sin(rA)).toFixed(1);
+          shadowParts.push(`${sx}px ${sy}px 0 ${strokeColor}`);
+        }
+      } else {
+        textEl.style.webkitTextStroke = '0px transparent';
+        textEl.style.textStroke = '0px transparent';
       }
 
-      shadowParts.push(`${offX}px ${offY}px ${shadowBlur}px ${shadowColor}`);
-      textEl.style.textShadow = shadowParts.join(', ');
+      if (shadowBlur > 0 || distPx > 0) {
+        shadowParts.push(`${offX}px ${offY}px ${shadowBlur}px ${shadowColor}`);
+      }
+      textEl.style.textShadow = shadowParts.length > 0 ? shadowParts.join(', ') : 'none';
     }
 
     function fitTextToSafeArea() {
