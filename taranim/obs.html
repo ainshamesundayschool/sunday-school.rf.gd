@@ -1032,17 +1032,46 @@
       }
     }
 
-      if (channel) channel.onmessage = (event) => applyState(event.data, 'local');
+      let lastLocalPayloadTime = 0;
+
+      if (channel) {
+        channel.onmessage = (event) => {
+          if (event.data && event.data.updatedAt) lastLocalPayloadTime = event.data.updatedAt;
+          applyState(event.data, 'local');
+        };
+      }
 
     window.addEventListener('storage', (e) => {
       if (e.key === 'sunday_school_taranim_live_presentation') {
-        try { applyState(JSON.parse(e.newValue), 'local'); } catch(err) {}
+        try {
+          const data = JSON.parse(e.newValue);
+          if (data && data.updatedAt) lastLocalPayloadTime = data.updatedAt;
+          applyState(data, 'local');
+        } catch(err) {}
       }
     });
 
+    // 0ms FAST LOCAL TICKER FOR OBS CEF PROCESS ON SAME DEVICE
+    setInterval(() => {
+      try {
+        const raw = localStorage.getItem('sunday_school_taranim_live_presentation');
+        if (raw) {
+          const data = JSON.parse(raw);
+          if (data && data.updatedAt && data.updatedAt > lastLocalPayloadTime) {
+            lastLocalPayloadTime = data.updatedAt;
+            applyState(data, 'local');
+          }
+        }
+      } catch(e) {}
+    }, 30);
+
     const initialLiveRaw = localStorage.getItem('sunday_school_taranim_live_presentation');
     if (initialLiveRaw) {
-      try { applyState(JSON.parse(initialLiveRaw), 'local'); } catch(err) {}
+      try {
+        const data = JSON.parse(initialLiveRaw);
+        if (data && data.updatedAt) lastLocalPayloadTime = data.updatedAt;
+        applyState(data, 'local');
+      } catch(err) {}
     }
 
     let isFetching = false;
@@ -1050,7 +1079,12 @@
     let activeLiveApiUrl = null;
 
     async function fetchLiveHTTP() {
-      // AUTO-HEALING DEADLOCK BREAKER: Reset after 1000ms (was 2500ms)
+      // IF LOCAL STORAGE / BROADCAST WAS UPDATED IN LAST 4 SECONDS (SAME DEVICE PRESENTER), BYPASS INTERNET HTTP FETCH!
+      if (Date.now() - lastLocalPayloadTime < 4000) {
+        return;
+      }
+
+      // AUTO-HEALING DEADLOCK BREAKER: Reset after 1000ms
       if (isFetching && (Date.now() - lastFetchStartTime > 1000)) {
         isFetching = false;
       }
