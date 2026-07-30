@@ -980,6 +980,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (els.obsOverlay) els.obsOverlay.setAttribute('data-chroma', state.chromaKey);
     checkOfflineStatusAndToggleInstallBtn();
+    detectConnectedScreens();
   }
 
   async function checkOfflineStatusAndToggleInstallBtn() {
@@ -1105,22 +1106,13 @@ document.addEventListener('DOMContentLoaded', () => {
           }
 
           if (els.btnDropdownPrecache) els.btnDropdownPrecache.innerHTML = '<i class="fa-solid fa-circle-check"></i> تم حفظ جميع البيانات أوفلاين';
-          if (els.popoverOfflineStatusText) els.popoverOfflineStatusText.textContent = '🟢 تم حفظ الكتالوج والبيانات بالكامل محلياً';
+          if (els.popoverOfflineStatusText) els.popoverOfflineStatusText.innerHTML = '<i class="fa-solid fa-circle-check"></i> جاهز للعمل بدون إنترنت';
         } catch (err) {
           if (els.btnDropdownPrecache) {
             els.btnDropdownPrecache.disabled = false;
             els.btnDropdownPrecache.textContent = 'إعادة المحاولة';
           }
         }
-      });
-    }
-
-    if (els.btnDropdownStartOffline) {
-      els.btnDropdownStartOffline.addEventListener('click', () => {
-        if (els.popoverInstall) {
-          els.popoverInstall.classList.add('hidden');
-        }
-        showToast('تطبيق الترانيم جاهز للعمل أوفلاين بنجاح 🟢');
       });
     }
 
@@ -1138,7 +1130,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const { outcome } = await deferredPrompt.userChoice;
         if (outcome === 'accepted') {
           if (els.dropdownPwaInstallRow) els.dropdownPwaInstallRow.classList.add('hidden');
-          showToast('تم تثبيت تطبيق الترانيم بنجاح! 🎉');
+          showToast('تم تثبيت تطبيق الترانيم بنجاح!');
         }
         deferredPrompt = null;
       });

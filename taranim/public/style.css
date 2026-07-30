@@ -321,7 +321,7 @@ html, body {
   background: #ffffff;
   border: 2px solid rgba(37, 99, 235, 0.25);
   color: #0f172a;
-  padding: 0.75rem 3.2rem 0.75rem 4.6rem;
+  padding: 0.75rem 3.2rem 0.75rem 7.2rem;
   border-radius: 40px;
   font-size: 1rem;
   font-weight: 500;
@@ -336,7 +336,7 @@ html, body {
 
 .centered-search-box .clear-btn {
   position: absolute;
-  left: 2.7rem;
+  left: 5.4rem;
   top: 50%;
   transform: translateY(-50%);
   background: transparent;
@@ -349,33 +349,39 @@ html, body {
 
 .search-inside-toggle {
   position: absolute;
-  left: 0.6rem;
+  left: 0.5rem;
   top: 50%;
   transform: translateY(-50%);
-  background: transparent;
-  border: none;
-  font-size: 1.15rem;
-  color: #94a3b8;
-  opacity: 0.65;
-  cursor: pointer;
-  padding: 4px 6px;
-  border-radius: 8px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 5px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #64748b;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 20px;
   transition: all 0.2s ease;
-  z-index: 10;
+  z-index: 15;
+  white-space: nowrap;
 }
 
 .search-inside-toggle:hover {
-  background: rgba(37, 99, 235, 0.08);
-  color: var(--accent-blue);
+  background: #e2e8f0;
+  color: #1e293b;
 }
 
 .search-inside-toggle.active {
-  color: #2563eb;
-  opacity: 1;
-  background: rgba(37, 99, 235, 0.12);
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border-color: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+}
+
+.search-inside-toggle i {
+  font-size: 0.88rem;
 }
 
 /* SEARCH DROPDOWN FLUSH ATTACHED DIRECTLY UNDER SEARCH INPUT */
@@ -1637,7 +1643,7 @@ html, body {
 
   .centered-search-box input {
     font-size: 0.9rem;
-    padding: 0.6rem 2.4rem 0.6rem 2rem;
+    padding: 0.65rem 2.6rem 0.65rem 6.8rem;
   }
 
   .dashboard-halves {
