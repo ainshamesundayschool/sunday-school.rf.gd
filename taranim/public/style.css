@@ -1028,8 +1028,11 @@ html, body {
   margin-left: 4px;
 }
 
-.badge-num.verse-num {
-  color: #38bdf8 !important;
+.badge-num.verse-num,
+.verse-num,
+.stanza-badge-side {
+  color: #94a3b8 !important; /* Elegant grey for numbers */
+  font-weight: 700 !important;
 }
 
 .slide-index-corner {
