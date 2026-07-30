@@ -964,24 +964,10 @@ document.addEventListener('DOMContentLoaded', () => {
   let lastWindowOpenTime = 0;
 
   function startDisplayMonitor() {
-    if (displayMonitorInterval) clearInterval(displayMonitorInterval);
-    displayMonitorInterval = setInterval(() => {
-      if (!state.selectedScreen) {
-        clearInterval(displayMonitorInterval);
-        displayMonitorInterval = null;
-        return;
-      }
-      const isPrimary = state.selectedScreen.isPrimary || state.selectedScreen.val === 'primary' || state.selectedScreen.val === '0';
-      if (!isPrimary) {
-        if (presenterWindow && presenterWindow.closed && (Date.now() - lastWindowOpenTime >= 4000)) {
-          closeActiveDisplay();
-        }
-      } else {
-        if (els.obsOverlay && els.obsOverlay.classList.contains('hidden')) {
-          closeActiveDisplay();
-        }
-      }
-    }, 1000);
+    if (displayMonitorInterval) {
+      clearInterval(displayMonitorInterval);
+      displayMonitorInterval = null;
+    }
   }
 
   function closeActiveDisplay() {
@@ -2382,35 +2368,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (presenterWindow) {
-      presenterWindow.focus();
       try {
+        presenterWindow.focus();
         presenterWindow.moveTo(left, top);
         presenterWindow.resizeTo(width, height);
       } catch (e) {}
-
-      // SAFE AUTO-FULLSCREEN: signal child window to trigger fullscreen inside its own context
-      const triggerChildFS = () => {
-        try {
-          if (presenterWindow && !presenterWindow.closed && typeof presenterWindow.triggerFullscreen === 'function') {
-            presenterWindow.triggerFullscreen();
-          }
-        } catch(e) {}
-        try {
-          if (presenterWindow && !presenterWindow.closed) {
-            presenterWindow.postMessage({ action: 'TRIGGER_FULLSCREEN' }, '*');
-          }
-        } catch(e) {}
-        try {
-          const fsChannel = new BroadcastChannel('sunday_school_taranim_fs');
-          fsChannel.postMessage({ action: 'TRIGGER_FULLSCREEN' });
-          setTimeout(() => fsChannel.close(), 200);
-        } catch(e) {}
-      };
-
-      triggerChildFS();
-      setTimeout(triggerChildFS, 150);
-      setTimeout(triggerChildFS, 400);
-      setTimeout(triggerChildFS, 800);
     }
 
     syncLiveState();
