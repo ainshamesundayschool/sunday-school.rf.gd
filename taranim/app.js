@@ -1103,7 +1103,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(triggerFS, 350);
             setTimeout(triggerFS, 700);
           } else {
-            launchPresenterOnSelectedScreen();
+            launchPresenterOnSelectedScreen('primary');
           }
         });
       }
@@ -1959,7 +1959,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (els.btnOpenTvWindow) {
       els.btnOpenTvWindow.addEventListener('click', () => {
-        launchPresenterOnSelectedScreen();
+        launchPresenterOnSelectedScreen('external');
       });
     }
 
@@ -2310,7 +2310,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const select = els.connectedScreensSelect;
-    const val = selectedVal !== undefined ? selectedVal : (select ? select.value : 'external');
+    const val = selectedVal !== undefined ? String(selectedVal) : (select && select.value ? String(select.value) : 'primary');
 
     let targetScreen = null;
     let targetIdx = -1;
@@ -2319,10 +2319,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!isNaN(idx) && screenDetails.screens[idx]) {
         targetScreen = screenDetails.screens[idx];
         targetIdx = idx;
-      } else if (val === 'external') {
+      } else if (val === 'external' || val === '1') {
         targetScreen = screenDetails.screens.find(s => !s.isPrimary) || screenDetails.screens[1] || screenDetails.screens[0];
         targetIdx = screenDetails.screens.indexOf(targetScreen);
-      } else if (val === 'primary') {
+      } else if (val === 'primary' || val === '0') {
         targetScreen = screenDetails.screens.find(s => s.isPrimary) || screenDetails.screens[0];
         targetIdx = screenDetails.screens.indexOf(targetScreen);
       }
