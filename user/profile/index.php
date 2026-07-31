@@ -19,9 +19,20 @@ if (is_writable($sessionPath)) {
   session_save_path($sessionPath);
 }
 
-ini_set('session.gc_maxlifetime', 315360000);
-ini_set('session.cookie_lifetime', 315360000);
-session_start();
+$cookieLifetime = 315360000;
+ini_set('session.gc_maxlifetime', $cookieLifetime);
+ini_set('session.cookie_lifetime', $cookieLifetime);
+if (session_status() === PHP_SESSION_NONE) {
+    @session_set_cookie_params([
+        'lifetime' => $cookieLifetime,
+        'path' => '/',
+        'domain' => '',
+        'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+    @session_start();
+}
 
 // Include config.php for VAPID keys
 if (file_exists($rootPath . '/config.php')) {
