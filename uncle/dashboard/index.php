@@ -7663,20 +7663,11 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             background: rgba(255, 255, 255, 0.15);
         }
 
-        .toast-item.success {
-            border-right: 4px solid var(--success);
-        }
-
-        .toast-item.error {
-            border-right: 4px solid var(--danger);
-        }
-
-        .toast-item.info {
-            border-right: 4px solid var(--brand);
-        }
-
+        .toast-item.success,
+        .toast-item.error,
+        .toast-item.info,
         .toast-item.warning {
-            border-right: 4px solid var(--warning);
+            border-right: 1px solid var(--border-solid);
         }
 
         /* keep old #toast for any legacy code that touches it directly */
@@ -11457,9 +11448,118 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
     </style>
     <script
         src="/js/og-meta.js?v=<?php echo file_exists($rootPath . '/js/og-meta.js') ? filemtime($rootPath . '/js/og-meta.js') : time(); ?>"></script>
-</head>
-
 <body>
+
+    <!-- ══ PWA FULL-SCREEN LOADER / SPLASH SCREEN ══ -->
+    <div id="pwaSplashScreen">
+        <style>
+            #pwaSplashScreen {
+                position: fixed;
+                inset: 0;
+                z-index: 9999999;
+                background: #f8fafc;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 24px;
+                transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s;
+                direction: rtl;
+                font-family: 'Cairo', 'Baloo Bhaijaan 2', sans-serif;
+            }
+            [data-theme="dark"] #pwaSplashScreen {
+                background: #0f172a;
+            }
+            .pwa-splash-logo-card {
+                width: 100px;
+                height: 100px;
+                border-radius: 28px;
+                background: #ffffff;
+                box-shadow: 0 12px 35px rgba(79, 70, 229, 0.15), 0 0 0 1px rgba(79, 70, 229, 0.1);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-bottom: 24px;
+                animation: pwaSplashPulse 2s ease-in-out infinite alternate;
+                position: relative;
+            }
+            [data-theme="dark"] .pwa-splash-logo-card {
+                background: #1e293b;
+                box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            }
+            .pwa-splash-logo-card img {
+                width: 68px;
+                height: 68px;
+                object-fit: contain;
+                border-radius: 18px;
+            }
+            .pwa-splash-title {
+                font-size: 1.4rem;
+                font-weight: 800;
+                color: #1e293b;
+                margin-bottom: 6px;
+                letter-spacing: -0.01em;
+            }
+            [data-theme="dark"] .pwa-splash-title {
+                color: #f8fafc;
+            }
+            .pwa-splash-status {
+                font-size: 0.9rem;
+                font-weight: 600;
+                color: #64748b;
+                margin-bottom: 24px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            [data-theme="dark"] .pwa-splash-status {
+                color: #94a3b8;
+            }
+            .pwa-splash-spinner {
+                width: 28px;
+                height: 28px;
+                border: 3px solid rgba(79, 70, 229, 0.18);
+                border-top-color: #4f46e5;
+                border-radius: 50%;
+                animation: pwaSplashSpin 0.75s linear infinite;
+            }
+            @keyframes pwaSplashSpin {
+                to { transform: rotate(360deg); }
+            }
+            @keyframes pwaSplashPulse {
+                0% { transform: scale(1); box-shadow: 0 12px 35px rgba(79, 70, 229, 0.15); }
+                100% { transform: scale(1.04); box-shadow: 0 18px 45px rgba(79, 70, 229, 0.28); }
+            }
+        </style>
+        <div class="pwa-splash-logo-card">
+            <img src="/logo.png" alt="Logo" onerror="this.src='/favicon.ico'">
+        </div>
+        <div class="pwa-splash-title">Sunday School Online</div>
+        <div class="pwa-splash-status" id="pwaSplashStatusText">
+            <div class="pwa-splash-spinner"></div>
+            <span>جاري فتح التطبيق وقراءة البيانات...</span>
+        </div>
+    </div>
+    <script>
+        window.dismissPwaSplashScreen = function () {
+            var el = document.getElementById('pwaSplashScreen');
+            if (el && !el.classList.contains('dismissed')) {
+                el.classList.add('dismissed');
+                el.style.opacity = '0';
+                el.style.pointerEvents = 'none';
+                setTimeout(function () {
+                    el.style.display = 'none';
+                }, 450);
+            }
+        };
+        // Auto-dismiss after initial render or max 1s fallback
+        document.addEventListener('DOMContentLoaded', function () {
+            setTimeout(window.dismissPwaSplashScreen, 900);
+        });
+        window.addEventListener('load', function () {
+            setTimeout(window.dismissPwaSplashScreen, 500);
+        });
+    </script>
 
     <!-- OFFLINE BANNER -->
 
