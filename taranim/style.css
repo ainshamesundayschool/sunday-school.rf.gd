@@ -1117,48 +1117,38 @@ html, body {
   color: #d97706;
 }
 
-.line-item-actions {
+.line-item-actions-left {
   position: absolute;
   top: 8px;
   left: 8px;
   display: flex;
   align-items: center;
   gap: 4px;
-  z-index: 5;
+  z-index: 10;
 }
 
-.launch-fullscreen-btn {
+.line-item-actions-right {
   position: absolute;
   top: 8px;
   right: 8px;
-  left: auto;
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  color: #475569;
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 0.72rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-  z-index: 5;
+  gap: 4px;
+  z-index: 10;
 }
 
-.copy-line-btn {
+.copy-line-btn,
+.launch-fullscreen-btn {
   background: #ffffff;
   border: 1px solid #cbd5e1;
   color: #475569;
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   border-radius: 6px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);

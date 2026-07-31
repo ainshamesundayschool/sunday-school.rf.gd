@@ -3524,6 +3524,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       return `
         <div class="line-item ${idx === currentLineIndex ? 'active' : ''}" data-idx="${idx}">
+          <div class="line-item-actions-right">
+            <button class="launch-fullscreen-btn" data-idx="${idx}" title="عرض ملء الشاشة">
+              <i class="fa-solid fa-expand"></i>
+            </button>
+          </div>
           <div class="slide-card-inner">
             <div class="slide-badge-side ${l.badgeClass || ''}">
               ${escapeHtml(l.badgeText || '')}
@@ -3533,12 +3538,9 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           </div>
           <span class="slide-index-corner">${idx + 1}</span>
-          <div class="line-item-actions">
+          <div class="line-item-actions-left">
             <button class="copy-line-btn" data-text="${escapeHtml(l.text)}" title="نسخ هذا المقطع">
               <i class="fa-solid fa-copy"></i>
-            </button>
-            <button class="launch-fullscreen-btn" data-idx="${idx}" title="عرض ملء الشاشة">
-              <i class="fa-solid fa-expand"></i>
             </button>
           </div>
         </div>
