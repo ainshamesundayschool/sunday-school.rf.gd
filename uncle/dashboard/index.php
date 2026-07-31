@@ -27208,10 +27208,10 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 });
 
                 if (bar) bar.style.width = '100%';
-                if (txt) txt.textContent = '✅ تم تثبيت وقراءة كافة البيانات بنجاح!';
+                if (txt) txt.textContent = 'تم تثبيت وقراءة كافة البيانات بنجاح!';
                 localStorage.setItem('ss_offline_data_installed', 'true');
 
-                showToast('✅ تم تثبيت وتأهيل التطبيق للعمل بدون إنترنت!', 'success', { dur: 5000 });
+                showToast('تم تثبيت وتأهيل التطبيق للعمل بدون إنترنت!', 'success', { dur: 5000 });
 
                 setTimeout(() => {
                     _dismissOfflineDataModal();
@@ -32021,7 +32021,7 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             <div style="width:64px; height:64px; border-radius:20px; background:var(--brand-bg); color:var(--brand); display:flex; align-items:center; justify-content:center; font-size:1.8rem; margin:0 auto 16px; border:1px solid var(--brand-light);">
                 <i class="fas fa-cloud-download-alt"></i>
             </div>
-            <h3 style="font-weight:800; font-size:1.2rem; color:var(--text); margin-bottom:8px;">تثبيت البيانات للعمل بدون إنترنت 📶</h3>
+            <h3 style="font-weight:800; font-size:1.2rem; color:var(--text); margin-bottom:8px;">تثبيت البيانات للعمل بدون إنترنت</h3>
             <p style="font-size:0.88rem; color:var(--muted); margin-bottom:20px; line-height:1.6;">
                 لم يتم تثبيت وتجهيز كافة بيانات الخدمة والافتفاد للعمل بدون إنترنت على هذا الجهاز بعد. هل ترغب في تثبيت البيانات الآن لضمان إمكانية متابعة وتسجيل الحضور والافتفاد في حال عدم توفر تغطية للشبكة؟
             </p>

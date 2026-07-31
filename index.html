@@ -6,6 +6,21 @@
         (function () {
             const saved = localStorage.getItem('app_theme') || 'light';
             document.documentElement.setAttribute('data-theme', saved);
+
+            // If running inside installed PWA standalone app and logged in, redirect directly to Uncle Dashboard
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+            if (isStandalone) {
+                const loggedIn = localStorage.getItem('loggedIn') === 'true' || localStorage.getItem('uncleLoggedIn') === 'true';
+                if (loggedIn) {
+                    const loginType = localStorage.getItem('loginType') || 'uncle';
+                    const role = localStorage.getItem('uncleRole') || 'uncle';
+                    if (loginType === 'church' || role === 'developer') {
+                        window.location.href = '/uncle/church/';
+                    } else {
+                        window.location.href = '/uncle/dashboard/';
+                    }
+                }
+            }
         })();
     </script>
 
