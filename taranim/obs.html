@@ -473,7 +473,8 @@
     }
 
     .verse-num {
-      color: rgba(255, 255, 255, 0.65);
+      color: #ef4444;
+      font-weight: 800;
     }
 
     .chorus-num {
@@ -793,10 +794,19 @@
     function fitTextToSafeArea(isBible = currentIsBible) {
       if (!textEl) return;
       currentIsBible = isBible;
-      const baseSize = (lastStyleData && lastStyleData.fontSize) || stateFontSize || 54;
+      let baseSize = (lastStyleData && lastStyleData.fontSize) || stateFontSize || 54;
+
+      const currentFont = (lastStyleData && lastStyleData.font) || textEl.style.fontFamily || '';
+      const isJomhuria = /jomhuria/i.test(currentFont);
+
+      if (isJomhuria) {
+        baseSize = Math.round(baseSize * 1.55);
+        textEl.style.lineHeight = '1.3';
+      } else {
+        textEl.style.lineHeight = '1.45';
+      }
 
       textEl.style.fontSize = baseSize + 'px';
-      textEl.style.lineHeight = '1.45';
 
       const segments = Array.from(textEl.querySelectorAll('.obs-line-segment'));
       segments.forEach(s => {

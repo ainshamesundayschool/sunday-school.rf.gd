@@ -1129,7 +1129,11 @@ html, body {
 }
 
 .badge-num.verse-num,
-.verse-num,
+.verse-num {
+  color: #ef4444 !important; /* Vivid red accent matching chorus badge */
+  font-weight: 800 !important;
+}
+
 .stanza-badge-side {
   color: #94a3b8 !important; /* Elegant grey for numbers */
   font-weight: 700 !important;
