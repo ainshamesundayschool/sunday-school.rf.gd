@@ -60,70 +60,70 @@
 
         <!-- DROPDOWN: INSTALL & OFFLINE HUB -->
         <div class="dropdown-wrapper">
-          <button class="icon-menu-btn" id="btn-menu-install" title="التجهيز والعمل بدون إنترنت (أوفلاين)">
+          <button class="icon-menu-btn" id="btn-menu-install" title="العمل أوفلاين">
             <i class="fa-solid fa-cloud-arrow-down"></i>
           </button>
 
-          <div class="dropdown-popover hidden" id="popover-install" style="min-width:280px; padding:14px;">
-            <div class="popover-title" style="font-size:0.95rem; font-weight:800;">
-              <i class="fa-solid fa-wifi fa-lg"></i> العمل بدون إنترنت
+          <div class="dropdown-popover hidden" id="popover-install" style="min-width:240px; padding:12px;">
+            <div class="popover-title">
+              <i class="fa-solid fa-wifi"></i> العمل أوفلاين
             </div>
 
             <!-- PRECACHE DATA BUTTON -->
-            <div class="popover-row" style="flex-direction:column; align-items:stretch; gap:6px; margin-top:8px;">
-              <button id="btn-dropdown-precache" class="btn btn-sm btn-primary" style="width:100%; padding:10px; font-size:0.88rem; font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px;">
-                <i class="fa-solid fa-cloud-arrow-down fa-lg"></i> حفظ البيانات أوفلاين
+            <div class="popover-row" style="flex-direction:column; align-items:stretch; gap:6px; margin-top:6px;">
+              <button id="btn-dropdown-precache" class="btn btn-sm btn-primary" style="width:100%; padding:8px 10px; font-size:0.84rem; font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px;">
+                <i class="fa-solid fa-cloud-arrow-down"></i> حفظ البيانات أوفلاين
               </button>
               
               <div id="popover-progress-wrapper" style="display:none; margin-top:4px;">
-                <div style="width:100%; height:8px; background:rgba(0,0,0,0.15); border-radius:4px; overflow:hidden;">
+                <div style="width:100%; height:6px; background:rgba(0,0,0,0.12); border-radius:3px; overflow:hidden;">
                   <div id="popover-progress-fill" style="width:0%; height:100%; background:linear-gradient(90deg, #10b981, #34d399); transition:width 0.25s;"></div>
                 </div>
-                <div id="popover-progress-text" style="font-size:0.75rem; color:rgba(255,255,255,0.7); margin-top:4px; text-align:center;"></div>
+                <div id="popover-progress-text" style="font-size:0.72rem; color:rgba(255,255,255,0.7); margin-top:3px; text-align:center;"></div>
               </div>
             </div>
 
             <!-- PWA INSTALLATION BUTTON -->
-            <div class="popover-row hidden" id="dropdown-pwa-install-row" style="margin-top:0.4rem;">
-              <button id="btn-dropdown-pwa-install" class="btn btn-sm btn-secondary" style="width:100%; padding:10px; font-size:0.88rem; font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px;">
-                <i class="fa-solid fa-mobile-screen-button fa-lg"></i> تثبيت التطبيق
+            <div class="popover-row hidden" id="dropdown-pwa-install-row" style="margin-top:0.3rem;">
+              <button id="btn-dropdown-pwa-install" class="btn btn-sm btn-secondary" style="width:100%; padding:8px 10px; font-size:0.84rem; font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px;">
+                <i class="fa-solid fa-mobile-screen-button"></i> تثبيت التطبيق
               </button>
             </div>
             
-            <div id="popover-offline-status-text" style="font-size:0.8rem; text-align:center; color:#10b981; margin-top:8px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px;">
-              <i class="fa-solid fa-circle-check"></i> جاهز للعمل بدون إنترنت
+            <div id="popover-offline-status-text" style="font-size:0.78rem; text-align:center; color:#10b981; margin-top:6px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px;">
+              <i class="fa-solid fa-circle-check"></i> جاهز أوفلاين
             </div>
           </div>
         </div>
         
         <!-- DROPDOWN 1: STYLES & FONTS -->
         <div class="dropdown-wrapper">
-          <button class="icon-menu-btn" id="btn-menu-style" title="إعدادات الخطوط والألوان">
+          <button class="icon-menu-btn" id="btn-menu-style" title="التنسيق والخط">
             <i class="fa-solid fa-palette"></i>
           </button>
 
           <div class="dropdown-popover hidden" id="popover-style">
-            <div class="popover-title"><i class="fa-solid fa-sliders"></i> إعدادات الخط والظل</div>
+            <div class="popover-title"><i class="fa-solid fa-sliders"></i> التنسيق والخط</div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-font"></i> الخط:</label>
+              <label><i class="fa-solid fa-font"></i> الخط</label>
               <select id="font-family-select" class="control-select">
                 <option value="'Alexandria', sans-serif">Alexandria (الافتراضي)</option>
-                <option value="'Cairo', sans-serif">Cairo (القاهرة)</option>
-                <option value="'Almarai', sans-serif">Almarai (المرعي)</option>
-                <option value="'Amiri', serif">Amiri (أميري)</option>
-                <option value="'Tajawal', sans-serif">Tajawal (تجوال)</option>
+                <option value="'Cairo', sans-serif">Cairo</option>
+                <option value="'Almarai', sans-serif">Almarai</option>
+                <option value="'Amiri', serif">Amiri</option>
+                <option value="'Tajawal', sans-serif">Tajawal</option>
                 <option value="custom">خط محلي...</option>
               </select>
             </div>
 
             <div class="popover-row hidden" id="custom-font-wrapper">
-              <label><i class="fa-solid fa-pen"></i> خط خاص:</label>
+              <label><i class="fa-solid fa-pen"></i> خط خاص</label>
               <input type="text" id="custom-font-input" class="control-input" placeholder="اسم الخط..." value="Tahoma">
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-text-height"></i> حجم الخط:</label>
+              <label><i class="fa-solid fa-text-height"></i> حجم الخط</label>
               <div class="compact-control-group">
                 <input type="range" id="obs-font-size-range" min="24" max="120" value="54" class="slider-input">
                 <span id="font-size-val-badge" class="counter-text">54px</span>
@@ -131,12 +131,12 @@
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-droplet"></i> لون النص:</label>
+              <label><i class="fa-solid fa-droplet"></i> لون النص</label>
               <input type="color" id="obs-text-color" value="#ffffff" class="color-picker-input">
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-border-all"></i> الحدود:</label>
+              <label><i class="fa-solid fa-border-all"></i> الحدود</label>
               <div class="compact-control-group">
                 <input type="range" id="obs-stroke-range" min="0" max="10" value="0" class="slider-input">
                 <input type="color" id="obs-stroke-color" value="#000000" class="color-picker-input">
@@ -144,73 +144,73 @@
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-bold"></i> سُمْك الخط:</label>
+              <label><i class="fa-solid fa-bold"></i> السُّك</label>
               <select id="obs-font-weight-select" class="control-select">
-                <option value="400">عادي (Regular 400)</option>
-                <option value="600">شبه عريض (Semi-Bold 600)</option>
-                <option value="700">عريض (Bold 700)</option>
-                <option value="800" selected>عريض جداً (Extra-Bold 800)</option>
-                <option value="900">أسود (Black 900)</option>
+                <option value="400">عادي 400</option>
+                <option value="600">شبه عريض 600</option>
+                <option value="700">عريض 700</option>
+                <option value="800" selected>عريض جداً 800</option>
+                <option value="900">أسود 900</option>
               </select>
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-align-center"></i> المحاذاة:</label>
+              <label><i class="fa-solid fa-align-center"></i> المحاذاة</label>
               <div class="btn-group-row" style="display:flex; gap:4px;">
-                <button type="button" class="btn btn-sm btn-secondary active" id="btn-align-center" title="محاذاة للوسط"><i class="fa-solid fa-align-center"></i></button>
-                <button type="button" class="btn btn-sm btn-secondary" id="btn-align-right" title="محاذاة لليمين"><i class="fa-solid fa-align-right"></i></button>
-                <button type="button" class="btn btn-sm btn-secondary" id="btn-align-left" title="محاذاة لليسار"><i class="fa-solid fa-align-left"></i></button>
-                <button type="button" class="btn btn-sm btn-secondary" id="btn-align-justify" title="ضبط المحاذاة"><i class="fa-solid fa-align-justify"></i></button>
+                <button type="button" class="btn btn-sm btn-secondary active" id="btn-align-center" title="وسط"><i class="fa-solid fa-align-center"></i></button>
+                <button type="button" class="btn btn-sm btn-secondary" id="btn-align-right" title="يمين"><i class="fa-solid fa-align-right"></i></button>
+                <button type="button" class="btn btn-sm btn-secondary" id="btn-align-left" title="يسار"><i class="fa-solid fa-align-left"></i></button>
+                <button type="button" class="btn btn-sm btn-secondary" id="btn-align-justify" title="ضبط"><i class="fa-solid fa-align-justify"></i></button>
               </div>
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-font"></i> التنسيق:</label>
+              <label><i class="fa-solid fa-font"></i> التنسيق</label>
               <div class="btn-group-row" style="display:flex; gap:4px;">
-                <button type="button" class="btn btn-sm btn-secondary" id="btn-toggle-bold" title="عريض B"><i class="fa-solid fa-bold"></i></button>
-                <button type="button" class="btn btn-sm btn-secondary" id="btn-toggle-italic" title="مائل I"><i class="fa-solid fa-italic"></i></button>
-                <button type="button" class="btn btn-sm btn-secondary" id="btn-toggle-underline" title="تحته خط U"><i class="fa-solid fa-underline"></i></button>
+                <button type="button" class="btn btn-sm btn-secondary" id="btn-toggle-bold" title="عريض"><i class="fa-solid fa-bold"></i></button>
+                <button type="button" class="btn btn-sm btn-secondary" id="btn-toggle-italic" title="مائل"><i class="fa-solid fa-italic"></i></button>
+                <button type="button" class="btn btn-sm btn-secondary" id="btn-toggle-underline" title="سطر سفلي"><i class="fa-solid fa-underline"></i></button>
               </div>
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-arrows-left-right"></i> تباعد الحروف:</label>
+              <label><i class="fa-solid fa-arrows-left-right"></i> تباعد الحروف</label>
               <input type="range" id="obs-letter-spacing-range" min="-2" max="15" value="0" class="slider-input">
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-arrows-up-down"></i> ارتفاع السطر:</label>
+              <label><i class="fa-solid fa-arrows-up-down"></i> ارتفاع السطر</label>
               <input type="range" id="obs-line-height-range" min="1.0" max="2.5" step="0.1" value="1.5" class="slider-input">
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-compass"></i> زاوية الظل:</label>
+              <label><i class="fa-solid fa-compass"></i> زاوية الظل</label>
               <div class="compact-control-group">
-                <input type="range" id="obs-shadow-angle-range" min="0" max="360" value="90" class="slider-input" title="زاوية الظل بالدرجات">
+                <input type="range" id="obs-shadow-angle-range" min="0" max="360" value="90" class="slider-input" title="زاوية الظل">
                 <span id="shadow-angle-badge" class="counter-text">90°</span>
               </div>
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-arrows-up-down-left-right"></i> مسافة الظل:</label>
+              <label><i class="fa-solid fa-arrows-up-down-left-right"></i> مسافة الظل</label>
               <div class="compact-control-group">
-                <input type="range" id="obs-shadow-distance-range" min="0" max="50" value="6" class="slider-input" title="مسافة الظل بالبكسل">
+                <input type="range" id="obs-shadow-distance-range" min="0" max="50" value="6" class="slider-input" title="مسافة الظل">
                 <span id="shadow-distance-badge" class="counter-text">6px</span>
               </div>
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-sun"></i> ضبابية الظل:</label>
-              <input type="range" id="obs-shadow-range" min="0" max="60" value="12" class="slider-input" title="شدة/حجم الظل">
+              <label><i class="fa-solid fa-sun"></i> ضبابية الظل</label>
+              <input type="range" id="obs-shadow-range" min="0" max="60" value="12" class="slider-input" title="ضبابية الظل">
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-palette"></i> لون الظل:</label>
+              <label><i class="fa-solid fa-palette"></i> لون الظل</label>
               <input type="color" id="obs-shadow-color" value="#000000" class="color-picker-input">
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-fill-drip"></i> الخلفية:</label>
+              <label><i class="fa-solid fa-fill-drip"></i> الخلفية</label>
               <select id="chroma-select" class="control-select">
                 <option value="black" selected>أسود داكن</option>
                 <option value="green">خلفية خضراء</option>
@@ -220,44 +220,44 @@
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-layer-group"></i> نمط العرض:</label>
+              <label><i class="fa-solid fa-layer-group"></i> نمط العرض</label>
               <select id="pres-mode-select" class="control-select">
                 <option value="oneline">سطر واحد أسفل الشاشة</option>
-                <option value="fullslide">شريحة كاملة بمنتصف الشاشة</option>
+                <option value="fullslide">شريحة كاملة بالمنتصف</option>
               </select>
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-square"></i> لون خلفية الصندوق:</label>
+              <label><i class="fa-solid fa-square"></i> خلفية الصندوق</label>
               <div class="compact-control-group">
                 <input type="color" id="obs-box-bg-color" value="#000000" class="color-picker-input">
-                <input type="range" id="obs-box-opacity-range" min="0" max="100" value="0" class="slider-input" title="شفافية الخلفية">
+                <input type="range" id="obs-box-opacity-range" min="0" max="100" value="0" class="slider-input" title="الشفافية">
               </div>
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-vector-square"></i> حواف الحاوية:</label>
+              <label><i class="fa-solid fa-vector-square"></i> حواف الحاوية</label>
               <div class="compact-control-group">
-                <input type="range" id="obs-box-radius-range" min="0" max="40" value="12" class="slider-input" title="استدوار الحواف">
+                <input type="range" id="obs-box-radius-range" min="0" max="40" value="12" class="slider-input" title="الاستدوار">
                 <input type="range" id="obs-box-padding-range" min="0" max="50" value="20" class="slider-input" title="الهامش الداخلي">
               </div>
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-wand-magic-sparkles"></i> حركة الظهور:</label>
+              <label><i class="fa-solid fa-wand-magic-sparkles"></i> الحركة</label>
               <select id="obs-text-anim-select" class="control-select">
-                <option value="slide" selected>صعود من الأسفل (Slide Up)</option>
-                <option value="drop">هبوط من الأعلى (Drop Down)</option>
-                <option value="pop">تكبير انقباضي (Elastic Pop)</option>
-                <option value="flip">دوران ثلاثي الأبعاد (3D Flip)</option>
-                <option value="glow">تركيز ضبابي (Blur Dissolve)</option>
-                <option value="none">بدون حركة (Instant)</option>
+                <option value="slide" selected>صعود (Slide Up)</option>
+                <option value="drop">هبوط (Drop Down)</option>
+                <option value="pop">تكبير (Pop)</option>
+                <option value="flip">دوران (Flip)</option>
+                <option value="glow">ضبابي (Dissolve)</option>
+                <option value="none">بدون حركة</option>
               </select>
             </div>
 
-            <div class="popover-actions" style="margin-top:10px;">
-              <button id="btn-share-style-link" class="btn btn-sm btn-secondary" style="width:100%; font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px;">
-                <i class="fa-solid fa-share-nodes"></i> مشاركة رابط التنسيق والإعدادات
+            <div class="popover-actions" style="margin-top:8px;">
+              <button id="btn-share-style-link" class="btn btn-sm btn-secondary" style="width:100%; font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px;">
+                <i class="fa-solid fa-share-nodes"></i> مشاركة التنسيق
               </button>
             </div>
           </div>
@@ -266,13 +266,13 @@
         <!-- DROPDOWN 2: DISPLAY & CAST OUTPUT -->
         <div class="dropdown-wrapper">
           <div id="btn-menu-cast-wrapper">
-            <button class="icon-menu-btn" id="btn-menu-cast" title="البث والشاشات الخارجية (TV / OBS)">
+            <button class="icon-menu-btn" id="btn-menu-cast" title="البث والشاشات">
               <i class="fa-solid fa-tv"></i>
             </button>
           </div>
 
-          <div class="dropdown-popover hidden" id="popover-cast" style="min-width:320px;">
-            <div class="popover-title"><i class="fa-solid fa-display"></i> اختيار الشاشة واختصار البث</div>
+          <div class="dropdown-popover hidden" id="popover-cast" style="min-width:280px;">
+            <div class="popover-title"><i class="fa-solid fa-display"></i> البث والشاشات</div>
 
             <div id="screens-cast-container" style="display:flex; flex-direction:column; gap:6px; margin-bottom:4px;">
               <div id="screens-cast-list" style="display:flex; flex-direction:column; gap:4px;">
@@ -282,10 +282,10 @@
 
             <div class="popover-actions" style="margin-top:2px; display:flex; flex-direction:column; gap:6px;">
               <button id="btn-copy-obs-url" class="btn btn-sm btn-secondary" style="width:100%;">
-                <i class="fa-solid fa-copy"></i> نسخ رابط الشاشة للمصمم (OBS)
+                <i class="fa-solid fa-copy"></i> نسخ رابط OBS
               </button>
-              <button id="btn-sync-live-file" class="btn btn-sm btn-primary" style="width:100%; font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px;">
-                <i class="fa-solid fa-file-arrow-up fa-lg"></i> ربط ملف النص أوفلاين (live.txt) لـ OBS
+              <button id="btn-sync-live-file" class="btn btn-sm btn-primary" style="width:100%; font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px;">
+                <i class="fa-solid fa-file-arrow-up"></i> ربط ملف live.txt لـ OBS
               </button>
             </div>
           </div>
@@ -314,14 +314,14 @@
       <!-- CENTERED SEARCH BOX CONTAINER WITH SEARCH DROPDOWN FLUSH ATTACHED INSIDE -->
       <div class="centered-search-box">
         <i class="fa-solid fa-magnifying-glass search-icon-glow"></i>
-        <input type="text" id="intelligent-search" placeholder="ابحث باسم الترنيمة أو الشاهد الكتابي..." autofocus autocomplete="off">
+        <input type="text" id="intelligent-search" placeholder="بحث في الترانيم..." autofocus autocomplete="off">
         <button id="clear-search-btn" class="clear-btn hidden" type="button"><i class="fa-solid fa-xmark"></i></button>
         <div class="search-inside-controls">
-          <button id="franco-toggle-btn" class="search-inside-toggle active" type="button" title="تبديل ترجمة الفرانكو والتصحيح الإملائي">
+          <button id="franco-toggle-btn" class="search-inside-toggle active" type="button" title="ترجمة وحروف لاتينية">
             <i class="fa-solid fa-language"></i>
             <span>ترجمة</span>
           </button>
-          <button id="btn-menu-bible" class="search-inside-toggle icon-only-toggle" type="button" title="الكتاب المقدس - تصفح الأسفار والأصحاحات">
+          <button id="btn-menu-bible" class="search-inside-toggle icon-only-toggle" type="button" title="الكتاب المقدس">
             <i class="fa-solid fa-book-bible"></i>
           </button>
         </div>
@@ -329,7 +329,7 @@
         <!-- BIBLE NAVIGATOR POPOVER -->
         <div id="popover-bible" class="search-dropdown bible-popover-box hidden">
           <div class="bible-popover-header">
-            <button id="btn-bible-back" class="bible-back-btn hidden" type="button" title="رجوع لقائمة الأسفار">
+            <button id="btn-bible-back" class="bible-back-btn hidden" type="button" title="رجوع">
               <i class="fa-solid fa-arrow-right"></i>
             </button>
             <span id="bible-popover-heading" class="bible-header-title">
@@ -344,13 +344,13 @@
           <div id="bible-books-step" class="bible-step-view">
             <div class="bible-search-input-box">
               <i class="fa-solid fa-magnifying-glass"></i>
-              <input type="text" id="bible-book-filter" placeholder="تصفية اسم السفر (تكوين، متى)..." autocomplete="off">
+              <input type="text" id="bible-book-filter" placeholder="بحث في الأسفار..." autocomplete="off">
             </div>
 
             <div class="bible-testament-tabs">
               <button class="bible-tab-btn active" data-testament="all" type="button">الكل (66)</button>
-              <button class="bible-tab-btn" data-testament="ot" type="button">العهد القديم (39)</button>
-              <button class="bible-tab-btn" data-testament="nt" type="button">العهد الجديد (27)</button>
+              <button class="bible-tab-btn" data-testament="ot" type="button">القديم (39)</button>
+              <button class="bible-tab-btn" data-testament="nt" type="button">الجديد (27)</button>
             </div>
 
             <div id="bible-books-grid" class="bible-books-grid">
@@ -434,12 +434,12 @@
       <!-- LEFT HALF IN RTL: ACTIVE PRESENTATION LINES LIST -->
       <section class="half-panel presentation-lines-panel">
         <div class="panel-bar">
-          <span class="panel-title"><i class="fa-solid fa-display"></i> كلمات العرض الحالي</span>
+          <span class="panel-title"><i class="fa-solid fa-display"></i> كلمات العرض</span>
           <div class="panel-controls">
-            <button id="btn-prev-line" class="mini-btn-flat" title="السطر السابق (Right/Up)"><i class="fa-solid fa-chevron-right"></i></button>
+            <button id="btn-prev-line" class="mini-btn-flat" title="السطر السابق"><i class="fa-solid fa-chevron-right"></i></button>
             <span id="current-line-counter" class="counter-text">0 / 0</span>
-            <button id="btn-next-line" class="mini-btn-flat" title="السطر التالي (Left/Down/Space)"><i class="fa-solid fa-chevron-left"></i></button>
-            <button id="btn-toggle-blank" class="mini-btn-flat" title="إخفاء النص (B)"><i class="fa-solid fa-eye-slash"></i></button>
+            <button id="btn-next-line" class="mini-btn-flat" title="السطر التالي"><i class="fa-solid fa-chevron-left"></i></button>
+            <button id="btn-toggle-blank" class="mini-btn-flat" title="إخفاء النص"><i class="fa-solid fa-eye-slash"></i></button>
             <button id="btn-presenter-fullscreen" class="mini-btn-flat btn-fullscreen-launch" title="عرض ملء الشاشة"><i class="fa-solid fa-expand"></i></button>
           </div>
         </div>
@@ -447,7 +447,7 @@
         <div id="presentation-lines-container" class="lines-list-box">
           <div class="empty-state">
             <i class="fa-solid fa-music"></i>
-            <p>اختر ترنيمة أو إصحاحاً من القائمة الجانبية أو من البحث للبدء في العرض سطر بسطر.</p>
+            <p>اختر ترنيمة لعرض الأبيات</p>
           </div>
         </div>
       </section>

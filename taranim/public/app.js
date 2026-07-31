@@ -3434,7 +3434,7 @@ document.addEventListener('DOMContentLoaded', () => {
       els.presentationLinesContainer.innerHTML = `
         <div class="empty-state">
           <i class="fa-solid fa-music"></i>
-          <p>اختر ترنيمة أو إصحاحاً لعرض الأبيات مرتبة هنا.</p>
+          <p>اختر ترنيمة لعرض الأبيات</p>
         </div>
       `;
       return;
