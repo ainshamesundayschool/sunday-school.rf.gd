@@ -11451,7 +11451,7 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
 <body>
 
     <!-- ══ PWA FULL-SCREEN LOADER / SPLASH SCREEN ══ -->
-    <div id="pwaSplashScreen">
+    <div id="pwaSplashScreen" onclick="window.dismissPwaSplashScreen && window.dismissPwaSplashScreen()">
         <style>
             #pwaSplashScreen {
                 position: fixed;
@@ -11463,10 +11463,11 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 align-items: center;
                 justify-content: center;
                 padding: 32px 24px;
-                transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s;
+                transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.35s;
                 direction: rtl;
                 font-family: 'Cairo', 'Baloo Bhaijaan 2', sans-serif;
                 user-select: none;
+                cursor: pointer;
             }
             [data-theme="dark"] #pwaSplashScreen {
                 background: linear-gradient(135deg, #0f172a 0%, #090d16 100%);
@@ -11548,15 +11549,15 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 width: 0%;
                 background: linear-gradient(90deg, #4f46e5, #818cf8);
                 border-radius: 999px;
-                transition: width 0.4s ease;
+                transition: width 0.35s ease;
             }
             @keyframes pwaTextFadeIn {
                 from { opacity: 0; transform: translateY(6px); }
                 to { opacity: 1; transform: translateY(0); }
             }
             @keyframes pwaSplashPulse {
-                0% { transform: scale(1); box-shadow: 0 16px 40px rgba(79, 70, 229, 0.15); }
-                100% { transform: scale(1.05); box-shadow: 0 22px 50px rgba(79, 70, 229, 0.3); }
+                0% { transform: scale(1); }
+                100% { transform: scale(1.05); }
             }
         </style>
         <div class="pwa-splash-logo-card">
@@ -11587,29 +11588,30 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 }
             }
 
-            setTimeout(function () { updateStatus('جاري التحقق من الاتصال بالشبكة...', 35); }, 250);
-            setTimeout(function () { updateStatus('جاري استرجاع وقراءة البيانات...', 70); }, 550);
-            setTimeout(function () { updateStatus('جاري تجهيز لوحة التحكم...', 100); }, 850);
+            setTimeout(function () { updateStatus('جاري التحقق من الاتصال بالشبكة...', 35); }, 150);
+            setTimeout(function () { updateStatus('جاري استرجاع وقراءة البيانات...', 70); }, 350);
+            setTimeout(function () { updateStatus('جاري تجهيز اللوحة...', 100); }, 550);
 
             window.dismissPwaSplashScreen = function () {
                 var el = document.getElementById('pwaSplashScreen');
                 if (el && !el.classList.contains('dismissed')) {
-                    updateStatus('تم تجهيز البيانات بنجاح', 100);
                     el.classList.add('dismissed');
                     el.style.opacity = '0';
                     el.style.pointerEvents = 'none';
                     setTimeout(function () {
-                        el.style.display = 'none';
+                        if (el && el.parentNode) el.parentNode.removeChild(el);
                     }, 400);
                 }
             };
             
-            document.addEventListener('DOMContentLoaded', function () {
-                setTimeout(window.dismissPwaSplashScreen, 950);
-            });
-            window.addEventListener('load', function () {
-                setTimeout(window.dismissPwaSplashScreen, 650);
-            });
+            // Hard safety timeout: ALWAYS dismiss splash screen after 750ms max
+            setTimeout(window.dismissPwaSplashScreen, 750);
+            if (document.readyState === 'complete') {
+                setTimeout(window.dismissPwaSplashScreen, 300);
+            } else {
+                document.addEventListener('DOMContentLoaded', function () { setTimeout(window.dismissPwaSplashScreen, 400); });
+                window.addEventListener('load', function () { setTimeout(window.dismissPwaSplashScreen, 300); });
+            }
         })();
     </script>
 
