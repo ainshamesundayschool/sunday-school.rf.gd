@@ -3236,6 +3236,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const rawVerseType = verse.type;
         const slides = verse.slides || [];
         const items = [];
+        let isFirstSlideOfVerse = true;
 
         slides.forEach((slide) => {
           let rawLines = slide.lines || (slide.text ? slide.text.split('\n') : []);
@@ -3280,39 +3281,33 @@ document.addEventListener('DOMContentLoaded', () => {
               labelText = `بيت ${sNum}`;
             }
 
+                        const pushSlideItem = (linesArray) => {
+              let curBadgeText = isFirstSlideOfVerse ? badgeText : '';
+              let curBadgeClass = isFirstSlideOfVerse ? badgeClass : '';
+              let fullText = curBadgeText ? `${curBadgeText} ${linesArray.join('\n')}` : linesArray.join('\n');
+              
+              items.push({
+                text: fullText,
+                lines: linesArray,
+                badgeText: curBadgeText,
+                badgeClass: curBadgeClass,
+                label: labelText
+              });
+              isFirstSlideOfVerse = false;
+            };
+
             if (mode === 'oneline') {
               cleanLines.forEach((singleLine) => {
-                let fullText = `${badgeText} ${singleLine}`;
-                items.push({
-                  text: fullText,
-                  lines: [singleLine],
-                  badgeText: badgeText,
-                  badgeClass: badgeClass,
-                  label: labelText
-                });
+                pushSlideItem([singleLine]);
               });
-            } else if (mode === 'twolines') {
+            } else if (mode === 'twelines') {
               for (let i = 0; i < cleanLines.length; i += 2) {
                 const pair = cleanLines.slice(i, i + 2);
-                let fullText = `${badgeText} ${pair.join('\n')}`;
-                items.push({
-                  text: fullText,
-                  lines: pair,
-                  badgeText: badgeText,
-                  badgeClass: badgeClass,
-                  label: labelText
-                });
+                pushSlideItem(pair);
               }
             } else {
               // fullslide
-              let fullText = `${badgeText} ${cleanLines.join('\n')}`;
-              items.push({
-                text: fullText,
-                lines: cleanLines,
-                badgeText: badgeText,
-                badgeClass: badgeClass,
-                label: labelText
-              });
+              pushSlideItem(cleanLines);
             }
           }
         });
@@ -3434,35 +3429,33 @@ document.addEventListener('DOMContentLoaded', () => {
           labelText = `بيت ${currentStanzaNum}`;
         }
 
-        if (mode === 'oneline') {
-          lines.forEach((singleLine) => {
-            linesList.push({
-              text: `${badgeText} ${singleLine}`,
-              lines: [singleLine],
-              badgeText: badgeText,
-              badgeClass: badgeClass,
-              label: labelText
-            });
-          });
-        } else if (mode === 'twolines') {
-          for (let i = 0; i < lines.length; i += 2) {
-            const pair = lines.slice(i, i + 2);
-            linesList.push({
-              text: `${badgeText} ${pair.join('\n')}`,
-              lines: pair,
-              badgeText: badgeText,
-              badgeClass: badgeClass,
-              label: labelText
-            });
-          }
-        } else {
+        let isFirstSlideOfBlock = true;
+        const pushFallbackSlideItem = (linesArray) => {
+          let curBadgeText = isFirstSlideOfBlock ? badgeText : '';
+          let curBadgeClass = isFirstSlideOfBlock ? badgeClass : '';
+          let fullText = curBadgeText ? `${curBadgeText} ${linesArray.join('\n')}` : linesArray.join('\n');
+
           linesList.push({
-            text: `${badgeText} ${lines.join('\n')}`,
-            lines: lines,
-            badgeText: badgeText,
-            badgeClass: badgeClass,
+            text: fullText,
+            lines: linesArray,
+            badgeText: curBadgeText,
+            badgeClass: curBadgeClass,
             label: labelText
           });
+          isFirstSlideOfBlock = false;
+        };
+
+        if (mode === 'oneline') {
+          lines.forEach((singleLine) => {
+            pushFallbackSlideItem([singleLine]);
+          });
+        } else if (mode === 'twelines') {
+          for (let i = 0; i < lines.length; i += 2) {
+            const pair = lines.slice(i, i + 2);
+            pushFallbackSlideItem(pair);
+          }
+        } else {
+          pushFallbackSlideItem(lines);
         }
       });
     }
