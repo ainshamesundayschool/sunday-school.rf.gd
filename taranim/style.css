@@ -438,9 +438,10 @@ html, body {
   background: #ffffff;
   border: 2px solid rgba(37, 99, 235, 0.25);
   color: #0f172a;
-  padding: 0.75rem 3.2rem 0.75rem 10.5rem;
+  padding: 0.95rem 3.2rem 0.95rem 10.5rem;
+  min-height: 58px;
   border-radius: 40px;
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 500;
   outline: none;
   box-shadow: 0 6px 20px rgba(37, 99, 235, 0.06);
@@ -2205,8 +2206,9 @@ html, body {
   }
 
   .centered-search-box input {
-    font-size: 0.9rem;
-    padding: 0.65rem 2.6rem 0.65rem 7.8rem;
+    font-size: 16px !important;
+    padding: 0.82rem 2.6rem 0.82rem 7.8rem;
+    min-height: 52px;
   }
 
   .dashboard-halves {

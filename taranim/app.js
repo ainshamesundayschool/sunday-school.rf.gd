@@ -132,6 +132,95 @@ function francoToArabic(text) {
   return translated.join(' ');
 }
 
+// Extract Arabic consonant skeleton (removes weak vowels & silent letters)
+function extractArabicConsonantSkeleton(text) {
+  if (!text) return '';
+  return normalizeArabic(text)
+    .replace(/[أإآءاوىهة]/g, '')
+    .replace(/\s+/g, '');
+}
+
+function convertFrancoWordPhonetic(w) {
+  let tw = String(w).toLowerCase();
+  
+  tw = tw.replace(/sh/g, 'ش')
+         .replace(/kh/g, 'خ')
+         .replace(/th/g, 'ث')
+         .replace(/gh/g, 'غ')
+         .replace(/aa/g, 'ا')
+         .replace(/ee/g, 'ي')
+         .replace(/oo/g, 'و')
+         .replace(/ou/g, 'و')
+         .replace(/ei/g, 'ي')
+         .replace(/3/g, 'ع')
+         .replace(/7/g, 'ح')
+         .replace(/5/g, 'خ')
+         .replace(/2/g, 'أ')
+         .replace(/6/g, 'ط')
+         .replace(/8/g, 'ه')
+         .replace(/9/g, 'ق');
+
+  let res = '';
+  for (let i = 0; i < tw.length; i++) {
+    let char = tw[i];
+    if (char === 'a') {
+      if (i === 0 || i === tw.length - 1) res += 'ا';
+      // skip interior single 'a' (short vowel fatha)
+    } else if (char === 'e' || char === 'i') {
+      if (i === tw.length - 1) res += 'ي';
+      // skip interior single 'e'/'i' (short vowel kasra)
+    } else if (char === 'o' || char === 'u') {
+      res += 'و';
+    } else {
+      switch (char) {
+        case 'b': case 'p': res += 'ب'; break;
+        case 't': res += 'ت'; break;
+        case 'g': res += 'ج'; break;
+        case 'd': res += 'د'; break;
+        case 'r': res += 'ر'; break;
+        case 'z': res += 'ز'; break;
+        case 's': res += 'س'; break;
+        case 'f': case 'v': res += 'ف'; break;
+        case 'k': case 'c': res += 'ك'; break;
+        case 'q': res += 'ق'; break;
+        case 'l': res += 'ل'; break;
+        case 'm': res += 'م'; break;
+        case 'n': res += 'ن'; break;
+        case 'h': res += 'ه'; break;
+        case 'w': res += 'و'; break;
+        case 'y': res += 'ي'; break;
+        default:
+          if (/[\u0600-\u06FF]/.test(char)) res += char;
+          break;
+      }
+    }
+  }
+  return res || w;
+}
+
+function francoToArabicVariants(text) {
+  if (!text) return [];
+  let s = String(text).trim();
+  if (!s || !/[a-z0-9]/i.test(s)) return [];
+
+  const rawWords = s.toLowerCase().split(/\s+/).filter(Boolean);
+
+  // Variant 1: Smart Dictionary + Vowel-Sensitive Phonetic
+  const smartWords = rawWords.map(w => {
+    if (typeof FRANCO_DICTIONARY !== 'undefined' && FRANCO_DICTIONARY[w]) return FRANCO_DICTIONARY[w];
+    const cleanW = w.replace(/^(el|al|l)/, '');
+    if (typeof FRANCO_DICTIONARY !== 'undefined' && FRANCO_DICTIONARY[cleanW]) return (w.startsWith('el') || w.startsWith('al') ? 'ال' : '') + FRANCO_DICTIONARY[cleanW];
+    return convertFrancoWordPhonetic(w);
+  });
+  const vSmart = normalizeArabic(smartWords.join(' '));
+
+  // Variant 2: Literal legacy transliteration
+  const vLiteral = normalizeArabic(francoToArabic(s));
+
+  const variants = [vSmart, vLiteral].filter(Boolean);
+  return Array.from(new Set(variants));
+}
+
 const BIBLE_BOOK_SHORTCUTS = [
   { shortcuts: ['تك'], name: 'تكوين' },
   { shortcuts: ['خر'], name: 'خروج' },
@@ -384,7 +473,9 @@ function getMatchScore(song, query) {
   const qRaw    = query.trim().toLowerCase();
   const qNorm   = normalizeArabic(query);
   const isFrancoQuery = /[a-z0-9]/i.test(query);
-  const qFrancoVariants = isFrancoQuery ? francoToArabicVariants(query) : [francoToArabic(query)].filter(Boolean);
+  const qFrancoVariants = isFrancoQuery 
+    ? (typeof francoToArabicVariants === 'function' ? francoToArabicVariants(query) : [])
+    : (typeof francoToArabic === 'function' ? [francoToArabic(query)].filter(Boolean) : []);
   
   const qWords  = qNorm.split(/\s+/).filter(Boolean);
   const qStems  = qWords.map(arabicStem);
@@ -432,8 +523,10 @@ function getMatchScore(song, query) {
   }
 
   // --- Tier 3.5: Consonant Skeleton Match ---
-  const qSkeleton = isFrancoQuery ? extractArabicConsonantSkeleton(qFrancoVariants[0] || query) : extractArabicConsonantSkeleton(query);
-  const tSkeleton = extractArabicConsonantSkeleton(title);
+  const qSkeleton = typeof extractArabicConsonantSkeleton === 'function' 
+    ? (isFrancoQuery ? extractArabicConsonantSkeleton(qFrancoVariants[0] || query) : extractArabicConsonantSkeleton(query))
+    : '';
+  const tSkeleton = typeof extractArabicConsonantSkeleton === 'function' ? extractArabicConsonantSkeleton(title) : '';
   if (qSkeleton && qSkeleton.length >= 3) {
     if (tSkeleton === qSkeleton) return 94;
     if (tSkeleton.startsWith(qSkeleton)) return 86;
