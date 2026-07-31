@@ -3546,7 +3546,10 @@ document.addEventListener('DOMContentLoaded', () => {
               isFirstSlideOfVerse = false;
             };
 
-            if (isBible || mode === 'oneline') {
+            if (isBible) {
+              // Bible verses combine all lines into ONE slide with each line stacked under the other
+              pushSlideItem(cleanLines);
+            } else if (mode === 'oneline') {
               cleanLines.forEach((singleLine) => {
                 pushSlideItem([singleLine]);
               });
