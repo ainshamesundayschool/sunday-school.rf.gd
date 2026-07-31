@@ -991,17 +991,17 @@
           let explicitStartFound = false;
 
           for (let k = endLineIdx; k >= 0; k--) {
-            let trimmed = lines[k].trim();
-            if ((trimmed.startsWith('(') || trimmed.startsWith('[')) && !trimmed.startsWith('(<span class="badge-num')) {
+            let textOnly = lines[k].replace(/<[^>]+>/g, '').trim();
+            if (textOnly.startsWith('(') || textOnly.startsWith('[')) {
               startLineIdx = k;
               explicitStartFound = true;
-              lines[k] = lines[k].replace(/^(\(|\[)/, '');
+              lines[k] = lines[k].replace(/^(\s*<span[^>]*>\([^<]*<\/span>\s*)?(\(|\[)/, '$1');
               break;
             }
           }
 
           if (!explicitStartFound) {
-            startLineIdx = 0;
+            startLineIdx = endLineIdx;
           }
 
           const greyOpenBracket = `<span class="repeat-tag">(</span>`;
