@@ -77,7 +77,7 @@ html, body {
 }
 
 .brand-center-logo {
-  height: 72px;
+  height: 42px;
   max-width: 170px;
   object-fit: contain;
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.08));
@@ -1697,7 +1697,7 @@ html, body {
   }
 
   .brand-center-logo {
-    height: 68px !important;
+    height: 34px !important;
   }
 
   .top-nav {
@@ -2366,8 +2366,6 @@ html, body {
   border-radius: 0 !important;
   border: none !important;
   box-shadow: none !important;
-  filter: brightness(0) invert(1) !important;
-  -webkit-filter: brightness(0) invert(1) !important;
 }
 
 .standby-branding .standby-title {

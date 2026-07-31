@@ -911,10 +911,19 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentPresenterText = null;
   let currentPresenterAnim = null;
 
-  function exitPresentation() {
+  function exitPresentation(e) {
+    if (e) {
+      if (typeof e.preventDefault === 'function') e.preventDefault();
+      if (typeof e.stopPropagation === 'function') e.stopPropagation();
+    }
     state.isBlank = true;
     if (els && els.obsOverlay) {
       els.obsOverlay.classList.add('hidden');
+    }
+    if (document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {});
+    } else if (document.webkitFullscreenElement && document.webkitExitFullscreen) {
+      try { document.webkitExitFullscreen(); } catch(err) {}
     }
     if (typeof syncLiveState === 'function') {
       syncLiveState();
@@ -2158,11 +2167,13 @@ document.addEventListener('DOMContentLoaded', () => {
       let overlayLastTouchTime = 0;
 
       els.obsOverlay.addEventListener('click', (e) => {
+        if (e.target && e.target.closest && e.target.closest('#btn-close-presentation-overlay, .btn-close-overlay-left, button, a')) return;
         if (Date.now() - overlayLastTouchTime < 500) return;
         nextLine();
       });
 
       els.obsOverlay.addEventListener('touchstart', (e) => {
+        if (e.target && e.target.closest && e.target.closest('#btn-close-presentation-overlay, .btn-close-overlay-left, button, a')) return;
         if (e.touches && e.touches.length > 0) {
           overlayTouchStartX = e.touches[0].clientX;
           overlayTouchStartY = e.touches[0].clientY;
@@ -2171,6 +2182,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }, { passive: true });
 
       els.obsOverlay.addEventListener('touchend', (e) => {
+        if (e.target && e.target.closest && e.target.closest('#btn-close-presentation-overlay, .btn-close-overlay-left, button, a')) return;
         if (!e.changedTouches || e.changedTouches.length === 0) return;
 
         overlayLastTouchTime = Date.now();

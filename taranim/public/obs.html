@@ -9,8 +9,8 @@
   <meta name="description" content="شاشة بث وعرض الترانيم والإصحاحات الكتابية — Sunday School Taranim OBS & TV Presenter.">
   <meta name="theme-color" content="#1e293b">
 
-  <link rel="icon" type="image/png" href="logo.png">
-  <link rel="apple-touch-icon" href="logo.png">
+  <link rel="icon" type="image/png" href="logo_t.png">
+  <link rel="apple-touch-icon" href="logo_t.png">
 
   <!-- Open Graph Meta Tags -->
   <meta property="og:type" content="website">
@@ -350,8 +350,6 @@
       border-radius: 0 !important;
       border: none !important;
       box-shadow: none !important;
-      filter: brightness(0) invert(1) !important;
-      -webkit-filter: brightness(0) invert(1) !important;
     }
 
     .standby-branding .standby-title {
@@ -367,32 +365,37 @@
 
     .btn-close-overlay-left {
       position: absolute;
-      bottom: 20px;
-      left: 20px;
-      width: 40px;
-      height: 40px;
-      background: transparent !important;
-      backdrop-filter: none !important;
-      -webkit-backdrop-filter: none !important;
-      border: none !important;
-      color: rgba(255, 255, 255, 0.85) !important;
+      bottom: max(20px, env(safe-area-inset-bottom, 20px));
+      left: max(20px, env(safe-area-inset-left, 20px));
+      min-width: 48px;
+      min-height: 48px;
+      width: 48px;
+      height: 48px;
+      background: rgba(0, 0, 0, 0.45) !important;
+      backdrop-filter: blur(8px) !important;
+      -webkit-backdrop-filter: blur(8px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.25) !important;
+      color: rgba(255, 255, 255, 0.95) !important;
       border-radius: 50%;
-      font-size: 1.45rem !important;
+      font-size: 1.5rem !important;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      z-index: 999;
+      z-index: 99999 !important;
       transition: all 0.2s cubic-bezier(0.2, 0.9, 0.3, 1);
-      box-shadow: none !important;
-      pointer-events: auto;
-      opacity: 0.85;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+      pointer-events: auto !important;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      opacity: 0.95;
     }
 
-    .btn-close-overlay-left:hover {
-      background: transparent !important;
-      border-color: transparent !important;
-      transform: scale(1.22);
+    .btn-close-overlay-left:hover,
+    .btn-close-overlay-left:active {
+      background: rgba(0, 0, 0, 0.7) !important;
+      border-color: rgba(255, 255, 255, 0.5) !important;
+      transform: scale(1.15);
       color: #ffffff !important;
       opacity: 1;
     }
@@ -448,7 +451,7 @@
     .badge-num {
       display: inline-block;
       font-weight: 800;
-      font-size: 0.88em;
+      font-size: 1em !important;
       margin: 0 4px;
       line-height: 1;
     }
@@ -475,7 +478,7 @@
 
   <div class="lower-third-container" id="presenter-box">
     <div id="standby-branding" class="standby-branding">
-      <img src="logo_t.png" alt="Sunday School Logo" class="standby-logo">
+      <img src="logo_tw.png" alt="Sunday School Logo" class="standby-logo">
     </div>
     <div class="line-text hidden" id="presenter-text"></div>
   </div>
@@ -488,11 +491,28 @@
   </div>
 
   <!-- SLEEK ICON EXIT BUTTON AT LEFT END -->
-  <button id="btn-close-window-bottom" class="btn-close-overlay-left" onclick="window.close()" title="إغلاق النافذة (Esc)">
+  <button id="btn-close-window-bottom" class="btn-close-overlay-left" onclick="closePresentationWindow(event)" title="إغلاق النافذة (Esc)">
     <i class="fa-solid fa-xmark"></i>
   </button>
 
   <script>
+    function closePresentationWindow(e) {
+      if (e) {
+        if (typeof e.preventDefault === 'function') e.preventDefault();
+        if (typeof e.stopPropagation === 'function') e.stopPropagation();
+      }
+      const doClose = () => {
+        try { window.close(); } catch(err) {}
+      };
+      if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().then(doClose).catch(doClose);
+      } else if (document.webkitFullscreenElement && document.webkitExitFullscreen) {
+        try { document.webkitExitFullscreen(); } catch(err) {}
+        setTimeout(doClose, 100);
+      } else {
+        doClose();
+      }
+    }
     const box = document.getElementById('presenter-box');
     const textEl = document.getElementById('presenter-text');
     const standbyEl = document.getElementById('standby-branding');
@@ -638,6 +658,7 @@
     let lastTouchTime = 0;
 
     window.addEventListener('click', (e) => {
+      if (e.target && e.target.closest && e.target.closest('#btn-close-window-bottom, .btn-close-overlay-left, button, a')) return;
       if (Date.now() - lastTouchTime < 500) return;
       const currentChroma = document.body.getAttribute('data-chroma');
       if (currentChroma === 'green' && isDragging) return;
@@ -650,6 +671,7 @@
     let touchStartTime = 0;
 
     window.addEventListener('touchstart', (e) => {
+      if (e.target && e.target.closest && e.target.closest('#btn-close-window-bottom, .btn-close-overlay-left, button, a')) return;
       if (e.touches && e.touches.length > 0) {
         touchStartX = e.touches[0].clientX;
         touchStartY = e.touches[0].clientY;
@@ -658,6 +680,7 @@
     }, { passive: true });
 
     window.addEventListener('touchend', (e) => {
+      if (e.target && e.target.closest && e.target.closest('#btn-close-window-bottom, .btn-close-overlay-left, button, a')) return;
       if (!e.changedTouches || e.changedTouches.length === 0) return;
       const currentChroma = document.body.getAttribute('data-chroma');
       if (currentChroma === 'green' && isDragging) return;
@@ -749,15 +772,63 @@
       textEl.style.textShadow = shadowParts.length > 0 ? shadowParts.join(', ') : 'none';
     }
 
-    function fitTextToSafeArea() {
+    let currentIsBible = false;
+
+    function fitTextToSafeArea(isBible = currentIsBible) {
       if (!textEl) return;
-      const targetSize = (lastStyleData && lastStyleData.fontSize) || stateFontSize || 54;
+      currentIsBible = isBible;
+      const baseSize = (lastStyleData && lastStyleData.fontSize) || stateFontSize || 54;
+
+      const viewportW = window.innerWidth;
+      const viewportH = window.innerHeight;
+      const isVerticalScreen = viewportW < viewportH || viewportW <= 768;
+
+      let targetSize = baseSize;
+
+      if (isBible || isVerticalScreen) {
+        const maxW = viewportW * 0.90;
+        const maxH = viewportH * 0.85;
+
+        let low = 16;
+        let high = baseSize;
+        let best = baseSize;
+
+        textEl.style.fontSize = high + 'px';
+        textEl.style.lineHeight = '1.45';
+
+        const segments = Array.from(textEl.querySelectorAll('.obs-line-segment'));
+        let maxSegW = textEl.scrollWidth;
+        if (segments.length > 0) {
+          maxSegW = Math.max(...segments.map(s => s.scrollWidth));
+        }
+
+        if (maxSegW > maxW || textEl.scrollHeight > maxH) {
+          while (low <= high) {
+            const mid = Math.floor((low + high) / 2);
+            textEl.style.fontSize = mid + 'px';
+
+            let curMaxSegW = textEl.scrollWidth;
+            if (segments.length > 0) {
+              curMaxSegW = Math.max(...segments.map(s => s.scrollWidth));
+            }
+
+            if (curMaxSegW <= maxW && textEl.scrollHeight <= maxH) {
+              best = mid;
+              low = mid + 1;
+            } else {
+              high = mid - 1;
+            }
+          }
+          targetSize = best;
+        }
+      }
+
       textEl.style.fontSize = targetSize + 'px';
       textEl.style.lineHeight = '1.45';
       applyDynamicShadow();
     }
 
-    window.addEventListener('resize', fitTextToSafeArea);
+    window.addEventListener('resize', () => fitTextToSafeArea());
 
     // AUTO FULLSCREEN REQUEST ON CLICK, TOUCH, POINTER, KEY, OR FOCUS
     function requestAutoFullscreen() {
@@ -967,8 +1038,7 @@
         }
       }
 
-      const whiteSpaceStyle = isBible ? 'normal' : 'nowrap';
-      return lines.map(l => `<span class="obs-line-segment" style="display: block; white-space: ${whiteSpaceStyle}; word-break: break-word; text-align: center;">${l}</span>`).join('');
+      return lines.map(l => `<span class="obs-line-segment" style="display: block; white-space: normal; word-break: break-word; overflow-wrap: break-word; text-align: center; width: 100%; font-size: inherit;">${l}</span>`).join('');
     }
 
     function applyState(data, source = 'local') {
@@ -1058,7 +1128,7 @@
         textEl.style.visibility = 'visible';
         const isBible = Boolean(data.isBible || data.is_bible);
         textEl.innerHTML = formatPresenterText(data.text, isBible);
-        fitTextToSafeArea();
+        fitTextToSafeArea(isBible);
 
         if (currentTextState !== data.text || currentAnimState !== animType) {
           currentTextState = data.text;
