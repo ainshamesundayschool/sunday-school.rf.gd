@@ -663,9 +663,18 @@ position: absolute;
     </div>
 
     <script>
-        // Redirect to home screen if offline and in PWA standalone mode
+        // Direct logged-in users directly to dashboard if offline and in PWA standalone mode
         if (!navigator.onLine && (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone)) {
-            window.location.href = '/';
+            const loggedIn = localStorage.getItem('loggedIn') === 'true' || localStorage.getItem('uncleLoggedIn') === 'true';
+            if (loggedIn) {
+                const loginType = localStorage.getItem('loginType') || 'uncle';
+                const role = localStorage.getItem('uncleRole') || 'uncle';
+                if (loginType === 'church' || role === 'developer') {
+                    window.location.href = '/uncle/church/';
+                } else {
+                    window.location.href = '/uncle/dashboard/';
+                }
+            }
         }
 
     // ══════════════════════════════════════════════════════════

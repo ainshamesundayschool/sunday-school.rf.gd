@@ -138,6 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
   <script>
     // ── SESSION GUARD FOR LOGGED-IN UNCLE / CHURCH ON KID PROFILE PAGE ──
     (function () {
+      if (!navigator.onLine) return;
       var search = window.location.search;
       var noredirect = search.indexOf('noredirect=true') !== -1 || search.indexOf('noredirect=1') !== -1;
       if (noredirect) return;
@@ -147,8 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       if (!cl && !ul) return;
 
       var KEY = '_ss_restoring_prof';
-      if (sessionStorage.getItem(KEY) === '1') {
-        sessionStorage.removeItem(KEY);
+      if (sessionStorage.getItem(KEY)) {
         return;
       }
 
@@ -168,13 +168,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         .then(function (d) {
           if (d.success) {
             window.location.reload();
-          } else {
-            sessionStorage.removeItem(KEY);
           }
         })
-        .catch(function () {
-          sessionStorage.removeItem(KEY);
-        });
+        .catch(function () { });
     })();
   </script>
   <meta charset="UTF-8">

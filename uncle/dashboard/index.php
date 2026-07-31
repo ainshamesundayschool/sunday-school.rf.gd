@@ -57,9 +57,13 @@ if (!$hasSession && !$isLoginPage) { ?>
             var KEY = '_ss_restoring';
             var prefix = window.location.pathname.indexOf('/testing/') !== -1 ? '/testing' : '';
 
-            // Already reloaded once after restore — don't loop
-            if (sessionStorage.getItem(KEY) === '1') {
-                sessionStorage.removeItem(KEY);
+            // Never execute session restore or redirects when offline — keep working with cached data
+            if (!navigator.onLine) {
+                return;
+            }
+
+            // Already attempted restore in this tab session — don't loop or reload
+            if (sessionStorage.getItem(KEY)) {
                 return;
             }
 
@@ -68,15 +72,21 @@ if (!$hasSession && !$isLoginPage) { ?>
             var cc = localStorage.getItem('churchCode');
             var un = localStorage.getItem('uncleUsername');
 
-            // No credentials at all → go to login
-            if (!cl && !ul) { window.location.href = prefix + '/login/'; return; }
+            // No credentials at all → go to login only if online
+            if (!cl && !ul) { 
+                if (navigator.onLine) window.location.href = prefix + '/login/'; 
+                return; 
+            }
 
             // Build restore request
             var fd = new FormData();
             fd.append('action', 'restore_session');
             if (ul && un) fd.append('username', un);
             else if (cl && cc) fd.append('church_code', cc);
-            else { window.location.href = prefix + '/login/'; return; }
+            else { 
+                if (navigator.onLine) window.location.href = prefix + '/login/'; 
+                return; 
+            }
 
             // Mark that we're attempting a restore so the reload won't loop
             sessionStorage.setItem(KEY, '1');
@@ -86,8 +96,6 @@ if (!$hasSession && !$isLoginPage) { ?>
                 .then(function (r) { return r.json(); })
                 .then(function (d) {
                     if (d.success) {
-                        // Store churchType BEFORE reload so PHP _syncSessionToStorage
-                        // can detect account-type changes and clear stale caches.
                         if (d.church_type) {
                             try { localStorage.setItem('churchType', d.church_type); } catch (e) { }
                         }
@@ -97,27 +105,20 @@ if (!$hasSession && !$isLoginPage) { ?>
                         if (d.uncle_name) {
                             try { localStorage.setItem('uncleName', d.uncle_name); } catch (e) { }
                         }
-                        // Session cookie is now set — plain reload, no query string
                         if (window.triggerCacheBusterAndReload) {
                             window.triggerCacheBusterAndReload();
                         } else {
                             window.location.reload();
                         }
                     } else if (navigator.onLine && d.message && (d.message.indexOf('not found') !== -1 || d.message.indexOf('No credentials') !== -1 || d.message.indexOf('معلقة') !== -1 || d.message.indexOf('انتظار موافقة') !== -1)) {
-                        // Server confirmed user/church does not exist or is pending → truly invalid, clear and redirect
-                        sessionStorage.removeItem(KEY);
+                        // Server confirmed user/church does not exist or is pending → clear and redirect
                         ['loggedIn', 'uncleLoggedIn', 'churchCode', 'uncleUsername', 'churchName', 'uncleName']
                             .forEach(function (k) { localStorage.removeItem(k); });
                         window.location.href = prefix + '/login/';
-                    } else {
-                        // Any other failure (DB error, network hiccup, etc.) — stay on page
-                        // Don't clear credentials — let the app work with cached data offline
-                        sessionStorage.removeItem(KEY);
                     }
                 })
                 .catch(function () {
-                    // Network error — stay on page, don't wipe credentials
-                    sessionStorage.removeItem(KEY);
+                    // Network error — stay on page, don't wipe credentials or retry in a loop
                 });
         })();
     </script>
