@@ -4288,26 +4288,30 @@ document.addEventListener('DOMContentLoaded', () => {
               let explicitStartFound = false;
 
               for (let k = endLineIdx; k >= 0; k--) {
-                let trimmed = lineSegs[k].trim();
-                if (trimmed.startsWith('(') && !trimmed.startsWith('(<span class="badge-num')) {
+                let textOnly = lineSegs[k].replace(/<[^>]+>/g, '').trim();
+                let textWithoutChorus = textOnly.replace(/^[\s\(\[]*(?:ق|قرار)[\s\)\]]*/i, '').trim();
+                if (textOnly.startsWith('(') || textOnly.startsWith('[') || textWithoutChorus.startsWith('(') || textWithoutChorus.startsWith('[')) {
                   startLineIdx = k;
                   explicitStartFound = true;
-                  let firstParenIdx = lineSegs[k].indexOf('(');
-                  if (firstParenIdx !== -1) {
-                    lineSegs[k] = lineSegs[k].substring(0, firstParenIdx) + lineSegs[k].substring(firstParenIdx + 1);
-                  }
                   break;
                 }
               }
 
               if (!explicitStartFound && endLineIdx === lineSegs.length - 1 && lineSegs.length > 1) {
                 startLineIdx = 0;
+              } else if (!explicitStartFound) {
+                startLineIdx = endLineIdx;
               }
 
               const greyOpenBracket = `<span class="repeat-tag">(</span>`;
               const greyCloseTag = `<span class="repeat-tag">)${repeatNum}</span>`;
 
-              lineSegs[startLineIdx] = greyOpenBracket + lineSegs[startLineIdx];
+              lineSegs[startLineIdx] = lineSegs[startLineIdx].replace(/^[\s\(\[]+(?=<span[^>]*class="[^"]*chorus-num")/i, '');
+              let chorusMatch = lineSegs[startLineIdx].match(/^(\s*(?:<span[^>]*class="[^"]*chorus-num"[^>]*>.*?<\/span>\s*)+)/i);
+              let chorusPrefix = chorusMatch ? chorusMatch[1] : '';
+              let restOfLine = lineSegs[startLineIdx].substring(chorusPrefix.length).replace(/^[\s\(\[]+/, '');
+
+              lineSegs[startLineIdx] = chorusPrefix + greyOpenBracket + restOfLine;
               lineSegs[endLineIdx] = lineSegs[endLineIdx] + greyCloseTag;
             }
           }

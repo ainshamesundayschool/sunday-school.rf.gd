@@ -992,22 +992,29 @@
 
           for (let k = endLineIdx; k >= 0; k--) {
             let textOnly = lines[k].replace(/<[^>]+>/g, '').trim();
-            if (textOnly.startsWith('(') || textOnly.startsWith('[')) {
+            let textWithoutChorus = textOnly.replace(/^[\s\(\[]*(?:ق|قرار)[\s\)\]]*/i, '').trim();
+            if (textOnly.startsWith('(') || textOnly.startsWith('[') || textWithoutChorus.startsWith('(') || textWithoutChorus.startsWith('[')) {
               startLineIdx = k;
               explicitStartFound = true;
-              lines[k] = lines[k].replace(/^(\s*<span[^>]*>\([^<]*<\/span>\s*)?(\(|\[)/, '$1');
               break;
             }
           }
 
-          if (!explicitStartFound) {
+          if (!explicitStartFound && endLineIdx === lines.length - 1 && lines.length > 1) {
+            startLineIdx = 0;
+          } else if (!explicitStartFound) {
             startLineIdx = endLineIdx;
           }
 
           const greyOpenBracket = `<span class="repeat-tag">(</span>`;
           const greyCloseTag = `<span class="repeat-tag">)${repeatNum}</span>`;
 
-          lines[startLineIdx] = greyOpenBracket + lines[startLineIdx];
+          lines[startLineIdx] = lines[startLineIdx].replace(/^[\s\(\[]+(?=<span[^>]*class="[^"]*chorus-num")/i, '');
+          let chorusMatch = lines[startLineIdx].match(/^(\s*(?:<span[^>]*class="[^"]*chorus-num"[^>]*>.*?<\/span>\s*)+)/i);
+          let chorusPrefix = chorusMatch ? chorusMatch[1] : '';
+          let restOfLine = lines[startLineIdx].substring(chorusPrefix.length).replace(/^[\s\(\[]+/, '');
+
+          lines[startLineIdx] = chorusPrefix + greyOpenBracket + restOfLine;
           lines[endLineIdx] = lines[endLineIdx] + greyCloseTag;
         }
       }
