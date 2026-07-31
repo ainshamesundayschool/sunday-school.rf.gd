@@ -77,7 +77,7 @@ html, body {
 }
 
 .brand-center-logo {
-  height: 36px;
+  height: 72px;
   max-width: 170px;
   object-fit: contain;
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.08));
@@ -1683,7 +1683,11 @@ html, body {
   }
 
   .brand-text-centered {
-    display: none !important;
+    display: flex !important;
+  }
+
+  .brand-center-logo {
+    height: 68px !important;
   }
 
   .top-nav {

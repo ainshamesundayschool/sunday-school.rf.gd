@@ -2897,7 +2897,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .catch(() => {});
 
     try {
-      let res = await fetch('songs_catalog.json');
+      let res = await fetch('songs_catalog.json').catch(() => null);
       if (!res.ok) res = await fetch('./songs_catalog.json');
       if (!res.ok) res = await fetch('/api/songs?limit=500');
       
@@ -3008,7 +3008,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       try {
         let apiResults = [];
-        let res = await fetch(`api.php?q=${encodeURIComponent(trimmedQuery)}&limit=60`, { signal });
+        const apiUrl = getApiUrl();
+        let res = await fetch(`${apiUrl}?q=${encodeURIComponent(trimmedQuery)}&limit=60`, { signal }).catch(() => null);
+        if (!res || !res.ok) res = await fetch(`/api.php?q=${encodeURIComponent(trimmedQuery)}&limit=60`, { signal }).catch(() => null);
         if (res.ok) {
           let data = await res.json();
           if (data && data.songs && data.songs.length > 0) {
@@ -3017,7 +3019,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (bibleInfo && bibleInfo.searchQuery && bibleInfo.searchQuery !== trimmedQuery) {
-          let bRes = await fetch(`api.php?q=${encodeURIComponent(bibleInfo.searchQuery)}&limit=60`, { signal });
+          let bRes = await fetch(`${apiUrl}?q=${encodeURIComponent(bibleInfo.searchQuery)}&limit=60`, { signal }).catch(() => null);
+          if (!bRes || !bRes.ok) bRes = await fetch(`/api.php?q=${encodeURIComponent(bibleInfo.searchQuery)}&limit=60`, { signal }).catch(() => null);
           if (bRes.ok) {
             let bData = await bRes.json();
             if (bData && bData.songs && bData.songs.length > 0) {
@@ -3195,7 +3198,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!targetSong) {
       try {
         const bibleParam = isBible ? '&type=bible&is_bible=1' : '';
-        let res = await fetch(`api.php?action=song&id=${songId}${bibleParam}`);
+        const apiUrl = getApiUrl();
+        let res = await fetch(`${apiUrl}?action=song&id=${songId}${bibleParam}`).catch(() => null);
+        if (!res || !res.ok) res = await fetch(`/api.php?action=song&id=${songId}${bibleParam}`).catch(() => null);
         if (!res.ok) res = await fetch(`/api/song/${songId}?${bibleParam}`);
         if (!res.ok) res = await fetch(`../api.php?action=song&id=${songId}${bibleParam}`);
         if (res.ok) {
