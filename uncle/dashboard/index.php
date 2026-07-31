@@ -11472,34 +11472,46 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 background: linear-gradient(135deg, #0f172a 0%, #090d16 100%);
             }
             .pwa-splash-logo-card {
-                width: 104px;
-                height: 104px;
-                border-radius: 30px;
-                background: #ffffff;
-                box-shadow: 0 16px 40px rgba(79, 70, 229, 0.18), 0 0 0 1px rgba(79, 70, 229, 0.12);
+                width: 96px;
+                height: 96px;
+                background: transparent !important;
+                box-shadow: none !important;
+                border: none !important;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                margin-bottom: 28px;
+                margin-bottom: 24px;
                 animation: pwaSplashPulse 2.4s ease-in-out infinite alternate;
                 position: relative;
             }
-            [data-theme="dark"] .pwa-splash-logo-card {
-                background: #1e293b;
-                box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.12);
-            }
             .pwa-splash-logo-card img {
-                width: 72px;
-                height: 72px;
+                width: 88px;
+                height: 88px;
                 object-fit: contain;
-                border-radius: 20px;
+                border-radius: 18px;
+                filter: drop-shadow(0 10px 24px rgba(79, 70, 229, 0.25));
+            }
+            [data-theme="dark"] .pwa-splash-logo-card img {
+                filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.5));
             }
             .pwa-splash-title {
-                font-size: 1.55rem;
+                font-size: 1.25rem;
                 font-weight: 900;
                 color: #1e293b;
-                margin-bottom: 8px;
+                margin: 0 auto 8px auto;
+                text-align: center;
+                width: 100%;
+                max-width: 92vw;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
                 letter-spacing: -0.01em;
+            }
+            @media (max-width: 480px) {
+                .pwa-splash-title {
+                    font-size: 1.1rem !important;
+                    white-space: nowrap !important;
+                }
             }
             [data-theme="dark"] .pwa-splash-title {
                 color: #f8fafc;
