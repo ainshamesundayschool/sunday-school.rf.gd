@@ -1,7 +1,7 @@
 // ╔══════════════════════════════════════════════════════════════╗
-// ║  Sunday School PWA — Service Worker v32                     ║
+// ║  Sunday School PWA — Service Worker v34                     ║
 // ╚══════════════════════════════════════════════════════════════╝
-const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v32';
+const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v34';
 const CACHE_NAME        = `sunday-school-${SW_VERSION}`;
 const SYNC_TAG          = 'sync-attendance';
 const PERIODIC_SYNC_TAG = 'check-registrations';
@@ -210,12 +210,25 @@ self.addEventListener('fetch', e => {
         return;
     }
 
-    // ── PAGE NAVIGATION (Network-First when online, fallback to Cache when offline) ──
+    // ── PAGE NAVIGATION (Instant Cache when offline, Network-First with 1.5s timeout when online) ──
     if (e.request.mode === 'navigate') {
         e.respondWith(
             (async () => {
+                // If device is offline, serve cached HTML shell instantly with zero network delay
+                if (!self.navigator.onLine) {
+                    const cachedResp = (isOfflineShellFriendly ? await caches.match(e.request, { ignoreSearch: true }) : null) || await _matchOfflineShell(e.request, url);
+                    if (cachedResp) return cachedResp;
+                }
+
                 try {
-                    const networkResp = await fetch(e.request, { cache: 'no-store' });
+                    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+                    const timeoutId = controller ? setTimeout(() => controller.abort(), 1500) : null;
+                    const fetchOpts = { cache: 'no-store' };
+                    if (controller) fetchOpts.signal = controller.signal;
+
+                    const networkResp = await fetch(e.request, fetchOpts);
+                    if (timeoutId) clearTimeout(timeoutId);
+
                     if (networkResp && networkResp.ok && isOfflineShellFriendly && await _isCacheableAppResponse(networkResp, e.request)) {
                         const copy = networkResp.clone();
                         const cache = await caches.open(CACHE_NAME);

@@ -11457,108 +11457,148 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 position: fixed;
                 inset: 0;
                 z-index: 9999999;
-                background: #f8fafc;
+                background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                padding: 24px;
+                padding: 32px 24px;
                 transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s;
                 direction: rtl;
                 font-family: 'Cairo', 'Baloo Bhaijaan 2', sans-serif;
+                user-select: none;
             }
             [data-theme="dark"] #pwaSplashScreen {
-                background: #0f172a;
+                background: linear-gradient(135deg, #0f172a 0%, #090d16 100%);
             }
             .pwa-splash-logo-card {
-                width: 100px;
-                height: 100px;
-                border-radius: 28px;
+                width: 104px;
+                height: 104px;
+                border-radius: 30px;
                 background: #ffffff;
-                box-shadow: 0 12px 35px rgba(79, 70, 229, 0.15), 0 0 0 1px rgba(79, 70, 229, 0.1);
+                box-shadow: 0 16px 40px rgba(79, 70, 229, 0.18), 0 0 0 1px rgba(79, 70, 229, 0.12);
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                margin-bottom: 24px;
-                animation: pwaSplashPulse 2s ease-in-out infinite alternate;
+                margin-bottom: 28px;
+                animation: pwaSplashPulse 2.4s ease-in-out infinite alternate;
                 position: relative;
             }
             [data-theme="dark"] .pwa-splash-logo-card {
                 background: #1e293b;
-                box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+                box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.12);
             }
             .pwa-splash-logo-card img {
-                width: 68px;
-                height: 68px;
+                width: 72px;
+                height: 72px;
                 object-fit: contain;
-                border-radius: 18px;
+                border-radius: 20px;
             }
             .pwa-splash-title {
-                font-size: 1.4rem;
-                font-weight: 800;
+                font-size: 1.55rem;
+                font-weight: 900;
                 color: #1e293b;
-                margin-bottom: 6px;
+                margin-bottom: 8px;
                 letter-spacing: -0.01em;
             }
             [data-theme="dark"] .pwa-splash-title {
                 color: #f8fafc;
             }
             .pwa-splash-status {
-                font-size: 0.9rem;
-                font-weight: 600;
-                color: #64748b;
-                margin-bottom: 24px;
+                font-size: 0.95rem;
+                font-weight: 700;
+                color: #4f46e5;
+                margin-bottom: 28px;
+                min-height: 28px;
                 display: flex;
                 align-items: center;
-                gap: 8px;
+                justify-content: center;
+                text-align: center;
             }
             [data-theme="dark"] .pwa-splash-status {
-                color: #94a3b8;
+                color: #818cf8;
             }
-            .pwa-splash-spinner {
-                width: 28px;
-                height: 28px;
-                border: 3px solid rgba(79, 70, 229, 0.18);
-                border-top-color: #4f46e5;
-                border-radius: 50%;
-                animation: pwaSplashSpin 0.75s linear infinite;
+            .pwa-splash-status-text {
+                animation: pwaTextFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             }
-            @keyframes pwaSplashSpin {
-                to { transform: rotate(360deg); }
+            .pwa-splash-progress-track {
+                width: 140px;
+                height: 4px;
+                background: rgba(79, 70, 229, 0.12);
+                border-radius: 999px;
+                overflow: hidden;
+            }
+            [data-theme="dark"] .pwa-splash-progress-track {
+                background: rgba(255, 255, 255, 0.1);
+            }
+            .pwa-splash-progress-bar {
+                height: 100%;
+                width: 0%;
+                background: linear-gradient(90deg, #4f46e5, #818cf8);
+                border-radius: 999px;
+                transition: width 0.4s ease;
+            }
+            @keyframes pwaTextFadeIn {
+                from { opacity: 0; transform: translateY(6px); }
+                to { opacity: 1; transform: translateY(0); }
             }
             @keyframes pwaSplashPulse {
-                0% { transform: scale(1); box-shadow: 0 12px 35px rgba(79, 70, 229, 0.15); }
-                100% { transform: scale(1.04); box-shadow: 0 18px 45px rgba(79, 70, 229, 0.28); }
+                0% { transform: scale(1); box-shadow: 0 16px 40px rgba(79, 70, 229, 0.15); }
+                100% { transform: scale(1.05); box-shadow: 0 22px 50px rgba(79, 70, 229, 0.3); }
             }
         </style>
         <div class="pwa-splash-logo-card">
             <img src="/logo.png" alt="Logo" onerror="this.src='/favicon.ico'">
         </div>
         <div class="pwa-splash-title">Sunday School Online</div>
-        <div class="pwa-splash-status" id="pwaSplashStatusText">
-            <div class="pwa-splash-spinner"></div>
-            <span>جاري فتح التطبيق وقراءة البيانات...</span>
+        <div class="pwa-splash-status" id="pwaSplashStatusBox">
+            <span class="pwa-splash-status-text" id="pwaSplashStatusText">جاري فتح التطبيق...</span>
+        </div>
+        <div class="pwa-splash-progress-track">
+            <div class="pwa-splash-progress-bar" id="pwaSplashProgressBar"></div>
         </div>
     </div>
     <script>
-        window.dismissPwaSplashScreen = function () {
-            var el = document.getElementById('pwaSplashScreen');
-            if (el && !el.classList.contains('dismissed')) {
-                el.classList.add('dismissed');
-                el.style.opacity = '0';
-                el.style.pointerEvents = 'none';
-                setTimeout(function () {
-                    el.style.display = 'none';
-                }, 450);
+        (function () {
+            var textEl = document.getElementById('pwaSplashStatusText');
+            var barEl = document.getElementById('pwaSplashProgressBar');
+            
+            function updateStatus(msg, progress) {
+                if (textEl && msg) {
+                    textEl.textContent = msg;
+                    textEl.classList.remove('pwa-splash-status-text');
+                    void textEl.offsetWidth;
+                    textEl.classList.add('pwa-splash-status-text');
+                }
+                if (barEl && progress !== undefined) {
+                    barEl.style.width = progress + '%';
+                }
             }
-        };
-        // Auto-dismiss after initial render or max 1s fallback
-        document.addEventListener('DOMContentLoaded', function () {
-            setTimeout(window.dismissPwaSplashScreen, 900);
-        });
-        window.addEventListener('load', function () {
-            setTimeout(window.dismissPwaSplashScreen, 500);
-        });
+
+            setTimeout(function () { updateStatus('جاري التحقق من الاتصال بالشبكة...', 35); }, 250);
+            setTimeout(function () { updateStatus('جاري استرجاع وقراءة البيانات...', 70); }, 550);
+            setTimeout(function () { updateStatus('جاري تجهيز لوحة التحكم...', 100); }, 850);
+
+            window.dismissPwaSplashScreen = function () {
+                var el = document.getElementById('pwaSplashScreen');
+                if (el && !el.classList.contains('dismissed')) {
+                    updateStatus('تم تجهيز البيانات بنجاح', 100);
+                    el.classList.add('dismissed');
+                    el.style.opacity = '0';
+                    el.style.pointerEvents = 'none';
+                    setTimeout(function () {
+                        el.style.display = 'none';
+                    }, 400);
+                }
+            };
+            
+            document.addEventListener('DOMContentLoaded', function () {
+                setTimeout(window.dismissPwaSplashScreen, 950);
+            });
+            window.addEventListener('load', function () {
+                setTimeout(window.dismissPwaSplashScreen, 650);
+            });
+        })();
     </script>
 
     <!-- OFFLINE BANNER -->

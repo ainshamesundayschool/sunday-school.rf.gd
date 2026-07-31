@@ -670,9 +670,9 @@ position: absolute;
                 const loginType = localStorage.getItem('loginType') || 'uncle';
                 const role = localStorage.getItem('uncleRole') || 'uncle';
                 if (loginType === 'church' || role === 'developer') {
-                    window.location.href = '/uncle/church/';
+                    window.location.replace('/uncle/church/');
                 } else {
-                    window.location.href = '/uncle/dashboard/';
+                    window.location.replace('/uncle/dashboard/');
                 }
             }
         }
