@@ -872,7 +872,11 @@ position: absolute;
             throw new Error('NOT_JSON');
         }
 
-        return r.json();
+        const data = await r.json();
+        if (data && (data.cookie_check || (data.message && data.message.includes('الكوكيز')))) {
+            throw new Error('COOKIE_CHECK');
+        }
+        return data;
     }
 
     // ── Form submit handler ───────────────────────────────────
@@ -928,6 +932,7 @@ position: absolute;
     // 3. If both fail (wrong creds), show form — but NEVER delete loggedIn flag
     //    (a network hiccup should not wipe the user's login state)
     window.addEventListener('load', async function () {
+        const urlParams = new URLSearchParams(window.location.search);
         const loginType = localStorage.getItem('loginType')  || 'uncle';
         const loggedIn  = localStorage.getItem('loggedIn')   === 'true'
                        || localStorage.getItem('uncleLoggedIn') === 'true';

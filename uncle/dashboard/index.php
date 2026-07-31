@@ -27151,6 +27151,81 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
 
         // Update toast disabled (removed to avoid automatic update prompts)
 
+        // ── Check & Prompt for Offline Data Installation ──────────────
+        function _checkOfflineDataInstallation() {
+            const INSTALLED_KEY = 'ss_offline_data_installed';
+            const DISMISSED_KEY = 'ss_offline_data_dismissed';
+
+            if (localStorage.getItem(INSTALLED_KEY) === 'true') return;
+
+            const lastDismissed = parseInt(localStorage.getItem(DISMISSED_KEY) || '0', 10);
+            if (Date.now() - lastDismissed < 86400000) return;
+
+            if (!navigator.onLine) return;
+
+            setTimeout(() => {
+                const modal = document.getElementById('offlineDataInstallModal');
+                if (modal) modal.style.display = 'flex';
+            }, 2500);
+        }
+
+        function _dismissOfflineDataModal() {
+            const modal = document.getElementById('offlineDataInstallModal');
+            if (modal) modal.style.display = 'none';
+            localStorage.setItem('ss_offline_data_dismissed', Date.now().toString());
+        }
+
+        async function _startOfflineDataInstallation() {
+            const btnGroup = document.getElementById('offlineInstallBtnGroup');
+            const progressArea = document.getElementById('offlineInstallProgressArea');
+            const bar = document.getElementById('offlineInstallProgressBar');
+            const txt = document.getElementById('offlineInstallProgressText');
+
+            if (btnGroup) btnGroup.style.display = 'none';
+            if (progressArea) progressArea.style.display = 'block';
+
+            try {
+                if (bar) bar.style.width = '30%';
+                if (txt) txt.textContent = 'جاري تخزين شفرات وملفات النظام محلياً...';
+
+                if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.controller.postMessage({ type: 'PRECACHE_OFFLINE_DATA' });
+                }
+
+                if (bar) bar.style.width = '70%';
+                if (txt) txt.textContent = 'جاري جلب وحفظ كافة أسماء الأطفال والفصول محلياً...';
+
+                await new Promise((resolve) => {
+                    makeApiCall({ action: 'getAllStudentsData' }, r => {
+                        if (r && r.students && Array.isArray(r.students)) {
+                            try {
+                                localStorage.setItem('lastStudentsData', JSON.stringify(r.students));
+                                if (r.classes) localStorage.setItem('cachedClasses', JSON.stringify(r.classes));
+                            } catch (e) {}
+                        }
+                        resolve();
+                    }, () => resolve());
+                });
+
+                if (bar) bar.style.width = '100%';
+                if (txt) txt.textContent = '✅ تم تثبيت وقراءة كافة البيانات بنجاح!';
+                localStorage.setItem('ss_offline_data_installed', 'true');
+
+                showToast('✅ تم تثبيت وتأهيل التطبيق للعمل بدون إنترنت!', 'success', { dur: 5000 });
+
+                setTimeout(() => {
+                    _dismissOfflineDataModal();
+                }, 1500);
+
+            } catch (err) {
+                if (txt) txt.textContent = 'تعذّر إكمال التثبيت تلقائياً، يمكنك المحاولة لاحقاً';
+                setTimeout(() => {
+                    if (btnGroup) btnGroup.style.display = 'flex';
+                    if (progressArea) progressArea.style.display = 'none';
+                }, 2000);
+            }
+        }
+
         // ── Register service worker ───────────────────────────────────
 
         if ('serviceWorker' in navigator) {
@@ -27158,6 +27233,7 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 navigator.serviceWorker.register('/sw.js')
                     .then(reg => {
                         _initPushSubscription(reg);
+                        _checkOfflineDataInstallation();
                         // ── Re-subscribe whenever SW becomes active after an update ──
                         reg.addEventListener('updatefound', () => {
                             const newSW = reg.installing;
@@ -31933,6 +32009,35 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 <!-- Dummy hidden elements representing the proxy targets for the complex renderer -->
                 <div id="standaloneDetailsBody" style="display:none !important"></div>
                 <div id="standaloneDetailsActionsDummy" style="display:none !important"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- OFFLINE DATA INSTALLATION PROMPT MODAL -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <div id="offlineDataInstallModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); z-index:999999; align-items:center; justify-content:center; padding:16px;">
+        <div style="background:var(--surface); border-radius:24px; padding:28px 24px; max-width:440px; width:100%; text-align:center; box-shadow:0 20px 40px rgba(0,0,0,0.3); border:1px solid var(--border-solid); animation:fadeInScale 0.3s ease;">
+            <div style="width:64px; height:64px; border-radius:20px; background:var(--brand-bg); color:var(--brand); display:flex; align-items:center; justify-content:center; font-size:1.8rem; margin:0 auto 16px; border:1px solid var(--brand-light);">
+                <i class="fas fa-cloud-download-alt"></i>
+            </div>
+            <h3 style="font-weight:800; font-size:1.2rem; color:var(--text); margin-bottom:8px;">تثبيت البيانات للعمل بدون إنترنت 📶</h3>
+            <p style="font-size:0.88rem; color:var(--muted); margin-bottom:20px; line-height:1.6;">
+                لم يتم تثبيت وتجهيز كافة بيانات الخدمة والافتفاد للعمل بدون إنترنت على هذا الجهاز بعد. هل ترغب في تثبيت البيانات الآن لضمان إمكانية متابعة وتسجيل الحضور والافتفاد في حال عدم توفر تغطية للشبكة؟
+            </p>
+            <div id="offlineInstallProgressArea" style="display:none; margin-bottom:20px;">
+                <div style="height:10px; background:var(--surface-2); border-radius:10px; overflow:hidden; margin-bottom:8px; border:1px solid var(--border-solid);">
+                    <div id="offlineInstallProgressBar" style="height:100%; width:0%; background:linear-gradient(90deg, var(--brand), #8b5cf6); transition:width 0.4s ease;"></div>
+                </div>
+                <div id="offlineInstallProgressText" style="font-size:0.82rem; color:var(--brand); font-weight:700;">جاري تجهيز وتحميل البيانات...</div>
+            </div>
+            <div id="offlineInstallBtnGroup" style="display:flex; gap:10px; justify-content:center;">
+                <button type="button" class="btn btn-brand" onclick="_startOfflineDataInstallation()" style="flex:1; padding:12px; font-weight:700; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; gap:8px;">
+                    <i class="fas fa-download"></i> <span>تثبيت البيانات الآن</span>
+                </button>
+                <button type="button" class="btn btn-outline" onclick="_dismissOfflineDataModal()" style="flex:1; padding:12px; border-radius:12px;">
+                    لاحقاً
+                </button>
             </div>
         </div>
     </div>

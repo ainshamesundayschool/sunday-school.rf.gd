@@ -860,9 +860,13 @@
             formData.append('username', identifier);
             formData.append('password', password);
 
-            fetch('/api.php', { method: 'POST', body: formData })
+            fetch('/api.php', { method: 'POST', body: formData, credentials: 'include' })
             .then(r => r.json())
             .then(data => {
+                if (data && (data.cookie_check || (data.message && data.message.includes('الكوكيز')))) {
+                    window.location.reload();
+                    return;
+                }
                 if (!isAutoLogin) hideLoading();
                 if (data.success && data.data && data.data.length > 0) {
                     localStorage.setItem('savedUsername', identifier);
@@ -894,10 +898,15 @@
             
             fetch('/api.php', {
                 method: 'POST',
-                body: formData
+                body: formData,
+                credentials: 'include'
             })
             .then(response => response.json())
             .then(data => {
+                if (data && (data.cookie_check || (data.message && data.message.includes('الكوكيز')))) {
+                    window.location.reload();
+                    return;
+                }
                 hideLoading();
                 if (data.success) {
                     if (data.has_password) {
@@ -1031,10 +1040,15 @@
 
             fetch('/api.php', {
                 method: 'POST',
-                body: formData
+                body: formData,
+                credentials: 'include'
             })
             .then(res => res.json())
             .then(data => {
+                if (data && (data.cookie_check || (data.message && data.message.includes('الكوكيز')))) {
+                    window.location.reload();
+                    return;
+                }
                 hideLoading();
                 if (data.success) {
                     showSuccess('تم إرسال كود التحقق بنجاح إلى حساب الواتساب المسجل. يرجى مراجعة وتفقد رسائل الواتساب وإدخال الكود أدناه.');
@@ -1064,10 +1078,15 @@
 
             fetch('/api.php', {
                 method: 'POST',
-                body: formData
+                body: formData,
+                credentials: 'include'
             })
             .then(res => res.json())
             .then(data => {
+                if (data && (data.cookie_check || (data.message && data.message.includes('الكوكيز')))) {
+                    window.location.reload();
+                    return;
+                }
                 hideLoading();
                 if (data.success) {
                     showSuccess('تم التأكد من رقم الهاتف بنجاح');
@@ -1094,10 +1113,15 @@
             
             fetch('/api.php', {
                 method: 'POST',
-                body: formData
+                body: formData,
+                credentials: 'include'
             })
             .then(response => response.json())
             .then(data => {
+                if (data && (data.cookie_check || (data.message && data.message.includes('الكوكيز')))) {
+                    window.location.reload();
+                    return;
+                }
                 hideLoading();
                 
                 if (data.success && data.data && data.data.length > 0) {
@@ -1130,10 +1154,15 @@
             
             fetch('/api.php', {
                 method: 'POST',
-                body: formData
+                body: formData,
+                credentials: 'include'
             })
             .then(response => response.json())
             .then(data => {
+                if (data && (data.cookie_check || (data.message && data.message.includes('الكوكيز')))) {
+                    window.location.reload();
+                    return;
+                }
                 hideLoading();
                 
                 if (data.success && data.data && data.data.length > 0) {
@@ -1167,10 +1196,15 @@
             
             fetch('/api.php', {
                 method: 'POST',
-                body: formData
+                body: formData,
+                credentials: 'include'
             })
             .then(response => response.json())
             .then(data => {
+                if (data && (data.cookie_check || (data.message && data.message.includes('الكوكيز')))) {
+                    window.location.reload();
+                    return;
+                }
                 if (!isAutoLogin) hideLoading();
                 
                 if (data.success && data.data && data.data.length > 0) {
@@ -1315,10 +1349,15 @@
             
             fetch('/api.php', {
                 method: 'POST',
-                body: formData
+                body: formData,
+                credentials: 'include'
             })
             .then(response => response.json())
             .then(data => {
+                if (data && (data.cookie_check || (data.message && data.message.includes('الكوكيز')))) {
+                    window.location.reload();
+                    return;
+                }
                 hideLoading();
                 
                 if (data.success) {
@@ -1362,10 +1401,15 @@
             
             fetch('/api.php', {
                 method: 'POST',
-                body: formData
+                body: formData,
+                credentials: 'include'
             })
             .then(res => res.json())
             .then(data => {
+                if (data && (data.cookie_check || (data.message && data.message.includes('الكوكيز')))) {
+                    window.location.reload();
+                    return;
+                }
                 hideLoading();
                 if (data.success && data.student_id) {
                     showSuccess('لإعادة تعيين كلمة المرور، يرجى تأكيد ملكية رقم الهاتف أولاً عبر الواتساب.');
