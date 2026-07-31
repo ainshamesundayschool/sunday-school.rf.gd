@@ -1119,7 +1119,7 @@ html, body {
 
 .line-item-actions {
   position: absolute;
-  top: 6px;
+  top: 8px;
   left: 8px;
   display: flex;
   align-items: center;
@@ -1129,7 +1129,7 @@ html, body {
 
 .launch-fullscreen-btn {
   position: absolute;
-  top: 6px;
+  top: 8px;
   right: 8px;
   left: auto;
   background: #ffffff;
@@ -1215,9 +1215,9 @@ html, body {
   display: inline-block;
 }
 
-.recent-title, .recent-item .recent-title {
+.recent-title, .recent-item .recent-title, .recent-item span {
   font-size: 0.95rem;
-  font-weight: 800 !important;
+  font-weight: 400 !important;
   color: #0f172a;
 }
 
