@@ -214,8 +214,15 @@ self.addEventListener('fetch', e => {
     if (e.request.mode === 'navigate') {
         e.respondWith(
             (async () => {
-                // If device is offline, serve cached HTML shell instantly with zero network delay
+                const isHomePath = url.pathname === '/' || url.pathname === '/index.html';
+
+                // If device is offline, serve cached HTML shell instantly with zero network delay.
+                // If offline and launching from home root, serve /uncle/dashboard/ directly to prevent redirect bounce!
                 if (!self.navigator.onLine) {
+                    if (isHomePath) {
+                        const dashCached = await caches.match('/uncle/dashboard/', { ignoreSearch: true }) || await caches.match('/uncle/dashboard/index.php', { ignoreSearch: true });
+                        if (dashCached) return dashCached;
+                    }
                     const cachedResp = (isOfflineShellFriendly ? await caches.match(e.request, { ignoreSearch: true }) : null) || await _matchOfflineShell(e.request, url);
                     if (cachedResp) return cachedResp;
                 }
@@ -236,6 +243,11 @@ self.addEventListener('fetch', e => {
                     }
                     return networkResp;
                 } catch (err) {
+                    if (isHomePath) {
+                        const dashCached = await caches.match('/uncle/dashboard/', { ignoreSearch: true }) || await caches.match('/uncle/dashboard/index.php', { ignoreSearch: true });
+                        if (dashCached) return dashCached;
+                    }
+
                     const cachedResponse = (isOfflineShellFriendly ? await caches.match(e.request, { ignoreSearch: true }) : null) || await _matchOfflineShell(e.request, url);
                     if (cachedResponse) return cachedResponse;
 
