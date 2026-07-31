@@ -3143,6 +3143,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (song.verses && Array.isArray(song.verses) && song.verses.length > 0) {
       const isBible = Boolean(song.is_bible || song.chapter_number !== undefined);
       if (!isBible) {
+        let currentStanzaNum = 0;
         song.verses.forEach((verse) => {
           const rawVerseType = verse.type;
           const slides = verse.slides || [];
@@ -3158,6 +3159,13 @@ document.addEventListener('DOMContentLoaded', () => {
           ) {
             verse.type = 1;
             verse.isChorus = true;
+          } else {
+            verse.type = 0;
+            verse.isChorus = false;
+            currentStanzaNum++;
+            if (!verse.stanzaNum) {
+              verse.stanzaNum = currentStanzaNum;
+            }
           }
         });
       }
@@ -3198,14 +3206,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (lines.length === 0) return;
 
       if (isChorus) {
-        verses.push({ type: 1, slides: [{ text: lines.join('\n'), lines: lines }] });
+        verses.push({ type: 1, isChorus: true, slides: [{ text: lines.join('\n'), lines: lines }] });
       } else {
         if (foundStanzaNum) {
           currentStanzaNum = parseInt(foundStanzaNum.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))) || (currentStanzaNum + 1);
         } else {
           currentStanzaNum++;
         }
-        verses.push({ type: 0, stanzaNum: currentStanzaNum, slides: [{ text: lines.join('\n'), lines: lines }] });
+        verses.push({ type: 0, isChorus: false, stanzaNum: currentStanzaNum, slides: [{ text: lines.join('\n'), lines: lines }] });
       }
     });
 
@@ -3224,11 +3232,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const mode = state.presentationMode || 'oneline';
 
     if (song.verses && Array.isArray(song.verses) && song.verses.length > 0) {
-      let currentStanzaNum = 0;
-
-      song.verses.forEach((verse, vIdx) => {
+      const buildVerseSlideItems = (verse, verseIndex, stanzaNumOverride) => {
         const rawVerseType = verse.type;
         const slides = verse.slides || [];
+        const items = [];
 
         slides.forEach((slide) => {
           let rawLines = slide.lines || (slide.text ? slide.text.split('\n') : []);
@@ -3244,16 +3251,6 @@ document.addEventListener('DOMContentLoaded', () => {
             /^\(?(القرار|قرار|ق)\)?[:\s\-]?/i.test(firstRawLine)
           );
 
-          if (!isBible) {
-            if (isChorusVerse) {
-              verse.type = 1;
-              verse.isChorus = true;
-            } else {
-              verse.type = 0;
-              currentStanzaNum++;
-            }
-          }
-
           // Clean any redundant leading badges in text
           cleanLines = cleanLines.map(l => {
             return l.replace(/^\(?(القرار|قرار|ق)\)?[:\s\-]\s*/i, '')
@@ -3266,58 +3263,124 @@ document.addEventListener('DOMContentLoaded', () => {
           if (cleanLines.length > 0) {
             let badgeText = '';
             let badgeClass = '';
+            let labelText = '';
 
             if (isBible) {
-              badgeText = `(${vIdx + 1})`;
+              badgeText = `(${verseIndex + 1})`;
               badgeClass = 'verse-badge-side';
+              labelText = `آية ${verseIndex + 1}`;
             } else if (isChorusVerse) {
               badgeText = `(ق)`;
               badgeClass = 'chorus-badge-side';
+              labelText = `قرار`;
             } else {
-              badgeText = `(${currentStanzaNum})`;
+              const sNum = stanzaNumOverride || verse.stanzaNum || (verseIndex + 1);
+              badgeText = `(${sNum})`;
               badgeClass = 'stanza-badge-side';
+              labelText = `بيت ${sNum}`;
             }
 
-            const labelText = isBible ? `آية ${vIdx + 1}` : (isChorusVerse ? `قرار` : `بيت ${currentStanzaNum}`);
-
-              if (mode === 'oneline') {
-                cleanLines.forEach((singleLine) => {
-                  let fullText = `${badgeText} ${singleLine}`;
-                  linesList.push({
-                    text: fullText,
-                    lines: [singleLine],
-                    badgeText: badgeText,
-                    badgeClass: badgeClass,
-                    label: labelText
-                  });
-                });
-              } else if (mode === 'twolines') {
-                for (let i = 0; i < cleanLines.length; i += 2) {
-                  const pair = cleanLines.slice(i, i + 2);
-                  let fullText = `${badgeText} ${pair.join('\n')}`;
-                  linesList.push({
-                    text: fullText,
-                    lines: pair,
-                    badgeText: badgeText,
-                    badgeClass: badgeClass,
-                    label: labelText
-                  });
-                }
-              } else {
-                // fullslide
-                let fullText = `${badgeText} ${cleanLines.join('\n')}`;
-                linesList.push({
+            if (mode === 'oneline') {
+              cleanLines.forEach((singleLine) => {
+                let fullText = `${badgeText} ${singleLine}`;
+                items.push({
                   text: fullText,
-                  lines: cleanLines,
+                  lines: [singleLine],
+                  badgeText: badgeText,
+                  badgeClass: badgeClass,
+                  label: labelText
+                });
+              });
+            } else if (mode === 'twolines') {
+              for (let i = 0; i < cleanLines.length; i += 2) {
+                const pair = cleanLines.slice(i, i + 2);
+                let fullText = `${badgeText} ${pair.join('\n')}`;
+                items.push({
+                  text: fullText,
+                  lines: pair,
                   badgeText: badgeText,
                   badgeClass: badgeClass,
                   label: labelText
                 });
               }
+            } else {
+              // fullslide
+              let fullText = `${badgeText} ${cleanLines.join('\n')}`;
+              items.push({
+                text: fullText,
+                lines: cleanLines,
+                badgeText: badgeText,
+                badgeClass: badgeClass,
+                label: labelText
+              });
             }
+          }
+        });
+        return items;
+      };
+
+      let orderedVersesToProcess = [];
+      const repeatChorus = (!isBible) && (state.repeatChorusAfterVerse !== false);
+
+      if (repeatChorus) {
+        let mainChorusIndex = song.verses.findIndex(v => (
+          v.type === 1 || v.isChorus === true || String(v.type).toLowerCase() === 'chorus' || /القرار|قرار|^ق$/i.test(v.title || '')
+        ));
+
+        if (mainChorusIndex !== -1) {
+          const chorusVerse = song.verses[mainChorusIndex];
+          const isChorusFirst = (mainChorusIndex === 0);
+
+          let stanzaCount = 0;
+          song.verses.forEach((v, idx) => {
+            if (idx === mainChorusIndex || v.type === 1 || v.isChorus === true) return;
+            stanzaCount++;
+            v.stanzaNum = stanzaCount;
           });
+
+          if (isChorusFirst) {
+            orderedVersesToProcess.push({ verse: chorusVerse, idx: mainChorusIndex, stanzaNum: null });
+            let currentStanza = 0;
+            song.verses.forEach((v, idx) => {
+              if (v.type === 1 || v.isChorus === true) return;
+              currentStanza++;
+              orderedVersesToProcess.push({ verse: v, idx: idx, stanzaNum: currentStanza });
+              orderedVersesToProcess.push({ verse: chorusVerse, idx: mainChorusIndex, stanzaNum: null });
+            });
+          } else {
+            let currentStanza = 0;
+            song.verses.forEach((v, idx) => {
+              if (v.type === 1 || v.isChorus === true) return;
+              currentStanza++;
+              orderedVersesToProcess.push({ verse: v, idx: idx, stanzaNum: currentStanza });
+              orderedVersesToProcess.push({ verse: chorusVerse, idx: mainChorusIndex, stanzaNum: null });
+            });
+          }
+        } else {
+          let currentStanza = 0;
+          song.verses.forEach((v, idx) => {
+            currentStanza++;
+            orderedVersesToProcess.push({ verse: v, idx: idx, stanzaNum: currentStanza });
+          });
+        }
+      } else {
+        let currentStanza = 0;
+        song.verses.forEach((v, idx) => {
+          const isChorus = (v.type === 1 || v.isChorus === true);
+          let sNum = null;
+          if (!isChorus && !isBible) {
+            currentStanza++;
+            sNum = currentStanza;
+          }
+          orderedVersesToProcess.push({ verse: v, idx: idx, stanzaNum: sNum });
         });
       }
+
+      orderedVersesToProcess.forEach(({ verse, idx, stanzaNum }) => {
+        const slideItems = buildVerseSlideItems(verse, idx, stanzaNum);
+        linesList = linesList.concat(slideItems);
+      });
+    }
 
     if (linesList.length === 0 && song.notes) {
       const rawNotes = String(song.notes).replace(/\r\n/g, '\n');
