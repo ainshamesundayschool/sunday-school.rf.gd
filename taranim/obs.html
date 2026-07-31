@@ -962,56 +962,53 @@
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
 
-      if (isBible) {
-        let cleanText = html.replace(/\r\n/g, ' ').replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
-        return `<span class="obs-line-segment bible-text-segment" style="display: block; white-space: normal; text-wrap: balance; -webkit-text-wrap: balance; word-break: keep-all; overflow-wrap: break-word; text-align: center; width: 100%; font-size: inherit; line-height: 1.5;">${cleanText}</span>`;
-      } else {
-        html = html.replace(/\((ق|قرار)\)/gi, '<span class="badge-num chorus-num">($1)</span>');
-        lines = html.split('\n');
+      // Format Chorus indicators like (ق) or (قرار) with reddish accent class
+      html = html.replace(/\((ق|قرار)\)/gi, '<span class="badge-num chorus-num">($1)</span>');
 
-        for (let i = 0; i < lines.length; i++) {
-          let lineStr = lines[i].trim();
+      let lines = html.split('\n');
 
-          let match = lineStr.match(/(?:\)\s*)?(?:\(|\[)?\s*(?:x|X|×|\*)?\s*(\d+|[٠-٩]+)\s*(?:x|X|×)?\s*(?:\)|\])?$/i) || 
-                      lineStr.match(/\s*(?:x|X|×|\*)\s*(\d+|[٠-٩]+)$/i) || 
-                      lineStr.match(/\(\s*(\d+|[٠-٩]+)\s*\)$/);
+      for (let i = 0; i < lines.length; i++) {
+        let lineStr = lines[i].trim();
 
-          if (match && match[1]) {
-            let repeatNum = match[1];
-            let endLineIdx = i;
+        let match = lineStr.match(/(?:\)\s*)?(?:\(|\[)?\s*(?:x|X|×|\*)?\s*(\d+|[٠-٩]+)\s*(?:x|X|×)?\s*(?:\)|\])?$/i) || 
+                    lineStr.match(/\s*(?:x|X|×|\*)\s*(\d+|[٠-٩]+)$/i) || 
+                    lineStr.match(/\(\s*(\d+|[٠-٩]+)\s*\)$/);
 
-            lines[i] = lines[i]
-              .replace(/(?:\)\s*)?(?:\(|\[)?\s*(?:x|X|×|\*)?\s*(\d+|[٠-٩]+)\s*(?:x|X|×)?\s*(?:\)|\])?$/i, '')
-              .replace(/\s*(?:x|X|×|\*)\s*(\d+|[٠-٩]+)$/i, '')
-              .trim();
+        if (match && match[1]) {
+          let repeatNum = match[1];
+          let endLineIdx = i;
 
-            if (lines[i].endsWith(')')) {
-              lines[i] = lines[i].slice(0, -1).trim();
-            }
+          lines[i] = lines[i]
+            .replace(/(?:\)\s*)?(?:\(|\[)?\s*(?:x|X|×|\*)?\s*(\d+|[٠-٩]+)\s*(?:x|X|×)?\s*(?:\)|\])?$/i, '')
+            .replace(/\s*(?:x|X|×|\*)\s*(\d+|[٠-٩]+)$/i, '')
+            .trim();
 
-            let startLineIdx = endLineIdx;
-            let explicitStartFound = false;
-
-            for (let k = endLineIdx; k >= 0; k--) {
-              let trimmed = lines[k].trim();
-              if ((trimmed.startsWith('(') || trimmed.startsWith('[')) && !trimmed.startsWith('(<span class="badge-num')) {
-                startLineIdx = k;
-                explicitStartFound = true;
-                lines[k] = lines[k].replace(/^(\(|\[)/, '');
-                break;
-              }
-            }
-
-            if (!explicitStartFound) {
-              startLineIdx = 0;
-            }
-
-            const greyOpenBracket = `<span class="repeat-tag">(</span>`;
-            const greyCloseTag = `<span class="repeat-tag">)${repeatNum}</span>`;
-
-            lines[startLineIdx] = greyOpenBracket + lines[startLineIdx];
-            lines[endLineIdx] = lines[endLineIdx] + greyCloseTag;
+          if (lines[i].endsWith(')')) {
+            lines[i] = lines[i].slice(0, -1).trim();
           }
+
+          let startLineIdx = endLineIdx;
+          let explicitStartFound = false;
+
+          for (let k = endLineIdx; k >= 0; k--) {
+            let trimmed = lines[k].trim();
+            if ((trimmed.startsWith('(') || trimmed.startsWith('[')) && !trimmed.startsWith('(<span class="badge-num')) {
+              startLineIdx = k;
+              explicitStartFound = true;
+              lines[k] = lines[k].replace(/^(\(|\[)/, '');
+              break;
+            }
+          }
+
+          if (!explicitStartFound) {
+            startLineIdx = 0;
+          }
+
+          const greyOpenBracket = `<span class="repeat-tag">(</span>`;
+          const greyCloseTag = `<span class="repeat-tag">)${repeatNum}</span>`;
+
+          lines[startLineIdx] = greyOpenBracket + lines[startLineIdx];
+          lines[endLineIdx] = lines[endLineIdx] + greyCloseTag;
         }
       }
 

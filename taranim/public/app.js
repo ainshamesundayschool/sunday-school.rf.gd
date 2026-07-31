@@ -3485,10 +3485,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-          if (isBible && cleanLines.length > 0) {
-            let combinedText = cleanLines.join(' ').replace(/\s+/g, ' ').trim();
-            cleanLines = [combinedText];
-          }
+
 
           if (cleanLines.length > 0) {
             let badgeText = '';
