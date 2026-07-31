@@ -1388,6 +1388,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  let activeBibleTestament = 'all';
+  let selectedBibleBook = null;
+
   function initBiblePopover() {
     if (!els.btnMenuBible || !els.popoverBible) return;
 
