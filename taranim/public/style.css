@@ -1057,11 +1057,19 @@ html, body {
   justify-content: space-between;
 }
 
-.slide-line-row .repeat-tag {
-  color: #94a3b8;
+.repeat-tag {
+  color: #94a3b8 !important;
   font-weight: 700;
-  font-size: 0.85rem;
-  margin-right: 6px;
+  font-size: 0.95em;
+  margin: 0 3px;
+  display: inline-block;
+}
+
+.slide-line-row .repeat-tag {
+  color: #94a3b8 !important;
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin: 0 4px;
 }
 
 .slide-badge-side {
@@ -2144,11 +2152,63 @@ html, body {
   .half-panel {
     height: auto;
     max-height: 46vh;
+    font-size: 0.82rem;
+  }
+
+  .panel-header {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  .panel-header h3 {
+    font-size: 0.84rem;
+  }
+
+  .presentation-lines-container {
+    padding: 0.25rem;
   }
 
   .line-item {
-    padding: 8px 10px;
-    font-size: 0.9rem;
+    padding: 6px 8px;
+    font-size: 0.8rem;
+    margin-bottom: 4px;
+  }
+
+  .slide-line-row {
+    font-size: 0.8rem;
+    line-height: 1.35;
+  }
+
+  .slide-badge-side {
+    min-width: 24px;
+    font-size: 0.75rem;
+  }
+
+  .slide-index-corner {
+    font-size: 0.65rem;
+  }
+
+  .control-btn, .btn-presenter-nav {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.78rem;
+  }
+
+  .search-item {
+    padding: 0.45rem 0.65rem;
+    font-size: 0.8rem;
+  }
+
+  .search-item .item-title {
+    font-size: 0.84rem;
+  }
+
+  .item-preview-box {
+    font-size: 0.75rem;
+  }
+
+  .playlist-entry-row {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
   }
 }
 

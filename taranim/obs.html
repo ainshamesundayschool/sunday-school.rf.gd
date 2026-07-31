@@ -898,11 +898,59 @@
       // 1. Format Chorus indicators like (ق) or (قرار) with reddish accent class
       html = html.replace(/\((ق|قرار)\)/gi, '<span class="badge-num chorus-num">($1)</span>');
 
-      // 2. Format Stanza / Verse numbers or repeat multipliers like (1), (2), (3), (١), (٢) with verse-num class
-      html = html.replace(/\((\d+|[٠-٩]+)\)/g, '<span class="badge-num verse-num">($1)</span>');
+      let lines = html.split('\n');
 
-      // Wrap each segment line
-      const lines = html.split('\n');
+      if (!isBible) {
+        for (let i = 0; i < lines.length; i++) {
+          let lineStr = lines[i].trim();
+
+          let match = lineStr.match(/(?:\)\s*)?\(\s*(\d+|[٠-٩]+)\s*\)$/) || 
+                      lineStr.match(/\)\s*(\d+|[٠-٩]+)$/) || 
+                      lineStr.match(/\)\s*\(\s*(\d+|[٠-٩]+)\s*\)$/);
+
+          if (match) {
+            let repeatNum = match[1];
+            let endLineIdx = i;
+
+            lines[i] = lines[i]
+              .replace(/\s*\)\s*\(\s*(\d+|[٠-٩]+)\s*\)$/, '')
+              .replace(/\s*\)\s*(\d+|[٠-٩]+)$/, '')
+              .replace(/\s*\(\s*(\d+|[٠-٩]+)\s*\)$/, '')
+              .trim();
+
+            if (lines[i].endsWith(')')) {
+              lines[i] = lines[i].slice(0, -1).trim();
+            }
+
+            let startLineIdx = endLineIdx;
+            let explicitStartFound = false;
+
+            for (let k = endLineIdx; k >= 0; k--) {
+              let trimmed = lines[k].trim();
+              if (trimmed.startsWith('(') && !trimmed.startsWith('(<span class="badge-num')) {
+                startLineIdx = k;
+                explicitStartFound = true;
+                let firstParenIdx = lines[k].indexOf('(');
+                if (firstParenIdx !== -1) {
+                  lines[k] = lines[k].substring(0, firstParenIdx) + lines[k].substring(firstParenIdx + 1);
+                }
+                break;
+              }
+            }
+
+            if (!explicitStartFound && endLineIdx === lines.length - 1 && lines.length > 1) {
+              startLineIdx = 0;
+            }
+
+            const greyOpenBracket = `<span class="repeat-tag">(</span>`;
+            const greyCloseTag = `<span class="repeat-tag">)${repeatNum}</span>`;
+
+            lines[startLineIdx] = greyOpenBracket + lines[startLineIdx];
+            lines[endLineIdx] = lines[endLineIdx] + greyCloseTag;
+          }
+        }
+      }
+
       const whiteSpaceStyle = isBible ? 'normal' : 'nowrap';
       return lines.map(l => `<span class="obs-line-segment" style="display: block; white-space: ${whiteSpaceStyle}; word-break: break-word; text-align: center;">${l}</span>`).join('');
     }

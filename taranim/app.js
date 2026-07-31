@@ -4052,14 +4052,68 @@ document.addEventListener('DOMContentLoaded', () => {
         els.obsLineText.style.visibility = 'visible';
 
         els.obsLineText.style.fontFamily = state.selectedFont;
-        els.obsLineText.style.color = state.styleOptions.textColor;
-        els.obsLineText.style.fontWeight = state.styleOptions.fontWeight;
-        els.obsLineText.style.fontStyle = state.styleOptions.fontStyle === 'bold' ? 'normal' : state.styleOptions.fontStyle;
-        els.obsLineText.style.textDecoration = state.styleOptions.textDecoration;
-        els.obsLineText.style.textAlign = state.styleOptions.textAlign;
-        els.obsLineText.style.letterSpacing = `${state.styleOptions.letterSpacing}px`;
-        els.obsLineText.style.lineHeight = state.styleOptions.lineHeight;
+        let htmlText = escapeHtml(text);
+        htmlText = htmlText.replace(/\((ق|قرار)\)/gi, '<span class="badge-num chorus-num">($1)</span>');
 
+        let lineSegs = htmlText.split('\n');
+
+        if (!isBible) {
+          for (let i = 0; i < lineSegs.length; i++) {
+            let lineStr = lineSegs[i].trim();
+
+            let match = lineStr.match(/(?:\)\s*)?\(\s*(\d+|[٠-٩]+)\s*\)$/) || 
+                        lineStr.match(/\)\s*(\d+|[٠-٩]+)$/) || 
+                        lineStr.match(/\)\s*\(\s*(\d+|[٠-٩]+)\s*\)$/);
+
+            if (match) {
+              let repeatNum = match[1];
+              let endLineIdx = i;
+
+              lineSegs[i] = lineSegs[i]
+                .replace(/\s*\)\s*\(\s*(\d+|[٠-٩]+)\s*\)$/, '')
+                .replace(/\s*\)\s*(\d+|[٠-٩]+)$/, '')
+                .replace(/\s*\(\s*(\d+|[٠-٩]+)\s*\)$/, '')
+                .trim();
+
+              if (lineSegs[i].endsWith(')')) {
+                lineSegs[i] = lineSegs[i].slice(0, -1).trim();
+              }
+
+              let startLineIdx = endLineIdx;
+              let explicitStartFound = false;
+
+              for (let k = endLineIdx; k >= 0; k--) {
+                let trimmed = lineSegs[k].trim();
+                if (trimmed.startsWith('(') && !trimmed.startsWith('(<span class="badge-num')) {
+                  startLineIdx = k;
+                  explicitStartFound = true;
+                  let firstParenIdx = lineSegs[k].indexOf('(');
+                  if (firstParenIdx !== -1) {
+                    lineSegs[k] = lineSegs[k].substring(0, firstParenIdx) + lineSegs[k].substring(firstParenIdx + 1);
+                  }
+                  break;
+                }
+              }
+
+              if (!explicitStartFound && endLineIdx === lineSegs.length - 1 && lineSegs.length > 1) {
+                startLineIdx = 0;
+              }
+
+              const greyOpenBracket = `<span class="repeat-tag">(</span>`;
+              const greyCloseTag = `<span class="repeat-tag">)${repeatNum}</span>`;
+
+              lineSegs[startLineIdx] = greyOpenBracket + lineSegs[startLineIdx];
+              lineSegs[endLineIdx] = lineSegs[endLineIdx] + greyCloseTag;
+            }
+          }
+        } else {
+          lineSegs = lineSegs.map(l => {
+            return l.replace(/\((\d+|[٠-٩]+)\)/g, '<span class="repeat-tag">($1)</span>');
+          });
+        }
+
+        const whiteSpaceStyle = isBible ? 'normal' : 'nowrap';
+        els.obsLineText.innerHTML = lineSegs.map(l => `<span class="obs-line-segment" style="display: block; white-space: ${whiteSpaceStyle}; word-break: break-word; text-align: center;">${l}</span>`).join('');
         const strokeW = parseInt(state.styleOptions.strokeWidth || 0);
         const strokeC = state.styleOptions.strokeColor || '#000000';
         const shadowB = parseInt(state.styleOptions.shadowBlur || 0);
@@ -4113,13 +4167,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let size = state.fontSize || 54;
         els.obsLineText.style.fontSize = `${size}px`;
         
-        let htmlText = escapeHtml(text);
-        htmlText = htmlText.replace(/\((ق|قرار)\)/gi, '<span class="badge-num chorus-num">($1)</span>');
-        htmlText = htmlText.replace(/\((\d+|[٠-٩]+)\)/g, '<span class="badge-num verse-num">($1)</span>');
-        
-        const lineSegs = htmlText.split('\n');
-        const whiteSpaceStyle = isBible ? 'normal' : 'nowrap';
-        els.obsLineText.innerHTML = lineSegs.map(l => `<span class="obs-line-segment" style="display: block; white-space: ${whiteSpaceStyle}; word-break: break-word; text-align: center;">${l}</span>`).join('');
+
 
         // Re-trigger animation on EVERY text change, not just animation type change
         const textChanged = (currentPresenterText !== text);
