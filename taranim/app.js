@@ -1322,8 +1322,71 @@ document.addEventListener('DOMContentLoaded', () => {
     renderRecentSession();
   }
 
-  let activeBibleTestament = 'all';
-  let selectedBibleBook = null;
+  function initCircleAnglePicker() {
+    const dial = document.getElementById('circle-angle-dial');
+    const pointer = document.getElementById('circle-angle-pointer');
+    const range = document.getElementById('obs-shadow-angle-range');
+    const badge = document.getElementById('shadow-angle-badge');
+
+    if (!dial || !range) return;
+
+    function updatePointer(angleDeg) {
+      if (pointer) pointer.style.transform = `rotate(${angleDeg}deg)`;
+    }
+
+    updatePointer(range.value || 90);
+
+    let isDragging = false;
+
+    function calcAngle(e) {
+      const rect = dial.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+      const dx = clientX - centerX;
+      const dy = clientY - centerY;
+
+      let rad = Math.atan2(dx, -dy);
+      let deg = Math.round(rad * (180 / Math.PI));
+      if (deg < 0) deg += 360;
+
+      range.value = deg;
+      if (badge) badge.textContent = `${deg}°`;
+      updatePointer(deg);
+
+      state.styleOptions.shadowAngle = deg;
+      saveUserSettings();
+      syncLiveState();
+    }
+
+    dial.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      calcAngle(e);
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (isDragging) calcAngle(e);
+    });
+
+    window.addEventListener('mouseup', () => {
+      isDragging = false;
+    });
+
+    dial.addEventListener('touchstart', (e) => {
+      isDragging = true;
+      calcAngle(e);
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+      if (isDragging) calcAngle(e);
+    }, { passive: true });
+
+    window.addEventListener('touchend', () => {
+      isDragging = false;
+    });
+  }
 
   function initBiblePopover() {
     if (!els.btnMenuBible || !els.popoverBible) return;
@@ -1990,10 +2053,14 @@ document.addEventListener('DOMContentLoaded', () => {
       els.obsShadowAngleRange.addEventListener('input', (e) => {
         state.styleOptions.shadowAngle = parseInt(e.target.value);
         if (els.shadowAngleBadge) els.shadowAngleBadge.textContent = `${state.styleOptions.shadowAngle}°`;
+        const pointer = document.getElementById('circle-angle-pointer');
+        if (pointer) pointer.style.transform = `rotate(${state.styleOptions.shadowAngle}deg)`;
         saveUserSettings();
         syncLiveState();
       });
     }
+
+    initCircleAnglePicker();
 
     if (els.obsShadowDistanceRange) {
       els.obsShadowDistanceRange.addEventListener('input', (e) => {

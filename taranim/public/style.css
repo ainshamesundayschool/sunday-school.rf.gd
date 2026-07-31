@@ -71,38 +71,99 @@ html, body {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-}
-
-.brand-text-centered .brand-main {
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: var(--text-main);
-  letter-spacing: -0.3px;
-}
-
-.brand-accent {
-  color: var(--accent-blue, #2563eb);
-  font-weight: 800;
-}
-
-.brand-left-logo {
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
-.brand-left-logo .brand-logo-img {
-  height: 38px;
-  width: 38px;
-  object-fit: cover;
-  border-radius: 12px;
-  border: 1px solid var(--border-card);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+.brand-center-logo {
+  height: 36px;
+  max-width: 170px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.08));
+  transition: transform 0.2s ease;
+}
+
+.brand-center-logo:hover {
+  transform: scale(1.04);
+}
+
+.top-left-options {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .top-options {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+}
+
+/* SECTION TITLES & CIRCLE ANGLE PICKER IN POPOVERS */
+.popover-section-title {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--accent-blue, #2563eb);
+  background: #f8fafc;
+  padding: 4px 8px;
+  border-radius: 6px;
+  margin-top: 6px;
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-right: 3px solid var(--accent-blue, #2563eb);
+}
+
+.circle-angle-picker-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.circle-angle-dial {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  border: 2px solid #cbd5e1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  touch-action: none;
+  flex-shrink: 0;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.circle-angle-dial:hover {
+  border-color: var(--accent-blue, #2563eb);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.circle-angle-pointer {
+  position: absolute;
+  top: 3px;
+  width: 3px;
+  height: 10px;
+  background: var(--accent-blue, #2563eb);
+  border-radius: 2px;
+  transform-origin: 50% 12px;
+  transform: rotate(90deg);
+  pointer-events: none;
+}
+
+.circle-angle-center-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #64748b;
+  z-index: 2;
+  pointer-events: none;
 }
 
 /* ICON MENU BUTTONS & COMPACT POP-OVERS */

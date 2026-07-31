@@ -105,10 +105,13 @@
           <div class="dropdown-popover hidden" id="popover-style">
             <div class="popover-title"><i class="fa-solid fa-sliders"></i> التنسيق والخط</div>
 
+            <!-- SECTION 1: FONT & TEXT -->
+            <div class="popover-section-title"><i class="fa-solid fa-font"></i> الخط والنص</div>
+
             <div class="popover-row">
-              <label><i class="fa-solid fa-font"></i> الخط</label>
+              <label>الخط</label>
               <select id="font-family-select" class="control-select">
-                <option value="'Alexandria', sans-serif">Alexandria (الافتراضي)</option>
+                <option value="'Alexandria', sans-serif">Alexandria</option>
                 <option value="'Cairo', sans-serif">Cairo</option>
                 <option value="'Almarai', sans-serif">Almarai</option>
                 <option value="'Amiri', serif">Amiri</option>
@@ -118,12 +121,12 @@
             </div>
 
             <div class="popover-row hidden" id="custom-font-wrapper">
-              <label><i class="fa-solid fa-pen"></i> خط خاص</label>
+              <label>خط خاص</label>
               <input type="text" id="custom-font-input" class="control-input" placeholder="اسم الخط..." value="Tahoma">
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-text-height"></i> حجم الخط</label>
+              <label>حجم الخط</label>
               <div class="compact-control-group">
                 <input type="range" id="obs-font-size-range" min="24" max="120" value="54" class="slider-input">
                 <span id="font-size-val-badge" class="counter-text">54px</span>
@@ -131,20 +134,7 @@
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-droplet"></i> لون النص</label>
-              <input type="color" id="obs-text-color" value="#ffffff" class="color-picker-input">
-            </div>
-
-            <div class="popover-row">
-              <label><i class="fa-solid fa-border-all"></i> الحدود</label>
-              <div class="compact-control-group">
-                <input type="range" id="obs-stroke-range" min="0" max="10" value="0" class="slider-input">
-                <input type="color" id="obs-stroke-color" value="#000000" class="color-picker-input">
-              </div>
-            </div>
-
-            <div class="popover-row">
-              <label><i class="fa-solid fa-bold"></i> السُّك</label>
+              <label>السُّك</label>
               <select id="obs-font-weight-select" class="control-select">
                 <option value="400">عادي 400</option>
                 <option value="600">شبه عريض 600</option>
@@ -155,7 +145,15 @@
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-align-center"></i> المحاذاة</label>
+              <label>لون النص</label>
+              <input type="color" id="obs-text-color" value="#ffffff" class="color-picker-input">
+            </div>
+
+            <!-- SECTION 2: FORMAT & ALIGNMENT -->
+            <div class="popover-section-title"><i class="fa-solid fa-align-right"></i> التنسيق والمحاذاة</div>
+
+            <div class="popover-row">
+              <label>المحاذاة</label>
               <div class="btn-group-row" style="display:flex; gap:4px;">
                 <button type="button" class="btn btn-sm btn-secondary active" id="btn-align-center" title="وسط"><i class="fa-solid fa-align-center"></i></button>
                 <button type="button" class="btn btn-sm btn-secondary" id="btn-align-right" title="يمين"><i class="fa-solid fa-align-right"></i></button>
@@ -165,7 +163,7 @@
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-font"></i> التنسيق</label>
+              <label>التنسيق</label>
               <div class="btn-group-row" style="display:flex; gap:4px;">
                 <button type="button" class="btn btn-sm btn-secondary" id="btn-toggle-bold" title="عريض"><i class="fa-solid fa-bold"></i></button>
                 <button type="button" class="btn btn-sm btn-secondary" id="btn-toggle-italic" title="مائل"><i class="fa-solid fa-italic"></i></button>
@@ -174,43 +172,61 @@
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-arrows-left-right"></i> تباعد الحروف</label>
+              <label>تباعد الحروف</label>
               <input type="range" id="obs-letter-spacing-range" min="-2" max="15" value="0" class="slider-input">
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-arrows-up-down"></i> ارتفاع السطر</label>
+              <label>ارتفاع السطر</label>
               <input type="range" id="obs-line-height-range" min="1.0" max="2.5" step="0.1" value="1.5" class="slider-input">
             </div>
 
+            <!-- SECTION 3: SHADOW & BORDER -->
+            <div class="popover-section-title"><i class="fa-solid fa-sun"></i> الظل والحدود</div>
+
             <div class="popover-row">
-              <label><i class="fa-solid fa-compass"></i> زاوية الظل</label>
+              <label>الحدود</label>
               <div class="compact-control-group">
+                <input type="range" id="obs-stroke-range" min="0" max="10" value="0" class="slider-input">
+                <input type="color" id="obs-stroke-color" value="#000000" class="color-picker-input">
+              </div>
+            </div>
+
+            <div class="popover-row">
+              <label>ضبابية الظل</label>
+              <input type="range" id="obs-shadow-range" min="0" max="60" value="12" class="slider-input" title="ضبابية الظل">
+            </div>
+
+            <div class="popover-row">
+              <label>لون الظل</label>
+              <input type="color" id="obs-shadow-color" value="#000000" class="color-picker-input">
+            </div>
+
+            <div class="popover-row">
+              <label>زاوية الظل</label>
+              <div class="circle-angle-picker-wrapper">
+                <div id="circle-angle-dial" class="circle-angle-dial" title="اسحب أو اضغط لتغيير الزاوية">
+                  <div id="circle-angle-pointer" class="circle-angle-pointer"></div>
+                  <div class="circle-angle-center-dot"></div>
+                </div>
                 <input type="range" id="obs-shadow-angle-range" min="0" max="360" value="90" class="slider-input" title="زاوية الظل">
                 <span id="shadow-angle-badge" class="counter-text">90°</span>
               </div>
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-arrows-up-down-left-right"></i> مسافة الظل</label>
+              <label>مسافة الظل</label>
               <div class="compact-control-group">
                 <input type="range" id="obs-shadow-distance-range" min="0" max="50" value="6" class="slider-input" title="مسافة الظل">
                 <span id="shadow-distance-badge" class="counter-text">6px</span>
               </div>
             </div>
 
-            <div class="popover-row">
-              <label><i class="fa-solid fa-sun"></i> ضبابية الظل</label>
-              <input type="range" id="obs-shadow-range" min="0" max="60" value="12" class="slider-input" title="ضبابية الظل">
-            </div>
+            <!-- SECTION 4: BACKGROUND & CONTAINER -->
+            <div class="popover-section-title"><i class="fa-solid fa-square"></i> خلفية الشاشة والصندوق</div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-palette"></i> لون الظل</label>
-              <input type="color" id="obs-shadow-color" value="#000000" class="color-picker-input">
-            </div>
-
-            <div class="popover-row">
-              <label><i class="fa-solid fa-fill-drip"></i> الخلفية</label>
+              <label>الخلفية</label>
               <select id="chroma-select" class="control-select">
                 <option value="black" selected>أسود داكن</option>
                 <option value="green">خلفية خضراء</option>
@@ -220,15 +236,7 @@
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-layer-group"></i> نمط العرض</label>
-              <select id="pres-mode-select" class="control-select">
-                <option value="oneline">سطر واحد أسفل الشاشة</option>
-                <option value="fullslide">شريحة كاملة بالمنتصف</option>
-              </select>
-            </div>
-
-            <div class="popover-row">
-              <label><i class="fa-solid fa-square"></i> خلفية الصندوق</label>
+              <label>خلفية الصندوق</label>
               <div class="compact-control-group">
                 <input type="color" id="obs-box-bg-color" value="#000000" class="color-picker-input">
                 <input type="range" id="obs-box-opacity-range" min="0" max="100" value="0" class="slider-input" title="الشفافية">
@@ -236,15 +244,26 @@
             </div>
 
             <div class="popover-row">
-              <label><i class="fa-solid fa-vector-square"></i> حواف الحاوية</label>
+              <label>حواف الحاوية</label>
               <div class="compact-control-group">
                 <input type="range" id="obs-box-radius-range" min="0" max="40" value="12" class="slider-input" title="الاستدوار">
                 <input type="range" id="obs-box-padding-range" min="0" max="50" value="20" class="slider-input" title="الهامش الداخلي">
               </div>
             </div>
 
+            <!-- SECTION 5: PRESENTATION OPTIONS & ANIMATION -->
+            <div class="popover-section-title"><i class="fa-solid fa-display"></i> خيارات العرض والحركة</div>
+
             <div class="popover-row">
-              <label><i class="fa-solid fa-wand-magic-sparkles"></i> الحركة</label>
+              <label>نمط العرض</label>
+              <select id="pres-mode-select" class="control-select">
+                <option value="oneline">سطر واحد أسفل الشاشة</option>
+                <option value="fullslide">شريحة كاملة بالمنتصف</option>
+              </select>
+            </div>
+
+            <div class="popover-row">
+              <label>الحركة</label>
               <select id="obs-text-anim-select" class="control-select">
                 <option value="slide" selected>صعود (Slide Up)</option>
                 <option value="drop">هبوط (Drop Down)</option>
@@ -255,7 +274,7 @@
               </select>
             </div>
 
-            <div class="popover-actions" style="margin-top:8px;">
+            <div class="popover-actions" style="margin-top:10px;">
               <button id="btn-share-style-link" class="btn btn-sm btn-secondary" style="width:100%; font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px;">
                 <i class="fa-solid fa-share-nodes"></i> مشاركة التنسيق
               </button>
@@ -263,7 +282,15 @@
           </div>
         </div>
 
-        <!-- DROPDOWN 2: DISPLAY & CAST OUTPUT -->
+      </div>
+
+      <!-- CENTERED LOGO -->
+      <div class="brand-text-centered">
+        <img src="logo_t.png" alt="Taranim Logo" class="brand-center-logo">
+      </div>
+
+      <!-- LEFT SIDE: CAST MENU BUTTON -->
+      <div class="top-left-options">
         <div class="dropdown-wrapper">
           <div id="btn-menu-cast-wrapper">
             <button class="icon-menu-btn" id="btn-menu-cast" title="البث والشاشات">
@@ -271,7 +298,7 @@
             </button>
           </div>
 
-          <div class="dropdown-popover hidden" id="popover-cast" style="min-width:280px;">
+          <div class="dropdown-popover hidden" id="popover-cast" style="min-width:280px; left:0; right:auto; transform-origin:top left;">
             <div class="popover-title"><i class="fa-solid fa-display"></i> البث والشاشات</div>
 
             <div id="screens-cast-container" style="display:flex; flex-direction:column; gap:6px; margin-bottom:4px;">
@@ -290,17 +317,6 @@
             </div>
           </div>
         </div>
-
-      </div>
-
-      <!-- CENTERED TEXT TITLE -->
-      <div class="brand-text-centered">
-        <span class="brand-main">Sunday School <span class="brand-accent">Taranim</span></span>
-      </div>
-
-      <!-- LEFT SIDE LOGO -->
-      <div class="brand-left-logo">
-        <img src="/logo.png" alt="Sunday School Logo" class="brand-logo-img">
       </div>
 
     </header>
