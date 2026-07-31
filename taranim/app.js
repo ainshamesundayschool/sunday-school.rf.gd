@@ -4318,6 +4318,7 @@ document.addEventListener('DOMContentLoaded', () => {
         els.obsLineText.style.fontFamily = state.selectedFont;
         let htmlText = escapeHtml(text);
         htmlText = htmlText.replace(/\((ق|قرار)\)/gi, '<span class="badge-num chorus-num">($1)</span>');
+        htmlText = htmlText.replace(/^(\s*)\(([\d٠-٩]+)\)/gm, '$1<span class="badge-num verse-num">($2)</span>');
 
         let lineSegs = htmlText.split('\n');
 
@@ -4348,8 +4349,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
               for (let k = endLineIdx; k >= 0; k--) {
                 let textOnly = lineSegs[k].replace(/<[^>]+>/g, '').trim();
-                let textWithoutChorus = textOnly.replace(/^[\s\(\[]*(?:ق|قرار)[\s\)\]]*/i, '').trim();
-                if (textOnly.startsWith('(') || textOnly.startsWith('[') || textWithoutChorus.startsWith('(') || textWithoutChorus.startsWith('[')) {
+                let textWithoutBadge = textOnly.replace(/^[\s\(\[]*(?:ق|قرار|[\d٠-٩]+)[\s\)\]]*/i, '').trim();
+                if (textOnly.startsWith('(') || textOnly.startsWith('[') || textWithoutBadge.startsWith('(') || textWithoutBadge.startsWith('[')) {
                   startLineIdx = k;
                   explicitStartFound = true;
                   break;
@@ -4365,12 +4366,12 @@ document.addEventListener('DOMContentLoaded', () => {
               const greyOpenBracket = `<span class="repeat-tag">(</span>`;
               const greyCloseTag = `<span class="repeat-tag">)${repeatNum}</span>`;
 
-              lineSegs[startLineIdx] = lineSegs[startLineIdx].replace(/^[\s\(\[]+(?=<span[^>]*class="[^"]*chorus-num")/i, '');
-              let chorusMatch = lineSegs[startLineIdx].match(/^(\s*(?:<span[^>]*class="[^"]*chorus-num"[^>]*>.*?<\/span>\s*)+)/i);
-              let chorusPrefix = chorusMatch ? chorusMatch[1] : '';
-              let restOfLine = lineSegs[startLineIdx].substring(chorusPrefix.length).replace(/^[\s\(\[]+/, '');
+              lineSegs[startLineIdx] = lineSegs[startLineIdx].replace(/^[\s\(\[]+(?=<span[^>]*class="[^"]*badge-num")/i, '');
+              let badgeMatch = lineSegs[startLineIdx].match(/^(\s*(?:<span[^>]*class="[^"]*badge-num"[^>]*>.*?<\/span>\s*)+)/i);
+              let badgePrefix = badgeMatch ? badgeMatch[1] : '';
+              let restOfLine = lineSegs[startLineIdx].substring(badgePrefix.length).replace(/^[\s\(\[]+/, '');
 
-              lineSegs[startLineIdx] = chorusPrefix + greyOpenBracket + restOfLine;
+              lineSegs[startLineIdx] = badgePrefix + greyOpenBracket + restOfLine;
               lineSegs[endLineIdx] = lineSegs[endLineIdx] + greyCloseTag;
             }
           }
