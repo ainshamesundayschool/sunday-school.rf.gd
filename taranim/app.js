@@ -2,6 +2,62 @@
 // SUNDAY SCHOOL TARANIM - MULTI-SCREEN & CONTROL DASHBOARD ENGINE
 // ==========================================================================
 
+const FRANCO_DICTIONARY = {
+  "rabena": "ربنا", "rabbina": "ربنا", "rbna": "ربنا", "rabina": "ربنا",
+  "rabby": "ربي", "raby": "ربي", "rab": "رب", "rabb": "رب",
+  "yasou3": "يسوع", "yaso3": "يسوع", "yassou3": "يسوع", "yasu3": "يسوع", "yasoa": "يسوع", "yasu": "يسوع",
+  "elmasih": "المسيح", "almasih": "المسيح", "lmasih": "المسيح", "masih": "مسيح",
+  "kirolos": "كيرلس", "kyrollos": "كيرلس", "kyrillos": "كيرلس",
+  "allah": "الله", "alla": "الله",
+  "3ashan": "عشان", "3shan": "عشان", "ashan": "عشان",
+  "ta3ala": "تعالى", "t3ala": "تعالى",
+  "alhan": "ألحان", "al7an": "ألحان",
+  "tarnima": "ترنيمة", "tarneema": "ترنيمة", "tarnim": "ترنيم", "taranim": "ترانيم", "taranem": "ترانيم",
+  "agmal": "أجمل", "a7la": "أحلى", "ahla": "أحلى",
+  "sa3a": "ساعة", "sa3ah": "ساعة", "sa3at": "ساعات",
+  "ya": "يا", "ana": "أنا", "enta": "أنت", "inta": "أنت", "enti": "أنت",
+  "habib": "حبيب", "7abib": "حبيب", "habibi": "حبيبي", "7abibi": "حبيبي",
+  "naseebi": "نصيبي", "naseeby": "نصيبي", "nasibi": "نصيبي",
+  "amgad": "أمجاد", "amgadal": "أمجاد",
+  "sadaq": "صدق", "sadaqni": "صدقني",
+  "koll": "كل", "kol": "كل", "kool": "كل",
+  "shabahak": "شبهك", "shabahk": "شبهك", "shabah": "شبه",
+  "men": "من", "min": "من", "meen": "مين",
+  "leh": "ليه", "feen": "فين", "eih": "ايه", "eyah": "ايه",
+  "zay": "زي", "bas": "بس", "lama": "لما",
+  "fe": "في", "fy": "في", "fee": "في",
+  "ma3aya": "معايا", "m3aya": "معايا", "ma3a": "مع",
+  "koon": "كون", "kun": "كن", "kn": "كن",
+  "rooh": "روح", "ro7": "روح", "roh": "روح",
+  "alqudos": "القدس", "elkods": "القدس", "elqodos": "القدس",
+  "fady": "فادي", "fadee": "فادي", "fadi": "فادي",
+  "baba": "بابا", "kaneesa": "كنيسة", "kanisa": "كنيسة",
+  "saleeb": "صليب", "slib": "صليب", "slieb": "صليب",
+  "damak": "دمك", "dam": "دم",
+  "qalo": "قالوا", "galo": "قالوا", "kalo": "قالوا",
+  "nour": "نور", "nor": "نور",
+  "efra7": "افرح", "efrah": "افرح", "farah": "فرح",
+  "7ob": "حب", "hob": "حب",
+  "malek": "ملك", "malk": "ملك",
+  "malak": "ملاك", "maloak": "ملاك",
+  "3azeez": "عزيز", "aziz": "عزيز",
+  "qalby": "قلبي", "qalbi": "قلبي", "galbi": "قلبي", "kalbi": "قلبي",
+  "rouhy": "روحي", "ro7i": "روحي",
+  "omry": "عمري", "3omri": "عمري", "3omry": "عمري",
+  "7ayaty": "حياتي", "hayaty": "حياتي", "hayati": "حياتي",
+  "khalas": "خلاص", "5alas": "خلاص",
+  "rajaa": "رجاء", "ragaa": "رجاء", "raga": "رجاء",
+  "imano": "إيمانه", "iman": "إيمان", "eman": "إيمان",
+  "bokra": "بكرة", "daiman": "دائما", "dayman": "دائما",
+  "shokran": "شكرا", "shokr": "شكر",
+  "ne3ma": "نعمة", "n3ma": "نعمة", "ne3matak": "نعمتك",
+  "hanan": "حنان", "7anan": "حنان", "hananak": "حنانك",
+  "ra7ma": "رحمة", "rahma": "رحمة", "ra7matak": "رحمتك",
+  "salam": "سلام", "salamak": "سلامك",
+  "qudous": "قدوس", "qoddos": "قدوس", "qodous": "قدوس",
+  "aleiluia": "هللويا", "halleluya": "هللويا", "haleluya": "هللويا"
+};
+
 const FRANCO_MAPPINGS = [
   ["shabahak", "شبهك"], ["yasou3", "يسوع"], ["kirolos", "كيرلس"],
   ["3ajel", "عجل"], ["rabby", "ربي"], ["7abib", "حبيب"],
@@ -327,7 +383,9 @@ function getMatchScore(song, query) {
 
   const qRaw    = query.trim().toLowerCase();
   const qNorm   = normalizeArabic(query);
-  const qFranco = francoToArabic(query);
+  const isFrancoQuery = /[a-z0-9]/i.test(query);
+  const qFrancoVariants = isFrancoQuery ? francoToArabicVariants(query) : [francoToArabic(query)].filter(Boolean);
+  
   const qWords  = qNorm.split(/\s+/).filter(Boolean);
   const qStems  = qWords.map(arabicStem);
 
@@ -357,15 +415,30 @@ function getMatchScore(song, query) {
 
   // --- Tier 1: Exact or full-phrase ---
   if (tRaw === qRaw || tNorm === qNorm) return 100;
-  if (qFranco && (tNorm === qFranco)) return 98;
+  for (const fVar of qFrancoVariants) {
+    if (fVar && tNorm === fVar) return 98;
+  }
 
   // --- Tier 2: Starts with query ---
   if (tNorm.startsWith(qNorm)) return 90;
-  if (qFranco && tNorm.startsWith(qFranco)) return 88;
+  for (const fVar of qFrancoVariants) {
+    if (fVar && tNorm.startsWith(fVar)) return 88;
+  }
 
   // --- Tier 3: Substring match in title ---
   if (tNorm.includes(qNorm)) return 78;
-  if (qFranco && tNorm.includes(qFranco)) return 74;
+  for (const fVar of qFrancoVariants) {
+    if (fVar && tNorm.includes(fVar)) return 74;
+  }
+
+  // --- Tier 3.5: Consonant Skeleton Match ---
+  const qSkeleton = isFrancoQuery ? extractArabicConsonantSkeleton(qFrancoVariants[0] || query) : extractArabicConsonantSkeleton(query);
+  const tSkeleton = extractArabicConsonantSkeleton(title);
+  if (qSkeleton && qSkeleton.length >= 3) {
+    if (tSkeleton === qSkeleton) return 94;
+    if (tSkeleton.startsWith(qSkeleton)) return 86;
+    if (tSkeleton.includes(qSkeleton)) return 72;
+  }
 
   // --- Tier 4: All query words appear somewhere in title ---
   if (qWords.length > 1) {
@@ -373,6 +446,15 @@ function getMatchScore(song, query) {
     if (allWordsInTitle) return 70;
     const allStemsInTitle = qStems.every(s => tStems.some(ts => ts.includes(s) || s.includes(ts)));
     if (allStemsInTitle) return 65;
+  }
+
+  // Check Franco variant words in title
+  for (const fVar of qFrancoVariants) {
+    if (!fVar) continue;
+    const fWords = fVar.split(/\s+/).filter(Boolean);
+    if (fWords.length > 1 && fWords.every(w => tNorm.includes(w))) {
+      return 68;
+    }
   }
 
   // --- Tier 5: Any query word matches a title word (stem-aware) ---
@@ -388,7 +470,6 @@ function getMatchScore(song, query) {
   }
   if (wordHits > 0) {
     const wordScore = 40 + Math.round((wordHits / Math.max(qStems.length, 1)) * 20);
-    // Word score is a fallback — but bump if majority matched
     if (wordHits >= qStems.length) return Math.max(wordScore, 62);
     return wordScore;
   }
@@ -408,10 +489,16 @@ function getMatchScore(song, query) {
   }
 
   // --- Tier 7: Match in lyrics/notes ---
-  if (qNorm.length >= 2) {
+  if (qNorm.length >= 2 || (qFrancoVariants.length > 0 && qFrancoVariants[0].length >= 2)) {
     // Check if any lyric line contains the full query
     const lineMatch = nLines.some(l => l.includes(qNorm));
     if (lineMatch) return 52;
+
+    for (const fVar of qFrancoVariants) {
+      if (fVar && nLines.some(l => l.includes(fVar))) {
+        return 50;
+      }
+    }
 
     // Check if all words appear in any single lyric line
     if (qWords.length > 1) {
@@ -421,7 +508,9 @@ function getMatchScore(song, query) {
 
     // Any word in notes
     if (nNorm.includes(qNorm)) return 30;
-    if (qFranco && nNorm.includes(qFranco)) return 25;
+    for (const fVar of qFrancoVariants) {
+      if (fVar && nNorm.includes(fVar)) return 25;
+    }
   }
 
   return 0;
