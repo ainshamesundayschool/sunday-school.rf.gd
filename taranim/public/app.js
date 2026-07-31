@@ -3110,7 +3110,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function ensureSongVerses(song) {
     if (!song) return song;
+
     if (song.verses && Array.isArray(song.verses) && song.verses.length > 0) {
+      const isBible = Boolean(song.is_bible || song.chapter_number !== undefined);
+      if (!isBible) {
+        song.verses.forEach((verse) => {
+          const rawVerseType = verse.type;
+          const slides = verse.slides || [];
+          const firstRawLine = (slides[0] && (slides[0].lines ? slides[0].lines[0] : slides[0].text)) || '';
+          
+          if (
+            rawVerseType === 1 ||
+            rawVerseType === '1' ||
+            verse.isChorus === true ||
+            String(rawVerseType).toLowerCase() === 'chorus' ||
+            /القرار|قرار|^ق$/i.test(verse.title || '') ||
+            /^\(?(القرار|قرار|ق)\)?[:\s\-]?/i.test(firstRawLine || '')
+          ) {
+            verse.type = 1;
+            verse.isChorus = true;
+          }
+        });
+      }
       return song;
     }
     if (!song.notes) return song;
@@ -3188,13 +3209,18 @@ document.addEventListener('DOMContentLoaded', () => {
           const isChorusVerse = (!isBible) && (
             rawVerseType === 1 ||
             rawVerseType === '1' ||
+            verse.isChorus === true ||
             String(rawVerseType).toLowerCase() === 'chorus' ||
             /القرار|قرار|^ق$/i.test(verse.title || '') ||
             /^\(?(القرار|قرار|ق)\)?[:\s\-]?/i.test(firstRawLine)
           );
 
           if (!isBible) {
-            if (!isChorusVerse) {
+            if (isChorusVerse) {
+              verse.type = 1;
+              verse.isChorus = true;
+            } else {
+              verse.type = 0;
               currentStanzaNum++;
             }
           }
