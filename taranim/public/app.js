@@ -4316,9 +4316,23 @@ document.addEventListener('DOMContentLoaded', () => {
         els.obsLineText.style.visibility = 'visible';
 
         els.obsLineText.style.fontFamily = state.selectedFont;
+        const isJomhuria = /jomhuria/i.test(state.selectedFont || '');
+        if (isJomhuria) {
+          els.obsLineText.style.fontSize = Math.round((state.fontSize || 54) * 1.55) + 'px';
+          els.obsLineText.style.lineHeight = '1.5';
+          els.obsLineText.style.letterSpacing = '3px';
+          els.obsLineText.style.wordSpacing = '9px';
+          els.obsLineText.style.fontWeight = '400';
+        } else {
+          els.obsLineText.style.fontSize = (state.fontSize || 54) + 'px';
+          els.obsLineText.style.lineHeight = '1.45';
+          els.obsLineText.style.letterSpacing = (state.styleOptions.letterSpacing !== undefined ? `${state.styleOptions.letterSpacing}px` : 'normal');
+          els.obsLineText.style.wordSpacing = 'normal';
+          els.obsLineText.style.fontWeight = state.styleOptions.fontWeight || '400';
+        }
+
         let htmlText = escapeHtml(text);
         htmlText = htmlText.replace(/\((ق|قرار)\)/gi, '<span class="badge-num chorus-num">($1)</span>');
-        htmlText = htmlText.replace(/^(\s*)\(([\d٠-٩]+)\)/gm, '$1<span class="badge-num verse-num">($2)</span>');
 
         let lineSegs = htmlText.split('\n');
 
@@ -4326,12 +4340,14 @@ document.addEventListener('DOMContentLoaded', () => {
           for (let i = 0; i < lineSegs.length; i++) {
             let lineStr = lineSegs[i].trim();
 
-            let match = lineStr.match(/(?:\)\s*)?\(\s*(\d+|[٠-٩]+)\s*\)$/) || 
-                        lineStr.match(/\)\s*(\d+|[٠-٩]+)$/) || 
-                        lineStr.match(/\)\s*\(\s*(\d+|[٠-٩]+)\s*\)$/);
+            let endMatch = lineStr.match(/(?:\)\s*)?\(\s*(\d+|[٠-٩]+)\s*\)$/) || 
+                           lineStr.match(/\)\s*(\d+|[٠-٩]+)$/) || 
+                           lineStr.match(/\)\s*\(\s*(\d+|[٠-٩]+)\s*\)$/);
 
-            if (match) {
-              let repeatNum = match[1];
+            let startMatch = !endMatch ? lineStr.match(/^(\s*(?:<span[^>]*>.*?<\/span>\s*)*)[\s\(\[]*(?:x|X|×|\*)?\s*(\d+|[٠-٩]+)\s*[\)\]\s]/i) : null;
+
+            if (endMatch && endMatch[1]) {
+              let repeatNum = endMatch[1];
               let endLineIdx = i;
 
               lineSegs[i] = lineSegs[i]
@@ -4349,7 +4365,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
               for (let k = endLineIdx; k >= 0; k--) {
                 let textOnly = lineSegs[k].replace(/<[^>]+>/g, '').trim();
-                let textWithoutBadge = textOnly.replace(/^[\s\(\[]*(?:ق|قرار|[\d٠-٩]+)[\s\)\]]*/i, '').trim();
+                let textWithoutBadge = textOnly.replace(/^[\s\(\[]*(?:ق|قرار)[\s\)\]]*/i, '').trim();
                 if (textOnly.startsWith('(') || textOnly.startsWith('[') || textWithoutBadge.startsWith('(') || textWithoutBadge.startsWith('[')) {
                   startLineIdx = k;
                   explicitStartFound = true;
@@ -4373,6 +4389,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
               lineSegs[startLineIdx] = badgePrefix + greyOpenBracket + restOfLine;
               lineSegs[endLineIdx] = lineSegs[endLineIdx] + greyCloseTag;
+
+            } else if (startMatch && startMatch[2]) {
+              let repeatNum = startMatch[2];
+              lineSegs[i] = lineSegs[i].replace(/^(\s*(?:<span[^>]*>.*?<\/span>\s*)*)[\s\(\[]*(?:x|X|×|\*)?\s*(\d+|[٠-٩]+)\s*[\)\]\s]*/i, '$1');
+
+              let badgeMatch = lineSegs[i].match(/^(\s*(?:<span[^>]*class="[^"]*badge-num"[^>]*>.*?<\/span>\s*)+)/i);
+              let badgePrefix = badgeMatch ? badgeMatch[1] : '';
+              let restOfLine = lineSegs[i].substring(badgePrefix.length).replace(/^[\s\(\[]+/, '');
+
+              const greyOpenBracket = `<span class="repeat-tag">(</span>`;
+              const greyCloseTag = `<span class="repeat-tag">)${repeatNum}</span>`;
+
+              lineSegs[i] = badgePrefix + greyOpenBracket + restOfLine + greyCloseTag;
             }
           }
         } else {

@@ -801,9 +801,15 @@
 
       if (isJomhuria) {
         baseSize = Math.round(baseSize * 1.55);
-        textEl.style.lineHeight = '1.3';
+        textEl.style.lineHeight = '1.5';
+        textEl.style.letterSpacing = '3px';
+        textEl.style.wordSpacing = '9px';
+        textEl.style.fontWeight = '400';
       } else {
         textEl.style.lineHeight = '1.45';
+        textEl.style.letterSpacing = (lastStyleData && lastStyleData.letterSpacing !== undefined) ? `${lastStyleData.letterSpacing}px` : 'normal';
+        textEl.style.wordSpacing = 'normal';
+        if (lastStyleData && lastStyleData.fontWeight) textEl.style.fontWeight = lastStyleData.fontWeight;
       }
 
       textEl.style.fontSize = baseSize + 'px';
@@ -972,21 +978,22 @@
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
 
-      // Format Chorus indicators like (ق) or (قرار) and Verse numbers like (1) or (2) at line start
+      // Format Chorus indicators like (ق) or (قرار)
       html = html.replace(/\((ق|قرار)\)/gi, '<span class="badge-num chorus-num">($1)</span>');
-      html = html.replace(/^(\s*)\(([\d٠-٩]+)\)/gm, '$1<span class="badge-num verse-num">($2)</span>');
 
       let lines = html.split('\n');
 
       for (let i = 0; i < lines.length; i++) {
         let lineStr = lines[i].trim();
 
-        let match = lineStr.match(/(?:\)\s*)?(?:\(|\[)?\s*(?:x|X|×|\*)?\s*(\d+|[٠-٩]+)\s*(?:x|X|×)?\s*(?:\)|\])?$/i) || 
-                    lineStr.match(/\s*(?:x|X|×|\*)\s*(\d+|[٠-٩]+)$/i) || 
-                    lineStr.match(/\(\s*(\d+|[٠-٩]+)\s*\)$/);
+        let endMatch = lineStr.match(/(?:\)\s*)?(?:\(|\[)?\s*(?:x|X|×|\*)?\s*(\d+|[٠-٩]+)\s*(?:x|X|×)?\s*(?:\)|\])?$/i) || 
+                       lineStr.match(/\s*(?:x|X|×|\*)\s*(\d+|[٠-٩]+)$/i) || 
+                       lineStr.match(/\(\s*(\d+|[٠-٩]+)\s*\)$/);
 
-        if (match && match[1]) {
-          let repeatNum = match[1];
+        let startMatch = !endMatch ? lineStr.match(/^(\s*(?:<span[^>]*>.*?<\/span>\s*)*)[\s\(\[]*(?:x|X|×|\*)?\s*(\d+|[٠-٩]+)\s*[\)\]\s]/i) : null;
+
+        if (endMatch && endMatch[1]) {
+          let repeatNum = endMatch[1];
           let endLineIdx = i;
 
           lines[i] = lines[i]
@@ -1003,7 +1010,7 @@
 
           for (let k = endLineIdx; k >= 0; k--) {
             let textOnly = lines[k].replace(/<[^>]+>/g, '').trim();
-            let textWithoutBadge = textOnly.replace(/^[\s\(\[]*(?:ق|قرار|[\d٠-٩]+)[\s\)\]]*/i, '').trim();
+            let textWithoutBadge = textOnly.replace(/^[\s\(\[]*(?:ق|قرار)[\s\)\]]*/i, '').trim();
             if (textOnly.startsWith('(') || textOnly.startsWith('[') || textWithoutBadge.startsWith('(') || textWithoutBadge.startsWith('[')) {
               startLineIdx = k;
               explicitStartFound = true;
@@ -1027,6 +1034,19 @@
 
           lines[startLineIdx] = badgePrefix + greyOpenBracket + restOfLine;
           lines[endLineIdx] = lines[endLineIdx] + greyCloseTag;
+
+        } else if (startMatch && startMatch[2]) {
+          let repeatNum = startMatch[2];
+          lines[i] = lines[i].replace(/^(\s*(?:<span[^>]*>.*?<\/span>\s*)*)[\s\(\[]*(?:x|X|×|\*)?\s*(\d+|[٠-٩]+)\s*[\)\]\s]*/i, '$1');
+          
+          let badgeMatch = lines[i].match(/^(\s*(?:<span[^>]*class="[^"]*badge-num"[^>]*>.*?<\/span>\s*)+)/i);
+          let badgePrefix = badgeMatch ? badgeMatch[1] : '';
+          let restOfLine = lines[i].substring(badgePrefix.length).replace(/^[\s\(\[]+/, '');
+
+          const greyOpenBracket = `<span class="repeat-tag">(</span>`;
+          const greyCloseTag = `<span class="repeat-tag">)${repeatNum}</span>`;
+
+          lines[i] = badgePrefix + greyOpenBracket + restOfLine + greyCloseTag;
         }
       }
 

@@ -1096,6 +1096,14 @@ html, body {
   display: inline-block;
 }
 
+/* Un-condense Jomhuria font for wide spacious layout */
+[style*="Jomhuria"],
+[style*="jomhuria"] {
+  letter-spacing: 2.5px;
+  word-spacing: 8px;
+  font-weight: 400 !important;
+}
+
 .slide-line-row .repeat-tag {
   color: #94a3b8 !important;
   font-weight: 700;
