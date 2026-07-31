@@ -3483,33 +3483,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     .trim();
           }).filter(l => l.length > 0);
 
-          if (isBible && cleanLines.length > 0) {
-            let brokenLines = [];
-            cleanLines.forEach(lineStr => {
-              const words = lineStr.split(/\s+/).filter(Boolean);
-              if (words.length <= 7) {
-                brokenLines.push(lineStr);
-              } else {
-                let cur = [];
-                for (let i = 0; i < words.length; i++) {
-                  cur.push(words[i]);
-                  const remaining = words.length - (i + 1);
-                  if (cur.length >= 5 && remaining >= 3) {
-                    brokenLines.push(cur.join(' '));
-                    cur = [];
-                  }
-                }
-                if (cur.length > 0) {
-                  if (cur.length < 3 && brokenLines.length > 0) {
-                    brokenLines[brokenLines.length - 1] += ' ' + cur.join(' ');
-                  } else {
-                    brokenLines.push(cur.join(' '));
-                  }
-                }
-              }
-            });
-            cleanLines = brokenLines.length > 0 ? brokenLines : cleanLines;
-          }
+
 
           if (cleanLines.length > 0) {
             let badgeText = '';
