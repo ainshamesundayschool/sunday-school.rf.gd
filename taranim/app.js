@@ -3485,6 +3485,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+          if (isBible && cleanLines.length > 0) {
+            let combinedText = cleanLines.join(' ').replace(/\s+/g, ' ').trim();
+            const words = combinedText.split(/\s+/).filter(Boolean);
+            const totalWords = words.length;
+
+            if (totalWords <= 9) {
+              cleanLines = [combinedText];
+            } else {
+              let numLines = Math.ceil(totalWords / 11);
+              if (numLines < 2) numLines = 2;
+              const wordsPerLine = Math.ceil(totalWords / numLines);
+              let resultLines = [];
+              for (let i = 0; i < totalWords; i += wordsPerLine) {
+                resultLines.push(words.slice(i, i + wordsPerLine).join(' '));
+              }
+              cleanLines = resultLines;
+            }
+          }
+
           if (cleanLines.length > 0) {
             let badgeText = '';
             let badgeClass = '';
