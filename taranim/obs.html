@@ -1046,7 +1046,17 @@
         document.body.setAttribute('data-chroma', data.chroma);
       }
 
-      const animType = data.anim || 'slide';
+      const customFontUrl = data.customFontDataUrl || localStorage.getItem('sunday_school_custom_font_dataurl');
+      const customFontName = data.customFontName || localStorage.getItem('sunday_school_custom_font_name');
+      if (customFontUrl && customFontName) {
+        let fontStyleEl = document.getElementById('custom-uploaded-font-style-obs');
+        if (!fontStyleEl) {
+          fontStyleEl = document.createElement('style');
+          fontStyleEl.id = 'custom-uploaded-font-style-obs';
+          document.head.appendChild(fontStyleEl);
+        }
+        fontStyleEl.textContent = `@font-face { font-family: "${customFontName}"; src: url("${customFontUrl}"); }`;
+      }
 
       if (data.font) {
         textEl.style.fontFamily = data.font;

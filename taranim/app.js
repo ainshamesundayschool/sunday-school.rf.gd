@@ -1343,6 +1343,8 @@ document.addEventListener('DOMContentLoaded', () => {
     fontSelect: document.getElementById('font-family-select'),
     customFontWrapper: document.getElementById('custom-font-wrapper'),
     customFontInput: document.getElementById('custom-font-input'),
+    customFontFileInput: document.getElementById('custom-font-file-input'),
+    customFontFileName: document.getElementById('custom-font-file-name'),
     chromaSelect: document.getElementById('chroma-select'),
     presModeSelect: document.getElementById('pres-mode-select'),
 
@@ -1702,6 +1704,22 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function applyInitialUIState() {
+    const savedCustomDataUrl = localStorage.getItem('sunday_school_custom_font_dataurl');
+    const savedCustomFontName = localStorage.getItem('sunday_school_custom_font_name');
+    if (savedCustomDataUrl && savedCustomFontName) {
+      let fontStyleEl = document.getElementById('custom-uploaded-font-style');
+      if (!fontStyleEl) {
+        fontStyleEl = document.createElement('style');
+        fontStyleEl.id = 'custom-uploaded-font-style';
+        document.head.appendChild(fontStyleEl);
+      }
+      fontStyleEl.textContent = `@font-face { font-family: "${savedCustomFontName}"; src: url("${savedCustomDataUrl}"); }`;
+      if (els.customFontFileName) {
+        let displayName = savedCustomFontName.replace(/^CustomFont_/, '').replace(/_/g, ' ');
+        els.customFontFileName.textContent = displayName;
+      }
+    }
+
     if (state.selectedFont) {
       document.documentElement.style.setProperty('--font-family', state.selectedFont);
       document.body.style.fontFamily = state.selectedFont;
@@ -2062,7 +2080,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const val = e.target.value;
       if (val === 'custom') {
         els.customFontWrapper.classList.remove('hidden');
-        applyFont(els.customFontInput.value || 'Tahoma');
+        const savedCustomFontName = localStorage.getItem('sunday_school_custom_font_name');
+        if (savedCustomFontName) {
+          applyFont(`"${savedCustomFontName}", sans-serif`);
+        } else if (els.customFontInput.value.trim()) {
+          applyFont(els.customFontInput.value.trim());
+        } else {
+          applyFont('sans-serif');
+        }
       } else {
         els.customFontWrapper.classList.add('hidden');
         applyFont(val);
@@ -2072,6 +2097,38 @@ document.addEventListener('DOMContentLoaded', () => {
     els.customFontInput.addEventListener('input', (e) => {
       applyFont(e.target.value || 'sans-serif');
     });
+
+    if (els.customFontFileInput) {
+      els.customFontFileInput.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_\-]/g, '_');
+        const fontName = 'CustomFont_' + cleanName;
+        if (els.customFontFileName) els.customFontFileName.textContent = file.name;
+
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          const dataUrl = evt.target.result;
+
+          let fontStyleEl = document.getElementById('custom-uploaded-font-style');
+          if (!fontStyleEl) {
+            fontStyleEl = document.createElement('style');
+            fontStyleEl.id = 'custom-uploaded-font-style';
+            document.head.appendChild(fontStyleEl);
+          }
+          fontStyleEl.textContent = `@font-face { font-family: "${fontName}"; src: url("${dataUrl}"); }`;
+
+          localStorage.setItem('sunday_school_custom_font_dataurl', dataUrl);
+          localStorage.setItem('sunday_school_custom_font_name', fontName);
+
+          state.customFontDataUrl = dataUrl;
+          const fontValue = `"${fontName}", sans-serif`;
+          applyFont(fontValue);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
 
     els.obsFontSizeRange.addEventListener('input', (e) => {
       state.fontSize = parseInt(e.target.value);
@@ -4175,6 +4232,8 @@ document.addEventListener('DOMContentLoaded', () => {
       totalSlides: totalSlides,
       scaleText: scaleText,
       font: state.selectedFont,
+      customFontDataUrl: localStorage.getItem('sunday_school_custom_font_dataurl') || state.customFontDataUrl || '',
+      customFontName: localStorage.getItem('sunday_school_custom_font_name') || '',
       fontSize: state.fontSize,
       chroma: state.chromaKey,
       isBlank: state.isBlank,

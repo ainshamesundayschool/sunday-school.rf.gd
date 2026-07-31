@@ -121,9 +121,16 @@
               </select>
             </div>
 
-            <div class="popover-row hidden" id="custom-font-wrapper">
-              <label>خط خاص</label>
-              <input type="text" id="custom-font-input" class="control-input" placeholder="اسم الخط..." value="Tahoma">
+            <div class="popover-row hidden" id="custom-font-wrapper" style="flex-direction: column; align-items: stretch; gap: 8px;">
+              <label style="margin-bottom: 2px;">خط محلي من الجهاز</label>
+              <div style="display: flex; gap: 6px; width: 100%;">
+                <label for="custom-font-file-input" class="control-btn" style="flex: 1; text-align: center; cursor: pointer; padding: 8px 12px; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 6px; background: var(--bg-hover, #e2e8f0); border-radius: 8px; font-weight: 500;">
+                  <i class="fa-solid fa-folder-open"></i>
+                  <span id="custom-font-file-name">اختر ملف خط (.ttf, .otf, .woff)...</span>
+                </label>
+                <input type="file" id="custom-font-file-input" accept=".ttf,.otf,.woff,.woff2" class="hidden">
+              </div>
+              <input type="text" id="custom-font-input" class="control-input" placeholder="أو اكتب اسم خط مثبت بنظامك..." value="" style="font-size: 0.82rem;">
             </div>
 
             <div class="popover-row">
