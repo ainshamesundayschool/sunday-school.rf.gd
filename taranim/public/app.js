@@ -3627,7 +3627,6 @@ document.addEventListener('DOMContentLoaded', () => {
       els.recentSessionContainer.innerHTML = `
         <div class="empty-state">
           <i class="fa-solid fa-clock-rotate-left"></i>
-          <p>تظهر العناصر المضافة في <strong>"${escapeHtml(activePlaylist.name)}"</strong> هنا.</p>
         </div>
       `;
       return;
