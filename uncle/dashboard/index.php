@@ -20849,8 +20849,10 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             const detailChurchBadge = sChurchDetail ? ` <span style="font-size:0.75rem; color:var(--brand); font-weight:700; margin-right:6px;"><i class="fas fa-church" style="font-size:0.7rem;"></i> ${escHtml(sChurchDetail)}</span>` : '';
             const detailClassStr = (s['الفصل'] || '') + detailChurchBadge;
             const detailNameStr = (s['الاسم'] || '') + (s._isGuest ? ' <span class="guest-badge" style="font-size:0.65rem; background:#f59e0b; color:#fff; padding:2px 6px; border-radius:4px; margin-right:4px; vertical-align:middle; display:inline-block;">زائر</span>' : '');
-            const img = s['صورة']
-                ? `<div class="detail-avatar-wrap"><img src="${window.photoUrl(s['صورة'])}" class="detail-avatar" onclick="showImageModal('${s['صورة']}')" onerror="this.style.display='none';var el=this.parentElement.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-avatar-fallback ${gender}" style="display:none"><i class="fas fa-user${s._isGuest ? '-tag' : ''}"></i></div><div class="detail-info-text"><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${detailClassStr}</div></div></div>`
+            const photoVal = s['صورة'] || s.image_url || s.photo || '';
+            const photoSrc = photoVal ? ((typeof window.photoUrl === 'function' && !photoVal.startsWith('http') && !photoVal.startsWith('/')) ? window.photoUrl(photoVal) : photoVal) : '';
+            const img = photoSrc
+                ? `<div class="detail-avatar-wrap"><img src="${photoSrc}" class="detail-avatar" onclick="showImageModal('${escJs(photoSrc)}')" onerror="this.style.display='none';var el=this.parentElement.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-avatar-fallback ${gender}" style="display:none"><i class="fas fa-user${s._isGuest ? '-tag' : ''}"></i></div><div class="detail-info-text"><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${detailClassStr}</div></div></div>`
                 : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user${s._isGuest ? '-tag' : ''}"></i></div><div class="detail-info-text"><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${detailClassStr}</div></div></div>`;
 
             // Reset edit/delete buttons visibility to default
@@ -20887,18 +20889,28 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 return;
             }
 
-            // Show a skeleton loader stub while we fetch full profile (to get trip_points)
+            // If offline, display details immediately from cache (no hanging skeleton loader)
+            if (!navigator.onLine) {
+                document.getElementById('studentModal').classList.add('active');
+                stopAutoRefresh();
+                buildStudentDetailsFromCache(s);
+                return;
+            }
+
+            // Show a skeleton loader stub while fetching full profile online
             document.getElementById('studentDetails').innerHTML = img + getKidDetailsSkeletonHtml();
             document.getElementById('studentModal').classList.add('active');
             stopAutoRefresh();
 
-            // Fetch full student profile (includes trip_points)
+            // Fetch full student profile (includes trip_points) with timeout fallback
             (async function () {
                 try {
+                    const ctrl = new AbortController();
+                    const timer = setTimeout(() => ctrl.abort(), 3000);
                     const fd = new FormData(); fd.append('action', 'getStudentProfile'); fd.append('studentId', getStudentDbId(s));
-                    const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json()).catch(() => ({ success: false }));
+                    const resp = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include', signal: ctrl.signal }).then(r => r.json()).catch(() => ({ success: false }));
+                    clearTimeout(timer);
                     if (!resp.success || !resp.student) {
-                        // fallback to cached details
                         buildStudentDetailsFromCache(s);
                         return;
                     }
@@ -21994,8 +22006,10 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
 
             const gender = getStudentGender(s);
             const detailNameStr = escStr(s['الاسم'] || '') + (s._isGuest ? ' <span class="guest-badge" style="font-size:0.65rem; background:#f59e0b; color:#fff; padding:2px 6px; border-radius:4px; margin-right:4px; vertical-align:middle; display:inline-block;">زائر</span>' : '');
-            const avatar = s['صورة']
-                ? `<div class="detail-avatar-wrap" onclick="showImageModal('${escJs(s['صورة'])}', event)"> <img src="${s['صورة']}" class="detail-avatar" onerror="this.style.display='none';var el=this.parentElement.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-avatar-fallback ${gender}" style="display:none"><i class="fas fa-user"></i></div><div class="detail-student-name">${detailNameStr}</div></div>`
+            const photoVal = s['صورة'] || s.image_url || s.photo || '';
+            const photoSrc = photoVal ? ((typeof window.photoUrl === 'function' && !photoVal.startsWith('http') && !photoVal.startsWith('/')) ? window.photoUrl(photoVal) : photoVal) : '';
+            const avatar = photoSrc
+                ? `<div class="detail-avatar-wrap" onclick="showImageModal('${escJs(photoSrc)}', event)"> <img src="${photoSrc}" class="detail-avatar" onerror="this.style.display='none';var el=this.parentElement.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-avatar-fallback ${gender}" style="display:none"><i class="fas fa-user"></i></div><div class="detail-student-name">${detailNameStr}</div></div>`
                 : `<div class="detail-avatar-wrap"><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-student-name">${detailNameStr}</div></div>`;
 
             // Render Notes Section for Cache (Offline fallback)
@@ -22032,10 +22046,12 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
         function buildStudentDetailsFromProfile(full) {
             const gender = (full.gender === 'female' || full['النوع'] === 'female') ? 'female' : 'male';
             const siblingHtml = buildSiblingPanel(full);
-            const showImgClick = full.image_url ? `onclick="showImageModal('${escJs(full.image_url)}', event)"` : '';
+            const photoVal = full.image_url || full['صورة'] || full.photo || '';
+            const photoSrc = photoVal ? ((typeof window.photoUrl === 'function' && !photoVal.startsWith('http') && !photoVal.startsWith('/')) ? window.photoUrl(photoVal) : photoVal) : '';
+            const showImgClick = photoSrc ? `onclick="showImageModal('${escJs(photoSrc)}', event)"` : '';
             const detailNameStr = escStr(full.name || '') + (full._isGuest ? ' <span class="guest-badge" style="font-size:0.65rem; background:#f59e0b; color:#fff; padding:2px 6px; border-radius:4px; margin-right:4px; vertical-align:middle; display:inline-block;">زائر</span>' : '');
-            const img = full.image_url
-                ? `<div class="detail-avatar-wrap" ${showImgClick}><img src="${full.image_url}" class="detail-avatar" onerror="this.style.display='none';var el=this.parentElement.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-avatar-fallback ${gender}" style="display:none"><i class="fas fa-user"></i></div><div class="detail-info-text"><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div></div>`
+            const img = photoSrc
+                ? `<div class="detail-avatar-wrap" ${showImgClick}><img src="${photoSrc}" class="detail-avatar" onerror="this.style.display='none';var el=this.parentElement.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-avatar-fallback ${gender}" style="display:none"><i class="fas fa-user"></i></div><div class="detail-info-text"><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div></div>`
                 : `<div class="detail-avatar-wrap" ${showImgClick}><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-info-text"><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div></div>`;
 
             let rowsList = [
@@ -22173,9 +22189,11 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
 
         function buildUncleDetailsFromProfile(full) {
             const gender = (full.gender === 'female' || full['النوع'] === 'female') ? 'female' : 'male';
-            const showImgClick = full.image_url ? `onclick="showImageModal('${escJs(full.image_url)}', event)"` : '';
-            const img = full.image_url
-                ? `<div class="detail-avatar-wrap" ${showImgClick}><img src="${full.image_url}" class="detail-avatar" onerror="this.style.display='none';var el=this.parentElement.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-avatar-fallback ${gender}" style="display:none"><i class="fas fa-user"></i></div><div class="detail-info-text"><div class="detail-student-name">${escStr(full.name || '')}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div></div>`
+            const photoVal = full.image_url || full['صورة'] || full.photo || '';
+            const photoSrc = photoVal ? ((typeof window.photoUrl === 'function' && !photoVal.startsWith('http') && !photoVal.startsWith('/')) ? window.photoUrl(photoVal) : photoVal) : '';
+            const showImgClick = photoSrc ? `onclick="showImageModal('${escJs(photoSrc)}', event)"` : '';
+            const img = photoSrc
+                ? `<div class="detail-avatar-wrap" ${showImgClick}><img src="${photoSrc}" class="detail-avatar" onerror="this.style.display='none';var el=this.parentElement.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-avatar-fallback ${gender}" style="display:none"><i class="fas fa-user"></i></div><div class="detail-info-text"><div class="detail-student-name">${escStr(full.name || '')}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div></div>`
                 : `<div class="detail-avatar-wrap" ${showImgClick}><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-info-text"><div class="detail-student-name">${escStr(full.name || '')}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div></div>`;
 
             const roleLabels = {
@@ -27149,7 +27167,21 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
         // Then paste the PUBLIC key string here:
         const VAPID_PUBLIC_KEY = '<?php echo defined("VAPID_PUBLIC_KEY") ? VAPID_PUBLIC_KEY : (getenv("VAPID_PUBLIC_KEY") ?: ""); ?>';
 
-        // Update toast disabled (removed to avoid automatic update prompts)
+        // ── Restore Cached Uncles & Guests for Offline Usage ─────────
+        (function _restoreCachedUnclesAndGuests() {
+            try {
+                if (!window.allUnclesData) {
+                    const cachedUncles = localStorage.getItem('lastUnclesData');
+                    if (cachedUncles) window.allUnclesData = JSON.parse(cachedUncles);
+                }
+            } catch (e) {}
+            try {
+                if (!window.allGuestsData) {
+                    const cachedGuests = localStorage.getItem('lastGuestsData');
+                    if (cachedGuests) window.allGuestsData = JSON.parse(cachedGuests);
+                }
+            } catch (e) {}
+        })();
 
         // ── Check & Prompt for Offline Data Installation ──────────────
         function _checkOfflineDataInstallation() {
@@ -27185,15 +27217,19 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             if (progressArea) progressArea.style.display = 'block';
 
             try {
-                if (bar) bar.style.width = '30%';
+                // Step 1: Precache shell files (20%)
+                if (bar) bar.style.width = '20%';
                 if (txt) txt.textContent = 'جاري تخزين شفرات وملفات النظام محلياً...';
 
                 if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
                     navigator.serviceWorker.controller.postMessage({ type: 'PRECACHE_OFFLINE_DATA' });
                 }
 
-                if (bar) bar.style.width = '70%';
+                // Step 2: Fetch and save all students data & classes (50%)
+                if (bar) bar.style.width = '50%';
                 if (txt) txt.textContent = 'جاري جلب وحفظ كافة أسماء الأطفال والفصول محلياً...';
+
+                const photosToCache = [];
 
                 await new Promise((resolve) => {
                     makeApiCall({ action: 'getAllStudentsData' }, r => {
@@ -27201,11 +27237,71 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                             try {
                                 localStorage.setItem('lastStudentsData', JSON.stringify(r.students));
                                 if (r.classes) localStorage.setItem('cachedClasses', JSON.stringify(r.classes));
+                                r.students.forEach(st => {
+                                    const p = st['صورة'] || st.image_url;
+                                    if (p) {
+                                        const resolved = (typeof window.photoUrl === 'function' && !p.startsWith('http') && !p.startsWith('/')) ? window.photoUrl(p) : p;
+                                        if (resolved && !photosToCache.includes(resolved)) photosToCache.push(resolved);
+                                    }
+                                });
                             } catch (e) {}
                         }
                         resolve();
                     }, () => resolve());
                 });
+
+                // Step 3: Fetch and save all servants / uncles data (75%)
+                if (bar) bar.style.width = '75%';
+                if (txt) txt.textContent = 'جاري جلب وحفظ كافة بيانات الخدام محلياً...';
+
+                await new Promise((resolve) => {
+                    makeApiCall({ action: 'getAllUncles' }, r => {
+                        const uncles = (r && (r.uncles || r.data)) ? (r.uncles || r.data) : (Array.isArray(r) ? r : null);
+                        if (uncles && Array.isArray(uncles)) {
+                            window.allUnclesData = uncles;
+                            try {
+                                localStorage.setItem('lastUnclesData', JSON.stringify(uncles));
+                                uncles.forEach(u => {
+                                    const p = u.image_url || u['صورة'];
+                                    if (p) {
+                                        const resolved = (typeof window.photoUrl === 'function' && !p.startsWith('http') && !p.startsWith('/')) ? window.photoUrl(p) : p;
+                                        if (resolved && !photosToCache.includes(resolved)) photosToCache.push(resolved);
+                                    }
+                                });
+                            } catch (e) {}
+                        }
+                        resolve();
+                    }, () => resolve());
+                });
+
+                // Step 4: Fetch and save all guests data (90%)
+                if (bar) bar.style.width = '90%';
+                if (txt) txt.textContent = 'جاري جلب وحفظ بيانات الزوار محلياً...';
+
+                await new Promise((resolve) => {
+                    makeApiCall({ action: 'getAllGuests' }, r => {
+                        const guests = (r && (r.guests || r.data)) ? (r.guests || r.data) : (Array.isArray(r) ? r : null);
+                        if (guests && Array.isArray(guests)) {
+                            window.allGuestsData = guests;
+                            try {
+                                localStorage.setItem('lastGuestsData', JSON.stringify(guests));
+                            } catch (e) {}
+                        }
+                        resolve();
+                    }, () => resolve());
+                });
+
+                // Step 5: Precache photos into Service Worker cache (100%)
+                if ('caches' in window && photosToCache.length) {
+                    try {
+                        const cache = await caches.open('sunday-school-v31');
+                        photosToCache.slice(0, 150).forEach(imgUrl => {
+                            fetch(imgUrl, { cache: 'no-store' }).then(res => {
+                                if (res && res.ok) cache.put(imgUrl, res);
+                            }).catch(() => {});
+                        });
+                    } catch (e) {}
+                }
 
                 if (bar) bar.style.width = '100%';
                 if (txt) txt.textContent = 'تم تثبيت وقراءة كافة البيانات بنجاح!';
@@ -27215,6 +27311,9 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
 
                 setTimeout(() => {
                     _dismissOfflineDataModal();
+                    if (currentClass === 'الخدام' || currentClass === 'الزوار') {
+                        renderAttendanceList(currentClass);
+                    }
                 }, 1500);
 
             } catch (err) {
