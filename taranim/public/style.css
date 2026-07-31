@@ -1107,8 +1107,8 @@ html, body {
 .slide-index-corner {
   position: absolute;
   bottom: 4px;
-  left: 12px;
-  font-size: 0.75rem;
+  left: 10px;
+  font-size: 0.65rem !important;
   font-weight: 700;
   color: #94a3b8;
 }
@@ -1119,7 +1119,7 @@ html, body {
 
 .line-item-actions {
   position: absolute;
-  top: 8px;
+  top: 6px;
   left: 8px;
   display: flex;
   align-items: center;
@@ -1127,18 +1127,38 @@ html, body {
   z-index: 5;
 }
 
-.copy-line-btn,
 .launch-fullscreen-btn {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  left: auto;
   background: #ffffff;
   border: 1px solid #cbd5e1;
   color: #475569;
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   border-radius: 6px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  z-index: 5;
+}
+
+.copy-line-btn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
@@ -2179,6 +2199,75 @@ html, body {
     height: auto;
     max-height: 46vh;
     font-size: 0.82rem;
+    font-weight: 400 !important;
+  }
+
+  .half-panel,
+  .presentation-lines-container,
+  .line-item,
+  .slide-line-row,
+  .recent-list-box,
+  .recent-session-card,
+  .panel-header,
+  .panel-title,
+  .search-item {
+    font-weight: 400 !important;
+  }
+
+  .slide-line-row span {
+    font-weight: 400 !important;
+  }
+
+  /* MOBILE APP BOTTOM BAR STICKS TO BOTTOM OF VIEWPORT EVEN IF PAGE ENDS MID SCREEN */
+  html, body {
+    min-height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .app-container {
+    min-height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 !important;
+  }
+
+  .app-bottom-bar {
+    margin-top: auto !important;
+    position: sticky !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 100 !important;
+  }
+
+  /* MOBILE PREVIEW: CONTENT FITTED WIDTH & HEIGHT, CENTERED VERTICALLY IN MIDDLE OF SCREEN */
+  .obs-lower-third-box,
+  .lower-third-container {
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: auto !important;
+    max-width: 92vw !important;
+    height: auto !important;
+    max-height: 85vh !important;
+    margin: 0 auto !important;
+    padding: 10px 14px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .obs-line-text,
+  .line-text {
+    height: auto !important;
+    line-height: 1.4 !important;
+    width: max-content !important;
+    max-width: 90vw !important;
+    margin: 0 auto !important;
   }
 
   .panel-header {
@@ -2235,6 +2324,28 @@ html, body {
   .playlist-entry-row {
     padding: 0.4rem 0.6rem;
     font-size: 0.8rem;
+  }
+}
+
+/* PC LANDSCAPE PREVIEW: EVENLY FILLS HEIGHT WITH MARGINS ABOVE & UNDER */
+@media (min-width: 769px) and (orientation: landscape) {
+  .obs-lower-third-box,
+  .lower-third-container {
+    padding-top: 2rem !important;
+    padding-bottom: 2rem !important;
+    max-height: 82vh !important;
+  }
+
+  .obs-line-text,
+  .line-text {
+    line-height: 1.65 !important;
+    margin-top: 2vh !important;
+    margin-bottom: 2vh !important;
+  }
+
+  .obs-line-segment {
+    margin-top: 0.35em !important;
+    margin-bottom: 0.35em !important;
   }
 }
 
@@ -2300,7 +2411,7 @@ html, body {
   box-shadow: none !important;
   padding: 0 !important;
   color: rgba(255, 255, 255, 0.88) !important;
-  font-size: 0.92rem !important;
+  font-size: 0.78rem !important;
   font-weight: 700 !important;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9) !important;
   display: inline-flex;
@@ -2310,32 +2421,32 @@ html, body {
 
 .btn-close-overlay-left {
   position: absolute;
-  bottom: 20px;
-  left: 20px;
-  width: 40px;
-  height: 40px;
-  background: transparent !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  border: none !important;
-  color: rgba(255, 255, 255, 0.85) !important;
+  bottom: 14px;
+  left: 14px;
+  width: 28px;
+  height: 28px;
+  background: rgba(0, 0, 0, 0.4) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
   border-radius: 50%;
-  font-size: 1.45rem !important;
+  font-size: 0.95rem !important;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  z-index: 999;
+  cursor: pointer !important;
+  z-index: 100000 !important;
   transition: all 0.2s cubic-bezier(0.2, 0.9, 0.3, 1);
-  box-shadow: none !important;
-  pointer-events: auto;
-  opacity: 0.85;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+  pointer-events: auto !important;
+  opacity: 0.9;
 }
 
 .btn-close-overlay-left:hover {
-  background: transparent !important;
-  border-color: transparent !important;
-  transform: scale(1.22);
+  background: rgba(0, 0, 0, 0.7) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  transform: scale(1.12);
   color: #ffffff !important;
   opacity: 1;
 }

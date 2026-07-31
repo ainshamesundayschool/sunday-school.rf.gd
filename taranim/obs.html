@@ -120,6 +120,53 @@
       backface-visibility: hidden;
     }
 
+    @media (min-width: 769px) and (orientation: landscape) {
+      .lower-third-container {
+        padding-top: 2rem !important;
+        padding-bottom: 2rem !important;
+        max-height: 82vh !important;
+      }
+      .line-text {
+        line-height: 1.65 !important;
+        margin-top: 2vh !important;
+        margin-bottom: 2vh !important;
+      }
+      .obs-line-segment {
+        margin-top: 0.35em !important;
+        margin-bottom: 0.35em !important;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .lower-third-container {
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        width: auto !important;
+        max-width: 92vw !important;
+        height: auto !important;
+        max-height: 85vh !important;
+        margin: 0 auto !important;
+        padding: 10px 14px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+      .line-text {
+        height: auto !important;
+        line-height: 1.4 !important;
+        width: max-content !important;
+        max-width: 90vw !important;
+        margin: 0 auto !important;
+      }
+      .obs-line-segment {
+        margin-top: 0.1em !important;
+        margin-bottom: 0.1em !important;
+      }
+    }
+
     /* TEXT APPEARANCE ANIMATIONS FOR CONTAINER (WITH MOBILE SAFARI WEBKIT COMPATIBILITY) */
     /* HIGH-PERFORMANCE 60FPS GPU ACCELERATED TEXT APPEARANCE ANIMATIONS */
     /* NOTE: In obs.html, animation is applied to the CONTAINER box which uses translate(-50%,-50%) for centering */
