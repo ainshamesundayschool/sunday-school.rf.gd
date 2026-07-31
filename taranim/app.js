@@ -3484,38 +3484,31 @@ document.addEventListener('DOMContentLoaded', () => {
           }).filter(l => l.length > 0);
 
           if (isBible && cleanLines.length > 0) {
-            let merged = [];
-            let cur = '';
-
-            cleanLines.forEach(line => {
-              let trimmed = line.trim();
-              if (!trimmed) return;
-
-              if (!cur) {
-                cur = trimmed;
+            let brokenLines = [];
+            cleanLines.forEach(lineStr => {
+              const words = lineStr.split(/\s+/).filter(Boolean);
+              if (words.length <= 7) {
+                brokenLines.push(lineStr);
               } else {
-                const wordCount = cur.replace(/<[^>]+>/g, '').trim().split(/\s+/).filter(Boolean).length;
-                if (wordCount < 3) {
-                  cur += ' ' + trimmed;
-                } else {
-                  merged.push(cur);
-                  cur = trimmed;
+                let cur = [];
+                for (let i = 0; i < words.length; i++) {
+                  cur.push(words[i]);
+                  const remaining = words.length - (i + 1);
+                  if (cur.length >= 5 && remaining >= 3) {
+                    brokenLines.push(cur.join(' '));
+                    cur = [];
+                  }
+                }
+                if (cur.length > 0) {
+                  if (cur.length < 3 && brokenLines.length > 0) {
+                    brokenLines[brokenLines.length - 1] += ' ' + cur.join(' ');
+                  } else {
+                    brokenLines.push(cur.join(' '));
+                  }
                 }
               }
             });
-
-            if (cur) {
-              const wordCount = cur.replace(/<[^>]+>/g, '').trim().split(/\s+/).filter(Boolean).length;
-              if (wordCount < 3 && merged.length > 0) {
-                merged[merged.length - 1] += ' ' + cur;
-              } else {
-                merged.push(cur);
-              }
-            }
-
-            if (merged.length > 0) {
-              cleanLines = merged;
-            }
+            cleanLines = brokenLines.length > 0 ? brokenLines : cleanLines;
           }
 
           if (cleanLines.length > 0) {
@@ -3538,7 +3531,7 @@ document.addEventListener('DOMContentLoaded', () => {
               labelText = `بيت ${sNum}`;
             }
 
-                        const pushSlideItem = (linesArray) => {
+            const pushSlideItem = (linesArray) => {
               let curBadgeText = isFirstSlideOfVerse ? badgeText : '';
               let curBadgeClass = isFirstSlideOfVerse ? badgeClass : '';
               let fullText = curBadgeText ? `${curBadgeText} ${linesArray.join('\n')}` : linesArray.join('\n');
@@ -3553,7 +3546,7 @@ document.addEventListener('DOMContentLoaded', () => {
               isFirstSlideOfVerse = false;
             };
 
-            if (mode === 'oneline') {
+            if (isBible || mode === 'oneline') {
               cleanLines.forEach((singleLine) => {
                 pushSlideItem([singleLine]);
               });
