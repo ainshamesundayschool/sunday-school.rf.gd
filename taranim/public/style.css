@@ -2286,8 +2286,8 @@ html, body {
   .obs-line-text,
   .line-text {
     height: auto !important;
-    line-height: 1.62 !important;
-    width: max-content !important;
+    line-height: 1.5 !important;
+    width: 100% !important;
     max-width: 90vw !important;
     margin: 0 auto !important;
   }
