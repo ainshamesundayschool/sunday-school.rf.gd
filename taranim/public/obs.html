@@ -699,9 +699,9 @@
         return;
       }
 
-      // Horizontal swipe (Reversed gesture per user preference)
+      // Horizontal swipe (Right-to-Left deltaX < 0 = Next slide)
       if (Math.abs(deltaX) >= 25 && Math.abs(deltaX) > Math.abs(deltaY)) {
-        if (deltaX > 0) {
+        if (deltaX < 0) {
           triggerNextSlide();
         } else {
           triggerPrevSlide();
