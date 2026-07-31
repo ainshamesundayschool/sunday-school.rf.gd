@@ -1002,7 +1002,38 @@
 
       let lines = html.split('\n');
 
-      if (!isBible) {
+      if (isBible) {
+        let mergedLines = [];
+        let curLine = '';
+
+        lines.forEach(l => {
+          let trimmed = l.trim();
+          if (!trimmed) return;
+
+          if (!curLine) {
+            curLine = trimmed;
+          } else {
+            const wordCount = curLine.replace(/<[^>]+>/g, '').trim().split(/\s+/).filter(Boolean).length;
+            if (wordCount < 3) {
+              curLine += ' ' + trimmed;
+            } else {
+              mergedLines.push(curLine);
+              curLine = trimmed;
+            }
+          }
+        });
+
+        if (curLine) {
+          const wordCount = curLine.replace(/<[^>]+>/g, '').trim().split(/\s+/).filter(Boolean).length;
+          if (wordCount < 3 && mergedLines.length > 0) {
+            mergedLines[mergedLines.length - 1] += ' ' + curLine;
+          } else {
+            mergedLines.push(curLine);
+          }
+        }
+
+        lines = mergedLines.length > 0 ? mergedLines : lines;
+      } else {
         for (let i = 0; i < lines.length; i++) {
           let lineStr = lines[i].trim();
 
@@ -1037,7 +1068,7 @@
             }
 
             if (!explicitStartFound) {
-              startLineIdx = 0; // Wrap whole slide from line 0 if no explicit start bracket
+              startLineIdx = 0;
             }
 
             const greyOpenBracket = `<span class="repeat-tag">(</span>`;
