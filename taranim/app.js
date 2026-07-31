@@ -3483,6 +3483,41 @@ document.addEventListener('DOMContentLoaded', () => {
                     .trim();
           }).filter(l => l.length > 0);
 
+          if (isBible && cleanLines.length > 0) {
+            let merged = [];
+            let cur = '';
+
+            cleanLines.forEach(line => {
+              let trimmed = line.trim();
+              if (!trimmed) return;
+
+              if (!cur) {
+                cur = trimmed;
+              } else {
+                const wordCount = cur.replace(/<[^>]+>/g, '').trim().split(/\s+/).filter(Boolean).length;
+                if (wordCount < 3) {
+                  cur += ' ' + trimmed;
+                } else {
+                  merged.push(cur);
+                  cur = trimmed;
+                }
+              }
+            });
+
+            if (cur) {
+              const wordCount = cur.replace(/<[^>]+>/g, '').trim().split(/\s+/).filter(Boolean).length;
+              if (wordCount < 3 && merged.length > 0) {
+                merged[merged.length - 1] += ' ' + cur;
+              } else {
+                merged.push(cur);
+              }
+            }
+
+            if (merged.length > 0) {
+              cleanLines = merged;
+            }
+          }
+
           if (cleanLines.length > 0) {
             let badgeText = '';
             let badgeClass = '';

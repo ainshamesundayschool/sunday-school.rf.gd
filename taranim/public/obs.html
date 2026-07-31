@@ -779,67 +779,16 @@
       currentIsBible = isBible;
       const baseSize = (lastStyleData && lastStyleData.fontSize) || stateFontSize || 54;
 
-      const viewportW = window.innerWidth;
-      const viewportH = window.innerHeight;
-      const isVerticalScreen = viewportW < viewportH || viewportW <= 768;
-
-      let targetSize = baseSize;
-
-      if (isBible || isVerticalScreen) {
-        const maxW = viewportW * 0.88;
-        const maxH = viewportH * 0.80;
-
-        const segments = Array.from(textEl.querySelectorAll('.obs-line-segment'));
-
-        // Temporarily force nowrap to measure true horizontal line lengths
-        segments.forEach(s => {
-          s.style.whiteSpace = 'nowrap';
-          s.style.wordBreak = 'keep-all';
-        });
-
-        const initialCap = isBible ? Math.min(baseSize, 38) : baseSize;
-        let low = 14;
-        let high = initialCap;
-        let best = initialCap;
-
-        textEl.style.fontSize = high + 'px';
-        textEl.style.lineHeight = '1.45';
-
-        let maxSegW = textEl.scrollWidth;
-        if (segments.length > 0) {
-          maxSegW = Math.max(...segments.map(s => s.scrollWidth));
-        }
-
-        if (maxSegW > maxW || textEl.scrollHeight > maxH) {
-          while (low <= high) {
-            const mid = Math.floor((low + high) / 2);
-            textEl.style.fontSize = mid + 'px';
-
-            let curMaxSegW = textEl.scrollWidth;
-            if (segments.length > 0) {
-              curMaxSegW = Math.max(...segments.map(s => s.scrollWidth));
-            }
-
-            if (curMaxSegW <= maxW && textEl.scrollHeight <= maxH) {
-              best = mid;
-              low = mid + 1;
-            } else {
-              high = mid - 1;
-            }
-          }
-          targetSize = best;
-        }
-
-        // Restore normal line wrapping with keep-all so words NEVER split mid-word
-        segments.forEach(s => {
-          s.style.whiteSpace = 'normal';
-          s.style.wordBreak = 'keep-all';
-          s.style.overflowWrap = 'break-word';
-        });
-      }
-
-      textEl.style.fontSize = targetSize + 'px';
+      textEl.style.fontSize = baseSize + 'px';
       textEl.style.lineHeight = '1.45';
+
+      const segments = Array.from(textEl.querySelectorAll('.obs-line-segment'));
+      segments.forEach(s => {
+        s.style.whiteSpace = 'normal';
+        s.style.wordBreak = 'keep-all';
+        s.style.overflowWrap = 'break-word';
+      });
+
       applyDynamicShadow();
     }
 
