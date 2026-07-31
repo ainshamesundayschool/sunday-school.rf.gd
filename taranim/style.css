@@ -2158,36 +2158,35 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 0;
   text-align: center;
   padding: 16px 24px;
   animation: fadeIn 0.4s ease-out;
+  margin: auto;
 }
 
 .standby-branding .standby-logo {
-  width: 68px;
-  height: 68px;
-  object-fit: cover;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
+  width: 150px;
+  height: 150px;
+  max-width: 80vw;
+  max-height: 40vh;
+  object-fit: contain;
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  filter: brightness(0) invert(1) !important;
+  -webkit-filter: brightness(0) invert(1) !important;
 }
 
 .standby-branding .standby-title {
-  font-family: 'Alexandria', sans-serif;
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: #ffffff !important;
-  margin: 0;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85);
-  letter-spacing: 0.3px;
+  display: none !important;
 }
 
-.standby-branding .brand-accent {
-  color: #ffffff !important;
-  font-weight: 700;
-  opacity: 0.95;
+@media (max-width: 768px) {
+  .standby-branding .standby-logo {
+    width: 65px;
+    height: 65px;
+  }
 }
 
 /* SLEEK BOTTOM FOOTER INFO BAR FOR PRESENTER DISPLAY */

@@ -288,35 +288,34 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 10px;
+      gap: 0;
       text-align: center;
       padding: 16px 24px;
+      margin: auto;
     }
 
     .standby-branding .standby-logo {
-      width: 68px;
-      height: 68px;
-      object-fit: cover;
-      border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-      filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
+      width: 150px;
+      height: 150px;
+      max-width: 80vw;
+      max-height: 40vh;
+      object-fit: contain;
+      border-radius: 0 !important;
+      border: none !important;
+      box-shadow: none !important;
+      filter: brightness(0) invert(1) !important;
+      -webkit-filter: brightness(0) invert(1) !important;
     }
 
     .standby-branding .standby-title {
-      font-family: 'Alexandria', sans-serif;
-      font-size: 1.35rem;
-      font-weight: 700;
-      color: #ffffff !important;
-      margin: 0;
-      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85);
-      letter-spacing: 0.3px;
+      display: none !important;
     }
 
-    .brand-accent {
-      color: #ffffff !important;
-      font-weight: 700;
-      opacity: 0.95;
+    @media (max-width: 768px) {
+      .standby-branding .standby-logo {
+        width: 65px;
+        height: 65px;
+      }
     }
 
     .btn-close-overlay-left {
@@ -429,8 +428,7 @@
 
   <div class="lower-third-container" id="presenter-box">
     <div id="standby-branding" class="standby-branding">
-      <img src="logo.png" alt="Sunday School Logo" class="standby-logo">
-      <div class="standby-title">Sunday School <span class="brand-accent">Taranim</span></div>
+      <img src="logo_t.png" alt="Sunday School Logo" class="standby-logo">
     </div>
     <div class="line-text hidden" id="presenter-text"></div>
   </div>
@@ -884,7 +882,7 @@
     let currentAnimState = null;
     let lastProcessedTimestamp = 0;
 
-    function formatPresenterText(rawText) {
+    function formatPresenterText(rawText, isBible = false) {
       if (!rawText) return '';
 
       let text = String(rawText);
@@ -903,9 +901,10 @@
       // 2. Format Stanza / Verse numbers or repeat multipliers like (1), (2), (3), (١), (٢) with verse-num class
       html = html.replace(/\((\d+|[٠-٩]+)\)/g, '<span class="badge-num verse-num">($1)</span>');
 
-      // Wrap each segment line in a nowrap span for fit-to-width single-line guarantee
+      // Wrap each segment line
       const lines = html.split('\n');
-      return lines.map(l => `<span class="obs-line-segment" style="display: block; white-space: nowrap; text-align: center;">${l}</span>`).join('');
+      const whiteSpaceStyle = isBible ? 'normal' : 'nowrap';
+      return lines.map(l => `<span class="obs-line-segment" style="display: block; white-space: ${whiteSpaceStyle}; word-break: break-word; text-align: center;">${l}</span>`).join('');
     }
 
     function applyState(data, source = 'local') {
@@ -993,7 +992,8 @@
         textEl.classList.remove('hidden');
         textEl.style.display = 'inline-block';
         textEl.style.visibility = 'visible';
-        textEl.innerHTML = formatPresenterText(data.text);
+        const isBible = Boolean(data.isBible || data.is_bible);
+        textEl.innerHTML = formatPresenterText(data.text, isBible);
         fitTextToSafeArea();
 
         if (currentTextState !== data.text || currentAnimState !== animType) {

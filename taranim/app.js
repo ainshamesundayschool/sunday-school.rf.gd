@@ -3958,9 +3958,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const totalSlides = state.presentationLines.length;
     const scaleText = getSongScaleText(state.activeSong);
 
+    const isBible = Boolean(state.activeSong && (state.activeSong.is_bible || state.activeSong.chapter_number !== undefined || state.activeSong.type === 'bible'));
+
     const payload = {
       type: 'PRESENT_LINE',
       text: text,
+      isBible: isBible,
+      is_bible: isBible,
       songTitle: state.activeSong ? state.activeSong.title : '',
       currentSlide: currentSlide,
       totalSlides: totalSlides,
@@ -4114,7 +4118,8 @@ document.addEventListener('DOMContentLoaded', () => {
         htmlText = htmlText.replace(/\((\d+|[٠-٩]+)\)/g, '<span class="badge-num verse-num">($1)</span>');
         
         const lineSegs = htmlText.split('\n');
-        els.obsLineText.innerHTML = lineSegs.map(l => `<span class="obs-line-segment" style="display: block; white-space: nowrap; text-align: center;">${l}</span>`).join('');
+        const whiteSpaceStyle = isBible ? 'normal' : 'nowrap';
+        els.obsLineText.innerHTML = lineSegs.map(l => `<span class="obs-line-segment" style="display: block; white-space: ${whiteSpaceStyle}; word-break: break-word; text-align: center;">${l}</span>`).join('');
 
         // Re-trigger animation on EVERY text change, not just animation type change
         const textChanged = (currentPresenterText !== text);
