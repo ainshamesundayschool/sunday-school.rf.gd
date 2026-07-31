@@ -2187,10 +2187,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       clearTimeout(searchTimer);
+      const isMobile = window.innerWidth <= 768;
+      const delay = isMobile ? 220 : 90;
+
       searchTimer = setTimeout(() => {
         renderSearchWordSuggestions(query);
         performIntelligentSearch(query);
-      }, 70);
+      }, delay);
     });
 
     els.intelligentSearch.addEventListener('focus', () => {
@@ -3083,7 +3086,10 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSearchDropdown(scored, query);
   }
 
-  function renderSearchDropdown(songs, query) {
+  let activeSearchLimit = 15;
+
+  function renderSearchDropdown(songs, query, displayLimit = 15) {
+    activeSearchLimit = displayLimit;
     const qNorm  = normalizeArabic(query);
     const qWords = qNorm.split(/\s+/).filter(w => w.length >= 2);
 
@@ -3098,7 +3104,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!songs || songs.length === 0) {
       els.searchDropdown.innerHTML = francoHeaderHtml + `<div class="search-item no-results-item"><i class="fa-solid fa-circle-exclamation" style="color:#94a3b8; margin-left:6px;"></i><span class="item-title">لم يتم العثور على ترنيمة أو شاهد كتابي</span></div>`;
     } else {
-      const itemsHtml = songs.slice(0, 16).map(s => {
+      const visibleSongs = songs.slice(0, activeSearchLimit);
+      const remainingCount = songs.length - visibleSongs.length;
+
+      const itemsHtml = visibleSongs.map(s => {
         const rawNotes = s.notes || '';
         const allLines = rawNotes.split(/[\n,]+/).map(l => l.trim()).filter(l => l.length > 0);
 
@@ -3156,7 +3165,18 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
       }).join('');
 
-      els.searchDropdown.innerHTML = francoHeaderHtml + itemsHtml;
+      let loadMoreBtnHtml = '';
+      if (remainingCount > 0) {
+        const nextChunk = Math.min(15, remainingCount);
+        loadMoreBtnHtml = `
+          <button type="button" id="btn-search-load-more" class="search-load-more-btn">
+            <i class="fa-solid fa-circle-chevron-down"></i>
+            عرض المزيد من النتائج (+${nextChunk} من ${remainingCount} متبقية)
+          </button>
+        `;
+      }
+
+      els.searchDropdown.innerHTML = francoHeaderHtml + itemsHtml + loadMoreBtnHtml;
     }
 
     els.searchDropdown.classList.remove('hidden');
@@ -3172,6 +3192,14 @@ document.addEventListener('DOMContentLoaded', () => {
         openAndPresentItem(id, isBible);
       });
     });
+
+    const btnLoadMore = els.searchDropdown.querySelector('#btn-search-load-more');
+    if (btnLoadMore) {
+      btnLoadMore.addEventListener('click', (e) => {
+        e.stopPropagation();
+        renderSearchDropdown(songs, query, activeSearchLimit + 15);
+      });
+    }
   }
 
 
