@@ -1787,12 +1787,29 @@ document.addEventListener('DOMContentLoaded', () => {
       els.btnDeleteSelectedRecents.addEventListener('click', () => {
         if (state.selectedRecentIndexes.size === 0) return;
         const sortedIndexes = Array.from(state.selectedRecentIndexes).sort((a, b) => b - a);
+        let activeWasDeleted = false;
+
         sortedIndexes.forEach(idx => {
+          const itemToDelete = state.sessionRecents[idx];
+          if (itemToDelete && state.activeSong && getItemKey(itemToDelete) === getItemKey(state.activeSong)) {
+            activeWasDeleted = true;
+          }
           state.sessionRecents.splice(idx, 1);
         });
+
         state.selectedRecentIndexes.clear();
         savePlaylists();
         renderRecentSession();
+
+        if (activeWasDeleted) {
+          state.activeSong = null;
+          state.presentationLines = [];
+          state.currentLineIndex = 0;
+          state.isBlank = true;
+          renderPresentationLinesList();
+          syncLiveState();
+        }
+
         showToast('تم حذف العناصر المحددة.');
       });
     }
@@ -3068,9 +3085,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 1. ALWAYS PRIORITIZE CANONICAL CATALOG SONG BY ID FIRST (For non-Bible items)
     if (!isBible && state.allSongs && state.allSongs.length > 0) {
-      const canonicalSong = state.allSongs.find(s => 
-        !s.is_bible && (String(s.id) === String(songId) || String(s.item_id) === String(songId))
-      );
+      let canonicalSong = state.allSongs.find(s => !s.is_bible && String(s.id) === String(songId));
+      if (!canonicalSong) {
+        canonicalSong = state.allSongs.find(s => !s.is_bible && String(s.item_id) === String(songId));
+      }
       if (canonicalSong) {
         // Deep clone so rendering line modifications never corrupt the canonical catalog object
         targetSong = JSON.parse(JSON.stringify(canonicalSong));
@@ -3079,10 +3097,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. Search in active session recents matching id AND is_bible type if not found in catalog
     if (!targetSong) {
-      const foundInRecents = state.sessionRecents.find(r => 
-        Boolean(r.is_bible) === Boolean(isBible) && 
-        (String(r.id) === String(songId) || String(r.item_id) === String(songId))
+      let foundInRecents = state.sessionRecents.find(r => 
+        Boolean(r.is_bible) === Boolean(isBible) && String(r.id) === String(songId)
       );
+      if (!foundInRecents) {
+        foundInRecents = state.sessionRecents.find(r => 
+          Boolean(r.is_bible) === Boolean(isBible) && String(r.item_id) === String(songId)
+        );
+      }
       if (foundInRecents) {
         targetSong = JSON.parse(JSON.stringify(foundInRecents));
       }
