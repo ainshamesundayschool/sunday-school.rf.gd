@@ -360,6 +360,32 @@ if (preg_match('#/api/song/(\d+)#', $parsedUrl, $matches) || (isset($_GET['actio
         exit;
     }
 
+    // Fetch all repetitions for this item from database
+    $repMap = [];
+    try {
+        $repStmt = $pdo->prepare("
+            SELECT r.start_segment, r.end_segment, r.repetitions
+            FROM repetitions r
+            JOIN segments sg ON sg.id = r.start_segment
+            JOIN slides sl ON sl.id = sg.slide
+            JOIN verses v ON v.id = sl.verse
+            WHERE v.item_id = :itemId
+        ");
+        $repStmt->bindValue(':itemId', $song['item_id'], PDO::PARAM_INT);
+        $repStmt->execute();
+        $repRows = $repStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($repRows as $rRow) {
+            $sId = (int)$rRow['start_segment'];
+            $eId = (int)$rRow['end_segment'];
+            $cnt = (int)$rRow['repetitions'];
+            if (!isset($repMap[$sId])) $repMap[$sId] = ['start' => [], 'end' => []];
+            if (!isset($repMap[$eId])) $repMap[$eId] = ['start' => [], 'end' => []];
+            $repMap[$sId]['start'][] = $cnt;
+            $repMap[$eId]['end'][] = $cnt;
+        }
+    } catch (Exception $ex) {}
+
     $vStmt = $pdo->prepare("SELECT id, type FROM verses WHERE item_id = :itemId ORDER BY id ASC");
     $vStmt->bindValue(':itemId', $song['item_id'], PDO::PARAM_INT);
     $vStmt->execute();
@@ -374,10 +400,26 @@ if (preg_match('#/api/song/(\d+)#', $parsedUrl, $matches) || (isset($_GET['actio
 
         $slidesData = [];
         foreach ($slides as $slide) {
-            $lineStmt = $pdo->prepare("SELECT content FROM segments WHERE slide = :sid ORDER BY id ASC");
+            $lineStmt = $pdo->prepare("SELECT id, content FROM segments WHERE slide = :sid ORDER BY id ASC");
             $lineStmt->bindValue(':sid', $slide['id'], PDO::PARAM_INT);
             $lineStmt->execute();
-            $lines = $lineStmt->fetchAll(PDO::FETCH_COLUMN);
+            $segRows = $lineStmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $lines = [];
+            foreach ($segRows as $seg) {
+                $segId = (int)$seg['id'];
+                $txt = trim($seg['content']);
+                if (isset($repMap[$segId])) {
+                    if (!empty($repMap[$segId]['start'])) {
+                        $txt = '(' . $txt;
+                    }
+                    if (!empty($repMap[$segId]['end'])) {
+                        $count = $repMap[$segId]['end'][0];
+                        $txt = $txt . ')' . $count;
+                    }
+                }
+                $lines[] = $txt;
+            }
 
             $slidesData[] = [
                 'id' => $slide['id'],
