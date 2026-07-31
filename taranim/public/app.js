@@ -1036,115 +1036,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('btn-menu-cast-wrapper');
     if (!container) return;
 
-    if (state.selectedScreen) {
-      const isPrimary = state.selectedScreen.isPrimary || state.selectedScreen.val === 'primary' || state.selectedScreen.val === '0';
-      const screenNum = isPrimary ? '1' : '2';
-
-      if (!presentationStartTime) {
-        presentationStartTime = Date.now();
-      }
-
-      container.innerHTML = `
-        <div class="display-selected-pill" id="btn-menu-cast" title="اضغط لفتح قائمة اختيار الشاشات">
-          <span class="display-pill-badge" title="رقم الشاشة">
-            <i class="fa-solid fa-tv"></i> ${screenNum}
-          </span>
-          ${!isPrimary ? '<button class="display-pill-fs-btn" id="btn-fs-display-pill" title="تفعيل ملء الشاشة" type="button"><i class="fa-solid fa-expand"></i></button>' : ''}
-          <button class="display-pill-close-btn" id="btn-close-display-pill" title="إغلاق الشاشة وإلغاء التحديد" type="button">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>
-      `;
-
-      startPresentationTimer();
-      startDisplayMonitor();
-
-      const pillBtn = container.querySelector('#btn-menu-cast');
-      const closeBtn = container.querySelector('#btn-close-display-pill');
-      const fsBtn = container.querySelector('#btn-fs-display-pill');
-
-      if (pillBtn) {
-        pillBtn.addEventListener('click', (e) => {
-          if (e.target.closest('#btn-close-display-pill') || e.target.closest('#btn-fs-display-pill')) return;
-          e.stopPropagation();
-          const willShow = els.popoverCast.classList.contains('hidden');
-          closeAllPopovers(els.popoverCast);
-          if (willShow) {
-            els.popoverCast.classList.remove('hidden');
-            detectConnectedScreens();
-          } else {
-            els.popoverCast.classList.add('hidden');
-          }
-        });
-      }
-
-      if (closeBtn) {
-        closeBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          closeActiveDisplay();
-        });
-      }
-
-      if (fsBtn) {
-        fsBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-
-          if (presenterWindow && !presenterWindow.closed) {
-            try { presenterWindow.focus(); } catch(err) {}
-
-            const triggerFS = () => {
-              try {
-                if (presenterWindow && !presenterWindow.closed && typeof presenterWindow.triggerFullscreen === 'function') {
-                  presenterWindow.triggerFullscreen();
-                }
-              } catch(err) {}
-              try {
-                if (presenterWindow && !presenterWindow.closed) {
-                  presenterWindow.postMessage({ action: 'TRIGGER_FULLSCREEN' }, '*');
-                }
-              } catch(err) {}
-              try {
-                const fsChannel = new BroadcastChannel('sunday_school_taranim_fs');
-                fsChannel.postMessage({ action: 'TRIGGER_FULLSCREEN' });
-                setTimeout(() => fsChannel.close(), 200);
-              } catch(err) {}
-            };
-
-            // Trigger immediately and at small staggered delays to allow OS window focus switch
-            triggerFS();
-            setTimeout(triggerFS, 150);
-            setTimeout(triggerFS, 350);
-            setTimeout(triggerFS, 700);
-          } else {
-            launchPresenterOnSelectedScreen('primary');
-          }
-        });
-      }
-    } else {
-      stopPresentationTimer();
-      if (displayMonitorInterval) {
-        clearInterval(displayMonitorInterval);
-        displayMonitorInterval = null;
-      }
-      container.innerHTML = `
-        <button class="icon-menu-btn" id="btn-menu-cast" title="البث والشاشات الخارجية (TV / OBS)" type="button">
-          <i class="fa-solid fa-tv"></i>
-        </button>
-      `;
-      const castBtn = container.querySelector('#btn-menu-cast');
-      if (castBtn) {
-        castBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const willShow = els.popoverCast.classList.contains('hidden');
-          closeAllPopovers(els.popoverCast);
-          if (willShow) {
-            els.popoverCast.classList.remove('hidden');
-            detectConnectedScreens();
-          } else {
-            els.popoverCast.classList.add('hidden');
-          }
-        });
-      }
+    stopPresentationTimer();
+    if (displayMonitorInterval) {
+      clearInterval(displayMonitorInterval);
+      displayMonitorInterval = null;
+    }
+    container.innerHTML = `
+      <button class="icon-menu-btn" id="btn-menu-cast" title="البث والشاشات الخارجية (TV / OBS)" type="button">
+        <i class="fa-solid fa-tv"></i>
+      </button>
+    `;
+    const castBtn = container.querySelector('#btn-menu-cast');
+    if (castBtn) {
+      castBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const willShow = els.popoverCast.classList.contains('hidden');
+        closeAllPopovers(els.popoverCast);
+        if (willShow) {
+          els.popoverCast.classList.remove('hidden');
+          detectConnectedScreens();
+        } else {
+          els.popoverCast.classList.add('hidden');
+        }
+      });
     }
   }
 
