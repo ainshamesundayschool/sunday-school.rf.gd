@@ -2358,10 +2358,10 @@ html, body {
 }
 
 .standby-branding .standby-logo {
-  width: 150px;
-  height: 150px;
-  max-width: 80vw;
-  max-height: 40vh;
+  width: 320px;
+  height: 320px;
+  max-width: 85vw;
+  max-height: 65vh;
   object-fit: contain;
   border-radius: 0 !important;
   border: none !important;
@@ -2376,8 +2376,8 @@ html, body {
 
 @media (max-width: 768px) {
   .standby-branding .standby-logo {
-    width: 65px;
-    height: 65px;
+    width: 180px;
+    height: 180px;
   }
 }
 
@@ -2450,17 +2450,19 @@ html, body {
 .display-selected-pill {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 5px;
   background: rgba(15, 23, 42, 0.75);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 20px;
-  padding: 4px 10px 4px 6px;
+  padding: 3px 7px 3px 5px;
   cursor: pointer;
   user-select: none;
   transition: all 0.2s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-width: 125px;
+  overflow: hidden;
 }
 
 .display-selected-pill:hover {
@@ -2795,4 +2797,29 @@ html, body {
 .bible-books-grid::-webkit-scrollbar-thumb:hover,
 .bible-chapters-grid::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* CAST DROPDOWN POPOVER VIEWPORT SAFETY POSITIONING */
+#popover-cast {
+  position: absolute !important;
+  top: calc(100% + 8px) !important;
+  left: 0 !important;
+  right: auto !important;
+  min-width: 270px !important;
+  max-width: min(320px, calc(100vw - 24px)) !important;
+  max-height: calc(100vh - 90px) !important;
+  overflow-y: auto !important;
+  z-index: 9999 !important;
+}
+
+@media (max-width: 768px) {
+  #popover-cast {
+    position: fixed !important;
+    top: 68px !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    max-width: calc(100vw - 24px) !important;
+    z-index: 100000 !important;
+  }
 }
