@@ -751,40 +751,9 @@
 
     function fitTextToSafeArea() {
       if (!textEl) return;
-      const text = textEl.textContent || '';
-      if (!text.trim()) return;
-
-      const viewportW = window.innerWidth;
-      const viewportH = window.innerHeight;
-      const maxW = viewportW * 0.90;
-      const maxH = viewportH * 0.82;
-
-      let low = 18;
-      let high = Math.min(82, Math.round(viewportH * 0.09));
-      let bestSize = low;
-
+      const targetSize = (lastStyleData && lastStyleData.fontSize) || stateFontSize || 54;
+      textEl.style.fontSize = targetSize + 'px';
       textEl.style.lineHeight = '1.45';
-
-      const segments = Array.from(textEl.querySelectorAll('.obs-line-segment'));
-
-      while (low <= high) {
-        const mid = Math.floor((low + high) / 2);
-        textEl.style.fontSize = mid + 'px';
-
-        let maxSegW = textEl.scrollWidth;
-        if (segments.length > 0) {
-          maxSegW = Math.max(...segments.map(s => s.scrollWidth));
-        }
-
-        if (maxSegW <= maxW && textEl.scrollHeight <= maxH) {
-          bestSize = mid;
-          low = mid + 1;
-        } else {
-          high = mid - 1;
-        }
-      }
-
-      textEl.style.fontSize = bestSize + 'px';
       applyDynamicShadow();
     }
 
