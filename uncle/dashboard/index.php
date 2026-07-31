@@ -27499,6 +27499,9 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                     .then(reg => {
                         _initPushSubscription(reg);
                         _checkOfflineDataInstallation();
+                        if (navigator.onLine && reg && reg.active) {
+                            reg.active.postMessage({ type: 'VERIFY_AND_PRECACHE_DATA' });
+                        }
                         // ── Re-subscribe whenever SW becomes active after an update ──
                         reg.addEventListener('updatefound', () => {
                             const newSW = reg.installing;

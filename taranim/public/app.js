@@ -1674,14 +1674,22 @@ document.addEventListener('DOMContentLoaded', () => {
           './manifest.webmanifest',
           './songs_catalog.json',
           './arabic_dictionary.json',
-          './playlists.json'
+          './playlists.json',
+          './song_scales_map.json',
+          './bible_books_data.json'
         ];
 
         let loadedCount = 0;
         const total = ASSETS_TO_CACHE.length;
 
         try {
-          const cache = await caches.open('sunday_school_taranim_v20260729_v16');
+          let cacheName = 'sunday_school_taranim_v20260731_v20';
+          if ('caches' in window) {
+            const keys = await caches.keys();
+            const found = keys.find(k => k.includes('sunday_school_taranim'));
+            if (found) cacheName = found;
+          }
+          const cache = await caches.open(cacheName);
 
           for (let i = 0; i < total; i++) {
             const url = ASSETS_TO_CACHE[i];
@@ -2807,6 +2815,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function loadInitialData() {
+    if (navigator.onLine && 'serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      try {
+        navigator.serviceWorker.controller.postMessage({ type: 'VERIFY_AND_PRECACHE_DATA' });
+      } catch (e) {}
+    }
+
     fetch('arabic_dictionary.json')
       .then(r => r.json())
       .then(dict => { 

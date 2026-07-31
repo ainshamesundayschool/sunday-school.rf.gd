@@ -1,7 +1,7 @@
 // ╔══════════════════════════════════════════════════════════════╗
 // ║  Sunday School PWA — Service Worker v36                     ║
 // ╚══════════════════════════════════════════════════════════════╝
-const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v36';
+const SW_VERSION        = new URL(self.location.href).searchParams.get('v') || 'v37';
 const CACHE_NAME        = `sunday-school-${SW_VERSION}`;
 const SYNC_TAG          = 'sync-attendance';
 const PERIODIC_SYNC_TAG = 'check-registrations';
@@ -270,13 +270,29 @@ self.addEventListener('fetch', e => {
         return;
     }
 
-    // Static JS / CSS Code Assets — Network-First when online, Cache fallback when offline
+    // Static JS / CSS Code Assets — Network-First with 1.5s timeout when online, Instant Cache fallback when offline
     const isCodeAsset = isSameOrigin && (url.pathname.endsWith('.js') || url.pathname.endsWith('.css') || url.pathname.includes('/js/'));
     if (isCodeAsset) {
         e.respondWith(
             (async () => {
+                if (!self.navigator.onLine) {
+                    const cached = await caches.match(e.request, { ignoreSearch: true });
+                    if (cached) return cached;
+                    return new Response('/* Offline */', {
+                        status: 503,
+                        headers: { 'Content-Type': url.pathname.endsWith('.css') ? 'text/css' : 'application/javascript' }
+                    });
+                }
+
                 try {
-                    const networkResp = await fetch(e.request, { cache: 'no-store' });
+                    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+                    const timeoutId = controller ? setTimeout(() => controller.abort(), 1500) : null;
+                    const fetchOpts = { cache: 'no-store' };
+                    if (controller) fetchOpts.signal = controller.signal;
+
+                    const networkResp = await fetch(e.request, fetchOpts);
+                    if (timeoutId) clearTimeout(timeoutId);
+
                     if (networkResp && networkResp.ok && await _isCacheableAppResponse(networkResp, e.request)) {
                         const copy = networkResp.clone();
                         const cache = await caches.open(CACHE_NAME);
@@ -284,9 +300,12 @@ self.addEventListener('fetch', e => {
                     }
                     return networkResp;
                 } catch (err) {
-                    const cached = await caches.match(e.request);
+                    const cached = await caches.match(e.request, { ignoreSearch: true });
                     if (cached) return cached;
-                    return new Response('Offline', { status: 503 });
+                    return new Response('/* Offline */', {
+                        status: 503,
+                        headers: { 'Content-Type': url.pathname.endsWith('.css') ? 'text/css' : 'application/javascript' }
+                    });
                 }
             })()
         );
@@ -295,8 +314,11 @@ self.addEventListener('fetch', e => {
 
     // Media & Image assets — cache-first
     e.respondWith(
-        caches.match(e.request).then(cached => {
+        caches.match(e.request, { ignoreSearch: true }).then(cached => {
             if (cached) return cached;
+            if (!self.navigator.onLine) {
+                return new Response('Offline', { status: 503 });
+            }
             return (async () => {
                 try {
                     const r = await fetch(e.request, { cache: 'no-store' });
@@ -524,7 +546,30 @@ self.addEventListener('message', e => {
     if (e.data?.type === 'FLUSH_QUEUE') {
         _flushQueue().catch(() => {});
     }
+    if (e.data?.type === 'PRECACHE_OFFLINE_DATA' || e.data?.type === 'VERIFY_AND_PRECACHE_DATA') {
+        if (self.navigator.onLine) {
+            _verifyAndPrecacheShellData().catch(() => {});
+        }
+    }
 });
+
+async function _verifyAndPrecacheShellData() {
+    if (!self.navigator.onLine) return;
+    try {
+        const cache = await caches.open(CACHE_NAME);
+        for (const url of SHELL_URLS) {
+            try {
+                const match = await cache.match(url, { ignoreSearch: true });
+                if (!match) {
+                    const response = await fetch(url, { cache: 'no-store' });
+                    if (response && response.ok && await _isCacheableAppResponse(response, null)) {
+                        await cache.put(url, response.clone());
+                    }
+                }
+            } catch (_) {}
+        }
+    } catch (_) {}
+}
 
 // ── SELECTIVE QUEUE ──────────────────────────────────────────
 // Reads the POST body to decide if this action should be queued.

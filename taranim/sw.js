@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sunday_school_taranim_v20260730_v18';
+const CACHE_NAME = 'sunday_school_taranim_v20260731_v20';
 
 const PRECACHE_URLS = [
   './',
@@ -11,7 +11,9 @@ const PRECACHE_URLS = [
   './manifest.webmanifest',
   './songs_catalog.json',
   './arabic_dictionary.json',
-  './playlists.json'
+  './playlists.json',
+  './song_scales_map.json',
+  './bible_books_data.json'
 ];
 
 // PRECACHE SHELL ON INSTALL
@@ -38,19 +40,18 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
       );
-    })
+    }).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-// FETCH STRATEGY: NETWORK-FIRST FOR CODE & NAVIGATION, CACHE-FIRST FOR DATA/FONTS
+// FETCH STRATEGY: NETWORK-FIRST WITH TIMEOUT WHEN ONLINE, INSTANT CACHE WHEN OFFLINE
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') {
     return;
   }
 
-  const url = event.request.url;
-  const isApi = url.includes('api.php') || url.includes('/api/') || url.includes('action=live');
+  const url = new URL(event.request.url);
+  const isApi = url.pathname.includes('api.php') || url.pathname.includes('/api/') || url.search.includes('action=live');
 
   // Bypass API requests to let browser handle them directly
   if (isApi) {
@@ -58,49 +59,100 @@ self.addEventListener('fetch', (event) => {
   }
 
   const isCodeOrNav = event.request.mode === 'navigate' ||
-                      url.endsWith('/taranim/') ||
-                      url.includes('index.html') ||
-                      url.includes('obs.html') ||
-                      url.includes('install.html') ||
-                      url.includes('app.js') ||
-                      url.includes('style.css') ||
-                      url.includes('sw.js');
+                      url.pathname.endsWith('/taranim/') ||
+                      url.pathname.endsWith('/taranim') ||
+                      url.pathname.includes('index.html') ||
+                      url.pathname.includes('obs.html') ||
+                      url.pathname.includes('install.html') ||
+                      url.pathname.includes('app.js') ||
+                      url.pathname.includes('style.css') ||
+                      url.pathname.includes('sw.js');
 
-  // Network-First strategy for application code (HTML, JS, CSS) to guarantee fresh code on every normal refresh when online
+  // Application code & Navigation
   if (isCodeOrNav) {
     event.respondWith(
-      fetch(event.request, { cache: 'no-cache' })
-        .then((networkRes) => {
+      (async () => {
+        // Fast offline check — zero delay
+        if (!self.navigator.onLine) {
+          const cached = await caches.match(event.request, { ignoreSearch: true }) ||
+                         await caches.match('./index.html', { ignoreSearch: true }) ||
+                         await caches.match('./', { ignoreSearch: true });
+          if (cached) return cached;
+        }
+
+        try {
+          const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+          const timeoutId = controller ? setTimeout(() => controller.abort(), 1800) : null;
+          const fetchOpts = { cache: 'no-cache' };
+          if (controller) fetchOpts.signal = controller.signal;
+
+          const networkRes = await fetch(event.request, fetchOpts);
+          if (timeoutId) clearTimeout(timeoutId);
+
           if (networkRes && networkRes.status === 200) {
             const clone = networkRes.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+            const cache = await caches.open(CACHE_NAME);
+            await cache.put(event.request, clone);
           }
           return networkRes;
-        })
-        .catch(() => {
-          return caches.match(event.request, { ignoreSearch: true }).then((cached) => {
-            return cached || caches.match('./index.html');
+        } catch (err) {
+          const cached = await caches.match(event.request, { ignoreSearch: true }) ||
+                         await caches.match('./index.html', { ignoreSearch: true }) ||
+                         await caches.match('./', { ignoreSearch: true });
+          if (cached) return cached;
+          return new Response('<!doctype html><meta charset="utf-8"><title>Offline</title><body dir="rtl" style="font-family:sans-serif;padding:24px">غير متصل بالإنترنت</body>', {
+            status: 503,
+            headers: { 'Content-Type': 'text/html; charset=utf-8' }
           });
-        })
+        }
+      })()
     );
     return;
   }
 
   // Cache-First strategy for large static data files (songs catalog, dictionary, images, fonts)
   event.respondWith(
-    caches.match(event.request, { ignoreSearch: true }).then((cached) => {
+    (async () => {
+      const cached = await caches.match(event.request, { ignoreSearch: true });
       if (cached) return cached;
-      return fetch(event.request)
-        .then((networkRes) => {
-          if (networkRes && networkRes.status === 200) {
-            const clone = networkRes.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          }
-          return networkRes;
-        })
-        .catch(() => {
-          return caches.match('./index.html');
-        });
-    })
+
+      if (!self.navigator.onLine) {
+        return new Response('Offline', { status: 503 });
+      }
+
+      try {
+        const networkRes = await fetch(event.request);
+        if (networkRes && (networkRes.status === 200 || networkRes.status === 0)) {
+          const clone = networkRes.clone();
+          const cache = await caches.open(CACHE_NAME);
+          await cache.put(event.request, clone);
+        }
+        return networkRes;
+      } catch (err) {
+        return new Response('Offline', { status: 503 });
+      }
+    })()
   );
+});
+
+// MESSAGE HANDLER FOR PRECACHING DATA WHEN ONLINE ONLY
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'PRECACHE_OFFLINE_DATA' || event.data?.type === 'VERIFY_AND_PRECACHE_DATA') {
+    if (!self.navigator.onLine) return; // ONLINE ONLY!
+    event.waitUntil(
+      caches.open(CACHE_NAME).then(async (cache) => {
+        for (const url of PRECACHE_URLS) {
+          try {
+            const match = await cache.match(url, { ignoreSearch: true });
+            if (!match) {
+              const res = await fetch(url, { cache: 'no-cache' });
+              if (res && res.status === 200) {
+                await cache.put(url, res);
+              }
+            }
+          } catch (err) {}
+        }
+      })
+    );
+  }
 });
