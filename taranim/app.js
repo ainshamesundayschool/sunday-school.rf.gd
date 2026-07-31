@@ -3066,17 +3066,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let targetSong = null;
 
-    // 1. Search in active session recents matching id AND is_bible type
-    const foundInRecents = state.sessionRecents.find(r => 
-      Boolean(r.is_bible) === Boolean(isBible) && 
-      (String(r.id) === String(songId) || String(r.item_id) === String(songId))
-    );
-
-    if (foundInRecents && foundInRecents.verses && Array.isArray(foundInRecents.verses) && foundInRecents.verses.length > 0) {
-      targetSong = foundInRecents;
+    // 1. ALWAYS PRIORITIZE CANONICAL CATALOG SONG BY ID FIRST (For non-Bible items)
+    if (!isBible && state.allSongs && state.allSongs.length > 0) {
+      const canonicalSong = state.allSongs.find(s => 
+        !s.is_bible && (String(s.id) === String(songId) || String(s.item_id) === String(songId))
+      );
+      if (canonicalSong) {
+        // Deep clone so rendering line modifications never corrupt the canonical catalog object
+        targetSong = JSON.parse(JSON.stringify(canonicalSong));
+      }
     }
 
-    // 2. Fetch full structured data from API if not in recents or missing verses
+    // 2. Search in active session recents matching id AND is_bible type if not found in catalog
+    if (!targetSong) {
+      const foundInRecents = state.sessionRecents.find(r => 
+        Boolean(r.is_bible) === Boolean(isBible) && 
+        (String(r.id) === String(songId) || String(r.item_id) === String(songId))
+      );
+      if (foundInRecents) {
+        targetSong = JSON.parse(JSON.stringify(foundInRecents));
+      }
+    }
+
+    // 3. Fetch full structured data from API if still not found
     if (!targetSong) {
       try {
         const bibleParam = isBible ? '&type=bible&is_bible=1' : '';
@@ -3091,22 +3103,6 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
       } catch (err) {}
-    }
-
-    // 3. Fallback to local catalog if not Bible
-    if (!isBible && state.allSongs && state.allSongs.length > 0) {
-      const local = state.allSongs.find(s => !s.is_bible && (String(s.id) === String(songId) || String(s.item_id) === String(songId)));
-      if (local) {
-        if (!targetSong) {
-          targetSong = local;
-        } else {
-          // Merge full notes and verses from catalog if recents item was incomplete
-          targetSong = { ...local, ...targetSong };
-          if ((!targetSong.notes || !targetSong.notes.trim()) && local.notes) {
-            targetSong.notes = local.notes;
-          }
-        }
-      }
     }
 
     if (targetSong) {
