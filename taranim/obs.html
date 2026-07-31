@@ -699,9 +699,9 @@
         return;
       }
 
-      // Horizontal swipe
+      // Horizontal swipe (Reversed gesture per user preference)
       if (Math.abs(deltaX) >= 25 && Math.abs(deltaX) > Math.abs(deltaY)) {
-        if (deltaX < 0) {
+        if (deltaX > 0) {
           triggerNextSlide();
         } else {
           triggerPrevSlide();
@@ -786,8 +786,16 @@
       let targetSize = baseSize;
 
       if (isBible || isVerticalScreen) {
-        const maxW = viewportW * 0.90;
-        const maxH = viewportH * 0.85;
+        const maxW = viewportW * 0.88;
+        const maxH = viewportH * 0.82;
+
+        const segments = Array.from(textEl.querySelectorAll('.obs-line-segment'));
+
+        // Temporarily force nowrap to measure true horizontal line lengths
+        segments.forEach(s => {
+          s.style.whiteSpace = 'nowrap';
+          s.style.wordBreak = 'keep-all';
+        });
 
         let low = 16;
         let high = baseSize;
@@ -796,13 +804,16 @@
         textEl.style.fontSize = high + 'px';
         textEl.style.lineHeight = '1.45';
 
-        const segments = Array.from(textEl.querySelectorAll('.obs-line-segment'));
         let maxSegW = textEl.scrollWidth;
         if (segments.length > 0) {
           maxSegW = Math.max(...segments.map(s => s.scrollWidth));
         }
 
-        if (maxSegW > maxW || textEl.scrollHeight > maxH) {
+        const exceedsBounds = isBible 
+          ? (maxSegW > maxW)
+          : (maxSegW > maxW || textEl.scrollHeight > maxH);
+
+        if (exceedsBounds) {
           while (low <= high) {
             const mid = Math.floor((low + high) / 2);
             textEl.style.fontSize = mid + 'px';
@@ -812,7 +823,11 @@
               curMaxSegW = Math.max(...segments.map(s => s.scrollWidth));
             }
 
-            if (curMaxSegW <= maxW && textEl.scrollHeight <= maxH) {
+            const fitsInBounds = isBible
+              ? (curMaxSegW <= maxW)
+              : (curMaxSegW <= maxW && textEl.scrollHeight <= maxH);
+
+            if (fitsInBounds) {
               best = mid;
               low = mid + 1;
             } else {
@@ -821,6 +836,13 @@
           }
           targetSize = best;
         }
+
+        // Restore normal line wrapping with keep-all so words NEVER split mid-word
+        segments.forEach(s => {
+          s.style.whiteSpace = 'normal';
+          s.style.wordBreak = 'keep-all';
+          s.style.overflowWrap = 'break-word';
+        });
       }
 
       textEl.style.fontSize = targetSize + 'px';
@@ -991,18 +1013,17 @@
         for (let i = 0; i < lines.length; i++) {
           let lineStr = lines[i].trim();
 
-          let match = lineStr.match(/(?:\)\s*)?\(\s*(\d+|[٠-٩]+)\s*\)$/) || 
-                      lineStr.match(/\)\s*(\d+|[٠-٩]+)$/) || 
-                      lineStr.match(/\)\s*\(\s*(\d+|[٠-٩]+)\s*\)$/);
+          let match = lineStr.match(/(?:\)\s*)?(?:\(|\[)?\s*(?:x|X|×|\*)?\s*(\d+|[٠-٩]+)\s*(?:x|X|×)?\s*(?:\)|\])?$/i) || 
+                      lineStr.match(/\s*(?:x|X|×|\*)\s*(\d+|[٠-٩]+)$/i) || 
+                      lineStr.match(/\(\s*(\d+|[٠-٩]+)\s*\)$/);
 
-          if (match) {
+          if (match && match[1]) {
             let repeatNum = match[1];
             let endLineIdx = i;
 
             lines[i] = lines[i]
-              .replace(/\s*\)\s*\(\s*(\d+|[٠-٩]+)\s*\)$/, '')
-              .replace(/\s*\)\s*(\d+|[٠-٩]+)$/, '')
-              .replace(/\s*\(\s*(\d+|[٠-٩]+)\s*\)$/, '')
+              .replace(/(?:\)\s*)?(?:\(|\[)?\s*(?:x|X|×|\*)?\s*(\d+|[٠-٩]+)\s*(?:x|X|×)?\s*(?:\)|\])?$/i, '')
+              .replace(/\s*(?:x|X|×|\*)\s*(\d+|[٠-٩]+)$/i, '')
               .trim();
 
             if (lines[i].endsWith(')')) {
@@ -1014,19 +1035,16 @@
 
             for (let k = endLineIdx; k >= 0; k--) {
               let trimmed = lines[k].trim();
-              if (trimmed.startsWith('(') && !trimmed.startsWith('(<span class="badge-num')) {
+              if ((trimmed.startsWith('(') || trimmed.startsWith('[')) && !trimmed.startsWith('(<span class="badge-num')) {
                 startLineIdx = k;
                 explicitStartFound = true;
-                let firstParenIdx = lines[k].indexOf('(');
-                if (firstParenIdx !== -1) {
-                  lines[k] = lines[k].substring(0, firstParenIdx) + lines[k].substring(firstParenIdx + 1);
-                }
+                lines[k] = lines[k].replace(/^(\(|\[)/, '');
                 break;
               }
             }
 
-            if (!explicitStartFound && endLineIdx === lines.length - 1 && lines.length > 1) {
-              startLineIdx = 0;
+            if (!explicitStartFound) {
+              startLineIdx = 0; // Wrap whole slide from line 0 if no explicit start bracket
             }
 
             const greyOpenBracket = `<span class="repeat-tag">(</span>`;
@@ -1038,7 +1056,7 @@
         }
       }
 
-      return lines.map(l => `<span class="obs-line-segment" style="display: block; white-space: normal; word-break: break-word; overflow-wrap: break-word; text-align: center; width: 100%; font-size: inherit;">${l}</span>`).join('');
+      return lines.map(l => `<span class="obs-line-segment" style="display: block; white-space: normal; word-break: keep-all; overflow-wrap: break-word; text-align: center; width: 100%; font-size: inherit;">${l}</span>`).join('');
     }
 
     function applyState(data, source = 'local') {
