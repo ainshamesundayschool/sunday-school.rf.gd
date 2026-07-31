@@ -1049,9 +1049,6 @@ document.addEventListener('DOMContentLoaded', () => {
           <span class="display-pill-badge" title="رقم الشاشة">
             <i class="fa-solid fa-tv"></i> ${screenNum}
           </span>
-          <span class="display-pill-timer" id="display-pill-timer" title="مدة العرض المباشر">
-            <span class="live-dot"></span> 00:00
-          </span>
           ${!isPrimary ? '<button class="display-pill-fs-btn" id="btn-fs-display-pill" title="تفعيل ملء الشاشة" type="button"><i class="fa-solid fa-expand"></i></button>' : ''}
           <button class="display-pill-close-btn" id="btn-close-display-pill" title="إغلاق الشاشة وإلغاء التحديد" type="button">
             <i class="fa-solid fa-xmark"></i>
