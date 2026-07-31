@@ -3094,12 +3094,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 3. Fallback to local catalog if not Bible
-    if (!targetSong && !isBible && state.allSongs && state.allSongs.length > 0) {
+    if (!isBible && state.allSongs && state.allSongs.length > 0) {
       const local = state.allSongs.find(s => !s.is_bible && (String(s.id) === String(songId) || String(s.item_id) === String(songId)));
-      if (local) targetSong = local;
+      if (local) {
+        if (!targetSong) {
+          targetSong = local;
+        } else {
+          // Merge full notes and verses from catalog if recents item was incomplete
+          targetSong = { ...local, ...targetSong };
+          if ((!targetSong.notes || !targetSong.notes.trim()) && local.notes) {
+            targetSong.notes = local.notes;
+          }
+        }
+      }
     }
 
     if (targetSong) {
+      targetSong = ensureSongVerses(targetSong);
       state.activeSong = targetSong;
       addToSessionRecents(targetSong);
       loadSongIntoPresentation(targetSong);
@@ -3570,6 +3581,7 @@ document.addEventListener('DOMContentLoaded', () => {
         existing.verses = fullSongData.verses;
       }
       if (fullSongData.title) existing.title = fullSongData.title;
+      if (fullSongData.notes) existing.notes = fullSongData.notes;
     } else {
       // NEW ITEM OPENED FROM SEARCH -> ADD TO TOP OF LIST
       state.sessionRecents.unshift(fullSongData);
