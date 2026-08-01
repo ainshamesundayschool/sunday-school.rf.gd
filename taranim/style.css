@@ -1534,20 +1534,19 @@ html, body {
   font-size: 54px;
   font-weight: 800;
   color: #ffffff;
-  line-height: 1.4;
-  white-space: pre-line;
+  line-height: 1.5;
+  white-space: normal;
   text-align: center !important;
   text-align-last: center !important;
   margin: 0 auto;
   cursor: pointer;
-  max-width: 92vw;
-  word-break: break-word;
   padding: 15px 25px;
   overflow: visible !important;
   box-sizing: border-box;
   will-change: transform, opacity;
   paint-order: stroke fill markers;
   -webkit-paint-order: stroke fill markers;
+  transform-origin: center center;
 }
 
 .obs-overlay[data-chroma="green"] .obs-line-text {
@@ -2299,14 +2298,19 @@ html, body {
   .line-text {
     height: auto !important;
     line-height: 1.5 !important;
-    width: 100% !important;
-    max-width: 90vw !important;
     margin: 0 auto !important;
+    width: auto !important;
+    max-width: none !important;
   }
 
   .obs-line-segment {
-    margin-top: 0.22em !important;
-    margin-bottom: 0.22em !important;
+    display: block !important;
+    white-space: nowrap !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+    text-align: center !important;
+    margin-top: 0.25em !important;
+    margin-bottom: 0.25em !important;
   }
 
   .panel-header {

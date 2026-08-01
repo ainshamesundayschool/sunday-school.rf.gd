@@ -4410,8 +4410,8 @@ document.addEventListener('DOMContentLoaded', () => {
           });
         }
 
-        const whiteSpaceStyle = isBible ? 'normal' : 'nowrap';
-        els.obsLineText.innerHTML = lineSegs.map(l => `<span class="obs-line-segment" style="display: block; white-space: ${whiteSpaceStyle}; word-break: break-word; text-align: center;">${l}</span>`).join('');
+        const whiteSpaceStyle = 'nowrap';
+        els.obsLineText.innerHTML = lineSegs.map(l => `<span class="obs-line-segment" style="display: block; white-space: nowrap; word-break: normal; overflow-wrap: normal; text-align: center;">${l}</span>`).join('');
         const strokeW = parseInt(state.styleOptions.strokeWidth || 0);
         const strokeC = state.styleOptions.strokeColor || '#000000';
         const shadowB = parseInt(state.styleOptions.shadowBlur || 0);
@@ -4464,6 +4464,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let size = state.fontSize || 54;
         els.obsLineText.style.fontSize = `${size}px`;
+        els.obsLineText.style.lineHeight = '1.5';
         
 
 
@@ -4480,41 +4481,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // Defer text-fit reflow to next rAF so it doesn't block keyboard/click response
+      // Enforce static font size & scale down container to fit screen width on vertical devices
       const snapText = text;
       requestAnimationFrame(() => {
         if (els.obsLineText && snapText.trim() && els.obsLineText.style.display !== 'none') {
           const vW = els.obsOverlay ? els.obsOverlay.clientWidth : window.innerWidth;
-          const vH = els.obsOverlay ? els.obsOverlay.clientHeight : window.innerHeight;
           const maxW = vW * 0.90;
-          const maxH = vH * 0.82;
 
-          let low = 18;
-          let high = Math.min(82, Math.round(vH * 0.09));
-          let bestSize = low;
+          let size = state.fontSize || 54;
+          els.obsLineText.style.fontSize = `${size}px`;
+          els.obsLineText.style.lineHeight = '1.5';
+          els.obsLineText.style.transform = 'none';
 
-          els.obsLineText.style.lineHeight = '1.45';
-
-          const segments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
-
-          while (low <= high) {
-            const mid = Math.floor((low + high) / 2);
-            els.obsLineText.style.fontSize = `${mid}px`;
-
-            let maxSegW = els.obsLineText.scrollWidth;
-            if (segments.length > 0) {
-              maxSegW = Math.max(...segments.map(s => s.scrollWidth));
-            }
-
-            if (maxSegW <= maxW && els.obsLineText.scrollHeight <= maxH) {
-              bestSize = mid;
-              low = mid + 1;
-            } else {
-              high = mid - 1;
-            }
+          const contentW = els.obsLineText.scrollWidth;
+          if (contentW > maxW && contentW > 0) {
+            const fitScale = maxW / contentW;
+            els.obsLineText.style.transformOrigin = 'center center';
+            els.obsLineText.style.transform = `scale(${fitScale})`;
           }
-
-          els.obsLineText.style.fontSize = `${bestSize}px`;
         }
       });
 

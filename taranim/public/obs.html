@@ -806,20 +806,29 @@
         textEl.style.wordSpacing = '9px';
         textEl.style.fontWeight = '400';
       } else {
-        textEl.style.lineHeight = '1.45';
+        textEl.style.lineHeight = '1.5';
         textEl.style.letterSpacing = (lastStyleData && lastStyleData.letterSpacing !== undefined) ? `${lastStyleData.letterSpacing}px` : 'normal';
         textEl.style.wordSpacing = 'normal';
         if (lastStyleData && lastStyleData.fontWeight) textEl.style.fontWeight = lastStyleData.fontWeight;
       }
 
       textEl.style.fontSize = baseSize + 'px';
+      textEl.style.transform = 'none';
 
       const segments = Array.from(textEl.querySelectorAll('.obs-line-segment'));
       segments.forEach(s => {
-        s.style.whiteSpace = 'normal';
-        s.style.wordBreak = 'keep-all';
-        s.style.overflowWrap = 'break-word';
+        s.style.whiteSpace = 'nowrap';
+        s.style.wordBreak = 'normal';
+        s.style.overflowWrap = 'normal';
       });
+
+      const maxW = window.innerWidth * 0.90;
+      const contentW = textEl.scrollWidth;
+      if (contentW > maxW && contentW > 0) {
+        const fitScale = maxW / contentW;
+        textEl.style.transformOrigin = 'center center';
+        textEl.style.transform = `scale(${fitScale})`;
+      }
 
       applyDynamicShadow();
     }
@@ -1050,7 +1059,7 @@
         }
       }
 
-      return lines.map(l => `<span class="obs-line-segment" style="display: block; white-space: normal; word-break: keep-all; overflow-wrap: break-word; text-align: center; width: 100%; font-size: inherit;">${l}</span>`).join('');
+      return lines.map(l => `<span class="obs-line-segment" style="display: block; white-space: nowrap; word-break: normal; overflow-wrap: normal; text-align: center; width: 100%; font-size: inherit;">${l}</span>`).join('');
     }
 
     function applyState(data, source = 'local') {
