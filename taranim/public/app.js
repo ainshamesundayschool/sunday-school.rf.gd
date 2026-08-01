@@ -3457,46 +3457,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const isBible = Boolean(song.is_bible || song.chapter_number !== undefined);
     if (isBible) return song;
 
-    if (song.notes && String(song.notes).trim().length > 0) {
-      const rawNotes = String(song.notes).replace(/\r\n/g, '\n');
-      const blocks = rawNotes.split(/\n\s*\n/).map(b => b.trim()).filter(b => b.length > 0);
-      const verses = [];
+    if (song.verses && Array.isArray(song.verses) && song.verses.length > 0) {
       let currentStanzaNum = 0;
-
-      blocks.forEach((block) => {
-        let lines = block.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-        if (lines.length === 0) return;
-
-        let isChorus = false;
-        let foundStanzaNum = null;
-
-        const firstLine = lines[0];
-        if (/^\(?(القرار|قرار|ق)\)?[:\s\-]?/i.test(firstLine) || /^\(القرار\)$/i.test(firstLine) || /^\(ق\)$/i.test(firstLine)) {
-          isChorus = true;
+      song.verses.forEach((verse) => {
+        const rawVerseType = verse.type;
+        const slides = verse.slides || [];
+        const firstRawLine = (slides[0] && (slides[0].lines ? slides[0].lines[0] : slides[0].text)) || '';
+        
+        if (
+          rawVerseType === 1 ||
+          rawVerseType === '1' ||
+          verse.isChorus === true ||
+          String(rawVerseType).toLowerCase() === 'chorus' ||
+          /القرار|قرار|^ق$/i.test(verse.title || '') ||
+          /^\(?(القرار|قرار|ق)\)?[:\s\-]?/i.test(firstRawLine || '')
+        ) {
+          verse.type = 1;
+          verse.isChorus = true;
         } else {
-          const matchNum = firstLine.match(/^\(?([\d٠-٩]+)\)?[:\s\-]?/);
-          if (matchNum) {
-            foundStanzaNum = matchNum[1];
+          verse.type = 0;
+          verse.isChorus = false;
+          currentStanzaNum++;
+          if (!verse.stanzaNum) {
+            verse.stanzaNum = currentStanzaNum;
           }
-        }
-
-        if (isChorus) {
-          verses.push({ type: 1, isChorus: true, slides: [{ text: lines.join('\n'), lines: lines }] });
-        } else {
-          if (foundStanzaNum) {
-            currentStanzaNum = parseInt(foundStanzaNum.replace(/[٠-٩]/g, d => '٠١٢٣٥٦٧٨٩'.indexOf(d))) || (currentStanzaNum + 1);
-          } else {
-            currentStanzaNum++;
-          }
-          verses.push({ type: 0, isChorus: false, stanzaNum: currentStanzaNum, slides: [{ text: lines.join('\n'), lines: lines }] });
         }
       });
-
-      if (verses.length > 0) {
-        song.verses = verses;
-        return song;
-      }
+      return song;
     }
+
+    if (!song.notes) return song;
 
     const rawNotes = String(song.notes).replace(/\r\n/g, '\n');
     const blocks = rawNotes.split(/\n\s*\n/).map(b => b.trim()).filter(b => b.length > 0);
@@ -3511,24 +3501,14 @@ document.addEventListener('DOMContentLoaded', () => {
       let foundStanzaNum = null;
 
       const firstLine = lines[0];
-      if (/^\(?(القرار|قرار|ق)\)?[:\s\-]/i.test(firstLine) || /^\(القرار\)$/i.test(firstLine) || /^\(ق\)$/i.test(firstLine)) {
+      if (/^\(?(القرار|قرار|ق)\)?[:\s\-]?/i.test(firstLine) || /^\(القرار\)$/i.test(firstLine) || /^\(ق\)$/i.test(firstLine)) {
         isChorus = true;
       } else {
-        const matchNum = firstLine.match(/^\(?([\d٠-٩]+)\)?[:\s\-]/);
+        const matchNum = firstLine.match(/^\(?([\d٠-٩]+)\)?[:\s\-]?/);
         if (matchNum) {
           foundStanzaNum = matchNum[1];
         }
       }
-
-      lines = lines.map(l => {
-        return l.replace(/^\(?(القرار|قرار|ق)\)?[:\s\-]\s*/i, '')
-                .replace(/^\(القرار\)$/i, '')
-                .replace(/^\(ق\)$/i, '')
-                .replace(/^\(?[\d٠-٩]+\)?[:\s\-]\s*/, '')
-                .trim();
-      }).filter(l => l.length > 0);
-
-      if (lines.length === 0) return;
 
       if (isChorus) {
         verses.push({ type: 1, isChorus: true, slides: [{ text: lines.join('\n'), lines: lines }] });
