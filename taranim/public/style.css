@@ -2282,8 +2282,8 @@ html, body {
     top: 50% !important;
     left: 50% !important;
     transform: translate(-50%, -50%) !important;
-    width: auto !important;
-    max-width: 92vw !important;
+    width: 94vw !important;
+    max-width: 94vw !important;
     height: auto !important;
     max-height: 85vh !important;
     margin: 0 auto !important;
@@ -2292,6 +2292,7 @@ html, body {
     flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
+    text-align: center !important;
   }
 
   .obs-line-text,
@@ -2299,16 +2300,20 @@ html, body {
     height: auto !important;
     line-height: 1.5 !important;
     margin: 0 auto !important;
-    width: auto !important;
-    max-width: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    text-align: center !important;
+    text-align-last: center !important;
+    transform: none !important;
   }
 
   .obs-line-segment {
     display: block !important;
-    white-space: nowrap !important;
-    word-break: normal !important;
-    overflow-wrap: normal !important;
+    white-space: normal !important;
+    word-break: keep-all !important;
+    overflow-wrap: break-word !important;
     text-align: center !important;
+    width: 100% !important;
     margin-top: 0.25em !important;
     margin-bottom: 0.25em !important;
   }

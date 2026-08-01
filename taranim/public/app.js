@@ -1364,6 +1364,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnShareStyleLink: document.getElementById('btn-share-style-link'),
 
     obsFontWeightSelect: document.getElementById('obs-font-weight-select'),
+    obsScaleModeSelect: document.getElementById('obs-scale-mode-select'),
     btnAlignCenter: document.getElementById('btn-align-center'),
     btnAlignRight: document.getElementById('btn-align-right'),
     btnAlignLeft: document.getElementById('btn-align-left'),
@@ -1743,6 +1744,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.shadowDistanceBadge) els.shadowDistanceBadge.textContent = `${state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 6}px`;
 
     if (els.obsFontWeightSelect) els.obsFontWeightSelect.value = state.styleOptions.fontWeight;
+    if (els.obsScaleModeSelect) els.obsScaleModeSelect.value = state.scaleMode || 'auto';
     if (els.obsLetterSpacingRange) els.obsLetterSpacingRange.value = state.styleOptions.letterSpacing;
     if (els.obsLineHeightRange) els.obsLineHeightRange.value = state.styleOptions.lineHeight;
     if (els.obsBoxBgColor) els.obsBoxBgColor.value = state.styleOptions.boxBgColor;
@@ -2136,6 +2138,15 @@ document.addEventListener('DOMContentLoaded', () => {
       saveUserSettings();
       syncLiveState();
     });
+
+    if (els.obsScaleModeSelect) {
+      els.obsScaleModeSelect.addEventListener('change', (e) => {
+        state.scaleMode = e.target.value;
+        saveUserSettings();
+        syncLiveState();
+        renderPresenterText(currentPresenterText);
+      });
+    }
 
     els.chromaSelect.addEventListener('change', (e) => {
       state.chromaKey = e.target.value;
@@ -4232,6 +4243,7 @@ document.addEventListener('DOMContentLoaded', () => {
       totalSlides: totalSlides,
       scaleText: scaleText,
       font: state.selectedFont,
+      scaleMode: state.scaleMode || 'auto',
       customFontDataUrl: localStorage.getItem('sunday_school_custom_font_dataurl') || state.customFontDataUrl || '',
       customFontName: localStorage.getItem('sunday_school_custom_font_name') || '',
       fontSize: state.fontSize,
@@ -4410,8 +4422,8 @@ document.addEventListener('DOMContentLoaded', () => {
           });
         }
 
-        const whiteSpaceStyle = 'nowrap';
-        els.obsLineText.innerHTML = lineSegs.map(l => `<span class="obs-line-segment" style="display: block; white-space: nowrap; word-break: normal; overflow-wrap: normal; text-align: center;">${l}</span>`).join('');
+        const whiteSpaceStyle = 'normal';
+        els.obsLineText.innerHTML = lineSegs.map(l => `<span class="obs-line-segment" style="display: block; white-space: normal; word-break: keep-all; overflow-wrap: break-word; text-align: center; width: 100%;">${l}</span>`).join('');
         const strokeW = parseInt(state.styleOptions.strokeWidth || 0);
         const strokeC = state.styleOptions.strokeColor || '#000000';
         const shadowB = parseInt(state.styleOptions.shadowBlur || 0);
@@ -4481,24 +4493,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // Enforce static font size & scale down container to fit screen width on vertical devices
+      // Calculate optimal font size for mobile vs landscape viewports
       const snapText = text;
       requestAnimationFrame(() => {
         if (els.obsLineText && snapText.trim() && els.obsLineText.style.display !== 'none') {
           const vW = els.obsOverlay ? els.obsOverlay.clientWidth : window.innerWidth;
-          const maxW = vW * 0.90;
+          const baseSize = state.fontSize || 54;
+          const scaleMode = state.scaleMode || 'auto';
 
-          let size = state.fontSize || 54;
-          els.obsLineText.style.fontSize = `${size}px`;
+          let renderSize = baseSize;
+
+          if (vW < 768) {
+            if (scaleMode === 'mobile_large') {
+              renderSize = Math.max(26, Math.min(Math.round(baseSize * 1.25), Math.round(vW * 0.082)));
+            } else if (scaleMode === 'fixed') {
+              renderSize = baseSize;
+            } else {
+              renderSize = Math.max(22, Math.min(baseSize, Math.round(vW * 0.068)));
+            }
+          } else {
+            renderSize = baseSize;
+          }
+
+          els.obsLineText.style.fontSize = `${renderSize}px`;
           els.obsLineText.style.lineHeight = '1.5';
           els.obsLineText.style.transform = 'none';
-
-          const contentW = els.obsLineText.scrollWidth;
-          if (contentW > maxW && contentW > 0) {
-            const fitScale = maxW / contentW;
-            els.obsLineText.style.transformOrigin = 'center center';
-            els.obsLineText.style.transform = `scale(${fitScale})`;
-          }
         }
       });
 

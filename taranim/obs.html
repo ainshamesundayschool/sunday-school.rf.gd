@@ -795,12 +795,27 @@
       if (!textEl) return;
       currentIsBible = isBible;
       let baseSize = (lastStyleData && lastStyleData.fontSize) || stateFontSize || 54;
+      const scaleMode = (lastStyleData && lastStyleData.scaleMode) || 'auto';
+      const vW = window.innerWidth;
+
+      let renderSize = baseSize;
+      if (vW < 768) {
+        if (scaleMode === 'mobile_large') {
+          renderSize = Math.max(26, Math.min(Math.round(baseSize * 1.25), Math.round(vW * 0.082)));
+        } else if (scaleMode === 'fixed') {
+          renderSize = baseSize;
+        } else {
+          renderSize = Math.max(22, Math.min(baseSize, Math.round(vW * 0.068)));
+        }
+      } else {
+        renderSize = baseSize;
+      }
 
       const currentFont = (lastStyleData && lastStyleData.font) || textEl.style.fontFamily || '';
       const isJomhuria = /jomhuria/i.test(currentFont);
 
       if (isJomhuria) {
-        baseSize = Math.round(baseSize * 1.55);
+        renderSize = Math.round(renderSize * 1.55);
         textEl.style.lineHeight = '1.5';
         textEl.style.letterSpacing = '3px';
         textEl.style.wordSpacing = '9px';
@@ -812,23 +827,16 @@
         if (lastStyleData && lastStyleData.fontWeight) textEl.style.fontWeight = lastStyleData.fontWeight;
       }
 
-      textEl.style.fontSize = baseSize + 'px';
+      textEl.style.fontSize = renderSize + 'px';
       textEl.style.transform = 'none';
 
       const segments = Array.from(textEl.querySelectorAll('.obs-line-segment'));
       segments.forEach(s => {
-        s.style.whiteSpace = 'nowrap';
-        s.style.wordBreak = 'normal';
-        s.style.overflowWrap = 'normal';
+        s.style.whiteSpace = 'normal';
+        s.style.wordBreak = 'keep-all';
+        s.style.overflowWrap = 'break-word';
+        s.style.textAlign = 'center';
       });
-
-      const maxW = window.innerWidth * 0.90;
-      const contentW = textEl.scrollWidth;
-      if (contentW > maxW && contentW > 0) {
-        const fitScale = maxW / contentW;
-        textEl.style.transformOrigin = 'center center';
-        textEl.style.transform = `scale(${fitScale})`;
-      }
 
       applyDynamicShadow();
     }
@@ -1059,7 +1067,7 @@
         }
       }
 
-      return lines.map(l => `<span class="obs-line-segment" style="display: block; white-space: nowrap; word-break: normal; overflow-wrap: normal; text-align: center; width: 100%; font-size: inherit;">${l}</span>`).join('');
+      return lines.map(l => `<span class="obs-line-segment" style="display: block; white-space: normal; word-break: keep-all; overflow-wrap: break-word; text-align: center; width: 100%; font-size: inherit;">${l}</span>`).join('');
     }
 
     function applyState(data, source = 'local') {
@@ -1104,6 +1112,11 @@
 
       if (data.fontSize) {
         stateFontSize = data.fontSize;
+      }
+
+      if (data.scaleMode) {
+        if (!lastStyleData) lastStyleData = {};
+        lastStyleData.scaleMode = data.scaleMode;
       }
 
       if (data.fontWeight) textEl.style.fontWeight = data.fontWeight;
