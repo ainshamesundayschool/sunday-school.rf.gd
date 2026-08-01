@@ -4510,14 +4510,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
           let renderSize = baseSize;
 
-          if (vW < 768) {
-            if (scaleMode === 'mobile_large') {
-              renderSize = Math.max(26, Math.min(Math.round(baseSize * 1.25), Math.round(vW * 0.082)));
-            } else if (scaleMode === 'fixed') {
-              renderSize = baseSize;
-            } else {
-              renderSize = Math.max(22, Math.min(baseSize, Math.round(vW * 0.068)));
-            }
+          if (vW < 768 && scaleMode === 'auto') {
+            renderSize = Math.max(22, Math.min(baseSize, Math.round(vW * 0.07)));
           } else {
             renderSize = baseSize;
           }
