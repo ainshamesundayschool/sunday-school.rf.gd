@@ -4433,13 +4433,13 @@ document.addEventListener('DOMContentLoaded', () => {
               let badgePrefix = badgeMatch ? badgeMatch[1].trim() : '';
               let restOfLine = lineSegs[startLineIdx].substring(badgeMatch ? badgeMatch[0].length : 0).replace(/^[\s\(\[]+/, '').trim();
 
-              const repeatTagHtml = `<span class="repeat-tag">(${repeatNum})</span>`;
-
               if (badgePrefix) {
-                lineSegs[startLineIdx] = `${badgePrefix} ${repeatTagHtml} ${restOfLine}`;
+                lineSegs[startLineIdx] = `${badgePrefix} ${greyOpenBracket}${restOfLine}`;
               } else {
-                lineSegs[startLineIdx] = `${repeatTagHtml} ${restOfLine}`;
+                lineSegs[startLineIdx] = `${greyOpenBracket}${restOfLine}`;
               }
+
+              lineSegs[endLineIdx] = `${lineSegs[endLineIdx]}${greyCloseTag}`;
 
             } else if (startMatch && startMatch[2]) {
               let repeatNum = startMatch[2];
@@ -4449,12 +4449,13 @@ document.addEventListener('DOMContentLoaded', () => {
               let badgePrefix = badgeMatch ? badgeMatch[1].trim() : '';
               let restOfLine = lineSegs[i].substring(badgeMatch ? badgeMatch[0].length : 0).replace(/^[\s\(\[]+/, '').trim();
 
-              const repeatTagHtml = `<span class="repeat-tag">(${repeatNum})</span>`;
+              const greyOpenBracket = `<span class="repeat-tag">(</span>`;
+              const greyCloseTag = `<span class="repeat-tag">)${repeatNum}</span>`;
 
               if (badgePrefix) {
-                lineSegs[i] = `${badgePrefix} ${repeatTagHtml} ${restOfLine}`;
+                lineSegs[i] = `${badgePrefix} ${greyOpenBracket}${restOfLine}${greyCloseTag}`;
               } else {
-                lineSegs[i] = `${repeatTagHtml} ${restOfLine}`;
+                lineSegs[i] = `${greyOpenBracket}${restOfLine}${greyCloseTag}`;
               }
             }
           }

@@ -1039,13 +1039,16 @@
           let badgePrefix = badgeMatch ? badgeMatch[1].trim() : '';
           let restOfLine = lines[startLineIdx].substring(badgeMatch ? badgeMatch[0].length : 0).replace(/^[\s\(\[]+/, '').trim();
 
-          const repeatTagHtml = `<span class="repeat-tag">(${repeatNum})</span>`;
+          const greyOpenBracket = `<span class="repeat-tag">(</span>`;
+          const greyCloseTag = `<span class="repeat-tag">)${repeatNum}</span>`;
 
           if (badgePrefix) {
-            lines[startLineIdx] = `${badgePrefix} ${repeatTagHtml} ${restOfLine}`;
+            lines[startLineIdx] = `${badgePrefix} ${greyOpenBracket}${restOfLine}`;
           } else {
-            lines[startLineIdx] = `${repeatTagHtml} ${restOfLine}`;
+            lines[startLineIdx] = `${greyOpenBracket}${restOfLine}`;
           }
+
+          lines[endLineIdx] = `${lines[endLineIdx]}${greyCloseTag}`;
 
         } else if (startMatch && startMatch[2]) {
           let repeatNum = startMatch[2];
@@ -1055,12 +1058,13 @@
           let badgePrefix = badgeMatch ? badgeMatch[1].trim() : '';
           let restOfLine = lines[i].substring(badgeMatch ? badgeMatch[0].length : 0).replace(/^[\s\(\[]+/, '').trim();
 
-          const repeatTagHtml = `<span class="repeat-tag">(${repeatNum})</span>`;
+          const greyOpenBracket = `<span class="repeat-tag">(</span>`;
+          const greyCloseTag = `<span class="repeat-tag">)${repeatNum}</span>`;
 
           if (badgePrefix) {
-            lines[i] = `${badgePrefix} ${repeatTagHtml} ${restOfLine}`;
+            lines[i] = `${badgePrefix} ${greyOpenBracket}${restOfLine}${greyCloseTag}`;
           } else {
-            lines[i] = `${repeatTagHtml} ${restOfLine}`;
+            lines[i] = `${greyOpenBracket}${restOfLine}${greyCloseTag}`;
           }
         }
       }
