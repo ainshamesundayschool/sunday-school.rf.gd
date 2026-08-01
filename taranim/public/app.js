@@ -4394,26 +4394,33 @@ document.addEventListener('DOMContentLoaded', () => {
               const greyOpenBracket = `<span class="repeat-tag">(</span>`;
               const greyCloseTag = `<span class="repeat-tag">)${repeatNum}</span>`;
 
-              lineSegs[startLineIdx] = lineSegs[startLineIdx].replace(/^[\s\(\[]+(?=<span[^>]*class="[^"]*badge-num")/i, '');
               let badgeMatch = lineSegs[startLineIdx].match(/^(\s*(?:<span[^>]*class="[^"]*badge-num"[^>]*>.*?<\/span>\s*)+)/i);
-              let badgePrefix = badgeMatch ? badgeMatch[1] : '';
-              let restOfLine = lineSegs[startLineIdx].substring(badgePrefix.length).replace(/^[\s\(\[]+/, '');
+              let badgePrefix = badgeMatch ? badgeMatch[1].trim() : '';
+              let restOfLine = lineSegs[startLineIdx].substring(badgeMatch ? badgeMatch[0].length : 0).replace(/^[\s\(\[]+/, '').trim();
 
-              lineSegs[startLineIdx] = badgePrefix + greyOpenBracket + restOfLine;
-              lineSegs[endLineIdx] = lineSegs[endLineIdx] + greyCloseTag;
+              const repeatTagHtml = `<span class="repeat-tag">(${repeatNum})</span>`;
+
+              if (badgePrefix) {
+                lineSegs[startLineIdx] = `${badgePrefix} ${repeatTagHtml} ${restOfLine}`;
+              } else {
+                lineSegs[startLineIdx] = `${repeatTagHtml} ${restOfLine}`;
+              }
 
             } else if (startMatch && startMatch[2]) {
               let repeatNum = startMatch[2];
               lineSegs[i] = lineSegs[i].replace(/^(\s*(?:<span[^>]*>.*?<\/span>\s*)*)[\s\(\[]*(?:x|X|×|\*)?\s*(\d+|[٠-٩]+)\s*[\)\]\s]*/i, '$1');
 
               let badgeMatch = lineSegs[i].match(/^(\s*(?:<span[^>]*class="[^"]*badge-num"[^>]*>.*?<\/span>\s*)+)/i);
-              let badgePrefix = badgeMatch ? badgeMatch[1] : '';
-              let restOfLine = lineSegs[i].substring(badgePrefix.length).replace(/^[\s\(\[]+/, '');
+              let badgePrefix = badgeMatch ? badgeMatch[1].trim() : '';
+              let restOfLine = lineSegs[i].substring(badgeMatch ? badgeMatch[0].length : 0).replace(/^[\s\(\[]+/, '').trim();
 
-              const greyOpenBracket = `<span class="repeat-tag">(</span>`;
-              const greyCloseTag = `<span class="repeat-tag">)${repeatNum}</span>`;
+              const repeatTagHtml = `<span class="repeat-tag">(${repeatNum})</span>`;
 
-              lineSegs[i] = badgePrefix + greyOpenBracket + restOfLine + greyCloseTag;
+              if (badgePrefix) {
+                lineSegs[i] = `${badgePrefix} ${repeatTagHtml} ${restOfLine}`;
+              } else {
+                lineSegs[i] = `${repeatTagHtml} ${restOfLine}`;
+              }
             }
           }
         } else {

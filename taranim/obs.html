@@ -1041,29 +1041,33 @@
             startLineIdx = endLineIdx;
           }
 
-          const greyOpenBracket = `<span class="repeat-tag">(</span>`;
-          const greyCloseTag = `<span class="repeat-tag">)${repeatNum}</span>`;
-
-          lines[startLineIdx] = lines[startLineIdx].replace(/^[\s\(\[]+(?=<span[^>]*class="[^"]*badge-num")/i, '');
           let badgeMatch = lines[startLineIdx].match(/^(\s*(?:<span[^>]*class="[^"]*badge-num"[^>]*>.*?<\/span>\s*)+)/i);
-          let badgePrefix = badgeMatch ? badgeMatch[1] : '';
-          let restOfLine = lines[startLineIdx].substring(badgePrefix.length).replace(/^[\s\(\[]+/, '');
+          let badgePrefix = badgeMatch ? badgeMatch[1].trim() : '';
+          let restOfLine = lines[startLineIdx].substring(badgeMatch ? badgeMatch[0].length : 0).replace(/^[\s\(\[]+/, '').trim();
 
-          lines[startLineIdx] = badgePrefix + greyOpenBracket + restOfLine;
-          lines[endLineIdx] = lines[endLineIdx] + greyCloseTag;
+          const repeatTagHtml = `<span class="repeat-tag">(${repeatNum})</span>`;
+
+          if (badgePrefix) {
+            lines[startLineIdx] = `${badgePrefix} ${repeatTagHtml} ${restOfLine}`;
+          } else {
+            lines[startLineIdx] = `${repeatTagHtml} ${restOfLine}`;
+          }
 
         } else if (startMatch && startMatch[2]) {
           let repeatNum = startMatch[2];
           lines[i] = lines[i].replace(/^(\s*(?:<span[^>]*>.*?<\/span>\s*)*)[\s\(\[]*(?:x|X|×|\*)?\s*(\d+|[٠-٩]+)\s*[\)\]\s]*/i, '$1');
           
           let badgeMatch = lines[i].match(/^(\s*(?:<span[^>]*class="[^"]*badge-num"[^>]*>.*?<\/span>\s*)+)/i);
-          let badgePrefix = badgeMatch ? badgeMatch[1] : '';
-          let restOfLine = lines[i].substring(badgePrefix.length).replace(/^[\s\(\[]+/, '');
+          let badgePrefix = badgeMatch ? badgeMatch[1].trim() : '';
+          let restOfLine = lines[i].substring(badgeMatch ? badgeMatch[0].length : 0).replace(/^[\s\(\[]+/, '').trim();
 
-          const greyOpenBracket = `<span class="repeat-tag">(</span>`;
-          const greyCloseTag = `<span class="repeat-tag">)${repeatNum}</span>`;
+          const repeatTagHtml = `<span class="repeat-tag">(${repeatNum})</span>`;
 
-          lines[i] = badgePrefix + greyOpenBracket + restOfLine + greyCloseTag;
+          if (badgePrefix) {
+            lines[i] = `${badgePrefix} ${repeatTagHtml} ${restOfLine}`;
+          } else {
+            lines[i] = `${repeatTagHtml} ${restOfLine}`;
+          }
         }
       }
 
