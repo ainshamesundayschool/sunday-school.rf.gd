@@ -531,6 +531,30 @@ function togglePw(id, btn) {
 
 /* ── helpers ── */
 const val = id => (document.getElementById(id)?.value || '').trim();
+
+async function apiFetch(data) {
+  const fd = new FormData();
+  Object.entries(data).forEach(([k,v]) => fd.append(k,v));
+  let res;
+  try {
+    res = await fetch(API, {method:'POST', body:fd});
+  } catch(networkErr) {
+    console.error('Network error calling', API, networkErr);
+    throw new Error('فشل الاتصال بالخادم — تحقق من الإنترنت');
+  }
+  if (!res.ok) {
+    console.error('HTTP error', res.status, res.statusText, 'URL:', API);
+    throw new Error('خطأ من الخادم: ' + res.status);
+  }
+  const text = await res.text();
+  const idx  = text.indexOf('{');
+  if (idx < 0) {
+    console.error('Non-JSON response from', API, ':', text.slice(0, 300));
+    throw new Error('استجابة غير متوقعة من الخادم');
+  }
+  return JSON.parse(text.slice(idx));
+}
+
 function setProg(p) { document.getElementById('progFill').style.width = p + '%'; }
 
 function showErr(s, msg) {
