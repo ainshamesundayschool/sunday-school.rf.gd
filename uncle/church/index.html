@@ -12745,9 +12745,7 @@
         const _origFetch = window.fetch;
         window.fetch = function(input, init) {
             init = init || {};
-            if (typeof input === 'string' && (input === API_URL || input.includes('api.php'))) {
-                if (!init.credentials) init.credentials = 'include';
-            }
+            init.credentials = 'include';
             return _origFetch.call(this, input, init);
         };
         let allStudents = [], allUncles = [], classes = [], pendingRegistrations = [], allGuests = [];
@@ -20163,7 +20161,7 @@
             if (email) fd.append('admin_email', email);
             const churchType = document.querySelector('input[name="newChurchType"]:checked')?.value || 'kids';
             fd.append('church_type', churchType);
-            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+            const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json()).catch(() => ({ success: false }));
             if (d.success) { showToast('تم إضافة الكنيسة بنجاح', 'success'); e.target.reset(); document.getElementById('newChurchTypeKids').checked = true; _updateChurchTypeRadioStyle('new'); loadAllChurches(); }
             else showToast(d.message || 'فشل في إضافة الكنيسة', 'error');
             btn.innerHTML = '<i class="fas fa-plus"></i> إضافة كنيسة'; btn.disabled = false;
@@ -20196,7 +20194,7 @@
             fd.append('description', description);
 
             try {
-                const r = await fetch(API_URL, { method: 'POST', body: fd }).then(res => res.json());
+                const r = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(res => res.json());
                 if (r.success) {
                     showToast('تم إرسال رسالة المطور بنجاح', 'success');
                     document.getElementById('devBroadcastBody').value = '';
@@ -20237,12 +20235,12 @@
             fd.append('admin_email', document.getElementById('editChurchEmail').value);
             const editType = document.querySelector('input[name="editChurchType"]:checked')?.value || 'kids';
             fd.append('church_type', editType);
-            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+            const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json()).catch(() => ({ success: false }));
             if (!d.success) { showToast(d.message || 'فشل', 'error'); return; }
             const pw = document.getElementById('editChurchPassword').value;
             if (pw) {
                 const fd2 = new FormData(); fd2.append('action', 'updateChurchPassword'); fd2.append('church_id', id); fd2.append('new_password', pw);
-                await fetch(API_URL, { method: 'POST', body: fd2 }).then(r => r.json()).catch(() => ({}));
+                await fetch(API_URL, { method: 'POST', body: fd2, credentials: 'include' }).then(r => r.json()).catch(() => ({}));
             }
             showToast('تم تحديث الكنيسة', 'success'); closeModal('editChurchModal'); loadAllChurches();
         }
@@ -20252,7 +20250,7 @@
                 const enteredCode = await showPrompt({ title: "تأكيد الحذف", message: `أدخل رمز الكنيسة: "${code}"`, defaultValue: "" });
                 if (enteredCode !== code) { showToast('رمز الكنيسة غير صحيح', 'error'); return; }
                 const fd = new FormData(); fd.append('action', 'deleteChurch'); fd.append('church_id', id); fd.append('church_code', code);
-                const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+                const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json()).catch(() => ({ success: false }));
                 if (d.success) { showToast('تم حذف الكنيسة', 'success'); loadAllChurches(); }
                 else showToast(d.message || 'فشل في الحذف', 'error');
             });
