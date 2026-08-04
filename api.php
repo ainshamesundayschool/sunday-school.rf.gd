@@ -3520,6 +3520,52 @@ function syncCurrentSessionRoleFromDB()
     return $_SESSION['uncle_role'] ?? $_SESSION['role'] ?? '';
 }
 
+function getEffectiveUserRole(): string
+{
+    syncCurrentSessionRoleFromDB();
+
+    $role = strtolower(trim(
+        $_SESSION['uncle_role'] ?? 
+        $_SESSION['role'] ?? 
+        $_SESSION['user_role'] ?? 
+        $_POST['uncle_role'] ?? 
+        $_POST['role'] ?? 
+        $_GET['uncle_role'] ?? 
+        $_GET['role'] ?? 
+        ''
+    ));
+
+    if (!empty($role)) {
+        return $role;
+    }
+
+    if (!empty($_SESSION['is_developer'])) {
+        return 'developer';
+    }
+
+    if ((isset($_SESSION['login_type']) && $_SESSION['login_type'] === 'church') || 
+        (isset($_SESSION['church_id']) && !empty($_SESSION['church_id']) && !isset($_SESSION['uncle_id']))) {
+        return 'admin';
+    }
+
+    return 'uncle';
+}
+
+function isDeveloperRole(): bool
+{
+    $role = getEffectiveUserRole();
+    return in_array($role, ['developer', 'dev'], true) || !empty($_SESSION['is_developer']);
+}
+
+function isAdminOrDevRole(): bool
+{
+    if (isDeveloperRole()) return true;
+    $role = getEffectiveUserRole();
+    return in_array($role, ['admin', 'administrator', 'superadmin'], true) || 
+           (isset($_SESSION['login_type']) && $_SESSION['login_type'] === 'church');
+}
+
+
 // Check if user is logged in
 function checkAuth()
 {
@@ -13818,15 +13864,9 @@ function addChurch()
 
     try {
 
-        $role = $_SESSION['uncle_role'] ?? 'uncle';
+        if (!isAdminOrDevRole()) {
 
-
-
-        // Only developers can add churches
-
-        if ($role !== 'developer') {
-
-            sendJSON(['success' => false, 'message' => 'غير مصرح - فقط للمطورين']);
+            sendJSON(['success' => false, 'message' => 'غير مصرح - فقط للمسؤولين والمطورين']);
 
         }
 
@@ -14084,17 +14124,11 @@ function updateChurch()
 
     try {
 
-        $role = $_SESSION['uncle_role'] ?? 'uncle';
-
         $churchId = intval($_POST['church_id'] ?? 0);
 
+        $isDeveloper = isDeveloperRole();
 
-
-        $isDeveloper = in_array(strtolower($role), ['developer', 'dev']);
-
-        $isChurchAdmin = ($role === 'admin' || (isset($_SESSION['church_id']) && intval($_SESSION['church_id']) === $churchId));
-
-
+        $isChurchAdmin = isAdminOrDevRole() && (intval($_SESSION['church_id'] ?? 0) === $churchId || $isDeveloper || intval($_SESSION['church_id'] ?? 0) === 0);
 
         if (!$isDeveloper && !$isChurchAdmin) {
 
@@ -14182,8 +14216,6 @@ function updateChurchPassword()
 
     try {
 
-        $role = $_SESSION['uncle_role'] ?? 'uncle';
-
         $churchId = intval($_POST['church_id'] ?? 0);
 
         $newPassword = $_POST['new_password'] ?? '';
@@ -14192,9 +14224,9 @@ function updateChurchPassword()
 
 
 
-        $isDeveloper = ($role === 'developer' || $role === 'dev');
+        $isDeveloper = isDeveloperRole();
 
-        $isChurchAdmin = ($role === 'admin' || (isset($_SESSION['church_id']) && intval($_SESSION['church_id']) === $churchId));
+        $isChurchAdmin = isAdminOrDevRole() && (intval($_SESSION['church_id'] ?? 0) === $churchId || $isDeveloper || intval($_SESSION['church_id'] ?? 0) === 0);
 
 
 
@@ -17336,13 +17368,23 @@ function deleteUncle()
 
     try {
 
+        if (!isAdminOrDevRole()) {
+
+            sendJSON(['success' => false, 'message' => 'غير مصرح']);
+
+            return;
+
+        }
+
+
+
         $uncleId = intval($_POST['uncle_id'] ?? 0);
 
         $churchId = getChurchId();
 
 
 
-        if ($uncleId === 0 || $churchId === 0) {
+        if ($uncleId === 0) {
 
             sendJSON(['success' => false, 'message' => 'بيانات غير كاملة']);
 
@@ -17366,11 +17408,11 @@ function deleteUncle()
 
 
 
-        // Verify this uncle belongs to the church
+        // Verify this uncle exists and check church membership unless developer
 
-        $checkStmt = $conn->prepare("SELECT id, name, role, image_url FROM uncles WHERE id = ? AND church_id = ?");
+        $checkStmt = $conn->prepare("SELECT id, name, role, image_url, church_id FROM uncles WHERE id = ?");
 
-        $checkStmt->bind_param("ii", $uncleId, $churchId);
+        $checkStmt->bind_param("i", $uncleId);
 
         $checkStmt->execute();
 
@@ -17380,7 +17422,19 @@ function deleteUncle()
 
         if ($result->num_rows === 0) {
 
-            sendJSON(['success' => false, 'message' => 'الخادم غير موجود أو لا ينتمي لهذه الكنيسة']);
+            sendJSON(['success' => false, 'message' => 'الخادم غير موجود']);
+
+            return;
+
+        }
+
+
+
+        $uncleData = $result->fetch_assoc();
+
+        if (!isDeveloperRole() && $churchId > 0 && intval($uncleData['church_id']) !== $churchId) {
+
+            sendJSON(['success' => false, 'message' => 'الخادم لا ينتمي لهذه الكنيسة']);
 
             return;
 
@@ -19997,8 +20051,8 @@ function sendCustomWhatsAppOTP() {
         try {
             $ch = curl_init('https://baileys-qr-code--sundayschooleg.replit.app/');
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 3);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 12);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 8);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_exec($ch);
             unset($ch);
@@ -26578,11 +26632,17 @@ function deleteTrip()
 
         checkAuth();
 
-        $churchId = getChurchId();
+        if (!isAdminOrDevRole()) {
+
+            sendJSON(['success' => false, 'message' => 'غير مصرح - فقط للمسؤولين والمطورين حذف الرحلات']);
+
+            return;
+
+        }
+
+
 
         $tripId = intval($_POST['trip_id'] ?? 0);
-
-
 
         if ($tripId === 0) {
 
@@ -26596,11 +26656,27 @@ function deleteTrip()
 
         $conn = getDBConnection();
 
-
-
-        // BEFORE delete, get old trip data
-
         $oldTrip = getTripSnapshot($tripId);
+
+        if (!$oldTrip) {
+
+            sendJSON(['success' => false, 'message' => 'الرحلة غير موجودة']);
+
+            return;
+
+        }
+
+
+
+        $churchId = getChurchId();
+
+        if (!isDeveloperRole() && $churchId > 0 && intval($oldTrip['church_id'] ?? 0) !== $churchId) {
+
+            sendJSON(['success' => false, 'message' => 'غير مصرح بحذف رحلة كنيسة أخرى']);
+
+            return;
+
+        }
 
 
 
@@ -26640,19 +26716,15 @@ function deleteTrip()
 
 
 
-        $stmt = $conn->prepare("DELETE FROM trips WHERE id = ? AND church_id = ?");
+        $stmt = $conn->prepare("DELETE FROM trips WHERE id = ?");
 
-        $stmt->bind_param("ii", $tripId, $churchId);
+        $stmt->bind_param("i", $tripId);
 
 
 
         if ($stmt->execute()) {
 
-            // ► AUDIT
-
             auditTripDelete($tripId, $oldTrip ?? ['id' => $tripId]);
-
-
 
             sendJSON(['success' => true, 'message' => 'تم حذف الرحلة بنجاح']);
 
