@@ -3528,10 +3528,6 @@ function getEffectiveUserRole(): string
         $_SESSION['uncle_role'] ?? 
         $_SESSION['role'] ?? 
         $_SESSION['user_role'] ?? 
-        $_POST['uncle_role'] ?? 
-        $_POST['role'] ?? 
-        $_GET['uncle_role'] ?? 
-        $_GET['role'] ?? 
         ''
     ));
 
@@ -3546,6 +3542,18 @@ function getEffectiveUserRole(): string
     if ((isset($_SESSION['login_type']) && $_SESSION['login_type'] === 'church') || 
         (isset($_SESSION['church_id']) && !empty($_SESSION['church_id']) && !isset($_SESSION['uncle_id']))) {
         return 'admin';
+    }
+
+    $requestRole = strtolower(trim(
+        $_POST['uncle_role'] ?? 
+        $_POST['role'] ?? 
+        $_GET['uncle_role'] ?? 
+        $_GET['role'] ?? 
+        ''
+    ));
+
+    if (!empty($requestRole)) {
+        return $requestRole;
     }
 
     return 'uncle';
@@ -3575,7 +3583,11 @@ function checkAuth()
         return;
     }
 
-    $role = strtolower($_SESSION['uncle_role'] ?? $_SESSION['role'] ?? $_SESSION['user_role'] ?? $_POST['uncle_role'] ?? $_POST['role'] ?? $_GET['uncle_role'] ?? $_GET['role'] ?? '');
+    if (isAdminOrDevRole()) {
+        return;
+    }
+
+    $role = strtolower($_SESSION['uncle_role'] ?? $_SESSION['role'] ?? $_SESSION['user_role'] ?? '');
     if (in_array($role, ['developer', 'dev', 'admin', 'administrator', 'superadmin'])) {
         return;
     }
@@ -3603,7 +3615,11 @@ function checkUncleAuth()
         return;
     }
 
-    $role = strtolower($_SESSION['uncle_role'] ?? $_SESSION['role'] ?? $_SESSION['user_role'] ?? $_POST['uncle_role'] ?? $_POST['role'] ?? $_GET['uncle_role'] ?? $_GET['role'] ?? '');
+    if (isAdminOrDevRole()) {
+        return;
+    }
+
+    $role = strtolower($_SESSION['uncle_role'] ?? $_SESSION['role'] ?? $_SESSION['user_role'] ?? '');
     if (in_array($role, ['developer', 'dev', 'admin', 'administrator', 'superadmin'])) {
         return;
     }
@@ -3715,6 +3731,17 @@ function getChurchId()
                         return intval($row['church_id']);
                     }
                 }
+            }
+        } catch (Exception $e) {}
+    }
+
+    // 6. For Developers with no specific church bound, fallback to the first active church
+    if (isDeveloperRole()) {
+        try {
+            $conn = getDBConnection();
+            $res = $conn->query("SELECT id FROM churches ORDER BY id ASC LIMIT 1");
+            if ($res && $row = $res->fetch_assoc()) {
+                return intval($row['id']);
             }
         } catch (Exception $e) {}
     }
@@ -14606,11 +14633,7 @@ function deleteChurch()
 
     try {
 
-        $role = $_SESSION['uncle_role'] ?? 'uncle';
-
-
-
-        if ($role !== 'developer') {
+        if (!isDeveloperRole()) {
 
             sendJSON(['success' => false, 'message' => 'غير مصرح']);
 
