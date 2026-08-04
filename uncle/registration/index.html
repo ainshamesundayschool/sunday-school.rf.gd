@@ -796,10 +796,13 @@ function v1() {
   if (!ph || !ph.startsWith('01') || ph.length !== 11) {
     showErr(1,'رقم التليفون غير صحيح — يبدأ بـ 01 ويتكون من 11 رقم'); focusErr('unclePhone'); return false;
   }
+  // WhatsApp OTP verification paused for now
+  /*
   if (!isPhoneVerified || verifiedPhoneNum !== ph) {
     showErr(1, 'يرجى إثبات ملكية رقم الهاتف عبر الواتساب أولاً قبل المتابعة.');
     return false;
   }
+  */
   const bday = val('uncleBirthday').trim();
   if (!bday) { showErr(1,'الرجاء إدخال تاريخ الميلاد'); focusErr('uncleBirthday'); return false; }
   const parts = bday.split('/');

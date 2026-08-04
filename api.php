@@ -32465,8 +32465,6 @@ function updateStudentFull()
 
         }
 
-
-
         if ($stmt->execute()) {
 
             sendJSON([
@@ -32485,8 +32483,6 @@ function updateStudentFull()
 
         }
 
-
-
     } catch (Exception $e) {
 
         error_log("updateStudentFull error: " . $e->getMessage());
@@ -32497,13 +32493,12 @@ function updateStudentFull()
 
 }
 
-
-
 // ── Sibling groups (persisted by student id) ─────────────────
 
 function ensureStudentSiblingGroupTables($conn)
 
 {
+
     if (defined('SCHEMA_MIGRATED')) { return; }
 
     $conn->query("CREATE TABLE IF NOT EXISTS `student_sibling_groups` (
@@ -33910,28 +33905,36 @@ function getSessionInfo()
 
 
 
-    if ($churchId === 0 && $uncleId === null) {
-
+    $isDev = isDeveloperRole();
+    if ($churchId === 0 && $uncleId === null && !$isDev) {
         sendJSON(['success' => false, 'message' => 'لا توجد جلسة نشطة']);
-
         return;
-
     }
 
-
-
     // Determine login type
+    $loginType = $isDev ? 'developer' : (isset($_SESSION['uncle_id']) ? 'uncle' : 'church');
 
-    $loginType = isset($_SESSION['uncle_id']) ? 'uncle' : 'church';
-
-
-
-    $sessRole = strtolower(trim($_SESSION['uncle_role'] ?? $_SESSION['role'] ?? $uncleRole));
-    $isDev = in_array($sessRole, ['developer', 'dev']) || !empty($_SESSION['is_developer']);
     if ($isDev) {
         $uncleRole = 'developer';
         $_SESSION['uncle_role'] = 'developer';
         $_SESSION['role'] = 'developer';
+        if ($churchId === 0) {
+            $churchId = getChurchId();
+        }
+        if ($churchId > 0 && empty($churchName)) {
+            try {
+                $conn = getDBConnection();
+                $stmt = $conn->prepare("SELECT church_name, church_code, admin_email, COALESCE(church_type,'kids') AS church_type FROM churches WHERE id = ?");
+                $stmt->bind_param("i", $churchId);
+                $stmt->execute();
+                if ($row = $stmt->get_result()->fetch_assoc()) {
+                    $churchName = $row['church_name'] ?? '';
+                    $churchCode = $row['church_code'] ?? '';
+                    $churchType = $row['church_type'] ?? 'kids';
+                    $adminEmail = $row['admin_email'] ?? '';
+                }
+            } catch (Exception $e) {}
+        }
     } elseif ($loginType === 'church' && empty($uncleRole)) {
         $uncleRole = 'admin';
     }

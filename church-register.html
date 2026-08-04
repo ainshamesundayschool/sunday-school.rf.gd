@@ -668,10 +668,13 @@ function v2() {
   if (!val('adminName'))     { showErr(2, 'الرجاء إدخال اسم المسؤول');       focusErr('adminName');     return false; }
   if (!val('adminPhone'))    { showErr(2, 'الرجاء إدخال رقم الهاتف');        focusErr('adminPhone');    return false; }
   if (val('adminPhone').length < 10) { showErr(2, 'رقم الهاتف غير صحيح');    focusErr('adminPhone');    return false; }
+  // WhatsApp OTP verification paused for now
+  /*
   if (!isPhoneVerified || verifiedPhoneNum !== val('adminPhone').replace(/\D/g,'')) {
     showErr(2, 'يرجى إثبات ملكية رقم الهاتف عبر الواتساب أولاً قبل المتابعة.');
     return false;
   }
+  */
   if (!val('adminUsername')) { showErr(2, 'الرجاء إدخال اسم المستخدم');      focusErr('adminUsername'); return false; }
   if (val('adminUsername').includes(' ')) { showErr(2, 'اسم المستخدم لا يحتوي على مسافات'); focusErr('adminUsername'); return false; }
   if (!val('adminPassword')) { showErr(2, 'الرجاء إدخال كلمة المرور');       focusErr('adminPassword'); return false; }

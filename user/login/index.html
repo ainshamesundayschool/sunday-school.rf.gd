@@ -918,9 +918,9 @@
                         elements.phoneLoginText.textContent = 'تسجيل الدخول بكلمة المرور';
                         elements.phonePasswordInput.focus();
                     } else {
-                        // User doesn't have password - MUST verify phone number via OTP first
+                        // User doesn't have password - jump directly to Password Setup (OTP paused)
                         currentPhoneForSetup = cleanPhoneNumber(phone);
-                        startPhoneVerification(phone, data.student_id);
+                        showPasswordSetup(phone, data.student_id);
                     }
                 } else {
                     // If check fails, try normal phone login
@@ -973,63 +973,7 @@
         }
 
         function startPhoneVerification(phone, studentId) {
-            const container = elements.passwordSetupContainer;
-            const phoneLoginForm = elements.phoneLoginForm;
-            
-            phoneLoginForm.classList.remove('active');
-            container.classList.add('active');
-
-            const cleanP = cleanPhoneNumber(phone);
-            
-            container.innerHTML = `
-                <h3 style="color: var(--dark); font-size: 1.1rem; margin-bottom: 16px; text-align: center; font-weight: 800;">
-                    <i class="fas fa-shield-alt" style="color: var(--primary);"></i>
-                    تأكيد ملكية رقم الهاتف
-                </h3>
-                
-                <div style="background: var(--light); color: var(--dark); padding: 12px 14px; border-radius: var(--radius-sm); margin-bottom: 16px; border: 1px solid var(--border); text-align: center; font-size: 0.85rem;">
-                    لأمان حسابك، يرجى التحقق من ملكية الرقم: <strong>${phone}</strong>
-                </div>
-                
-                <div style="margin-bottom: 14px;">
-                    <button type="button" id="waDirectBtn" class="login-btn" style="background: #25d366; color: white; border: none; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; font-weight: 700; font-size: 0.88rem; border-radius: var(--radius-sm); margin-bottom: 6px; box-shadow: none; width: 100%;">
-                        <i class="fab fa-whatsapp" style="font-size: 1.1rem;"></i>
-                        <span>طلب كود التحقق عبر الواتساب</span>
-                    </button>
-                </div>
-
-                <form id="phoneOtpForm">
-                    <div class="form-group" style="margin-bottom: 14px;">
-                        <label for="otpInput" class="form-label" style="font-size: 0.85rem;">أدخل كود التحقق (6 أرقام)</label>
-                        <div class="input-container">
-                            <i class="fas fa-key input-icon"></i>
-                            <input type="text" 
-                                   id="otpInput" 
-                                   class="form-input" 
-                                   required 
-                                   maxlength="6"
-                                   placeholder="000000" 
-                                   style="letter-spacing: 4px; text-align: center; font-weight: 700; font-size: 1.1rem; padding: 10px;">
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="login-btn" id="verifyOtpSubmitBtn" style="padding: 10px 14px; font-size: 0.88rem; margin-bottom: 0;">
-                        <i class="fas fa-check"></i>
-                        <span>تأكيد الكود والمتابعة</span>
-                    </button>
-                </form>
-            `;
-
-            setTimeout(() => {
-                document.getElementById('waDirectBtn').addEventListener('click', function() {
-                    requestServerWhatsAppOTP(phone);
-                });
-
-                document.getElementById('phoneOtpForm').addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    verifyWhatsAppOTP(phone, studentId);
-                });
-            }, 100);
+            showPasswordSetup(phone, studentId);
         }
 
         function requestServerWhatsAppOTP(phone) {
@@ -1412,10 +1356,10 @@
                 }
                 hideLoading();
                 if (data.success && data.student_id) {
-                    showSuccess('لإعادة تعيين كلمة المرور، يرجى تأكيد ملكية رقم الهاتف أولاً عبر الواتساب.');
+                    showSuccess('سيتم التوجيه فوراً لإعادة تعيين كلمة مرور جديدة.');
                     setTimeout(() => {
-                        startPhoneVerification(phone, data.student_id);
-                    }, 1200);
+                        showPasswordSetup(phone, data.student_id);
+                    }, 600);
                 } else {
                     showPhoneError('رقم الهاتف غير مسجل في النظام');
                 }
