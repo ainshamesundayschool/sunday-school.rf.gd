@@ -13017,21 +13017,27 @@
 
         function checkIsDeveloperRole(sessObj) {
             const s = sessObj || {};
+            if (s && s.role) {
+                const serverRole = (s.role || s.uncle_role || '').toString().toLowerCase().trim();
+                const isDevServer = (s.is_developer === true || s.is_developer == 1 || s.is_developer === 'true' || s.is_developer === '1' || serverRole === 'developer' || serverRole === 'dev');
+                if (isDevServer) {
+                    localStorage.setItem('uncleRole', 'developer');
+                    localStorage.setItem('role', 'developer');
+                    localStorage.setItem('isDeveloper', 'true');
+                    return true;
+                } else {
+                    localStorage.setItem('uncleRole', serverRole || 'admin');
+                    localStorage.setItem('role', serverRole || 'admin');
+                    localStorage.removeItem('isDeveloper');
+                    return false;
+                }
+            }
             const roles = [
-                s.role,
-                s.uncle_role,
-                s.user_role,
                 localStorage.getItem('uncleRole'),
                 localStorage.getItem('role'),
                 localStorage.getItem('userRole')
             ].filter(Boolean).map(r => r.toString().toLowerCase().trim());
-            const isDev = (s.is_developer === true || s.is_developer == 1 || s.is_developer === 'true' || s.is_developer === '1' || roles.some(r => r === 'developer' || r === 'dev'));
-            if (isDev) {
-                localStorage.setItem('uncleRole', 'developer');
-                localStorage.setItem('role', 'developer');
-                localStorage.setItem('isDeveloper', 'true');
-            }
-            return isDev;
+            return (localStorage.getItem('isDeveloper') === 'true' || roles.some(r => r === 'developer' || r === 'dev'));
         }
 
         onDOMReady(async () => {

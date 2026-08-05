@@ -3393,10 +3393,12 @@ function autoRestoreSessionFromRequest()
                     $_SESSION['uncle_name'] = $row['name'];
                     $_SESSION['uncle_username'] = $row['username'];
                     $_SESSION['uncle_role'] = $row['role'];
+                    $_SESSION['role'] = $row['role'];
                     $_SESSION['church_id'] = intval($row['church_id']);
                     $_SESSION['church_name'] = $row['church_name'];
                     $_SESSION['church_code'] = $row['church_code'];
                     $_SESSION['church_type'] = $row['church_type'];
+                    $_SESSION['login_type'] = 'uncle';
                     $_SESSION['uncle_logged_in'] = true;
                     return true;
                 }
@@ -3427,10 +3429,12 @@ function autoRestoreSessionFromRequest()
                     $_SESSION['uncle_name'] = $row['name'];
                     $_SESSION['uncle_username'] = $row['username'];
                     $_SESSION['uncle_role'] = $row['role'];
+                    $_SESSION['role'] = $row['role'];
                     $_SESSION['church_id'] = intval($row['church_id']);
                     $_SESSION['church_name'] = $row['church_name'];
                     $_SESSION['church_code'] = $row['church_code'];
                     $_SESSION['church_type'] = $row['church_type'];
+                    $_SESSION['login_type'] = 'uncle';
                     $_SESSION['uncle_logged_in'] = true;
                     return true;
                 }
@@ -3453,6 +3457,9 @@ function autoRestoreSessionFromRequest()
                     $_SESSION['church_name'] = $row['church_name'];
                     $_SESSION['church_code'] = $row['church_code'];
                     $_SESSION['church_type'] = $row['church_type'];
+                    $_SESSION['login_type'] = 'church';
+                    $_SESSION['uncle_role'] = 'admin';
+                    $_SESSION['role'] = 'admin';
                     $_SESSION['loggedIn'] = true;
                     return true;
                 }
@@ -3475,6 +3482,9 @@ function autoRestoreSessionFromRequest()
                     $_SESSION['church_name'] = $row['church_name'];
                     $_SESSION['church_code'] = $row['church_code'];
                     $_SESSION['church_type'] = $row['church_type'];
+                    $_SESSION['login_type'] = 'church';
+                    $_SESSION['uncle_role'] = 'admin';
+                    $_SESSION['role'] = 'admin';
                     $_SESSION['loggedIn'] = true;
                     return true;
                 }
@@ -5549,6 +5559,12 @@ try {
 
                     $_SESSION['church_type'] = $row['church_type'];
 
+                    $_SESSION['login_type'] = 'church';
+
+                    $_SESSION['uncle_role'] = 'admin';
+
+                    $_SESSION['role'] = 'admin';
+
                     $_SESSION['permanent'] = true;
 
 
@@ -5559,9 +5575,19 @@ try {
 
                         'success' => true,
 
+                        'church_id' => $row['id'],
+
+                        'church_code' => $row['church_code'],
+
                         'church_type' => $row['church_type'],
 
                         'church_name' => $row['church_name'],
+
+                        'uncle_role' => 'admin',
+
+                        'role' => 'admin',
+
+                        'login_type' => 'church',
 
                     ]);
 
@@ -5637,6 +5663,8 @@ try {
 
                     $_SESSION['uncle_role'] = $row['role'];
 
+                    $_SESSION['role'] = $row['role'];
+
                     $_SESSION['church_id'] = $row['church_id'];
 
                     $_SESSION['church_name'] = $row['church_name'];
@@ -5644,6 +5672,8 @@ try {
                     $_SESSION['church_code'] = $row['church_code'];
 
                     $_SESSION['church_type'] = $row['church_type'];
+
+                    $_SESSION['login_type'] = 'uncle';
 
                     $_SESSION['permanent'] = true;
 
