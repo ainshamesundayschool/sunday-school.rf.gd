@@ -6458,7 +6458,7 @@ function getData()
 
         $churchId = getChurchId();
 
-        $isAll = (!empty($_POST['all_churches']) && $_POST['all_churches'] === '1');
+        $isAll = (!empty($_POST['all_churches']) && $_POST['all_churches'] === '1') || (isset($_POST['dev_override_church_id']) && $_POST['dev_override_church_id'] == -1);
 
         if ($isAll) {
 
@@ -16865,7 +16865,7 @@ function getAllUncles_duplicate()
         $conn = getDBConnection();
 
         $tripId = intval($_POST['trip_id'] ?? 0);
-        $isAll = (!empty($_POST['all_churches']) && $_POST['all_churches'] === '1');
+        $isAll = (!empty($_POST['all_churches']) && $_POST['all_churches'] === '1') || (isset($_POST['dev_override_church_id']) && $_POST['dev_override_church_id'] == -1);
 
         if ($tripId > 0) {
             $churchIds = [$churchId];
