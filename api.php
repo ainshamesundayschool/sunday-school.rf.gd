@@ -3394,6 +3394,9 @@ function autoRestoreSessionFromRequest()
                     $_SESSION['uncle_username'] = $row['username'];
                     $_SESSION['uncle_role'] = $row['role'];
                     $_SESSION['role'] = $row['role'];
+                    if (in_array(strtolower(trim($row['role'] ?? '')), ['developer', 'dev'])) {
+                        $_SESSION['is_developer'] = true;
+                    }
                     $_SESSION['church_id'] = intval($row['church_id']);
                     $_SESSION['church_name'] = $row['church_name'];
                     $_SESSION['church_code'] = $row['church_code'];
@@ -3430,6 +3433,9 @@ function autoRestoreSessionFromRequest()
                     $_SESSION['uncle_username'] = $row['username'];
                     $_SESSION['uncle_role'] = $row['role'];
                     $_SESSION['role'] = $row['role'];
+                    if (in_array(strtolower(trim($row['role'] ?? '')), ['developer', 'dev'])) {
+                        $_SESSION['is_developer'] = true;
+                    }
                     $_SESSION['church_id'] = intval($row['church_id']);
                     $_SESSION['church_name'] = $row['church_name'];
                     $_SESSION['church_code'] = $row['church_code'];
@@ -16319,6 +16325,10 @@ function handleUncleLogin()
 
                 $_SESSION['role'] = $row['role'] ?? 'uncle';
 
+                if (in_array(strtolower(trim($row['role'] ?? '')), ['developer', 'dev'])) {
+                    $_SESSION['is_developer'] = true;
+                }
+
                 $_SESSION['login_type'] = 'uncle';
 
 
@@ -23343,7 +23353,7 @@ function getChurchStatistics()
 
         $churchId = getChurchId();
 
-        $isAll = (!empty($_POST['all_churches']) && $_POST['all_churches'] === '1') || $churchId === 0;
+        $isAll = (!empty($_POST['all_churches']) && $_POST['all_churches'] === '1') || (isset($_POST['dev_override_church_id']) && $_POST['dev_override_church_id'] == -1) || $churchId === 0;
 
         $conn = getDBConnection();
 

@@ -12819,7 +12819,7 @@
         }
 
         function _showOfflineCacheToast() {
-            if (_offlineToastShown) return;
+            if (_offlineToastShown || navigator.onLine) return;
             _offlineToastShown = true;
             showToast('يتم عرض آخر بيانات محفوظة بدون إنترنت', 'info');
         }
@@ -13687,15 +13687,17 @@
                 if (cid > 0) {
                     fd.append('church_id', cid);
                 }
-                const cc = localStorage.getItem('churchCode');
-                if (cc) fd.append('church_code', cc);
-                const un = localStorage.getItem('uncleUsername');
-                if (un) fd.append('username', un);
-                const uid = localStorage.getItem('uncleId');
-                if (uid) fd.append('uncle_id', uid);
-                const r = localStorage.getItem('uncleRole') || localStorage.getItem('role');
-                if (r) fd.append('role', r);
             }
+
+            // Always attach session credentials as a fallback for autoRestoreSessionFromRequest
+            const cc = localStorage.getItem('churchCode');
+            if (cc) fd.append('church_code', cc);
+            const un = localStorage.getItem('uncleUsername') || localStorage.getItem('username');
+            if (un) fd.append('username', un);
+            const uid = localStorage.getItem('uncleId');
+            if (uid) fd.append('uncle_id', uid);
+            const r = localStorage.getItem('uncleRole') || localStorage.getItem('role');
+            if (r) fd.append('role', r);
 
             return fd;
         }
@@ -13710,6 +13712,16 @@
                 fd.append('dev_override_church_id', devViewChurchId);
                 fd.append('church_id', devViewChurchId);
             }
+
+            const cc = localStorage.getItem('churchCode');
+            if (cc && !fd.has('church_code')) fd.append('church_code', cc);
+            const un = localStorage.getItem('uncleUsername') || localStorage.getItem('username');
+            if (un && !fd.has('username')) fd.append('username', un);
+            const uid = localStorage.getItem('uncleId');
+            if (uid && !fd.has('uncle_id')) fd.append('uncle_id', uid);
+            const r = localStorage.getItem('uncleRole') || localStorage.getItem('role');
+            if (r && !fd.has('role')) fd.append('role', r);
+
             return fd;
         }
 
