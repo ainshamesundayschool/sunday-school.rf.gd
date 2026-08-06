@@ -3,6 +3,11 @@ on:
   push:
     branches:
       - main
+
+concurrency:
+  group: deploy-production-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   ftp-deploy:
     runs-on: ubuntu-latest
@@ -24,6 +29,8 @@ jobs:
             **/.git*/**
             **/.github*
             **/.github*/**
+            **/database.sqlite
+            **/database.sqlite-journal
             **/uploads/**
             **/config.php
             **/php_errors.log
@@ -37,3 +44,6 @@ jobs:
             **/imgs/screenshots/**
             **/imgs/Sunday School App.png
             **/imgs/Sunday-School old.png
+            **/__pycache__/**
+            **/*.py
+            **/.DS_Store
