@@ -21,37 +21,70 @@ function getBrethrenDB(): mysqli {
 
     mysqli_report(MYSQLI_REPORT_OFF);
 
+    $rootPath = dirname(__DIR__);
+    if (file_exists($rootPath . '/config.php')) {
+        @include_once $rootPath . '/config.php';
+        if (function_exists('getDBConnection')) {
+            try {
+                $testGlobal = getDBConnection();
+                if ($testGlobal && !$testGlobal->connect_error) {
+                    $conn = $testGlobal;
+                    ensureTablesExist($conn);
+                    return $conn;
+                }
+            } catch (Exception $e) {}
+        }
+    }
+
     $hostsToTry = [
         'sql206.infinityfree.com',
-        'localhost',
         '127.0.0.1',
+        'localhost',
         'sql206.epizy.com',
         'sql206.byetcluster.com'
     ];
 
-    $rootPath = dirname(__DIR__);
-    if (file_exists($rootPath . '/config.php')) {
-        @include_once $rootPath . '/config.php';
-        if (defined('DB_HOST') && !in_array(DB_HOST, $hostsToTry, true)) {
-            array_unshift($hostsToTry, DB_HOST);
-        }
+    if (defined('DB_HOST') && !in_array(DB_HOST, $hostsToTry, true)) {
+        array_unshift($hostsToTry, DB_HOST);
     }
 
-    $lastError = '';
-    foreach ($hostsToTry as $host) {
-        $testConn = @new mysqli($host, BRETHREN_DB_USER, BRETHREN_DB_PASS, BRETHREN_DB_NAME, 3306);
-        if (!$testConn->connect_error) {
-            $conn = $testConn;
-            break;
-        }
-        $lastError = $testConn->connect_error;
+    $dbsToTry = [];
+    if (defined('DB_NAME')) $dbsToTry[] = DB_NAME;
+    $dbsToTry[] = BRETHREN_DB_NAME;
+    $dbsToTry[] = 'if0_40860329_SundaySchool';
 
-        $testLocal = @new mysqli($host, 'root', '', '', 3306);
-        if (!$testLocal->connect_error) {
-            $testLocal->query("CREATE DATABASE IF NOT EXISTS `if0_40860329_brethren` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-            if ($testLocal->select_db('if0_40860329_brethren')) {
-                $conn = $testLocal;
-                break;
+    $usersToTry = [];
+    if (defined('DB_USER')) $usersToTry[] = ['user' => DB_USER, 'pass' => defined('DB_PASS') ? DB_PASS : ''];
+    $usersToTry[] = ['user' => BRETHREN_DB_USER, 'pass' => BRETHREN_DB_PASS];
+    $usersToTry[] = ['user' => 'root', 'pass' => ''];
+
+    $lastError = '';
+
+    foreach ($hostsToTry as $host) {
+        foreach ($usersToTry as $uInfo) {
+            foreach ($dbsToTry as $dbName) {
+                $testConn = @new mysqli($host, $uInfo['user'], $uInfo['pass'], $dbName, 3306);
+                if (!$testConn->connect_error) {
+                    $conn = $testConn;
+                    $conn->set_charset('utf8mb4');
+                    ensureTablesExist($conn);
+                    return $conn;
+                }
+                $lastError = $testConn->connect_error;
+            }
+
+            // Try creating DB if local root
+            if ($uInfo['user'] === 'root') {
+                $testLocal = @new mysqli($host, 'root', '', '', 3306);
+                if (!$testLocal->connect_error) {
+                    $testLocal->query("CREATE DATABASE IF NOT EXISTS `if0_40860329_brethren` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+                    if ($testLocal->select_db('if0_40860329_brethren')) {
+                        $conn = $testLocal;
+                        $conn->set_charset('utf8mb4');
+                        ensureTablesExist($conn);
+                        return $conn;
+                    }
+                }
             }
         }
     }
