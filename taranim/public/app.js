@@ -3279,6 +3279,7 @@ document.addEventListener('DOMContentLoaded', () => {
       els.searchDropdown.innerHTML = francoHeaderHtml + `<div class="search-item no-results-item"><i class="fa-solid fa-circle-exclamation" style="color:#94a3b8; margin-left:6px;"></i><span class="item-title">لم يتم العثور على ترنيمة أو شاهد كتابي</span></div>`;
     } else {
       const visibleSongs = songs.slice(0, activeSearchLimit);
+      state.lastSearchResultSongs = visibleSongs;
       const remainingCount = songs.length - visibleSongs.length;
 
       const itemsHtml = visibleSongs.map(s => {
@@ -3355,7 +3356,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     els.searchDropdown.classList.remove('hidden');
 
-    els.searchDropdown.querySelectorAll('.search-item').forEach(item => {
+    els.searchDropdown.querySelectorAll('.search-item').forEach((item, idx) => {
       item.addEventListener('click', () => {
         const id = item.dataset.id;
         const isBible = item.dataset.isBible === '1';
@@ -3363,7 +3364,12 @@ document.addEventListener('DOMContentLoaded', () => {
         els.searchDropdown.classList.add('hidden');
         els.intelligentSearch.value = '';
         els.clearSearchBtn.classList.add('hidden');
-        openAndPresentItem(id, isBible);
+        const matchedSong = state.lastSearchResultSongs ? state.lastSearchResultSongs[idx] : null;
+        if (matchedSong) {
+          openAndPresentItem(matchedSong, isBible);
+        } else {
+          openAndPresentItem(id, isBible);
+        }
       });
     });
 
@@ -3379,13 +3385,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-  async function openAndPresentItem(songId, isBible = false) {
-    if (!songId && songId !== 0) return;
+  async function openAndPresentItem(songOrId, isBible = false) {
+    if (!songOrId && songOrId !== 0) return;
 
     let targetSong = null;
 
+    // 0. IF DIRECT OBJECT IS PASSED, USE IT DIRECTLY
+    if (typeof songOrId === 'object' && songOrId !== null && (songOrId.title || songOrId.verses || songOrId.id)) {
+      targetSong = JSON.parse(JSON.stringify(songOrId));
+    }
+
+    const songId = targetSong ? targetSong.id : songOrId;
+
     // 1. ALWAYS PRIORITIZE CANONICAL CATALOG SONG BY ID FIRST (For non-Bible items)
-    if (!isBible && state.allSongs && state.allSongs.length > 0) {
+    if (!targetSong && !isBible && state.allSongs && state.allSongs.length > 0) {
       let canonicalSong = state.allSongs.find(s => !s.is_bible && String(s.id) === String(songId));
       if (!canonicalSong) {
         canonicalSong = state.allSongs.find(s => !s.is_bible && String(s.item_id) === String(songId));
@@ -3399,13 +3412,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. Search in active session recents matching id AND is_bible type if not found in catalog
     if (!targetSong) {
       let foundInRecents = state.sessionRecents.find(r => 
-        Boolean(r.is_bible) === Boolean(isBible) && String(r.id) === String(songId)
+        Boolean(r.is_bible) === Boolean(isBible) && (String(r.id) === String(songId) || String(r.item_id) === String(songId))
       );
-      if (!foundInRecents) {
-        foundInRecents = state.sessionRecents.find(r => 
-          Boolean(r.is_bible) === Boolean(isBible) && String(r.item_id) === String(songId)
-        );
-      }
       if (foundInRecents) {
         targetSong = JSON.parse(JSON.stringify(foundInRecents));
       }
@@ -4026,9 +4034,14 @@ document.addEventListener('DOMContentLoaded', () => {
     els.recentSessionContainer.querySelectorAll('.recent-item').forEach(item => {
       item.addEventListener('click', (e) => {
         if (e.target.closest('.recent-item-cb')) return;
-        const id = item.dataset.id;
+        const idx = parseInt(item.dataset.index);
         const isBible = item.dataset.isBible === '1';
-        openAndPresentItem(id, isBible);
+        if (!isNaN(idx) && state.sessionRecents[idx]) {
+          openAndPresentItem(state.sessionRecents[idx], isBible);
+        } else {
+          const id = item.dataset.id;
+          openAndPresentItem(id, isBible);
+        }
       });
     });
 
@@ -4132,7 +4145,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (file) importPlaylistFromFile(file);
       });
     });
-
     els.playlistsListContainer.querySelectorAll('.btn-delete-pl').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -4144,6 +4156,75 @@ document.addEventListener('DOMContentLoaded', () => {
         renderPlaylistsList();
       });
     });
+  }
+
+  function formatPresenterText(rawText, isBible = false, badgeTextOverride = '', badgeClassOverride = '') {
+    if (!rawText) return '';
+
+    let text = String(rawText);
+    let detectedBadge = badgeTextOverride || '';
+    let detectedBadgeClass = badgeClassOverride || '';
+
+    if (!detectedBadge) {
+      const badgeMatch = text.match(/^\s*\((ق|قرار|\d+|[٠-٩]+)\)\s*/i);
+      if (badgeMatch) {
+        detectedBadge = `(${badgeMatch[1]})`;
+        const isChorus = /ق|قرار/i.test(badgeMatch[1]);
+        detectedBadgeClass = isChorus ? 'chorus-badge-side chorus-num' : 'stanza-badge-side verse-num';
+        text = text.replace(/^\s*\((ق|قرار|\d+|[٠-٩]+)\)\s*/i, '').trim();
+      }
+    } else {
+      text = text.replace(/^\s*\((ق|قرار|\d+|[٠-٩]+)\)\s*/i, '').trim();
+    }
+
+    let html = escapeHtml(text);
+    let lines = html.split('\n');
+
+    for (let i = 0; i < lines.length; i++) {
+      let lineStr = lines[i].trim();
+      if (!lineStr) continue;
+
+      let hasOpenBracket = /^\s*[\(\[]/.test(lineStr);
+      let hasCloseBracket = /[\)\]]\s*(\d+|[٠-٩]+)?\s*$/i.test(lineStr) || /[\)\]]/.test(lineStr);
+
+      if (hasOpenBracket && !hasCloseBracket && lines.length === 1) {
+        lineStr = lineStr.replace(/^\s*[\(\[]\s*/, '').trim();
+        lines[i] = lineStr;
+      }
+
+      let endMatch = lineStr.match(/(?:\)\s*)?(?:\(|\[)?\s*(?:x|X|×|\*)?\s*(\d+|[٠-٩]+)\s*(?:x|X|×)?\s*(?:\)|\])?$/i) || 
+                     lineStr.match(/\s*(?:x|X|×|\*)\s*(\d+|[٠-٩]+)$/i) || 
+                     lineStr.match(/\(\s*(\d+|[٠-٩]+)\s*\)$/);
+
+      if (endMatch && endMatch[1]) {
+        let repeatNum = endMatch[1];
+        let cleanedLine = lineStr
+          .replace(/(?:\)\s*)?(?:\(|\[)?\s*(?:x|X|×|\*)?\s*(\d+|[٠-٩]+)\s*(?:x|X|×)?\s*(?:\)|\])?$/i, '')
+          .replace(/\s*(?:x|X|×|\*)\s*(\d+|[٠-٩]+)$/i, '')
+          .trim();
+
+        if (cleanedLine.startsWith('(') || cleanedLine.startsWith('[')) {
+          cleanedLine = cleanedLine.substring(1).trim();
+        }
+        if (cleanedLine.endsWith(')')) {
+          cleanedLine = cleanedLine.slice(0, -1).trim();
+        }
+
+        lines[i] = `${cleanedLine} <span class="repeat-tag">(${repeatNum})</span>`;
+      } else if (lineStr.startsWith('(') && lineStr.endsWith(')')) {
+        let inside = lineStr.substring(1, lineStr.length - 1).trim();
+        lines[i] = inside;
+      }
+    }
+
+    let lineSegments = lines.map(l => `<span class="obs-line-segment" style="display: block; white-space: normal; word-break: keep-all; overflow-wrap: break-word; text-align: center; width: 100%; font-size: inherit;">${l}</span>`).join('');
+
+    let badgeHtml = '';
+    if (detectedBadge) {
+      badgeHtml = `<div class="slide-badge-layer ${detectedBadgeClass}">${escapeHtml(detectedBadge)}</div>`;
+    }
+
+    return `<div class="obs-slide-wrapper">${badgeHtml}<div class="obs-lines-wrapper">${lineSegments}</div></div>`;
   }
 
   function exportPlaylistObj(targetPl) {
@@ -4240,8 +4321,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function syncLiveState(isExplicitPositionUpdate = false) {
-    const currentLine = state.presentationLines[state.currentLineIndex];
-    const text = currentLine ? currentLine.text : '';
+    const currentSlideItem = state.presentationLines[state.currentLineIndex] || null;
+    const text = currentSlideItem ? (currentSlideItem.text || '') : '';
     const currentSlide = state.presentationLines.length > 0 ? (state.currentLineIndex + 1) : 0;
     const totalSlides = state.presentationLines.length;
     const scaleText = getSongScaleText(state.activeSong);
@@ -4251,6 +4332,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const payload = {
       type: 'PRESENT_LINE',
       text: text,
+      badgeText: currentSlideItem ? (currentSlideItem.badgeText || '') : '',
+      badgeClass: currentSlideItem ? (currentSlideItem.badgeClass || '') : '',
       isBible: isBible,
       is_bible: isBible,
       songTitle: state.activeSong ? state.activeSong.title : '',
@@ -4358,95 +4441,9 @@ document.addEventListener('DOMContentLoaded', () => {
           els.obsLineText.style.fontWeight = state.styleOptions.fontWeight || '400';
         }
 
-        let htmlText = escapeHtml(text);
-        htmlText = htmlText.replace(/\((ق|قرار)\)/gi, '<span class="badge-num chorus-num">($1)</span>');
-
-        let lineSegs = htmlText.split('\n');
-
-        if (!isBible) {
-          for (let i = 0; i < lineSegs.length; i++) {
-            let lineStr = lineSegs[i].trim();
-
-            let endMatch = lineStr.match(/(?:\)\s*)?\(\s*(\d+|[٠-٩]+)\s*\)$/) || 
-                           lineStr.match(/\)\s*(\d+|[٠-٩]+)$/) || 
-                           lineStr.match(/\)\s*\(\s*(\d+|[٠-٩]+)\s*\)$/);
-
-            let startMatch = !endMatch ? lineStr.match(/^(\s*(?:<span[^>]*>.*?<\/span>\s*)*)[\s\(\[]*(?:x|X|×|\*)?\s*(\d+|[٠-٩]+)\s*[\)\]\s]/i) : null;
-
-            if (endMatch && endMatch[1]) {
-              let repeatNum = endMatch[1];
-              let endLineIdx = i;
-
-              lineSegs[i] = lineSegs[i]
-                .replace(/\s*\)\s*\(\s*(\d+|[٠-٩]+)\s*\)$/, '')
-                .replace(/\s*\)\s*(\d+|[٠-٩]+)$/, '')
-                .replace(/\s*\(\s*(\d+|[٠-٩]+)\s*\)$/, '')
-                .trim();
-
-              if (lineSegs[i].endsWith(')')) {
-                lineSegs[i] = lineSegs[i].slice(0, -1).trim();
-              }
-
-              let startLineIdx = endLineIdx;
-              let explicitStartFound = false;
-
-              for (let k = endLineIdx; k >= 0; k--) {
-                let textOnly = lineSegs[k].replace(/<[^>]+>/g, '').trim();
-                let textWithoutBadge = textOnly.replace(/^[\s\(\[]*(?:ق|قرار)[\s\)\]]*/i, '').trim();
-                if (textOnly.startsWith('(') || textOnly.startsWith('[') || textWithoutBadge.startsWith('(') || textWithoutBadge.startsWith('[')) {
-                  startLineIdx = k;
-                  explicitStartFound = true;
-                  break;
-                }
-              }
-
-              if (!explicitStartFound && endLineIdx === lineSegs.length - 1 && lineSegs.length > 1) {
-                startLineIdx = 0;
-              } else if (!explicitStartFound) {
-                startLineIdx = endLineIdx;
-              }
-
-              const greyOpenBracket = `<span class="repeat-tag">(</span>`;
-              const greyCloseTag = `<span class="repeat-tag">)${repeatNum}</span>`;
-
-              let badgeMatch = lineSegs[startLineIdx].match(/^(\s*(?:<span[^>]*class="[^"]*badge-num"[^>]*>.*?<\/span>\s*)+)/i);
-              let badgePrefix = badgeMatch ? badgeMatch[1].trim() : '';
-              let restOfLine = lineSegs[startLineIdx].substring(badgeMatch ? badgeMatch[0].length : 0).replace(/^[\s\(\[]+/, '').trim();
-
-              if (badgePrefix) {
-                lineSegs[startLineIdx] = `${badgePrefix} ${greyOpenBracket}${restOfLine}`;
-              } else {
-                lineSegs[startLineIdx] = `${greyOpenBracket}${restOfLine}`;
-              }
-
-              lineSegs[endLineIdx] = `${lineSegs[endLineIdx]}${greyCloseTag}`;
-
-            } else if (startMatch && startMatch[2]) {
-              let repeatNum = startMatch[2];
-              lineSegs[i] = lineSegs[i].replace(/^(\s*(?:<span[^>]*>.*?<\/span>\s*)*)[\s\(\[]*(?:x|X|×|\*)?\s*(\d+|[٠-٩]+)\s*[\)\]\s]*/i, '$1');
-
-              let badgeMatch = lineSegs[i].match(/^(\s*(?:<span[^>]*class="[^"]*badge-num"[^>]*>.*?<\/span>\s*)+)/i);
-              let badgePrefix = badgeMatch ? badgeMatch[1].trim() : '';
-              let restOfLine = lineSegs[i].substring(badgeMatch ? badgeMatch[0].length : 0).replace(/^[\s\(\[]+/, '').trim();
-
-              const greyOpenBracket = `<span class="repeat-tag">(</span>`;
-              const greyCloseTag = `<span class="repeat-tag">)${repeatNum}</span>`;
-
-              if (badgePrefix) {
-                lineSegs[i] = `${badgePrefix} ${greyOpenBracket}${restOfLine}${greyCloseTag}`;
-              } else {
-                lineSegs[i] = `${greyOpenBracket}${restOfLine}${greyCloseTag}`;
-              }
-            }
-          }
-        } else {
-          lineSegs = lineSegs.map(l => {
-            return l.replace(/\((\d+|[٠-٩]+)\)/g, '<span class="repeat-tag">($1)</span>');
-          });
-        }
-
-        const whiteSpaceStyle = 'normal';
-        els.obsLineText.innerHTML = lineSegs.map(l => `<span class="obs-line-segment" style="display: block; white-space: normal; word-break: keep-all; overflow-wrap: break-word; text-align: center; width: 100%;">${l}</span>`).join('');
+        const badgeTxt = currentSlideItem ? (currentSlideItem.badgeText || '') : '';
+        const badgeCls = currentSlideItem ? (currentSlideItem.badgeClass || '') : '';
+        els.obsLineText.innerHTML = formatPresenterText(text, isBible, badgeTxt, badgeCls);
         const strokeW = parseInt(state.styleOptions.strokeWidth || 0);
         const strokeC = state.styleOptions.strokeColor || '#000000';
         const shadowB = parseInt(state.styleOptions.shadowBlur || 0);

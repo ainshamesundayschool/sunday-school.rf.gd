@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sunday_school_taranim_v20260731_v20';
+const CACHE_NAME = 'sunday_school_taranim_v20260806_v32';
 
 const PRECACHE_URLS = [
   './',

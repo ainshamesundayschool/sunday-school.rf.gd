@@ -1147,6 +1147,51 @@ html, body {
   font-weight: 700 !important;
 }
 
+.obs-slide-wrapper {
+  position: relative;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  max-width: 100%;
+}
+
+.obs-lines-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+
+.slide-badge-layer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.65em !important;
+  line-height: 1;
+  padding: 2px 6px;
+  margin-left: 8px;
+  margin-bottom: 0.15em;
+  align-self: flex-end;
+  transform-origin: bottom center;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.slide-badge-layer.chorus-badge-side,
+.slide-badge-layer.chorus-num {
+  color: #ef4444 !important;
+}
+
+.slide-badge-layer.stanza-badge-side,
+.slide-badge-layer.verse-badge-side,
+.slide-badge-layer.verse-num {
+  color: #ef4444 !important;
+}
+
 .slide-index-corner {
   position: absolute;
   bottom: 4px;
