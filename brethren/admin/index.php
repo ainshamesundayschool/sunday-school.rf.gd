@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>لوحة التحكم - منصة الأخوة</title>
     
     <!-- Google Fonts: Cairo & Baloo Bhaijaan 2 -->
@@ -49,12 +49,14 @@
             --shadow-sm: 0 2px 8px -2px rgba(0, 0, 0, .06);
             --shadow-md: 0 8px 24px -4px rgba(0, 0, 0, .08);
             --shadow-lg: 0 20px 48px -8px rgba(0, 0, 0, .12);
+            --shadow-xl: 0 32px 64px -12px rgba(0, 0, 0, .18);
             
             --r-sm: 10px;
             --r-md: 14px;
             --r-lg: 18px;
             --r-xl: 24px;
             --r-full: 9999px;
+            --spring: cubic-bezier(.16, 1, .3, 1);
         }
 
         * {
@@ -71,6 +73,7 @@
             min-height: 100vh;
             padding-bottom: 60px;
             position: relative;
+            font-size: 14px;
         }
 
         body::before {
@@ -85,24 +88,25 @@
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1040px;
             margin: 0 auto;
-            padding: 20px 16px;
+            padding: 16px;
             position: relative;
             z-index: 1;
         }
 
+        /* Topbar Header */
         .topbar {
             position: sticky;
             top: 0;
             z-index: 300;
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--border-solid);
-            padding: 12px 20px;
+            padding: 10px 16px;
             border-radius: var(--r-xl);
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -112,16 +116,16 @@
         .brand {
             display: flex;
             align-items: center;
-            gap: 12px;
-            font-size: 1.25rem;
-            font-weight: 800;
+            gap: 10px;
+            font-size: 1.15rem;
+            font-weight: 900;
             color: var(--text);
             text-decoration: none;
         }
 
         .brand-logo-img {
-            width: 38px;
-            height: 38px;
+            width: 36px;
+            height: 36px;
             object-fit: contain;
         }
 
@@ -134,11 +138,11 @@
         .portal-link {
             background: var(--brand-bg);
             color: var(--brand-dark);
-            padding: 8px 14px;
+            padding: 7px 12px;
             border-radius: var(--r-md);
             text-decoration: none;
             font-weight: 800;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             display: flex;
             align-items: center;
             gap: 6px;
@@ -152,10 +156,10 @@
             background: var(--surface-2);
             color: var(--text-2);
             border: 1px solid var(--border-solid);
-            padding: 8px 14px;
+            padding: 7px 12px;
             border-radius: var(--r-md);
             font-weight: 800;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -164,12 +168,13 @@
 
         .logout-btn:hover { background: var(--danger-bg); color: var(--danger); }
 
+        /* Nav Tabs */
         .nav-tabs {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             overflow-x: auto;
-            padding-bottom: 8px;
-            margin-bottom: 20px;
+            padding-bottom: 6px;
+            margin-bottom: 16px;
             scrollbar-width: none;
         }
 
@@ -179,14 +184,14 @@
             background: var(--surface);
             border: 1px solid var(--border-solid);
             color: var(--text-2);
-            padding: 10px 18px;
+            padding: 9px 16px;
             border-radius: var(--r-lg);
-            font-size: 0.92rem;
+            font-size: 0.88rem;
             font-weight: 800;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 7px;
             white-space: nowrap;
             transition: all 0.2s ease;
             box-shadow: var(--shadow-sm);
@@ -207,156 +212,230 @@
             background: var(--surface);
             border: 1px solid var(--border-solid);
             border-radius: var(--r-xl);
-            padding: 22px;
-            margin-bottom: 20px;
+            padding: 18px;
+            margin-bottom: 16px;
             box-shadow: var(--shadow-md);
         }
 
-        .card-header {
+        .card-header-bar {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 18px;
+            gap: 12px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
         }
 
         .card-title {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: 900;
             color: var(--text);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .card-title i { color: var(--brand); }
 
-        .search-box { position: relative; margin-bottom: 18px; }
+        .btn-add-action {
+            background: var(--brand);
+            color: #fff;
+            border: none;
+            padding: 9px 16px;
+            border-radius: var(--r-md);
+            font-size: 0.85rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 12px var(--brand-glow);
+            transition: all 0.2s;
+        }
+
+        .btn-add-action:hover { background: var(--brand-dark); transform: translateY(-1px); }
+
+        /* Search Input */
+        .search-box { position: relative; width: 100%; margin-bottom: 14px; }
 
         .search-box input {
             width: 100%; background: var(--surface-2); border: 1.5px solid var(--border-solid);
-            padding: 12px 45px 12px 16px; border-radius: var(--r-md); color: var(--text);
-            font-size: 0.92rem; font-weight: 600; outline: none;
+            padding: 10px 42px 10px 14px; border-radius: var(--r-md); color: var(--text);
+            font-size: 0.88rem; font-weight: 600; outline: none; transition: all 0.2s;
         }
 
-        .search-box input:focus { border-color: var(--brand); background: #fff; }
-        .search-box i { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--text-3); }
+        .search-box input:focus { border-color: var(--brand); background: #fff; box-shadow: 0 0 0 3px var(--brand-glow); }
+        .search-box i { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--text-3); }
 
+        /* Compact Cards Grid */
         .user-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 14px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;
         }
 
         .user-card {
             background: var(--surface-2); border: 1px solid var(--border-solid);
-            border-radius: var(--r-lg); padding: 16px; display: flex; flex-direction: column;
-            justify-content: space-between; transition: all 0.2s;
+            border-radius: var(--r-lg); padding: 14px; display: flex; flex-direction: column;
+            justify-content: space-between; transition: all 0.2s; position: relative;
         }
 
         .user-card:hover { border-color: var(--brand-light); box-shadow: var(--shadow-sm); transform: translateY(-2px); }
 
-        .user-card-header { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+        .user-card-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
 
         .user-card-avatar {
-            width: 46px; height: 46px; border-radius: 50%; background: var(--brand-bg);
-            display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+            width: 44px; height: 44px; border-radius: 50%; background: var(--brand-bg);
+            display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
             font-weight: 800; color: var(--brand); object-fit: cover; flex-shrink: 0;
+            border: 2px solid var(--surface); box-shadow: var(--shadow-sm);
         }
 
-        .user-card-name { font-size: 1.05rem; font-weight: 900; color: var(--text); }
-        .user-card-sub { font-size: 0.78rem; color: var(--text-3); font-weight: 600; }
-        .user-card-points { background: var(--warning-bg); color: var(--warning-dark); padding: 4px 10px; border-radius: var(--r-full); font-size: 0.82rem; font-weight: 900; display: inline-block; margin-top: 6px; }
+        .user-card-avatar.male { background: linear-gradient(135deg, #60a5fa, #2563eb); color: #fff; }
+        .user-card-avatar.female { background: linear-gradient(135deg, #f472b6, #db2777); color: #fff; }
+
+        .user-card-info { flex: 1; min-width: 0; }
+        .user-card-name { font-size: 0.98rem; font-weight: 900; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .user-card-sub { font-size: 0.76rem; color: var(--text-3); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px; }
+        .user-card-points { background: var(--warning-bg); color: var(--warning-dark); padding: 2px 8px; border-radius: var(--r-full); font-size: 0.78rem; font-weight: 900; display: inline-block; margin-top: 4px; }
 
         .user-card-actions {
-            display: flex; gap: 6px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-solid);
+            display: flex; gap: 5px; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border-solid);
         }
 
         .action-btn {
-            flex: 1; padding: 7px; border-radius: var(--r-md); border: 1px solid transparent;
-            font-weight: 800; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+            flex: 1; padding: 6px; border-radius: var(--r-sm); border: 1px solid transparent;
+            font-weight: 800; font-size: 0.78rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;
         }
 
+        .btn-info { background: var(--surface-3); color: var(--text-2); border-color: var(--border-solid); }
+        .btn-info:hover { background: var(--brand-bg); color: var(--brand); }
         .btn-edit { background: var(--brand-bg); color: var(--brand-dark); border-color: rgba(91,108,245,0.2); }
-        .btn-delete { background: var(--danger-bg); color: var(--danger-dark); border-color: rgba(239,68,68,0.2); }
+        .btn-delete { background: var(--danger-bg); color: var(--danger-dark); border-color: rgba(239,68,68,0.2); flex: 0 0 32px; padding: 0; }
         .btn-add-pt { background: var(--success-bg); color: var(--success-dark); border-color: rgba(16,185,129,0.2); }
 
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 14px; }
-        .form-group { margin-bottom: 14px; }
-        .form-label { display: block; font-size: 0.82rem; font-weight: 800; color: var(--text-2); margin-bottom: 6px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 12px; }
+        .form-group { margin-bottom: 12px; }
+        .form-label { display: block; font-size: 0.8rem; font-weight: 800; color: var(--text-2); margin-bottom: 4px; }
 
         .form-input, .form-select, .form-textarea {
             width: 100%; background: var(--surface-2); border: 1.5px solid var(--border-solid);
-            padding: 10px 14px; border-radius: var(--r-md); color: var(--text); font-size: 0.92rem; font-weight: 600; outline: none;
+            padding: 9px 12px; border-radius: var(--r-md); color: var(--text); font-size: 0.88rem; font-weight: 600; outline: none;
         }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--brand); background: #fff; }
 
         .btn-primary {
-            background: var(--brand); color: #fff; border: none; padding: 12px 22px;
-            border-radius: var(--r-md); font-size: 0.95rem; font-weight: 900; cursor: pointer;
-            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            background: var(--brand); color: #fff; border: none; padding: 11px 20px;
+            border-radius: var(--r-md); font-size: 0.9rem; font-weight: 900; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center; gap: 7px; width: 100%;
         }
 
         .btn-primary:hover { background: var(--brand-dark); }
-        .bulk-textarea { height: 150px; font-family: monospace; font-size: 0.88rem; line-height: 1.5; }
+        .bulk-textarea { height: 140px; font-family: monospace; font-size: 0.85rem; line-height: 1.5; }
 
-        .events-list-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 16px; }
+        .events-list-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
 
         .event-admin-card {
             background: var(--surface-2); border: 1px solid var(--border-solid);
-            border-radius: var(--r-lg); padding: 18px; display: flex; flex-direction: column; justify-content: space-between;
+            border-radius: var(--r-lg); padding: 16px; display: flex; flex-direction: column; justify-content: space-between;
         }
 
         .event-admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
-        .event-admin-title { font-size: 1.15rem; font-weight: 900; color: var(--text); }
-        .event-attendance-badge { background: var(--brand-bg); color: var(--brand-dark); padding: 4px 12px; border-radius: var(--r-full); font-size: 0.8rem; font-weight: 800; }
-        .event-date-text { font-size: 0.82rem; color: var(--text-3); margin-bottom: 12px; font-weight: 600; }
+        .event-admin-title { font-size: 1.05rem; font-weight: 900; color: var(--text); }
+        .event-attendance-badge { background: var(--brand-bg); color: var(--brand-dark); padding: 3px 10px; border-radius: var(--r-full); font-size: 0.78rem; font-weight: 800; }
+        .event-date-text { font-size: 0.8rem; color: var(--text-3); margin-bottom: 10px; font-weight: 600; }
 
         .btn-scan {
             background: linear-gradient(135deg, var(--success), var(--success-dark));
-            color: #fff; border: none; padding: 12px; border-radius: var(--r-md);
-            font-size: 0.95rem; font-weight: 900; cursor: pointer; display: flex;
+            color: #fff; border: none; padding: 10px; border-radius: var(--r-md);
+            font-size: 0.88rem; font-weight: 900; cursor: pointer; display: flex;
             align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
-            transition: transform 0.2s; margin-top: 10px;
+            transition: transform 0.2s; margin-top: 8px;
         }
 
-        .points-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+        .points-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
 
         .gear-btn {
             background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border-solid);
-            width: 38px; height: 38px; border-radius: 50%; cursor: pointer; display: flex;
-            align-items: center; justify-content: center; font-size: 1.1rem; transition: all 0.2s;
+            width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex;
+            align-items: center; justify-content: center; font-size: 1rem; transition: all 0.2s;
         }
 
         .gear-btn:hover { background: var(--brand-bg); color: var(--brand); transform: rotate(45deg); }
 
-        .mode-toggle { display: flex; background: var(--surface-2); border: 1px solid var(--border-solid); border-radius: var(--r-md); padding: 4px; gap: 4px; margin-bottom: 18px; }
+        .mode-toggle { display: flex; background: var(--surface-2); border: 1px solid var(--border-solid); border-radius: var(--r-md); padding: 3px; gap: 4px; margin-bottom: 16px; }
 
-        .mode-btn { flex: 1; padding: 10px; border: none; background: none; color: var(--text-3); font-weight: 800; font-size: 0.92rem; border-radius: var(--r-sm); cursor: pointer; }
+        .mode-btn { flex: 1; padding: 8px; border: none; background: none; color: var(--text-3); font-weight: 800; font-size: 0.88rem; border-radius: var(--r-sm); cursor: pointer; }
         .mode-btn.active.add { background: var(--success); color: #fff; }
         .mode-btn.active.deduct { background: var(--danger); color: #fff; }
 
-        .shortcuts-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 18px; }
+        .shortcuts-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
 
         .shortcut-chip {
             background: var(--brand-bg); border: 1px solid rgba(91, 108, 245, 0.25); color: var(--brand-dark);
-            padding: 14px; border-radius: var(--r-md); font-size: 1.25rem; font-weight: 900; text-align: center; cursor: pointer;
+            padding: 12px; border-radius: var(--r-md); font-size: 1.1rem; font-weight: 900; text-align: center; cursor: pointer;
         }
 
+        /* RESPONSIVE MODAL SYSTEM (Bottom Sheet on Mobile, Centered Rectangle Pop-up on Desktop) */
         .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(6px); z-index: 1000;
-            display: none; align-items: center; justify-content: center; padding: 16px;
+            background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            z-index: 1000; display: none; align-items: flex-end; justify-content: center;
+            padding: 0; transition: opacity 0.2s ease;
         }
+
+        .modal-overlay.active { display: flex; }
 
         .modal-card {
-            background: var(--surface); border: 1px solid var(--border-solid); border-radius: var(--r-xl);
-            width: 100%; max-width: 520px; max-height: 90vh; display: flex; flex-direction: column;
-            box-shadow: var(--shadow-lg); overflow: hidden;
+            background: var(--surface); border: 1px solid var(--border-solid);
+            width: 100%; max-width: 580px; max-height: 85vh; display: flex; flex-direction: column;
+            box-shadow: var(--shadow-xl); overflow: hidden; position: relative;
+            border-radius: 24px 24px 0 0; animation: slideUpMobile 0.3s var(--spring);
         }
 
-        .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border-solid); display: flex; align-items: center; justify-content: space-between; background: var(--surface-2); }
-        .modal-title { font-size: 1.15rem; font-weight: 900; color: var(--text); display: flex; align-items: center; gap: 8px; }
-        .modal-close { background: none; border: none; color: var(--text-3); font-size: 1.4rem; cursor: pointer; }
+        .modal-card::before {
+            content: ''; position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+            width: 38px; height: 4px; border-radius: 99px; background: var(--border-solid); z-index: 10;
+        }
+
+        @media (min-width: 769px) {
+            .modal-overlay { align-items: center; padding: 20px; }
+            .modal-card { border-radius: var(--r-xl); max-height: 90vh; animation: fadeScaleIn 0.25s var(--spring); }
+            .modal-card::before { display: none; }
+        }
+
+        @keyframes slideUpMobile {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        @keyframes fadeScaleIn {
+            from { opacity: 0; transform: scale(0.95) translateY(12px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-header {
+            padding: 16px 20px; border-bottom: 1px solid var(--border-solid);
+            display: flex; align-items: center; justify-content: space-between; background: var(--surface-2);
+        }
+
+        .modal-title { font-size: 1.1rem; font-weight: 900; color: var(--text); display: flex; align-items: center; gap: 8px; }
+        .modal-close { background: none; border: none; color: var(--text-3); font-size: 1.5rem; cursor: pointer; line-height: 1; }
+        .modal-close:hover { color: var(--danger); }
         .modal-body { padding: 20px; overflow-y: auto; }
 
-        #qrVideoContainer { width: 100%; height: 270px; background: #000; border-radius: var(--r-lg); overflow: hidden; position: relative; margin-bottom: 14px; }
+        /* User Info Detail Rows */
+        .info-detail-wrap { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border-solid); }
+        .info-detail-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; background: var(--brand-bg); color: var(--brand); display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 900; margin-bottom: 10px; border: 3px solid var(--brand-light); box-shadow: var(--shadow-md); }
+        .info-detail-name { font-size: 1.25rem; font-weight: 900; color: var(--text); }
+        .info-detail-code { background: var(--brand-bg); color: var(--brand-dark); padding: 3px 10px; border-radius: var(--r-full); font-size: 0.8rem; font-weight: 800; display: inline-block; margin-top: 4px; }
+        
+        .info-rows-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 16px; }
+        .info-row-item { background: var(--surface-2); padding: 10px 12px; border-radius: var(--r-md); border: 1px solid var(--border-solid); display: flex; align-items: center; gap: 10px; font-size: 0.85rem; }
+        .info-row-item i { color: var(--brand); font-size: 0.95rem; width: 18px; text-align: center; }
+
+        .qr-preview-box { text-align: center; background: #fff; padding: 14px; border-radius: var(--r-lg); border: 1px solid var(--border-solid); margin-bottom: 16px; }
+        .qr-preview-box img { width: 150px; height: 150px; object-fit: contain; }
+
+        #qrVideoContainer { width: 100%; height: 260px; background: #000; border-radius: var(--r-lg); overflow: hidden; position: relative; margin-bottom: 14px; }
         #qrVideo { width: 100%; height: 100%; object-fit: cover; }
 
         .scan-feedback-banner {
@@ -364,13 +443,13 @@
             padding: 12px 14px; border-radius: var(--r-md); display: none; align-items: center; gap: 12px; margin-top: 10px;
         }
 
-        .empty-state { text-align: center; padding: 24px; color: var(--text-3); font-size: 0.9rem; font-weight: 600; }
+        .empty-state { text-align: center; padding: 24px; color: var(--text-3); font-size: 0.88rem; font-weight: 600; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- Top Navbar with Brethren Logo PNG -->
+        <!-- Top Navbar -->
         <header class="topbar">
             <a href="#" id="adminBrandLink" class="brand">
                 <img src="/assets/brethren-logo.png" id="adminLogoImg" class="brand-logo-img" alt="Logo">
@@ -379,7 +458,7 @@
             <div class="topbar-actions">
                 <a href="#" id="myProfileLink" class="portal-link">
                     <i class="fas fa-user-circle"></i>
-                    <span>الملف الشخصي و الـ QR</span>
+                    <span>ملفي والـ QR</span>
                 </a>
                 <button onclick="handleAdminLogout()" class="logout-btn">
                     <i class="fas fa-sign-out-alt"></i>
@@ -407,68 +486,15 @@
         <!-- TAB 1: USERS MANAGEMENT -->
         <div class="tab-content active" id="tabUsers">
             <div class="panel-card">
-                <div class="card-header">
+                <div class="card-header-bar">
                     <div class="card-title">
+                        <i class="fas fa-users"></i> قائمة الأعضاء والمستخدمين
+                    </div>
+                    <button class="btn-add-action" onclick="openAddUserModal()">
                         <i class="fas fa-user-plus"></i> إضافة مستخدم جديد
-                    </div>
-                </div>
-                <form id="addUserForm" onsubmit="submitAddUser(event)">
-                    <input type="hidden" id="userIdInput" value="0">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label class="form-label">الاسم بالكامل *</label>
-                            <input type="text" id="userNameInput" class="form-input" required placeholder="الاسم بالكامل">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">البريد الإلكتروني</label>
-                            <input type="email" id="userEmailInput" class="form-input" placeholder="name@domain.com">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">رقم الهاتف</label>
-                            <input type="text" id="userPhoneInput" class="form-input" placeholder="012xxxxxxxx">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">كلمة المرور / الباسكود</label>
-                            <input type="password" id="userPassInput" class="form-input" placeholder="كلمة المرور للدخول">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">المنطقة / السكن</label>
-                            <input type="text" id="userLocationInput" class="form-input" placeholder="المنطقة أو العنوان">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">النوع</label>
-                            <select id="userGenderInput" class="form-select">
-                                <option value="ذكر">ذكر</option>
-                                <option value="أنثى">أنثى</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">تاريخ الميلاد</label>
-                            <input type="text" id="userBirthDateInput" class="form-input" placeholder="شهر/سنة أو يوم/شهر/سنة">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">الصلاحية</label>
-                            <select id="userIsAdminInput" class="form-select">
-                                <option value="0">عضو عادي</option>
-                                <option value="1">مسؤول إداري (Admin)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div id="addUserCustomFields"></div>
-
-                    <button type="submit" class="btn-primary" id="saveUserBtn">
-                        <i class="fas fa-plus"></i> حفظ المستخدم
                     </button>
-                </form>
-            </div>
-
-            <div class="panel-card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-list-ul"></i> قائمة المستخدمين
-                    </div>
                 </div>
+
                 <div class="search-box">
                     <i class="fas fa-search"></i>
                     <input type="text" id="adminUserSearch" placeholder="بحث ذكي عن مستخدم بالاسم أو البريد أو الهاتف..." oninput="renderUsersList()">
@@ -483,15 +509,15 @@
         <!-- TAB 2: BULK IMPORT -->
         <div class="tab-content" id="tabBulk">
             <div class="panel-card">
-                <div class="card-header">
+                <div class="card-header-bar">
                     <div class="card-title">
                         <i class="fas fa-file-import"></i> التحميل الجماعي عبر Google Sheets / Excel
                     </div>
                 </div>
-                <p style="color:var(--text-2); font-size:0.88rem; margin-bottom:14px; line-height:1.5; font-weight:600;">
+                <p style="color:var(--text-2); font-size:0.85rem; margin-bottom:12px; line-height:1.5; font-weight:600;">
                     انسخ الجدول مباشرة من Google Sheets وانقله هنا.<br>
                     • الأعمدة الأساسية: (الاسم - البريد/الإيميل - الهاتف/الموبايل - السكن - النوع - تاريخ الميلاد).<br>
-                    • أي أعمدة مخصصة إضافية سيتم التعرف عليها وحفظها كـ Custom Fields!
+                    • أي أعمدة مخصصة إضافية سيتم التعرف عليها وحفظها تلقائياً!
                 </p>
 
                 <div class="form-group">
@@ -508,38 +534,15 @@
         <!-- TAB 3: EVENTS & SCANNER -->
         <div class="tab-content" id="tabEvents">
             <div class="panel-card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-calendar-plus"></i> إنشاء فعالية جديدة
-                    </div>
-                </div>
-                <form id="createEventForm" onsubmit="submitCreateEvent(event)">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label class="form-label">اسم الفعالية *</label>
-                            <input type="text" id="eventNameInput" class="form-input" required placeholder="مثال: اجتماع الأحد">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">تاريخ الفعالية</label>
-                            <input type="date" id="eventDateInput" class="form-input">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">الوصف / ملاحظات</label>
-                        <input type="text" id="eventDescInput" class="form-input" placeholder="وصف اختياري">
-                    </div>
-                    <button type="submit" class="btn-primary">
-                        <i class="fas fa-check"></i> إنشاء الفعالية
-                    </button>
-                </form>
-            </div>
-
-            <div class="panel-card">
-                <div class="card-header">
+                <div class="card-header-bar">
                     <div class="card-title">
                         <i class="fas fa-calendar-day"></i> الفعاليات المتاحة ومسح الحضور
                     </div>
+                    <button class="btn-add-action" onclick="openAddEventModal()">
+                        <i class="fas fa-calendar-plus"></i> إضافة فعالية جديدة
+                    </button>
                 </div>
+
                 <div class="events-list-grid" id="adminEventsGrid">
                     <div class="empty-state">جاري التحميل...</div>
                 </div>
@@ -594,6 +597,118 @@
                 <button class="btn-primary" onclick="submitPointsUpdate()">
                     <i class="fas fa-save"></i> تطبيق تحديث النقاط (وإرسال إشعار)
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD / EDIT USER MODAL -->
+    <div class="modal-overlay" id="addUserModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fas fa-user-plus" style="color:var(--brand);"></i>
+                    <span id="addUserModalTitle">إضافة مستخدم جديد</span>
+                </div>
+                <button class="modal-close" onclick="closeModal('addUserModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="addUserForm" onsubmit="submitAddUser(event)">
+                    <input type="hidden" id="userIdInput" value="0">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">الاسم بالكامل *</label>
+                            <input type="text" id="userNameInput" class="form-input" required autocomplete="name" placeholder="الاسم بالكامل">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">البريد الإلكتروني</label>
+                            <input type="email" id="userEmailInput" class="form-input" autocomplete="email" placeholder="name@domain.com">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">رقم الهاتف</label>
+                            <input type="tel" id="userPhoneInput" class="form-input" autocomplete="tel" placeholder="012xxxxxxxx">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">كلمة المرور / الباسكود</label>
+                            <input type="password" id="userPassInput" class="form-input" autocomplete="new-password" placeholder="كلمة المرور للدخول">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">المنطقة / السكن</label>
+                            <input type="text" id="userLocationInput" class="form-input" placeholder="المنطقة أو العنوان">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">النوع</label>
+                            <select id="userGenderInput" class="form-select">
+                                <option value="ذكر">ذكر</option>
+                                <option value="أنثى">أنثى</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">تاريخ الميلاد</label>
+                            <input type="text" id="userBirthDateInput" class="form-input" placeholder="شهر/سنة أو يوم/شهر/سنة">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">الصلاحية</label>
+                            <select id="userIsAdminInput" class="form-select">
+                                <option value="0">عضو عادي</option>
+                                <option value="1">مسؤول إداري (Admin)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="addUserCustomFields"></div>
+
+                    <button type="submit" class="btn-primary" id="saveUserBtn">
+                        <i class="fas fa-plus"></i> حفظ المستخدم
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- USER INFO MODAL -->
+    <div class="modal-overlay" id="userInfoModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fas fa-id-card" style="color:var(--brand);"></i>
+                    <span>بيانات العضو التفصيلية</span>
+                </div>
+                <button class="modal-close" onclick="closeModal('userInfoModal')">&times;</button>
+            </div>
+            <div class="modal-body" id="userInfoModalBody">
+                <div class="empty-state">جاري التحميل...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD EVENT MODAL -->
+    <div class="modal-overlay" id="addEventModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fas fa-calendar-plus" style="color:var(--brand);"></i>
+                    <span>إنشاء فعالية جديدة</span>
+                </div>
+                <button class="modal-close" onclick="closeModal('addEventModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="createEventForm" onsubmit="submitCreateEvent(event)">
+                    <div class="form-group">
+                        <label class="form-label">اسم الفعالية *</label>
+                        <input type="text" id="eventNameInput" class="form-input" required placeholder="مثال: اجتماع الأحد">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">تاريخ الفعالية</label>
+                        <input type="date" id="eventDateInput" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">الوصف / ملاحظات</label>
+                        <input type="text" id="eventDescInput" class="form-input" placeholder="وصف اختياري">
+                    </div>
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-check"></i> إنشاء الفعالية
+                    </button>
+                </form>
             </div>
         </div>
     </div>
@@ -669,7 +784,7 @@
 بونص
 التزام بالأوقات"></textarea>
                     </div>
-                    <button type="submit" class="btn-primary" style="width:100%;">حفظ الإعدادات</button>
+                    <button type="submit" class="btn-primary">حفظ الإعدادات</button>
                 </form>
             </div>
         </div>
@@ -782,31 +897,123 @@
                 return;
             }
 
-            grid.innerHTML = filtered.map(u => `
+            grid.innerHTML = filtered.map(u => {
+                const isFemale = u.gender === 'أنثى';
+                return `
                 <div class="user-card">
-                    <div class="user-card-header">
-                        <div class="user-card-avatar">
+                    <div class="user-card-top">
+                        <div class="user-card-avatar ${isFemale ? 'female' : 'male'}">
                             ${u.photo ? `<img src="${u.photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : u.name.charAt(0)}
                         </div>
-                        <div>
+                        <div class="user-card-info">
                             <div class="user-card-name">${u.name} ${u.is_admin == 1 ? '<span style="color:var(--brand);font-size:0.75rem;">(Admin)</span>' : ''}</div>
-                            <div class="user-card-sub">${u.email || u.phone || 'بدون بريد/هاتف'}</div>
+                            <div class="user-card-sub">${u.email || u.phone || 'بدون بيانات'}</div>
                             <span class="user-card-points"><i class="fas fa-star"></i> ${u.points} نقطة</span>
                         </div>
                     </div>
                     <div class="user-card-actions">
-                        <button class="action-btn btn-edit" onclick="editUserModal(${u.id})"><i class="fas fa-edit"></i> تعديل</button>
+                        <button class="action-btn btn-info" onclick="openUserInfoModal(${u.id})"><i class="fas fa-info-circle"></i> معلومات</button>
+                        <button class="action-btn btn-edit" onclick="openEditUserModal(${u.id})"><i class="fas fa-edit"></i> تعديل</button>
                         <button class="action-btn btn-add-pt" onclick="quickAddPointsUser(${u.id})"><i class="fas fa-plus"></i> نقاط</button>
-                        <button class="action-btn btn-delete" onclick="deleteUserConfirm(${u.id})"><i class="fas fa-trash"></i></button>
+                        <button class="action-btn btn-delete" onclick="deleteUserConfirm(${u.id})" title="حذف"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         function populateUserSelects() {
             const sel = document.getElementById('pointsTargetUserSelect');
             sel.innerHTML = `<option value="">-- اختر مستخدم --</option>` + 
                 usersList.map(u => `<option value="${u.id}">${u.name} (${u.points} نقطة)</option>`).join('');
+        }
+
+        function openAddUserModal() {
+            document.getElementById('addUserForm').reset();
+            document.getElementById('userIdInput').value = 0;
+            document.getElementById('addUserModalTitle').innerText = 'إضافة مستخدم جديد';
+            document.getElementById('saveUserBtn').innerHTML = `<i class="fas fa-plus"></i> حفظ المستخدم`;
+            document.getElementById('addUserModal').classList.add('active');
+        }
+
+        function openEditUserModal(id) {
+            const u = usersList.find(item => item.id == id);
+            if (!u) return;
+
+            document.getElementById('userIdInput').value = u.id;
+            document.getElementById('userNameInput').value = u.name;
+            document.getElementById('userEmailInput').value = u.email || '';
+            document.getElementById('userPhoneInput').value = u.phone || '';
+            document.getElementById('userPassInput').value = u.passcode || '';
+            document.getElementById('userLocationInput').value = u.location || '';
+            document.getElementById('userGenderInput').value = u.gender || 'ذكر';
+            document.getElementById('userBirthDateInput').value = u.birth_date || '';
+            document.getElementById('userIsAdminInput').value = u.is_admin || 0;
+            document.getElementById('addUserModalTitle').innerText = 'تعديل بيانات المستخدم';
+            document.getElementById('saveUserBtn').innerHTML = `<i class="fas fa-save"></i> تحديث البيانات`;
+            document.getElementById('addUserModal').classList.add('active');
+        }
+
+        async function openUserInfoModal(id) {
+            const modalBody = document.getElementById('userInfoModalBody');
+            modalBody.innerHTML = `<div class="empty-state">جاري تحميل البيانات...</div>`;
+            document.getElementById('userInfoModal').classList.add('active');
+
+            try {
+                const res = await fetch(`${API_URL}?action=get_user&id=${id}`);
+                const data = await res.json();
+                if (data.status === 'success') {
+                    const u = data.user;
+                    const history = data.history || [];
+                    const attended = data.attended_events || [];
+                    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(u.user_code)}`;
+
+                    modalBody.innerHTML = `
+                        <div class="info-detail-wrap">
+                            <div class="info-detail-avatar">
+                                ${u.photo ? `<img src="${u.photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : u.name.charAt(0)}
+                            </div>
+                            <div class="info-detail-name">${u.name}</div>
+                            <div class="info-detail-code">الكود: ${u.user_code}</div>
+                        </div>
+
+                        <div class="qr-preview-box">
+                            <img src="${qrUrl}" alt="QR Code">
+                            <div style="font-size:0.8rem;font-weight:700;color:var(--text-3);margin-top:6px;">كود الـ QR الخاص بالحضور</div>
+                        </div>
+
+                        <div class="info-rows-grid">
+                            <div class="info-row-item"><i class="fas fa-envelope"></i> <span>${u.email || 'بدون بريد'}</span></div>
+                            <div class="info-row-item"><i class="fas fa-phone"></i> <span>${u.phone || 'بدون هاتف'}</span></div>
+                            <div class="info-row-item"><i class="fas fa-map-marker-alt"></i> <span>${u.location || 'غير محدد'}</span></div>
+                            <div class="info-row-item"><i class="fas fa-venus-mars"></i> <span>${u.gender || 'ذكر'}</span></div>
+                            <div class="info-row-item"><i class="fas fa-birthday-cake"></i> <span>${u.birth_date || 'غير محدد'}</span></div>
+                            <div class="info-row-item"><i class="fas fa-coins"></i> <span>رصيد النقاط: ${u.points} نقطة</span></div>
+                        </div>
+
+                        ${Object.keys(u.custom_fields || {}).length > 0 ? `
+                            <div style="font-weight:800;font-size:0.9rem;margin-bottom:8px;color:var(--text);">بيانات مخصصة:</div>
+                            <div class="info-rows-grid">
+                                ${Object.entries(u.custom_fields).map(([k, v]) => `
+                                    <div class="info-row-item"><i class="fas fa-info-circle"></i> <span><strong>${k}:</strong> ${v}</span></div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+
+                        <div style="font-weight:800;font-size:0.9rem;margin:14px 0 8px;color:var(--text);">سجل النقاط والفعالية:</div>
+                        <div style="max-height:160px;overflow-y:auto;background:var(--surface-2);border-radius:var(--r-md);padding:10px;border:1px solid var(--border-solid);">
+                            ${history.length === 0 ? '<div style="font-size:0.82rem;color:var(--text-3);">لا يوجد سجل نقاط حتى الآن</div>' : 
+                                history.map(h => `
+                                    <div style="font-size:0.8rem;padding:6px 0;border-bottom:1px dashed var(--border-solid);display:flex;justify-content:space-between;">
+                                        <span>${h.reason}</span>
+                                        <strong style="color:${h.points_change > 0 ? 'var(--success)' : 'var(--danger)'}">
+                                            ${h.points_change > 0 ? '+' : ''}${h.points_change} نقطة
+                                        </strong>
+                                    </div>
+                                `).join('')}
+                        </div>
+                    `;
+                } else { modalBody.innerHTML = `<div class="empty-state">تعذر تحميل بيانات المستخدم</div>`; }
+            } catch (err) { modalBody.innerHTML = `<div class="empty-state">حدث خطأ أثناء تحميل البيانات</div>`; }
         }
 
         async function submitAddUser(e) {
@@ -833,30 +1040,10 @@
                 });
                 const data = await res.json();
                 if (data.status === 'success') {
-                    document.getElementById('addUserForm').reset();
-                    document.getElementById('userIdInput').value = 0;
-                    document.getElementById('saveUserBtn').innerHTML = `<i class="fas fa-plus"></i> حفظ المستخدم`;
+                    closeModal('addUserModal');
                     fetchUsers();
-                    alert('تم الحفظ بنجاح');
                 } else alert(data.message);
             } catch (err) { alert('تعذر الاتصال بالخادم'); }
-        }
-
-        function editUserModal(id) {
-            const u = usersList.find(item => item.id == id);
-            if (!u) return;
-
-            document.getElementById('userIdInput').value = u.id;
-            document.getElementById('userNameInput').value = u.name;
-            document.getElementById('userEmailInput').value = u.email || '';
-            document.getElementById('userPhoneInput').value = u.phone || '';
-            document.getElementById('userPassInput').value = u.passcode || '';
-            document.getElementById('userLocationInput').value = u.location || '';
-            document.getElementById('userGenderInput').value = u.gender || 'ذكر';
-            document.getElementById('userBirthDateInput').value = u.birth_date || '';
-            document.getElementById('userIsAdminInput').value = u.is_admin || 0;
-            document.getElementById('saveUserBtn').innerHTML = `<i class="fas fa-save"></i> تحديث البيانات`;
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         async function deleteUserConfirm(id) {
@@ -962,13 +1149,19 @@
                             <span class="event-attendance-badge"><i class="fas fa-users"></i> ${ev.attendance_count} حاضر</span>
                         </div>
                         <div class="event-date-text"><i class="far fa-calendar"></i> ${ev.event_date}</div>
-                        ${ev.description ? `<p style="font-size:0.85rem;color:var(--text-2);margin-bottom:10px;">${ev.description}</p>` : ''}
+                        ${ev.description ? `<p style="font-size:0.82rem;color:var(--text-2);margin-bottom:8px;">${ev.description}</p>` : ''}
                     </div>
                     <button class="btn-scan" onclick="openScannerModal(${ev.id}, '${ev.event_name.replace(/'/g, "\\'")}')">
                         <i class="fas fa-camera"></i> فتح ماسح الحضور QR (+20 نقطة)
                     </button>
                 </div>
             `).join('');
+        }
+
+        function openAddEventModal() {
+            document.getElementById('createEventForm').reset();
+            document.getElementById('eventDateInput').value = new Date().toISOString().split('T')[0];
+            document.getElementById('addEventModal').classList.add('active');
         }
 
         async function submitCreateEvent(e) {
@@ -988,9 +1181,8 @@
                 });
                 const data = await res.json();
                 if (data.status === 'success') {
-                    document.getElementById('createEventForm').reset();
-                    document.getElementById('eventDateInput').value = new Date().toISOString().split('T')[0];
-                    fetchEvents(); alert('تم إنشاء الفعالية بنجاح');
+                    closeModal('addEventModal');
+                    fetchEvents();
                 } else alert(data.message);
             } catch (err) { alert('تعذر إنشاء الفعالية'); }
         }
@@ -999,7 +1191,7 @@
             activeEventForScan = { id: eventId, name: eventName };
             document.getElementById('scannerModalTitle').innerText = `ماسح QR: ${eventName}`;
             document.getElementById('scanFeedbackBanner').style.display = 'none';
-            document.getElementById('qrScannerModal').style.display = 'flex';
+            document.getElementById('qrScannerModal').classList.add('active');
 
             const videoElem = document.getElementById('qrVideo');
             if (typeof QrScanner !== 'undefined') {
@@ -1053,7 +1245,7 @@
 
         function closeScannerModal() {
             if (qrScannerInstance) { qrScannerInstance.stop(); qrScannerInstance.destroy(); qrScannerInstance = null; }
-            document.getElementById('qrScannerModal').style.display = 'none';
+            closeModal('qrScannerModal');
         }
 
         async function fetchSettings() {
@@ -1139,7 +1331,7 @@
             document.getElementById('settingEnableShortcut').checked = systemSettings.enable_shortcut !== false;
             document.getElementById('settingEnableCustom').checked = systemSettings.enable_custom !== false;
             document.getElementById('settingReasonsInput').value = (systemSettings.reasons || []).join('\n');
-            document.getElementById('settingsModal').style.display = 'flex';
+            document.getElementById('settingsModal').classList.add('active');
         }
 
         async function saveSettingsForm(e) {
@@ -1184,7 +1376,7 @@
             window.location.href = LOGIN_URL;
         }
 
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
     </script>
 </body>
 </html>
