@@ -417,7 +417,7 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label class="form-label">الاسم بالكامل *</label>
-                            <input type="text" id="userNameInput" class="form-input" required placeholder="مثال: بيتر فايز">
+                            <input type="text" id="userNameInput" class="form-input" required placeholder="الاسم بالكامل">
                         </div>
                         <div class="form-group">
                             <label class="form-label">البريد الإلكتروني</label>
@@ -433,7 +433,7 @@
                         </div>
                         <div class="form-group">
                             <label class="form-label">المنطقة / السكن</label>
-                            <input type="text" id="userLocationInput" class="form-input" placeholder="مثال: عين شمس">
+                            <input type="text" id="userLocationInput" class="form-input" placeholder="المنطقة أو العنوان">
                         </div>
                         <div class="form-group">
                             <label class="form-label">النوع</label>
@@ -496,9 +496,7 @@
 
                 <div class="form-group">
                     <label class="form-label">لصق الجدول المنسوخ (Tab Separated / CSV)</label>
-                    <textarea id="bulkPasteInput" class="form-textarea bulk-textarea" placeholder="مثال:
-الاسم	إيميل	رقم الهاتف	العنوان	الخدمة
-بيتر فايز	peter@mail.com	01200000000	عين شمس	كشافة"></textarea>
+                    <textarea id="bulkPasteInput" class="form-textarea bulk-textarea" placeholder="الاسم	البريد الإلكتروني	رقم الهاتف	المنطقة"></textarea>
                 </div>
 
                 <button class="btn-primary" onclick="processBulkImport()">

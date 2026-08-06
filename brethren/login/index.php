@@ -239,11 +239,11 @@
         <form id="loginForm" onsubmit="handleLogin(event)">
             <div class="form-group">
                 <label class="form-label">البريد الإلكتروني أو رقم الهاتف</label>
-                <input type="text" id="loginKeyInput" class="form-input" required autocomplete="username" placeholder="مثال: name@mail.com أو 01200000000">
+                <input type="text" id="loginKeyInput" class="form-input" required autocomplete="username" placeholder="البريد الإلكتروني أو رقم الهاتف">
             </div>
             <div class="form-group">
                 <label class="form-label">كلمة المرور / كود الـ QR</label>
-                <input type="password" id="loginPassInput" class="form-input" autocomplete="current-password" placeholder="ادخل كلمة المرور">
+                <input type="password" id="loginPassInput" class="form-input" autocomplete="current-password" placeholder="كلمة المرور">
             </div>
             <button type="submit" class="btn-submit" id="loginSubmitBtn">
                 <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
@@ -258,7 +258,7 @@
         <form id="registerForm" onsubmit="handleRegister(event)" style="display:none;">
             <div class="form-group">
                 <label class="form-label">الاسم بالكامل *</label>
-                <input type="text" id="regNameInput" class="form-input" required autocomplete="name" placeholder="مثال: بيتر فايز">
+                <input type="text" id="regNameInput" class="form-input" required autocomplete="name" placeholder="الاسم بالكامل">
             </div>
             <div class="form-group">
                 <label class="form-label">البريد الإلكتروني *</label>
@@ -270,11 +270,11 @@
             </div>
             <div class="form-group">
                 <label class="form-label">كلمة المرور *</label>
-                <input type="password" id="regPassInput" class="form-input" required autocomplete="new-password" placeholder="كلمة المرور للدخول بها">
+                <input type="password" id="regPassInput" class="form-input" required autocomplete="new-password" placeholder="كلمة المرور">
             </div>
             <div class="form-group">
                 <label class="form-label">المنطقة / السكن</label>
-                <input type="text" id="regLocationInput" class="form-input" placeholder="مثال: عين شمس">
+                <input type="text" id="regLocationInput" class="form-input" placeholder="المنطقة أو العنوان">
             </div>
             <div class="form-group">
                 <label class="form-label">النوع</label>
