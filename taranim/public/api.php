@@ -143,14 +143,14 @@ if (strpos($parsedUrl, '/api/songs') !== false || (isset($_GET['action']) && $_G
         
         $sql = "
             SELECT s.id, s.item_id, s.title, s.media_url, 
-                   GROUP_CONCAT(DISTINCT sg.content) as notes,
+                   COALESCE(GROUP_CONCAT(DISTINCT sg.content), s.notes) as notes,
                    sc.scale as scale_id
             FROM songs s
             LEFT JOIN song_scales sc ON sc.song = s.id
             LEFT JOIN verses v ON v.item_id = s.item_id
             LEFT JOIN slides sl ON sl.verse = v.id
             LEFT JOIN segments sg ON sg.slide = sl.id
-            WHERE s.title LIKE :q OR sg.content LIKE :q OR s.title LIKE :qNorm OR sg.content LIKE :qNorm
+            WHERE s.title LIKE :q OR sg.content LIKE :q OR s.notes LIKE :q OR s.title LIKE :qNorm OR sg.content LIKE :qNorm OR s.notes LIKE :qNorm
             GROUP BY s.id
             LIMIT " . (int)$limit . " OFFSET " . (int)$offset . "
         ";
