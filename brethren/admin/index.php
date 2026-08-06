@@ -373,7 +373,7 @@
         <!-- Top Navbar with Brethren Logo PNG -->
         <header class="topbar">
             <a href="#" id="adminBrandLink" class="brand">
-                <img src="../assets/brethren-logo.png" id="adminLogoImg" class="brand-logo-img" alt="Logo">
+                <img src="/assets/brethren-logo.png" id="adminLogoImg" class="brand-logo-img" alt="Logo">
                 <span>لوحة التحكم - الأخوة</span>
             </a>
             <div class="topbar-actions">
@@ -438,8 +438,8 @@
                         <div class="form-group">
                             <label class="form-label">النوع</label>
                             <select id="userGenderInput" class="form-select">
-                                <option value="شاب">شاب</option>
-                                <option value="شابة">شابة</option>
+                                <option value="ذكر">ذكر</option>
+                                <option value="أنثى">أنثى</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -683,7 +683,7 @@
         const USER_URL = isBrethrenSubfolder ? '/brethren/user/' : '/user/';
         const LOGIN_URL = isBrethrenSubfolder ? '/brethren/login/' : '/login/';
         const ADMIN_BRAND_URL = isBrethrenSubfolder ? '/brethren/admin/' : '/admin/';
-        const LOGO_SRC = isBrethrenSubfolder ? '/brethren/assets/brethren-logo.png' : 'assets/brethren-logo.png';
+        const LOGO_SRC = isBrethrenSubfolder ? '/brethren/assets/brethren-logo.png' : '/assets/brethren-logo.png';
 
         const isAdmin = localStorage.getItem('brethren_is_admin') === 'true';
         if (!isAdmin) window.location.href = LOGIN_URL;
@@ -822,7 +822,7 @@
                 phone: document.getElementById('userPhoneInput').value.trim(),
                 passcode: document.getElementById('userPassInput').value.trim(),
                 location: document.getElementById('userLocationInput').value.trim(),
-                gender: document.getElementById('userGenderInput').value,
+                gender: document.getElementById('userGenderInput').value || 'ذكر',
                 birth_date: document.getElementById('userBirthDateInput').value.trim(),
                 is_admin: parseInt(document.getElementById('userIsAdminInput').value, 10)
             };
@@ -854,7 +854,7 @@
             document.getElementById('userPhoneInput').value = u.phone || '';
             document.getElementById('userPassInput').value = u.passcode || '';
             document.getElementById('userLocationInput').value = u.location || '';
-            document.getElementById('userGenderInput').value = u.gender || 'شاب';
+            document.getElementById('userGenderInput').value = u.gender || 'ذكر';
             document.getElementById('userBirthDateInput').value = u.birth_date || '';
             document.getElementById('userIsAdminInput').value = u.is_admin || 0;
             document.getElementById('saveUserBtn').innerHTML = `<i class="fas fa-save"></i> تحديث البيانات`;

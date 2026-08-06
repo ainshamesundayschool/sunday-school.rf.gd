@@ -159,7 +159,6 @@ function ensureTablesExist(mysqli $conn) {
 function sendGoogleScriptEmail($toEmail, $subject, $bodyHtml, $db) {
     if (empty($toEmail)) return false;
 
-    // Fetch Google Script Web App URL from Settings
     $res = $db->query("SELECT `setting_value` FROM `brethren_settings` WHERE `setting_key` = 'google_script_url' LIMIT 1");
     $row = $res ? $res->fetch_assoc() : null;
     $scriptUrl = $row ? json_decode($row['setting_value'], true) : '';
@@ -236,7 +235,7 @@ switch ($action) {
                 $userCode = 'BR-ADMIN01';
                 $stmtNew = $db->prepare("INSERT INTO `brethren_users` 
                     (`user_code`, `name`, `email`, `phone`, `location`, `gender`, `is_admin`, `points`) 
-                    VALUES (?, 'المسؤول الإداري', 'admin@sunday-school.online', '01000000000', 'الإدارة', 'شاب', 1, 100)");
+                    VALUES (?, 'المسؤول الإداري', 'admin@sunday-school.online', '01000000000', 'الإدارة', 'ذكر', 1, 100)");
                 $stmtNew->bind_param('s', $userCode);
                 $stmtNew->execute();
 
@@ -288,7 +287,7 @@ switch ($action) {
         $phone = trim($bodyData['phone'] ?? $_POST['phone'] ?? '');
         $passcode = trim($bodyData['password'] ?? $bodyData['passcode'] ?? $_POST['password'] ?? '');
         $location = trim($bodyData['location'] ?? $_POST['location'] ?? '');
-        $gender = trim($bodyData['gender'] ?? $_POST['gender'] ?? 'شاب');
+        $gender = trim($bodyData['gender'] ?? $_POST['gender'] ?? 'ذكر');
         $birthDate = trim($bodyData['birth_date'] ?? $_POST['birth_date'] ?? '');
         $customFields = $bodyData['custom_fields'] ?? $_POST['custom_fields'] ?? [];
 
@@ -299,7 +298,6 @@ switch ($action) {
             sendJSONResponse(['status' => 'error', 'message' => 'يرجى إدخال البريد الإلكتروني أو رقم الهاتف'], 400);
         }
 
-        // Check duplicates if email or phone exists
         if (!empty($email)) {
             $stmtDup = $db->prepare("SELECT `id` FROM `brethren_users` WHERE `email` = ? LIMIT 1");
             $stmtDup->bind_param('s', $email);
@@ -322,22 +320,20 @@ switch ($action) {
         $stmt->bind_param('sssssssss', $userCode, $name, $email, $phone, $location, $gender, $birthDate, $passcode, $customFieldsJson);
         
         if (!$stmt->execute()) {
-            sendJSONResponse(['status' => 'error', 'message' => 'حدث خطأ أثناء إيقاد حساب جديد'], 500);
+            sendJSONResponse(['status' => 'error', 'message' => 'حدث خطأ أثناء إنشاء حساب جديد'], 500);
         }
 
         $newUserId = $db->insert_id;
 
-        // Fetch New User Object
         $stmtFetch = $db->prepare("SELECT * FROM `brethren_users` WHERE `id` = ? LIMIT 1");
         $stmtFetch->bind_param('i', $newUserId);
         $stmtFetch->execute();
         $newUser = $stmtFetch->get_result()->fetch_assoc();
         $newUser['custom_fields'] = json_decode($newUser['custom_fields'] ?? '{}', true) ?: (object)[];
 
-        // Send Email Notification via Google Apps Script
         if (!empty($email)) {
             $subject = "مرحباً بك في منصة الأخوة!";
-            $bodyHtml = "<h3>أهلاً بك يا {$name} في منصة الأخوة والشباب</h3>" .
+            $bodyHtml = "<h3>أهلاً بك يا {$name} في منصة الأخوة</h3>" .
                         "<p>كود الـ QR الخاص بك: <strong>{$userCode}</strong></p>" .
                         "<p>تأكد من إبراز الكود عند حضور الفعاليات لجمع النقاط والمكافآت!</p>";
             sendGoogleScriptEmail($email, $subject, $bodyHtml, $db);
@@ -439,7 +435,7 @@ switch ($action) {
         $email = trim($bodyData['email'] ?? $_POST['email'] ?? '');
         $phone = trim($bodyData['phone'] ?? $_POST['phone'] ?? '');
         $location = trim($bodyData['location'] ?? $_POST['location'] ?? '');
-        $gender = trim($bodyData['gender'] ?? $_POST['gender'] ?? '');
+        $gender = trim($bodyData['gender'] ?? $_POST['gender'] ?? 'ذكر');
         $birthDate = trim($bodyData['birth_date'] ?? $_POST['birth_date'] ?? '');
         $photo = trim($bodyData['photo'] ?? $_POST['photo'] ?? '');
         $passcode = trim($bodyData['passcode'] ?? $bodyData['password'] ?? $_POST['passcode'] ?? '');
@@ -457,7 +453,6 @@ switch ($action) {
         $customFieldsJson = json_encode($customFields, JSON_UNESCAPED_UNICODE);
 
         if ($id > 0) {
-            // Update User
             $stmt = $db->prepare("UPDATE `brethren_users` SET 
                 `name` = ?, `email` = ?, `phone` = ?, `location` = ?, `gender` = ?, `birth_date` = ?, 
                 `photo` = IF(? != '', ?, `photo`), `passcode` = IF(? != '', ?, `passcode`), 
@@ -467,7 +462,6 @@ switch ($action) {
             $stmt->execute();
             $userId = $id;
         } else {
-            // Insert User
             $userCode = 'BR-' . strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 8));
             $stmt = $db->prepare("INSERT INTO `brethren_users` 
                 (`user_code`, `name`, `email`, `phone`, `location`, `gender`, `birth_date`, `photo`, `passcode`, `points`, `is_admin`, `custom_fields`) 
@@ -513,7 +507,7 @@ switch ($action) {
             $email = trim($u['email'] ?? '');
             $phone = trim($u['phone'] ?? $u['number'] ?? '');
             $location = trim($u['location'] ?? '');
-            $gender = trim($u['gender'] ?? '');
+            $gender = trim($u['gender'] ?? 'ذكر');
             $birthDate = trim($u['birth_date'] ?? '');
             $isAdmin = (int)($u['is_admin'] ?? 0);
             $customFields = $u['custom_fields'] ?? [];
@@ -636,7 +630,6 @@ switch ($action) {
         $updatedRow = $stmtUpdated->get_result()->fetch_assoc();
         $user['points'] = (int)$updatedRow['points'];
 
-        // Send Email Notification via Google Apps Script if email exists
         if (!empty($user['email'])) {
             $subject = "تسجيل حضور: " . $event['event_name'];
             $bodyHtml = "<h3>مرحباً {$user['name']}</h3>" .
@@ -685,7 +678,6 @@ switch ($action) {
 
         $newPoints = $user['points'] + $pointsChange;
 
-        // Send Notification Email
         if (!empty($user['email'])) {
             $changeText = ($pointsChange > 0 ? "+$pointsChange" : "$pointsChange");
             $subject = "تحديث النقاط: $changeText نقطة";

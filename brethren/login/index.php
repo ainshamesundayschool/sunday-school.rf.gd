@@ -240,7 +240,7 @@
     <div class="auth-card">
         <div class="auth-header">
             <div class="brand-logo-wrapper">
-                <img src="../assets/brethren-logo.png" id="brandLogoImg" class="brand-logo-img" alt="Logo">
+                <img src="/assets/brethren-logo.png" id="brandLogoImg" class="brand-logo-img" alt="Logo">
             </div>
             <h1 class="auth-title">منصة الأخوة</h1>
             <p class="auth-subtitle">سجل دخولك أو أنشئ حساباً جديداً للمتابعة</p>
@@ -297,8 +297,8 @@
             <div class="form-group">
                 <label class="form-label">النوع</label>
                 <select id="regGenderInput" class="form-select">
-                    <option value="شاب">شاب</option>
-                    <option value="شابة">شابة</option>
+                    <option value="ذكر">ذكر</option>
+                    <option value="أنثى">أنثى</option>
                 </select>
             </div>
             <div class="form-group">
@@ -325,7 +325,7 @@
         const HOME_URL = isBrethrenSubfolder ? '/brethren/' : '/';
         const ADMIN_URL = isBrethrenSubfolder ? '/brethren/admin/' : 'admin/';
         const USER_URL = isBrethrenSubfolder ? '/brethren/user/' : 'user/';
-        const LOGO_SRC = isBrethrenSubfolder ? '/brethren/assets/brethren-logo.png' : 'assets/brethren-logo.png';
+        const LOGO_SRC = isBrethrenSubfolder ? '/brethren/assets/brethren-logo.png' : '/assets/brethren-logo.png';
 
         document.getElementById('backHomeLink').href = HOME_URL;
         document.getElementById('brandLogoImg').src = LOGO_SRC;
@@ -428,7 +428,7 @@
                 phone: document.getElementById('regPhoneInput').value.trim(),
                 password: document.getElementById('regPassInput').value.trim(),
                 location: document.getElementById('regLocationInput').value.trim(),
-                gender: document.getElementById('regGenderInput').value,
+                gender: document.getElementById('regGenderInput').value || 'ذكر',
                 birth_date: document.getElementById('regBirthDateInput').value.trim(),
                 custom_fields: customFields
             };

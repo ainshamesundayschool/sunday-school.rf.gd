@@ -386,7 +386,7 @@
         <!-- Top Navbar with Brethren Logo PNG -->
         <header class="topbar">
             <a href="#" id="homeBrandLink" class="brand">
-                <img src="../assets/brethren-logo.png" id="userLogoImg" class="brand-logo-img" alt="Logo">
+                <img src="/assets/brethren-logo.png" id="userLogoImg" class="brand-logo-img" alt="Logo">
                 <span>منصة الأخوة</span>
             </a>
             <div class="topbar-actions">
@@ -482,8 +482,8 @@
                     <div class="form-group">
                         <label class="form-label">النوع</label>
                         <select id="editGender" class="form-select">
-                            <option value="شاب">شاب</option>
-                            <option value="شابة">شابة</option>
+                            <option value="ذكر">ذكر</option>
+                            <option value="أنثى">أنثى</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -504,7 +504,7 @@
         const API_URL = isBrethrenSubfolder ? '/brethren/api.php' : '/api.php';
         const HOME_URL = isBrethrenSubfolder ? '/brethren/' : '/';
         const LOGIN_URL = isBrethrenSubfolder ? '/brethren/login/' : '/login/';
-        const LOGO_SRC = isBrethrenSubfolder ? '/brethren/assets/brethren-logo.png' : 'assets/brethren-logo.png';
+        const LOGO_SRC = isBrethrenSubfolder ? '/brethren/assets/brethren-logo.png' : '/assets/brethren-logo.png';
 
         document.getElementById('homeBrandLink').href = HOME_URL;
         document.getElementById('homeNavLink').href = HOME_URL;
@@ -692,7 +692,7 @@
             document.getElementById('editEmail').value = currentUser.email || '';
             document.getElementById('editPhone').value = currentUser.phone || '';
             document.getElementById('editLocation').value = currentUser.location || '';
-            document.getElementById('editGender').value = currentUser.gender || 'شاب';
+            document.getElementById('editGender').value = currentUser.gender || 'ذكر';
             document.getElementById('editBirthDate').value = currentUser.birth_date || '';
 
             const container = document.getElementById('editCustomFieldsContainer');
@@ -727,7 +727,7 @@
                 email: document.getElementById('editEmail').value.trim(),
                 phone: document.getElementById('editPhone').value.trim(),
                 location: document.getElementById('editLocation').value.trim(),
-                gender: document.getElementById('editGender').value,
+                gender: document.getElementById('editGender').value || 'ذكر',
                 birth_date: document.getElementById('editBirthDate').value.trim(),
                 custom_fields: customFields
             };

@@ -279,7 +279,7 @@
         <!-- Top Navbar with Brethren Logo PNG -->
         <header class="topbar">
             <a href="#" id="homeBrandLink" class="brand">
-                <img src="assets/brethren-logo.png" id="homeLogoImg" class="brand-logo-img" alt="Logo">
+                <img src="/assets/brethren-logo.png" id="homeLogoImg" class="brand-logo-img" alt="Logo">
                 <span>منصة الأخوة</span>
             </a>
             <div>
@@ -304,8 +304,8 @@
 
         <!-- Pure Landing Hero Section -->
         <div class="hero-section">
-            <img src="assets/brethren-logo.png" id="heroBadgeImg" class="hero-badge-logo" alt="Logo">
-            <h1 class="hero-title">منصة الأخوة والشباب</h1>
+            <img src="/assets/brethren-logo.png" id="heroBadgeImg" class="hero-badge-logo" alt="Logo">
+            <h1 class="hero-title">منصة الأخوة</h1>
             <p class="hero-subtitle">
                 منصة متكاملة لمتابعة الفعاليات، تسجيل الحضور إلكترونياً عبر رمز QR المخصص، وجمع النقاط والمكافآت الشخصية بسهولة.
             </p>
@@ -344,7 +344,7 @@
     </div>
 
     <footer class="landing-footer">
-        جميع الحقوق محفوظة &copy; منصة الأخوة والشباب 2026
+        جميع الحقوق محفوظة &copy; منصة الأخوة 2026
     </footer>
 
     <script>
@@ -354,7 +354,7 @@
         const ADMIN_URL = isBrethrenSubfolder ? '/brethren/admin/' : 'admin/';
         const USER_URL = isBrethrenSubfolder ? '/brethren/user/' : 'user/';
         const HOME_URL = isBrethrenSubfolder ? '/brethren/' : '/';
-        const LOGO_SRC = isBrethrenSubfolder ? '/brethren/assets/brethren-logo.png' : 'assets/brethren-logo.png';
+        const LOGO_SRC = isBrethrenSubfolder ? '/brethren/assets/brethren-logo.png' : '/assets/brethren-logo.png';
 
         document.getElementById('homeBrandLink').href = HOME_URL;
         document.getElementById('loginNavLink').href = LOGIN_URL;
