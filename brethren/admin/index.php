@@ -92,7 +92,6 @@
             z-index: 1;
         }
 
-        /* Top Admin Header */
         .topbar {
             position: sticky;
             top: 0;
@@ -120,17 +119,10 @@
             text-decoration: none;
         }
 
-        .brand-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: var(--r-md);
-            background: linear-gradient(135deg, var(--brand), var(--brand-dark));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-size: 1.15rem;
-            box-shadow: 0 4px 14px var(--brand-glow);
+        .brand-logo-img {
+            width: 38px;
+            height: 38px;
+            object-fit: contain;
         }
 
         .topbar-actions {
@@ -154,10 +146,7 @@
             transition: all 0.2s;
         }
 
-        .portal-link:hover {
-            background: var(--brand);
-            color: #fff;
-        }
+        .portal-link:hover { background: var(--brand); color: #fff; }
 
         .logout-btn {
             background: var(--surface-2);
@@ -175,7 +164,6 @@
 
         .logout-btn:hover { background: var(--danger-bg); color: var(--danger); }
 
-        /* Navigation Tabs */
         .nav-tabs {
             display: flex;
             gap: 10px;
@@ -242,65 +230,35 @@
 
         .card-title i { color: var(--brand); }
 
-        .search-box {
-            position: relative;
-            margin-bottom: 18px;
-        }
+        .search-box { position: relative; margin-bottom: 18px; }
 
         .search-box input {
-            width: 100%;
-            background: var(--surface-2);
-            border: 1.5px solid var(--border-solid);
-            padding: 12px 45px 12px 16px;
-            border-radius: var(--r-md);
-            color: var(--text);
-            font-size: 0.92rem;
-            font-weight: 600;
-            outline: none;
+            width: 100%; background: var(--surface-2); border: 1.5px solid var(--border-solid);
+            padding: 12px 45px 12px 16px; border-radius: var(--r-md); color: var(--text);
+            font-size: 0.92rem; font-weight: 600; outline: none;
         }
 
         .search-box input:focus { border-color: var(--brand); background: #fff; }
         .search-box i { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--text-3); }
 
         .user-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-            gap: 14px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 14px;
         }
 
         .user-card {
-            background: var(--surface-2);
-            border: 1px solid var(--border-solid);
-            border-radius: var(--r-lg);
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: all 0.2s;
+            background: var(--surface-2); border: 1px solid var(--border-solid);
+            border-radius: var(--r-lg); padding: 16px; display: flex; flex-direction: column;
+            justify-content: space-between; transition: all 0.2s;
         }
 
         .user-card:hover { border-color: var(--brand-light); box-shadow: var(--shadow-sm); transform: translateY(-2px); }
 
-        .user-card-header {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            margin-bottom: 12px;
-        }
+        .user-card-header { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
 
         .user-card-avatar {
-            width: 46px;
-            height: 46px;
-            border-radius: 50%;
-            background: var(--brand-bg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            font-weight: 800;
-            color: var(--brand);
-            object-fit: cover;
-            flex-shrink: 0;
+            width: 46px; height: 46px; border-radius: 50%; background: var(--brand-bg);
+            display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+            font-weight: 800; color: var(--brand); object-fit: cover; flex-shrink: 0;
         }
 
         .user-card-name { font-size: 1.05rem; font-weight: 900; color: var(--text); }
@@ -308,88 +266,41 @@
         .user-card-points { background: var(--warning-bg); color: var(--warning-dark); padding: 4px 10px; border-radius: var(--r-full); font-size: 0.82rem; font-weight: 900; display: inline-block; margin-top: 6px; }
 
         .user-card-actions {
-            display: flex;
-            gap: 6px;
-            margin-top: 12px;
-            padding-top: 10px;
-            border-top: 1px solid var(--border-solid);
+            display: flex; gap: 6px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-solid);
         }
 
         .action-btn {
-            flex: 1;
-            padding: 7px;
-            border-radius: var(--r-md);
-            border: 1px solid transparent;
-            font-weight: 800;
-            font-size: 0.8rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
+            flex: 1; padding: 7px; border-radius: var(--r-md); border: 1px solid transparent;
+            font-weight: 800; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
         }
 
         .btn-edit { background: var(--brand-bg); color: var(--brand-dark); border-color: rgba(91,108,245,0.2); }
         .btn-delete { background: var(--danger-bg); color: var(--danger-dark); border-color: rgba(239,68,68,0.2); }
         .btn-add-pt { background: var(--success-bg); color: var(--success-dark); border-color: rgba(16,185,129,0.2); }
 
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 14px;
-            margin-bottom: 14px;
-        }
-
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 14px; }
         .form-group { margin-bottom: 14px; }
         .form-label { display: block; font-size: 0.82rem; font-weight: 800; color: var(--text-2); margin-bottom: 6px; }
 
         .form-input, .form-select, .form-textarea {
-            width: 100%;
-            background: var(--surface-2);
-            border: 1.5px solid var(--border-solid);
-            padding: 10px 14px;
-            border-radius: var(--r-md);
-            color: var(--text);
-            font-size: 0.92rem;
-            font-weight: 600;
-            outline: none;
+            width: 100%; background: var(--surface-2); border: 1.5px solid var(--border-solid);
+            padding: 10px 14px; border-radius: var(--r-md); color: var(--text); font-size: 0.92rem; font-weight: 600; outline: none;
         }
 
-        .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--brand); background: #fff; }
-
         .btn-primary {
-            background: var(--brand);
-            color: #fff;
-            border: none;
-            padding: 12px 22px;
-            border-radius: var(--r-md);
-            font-size: 0.95rem;
-            font-weight: 900;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            background: var(--brand); color: #fff; border: none; padding: 12px 22px;
+            border-radius: var(--r-md); font-size: 0.95rem; font-weight: 900; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
         }
 
         .btn-primary:hover { background: var(--brand-dark); }
-
         .bulk-textarea { height: 150px; font-family: monospace; font-size: 0.88rem; line-height: 1.5; }
 
-        .events-list-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-            gap: 16px;
-        }
+        .events-list-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 16px; }
 
         .event-admin-card {
-            background: var(--surface-2);
-            border: 1px solid var(--border-solid);
-            border-radius: var(--r-lg);
-            padding: 18px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            background: var(--surface-2); border: 1px solid var(--border-solid);
+            border-radius: var(--r-lg); padding: 18px; display: flex; flex-direction: column; justify-content: space-between;
         }
 
         .event-admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
@@ -405,8 +316,6 @@
             transition: transform 0.2s; margin-top: 10px;
         }
 
-        .btn-scan:hover { transform: scale(1.02); }
-
         .points-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
 
         .gear-btn {
@@ -417,16 +326,9 @@
 
         .gear-btn:hover { background: var(--brand-bg); color: var(--brand); transform: rotate(45deg); }
 
-        .mode-toggle {
-            display: flex; background: var(--surface-2); border: 1px solid var(--border-solid);
-            border-radius: var(--r-md); padding: 4px; gap: 4px; margin-bottom: 18px;
-        }
+        .mode-toggle { display: flex; background: var(--surface-2); border: 1px solid var(--border-solid); border-radius: var(--r-md); padding: 4px; gap: 4px; margin-bottom: 18px; }
 
-        .mode-btn {
-            flex: 1; padding: 10px; border: none; background: none; color: var(--text-3);
-            font-weight: 800; font-size: 0.92rem; border-radius: var(--r-sm); cursor: pointer;
-        }
-
+        .mode-btn { flex: 1; padding: 10px; border: none; background: none; color: var(--text-3); font-weight: 800; font-size: 0.92rem; border-radius: var(--r-sm); cursor: pointer; }
         .mode-btn.active.add { background: var(--success); color: #fff; }
         .mode-btn.active.deduct { background: var(--danger); color: #fff; }
 
@@ -436,8 +338,6 @@
             background: var(--brand-bg); border: 1px solid rgba(91, 108, 245, 0.25); color: var(--brand-dark);
             padding: 14px; border-radius: var(--r-md); font-size: 1.25rem; font-weight: 900; text-align: center; cursor: pointer;
         }
-
-        .shortcut-chip:hover { background: var(--brand); color: #fff; transform: scale(1.04); }
 
         .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -465,10 +365,6 @@
         }
 
         .empty-state { text-align: center; padding: 24px; color: var(--text-3); font-size: 0.9rem; font-weight: 600; }
-
-        @media (max-width: 600px) {
-            .shortcuts-grid { grid-template-columns: repeat(2, 1fr); }
-        }
     </style>
 </head>
 <body>
@@ -477,7 +373,7 @@
         <!-- Top Navbar -->
         <header class="topbar">
             <a href="#" id="adminBrandLink" class="brand">
-                <div class="brand-icon"><i class="fas fa-shield-alt"></i></div>
+                <img src="../assets/logo.svg" id="adminLogoImg" class="brand-logo-img" alt="Logo">
                 <span>لوحة التحكم - الأخوة</span>
             </a>
             <div class="topbar-actions">
@@ -524,8 +420,16 @@
                             <input type="text" id="userNameInput" class="form-input" required placeholder="مثال: بيتر فايز">
                         </div>
                         <div class="form-group">
+                            <label class="form-label">البريد الإلكتروني</label>
+                            <input type="email" id="userEmailInput" class="form-input" placeholder="name@domain.com">
+                        </div>
+                        <div class="form-group">
                             <label class="form-label">رقم الهاتف</label>
                             <input type="text" id="userPhoneInput" class="form-input" placeholder="012xxxxxxxx">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">كلمة المرور / الباسكود</label>
+                            <input type="password" id="userPassInput" class="form-input" placeholder="كلمة المرور للدخول">
                         </div>
                         <div class="form-group">
                             <label class="form-label">المنطقة / السكن</label>
@@ -567,7 +471,7 @@
                 </div>
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="adminUserSearch" placeholder="بحث ذكي عن مستخدم بالاسم أو الهاتف أو المنطقة..." oninput="renderUsersList()">
+                    <input type="text" id="adminUserSearch" placeholder="بحث ذكي عن مستخدم بالاسم أو البريد أو الهاتف..." oninput="renderUsersList()">
                 </div>
 
                 <div class="user-grid" id="usersListGrid">
@@ -576,7 +480,7 @@
             </div>
         </div>
 
-        <!-- TAB 2: BULK IMPORT (GOOGLE SHEETS) -->
+        <!-- TAB 2: BULK IMPORT -->
         <div class="tab-content" id="tabBulk">
             <div class="panel-card">
                 <div class="card-header">
@@ -585,17 +489,16 @@
                     </div>
                 </div>
                 <p style="color:var(--text-2); font-size:0.88rem; margin-bottom:14px; line-height:1.5; font-weight:600;">
-                    انسخ الجدول مباشرة من <strong>Google Sheets</strong> أو ملف Excel والصقه في الخانة بالأسفل.<br>
-                    • الأعمدة الأساسية: (الاسم - الهاتف/الموبايل - السكن/العنوان - النوع - تاريخ الميلاد).<br>
-                    • <strong>أي أعمدة إضافية أو مجهولة في الشيت سيتم اعتبارها تلقائياً كمعلومات مخصصة (Custom Fields)</strong> وتضاف للعمود المقابل!
+                    انسخ الجدول مباشرة من Google Sheets وانقله هنا.<br>
+                    • الأعمدة الأساسية: (الاسم - البريد/الإيميل - الهاتف/الموبايل - السكن - النوع - تاريخ الميلاد).<br>
+                    • أي أعمدة مخصصة إضافية سيتم التعرف عليها وحفظها كـ Custom Fields!
                 </p>
 
                 <div class="form-group">
                     <label class="form-label">لصق الجدول المنسوخ (Tab Separated / CSV)</label>
                     <textarea id="bulkPasteInput" class="form-textarea bulk-textarea" placeholder="مثال:
-الاسم	رقم الهاتف	العنوان	السنة الدراسية	الخدمة
-بيتر فايز	01200000000	عين شمس	ثالثة كليّة	كشافة
-كيرلس مجدي	01100000000	مصر الجديدة	ثانية كليّة	شبان"></textarea>
+الاسم	إيميل	رقم الهاتف	العنوان	الخدمة
+بيتر فايز	peter@mail.com	01200000000	عين شمس	كشافة"></textarea>
                 </div>
 
                 <button class="btn-primary" onclick="processBulkImport()">
@@ -604,7 +507,7 @@
             </div>
         </div>
 
-        <!-- TAB 3: EVENTS & ATTENDANCE SCANNER -->
+        <!-- TAB 3: EVENTS & SCANNER -->
         <div class="tab-content" id="tabEvents">
             <div class="panel-card">
                 <div class="card-header">
@@ -616,7 +519,7 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label class="form-label">اسم الفعالية *</label>
-                            <input type="text" id="eventNameInput" class="form-input" required placeholder="مثال: اجتماع الأحد - درس الكتاب">
+                            <input type="text" id="eventNameInput" class="form-input" required placeholder="مثال: اجتماع الأحد">
                         </div>
                         <div class="form-group">
                             <label class="form-label">تاريخ الفعالية</label>
@@ -625,7 +528,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">الوصف / ملاحظات</label>
-                        <input type="text" id="eventDescInput" class="form-input" placeholder="وصف اختياري للفعالية">
+                        <input type="text" id="eventDescInput" class="form-input" placeholder="وصف اختياري">
                     </div>
                     <button type="submit" class="btn-primary">
                         <i class="fas fa-check"></i> إنشاء الفعالية
@@ -652,7 +555,7 @@
                     <div class="card-title">
                         <i class="fas fa-coins" style="color:var(--warning-dark);"></i> إضافة وتخصيص النقاط
                     </div>
-                    <button class="gear-btn" onclick="openSettingsModal()" title="إعدادات النقاط واختيارات الأسباب">
+                    <button class="gear-btn" onclick="openSettingsModal()" title="إعدادات النقاط والإيميل">
                         <i class="fas fa-cog"></i>
                     </button>
                 </div>
@@ -691,7 +594,7 @@
                 </div>
 
                 <button class="btn-primary" onclick="submitPointsUpdate()">
-                    <i class="fas fa-save"></i> تطبيق تحديث النقاط
+                    <i class="fas fa-save"></i> تطبيق تحديث النقاط (وإرسال إشعار)
                 </button>
             </div>
         </div>
@@ -711,7 +614,6 @@
                 <div id="qrVideoContainer">
                     <video id="qrVideo" playsinline></video>
                 </div>
-
                 <div class="scan-feedback-banner" id="scanFeedbackBanner">
                     <div id="scanFeedbackAvatar" class="user-card-avatar"></div>
                     <div>
@@ -723,20 +625,32 @@
         </div>
     </div>
 
-    <!-- POINTS SETTINGS MODAL -->
+    <!-- SETTINGS & GOOGLE SCRIPT EMAIL MODAL -->
     <div class="modal-overlay" id="settingsModal">
         <div class="modal-card">
             <div class="modal-header">
                 <div class="modal-title">
                     <i class="fas fa-sliders-h" style="color:var(--brand);"></i>
-                    <span>إعدادات وتنسيق نظام النقاط</span>
+                    <span>إعدادات النظام وإشعارات البريد</span>
                 </div>
                 <button class="modal-close" onclick="closeModal('settingsModal')">&times;</button>
             </div>
             <div class="modal-body">
                 <form onsubmit="saveSettingsForm(event)">
                     <div class="form-group">
-                        <label class="form-label">تعديل قيم الاختصارات السريعة (تفصل بينها بفواصل)</label>
+                        <label class="form-label">رابط Google Apps Script لإرسال الإشعارات للإيميلات</label>
+                        <input type="url" id="settingGoogleScriptUrlInput" class="form-input" placeholder="https://script.google.com/macros/s/.../exec">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">بريد الأدمن لاستقبال الإشعارات والتقارير</label>
+                        <input type="email" id="settingAdminEmailInput" class="form-input" placeholder="admin@sunday-school.online">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">كلمة مرور الأدمن العامة</label>
+                        <input type="text" id="settingAdminPasscodeInput" class="form-input" placeholder="admin123">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">تعديل قيم الاختصارات السريعة (مفصولة بفواصل)</label>
                         <input type="text" id="settingShortcutsInput" class="form-input" placeholder="10, 30, 50, 100">
                     </div>
                     <div class="form-group">
@@ -752,12 +666,8 @@
                         </label>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">كلمة مرور الأدمن العامة</label>
-                        <input type="text" id="settingAdminPasscodeInput" class="form-input" placeholder="admin123">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">خيارات أسباب إعطاء النقاط (كل سبب في سطر منفصل)</label>
-                        <textarea id="settingReasonsInput" class="form-textarea" style="height:100px;" placeholder="ألعاب
+                        <label class="form-label">أسباب إعطاء النقاط (كل سبب في سطر)</label>
+                        <textarea id="settingReasonsInput" class="form-textarea" style="height:90px;" placeholder="ألعاب
 بونص
 التزام بالأوقات"></textarea>
                     </div>
@@ -773,16 +683,15 @@
         const USER_URL = isBrethrenSubfolder ? '/brethren/user/' : '/user/';
         const LOGIN_URL = isBrethrenSubfolder ? '/brethren/login/' : '/login/';
         const ADMIN_BRAND_URL = isBrethrenSubfolder ? '/brethren/admin/' : '/admin/';
+        const LOGO_SRC = isBrethrenSubfolder ? '/brethren/assets/logo.svg' : 'assets/logo.svg';
 
-        // Strict Admin Protection Check
         const isAdmin = localStorage.getItem('brethren_is_admin') === 'true';
-        if (!isAdmin) {
-            window.location.href = LOGIN_URL;
-        }
+        if (!isAdmin) window.location.href = LOGIN_URL;
 
         const activeUserId = localStorage.getItem('brethren_active_user_id');
         document.getElementById('myProfileLink').href = `${USER_URL}?id=${activeUserId || ''}`;
         document.getElementById('adminBrandLink').href = ADMIN_BRAND_URL;
+        document.getElementById('adminLogoImg').src = LOGO_SRC;
 
         let usersList = [];
         let eventsList = [];
@@ -791,7 +700,9 @@
             enable_shortcut: true,
             enable_custom: true,
             reasons: ['ألعاب', 'بونص', 'التزام بالأوقات'],
-            admin_passcode: 'admin123'
+            admin_passcode: 'admin123',
+            admin_email: 'admin@sunday-school.online',
+            google_script_url: ''
         };
 
         let currentPointsMode = 'add';
@@ -804,51 +715,37 @@
                 const playNote = (freq, startTime, duration) => {
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(freq, startTime);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(freq, startTime);
                     gain.gain.setValueAtTime(0.08, startTime);
                     gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-                    osc.start(startTime);
-                    osc.stop(startTime + duration);
+                    osc.start(startTime); osc.stop(startTime + duration);
                 };
                 const now = audioCtx.currentTime;
-                playNote(523.25, now, 0.12);
-                playNote(659.25, now + 0.06, 0.12);
-                playNote(783.99, now + 0.12, 0.24);
-            } catch (e) { }
+                playNote(523.25, now, 0.12); playNote(659.25, now + 0.06, 0.12); playNote(783.99, now + 0.12, 0.24);
+            } catch (e) {}
         }
 
         function playErrorSound() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
                 gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.3);
-            } catch (e) { }
+                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+            } catch (e) {}
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            fetchUsers();
-            fetchEvents();
-            fetchSettings();
-
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('eventDateInput').value = today;
+            fetchUsers(); fetchEvents(); fetchSettings();
+            document.getElementById('eventDateInput').value = new Date().toISOString().split('T')[0];
         });
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-
             event.currentTarget.classList.add('active');
             document.getElementById(tabId).classList.add('active');
         }
@@ -862,9 +759,7 @@
                     renderUsersList();
                     populateUserSelects();
                 }
-            } catch (err) {
-                console.error(err);
-            }
+            } catch (err) {}
         }
 
         function renderUsersList() {
@@ -877,11 +772,11 @@
                     ...u,
                     _score: getMatchScore(u, query, [
                         { val: u.name, weight: 1.0 },
+                        { val: u.email, weight: 1.1 },
                         { val: u.phone, weight: 1.1 },
                         { val: u.location, weight: 0.8 }
                     ])
-                })).filter(u => u._score > 0)
-                   .sort((a, b) => b._score - a._score);
+                })).filter(u => u._score > 0).sort((a, b) => b._score - a._score);
             }
 
             if (filtered.length === 0) {
@@ -897,7 +792,7 @@
                         </div>
                         <div>
                             <div class="user-card-name">${u.name} ${u.is_admin == 1 ? '<span style="color:var(--brand);font-size:0.75rem;">(Admin)</span>' : ''}</div>
-                            <div class="user-card-sub">${u.phone || 'بدون هاتف'} • ${u.location || 'بدون عنوان'}</div>
+                            <div class="user-card-sub">${u.email || u.phone || 'بدون بريد/هاتف'}</div>
                             <span class="user-card-points"><i class="fas fa-star"></i> ${u.points} نقطة</span>
                         </div>
                     </div>
@@ -923,7 +818,9 @@
                 action: 'save_user',
                 id: id,
                 name: document.getElementById('userNameInput').value.trim(),
+                email: document.getElementById('userEmailInput').value.trim(),
                 phone: document.getElementById('userPhoneInput').value.trim(),
+                passcode: document.getElementById('userPassInput').value.trim(),
                 location: document.getElementById('userLocationInput').value.trim(),
                 gender: document.getElementById('userGenderInput').value,
                 birth_date: document.getElementById('userBirthDateInput').value.trim(),
@@ -943,12 +840,8 @@
                     document.getElementById('saveUserBtn').innerHTML = `<i class="fas fa-plus"></i> حفظ المستخدم`;
                     fetchUsers();
                     alert('تم الحفظ بنجاح');
-                } else {
-                    alert(data.message);
-                }
-            } catch (err) {
-                alert('تعذر الاتصال بالخادم');
-            }
+                } else alert(data.message);
+            } catch (err) { alert('تعذر الاتصال بالخادم'); }
         }
 
         function editUserModal(id) {
@@ -957,13 +850,14 @@
 
             document.getElementById('userIdInput').value = u.id;
             document.getElementById('userNameInput').value = u.name;
+            document.getElementById('userEmailInput').value = u.email || '';
             document.getElementById('userPhoneInput').value = u.phone || '';
+            document.getElementById('userPassInput').value = u.passcode || '';
             document.getElementById('userLocationInput').value = u.location || '';
             document.getElementById('userGenderInput').value = u.gender || 'شاب';
             document.getElementById('userBirthDateInput').value = u.birth_date || '';
             document.getElementById('userIsAdminInput').value = u.is_admin || 0;
             document.getElementById('saveUserBtn').innerHTML = `<i class="fas fa-save"></i> تحديث البيانات`;
-
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -976,28 +870,17 @@
                     body: JSON.stringify({ action: 'delete_user', id: id })
                 });
                 const data = await res.json();
-                if (data.status === 'success') {
-                    fetchUsers();
-                } else {
-                    alert(data.message);
-                }
-            } catch (err) {
-                alert('تعذر الحذف');
-            }
+                if (data.status === 'success') fetchUsers();
+                else alert(data.message);
+            } catch (err) { alert('تعذر الحذف'); }
         }
 
         async function processBulkImport() {
             const rawText = document.getElementById('bulkPasteInput').value.trim();
-            if (!rawText) {
-                alert('يرجى لصق بيانات الجدول أولاً');
-                return;
-            }
+            if (!rawText) return alert('يرجى لصق بيانات الجدول أولاً');
 
             const lines = rawText.split(/\r?\n/).map(l => l.trim()).filter(l => l);
-            if (lines.length < 2) {
-                alert('يجب أن يحتوي النص الملصوق على صف عناوين وصفوف بيانات');
-                return;
-            }
+            if (lines.length < 2) return alert('يجب أن يحتوي النص الملصوق على صف عناوين وصفوف بيانات');
 
             const firstLine = lines[0];
             const delimiter = firstLine.includes('\t') ? '\t' : ',';
@@ -1005,10 +888,11 @@
             
             const standardMap = {
                 name: ['اسم', 'الاسم', 'name'],
+                email: ['إيميل', 'ايميل', 'بريد', 'email', 'mail'],
                 phone: ['تليفون', 'موبايل', 'رقم', 'هاتف', 'phone', 'number'],
                 location: ['عنوان', 'منطقة', 'سكن', 'location', 'address'],
                 gender: ['نوع', 'جنس', 'gender'],
-                birth_date: ['تاريخ ميلاد', 'تاريخ الميلاد', 'ميلاد', 'birth_date', 'birthdate', 'dob']
+                birth_date: ['تاريخ ميلاد', 'تاريخ الميلاد', 'ميلاد', 'birth_date', 'dob']
             };
 
             const headerKeys = headers.map(h => {
@@ -1027,22 +911,17 @@
                 headers.forEach((h, colIdx) => {
                     const key = headerKeys[colIdx];
                     const val = cells[colIdx] || '';
-                    if (['name', 'phone', 'location', 'gender', 'birth_date'].includes(key)) {
+                    if (['name', 'email', 'phone', 'location', 'gender', 'birth_date'].includes(key)) {
                         userObj[key] = val;
                     } else if (val) {
                         userObj.custom_fields[headers[colIdx]] = val;
                     }
                 });
 
-                if (userObj.name) {
-                    parsedUsers.push(userObj);
-                }
+                if (userObj.name) parsedUsers.push(userObj);
             }
 
-            if (parsedUsers.length === 0) {
-                alert('لم يتم العثور على أسماء صالحة في البيانات الملصوقة');
-                return;
-            }
+            if (parsedUsers.length === 0) return alert('لم يتم العثور على أسماء صالحة في البيانات');
 
             try {
                 const res = await fetch(API_URL, {
@@ -1054,14 +933,9 @@
                 if (data.status === 'success') {
                     alert(data.message);
                     document.getElementById('bulkPasteInput').value = '';
-                    fetchUsers();
-                    switchTab('tabUsers');
-                } else {
-                    alert(data.message);
-                }
-            } catch (err) {
-                alert('تعذر استيراد البيانات');
-            }
+                    fetchUsers(); switchTab('tabUsers');
+                } else alert(data.message);
+            } catch (err) { alert('تعذر استيراد البيانات'); }
         }
 
         async function fetchEvents() {
@@ -1072,9 +946,7 @@
                     eventsList = data.events || [];
                     renderAdminEvents();
                 }
-            } catch (err) {
-                console.error(err);
-            }
+            } catch (err) {}
         }
 
         function renderAdminEvents() {
@@ -1120,14 +992,9 @@
                 if (data.status === 'success') {
                     document.getElementById('createEventForm').reset();
                     document.getElementById('eventDateInput').value = new Date().toISOString().split('T')[0];
-                    fetchEvents();
-                    alert('تم إنشاء الفعالية بنجاح');
-                } else {
-                    alert(data.message);
-                }
-            } catch (err) {
-                alert('تعذر إنشاء الفعالية');
-            }
+                    fetchEvents(); alert('تم إنشاء الفعالية بنجاح');
+                } else alert(data.message);
+            } catch (err) { alert('تعذر إنشاء الفعالية'); }
         }
 
         function openScannerModal(eventId, eventName) {
@@ -1137,21 +1004,11 @@
             document.getElementById('qrScannerModal').style.display = 'flex';
 
             const videoElem = document.getElementById('qrVideo');
-
             if (typeof QrScanner !== 'undefined') {
-                qrScannerInstance = new QrScanner(
-                    videoElem,
-                    result => onQrCodeScanned(result.data || result),
-                    {
-                        onDecodeError: error => {},
-                        highlightScanRegion: true,
-                        highlightCodeOutline: true
-                    }
-                );
-                qrScannerInstance.start().catch(err => {
-                    console.error('Camera access error:', err);
-                    alert('تعذر فتح الكاميرا، يرجى التأكد من السماح بالوصول للكاميرا');
+                qrScannerInstance = new QrScanner(videoElem, result => onQrCodeScanned(result.data || result), {
+                    highlightScanRegion: true, highlightCodeOutline: true
                 });
+                qrScannerInstance.start().catch(err => alert('تعذر فتح الكاميرا'));
             }
         }
 
@@ -1164,11 +1021,7 @@
                 const res = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'scan_attendance',
-                        event_id: activeEventForScan.id,
-                        user_code: userCode
-                    })
+                    body: JSON.stringify({ action: 'scan_attendance', event_id: activeEventForScan.id, user_code: userCode })
                 });
                 const data = await res.json();
 
@@ -1181,42 +1034,27 @@
                     playSuccessSound();
                     avatar.innerText = data.user.name.charAt(0);
                     nameElem.innerText = data.user.name;
-                    msgElem.innerText = `✓ تم تسجيل الحضور بنجاح! النقاط الحالية: ${data.user.points}`;
-                    banner.style.background = 'var(--success-bg)';
-                    banner.style.borderColor = 'rgba(16, 185, 129, 0.4)';
-                    banner.style.display = 'flex';
-                    fetchEvents();
-                    fetchUsers();
+                    msgElem.innerText = `✓ تم الحضور! تم إرسال إشعار بريدي بـ 20+ نقطة`;
+                    banner.style.background = 'var(--success-bg)'; banner.style.display = 'flex';
+                    fetchEvents(); fetchUsers();
                 } else if (data.status === 'already_attended') {
                     playErrorSound();
                     avatar.innerText = data.user ? data.user.name.charAt(0) : '?';
-                    nameElem.innerText = data.user ? data.user.name : 'مستخدم مسجل';
-                    msgElem.innerText = `⚠ تم تسجيل الحضور سابقاً لهذه الفعالية!`;
-                    banner.style.background = 'var(--warning-bg)';
-                    banner.style.borderColor = 'rgba(245, 158, 11, 0.4)';
-                    banner.style.display = 'flex';
+                    nameElem.innerText = data.user ? data.user.name : 'مستخدم';
+                    msgElem.innerText = `⚠ تم تسجيل الحضور سابقاً!`;
+                    banner.style.background = 'var(--warning-bg)'; banner.style.display = 'flex';
                 } else {
                     playErrorSound();
-                    avatar.innerText = '!';
-                    nameElem.innerText = 'خطأ في المسح';
-                    msgElem.innerText = data.message || 'رمز QR غير صالح';
-                    banner.style.background = 'var(--danger-bg)';
-                    banner.style.borderColor = 'rgba(239, 68, 68, 0.4)';
-                    banner.style.display = 'flex';
+                    avatar.innerText = '!'; nameElem.innerText = 'خطأ';
+                    msgElem.innerText = data.message || 'كود غير صالح';
+                    banner.style.background = 'var(--danger-bg)'; banner.style.display = 'flex';
                 }
-            } catch (err) {
-                playErrorSound();
-            } finally {
-                setTimeout(() => { isScanningLock = false; }, 2000);
-            }
+            } catch (err) { playErrorSound(); }
+            finally { setTimeout(() => { isScanningLock = false; }, 2000); }
         }
 
         function closeScannerModal() {
-            if (qrScannerInstance) {
-                qrScannerInstance.stop();
-                qrScannerInstance.destroy();
-                qrScannerInstance = null;
-            }
+            if (qrScannerInstance) { qrScannerInstance.stop(); qrScannerInstance.destroy(); qrScannerInstance = null; }
             document.getElementById('qrScannerModal').style.display = 'none';
         }
 
@@ -1228,9 +1066,7 @@
                     systemSettings = data.settings || systemSettings;
                     renderPointsUI();
                 }
-            } catch (err) {
-                renderPointsUI();
-            }
+            } catch (err) { renderPointsUI(); }
         }
 
         function renderPointsUI() {
@@ -1243,17 +1079,13 @@
                         ${currentPointsMode === 'add' ? '+' : '-'}${pts}
                     </div>
                 `).join('');
-            } else {
-                scContainer.style.display = 'none';
-            }
+            } else scContainer.style.display = 'none';
 
-            document.getElementById('customPointsContainer').style.display = 
-                systemSettings.enable_custom ? 'block' : 'none';
+            document.getElementById('customPointsContainer').style.display = systemSettings.enable_custom ? 'block' : 'none';
 
             const rSelect = document.getElementById('pointsReasonSelect');
             const reasonsArr = Array.isArray(systemSettings.reasons) ? systemSettings.reasons : ['ألعاب', 'بونص', 'التزام بالأوقات'];
-            rSelect.innerHTML = reasonsArr.map(r => `<option value="${r}">${r}</option>`).join('') +
-                `<option value="أخرى">أخرى: ...</option>`;
+            rSelect.innerHTML = reasonsArr.map(r => `<option value="${r}">${r}</option>`).join('') + `<option value="أخرى">أخرى: ...</option>`;
             toggleReasonOtherInput();
         }
 
@@ -1264,10 +1096,7 @@
             renderPointsUI();
         }
 
-        function applyPointsValue(val) {
-            document.getElementById('customPointsInput').value = val;
-        }
-
+        function applyPointsValue(val) { document.getElementById('customPointsInput').value = val; }
         function toggleReasonOtherInput() {
             const val = document.getElementById('pointsReasonSelect').value;
             document.getElementById('reasonOtherGroup').style.display = (val === 'أخرى') ? 'block' : 'none';
@@ -1281,75 +1110,60 @@
         async function submitPointsUpdate() {
             const userId = document.getElementById('pointsTargetUserSelect').value;
             let amount = parseInt(document.getElementById('customPointsInput').value, 10);
-            
-            if (!userId) {
-                alert('يرجى اختيار المستخدم المستهدف أولاً');
-                return;
-            }
-            if (isNaN(amount) || amount <= 0) {
-                alert('يرجى إدخال عدد نقاط صحيح أكبر من الصفر');
-                return;
-            }
+            if (!userId) return alert('يرجى اختيار المستخدم المستهدف أولاً');
+            if (isNaN(amount) || amount <= 0) return alert('يرجى إدخال عدد نقاط صحيح');
 
-            if (currentPointsMode === 'deduct') {
-                amount = -amount;
-            }
+            if (currentPointsMode === 'deduct') amount = -amount;
 
             let reason = document.getElementById('pointsReasonSelect').value;
-            if (reason === 'أخرى') {
-                reason = document.getElementById('reasonOtherInput').value.trim() || 'أخرى';
-            }
+            if (reason === 'أخرى') reason = document.getElementById('reasonOtherInput').value.trim() || 'أخرى';
 
             try {
                 const res = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'update_points',
-                        user_id: userId,
-                        points_change: amount,
-                        reason: reason,
-                        type: 'manual'
-                    })
+                    body: JSON.stringify({ action: 'update_points', user_id: userId, points_change: amount, reason: reason, type: 'manual' })
                 });
                 const data = await res.json();
                 if (data.status === 'success') {
                     alert(data.message);
                     document.getElementById('customPointsInput').value = '';
                     fetchUsers();
-                } else {
-                    alert(data.message);
-                }
-            } catch (err) {
-                alert('تعذر تحديث النقاط');
-            }
+                } else alert(data.message);
+            } catch (err) { alert('تعذر تحديث النقاط'); }
         }
 
         function openSettingsModal() {
+            document.getElementById('settingGoogleScriptUrlInput').value = systemSettings.google_script_url || '';
+            document.getElementById('settingAdminEmailInput').value = systemSettings.admin_email || 'admin@sunday-school.online';
+            document.getElementById('settingAdminPasscodeInput').value = systemSettings.admin_passcode || 'admin123';
             document.getElementById('settingShortcutsInput').value = (systemSettings.shortcuts || [10, 30, 50, 100]).join(', ');
             document.getElementById('settingEnableShortcut').checked = systemSettings.enable_shortcut !== false;
             document.getElementById('settingEnableCustom').checked = systemSettings.enable_custom !== false;
-            document.getElementById('settingAdminPasscodeInput').value = systemSettings.admin_passcode || 'admin123';
             document.getElementById('settingReasonsInput').value = (systemSettings.reasons || []).join('\n');
             document.getElementById('settingsModal').style.display = 'flex';
         }
 
         async function saveSettingsForm(e) {
             e.preventDefault();
+            const googleScriptUrl = document.getElementById('settingGoogleScriptUrlInput').value.trim();
+            const adminEmail = document.getElementById('settingAdminEmailInput').value.trim();
+            const adminPasscode = document.getElementById('settingAdminPasscodeInput').value.trim() || 'admin123';
             const shortcutsRaw = document.getElementById('settingShortcutsInput').value;
             const shortcuts = shortcutsRaw.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
             const enableShortcut = document.getElementById('settingEnableShortcut').checked;
             const enableCustom = document.getElementById('settingEnableCustom').checked;
-            const adminPasscode = document.getElementById('settingAdminPasscodeInput').value.trim() || 'admin123';
             const reasonsRaw = document.getElementById('settingReasonsInput').value;
             const reasons = reasonsRaw.split(/\r?\n/).map(r => r.trim()).filter(r => r);
 
             const payload = {
                 action: 'save_settings',
+                google_script_url: googleScriptUrl,
+                admin_email: adminEmail,
+                admin_passcode: adminPasscode,
                 shortcuts: shortcuts.length > 0 ? shortcuts : [10, 30, 50, 100],
                 enable_shortcut: enableShortcut,
                 enable_custom: enableCustom,
-                admin_passcode: adminPasscode,
                 reasons: reasons.length > 0 ? reasons : ['ألعاب', 'بونص', 'التزام بالأوقات']
             };
 
@@ -1361,15 +1175,9 @@
                 });
                 const data = await res.json();
                 if (data.status === 'success') {
-                    closeModal('settingsModal');
-                    fetchSettings();
-                    alert('تم حفظ الإعدادات بنجاح');
-                } else {
-                    alert(data.message);
-                }
-            } catch (err) {
-                alert('تعذر حفظ الإعدادات');
-            }
+                    closeModal('settingsModal'); fetchSettings(); alert('تم حفظ الإعدادات بنجاح');
+                } else alert(data.message);
+            } catch (err) { alert('تعذر حفظ الإعدادات'); }
         }
 
         function handleAdminLogout() {
@@ -1378,9 +1186,7 @@
             window.location.href = LOGIN_URL;
         }
 
-        function closeModal(id) {
-            document.getElementById(id).style.display = 'none';
-        }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
     </script>
 </body>
 </html>

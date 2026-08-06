@@ -66,11 +66,12 @@ function getBrethrenDB(): mysqli {
 }
 
 function ensureTablesExist(mysqli $conn) {
-    // 1. Users Table (with is_admin & passcode columns)
+    // 1. Users Table (with email, is_admin, passcode, custom_fields)
     $conn->query("CREATE TABLE IF NOT EXISTS `brethren_users` (
         `id` INT AUTO_INCREMENT PRIMARY KEY,
         `user_code` VARCHAR(50) UNIQUE NOT NULL,
         `name` VARCHAR(150) NOT NULL,
+        `email` VARCHAR(150) DEFAULT NULL,
         `phone` VARCHAR(30) DEFAULT NULL,
         `location` VARCHAR(150) DEFAULT NULL,
         `gender` VARCHAR(20) DEFAULT NULL,
@@ -83,7 +84,11 @@ function ensureTablesExist(mysqli $conn) {
         `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
 
-    // Self-heal: ensure columns exist if created prior
+    // Self-heal columns if missing
+    $checkEmailCol = $conn->query("SHOW COLUMNS FROM `brethren_users` LIKE 'email'");
+    if ($checkEmailCol && $checkEmailCol->num_rows === 0) {
+        $conn->query("ALTER TABLE `brethren_users` ADD COLUMN `email` VARCHAR(150) DEFAULT NULL AFTER `name`");
+    }
     $checkAdminCol = $conn->query("SHOW COLUMNS FROM `brethren_users` LIKE 'is_admin'");
     if ($checkAdminCol && $checkAdminCol->num_rows === 0) {
         $conn->query("ALTER TABLE `brethren_users` ADD COLUMN `is_admin` TINYINT(1) DEFAULT 0");
@@ -129,7 +134,7 @@ function ensureTablesExist(mysqli $conn) {
         `setting_value` LONGTEXT NOT NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
 
-    // Default settings
+    // Default Settings
     $checkSet = $conn->query("SELECT COUNT(*) AS cnt FROM `brethren_settings`");
     $row = $checkSet ? $checkSet->fetch_assoc() : null;
     if (!$row || (int)$row['cnt'] === 0) {
@@ -138,7 +143,9 @@ function ensureTablesExist(mysqli $conn) {
             'enable_shortcut' => true,
             'enable_custom' => true,
             'reasons' => ['ألعاب', 'بونص', 'التزام بالأوقات'],
-            'admin_passcode' => 'admin123'
+            'admin_passcode' => 'admin123',
+            'admin_email' => 'admin@sunday-school.online',
+            'google_script_url' => ''
         ];
         foreach ($defaultSettings as $k => $v) {
             $valJson = json_encode($v, JSON_UNESCAPED_UNICODE);
@@ -147,6 +154,36 @@ function ensureTablesExist(mysqli $conn) {
             $stmt->execute();
         }
     }
+}
+
+function sendGoogleScriptEmail($toEmail, $subject, $bodyHtml, $db) {
+    if (empty($toEmail)) return false;
+
+    // Fetch Google Script Web App URL from Settings
+    $res = $db->query("SELECT `setting_value` FROM `brethren_settings` WHERE `setting_key` = 'google_script_url' LIMIT 1");
+    $row = $res ? $res->fetch_assoc() : null;
+    $scriptUrl = $row ? json_decode($row['setting_value'], true) : '';
+
+    if (empty($scriptUrl)) return false;
+
+    $payload = json_encode([
+        'to' => $toEmail,
+        'subject' => $subject,
+        'htmlBody' => $bodyHtml
+    ], JSON_UNESCAPED_UNICODE);
+
+    $opts = [
+        'http' => [
+            'method' => 'POST',
+            'header' => "Content-Type: application/json\r\n",
+            'content' => $payload,
+            'timeout' => 5
+        ]
+    ];
+
+    $context = stream_context_create($opts);
+    @file_get_contents($scriptUrl, false, $context);
+    return true;
 }
 
 function sendJSONResponse($data, $code = 200) {
@@ -175,34 +212,31 @@ $db = getBrethrenDB();
 switch ($action) {
 
     // ─────────────────────────────────────────────────────────────
-    // AUTH & LOGIN ACTION
+    // AUTH, LOGIN & REGISTER ACTIONS
     // ─────────────────────────────────────────────────────────────
     case 'login':
-        $key = trim($bodyData['key'] ?? $_POST['key'] ?? '');
-        $passcode = trim($bodyData['passcode'] ?? $_POST['passcode'] ?? '');
+        $key = trim($bodyData['key'] ?? $bodyData['email_or_phone'] ?? $_POST['key'] ?? '');
+        $passcode = trim($bodyData['password'] ?? $bodyData['passcode'] ?? $_POST['password'] ?? '');
 
-        if (empty($key) && empty($passcode)) {
-            sendJSONResponse(['status' => 'error', 'message' => 'ادخل الهاتف أو الكود أو كلمة المرور'], 400);
+        if (empty($key)) {
+            sendJSONResponse(['status' => 'error', 'message' => 'يرجى إدخال البريد الإلكتروني أو رقم الهاتف'], 400);
         }
 
-        // Fetch Global Admin Passcode from Settings
+        // Check Master Admin Passcode from Settings
         $resPass = $db->query("SELECT `setting_value` FROM `brethren_settings` WHERE `setting_key` = 'admin_passcode' LIMIT 1");
         $rowPass = $resPass ? $resPass->fetch_assoc() : null;
         $globalAdminPass = $rowPass ? json_decode($rowPass['setting_value'], true) : 'admin123';
         if (is_array($globalAdminPass)) $globalAdminPass = reset($globalAdminPass);
 
-        // Check if master admin passcode entered
         if ($passcode === $globalAdminPass || $key === $globalAdminPass) {
-            // Find first admin user or create admin profile
             $resAdmin = $db->query("SELECT * FROM `brethren_users` WHERE `is_admin` = 1 LIMIT 1");
             $adminUser = $resAdmin ? $resAdmin->fetch_assoc() : null;
 
             if (!$adminUser) {
-                // Ensure at least 1 default admin user exists
                 $userCode = 'BR-ADMIN01';
                 $stmtNew = $db->prepare("INSERT INTO `brethren_users` 
-                    (`user_code`, `name`, `phone`, `location`, `gender`, `is_admin`, `points`) 
-                    VALUES (?, 'المسؤول الإداري', '01000000000', 'الإدارة', 'شاب', 1, 100)");
+                    (`user_code`, `name`, `email`, `phone`, `location`, `gender`, `is_admin`, `points`) 
+                    VALUES (?, 'المسؤول الإداري', 'admin@sunday-school.online', '01000000000', 'الإدارة', 'شاب', 1, 100)");
                 $stmtNew->bind_param('s', $userCode);
                 $stmtNew->execute();
 
@@ -222,14 +256,19 @@ switch ($action) {
             ]);
         }
 
-        // Search user by user_code, phone, or id
-        $stmt = $db->prepare("SELECT * FROM `brethren_users` WHERE `user_code` = ? OR `phone` = ? OR `id` = ? LIMIT 1");
-        $stmt->bind_param('sss', $key, $key, $key);
+        // Search user by email, phone, user_code, or id
+        $stmt = $db->prepare("SELECT * FROM `brethren_users` WHERE `email` = ? OR `phone` = ? OR `user_code` = ? OR `id` = ? LIMIT 1");
+        $stmt->bind_param('ssss', $key, $key, $key, $key);
         $stmt->execute();
         $user = $stmt->get_result()->fetch_assoc();
 
         if (!$user) {
-            sendJSONResponse(['status' => 'error', 'message' => 'لم نتمكن من العثور على الحساب المرفق'], 404);
+            sendJSONResponse(['status' => 'error', 'message' => 'لم نتمكن من العثور على حساب بهذا البريد أو الهاتف'], 404);
+        }
+
+        // Check password match if user passcode set
+        if (!empty($user['passcode']) && !empty($passcode) && $user['passcode'] !== $passcode) {
+            sendJSONResponse(['status' => 'error', 'message' => 'كلمة المرور غير صحيحة'], 401);
         }
 
         $user['custom_fields'] = json_decode($user['custom_fields'] ?? '{}', true) ?: (object)[];
@@ -240,6 +279,75 @@ switch ($action) {
             'is_admin' => $isAdmin,
             'user' => $user,
             'redirect' => $isAdmin ? 'admin/' : 'user/'
+        ]);
+        break;
+
+    case 'register':
+        $name = trim($bodyData['name'] ?? $_POST['name'] ?? '');
+        $email = trim($bodyData['email'] ?? $_POST['email'] ?? '');
+        $phone = trim($bodyData['phone'] ?? $_POST['phone'] ?? '');
+        $passcode = trim($bodyData['password'] ?? $bodyData['passcode'] ?? $_POST['password'] ?? '');
+        $location = trim($bodyData['location'] ?? $_POST['location'] ?? '');
+        $gender = trim($bodyData['gender'] ?? $_POST['gender'] ?? 'شاب');
+        $birthDate = trim($bodyData['birth_date'] ?? $_POST['birth_date'] ?? '');
+        $customFields = $bodyData['custom_fields'] ?? $_POST['custom_fields'] ?? [];
+
+        if (empty($name)) {
+            sendJSONResponse(['status' => 'error', 'message' => 'يرجى إدخال الاسم بالكامل'], 400);
+        }
+        if (empty($email) && empty($phone)) {
+            sendJSONResponse(['status' => 'error', 'message' => 'يرجى إدخال البريد الإلكتروني أو رقم الهاتف'], 400);
+        }
+
+        // Check duplicates if email or phone exists
+        if (!empty($email)) {
+            $stmtDup = $db->prepare("SELECT `id` FROM `brethren_users` WHERE `email` = ? LIMIT 1");
+            $stmtDup->bind_param('s', $email);
+            $stmtDup->execute();
+            if ($stmtDup->get_result()->fetch_assoc()) {
+                sendJSONResponse(['status' => 'error', 'message' => 'البريد الإلكتروني مسجل بحساب آخر بالفعل'], 400);
+            }
+        }
+
+        if (is_string($customFields)) {
+            $customFields = json_decode($customFields, true) ?: [];
+        }
+
+        $userCode = 'BR-' . strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 8));
+        $customFieldsJson = json_encode($customFields, JSON_UNESCAPED_UNICODE);
+
+        $stmt = $db->prepare("INSERT INTO `brethren_users` 
+            (`user_code`, `name`, `email`, `phone`, `location`, `gender`, `birth_date`, `passcode`, `points`, `is_admin`, `custom_fields`) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?)");
+        $stmt->bind_param('sssssssss', $userCode, $name, $email, $phone, $location, $gender, $birthDate, $passcode, $customFieldsJson);
+        
+        if (!$stmt->execute()) {
+            sendJSONResponse(['status' => 'error', 'message' => 'حدث خطأ أثناء إيقاد حساب جديد'], 500);
+        }
+
+        $newUserId = $db->insert_id;
+
+        // Fetch New User Object
+        $stmtFetch = $db->prepare("SELECT * FROM `brethren_users` WHERE `id` = ? LIMIT 1");
+        $stmtFetch->bind_param('i', $newUserId);
+        $stmtFetch->execute();
+        $newUser = $stmtFetch->get_result()->fetch_assoc();
+        $newUser['custom_fields'] = json_decode($newUser['custom_fields'] ?? '{}', true) ?: (object)[];
+
+        // Send Email Notification via Google Apps Script
+        if (!empty($email)) {
+            $subject = "مرحباً بك في منصة الأخوة!";
+            $bodyHtml = "<h3>أهلاً بك يا {$name} في منصة الأخوة والشباب</h3>" .
+                        "<p>كود الـ QR الخاص بك: <strong>{$userCode}</strong></p>" .
+                        "<p>تأكد من إبراز الكود عند حضور الفعاليات لجمع النقاط والمكافآت!</p>";
+            sendGoogleScriptEmail($email, $subject, $bodyHtml, $db);
+        }
+
+        sendJSONResponse([
+            'status' => 'success',
+            'message' => 'تم إنشاء الحساب بنجاح!',
+            'user' => $newUser,
+            'redirect' => 'user/'
         ]);
         break;
 
@@ -266,8 +374,8 @@ switch ($action) {
             $stmt = $db->prepare("SELECT * FROM `brethren_users` WHERE `id` = ? LIMIT 1");
             $stmt->bind_param('i', $userId);
         } else if (!empty($userCode)) {
-            $stmt = $db->prepare("SELECT * FROM `brethren_users` WHERE `user_code` = ? OR `phone` = ? OR `id` = ? LIMIT 1");
-            $stmt->bind_param('sss', $userCode, $userCode, $userCode);
+            $stmt = $db->prepare("SELECT * FROM `brethren_users` WHERE `user_code` = ? OR `email` = ? OR `phone` = ? OR `id` = ? LIMIT 1");
+            $stmt->bind_param('ssss', $userCode, $userCode, $userCode, $userCode);
         } else {
             sendJSONResponse(['status' => 'error', 'message' => 'User ID or User Code is required'], 400);
         }
@@ -328,11 +436,13 @@ switch ($action) {
     case 'save_user':
         $id = (int)($bodyData['id'] ?? $_POST['id'] ?? 0);
         $name = trim($bodyData['name'] ?? $_POST['name'] ?? '');
+        $email = trim($bodyData['email'] ?? $_POST['email'] ?? '');
         $phone = trim($bodyData['phone'] ?? $_POST['phone'] ?? '');
         $location = trim($bodyData['location'] ?? $_POST['location'] ?? '');
         $gender = trim($bodyData['gender'] ?? $_POST['gender'] ?? '');
         $birthDate = trim($bodyData['birth_date'] ?? $_POST['birth_date'] ?? '');
         $photo = trim($bodyData['photo'] ?? $_POST['photo'] ?? '');
+        $passcode = trim($bodyData['passcode'] ?? $bodyData['password'] ?? $_POST['passcode'] ?? '');
         $isAdmin = (int)($bodyData['is_admin'] ?? $_POST['is_admin'] ?? 0);
         $customFields = $bodyData['custom_fields'] ?? $_POST['custom_fields'] ?? [];
 
@@ -349,19 +459,20 @@ switch ($action) {
         if ($id > 0) {
             // Update User
             $stmt = $db->prepare("UPDATE `brethren_users` SET 
-                `name` = ?, `phone` = ?, `location` = ?, `gender` = ?, `birth_date` = ?, 
-                `photo` = IF(? != '', ?, `photo`), `is_admin` = ?, `custom_fields` = ? 
+                `name` = ?, `email` = ?, `phone` = ?, `location` = ?, `gender` = ?, `birth_date` = ?, 
+                `photo` = IF(? != '', ?, `photo`), `passcode` = IF(? != '', ?, `passcode`), 
+                `is_admin` = ?, `custom_fields` = ? 
                 WHERE `id` = ?");
-            $stmt->bind_param('ssssssisi', $name, $phone, $location, $gender, $birthDate, $photo, $photo, $isAdmin, $customFieldsJson, $id);
+            $stmt->bind_param('sssssssssisi', $name, $email, $phone, $location, $gender, $birthDate, $photo, $photo, $passcode, $passcode, $isAdmin, $customFieldsJson, $id);
             $stmt->execute();
             $userId = $id;
         } else {
             // Insert User
             $userCode = 'BR-' . strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 8));
             $stmt = $db->prepare("INSERT INTO `brethren_users` 
-                (`user_code`, `name`, `phone`, `location`, `gender`, `birth_date`, `photo`, `points`, `is_admin`, `custom_fields`) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?)");
-            $stmt->bind_param('sssssssIS', $userCode, $name, $phone, $location, $gender, $birthDate, $photo, $isAdmin, $customFieldsJson);
+                (`user_code`, `name`, `email`, `phone`, `location`, `gender`, `birth_date`, `photo`, `passcode`, `points`, `is_admin`, `custom_fields`) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)");
+            $stmt->bind_param('sssssssssis', $userCode, $name, $email, $phone, $location, $gender, $birthDate, $photo, $passcode, $isAdmin, $customFieldsJson);
             $stmt->execute();
             $userId = $db->insert_id;
         }
@@ -399,6 +510,7 @@ switch ($action) {
             $name = trim($u['name'] ?? '');
             if (empty($name)) continue;
 
+            $email = trim($u['email'] ?? '');
             $phone = trim($u['phone'] ?? $u['number'] ?? '');
             $location = trim($u['location'] ?? '');
             $gender = trim($u['gender'] ?? '');
@@ -411,9 +523,9 @@ switch ($action) {
             $customJson = json_encode($customFields, JSON_UNESCAPED_UNICODE);
 
             $stmt = $db->prepare("INSERT INTO `brethren_users` 
-                (`user_code`, `name`, `phone`, `location`, `gender`, `birth_date`, `photo`, `points`, `is_admin`, `custom_fields`) 
-                VALUES (?, ?, ?, ?, ?, ?, '', 0, ?, ?)");
-            $stmt->bind_param('ssssssis', $userCode, $name, $phone, $location, $gender, $birthDate, $isAdmin, $customJson);
+                (`user_code`, `name`, `email`, `phone`, `location`, `gender`, `birth_date`, `photo`, `points`, `is_admin`, `custom_fields`) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, '', 0, ?, ?)");
+            $stmt->bind_param('sssssssis', $userCode, $name, $email, $phone, $location, $gender, $birthDate, $isAdmin, $customJson);
             if ($stmt->execute()) {
                 $insertedCount++;
             }
@@ -464,21 +576,6 @@ switch ($action) {
         ]);
         break;
 
-    case 'delete_event':
-        $eventId = (int)($bodyData['id'] ?? $_POST['id'] ?? 0);
-        if ($eventId <= 0) sendJSONResponse(['status' => 'error', 'message' => 'معرف الفعالية غير صحيح'], 400);
-
-        $stmt = $db->prepare("DELETE FROM `brethren_events` WHERE `id` = ?");
-        $stmt->bind_param('i', $eventId);
-        $stmt->execute();
-
-        $stmtAtt = $db->prepare("DELETE FROM `brethren_attendance` WHERE `event_id` = ?");
-        $stmtAtt->bind_param('i', $eventId);
-        $stmtAtt->execute();
-
-        sendJSONResponse(['status' => 'success', 'message' => 'تم حذف الفعالية بنجاح']);
-        break;
-
     case 'scan_attendance':
         $eventId = (int)($bodyData['event_id'] ?? $_POST['event_id'] ?? 0);
         $userCode = trim($bodyData['user_code'] ?? $_POST['user_code'] ?? '');
@@ -495,8 +592,8 @@ switch ($action) {
             sendJSONResponse(['status' => 'error', 'message' => 'الفعالية غير موجودة'], 404);
         }
 
-        $stmtUser = $db->prepare("SELECT * FROM `brethren_users` WHERE `user_code` = ? OR `phone` = ? OR `id` = ? LIMIT 1");
-        $stmtUser->bind_param('sss', $userCode, $userCode, $userCode);
+        $stmtUser = $db->prepare("SELECT * FROM `brethren_users` WHERE `user_code` = ? OR `email` = ? OR `phone` = ? OR `id` = ? LIMIT 1");
+        $stmtUser->bind_param('ssss', $userCode, $userCode, $userCode, $userCode);
         $stmtUser->execute();
         $user = $stmtUser->get_result()->fetch_assoc();
         if (!$user) {
@@ -539,6 +636,15 @@ switch ($action) {
         $updatedRow = $stmtUpdated->get_result()->fetch_assoc();
         $user['points'] = (int)$updatedRow['points'];
 
+        // Send Email Notification via Google Apps Script if email exists
+        if (!empty($user['email'])) {
+            $subject = "تسجيل حضور: " . $event['event_name'];
+            $bodyHtml = "<h3>مرحباً {$user['name']}</h3>" .
+                        "<p>تم تسجيل حضورك بنجاح في فعالية <strong>{$event['event_name']}</strong> بتاريخ {$event['event_date']}.</p>" .
+                        "<p>تم إضافة <strong>+20 نقطة</strong> لحسابك! مجموع نقاطك الآن: <strong>{$user['points']}</strong></p>";
+            sendGoogleScriptEmail($user['email'], $subject, $bodyHtml, $db);
+        }
+
         sendJSONResponse([
             'status' => 'success',
             'message' => 'تم تسجيل الحضور بنجاح وأضيفت 20 نقطة!',
@@ -561,7 +667,7 @@ switch ($action) {
             sendJSONResponse(['status' => 'error', 'message' => 'معرف المستخدم وقيمة النقاط مطلوبين'], 400);
         }
 
-        $stmtUser = $db->prepare("SELECT `name`, `points` FROM `brethren_users` WHERE `id` = ? LIMIT 1");
+        $stmtUser = $db->prepare("SELECT `name`, `email`, `points` FROM `brethren_users` WHERE `id` = ? LIMIT 1");
         $stmtUser->bind_param('i', $userId);
         $stmtUser->execute();
         $user = $stmtUser->get_result()->fetch_assoc();
@@ -578,6 +684,17 @@ switch ($action) {
         $stmtHist->execute();
 
         $newPoints = $user['points'] + $pointsChange;
+
+        // Send Notification Email
+        if (!empty($user['email'])) {
+            $changeText = ($pointsChange > 0 ? "+$pointsChange" : "$pointsChange");
+            $subject = "تحديث النقاط: $changeText نقطة";
+            $bodyHtml = "<h3>مرحباً {$user['name']}</h3>" .
+                        "<p>تم تحديث رصيد نقاطك: <strong>{$changeText}</strong> نقطة بسبب: <strong>{$reason}</strong>.</p>" .
+                        "<p>رصيد النقاط الجديد: <strong>{$newPoints}</strong> نقطة.</p>";
+            sendGoogleScriptEmail($user['email'], $subject, $bodyHtml, $db);
+        }
+
         sendJSONResponse([
             'status' => 'success',
             'message' => 'تم تحديث نقاط ' . $user['name'] . ' بنجاح',
@@ -591,7 +708,10 @@ switch ($action) {
             'shortcuts' => [10, 30, 50, 100],
             'enable_shortcut' => true,
             'enable_custom' => true,
-            'reasons' => ['ألعاب', 'بونص', 'التزام بالأوقات']
+            'reasons' => ['ألعاب', 'بونص', 'التزام بالأوقات'],
+            'admin_passcode' => 'admin123',
+            'admin_email' => 'admin@sunday-school.online',
+            'google_script_url' => ''
         ];
         if ($res) {
             while ($row = $res->fetch_assoc()) {
@@ -607,12 +727,18 @@ switch ($action) {
         $enableShortcut = (bool)($bodyData['enable_shortcut'] ?? true);
         $enableCustom = (bool)($bodyData['enable_custom'] ?? true);
         $reasons = $bodyData['reasons'] ?? ['ألعاب', 'بونص', 'التزام بالأوقات'];
+        $adminPasscode = trim($bodyData['admin_passcode'] ?? 'admin123');
+        $adminEmail = trim($bodyData['admin_email'] ?? 'admin@sunday-school.online');
+        $googleScriptUrl = trim($bodyData['google_script_url'] ?? '');
 
         $settingsMap = [
             'shortcuts' => $shortcuts,
             'enable_shortcut' => $enableShortcut,
             'enable_custom' => $enableCustom,
-            'reasons' => $reasons
+            'reasons' => $reasons,
+            'admin_passcode' => $adminPasscode,
+            'admin_email' => $adminEmail,
+            'google_script_url' => $googleScriptUrl
         ];
 
         foreach ($settingsMap as $k => $v) {

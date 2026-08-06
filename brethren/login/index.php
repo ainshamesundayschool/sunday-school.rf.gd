@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل الدخول - منصة الأخوة</title>
+    <title>تسجيل الدخول وإنشاء حساب - منصة الأخوة</title>
     
     <!-- Google Fonts: Cairo & Baloo Bhaijaan 2 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -64,7 +64,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px 16px;
+            padding: 24px 16px;
             position: relative;
         }
 
@@ -79,52 +79,87 @@
             z-index: 0;
         }
 
-        .login-card {
+        .auth-card {
             background: var(--surface);
             border: 1px solid var(--border-solid);
             border-radius: var(--r-xl);
             width: 100%;
-            max-width: 440px;
+            max-width: 480px;
             padding: 36px 30px;
             box-shadow: var(--shadow-lg);
             position: relative;
             z-index: 1;
         }
 
-        .login-header {
+        .auth-header {
             text-align: center;
             margin-bottom: 24px;
         }
 
-        .brand-icon {
-            width: 58px;
-            height: 58px;
-            border-radius: var(--r-lg);
-            background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+        .brand-logo-wrapper {
+            width: 64px;
+            height: 64px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            color: #fff;
-            font-size: 1.65rem;
-            box-shadow: 0 6px 20px var(--brand-glow);
-            margin-bottom: 14px;
+            margin-bottom: 12px;
         }
 
-        .login-title {
-            font-size: 1.55rem;
+        .brand-logo-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .auth-title {
+            font-size: 1.6rem;
             font-weight: 900;
             color: var(--text);
         }
 
-        .login-subtitle {
+        .auth-subtitle {
             font-size: 0.88rem;
             color: var(--text-3);
             font-weight: 600;
             margin-top: 4px;
         }
 
+        /* Mode Switcher Tabs */
+        .auth-tabs {
+            display: flex;
+            background: var(--surface-2);
+            border: 1px solid var(--border-solid);
+            border-radius: var(--r-md);
+            padding: 4px;
+            gap: 4px;
+            margin-bottom: 24px;
+        }
+
+        .auth-tab-btn {
+            flex: 1;
+            padding: 11px;
+            border: none;
+            background: none;
+            color: var(--text-3);
+            font-weight: 800;
+            font-size: 0.92rem;
+            border-radius: var(--r-sm);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .auth-tab-btn.active {
+            background: var(--brand);
+            color: #fff;
+            box-shadow: 0 4px 12px var(--brand-glow);
+        }
+
         .form-group {
-            margin-bottom: 18px;
+            margin-bottom: 16px;
         }
 
         .form-label {
@@ -135,11 +170,11 @@
             margin-bottom: 6px;
         }
 
-        .form-input {
+        .form-input, .form-select {
             width: 100%;
             background: var(--surface-2);
             border: 1.5px solid var(--border-solid);
-            padding: 13px 16px;
+            padding: 12px 14px;
             border-radius: var(--r-md);
             color: var(--text);
             font-size: 0.95rem;
@@ -148,7 +183,7 @@
             transition: all 0.2s;
         }
 
-        .form-input:focus {
+        .form-input:focus, .form-select:focus {
             border-color: var(--brand);
             background: #fff;
         }
@@ -164,7 +199,7 @@
             font-weight: 900;
             cursor: pointer;
             transition: background 0.2s;
-            margin-top: 8px;
+            margin-top: 10px;
             box-shadow: 0 4px 14px var(--brand-glow);
         }
 
@@ -183,9 +218,7 @@
             transition: color 0.2s;
         }
 
-        .back-home-link:hover {
-            color: var(--brand);
-        }
+        .back-home-link:hover { color: var(--brand); }
 
         .alert-msg {
             padding: 12px 14px;
@@ -205,22 +238,80 @@
 </head>
 <body>
 
-    <div class="login-card">
-        <div class="login-header">
-            <div class="brand-icon"><i class="fas fa-cross"></i></div>
-            <h1 class="login-title">تسجيل الدخول</h1>
-            <p class="login-subtitle">ادخل رقم الهاتف، كود الـ QR، أو كلمة المرور للمتابعة</p>
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="brand-logo-wrapper">
+                <img src="../assets/logo.svg" id="brandLogoImg" class="brand-logo-img" alt="Logo">
+            </div>
+            <h1 class="auth-title">منصة الأخوة</h1>
+            <p class="auth-subtitle">سجل دخولك أو أنشئ حساباً جديداً للمتابعة</p>
+        </div>
+
+        <div class="auth-tabs">
+            <button class="auth-tab-btn active" id="tabLoginBtn" onclick="switchAuthMode('login')">
+                <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+            </button>
+            <button class="auth-tab-btn" id="tabRegisterBtn" onclick="switchAuthMode('register')">
+                <i class="fas fa-user-plus"></i> إنشاء حساب جديد
+            </button>
         </div>
 
         <div id="alertMsg" class="alert-msg alert-error"></div>
 
+        <!-- UNIFIED LOGIN FORM -->
         <form id="loginForm" onsubmit="handleLogin(event)">
             <div class="form-group">
-                <label class="form-label">رقم الهاتف / كود QR / كلمة المرور</label>
-                <input type="text" id="loginKeyInput" class="form-input" required placeholder="مثال: 01200000000 أو BR-XXXXXX">
+                <label class="form-label">البريد الإلكتروني أو رقم الهاتف</label>
+                <input type="text" id="loginKeyInput" class="form-input" required placeholder="مثال: name@mail.com أو 01200000000">
             </div>
-            <button type="submit" class="btn-submit" id="loginBtn">
+            <div class="form-group">
+                <label class="form-label">كلمة المرور / كود الـ QR</label>
+                <input type="password" id="loginPassInput" class="form-input" placeholder="ادخل كلمة المرور">
+            </div>
+            <button type="submit" class="btn-submit" id="loginSubmitBtn">
                 <i class="fas fa-sign-in-alt"></i> دخول الحساب
+            </button>
+        </form>
+
+        <!-- REGISTER FORM (CREATE ACCOUNT) -->
+        <form id="registerForm" onsubmit="handleRegister(event)" style="display:none;">
+            <div class="form-group">
+                <label class="form-label">الاسم بالكامل *</label>
+                <input type="text" id="regNameInput" class="form-input" required placeholder="مثال: بيتر فايز">
+            </div>
+            <div class="form-group">
+                <label class="form-label">البريد الإلكتروني *</label>
+                <input type="email" id="regEmailInput" class="form-input" required placeholder="name@domain.com">
+            </div>
+            <div class="form-group">
+                <label class="form-label">رقم الهاتف *</label>
+                <input type="tel" id="regPhoneInput" class="form-input" required placeholder="012xxxxxxxx">
+            </div>
+            <div class="form-group">
+                <label class="form-label">كلمة المرور *</label>
+                <input type="password" id="regPassInput" class="form-input" required placeholder="كلمة المرور للدخول بها">
+            </div>
+            <div class="form-group">
+                <label class="form-label">المنطقة / السكن</label>
+                <input type="text" id="regLocationInput" class="form-input" placeholder="مثال: عين شمس">
+            </div>
+            <div class="form-group">
+                <label class="form-label">النوع</label>
+                <select id="regGenderInput" class="form-select">
+                    <option value="شاب">شاب</option>
+                    <option value="شابة">شابة</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">تاريخ الميلاد</label>
+                <input type="text" id="regBirthDateInput" class="form-input" placeholder="مثال: 05/2000 أو 15/05/2000">
+            </div>
+
+            <!-- Dynamic Custom Fields Container -->
+            <div id="registerCustomFieldsContainer"></div>
+
+            <button type="submit" class="btn-submit" id="registerSubmitBtn">
+                <i class="fas fa-check-circle"></i> إنشاء الحساب والتسجيل
             </button>
         </form>
 
@@ -235,15 +326,61 @@
         const HOME_URL = isBrethrenSubfolder ? '/brethren/' : '/';
         const ADMIN_URL = isBrethrenSubfolder ? '/brethren/admin/' : 'admin/';
         const USER_URL = isBrethrenSubfolder ? '/brethren/user/' : 'user/';
+        const LOGO_SRC = isBrethrenSubfolder ? '/brethren/assets/logo.svg' : 'assets/logo.svg';
 
         document.getElementById('backHomeLink').href = HOME_URL;
+        document.getElementById('brandLogoImg').src = LOGO_SRC;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchCustomFieldsTemplate();
+        });
+
+        function switchAuthMode(mode) {
+            hideAlert();
+            if (mode === 'login') {
+                document.getElementById('tabLoginBtn').classList.add('active');
+                document.getElementById('tabRegisterBtn').classList.remove('active');
+                document.getElementById('loginForm').style.display = 'block';
+                document.getElementById('registerForm').style.display = 'none';
+            } else {
+                document.getElementById('tabRegisterBtn').classList.add('active');
+                document.getElementById('tabLoginBtn').classList.remove('active');
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('registerForm').style.display = 'block';
+            }
+        }
+
+        async function fetchCustomFieldsTemplate() {
+            try {
+                const res = await fetch(`${API_URL}?action=get_users`);
+                const data = await res.json();
+                if (data.status === 'success' && data.users && data.users.length > 0) {
+                    const sampleUser = data.users.find(u => u.custom_fields && Object.keys(u.custom_fields).length > 0);
+                    if (sampleUser && sampleUser.custom_fields) {
+                        const container = document.getElementById('registerCustomFieldsContainer');
+                        container.innerHTML = '';
+                        for (const key of Object.keys(sampleUser.custom_fields)) {
+                            container.innerHTML += `
+                                <div class="form-group">
+                                    <label class="form-label">${key}</label>
+                                    <input type="text" data-custom-key="${key}" class="form-input reg-custom-field" placeholder="ادخل ${key}">
+                                </div>
+                            `;
+                        }
+                    }
+                }
+            } catch (e) {}
+        }
 
         async function handleLogin(e) {
             e.preventDefault();
+            hideAlert();
             const key = document.getElementById('loginKeyInput').value.trim();
+            const password = document.getElementById('loginPassInput').value.trim();
+
             if (!key) return;
 
-            const btn = document.getElementById('loginBtn');
+            const btn = document.getElementById('loginSubmitBtn');
             btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> جاري التحقق...`;
             btn.disabled = true;
 
@@ -251,7 +388,7 @@
                 const res = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'login', key: key })
+                    body: JSON.stringify({ action: 'login', key: key, password: password })
                 });
                 const data = await res.json();
 
@@ -265,7 +402,7 @@
                         window.location.href = `${USER_URL}?id=${data.user.id}`;
                     }
                 } else {
-                    showAlert(data.message || 'لم نتمكن من العثور على حساب بهذا الرقم أو الكود');
+                    showAlert(data.message || 'بيانات الدخول غير صحيحة');
                 }
             } catch (err) {
                 showAlert('تعذر الاتصال بالخادم، يرجى المحاولة لاحقاً');
@@ -275,10 +412,63 @@
             }
         }
 
+        async function handleRegister(e) {
+            e.preventDefault();
+            hideAlert();
+
+            const customFields = {};
+            document.querySelectorAll('.reg-custom-field').forEach(inp => {
+                const k = inp.getAttribute('data-custom-key');
+                if (k) customFields[k] = inp.value.trim();
+            });
+
+            const payload = {
+                action: 'register',
+                name: document.getElementById('regNameInput').value.trim(),
+                email: document.getElementById('regEmailInput').value.trim(),
+                phone: document.getElementById('regPhoneInput').value.trim(),
+                password: document.getElementById('regPassInput').value.trim(),
+                location: document.getElementById('regLocationInput').value.trim(),
+                gender: document.getElementById('regGenderInput').value,
+                birth_date: document.getElementById('regBirthDateInput').value.trim(),
+                custom_fields: customFields
+            };
+
+            const btn = document.getElementById('registerSubmitBtn');
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> جاري إنشاء الحساب...`;
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (data.status === 'success' && data.user) {
+                    localStorage.setItem('brethren_active_user_id', data.user.id);
+                    localStorage.setItem('brethren_is_admin', 'false');
+                    window.location.href = `${USER_URL}?id=${data.user.id}`;
+                } else {
+                    showAlert(data.message || 'تعذر إنشاء الحساب');
+                }
+            } catch (err) {
+                showAlert('تعذر الاتصال بالخادم أثناء التسجيل');
+            } finally {
+                btn.innerHTML = `<i class="fas fa-check-circle"></i> إنشاء الحساب والتسجيل`;
+                btn.disabled = false;
+            }
+        }
+
         function showAlert(msg) {
             const el = document.getElementById('alertMsg');
             el.innerText = msg;
             el.style.display = 'block';
+        }
+
+        function hideAlert() {
+            document.getElementById('alertMsg').style.display = 'none';
         }
     </script>
 </body>

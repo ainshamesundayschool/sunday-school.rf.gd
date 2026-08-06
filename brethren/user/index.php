@@ -116,17 +116,10 @@
             text-decoration: none;
         }
 
-        .brand-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: var(--r-md);
-            background: linear-gradient(135deg, var(--brand), var(--brand-dark));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-size: 1.15rem;
-            box-shadow: 0 4px 14px var(--brand-glow);
+        .brand-logo-img {
+            width: 38px;
+            height: 38px;
+            object-fit: contain;
         }
 
         .topbar-actions {
@@ -155,7 +148,6 @@
             color: var(--brand-dark);
         }
 
-        /* Profile Hero Card */
         .profile-card {
             background: var(--surface);
             border: 1px solid var(--border-solid);
@@ -179,7 +171,7 @@
             align-items: center;
             justify-content: space-between;
             gap: 20px;
-            direction: rtl; /* Right aligned profile picture */
+            direction: rtl;
         }
 
         .profile-identity {
@@ -286,12 +278,8 @@
             transition: all 0.2s;
         }
 
-        .edit-info-btn:hover {
-            background: var(--brand);
-            color: #fff;
-        }
+        .edit-info-btn:hover { background: var(--brand); color: #fff; }
 
-        /* Big QR Code Section */
         .qr-section {
             background: var(--surface);
             border: 1px solid var(--border-solid);
@@ -303,197 +291,78 @@
         }
 
         .qr-title {
-            font-size: 1.25rem;
-            font-weight: 900;
-            margin-bottom: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            color: var(--text);
+            font-size: 1.25rem; font-weight: 900; margin-bottom: 4px;
+            display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--text);
         }
 
-        .qr-subtitle {
-            font-size: 0.85rem;
-            color: var(--text-3);
-            margin-bottom: 18px;
-            font-weight: 600;
-        }
+        .qr-subtitle { font-size: 0.85rem; color: var(--text-3); margin-bottom: 18px; font-weight: 600; }
 
         .qr-box {
-            background: #ffffff;
-            padding: 16px;
-            border-radius: var(--r-lg);
-            display: inline-block;
-            border: 2px solid var(--border-solid);
-            box-shadow: var(--shadow-sm);
-            max-width: 240px;
-            width: 100%;
+            background: #ffffff; padding: 16px; border-radius: var(--r-lg);
+            display: inline-block; border: 2px solid var(--border-solid);
+            box-shadow: var(--shadow-sm); max-width: 240px; width: 100%;
         }
 
-        .qr-box img {
-            width: 100%; height: auto; display: block; border-radius: 8px;
-        }
+        .qr-box img { width: 100%; height: auto; display: block; border-radius: 8px; }
 
         .user-code-tag {
-            margin-top: 12px;
-            display: inline-block;
-            background: var(--surface-3);
-            padding: 6px 16px;
-            border-radius: var(--r-full);
-            font-family: monospace;
-            font-size: 1rem;
-            font-weight: 800;
-            color: var(--brand-dark);
-            border: 1px solid var(--border-solid);
+            margin-top: 12px; display: inline-block; background: var(--surface-3);
+            padding: 6px 16px; border-radius: var(--r-full); font-family: monospace;
+            font-size: 1rem; font-weight: 800; color: var(--brand-dark); border: 1px solid var(--border-solid);
         }
 
-        /* Event Cards */
-        .section-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 14px;
-        }
+        .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 
         .section-title {
-            font-size: 1.2rem;
-            font-weight: 900;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--text);
+            font-size: 1.2rem; font-weight: 900; display: flex; align-items: center; gap: 8px; color: var(--text);
         }
 
         .section-title i { color: var(--brand); }
 
         .badge-count {
-            background: var(--brand-bg);
-            color: var(--brand-dark);
-            padding: 2px 10px;
-            border-radius: var(--r-full);
-            font-size: 0.82rem;
-            font-weight: 800;
-            border: 1px solid rgba(91, 108, 245, 0.2);
+            background: var(--brand-bg); color: var(--brand-dark); padding: 2px 10px;
+            border-radius: var(--r-full); font-size: 0.82rem; font-weight: 800; border: 1px solid rgba(91, 108, 245, 0.2);
         }
 
-        .events-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-            gap: 16px;
-            margin-bottom: 28px;
-        }
+        .events-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 16px; margin-bottom: 28px; }
 
         .event-card {
-            background: var(--surface);
-            border: 1px solid var(--border-solid);
-            border-radius: var(--r-lg);
-            padding: 18px;
-            position: relative;
-            box-shadow: var(--shadow-sm);
+            background: var(--surface); border: 1px solid var(--border-solid);
+            border-radius: var(--r-lg); padding: 18px; position: relative; box-shadow: var(--shadow-sm);
         }
 
-        .event-card.attended {
-            border-color: rgba(16, 185, 129, 0.4);
-            background: var(--success-bg);
-        }
+        .event-card.attended { border-color: rgba(16, 185, 129, 0.4); background: var(--success-bg); }
 
-        .event-status-pill {
-            position: absolute;
-            top: 14px; left: 14px;
-            padding: 4px 10px;
-            border-radius: var(--r-full);
-            font-size: 0.75rem;
-            font-weight: 800;
-        }
-
+        .event-status-pill { position: absolute; top: 14px; left: 14px; padding: 4px 10px; border-radius: var(--r-full); font-size: 0.75rem; font-weight: 800; }
         .status-attended { background: #10b981; color: #fff; }
         .status-available { background: var(--surface-3); color: var(--text-2); border: 1px solid var(--border-solid); }
 
-        .event-name {
-            font-size: 1.1rem;
-            font-weight: 900;
-            margin-bottom: 6px;
-            color: var(--text);
-            padding-left: 80px;
-        }
-
-        .event-date {
-            font-size: 0.82rem;
-            color: var(--text-3);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-
+        .event-name { font-size: 1.1rem; font-weight: 900; margin-bottom: 6px; color: var(--text); padding-left: 80px; }
+        .event-date { font-size: 0.82rem; color: var(--text-3); display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-weight: 600; }
         .event-desc { font-size: 0.85rem; color: var(--text-2); line-height: 1.4; }
 
-        /* Modal Overlay & Forms */
         .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(6px);
-            z-index: 1000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(6px); z-index: 1000;
+            display: none; align-items: center; justify-content: center; padding: 16px;
         }
 
         .modal-card {
-            background: var(--surface);
-            border: 1px solid var(--border-solid);
-            border-radius: var(--r-xl);
-            width: 100%;
-            max-width: 520px;
-            max-height: 85vh;
-            display: flex;
-            flex-direction: column;
-            box-shadow: var(--shadow-lg);
-            overflow: hidden;
+            background: var(--surface); border: 1px solid var(--border-solid);
+            border-radius: var(--r-xl); width: 100%; max-width: 520px; max-height: 85vh;
+            display: flex; flex-direction: column; box-shadow: var(--shadow-lg); overflow: hidden;
         }
 
-        .modal-header {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border-solid);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: var(--surface-2);
-        }
-
-        .modal-title {
-            font-size: 1.15rem;
-            font-weight: 900;
-            color: var(--text);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            color: var(--text-3);
-            font-size: 1.4rem;
-            cursor: pointer;
-        }
-
+        .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border-solid); display: flex; align-items: center; justify-content: space-between; background: var(--surface-2); }
+        .modal-title { font-size: 1.15rem; font-weight: 900; color: var(--text); display: flex; align-items: center; gap: 8px; }
+        .modal-close { background: none; border: none; color: var(--text-3); font-size: 1.4rem; cursor: pointer; }
         .modal-body { padding: 20px; overflow-y: auto; flex: 1; }
 
         .history-list { display: flex; flex-direction: column; gap: 10px; }
 
         .history-item {
-            background: var(--surface-2);
-            border: 1px solid var(--border-solid);
-            border-radius: var(--r-md);
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            background: var(--surface-2); border: 1px solid var(--border-solid);
+            border-radius: var(--r-md); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;
         }
 
         .history-reason { font-size: 0.92rem; font-weight: 800; color: var(--text); }
@@ -504,27 +373,20 @@
 
         .form-group { margin-bottom: 14px; }
         .form-label { display: block; font-size: 0.82rem; font-weight: 800; color: var(--text-2); margin-bottom: 6px; }
-        .form-input, .form-select {
-            width: 100%; background: var(--surface-2); border: 1.5px solid var(--border-solid);
-            padding: 10px 14px; border-radius: var(--r-md); color: var(--text); font-size: 0.92rem; font-weight: 600; outline: none;
-        }
+        .form-input, .form-select { width: 100%; background: var(--surface-2); border: 1.5px solid var(--border-solid); padding: 10px 14px; border-radius: var(--r-md); color: var(--text); font-size: 0.92rem; font-weight: 600; outline: none; }
 
-        .btn-submit {
-            width: 100%; background: var(--brand); color: #fff; border: none; padding: 12px;
-            border-radius: var(--r-md); font-size: 0.95rem; font-weight: 900; cursor: pointer; margin-top: 10px;
-        }
+        .btn-submit { width: 100%; background: var(--brand); color: #fff; border: none; padding: 12px; border-radius: var(--r-md); font-size: 0.95rem; font-weight: 900; cursor: pointer; margin-top: 10px; }
 
         .empty-state { text-align: center; padding: 24px; color: var(--text-3); font-size: 0.9rem; font-weight: 600; }
-        .empty-state i { font-size: 2.2rem; display: block; margin-bottom: 8px; color: var(--brand-light); }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- Top Navbar -->
+        <!-- Top Navbar with Asset Logo -->
         <header class="topbar">
             <a href="#" id="homeBrandLink" class="brand">
-                <div class="brand-icon"><i class="fas fa-cross"></i></div>
+                <img src="../assets/logo.svg" id="userLogoImg" class="brand-logo-img" alt="Logo">
                 <span>منصة الأخوة</span>
             </a>
             <div class="topbar-actions">
@@ -606,6 +468,10 @@
                         <input type="text" id="editName" class="form-input" required>
                     </div>
                     <div class="form-group">
+                        <label class="form-label">البريد الإلكتروني</label>
+                        <input type="email" id="editEmail" class="form-input">
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">رقم الهاتف</label>
                         <input type="text" id="editPhone" class="form-input">
                     </div>
@@ -621,8 +487,8 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">تاريخ الميلاد (شهر/سنة أو يوم/شهر/سنة)</label>
-                        <input type="text" id="editBirthDate" class="form-input" placeholder="مثال: 05/2000 أو 15/05/2000">
+                        <label class="form-label">تاريخ الميلاد</label>
+                        <input type="text" id="editBirthDate" class="form-input" placeholder="شهر/سنة أو يوم/شهر/سنة">
                     </div>
                     
                     <div id="editCustomFieldsContainer"></div>
@@ -638,9 +504,11 @@
         const API_URL = isBrethrenSubfolder ? '/brethren/api.php' : '/api.php';
         const HOME_URL = isBrethrenSubfolder ? '/brethren/' : '/';
         const LOGIN_URL = isBrethrenSubfolder ? '/brethren/login/' : '/login/';
+        const LOGO_SRC = isBrethrenSubfolder ? '/brethren/assets/logo.svg' : 'assets/logo.svg';
 
         document.getElementById('homeBrandLink').href = HOME_URL;
         document.getElementById('homeNavLink').href = HOME_URL;
+        document.getElementById('userLogoImg').src = LOGO_SRC;
 
         let currentUser = null;
         let pointsHistory = [];
@@ -674,7 +542,6 @@
                     container.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-circle"></i> ${data.message}</div>`;
                 }
             } catch (err) {
-                console.error(err);
                 container.innerHTML = `<div class="empty-state"><i class="fas fa-wifi"></i> تعذر الاتصال بالخادم</div>`;
             }
         }
@@ -718,6 +585,10 @@
                     </div>
 
                     <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label"><i class="fas fa-envelope"></i> البريد الإلكتروني</div>
+                            <div class="info-value">${user.email || 'غير محدد'}</div>
+                        </div>
                         <div class="info-item">
                             <div class="info-label"><i class="fas fa-phone"></i> رقم الهاتف</div>
                             <div class="info-value">${user.phone || 'غير محدد'}</div>
@@ -818,6 +689,7 @@
             if (!currentUser) return;
             document.getElementById('editUserId').value = currentUser.id;
             document.getElementById('editName').value = currentUser.name;
+            document.getElementById('editEmail').value = currentUser.email || '';
             document.getElementById('editPhone').value = currentUser.phone || '';
             document.getElementById('editLocation').value = currentUser.location || '';
             document.getElementById('editGender').value = currentUser.gender || 'شاب';
@@ -852,6 +724,7 @@
                 action: 'save_user',
                 id: currentUser.id,
                 name: document.getElementById('editName').value.trim(),
+                email: document.getElementById('editEmail').value.trim(),
                 phone: document.getElementById('editPhone').value.trim(),
                 location: document.getElementById('editLocation').value.trim(),
                 gender: document.getElementById('editGender').value,
@@ -873,7 +746,6 @@
                     alert(data.message || 'حدث خطأ أثناء الحفظ');
                 }
             } catch (err) {
-                console.error(err);
                 alert('تعذر الاتصال بالخادم');
             }
         }
