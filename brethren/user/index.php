@@ -117,8 +117,8 @@
         }
 
         .brand-logo-img {
-            width: 38px;
-            height: 38px;
+            width: 40px;
+            height: 40px;
             object-fit: contain;
         }
 
@@ -383,10 +383,10 @@
 <body>
 
     <div class="container">
-        <!-- Top Navbar with Asset Logo -->
+        <!-- Top Navbar with Brethren Logo PNG -->
         <header class="topbar">
             <a href="#" id="homeBrandLink" class="brand">
-                <img src="../assets/logo.svg" id="userLogoImg" class="brand-logo-img" alt="Logo">
+                <img src="../assets/brethren-logo.png" id="userLogoImg" class="brand-logo-img" alt="Logo">
                 <span>منصة الأخوة</span>
             </a>
             <div class="topbar-actions">
@@ -504,7 +504,7 @@
         const API_URL = isBrethrenSubfolder ? '/brethren/api.php' : '/api.php';
         const HOME_URL = isBrethrenSubfolder ? '/brethren/' : '/';
         const LOGIN_URL = isBrethrenSubfolder ? '/brethren/login/' : '/login/';
-        const LOGO_SRC = isBrethrenSubfolder ? '/brethren/assets/logo.svg' : 'assets/logo.svg';
+        const LOGO_SRC = isBrethrenSubfolder ? '/brethren/assets/brethren-logo.png' : 'assets/brethren-logo.png';
 
         document.getElementById('homeBrandLink').href = HOME_URL;
         document.getElementById('homeNavLink').href = HOME_URL;

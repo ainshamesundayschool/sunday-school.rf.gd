@@ -370,10 +370,10 @@
 <body>
 
     <div class="container">
-        <!-- Top Navbar -->
+        <!-- Top Navbar with Brethren Logo PNG -->
         <header class="topbar">
             <a href="#" id="adminBrandLink" class="brand">
-                <img src="../assets/logo.svg" id="adminLogoImg" class="brand-logo-img" alt="Logo">
+                <img src="../assets/brethren-logo.png" id="adminLogoImg" class="brand-logo-img" alt="Logo">
                 <span>لوحة التحكم - الأخوة</span>
             </a>
             <div class="topbar-actions">
@@ -683,7 +683,7 @@
         const USER_URL = isBrethrenSubfolder ? '/brethren/user/' : '/user/';
         const LOGIN_URL = isBrethrenSubfolder ? '/brethren/login/' : '/login/';
         const ADMIN_BRAND_URL = isBrethrenSubfolder ? '/brethren/admin/' : '/admin/';
-        const LOGO_SRC = isBrethrenSubfolder ? '/brethren/assets/logo.svg' : 'assets/logo.svg';
+        const LOGO_SRC = isBrethrenSubfolder ? '/brethren/assets/brethren-logo.png' : 'assets/brethren-logo.png';
 
         const isAdmin = localStorage.getItem('brethren_is_admin') === 'true';
         if (!isAdmin) window.location.href = LOGIN_URL;

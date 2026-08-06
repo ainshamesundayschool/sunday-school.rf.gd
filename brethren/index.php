@@ -26,7 +26,7 @@
             --warning: #f59e0b;
             --warning-bg: #fef3c7;
             
-            --bg: #f3f4f9; /* Pure solid background without gradient mesh */
+            --bg: #f3f4f9;
             --surface: #ffffff;
             --surface-2: #f7f8fc;
             --surface-3: #eceef7;
@@ -99,8 +99,8 @@
         }
 
         .brand-logo-img {
-            width: 42px;
-            height: 42px;
+            width: 44px;
+            height: 44px;
             object-fit: contain;
         }
 
@@ -145,8 +145,8 @@
         }
 
         .hero-badge-logo {
-            width: 80px;
-            height: 80px;
+            width: 90px;
+            height: 90px;
             margin: 0 auto 20px;
             display: block;
             object-fit: contain;
@@ -211,7 +211,6 @@
             color: var(--brand-dark);
         }
 
-        /* Landing Features Grid */
         .features-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -263,7 +262,6 @@
             font-weight: 600;
         }
 
-        /* Pure Landing Footer */
         .landing-footer {
             text-align: center;
             padding: 20px 16px;
@@ -278,10 +276,10 @@
 <body>
 
     <div class="container">
-        <!-- Top Navbar -->
+        <!-- Top Navbar with Brethren Logo PNG -->
         <header class="topbar">
             <a href="#" id="homeBrandLink" class="brand">
-                <img src="assets/logo.svg" id="homeLogoImg" class="brand-logo-img" alt="Logo">
+                <img src="assets/brethren-logo.png" id="homeLogoImg" class="brand-logo-img" alt="Logo">
                 <span>منصة الأخوة</span>
             </a>
             <div>
@@ -292,7 +290,7 @@
             </div>
         </header>
 
-        <!-- Auth Status Banner if user/admin is logged in -->
+        <!-- Auth Status Banner -->
         <div class="auth-status-banner" id="authStatusBanner">
             <div class="auth-status-info">
                 <i class="fas fa-user-circle" style="font-size:1.3rem;"></i>
@@ -306,7 +304,7 @@
 
         <!-- Pure Landing Hero Section -->
         <div class="hero-section">
-            <img src="assets/logo.svg" id="heroBadgeImg" class="hero-badge-logo" alt="Logo">
+            <img src="assets/brethren-logo.png" id="heroBadgeImg" class="hero-badge-logo" alt="Logo">
             <h1 class="hero-title">منصة الأخوة والشباب</h1>
             <p class="hero-subtitle">
                 منصة متكاملة لمتابعة الفعاليات، تسجيل الحضور إلكترونياً عبر رمز QR المخصص، وجمع النقاط والمكافآت الشخصية بسهولة.
@@ -356,7 +354,7 @@
         const ADMIN_URL = isBrethrenSubfolder ? '/brethren/admin/' : 'admin/';
         const USER_URL = isBrethrenSubfolder ? '/brethren/user/' : 'user/';
         const HOME_URL = isBrethrenSubfolder ? '/brethren/' : '/';
-        const LOGO_SRC = isBrethrenSubfolder ? '/brethren/assets/logo.svg' : 'assets/logo.svg';
+        const LOGO_SRC = isBrethrenSubfolder ? '/brethren/assets/brethren-logo.png' : 'assets/brethren-logo.png';
 
         document.getElementById('homeBrandLink').href = HOME_URL;
         document.getElementById('loginNavLink').href = LOGIN_URL;

@@ -97,8 +97,8 @@
         }
 
         .brand-logo-wrapper {
-            width: 64px;
-            height: 64px;
+            width: 72px;
+            height: 72px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -124,7 +124,6 @@
             margin-top: 4px;
         }
 
-        /* Mode Switcher Tabs */
         .auth-tabs {
             display: flex;
             background: var(--surface-2);
@@ -241,7 +240,7 @@
     <div class="auth-card">
         <div class="auth-header">
             <div class="brand-logo-wrapper">
-                <img src="../assets/logo.svg" id="brandLogoImg" class="brand-logo-img" alt="Logo">
+                <img src="../assets/brethren-logo.png" id="brandLogoImg" class="brand-logo-img" alt="Logo">
             </div>
             <h1 class="auth-title">منصة الأخوة</h1>
             <p class="auth-subtitle">سجل دخولك أو أنشئ حساباً جديداً للمتابعة</p>
@@ -326,7 +325,7 @@
         const HOME_URL = isBrethrenSubfolder ? '/brethren/' : '/';
         const ADMIN_URL = isBrethrenSubfolder ? '/brethren/admin/' : 'admin/';
         const USER_URL = isBrethrenSubfolder ? '/brethren/user/' : 'user/';
-        const LOGO_SRC = isBrethrenSubfolder ? '/brethren/assets/logo.svg' : 'assets/logo.svg';
+        const LOGO_SRC = isBrethrenSubfolder ? '/brethren/assets/brethren-logo.png' : 'assets/brethren-logo.png';
 
         document.getElementById('backHomeLink').href = HOME_URL;
         document.getElementById('brandLogoImg').src = LOGO_SRC;
