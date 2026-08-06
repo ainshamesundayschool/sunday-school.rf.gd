@@ -9,11 +9,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Brethren Database Connection Config
-define('BRETHREN_DB_HOST', 'sql206.infinityfree.com');
-define('BRETHREN_DB_PORT', 3306);
+define('BRETHREN_DB_NAME', 'if0_40860329_brethren');
 define('BRETHREN_DB_USER', 'if0_40860329');
 define('BRETHREN_DB_PASS', 'wqSwU86i8GvLDAw');
-define('BRETHREN_DB_NAME', 'if0_40860329_brethren');
 
 function getBrethrenDB(): mysqli {
     static $conn = null;
@@ -21,19 +19,48 @@ function getBrethrenDB(): mysqli {
         return $conn;
     }
 
-    // Try remote database connection first
     mysqli_report(MYSQLI_REPORT_OFF);
-    $conn = @new mysqli(BRETHREN_DB_HOST, BRETHREN_DB_USER, BRETHREN_DB_PASS, BRETHREN_DB_NAME, BRETHREN_DB_PORT);
 
-    // Local / Offline Fallback if remote DB is unreachable (e.g. during local dev)
-    if ($conn->connect_error) {
-        $conn = @new mysqli('127.0.0.1', 'root', '', '');
-        if (!$conn->connect_error) {
-            $conn->query("CREATE DATABASE IF NOT EXISTS `if0_40860329_brethren` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-            $conn->select_db('if0_40860329_brethren');
-        } else {
-            sendJSONResponse(['status' => 'error', 'message' => 'Database Connection Failed: ' . $conn->connect_error], 500);
+    // List of candidate database hosts to try in sequence
+    $hostsToTry = [
+        'sql206.infinityfree.com',
+        'localhost',
+        '127.0.0.1',
+        'sql206.epizy.com',
+        'sql206.byetcluster.com'
+    ];
+
+    // Include main config.php DB_HOST if available
+    $rootPath = dirname(__DIR__);
+    if (file_exists($rootPath . '/config.php')) {
+        @include_once $rootPath . '/config.php';
+        if (defined('DB_HOST') && !in_array(DB_HOST, $hostsToTry, true)) {
+            array_unshift($hostsToTry, DB_HOST);
         }
+    }
+
+    $lastError = '';
+    foreach ($hostsToTry as $host) {
+        $testConn = @new mysqli($host, BRETHREN_DB_USER, BRETHREN_DB_PASS, BRETHREN_DB_NAME, 3306);
+        if (!$testConn->connect_error) {
+            $conn = $testConn;
+            break;
+        }
+        $lastError = $testConn->connect_error;
+
+        // Try creating/connecting without DB name first (e.g. local XAMPP or dev server)
+        $testLocal = @new mysqli($host, 'root', '', '', 3306);
+        if (!$testLocal->connect_error) {
+            $testLocal->query("CREATE DATABASE IF NOT EXISTS `if0_40860329_brethren` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+            if ($testLocal->select_db('if0_40860329_brethren')) {
+                $conn = $testLocal;
+                break;
+            }
+        }
+    }
+
+    if ($conn === null || $conn->connect_error) {
+        sendJSONResponse(['status' => 'error', 'message' => 'تعذر الاتصال بقاعدة البيانات: ' . ($lastError ?: 'Connection failed')]);
     }
 
     $conn->set_charset('utf8mb4');
@@ -143,9 +170,11 @@ switch ($action) {
     case 'get_users':
         $res = $db->query("SELECT * FROM `brethren_users` ORDER BY `name` ASC");
         $users = [];
-        while ($row = $res->fetch_assoc()) {
-            $row['custom_fields'] = json_decode($row['custom_fields'] ?? '{}', true) ?: (object)[];
-            $users[] = $row;
+        if ($res) {
+            while ($row = $res->fetch_assoc()) {
+                $row['custom_fields'] = json_decode($row['custom_fields'] ?? '{}', true) ?: (object)[];
+                $users[] = $row;
+            }
         }
         sendJSONResponse(['status' => 'success', 'users' => $users]);
         break;
@@ -158,8 +187,8 @@ switch ($action) {
             $stmt = $db->prepare("SELECT * FROM `brethren_users` WHERE `id` = ? LIMIT 1");
             $stmt->bind_param('i', $userId);
         } else if (!empty($userCode)) {
-            $stmt = $db->prepare("SELECT * FROM `brethren_users` WHERE `user_code` = ? OR `id` = ? LIMIT 1");
-            $stmt->bind_param('si', $userCode, $userCode);
+            $stmt = $db->prepare("SELECT * FROM `brethren_users` WHERE `user_code` = ? OR `phone` = ? OR `id` = ? LIMIT 1");
+            $stmt->bind_param('sss', $userCode, $userCode, $userCode);
         } else {
             sendJSONResponse(['status' => 'error', 'message' => 'User ID or User Code is required'], 400);
         }
@@ -201,9 +230,11 @@ switch ($action) {
         // Fetch All Available Events
         $resEvents = $db->query("SELECT * FROM `brethren_events` ORDER BY `event_date` DESC, `id` DESC");
         $allEvents = [];
-        while ($ev = $resEvents->fetch_assoc()) {
-            $ev['is_attended'] = in_array((int)$ev['id'], $attendedIds, true);
-            $allEvents[] = $ev;
+        if ($resEvents) {
+            while ($ev = $resEvents->fetch_assoc()) {
+                $ev['is_attended'] = in_array((int)$ev['id'], $attendedIds, true);
+                $allEvents[] = $ev;
+            }
         }
 
         sendJSONResponse([
@@ -324,8 +355,10 @@ switch ($action) {
             GROUP BY e.id 
             ORDER BY e.event_date DESC, e.id DESC");
         $events = [];
-        while ($row = $res->fetch_assoc()) {
-            $events[] = $row;
+        if ($res) {
+            while ($row = $res->fetch_assoc()) {
+                $events[] = $row;
+            }
         }
         sendJSONResponse(['status' => 'success', 'events' => $events]);
         break;
@@ -382,9 +415,9 @@ switch ($action) {
             sendJSONResponse(['status' => 'error', 'message' => 'الفعالية غير موجودة'], 404);
         }
 
-        // Find User by user_code or id
-        $stmtUser = $db->prepare("SELECT * FROM `brethren_users` WHERE `user_code` = ? OR `id` = ? LIMIT 1");
-        $stmtUser->bind_param('si', $userCode, $userCode);
+        // Find User by user_code or phone or id
+        $stmtUser = $db->prepare("SELECT * FROM `brethren_users` WHERE `user_code` = ? OR `phone` = ? OR `id` = ? LIMIT 1");
+        $stmtUser->bind_param('sss', $userCode, $userCode, $userCode);
         $stmtUser->execute();
         $user = $stmtUser->get_result()->fetch_assoc();
         if (!$user) {
@@ -454,7 +487,6 @@ switch ($action) {
             sendJSONResponse(['status' => 'error', 'message' => 'معرف المستخدم وقيمة النقاط مطلوبين'], 400);
         }
 
-        // Verify User
         $stmtUser = $db->prepare("SELECT `name`, `points` FROM `brethren_users` WHERE `id` = ? LIMIT 1");
         $stmtUser->bind_param('i', $userId);
         $stmtUser->execute();
@@ -463,12 +495,10 @@ switch ($action) {
             sendJSONResponse(['status' => 'error', 'message' => 'المستخدم غير موجود'], 404);
         }
 
-        // Update User Points
         $stmtUpd = $db->prepare("UPDATE `brethren_users` SET `points` = `points` + ? WHERE `id` = ?");
         $stmtUpd->bind_param('ii', $pointsChange, $userId);
         $stmtUpd->execute();
 
-        // Add Points History Entry
         $stmtHist = $db->prepare("INSERT INTO `brethren_points_history` (`user_id`, `points_change`, `reason`, `type`) VALUES (?, ?, ?, ?)");
         $stmtHist->bind_param('iiss', $userId, $pointsChange, $reason, $type);
         $stmtHist->execute();
@@ -489,9 +519,11 @@ switch ($action) {
             'enable_custom' => true,
             'reasons' => ['ألعاب', 'بونص', 'التزام بالأوقات']
         ];
-        while ($row = $res->fetch_assoc()) {
-            $val = json_decode($row['setting_value'], true);
-            $settings[$row['setting_key']] = ($val !== null) ? $val : $row['setting_value'];
+        if ($res) {
+            while ($row = $res->fetch_assoc()) {
+                $val = json_decode($row['setting_value'], true);
+                $settings[$row['setting_key']] = ($val !== null) ? $val : $row['setting_value'];
+            }
         }
         sendJSONResponse(['status' => 'success', 'settings' => $settings]);
         break;

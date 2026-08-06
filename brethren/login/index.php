@@ -123,7 +123,6 @@
             margin-top: 4px;
         }
 
-        /* Role Tabs Switcher */
         .role-tabs {
             display: flex;
             background: var(--surface-2);
@@ -246,7 +245,6 @@
             <p class="login-subtitle">سجل دخولك لمتابعة نقاطك وحضور الفعاليات</p>
         </div>
 
-        <!-- Role Selector Tabs -->
         <div class="role-tabs">
             <button class="role-tab-btn active" onclick="switchLoginRole('member')">
                 <i class="fas fa-user"></i> دخول الأعضاء
@@ -258,7 +256,6 @@
 
         <div id="alertMsg" class="alert-msg alert-error"></div>
 
-        <!-- Member Login Form -->
         <form id="memberLoginForm" onsubmit="handleMemberLogin(event)">
             <div class="form-group">
                 <label class="form-label">رقم الهاتف أو كود المستخدم</label>
@@ -267,7 +264,6 @@
             <button type="submit" class="btn-submit">عرض ملفي الشخصي</button>
         </form>
 
-        <!-- Admin Login Form -->
         <form id="adminLoginForm" onsubmit="handleAdminLogin(event)" style="display:none;">
             <div class="form-group">
                 <label class="form-label">كلمة مرور الإدارة</label>
@@ -285,7 +281,8 @@
         const isBrethrenSubfolder = window.location.pathname.includes('/brethren');
         const API_URL = isBrethrenSubfolder ? '/brethren/api.php' : '/api.php';
         const HOME_URL = isBrethrenSubfolder ? '/brethren/' : '/';
-        const ADMIN_URL = isBrethrenSubfolder ? '/brethren/admin/' : '/admin/';
+        const ADMIN_URL = isBrethrenSubfolder ? '/brethren/admin/' : 'admin/';
+        const USER_URL = isBrethrenSubfolder ? '/brethren/user/' : 'user/';
 
         document.getElementById('backHomeLink').href = HOME_URL;
 
@@ -312,7 +309,7 @@
                 const data = await res.json();
                 if (data.status === 'success' && data.user) {
                     localStorage.setItem('brethren_active_user_id', data.user.id);
-                    window.location.href = `${HOME_URL}?id=${data.user.id}`;
+                    window.location.href = `${USER_URL}?id=${data.user.id}`;
                 } else {
                     showAlert('لم نتمكن من العثور على حساب بهذا الرقم أو الكود');
                 }
