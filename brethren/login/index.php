@@ -93,16 +93,16 @@
 
         .auth-header {
             text-align: center;
-            margin-bottom: 24px;
+            margin-bottom: 28px;
         }
 
         .brand-logo-wrapper {
-            width: 72px;
-            height: 72px;
+            width: 76px;
+            height: 76px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
         }
 
         .brand-logo-img {
@@ -112,49 +112,16 @@
         }
 
         .auth-title {
-            font-size: 1.6rem;
+            font-size: 1.65rem;
             font-weight: 900;
             color: var(--text);
         }
 
         .auth-subtitle {
-            font-size: 0.88rem;
+            font-size: 0.9rem;
             color: var(--text-3);
             font-weight: 600;
             margin-top: 4px;
-        }
-
-        .auth-tabs {
-            display: flex;
-            background: var(--surface-2);
-            border: 1px solid var(--border-solid);
-            border-radius: var(--r-md);
-            padding: 4px;
-            gap: 4px;
-            margin-bottom: 24px;
-        }
-
-        .auth-tab-btn {
-            flex: 1;
-            padding: 11px;
-            border: none;
-            background: none;
-            color: var(--text-3);
-            font-weight: 800;
-            font-size: 0.92rem;
-            border-radius: var(--r-sm);
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-
-        .auth-tab-btn.active {
-            background: var(--brand);
-            color: #fff;
-            box-shadow: 0 4px 12px var(--brand-glow);
         }
 
         .form-group {
@@ -206,6 +173,26 @@
             background: var(--brand-dark);
         }
 
+        .auth-toggle-wrapper {
+            text-align: center;
+            margin-top: 18px;
+            font-size: 0.9rem;
+            color: var(--text-2);
+            font-weight: 700;
+        }
+
+        .auth-toggle-link {
+            color: var(--brand);
+            text-decoration: none;
+            font-weight: 900;
+            margin-right: 4px;
+            cursor: pointer;
+        }
+
+        .auth-toggle-link:hover {
+            text-decoration: underline;
+        }
+
         .back-home-link {
             display: block;
             text-align: center;
@@ -242,17 +229,8 @@
             <div class="brand-logo-wrapper">
                 <img src="/assets/brethren-logo.png" id="brandLogoImg" class="brand-logo-img" alt="Logo">
             </div>
-            <h1 class="auth-title">منصة الأخوة</h1>
-            <p class="auth-subtitle">سجل دخولك أو أنشئ حساباً جديداً للمتابعة</p>
-        </div>
-
-        <div class="auth-tabs">
-            <button class="auth-tab-btn active" id="tabLoginBtn" onclick="switchAuthMode('login')">
-                <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
-            </button>
-            <button class="auth-tab-btn" id="tabRegisterBtn" onclick="switchAuthMode('register')">
-                <i class="fas fa-user-plus"></i> إنشاء حساب جديد
-            </button>
+            <h1 class="auth-title" id="pageMainTitle">تسجيل الدخول</h1>
+            <p class="auth-subtitle" id="pageMainSubtitle">ادخل بياناتك للمتابعة في منصة الأخوة</p>
         </div>
 
         <div id="alertMsg" class="alert-msg alert-error"></div>
@@ -268,8 +246,12 @@
                 <input type="password" id="loginPassInput" class="form-input" placeholder="ادخل كلمة المرور">
             </div>
             <button type="submit" class="btn-submit" id="loginSubmitBtn">
-                <i class="fas fa-sign-in-alt"></i> دخول الحساب
+                <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
             </button>
+
+            <div class="auth-toggle-wrapper">
+                ليس لديك حساب؟ <a onclick="switchAuthMode('register')" class="auth-toggle-link">إنشاء حساب جديد</a>
+            </div>
         </form>
 
         <!-- REGISTER FORM (CREATE ACCOUNT) -->
@@ -312,6 +294,10 @@
             <button type="submit" class="btn-submit" id="registerSubmitBtn">
                 <i class="fas fa-check-circle"></i> إنشاء الحساب والتسجيل
             </button>
+
+            <div class="auth-toggle-wrapper">
+                لديك حساب بالفعل؟ <a onclick="switchAuthMode('login')" class="auth-toggle-link">تسجيل الدخول</a>
+            </div>
         </form>
 
         <a href="#" id="backHomeLink" class="back-home-link">
@@ -336,14 +322,17 @@
 
         function switchAuthMode(mode) {
             hideAlert();
+            const mainTitle = document.getElementById('pageMainTitle');
+            const mainSubtitle = document.getElementById('pageMainSubtitle');
+
             if (mode === 'login') {
-                document.getElementById('tabLoginBtn').classList.add('active');
-                document.getElementById('tabRegisterBtn').classList.remove('active');
+                mainTitle.innerText = 'تسجيل الدخول';
+                mainSubtitle.innerText = 'ادخل بياناتك للمتابعة في منصة الأخوة';
                 document.getElementById('loginForm').style.display = 'block';
                 document.getElementById('registerForm').style.display = 'none';
             } else {
-                document.getElementById('tabRegisterBtn').classList.add('active');
-                document.getElementById('tabLoginBtn').classList.remove('active');
+                mainTitle.innerText = 'إنشاء حساب جديد';
+                mainSubtitle.innerText = 'ادخل بياناتك للانضمام لمنصة الأخوة';
                 document.getElementById('loginForm').style.display = 'none';
                 document.getElementById('registerForm').style.display = 'block';
             }
@@ -406,7 +395,7 @@
             } catch (err) {
                 showAlert('تعذر الاتصال بالخادم، يرجى المحاولة لاحقاً');
             } finally {
-                btn.innerHTML = `<i class="fas fa-sign-in-alt"></i> دخول الحساب`;
+                btn.innerHTML = `<i class="fas fa-sign-in-alt"></i> تسجيل الدخول`;
                 btn.disabled = false;
             }
         }
