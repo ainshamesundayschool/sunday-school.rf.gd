@@ -10,9 +10,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Brethren Database Connection Config
-define('BRETHREN_DB_NAME', 'if0_40860329_brethren');
+define('BRETHREN_DB_HOST', 'sql206.infinityfree.com');
 define('BRETHREN_DB_USER', 'if0_40860329');
 define('BRETHREN_DB_PASS', 'wqSwU86i8GvLDAw');
+define('BRETHREN_DB_NAME', 'if0_40860329_brethren');
 
 function getBrethrenDB(): mysqli {
     static $conn = null;
@@ -22,81 +23,54 @@ function getBrethrenDB(): mysqli {
 
     mysqli_report(MYSQLI_REPORT_OFF);
 
-    $rootPath = dirname(__DIR__);
-    if (file_exists($rootPath . '/config.php')) {
-        @include_once $rootPath . '/config.php';
-        if (function_exists('getDBConnection')) {
-            try {
-                $testGlobal = getDBConnection();
-                if ($testGlobal && !$testGlobal->connect_error) {
-                    $conn = $testGlobal;
-                    ensureTablesExist($conn);
-                    return $conn;
-                }
-            } catch (Exception $e) {}
+    // 1. Primary Direct Attempt: InfinityFree Production Database
+    $primaryConn = @new mysqli(BRETHREN_DB_HOST, BRETHREN_DB_USER, BRETHREN_DB_PASS, BRETHREN_DB_NAME, 3306);
+    if (!$primaryConn->connect_error) {
+        $conn = $primaryConn;
+        $conn->set_charset('utf8mb4');
+        ensureTablesExist($conn);
+        return $conn;
+    }
+
+    $lastError = $primaryConn->connect_error;
+
+    // 2. Secondary Attempt: Host connection without database to auto-select
+    $noDbConn = @new mysqli(BRETHREN_DB_HOST, BRETHREN_DB_USER, BRETHREN_DB_PASS, '', 3306);
+    if (!$noDbConn->connect_error) {
+        $noDbConn->query("CREATE DATABASE IF NOT EXISTS `" . BRETHREN_DB_NAME . "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+        if ($noDbConn->select_db(BRETHREN_DB_NAME)) {
+            $conn = $noDbConn;
+            $conn->set_charset('utf8mb4');
+            ensureTablesExist($conn);
+            return $conn;
         }
     }
 
-    $hostsToTry = [
-        'sql206.infinityfree.com',
-        '127.0.0.1',
-        'localhost',
-        'sql206.epizy.com',
-        'sql206.byetcluster.com'
-    ];
+    // 3. Local Development Fallback (XAMPP / Local MySQL)
+    $localHosts = ['127.0.0.1', 'localhost'];
+    foreach ($localHosts as $host) {
+        $localConn = @new mysqli($host, 'root', '', BRETHREN_DB_NAME, 3306);
+        if (!$localConn->connect_error) {
+            $conn = $localConn;
+            $conn->set_charset('utf8mb4');
+            ensureTablesExist($conn);
+            return $conn;
+        }
 
-    if (defined('DB_HOST') && !in_array(DB_HOST, $hostsToTry, true)) {
-        array_unshift($hostsToTry, DB_HOST);
-    }
-
-    $dbsToTry = [];
-    if (defined('DB_NAME')) $dbsToTry[] = DB_NAME;
-    $dbsToTry[] = BRETHREN_DB_NAME;
-    $dbsToTry[] = 'if0_40860329_SundaySchool';
-
-    $usersToTry = [];
-    if (defined('DB_USER')) $usersToTry[] = ['user' => DB_USER, 'pass' => defined('DB_PASS') ? DB_PASS : ''];
-    $usersToTry[] = ['user' => BRETHREN_DB_USER, 'pass' => BRETHREN_DB_PASS];
-    $usersToTry[] = ['user' => 'root', 'pass' => ''];
-
-    $lastError = '';
-
-    foreach ($hostsToTry as $host) {
-        foreach ($usersToTry as $uInfo) {
-            foreach ($dbsToTry as $dbName) {
-                $testConn = @new mysqli($host, $uInfo['user'], $uInfo['pass'], $dbName, 3306);
-                if (!$testConn->connect_error) {
-                    $conn = $testConn;
-                    $conn->set_charset('utf8mb4');
-                    ensureTablesExist($conn);
-                    return $conn;
-                }
-                $lastError = $testConn->connect_error;
-            }
-
-            // Try creating DB if local root
-            if ($uInfo['user'] === 'root') {
-                $testLocal = @new mysqli($host, 'root', '', '', 3306);
-                if (!$testLocal->connect_error) {
-                    $testLocal->query("CREATE DATABASE IF NOT EXISTS `if0_40860329_brethren` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-                    if ($testLocal->select_db('if0_40860329_brethren')) {
-                        $conn = $testLocal;
-                        $conn->set_charset('utf8mb4');
-                        ensureTablesExist($conn);
-                        return $conn;
-                    }
-                }
+        $localRoot = @new mysqli($host, 'root', '', '', 3306);
+        if (!$localRoot->connect_error) {
+            $localRoot->query("CREATE DATABASE IF NOT EXISTS `" . BRETHREN_DB_NAME . "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+            if ($localRoot->select_db(BRETHREN_DB_NAME)) {
+                $conn = $localRoot;
+                $conn->set_charset('utf8mb4');
+                ensureTablesExist($conn);
+                return $conn;
             }
         }
     }
 
-    if ($conn === null || $conn->connect_error) {
-        sendJSONResponse(['status' => 'error', 'message' => 'تعذر الاتصال بقاعدة البيانات: ' . ($lastError ?: 'Connection failed')]);
-    }
-
-    $conn->set_charset('utf8mb4');
-    ensureTablesExist($conn);
-    return $conn;
+    sendJSONResponse(['status' => 'error', 'message' => 'تعذر الاتصال بقاعدة البيانات: ' . ($lastError ?: 'Unable to connect to database server')]);
+    exit;
 }
 
 function ensureTablesExist(mysqli $conn) {
