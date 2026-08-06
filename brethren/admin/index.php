@@ -1,119 +1,159 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة التحكم - منصة الأخوة</title>
     
-    <!-- Google Fonts -->
+    <!-- Google Fonts: Cairo & Baloo Bhaijaan 2 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <!-- FontAwesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Intelligent Search & QR Scanner -->
+    <!-- Intelligent Search & QR Scanner (Relative + Fallback) -->
+    <script src="js/search_intelligent.js"></script>
     <script src="/js/search_intelligent.js"></script>
+    <script src="js/qr-scanner.umd.min.js"></script>
     <script src="/js/qr-scanner.umd.min.js"></script>
 
     <style>
         :root {
-            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
-            --glass-bg: rgba(255, 255, 255, 0.08);
-            --glass-border: rgba(255, 255, 255, 0.15);
-            --glass-card: rgba(255, 255, 255, 0.12);
-            --primary: #8b5cf6;
-            --primary-hover: #7c3aed;
-            --accent: #f59e0b;
+            --brand: #5b6cf5;
+            --brand-dark: #4354e8;
+            --brand-light: #a5b0ff;
+            --brand-bg: #eef0ff;
+            --brand-glow: rgba(91, 108, 245, .18);
+
             --success: #10b981;
+            --success-dark: #059669;
+            --success-bg: #d1fae5;
             --danger: #ef4444;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --r-sm: 8px;
+            --danger-dark: #dc2626;
+            --danger-bg: #fee2e2;
+            --warning: #f59e0b;
+            --warning-dark: #d97706;
+            --warning-bg: #fef3c7;
+            
+            --bg: #f3f4f9;
+            --surface: #ffffff;
+            --surface-2: #f7f8fc;
+            --surface-3: #eceef7;
+            --border-solid: #e4e6f0;
+            --text: #1a1d2e;
+            --text-2: #4b5068;
+            --text-3: #8b90a8;
+
+            --shadow-sm: 0 2px 8px -2px rgba(0, 0, 0, .06);
+            --shadow-md: 0 8px 24px -4px rgba(0, 0, 0, .08);
+            --shadow-lg: 0 20px 48px -8px rgba(0, 0, 0, .12);
+            
+            --r-sm: 10px;
             --r-md: 14px;
-            --r-lg: 20px;
-            --r-xl: 28px;
-            --shadow-glow: 0 10px 30px -10px rgba(139, 92, 246, 0.4);
+            --r-lg: 18px;
+            --r-xl: 24px;
+            --r-full: 9999px;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Baloo Bhaijaan 2', 'Inter', system-ui, -apple-system, sans-serif;
+            font-family: 'Cairo', 'Baloo Bhaijaan 2', system-ui, -apple-system, sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background: #0b0f19;
-            background-image: var(--bg-gradient);
-            background-attachment: fixed;
-            color: var(--text-main);
+            background: var(--bg);
+            color: var(--text);
             min-height: 100vh;
             padding-bottom: 60px;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(ellipse 80% 50% at 10% -10%, rgba(91, 108, 245, .08) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 40% at 90% 110%, rgba(139, 92, 246, .06) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
         }
 
         .container {
             max-width: 1000px;
             margin: 0 auto;
             padding: 20px 16px;
+            position: relative;
+            z-index: 1;
         }
 
         /* Top Admin Navigation Header */
-        .navbar {
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 300;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-solid);
+            padding: 12px 20px;
+            border-radius: var(--r-xl);
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            border: 1px solid var(--glass-border);
-            padding: 14px 20px;
-            border-radius: var(--r-xl);
-            margin-bottom: 24px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            box-shadow: var(--shadow-sm);
         }
 
         .brand {
             display: flex;
             align-items: center;
             gap: 12px;
-            font-size: 1.35rem;
+            font-size: 1.25rem;
             font-weight: 800;
-            color: #fff;
+            color: var(--text);
             text-decoration: none;
         }
 
         .brand-icon {
-            width: 42px;
-            height: 42px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #a855f7, #6366f1);
+            width: 40px;
+            height: 40px;
+            border-radius: var(--r-md);
+            background: linear-gradient(135deg, var(--brand), var(--brand-dark));
             display: flex;
             align-items: center;
             justify-content: center;
             color: #fff;
-            font-size: 1.2rem;
-            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
+            font-size: 1.15rem;
+            box-shadow: 0 4px 14px var(--brand-glow);
         }
 
         .portal-link {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
+            background: var(--brand-bg);
+            color: var(--brand-dark);
             padding: 8px 16px;
             border-radius: var(--r-md);
             text-decoration: none;
-            font-weight: 700;
-            font-size: 0.9rem;
+            font-weight: 800;
+            font-size: 0.88rem;
             display: flex;
             align-items: center;
             gap: 8px;
-            border: 1px solid var(--glass-border);
+            border: 1px solid rgba(91, 108, 245, 0.2);
             transition: all 0.2s;
         }
 
         .portal-link:hover {
-            background: var(--primary);
+            background: var(--brand);
+            color: #fff;
         }
 
         /* Navigation Tabs */
@@ -122,107 +162,99 @@
             gap: 10px;
             overflow-x: auto;
             padding-bottom: 8px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             scrollbar-width: none;
         }
 
-        .nav-tabs::-webkit-scrollbar {
-            display: none;
-        }
+        .nav-tabs::-webkit-scrollbar { display: none; }
 
         .tab-btn {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            color: var(--text-muted);
-            padding: 12px 20px;
+            background: var(--surface);
+            border: 1px solid var(--border-solid);
+            color: var(--text-2);
+            padding: 10px 18px;
             border-radius: var(--r-lg);
-            font-size: 0.98rem;
-            font-weight: 700;
+            font-size: 0.92rem;
+            font-weight: 800;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 8px;
             white-space: nowrap;
-            transition: all 0.25s;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
         }
 
         .tab-btn:hover {
-            color: #fff;
-            background: rgba(255, 255, 255, 0.12);
+            color: var(--brand);
+            border-color: var(--brand-light);
         }
 
         .tab-btn.active {
-            background: var(--primary);
+            background: var(--brand);
             color: #fff;
-            border-color: var(--primary);
-            box-shadow: var(--shadow-glow);
+            border-color: var(--brand);
+            box-shadow: 0 4px 14px var(--brand-glow);
         }
 
         /* Tab Content Area */
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-            animation: fadeIn 0.3s ease-in-out;
-        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.2s ease; }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(6px); }
+            from { opacity: 0; transform: translateY(4px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Cards & Containers */
+        /* Panels & Cards */
         .panel-card {
-            background: var(--glass-card);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
+            background: var(--surface);
+            border: 1px solid var(--border-solid);
             border-radius: var(--r-xl);
-            padding: 24px;
-            margin-bottom: 24px;
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+            padding: 22px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-md);
         }
 
         .card-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
         .card-title {
-            font-size: 1.25rem;
-            font-weight: 800;
-            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: var(--text);
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .card-title i {
-            color: var(--primary);
-        }
+        .card-title i { color: var(--brand); }
 
-        /* User Table & Grid */
+        /* User Search & Grid */
         .search-box {
             position: relative;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
         .search-box input {
             width: 100%;
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid var(--glass-border);
+            background: var(--surface-2);
+            border: 1.5px solid var(--border-solid);
             padding: 12px 45px 12px 16px;
             border-radius: var(--r-md);
-            color: #fff;
-            font-size: 0.98rem;
+            color: var(--text);
+            font-size: 0.92rem;
+            font-weight: 600;
             outline: none;
         }
 
         .search-box input:focus {
-            border-color: var(--primary);
+            border-color: var(--brand);
+            background: #fff;
         }
 
         .search-box i {
@@ -230,18 +262,18 @@
             right: 16px;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--text-muted);
+            color: var(--text-3);
         }
 
         .user-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+            gap: 14px;
         }
 
         .user-card {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: var(--surface-2);
+            border: 1px solid var(--border-solid);
             border-radius: var(--r-lg);
             padding: 16px;
             display: flex;
@@ -251,8 +283,9 @@
         }
 
         .user-card:hover {
-            border-color: rgba(139, 92, 246, 0.4);
-            transform: translateY(-3px);
+            border-color: var(--brand-light);
+            box-shadow: var(--shadow-sm);
+            transform: translateY(-2px);
         }
 
         .user-card-header {
@@ -263,115 +296,113 @@
         }
 
         .user-card-avatar {
-            width: 48px;
-            height: 48px;
+            width: 46px;
+            height: 46px;
             border-radius: 50%;
-            background: #334155;
+            background: var(--brand-bg);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.2rem;
-            font-weight: 700;
-            color: #fff;
+            font-weight: 800;
+            color: var(--brand);
             object-fit: cover;
+            flex-shrink: 0;
         }
 
         .user-card-name {
-            font-size: 1.1rem;
-            font-weight: 800;
-            color: #fff;
+            font-size: 1.05rem;
+            font-weight: 900;
+            color: var(--text);
         }
 
         .user-card-sub {
-            font-size: 0.8rem;
-            color: var(--text-muted);
+            font-size: 0.78rem;
+            color: var(--text-3);
+            font-weight: 600;
         }
 
         .user-card-points {
-            background: rgba(245, 158, 11, 0.2);
-            color: #fbbf24;
+            background: var(--warning-bg);
+            color: var(--warning-dark);
             padding: 4px 10px;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            font-weight: 800;
+            border-radius: var(--r-full);
+            font-size: 0.82rem;
+            font-weight: 900;
             display: inline-block;
             margin-top: 6px;
         }
 
         .user-card-actions {
             display: flex;
-            gap: 8px;
-            margin-top: 14px;
-            padding-top: 12px;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            gap: 6px;
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-solid);
         }
 
         .action-btn {
             flex: 1;
-            padding: 8px;
+            padding: 7px;
             border-radius: var(--r-md);
-            border: none;
-            font-weight: 700;
-            font-size: 0.82rem;
+            border: 1px solid transparent;
+            font-weight: 800;
+            font-size: 0.8rem;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
-            transition: opacity 0.2s;
+            transition: all 0.15s;
         }
 
-        .action-btn:hover {
-            opacity: 0.88;
-        }
-
-        .btn-edit { background: rgba(139, 92, 246, 0.25); color: #c084fc; }
-        .btn-delete { background: rgba(239, 68, 68, 0.2); color: #f87171; }
-        .btn-add-pt { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .btn-edit { background: var(--brand-bg); color: var(--brand-dark); border-color: rgba(91,108,245,0.2); }
+        .btn-delete { background: var(--danger-bg); color: var(--danger-dark); border-color: rgba(239,68,68,0.2); }
+        .btn-add-pt { background: var(--success-bg); color: var(--success-dark); border-color: rgba(16,185,129,0.2); }
 
         /* Form Layouts */
         .form-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-
-        .form-group {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
             margin-bottom: 14px;
         }
 
+        .form-group { margin-bottom: 14px; }
+
         .form-label {
             display: block;
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: var(--text-muted);
+            font-size: 0.82rem;
+            font-weight: 800;
+            color: var(--text-2);
             margin-bottom: 6px;
         }
 
         .form-input, .form-select, .form-textarea {
             width: 100%;
-            background: rgba(15, 23, 42, 0.7);
-            border: 1px solid var(--glass-border);
-            padding: 12px 14px;
+            background: var(--surface-2);
+            border: 1.5px solid var(--border-solid);
+            padding: 10px 14px;
             border-radius: var(--r-md);
-            color: #fff;
-            font-size: 0.95rem;
+            color: var(--text);
+            font-size: 0.92rem;
+            font-weight: 600;
             outline: none;
         }
 
         .form-input:focus, .form-select:focus, .form-textarea:focus {
-            border-color: var(--primary);
+            border-color: var(--brand);
+            background: #fff;
         }
 
         .btn-primary {
-            background: var(--primary);
+            background: var(--brand);
             color: #fff;
             border: none;
-            padding: 12px 24px;
+            padding: 12px 22px;
             border-radius: var(--r-md);
-            font-size: 0.98rem;
-            font-weight: 800;
+            font-size: 0.95rem;
+            font-weight: 900;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
@@ -380,102 +411,96 @@
             transition: background 0.2s;
         }
 
-        .btn-primary:hover {
-            background: var(--primary-hover);
-        }
+        .btn-primary:hover { background: var(--brand-dark); }
 
         /* Bulk Import Textarea */
         .bulk-textarea {
-            height: 160px;
+            height: 150px;
             font-family: monospace;
             font-size: 0.88rem;
             line-height: 1.5;
-            white-space: pre;
         }
 
-        /* Events Cards */
+        /* Events List Cards */
         .events-list-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 18px;
+            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+            gap: 16px;
         }
 
         .event-admin-card {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid var(--glass-border);
+            background: var(--surface-2);
+            border: 1px solid var(--border-solid);
             border-radius: var(--r-lg);
-            padding: 20px;
+            padding: 18px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            position: relative;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
         }
 
         .event-admin-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .event-admin-title {
-            font-size: 1.2rem;
-            font-weight: 800;
-            color: #fff;
+            font-size: 1.15rem;
+            font-weight: 900;
+            color: var(--text);
         }
 
         .event-attendance-badge {
-            background: rgba(139, 92, 246, 0.2);
-            color: #c084fc;
+            background: var(--brand-bg);
+            color: var(--brand-dark);
             padding: 4px 12px;
-            border-radius: 50px;
-            font-size: 0.85rem;
+            border-radius: var(--r-full);
+            font-size: 0.8rem;
             font-weight: 800;
         }
 
         .event-date-text {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 14px;
+            font-size: 0.82rem;
+            color: var(--text-3);
+            margin-bottom: 12px;
+            font-weight: 600;
         }
 
         .btn-scan {
-            background: linear-gradient(135deg, #10b981, #059669);
+            background: linear-gradient(135deg, var(--success), var(--success-dark));
             color: #fff;
             border: none;
             padding: 12px;
             border-radius: var(--r-md);
-            font-size: 1rem;
-            font-weight: 800;
+            font-size: 0.95rem;
+            font-weight: 900;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
             transition: transform 0.2s;
-            margin-top: 12px;
+            margin-top: 10px;
         }
 
-        .btn-scan:hover {
-            transform: scale(1.02);
-        }
+        .btn-scan:hover { transform: scale(1.02); }
 
         /* Points Component & Shortcuts */
         .points-panel-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
         .gear-btn {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            border: 1px solid var(--glass-border);
-            width: 40px;
-            height: 40px;
+            background: var(--surface-2);
+            color: var(--text-2);
+            border: 1px solid var(--border-solid);
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
@@ -486,17 +511,19 @@
         }
 
         .gear-btn:hover {
-            background: var(--primary);
+            background: var(--brand-bg);
+            color: var(--brand);
             transform: rotate(45deg);
         }
 
         .mode-toggle {
             display: flex;
-            background: rgba(15, 23, 42, 0.8);
+            background: var(--surface-2);
+            border: 1px solid var(--border-solid);
             border-radius: var(--r-md);
             padding: 4px;
             gap: 4px;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
         .mode-btn {
@@ -504,9 +531,9 @@
             padding: 10px;
             border: none;
             background: none;
-            color: var(--text-muted);
+            color: var(--text-3);
             font-weight: 800;
-            font-size: 0.95rem;
+            font-size: 0.92rem;
             border-radius: var(--r-sm);
             cursor: pointer;
             transition: all 0.2s;
@@ -525,35 +552,35 @@
         .shortcuts-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
+            gap: 10px;
+            margin-bottom: 18px;
         }
 
         .shortcut-chip {
-            background: rgba(139, 92, 246, 0.15);
-            border: 1px solid rgba(139, 92, 246, 0.3);
-            color: #c084fc;
-            padding: 16px;
+            background: var(--brand-bg);
+            border: 1px solid rgba(91, 108, 245, 0.25);
+            color: var(--brand-dark);
+            padding: 14px;
             border-radius: var(--r-md);
-            font-size: 1.3rem;
-            font-weight: 800;
+            font-size: 1.25rem;
+            font-weight: 900;
             text-align: center;
             cursor: pointer;
             transition: all 0.2s;
         }
 
         .shortcut-chip:hover {
-            background: var(--primary);
+            background: var(--brand);
             color: #fff;
-            transform: scale(1.05);
+            transform: scale(1.04);
         }
 
         /* Modal Overlay & Scanner */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(8px);
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(6px);
             z-index: 1000;
             display: none;
             align-items: center;
@@ -562,30 +589,31 @@
         }
 
         .modal-card {
-            background: #1e293b;
-            border: 1px solid var(--glass-border);
+            background: var(--surface);
+            border: 1px solid var(--border-solid);
             border-radius: var(--r-xl);
             width: 100%;
             max-width: 520px;
             max-height: 90vh;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            box-shadow: var(--shadow-lg);
             overflow: hidden;
         }
 
         .modal-header {
-            padding: 18px 24px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-solid);
             display: flex;
             align-items: center;
             justify-content: space-between;
+            background: var(--surface-2);
         }
 
         .modal-title {
-            font-size: 1.2rem;
-            font-weight: 800;
-            color: #fff;
+            font-size: 1.15rem;
+            font-weight: 900;
+            color: var(--text);
             display: flex;
             align-items: center;
             gap: 8px;
@@ -594,54 +622,46 @@
         .modal-close {
             background: none;
             border: none;
-            color: var(--text-muted);
+            color: var(--text-3);
             font-size: 1.4rem;
             cursor: pointer;
         }
 
-        .modal-body {
-            padding: 24px;
-            overflow-y: auto;
-        }
+        .modal-body { padding: 20px; overflow-y: auto; }
 
         #qrVideoContainer {
             width: 100%;
-            height: 280px;
+            height: 270px;
             background: #000;
             border-radius: var(--r-lg);
             overflow: hidden;
             position: relative;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
 
-        #qrVideo {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+        #qrVideo { width: 100%; height: 100%; object-fit: cover; }
 
         .scan-feedback-banner {
-            background: rgba(16, 185, 129, 0.2);
-            border: 1px solid rgba(16, 185, 129, 0.4);
-            padding: 14px;
+            background: var(--success-bg);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 12px 14px;
             border-radius: var(--r-md);
             display: none;
             align-items: center;
-            gap: 14px;
-            margin-top: 12px;
+            gap: 12px;
+            margin-top: 10px;
         }
 
         .empty-state {
             text-align: center;
-            padding: 30px;
-            color: var(--text-muted);
-            font-size: 0.95rem;
+            padding: 24px;
+            color: var(--text-3);
+            font-size: 0.9rem;
+            font-weight: 600;
         }
 
         @media (max-width: 600px) {
-            .shortcuts-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+            .shortcuts-grid { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
@@ -649,12 +669,12 @@
 
     <div class="container">
         <!-- Top Navbar -->
-        <header class="navbar">
-            <a href="/brethren/admin/" class="brand">
+        <header class="topbar">
+            <a href="#" id="adminBrandLink" class="brand">
                 <div class="brand-icon"><i class="fas fa-shield-alt"></i></div>
                 <span>لوحة التحكم - الأخوة</span>
             </a>
-            <a href="/brethren/" class="portal-link">
+            <a href="#" id="userPortalLink" class="portal-link">
                 <i class="fas fa-external-link-alt"></i>
                 <span>صفحة المستخدمين</span>
             </a>
@@ -676,9 +696,7 @@
             </button>
         </nav>
 
-        <!-- ───────────────────────────────────────────────────────────── -->
         <!-- TAB 1: USERS MANAGEMENT -->
-        <!-- ───────────────────────────────────────────────────────────── -->
         <div class="tab-content active" id="tabUsers">
             <div class="panel-card">
                 <div class="card-header">
@@ -714,7 +732,6 @@
                         </div>
                     </div>
 
-                    <!-- Custom Fields Input Container -->
                     <div id="addUserCustomFields"></div>
 
                     <button type="submit" class="btn-primary" id="saveUserBtn">
@@ -723,7 +740,6 @@
                 </form>
             </div>
 
-            <!-- Users List Panel -->
             <div class="panel-card">
                 <div class="card-header">
                     <div class="card-title">
@@ -741,9 +757,7 @@
             </div>
         </div>
 
-        <!-- ───────────────────────────────────────────────────────────── -->
         <!-- TAB 2: BULK IMPORT (GOOGLE SHEETS) -->
-        <!-- ───────────────────────────────────────────────────────────── -->
         <div class="tab-content" id="tabBulk">
             <div class="panel-card">
                 <div class="card-header">
@@ -751,7 +765,7 @@
                         <i class="fas fa-file-import"></i> التحميل الجماعي عبر Google Sheets / Excel
                     </div>
                 </div>
-                <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:16px; line-height:1.5;">
+                <p style="color:var(--text-2); font-size:0.88rem; margin-bottom:14px; line-height:1.5; font-weight:600;">
                     انسخ الجدول مباشرة من <strong>Google Sheets</strong> أو ملف Excel والصقه في الخانة بالأسفل.<br>
                     • الأعمدة الأساسية: (الاسم - الهاتف/الموبايل - السكن/العنوان - النوع - تاريخ الميلاد).<br>
                     • <strong>أي أعمدة إضافية أو مجهولة في الشيت سيتم اعتبارها تلقائياً كمعلومات مخصصة (Custom Fields)</strong> وتضاف للعمود المقابل!
@@ -771,9 +785,7 @@
             </div>
         </div>
 
-        <!-- ───────────────────────────────────────────────────────────── -->
         <!-- TAB 3: EVENTS & ATTENDANCE SCANNER -->
-        <!-- ───────────────────────────────────────────────────────────── -->
         <div class="tab-content" id="tabEvents">
             <div class="panel-card">
                 <div class="card-header">
@@ -814,27 +826,23 @@
             </div>
         </div>
 
-        <!-- ───────────────────────────────────────────────────────────── -->
         <!-- TAB 4: POINTS MANAGEMENT -->
-        <!-- ───────────────────────────────────────────────────────────── -->
         <div class="tab-content" id="tabPoints">
             <div class="panel-card">
                 <div class="points-panel-header">
                     <div class="card-title">
-                        <i class="fas fa-coins" style="color:var(--accent);"></i> إضافة وتخصيص النقاط
+                        <i class="fas fa-coins" style="color:var(--warning-dark);"></i> إضافة وتخصيص النقاط
                     </div>
                     <button class="gear-btn" onclick="openSettingsModal()" title="إعدادات النقاط واختيارات الأسباب">
                         <i class="fas fa-cog"></i>
                     </button>
                 </div>
 
-                <!-- Select Target User -->
                 <div class="form-group">
                     <label class="form-label">اختر المستخدم المستهدف *</label>
                     <select id="pointsTargetUserSelect" class="form-select"></select>
                 </div>
 
-                <!-- Add / Deduct Mode Toggle -->
                 <div class="mode-toggle">
                     <button class="mode-btn active add" id="modeAddBtn" onclick="setPointsMode('add')">
                         <i class="fas fa-plus-circle"></i> إضافة نقاط (+)
@@ -844,26 +852,19 @@
                     </button>
                 </div>
 
-                <!-- Shortcuts Section -->
                 <div id="shortcutsContainer">
                     <label class="form-label">اختصارات سريعة للنقاط</label>
-                    <div class="shortcuts-grid" id="shortcutsGrid">
-                        <!-- Dynamic Chips (10, 30, 50, 100) -->
-                    </div>
+                    <div class="shortcuts-grid" id="shortcutsGrid"></div>
                 </div>
 
-                <!-- Custom Amount Tab -->
                 <div id="customPointsContainer" class="form-group">
                     <label class="form-label">أو ادخل عدد نقاط مخصص</label>
                     <input type="number" id="customPointsInput" class="form-input" placeholder="مثال: 25">
                 </div>
 
-                <!-- Reason Select & Other Text -->
                 <div class="form-group">
                     <label class="form-label">سبب إعطاء/خصم النقاط</label>
-                    <select id="pointsReasonSelect" class="form-select" onchange="toggleReasonOtherInput()">
-                        <!-- Dynamic choices -->
-                    </select>
+                    <select id="pointsReasonSelect" class="form-select" onchange="toggleReasonOtherInput()"></select>
                 </div>
                 <div class="form-group" id="reasonOtherGroup" style="display:none;">
                     <label class="form-label">اكتب السبب المخصص</label>
@@ -877,9 +878,7 @@
         </div>
     </div>
 
-    <!-- ───────────────────────────────────────────────────────────── -->
     <!-- QR SCANNER MODAL -->
-    <!-- ───────────────────────────────────────────────────────────── -->
     <div class="modal-overlay" id="qrScannerModal">
         <div class="modal-card">
             <div class="modal-header">
@@ -897,22 +896,20 @@
                 <div class="scan-feedback-banner" id="scanFeedbackBanner">
                     <div id="scanFeedbackAvatar" class="user-card-avatar"></div>
                     <div>
-                        <div id="scanFeedbackName" style="font-weight:800;color:#fff;"></div>
-                        <div id="scanFeedbackMsg" style="font-size:0.85rem;color:#34d399;"></div>
+                        <div id="scanFeedbackName" style="font-weight:900;color:var(--text);"></div>
+                        <div id="scanFeedbackMsg" style="font-size:0.82rem;color:var(--success-dark);font-weight:700;"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ───────────────────────────────────────────────────────────── -->
     <!-- POINTS SETTINGS MODAL -->
-    <!-- ───────────────────────────────────────────────────────────── -->
     <div class="modal-overlay" id="settingsModal">
         <div class="modal-card">
             <div class="modal-header">
                 <div class="modal-title">
-                    <i class="fas fa-sliders-h" style="color:var(--primary);"></i>
+                    <i class="fas fa-sliders-h" style="color:var(--brand);"></i>
                     <span>إعدادات وتنسيق نظام النقاط</span>
                 </div>
                 <button class="modal-close" onclick="closeModal('settingsModal')">&times;</button>
@@ -924,20 +921,20 @@
                         <input type="text" id="settingShortcutsInput" class="form-input" placeholder="10, 30, 50, 100">
                     </div>
                     <div class="form-group">
-                        <label style="display:flex; align-items:center; gap:10px; color:#fff; cursor:pointer;">
+                        <label style="display:flex; align-items:center; gap:10px; color:var(--text); cursor:pointer; font-weight:700;">
                             <input type="checkbox" id="settingEnableShortcut" style="width:18px;height:18px;">
                             <span>تفعيل زر الاختصارات السريعة</span>
                         </label>
                     </div>
                     <div class="form-group">
-                        <label style="display:flex; align-items:center; gap:10px; color:#fff; cursor:pointer;">
+                        <label style="display:flex; align-items:center; gap:10px; color:var(--text); cursor:pointer; font-weight:700;">
                             <input type="checkbox" id="settingEnableCustom" style="width:18px;height:18px;">
                             <span>تفعيل إدخال قيمة النقاط المخصصة</span>
                         </label>
                     </div>
                     <div class="form-group">
                         <label class="form-label">خيارات أسباب إعطاء النقاط (كل سبب في سطر منفصل)</label>
-                        <textarea id="settingReasonsInput" class="form-textarea" style="height:120px;" placeholder="ألعاب
+                        <textarea id="settingReasonsInput" class="form-textarea" style="height:110px;" placeholder="ألعاب
 بونص
 التزام بالأوقات"></textarea>
                     </div>
@@ -948,8 +945,14 @@
     </div>
 
     <script>
-        // Mandatory absolute API path rule
-        const API_URL = '/brethren/api.php';
+        // Dynamic path resolution for both https://brethren.sunday-school.online/ and https://sunday-school.rf.gd/brethren/
+        const isBrethrenSubfolder = window.location.pathname.includes('/brethren');
+        const API_URL = isBrethrenSubfolder ? '/brethren/api.php' : '/api.php';
+        const USER_PORTAL_URL = isBrethrenSubfolder ? '/brethren/' : '/';
+        const ADMIN_BRAND_URL = isBrethrenSubfolder ? '/brethren/admin/' : '/admin/';
+
+        document.getElementById('userPortalLink').href = USER_PORTAL_URL;
+        document.getElementById('adminBrandLink').href = ADMIN_BRAND_URL;
 
         let usersList = [];
         let eventsList = [];
@@ -960,11 +963,10 @@
             reasons: ['ألعاب', 'بونص', 'التزام بالأوقات']
         };
 
-        let currentPointsMode = 'add'; // 'add' or 'deduct'
+        let currentPointsMode = 'add';
         let activeEventForScan = null;
         let qrScannerInstance = null;
 
-        // Sound Synthesis (Exact synth audio matching project standards)
         function playSuccessSound() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1008,7 +1010,6 @@
             fetchEvents();
             fetchSettings();
 
-            // Set default date for create event form
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('eventDateInput').value = today;
         });
@@ -1021,9 +1022,6 @@
             document.getElementById(tabId).classList.add('active');
         }
 
-        // ─────────────────────────────────────────────────────────────
-        // USERS & DATA FETCHING
-        // ─────────────────────────────────────────────────────────────
         async function fetchUsers() {
             try {
                 const res = await fetch(`${API_URL}?action=get_users`);
@@ -1155,9 +1153,6 @@
             }
         }
 
-        // ─────────────────────────────────────────────────────────────
-        // BULK IMPORT PROCESSOR (GOOGLE SHEETS)
-        // ─────────────────────────────────────────────────────────────
         async function processBulkImport() {
             const rawText = document.getElementById('bulkPasteInput').value.trim();
             if (!rawText) {
@@ -1171,10 +1166,8 @@
                 return;
             }
 
-            // Detect delimiter (Tab \t or Comma ,)
             const firstLine = lines[0];
             const delimiter = firstLine.includes('\t') ? '\t' : ',';
-
             const headers = firstLine.split(delimiter).map(h => h.trim().toLowerCase());
             
             const standardMap = {
@@ -1189,7 +1182,7 @@
                 for (const [stdKey, aliases] of Object.entries(standardMap)) {
                     if (aliases.some(a => h.includes(a))) return stdKey;
                 }
-                return h; // Return full title as custom info title!
+                return h;
             });
 
             const parsedUsers = [];
@@ -1204,7 +1197,6 @@
                     if (['name', 'phone', 'location', 'gender', 'birth_date'].includes(key)) {
                         userObj[key] = val;
                     } else if (val) {
-                        // Extra / unknown column is stored as Custom Info Field!
                         userObj.custom_fields[headers[colIdx]] = val;
                     }
                 });
@@ -1239,9 +1231,6 @@
             }
         }
 
-        // ─────────────────────────────────────────────────────────────
-        // EVENTS & QR SCANNER
-        // ─────────────────────────────────────────────────────────────
         async function fetchEvents() {
             try {
                 const res = await fetch(`${API_URL}?action=get_events`);
@@ -1270,7 +1259,7 @@
                             <span class="event-attendance-badge"><i class="fas fa-users"></i> ${ev.attendance_count} حاضر</span>
                         </div>
                         <div class="event-date-text"><i class="far fa-calendar"></i> ${ev.event_date}</div>
-                        ${ev.description ? `<p style="font-size:0.88rem;color:#cbd5e1;margin-bottom:10px;">${ev.description}</p>` : ''}
+                        ${ev.description ? `<p style="font-size:0.85rem;color:var(--text-2);margin-bottom:10px;">${ev.description}</p>` : ''}
                     </div>
                     <button class="btn-scan" onclick="openScannerModal(${ev.id}, '${ev.event_name.replace(/'/g, "\\'")}')">
                         <i class="fas fa-camera"></i> فتح ماسح الحضور QR (+20 نقطة)
@@ -1360,7 +1349,7 @@
                     avatar.innerText = data.user.name.charAt(0);
                     nameElem.innerText = data.user.name;
                     msgElem.innerText = `✓ تم تسجيل الحضور بنجاح! النقاط الحالية: ${data.user.points}`;
-                    banner.style.background = 'rgba(16, 185, 129, 0.2)';
+                    banner.style.background = 'var(--success-bg)';
                     banner.style.borderColor = 'rgba(16, 185, 129, 0.4)';
                     banner.style.display = 'flex';
                     fetchEvents();
@@ -1370,7 +1359,7 @@
                     avatar.innerText = data.user ? data.user.name.charAt(0) : '?';
                     nameElem.innerText = data.user ? data.user.name : 'مستخدم مسجل';
                     msgElem.innerText = `⚠ تم تسجيل الحضور سابقاً لهذه الفعالية!`;
-                    banner.style.background = 'rgba(245, 158, 11, 0.2)';
+                    banner.style.background = 'var(--warning-bg)';
                     banner.style.borderColor = 'rgba(245, 158, 11, 0.4)';
                     banner.style.display = 'flex';
                 } else {
@@ -1378,7 +1367,7 @@
                     avatar.innerText = '!';
                     nameElem.innerText = 'خطأ في المسح';
                     msgElem.innerText = data.message || 'رمز QR غير صالح';
-                    banner.style.background = 'rgba(239, 68, 68, 0.2)';
+                    banner.style.background = 'var(--danger-bg)';
                     banner.style.borderColor = 'rgba(239, 68, 68, 0.4)';
                     banner.style.display = 'flex';
                 }
@@ -1398,9 +1387,6 @@
             document.getElementById('qrScannerModal').style.display = 'none';
         }
 
-        // ─────────────────────────────────────────────────────────────
-        // POINTS MANAGEMENT & SETTINGS
-        // ─────────────────────────────────────────────────────────────
         async function fetchSettings() {
             try {
                 const res = await fetch(`${API_URL}?action=get_settings`);
@@ -1415,7 +1401,6 @@
         }
 
         function renderPointsUI() {
-            // Render Shortcuts
             const scContainer = document.getElementById('shortcutsContainer');
             const scGrid = document.getElementById('shortcutsGrid');
             if (systemSettings.enable_shortcut && Array.isArray(systemSettings.shortcuts)) {
@@ -1429,11 +1414,9 @@
                 scContainer.style.display = 'none';
             }
 
-            // Custom Points input visibility
             document.getElementById('customPointsContainer').style.display = 
                 systemSettings.enable_custom ? 'block' : 'none';
 
-            // Render Reasons options
             const rSelect = document.getElementById('pointsReasonSelect');
             const reasonsArr = Array.isArray(systemSettings.reasons) ? systemSettings.reasons : ['ألعاب', 'بونص', 'التزام بالأوقات'];
             rSelect.innerHTML = reasonsArr.map(r => `<option value="${r}">${r}</option>`).join('') +
@@ -1509,7 +1492,6 @@
             }
         }
 
-        // Settings Modal Handlers
         function openSettingsModal() {
             document.getElementById('settingShortcutsInput').value = (systemSettings.shortcuts || [10, 30, 50, 100]).join(', ');
             document.getElementById('settingEnableShortcut').checked = systemSettings.enable_shortcut !== false;
