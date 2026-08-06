@@ -23,27 +23,29 @@ function getBrethrenDB(): mysqli {
 
     mysqli_report(MYSQLI_REPORT_OFF);
 
-    // 1. Primary Direct Attempt: InfinityFree Production Database
+    // 1. Try global site database configuration from config.php if available
+    $rootPath = dirname(__DIR__);
+    if (file_exists($rootPath . '/config.php')) {
+        @include_once $rootPath . '/config.php';
+        if (function_exists('getDBConnection')) {
+            try {
+                $globalConn = getDBConnection();
+                if ($globalConn && !$globalConn->connect_error) {
+                    $conn = $globalConn;
+                    ensureTablesExist($conn);
+                    return $conn;
+                }
+            } catch (Exception $e) {}
+        }
+    }
+
+    // 2. Try InfinityFree Production Host Credentials
     $primaryConn = @new mysqli(BRETHREN_DB_HOST, BRETHREN_DB_USER, BRETHREN_DB_PASS, BRETHREN_DB_NAME, 3306);
     if (!$primaryConn->connect_error) {
         $conn = $primaryConn;
         $conn->set_charset('utf8mb4');
         ensureTablesExist($conn);
         return $conn;
-    }
-
-    $lastError = $primaryConn->connect_error;
-
-    // 2. Secondary Attempt: Host connection without database to auto-select
-    $noDbConn = @new mysqli(BRETHREN_DB_HOST, BRETHREN_DB_USER, BRETHREN_DB_PASS, '', 3306);
-    if (!$noDbConn->connect_error) {
-        $noDbConn->query("CREATE DATABASE IF NOT EXISTS `" . BRETHREN_DB_NAME . "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-        if ($noDbConn->select_db(BRETHREN_DB_NAME)) {
-            $conn = $noDbConn;
-            $conn->set_charset('utf8mb4');
-            ensureTablesExist($conn);
-            return $conn;
-        }
     }
 
     // 3. Local Development Fallback (XAMPP / Local MySQL)
@@ -69,7 +71,8 @@ function getBrethrenDB(): mysqli {
         }
     }
 
-    sendJSONResponse(['status' => 'error', 'message' => 'تعذر الاتصال بقاعدة البيانات: ' . ($lastError ?: 'Unable to connect to database server')]);
+    // Clean user-friendly error response (No raw PHP traces or DNS errors)
+    sendJSONResponse(['status' => 'error', 'message' => 'تعذر الاتصال بقاعدة البيانات حالياً، يرجى إعادة المحاولة لاحقاً'], 500);
     exit;
 }
 
