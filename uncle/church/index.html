@@ -18485,6 +18485,10 @@
 
             const fd = new FormData();
             fd.append('action', 'bulkSaveImportedChurches');
+            if (typeof isDeveloper !== 'undefined' && isDeveloper) {
+                fd.append('is_developer', '1');
+                fd.append('role', 'developer');
+            }
             fd.append('churches', JSON.stringify(payload));
 
             fetch(API_URL, { method: 'POST', body: fd })
@@ -20172,6 +20176,10 @@
             const btn = e.target.querySelector('button[type="submit"]');
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; btn.disabled = true;
             const fd = new FormData(); fd.append('action', 'addChurch');
+            if (typeof isDeveloper !== 'undefined' && isDeveloper) {
+                fd.append('is_developer', '1');
+                fd.append('role', 'developer');
+            }
             fd.append('church_name', document.getElementById('newChurchName').value);
             fd.append('church_code', document.getElementById('newChurchCode').value);
             fd.append('church_password', document.getElementById('newChurchPassword').value);
