@@ -147,16 +147,6 @@
 
         .nav-btn:hover { background: var(--brand-dark); }
 
-        .nav-btn.btn-outline {
-            background: var(--surface-2);
-            color: var(--text-2);
-            border: 1px solid var(--border-solid);
-            box-shadow: none;
-        }
-
-        .nav-btn.btn-outline:hover { background: var(--brand-bg); color: var(--brand-dark); }
-
-        /* Hero Banner */
         .hero-card {
             background: var(--surface);
             border: 1px solid var(--border-solid);
@@ -229,7 +219,6 @@
             color: var(--brand-dark);
         }
 
-        /* Search Card */
         .search-card {
             background: var(--surface);
             border: 1px solid var(--border-solid);
@@ -256,68 +245,37 @@
             outline: none;
         }
 
-        .search-box input:focus {
-            border-color: var(--brand);
-            background: #fff;
-        }
-
-        .search-box i {
-            position: absolute;
-            right: 16px; top: 50%; transform: translateY(-50%);
-            color: var(--text-3);
-        }
+        .search-box input:focus { border-color: var(--brand); background: #fff; }
+        .search-box i { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--text-3); }
 
         .search-dropdown {
-            position: absolute;
-            top: 100%; left: 0; right: 0;
-            background: var(--surface);
-            border: 1px solid var(--border-solid);
-            border-radius: var(--r-md);
-            margin-top: 8px;
-            max-height: 260px;
-            overflow-y: auto;
-            z-index: 100;
-            box-shadow: var(--shadow-lg);
-            display: none;
-            padding: 6px;
+            position: absolute; top: 100%; left: 0; right: 0;
+            background: var(--surface); border: 1px solid var(--border-solid);
+            border-radius: var(--r-md); margin-top: 8px; max-height: 260px;
+            overflow-y: auto; z-index: 100; box-shadow: var(--shadow-lg); display: none; padding: 6px;
         }
 
         .search-item {
-            padding: 10px 14px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            border-radius: var(--r-sm);
-            transition: background 0.15s;
+            padding: 10px 14px; display: flex; align-items: center; gap: 12px;
+            cursor: pointer; border-radius: var(--r-sm); transition: background 0.15s;
         }
 
         .search-item:hover { background: var(--brand-bg); }
 
         .section-title {
-            font-size: 1.25rem;
-            font-weight: 900;
-            color: var(--text);
-            margin-bottom: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            font-size: 1.25rem; font-weight: 900; color: var(--text);
+            margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
         }
 
         .section-title i { color: var(--brand); }
 
         .events-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-            gap: 16px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 16px;
         }
 
         .event-card {
-            background: var(--surface);
-            border: 1px solid var(--border-solid);
-            border-radius: var(--r-lg);
-            padding: 18px;
-            box-shadow: var(--shadow-sm);
+            background: var(--surface); border: 1px solid var(--border-solid);
+            border-radius: var(--r-lg); padding: 18px; box-shadow: var(--shadow-sm);
         }
 
         .event-name { font-size: 1.1rem; font-weight: 900; margin-bottom: 6px; color: var(--text); }
@@ -330,7 +288,7 @@
 <body>
 
     <div class="container">
-        <!-- Top Navbar -->
+        <!-- Top Navbar (Restricted Public View - Only Login CTA) -->
         <header class="topbar">
             <a href="#" id="homeBrandLink" class="brand">
                 <div class="brand-icon"><i class="fas fa-cross"></i></div>
@@ -340,10 +298,6 @@
                 <a href="#" id="loginNavLink" class="nav-btn">
                     <i class="fas fa-sign-in-alt"></i>
                     <span>تسجيل الدخول</span>
-                </a>
-                <a href="#" id="adminNavLink" class="nav-btn btn-outline">
-                    <i class="fas fa-user-shield"></i>
-                    <span>لوحة التحكم</span>
                 </a>
             </div>
         </header>
@@ -355,7 +309,7 @@
                 <span id="authStatusText">مرحباً بك!</span>
             </div>
             <a href="#" id="userProfileDirectLink" class="nav-btn">
-                <span>عرض صفحتك الشخصية</span>
+                <span id="authStatusBtnLabel">عرض ملفك</span>
                 <i class="fas fa-arrow-left"></i>
             </a>
         </div>
@@ -399,7 +353,6 @@
 
         document.getElementById('homeBrandLink').href = HOME_URL;
         document.getElementById('loginNavLink').href = LOGIN_URL;
-        document.getElementById('adminNavLink').href = ADMIN_URL;
         document.getElementById('heroLoginBtn').href = LOGIN_URL;
 
         let allUsersList = [];
@@ -412,6 +365,17 @@
 
         async function checkActiveAuth() {
             const activeId = localStorage.getItem('brethren_active_user_id');
+            const isAdmin = localStorage.getItem('brethren_is_admin') === 'true';
+
+            if (isAdmin) {
+                const banner = document.getElementById('authStatusBanner');
+                document.getElementById('authStatusText').innerText = `أهلاً بك يا مسئول النظام!`;
+                document.getElementById('authStatusBtnLabel').innerText = `دخول لوحة التحكم`;
+                document.getElementById('userProfileDirectLink').href = ADMIN_URL;
+                banner.style.display = 'flex';
+                return;
+            }
+
             if (activeId) {
                 try {
                     const res = await fetch(`${API_URL}?action=get_user&id=${activeId}`);
@@ -419,6 +383,7 @@
                     if (data.status === 'success' && data.user) {
                         const banner = document.getElementById('authStatusBanner');
                         document.getElementById('authStatusText').innerText = `أهلاً بك يا ${data.user.name}!`;
+                        document.getElementById('authStatusBtnLabel').innerText = `عرض صفحتك الشخصية`;
                         document.getElementById('userProfileDirectLink').href = `${USER_URL}?id=${data.user.id}`;
                         banner.style.display = 'flex';
                     }

@@ -13,10 +13,10 @@
     <!-- FontAwesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Intelligent Search & QR Scanner (Relative + Fallback) -->
-    <script src="js/search_intelligent.js"></script>
+    <!-- Intelligent Search & QR Scanner -->
+    <script src="../js/search_intelligent.js"></script>
     <script src="/js/search_intelligent.js"></script>
-    <script src="js/qr-scanner.umd.min.js"></script>
+    <script src="../js/qr-scanner.umd.min.js"></script>
     <script src="/js/qr-scanner.umd.min.js"></script>
 
     <style>
@@ -76,10 +76,7 @@
         body::before {
             content: '';
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: 
                 radial-gradient(ellipse 80% 50% at 10% -10%, rgba(91, 108, 245, .08) 0%, transparent 60%),
                 radial-gradient(ellipse 60% 40% at 90% 110%, rgba(139, 92, 246, .06) 0%, transparent 60%);
@@ -95,7 +92,7 @@
             z-index: 1;
         }
 
-        /* Top Admin Navigation Header */
+        /* Top Admin Header */
         .topbar {
             position: sticky;
             top: 0;
@@ -136,17 +133,23 @@
             box-shadow: 0 4px 14px var(--brand-glow);
         }
 
-        .portal-link {
-            background: var(--brand-bg);
-            color: var(--brand-dark);
-            padding: 8px 16px;
-            border-radius: var(--r-md);
-            text-decoration: none;
-            font-weight: 800;
-            font-size: 0.88rem;
+        .topbar-actions {
             display: flex;
             align-items: center;
             gap: 8px;
+        }
+
+        .portal-link {
+            background: var(--brand-bg);
+            color: var(--brand-dark);
+            padding: 8px 14px;
+            border-radius: var(--r-md);
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
             border: 1px solid rgba(91, 108, 245, 0.2);
             transition: all 0.2s;
         }
@@ -155,6 +158,22 @@
             background: var(--brand);
             color: #fff;
         }
+
+        .logout-btn {
+            background: var(--surface-2);
+            color: var(--text-2);
+            border: 1px solid var(--border-solid);
+            padding: 8px 14px;
+            border-radius: var(--r-md);
+            font-weight: 800;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .logout-btn:hover { background: var(--danger-bg); color: var(--danger); }
 
         /* Navigation Tabs */
         .nav-tabs {
@@ -185,19 +204,9 @@
             box-shadow: var(--shadow-sm);
         }
 
-        .tab-btn:hover {
-            color: var(--brand);
-            border-color: var(--brand-light);
-        }
+        .tab-btn:hover { color: var(--brand); border-color: var(--brand-light); }
+        .tab-btn.active { background: var(--brand); color: #fff; border-color: var(--brand); box-shadow: 0 4px 14px var(--brand-glow); }
 
-        .tab-btn.active {
-            background: var(--brand);
-            color: #fff;
-            border-color: var(--brand);
-            box-shadow: 0 4px 14px var(--brand-glow);
-        }
-
-        /* Tab Content Area */
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.2s ease; }
 
@@ -206,7 +215,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Panels & Cards */
         .panel-card {
             background: var(--surface);
             border: 1px solid var(--border-solid);
@@ -234,7 +242,6 @@
 
         .card-title i { color: var(--brand); }
 
-        /* User Search & Grid */
         .search-box {
             position: relative;
             margin-bottom: 18px;
@@ -252,18 +259,8 @@
             outline: none;
         }
 
-        .search-box input:focus {
-            border-color: var(--brand);
-            background: #fff;
-        }
-
-        .search-box i {
-            position: absolute;
-            right: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-3);
-        }
+        .search-box input:focus { border-color: var(--brand); background: #fff; }
+        .search-box i { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--text-3); }
 
         .user-grid {
             display: grid;
@@ -282,11 +279,7 @@
             transition: all 0.2s;
         }
 
-        .user-card:hover {
-            border-color: var(--brand-light);
-            box-shadow: var(--shadow-sm);
-            transform: translateY(-2px);
-        }
+        .user-card:hover { border-color: var(--brand-light); box-shadow: var(--shadow-sm); transform: translateY(-2px); }
 
         .user-card-header {
             display: flex;
@@ -310,28 +303,9 @@
             flex-shrink: 0;
         }
 
-        .user-card-name {
-            font-size: 1.05rem;
-            font-weight: 900;
-            color: var(--text);
-        }
-
-        .user-card-sub {
-            font-size: 0.78rem;
-            color: var(--text-3);
-            font-weight: 600;
-        }
-
-        .user-card-points {
-            background: var(--warning-bg);
-            color: var(--warning-dark);
-            padding: 4px 10px;
-            border-radius: var(--r-full);
-            font-size: 0.82rem;
-            font-weight: 900;
-            display: inline-block;
-            margin-top: 6px;
-        }
+        .user-card-name { font-size: 1.05rem; font-weight: 900; color: var(--text); }
+        .user-card-sub { font-size: 0.78rem; color: var(--text-3); font-weight: 600; }
+        .user-card-points { background: var(--warning-bg); color: var(--warning-dark); padding: 4px 10px; border-radius: var(--r-full); font-size: 0.82rem; font-weight: 900; display: inline-block; margin-top: 6px; }
 
         .user-card-actions {
             display: flex;
@@ -353,14 +327,12 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
-            transition: all 0.15s;
         }
 
         .btn-edit { background: var(--brand-bg); color: var(--brand-dark); border-color: rgba(91,108,245,0.2); }
         .btn-delete { background: var(--danger-bg); color: var(--danger-dark); border-color: rgba(239,68,68,0.2); }
         .btn-add-pt { background: var(--success-bg); color: var(--success-dark); border-color: rgba(16,185,129,0.2); }
 
-        /* Form Layouts */
         .form-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -369,14 +341,7 @@
         }
 
         .form-group { margin-bottom: 14px; }
-
-        .form-label {
-            display: block;
-            font-size: 0.82rem;
-            font-weight: 800;
-            color: var(--text-2);
-            margin-bottom: 6px;
-        }
+        .form-label { display: block; font-size: 0.82rem; font-weight: 800; color: var(--text-2); margin-bottom: 6px; }
 
         .form-input, .form-select, .form-textarea {
             width: 100%;
@@ -390,10 +355,7 @@
             outline: none;
         }
 
-        .form-input:focus, .form-select:focus, .form-textarea:focus {
-            border-color: var(--brand);
-            background: #fff;
-        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--brand); background: #fff; }
 
         .btn-primary {
             background: var(--brand);
@@ -408,20 +370,12 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            transition: background 0.2s;
         }
 
         .btn-primary:hover { background: var(--brand-dark); }
 
-        /* Bulk Import Textarea */
-        .bulk-textarea {
-            height: 150px;
-            font-family: monospace;
-            font-size: 0.88rem;
-            line-height: 1.5;
-        }
+        .bulk-textarea { height: 150px; font-family: monospace; font-size: 0.88rem; line-height: 1.5; }
 
-        /* Events List Cards */
         .events-list-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
@@ -438,227 +392,79 @@
             justify-content: space-between;
         }
 
-        .event-admin-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 6px;
-        }
-
-        .event-admin-title {
-            font-size: 1.15rem;
-            font-weight: 900;
-            color: var(--text);
-        }
-
-        .event-attendance-badge {
-            background: var(--brand-bg);
-            color: var(--brand-dark);
-            padding: 4px 12px;
-            border-radius: var(--r-full);
-            font-size: 0.8rem;
-            font-weight: 800;
-        }
-
-        .event-date-text {
-            font-size: 0.82rem;
-            color: var(--text-3);
-            margin-bottom: 12px;
-            font-weight: 600;
-        }
+        .event-admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+        .event-admin-title { font-size: 1.15rem; font-weight: 900; color: var(--text); }
+        .event-attendance-badge { background: var(--brand-bg); color: var(--brand-dark); padding: 4px 12px; border-radius: var(--r-full); font-size: 0.8rem; font-weight: 800; }
+        .event-date-text { font-size: 0.82rem; color: var(--text-3); margin-bottom: 12px; font-weight: 600; }
 
         .btn-scan {
             background: linear-gradient(135deg, var(--success), var(--success-dark));
-            color: #fff;
-            border: none;
-            padding: 12px;
-            border-radius: var(--r-md);
-            font-size: 0.95rem;
-            font-weight: 900;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
-            transition: transform 0.2s;
-            margin-top: 10px;
+            color: #fff; border: none; padding: 12px; border-radius: var(--r-md);
+            font-size: 0.95rem; font-weight: 900; cursor: pointer; display: flex;
+            align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+            transition: transform 0.2s; margin-top: 10px;
         }
 
         .btn-scan:hover { transform: scale(1.02); }
 
-        /* Points Component & Shortcuts */
-        .points-panel-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 18px;
-        }
+        .points-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
 
         .gear-btn {
-            background: var(--surface-2);
-            color: var(--text-2);
-            border: 1px solid var(--border-solid);
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
-            transition: all 0.2s;
+            background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border-solid);
+            width: 38px; height: 38px; border-radius: 50%; cursor: pointer; display: flex;
+            align-items: center; justify-content: center; font-size: 1.1rem; transition: all 0.2s;
         }
 
-        .gear-btn:hover {
-            background: var(--brand-bg);
-            color: var(--brand);
-            transform: rotate(45deg);
-        }
+        .gear-btn:hover { background: var(--brand-bg); color: var(--brand); transform: rotate(45deg); }
 
         .mode-toggle {
-            display: flex;
-            background: var(--surface-2);
-            border: 1px solid var(--border-solid);
-            border-radius: var(--r-md);
-            padding: 4px;
-            gap: 4px;
-            margin-bottom: 18px;
+            display: flex; background: var(--surface-2); border: 1px solid var(--border-solid);
+            border-radius: var(--r-md); padding: 4px; gap: 4px; margin-bottom: 18px;
         }
 
         .mode-btn {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            background: none;
-            color: var(--text-3);
-            font-weight: 800;
-            font-size: 0.92rem;
-            border-radius: var(--r-sm);
-            cursor: pointer;
-            transition: all 0.2s;
+            flex: 1; padding: 10px; border: none; background: none; color: var(--text-3);
+            font-weight: 800; font-size: 0.92rem; border-radius: var(--r-sm); cursor: pointer;
         }
 
-        .mode-btn.active.add {
-            background: var(--success);
-            color: #fff;
-        }
+        .mode-btn.active.add { background: var(--success); color: #fff; }
+        .mode-btn.active.deduct { background: var(--danger); color: #fff; }
 
-        .mode-btn.active.deduct {
-            background: var(--danger);
-            color: #fff;
-        }
-
-        .shortcuts-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-bottom: 18px;
-        }
+        .shortcuts-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 18px; }
 
         .shortcut-chip {
-            background: var(--brand-bg);
-            border: 1px solid rgba(91, 108, 245, 0.25);
-            color: var(--brand-dark);
-            padding: 14px;
-            border-radius: var(--r-md);
-            font-size: 1.25rem;
-            font-weight: 900;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
+            background: var(--brand-bg); border: 1px solid rgba(91, 108, 245, 0.25); color: var(--brand-dark);
+            padding: 14px; border-radius: var(--r-md); font-size: 1.25rem; font-weight: 900; text-align: center; cursor: pointer;
         }
 
-        .shortcut-chip:hover {
-            background: var(--brand);
-            color: #fff;
-            transform: scale(1.04);
-        }
+        .shortcut-chip:hover { background: var(--brand); color: #fff; transform: scale(1.04); }
 
-        /* Modal Overlay & Scanner */
         .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(6px);
-            z-index: 1000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(6px); z-index: 1000;
+            display: none; align-items: center; justify-content: center; padding: 16px;
         }
 
         .modal-card {
-            background: var(--surface);
-            border: 1px solid var(--border-solid);
-            border-radius: var(--r-xl);
-            width: 100%;
-            max-width: 520px;
-            max-height: 90vh;
-            display: flex;
-            flex-direction: column;
-            box-shadow: var(--shadow-lg);
-            overflow: hidden;
+            background: var(--surface); border: 1px solid var(--border-solid); border-radius: var(--r-xl);
+            width: 100%; max-width: 520px; max-height: 90vh; display: flex; flex-direction: column;
+            box-shadow: var(--shadow-lg); overflow: hidden;
         }
 
-        .modal-header {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border-solid);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: var(--surface-2);
-        }
-
-        .modal-title {
-            font-size: 1.15rem;
-            font-weight: 900;
-            color: var(--text);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            color: var(--text-3);
-            font-size: 1.4rem;
-            cursor: pointer;
-        }
-
+        .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border-solid); display: flex; align-items: center; justify-content: space-between; background: var(--surface-2); }
+        .modal-title { font-size: 1.15rem; font-weight: 900; color: var(--text); display: flex; align-items: center; gap: 8px; }
+        .modal-close { background: none; border: none; color: var(--text-3); font-size: 1.4rem; cursor: pointer; }
         .modal-body { padding: 20px; overflow-y: auto; }
 
-        #qrVideoContainer {
-            width: 100%;
-            height: 270px;
-            background: #000;
-            border-radius: var(--r-lg);
-            overflow: hidden;
-            position: relative;
-            margin-bottom: 14px;
-        }
-
+        #qrVideoContainer { width: 100%; height: 270px; background: #000; border-radius: var(--r-lg); overflow: hidden; position: relative; margin-bottom: 14px; }
         #qrVideo { width: 100%; height: 100%; object-fit: cover; }
 
         .scan-feedback-banner {
-            background: var(--success-bg);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            padding: 12px 14px;
-            border-radius: var(--r-md);
-            display: none;
-            align-items: center;
-            gap: 12px;
-            margin-top: 10px;
+            background: var(--success-bg); border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 12px 14px; border-radius: var(--r-md); display: none; align-items: center; gap: 12px; margin-top: 10px;
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 24px;
-            color: var(--text-3);
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
+        .empty-state { text-align: center; padding: 24px; color: var(--text-3); font-size: 0.9rem; font-weight: 600; }
 
         @media (max-width: 600px) {
             .shortcuts-grid { grid-template-columns: repeat(2, 1fr); }
@@ -674,10 +480,16 @@
                 <div class="brand-icon"><i class="fas fa-shield-alt"></i></div>
                 <span>لوحة التحكم - الأخوة</span>
             </a>
-            <a href="#" id="userPortalLink" class="portal-link">
-                <i class="fas fa-external-link-alt"></i>
-                <span>صفحة المستخدمين</span>
-            </a>
+            <div class="topbar-actions">
+                <a href="#" id="myProfileLink" class="portal-link">
+                    <i class="fas fa-user-circle"></i>
+                    <span>الملف الشخصي و الـ QR</span>
+                </a>
+                <button onclick="handleAdminLogout()" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>خروج</span>
+                </button>
+            </div>
         </header>
 
         <!-- Navigation Tabs -->
@@ -729,6 +541,13 @@
                         <div class="form-group">
                             <label class="form-label">تاريخ الميلاد</label>
                             <input type="text" id="userBirthDateInput" class="form-input" placeholder="شهر/سنة أو يوم/شهر/سنة">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">الصلاحية</label>
+                            <select id="userIsAdminInput" class="form-select">
+                                <option value="0">عضو عادي</option>
+                                <option value="1">مسؤول إداري (Admin)</option>
+                            </select>
                         </div>
                     </div>
 
@@ -933,8 +752,12 @@
                         </label>
                     </div>
                     <div class="form-group">
+                        <label class="form-label">كلمة مرور الأدمن العامة</label>
+                        <input type="text" id="settingAdminPasscodeInput" class="form-input" placeholder="admin123">
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">خيارات أسباب إعطاء النقاط (كل سبب في سطر منفصل)</label>
-                        <textarea id="settingReasonsInput" class="form-textarea" style="height:110px;" placeholder="ألعاب
+                        <textarea id="settingReasonsInput" class="form-textarea" style="height:100px;" placeholder="ألعاب
 بونص
 التزام بالأوقات"></textarea>
                     </div>
@@ -945,13 +768,20 @@
     </div>
 
     <script>
-        // Dynamic path resolution for both https://brethren.sunday-school.online/ and https://sunday-school.rf.gd/brethren/
         const isBrethrenSubfolder = window.location.pathname.includes('/brethren');
         const API_URL = isBrethrenSubfolder ? '/brethren/api.php' : '/api.php';
-        const USER_PORTAL_URL = isBrethrenSubfolder ? '/brethren/' : '/';
+        const USER_URL = isBrethrenSubfolder ? '/brethren/user/' : '/user/';
+        const LOGIN_URL = isBrethrenSubfolder ? '/brethren/login/' : '/login/';
         const ADMIN_BRAND_URL = isBrethrenSubfolder ? '/brethren/admin/' : '/admin/';
 
-        document.getElementById('userPortalLink').href = USER_PORTAL_URL;
+        // Strict Admin Protection Check
+        const isAdmin = localStorage.getItem('brethren_is_admin') === 'true';
+        if (!isAdmin) {
+            window.location.href = LOGIN_URL;
+        }
+
+        const activeUserId = localStorage.getItem('brethren_active_user_id');
+        document.getElementById('myProfileLink').href = `${USER_URL}?id=${activeUserId || ''}`;
         document.getElementById('adminBrandLink').href = ADMIN_BRAND_URL;
 
         let usersList = [];
@@ -960,7 +790,8 @@
             shortcuts: [10, 30, 50, 100],
             enable_shortcut: true,
             enable_custom: true,
-            reasons: ['ألعاب', 'بونص', 'التزام بالأوقات']
+            reasons: ['ألعاب', 'بونص', 'التزام بالأوقات'],
+            admin_passcode: 'admin123'
         };
 
         let currentPointsMode = 'add';
@@ -1065,7 +896,7 @@
                             ${u.photo ? `<img src="${u.photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : u.name.charAt(0)}
                         </div>
                         <div>
-                            <div class="user-card-name">${u.name}</div>
+                            <div class="user-card-name">${u.name} ${u.is_admin == 1 ? '<span style="color:var(--brand);font-size:0.75rem;">(Admin)</span>' : ''}</div>
                             <div class="user-card-sub">${u.phone || 'بدون هاتف'} • ${u.location || 'بدون عنوان'}</div>
                             <span class="user-card-points"><i class="fas fa-star"></i> ${u.points} نقطة</span>
                         </div>
@@ -1095,7 +926,8 @@
                 phone: document.getElementById('userPhoneInput').value.trim(),
                 location: document.getElementById('userLocationInput').value.trim(),
                 gender: document.getElementById('userGenderInput').value,
-                birth_date: document.getElementById('userBirthDateInput').value.trim()
+                birth_date: document.getElementById('userBirthDateInput').value.trim(),
+                is_admin: parseInt(document.getElementById('userIsAdminInput').value, 10)
             };
 
             try {
@@ -1129,6 +961,7 @@
             document.getElementById('userLocationInput').value = u.location || '';
             document.getElementById('userGenderInput').value = u.gender || 'شاب';
             document.getElementById('userBirthDateInput').value = u.birth_date || '';
+            document.getElementById('userIsAdminInput').value = u.is_admin || 0;
             document.getElementById('saveUserBtn').innerHTML = `<i class="fas fa-save"></i> تحديث البيانات`;
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1496,6 +1329,7 @@
             document.getElementById('settingShortcutsInput').value = (systemSettings.shortcuts || [10, 30, 50, 100]).join(', ');
             document.getElementById('settingEnableShortcut').checked = systemSettings.enable_shortcut !== false;
             document.getElementById('settingEnableCustom').checked = systemSettings.enable_custom !== false;
+            document.getElementById('settingAdminPasscodeInput').value = systemSettings.admin_passcode || 'admin123';
             document.getElementById('settingReasonsInput').value = (systemSettings.reasons || []).join('\n');
             document.getElementById('settingsModal').style.display = 'flex';
         }
@@ -1506,6 +1340,7 @@
             const shortcuts = shortcutsRaw.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
             const enableShortcut = document.getElementById('settingEnableShortcut').checked;
             const enableCustom = document.getElementById('settingEnableCustom').checked;
+            const adminPasscode = document.getElementById('settingAdminPasscodeInput').value.trim() || 'admin123';
             const reasonsRaw = document.getElementById('settingReasonsInput').value;
             const reasons = reasonsRaw.split(/\r?\n/).map(r => r.trim()).filter(r => r);
 
@@ -1514,6 +1349,7 @@
                 shortcuts: shortcuts.length > 0 ? shortcuts : [10, 30, 50, 100],
                 enable_shortcut: enableShortcut,
                 enable_custom: enableCustom,
+                admin_passcode: adminPasscode,
                 reasons: reasons.length > 0 ? reasons : ['ألعاب', 'بونص', 'التزام بالأوقات']
             };
 
@@ -1534,6 +1370,12 @@
             } catch (err) {
                 alert('تعذر حفظ الإعدادات');
             }
+        }
+
+        function handleAdminLogout() {
+            localStorage.removeItem('brethren_is_admin');
+            localStorage.removeItem('brethren_active_user_id');
+            window.location.href = LOGIN_URL;
         }
 
         function closeModal(id) {

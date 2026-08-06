@@ -85,7 +85,7 @@
             border-radius: var(--r-xl);
             width: 100%;
             max-width: 440px;
-            padding: 32px 28px;
+            padding: 36px 30px;
             box-shadow: var(--shadow-lg);
             position: relative;
             z-index: 1;
@@ -97,67 +97,34 @@
         }
 
         .brand-icon {
-            width: 56px;
-            height: 56px;
+            width: 58px;
+            height: 58px;
             border-radius: var(--r-lg);
             background: linear-gradient(135deg, var(--brand), var(--brand-dark));
             display: inline-flex;
             align-items: center;
             justify-content: center;
             color: #fff;
-            font-size: 1.6rem;
+            font-size: 1.65rem;
             box-shadow: 0 6px 20px var(--brand-glow);
-            margin-bottom: 12px;
+            margin-bottom: 14px;
         }
 
         .login-title {
-            font-size: 1.5rem;
+            font-size: 1.55rem;
             font-weight: 900;
             color: var(--text);
         }
 
         .login-subtitle {
-            font-size: 0.85rem;
+            font-size: 0.88rem;
             color: var(--text-3);
             font-weight: 600;
             margin-top: 4px;
         }
 
-        .role-tabs {
-            display: flex;
-            background: var(--surface-2);
-            border: 1px solid var(--border-solid);
-            border-radius: var(--r-md);
-            padding: 4px;
-            gap: 4px;
-            margin-bottom: 24px;
-        }
-
-        .role-tab-btn {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            background: none;
-            color: var(--text-3);
-            font-weight: 800;
-            font-size: 0.9rem;
-            border-radius: var(--r-sm);
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-
-        .role-tab-btn.active {
-            background: var(--brand);
-            color: #fff;
-            box-shadow: 0 4px 12px var(--brand-glow);
-        }
-
         .form-group {
-            margin-bottom: 16px;
+            margin-bottom: 18px;
         }
 
         .form-label {
@@ -172,7 +139,7 @@
             width: 100%;
             background: var(--surface-2);
             border: 1.5px solid var(--border-solid);
-            padding: 12px 14px;
+            padding: 13px 16px;
             border-radius: var(--r-md);
             color: var(--text);
             font-size: 0.95rem;
@@ -208,7 +175,7 @@
         .back-home-link {
             display: block;
             text-align: center;
-            margin-top: 20px;
+            margin-top: 22px;
             color: var(--text-3);
             text-decoration: none;
             font-weight: 700;
@@ -221,11 +188,11 @@
         }
 
         .alert-msg {
-            padding: 10px 14px;
+            padding: 12px 14px;
             border-radius: var(--r-md);
             font-size: 0.85rem;
-            font-weight: 700;
-            margin-bottom: 16px;
+            font-weight: 800;
+            margin-bottom: 18px;
             display: none;
         }
 
@@ -241,35 +208,20 @@
     <div class="login-card">
         <div class="login-header">
             <div class="brand-icon"><i class="fas fa-cross"></i></div>
-            <h1 class="login-title">منصة الأخوة</h1>
-            <p class="login-subtitle">سجل دخولك لمتابعة نقاطك وحضور الفعاليات</p>
-        </div>
-
-        <div class="role-tabs">
-            <button class="role-tab-btn active" onclick="switchLoginRole('member')">
-                <i class="fas fa-user"></i> دخول الأعضاء
-            </button>
-            <button class="role-tab-btn" onclick="switchLoginRole('admin')">
-                <i class="fas fa-user-shield"></i> الإدارة والخدام
-            </button>
+            <h1 class="login-title">تسجيل الدخول</h1>
+            <p class="login-subtitle">ادخل رقم الهاتف، كود الـ QR، أو كلمة المرور للمتابعة</p>
         </div>
 
         <div id="alertMsg" class="alert-msg alert-error"></div>
 
-        <form id="memberLoginForm" onsubmit="handleMemberLogin(event)">
+        <form id="loginForm" onsubmit="handleLogin(event)">
             <div class="form-group">
-                <label class="form-label">رقم الهاتف أو كود المستخدم</label>
-                <input type="text" id="memberKeyInput" class="form-input" required placeholder="ادخل رقم هاتفك أو كود QR">
+                <label class="form-label">رقم الهاتف / كود QR / كلمة المرور</label>
+                <input type="text" id="loginKeyInput" class="form-input" required placeholder="مثال: 01200000000 أو BR-XXXXXX">
             </div>
-            <button type="submit" class="btn-submit">عرض ملفي الشخصي</button>
-        </form>
-
-        <form id="adminLoginForm" onsubmit="handleAdminLogin(event)" style="display:none;">
-            <div class="form-group">
-                <label class="form-label">كلمة مرور الإدارة</label>
-                <input type="password" id="adminPassInput" class="form-input" required placeholder="ادخل كلمة مرور الإدارة">
-            </div>
-            <button type="submit" class="btn-submit">دخول لوحة التحكم</button>
+            <button type="submit" class="btn-submit" id="loginBtn">
+                <i class="fas fa-sign-in-alt"></i> دخول الحساب
+            </button>
         </form>
 
         <a href="#" id="backHomeLink" class="back-home-link">
@@ -286,44 +238,40 @@
 
         document.getElementById('backHomeLink').href = HOME_URL;
 
-        function switchLoginRole(role) {
-            document.querySelectorAll('.role-tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-
-            if (role === 'member') {
-                document.getElementById('memberLoginForm').style.display = 'block';
-                document.getElementById('adminLoginForm').style.display = 'none';
-            } else {
-                document.getElementById('memberLoginForm').style.display = 'none';
-                document.getElementById('adminLoginForm').style.display = 'block';
-            }
-        }
-
-        async function handleMemberLogin(e) {
+        async function handleLogin(e) {
             e.preventDefault();
-            const key = document.getElementById('memberKeyInput').value.trim();
+            const key = document.getElementById('loginKeyInput').value.trim();
             if (!key) return;
 
+            const btn = document.getElementById('loginBtn');
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> جاري التحقق...`;
+            btn.disabled = true;
+
             try {
-                const res = await fetch(`${API_URL}?action=get_user&user_code=${encodeURIComponent(key)}`);
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'login', key: key })
+                });
                 const data = await res.json();
+
                 if (data.status === 'success' && data.user) {
                     localStorage.setItem('brethren_active_user_id', data.user.id);
-                    window.location.href = `${USER_URL}?id=${data.user.id}`;
+                    localStorage.setItem('brethren_is_admin', data.is_admin ? 'true' : 'false');
+
+                    if (data.is_admin) {
+                        window.location.href = ADMIN_URL;
+                    } else {
+                        window.location.href = `${USER_URL}?id=${data.user.id}`;
+                    }
                 } else {
-                    showAlert('لم نتمكن من العثور على حساب بهذا الرقم أو الكود');
+                    showAlert(data.message || 'لم نتمكن من العثور على حساب بهذا الرقم أو الكود');
                 }
             } catch (err) {
-                showAlert('تعذر الاتصال بالخادم');
-            }
-        }
-
-        function handleAdminLogin(e) {
-            e.preventDefault();
-            const pass = document.getElementById('adminPassInput').value.trim();
-            if (pass) {
-                localStorage.setItem('brethren_admin_pass', pass);
-                window.location.href = ADMIN_URL;
+                showAlert('تعذر الاتصال بالخادم، يرجى المحاولة لاحقاً');
+            } finally {
+                btn.innerHTML = `<i class="fas fa-sign-in-alt"></i> دخول الحساب`;
+                btn.disabled = false;
             }
         }
 

@@ -21,7 +21,6 @@ function getBrethrenDB(): mysqli {
 
     mysqli_report(MYSQLI_REPORT_OFF);
 
-    // List of candidate database hosts to try in sequence
     $hostsToTry = [
         'sql206.infinityfree.com',
         'localhost',
@@ -30,7 +29,6 @@ function getBrethrenDB(): mysqli {
         'sql206.byetcluster.com'
     ];
 
-    // Include main config.php DB_HOST if available
     $rootPath = dirname(__DIR__);
     if (file_exists($rootPath . '/config.php')) {
         @include_once $rootPath . '/config.php';
@@ -48,7 +46,6 @@ function getBrethrenDB(): mysqli {
         }
         $lastError = $testConn->connect_error;
 
-        // Try creating/connecting without DB name first (e.g. local XAMPP or dev server)
         $testLocal = @new mysqli($host, 'root', '', '', 3306);
         if (!$testLocal->connect_error) {
             $testLocal->query("CREATE DATABASE IF NOT EXISTS `if0_40860329_brethren` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
@@ -69,7 +66,7 @@ function getBrethrenDB(): mysqli {
 }
 
 function ensureTablesExist(mysqli $conn) {
-    // 1. Users Table
+    // 1. Users Table (with is_admin & passcode columns)
     $conn->query("CREATE TABLE IF NOT EXISTS `brethren_users` (
         `id` INT AUTO_INCREMENT PRIMARY KEY,
         `user_code` VARCHAR(50) UNIQUE NOT NULL,
@@ -80,9 +77,21 @@ function ensureTablesExist(mysqli $conn) {
         `birth_date` VARCHAR(50) DEFAULT NULL,
         `photo` LONGTEXT DEFAULT NULL,
         `points` INT DEFAULT 0,
+        `is_admin` TINYINT(1) DEFAULT 0,
+        `passcode` VARCHAR(100) DEFAULT NULL,
         `custom_fields` LONGTEXT DEFAULT NULL,
         `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
+    // Self-heal: ensure columns exist if created prior
+    $checkAdminCol = $conn->query("SHOW COLUMNS FROM `brethren_users` LIKE 'is_admin'");
+    if ($checkAdminCol && $checkAdminCol->num_rows === 0) {
+        $conn->query("ALTER TABLE `brethren_users` ADD COLUMN `is_admin` TINYINT(1) DEFAULT 0");
+    }
+    $checkPassCol = $conn->query("SHOW COLUMNS FROM `brethren_users` LIKE 'passcode'");
+    if ($checkPassCol && $checkPassCol->num_rows === 0) {
+        $conn->query("ALTER TABLE `brethren_users` ADD COLUMN `passcode` VARCHAR(100) DEFAULT NULL");
+    }
 
     // 2. Events Table
     $conn->query("CREATE TABLE IF NOT EXISTS `brethren_events` (
@@ -120,7 +129,7 @@ function ensureTablesExist(mysqli $conn) {
         `setting_value` LONGTEXT NOT NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
 
-    // Initialize default settings if missing
+    // Default settings
     $checkSet = $conn->query("SELECT COUNT(*) AS cnt FROM `brethren_settings`");
     $row = $checkSet ? $checkSet->fetch_assoc() : null;
     if (!$row || (int)$row['cnt'] === 0) {
@@ -128,7 +137,8 @@ function ensureTablesExist(mysqli $conn) {
             'shortcuts' => [10, 30, 50, 100],
             'enable_shortcut' => true,
             'enable_custom' => true,
-            'reasons' => ['ألعاب', 'بونص', 'التزام بالأوقات']
+            'reasons' => ['ألعاب', 'بونص', 'التزام بالأوقات'],
+            'admin_passcode' => 'admin123'
         ];
         foreach ($defaultSettings as $k => $v) {
             $valJson = json_encode($v, JSON_UNESCAPED_UNICODE);
@@ -163,6 +173,75 @@ if (empty($action) && isset($bodyData['action'])) {
 $db = getBrethrenDB();
 
 switch ($action) {
+
+    // ─────────────────────────────────────────────────────────────
+    // AUTH & LOGIN ACTION
+    // ─────────────────────────────────────────────────────────────
+    case 'login':
+        $key = trim($bodyData['key'] ?? $_POST['key'] ?? '');
+        $passcode = trim($bodyData['passcode'] ?? $_POST['passcode'] ?? '');
+
+        if (empty($key) && empty($passcode)) {
+            sendJSONResponse(['status' => 'error', 'message' => 'ادخل الهاتف أو الكود أو كلمة المرور'], 400);
+        }
+
+        // Fetch Global Admin Passcode from Settings
+        $resPass = $db->query("SELECT `setting_value` FROM `brethren_settings` WHERE `setting_key` = 'admin_passcode' LIMIT 1");
+        $rowPass = $resPass ? $resPass->fetch_assoc() : null;
+        $globalAdminPass = $rowPass ? json_decode($rowPass['setting_value'], true) : 'admin123';
+        if (is_array($globalAdminPass)) $globalAdminPass = reset($globalAdminPass);
+
+        // Check if master admin passcode entered
+        if ($passcode === $globalAdminPass || $key === $globalAdminPass) {
+            // Find first admin user or create admin profile
+            $resAdmin = $db->query("SELECT * FROM `brethren_users` WHERE `is_admin` = 1 LIMIT 1");
+            $adminUser = $resAdmin ? $resAdmin->fetch_assoc() : null;
+
+            if (!$adminUser) {
+                // Ensure at least 1 default admin user exists
+                $userCode = 'BR-ADMIN01';
+                $stmtNew = $db->prepare("INSERT INTO `brethren_users` 
+                    (`user_code`, `name`, `phone`, `location`, `gender`, `is_admin`, `points`) 
+                    VALUES (?, 'المسؤول الإداري', '01000000000', 'الإدارة', 'شاب', 1, 100)");
+                $stmtNew->bind_param('s', $userCode);
+                $stmtNew->execute();
+
+                $stmtFetch = $db->prepare("SELECT * FROM `brethren_users` WHERE `id` = ? LIMIT 1");
+                $newId = $db->insert_id;
+                $stmtFetch->bind_param('i', $newId);
+                $stmtFetch->execute();
+                $adminUser = $stmtFetch->get_result()->fetch_assoc();
+            }
+
+            $adminUser['custom_fields'] = json_decode($adminUser['custom_fields'] ?? '{}', true) ?: (object)[];
+            sendJSONResponse([
+                'status' => 'success',
+                'is_admin' => true,
+                'user' => $adminUser,
+                'redirect' => 'admin/'
+            ]);
+        }
+
+        // Search user by user_code, phone, or id
+        $stmt = $db->prepare("SELECT * FROM `brethren_users` WHERE `user_code` = ? OR `phone` = ? OR `id` = ? LIMIT 1");
+        $stmt->bind_param('sss', $key, $key, $key);
+        $stmt->execute();
+        $user = $stmt->get_result()->fetch_assoc();
+
+        if (!$user) {
+            sendJSONResponse(['status' => 'error', 'message' => 'لم نتمكن من العثور على الحساب المرفق'], 404);
+        }
+
+        $user['custom_fields'] = json_decode($user['custom_fields'] ?? '{}', true) ?: (object)[];
+        $isAdmin = (int)$user['is_admin'] === 1;
+
+        sendJSONResponse([
+            'status' => 'success',
+            'is_admin' => $isAdmin,
+            'user' => $user,
+            'redirect' => $isAdmin ? 'admin/' : 'user/'
+        ]);
+        break;
 
     // ─────────────────────────────────────────────────────────────
     // USERS ACTIONS
@@ -254,6 +333,7 @@ switch ($action) {
         $gender = trim($bodyData['gender'] ?? $_POST['gender'] ?? '');
         $birthDate = trim($bodyData['birth_date'] ?? $_POST['birth_date'] ?? '');
         $photo = trim($bodyData['photo'] ?? $_POST['photo'] ?? '');
+        $isAdmin = (int)($bodyData['is_admin'] ?? $_POST['is_admin'] ?? 0);
         $customFields = $bodyData['custom_fields'] ?? $_POST['custom_fields'] ?? [];
 
         if (empty($name)) {
@@ -270,18 +350,18 @@ switch ($action) {
             // Update User
             $stmt = $db->prepare("UPDATE `brethren_users` SET 
                 `name` = ?, `phone` = ?, `location` = ?, `gender` = ?, `birth_date` = ?, 
-                `photo` = IF(? != '', ?, `photo`), `custom_fields` = ? 
+                `photo` = IF(? != '', ?, `photo`), `is_admin` = ?, `custom_fields` = ? 
                 WHERE `id` = ?");
-            $stmt->bind_param('sssssssi', $name, $phone, $location, $gender, $birthDate, $photo, $photo, $customFieldsJson, $id);
+            $stmt->bind_param('ssssssisi', $name, $phone, $location, $gender, $birthDate, $photo, $photo, $isAdmin, $customFieldsJson, $id);
             $stmt->execute();
             $userId = $id;
         } else {
             // Insert User
             $userCode = 'BR-' . strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 8));
             $stmt = $db->prepare("INSERT INTO `brethren_users` 
-                (`user_code`, `name`, `phone`, `location`, `gender`, `birth_date`, `photo`, `points`, `custom_fields`) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?)");
-            $stmt->bind_param('ssssssss', $userCode, $name, $phone, $location, $gender, $birthDate, $photo, $customFieldsJson);
+                (`user_code`, `name`, `phone`, `location`, `gender`, `birth_date`, `photo`, `points`, `is_admin`, `custom_fields`) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?)");
+            $stmt->bind_param('sssssssIS', $userCode, $name, $phone, $location, $gender, $birthDate, $photo, $isAdmin, $customFieldsJson);
             $stmt->execute();
             $userId = $db->insert_id;
         }
@@ -323,6 +403,7 @@ switch ($action) {
             $location = trim($u['location'] ?? '');
             $gender = trim($u['gender'] ?? '');
             $birthDate = trim($u['birth_date'] ?? '');
+            $isAdmin = (int)($u['is_admin'] ?? 0);
             $customFields = $u['custom_fields'] ?? [];
             if (!is_array($customFields)) $customFields = [];
 
@@ -330,9 +411,9 @@ switch ($action) {
             $customJson = json_encode($customFields, JSON_UNESCAPED_UNICODE);
 
             $stmt = $db->prepare("INSERT INTO `brethren_users` 
-                (`user_code`, `name`, `phone`, `location`, `gender`, `birth_date`, `photo`, `points`, `custom_fields`) 
-                VALUES (?, ?, ?, ?, ?, ?, '', 0, ?)");
-            $stmt->bind_param('sssssss', $userCode, $name, $phone, $location, $gender, $birthDate, $customJson);
+                (`user_code`, `name`, `phone`, `location`, `gender`, `birth_date`, `photo`, `points`, `is_admin`, `custom_fields`) 
+                VALUES (?, ?, ?, ?, ?, ?, '', 0, ?, ?)");
+            $stmt->bind_param('ssssssis', $userCode, $name, $phone, $location, $gender, $birthDate, $isAdmin, $customJson);
             if ($stmt->execute()) {
                 $insertedCount++;
             }
@@ -346,7 +427,7 @@ switch ($action) {
         break;
 
     // ─────────────────────────────────────────────────────────────
-    // EVENTS & ATTENDANCE QR SCANNER ACTIONS
+    // EVENTS & ATTENDANCE SCANNER ACTIONS
     // ─────────────────────────────────────────────────────────────
     case 'get_events':
         $res = $db->query("SELECT e.*, COUNT(a.id) AS attendance_count 
@@ -406,7 +487,6 @@ switch ($action) {
             sendJSONResponse(['status' => 'error', 'message' => 'بيانات كود المستخدم أو الفعالية غير مكتملة'], 400);
         }
 
-        // Check Event
         $stmtEv = $db->prepare("SELECT * FROM `brethren_events` WHERE `id` = ? LIMIT 1");
         $stmtEv->bind_param('i', $eventId);
         $stmtEv->execute();
@@ -415,7 +495,6 @@ switch ($action) {
             sendJSONResponse(['status' => 'error', 'message' => 'الفعالية غير موجودة'], 404);
         }
 
-        // Find User by user_code or phone or id
         $stmtUser = $db->prepare("SELECT * FROM `brethren_users` WHERE `user_code` = ? OR `phone` = ? OR `id` = ? LIMIT 1");
         $stmtUser->bind_param('sss', $userCode, $userCode, $userCode);
         $stmtUser->execute();
@@ -426,7 +505,6 @@ switch ($action) {
 
         $userId = (int)$user['id'];
 
-        // Check Duplicate Attendance
         $stmtCheck = $db->prepare("SELECT * FROM `brethren_attendance` WHERE `event_id` = ? AND `user_id` = ? LIMIT 1");
         $stmtCheck->bind_param('ii', $eventId, $userId);
         $stmtCheck->execute();
@@ -440,25 +518,21 @@ switch ($action) {
             ]);
         }
 
-        // Record Attendance
         $stmtAdd = $db->prepare("INSERT INTO `brethren_attendance` (`event_id`, `user_id`) VALUES (?, ?)");
         $stmtAdd->bind_param('ii', $eventId, $userId);
         $stmtAdd->execute();
 
-        // Automatically Add +20 Points for Event Attendance
         $pointsChange = 20;
         $stmtPts = $db->prepare("UPDATE `brethren_users` SET `points` = `points` + ? WHERE `id` = ?");
         $stmtPts->bind_param('ii', $pointsChange, $userId);
         $stmtPts->execute();
 
-        // Record Points History
         $reason = "حضور فعالية: " . $event['event_name'];
         $type = "event_attendance";
         $stmtHist = $db->prepare("INSERT INTO `brethren_points_history` (`user_id`, `points_change`, `reason`, `type`, `event_id`) VALUES (?, ?, ?, ?, ?)");
         $stmtHist->bind_param('iissi', $userId, $pointsChange, $reason, $type, $eventId);
         $stmtHist->execute();
 
-        // Fetch Updated Points
         $stmtUpdated = $db->prepare("SELECT `points` FROM `brethren_users` WHERE `id` = ? LIMIT 1");
         $stmtUpdated->bind_param('i', $userId);
         $stmtUpdated->execute();
