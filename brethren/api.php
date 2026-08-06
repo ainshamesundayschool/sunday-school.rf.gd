@@ -74,12 +74,12 @@ function ensureTablesExist(mysqli $conn) {
         `email` VARCHAR(150) DEFAULT NULL,
         `phone` VARCHAR(30) DEFAULT NULL,
         `location` VARCHAR(150) DEFAULT NULL,
-        `gender` VARCHAR(20) DEFAULT NULL,
+        `gender` VARCHAR(20) DEFAULT 'ذكر',
         `birth_date` VARCHAR(50) DEFAULT NULL,
         `photo` LONGTEXT DEFAULT NULL,
         `points` INT DEFAULT 0,
         `is_admin` TINYINT(1) DEFAULT 0,
-        `passcode` VARCHAR(100) DEFAULT NULL,
+        `passcode` VARCHAR(255) DEFAULT NULL,
         `custom_fields` LONGTEXT DEFAULT NULL,
         `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
@@ -95,7 +95,7 @@ function ensureTablesExist(mysqli $conn) {
     }
     $checkPassCol = $conn->query("SHOW COLUMNS FROM `brethren_users` LIKE 'passcode'");
     if ($checkPassCol && $checkPassCol->num_rows === 0) {
-        $conn->query("ALTER TABLE `brethren_users` ADD COLUMN `passcode` VARCHAR(100) DEFAULT NULL");
+        $conn->query("ALTER TABLE `brethren_users` ADD COLUMN `passcode` VARCHAR(255) DEFAULT NULL");
     }
 
     // 2. Events Table
@@ -233,10 +233,11 @@ switch ($action) {
 
             if (!$adminUser) {
                 $userCode = 'BR-ADMIN01';
+                $adminPassHash = password_hash($globalAdminPass, PASSWORD_DEFAULT);
                 $stmtNew = $db->prepare("INSERT INTO `brethren_users` 
-                    (`user_code`, `name`, `email`, `phone`, `location`, `gender`, `is_admin`, `points`) 
-                    VALUES (?, 'المسؤول الإداري', 'admin@sunday-school.online', '01000000000', 'الإدارة', 'ذكر', 1, 100)");
-                $stmtNew->bind_param('s', $userCode);
+                    (`user_code`, `name`, `email`, `phone`, `location`, `gender`, `is_admin`, `points`, `passcode`) 
+                    VALUES (?, 'المسؤول الإداري', 'admin@sunday-school.online', '01000000000', 'الإدارة', 'ذكر', 1, 100, ?)");
+                $stmtNew->bind_param('ss', $userCode, $adminPassHash);
                 $stmtNew->execute();
 
                 $stmtFetch = $db->prepare("SELECT * FROM `brethren_users` WHERE `id` = ? LIMIT 1");
@@ -265,9 +266,20 @@ switch ($action) {
             sendJSONResponse(['status' => 'error', 'message' => 'لم نتمكن من العثور على حساب بهذا البريد أو الهاتف'], 404);
         }
 
-        // Check password match if user passcode set
-        if (!empty($user['passcode']) && !empty($passcode) && $user['passcode'] !== $passcode) {
-            sendJSONResponse(['status' => 'error', 'message' => 'كلمة المرور غير صحيحة'], 401);
+        // Secure Password Verification (password_verify + backward compatibility plain-text auto-hash)
+        if (!empty($user['passcode']) && !empty($passcode)) {
+            $isPasswordValid = password_verify($passcode, $user['passcode']) || ($user['passcode'] === $passcode);
+            if (!$isPasswordValid) {
+                sendJSONResponse(['status' => 'error', 'message' => 'كلمة المرور غير صحيحة'], 401);
+            }
+
+            // Auto-hash plain text passwords to Bcrypt for security
+            if ($user['passcode'] === $passcode) {
+                $newHashedPass = password_hash($passcode, PASSWORD_DEFAULT);
+                $stmtUpdHash = $db->prepare("UPDATE `brethren_users` SET `passcode` = ? WHERE `id` = ?");
+                $stmtUpdHash->bind_param('si', $newHashedPass, $user['id']);
+                $stmtUpdHash->execute();
+            }
         }
 
         $user['custom_fields'] = json_decode($user['custom_fields'] ?? '{}', true) ?: (object)[];
@@ -312,12 +324,13 @@ switch ($action) {
         }
 
         $userCode = 'BR-' . strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 8));
+        $hashedPasscode = !empty($passcode) ? password_hash($passcode, PASSWORD_DEFAULT) : '';
         $customFieldsJson = json_encode($customFields, JSON_UNESCAPED_UNICODE);
 
         $stmt = $db->prepare("INSERT INTO `brethren_users` 
             (`user_code`, `name`, `email`, `phone`, `location`, `gender`, `birth_date`, `passcode`, `points`, `is_admin`, `custom_fields`) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?)");
-        $stmt->bind_param('sssssssss', $userCode, $name, $email, $phone, $location, $gender, $birthDate, $passcode, $customFieldsJson);
+        $stmt->bind_param('sssssssss', $userCode, $name, $email, $phone, $location, $gender, $birthDate, $hashedPasscode, $customFieldsJson);
         
         if (!$stmt->execute()) {
             sendJSONResponse(['status' => 'error', 'message' => 'حدث خطأ أثناء إنشاء حساب جديد'], 500);
@@ -453,20 +466,31 @@ switch ($action) {
         $customFieldsJson = json_encode($customFields, JSON_UNESCAPED_UNICODE);
 
         if ($id > 0) {
-            $stmt = $db->prepare("UPDATE `brethren_users` SET 
-                `name` = ?, `email` = ?, `phone` = ?, `location` = ?, `gender` = ?, `birth_date` = ?, 
-                `photo` = IF(? != '', ?, `photo`), `passcode` = IF(? != '', ?, `passcode`), 
-                `is_admin` = ?, `custom_fields` = ? 
-                WHERE `id` = ?");
-            $stmt->bind_param('sssssssssisi', $name, $email, $phone, $location, $gender, $birthDate, $photo, $photo, $passcode, $passcode, $isAdmin, $customFieldsJson, $id);
+            if (!empty($passcode)) {
+                $hashed = password_hash($passcode, PASSWORD_DEFAULT);
+                $stmt = $db->prepare("UPDATE `brethren_users` SET 
+                    `name` = ?, `email` = ?, `phone` = ?, `location` = ?, `gender` = ?, `birth_date` = ?, 
+                    `photo` = IF(? != '', ?, `photo`), `passcode` = ?, 
+                    `is_admin` = ?, `custom_fields` = ? 
+                    WHERE `id` = ?");
+                $stmt->bind_param('sssssssssisi', $name, $email, $phone, $location, $gender, $birthDate, $photo, $photo, $hashed, $isAdmin, $customFieldsJson, $id);
+            } else {
+                $stmt = $db->prepare("UPDATE `brethren_users` SET 
+                    `name` = ?, `email` = ?, `phone` = ?, `location` = ?, `gender` = ?, `birth_date` = ?, 
+                    `photo` = IF(? != '', ?, `photo`), 
+                    `is_admin` = ?, `custom_fields` = ? 
+                    WHERE `id` = ?");
+                $stmt->bind_param('ssssssssisi', $name, $email, $phone, $location, $gender, $birthDate, $photo, $photo, $isAdmin, $customFieldsJson, $id);
+            }
             $stmt->execute();
             $userId = $id;
         } else {
             $userCode = 'BR-' . strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 8));
+            $hashed = !empty($passcode) ? password_hash($passcode, PASSWORD_DEFAULT) : '';
             $stmt = $db->prepare("INSERT INTO `brethren_users` 
                 (`user_code`, `name`, `email`, `phone`, `location`, `gender`, `birth_date`, `photo`, `passcode`, `points`, `is_admin`, `custom_fields`) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)");
-            $stmt->bind_param('sssssssssis', $userCode, $name, $email, $phone, $location, $gender, $birthDate, $photo, $passcode, $isAdmin, $customFieldsJson);
+            $stmt->bind_param('sssssssssis', $userCode, $name, $email, $phone, $location, $gender, $birthDate, $photo, $hashed, $isAdmin, $customFieldsJson);
             $stmt->execute();
             $userId = $db->insert_id;
         }
@@ -510,6 +534,9 @@ switch ($action) {
             $gender = trim($u['gender'] ?? 'ذكر');
             $birthDate = trim($u['birth_date'] ?? '');
             $isAdmin = (int)($u['is_admin'] ?? 0);
+            $passcode = trim($u['passcode'] ?? $u['password'] ?? '');
+            $hashedPass = !empty($passcode) ? password_hash($passcode, PASSWORD_DEFAULT) : '';
+
             $customFields = $u['custom_fields'] ?? [];
             if (!is_array($customFields)) $customFields = [];
 
@@ -517,9 +544,9 @@ switch ($action) {
             $customJson = json_encode($customFields, JSON_UNESCAPED_UNICODE);
 
             $stmt = $db->prepare("INSERT INTO `brethren_users` 
-                (`user_code`, `name`, `email`, `phone`, `location`, `gender`, `birth_date`, `photo`, `points`, `is_admin`, `custom_fields`) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, '', 0, ?, ?)");
-            $stmt->bind_param('sssssssis', $userCode, $name, $email, $phone, $location, $gender, $birthDate, $isAdmin, $customJson);
+                (`user_code`, `name`, `email`, `phone`, `location`, `gender`, `birth_date`, `photo`, `passcode`, `points`, `is_admin`, `custom_fields`) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, '', ?, 0, ?, ?)");
+            $stmt->bind_param('sssssssssis', $userCode, $name, $email, $phone, $location, $gender, $birthDate, $hashedPass, $isAdmin, $customJson);
             if ($stmt->execute()) {
                 $insertedCount++;
             }
