@@ -3448,9 +3448,9 @@ function autoRestoreSessionFromRequest()
         } catch (Exception $e) {}
     }
 
-    // Skip church-code and church-id auto restore if action is addChurch
+    // Skip church-code and church-id auto restore if active session is developer or if performing an API action
     $action = $_POST['action'] ?? $_GET['action'] ?? '';
-    if ($action === 'addChurch') {
+    if (!empty($_SESSION['is_developer']) || isDeveloperRole() || (!empty($action) && $action !== 'login' && $action !== 'church_login' && $action !== 'restore_session')) {
         return false;
     }
 

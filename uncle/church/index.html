@@ -13713,6 +13713,11 @@
                 fd.append('church_id', devViewChurchId);
             }
 
+            if ((typeof isDeveloper !== 'undefined' && isDeveloper) || (typeof checkIsDeveloperRole === 'function' && checkIsDeveloperRole())) {
+                if (!fd.has('is_developer')) fd.append('is_developer', '1');
+                if (!fd.has('role')) fd.append('role', 'developer');
+            }
+
             const cc = localStorage.getItem('churchCode');
             if (cc && !fd.has('church_code')) fd.append('church_code', cc);
             const un = localStorage.getItem('uncleUsername') || localStorage.getItem('username');
@@ -20255,17 +20260,25 @@
         async function updateChurch(e) {
             e.preventDefault();
             const id = document.getElementById('editChurchId').value;
-            const fd = new FormData(); fd.append('action', 'updateChurch');
+            const fd = _appendDevOverride(new FormData()); fd.append('action', 'updateChurch');
             fd.append('church_id', id);
             fd.append('church_name', document.getElementById('editChurchName').value);
             fd.append('admin_email', document.getElementById('editChurchEmail').value);
             const editType = document.querySelector('input[name="editChurchType"]:checked')?.value || 'kids';
             fd.append('church_type', editType);
+            if (typeof isDeveloper !== 'undefined' && isDeveloper) {
+                fd.append('is_developer', '1');
+                fd.append('role', 'developer');
+            }
             const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json()).catch(() => ({ success: false }));
             if (!d.success) { showToast(d.message || 'فشل', 'error'); return; }
             const pw = document.getElementById('editChurchPassword').value;
             if (pw) {
-                const fd2 = new FormData(); fd2.append('action', 'updateChurchPassword'); fd2.append('church_id', id); fd2.append('new_password', pw);
+                const fd2 = _appendDevOverride(new FormData()); fd2.append('action', 'updateChurchPassword'); fd2.append('church_id', id); fd2.append('new_password', pw);
+                if (typeof isDeveloper !== 'undefined' && isDeveloper) {
+                    fd2.append('is_developer', '1');
+                    fd2.append('role', 'developer');
+                }
                 await fetch(API_URL, { method: 'POST', body: fd2, credentials: 'include' }).then(r => r.json()).catch(() => ({}));
             }
             showToast('تم تحديث الكنيسة', 'success'); closeModal('editChurchModal'); loadAllChurches();
@@ -20275,7 +20288,11 @@
             promptDeleteWithBackup('church', id, code, async () => {
                 const enteredCode = await showPrompt({ title: "تأكيد الحذف", message: `أدخل رمز الكنيسة: "${code}"`, defaultValue: "" });
                 if (enteredCode !== code) { showToast('رمز الكنيسة غير صحيح', 'error'); return; }
-                const fd = new FormData(); fd.append('action', 'deleteChurch'); fd.append('church_id', id); fd.append('church_code', code);
+                const fd = _appendDevOverride(new FormData()); fd.append('action', 'deleteChurch'); fd.append('church_id', id); fd.append('church_code', code);
+                if (typeof isDeveloper !== 'undefined' && isDeveloper) {
+                    fd.append('is_developer', '1');
+                    fd.append('role', 'developer');
+                }
                 const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json()).catch(() => ({ success: false }));
                 if (d.success) { showToast('تم حذف الكنيسة', 'success'); loadAllChurches(); }
                 else showToast(d.message || 'فشل في الحذف', 'error');
