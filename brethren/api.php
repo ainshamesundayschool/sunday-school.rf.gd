@@ -23,13 +23,21 @@ function getBrethrenDB(): mysqli {
 
     mysqli_report(MYSQLI_REPORT_OFF);
 
+    $lastError = '';
+
     // 1. Primary Attempt: Dedicated Brethren Database (if0_40860329_brethren)
-    $primaryConn = @new mysqli(BRETHREN_DB_HOST, BRETHREN_DB_USER, BRETHREN_DB_PASS, BRETHREN_DB_NAME, 3306);
-    if (!$primaryConn->connect_error) {
-        $conn = $primaryConn;
-        $conn->set_charset('utf8mb4');
-        ensureTablesExist($conn);
-        return $conn;
+    $remoteHosts = [BRETHREN_DB_HOST, 'localhost', '127.0.0.1'];
+    foreach ($remoteHosts as $host) {
+        $primaryConn = @new mysqli($host, BRETHREN_DB_USER, BRETHREN_DB_PASS, BRETHREN_DB_NAME, 3306);
+        if ($primaryConn && !$primaryConn->connect_error) {
+            $conn = $primaryConn;
+            $conn->set_charset('utf8mb4');
+            ensureTablesExist($conn);
+            return $conn;
+        }
+        if ($primaryConn && $primaryConn->connect_error) {
+            $lastError = $primaryConn->connect_error;
+        }
     }
 
     // 2. Secondary Fallback: Try global site database from config.php
@@ -44,7 +52,9 @@ function getBrethrenDB(): mysqli {
                     ensureTablesExist($conn);
                     return $conn;
                 }
-            } catch (Exception $e) {}
+            } catch (Exception $e) {
+                $lastError = $e->getMessage();
+            }
         }
     }
 
@@ -52,7 +62,7 @@ function getBrethrenDB(): mysqli {
     $localHosts = ['127.0.0.1', 'localhost'];
     foreach ($localHosts as $host) {
         $localConn = @new mysqli($host, 'root', '', BRETHREN_DB_NAME, 3306);
-        if (!$localConn->connect_error) {
+        if ($localConn && !$localConn->connect_error) {
             $conn = $localConn;
             $conn->set_charset('utf8mb4');
             ensureTablesExist($conn);
@@ -60,7 +70,7 @@ function getBrethrenDB(): mysqli {
         }
 
         $localRoot = @new mysqli($host, 'root', '', '', 3306);
-        if (!$localRoot->connect_error) {
+        if ($localRoot && !$localRoot->connect_error) {
             $localRoot->query("CREATE DATABASE IF NOT EXISTS `" . BRETHREN_DB_NAME . "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
             if ($localRoot->select_db(BRETHREN_DB_NAME)) {
                 $conn = $localRoot;
@@ -71,8 +81,12 @@ function getBrethrenDB(): mysqli {
         }
     }
 
-    // Clean user-friendly error response (No raw PHP traces or DNS errors)
-    sendJSONResponse(['status' => 'error', 'message' => 'تعذر الاتصال بقاعدة البيانات حالياً، يرجى إعادة المحاولة لاحقاً'], 500);
+    // Diagnostic error response
+    $msg = 'تعذر الاتصال بقاعدة البيانات حالياً';
+    if (!empty($lastError)) {
+        $msg .= ': ' . $lastError;
+    }
+    sendJSONResponse(['status' => 'error', 'message' => $msg], 500);
     exit;
 }
 
