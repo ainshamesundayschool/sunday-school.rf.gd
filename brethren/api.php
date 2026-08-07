@@ -23,7 +23,16 @@ function getBrethrenDB(): mysqli {
 
     mysqli_report(MYSQLI_REPORT_OFF);
 
-    // 1. Try global site database configuration from config.php if available
+    // 1. Primary Attempt: Dedicated Brethren Database (if0_40860329_brethren)
+    $primaryConn = @new mysqli(BRETHREN_DB_HOST, BRETHREN_DB_USER, BRETHREN_DB_PASS, BRETHREN_DB_NAME, 3306);
+    if (!$primaryConn->connect_error) {
+        $conn = $primaryConn;
+        $conn->set_charset('utf8mb4');
+        ensureTablesExist($conn);
+        return $conn;
+    }
+
+    // 2. Secondary Fallback: Try global site database from config.php
     $rootPath = dirname(__DIR__);
     if (file_exists($rootPath . '/config.php')) {
         @include_once $rootPath . '/config.php';
@@ -37,15 +46,6 @@ function getBrethrenDB(): mysqli {
                 }
             } catch (Exception $e) {}
         }
-    }
-
-    // 2. Try InfinityFree Production Host Credentials
-    $primaryConn = @new mysqli(BRETHREN_DB_HOST, BRETHREN_DB_USER, BRETHREN_DB_PASS, BRETHREN_DB_NAME, 3306);
-    if (!$primaryConn->connect_error) {
-        $conn = $primaryConn;
-        $conn->set_charset('utf8mb4');
-        ensureTablesExist($conn);
-        return $conn;
     }
 
     // 3. Local Development Fallback (XAMPP / Local MySQL)
