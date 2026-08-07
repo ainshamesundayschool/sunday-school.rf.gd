@@ -301,13 +301,38 @@
             color: var(--danger);
         }
 
-        /* Media Queries for Responsive Navigation */
+        /* Tablet Optimization */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .app-sidebar { width: 210px; padding: 16px 12px; }
+            .main-content { margin-right: 210px; padding: 16px; }
+            .sidebar-btn span { font-size: 0.84rem; }
+        }
+
+        /* Mobile Optimization Media Query */
         @media (max-width: 768px) {
             body { padding-bottom: 75px; }
-            .app-sidebar { display: none; }
-            .main-content { margin-right: 0; padding: 10px; }
+            .app-sidebar { display: none !important; }
+            .main-content { margin-right: 0 !important; padding: 8px !important; width: 100% !important; max-width: 100% !important; }
             .mobile-bottom-nav { display: flex; }
             .mobile-topbar { display: flex; }
+
+            .panel-card { padding: 12px; border-radius: var(--r-lg); }
+
+            .card-header-bar { gap: 6px; }
+            .btn-add-action { padding: 6px 10px; font-size: 0.78rem; }
+            .btn-add-action .btn-text { display: none; }
+
+            /* User Row Responsive Layout */
+            .user-list-row { flex-direction: column; align-items: stretch; gap: 8px; padding: 10px 12px; }
+            .user-row-top-line { flex-wrap: wrap; gap: 6px; }
+            .user-row-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; width: 100%; padding-top: 6px; border-top: 1px dashed var(--border-solid); }
+            .user-row-actions .action-btn { width: 100%; padding: 7px 0; font-size: 0.8rem; justify-content: center; }
+            .user-row-actions .action-btn .btn-text { display: none; }
+
+            .events-list-grid { grid-template-columns: 1fr; gap: 10px; }
+            .form-grid { grid-template-columns: 1fr; gap: 8px; }
+            .shortcuts-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+            .shortcut-chip { padding: 9px 4px; font-size: 0.95rem; }
         }
 
         .tab-content { display: none; }
