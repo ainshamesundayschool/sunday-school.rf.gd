@@ -9,6 +9,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
+// Ensure Cairo Egypt DST (Law 24 of 2023: UTC+3 from last Friday of April to last Thursday of October)
+date_default_timezone_set('Africa/Cairo');
+$currentTs = time();
+$currentYear = (int)date('Y', $currentTs);
+$dstStartTs = strtotime("last friday of april $currentYear 00:00:00 UTC") - 7200;
+$dstEndTs   = strtotime("last thursday of october $currentYear 23:59:59 UTC") - 10800;
+$isEgyptDst = ($currentTs >= $dstStartTs && $currentTs <= $dstEndTs);
+$expectedOffsetHours = $isEgyptDst ? 3 : 2;
+$expectedOffsetSeconds = $expectedOffsetHours * 3600;
+
+if ((int)date('Z') !== $expectedOffsetSeconds) {
+    $tzName = $isEgyptDst ? 'Etc/GMT-3' : 'Etc/GMT-2';
+    date_default_timezone_set($tzName);
+}
+$GLOBALS['cairoMysqlOffset'] = sprintf('%s%02d:00', ($expectedOffsetHours >= 0 ? '+' : '-'), abs($expectedOffsetHours));
+
 // Brethren Database Connection Config
 define('BRETHREN_DB_HOST', 'sql206.infinityfree.com');
 define('BRETHREN_DB_USER', 'if0_40860329');
@@ -24,6 +40,7 @@ function getBrethrenDB(): mysqli {
     mysqli_report(MYSQLI_REPORT_OFF);
 
     $lastError = '';
+    $tzSql = $GLOBALS['cairoMysqlOffset'] ?? '+03:00';
 
     // 1. Primary Attempt: Dedicated Brethren Database (if0_40860329_brethren)
     $remoteHosts = [BRETHREN_DB_HOST, 'localhost', '127.0.0.1'];
@@ -32,6 +49,7 @@ function getBrethrenDB(): mysqli {
         if ($primaryConn && !$primaryConn->connect_error) {
             $conn = $primaryConn;
             $conn->set_charset('utf8mb4');
+            $conn->query("SET time_zone = '{$tzSql}'");
             ensureTablesExist($conn);
             return $conn;
         }
@@ -49,6 +67,7 @@ function getBrethrenDB(): mysqli {
                 $globalConn = getDBConnection();
                 if ($globalConn && !$globalConn->connect_error) {
                     $conn = $globalConn;
+                    $conn->query("SET time_zone = '{$tzSql}'");
                     ensureTablesExist($conn);
                     return $conn;
                 }
@@ -65,6 +84,7 @@ function getBrethrenDB(): mysqli {
         if ($localConn && !$localConn->connect_error) {
             $conn = $localConn;
             $conn->set_charset('utf8mb4');
+            $conn->query("SET time_zone = '{$tzSql}'");
             ensureTablesExist($conn);
             return $conn;
         }
@@ -75,6 +95,7 @@ function getBrethrenDB(): mysqli {
             if ($localRoot->select_db(BRETHREN_DB_NAME)) {
                 $conn = $localRoot;
                 $conn->set_charset('utf8mb4');
+                $conn->query("SET time_zone = '{$tzSql}'");
                 ensureTablesExist($conn);
                 return $conn;
             }
@@ -633,8 +654,9 @@ switch ($action) {
             ]);
         }
 
-        $stmtAdd = $db->prepare("INSERT INTO `brethren_attendance` (`event_id`, `user_id`) VALUES (?, ?)");
-        $stmtAdd->bind_param('ii', $eventId, $userId);
+        $cairoNow = date('Y-m-d H:i:s');
+        $stmtAdd = $db->prepare("INSERT INTO `brethren_attendance` (`event_id`, `user_id`, `scanned_at`) VALUES (?, ?, ?)");
+        $stmtAdd->bind_param('iis', $eventId, $userId, $cairoNow);
         $stmtAdd->execute();
 
         $pointsChange = 20;
