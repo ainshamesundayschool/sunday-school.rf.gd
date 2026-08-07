@@ -472,7 +472,7 @@
 
         .modal-card {
             background: var(--surface); border: 1px solid var(--border-solid);
-            width: 100%; max-width: 580px; max-height: 85vh; display: flex; flex-direction: column;
+            width: 100%; max-width: 580px; min-height: 55vh; max-height: 85vh; display: flex; flex-direction: column;
             box-shadow: var(--shadow-xl); overflow: hidden; position: relative;
             border-radius: 24px 24px 0 0; animation: slideUpMobile 0.3s var(--spring);
         }
@@ -484,7 +484,7 @@
 
         @media (min-width: 769px) {
             .modal-overlay { align-items: center; padding: 20px; }
-            .modal-card { border-radius: var(--r-xl); max-height: 90vh; animation: fadeScaleIn 0.25s var(--spring); }
+            .modal-card { border-radius: var(--r-xl); min-height: auto; max-height: 90vh; animation: fadeScaleIn 0.25s var(--spring); }
             .modal-card::before { display: none; }
         }
 

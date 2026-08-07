@@ -484,6 +484,7 @@
             border: 1px solid var(--border-solid);
             width: 100%;
             max-width: 540px;
+            min-height: 55vh;
             max-height: 85vh;
             display: flex;
             flex-direction: column;
@@ -515,6 +516,7 @@
 
             .modal-card {
                 border-radius: var(--r-xl);
+                min-height: auto;
                 max-height: 90vh;
                 animation: fadeScaleIn 0.25s var(--spring);
             }
