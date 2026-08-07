@@ -145,6 +145,19 @@ function ensureTablesExist(mysqli $conn) {
         `setting_value` LONGTEXT NOT NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
 
+    // Ensure default admin user exists in brethren_users
+    $checkAdmin = $conn->query("SELECT COUNT(*) AS cnt FROM `brethren_users` WHERE `is_admin` = 1");
+    $rowAdmin = $checkAdmin ? $checkAdmin->fetch_assoc() : null;
+    if (!$rowAdmin || (int)$rowAdmin['cnt'] === 0) {
+        $userCode = 'BR-ADMIN01';
+        $adminPassHash = password_hash('admin123', PASSWORD_DEFAULT);
+        $stmtNew = $conn->prepare("INSERT INTO `brethren_users` 
+            (`user_code`, `name`, `email`, `phone`, `location`, `gender`, `is_admin`, `points`, `passcode`) 
+            VALUES (?, 'المسؤول الإداري', 'admin@sunday-school.online', '01000000000', 'الإدارة', 'ذكر', 1, 100, ?)");
+        $stmtNew->bind_param('ss', $userCode, $adminPassHash);
+        $stmtNew->execute();
+    }
+
     // Default Settings
     $checkSet = $conn->query("SELECT COUNT(*) AS cnt FROM `brethren_settings`");
     $row = $checkSet ? $checkSet->fetch_assoc() : null;
@@ -154,9 +167,7 @@ function ensureTablesExist(mysqli $conn) {
             'enable_shortcut' => true,
             'enable_custom' => true,
             'reasons' => ['ألعاب', 'بونص', 'التزام بالأوقات'],
-            'admin_passcode' => 'admin123',
-            'admin_email' => 'admin@sunday-school.online',
-            'google_script_url' => ''
+            'admin_email' => 'admin@sunday-school.online'
         ];
         foreach ($defaultSettings as $k => $v) {
             $valJson = json_encode($v, JSON_UNESCAPED_UNICODE);
@@ -225,55 +236,20 @@ switch ($action) {
         $passcode = trim($bodyData['password'] ?? $bodyData['passcode'] ?? $_POST['password'] ?? '');
 
         if (empty($key)) {
-            sendJSONResponse(['status' => 'error', 'message' => 'يرجى إدخال البريد الإلكتروني أو رقم الهاتف'], 400);
+            sendJSONResponse(['status' => 'error', 'message' => 'يرجى إدخال البريد الإلكتروني أو رقم الهاتف أو كود المستخدم'], 400);
         }
 
-        // Check Master Admin Passcode from Settings
-        $resPass = $db->query("SELECT `setting_value` FROM `brethren_settings` WHERE `setting_key` = 'admin_passcode' LIMIT 1");
-        $rowPass = $resPass ? $resPass->fetch_assoc() : null;
-        $globalAdminPass = $rowPass ? json_decode($rowPass['setting_value'], true) : 'admin123';
-        if (is_array($globalAdminPass)) $globalAdminPass = reset($globalAdminPass);
-
-        if ($passcode === $globalAdminPass || $key === $globalAdminPass) {
-            $resAdmin = $db->query("SELECT * FROM `brethren_users` WHERE `is_admin` = 1 LIMIT 1");
-            $adminUser = $resAdmin ? $resAdmin->fetch_assoc() : null;
-
-            if (!$adminUser) {
-                $userCode = 'BR-ADMIN01';
-                $adminPassHash = password_hash($globalAdminPass, PASSWORD_DEFAULT);
-                $stmtNew = $db->prepare("INSERT INTO `brethren_users` 
-                    (`user_code`, `name`, `email`, `phone`, `location`, `gender`, `is_admin`, `points`, `passcode`) 
-                    VALUES (?, 'المسؤول الإداري', 'admin@sunday-school.online', '01000000000', 'الإدارة', 'ذكر', 1, 100, ?)");
-                $stmtNew->bind_param('ss', $userCode, $adminPassHash);
-                $stmtNew->execute();
-
-                $stmtFetch = $db->prepare("SELECT * FROM `brethren_users` WHERE `id` = ? LIMIT 1");
-                $newId = $db->insert_id;
-                $stmtFetch->bind_param('i', $newId);
-                $stmtFetch->execute();
-                $adminUser = $stmtFetch->get_result()->fetch_assoc();
-            }
-
-            $adminUser['custom_fields'] = json_decode($adminUser['custom_fields'] ?? '{}', true) ?: (object)[];
-            sendJSONResponse([
-                'status' => 'success',
-                'is_admin' => true,
-                'user' => $adminUser,
-                'redirect' => 'admin/'
-            ]);
-        }
-
-        // Search user by email, phone, user_code, or id
+        // Search user in brethren_users by email, phone, user_code, or id
         $stmt = $db->prepare("SELECT * FROM `brethren_users` WHERE `email` = ? OR `phone` = ? OR `user_code` = ? OR `id` = ? LIMIT 1");
         $stmt->bind_param('ssss', $key, $key, $key, $key);
         $stmt->execute();
         $user = $stmt->get_result()->fetch_assoc();
 
         if (!$user) {
-            sendJSONResponse(['status' => 'error', 'message' => 'لم نتمكن من العثور على حساب بهذا البريد أو الهاتف'], 404);
+            sendJSONResponse(['status' => 'error', 'message' => 'لم نتمكن من العثور على حساب بهذا البريد أو الهاتف أو الكود'], 404);
         }
 
-        // Secure Password Verification (password_verify + backward compatibility plain-text auto-hash)
+        // Secure Password Verification (password_verify + auto-hash migration)
         if (!empty($user['passcode']) && !empty($passcode)) {
             $isPasswordValid = password_verify($passcode, $user['passcode']) || ($user['passcode'] === $passcode);
             if (!$isPasswordValid) {
@@ -782,9 +758,7 @@ switch ($action) {
             'enable_shortcut' => true,
             'enable_custom' => true,
             'reasons' => ['ألعاب', 'بونص', 'التزام بالأوقات'],
-            'admin_passcode' => 'admin123',
-            'admin_email' => 'admin@sunday-school.online',
-            'google_script_url' => ''
+            'admin_email' => 'admin@sunday-school.online'
         ];
         if ($res) {
             while ($row = $res->fetch_assoc()) {
@@ -800,18 +774,14 @@ switch ($action) {
         $enableShortcut = (bool)($bodyData['enable_shortcut'] ?? true);
         $enableCustom = (bool)($bodyData['enable_custom'] ?? true);
         $reasons = $bodyData['reasons'] ?? ['ألعاب', 'بونص', 'التزام بالأوقات'];
-        $adminPasscode = trim($bodyData['admin_passcode'] ?? 'admin123');
         $adminEmail = trim($bodyData['admin_email'] ?? 'admin@sunday-school.online');
-        $googleScriptUrl = trim($bodyData['google_script_url'] ?? '');
 
         $settingsMap = [
             'shortcuts' => $shortcuts,
             'enable_shortcut' => $enableShortcut,
             'enable_custom' => $enableCustom,
             'reasons' => $reasons,
-            'admin_passcode' => $adminPasscode,
-            'admin_email' => $adminEmail,
-            'google_script_url' => $googleScriptUrl
+            'admin_email' => $adminEmail
         ];
 
         foreach ($settingsMap as $k => $v) {

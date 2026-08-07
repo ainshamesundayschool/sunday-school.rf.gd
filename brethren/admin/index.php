@@ -814,10 +814,6 @@
                         <input type="email" id="settingAdminEmailInput" class="form-input" placeholder="admin@sunday-school.online">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">كلمة مرور الأدمن العامة</label>
-                        <input type="text" id="settingAdminPasscodeInput" class="form-input" placeholder="admin123">
-                    </div>
-                    <div class="form-group">
                         <label class="form-label">تعديل قيم الاختصارات السريعة (مفصولة بفواصل)</label>
                         <input type="text" id="settingShortcutsInput" class="form-input" placeholder="10, 30, 50, 100">
                     </div>
