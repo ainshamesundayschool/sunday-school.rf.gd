@@ -448,7 +448,54 @@
         .modal-close:hover { color: var(--danger); }
         .modal-body { padding: 20px; overflow-y: auto; }
 
-        /* Mobile Optimization Media Query (Icon-Only Buttons & Clean Layout) */
+        /* FULL SCREEN QR SCANNER PAGE STYLING */
+        .fullscreen-page {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #0f172a; color: #fff; z-index: 99999;
+            display: flex; flex-direction: column; overflow: hidden;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .fullscreen-header {
+            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.1); padding: 12px 16px;
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.12); color: #fff; border: none;
+            padding: 8px 14px; border-radius: var(--r-full); font-size: 0.88rem; font-weight: 800;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;
+        }
+
+        .back-btn:hover { background: rgba(255,255,255,0.25); }
+
+        .fullscreen-title {
+            font-size: 1.05rem; font-weight: 900; color: #fff; text-align: center;
+            flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .fullscreen-body {
+            flex: 1; display: flex; flex-direction: column; padding: 16px;
+            gap: 14px; max-width: 650px; width: 100%; margin: 0 auto;
+        }
+
+        .fullscreen-video-wrap {
+            flex: 1; width: 100%; background: #000; border-radius: var(--r-xl);
+            overflow: hidden; position: relative; box-shadow: var(--shadow-xl);
+            border: 2px solid rgba(255,255,255,0.15); min-height: 280px;
+        }
+
+        #qrVideo { width: 100%; height: 100%; object-fit: cover; }
+
+        .scan-target-box {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 220px; height: 220px; border: 3px dashed rgba(255, 255, 255, 0.7);
+            border-radius: var(--r-lg); box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);
+            pointer-events: none;
+        }
+
+        /* Mobile Optimization Media Query */
         @media (max-width: 768px) {
             .container { padding: 8px; }
             .topbar { padding: 6px 10px; margin-bottom: 10px; border-radius: var(--r-md); }
@@ -462,19 +509,9 @@
             .btn-add-action { width: 36px; height: 36px; padding: 0; border-radius: 50%; justify-content: center; font-size: 0.95rem; }
             .btn-add-action .btn-text { display: none; }
 
-            /* Mobile User List Row Stacking & Icon-Only Action Buttons */
-            .user-list-row {
-                flex-direction: column; align-items: stretch; gap: 8px; padding: 10px 12px;
-            }
-
-            .user-row-actions {
-                display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%;
-                padding-top: 6px; border-top: 1px dashed var(--border-solid);
-            }
-
-            .user-row-actions .action-btn {
-                width: 100%; padding: 8px 0; font-size: 0.85rem; justify-content: center;
-            }
+            .user-list-row { flex-direction: column; align-items: stretch; gap: 8px; padding: 10px 12px; }
+            .user-row-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; padding-top: 6px; border-top: 1px dashed var(--border-solid); }
+            .user-row-actions .action-btn { width: 100%; padding: 8px 0; font-size: 0.85rem; justify-content: center; }
             .user-row-actions .action-btn .btn-text { display: none; }
         }
 
@@ -491,14 +528,10 @@
         .qr-preview-box { text-align: center; background: #fff; padding: 14px; border-radius: var(--r-lg); border: 1px solid var(--border-solid); margin-bottom: 16px; }
         .qr-preview-box img { width: 150px; height: 150px; object-fit: contain; }
 
-        /* QR Camera Feed at Top & Scanned User Card Underneath */
-        #qrVideoContainer { width: 100%; height: 260px; background: #000; border-radius: var(--r-lg); overflow: hidden; position: relative; margin-bottom: 14px; }
-        #qrVideo { width: 100%; height: 100%; object-fit: cover; }
-
         .scan-result-card {
-            background: var(--surface-2); border: 1px solid var(--border-solid);
+            background: #1e293b; border: 1px solid rgba(255,255,255,0.15);
             border-radius: var(--r-lg); padding: 14px; display: none; align-items: center;
-            gap: 14px; margin-top: 14px; box-shadow: var(--shadow-sm); animation: fadeIn 0.2s ease;
+            gap: 14px; box-shadow: var(--shadow-md); animation: fadeIn 0.2s ease; color: #fff;
         }
 
         .scanned-user-avatar {
@@ -509,9 +542,9 @@
 
         .scanned-user-info { flex: 1; min-width: 0; }
         .scanned-user-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 3px; }
-        .scanned-user-name { font-size: 1.05rem; font-weight: 900; color: var(--text); }
-        .scanned-points-badge { background: var(--success-bg); color: var(--success-dark); padding: 3px 10px; border-radius: var(--r-full); font-size: 0.8rem; font-weight: 900; }
-        .scanned-status-msg { font-size: 0.82rem; font-weight: 700; color: var(--text-2); }
+        .scanned-user-name { font-size: 1.05rem; font-weight: 900; color: #fff; }
+        .scanned-points-badge { background: var(--success); color: #fff; padding: 3px 10px; border-radius: var(--r-full); font-size: 0.8rem; font-weight: 900; }
+        .scanned-status-msg { font-size: 0.82rem; font-weight: 700; color: #94a3b8; }
 
         .empty-state { text-align: center; padding: 24px; color: var(--text-3); font-size: 0.88rem; font-weight: 600; }
     </style>
@@ -660,6 +693,38 @@
         </div>
     </div>
 
+    <!-- FULL SCREEN QR SCANNER PAGE VIEW -->
+    <div id="qrScannerScreen" class="fullscreen-page" style="display:none;">
+        <div class="fullscreen-header">
+            <button class="back-btn" onclick="closeScannerModal()">
+                <i class="fas fa-arrow-right"></i>
+                <span>رجوع</span>
+            </button>
+            <div class="fullscreen-title" id="scannerModalTitle">مسح كود الحضور QR</div>
+            <div style="width:40px;"></div>
+        </div>
+        
+        <div class="fullscreen-body">
+            <!-- Camera Video Feed Container -->
+            <div id="qrVideoContainer" class="fullscreen-video-wrap">
+                <video id="qrVideo" playsinline></video>
+                <div class="scan-target-box"></div>
+            </div>
+
+            <!-- Scanned User Card Underneath Video -->
+            <div class="scan-result-card" id="scanFeedbackBanner">
+                <div id="scanFeedbackAvatar" class="scanned-user-avatar"></div>
+                <div class="scanned-user-info">
+                    <div class="scanned-user-top">
+                        <div id="scanFeedbackName" class="scanned-user-name"></div>
+                        <span class="scanned-points-badge" id="scanFeedbackPointsBadge">+20 نقطة</span>
+                    </div>
+                    <div id="scanFeedbackMsg" class="scanned-status-msg"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ADD / EDIT USER MODAL (Includes Bulk Add Option) -->
     <div class="modal-overlay" id="addUserModal">
         <div class="modal-card">
@@ -796,37 +861,6 @@
                         <i class="fas fa-check"></i> إنشاء الفعالية
                     </button>
                 </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- QR SCANNER MODAL -->
-    <div class="modal-overlay" id="qrScannerModal">
-        <div class="modal-card">
-            <div class="modal-header">
-                <div class="modal-title">
-                    <i class="fas fa-qrcode" style="color:var(--success);"></i>
-                    <span id="scannerModalTitle">مسح كود الحضور QR</span>
-                </div>
-                <button class="modal-close" onclick="closeScannerModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <!-- Camera Video Feed Top -->
-                <div id="qrVideoContainer">
-                    <video id="qrVideo" playsinline></video>
-                </div>
-
-                <!-- Scanned User Card Underneath -->
-                <div class="scan-result-card" id="scanFeedbackBanner">
-                    <div id="scanFeedbackAvatar" class="scanned-user-avatar"></div>
-                    <div class="scanned-user-info">
-                        <div class="scanned-user-top">
-                            <div id="scanFeedbackName" class="scanned-user-name"></div>
-                            <span class="scanned-points-badge" id="scanFeedbackPointsBadge">+20 نقطة</span>
-                        </div>
-                        <div id="scanFeedbackMsg" class="scanned-status-msg"></div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -1358,7 +1392,7 @@
             }
 
             document.getElementById('scanFeedbackBanner').style.display = 'none';
-            document.getElementById('qrScannerModal').classList.add('active');
+            document.getElementById('qrScannerScreen').style.display = 'flex';
 
             const videoElem = document.getElementById('qrVideo');
             if (typeof QrScanner !== 'undefined') {
@@ -1441,7 +1475,7 @@
 
         function closeScannerModal() {
             if (qrScannerInstance) { qrScannerInstance.stop(); qrScannerInstance.destroy(); qrScannerInstance = null; }
-            closeModal('qrScannerModal');
+            document.getElementById('qrScannerScreen').style.display = 'none';
         }
 
         async function fetchSettings() {
