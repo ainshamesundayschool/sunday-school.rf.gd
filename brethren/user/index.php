@@ -185,20 +185,32 @@
         }
 
         .profile-avatar {
-            width: 50px;
-            height: 50px;
+            width: 58px;
+            height: 58px;
             border-radius: 50%;
             object-fit: cover;
-            border: 2px solid var(--border-solid);
-            box-shadow: var(--shadow-sm);
-            background: var(--surface-2);
+            border: 3px solid #ffffff;
+            box-shadow: 0 4px 14px rgba(91, 108, 245, 0.16);
+            background: linear-gradient(135deg, var(--brand-bg), var(--surface-3));
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.25rem;
-            color: var(--brand);
+            font-size: 1.5rem;
+            color: var(--brand-dark);
             font-weight: 800;
             flex-shrink: 0;
+            overflow: hidden;
+            transition: transform 0.2s ease;
+        }
+
+        .profile-avatar.male {
+            background: linear-gradient(135deg, #dbeafe, #93c5fd);
+            color: #1e40af;
+        }
+
+        .profile-avatar.female {
+            background: linear-gradient(135deg, #fce7f3, #f9a8d4);
+            color: #9d174d;
         }
 
         .profile-meta {
@@ -752,6 +764,16 @@
             </div>
             <div class="modal-body">
                 <form id="editProfileForm" onsubmit="submitEditProfile(event)">
+                    <div class="form-group">
+                        <label class="form-label">الصورة الشخصية</label>
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div id="userPhotoPreview" class="profile-avatar" style="width:48px;height:48px;font-size:1.2rem;">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <input type="file" id="userPhotoFileInput" accept="image/*" class="form-input" style="padding:6px;font-size:0.8rem;" onchange="handleUserPhotoUpload(event)">
+                            <input type="hidden" id="userPhotoInput" value="">
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label class="form-label">الاسم بالكامل *</label>
                         <input type="text" id="editNameInput" class="form-input" required autocomplete="name">

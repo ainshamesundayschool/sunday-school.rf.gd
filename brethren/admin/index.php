@@ -71,7 +71,7 @@
             background: var(--bg);
             color: var(--text);
             min-height: 100vh;
-            padding-bottom: 60px;
+            padding-bottom: 75px;
             position: relative;
             font-size: 14px;
         }
@@ -87,118 +87,178 @@
             z-index: 0;
         }
 
-        .container {
-            max-width: 1040px;
-            margin: 0 auto;
-            padding: 16px;
-            position: relative;
-            z-index: 1;
+        /* App Layout Architecture */
+        .app-layout {
+            display: flex;
+            min-height: 100vh;
         }
 
-        /* Topbar Header */
-        .topbar {
-            position: sticky;
+        /* Desktop Sidebar Navigation */
+        .app-sidebar {
+            width: 250px;
+            background: var(--surface);
+            border-left: 1px solid var(--border-solid);
+            padding: 20px 16px;
+            position: fixed;
             top: 0;
-            z-index: 300;
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border-solid);
-            padding: 8px 14px;
-            border-radius: var(--r-xl);
-            margin-bottom: 14px;
+            right: 0;
+            height: 100vh;
+            z-index: 400;
             display: flex;
-            align-items: center;
+            flex-direction: column;
             justify-content: space-between;
             box-shadow: var(--shadow-sm);
         }
 
-        .brand {
+        .sidebar-brand {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 1.05rem;
+            gap: 10px;
+            font-size: 1.15rem;
             font-weight: 900;
             color: var(--text);
             text-decoration: none;
+            padding-bottom: 18px;
+            border-bottom: 1px solid var(--border-solid);
+            margin-bottom: 18px;
         }
 
-        .brand-logo-img {
-            width: 32px;
-            height: 32px;
+        .sidebar-logo-img {
+            width: 36px;
+            height: 36px;
             object-fit: contain;
         }
 
-        .topbar-actions {
+        .sidebar-menu {
             display: flex;
-            align-items: center;
-            gap: 6px;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
         }
 
-        .portal-link {
-            background: var(--brand-bg);
-            color: var(--brand-dark);
-            padding: 6px 10px;
+        .sidebar-btn {
+            background: none;
+            border: none;
+            color: var(--text-2);
+            padding: 11px 14px;
             border-radius: var(--r-md);
-            text-decoration: none;
+            font-size: 0.9rem;
             font-weight: 800;
-            font-size: 0.78rem;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 5px;
-            border: 1px solid rgba(91, 108, 245, 0.2);
+            gap: 10px;
+            width: 100%;
+            text-align: right;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-btn:hover {
+            background: var(--surface-2);
+            color: var(--brand);
+        }
+
+        .sidebar-btn.active {
+            background: var(--brand);
+            color: #fff;
+            box-shadow: 0 4px 14px var(--brand-glow);
+        }
+
+        .sidebar-footer {
+            padding-top: 14px;
+            border-top: 1px solid var(--border-solid);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .portal-link, .logout-btn {
+            padding: 9px 12px;
+            border-radius: var(--r-md);
+            font-weight: 800;
+            font-size: 0.82rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .portal-link { background: var(--brand-bg); color: var(--brand-dark); border: 1px solid rgba(91,108,245,0.2); }
+        .portal-link:hover { background: var(--brand); color: #fff; }
+        .logout-btn { background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border-solid); }
+        .logout-btn:hover { background: var(--danger-bg); color: var(--danger); }
+
+        /* Main Content Container */
+        .main-content {
+            flex: 1;
+            margin-right: 250px;
+            padding: 20px;
+            max-width: 1100px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Mobile Bottom App Navigation Bar */
+        .mobile-bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 62px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border-solid);
+            z-index: 500;
+            box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
+        }
+
+        .mobile-nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            background: none;
+            border: none;
+            color: var(--text-3);
+            font-size: 0.72rem;
+            font-weight: 800;
+            cursor: pointer;
+            padding: 6px 0;
             transition: all 0.2s;
         }
 
-        .portal-link:hover { background: var(--brand); color: #fff; }
+        .mobile-nav-item i { font-size: 1.15rem; }
+        .mobile-nav-item.active { color: var(--brand); }
 
-        .logout-btn {
-            background: var(--surface-2);
-            color: var(--text-2);
+        /* Mobile Header Header */
+        .mobile-topbar {
+            display: none;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--border-solid);
-            padding: 6px 10px;
-            border-radius: var(--r-md);
-            font-weight: 800;
-            font-size: 0.78rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .logout-btn:hover { background: var(--danger-bg); color: var(--danger); }
-
-        /* Nav Tabs */
-        .nav-tabs {
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            padding-bottom: 4px;
-            margin-bottom: 14px;
-            scrollbar-width: none;
-        }
-
-        .nav-tabs::-webkit-scrollbar { display: none; }
-
-        .tab-btn {
-            background: var(--surface);
-            border: 1px solid var(--border-solid);
-            color: var(--text-2);
-            padding: 8px 14px;
+            padding: 8px 12px;
             border-radius: var(--r-lg);
-            font-size: 0.85rem;
-            font-weight: 800;
-            cursor: pointer;
-            display: flex;
+            margin-bottom: 14px;
             align-items: center;
-            gap: 6px;
-            white-space: nowrap;
-            transition: all 0.2s ease;
-            box-shadow: var(--shadow-sm);
+            justify-content: space-between;
         }
 
-        .tab-btn:hover { color: var(--brand); border-color: var(--brand-light); }
-        .tab-btn.active { background: var(--brand); color: #fff; border-color: var(--brand); box-shadow: 0 4px 14px var(--brand-glow); }
+        /* Media Queries for Responsive Navigation */
+        @media (max-width: 768px) {
+            body { padding-bottom: 75px; }
+            .app-sidebar { display: none; }
+            .main-content { margin-right: 0; padding: 10px; }
+            .mobile-bottom-nav { display: flex; }
+            .mobile-topbar { display: flex; }
+        }
 
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.2s ease; }
@@ -292,12 +352,12 @@
         }
 
         .user-row-avatar {
-            width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
+            width: 42px; height: 42px; border-radius: 50%; object-fit: cover;
             display: flex; align-items: center; justify-content: center; font-size: 0.95rem;
             font-weight: 800; flex-shrink: 0; border: 2px solid var(--surface); box-shadow: var(--shadow-sm);
         }
-        .user-row-avatar.male { background: linear-gradient(135deg, #60a5fa, #2563eb); color: #fff; }
-        .user-row-avatar.female { background: linear-gradient(135deg, #f472b6, #db2777); color: #fff; }
+        .user-row-avatar.male { background: linear-gradient(135deg, #dbeafe, #93c5fd); color: #1e40af; }
+        .user-row-avatar.female { background: linear-gradient(135deg, #fce7f3, #f9a8d4); color: #9d174d; }
 
         .user-row-details { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
         .user-row-title { font-size: 0.92rem; font-weight: 900; color: var(--text); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
@@ -448,26 +508,6 @@
         .modal-close:hover { color: var(--danger); }
         .modal-body { padding: 20px; overflow-y: auto; }
 
-        /* Mobile Optimization Media Query */
-        @media (max-width: 768px) {
-            .container { padding: 8px; }
-            .topbar { padding: 6px 10px; margin-bottom: 10px; border-radius: var(--r-md); }
-            .brand { font-size: 0.92rem; gap: 6px; }
-            .brand-logo-img { width: 26px; height: 26px; }
-            .topbar-actions { gap: 4px; }
-            .portal-link, .logout-btn { padding: 6px 8px; font-size: 0.72rem; border-radius: var(--r-sm); }
-            .portal-link .btn-text, .logout-btn .btn-text { display: none; }
-
-            .card-header-bar { align-items: center; justify-content: space-between; gap: 8px; }
-            .btn-add-action { width: 36px; height: 36px; padding: 0; border-radius: 50%; justify-content: center; font-size: 0.95rem; }
-            .btn-add-action .btn-text { display: none; }
-
-            .user-list-row { flex-direction: column; align-items: stretch; gap: 8px; padding: 10px 12px; }
-            .user-row-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; padding-top: 6px; border-top: 1px dashed var(--border-solid); }
-            .user-row-actions .action-btn { width: 100%; padding: 8px 0; font-size: 0.85rem; justify-content: center; }
-            .user-row-actions .action-btn .btn-text { display: none; }
-        }
-
         /* User Info Detail Rows */
         .info-detail-wrap { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border-solid); }
         .info-detail-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; background: var(--brand-bg); color: var(--brand); display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 900; margin-bottom: 10px; border: 3px solid var(--brand-light); box-shadow: var(--shadow-md); }
@@ -504,195 +544,235 @@
 </head>
 <body>
 
-    <div class="container">
-        <!-- Top Navbar -->
-        <header class="topbar">
-            <a href="#" id="adminBrandLink" class="brand">
-                <img src="/assets/brethren-logo.png" id="adminLogoImg" class="brand-logo-img" alt="Logo">
-                <span>لوحة التحكم</span>
-            </a>
-            <div class="topbar-actions">
-                <a href="#" id="myProfileLink" class="portal-link" title="ملفي والـ QR">
-                    <i class="fas fa-user-circle"></i>
-                    <span class="btn-text">ملفي</span>
+    <div class="app-layout">
+        <!-- DESKTOP SIDEBAR NAVIGATION -->
+        <aside class="app-sidebar">
+            <div>
+                <a href="#" id="adminBrandLink" class="sidebar-brand">
+                    <img src="/assets/brethren-logo.png" id="adminLogoImg" class="sidebar-logo-img" alt="Logo">
+                    <span>منصة الأخوة</span>
                 </a>
-                <button onclick="handleAdminLogout()" class="logout-btn" title="تسجيل الخروج">
+
+                <nav class="sidebar-menu">
+                    <button class="sidebar-btn active" id="sideBtnUsers" onclick="switchTab('tabUsers')">
+                        <i class="fas fa-users"></i>
+                        <span>قائمة الأعضاء</span>
+                    </button>
+                    <button class="sidebar-btn" id="sideBtnEvents" onclick="switchTab('tabEvents')">
+                        <i class="fas fa-calendar-star"></i>
+                        <span>الفعاليات وQR</span>
+                    </button>
+                    <button class="sidebar-btn" id="sideBtnPoints" onclick="switchTab('tabPoints')">
+                        <i class="fas fa-coins"></i>
+                        <span>النقاط والـ QR</span>
+                    </button>
+                </nav>
+            </div>
+
+            <div class="sidebar-footer">
+                <a href="#" id="myProfileLink" class="portal-link">
+                    <i class="fas fa-user-circle"></i>
+                    <span>الملف الشخصي</span>
+                </a>
+                <button onclick="handleAdminLogout()" class="logout-btn">
                     <i class="fas fa-sign-out-alt"></i>
-                    <span class="btn-text">خروج</span>
+                    <span>تسجيل الخروج</span>
                 </button>
             </div>
-        </header>
+        </aside>
 
-        <!-- Navigation Tabs -->
-        <nav class="nav-tabs">
-            <button class="tab-btn active" onclick="switchTab('tabUsers')">
-                <i class="fas fa-users"></i> قائمة الأعضاء
-            </button>
-            <button class="tab-btn" onclick="switchTab('tabEvents')">
-                <i class="fas fa-calendar-star"></i> الفعاليات وQR
-            </button>
-            <button class="tab-btn" onclick="switchTab('tabPoints')">
-                <i class="fas fa-coins"></i> النقاط والـ QR
-            </button>
-        </nav>
-
-        <!-- TAB 1: USERS MANAGEMENT (LIST VIEW) -->
-        <div class="tab-content active" id="tabUsers">
-            <div class="panel-card">
-                <div class="card-header-bar">
-                    <div class="card-title">
-                        <i class="fas fa-users"></i> قائمة الأعضاء والمستخدمين
-                    </div>
-                    <button class="btn-add-action" onclick="openAddUserModal()" title="إضافة مستخدم جديد">
-                        <i class="fas fa-user-plus"></i><span class="btn-text"> إضافة جديد</span>
+        <!-- MAIN CONTENT AREA -->
+        <main class="main-content">
+            <!-- MOBILE TOPBAR -->
+            <div class="mobile-topbar">
+                <div class="brand">
+                    <img src="/assets/brethren-logo.png" id="mobileLogoImg" class="brand-logo-img" alt="Logo">
+                    <span>لوحة التحكم</span>
+                </div>
+                <div style="display:flex;gap:6px;">
+                    <a href="#" id="mobileProfileLink" class="portal-link" style="padding:4px 8px;font-size:0.75rem;">
+                        <i class="fas fa-user-circle"></i>
+                    </a>
+                    <button onclick="handleAdminLogout()" class="logout-btn" style="padding:4px 8px;font-size:0.75rem;">
+                        <i class="fas fa-sign-out-alt"></i>
                     </button>
                 </div>
-
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="adminUserSearch" placeholder="بحث ذكي عن مستخدم بالاسم أو البريد أو الهاتف..." oninput="renderUsersList()">
-                </div>
-
-                <div class="user-list-container" id="usersListGrid">
-                    <div class="empty-state">جاري التحميل...</div>
-                </div>
             </div>
-        </div>
 
-        <!-- TAB 2: EVENTS & INLINE QR SCANNER -->
-        <div class="tab-content" id="tabEvents">
-            <div class="panel-card" id="eventsMainCard">
-                <!-- Events List View -->
-                <div id="eventsGridWrapper">
+            <!-- TAB 1: USERS MANAGEMENT (LIST VIEW) -->
+            <div class="tab-content active" id="tabUsers">
+                <div class="panel-card">
                     <div class="card-header-bar">
                         <div class="card-title">
-                            <i class="fas fa-calendar-day"></i> الفعاليات المتاحة
+                            <i class="fas fa-users"></i> قائمة الأعضاء والمستخدمين
                         </div>
-                        <button class="btn-add-action" onclick="openAddEventModal()" title="إضافة فعالية جديدة">
-                            <i class="fas fa-calendar-plus"></i><span class="btn-text"> إضافة فعالية</span>
+                        <button class="btn-add-action" onclick="openAddUserModal()" title="إضافة مستخدم جديد">
+                            <i class="fas fa-user-plus"></i><span class="btn-text"> إضافة جديد</span>
                         </button>
                     </div>
 
-                    <div class="events-list-grid" id="adminEventsGrid">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="adminUserSearch" placeholder="بحث ذكي عن مستخدم بالاسم أو البريد أو الهاتف..." oninput="renderUsersList()">
+                    </div>
+
+                    <div class="user-list-container" id="usersListGrid">
                         <div class="empty-state">جاري التحميل...</div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Inline In-Page Scanner Panel (Not Fullscreen, Not Modal Popup) -->
-                <div id="inlineScannerPanel" style="display:none; animation: fadeIn 0.2s ease;">
-                    <div class="card-header-bar" style="margin-bottom:14px;">
-                        <div class="card-title" id="scannerModalTitle">
-                            <i class="fas fa-qrcode" style="color:var(--brand);"></i>
-                            <span>مسح كود الحضور QR</span>
+            <!-- TAB 2: EVENTS & INLINE QR SCANNER -->
+            <div class="tab-content" id="tabEvents">
+                <div class="panel-card" id="eventsMainCard">
+                    <!-- Events List View -->
+                    <div id="eventsGridWrapper">
+                        <div class="card-header-bar">
+                            <div class="card-title">
+                                <i class="fas fa-calendar-day"></i> الفعاليات المتاحة
+                            </div>
+                            <button class="btn-add-action" onclick="openAddEventModal()" title="إضافة فعالية جديدة">
+                                <i class="fas fa-calendar-plus"></i><span class="btn-text"> إضافة فعالية</span>
+                            </button>
                         </div>
-                        <button class="action-btn btn-info" onclick="closeScannerModal()" style="padding:6px 12px;">
-                            <i class="fas fa-arrow-right"></i>
-                            <span>الرجوع للفعاليات</span>
+
+                        <div class="events-list-grid" id="adminEventsGrid">
+                            <div class="empty-state">جاري التحميل...</div>
+                        </div>
+                    </div>
+
+                    <!-- Inline In-Page Scanner Panel (Not Fullscreen, Not Modal Popup) -->
+                    <div id="inlineScannerPanel" style="display:none; animation: fadeIn 0.2s ease;">
+                        <div class="card-header-bar" style="margin-bottom:14px;">
+                            <div class="card-title" id="scannerModalTitle">
+                                <i class="fas fa-qrcode" style="color:var(--brand);"></i>
+                                <span>مسح كود الحضور QR</span>
+                            </div>
+                            <button class="action-btn btn-info" onclick="closeScannerModal()" style="padding:6px 12px;">
+                                <i class="fas fa-arrow-right"></i>
+                                <span>الرجوع للفعاليات</span>
+                            </button>
+                        </div>
+
+                        <!-- Small Compact Camera Video Scanner Box -->
+                        <div id="qrVideoContainer" style="width:100%;max-width:340px;height:190px;background:#000;border-radius:var(--r-lg);overflow:hidden;position:relative;margin:0 auto 14px;box-shadow:var(--shadow-md);border:2px solid var(--border-solid);">
+                            <video id="qrVideo" playsinline style="width:100%;height:100%;object-fit:cover;"></video>
+                            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:130px;height:130px;border:2px dashed rgba(255,255,255,0.75);border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,0.4);pointer-events:none;"></div>
+                        </div>
+
+                        <!-- Active Scanned User Result Banner -->
+                        <div class="scan-result-card" id="scanFeedbackBanner" style="margin-bottom:16px;">
+                            <div id="scanFeedbackAvatar" class="scanned-user-avatar"></div>
+                            <div class="scanned-user-info">
+                                <div class="scanned-user-top">
+                                    <div id="scanFeedbackName" class="scanned-user-name"></div>
+                                    <span class="scanned-points-badge" id="scanFeedbackPointsBadge">+20 نقطة</span>
+                                </div>
+                                <div id="scanFeedbackMsg" class="scanned-status-msg"></div>
+                            </div>
+                        </div>
+
+                        <!-- Rendered Scans / Attended Users List Underneath Camera -->
+                        <div style="border-top:1px dashed var(--border-solid);padding-top:14px;">
+                            <div style="font-weight:900;font-size:0.95rem;color:var(--text);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;">
+                                <span><i class="fas fa-list-check" style="color:var(--brand);"></i> سجل المسح والحضور المباشر</span>
+                                <span id="inlineAttendedCount" class="event-attendance-badge">0 حاضر</span>
+                            </div>
+                            <div class="user-list-container" id="renderedScansList">
+                                <div class="empty-state">لا يوجد مسح مسجل في هذه الجلسة بعد</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: POINTS MANAGEMENT VIA QR SCANNER -->
+            <div class="tab-content" id="tabPoints">
+                <div class="panel-card">
+                    <div class="points-panel-header">
+                        <div class="card-title">
+                            <i class="fas fa-coins" style="color:var(--warning-dark);"></i> إعطاء / خصم نقاط بالـ QR
+                        </div>
+                        <button class="gear-btn" onclick="openSettingsModal()" title="إعدادات النقاط والإيميل">
+                            <i class="fas fa-cog"></i>
                         </button>
                     </div>
 
-                    <!-- Small Compact Camera Video Scanner Box (Height 190px, Max Width 340px) -->
-                    <div id="qrVideoContainer" style="width:100%;max-width:340px;height:190px;background:#000;border-radius:var(--r-lg);overflow:hidden;position:relative;margin:0 auto 14px;box-shadow:var(--shadow-md);border:2px solid var(--border-solid);">
-                        <video id="qrVideo" playsinline style="width:100%;height:100%;object-fit:cover;"></video>
-                        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:130px;height:130px;border:2px dashed rgba(255,255,255,0.75);border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,0.4);pointer-events:none;"></div>
+                    <!-- Add vs Deduct Toggle -->
+                    <div class="mode-toggle">
+                        <button class="mode-btn active add" id="modeAddBtn" onclick="setPointsMode('add')">
+                            <i class="fas fa-plus-circle"></i> إضافة نقاط (+)
+                        </button>
+                        <button class="mode-btn deduct" id="modeDeductBtn" onclick="setPointsMode('deduct')">
+                            <i class="fas fa-minus-circle"></i> خصم نقاط (-)
+                        </button>
                     </div>
 
-                    <!-- Active Scanned User Result Banner -->
-                    <div class="scan-result-card" id="scanFeedbackBanner" style="margin-bottom:16px;">
-                        <div id="scanFeedbackAvatar" class="scanned-user-avatar"></div>
-                        <div class="scanned-user-info">
-                            <div class="scanned-user-top">
-                                <div id="scanFeedbackName" class="scanned-user-name"></div>
-                                <span class="scanned-points-badge" id="scanFeedbackPointsBadge">+20 نقطة</span>
-                            </div>
-                            <div id="scanFeedbackMsg" class="scanned-status-msg"></div>
-                        </div>
+                    <!-- Points Value Mode Switch (Shortcut Chips Tab vs Custom Points Tab) -->
+                    <label class="form-label" style="margin-bottom:6px;">طريقة تحديد كمية النقاط</label>
+                    <div class="mode-toggle">
+                        <button type="button" class="mode-btn active" id="ptsValShortcutTab" onclick="switchPointsValueMode('shortcuts')">
+                            <i class="fas fa-th-large"></i> اختصارات سريعة
+                        </button>
+                        <button type="button" class="mode-btn" id="ptsValCustomTab" onclick="switchPointsValueMode('custom')">
+                            <i class="fas fa-pen"></i> عدد نقاط مخصص
+                        </button>
                     </div>
 
-                    <!-- Rendered Scans / Attended Users List Underneath Camera -->
-                    <div style="border-top:1px dashed var(--border-solid);padding-top:14px;">
-                        <div style="font-weight:900;font-size:0.95rem;color:var(--text);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;">
-                            <span><i class="fas fa-list-check" style="color:var(--brand);"></i> سجل المسح والحضور المباشر</span>
-                            <span id="inlineAttendedCount" class="event-attendance-badge">0 حاضر</span>
-                        </div>
-                        <div class="user-list-container" id="renderedScansList">
-                            <div class="empty-state">لا يوجد مسح مسجل في هذه الجلسة بعد</div>
-                        </div>
+                    <!-- Shortcuts Chips View -->
+                    <div id="shortcutsContainer">
+                        <div class="shortcuts-grid" id="shortcutsGrid"></div>
+                    </div>
+
+                    <!-- Custom Points Input View (Separate Tab View) -->
+                    <div id="customPointsContainer" class="form-group" style="display:none;">
+                        <label class="form-label">ادخل عدد النقاط المخصص</label>
+                        <input type="number" id="customPointsInput" class="form-input" placeholder="مثال: 25">
+                    </div>
+
+                    <!-- Reasons Chips Section -->
+                    <div class="form-group">
+                        <label class="form-label">سبب إعطاء/خصم النقاط</label>
+                        <div class="reasons-chips-grid" id="reasonsChipsGrid"></div>
+                    </div>
+                    <div class="form-group" id="reasonOtherGroup" style="display:none;">
+                        <label class="form-label">اكتب السبب المخصص</label>
+                        <input type="text" id="reasonOtherInput" class="form-input" placeholder="اكتب السبب هنا...">
+                    </div>
+
+                    <button class="btn-primary" style="padding:14px;font-size:1.05rem;margin-bottom:16px;" onclick="openPointsQrScanner()">
+                        <i class="fas fa-qrcode" style="font-size:1.2rem;"></i> مسح كود الـ QR لإضافة النقاط
+                    </button>
+
+                    <div style="border-top:1px dashed var(--border-solid);padding-top:14px;margin-top:14px;">
+                        <label class="form-label">أو اختر مستخدم يدوياً بالاسم (اختياري)</label>
+                        <select id="pointsTargetUserSelect" class="form-select" style="margin-bottom:10px;"></select>
+                        <button class="action-btn btn-add-pt" style="width:100%;padding:10px;font-size:0.88rem;" onclick="submitPointsUpdateManual()">
+                            <i class="fas fa-save"></i> تطبيق النقاط يدوياً للمستخدم المحدد
+                        </button>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- TAB 3: POINTS MANAGEMENT VIA QR SCANNER -->
-        <div class="tab-content" id="tabPoints">
-            <div class="panel-card">
-                <div class="points-panel-header">
-                    <div class="card-title">
-                        <i class="fas fa-coins" style="color:var(--warning-dark);"></i> إعطاء / خصم نقاط بالـ QR
-                    </div>
-                    <button class="gear-btn" onclick="openSettingsModal()" title="إعدادات النقاط والإيميل">
-                        <i class="fas fa-cog"></i>
-                    </button>
-                </div>
-
-                <!-- Add vs Deduct Toggle -->
-                <div class="mode-toggle">
-                    <button class="mode-btn active add" id="modeAddBtn" onclick="setPointsMode('add')">
-                        <i class="fas fa-plus-circle"></i> إضافة نقاط (+)
-                    </button>
-                    <button class="mode-btn deduct" id="modeDeductBtn" onclick="setPointsMode('deduct')">
-                        <i class="fas fa-minus-circle"></i> خصم نقاط (-)
-                    </button>
-                </div>
-
-                <!-- Points Value Mode Switch (Shortcut Chips Tab vs Custom Points Tab) -->
-                <label class="form-label" style="margin-bottom:6px;">طريقة تحديد كمية النقاط</label>
-                <div class="mode-toggle">
-                    <button type="button" class="mode-btn active" id="ptsValShortcutTab" onclick="switchPointsValueMode('shortcuts')">
-                        <i class="fas fa-th-large"></i> اختصارات سريعة
-                    </button>
-                    <button type="button" class="mode-btn" id="ptsValCustomTab" onclick="switchPointsValueMode('custom')">
-                        <i class="fas fa-pen"></i> عدد نقاط مخصص
-                    </button>
-                </div>
-
-                <!-- Shortcuts Chips View -->
-                <div id="shortcutsContainer">
-                    <div class="shortcuts-grid" id="shortcutsGrid"></div>
-                </div>
-
-                <!-- Custom Points Input View (Separate Tab View) -->
-                <div id="customPointsContainer" class="form-group" style="display:none;">
-                    <label class="form-label">ادخل عدد النقاط المخصص</label>
-                    <input type="number" id="customPointsInput" class="form-input" placeholder="مثال: 25">
-                </div>
-
-                <!-- Reasons Chips Section -->
-                <div class="form-group">
-                    <label class="form-label">سبب إعطاء/خصم النقاط</label>
-                    <div class="reasons-chips-grid" id="reasonsChipsGrid"></div>
-                </div>
-                <div class="form-group" id="reasonOtherGroup" style="display:none;">
-                    <label class="form-label">اكتب السبب المخصص</label>
-                    <input type="text" id="reasonOtherInput" class="form-input" placeholder="اكتب السبب هنا...">
-                </div>
-
-                <button class="btn-primary" style="padding:14px;font-size:1.05rem;margin-bottom:16px;" onclick="openPointsQrScanner()">
-                    <i class="fas fa-qrcode" style="font-size:1.2rem;"></i> مسح كود الـ QR لإضافة النقاط
-                </button>
-
-                <div style="border-top:1px dashed var(--border-solid);padding-top:14px;margin-top:14px;">
-                    <label class="form-label">أو اختر مستخدم يدوياً بالاسم (اختياري)</label>
-                    <select id="pointsTargetUserSelect" class="form-select" style="margin-bottom:10px;"></select>
-                    <button class="action-btn btn-add-pt" style="width:100%;padding:10px;font-size:0.88rem;" onclick="submitPointsUpdateManual()">
-                        <i class="fas fa-save"></i> تطبيق النقاط يدوياً للمستخدم المحدد
-                    </button>
-                </div>
-            </div>
-        </div>
+        </main>
     </div>
 
-    <!-- ADD / EDIT USER MODAL (Includes Bulk Add Option) -->
+    <!-- MOBILE BOTTOM NAVIGATION BAR -->
+    <nav class="mobile-bottom-nav">
+        <button class="mobile-nav-item active" id="mobBtnUsers" onclick="switchTab('tabUsers')">
+            <i class="fas fa-users"></i>
+            <span>الأعضاء</span>
+        </button>
+        <button class="mobile-nav-item" id="mobBtnEvents" onclick="switchTab('tabEvents')">
+            <i class="fas fa-calendar-star"></i>
+            <span>الفعاليات</span>
+        </button>
+        <button class="mobile-nav-item" id="mobBtnPoints" onclick="switchTab('tabPoints')">
+            <i class="fas fa-coins"></i>
+            <span>النقاط</span>
+        </button>
+    </nav>
+
+    <!-- ADD / EDIT USER MODAL (With Profile Photo Upload Option) -->
     <div class="modal-overlay" id="addUserModal">
         <div class="modal-card">
             <div class="modal-header">
@@ -717,6 +797,17 @@
                 <form id="addUserForm" onsubmit="submitAddUser(event)">
                     <input type="hidden" id="userIdInput" value="0">
                     <div class="form-grid">
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label class="form-label">صورة الملف الشخصي</label>
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <div id="userPhotoPreview" class="user-row-avatar male" style="width:52px;height:52px;font-size:1.3rem;">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <input type="file" id="userPhotoFileInput" accept="image/*" class="form-input" style="padding:6px;font-size:0.8rem;" onchange="handleUserPhotoUpload(event)">
+                                <input type="hidden" id="userPhotoInput" value="">
+                            </div>
+                        </div>
+
                         <div class="form-group">
                             <label class="form-label">الاسم بالكامل *</label>
                             <input type="text" id="userNameInput" class="form-input" required autocomplete="name" placeholder="الاسم بالكامل">
@@ -889,8 +980,10 @@
 
         const activeUserId = localStorage.getItem('brethren_active_user_id');
         document.getElementById('myProfileLink').href = `${USER_URL}?id=${activeUserId || ''}`;
+        document.getElementById('mobileProfileLink').href = `${USER_URL}?id=${activeUserId || ''}`;
         document.getElementById('adminBrandLink').href = ADMIN_BRAND_URL;
         document.getElementById('adminLogoImg').src = LOGO_SRC;
+        document.getElementById('mobileLogoImg').src = LOGO_SRC;
 
         let usersList = [];
         let eventsList = [];
@@ -944,10 +1037,33 @@
         });
 
         function switchTab(tabId) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            event.currentTarget.classList.add('active');
             document.getElementById(tabId).classList.add('active');
+
+            // Update Desktop Sidebar Buttons
+            document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+            if (tabId === 'tabUsers') document.getElementById('sideBtnUsers').classList.add('active');
+            if (tabId === 'tabEvents') document.getElementById('sideBtnEvents').classList.add('active');
+            if (tabId === 'tabPoints') document.getElementById('sideBtnPoints').classList.add('active');
+
+            // Update Mobile Bottom Nav Buttons
+            document.querySelectorAll('.mobile-nav-item').forEach(m => m.classList.remove('active'));
+            if (tabId === 'tabUsers') document.getElementById('mobBtnUsers').classList.add('active');
+            if (tabId === 'tabEvents') document.getElementById('mobBtnEvents').classList.add('active');
+            if (tabId === 'tabPoints') document.getElementById('mobBtnPoints').classList.add('active');
+        }
+
+        function handleUserPhotoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Img = e.target.result;
+                document.getElementById('userPhotoInput').value = base64Img;
+                document.getElementById('userPhotoPreview').innerHTML = `<img src="${base64Img}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
+            };
+            reader.readAsDataURL(file);
         }
 
         function switchAddUserMode(mode) {
@@ -1065,6 +1181,8 @@
         function openAddUserModal() {
             document.getElementById('addUserForm').reset();
             document.getElementById('userIdInput').value = 0;
+            document.getElementById('userPhotoInput').value = '';
+            document.getElementById('userPhotoPreview').innerHTML = `<i class="fas fa-user"></i>`;
             switchAddUserMode('single');
             document.getElementById('addUserModalTitle').innerText = 'إضافة مستخدم جديد';
             document.getElementById('saveUserBtn').innerHTML = `<i class="fas fa-plus"></i> حفظ المستخدم`;
@@ -1085,6 +1203,14 @@
             document.getElementById('userGenderInput').value = u.gender || 'ذكر';
             document.getElementById('userBirthDateInput').value = u.birth_date || '';
             document.getElementById('userIsAdminInput').value = u.is_admin || 0;
+            document.getElementById('userPhotoInput').value = u.photo || '';
+
+            if (u.photo) {
+                document.getElementById('userPhotoPreview').innerHTML = `<img src="${u.photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
+            } else {
+                document.getElementById('userPhotoPreview').innerHTML = `<i class="fas fa-user"></i>`;
+            }
+
             document.getElementById('addUserModalTitle').innerText = 'تعديل بيانات المستخدم';
             document.getElementById('saveUserBtn').innerHTML = `<i class="fas fa-save"></i> تحديث البيانات`;
             document.getElementById('addUserModal').classList.add('active');
@@ -1106,7 +1232,7 @@
 
                     modalBody.innerHTML = `
                         <div class="info-detail-wrap">
-                            <div class="info-detail-avatar">
+                            <div class="info-detail-avatar" style="border:3px solid #fff;box-shadow:var(--shadow-md);background:var(--brand-bg);">
                                 ${u.photo ? `<img src="${u.photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : u.name.charAt(0)}
                             </div>
                             <div class="info-detail-name">${u.name}</div>
@@ -1166,6 +1292,7 @@
                 location: document.getElementById('userLocationInput').value.trim(),
                 gender: document.getElementById('userGenderInput').value || 'ذكر',
                 birth_date: document.getElementById('userBirthDateInput').value.trim(),
+                photo: document.getElementById('userPhotoInput').value.trim(),
                 is_admin: parseInt(document.getElementById('userIsAdminInput').value, 10)
             };
 
