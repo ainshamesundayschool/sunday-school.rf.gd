@@ -240,15 +240,65 @@
         /* Mobile Header Header */
         .mobile-topbar {
             display: none;
-            background: rgba(255, 255, 255, 0.92);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--border-solid);
-            padding: 8px 12px;
+            padding: 8px 14px;
             border-radius: var(--r-lg);
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             align-items: center;
             justify-content: space-between;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .mobile-topbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            font-weight: 900;
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        .mobile-topbar-logo {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+        }
+
+        .mobile-topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mobile-action-btn {
+            background: var(--surface-2);
+            color: var(--text-2);
+            border: 1px solid var(--border-solid);
+            width: 32px;
+            height: 32px;
+            border-radius: var(--r-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.88rem;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mobile-action-btn.profile {
+            background: var(--brand-bg);
+            color: var(--brand-dark);
+            border-color: rgba(91, 108, 245, 0.2);
+        }
+
+        .mobile-action-btn.logout:hover {
+            background: var(--danger-bg);
+            color: var(--danger);
         }
 
         /* Media Queries for Responsive Navigation */
@@ -585,15 +635,15 @@
         <main class="main-content">
             <!-- MOBILE TOPBAR -->
             <div class="mobile-topbar">
-                <div class="brand">
-                    <img src="/assets/brethren-logo.png" id="mobileLogoImg" class="brand-logo-img" alt="Logo">
+                <a href="#" class="mobile-topbar-brand">
+                    <img src="/assets/brethren-logo.png" id="mobileLogoImg" class="mobile-topbar-logo" alt="Logo">
                     <span>لوحة التحكم</span>
-                </div>
-                <div style="display:flex;gap:6px;">
-                    <a href="#" id="mobileProfileLink" class="portal-link" style="padding:4px 8px;font-size:0.75rem;">
+                </a>
+                <div class="mobile-topbar-actions">
+                    <a href="#" id="mobileProfileLink" class="mobile-action-btn profile" title="ملفي الشخصي">
                         <i class="fas fa-user-circle"></i>
                     </a>
-                    <button onclick="handleAdminLogout()" class="logout-btn" style="padding:4px 8px;font-size:0.75rem;">
+                    <button onclick="handleAdminLogout()" class="mobile-action-btn logout" title="تسجيل الخروج">
                         <i class="fas fa-sign-out-alt"></i>
                     </button>
                 </div>
