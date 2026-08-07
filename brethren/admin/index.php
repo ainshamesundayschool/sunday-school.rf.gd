@@ -448,53 +448,6 @@
         .modal-close:hover { color: var(--danger); }
         .modal-body { padding: 20px; overflow-y: auto; }
 
-        /* FULL SCREEN QR SCANNER PAGE STYLING */
-        .fullscreen-page {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #0f172a; color: #fff; z-index: 99999;
-            display: flex; flex-direction: column; overflow: hidden;
-            animation: fadeIn 0.2s ease;
-        }
-
-        .fullscreen-header {
-            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255,255,255,0.1); padding: 12px 16px;
-            display: flex; align-items: center; justify-content: space-between; gap: 12px;
-        }
-
-        .back-btn {
-            background: rgba(255,255,255,0.12); color: #fff; border: none;
-            padding: 8px 14px; border-radius: var(--r-full); font-size: 0.88rem; font-weight: 800;
-            cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;
-        }
-
-        .back-btn:hover { background: rgba(255,255,255,0.25); }
-
-        .fullscreen-title {
-            font-size: 1.05rem; font-weight: 900; color: #fff; text-align: center;
-            flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
-
-        .fullscreen-body {
-            flex: 1; display: flex; flex-direction: column; padding: 16px;
-            gap: 14px; max-width: 650px; width: 100%; margin: 0 auto;
-        }
-
-        .fullscreen-video-wrap {
-            flex: 1; width: 100%; background: #000; border-radius: var(--r-xl);
-            overflow: hidden; position: relative; box-shadow: var(--shadow-xl);
-            border: 2px solid rgba(255,255,255,0.15); min-height: 280px;
-        }
-
-        #qrVideo { width: 100%; height: 100%; object-fit: cover; }
-
-        .scan-target-box {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 220px; height: 220px; border: 3px dashed rgba(255, 255, 255, 0.7);
-            border-radius: var(--r-lg); box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);
-            pointer-events: none;
-        }
-
         /* Mobile Optimization Media Query */
         @media (max-width: 768px) {
             .container { padding: 8px; }
@@ -529,22 +482,22 @@
         .qr-preview-box img { width: 150px; height: 150px; object-fit: contain; }
 
         .scan-result-card {
-            background: #1e293b; border: 1px solid rgba(255,255,255,0.15);
-            border-radius: var(--r-lg); padding: 14px; display: none; align-items: center;
-            gap: 14px; box-shadow: var(--shadow-md); animation: fadeIn 0.2s ease; color: #fff;
+            background: var(--surface-2); border: 1px solid var(--border-solid);
+            border-radius: var(--r-lg); padding: 12px 14px; display: none; align-items: center;
+            gap: 12px; box-shadow: var(--shadow-sm); animation: fadeIn 0.2s ease;
         }
 
         .scanned-user-avatar {
-            width: 50px; height: 50px; border-radius: 50%; background: var(--brand-bg);
-            color: var(--brand); font-size: 1.25rem; font-weight: 900; display: flex;
+            width: 44px; height: 44px; border-radius: 50%; background: var(--brand-bg);
+            color: var(--brand); font-size: 1.1rem; font-weight: 900; display: flex;
             align-items: center; justify-content: center; flex-shrink: 0; border: 2px solid var(--brand-light); object-fit: cover;
         }
 
         .scanned-user-info { flex: 1; min-width: 0; }
-        .scanned-user-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 3px; }
-        .scanned-user-name { font-size: 1.05rem; font-weight: 900; color: #fff; }
-        .scanned-points-badge { background: var(--success); color: #fff; padding: 3px 10px; border-radius: var(--r-full); font-size: 0.8rem; font-weight: 900; }
-        .scanned-status-msg { font-size: 0.82rem; font-weight: 700; color: #94a3b8; }
+        .scanned-user-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 2px; }
+        .scanned-user-name { font-size: 0.98rem; font-weight: 900; color: var(--text); }
+        .scanned-points-badge { background: var(--success-bg); color: var(--success-dark); padding: 3px 9px; border-radius: var(--r-full); font-size: 0.78rem; font-weight: 900; }
+        .scanned-status-msg { font-size: 0.8rem; font-weight: 700; color: var(--text-2); }
 
         .empty-state { text-align: center; padding: 24px; color: var(--text-3); font-size: 0.88rem; font-weight: 600; }
     </style>
@@ -606,20 +559,66 @@
             </div>
         </div>
 
-        <!-- TAB 2: EVENTS & SCANNER -->
+        <!-- TAB 2: EVENTS & INLINE QR SCANNER -->
         <div class="tab-content" id="tabEvents">
-            <div class="panel-card">
-                <div class="card-header-bar">
-                    <div class="card-title">
-                        <i class="fas fa-calendar-day"></i> الفعاليات المتاحة
+            <div class="panel-card" id="eventsMainCard">
+                <!-- Events List View -->
+                <div id="eventsGridWrapper">
+                    <div class="card-header-bar">
+                        <div class="card-title">
+                            <i class="fas fa-calendar-day"></i> الفعاليات المتاحة
+                        </div>
+                        <button class="btn-add-action" onclick="openAddEventModal()" title="إضافة فعالية جديدة">
+                            <i class="fas fa-calendar-plus"></i><span class="btn-text"> إضافة فعالية</span>
+                        </button>
                     </div>
-                    <button class="btn-add-action" onclick="openAddEventModal()" title="إضافة فعالية جديدة">
-                        <i class="fas fa-calendar-plus"></i><span class="btn-text"> إضافة فعالية</span>
-                    </button>
+
+                    <div class="events-list-grid" id="adminEventsGrid">
+                        <div class="empty-state">جاري التحميل...</div>
+                    </div>
                 </div>
 
-                <div class="events-list-grid" id="adminEventsGrid">
-                    <div class="empty-state">جاري التحميل...</div>
+                <!-- Inline In-Page Scanner Panel (Not Fullscreen, Not Modal Popup) -->
+                <div id="inlineScannerPanel" style="display:none; animation: fadeIn 0.2s ease;">
+                    <div class="card-header-bar" style="margin-bottom:14px;">
+                        <div class="card-title" id="scannerModalTitle">
+                            <i class="fas fa-qrcode" style="color:var(--brand);"></i>
+                            <span>مسح كود الحضور QR</span>
+                        </div>
+                        <button class="action-btn btn-info" onclick="closeScannerModal()" style="padding:6px 12px;">
+                            <i class="fas fa-arrow-right"></i>
+                            <span>الرجوع للفعاليات</span>
+                        </button>
+                    </div>
+
+                    <!-- Small Compact Camera Video Scanner Box (Height 190px, Max Width 340px) -->
+                    <div id="qrVideoContainer" style="width:100%;max-width:340px;height:190px;background:#000;border-radius:var(--r-lg);overflow:hidden;position:relative;margin:0 auto 14px;box-shadow:var(--shadow-md);border:2px solid var(--border-solid);">
+                        <video id="qrVideo" playsinline style="width:100%;height:100%;object-fit:cover;"></video>
+                        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:130px;height:130px;border:2px dashed rgba(255,255,255,0.75);border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,0.4);pointer-events:none;"></div>
+                    </div>
+
+                    <!-- Active Scanned User Result Banner -->
+                    <div class="scan-result-card" id="scanFeedbackBanner" style="margin-bottom:16px;">
+                        <div id="scanFeedbackAvatar" class="scanned-user-avatar"></div>
+                        <div class="scanned-user-info">
+                            <div class="scanned-user-top">
+                                <div id="scanFeedbackName" class="scanned-user-name"></div>
+                                <span class="scanned-points-badge" id="scanFeedbackPointsBadge">+20 نقطة</span>
+                            </div>
+                            <div id="scanFeedbackMsg" class="scanned-status-msg"></div>
+                        </div>
+                    </div>
+
+                    <!-- Rendered Scans / Attended Users List Underneath Camera -->
+                    <div style="border-top:1px dashed var(--border-solid);padding-top:14px;">
+                        <div style="font-weight:900;font-size:0.95rem;color:var(--text);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;">
+                            <span><i class="fas fa-list-check" style="color:var(--brand);"></i> سجل المسح والحضور المباشر</span>
+                            <span id="inlineAttendedCount" class="event-attendance-badge">0 حاضر</span>
+                        </div>
+                        <div class="user-list-container" id="renderedScansList">
+                            <div class="empty-state">لا يوجد مسح مسجل في هذه الجلسة بعد</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -688,38 +687,6 @@
                     <button class="action-btn btn-add-pt" style="width:100%;padding:10px;font-size:0.88rem;" onclick="submitPointsUpdateManual()">
                         <i class="fas fa-save"></i> تطبيق النقاط يدوياً للمستخدم المحدد
                     </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- FULL SCREEN QR SCANNER PAGE VIEW -->
-    <div id="qrScannerScreen" class="fullscreen-page" style="display:none;">
-        <div class="fullscreen-header">
-            <button class="back-btn" onclick="closeScannerModal()">
-                <i class="fas fa-arrow-right"></i>
-                <span>رجوع</span>
-            </button>
-            <div class="fullscreen-title" id="scannerModalTitle">مسح كود الحضور QR</div>
-            <div style="width:40px;"></div>
-        </div>
-        
-        <div class="fullscreen-body">
-            <!-- Camera Video Feed Container -->
-            <div id="qrVideoContainer" class="fullscreen-video-wrap">
-                <video id="qrVideo" playsinline></video>
-                <div class="scan-target-box"></div>
-            </div>
-
-            <!-- Scanned User Card Underneath Video -->
-            <div class="scan-result-card" id="scanFeedbackBanner">
-                <div id="scanFeedbackAvatar" class="scanned-user-avatar"></div>
-                <div class="scanned-user-info">
-                    <div class="scanned-user-top">
-                        <div id="scanFeedbackName" class="scanned-user-name"></div>
-                        <span class="scanned-points-badge" id="scanFeedbackPointsBadge">+20 نقطة</span>
-                    </div>
-                    <div id="scanFeedbackMsg" class="scanned-status-msg"></div>
                 </div>
             </div>
         </div>
@@ -1381,25 +1348,78 @@
             openScannerModal('points', { amount: amount, reason: reason });
         }
 
-        function openScannerModal(type, data) {
+        async function openScannerModal(type, data) {
             activeScannerTask = { type: type, ...data };
             const titleElem = document.getElementById('scannerModalTitle');
 
             if (type === 'attendance') {
-                titleElem.innerText = `مسح حضور QR: ${data.name}`;
+                titleElem.innerHTML = `<i class="fas fa-qrcode" style="color:var(--brand);"></i> <span>مسح حضور QR: ${data.name}</span>`;
+                switchTab('tabEvents');
             } else {
-                titleElem.innerText = `مسح QR لإضافة نقاط (${data.amount > 0 ? '+' : ''}${data.amount} نقطة - ${data.reason})`;
+                titleElem.innerHTML = `<i class="fas fa-qrcode" style="color:var(--warning-dark);"></i> <span>مسح QR لإضافة نقاط (${data.amount > 0 ? '+' : ''}${data.amount} نقطة - ${data.reason})</span>`;
+                switchTab('tabEvents');
             }
 
+            document.getElementById('eventsGridWrapper').style.display = 'none';
+            document.getElementById('inlineScannerPanel').style.display = 'block';
             document.getElementById('scanFeedbackBanner').style.display = 'none';
-            document.getElementById('qrScannerScreen').style.display = 'flex';
 
             const videoElem = document.getElementById('qrVideo');
             if (typeof QrScanner !== 'undefined') {
+                if (qrScannerInstance) { qrScannerInstance.stop(); qrScannerInstance.destroy(); }
                 qrScannerInstance = new QrScanner(videoElem, result => onQrCodeScanned(result.data || result), {
                     highlightScanRegion: true, highlightCodeOutline: true
                 });
                 qrScannerInstance.start().catch(err => alert('تعذر فتح الكاميرا'));
+            }
+
+            if (type === 'attendance') {
+                fetchEventAttendanceHistory(data.eventId);
+            } else {
+                document.getElementById('renderedScansList').innerHTML = `<div class="empty-state">سجل النقاط سيظهر هنا عند مسح الأكواد</div>`;
+                document.getElementById('inlineAttendedCount').innerText = `جاهز للمسح`;
+            }
+        }
+
+        async function fetchEventAttendanceHistory(eventId) {
+            const listElem = document.getElementById('renderedScansList');
+            const badgeElem = document.getElementById('inlineAttendedCount');
+            try {
+                const res = await fetch(`${API_URL}?action=get_event_attendance&event_id=${eventId}`);
+                const data = await res.json();
+                if (data.status === 'success' && data.attended_users) {
+                    const users = data.attended_users;
+                    badgeElem.innerText = `${users.length} حاضر`;
+                    if (users.length === 0) {
+                        listElem.innerHTML = `<div class="empty-state">لم يتم مسح أي عضو في هذه الفعالية بعد</div>`;
+                        return;
+                    }
+                    listElem.innerHTML = users.map(u => {
+                        const timeStr = u.scanned_at ? (u.scanned_at.split(' ')[1] || u.scanned_at) : '';
+                        return `
+                        <div class="user-list-row" style="background:var(--surface);">
+                            <div class="user-row-top-line">
+                                <div class="user-row-main">
+                                    <div class="user-row-avatar ${u.gender === 'أنثى' ? 'female' : 'male'}">
+                                        ${u.photo ? `<img src="${u.photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : u.name.charAt(0)}
+                                    </div>
+                                    <div class="user-row-details">
+                                        <div class="user-row-title">${u.name}</div>
+                                        <div class="user-row-sub">
+                                            <span><i class="far fa-clock"></i> ${timeStr || 'مسجل'}</span>
+                                            ${u.email ? `<span>• ${u.email}</span>` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                                <span class="user-row-points" style="background:var(--success-bg);color:var(--success-dark);">
+                                    <i class="fas fa-check-circle"></i> +20 نقطة
+                                </span>
+                            </div>
+                        </div>
+                    `}).join('');
+                }
+            } catch (e) {
+                listElem.innerHTML = `<div class="empty-state">تعذر تحميل سجل الحضور</div>`;
             }
         }
 
@@ -1431,6 +1451,7 @@
                         msgElem.innerText = `✓ تم تسجيل الحضور بنجاح وأضيفت 20+ نقطة!`;
                         banner.style.display = 'flex';
                         fetchEvents(); fetchUsers();
+                        fetchEventAttendanceHistory(activeScannerTask.eventId);
                     } else if (data.status === 'already_attended') {
                         playErrorSound();
                         avatar.innerHTML = (data.user && data.user.photo) ? `<img src="${data.user.photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : (data.user ? data.user.name.charAt(0) : '?');
@@ -1475,7 +1496,8 @@
 
         function closeScannerModal() {
             if (qrScannerInstance) { qrScannerInstance.stop(); qrScannerInstance.destroy(); qrScannerInstance = null; }
-            document.getElementById('qrScannerScreen').style.display = 'none';
+            document.getElementById('inlineScannerPanel').style.display = 'none';
+            document.getElementById('eventsGridWrapper').style.display = 'block';
         }
 
         async function fetchSettings() {

@@ -671,6 +671,31 @@ switch ($action) {
         ]);
         break;
 
+    case 'get_event_attendance':
+        $eventId = (int)($_GET['event_id'] ?? $bodyData['event_id'] ?? 0);
+        if ($eventId <= 0) {
+            sendJSONResponse(['status' => 'error', 'message' => 'Event ID is required'], 400);
+        }
+
+        $stmt = $db->prepare("SELECT u.id, u.name, u.email, u.phone, u.photo, u.points, a.scanned_at 
+            FROM `brethren_attendance` a 
+            JOIN `brethren_users` u ON a.user_id = u.id 
+            WHERE a.event_id = ? 
+            ORDER BY a.scanned_at DESC");
+        $stmt->bind_param('i', $eventId);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        $attendedUsers = [];
+        while ($row = $res->fetch_assoc()) {
+            $attendedUsers[] = $row;
+        }
+
+        sendJSONResponse([
+            'status' => 'success',
+            'attended_users' => $attendedUsers
+        ]);
+        break;
+
     // ─────────────────────────────────────────────────────────────
     // POINTS & SETTINGS ACTIONS
     // ─────────────────────────────────────────────────────────────
