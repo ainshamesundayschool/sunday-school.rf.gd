@@ -100,13 +100,13 @@
             position: sticky;
             top: 0;
             z-index: 300;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--border-solid);
-            padding: 10px 16px;
+            padding: 8px 14px;
             border-radius: var(--r-xl);
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -116,36 +116,36 @@
         .brand {
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-size: 1.15rem;
+            gap: 8px;
+            font-size: 1.05rem;
             font-weight: 900;
             color: var(--text);
             text-decoration: none;
         }
 
         .brand-logo-img {
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
             object-fit: contain;
         }
 
         .topbar-actions {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .portal-link {
             background: var(--brand-bg);
             color: var(--brand-dark);
-            padding: 7px 12px;
+            padding: 6px 10px;
             border-radius: var(--r-md);
             text-decoration: none;
             font-weight: 800;
-            font-size: 0.82rem;
+            font-size: 0.78rem;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             border: 1px solid rgba(91, 108, 245, 0.2);
             transition: all 0.2s;
         }
@@ -156,14 +156,14 @@
             background: var(--surface-2);
             color: var(--text-2);
             border: 1px solid var(--border-solid);
-            padding: 7px 12px;
+            padding: 6px 10px;
             border-radius: var(--r-md);
             font-weight: 800;
-            font-size: 0.82rem;
+            font-size: 0.78rem;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
         }
 
         .logout-btn:hover { background: var(--danger-bg); color: var(--danger); }
@@ -173,8 +173,8 @@
             display: flex;
             gap: 8px;
             overflow-x: auto;
-            padding-bottom: 6px;
-            margin-bottom: 16px;
+            padding-bottom: 4px;
+            margin-bottom: 14px;
             scrollbar-width: none;
         }
 
@@ -184,14 +184,14 @@
             background: var(--surface);
             border: 1px solid var(--border-solid);
             color: var(--text-2);
-            padding: 9px 16px;
+            padding: 8px 14px;
             border-radius: var(--r-lg);
-            font-size: 0.88rem;
+            font-size: 0.85rem;
             font-weight: 800;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 7px;
+            gap: 6px;
             white-space: nowrap;
             transition: all 0.2s ease;
             box-shadow: var(--shadow-sm);
@@ -212,8 +212,8 @@
             background: var(--surface);
             border: 1px solid var(--border-solid);
             border-radius: var(--r-xl);
-            padding: 18px;
-            margin-bottom: 16px;
+            padding: 16px;
+            margin-bottom: 14px;
             box-shadow: var(--shadow-md);
         }
 
@@ -221,18 +221,17 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
-            margin-bottom: 14px;
-            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
         }
 
         .card-title {
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             font-weight: 900;
             color: var(--text);
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 7px;
         }
 
         .card-title i { color: var(--brand); }
@@ -241,9 +240,9 @@
             background: var(--brand);
             color: #fff;
             border: none;
-            padding: 9px 16px;
+            padding: 8px 14px;
             border-radius: var(--r-md);
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             font-weight: 800;
             cursor: pointer;
             display: inline-flex;
@@ -251,23 +250,24 @@
             gap: 6px;
             box-shadow: 0 4px 12px var(--brand-glow);
             transition: all 0.2s;
+            white-space: nowrap;
         }
 
         .btn-add-action:hover { background: var(--brand-dark); transform: translateY(-1px); }
 
         /* Search Input */
-        .search-box { position: relative; width: 100%; margin-bottom: 14px; }
+        .search-box { position: relative; width: 100%; margin-bottom: 12px; }
 
         .search-box input {
             width: 100%; background: var(--surface-2); border: 1.5px solid var(--border-solid);
-            padding: 10px 42px 10px 14px; border-radius: var(--r-md); color: var(--text);
-            font-size: 0.88rem; font-weight: 600; outline: none; transition: all 0.2s;
+            padding: 9px 38px 9px 12px; border-radius: var(--r-md); color: var(--text);
+            font-size: 0.86rem; font-weight: 600; outline: none; transition: all 0.2s;
         }
 
         .search-box input:focus { border-color: var(--brand); background: #fff; box-shadow: 0 0 0 3px var(--brand-glow); }
-        .search-box i { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--text-3); }
+        .search-box i { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-3); }
 
-        /* Compact Vertical List Layout for Users */
+        /* Responsive Compact List Layout for Users */
         .user-list-container {
             display: flex; flex-direction: column; gap: 8px;
         }
@@ -283,32 +283,36 @@
             border-color: var(--brand-light); background: #fff; box-shadow: var(--shadow-sm);
         }
 
+        .user-row-top-line {
+            display: flex; align-items: center; justify-content: space-between; gap: 10px; flex: 1; min-width: 0;
+        }
+
         .user-row-main {
-            display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;
+            display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;
         }
 
         .user-row-avatar {
-            width: 42px; height: 42px; border-radius: 50%; object-fit: cover;
-            display: flex; align-items: center; justify-content: center; font-size: 1rem;
+            width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
+            display: flex; align-items: center; justify-content: center; font-size: 0.95rem;
             font-weight: 800; flex-shrink: 0; border: 2px solid var(--surface); box-shadow: var(--shadow-sm);
         }
         .user-row-avatar.male { background: linear-gradient(135deg, #60a5fa, #2563eb); color: #fff; }
         .user-row-avatar.female { background: linear-gradient(135deg, #f472b6, #db2777); color: #fff; }
 
         .user-row-details { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-        .user-row-title { font-size: 0.95rem; font-weight: 900; color: var(--text); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .user-row-sub { font-size: 0.78rem; color: var(--text-3); font-weight: 600; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .user-row-title { font-size: 0.92rem; font-weight: 900; color: var(--text); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+        .user-row-sub { font-size: 0.76rem; color: var(--text-3); font-weight: 600; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
         .user-row-points {
             background: var(--warning-bg); color: var(--warning-dark); padding: 3px 9px;
-            border-radius: var(--r-full); font-size: 0.78rem; font-weight: 900; white-space: nowrap;
+            border-radius: var(--r-full); font-size: 0.76rem; font-weight: 900; white-space: nowrap; flex-shrink: 0;
         }
 
         .user-row-actions { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
 
         .action-btn {
-            padding: 6px 10px; border-radius: var(--r-sm); border: 1px solid transparent;
-            font-weight: 800; font-size: 0.78rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+            padding: 6px 9px; border-radius: var(--r-sm); border: 1px solid transparent;
+            font-weight: 800; font-size: 0.76rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
         }
 
         .btn-info { background: var(--surface-3); color: var(--text-2); border-color: var(--border-solid); }
@@ -444,6 +448,36 @@
         .modal-close:hover { color: var(--danger); }
         .modal-body { padding: 20px; overflow-y: auto; }
 
+        /* Mobile Optimization Media Query (Icon-Only Buttons & Clean Layout) */
+        @media (max-width: 768px) {
+            .container { padding: 8px; }
+            .topbar { padding: 6px 10px; margin-bottom: 10px; border-radius: var(--r-md); }
+            .brand { font-size: 0.92rem; gap: 6px; }
+            .brand-logo-img { width: 26px; height: 26px; }
+            .topbar-actions { gap: 4px; }
+            .portal-link, .logout-btn { padding: 6px 8px; font-size: 0.72rem; border-radius: var(--r-sm); }
+            .portal-link .btn-text, .logout-btn .btn-text { display: none; }
+
+            .card-header-bar { align-items: center; justify-content: space-between; gap: 8px; }
+            .btn-add-action { width: 36px; height: 36px; padding: 0; border-radius: 50%; justify-content: center; font-size: 0.95rem; }
+            .btn-add-action .btn-text { display: none; }
+
+            /* Mobile User List Row Stacking & Icon-Only Action Buttons */
+            .user-list-row {
+                flex-direction: column; align-items: stretch; gap: 8px; padding: 10px 12px;
+            }
+
+            .user-row-actions {
+                display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%;
+                padding-top: 6px; border-top: 1px dashed var(--border-solid);
+            }
+
+            .user-row-actions .action-btn {
+                width: 100%; padding: 8px 0; font-size: 0.85rem; justify-content: center;
+            }
+            .user-row-actions .action-btn .btn-text { display: none; }
+        }
+
         /* User Info Detail Rows */
         .info-detail-wrap { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border-solid); }
         .info-detail-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; background: var(--brand-bg); color: var(--brand); display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 900; margin-bottom: 10px; border: 3px solid var(--brand-light); box-shadow: var(--shadow-md); }
@@ -489,16 +523,16 @@
         <header class="topbar">
             <a href="#" id="adminBrandLink" class="brand">
                 <img src="/assets/brethren-logo.png" id="adminLogoImg" class="brand-logo-img" alt="Logo">
-                <span>لوحة التحكم - الأخوة</span>
+                <span>لوحة التحكم</span>
             </a>
             <div class="topbar-actions">
-                <a href="#" id="myProfileLink" class="portal-link">
+                <a href="#" id="myProfileLink" class="portal-link" title="ملفي والـ QR">
                     <i class="fas fa-user-circle"></i>
-                    <span>ملفي والـ QR</span>
+                    <span class="btn-text">ملفي</span>
                 </a>
-                <button onclick="handleAdminLogout()" class="logout-btn">
+                <button onclick="handleAdminLogout()" class="logout-btn" title="تسجيل الخروج">
                     <i class="fas fa-sign-out-alt"></i>
-                    <span>خروج</span>
+                    <span class="btn-text">خروج</span>
                 </button>
             </div>
         </header>
@@ -506,13 +540,13 @@
         <!-- Navigation Tabs -->
         <nav class="nav-tabs">
             <button class="tab-btn active" onclick="switchTab('tabUsers')">
-                <i class="fas fa-users"></i> قائمة الأعضاء والمستخدمين
+                <i class="fas fa-users"></i> قائمة الأعضاء
             </button>
             <button class="tab-btn" onclick="switchTab('tabEvents')">
-                <i class="fas fa-calendar-star"></i> الفعاليات ومسح QR
+                <i class="fas fa-calendar-star"></i> الفعاليات وQR
             </button>
             <button class="tab-btn" onclick="switchTab('tabPoints')">
-                <i class="fas fa-coins"></i> إدارة النقاط والـ QR
+                <i class="fas fa-coins"></i> النقاط والـ QR
             </button>
         </nav>
 
@@ -523,8 +557,8 @@
                     <div class="card-title">
                         <i class="fas fa-users"></i> قائمة الأعضاء والمستخدمين
                     </div>
-                    <button class="btn-add-action" onclick="openAddUserModal()">
-                        <i class="fas fa-user-plus"></i> إضافة مستخدم جديد
+                    <button class="btn-add-action" onclick="openAddUserModal()" title="إضافة مستخدم جديد">
+                        <i class="fas fa-user-plus"></i><span class="btn-text"> إضافة جديد</span>
                     </button>
                 </div>
 
@@ -544,10 +578,10 @@
             <div class="panel-card">
                 <div class="card-header-bar">
                     <div class="card-title">
-                        <i class="fas fa-calendar-day"></i> الفعاليات المتاحة (اضغط على الفعالية لمسح الحضور)
+                        <i class="fas fa-calendar-day"></i> الفعاليات المتاحة
                     </div>
-                    <button class="btn-add-action" onclick="openAddEventModal()">
-                        <i class="fas fa-calendar-plus"></i> إضافة فعالية جديدة
+                    <button class="btn-add-action" onclick="openAddEventModal()" title="إضافة فعالية جديدة">
+                        <i class="fas fa-calendar-plus"></i><span class="btn-text"> إضافة فعالية</span>
                     </button>
                 </div>
 
@@ -864,13 +898,11 @@
             enable_shortcut: true,
             enable_custom: true,
             reasons: ['ألعاب', 'بونص', 'التزام بالأوقات'],
-            admin_passcode: 'admin123',
-            admin_email: 'admin@sunday-school.online',
-            google_script_url: ''
+            admin_email: 'admin@sunday-school.online'
         };
 
         let currentPointsMode = 'add';
-        let currentPointsValueMode = 'shortcuts'; // 'shortcuts' or 'custom'
+        let currentPointsValueMode = 'shortcuts';
         let selectedShortcutPoints = 10;
         let selectedReasonText = 'ألعاب';
         let activeScannerTask = null;
@@ -994,30 +1026,30 @@
                 const isFemale = u.gender === 'أنثى';
                 return `
                 <div class="user-list-row">
-                    <div class="user-row-main">
-                        <div class="user-row-avatar ${isFemale ? 'female' : 'male'}">
-                            ${u.photo ? `<img src="${u.photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : u.name.charAt(0)}
-                        </div>
-                        <div class="user-row-details">
-                            <div class="user-row-title">
-                                <span>${u.name}</span>
-                                ${u.is_admin == 1 ? '<span style="color:var(--brand);font-size:0.75rem;">(Admin)</span>' : ''}
+                    <div class="user-row-top-line">
+                        <div class="user-row-main">
+                            <div class="user-row-avatar ${isFemale ? 'female' : 'male'}">
+                                ${u.photo ? `<img src="${u.photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : u.name.charAt(0)}
                             </div>
-                            <div class="user-row-sub">
-                                <span><i class="fas fa-envelope"></i> ${u.email || u.phone || 'بدون بيانات'}</span>
-                                ${u.location ? `<span>• <i class="fas fa-map-marker-alt"></i> ${u.location}</span>` : ''}
+                            <div class="user-row-details">
+                                <div class="user-row-title">
+                                    <span>${u.name}</span>
+                                    ${u.is_admin == 1 ? '<span style="color:var(--brand);font-size:0.72rem;">(Admin)</span>' : ''}
+                                </div>
+                                <div class="user-row-sub">
+                                    <span><i class="fas fa-envelope"></i> ${u.email || u.phone || 'بدون بيانات'}</span>
+                                    ${u.location ? `<span>• <i class="fas fa-map-marker-alt"></i> ${u.location}</span>` : ''}
+                                </div>
                             </div>
                         </div>
+                        <span class="user-row-points"><i class="fas fa-star"></i> ${u.points} نقطة</span>
                     </div>
 
-                    <div style="display:flex;align-items:center;gap:10px;">
-                        <span class="user-row-points"><i class="fas fa-star"></i> ${u.points} نقطة</span>
-                        <div class="user-row-actions">
-                            <button class="action-btn btn-info" onclick="openUserInfoModal(${u.id})"><i class="fas fa-info-circle"></i> معلومات</button>
-                            <button class="action-btn btn-edit" onclick="openEditUserModal(${u.id})"><i class="fas fa-edit"></i> تعديل</button>
-                            <button class="action-btn btn-add-pt" onclick="quickAddPointsUser(${u.id})"><i class="fas fa-plus"></i> نقاط</button>
-                            <button class="action-btn btn-delete" onclick="deleteUserConfirm(${u.id})" title="حذف"><i class="fas fa-trash"></i></button>
-                        </div>
+                    <div class="user-row-actions">
+                        <button class="action-btn btn-info" onclick="openUserInfoModal(${u.id})" title="معلومات"><i class="fas fa-info-circle"></i><span class="btn-text"> معلومات</span></button>
+                        <button class="action-btn btn-edit" onclick="openEditUserModal(${u.id})" title="تعديل"><i class="fas fa-edit"></i><span class="btn-text"> تعديل</span></button>
+                        <button class="action-btn btn-add-pt" onclick="quickAddPointsUser(${u.id})" title="نقاط"><i class="fas fa-plus"></i><span class="btn-text"> نقاط</span></button>
+                        <button class="action-btn btn-delete" onclick="deleteUserConfirm(${u.id})" title="حذف"><i class="fas fa-trash"></i><span class="btn-text"> حذف</span></button>
                     </div>
                 </div>
             `}).join('');
@@ -1508,7 +1540,6 @@
 
         function openSettingsModal() {
             document.getElementById('settingAdminEmailInput').value = systemSettings.admin_email || 'admin@sunday-school.online';
-            document.getElementById('settingAdminPasscodeInput').value = systemSettings.admin_passcode || 'admin123';
             document.getElementById('settingShortcutsInput').value = (systemSettings.shortcuts || [10, 30, 50, 100]).join(', ');
             document.getElementById('settingEnableShortcut').checked = systemSettings.enable_shortcut !== false;
             document.getElementById('settingEnableCustom').checked = systemSettings.enable_custom !== false;
@@ -1519,7 +1550,6 @@
         async function saveSettingsForm(e) {
             e.preventDefault();
             const adminEmail = document.getElementById('settingAdminEmailInput').value.trim();
-            const adminPasscode = document.getElementById('settingAdminPasscodeInput').value.trim() || 'admin123';
             const shortcutsRaw = document.getElementById('settingShortcutsInput').value;
             const shortcuts = shortcutsRaw.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
             const enableShortcut = document.getElementById('settingEnableShortcut').checked;
@@ -1530,7 +1560,6 @@
             const payload = {
                 action: 'save_settings',
                 admin_email: adminEmail,
-                admin_passcode: adminPasscode,
                 shortcuts: shortcuts.length > 0 ? shortcuts : [10, 30, 50, 100],
                 enable_shortcut: enableShortcut,
                 enable_custom: enableCustom,

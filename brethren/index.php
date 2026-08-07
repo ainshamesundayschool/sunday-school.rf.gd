@@ -306,6 +306,16 @@
             background: var(--surface);
         }
 
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .topbar { padding: 6px 10px; margin-bottom: 12px; border-radius: var(--r-md); gap: 6px; }
+            .brand { font-size: 0.95rem; gap: 6px; }
+            .brand-logo-img { width: 26px; height: 26px; }
+            .main-menu { gap: 4px; }
+            .menu-link { padding: 5px 9px; font-size: 0.75rem; border-radius: var(--r-sm); }
+            .nav-btn { padding: 5px 9px; font-size: 0.75rem; border-radius: var(--r-sm); }
+        }
+
         .tab-section { display: none; }
         .tab-section.active { display: block; animation: fadeIn 0.2s ease; }
 
