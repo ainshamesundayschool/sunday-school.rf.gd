@@ -162,51 +162,40 @@
         .profile-card {
             background: var(--surface);
             border: 1px solid var(--border-solid);
-            border-radius: var(--r-xl);
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow-md);
+            border-radius: var(--r-lg);
+            padding: 14px 16px;
+            margin-bottom: 14px;
+            box-shadow: var(--shadow-sm);
             position: relative;
-            overflow: hidden;
-        }
-
-        .profile-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 100%;
-            height: 5px;
-            background: linear-gradient(90deg, var(--brand), #8b5cf6, var(--warning));
         }
 
         .profile-top-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 16px;
+            gap: 12px;
             flex-wrap: wrap;
         }
 
         .profile-identity {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
             flex: 1;
         }
 
         .profile-avatar {
-            width: 76px;
-            height: 76px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             object-fit: cover;
-            border: 3px solid var(--brand-bg);
+            border: 2px solid var(--border-solid);
             box-shadow: var(--shadow-sm);
-            background: var(--surface-3);
+            background: var(--surface-2);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
+            font-size: 1.25rem;
             color: var(--brand);
             font-weight: 800;
             flex-shrink: 0;
@@ -215,65 +204,65 @@
         .profile-meta {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 3px;
         }
 
-
         .profile-name {
-            font-size: 1.35rem;
+            font-size: 1.05rem;
             font-weight: 900;
             color: var(--text);
             line-height: 1.2;
         }
 
         .points-badge {
-            background: linear-gradient(135deg, var(--warning), #d97706);
-            color: #fff;
-            padding: 6px 14px;
+            background: var(--brand-bg);
+            color: var(--brand-dark);
+            border: 1px solid rgba(91, 108, 245, 0.22);
+            padding: 4px 12px;
             border-radius: var(--r-full);
-            font-size: 0.95rem;
+            font-size: 0.82rem;
             font-weight: 900;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             cursor: pointer;
-            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);
-            transition: transform 0.2s;
+            transition: all 0.2s;
             width: fit-content;
         }
 
         .points-badge:hover {
-            transform: scale(1.04);
+            background: var(--brand);
+            color: #fff;
         }
 
         .info-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 10px;
-            margin-top: 16px;
-            padding-top: 14px;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 10px;
             border-top: 1px solid var(--border-solid);
         }
 
         .info-item {
             background: var(--surface-2);
-            padding: 9px 12px;
+            padding: 7px 10px;
             border-radius: var(--r-md);
             border: 1px solid var(--border-solid);
         }
 
         .info-label {
-            font-size: 0.74rem;
+            font-size: 0.72rem;
             color: var(--text-3);
             font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
             margin-bottom: 2px;
         }
 
         .info-value {
-            font-size: 0.88rem;
+            font-size: 0.84rem;
             font-weight: 800;
             color: var(--text);
             word-break: break-word;
@@ -282,16 +271,16 @@
         .edit-info-btn {
             background: var(--brand-bg);
             color: var(--brand-dark);
-            border: 1px solid rgba(91, 108, 245, 0.25);
-            padding: 7px 14px;
+            border: 1px solid rgba(91, 108, 245, 0.22);
+            padding: 6px 12px;
             border-radius: var(--r-md);
             font-weight: 800;
-            font-size: 0.82rem;
+            font-size: 0.78rem;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            margin-top: 14px;
+            gap: 5px;
+            margin-top: 10px;
             transition: all 0.2s;
         }
 
