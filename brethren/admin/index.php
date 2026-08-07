@@ -267,49 +267,54 @@
         .search-box input:focus { border-color: var(--brand); background: #fff; box-shadow: 0 0 0 3px var(--brand-glow); }
         .search-box i { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--text-3); }
 
-        /* Compact Cards Grid */
-        .user-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;
+        /* Compact Vertical List Layout for Users */
+        .user-list-container {
+            display: flex; flex-direction: column; gap: 8px;
         }
 
-        .user-card {
+        .user-list-row {
             background: var(--surface-2); border: 1px solid var(--border-solid);
-            border-radius: var(--r-lg); padding: 14px; display: flex; flex-direction: column;
-            justify-content: space-between; transition: all 0.2s; position: relative;
+            border-radius: var(--r-lg); padding: 10px 14px; display: flex;
+            align-items: center; justify-content: space-between; gap: 12px;
+            transition: all 0.2s ease;
         }
 
-        .user-card:hover { border-color: var(--brand-light); box-shadow: var(--shadow-sm); transform: translateY(-2px); }
-
-        .user-card-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
-
-        .user-card-avatar {
-            width: 44px; height: 44px; border-radius: 50%; background: var(--brand-bg);
-            display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
-            font-weight: 800; color: var(--brand); object-fit: cover; flex-shrink: 0;
-            border: 2px solid var(--surface); box-shadow: var(--shadow-sm);
+        .user-list-row:hover {
+            border-color: var(--brand-light); background: #fff; box-shadow: var(--shadow-sm);
         }
 
-        .user-card-avatar.male { background: linear-gradient(135deg, #60a5fa, #2563eb); color: #fff; }
-        .user-card-avatar.female { background: linear-gradient(135deg, #f472b6, #db2777); color: #fff; }
-
-        .user-card-info { flex: 1; min-width: 0; }
-        .user-card-name { font-size: 0.98rem; font-weight: 900; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .user-card-sub { font-size: 0.76rem; color: var(--text-3); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px; }
-        .user-card-points { background: var(--warning-bg); color: var(--warning-dark); padding: 2px 8px; border-radius: var(--r-full); font-size: 0.78rem; font-weight: 900; display: inline-block; margin-top: 4px; }
-
-        .user-card-actions {
-            display: flex; gap: 5px; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border-solid);
+        .user-row-main {
+            display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;
         }
+
+        .user-row-avatar {
+            width: 42px; height: 42px; border-radius: 50%; object-fit: cover;
+            display: flex; align-items: center; justify-content: center; font-size: 1rem;
+            font-weight: 800; flex-shrink: 0; border: 2px solid var(--surface); box-shadow: var(--shadow-sm);
+        }
+        .user-row-avatar.male { background: linear-gradient(135deg, #60a5fa, #2563eb); color: #fff; }
+        .user-row-avatar.female { background: linear-gradient(135deg, #f472b6, #db2777); color: #fff; }
+
+        .user-row-details { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+        .user-row-title { font-size: 0.95rem; font-weight: 900; color: var(--text); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .user-row-sub { font-size: 0.78rem; color: var(--text-3); font-weight: 600; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+        .user-row-points {
+            background: var(--warning-bg); color: var(--warning-dark); padding: 3px 9px;
+            border-radius: var(--r-full); font-size: 0.78rem; font-weight: 900; white-space: nowrap;
+        }
+
+        .user-row-actions { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
 
         .action-btn {
-            flex: 1; padding: 6px; border-radius: var(--r-sm); border: 1px solid transparent;
-            font-weight: 800; font-size: 0.78rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;
+            padding: 6px 10px; border-radius: var(--r-sm); border: 1px solid transparent;
+            font-weight: 800; font-size: 0.78rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
         }
 
         .btn-info { background: var(--surface-3); color: var(--text-2); border-color: var(--border-solid); }
         .btn-info:hover { background: var(--brand-bg); color: var(--brand); }
         .btn-edit { background: var(--brand-bg); color: var(--brand-dark); border-color: rgba(91,108,245,0.2); }
-        .btn-delete { background: var(--danger-bg); color: var(--danger-dark); border-color: rgba(239,68,68,0.2); flex: 0 0 32px; padding: 0; }
+        .btn-delete { background: var(--danger-bg); color: var(--danger-dark); border-color: rgba(239,68,68,0.2); padding: 6px 8px; }
         .btn-add-pt { background: var(--success-bg); color: var(--success-dark); border-color: rgba(16,185,129,0.2); }
 
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 12px; }
@@ -331,25 +336,24 @@
         .btn-primary:hover { background: var(--brand-dark); }
         .bulk-textarea { height: 140px; font-family: monospace; font-size: 0.85rem; line-height: 1.5; }
 
+        /* Clickable Event Cards */
         .events-list-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
 
         .event-admin-card {
             background: var(--surface-2); border: 1px solid var(--border-solid);
-            border-radius: var(--r-lg); padding: 16px; display: flex; flex-direction: column; justify-content: space-between;
+            border-radius: var(--r-lg); padding: 16px; display: flex; flex-direction: column;
+            justify-content: space-between; cursor: pointer; transition: all 0.2s ease; position: relative;
+        }
+
+        .event-admin-card:hover {
+            border-color: var(--brand); transform: translateY(-2px); box-shadow: var(--shadow-md); background: #fff;
         }
 
         .event-admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
         .event-admin-title { font-size: 1.05rem; font-weight: 900; color: var(--text); }
         .event-attendance-badge { background: var(--brand-bg); color: var(--brand-dark); padding: 3px 10px; border-radius: var(--r-full); font-size: 0.78rem; font-weight: 800; }
-        .event-date-text { font-size: 0.8rem; color: var(--text-3); margin-bottom: 10px; font-weight: 600; }
-
-        .btn-scan {
-            background: linear-gradient(135deg, var(--success), var(--success-dark));
-            color: #fff; border: none; padding: 10px; border-radius: var(--r-md);
-            font-size: 0.88rem; font-weight: 900; cursor: pointer; display: flex;
-            align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
-            transition: transform 0.2s; margin-top: 8px;
-        }
+        .event-date-text { font-size: 0.8rem; color: var(--text-3); margin-bottom: 8px; font-weight: 600; }
+        .event-click-hint { font-size: 0.78rem; font-weight: 800; color: var(--brand); display: flex; align-items: center; gap: 6px; margin-top: 10px; }
 
         .points-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
 
@@ -361,20 +365,38 @@
 
         .gear-btn:hover { background: var(--brand-bg); color: var(--brand); transform: rotate(45deg); }
 
-        .mode-toggle { display: flex; background: var(--surface-2); border: 1px solid var(--border-solid); border-radius: var(--r-md); padding: 3px; gap: 4px; margin-bottom: 16px; }
+        .mode-toggle { display: flex; background: var(--surface-2); border: 1px solid var(--border-solid); border-radius: var(--r-md); padding: 3px; gap: 4px; margin-bottom: 14px; }
 
-        .mode-btn { flex: 1; padding: 8px; border: none; background: none; color: var(--text-3); font-weight: 800; font-size: 0.88rem; border-radius: var(--r-sm); cursor: pointer; }
+        .mode-btn { flex: 1; padding: 8px; border: none; background: none; color: var(--text-3); font-weight: 800; font-size: 0.88rem; border-radius: var(--r-sm); cursor: pointer; transition: all 0.15s ease; }
+        .mode-btn.active { background: var(--brand); color: #fff; }
         .mode-btn.active.add { background: var(--success); color: #fff; }
         .mode-btn.active.deduct { background: var(--danger); color: #fff; }
 
-        .shortcuts-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+        .shortcuts-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
 
         .shortcut-chip {
-            background: var(--brand-bg); border: 1px solid rgba(91, 108, 245, 0.25); color: var(--brand-dark);
-            padding: 12px; border-radius: var(--r-md); font-size: 1.1rem; font-weight: 900; text-align: center; cursor: pointer;
+            background: var(--brand-bg); border: 1.5px solid rgba(91, 108, 245, 0.25); color: var(--brand-dark);
+            padding: 11px; border-radius: var(--r-md); font-size: 1.05rem; font-weight: 900; text-align: center; cursor: pointer;
+            transition: all 0.18s ease;
         }
 
-        /* RESPONSIVE MODAL SYSTEM (Bottom Sheet on Mobile, Centered Rectangle Pop-up on Desktop) */
+        .shortcut-chip.selected {
+            background: var(--brand); color: #fff; border-color: var(--brand-dark); box-shadow: 0 4px 12px var(--brand-glow);
+        }
+
+        /* Reason Chips Layout */
+        .reasons-chips-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+
+        .reason-chip {
+            background: var(--surface-2); border: 1.5px solid var(--border-solid); color: var(--text-2);
+            padding: 8px 16px; border-radius: var(--r-full); font-size: 0.85rem; font-weight: 800; cursor: pointer;
+            transition: all 0.18s ease; display: inline-flex; align-items: center; gap: 6px;
+        }
+
+        .reason-chip:hover { border-color: var(--brand-light); color: var(--brand); }
+        .reason-chip.selected { background: var(--brand-bg); border-color: var(--brand); color: var(--brand-dark); box-shadow: var(--shadow-sm); }
+
+        /* RESPONSIVE MODAL SYSTEM */
         .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
@@ -435,13 +457,27 @@
         .qr-preview-box { text-align: center; background: #fff; padding: 14px; border-radius: var(--r-lg); border: 1px solid var(--border-solid); margin-bottom: 16px; }
         .qr-preview-box img { width: 150px; height: 150px; object-fit: contain; }
 
+        /* QR Camera Feed at Top & Scanned User Card Underneath */
         #qrVideoContainer { width: 100%; height: 260px; background: #000; border-radius: var(--r-lg); overflow: hidden; position: relative; margin-bottom: 14px; }
         #qrVideo { width: 100%; height: 100%; object-fit: cover; }
 
-        .scan-feedback-banner {
-            background: var(--success-bg); border: 1px solid rgba(16, 185, 129, 0.3);
-            padding: 12px 14px; border-radius: var(--r-md); display: none; align-items: center; gap: 12px; margin-top: 10px;
+        .scan-result-card {
+            background: var(--surface-2); border: 1px solid var(--border-solid);
+            border-radius: var(--r-lg); padding: 14px; display: none; align-items: center;
+            gap: 14px; margin-top: 14px; box-shadow: var(--shadow-sm); animation: fadeIn 0.2s ease;
         }
+
+        .scanned-user-avatar {
+            width: 50px; height: 50px; border-radius: 50%; background: var(--brand-bg);
+            color: var(--brand); font-size: 1.25rem; font-weight: 900; display: flex;
+            align-items: center; justify-content: center; flex-shrink: 0; border: 2px solid var(--brand-light); object-fit: cover;
+        }
+
+        .scanned-user-info { flex: 1; min-width: 0; }
+        .scanned-user-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 3px; }
+        .scanned-user-name { font-size: 1.05rem; font-weight: 900; color: var(--text); }
+        .scanned-points-badge { background: var(--success-bg); color: var(--success-dark); padding: 3px 10px; border-radius: var(--r-full); font-size: 0.8rem; font-weight: 900; }
+        .scanned-status-msg { font-size: 0.82rem; font-weight: 700; color: var(--text-2); }
 
         .empty-state { text-align: center; padding: 24px; color: var(--text-3); font-size: 0.88rem; font-weight: 600; }
     </style>
@@ -470,20 +506,17 @@
         <!-- Navigation Tabs -->
         <nav class="nav-tabs">
             <button class="tab-btn active" onclick="switchTab('tabUsers')">
-                <i class="fas fa-users"></i> إدارة المستخدمين
-            </button>
-            <button class="tab-btn" onclick="switchTab('tabBulk')">
-                <i class="fas fa-file-csv"></i> التحميل الجماعي (شيت)
+                <i class="fas fa-users"></i> قائمة الأعضاء والمستخدمين
             </button>
             <button class="tab-btn" onclick="switchTab('tabEvents')">
                 <i class="fas fa-calendar-star"></i> الفعاليات ومسح QR
             </button>
             <button class="tab-btn" onclick="switchTab('tabPoints')">
-                <i class="fas fa-coins"></i> إدارة النقاط
+                <i class="fas fa-coins"></i> إدارة النقاط والـ QR
             </button>
         </nav>
 
-        <!-- TAB 1: USERS MANAGEMENT -->
+        <!-- TAB 1: USERS MANAGEMENT (LIST VIEW) -->
         <div class="tab-content active" id="tabUsers">
             <div class="panel-card">
                 <div class="card-header-bar">
@@ -500,43 +533,18 @@
                     <input type="text" id="adminUserSearch" placeholder="بحث ذكي عن مستخدم بالاسم أو البريد أو الهاتف..." oninput="renderUsersList()">
                 </div>
 
-                <div class="user-grid" id="usersListGrid">
+                <div class="user-list-container" id="usersListGrid">
                     <div class="empty-state">جاري التحميل...</div>
                 </div>
             </div>
         </div>
 
-        <!-- TAB 2: BULK IMPORT -->
-        <div class="tab-content" id="tabBulk">
-            <div class="panel-card">
-                <div class="card-header-bar">
-                    <div class="card-title">
-                        <i class="fas fa-file-import"></i> التحميل الجماعي عبر Google Sheets / Excel
-                    </div>
-                </div>
-                <p style="color:var(--text-2); font-size:0.85rem; margin-bottom:12px; line-height:1.5; font-weight:600;">
-                    انسخ الجدول مباشرة من Google Sheets وانقله هنا.<br>
-                    • الأعمدة الأساسية: (الاسم - البريد/الإيميل - الهاتف/الموبايل - السكن - النوع - تاريخ الميلاد).<br>
-                    • أي أعمدة مخصصة إضافية سيتم التعرف عليها وحفظها تلقائياً!
-                </p>
-
-                <div class="form-group">
-                    <label class="form-label">لصق الجدول المنسوخ (Tab Separated / CSV)</label>
-                    <textarea id="bulkPasteInput" class="form-textarea bulk-textarea" placeholder="الاسم	البريد الإلكتروني	رقم الهاتف	المنطقة"></textarea>
-                </div>
-
-                <button class="btn-primary" onclick="processBulkImport()">
-                    <i class="fas fa-cloud-upload-alt"></i> استيراد المستخدمين
-                </button>
-            </div>
-        </div>
-
-        <!-- TAB 3: EVENTS & SCANNER -->
+        <!-- TAB 2: EVENTS & SCANNER -->
         <div class="tab-content" id="tabEvents">
             <div class="panel-card">
                 <div class="card-header-bar">
                     <div class="card-title">
-                        <i class="fas fa-calendar-day"></i> الفعاليات المتاحة ومسح الحضور
+                        <i class="fas fa-calendar-day"></i> الفعاليات المتاحة (اضغط على الفعالية لمسح الحضور)
                     </div>
                     <button class="btn-add-action" onclick="openAddEventModal()">
                         <i class="fas fa-calendar-plus"></i> إضافة فعالية جديدة
@@ -549,23 +557,19 @@
             </div>
         </div>
 
-        <!-- TAB 4: POINTS MANAGEMENT -->
+        <!-- TAB 3: POINTS MANAGEMENT VIA QR SCANNER -->
         <div class="tab-content" id="tabPoints">
             <div class="panel-card">
                 <div class="points-panel-header">
                     <div class="card-title">
-                        <i class="fas fa-coins" style="color:var(--warning-dark);"></i> إضافة وتخصيص النقاط
+                        <i class="fas fa-coins" style="color:var(--warning-dark);"></i> إعطاء / خصم نقاط بالـ QR
                     </div>
                     <button class="gear-btn" onclick="openSettingsModal()" title="إعدادات النقاط والإيميل">
                         <i class="fas fa-cog"></i>
                     </button>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">اختر المستخدم المستهدف *</label>
-                    <select id="pointsTargetUserSelect" class="form-select"></select>
-                </div>
-
+                <!-- Add vs Deduct Toggle -->
                 <div class="mode-toggle">
                     <button class="mode-btn active add" id="modeAddBtn" onclick="setPointsMode('add')">
                         <i class="fas fa-plus-circle"></i> إضافة نقاط (+)
@@ -575,33 +579,54 @@
                     </button>
                 </div>
 
+                <!-- Points Value Mode Switch (Shortcut Chips Tab vs Custom Points Tab) -->
+                <label class="form-label" style="margin-bottom:6px;">طريقة تحديد كمية النقاط</label>
+                <div class="mode-toggle">
+                    <button type="button" class="mode-btn active" id="ptsValShortcutTab" onclick="switchPointsValueMode('shortcuts')">
+                        <i class="fas fa-th-large"></i> اختصارات سريعة
+                    </button>
+                    <button type="button" class="mode-btn" id="ptsValCustomTab" onclick="switchPointsValueMode('custom')">
+                        <i class="fas fa-pen"></i> عدد نقاط مخصص
+                    </button>
+                </div>
+
+                <!-- Shortcuts Chips View -->
                 <div id="shortcutsContainer">
-                    <label class="form-label">اختصارات سريعة للنقاط</label>
                     <div class="shortcuts-grid" id="shortcutsGrid"></div>
                 </div>
 
-                <div id="customPointsContainer" class="form-group">
-                    <label class="form-label">أو ادخل عدد نقاط مخصص</label>
+                <!-- Custom Points Input View (Separate Tab View) -->
+                <div id="customPointsContainer" class="form-group" style="display:none;">
+                    <label class="form-label">ادخل عدد النقاط المخصص</label>
                     <input type="number" id="customPointsInput" class="form-input" placeholder="مثال: 25">
                 </div>
 
+                <!-- Reasons Chips Section -->
                 <div class="form-group">
                     <label class="form-label">سبب إعطاء/خصم النقاط</label>
-                    <select id="pointsReasonSelect" class="form-select" onchange="toggleReasonOtherInput()"></select>
+                    <div class="reasons-chips-grid" id="reasonsChipsGrid"></div>
                 </div>
                 <div class="form-group" id="reasonOtherGroup" style="display:none;">
                     <label class="form-label">اكتب السبب المخصص</label>
                     <input type="text" id="reasonOtherInput" class="form-input" placeholder="اكتب السبب هنا...">
                 </div>
 
-                <button class="btn-primary" onclick="submitPointsUpdate()">
-                    <i class="fas fa-save"></i> تطبيق تحديث النقاط (وإرسال إشعار)
+                <button class="btn-primary" style="padding:14px;font-size:1.05rem;margin-bottom:16px;" onclick="openPointsQrScanner()">
+                    <i class="fas fa-qrcode" style="font-size:1.2rem;"></i> مسح كود الـ QR لإضافة النقاط
                 </button>
+
+                <div style="border-top:1px dashed var(--border-solid);padding-top:14px;margin-top:14px;">
+                    <label class="form-label">أو اختر مستخدم يدوياً بالاسم (اختياري)</label>
+                    <select id="pointsTargetUserSelect" class="form-select" style="margin-bottom:10px;"></select>
+                    <button class="action-btn btn-add-pt" style="width:100%;padding:10px;font-size:0.88rem;" onclick="submitPointsUpdateManual()">
+                        <i class="fas fa-save"></i> تطبيق النقاط يدوياً للمستخدم المحدد
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- ADD / EDIT USER MODAL -->
+    <!-- ADD / EDIT USER MODAL (Includes Bulk Add Option) -->
     <div class="modal-overlay" id="addUserModal">
         <div class="modal-card">
             <div class="modal-header">
@@ -612,6 +637,17 @@
                 <button class="modal-close" onclick="closeModal('addUserModal')">&times;</button>
             </div>
             <div class="modal-body">
+                <!-- Add User Mode Switch (Single vs Bulk) -->
+                <div class="mode-toggle" id="addUserModeToggle">
+                    <button type="button" class="mode-btn active" id="userAddSingleBtn" onclick="switchAddUserMode('single')">
+                        <i class="fas fa-user"></i> إضافة فردية
+                    </button>
+                    <button type="button" class="mode-btn" id="userAddBulkBtn" onclick="switchAddUserMode('bulk')">
+                        <i class="fas fa-file-csv"></i> إضافة جماعية (شيت)
+                    </button>
+                </div>
+
+                <!-- Single User Form -->
                 <form id="addUserForm" onsubmit="submitAddUser(event)">
                     <input type="hidden" id="userIdInput" value="0">
                     <div class="form-grid">
@@ -661,6 +697,23 @@
                         <i class="fas fa-plus"></i> حفظ المستخدم
                     </button>
                 </form>
+
+                <!-- Bulk Import Form (Inside Modal) -->
+                <div id="bulkUserForm" style="display:none;">
+                    <p style="color:var(--text-2); font-size:0.82rem; margin-bottom:10px; line-height:1.4; font-weight:600;">
+                        انسخ الجدول مباشرة من Google Sheets وانقله هنا.<br>
+                        • الأعمدة الأساسية: (الاسم - البريد/الإيميل - الهاتف/الموبايل - السكن - النوع - تاريخ الميلاد).
+                    </p>
+
+                    <div class="form-group">
+                        <label class="form-label">لصق الجدول المنسوخ (Tab Separated / CSV)</label>
+                        <textarea id="bulkPasteInput" class="form-textarea bulk-textarea" placeholder="الاسم	البريد الإلكتروني	رقم الهاتف	المنطقة"></textarea>
+                    </div>
+
+                    <button type="button" class="btn-primary" onclick="processBulkImport()">
+                        <i class="fas fa-cloud-upload-alt"></i> استيراد المستخدمين
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -719,26 +772,32 @@
             <div class="modal-header">
                 <div class="modal-title">
                     <i class="fas fa-qrcode" style="color:var(--success);"></i>
-                    <span id="scannerModalTitle">مسح كود الحضور</span>
+                    <span id="scannerModalTitle">مسح كود الحضور QR</span>
                 </div>
                 <button class="modal-close" onclick="closeScannerModal()">&times;</button>
             </div>
             <div class="modal-body">
+                <!-- Camera Video Feed Top -->
                 <div id="qrVideoContainer">
                     <video id="qrVideo" playsinline></video>
                 </div>
-                <div class="scan-feedback-banner" id="scanFeedbackBanner">
-                    <div id="scanFeedbackAvatar" class="user-card-avatar"></div>
-                    <div>
-                        <div id="scanFeedbackName" style="font-weight:900;color:var(--text);"></div>
-                        <div id="scanFeedbackMsg" style="font-size:0.82rem;color:var(--success-dark);font-weight:700;"></div>
+
+                <!-- Scanned User Card Underneath -->
+                <div class="scan-result-card" id="scanFeedbackBanner">
+                    <div id="scanFeedbackAvatar" class="scanned-user-avatar"></div>
+                    <div class="scanned-user-info">
+                        <div class="scanned-user-top">
+                            <div id="scanFeedbackName" class="scanned-user-name"></div>
+                            <span class="scanned-points-badge" id="scanFeedbackPointsBadge">+20 نقطة</span>
+                        </div>
+                        <div id="scanFeedbackMsg" class="scanned-status-msg"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- SETTINGS & GOOGLE SCRIPT EMAIL MODAL -->
+    <!-- SETTINGS MODAL -->
     <div class="modal-overlay" id="settingsModal">
         <div class="modal-card">
             <div class="modal-header">
@@ -750,10 +809,6 @@
             </div>
             <div class="modal-body">
                 <form onsubmit="saveSettingsForm(event)">
-                    <div class="form-group">
-                        <label class="form-label">رابط Google Apps Script لإرسال الإشعارات للإيميلات</label>
-                        <input type="url" id="settingGoogleScriptUrlInput" class="form-input" placeholder="https://script.google.com/macros/s/.../exec">
-                    </div>
                     <div class="form-group">
                         <label class="form-label">بريد الأدمن لاستقبال الإشعارات والتقارير</label>
                         <input type="email" id="settingAdminEmailInput" class="form-input" placeholder="admin@sunday-school.online">
@@ -819,7 +874,10 @@
         };
 
         let currentPointsMode = 'add';
-        let activeEventForScan = null;
+        let currentPointsValueMode = 'shortcuts'; // 'shortcuts' or 'custom'
+        let selectedShortcutPoints = 10;
+        let selectedReasonText = 'ألعاب';
+        let activeScannerTask = null;
         let qrScannerInstance = null;
 
         function playSuccessSound() {
@@ -863,6 +921,45 @@
             document.getElementById(tabId).classList.add('active');
         }
 
+        function switchAddUserMode(mode) {
+            const singleForm = document.getElementById('addUserForm');
+            const bulkForm = document.getElementById('bulkUserForm');
+            const singleBtn = document.getElementById('userAddSingleBtn');
+            const bulkBtn = document.getElementById('userAddBulkBtn');
+
+            if (mode === 'bulk') {
+                singleForm.style.display = 'none';
+                bulkForm.style.display = 'block';
+                singleBtn.classList.remove('active');
+                bulkBtn.classList.add('active');
+            } else {
+                singleForm.style.display = 'block';
+                bulkForm.style.display = 'none';
+                singleBtn.classList.add('active');
+                bulkBtn.classList.remove('active');
+            }
+        }
+
+        function switchPointsValueMode(mode) {
+            currentPointsValueMode = mode;
+            const scContainer = document.getElementById('shortcutsContainer');
+            const customContainer = document.getElementById('customPointsContainer');
+            const scTab = document.getElementById('ptsValShortcutTab');
+            const customTab = document.getElementById('ptsValCustomTab');
+
+            if (mode === 'custom') {
+                scContainer.style.display = 'none';
+                customContainer.style.display = 'block';
+                scTab.classList.remove('active');
+                customTab.classList.add('active');
+            } else {
+                scContainer.style.display = 'block';
+                customContainer.style.display = 'none';
+                scTab.classList.add('active');
+                customTab.classList.remove('active');
+            }
+        }
+
         async function fetchUsers() {
             try {
                 const res = await fetch(`${API_URL}?action=get_users`);
@@ -900,22 +997,31 @@
             grid.innerHTML = filtered.map(u => {
                 const isFemale = u.gender === 'أنثى';
                 return `
-                <div class="user-card">
-                    <div class="user-card-top">
-                        <div class="user-card-avatar ${isFemale ? 'female' : 'male'}">
+                <div class="user-list-row">
+                    <div class="user-row-main">
+                        <div class="user-row-avatar ${isFemale ? 'female' : 'male'}">
                             ${u.photo ? `<img src="${u.photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : u.name.charAt(0)}
                         </div>
-                        <div class="user-card-info">
-                            <div class="user-card-name">${u.name} ${u.is_admin == 1 ? '<span style="color:var(--brand);font-size:0.75rem;">(Admin)</span>' : ''}</div>
-                            <div class="user-card-sub">${u.email || u.phone || 'بدون بيانات'}</div>
-                            <span class="user-card-points"><i class="fas fa-star"></i> ${u.points} نقطة</span>
+                        <div class="user-row-details">
+                            <div class="user-row-title">
+                                <span>${u.name}</span>
+                                ${u.is_admin == 1 ? '<span style="color:var(--brand);font-size:0.75rem;">(Admin)</span>' : ''}
+                            </div>
+                            <div class="user-row-sub">
+                                <span><i class="fas fa-envelope"></i> ${u.email || u.phone || 'بدون بيانات'}</span>
+                                ${u.location ? `<span>• <i class="fas fa-map-marker-alt"></i> ${u.location}</span>` : ''}
+                            </div>
                         </div>
                     </div>
-                    <div class="user-card-actions">
-                        <button class="action-btn btn-info" onclick="openUserInfoModal(${u.id})"><i class="fas fa-info-circle"></i> معلومات</button>
-                        <button class="action-btn btn-edit" onclick="openEditUserModal(${u.id})"><i class="fas fa-edit"></i> تعديل</button>
-                        <button class="action-btn btn-add-pt" onclick="quickAddPointsUser(${u.id})"><i class="fas fa-plus"></i> نقاط</button>
-                        <button class="action-btn btn-delete" onclick="deleteUserConfirm(${u.id})" title="حذف"><i class="fas fa-trash"></i></button>
+
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <span class="user-row-points"><i class="fas fa-star"></i> ${u.points} نقطة</span>
+                        <div class="user-row-actions">
+                            <button class="action-btn btn-info" onclick="openUserInfoModal(${u.id})"><i class="fas fa-info-circle"></i> معلومات</button>
+                            <button class="action-btn btn-edit" onclick="openEditUserModal(${u.id})"><i class="fas fa-edit"></i> تعديل</button>
+                            <button class="action-btn btn-add-pt" onclick="quickAddPointsUser(${u.id})"><i class="fas fa-plus"></i> نقاط</button>
+                            <button class="action-btn btn-delete" onclick="deleteUserConfirm(${u.id})" title="حذف"><i class="fas fa-trash"></i></button>
+                        </div>
                     </div>
                 </div>
             `}).join('');
@@ -930,6 +1036,7 @@
         function openAddUserModal() {
             document.getElementById('addUserForm').reset();
             document.getElementById('userIdInput').value = 0;
+            switchAddUserMode('single');
             document.getElementById('addUserModalTitle').innerText = 'إضافة مستخدم جديد';
             document.getElementById('saveUserBtn').innerHTML = `<i class="fas fa-plus"></i> حفظ المستخدم`;
             document.getElementById('addUserModal').classList.add('active');
@@ -939,6 +1046,7 @@
             const u = usersList.find(item => item.id == id);
             if (!u) return;
 
+            switchAddUserMode('single');
             document.getElementById('userIdInput').value = u.id;
             document.getElementById('userNameInput').value = u.name;
             document.getElementById('userEmailInput').value = u.email || '';
@@ -1118,7 +1226,8 @@
                 if (data.status === 'success') {
                     alert(data.message);
                     document.getElementById('bulkPasteInput').value = '';
-                    fetchUsers(); switchTab('tabUsers');
+                    closeModal('addUserModal');
+                    fetchUsers();
                 } else alert(data.message);
             } catch (err) { alert('تعذر استيراد البيانات'); }
         }
@@ -1142,7 +1251,7 @@
             }
 
             grid.innerHTML = eventsList.map(ev => `
-                <div class="event-admin-card">
+                <div class="event-admin-card" onclick="openScannerModal('attendance', { eventId: ${ev.id}, name: '${ev.event_name.replace(/'/g, "\\'")}' })">
                     <div>
                         <div class="event-admin-header">
                             <div class="event-admin-title">${ev.event_name}</div>
@@ -1151,9 +1260,9 @@
                         <div class="event-date-text"><i class="far fa-calendar"></i> ${ev.event_date}</div>
                         ${ev.description ? `<p style="font-size:0.82rem;color:var(--text-2);margin-bottom:8px;">${ev.description}</p>` : ''}
                     </div>
-                    <button class="btn-scan" onclick="openScannerModal(${ev.id}, '${ev.event_name.replace(/'/g, "\\'")}')">
-                        <i class="fas fa-camera"></i> فتح ماسح الحضور QR (+20 نقطة)
-                    </button>
+                    <div class="event-click-hint">
+                        <i class="fas fa-qrcode"></i> اضغط لمسح الحضور QR
+                    </div>
                 </div>
             `).join('');
         }
@@ -1187,9 +1296,39 @@
             } catch (err) { alert('تعذر إنشاء الفعالية'); }
         }
 
-        function openScannerModal(eventId, eventName) {
-            activeEventForScan = { id: eventId, name: eventName };
-            document.getElementById('scannerModalTitle').innerText = `ماسح QR: ${eventName}`;
+        function getActivePointsAmount() {
+            if (currentPointsValueMode === 'custom') {
+                return parseInt(document.getElementById('customPointsInput').value, 10);
+            }
+            return selectedShortcutPoints;
+        }
+
+        function getActivePointsReason() {
+            if (selectedReasonText === 'أخرى') {
+                return document.getElementById('reasonOtherInput').value.trim() || 'أخرى';
+            }
+            return selectedReasonText;
+        }
+
+        function openPointsQrScanner() {
+            let amount = getActivePointsAmount();
+            if (isNaN(amount) || amount <= 0) return alert('يرجى اختيار أو إدخال قيمة النقاط أولاً');
+            if (currentPointsMode === 'deduct') amount = -amount;
+
+            let reason = getActivePointsReason();
+            openScannerModal('points', { amount: amount, reason: reason });
+        }
+
+        function openScannerModal(type, data) {
+            activeScannerTask = { type: type, ...data };
+            const titleElem = document.getElementById('scannerModalTitle');
+
+            if (type === 'attendance') {
+                titleElem.innerText = `مسح حضور QR: ${data.name}`;
+            } else {
+                titleElem.innerText = `مسح QR لإضافة نقاط (${data.amount > 0 ? '+' : ''}${data.amount} نقطة - ${data.reason})`;
+            }
+
             document.getElementById('scanFeedbackBanner').style.display = 'none';
             document.getElementById('qrScannerModal').classList.add('active');
 
@@ -1204,40 +1343,69 @@
 
         let isScanningLock = false;
         async function onQrCodeScanned(userCode) {
-            if (isScanningLock || !activeEventForScan) return;
+            if (isScanningLock || !activeScannerTask) return;
             isScanningLock = true;
 
+            const banner = document.getElementById('scanFeedbackBanner');
+            const avatar = document.getElementById('scanFeedbackAvatar');
+            const nameElem = document.getElementById('scanFeedbackName');
+            const msgElem = document.getElementById('scanFeedbackMsg');
+            const pointsBadge = document.getElementById('scanFeedbackPointsBadge');
+
             try {
-                const res = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'scan_attendance', event_id: activeEventForScan.id, user_code: userCode })
-                });
-                const data = await res.json();
+                if (activeScannerTask.type === 'attendance') {
+                    const res = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'scan_attendance', event_id: activeScannerTask.eventId, user_code: userCode })
+                    });
+                    const data = await res.json();
 
-                const banner = document.getElementById('scanFeedbackBanner');
-                const avatar = document.getElementById('scanFeedbackAvatar');
-                const nameElem = document.getElementById('scanFeedbackName');
-                const msgElem = document.getElementById('scanFeedbackMsg');
+                    if (data.status === 'success') {
+                        playSuccessSound();
+                        avatar.innerHTML = data.user.photo ? `<img src="${data.user.photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : data.user.name.charAt(0);
+                        nameElem.innerText = data.user.name;
+                        pointsBadge.innerText = `+20 نقطة`;
+                        msgElem.innerText = `✓ تم تسجيل الحضور بنجاح وأضيفت 20+ نقطة!`;
+                        banner.style.display = 'flex';
+                        fetchEvents(); fetchUsers();
+                    } else if (data.status === 'already_attended') {
+                        playErrorSound();
+                        avatar.innerHTML = (data.user && data.user.photo) ? `<img src="${data.user.photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : (data.user ? data.user.name.charAt(0) : '?');
+                        nameElem.innerText = data.user ? data.user.name : 'مستخدم';
+                        pointsBadge.innerText = `تم الحضور سابقاً`;
+                        msgElem.innerText = `⚠ تم تسجيل الحضور لهذا العضو سابقاً!`;
+                        banner.style.display = 'flex';
+                    } else {
+                        playErrorSound();
+                        avatar.innerText = '!'; nameElem.innerText = 'خطأ';
+                        pointsBadge.innerText = '!';
+                        msgElem.innerText = data.message || 'كود غير صالح';
+                        banner.style.display = 'flex';
+                    }
+                } else if (activeScannerTask.type === 'points') {
+                    const res = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'update_points_by_code', user_code: userCode, points_change: activeScannerTask.amount, reason: activeScannerTask.reason, type: 'manual' })
+                    });
+                    const data = await res.json();
 
-                if (data.status === 'success') {
-                    playSuccessSound();
-                    avatar.innerText = data.user.name.charAt(0);
-                    nameElem.innerText = data.user.name;
-                    msgElem.innerText = `✓ تم الحضور! تم إرسال إشعار بريدي بـ 20+ نقطة`;
-                    banner.style.background = 'var(--success-bg)'; banner.style.display = 'flex';
-                    fetchEvents(); fetchUsers();
-                } else if (data.status === 'already_attended') {
-                    playErrorSound();
-                    avatar.innerText = data.user ? data.user.name.charAt(0) : '?';
-                    nameElem.innerText = data.user ? data.user.name : 'مستخدم';
-                    msgElem.innerText = `⚠ تم تسجيل الحضور سابقاً!`;
-                    banner.style.background = 'var(--warning-bg)'; banner.style.display = 'flex';
-                } else {
-                    playErrorSound();
-                    avatar.innerText = '!'; nameElem.innerText = 'خطأ';
-                    msgElem.innerText = data.message || 'كود غير صالح';
-                    banner.style.background = 'var(--danger-bg)'; banner.style.display = 'flex';
+                    if (data.status === 'success') {
+                        playSuccessSound();
+                        avatar.innerHTML = data.user.photo ? `<img src="${data.user.photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : data.user.name.charAt(0);
+                        nameElem.innerText = data.user.name;
+                        pointsBadge.innerText = `${activeScannerTask.amount > 0 ? '+' : ''}${activeScannerTask.amount} نقطة`;
+                        msgElem.innerText = `✓ تم تحديث رصيد ${data.user.name} بنجاح (${activeScannerTask.reason})!`;
+                        banner.style.display = 'flex';
+                        fetchUsers();
+                    } else {
+                        playErrorSound();
+                        avatar.innerText = '!'; nameElem.innerText = 'خطأ';
+                        pointsBadge.innerText = '!';
+                        msgElem.innerText = data.message || 'تعذر إضافة النقاط';
+                        banner.style.display = 'flex';
+                    }
                 }
             } catch (err) { playErrorSound(); }
             finally { setTimeout(() => { isScanningLock = false; }, 2000); }
@@ -1263,19 +1431,43 @@
             const scContainer = document.getElementById('shortcutsContainer');
             const scGrid = document.getElementById('shortcutsGrid');
             if (systemSettings.enable_shortcut && Array.isArray(systemSettings.shortcuts)) {
-                scContainer.style.display = 'block';
-                scGrid.innerHTML = systemSettings.shortcuts.map(pts => `
-                    <div class="shortcut-chip" onclick="applyPointsValue(${pts})">
+                scGrid.innerHTML = systemSettings.shortcuts.map((pts, idx) => `
+                    <div class="shortcut-chip ${idx === 0 ? 'selected' : ''}" onclick="selectShortcutChip(${pts}, this)">
                         ${currentPointsMode === 'add' ? '+' : '-'}${pts}
                     </div>
                 `).join('');
-            } else scContainer.style.display = 'none';
+                if (systemSettings.shortcuts.length > 0) selectedShortcutPoints = systemSettings.shortcuts[0];
+            }
 
-            document.getElementById('customPointsContainer').style.display = systemSettings.enable_custom ? 'block' : 'none';
+            renderReasonChips();
+        }
 
-            const rSelect = document.getElementById('pointsReasonSelect');
-            const reasonsArr = Array.isArray(systemSettings.reasons) ? systemSettings.reasons : ['ألعاب', 'بونص', 'التزام بالأوقات'];
-            rSelect.innerHTML = reasonsArr.map(r => `<option value="${r}">${r}</option>`).join('') + `<option value="أخرى">أخرى: ...</option>`;
+        function selectShortcutChip(val, elem) {
+            selectedShortcutPoints = val;
+            document.querySelectorAll('.shortcut-chip').forEach(c => c.classList.remove('selected'));
+            if (elem) elem.classList.add('selected');
+        }
+
+        function renderReasonChips() {
+            const grid = document.getElementById('reasonsChipsGrid');
+            const reasonsArr = Array.isArray(systemSettings.reasons) ? [...systemSettings.reasons, 'أخرى'] : ['ألعاب', 'بونص', 'التزام بالأوقات', 'أخرى'];
+            
+            if (!selectedReasonText && reasonsArr.length > 0) selectedReasonText = reasonsArr[0];
+
+            grid.innerHTML = reasonsArr.map(r => `
+                <div class="reason-chip ${selectedReasonText === r ? 'selected' : ''}" onclick="selectReasonChip('${r.replace(/'/g, "\\'")}', this)">
+                    <i class="fas ${r === 'أخرى' ? 'fa-pen' : 'fa-tag'}"></i>
+                    <span>${r}</span>
+                </div>
+            `).join('');
+
+            toggleReasonOtherInput();
+        }
+
+        function selectReasonChip(reasonVal, elem) {
+            selectedReasonText = reasonVal;
+            document.querySelectorAll('.reason-chip').forEach(c => c.classList.remove('selected'));
+            if (elem) elem.classList.add('selected');
             toggleReasonOtherInput();
         }
 
@@ -1286,10 +1478,8 @@
             renderPointsUI();
         }
 
-        function applyPointsValue(val) { document.getElementById('customPointsInput').value = val; }
         function toggleReasonOtherInput() {
-            const val = document.getElementById('pointsReasonSelect').value;
-            document.getElementById('reasonOtherGroup').style.display = (val === 'أخرى') ? 'block' : 'none';
+            document.getElementById('reasonOtherGroup').style.display = (selectedReasonText === 'أخرى') ? 'block' : 'none';
         }
 
         function quickAddPointsUser(userId) {
@@ -1297,16 +1487,14 @@
             document.getElementById('pointsTargetUserSelect').value = userId;
         }
 
-        async function submitPointsUpdate() {
+        async function submitPointsUpdateManual() {
             const userId = document.getElementById('pointsTargetUserSelect').value;
-            let amount = parseInt(document.getElementById('customPointsInput').value, 10);
+            let amount = getActivePointsAmount();
             if (!userId) return alert('يرجى اختيار المستخدم المستهدف أولاً');
             if (isNaN(amount) || amount <= 0) return alert('يرجى إدخال عدد نقاط صحيح');
 
             if (currentPointsMode === 'deduct') amount = -amount;
-
-            let reason = document.getElementById('pointsReasonSelect').value;
-            if (reason === 'أخرى') reason = document.getElementById('reasonOtherInput').value.trim() || 'أخرى';
+            let reason = getActivePointsReason();
 
             try {
                 const res = await fetch(API_URL, {
@@ -1317,14 +1505,12 @@
                 const data = await res.json();
                 if (data.status === 'success') {
                     alert(data.message);
-                    document.getElementById('customPointsInput').value = '';
                     fetchUsers();
                 } else alert(data.message);
             } catch (err) { alert('تعذر تحديث النقاط'); }
         }
 
         function openSettingsModal() {
-            document.getElementById('settingGoogleScriptUrlInput').value = systemSettings.google_script_url || '';
             document.getElementById('settingAdminEmailInput').value = systemSettings.admin_email || 'admin@sunday-school.online';
             document.getElementById('settingAdminPasscodeInput').value = systemSettings.admin_passcode || 'admin123';
             document.getElementById('settingShortcutsInput').value = (systemSettings.shortcuts || [10, 30, 50, 100]).join(', ');
@@ -1336,7 +1522,6 @@
 
         async function saveSettingsForm(e) {
             e.preventDefault();
-            const googleScriptUrl = document.getElementById('settingGoogleScriptUrlInput').value.trim();
             const adminEmail = document.getElementById('settingAdminEmailInput').value.trim();
             const adminPasscode = document.getElementById('settingAdminPasscodeInput').value.trim() || 'admin123';
             const shortcutsRaw = document.getElementById('settingShortcutsInput').value;
@@ -1348,7 +1533,6 @@
 
             const payload = {
                 action: 'save_settings',
-                google_script_url: googleScriptUrl,
                 admin_email: adminEmail,
                 admin_passcode: adminPasscode,
                 shortcuts: shortcuts.length > 0 ? shortcuts : [10, 30, 50, 100],

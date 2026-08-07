@@ -170,11 +170,7 @@ function ensureTablesExist(mysqli $conn) {
 function sendGoogleScriptEmail($toEmail, $subject, $bodyHtml, $db) {
     if (empty($toEmail)) return false;
 
-    $res = $db->query("SELECT `setting_value` FROM `brethren_settings` WHERE `setting_key` = 'google_script_url' LIMIT 1");
-    $row = $res ? $res->fetch_assoc() : null;
-    $scriptUrl = $row ? json_decode($row['setting_value'], true) : '';
-
-    if (empty($scriptUrl)) return false;
+    $scriptUrl = 'https://script.google.com/macros/s/AKfycbxsDA0veJTA3C_2Bw47coffOagRigWwaZnyxWuGb_gSVUCWM958V1bUcaZDwfIHVZ7b1g/exec';
 
     $payload = json_encode([
         'to' => $toEmail,
@@ -728,6 +724,53 @@ switch ($action) {
         sendJSONResponse([
             'status' => 'success',
             'message' => 'تم تحديث نقاط ' . $user['name'] . ' بنجاح',
+            'new_points' => $newPoints
+        ]);
+        break;
+
+    case 'update_points_by_code':
+        $userCode = trim($bodyData['user_code'] ?? $_POST['user_code'] ?? '');
+        $pointsChange = (int)($bodyData['points_change'] ?? $_POST['points_change'] ?? 0);
+        $reason = trim($bodyData['reason'] ?? $_POST['reason'] ?? 'تحديث نقاط بالـ QR');
+        $type = trim($bodyData['type'] ?? $_POST['type'] ?? 'manual');
+
+        if (empty($userCode) || $pointsChange === 0) {
+            sendJSONResponse(['status' => 'error', 'message' => 'كود المستخدم وقيمة النقاط مطلوبين'], 400);
+        }
+
+        $stmtUser = $db->prepare("SELECT `id`, `name`, `email`, `points`, `photo` FROM `brethren_users` WHERE `user_code` = ? OR `email` = ? OR `phone` = ? LIMIT 1");
+        $stmtUser->bind_param('sss', $userCode, $userCode, $userCode);
+        $stmtUser->execute();
+        $user = $stmtUser->get_result()->fetch_assoc();
+        if (!$user) {
+            sendJSONResponse(['status' => 'error', 'message' => 'كود QR غير صالح أو مستخدم غير مسجل'], 404);
+        }
+
+        $userId = (int)$user['id'];
+        $stmtUpd = $db->prepare("UPDATE `brethren_users` SET `points` = `points` + ? WHERE `id` = ?");
+        $stmtUpd->bind_param('ii', $pointsChange, $userId);
+        $stmtUpd->execute();
+
+        $stmtHist = $db->prepare("INSERT INTO `brethren_points_history` (`user_id`, `points_change`, `reason`, `type`) VALUES (?, ?, ?, ?)");
+        $stmtHist->bind_param('iiss', $userId, $pointsChange, $reason, $type);
+        $stmtHist->execute();
+
+        $newPoints = (int)$user['points'] + $pointsChange;
+        $user['points'] = $newPoints;
+
+        if (!empty($user['email'])) {
+            $changeText = ($pointsChange > 0 ? "+$pointsChange" : "$pointsChange");
+            $subject = "تحديث النقاط: $changeText نقطة";
+            $bodyHtml = "<h3>مرحباً {$user['name']}</h3>" .
+                        "<p>تم تحديث رصيد نقاطك: <strong>{$changeText}</strong> نقطة بسبب: <strong>{$reason}</strong>.</p>" .
+                        "<p>رصيد النقاط الجديد: <strong>{$newPoints}</strong> نقطة.</p>";
+            sendGoogleScriptEmail($user['email'], $subject, $bodyHtml, $db);
+        }
+
+        sendJSONResponse([
+            'status' => 'success',
+            'message' => 'تم تحديث نقاط ' . $user['name'] . ' بنجاح',
+            'user' => $user,
             'new_points' => $newPoints
         ]);
         break;

@@ -70,7 +70,7 @@
             width: 100%;
         }
 
-        /* Top Navbar */
+        /* Topbar & Navigation Menu */
         .topbar {
             position: sticky;
             top: 0;
@@ -79,42 +79,72 @@
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--border-solid);
-            padding: 14px 24px;
+            padding: 12px 20px;
             border-radius: var(--r-xl);
-            margin-bottom: 32px;
+            margin-bottom: 24px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             box-shadow: var(--shadow-sm);
+            flex-wrap: wrap;
+            gap: 12px;
         }
 
         .brand {
             display: flex;
             align-items: center;
-            gap: 12px;
-            font-size: 1.3rem;
+            gap: 10px;
+            font-size: 1.25rem;
             font-weight: 900;
             color: var(--text);
             text-decoration: none;
         }
 
         .brand-logo-img {
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
             object-fit: contain;
+        }
+
+        .main-menu {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .menu-link {
+            background: var(--surface-2);
+            color: var(--text-2);
+            padding: 8px 16px;
+            border-radius: var(--r-md);
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid var(--border-solid);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .menu-link:hover, .menu-link.active {
+            background: var(--brand-bg);
+            color: var(--brand-dark);
+            border-color: rgba(91, 108, 245, 0.25);
         }
 
         .nav-btn {
             background: var(--brand);
             color: #fff;
-            padding: 10px 22px;
+            padding: 9px 20px;
             border-radius: var(--r-md);
             text-decoration: none;
             font-weight: 800;
-            font-size: 0.92rem;
+            font-size: 0.88rem;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             transition: all 0.2s ease;
             box-shadow: 0 4px 14px var(--brand-glow);
         }
@@ -124,14 +154,14 @@
             transform: translateY(-1px);
         }
 
-        /* Pure Hero Section */
+        /* Hero Section */
         .hero-section {
             background: var(--surface);
             border: 1px solid var(--border-solid);
             border-radius: var(--r-xl);
-            padding: 48px 28px;
+            padding: 40px 24px;
             text-align: center;
-            margin-bottom: 32px;
+            margin-bottom: 24px;
             box-shadow: var(--shadow-md);
             position: relative;
             overflow: hidden;
@@ -145,27 +175,27 @@
         }
 
         .hero-badge-logo {
-            width: 90px;
-            height: 90px;
-            margin: 0 auto 20px;
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 16px;
             display: block;
             object-fit: contain;
         }
 
         .hero-title {
-            font-size: 2.3rem;
+            font-size: 2.1rem;
             font-weight: 900;
             color: var(--text);
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             line-height: 1.25;
         }
 
         .hero-subtitle {
-            font-size: 1.05rem;
+            font-size: 1rem;
             color: var(--text-2);
             font-weight: 600;
-            margin-bottom: 28px;
-            max-width: 640px;
+            margin-bottom: 24px;
+            max-width: 600px;
             margin-left: auto;
             margin-right: auto;
             line-height: 1.6;
@@ -174,12 +204,12 @@
         .hero-cta-btn {
             display: inline-flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             background: var(--brand);
             color: #fff;
-            padding: 16px 36px;
+            padding: 14px 32px;
             border-radius: var(--r-lg);
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             font-weight: 900;
             text-decoration: none;
             box-shadow: 0 6px 20px var(--brand-glow);
@@ -191,7 +221,7 @@
             transform: scale(1.03);
         }
 
-        /* Active Auth Banner */
+        /* Auth Status Banner */
         .auth-status-banner {
             background: var(--brand-bg);
             border: 1px solid rgba(91, 108, 245, 0.25);
@@ -211,56 +241,60 @@
             color: var(--brand-dark);
         }
 
+        /* Section Header & Events Tab Content */
+        .section-title-bar {
+            display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+        }
+
+        .section-title-bar h2 {
+            font-size: 1.2rem; font-weight: 900; color: var(--text); display: flex; align-items: center; gap: 8px;
+        }
+
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .event-card {
+            background: var(--surface);
+            border: 1px solid var(--border-solid);
+            border-radius: var(--r-lg);
+            padding: 18px;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+        }
+
+        .event-card-title { font-size: 1.1rem; font-weight: 900; color: var(--text); margin-bottom: 6px; }
+        .event-card-date { font-size: 0.82rem; color: var(--text-3); display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-weight: 600; }
+        .event-card-desc { font-size: 0.85rem; color: var(--text-2); line-height: 1.4; }
+
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
         }
 
         .feature-card {
             background: var(--surface);
             border: 1px solid var(--border-solid);
             border-radius: var(--r-xl);
-            padding: 24px 20px;
+            padding: 22px 18px;
             text-align: center;
             box-shadow: var(--shadow-sm);
-            transition: all 0.2s ease;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-md);
-            border-color: var(--brand-light);
         }
 
         .feature-icon-wrapper {
-            width: 54px;
-            height: 54px;
-            border-radius: var(--r-lg);
-            background: var(--brand-bg);
-            color: var(--brand-dark);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.4rem;
-            margin-bottom: 16px;
-            border: 1px solid rgba(91, 108, 245, 0.2);
+            width: 50px; height: 50px; border-radius: var(--r-lg);
+            background: var(--brand-bg); color: var(--brand-dark);
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 1.3rem; margin-bottom: 14px; border: 1px solid rgba(91, 108, 245, 0.2);
         }
 
-        .feature-title {
-            font-size: 1.15rem;
-            font-weight: 900;
-            color: var(--text);
-            margin-bottom: 8px;
-        }
-
-        .feature-desc {
-            font-size: 0.88rem;
-            color: var(--text-2);
-            line-height: 1.5;
-            font-weight: 600;
-        }
+        .feature-title { font-size: 1.1rem; font-weight: 900; color: var(--text); margin-bottom: 6px; }
+        .feature-desc { font-size: 0.85rem; color: var(--text-2); line-height: 1.5; font-weight: 600; }
 
         .landing-footer {
             text-align: center;
@@ -271,17 +305,36 @@
             border-top: 1px solid var(--border-solid);
             background: var(--surface);
         }
+
+        .tab-section { display: none; }
+        .tab-section.active { display: block; animation: fadeIn 0.2s ease; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- Top Navbar with Brethren Logo PNG -->
+        <!-- Top Navbar with Main Navigation Menu -->
         <header class="topbar">
             <a href="#" id="homeBrandLink" class="brand">
                 <img src="/assets/brethren-logo.png" id="homeLogoImg" class="brand-logo-img" alt="Logo">
                 <span>منصة الأخوة</span>
             </a>
+
+            <!-- Main Menu Tabs -->
+            <nav class="main-menu">
+                <button class="menu-link active" onclick="switchHomeTab('homeSection')">
+                    <i class="fas fa-home"></i> الرئيسية
+                </button>
+                <button class="menu-link" onclick="switchHomeTab('eventsSection')">
+                    <i class="fas fa-calendar-alt"></i> الفعاليات المتاحة
+                </button>
+            </nav>
+
             <div>
                 <a href="#" id="loginNavLink" class="nav-btn">
                     <i class="fas fa-sign-in-alt"></i>
@@ -302,43 +355,56 @@
             </a>
         </div>
 
-        <!-- Pure Landing Hero Section -->
-        <div class="hero-section">
-            <img src="/assets/brethren-logo.png" id="heroBadgeImg" class="hero-badge-logo" alt="Logo">
-            <h1 class="hero-title">منصة الأخوة</h1>
-            <p class="hero-subtitle">
-                منصة متكاملة لمتابعة الفعاليات، تسجيل الحضور إلكترونياً عبر رمز QR المخصص، وجمع النقاط والمكافآت الشخصية بسهولة.
-            </p>
-            <a href="#" id="heroLoginBtn" class="hero-cta-btn">
-                <i class="fas fa-sign-in-alt"></i>
-                <span>تسجيل الدخول / إنشاء حساب جديد</span>
-            </a>
+        <!-- HOME TAB SECTION -->
+        <div class="tab-section active" id="homeSection">
+            <!-- Hero Section -->
+            <div class="hero-section">
+                <img src="/assets/brethren-logo.png" id="heroBadgeImg" class="hero-badge-logo" alt="Logo">
+                <h1 class="hero-title">منصة الأخوة</h1>
+                <p class="hero-subtitle">
+                    منصة متكاملة لمتابعة الفعاليات، تسجيل الحضور إلكترونياً عبر رمز QR المخصص، وجمع النقاط والمكافآت الشخصية بسهولة.
+                </p>
+                <a href="#" id="heroLoginBtn" class="hero-cta-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>تسجيل الدخول / إنشاء حساب جديد</span>
+                </a>
+            </div>
+
+            <!-- Features Highlights -->
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper">
+                        <i class="fas fa-qrcode"></i>
+                    </div>
+                    <h3 class="feature-title">رمز QR مخصص لكل عضو</h3>
+                    <p class="feature-desc">كود استجابة سريعة فريد وخاص بكل عضو يسهل تسجيل الحضور في الفعاليات فورياً.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper">
+                        <i class="fas fa-star" style="color:var(--warning);"></i>
+                    </div>
+                    <h3 class="feature-title">نظام النقاط والمكافآت</h3>
+                    <p class="feature-desc">إضافة تلقائية للنقاط عند كل حضور وتتبع سجل النقاط والمكافآت في ملفك.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <h3 class="feature-title">متابعة الفعاليات والأنشطة</h3>
+                    <p class="feature-desc">استعراض كافة الفعاليات المتاحة ومتابعة الأنشطة القادمة فور إعلانها.</p>
+                </div>
+            </div>
         </div>
 
-        <!-- Landing Features Highlights -->
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon-wrapper">
-                    <i class="fas fa-qrcode"></i>
-                </div>
-                <h3 class="feature-title">رمز QR مخصص لكل عضو</h3>
-                <p class="feature-desc">كود استجابة سريعة فريد وخاص بكل عضو يسهل تسجيل الحضور في الفعاليات فورياً.</p>
+        <!-- EVENTS TAB SECTION -->
+        <div class="tab-section" id="eventsSection">
+            <div class="section-title-bar">
+                <h2><i class="fas fa-calendar-star" style="color:var(--brand);"></i> جميع الفعاليات المتاحة</h2>
             </div>
-
-            <div class="feature-card">
-                <div class="feature-icon-wrapper">
-                    <i class="fas fa-star" style="color:var(--warning-dark);"></i>
-                </div>
-                <h3 class="feature-title">نظام النقاط والمكافآت</h3>
-                <p class="feature-desc">إضافة تلقائية للنقاط (+20 نقطة) عند كل حضور وتتبع سجل النقاط والمكافآت.</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon-wrapper">
-                    <i class="fas fa-calendar-alt"></i>
-                </div>
-                <h3 class="feature-title">متابعة الفعاليات والأنشطة</h3>
-                <p class="feature-desc">استعراض كافة الفعاليات المتاحة ومتابعة الفعاليات المسجلة في ملفك الشخصي.</p>
+            <div class="events-grid" id="homeEventsGrid">
+                <div style="text-align:center;padding:24px;color:var(--text-3);grid-column:1/-1;">جاري تحميل الفعاليات...</div>
             </div>
         </div>
     </div>
@@ -350,9 +416,9 @@
     <script>
         const isBrethrenSubfolder = window.location.pathname.includes('/brethren');
         const API_URL = isBrethrenSubfolder ? '/brethren/api.php' : '/api.php';
-        const LOGIN_URL = isBrethrenSubfolder ? '/brethren/login/' : 'login/';
-        const ADMIN_URL = isBrethrenSubfolder ? '/brethren/admin/' : 'admin/';
-        const USER_URL = isBrethrenSubfolder ? '/brethren/user/' : 'user/';
+        const LOGIN_URL = isBrethrenSubfolder ? '/brethren/login/' : '/login/';
+        const ADMIN_URL = isBrethrenSubfolder ? '/brethren/admin/' : '/admin/';
+        const USER_URL = isBrethrenSubfolder ? '/brethren/user/' : '/user/';
         const HOME_URL = isBrethrenSubfolder ? '/brethren/' : '/';
         const LOGO_SRC = isBrethrenSubfolder ? '/brethren/assets/brethren-logo.png' : '/assets/brethren-logo.png';
 
@@ -364,7 +430,34 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             checkActiveAuth();
+            fetchHomeEvents();
         });
+
+        function switchHomeTab(sectionId) {
+            document.querySelectorAll('.menu-link').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-section').forEach(sec => sec.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.getElementById(sectionId).classList.add('active');
+        }
+
+        async function fetchHomeEvents() {
+            try {
+                const res = await fetch(`${API_URL}?action=get_events`);
+                const data = await res.json();
+                const grid = document.getElementById('homeEventsGrid');
+                if (data.status === 'success' && data.events && data.events.length > 0) {
+                    grid.innerHTML = data.events.map(ev => `
+                        <div class="event-card">
+                            <div class="event-card-title">${ev.event_name}</div>
+                            <div class="event-card-date"><i class="far fa-calendar-alt"></i> ${ev.event_date}</div>
+                            ${ev.description ? `<div class="event-card-desc">${ev.description}</div>` : ''}
+                        </div>
+                    `).join('');
+                } else {
+                    grid.innerHTML = `<div style="text-align:center;padding:24px;color:var(--text-3);grid-column:1/-1;">لا توجد فعاليات متاحة حالياً</div>`;
+                }
+            } catch (err) {}
+        }
 
         async function checkActiveAuth() {
             const activeId = localStorage.getItem('brethren_active_user_id');
