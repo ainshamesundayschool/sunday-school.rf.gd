@@ -12738,10 +12738,16 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
       <div class="mhdr">
         <div class="mhdr-ico"><i class="fas fa-pen-nib"></i></div>
         <div>
-          <div class="mhdr-title" id="createTitle">إنشاء تاسك جديد</div>
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <div class="mhdr-title" id="createTitle">إنشاء تاسك جديد</div>
+            <span id="draftSaveBadge" style="font-size:0.75rem; font-weight:700; color:#059669; background:rgba(5,150,105,0.1); border:1px solid rgba(5,150,105,0.2); padding:3px 10px; border-radius:12px; display:none; align-items:center; gap:5px;"><i class="fas fa-cloud-upload-alt"></i> <span id="draftSaveBadgeText">حفظ تلقائي</span></span>
+          </div>
           <div class="mhdr-sub">اختبار MCQ مع مكافآت كوبونات</div>
         </div>
-        <div class="mclose" onclick="closeCreate()"><i class="fas fa-times"></i></div>
+        <div style="margin-right:auto; display:flex; align-items:center; gap:8px;">
+          <button type="button" id="clearDraftBtn" onclick="confirmClearDraft()" style="display:none; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); color:#ef4444; font-size:0.78rem; font-weight:700; padding:5px 11px; border-radius:8px; cursor:pointer;"><i class="fas fa-trash-alt"></i> مسح المسودة</button>
+          <div class="mclose" onclick="closeCreate()"><i class="fas fa-times"></i></div>
+        </div>
       </div>
 
       <div style="padding:16px 22px 0;">
@@ -15052,37 +15058,27 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
 
     function openCreate(taskId = null) {
-
-
-
       editId = taskId; qCnt = 0;
-
-
-
       resetForm();
 
-
-
-      if (taskId) { const t = tasks.find(x => x.id == taskId); if (t) fillForm(t); document.getElementById('createTitle').textContent = 'تعديل التاسك'; }
-
-
-
-      else { document.getElementById('createTitle').textContent = 'إنشاء تاسك جديد'; addQ(); addQ(); }
-
-
-
-      initTiers();
-
-
+      if (taskId) {
+        const t = tasks.find(x => x.id == taskId);
+        if (t) fillForm(t);
+        document.getElementById('createTitle').textContent = 'تعديل التاسك';
+        initTiers();
+        hideDraftSaveBadge();
+      } else {
+        document.getElementById('createTitle').textContent = 'إنشاء تاسك جديد';
+        const restored = restoreLocalDraft();
+        if (!restored) {
+          addQ(); addQ();
+          initTiers();
+          hideDraftSaveBadge();
+        }
+      }
 
       goStep(1);
-
-
-
       openOv('createOv');
-
-
-
     }
 
 
@@ -18839,7 +18835,7 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
 
 
-        if (d.success) { showToast(status === 'draft' ? 'تم حفظ الـ Draft ✓' : 'تم نشر التاسك 🎉', status === 'draft' ? 'info' : 'ok'); closeCreate(); await loadTasks(); }
+        if (d.success) { clearLocalDraft(); showToast(status === 'draft' ? 'تم حفظ الـ Draft ✓' : 'تم نشر التاسك 🎉', status === 'draft' ? 'info' : 'ok'); closeCreate(); await loadTasks(); }
 
 
 
@@ -18861,9 +18857,197 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
     function saveDraft() { if (!document.getElementById('fTitle').value.trim()) { showToast('أدخل العنوان أولاً', 'err'); return; } saveTask('draft'); }
 
-
-
     function publishTask() { if (!document.querySelectorAll('.ctier').length) { showToast('أضف مستوى كوبون', 'err'); return; } saveTask('published'); }
+
+    // ─── LocalStorage Auto-Save Draft System ───────────────────────
+    const TASK_DRAFT_KEY = '_task_exam_draft_v1';
+    let _draftSaveTimeout = null;
+
+    function scheduleAutoSaveDraft() {
+      const ov = document.getElementById('createOv');
+      if (!ov || !ov.classList.contains('open')) return;
+      if (editId) return;
+
+      if (_draftSaveTimeout) clearTimeout(_draftSaveTimeout);
+      _draftSaveTimeout = setTimeout(() => {
+        saveLocalDraft();
+      }, 400);
+    }
+
+    function saveLocalDraft() {
+      const title = (document.getElementById('fTitle')?.value || '').trim();
+      const desc = (document.getElementById('fDesc')?.value || '').trim();
+      const questionsCount = document.querySelectorAll('.qcard').length;
+
+      if (!title && !desc && questionsCount === 0) return;
+
+      try {
+        const payload = collectForm('draft');
+        const now = new Date();
+        const displayTime = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+        const draftData = {
+          editId: editId,
+          payload: payload,
+          savedAt: now.toISOString(),
+          displayTime: displayTime
+        };
+        localStorage.setItem(TASK_DRAFT_KEY, JSON.stringify(draftData));
+        updateDraftSaveBadge(displayTime);
+      } catch (e) {
+        console.warn('Auto-save local draft error:', e);
+      }
+    }
+
+    function updateDraftSaveBadge(timeStr) {
+      const badge = document.getElementById('draftSaveBadge');
+      const badgeText = document.getElementById('draftSaveBadgeText');
+      const clearBtn = document.getElementById('clearDraftBtn');
+      if (badge) {
+        badge.style.display = 'inline-flex';
+        if (badgeText) badgeText.textContent = `مسودة محفوظة محلياً (${timeStr})`;
+      }
+      if (clearBtn) clearBtn.style.display = 'inline-flex';
+    }
+
+    function hideDraftSaveBadge() {
+      const badge = document.getElementById('draftSaveBadge');
+      const clearBtn = document.getElementById('clearDraftBtn');
+      if (badge) badge.style.display = 'none';
+      if (clearBtn) clearBtn.style.display = 'none';
+    }
+
+    function restoreLocalDraft() {
+      try {
+        const raw = localStorage.getItem(TASK_DRAFT_KEY);
+        if (!raw) return false;
+        const draftData = JSON.parse(raw);
+        if (!draftData || !draftData.payload) return false;
+
+        const p = draftData.payload;
+
+        if (p.title) document.getElementById('fTitle').value = p.title;
+        if (p.description) document.getElementById('fDesc').value = p.description;
+
+        if (p.no_deadline !== undefined) {
+          const nd = document.getElementById('fNoDeadline');
+          if (nd) { nd.checked = !!p.no_deadline; if (typeof toggleNoDeadline === 'function') toggleNoDeadline(true); }
+        }
+        if (p.start_date) document.getElementById('fStart').value = p.start_date.replace(' ', 'T');
+        if (p.end_date && !p.no_deadline) document.getElementById('fEnd').value = p.end_date.replace(' ', 'T');
+
+        if (p.time_limit !== undefined && p.time_limit !== null) {
+          const tOn = document.getElementById('fTimerOn');
+          if (tOn) { tOn.checked = true; if (typeof toggleTimerRowDisplay === 'function') toggleTimerRowDisplay(true); }
+          const tMin = document.getElementById('fTimerMin');
+          if (tMin) tMin.value = p.time_limit;
+        }
+        if (p.timer_behavior) {
+          const tBeh = document.getElementById('fTimerBeh');
+          if (tBeh) tBeh.value = p.timer_behavior;
+        }
+
+        if (p.show_result !== undefined) document.getElementById('fShowRes').checked = !!p.show_result;
+        if (p.show_answers !== undefined) document.getElementById('fShowAns').checked = !!p.show_answers;
+        if (p.shuffle !== undefined) document.getElementById('fShuffle').checked = !!p.shuffle;
+        if (p.allow_review !== undefined) document.getElementById('fReview').checked = !!p.allow_review;
+
+        document.getElementById('qList').innerHTML = '';
+        qCnt = 0;
+        let questions = [];
+        if (typeof p.questions === 'string') {
+          try { questions = JSON.parse(p.questions); } catch (e) {}
+        } else if (Array.isArray(p.questions)) {
+          questions = p.questions;
+        }
+
+        if (questions.length > 0) {
+          questions.forEach(q => {
+            addQ(q.question_type || 'mcq');
+            const qcards = document.querySelectorAll('.qcard');
+            const card = qcards[qcards.length - 1];
+            if (!card) return;
+
+            const qiInp = card.querySelector('.qi');
+            if (qiInp) qiInp.value = q.question_text || '';
+            const qdegInp = card.querySelector('.qdeg-i');
+            if (qdegInp) qdegInp.value = q.degree || 25;
+
+            if (q.image_url) setQImg(card.dataset.qid, q.image_url);
+
+            if (q.question_type === 'tf') {
+              if (typeof setTFAns === 'function') setTFAns(card.dataset.qid, q.correct_index || 0);
+            } else if (q.question_type === 'mcq') {
+              const opts = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
+              const orows = card.querySelectorAll('.orow');
+              opts.forEach((optText, oIdx) => {
+                if (oIdx < orows.length) {
+                  const oInp = orows[oIdx].querySelector('.oinp');
+                  if (oInp) oInp.value = optText;
+                } else {
+                  if (typeof addOpt === 'function') addOpt(card.dataset.qid);
+                  const newOrows = card.querySelectorAll('.orow');
+                  const lastOrow = newOrows[newOrows.length - 1];
+                  if (lastOrow) {
+                    const oInp = lastOrow.querySelector('.oinp');
+                    if (oInp) oInp.value = optText;
+                  }
+                }
+              });
+              const finalOrows = card.querySelectorAll('.orow');
+              if (q.correct_index !== undefined && finalOrows[q.correct_index]) {
+                const rad = finalOrows[q.correct_index].querySelector('.oradio');
+                if (rad && typeof setMCQOk === 'function') setMCQOk(rad);
+              }
+            }
+          });
+        }
+
+        document.getElementById('ctierList').innerHTML = '';
+        let tiers = [];
+        if (typeof p.coupon_matrix === 'string') {
+          try { tiers = JSON.parse(p.coupon_matrix); } catch (e) {}
+        } else if (Array.isArray(p.coupon_matrix)) {
+          tiers = p.coupon_matrix;
+        }
+        const milestones = typeof convertTiersToMilestones === 'function' ? convertTiersToMilestones(tiers) : [];
+        if (milestones.length > 0) {
+          milestones.forEach(m => addMilestone(m.pct, m.coupons));
+        } else {
+          initTiers();
+        }
+
+        if (typeof updateTimingSummaryBadge === 'function') updateTimingSummaryBadge();
+        updateDraftSaveBadge(draftData.displayTime || '');
+        showToast('تم استعادة المسودة التلقائية بنجاح 📝', 'ok');
+        return true;
+      } catch (e) {
+        console.error('Error restoring local draft:', e);
+        return false;
+      }
+    }
+
+    function clearLocalDraft() {
+      localStorage.removeItem(TASK_DRAFT_KEY);
+      hideDraftSaveBadge();
+    }
+
+    function confirmClearDraft() {
+      if (confirm('هل أنت تأكد من مسح المسودة المحفوظة تلقائياً؟')) {
+        clearLocalDraft();
+        resetForm();
+        addQ(); addQ();
+        initTiers();
+        showToast('تم مسح المسودة المحفوطة', 'info');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const createOv = document.getElementById('createOv');
+      if (createOv) {
+        createOv.addEventListener('input', scheduleAutoSaveDraft);
+        createOv.addEventListener('change', scheduleAutoSaveDraft);
+      }
+    });
 
 
 
