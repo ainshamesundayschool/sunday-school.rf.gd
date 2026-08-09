@@ -1419,7 +1419,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   init();
 
+  function unregisterAndClearCaches() {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        for (let registration of registrations) {
+          registration.unregister();
+        }
+      }).catch(() => {});
+    }
+    if ('caches' in window) {
+      caches.keys().then(names => {
+        for (let name of names) {
+          caches.delete(name);
+        }
+      }).catch(() => {});
+    }
+  }
+
   function init() {
+    unregisterAndClearCaches();
     applyUrlStyleSettings();
     applyInitialUIState();
     bindEvents();
