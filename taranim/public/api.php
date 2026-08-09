@@ -94,7 +94,7 @@ function fetchExternalUrl($url) {
     return @file_get_contents($url, false, $context);
 }
 
-// SILENT BACKGROUND SYNC WITH ONLINE TASBE7NA REPOSITORY
+// SILENT BACKGROUND SYNC WITH ONLINE TASBE7NA REPOSITORY & LOCAL CATALOG
 function syncOnlineTasbe7naDatabase($pdo, $force = false) {
     if (!$pdo) return;
     $syncLockFile = __DIR__ . '/.tasbe7na_sync.lock';
@@ -102,43 +102,54 @@ function syncOnlineTasbe7naDatabase($pdo, $force = false) {
         return;
     }
 
+    $datasets = [];
+
+    // 1. Local catalog on server disk (11,611+ taranim)
+    $localFile = __DIR__ . '/songs_catalog.json';
+    if (file_exists($localFile)) {
+        $localContent = @file_get_contents($localFile);
+        if ($localContent) {
+            $parsedLocal = json_decode($localContent, true);
+            if (is_array($parsedLocal) && count($parsedLocal) > 0) {
+                $datasets[] = $parsedLocal;
+            }
+        }
+    }
+
+    // 2. Online Tasbe7na repositories
     $sourceUrls = [
         'https://raw.githubusercontent.com/josephwasily/TasbehnaToOpenLyrics/main/tasbe7naDB.json',
         'https://raw.githubusercontent.com/josephwasily/TasbehnaToOpenLyrics/master/tasbe7naDB.json',
         'https://raw.githubusercontent.com/ainshamesundayschool/sunday-school.rf.gd/main/taranim/songs_catalog.json'
     ];
 
-    $json = null;
     foreach ($sourceUrls as $url) {
         $res = fetchExternalUrl($url);
         if ($res) {
             $testData = json_decode($res, true);
             if (is_array($testData) && count($testData) > 0) {
-                $json = $res;
-                break;
+                $datasets[] = $testData;
             }
         }
     }
 
-    if ($json) {
-        $data = json_decode($json, true);
-        if (is_array($data)) {
+    if (!empty($datasets)) {
+        try {
+            $checkStmt  = $pdo->prepare("SELECT id FROM songs WHERE title = :title OR title = :titleClean");
+            $insertSong = $pdo->prepare("INSERT INTO songs (item_id, title, notes) VALUES (:itemId, :title, :notes)");
+            $insertItem = null;
             try {
-                $checkStmt  = $pdo->prepare("SELECT id FROM songs WHERE title = :title OR title = :titleClean");
-                $insertSong = $pdo->prepare("INSERT INTO songs (item_id, title, notes) VALUES (:itemId, :title, :notes)");
-                $insertItem = null;
-                try {
-                    $insertItem = $pdo->prepare("INSERT INTO items (item_id, type) VALUES (:itemId, 0)");
-                } catch (Exception $e) {}
+                $insertItem = $pdo->prepare("INSERT INTO items (item_id, type) VALUES (:itemId, 0)");
+            } catch (Exception $e) {}
 
-                $importedCount = 0;
+            foreach ($datasets as $data) {
                 foreach ($data as $song) {
                     $rawTitle = isset($song['title']) ? trim($song['title']) : (isset($song['name']) ? trim($song['name']) : '');
                     if (empty($rawTitle)) continue;
 
                     $checkStmt->execute([':title' => $rawTitle, ':titleClean' => normalizeArabic($rawTitle)]);
                     if (!$checkStmt->fetch()) {
-                        $newItemId = rand(900000, 999999);
+                        $newItemId = isset($song['id']) ? intval($song['id']) : (isset($song['item_id']) ? intval($song['item_id']) : rand(900000, 999999));
                         $songNotes = '';
                         if (isset($song['notes']) && !empty($song['notes'])) {
                             $songNotes = is_string($song['notes']) ? $song['notes'] : json_encode($song['notes'], JSON_UNESCAPED_UNICODE);
@@ -168,12 +179,11 @@ function syncOnlineTasbe7naDatabase($pdo, $force = false) {
                         if ($insertItem) {
                             try { $insertItem->execute([':itemId' => $newItemId]); } catch (Exception $ex) {}
                         }
-                        $importedCount++;
                     }
                 }
-                @touch($syncLockFile);
-            } catch (Exception $e) {}
-        }
+            }
+            @touch($syncLockFile);
+        } catch (Exception $e) {}
     }
 }
 

@@ -3231,7 +3231,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (liveRes && liveRes.ok) {
           const liveData = await liveRes.json();
           if (liveData && liveData.total_songs && liveData.total_songs > 0) {
-            const formattedLive = Number(liveData.total_songs).toLocaleString('ar-EG');
+            const maxCount = Math.max(realTotalCount, liveData.total_songs);
+            const formattedLive = Number(maxCount).toLocaleString('ar-EG');
             if (els.totalSongsCount) {
               els.totalSongsCount.innerHTML = `<i class="fa-solid fa-music"></i> <span>${formattedLive} ترنيمة</span>`;
             }
