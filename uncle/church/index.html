@@ -22832,54 +22832,60 @@
             const actor = log.actor_name || log.performed_by || log.uncle_name || '---';
 
             // Check if this is a bulk action
-            const isBulk = ['bulk_student_delete', 'bulk_student_class_update', 'bulk_student_coupon_update', 'bulk_attendance_save', 'bulk_note_add'].includes(log.action) || log.entity === 'bulk_action';
+            const isBulk = ['bulk_student_delete', 'bulk_student_class_update', 'bulk_student_coupon_update', 'bulk_attendance_save', 'bulk_note_add'].includes(log.action) || log.entity === 'bulk_action' || (log.action && log.action.startsWith('bulk_'));
 
             if (isBulk) {
                 let items = [];
-                const parseRaw = (val) => {
-                    if (!val) return null;
-                    if (typeof val === 'string') {
-                        try { return JSON.parse(val); } catch (e) { return null; }
-                    }
-                    return val;
-                };
-
-                const rawOld = parseRaw(log.old_data);
-                const rawNew = parseRaw(log.new_data);
-
                 const extractArray = (val) => {
                     if (!val) return null;
+                    if (typeof val === 'string') {
+                        try { val = JSON.parse(val); } catch (e) {}
+                    }
                     if (Array.isArray(val)) return val;
-                    if (typeof val === 'object') {
+                    if (typeof val === 'object' && val !== null) {
                         if (Array.isArray(val.items)) return val.items;
                         if (Array.isArray(val.students)) return val.students;
                         if (Array.isArray(val.users)) return val.users;
                         if (Array.isArray(val.data)) return val.data;
                         if (Array.isArray(val.records)) return val.records;
+                        if (Array.isArray(val.logs)) return val.logs;
+                        if (Array.isArray(val.details)) return val.details;
+                        if (Array.isArray(val.student_ids)) {
+                            return val.student_ids.map(id => ({ id: id, name: `طفل #${id}` }));
+                        }
+                        if (Array.isArray(val.ids)) {
+                            return val.ids.map(id => ({ id: id, name: `طفل #${id}` }));
+                        }
                         const vals = Object.values(val);
-                        if (vals.length && typeof vals[0] === 'object') return vals;
+                        if (vals.length && vals.every(v => v && typeof v === 'object')) return vals;
+                        if (vals.length && vals.some(v => v && typeof v === 'object' && (v.name || v.id || v.student_id))) {
+                            return vals.filter(v => v && typeof v === 'object');
+                        }
+                        if (val.id || val.student_id || val.name || val.old_data || val.new_data || val.coupons) {
+                            return [val];
+                        }
                     }
                     return null;
                 };
 
-                items = extractArray(rawOld) || extractArray(rawNew) || [];
+                items = extractArray(log.old_data) || extractArray(log.new_data) || [];
 
                 let itemsHtml = '';
                 if (items.length > 0) {
                     items.forEach(item => {
-                        const sid = item.id || item.student_id || item.user_id;
-                        const sName = item.name || item.student_name || item.user_name || item.full_name || '---';
+                        const sid = item.id || item.student_id || item.user_id || item.entity_id;
+                        const sName = item.name || item.student_name || item.user_name || item.full_name || item.title || (sid ? `طفل #${sid}` : '---');
                         let changeSummary = '';
 
                         if (log.action === 'bulk_student_delete') {
-                            changeSummary = '<span style="color:var(--danger); font-weight:600;">حذف كامل للطفل</span>';
+                            changeSummary = '<span style="color:var(--danger); font-weight:600;"><i class="fas fa-user-minus"></i> حذف كامل للطفل</span>';
                         } else if (log.action === 'bulk_student_class_update') {
-                            const oldC = item.old_data?.class || item.old_class || '---';
-                            const newC = item.new_data?.class || item.new_class || '---';
+                            const oldC = item.old_data?.class || item.old_class || item.old_val || '---';
+                            const newC = item.new_data?.class || item.new_class || item.new_val || '---';
                             changeSummary = `<span style="color:var(--danger);">${oldC}</span> <i class="fas fa-arrow-left" style="font-size:0.7rem; margin:0 4px;"></i> <span style="color:var(--success); font-weight:600;">${newC}</span>`;
                         } else if (log.action === 'bulk_student_coupon_update') {
-                            const oldC = item.old_data?.coupons ?? item.old_coupons ?? 0;
-                            const newC = item.new_data?.coupons ?? item.new_coupons ?? 0;
+                            const oldC = item.old_data?.coupons ?? item.old_coupons ?? (typeof item.old_data === 'number' ? item.old_data : 0);
+                            const newC = item.new_data?.coupons ?? item.new_coupons ?? (typeof item.new_data === 'number' ? item.new_data : 0);
                             const diff = newC - oldC;
                             const sign = diff >= 0 ? `+${diff}` : `${diff}`;
                             changeSummary = `كوبونات: <span>${oldC}</span> <i class="fas fa-arrow-left" style="font-size:0.7rem; margin:0 4px;"></i> <span style="font-weight:600; color:${diff >= 0 ? 'var(--success)' : 'var(--danger)'};">${newC} (${sign})</span>`;
@@ -22895,7 +22901,13 @@
                             const nDesc = item.note?.description || item.description || '';
                             changeSummary = `إضافة ملاحظة: <strong style="color:var(--primary);">${escHtml(nTitle)}</strong> ${nDesc ? `- <span style="font-size:0.8rem; color:var(--text-2);">${escHtml(nDesc)}</span>` : ''}`;
                         } else {
-                            changeSummary = `<span style="color:var(--primary); font-size:0.8rem;">تحديث بيانات</span>`;
+                            if (item.old_data || item.new_data) {
+                                const oVal = typeof item.old_data === 'object' ? JSON.stringify(item.old_data) : (item.old_data || '---');
+                                const nVal = typeof item.new_data === 'object' ? JSON.stringify(item.new_data) : (item.new_data || '---');
+                                changeSummary = `<span style="color:var(--text-3); font-size:0.8rem;">${escHtml(oVal)} → ${escHtml(nVal)}</span>`;
+                            } else {
+                                changeSummary = `<span style="color:var(--primary); font-size:0.8rem;">تحديث بيانات</span>`;
+                            }
                         }
 
                         itemsHtml += `
@@ -22911,7 +22923,18 @@
                         `;
                     });
                 } else {
-                    itemsHtml = '<tr><td colspan="3" style="text-align:center; padding:20px; color:var(--muted);">لا توجد تفاصيل أطفال مسجلة لهذه العملية</td></tr>';
+                    const fallbackDesc = log.description || log.notes || log.entity_name || 'عملية جماعية على عدة أطفال';
+                    itemsHtml = `
+                        <tr>
+                            <td colspan="3" style="text-align:center; padding:24px; color:var(--text-2);">
+                                <div style="display:flex; flex-direction:column; align-items:center; gap:6px;">
+                                    <i class="fas fa-layer-group" style="font-size:1.6rem; color:var(--primary); opacity:0.8; margin-bottom:4px;"></i>
+                                    <div style="font-weight:700; font-size:0.92rem; color:var(--text-1);">${escHtml(fallbackDesc)}</div>
+                                    <span style="font-size:0.8rem; color:var(--text-3);">تفاصيل أطفال العملية مسجلة بالسجل العام</span>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
                 }
 
                 let html = `
