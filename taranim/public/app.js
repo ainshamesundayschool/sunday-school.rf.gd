@@ -3595,19 +3595,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (song.verses && Array.isArray(song.verses) && song.verses.length > 0) {
       let currentStanzaNum = 0;
-      song.verses.forEach((verse) => {
+      song.verses.forEach((verse, verseIdx) => {
         const rawVerseType = verse.type;
         const slides = verse.slides || [];
         const firstRawLine = (slides[0] && (slides[0].lines ? slides[0].lines[0] : slides[0].text)) || '';
         
-        if (
+        let isChorus = (
           rawVerseType === 1 ||
           rawVerseType === '1' ||
           verse.isChorus === true ||
           String(rawVerseType).toLowerCase() === 'chorus' ||
           /القرار|قرار|^ق$/i.test(verse.title || '') ||
           /^\(?(القرار|قرار|ق)\)?[:\s\-]?/i.test(firstRawLine || '')
-        ) {
+        );
+
+        // SMART CHORUS DETECTION FOR UNLABELLED VERSE 1 IN VERSES ARRAY:
+        // If verse 1 is unlabelled, check if verse 2 has verse number 1 or 2
+        if (verseIdx === 0 && !isChorus && !verse.stanzaNum) {
+          const nextVerse = song.verses[1];
+          if (nextVerse) {
+            const nextSlides = nextVerse.slides || [];
+            const nextFirstLine = (nextSlides[0] && (nextSlides[0].lines ? nextSlides[0].lines[0] : nextSlides[0].text)) || '';
+            if (/^\(?1\)?[:\s\-]?/i.test(nextFirstLine) || /^\(?١\)?[:\s\-]?/i.test(nextFirstLine) || /^\(?2\)?[:\s\-]?/i.test(nextFirstLine) || (nextVerse.stanzaNum && nextVerse.stanzaNum === 1)) {
+              isChorus = true;
+            }
+          }
+        }
+
+        if (isChorus) {
           verse.type = 1;
           verse.isChorus = true;
         } else {
