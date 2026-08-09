@@ -1305,11 +1305,12 @@ document.addEventListener('DOMContentLoaded', () => {
     popoverPlaylist: document.getElementById('popover-playlist'),
     btnClosePlaylistPopover: document.getElementById('btn-close-playlist-popover'),
     playlistCurrentName: document.getElementById('playlist-current-name'),
-    playlistsListContainer: document.getElementById('playlists-list-container'),
+    newPlaylistBar: document.getElementById('new-playlist-bar'),
     newPlaylistNameInput: document.getElementById('new-playlist-name-input'),
     newPlaylistInputWrapper: document.getElementById('new-playlist-input-wrapper'),
     btnShowNewPlaylistInput: document.getElementById('btn-show-new-playlist-input'),
     btnCreatePlaylist: document.getElementById('btn-create-playlist'),
+    btnCancelNewPlaylist: document.getElementById('btn-cancel-new-playlist'),
     btnExportPlaylist: document.getElementById('btn-export-playlist'),
     importPlaylistFileInput: document.getElementById('import-playlist-file-input'),
     recentSelectAllCb: document.getElementById('recent-select-all-cb'),
@@ -2059,32 +2060,68 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    if (els.btnShowNewPlaylistInput && els.newPlaylistInputWrapper) {
+    function openNewPlaylistInput() {
+      if (els.newPlaylistBar) els.newPlaylistBar.classList.add('active');
+      if (els.newPlaylistNameInput) {
+        els.newPlaylistNameInput.value = '';
+        setTimeout(() => els.newPlaylistNameInput.focus(), 150);
+      }
+    }
+
+    function closeNewPlaylistInput() {
+      if (els.newPlaylistBar) els.newPlaylistBar.classList.remove('active');
+      if (els.newPlaylistNameInput) els.newPlaylistNameInput.value = '';
+    }
+
+    function submitCreatePlaylist() {
+      const name = els.newPlaylistNameInput ? els.newPlaylistNameInput.value.trim() : '';
+      if (!name) return;
+      const newId = 'pl_' + Date.now();
+      state.playlists.push({
+        id: newId,
+        name: name,
+        items: []
+      });
+      state.activePlaylistId = newId;
+      closeNewPlaylistInput();
+      savePlaylists();
+      renderRecentSession();
+      renderPlaylistsList();
+      showToast(`تم إنشاء قائمة "${name}"!`);
+    }
+
+    if (els.btnShowNewPlaylistInput) {
       els.btnShowNewPlaylistInput.addEventListener('click', () => {
-        els.newPlaylistInputWrapper.classList.toggle('hidden');
-        if (!els.newPlaylistInputWrapper.classList.contains('hidden')) {
-          els.newPlaylistNameInput.focus();
+        if (!els.newPlaylistBar) return;
+        const isActive = els.newPlaylistBar.classList.contains('active');
+        if (isActive) {
+          if (els.newPlaylistNameInput && els.newPlaylistNameInput.value.trim()) {
+            submitCreatePlaylist();
+          } else {
+            closeNewPlaylistInput();
+          }
+        } else {
+          openNewPlaylistInput();
         }
       });
     }
 
     if (els.btnCreatePlaylist) {
-      els.btnCreatePlaylist.addEventListener('click', () => {
-        const name = els.newPlaylistNameInput.value.trim();
-        if (!name) return;
-        const newId = 'pl_' + Date.now();
-        state.playlists.push({
-          id: newId,
-          name: name,
-          items: []
-        });
-        state.activePlaylistId = newId;
-        els.newPlaylistNameInput.value = '';
-        if (els.newPlaylistInputWrapper) els.newPlaylistInputWrapper.classList.add('hidden');
-        savePlaylists();
-        renderRecentSession();
-        renderPlaylistsList();
-        showToast(`تم إنشاء قائمة "${name}"!`);
+      els.btnCreatePlaylist.addEventListener('click', submitCreatePlaylist);
+    }
+
+    if (els.btnCancelNewPlaylist) {
+      els.btnCancelNewPlaylist.addEventListener('click', closeNewPlaylistInput);
+    }
+
+    if (els.newPlaylistNameInput) {
+      els.newPlaylistNameInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          submitCreatePlaylist();
+        } else if (e.key === 'Escape') {
+          closeNewPlaylistInput();
+        }
       });
     }
 
