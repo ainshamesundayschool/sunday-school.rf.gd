@@ -1987,7 +1987,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.addEventListener('click', (e) => {
-      if (els.popoverStyle && !els.popoverStyle.contains(e.target) && e.target !== els.btnMenuStyle && !els.btnMenuStyle.contains(e.target)) {
+      if (window.innerWidth <= 768 && els.popoverStyle && !els.popoverStyle.contains(e.target) && e.target !== els.btnMenuStyle && !els.btnMenuStyle.contains(e.target)) {
         els.popoverStyle.classList.add('hidden');
       }
       if (els.popoverCast && !els.popoverCast.contains(e.target) && e.target !== els.btnMenuCast && !els.btnMenuCast.contains(e.target)) {

@@ -2126,7 +2126,7 @@ input[type="checkbox"]:checked::after {
   }
 
   .dropdown-popover,
-  #popover-bible {
+  #popover-style {
     position: fixed !important;
     top: 60px !important;
     left: 0.65rem !important;
@@ -2998,6 +2998,24 @@ input[type="checkbox"]:checked::after {
 }
 
 .bible-popover-box {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  max-height: 480px;
+  background: #ffffff;
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.15);
+  z-index: 1200;
+  padding: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  color: #1e293b;
+}
+
+.style-drawer-panel {
   position: relative !important;
   top: auto !important;
   left: auto !important;
@@ -3012,13 +3030,20 @@ input[type="checkbox"]:checked::after {
   border-radius: 16px !important;
   box-shadow: var(--shadow-card) !important;
   z-index: 10 !important;
-  padding: 14px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  color: #1e293b;
-  box-sizing: border-box;
-  transition: all 0.25s ease;
+  padding: 14px !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  color: #1e293b !important;
+  box-sizing: border-box !important;
+  transition: all 0.25s ease !important;
+}
+
+.style-drawer-scroll-body {
+  flex: 1;
+  overflow-y: auto;
+  padding-left: 4px;
+  padding-right: 4px;
 }
 
 .bible-popover-header {

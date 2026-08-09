@@ -101,207 +101,6 @@
           <button class="icon-menu-btn" id="btn-menu-style" title="التنسيق والخط">
             <i class="fa-solid fa-palette"></i>
           </button>
-
-          <div id="popover-style-backdrop" class="drawer-backdrop hidden"></div>
-          <div class="dropdown-popover hidden" id="popover-style">
-            <div class="popover-title" style="display: flex; align-items: center; justify-content: space-between; width: 100%; border-bottom: 1px solid rgba(0,0,0,0.08); padding-bottom: 8px; margin-bottom: 12px;">
-              <span><i class="fa-solid fa-sliders"></i> التنسيق والخط</span>
-              <button id="btn-close-style-drawer" class="drawer-close-btn" type="button" title="إغلاق">
-                <i class="fa-solid fa-xmark"></i>
-              </button>
-            </div>
-
-            <!-- SECTION 1: FONT & TEXT -->
-            <div class="popover-section-title"><i class="fa-solid fa-font"></i> الخط والنص</div>
-
-            <div class="popover-row">
-              <label>الخط</label>
-              <select id="font-family-select" class="control-select">
-                <option value="'Alexandria', sans-serif">Alexandria</option>
-                <option value="'Cairo', sans-serif">Cairo</option>
-                <option value="'Almarai', sans-serif">Almarai</option>
-                <option value="'Amiri', serif">Amiri</option>
-                <option value="'Tajawal', sans-serif">Tajawal</option>
-                <option value="Jomhuria, Arial, sans-serif">Jomhuria</option>
-                <option value="custom">خط محلي...</option>
-              </select>
-            </div>
-
-            <div class="popover-row hidden" id="custom-font-wrapper" style="flex-direction: column; align-items: stretch; gap: 8px;">
-              <label style="margin-bottom: 2px;">خط محلي من الجهاز</label>
-              <div style="display: flex; gap: 6px; width: 100%;">
-                <label for="custom-font-file-input" class="control-btn" style="flex: 1; text-align: center; cursor: pointer; padding: 8px 12px; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 6px; background: var(--bg-hover, #e2e8f0); border-radius: 8px; font-weight: 500;">
-                  <i class="fa-solid fa-folder-open"></i>
-                  <span id="custom-font-file-name">اختر ملف خط (.ttf, .otf, .woff)...</span>
-                </label>
-                <input type="file" id="custom-font-file-input" accept=".ttf,.otf,.woff,.woff2" class="hidden">
-              </div>
-              <input type="text" id="custom-font-input" class="control-input" placeholder="أو اكتب اسم خط مثبت بنظامك..." value="" style="font-size: 0.82rem;">
-            </div>
-
-            <div class="popover-row">
-              <label>مقياس النص</label>
-              <select id="obs-scale-mode-select" class="control-select">
-                <option value="auto" selected>تلقائي (Auto Fit)</option>
-                <option value="fixed">ثابت (Fixed Size)</option>
-              </select>
-            </div>
-
-            <div class="popover-row" id="font-size-popover-row">
-              <label>حجم الخط</label>
-              <div class="compact-control-group">
-                <input type="range" id="obs-font-size-range" min="24" max="120" value="54" class="slider-input">
-                <span id="font-size-val-badge" class="counter-text">54px</span>
-              </div>
-            </div>
-
-            <div class="popover-row">
-              <label>السُّك</label>
-              <select id="obs-font-weight-select" class="control-select">
-                <option value="400">عادي 400</option>
-                <option value="600">شبه عريض 600</option>
-                <option value="700">عريض 700</option>
-                <option value="800" selected>عريض جداً 800</option>
-                <option value="900">أسود 900</option>
-              </select>
-            </div>
-
-            <div class="popover-row">
-              <label>لون النص</label>
-              <input type="color" id="obs-text-color" value="#ffffff" class="color-picker-input">
-            </div>
-
-            <!-- SECTION 2: FORMAT & ALIGNMENT -->
-            <div class="popover-section-title"><i class="fa-solid fa-align-right"></i> التنسيق والمحاذاة</div>
-
-            <div class="popover-row">
-              <label>المحاذاة</label>
-              <div class="btn-group-row" style="display:flex; gap:4px;">
-                <button type="button" class="btn btn-sm btn-secondary active" id="btn-align-center" title="وسط"><i class="fa-solid fa-align-center"></i></button>
-                <button type="button" class="btn btn-sm btn-secondary" id="btn-align-right" title="يمين"><i class="fa-solid fa-align-right"></i></button>
-                <button type="button" class="btn btn-sm btn-secondary" id="btn-align-left" title="يسار"><i class="fa-solid fa-align-left"></i></button>
-                <button type="button" class="btn btn-sm btn-secondary" id="btn-align-justify" title="ضبط"><i class="fa-solid fa-align-justify"></i></button>
-              </div>
-            </div>
-
-            <div class="popover-row">
-              <label>التنسيق</label>
-              <div class="btn-group-row" style="display:flex; gap:4px;">
-                <button type="button" class="btn btn-sm btn-secondary" id="btn-toggle-bold" title="عريض"><i class="fa-solid fa-bold"></i></button>
-                <button type="button" class="btn btn-sm btn-secondary" id="btn-toggle-italic" title="مائل"><i class="fa-solid fa-italic"></i></button>
-                <button type="button" class="btn btn-sm btn-secondary" id="btn-toggle-underline" title="سطر سفلي"><i class="fa-solid fa-underline"></i></button>
-              </div>
-            </div>
-
-            <div class="popover-row">
-              <label>تباعد الحروف</label>
-              <input type="range" id="obs-letter-spacing-range" min="-2" max="15" value="0" class="slider-input">
-            </div>
-
-            <div class="popover-row">
-              <label>ارتفاع السطر</label>
-              <input type="range" id="obs-line-height-range" min="1.0" max="2.5" step="0.1" value="1.5" class="slider-input">
-            </div>
-
-            <!-- SECTION 3: SHADOW & BORDER -->
-            <div class="popover-section-title"><i class="fa-solid fa-sun"></i> الظل والحدود</div>
-
-            <div class="popover-row">
-              <label>الحدود</label>
-              <div class="compact-control-group">
-                <input type="range" id="obs-stroke-range" min="0" max="10" value="0" class="slider-input">
-                <input type="color" id="obs-stroke-color" value="#000000" class="color-picker-input">
-              </div>
-            </div>
-
-            <div class="popover-row">
-              <label>ضبابية الظل</label>
-              <input type="range" id="obs-shadow-range" min="0" max="60" value="12" class="slider-input" title="ضبابية الظل">
-            </div>
-
-            <div class="popover-row">
-              <label>لون الظل</label>
-              <input type="color" id="obs-shadow-color" value="#000000" class="color-picker-input">
-            </div>
-
-            <div class="popover-row">
-              <label>زاوية الظل</label>
-              <div class="circle-angle-picker-wrapper">
-                <div id="circle-angle-dial" class="circle-angle-dial" title="اسحب أو اضغط لتغيير الزاوية">
-                  <div id="circle-angle-pointer" class="circle-angle-pointer"></div>
-                  <div class="circle-angle-center-dot"></div>
-                </div>
-                <input type="range" id="obs-shadow-angle-range" min="0" max="360" value="90" class="slider-input" title="زاوية الظل">
-                <span id="shadow-angle-badge" class="counter-text">90°</span>
-              </div>
-            </div>
-
-            <div class="popover-row">
-              <label>مسافة الظل</label>
-              <div class="compact-control-group">
-                <input type="range" id="obs-shadow-distance-range" min="0" max="50" value="6" class="slider-input" title="مسافة الظل">
-                <span id="shadow-distance-badge" class="counter-text">6px</span>
-              </div>
-            </div>
-
-            <!-- SECTION 4: BACKGROUND & CONTAINER -->
-            <div class="popover-section-title"><i class="fa-solid fa-square"></i> خلفية الشاشة والصندوق</div>
-
-            <div class="popover-row">
-              <label>الخلفية</label>
-              <select id="chroma-select" class="control-select">
-                <option value="black" selected>أسود داكن</option>
-                <option value="green">خلفية خضراء</option>
-                <option value="blue">خلفية زرقاء</option>
-                <option value="transparent">خلفية شفافة</option>
-              </select>
-            </div>
-
-            <div class="popover-row">
-              <label>خلفية الصندوق</label>
-              <div class="compact-control-group">
-                <input type="color" id="obs-box-bg-color" value="#000000" class="color-picker-input">
-                <input type="range" id="obs-box-opacity-range" min="0" max="100" value="0" class="slider-input" title="الشفافية">
-              </div>
-            </div>
-
-            <div class="popover-row">
-              <label>حواف الحاوية</label>
-              <div class="compact-control-group">
-                <input type="range" id="obs-box-radius-range" min="0" max="40" value="12" class="slider-input" title="الاستدوار">
-                <input type="range" id="obs-box-padding-range" min="0" max="50" value="20" class="slider-input" title="الهامش الداخلي">
-              </div>
-            </div>
-
-            <!-- SECTION 5: PRESENTATION OPTIONS & ANIMATION -->
-            <div class="popover-section-title"><i class="fa-solid fa-display"></i> خيارات العرض والحركة</div>
-
-            <div class="popover-row">
-              <label>نمط العرض</label>
-              <select id="pres-mode-select" class="control-select">
-                <option value="oneline">سطر واحد أسفل الشاشة</option>
-                <option value="fullslide">شريحة كاملة بالمنتصف</option>
-              </select>
-            </div>
-
-            <div class="popover-row">
-              <label>الحركة</label>
-              <select id="obs-text-anim-select" class="control-select">
-                <option value="slide" selected>صعود (Slide Up)</option>
-                <option value="drop">هبوط (Drop Down)</option>
-                <option value="pop">تكبير (Pop)</option>
-                <option value="flip">دوران (Flip)</option>
-                <option value="glow">ضبابي (Dissolve)</option>
-                <option value="none">بدون حركة</option>
-              </select>
-            </div>
-
-            <div class="popover-actions" style="margin-top:10px;">
-              <button id="btn-share-style-link" class="btn btn-sm btn-secondary" style="width:100%; font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px;">
-                <i class="fa-solid fa-share-nodes"></i> مشاركة التنسيق
-              </button>
-            </div>
-          </div>
         </div>
 
       </div>
@@ -371,49 +170,252 @@
 
     </section>
 
-    <!-- MULTI-COLUMN DASHBOARD LAYOUT (RIGHT = BIBLE PANEL / RECENT SESSION, LEFT = PRESENTATION LINES) -->
+    <!-- MULTI-COLUMN DASHBOARD LAYOUT (RIGHT = STYLE PANEL / RECENT SESSION, LEFT = PRESENTATION LINES) -->
     <main class="dashboard-halves">
 
-      <!-- BIBLE NAVIGATOR PANEL (DOCKS INLINE ON DESKTOP, OVERLAPS AS FLOATING POPOVER ON MOBILE) -->
-      <section id="popover-bible" class="half-panel bible-popover-box hidden">
-        <div class="bible-popover-header">
-          <button id="btn-bible-back" class="bible-back-btn hidden" type="button" title="رجوع">
-            <i class="fa-solid fa-arrow-right"></i>
-          </button>
-          <span id="bible-popover-heading" class="bible-header-title">
-            <i class="fa-solid fa-book-open"></i> أسفار الكتاب المقدس
-          </span>
-          <button id="btn-close-bible-popover" class="bible-close-btn" type="button" title="إغلاق">
+      <!-- STYLE & FONT PANEL (DOCKS INLINE ON DESKTOP, OVERLAPS AS FLOATING POPOVER ON MOBILE) -->
+      <section class="half-panel style-drawer-panel hidden" id="popover-style">
+        <div class="popover-title" style="display: flex; align-items: center; justify-content: space-between; width: 100%; border-bottom: 1px solid rgba(0,0,0,0.08); padding-bottom: 8px; margin-bottom: 12px;">
+          <span><i class="fa-solid fa-sliders"></i> التنسيق والخط</span>
+          <button id="btn-close-style-drawer" class="drawer-close-btn" type="button" title="إغلاق">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
 
-        <!-- STEP 1: BOOKS LIST VIEW -->
-        <div id="bible-books-step" class="bible-step-view">
-          <div class="bible-search-input-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="bible-book-filter" placeholder="بحث في الأسفار..." autocomplete="off">
+        <div class="style-drawer-scroll-body">
+          <!-- SECTION 1: FONT & TEXT -->
+          <div class="popover-section-title"><i class="fa-solid fa-font"></i> الخط والنص</div>
+
+          <div class="popover-row">
+            <label>الخط</label>
+            <select id="font-family-select" class="control-select">
+              <option value="'Alexandria', sans-serif">Alexandria</option>
+              <option value="'Cairo', sans-serif">Cairo</option>
+              <option value="'Almarai', sans-serif">Almarai</option>
+              <option value="'Amiri', serif">Amiri</option>
+              <option value="'Tajawal', sans-serif">Tajawal</option>
+              <option value="Jomhuria, Arial, sans-serif">Jomhuria</option>
+              <option value="custom">خط محلي...</option>
+            </select>
           </div>
 
-          <div class="bible-testament-tabs">
-            <button class="bible-tab-btn active" data-testament="all" type="button">الكل (66)</button>
-            <button class="bible-tab-btn" data-testament="ot" type="button">القديم (39)</button>
-            <button class="bible-tab-btn" data-testament="nt" type="button">الجديد (27)</button>
+          <div class="popover-row hidden" id="custom-font-wrapper" style="flex-direction: column; align-items: stretch; gap: 8px;">
+            <label style="margin-bottom: 2px;">خط محلي من الجهاز</label>
+            <div style="display: flex; gap: 6px; width: 100%;">
+              <label for="custom-font-file-input" class="control-btn" style="flex: 1; text-align: center; cursor: pointer; padding: 8px 12px; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 6px; background: var(--bg-hover, #e2e8f0); border-radius: 8px; font-weight: 500;">
+                <i class="fa-solid fa-folder-open"></i>
+                <span id="custom-font-file-name">اختر ملف خط (.ttf, .otf, .woff)...</span>
+              </label>
+              <input type="file" id="custom-font-file-input" accept=".ttf,.otf,.woff,.woff2" class="hidden">
+            </div>
+            <input type="text" id="custom-font-input" class="control-input" placeholder="أو اكتب اسم خط مثبت بنظامك..." value="" style="font-size: 0.82rem;">
           </div>
 
-          <div id="bible-books-grid" class="bible-books-grid">
-            <!-- Dynamically populated with Bible books -->
+          <div class="popover-row">
+            <label>مقياس النص</label>
+            <select id="obs-scale-mode-select" class="control-select">
+              <option value="auto" selected>تلقائي (Auto Fit)</option>
+              <option value="fixed">ثابت (Fixed Size)</option>
+            </select>
           </div>
-        </div>
 
-        <!-- STEP 2: CHAPTERS GRID VIEW -->
-        <div id="bible-chapters-step" class="bible-step-view hidden">
-          <div id="bible-book-selected-title" class="bible-selected-book-banner"></div>
-          <div id="bible-chapters-grid" class="bible-chapters-grid">
-            <!-- Dynamically populated with chapter numbers 1, 2, 3... -->
+          <div class="popover-row" id="font-size-popover-row">
+            <label>حجم الخط</label>
+            <div class="compact-control-group">
+              <input type="range" id="obs-font-size-range" min="24" max="120" value="54" class="slider-input">
+              <span id="font-size-val-badge" class="counter-text">54px</span>
+            </div>
+          </div>
+
+          <div class="popover-row">
+            <label>السُّك</label>
+            <select id="obs-font-weight-select" class="control-select">
+              <option value="400">عادي 400</option>
+              <option value="600">شبه عريض 600</option>
+              <option value="700">عريض 700</option>
+              <option value="800" selected>عريض جداً 800</option>
+              <option value="900">أسود 900</option>
+            </select>
+          </div>
+
+          <div class="popover-row">
+            <label>لون النص</label>
+            <input type="color" id="obs-text-color" value="#ffffff" class="color-picker-input">
+          </div>
+
+          <!-- SECTION 2: FORMAT & ALIGNMENT -->
+          <div class="popover-section-title"><i class="fa-solid fa-align-right"></i> التنسيق والمحاذاة</div>
+
+          <div class="popover-row">
+            <label>المحاذاة</label>
+            <div class="btn-group-row" style="display:flex; gap:4px;">
+              <button type="button" class="btn btn-sm btn-secondary active" id="btn-align-center" title="وسط"><i class="fa-solid fa-align-center"></i></button>
+              <button type="button" class="btn btn-sm btn-secondary" id="btn-align-right" title="يمين"><i class="fa-solid fa-align-right"></i></button>
+              <button type="button" class="btn btn-sm btn-secondary" id="btn-align-left" title="يسار"><i class="fa-solid fa-align-left"></i></button>
+              <button type="button" class="btn btn-sm btn-secondary" id="btn-align-justify" title="ضبط"><i class="fa-solid fa-align-justify"></i></button>
+            </div>
+          </div>
+
+          <div class="popover-row">
+            <label>التنسيق</label>
+            <div class="btn-group-row" style="display:flex; gap:4px;">
+              <button type="button" class="btn btn-sm btn-secondary" id="btn-toggle-bold" title="عريض"><i class="fa-solid fa-bold"></i></button>
+              <button type="button" class="btn btn-sm btn-secondary" id="btn-toggle-italic" title="مائل"><i class="fa-solid fa-italic"></i></button>
+              <button type="button" class="btn btn-sm btn-secondary" id="btn-toggle-underline" title="سطر سفلي"><i class="fa-solid fa-underline"></i></button>
+            </div>
+          </div>
+
+          <div class="popover-row">
+            <label>تباعد الحروف</label>
+            <input type="range" id="obs-letter-spacing-range" min="-2" max="15" value="0" class="slider-input">
+          </div>
+
+          <div class="popover-row">
+            <label>ارتفاع السطر</label>
+            <input type="range" id="obs-line-height-range" min="1.0" max="2.5" step="0.1" value="1.5" class="slider-input">
+          </div>
+
+          <!-- SECTION 3: SHADOW & BORDER -->
+          <div class="popover-section-title"><i class="fa-solid fa-sun"></i> الظل والحدود</div>
+
+          <div class="popover-row">
+            <label>الحدود</label>
+            <div class="compact-control-group">
+              <input type="range" id="obs-stroke-range" min="0" max="10" value="0" class="slider-input">
+              <input type="color" id="obs-stroke-color" value="#000000" class="color-picker-input">
+            </div>
+          </div>
+
+          <div class="popover-row">
+            <label>ضبابية الظل</label>
+            <input type="range" id="obs-shadow-range" min="0" max="60" value="12" class="slider-input" title="ضبابية الظل">
+          </div>
+
+          <div class="popover-row">
+            <label>لون الظل</label>
+            <input type="color" id="obs-shadow-color" value="#000000" class="color-picker-input">
+          </div>
+
+          <div class="popover-row">
+            <label>زاوية الظل</label>
+            <div class="circle-angle-picker-wrapper">
+              <div id="circle-angle-dial" class="circle-angle-dial" title="اسحب أو اضغط لتغيير الزاوية">
+                <div id="circle-angle-pointer" class="circle-angle-pointer"></div>
+                <div class="circle-angle-center-dot"></div>
+              </div>
+              <input type="range" id="obs-shadow-angle-range" min="0" max="360" value="90" class="slider-input" title="زاوية الظل">
+              <span id="shadow-angle-badge" class="counter-text">90°</span>
+            </div>
+          </div>
+
+          <div class="popover-row">
+            <label>مسافة الظل</label>
+            <div class="compact-control-group">
+              <input type="range" id="obs-shadow-distance-range" min="0" max="50" value="6" class="slider-input" title="مسافة الظل">
+              <span id="shadow-distance-badge" class="counter-text">6px</span>
+            </div>
+          </div>
+
+          <!-- SECTION 4: BACKGROUND & CONTAINER -->
+          <div class="popover-section-title"><i class="fa-solid fa-square"></i> خلفية الشاشة والصندوق</div>
+
+          <div class="popover-row">
+            <label>الخلفية</label>
+            <select id="chroma-select" class="control-select">
+              <option value="black" selected>أسود داكن</option>
+              <option value="green">خلفية خضراء</option>
+              <option value="blue">خلفية زرقاء</option>
+              <option value="transparent">خلفية شفافة</option>
+            </select>
+          </div>
+
+          <div class="popover-row">
+            <label>خلفية الصندوق</label>
+            <div class="compact-control-group">
+              <input type="color" id="obs-box-bg-color" value="#000000" class="color-picker-input">
+              <input type="range" id="obs-box-opacity-range" min="0" max="100" value="0" class="slider-input" title="الشفافية">
+            </div>
+          </div>
+
+          <div class="popover-row">
+            <label>حواف الحاوية</label>
+            <div class="compact-control-group">
+              <input type="range" id="obs-box-radius-range" min="0" max="40" value="12" class="slider-input" title="الاستدوار">
+              <input type="range" id="obs-box-padding-range" min="0" max="50" value="20" class="slider-input" title="الهامش الداخلي">
+            </div>
+          </div>
+
+          <!-- SECTION 5: PRESENTATION OPTIONS & ANIMATION -->
+          <div class="popover-section-title"><i class="fa-solid fa-display"></i> خيارات العرض والحركة</div>
+
+          <div class="popover-row">
+            <label>نمط العرض</label>
+            <select id="pres-mode-select" class="control-select">
+              <option value="oneline">سطر واحد أسفل الشاشة</option>
+              <option value="fullslide">شريحة كاملة بالمنتصف</option>
+            </select>
+          </div>
+
+          <div class="popover-row">
+            <label>الحركة</label>
+            <select id="obs-text-anim-select" class="control-select">
+              <option value="slide" selected>صعود (Slide Up)</option>
+              <option value="drop">هبوط (Drop Down)</option>
+              <option value="pop">تكبير (Pop)</option>
+              <option value="flip">دوران (Flip)</option>
+              <option value="glow">ضبابي (Dissolve)</option>
+              <option value="none">بدون حركة</option>
+            </select>
+          </div>
+
+          <div class="popover-actions" style="margin-top:10px;">
+            <button id="btn-share-style-link" class="btn btn-sm btn-secondary" style="width:100%; font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px;">
+              <i class="fa-solid fa-share-nodes"></i> مشاركة التنسيق
+            </button>
           </div>
         </div>
       </section>
+
+        <!-- BIBLE NAVIGATOR POPOVER -->
+        <div id="popover-bible" class="search-dropdown bible-popover-box hidden">
+          <div class="bible-popover-header">
+            <button id="btn-bible-back" class="bible-back-btn hidden" type="button" title="رجوع">
+              <i class="fa-solid fa-arrow-right"></i>
+            </button>
+            <span id="bible-popover-heading" class="bible-header-title">
+              <i class="fa-solid fa-book-open"></i> أسفار الكتاب المقدس
+            </span>
+            <button id="btn-close-bible-popover" class="bible-close-btn" type="button" title="إغلاق">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <!-- STEP 1: BOOKS LIST VIEW -->
+          <div id="bible-books-step" class="bible-step-view">
+            <div class="bible-search-input-box">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="bible-book-filter" placeholder="بحث في الأسفار..." autocomplete="off">
+            </div>
+
+            <div class="bible-testament-tabs">
+              <button class="bible-tab-btn active" data-testament="all" type="button">الكل (66)</button>
+              <button class="bible-tab-btn" data-testament="ot" type="button">القديم (39)</button>
+              <button class="bible-tab-btn" data-testament="nt" type="button">الجديد (27)</button>
+            </div>
+
+            <div id="bible-books-grid" class="bible-books-grid">
+              <!-- Dynamically populated with Bible books -->
+            </div>
+          </div>
+
+          <!-- STEP 2: CHAPTERS GRID VIEW -->
+          <div id="bible-chapters-step" class="bible-step-view hidden">
+            <div id="bible-book-selected-title" class="bible-selected-book-banner"></div>
+            <div id="bible-chapters-grid" class="bible-chapters-grid">
+              <!-- Dynamically populated with chapter numbers 1, 2, 3... -->
+            </div>
+          </div>
+        </div>
 
       <!-- RIGHT HALF IN RTL: SESSION RECENT OPENED LIST & PLAYLIST MANAGER -->
       <section class="half-panel recent-session-panel" id="recents-panel">
