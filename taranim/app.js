@@ -4412,7 +4412,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return `<div class="slide-line-row"><span>${text}</span></div>`;
       }).join('');
 
-      const isActive = isLiveSongDisplayed ? (idx === state.liveLineIndex) : (idx === state.currentLineIndex);
+      const isActive = (!state.isBlank) && (isLiveSongDisplayed ? (idx === state.liveLineIndex) : (idx === state.currentLineIndex));
 
       return `
         <div class="line-item ${isActive ? 'active' : ''}" data-idx="${idx}">
@@ -5376,8 +5376,15 @@ document.addEventListener('DOMContentLoaded', () => {
       if (state.liveSong && state.activeSong && getItemKey(state.liveSong) === getItemKey(state.activeSong)) {
         state.currentLineIndex = state.liveLineIndex;
       }
+      state.isBlank = false;
       renderPresentationLinesList();
       syncLiveState();
+    } else if (state.liveLineIndex === currentLines.length - 1) {
+      if (!state.isBlank) {
+        state.isBlank = true;
+        renderPresentationLinesList();
+        syncLiveState();
+      }
     }
   }
 
