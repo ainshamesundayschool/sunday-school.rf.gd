@@ -132,12 +132,20 @@ function francoToArabic(text) {
   return translated.join(' ');
 }
 
+// Extract Arabic consonant skeleton for a single word
+function getWordConsonantSkeleton(word) {
+  if (!word) return '';
+  return normalizeArabic(word)
+    .replace(/[أإآءاوىهة]/g, '')
+    .replace(/^(وال|فال|بال|لل|ال|و|ف|ب|ل|ك|عا)/g, '')
+    .trim();
+}
+
 // Extract Arabic consonant skeleton (removes weak vowels & silent letters)
 function extractArabicConsonantSkeleton(text) {
   if (!text) return '';
-  return normalizeArabic(text)
-    .replace(/[أإآءاوىهة]/g, '')
-    .replace(/\s+/g, '');
+  const words = normalizeArabic(text).split(/\s+/).filter(Boolean);
+  return words.map(getWordConsonantSkeleton).filter(Boolean).join('');
 }
 
 function convertFrancoWordPhonetic(w) {
@@ -522,7 +530,28 @@ function getMatchScore(song, query) {
     if (fVar && tNorm.includes(fVar)) return 74;
   }
 
-  // --- Tier 3.5: Consonant Skeleton Match ---
+  // --- Tier 3.5: Consonant & Phonetic Skeleton Match ---
+  const qWordSkeletons = qWords.map(getWordConsonantSkeleton).filter(w => w.length >= 2);
+  const tWordSkeletons = tWords.map(getWordConsonantSkeleton).filter(w => w.length >= 2);
+
+  if (qWordSkeletons.length > 0 && tWordSkeletons.length > 0) {
+    const qPhoneticPhrase = qWordSkeletons.join('');
+    const tPhoneticPhrase = tWordSkeletons.join('');
+
+    if (qPhoneticPhrase && qPhoneticPhrase.length >= 3) {
+      if (tPhoneticPhrase === qPhoneticPhrase) return 96;
+      if (tPhoneticPhrase.startsWith(qPhoneticPhrase)) return 92;
+      if (tPhoneticPhrase.includes(qPhoneticPhrase)) return 85;
+    }
+
+    if (qWordSkeletons.length > 1) {
+      const allSkeletonsInTitle = qWordSkeletons.every(qw => 
+        tWordSkeletons.some(tw => tw === qw || tw.includes(qw) || qw.includes(tw))
+      );
+      if (allSkeletonsInTitle) return 84;
+    }
+  }
+
   const qSkeleton = typeof extractArabicConsonantSkeleton === 'function' 
     ? (isFrancoQuery ? extractArabicConsonantSkeleton(qFrancoVariants[0] || query) : extractArabicConsonantSkeleton(query))
     : '';

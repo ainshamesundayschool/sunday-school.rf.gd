@@ -37,6 +37,14 @@ function normalizeArabic(text) {
     .trim();
 }
 
+function getWordConsonantSkeleton(word) {
+  if (!word) return "";
+  return normalizeArabic(word)
+    .replace(/[أإآءاوىهة]/g, "")
+    .replace(/^(وال|فال|بال|لل|ال|و|ف|ب|ل|ك|عا)/g, "")
+    .trim();
+}
+
 function francoToArabic(text) {
   if (!text) return "";
   let s = text.toLowerCase().trim();
