@@ -41851,13 +41851,22 @@ function _sendUncleRegistrationEmail($adminEmail, $churchName, $uncleName, $user
 
 
 
-// ══════════════════════════════════════════════════════════════════
-
-// TASKS FUNCTIONS
-
-// ══════════════════════════════════════════════════════════════════
-
-
+function ensureTaskSubmissionsIsDeletedColumn($conn)
+{
+    static $done = false;
+    if ($done) return;
+    $done = true;
+    try {
+        $chk = $conn->query("SHOW COLUMNS FROM task_submissions LIKE 'is_deleted'");
+        if ($chk && $chk->num_rows === 0) {
+            $conn->query("ALTER TABLE task_submissions ADD is_deleted TINYINT(1) DEFAULT 0");
+        }
+        $chkDate = $conn->query("SHOW COLUMNS FROM task_submissions LIKE 'deleted_at'");
+        if ($chkDate && $chkDate->num_rows === 0) {
+            $conn->query("ALTER TABLE task_submissions ADD deleted_at DATETIME NULL");
+        }
+    } catch (Throwable $e) {}
+}
 
 // ─── getTasks ──────────────────────────────────────────────────
 
@@ -41877,7 +41886,7 @@ function getTasks()
 
         $className = sanitize($_POST['class_name'] ?? '');
 
-
+        ensureTaskSubmissionsIsDeletedColumn($conn);
 
         $isAdmin = in_array($uncleRole, ['admin', 'developer', 'church']);
 
@@ -46991,6 +47000,8 @@ function getPendingOpenSubmissions()
         $taskId = (int) ($_POST['task_id'] ?? 0);
 
         $includeGraded = !empty($_POST['include_graded']) ? (int) $_POST['include_graded'] : 0;
+
+        ensureTaskSubmissionsIsDeletedColumn($conn);
 
 
 
