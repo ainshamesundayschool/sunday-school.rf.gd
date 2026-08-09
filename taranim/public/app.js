@@ -697,7 +697,7 @@ function highlightMatches(rawText, qNorm, qWords) {
   return result;
 }
 
-function showToast(message) {
+function showToast(message, isHtml = false) {
   let toast = document.getElementById('app-toast');
   if (!toast) {
     toast = document.createElement('div');
@@ -705,11 +705,16 @@ function showToast(message) {
     toast.className = 'app-toast hidden';
     document.body.appendChild(toast);
   }
-  toast.textContent = message;
+  if (isHtml) {
+    toast.innerHTML = message;
+  } else {
+    toast.textContent = message;
+  }
   toast.classList.remove('hidden');
   toast.classList.add('show');
 
-  setTimeout(() => {
+  if (window._toastTimeout) clearTimeout(window._toastTimeout);
+  window._toastTimeout = setTimeout(() => {
     toast.classList.remove('show');
     toast.classList.add('hidden');
   }, 2400);
@@ -2427,7 +2432,21 @@ document.addEventListener('DOMContentLoaded', () => {
       btnSyncLiveFile.addEventListener('click', setLiveSyncFile);
     }
 
+    let highlightedSearchIndex = -1;
+
+    function updateSearchHighlight(items, selectedIndex) {
+      items.forEach((item, idx) => {
+        if (idx === selectedIndex) {
+          item.classList.add('keyboard-selected');
+          item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        } else {
+          item.classList.remove('keyboard-selected');
+        }
+      });
+    }
+
     els.intelligentSearch.addEventListener('input', (e) => {
+      highlightedSearchIndex = -1;
       const query = e.target.value;
       if (query) els.clearSearchBtn.classList.remove('hidden');
       else {
@@ -2444,7 +2463,35 @@ document.addEventListener('DOMContentLoaded', () => {
       performIntelligentSearch(query);
     });
 
+    els.intelligentSearch.addEventListener('keydown', (e) => {
+      if (!els.searchDropdown || els.searchDropdown.classList.contains('hidden')) return;
+
+      const items = Array.from(els.searchDropdown.querySelectorAll('.search-item'));
+      if (!items || items.length === 0) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        highlightedSearchIndex++;
+        if (highlightedSearchIndex >= items.length) highlightedSearchIndex = 0;
+        updateSearchHighlight(items, highlightedSearchIndex);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        highlightedSearchIndex--;
+        if (highlightedSearchIndex < 0) highlightedSearchIndex = items.length - 1;
+        updateSearchHighlight(items, highlightedSearchIndex);
+      } else if (e.key === 'Enter') {
+        if (highlightedSearchIndex >= 0 && highlightedSearchIndex < items.length) {
+          e.preventDefault();
+          items[highlightedSearchIndex].click();
+        } else if (items.length > 0) {
+          e.preventDefault();
+          items[0].click();
+        }
+      }
+    });
+
     els.intelligentSearch.addEventListener('focus', () => {
+      highlightedSearchIndex = -1;
       if (els.intelligentSearch.value.trim()) {
         renderSearchWordSuggestions(els.intelligentSearch.value);
         performIntelligentSearch(els.intelligentSearch.value);
@@ -2595,7 +2642,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (isDigit) {
         const standardDigit = e.key.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
         numberJumpBuffer += standardDigit;
-        showToast(`رقم الشريحة: ${numberJumpBuffer} (اضغط Enter للانتقال)`);
+        showNumberJumpToast(numberJumpBuffer);
 
         if (numberJumpTimer) clearTimeout(numberJumpTimer);
         numberJumpTimer = setTimeout(() => {
@@ -2625,6 +2672,21 @@ document.addEventListener('DOMContentLoaded', () => {
     let numberJumpBuffer = '';
     let numberJumpTimer = null;
 
+    function showNumberJumpToast(numStr) {
+      const html = `
+        <div class="slide-num-toast-card">
+          <div class="slide-num-toast-top">
+            <span class="slide-num-big-val">${escapeHtml(numStr)}</span>
+            <div class="slide-num-enter-pill" title="اضغط Enter للانتقال">
+              <i class="fa-solid fa-arrow-turn-down-left"></i>
+            </div>
+          </div>
+          <div class="slide-num-subtext">الانتقال للشريحة رقم</div>
+        </div>
+      `;
+      showToast(html, true);
+    }
+
     function jumpToBufferedSlide() {
       if (!numberJumpBuffer) return;
       const targetNum = parseInt(numberJumpBuffer);
@@ -2633,7 +2695,6 @@ document.addEventListener('DOMContentLoaded', () => {
         state.isBlank = false;
         renderPresentationLinesList();
         syncLiveState();
-        showToast(`الانتقال إلى الشريحة ${targetNum}`);
       } else if (!isNaN(targetNum)) {
         showToast(`رقم الشريحة غير موجود (${targetNum})`);
       }
