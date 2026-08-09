@@ -42154,7 +42154,7 @@ function getTaskDetail()
 
             LEFT JOIN students s ON s.id = ts.student_id
 
-            WHERE ts.task_id = ?
+            WHERE ts.task_id = ? AND (ts.is_deleted IS NULL OR ts.is_deleted = 0)
 
             ORDER BY ts.submitted_at DESC
 
@@ -42477,6 +42477,12 @@ function deleteSubmission()
 
 
 
+        $conn->query("ALTER TABLE task_submissions ADD COLUMN IF NOT EXISTS is_deleted TINYINT(1) DEFAULT 0");
+
+        $conn->query("ALTER TABLE task_submissions ADD COLUMN IF NOT EXISTS deleted_at DATETIME NULL");
+
+
+
         // Load submission so we can reverse coupons
 
         $sel = $conn->prepare("
@@ -42487,7 +42493,7 @@ function deleteSubmission()
 
             JOIN tasks t ON t.id = ts.task_id
 
-            WHERE ts.id = ? AND ts.church_id = ?
+            WHERE ts.id = ? AND ts.church_id = ? AND (ts.is_deleted IS NULL OR ts.is_deleted = 0)
 
         ");
 
@@ -42559,9 +42565,9 @@ function deleteSubmission()
 
 
 
-        // Delete the submission (also delete exam_start record so student can retake)
+        // Soft delete the submission (also delete exam_start record so student can retake if needed)
 
-        $conn->query("DELETE FROM task_submissions WHERE id=$subId");
+        $conn->query("UPDATE task_submissions SET is_deleted = 1, deleted_at = NOW() WHERE id={$subId}");
 
         $conn->query("DELETE FROM exam_starts WHERE task_id={$sub['task_id']} AND student_id={$sub['student_id']}");
 
@@ -42579,7 +42585,21 @@ function deleteSubmission()
 
 
 
-        sendJSON(['success' => true, 'message' => 'تم حذف الإجابة وعكس الكوبونات', 'coupons_reversed' => $awarded]);
+        sendJSON([
+
+            'success' => true,
+
+            'message' => 'تم حذف الإجابة وعكس الكوبونات',
+
+            'submission_id' => $subId,
+
+            'task_id' => (int)$sub['task_id'],
+
+            'student_id' => (int)$sub['student_id'],
+
+            'coupons_reversed' => $awarded
+
+        ]);
 
     } catch (Exception $e) {
 
@@ -42588,6 +42608,150 @@ function deleteSubmission()
             $conn->rollback();
 
         error_log("deleteSubmission error: " . $e->getMessage());
+
+        sendJSON(['success' => false, 'message' => $e->getMessage()]);
+
+    }
+
+}
+
+
+
+// ─── restoreSubmission ─────────────────────────────────────────
+
+function restoreSubmission()
+
+{
+
+    try {
+
+        $conn = getDBConnection();
+
+        $churchId = getChurchId();
+
+        $subId = (int) ($_POST['submission_id'] ?? 0);
+
+        if (!$subId) {
+
+            sendJSON(['success' => false, 'message' => 'submission_id مطلوب']);
+
+            return;
+
+        }
+
+
+
+        $sel = $conn->prepare("
+
+            SELECT ts.student_id, ts.coupons_awarded, ts.task_id, t.title
+
+            FROM task_submissions ts
+
+            JOIN tasks t ON t.id = ts.task_id
+
+            WHERE ts.id = ? AND ts.church_id = ? AND ts.is_deleted = 1
+
+        ");
+
+        $sel->bind_param('ii', $subId, $churchId);
+
+        $sel->execute();
+
+        $sub = $sel->get_result()->fetch_assoc();
+
+        if (!$sub) {
+
+            sendJSON(['success' => false, 'message' => 'لم يتم العثور على الإجابة المحذوفة']);
+
+            return;
+
+        }
+
+
+
+        $conn->begin_transaction();
+
+
+
+        $awarded = (int) $sub['coupons_awarded'];
+
+        $uncleId = (int) ($_SESSION['uncle_id'] ?? 0);
+
+
+
+        if ($awarded > 0) {
+
+            $stuStmt = $conn->prepare("SELECT name, coupons, task_coupons, attendance_coupons, commitment_coupons FROM students WHERE id=? LIMIT 1");
+
+            $stuStmt->bind_param('i', $sub['student_id']);
+
+            $stuStmt->execute();
+
+            $stu = $stuStmt->get_result()->fetch_assoc();
+
+            if ($stu) {
+
+                $newTask = (int) $stu['task_coupons'] + $awarded;
+
+                $newTotal = $newTask + (int) $stu['attendance_coupons'] + (int) $stu['commitment_coupons'];
+
+                $conn->query("UPDATE students SET task_coupons={$newTask}, coupons={$newTotal} WHERE id={$sub['student_id']}");
+
+
+
+                $reason = "تراجع عن حذف إجابة تاسك #{$sub['task_id']}: {$sub['title']}";
+
+                $logStmt = $conn->prepare("INSERT INTO coupon_logs (student_id, uncle_id, old_count, new_count, change_amount, change_type, reason) VALUES (?,?,?,?,?,'task',?)");
+
+                $logStmt->bind_param('iiiiss', $sub['student_id'], $uncleId, $stu['task_coupons'], $newTask, $awarded, $reason);
+
+                $logStmt->execute();
+
+
+
+                auditCouponChange($sub['student_id'], $stu['name'] ?? '', (int) $stu['coupons'], $newTotal, $reason);
+
+            }
+
+        }
+
+
+
+        $conn->query("UPDATE task_submissions SET is_deleted = 0, deleted_at = NULL WHERE id = {$subId}");
+
+
+
+        $conn->commit();
+
+
+
+        if (function_exists('writeAuditLog')) {
+
+            writeAuditLog('restore', 'submission', $subId, "تراجع عن حذف إجابة: {$sub['title']}");
+
+        }
+
+
+
+        sendJSON([
+
+            'success' => true,
+
+            'message' => 'تم التراجع وإعادة الإجابة بنجاح 🎉',
+
+            'task_id' => (int)$sub['task_id'],
+
+            'student_id' => (int)$sub['student_id']
+
+        ]);
+
+    } catch (Exception $e) {
+
+        if (isset($conn))
+
+            $conn->rollback();
+
+        error_log("restoreSubmission error: " . $e->getMessage());
 
         sendJSON(['success' => false, 'message' => $e->getMessage()]);
 
@@ -43761,7 +43925,7 @@ function getStudentTasks()
 
 
 
-            $subStmt = $conn->prepare("SELECT $sSel FROM task_submissions WHERE task_id=? AND student_id=? LIMIT 1");
+            $subStmt = $conn->prepare("SELECT $sSel FROM task_submissions WHERE task_id=? AND student_id=? AND (is_deleted IS NULL OR is_deleted = 0) LIMIT 1");
 
             $subStmt->bind_param('ii', $t['id'], $studentId);
 
@@ -46831,7 +46995,7 @@ function getPendingOpenSubmissions()
 
 
 
-        $where = "ts.church_id = ?";
+        $where = "ts.church_id = ? AND (ts.is_deleted IS NULL OR ts.is_deleted = 0)";
 
         $params = [$churchId];
 

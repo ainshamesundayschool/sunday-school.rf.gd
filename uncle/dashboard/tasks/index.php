@@ -19654,13 +19654,25 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
 
 
-          showToast(msg, 'ok');
-
-
+          showToast(msg, 'ok', {
+            text: 'تراجع',
+            onClick: async () => {
+              try {
+                const rd = await api('restoreSubmission', { submission_id: subId });
+                if (rd.success) {
+                  showToast(rd.message || 'تم التراجع وإعادة الإجابة بنجاح 🎉', 'ok');
+                  await openDetail(taskId);
+                  loadTasks();
+                } else {
+                  showToast(rd.message || 'فشل التراجع', 'err');
+                }
+              } catch (e) {
+                showToast('خطأ في الاتصال', 'err');
+              }
+            }
+          });
 
           await openDetail(taskId);
-
-
 
           loadTasks();
 
@@ -21122,42 +21134,28 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
 
 
-    function showToast(msg, type = 'info') {
-
-
-
+    function showToast(msg, type = 'info', action = null) {
       const tc = document.getElementById('tc');
-
-
-
       const t = document.createElement('div');
-
-
-
       t.className = `toast ${type}`;
-
-
+      t.style.display = 'flex';
+      t.style.alignItems = 'center';
+      t.style.justifyContent = 'space-between';
+      t.style.gap = '12px';
 
       const ic = type === 'ok' ? 'fa-check-circle' : type === 'err' ? 'fa-exclamation-circle' : 'fa-info-circle';
+      let actionBtnHtml = '';
+      if (action && action.text && typeof action.onClick === 'function') {
+        const actionId = 'toast_act_' + Math.random().toString(36).substr(2, 9);
+        window[actionId] = action.onClick;
+        actionBtnHtml = `<button onclick="window['${actionId}'] && window['${actionId}'](); this.disabled=true; this.textContent='جارٍ...';" style="margin-right:auto; flex-shrink:0; background:rgba(255,255,255,0.22); border:1px solid rgba(255,255,255,0.4); color:inherit; font-weight:800; font-size:0.8rem; padding:4px 12px; border-radius:8px; cursor:pointer; font-family:inherit; transition:0.2s;"><i class="fas fa-undo"></i> ${action.text}</button>`;
+      }
 
-
-
-      t.innerHTML = `<i class="fas ${ic}"></i>${msg}`;
-
-
-
+      t.innerHTML = `<div style="display:flex;align-items:center;gap:8px;"><i class="fas ${ic}"></i><span>${msg}</span></div>${actionBtnHtml}`;
       tc.appendChild(t);
-
-
-
       requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
-
-
-
-      setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 350); }, 3200);
-
-
-
+      const dur = action ? 6500 : 3200;
+      setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 350); }, dur);
     }
 
     // ─── Tasks Overview and Export Logic ──────────────────────────────────────────
