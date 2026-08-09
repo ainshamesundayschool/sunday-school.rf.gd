@@ -2826,9 +2826,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (els.screensCastList) {
-      els.screensCastList.innerHTML = screens.map((s, idx) => {
+      const cardsHtml = screens.map((s, idx) => {
         const isMain = Boolean(s.isPrimary || idx === 0);
-        const name = s.label || (isMain ? 'الشاشة الرئيسية (هذا الجهاز)' : `شاشة عرض خارجية 2`);
+        const name = s.label || (isMain ? 'الشاشة الرئيسية (هذا الجهاز - بنفس التبويب)' : `شاشة عرض خارجية 2 (نافذة منبثقة)`);
         const cardClass = isMain ? 'screen-cast-card main-screen-card' : 'screen-cast-card';
         const val = isMain ? 'primary' : 'external';
         return `
@@ -2842,13 +2842,34 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
       }).join('');
 
-      els.screensCastList.querySelectorAll('.screen-cast-card').forEach(card => {
+      const openDirectObsBtn = `
+        <div class="screen-cast-card direct-obs-card" id="btn-open-direct-obs" style="background: rgba(16, 185, 129, 0.1); border: 1px dashed #10b981; color: #065f46; margin-top: 4px; cursor: pointer;">
+          <div class="screen-info">
+            <span class="screen-name" style="color:#059669; font-weight:700;"><i class="fa-solid fa-up-right-from-square"></i> فتح رابط الشاشة الثانية مباشرة (obs.html)</span>
+            <span class="screen-res" style="color:#10b981;">انقل هذه النافذة للشاشة الثانية لترتبط تلقائياً</span>
+          </div>
+          <i class="fa-solid fa-arrow-right-long launch-btn-icon" style="color:#10b981;"></i>
+        </div>
+      `;
+
+      els.screensCastList.innerHTML = cardsHtml + openDirectObsBtn;
+
+      els.screensCastList.querySelectorAll('.screen-cast-card[data-val]').forEach(card => {
         card.addEventListener('click', () => {
           const val = card.dataset.val;
           if (els.connectedScreensSelect) els.connectedScreensSelect.value = val;
           launchPresenterOnSelectedScreen(val);
         });
       });
+
+      const btnDirectObs = document.getElementById('btn-open-direct-obs');
+      if (btnDirectObs) {
+        btnDirectObs.addEventListener('click', () => {
+          const obsUrl = getObsUrl();
+          window.open(obsUrl, '_blank');
+          showToast('تم فتح نافذة العرض المباشر. يمكنك سحبها إلى الشاشة الثانية.');
+        });
+      }
     }
   }
 

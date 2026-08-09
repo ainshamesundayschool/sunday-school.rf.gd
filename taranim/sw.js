@@ -16,6 +16,10 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Always fetch directly from network with no caching
-  event.respondWith(fetch(event.request));
+  // Always fetch directly from network with fallback catch
+  event.respondWith(
+    fetch(event.request).catch(() => {
+      return caches.match(event.request).then((res) => res || Response.error());
+    })
+  );
 });
