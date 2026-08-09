@@ -18617,9 +18617,24 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
       const milestones = [];
       document.querySelectorAll('.ctier').forEach(t => {
-        const pct = parseInt(t.querySelector('.milestone-pct').value) || 50;
-        const coupons = parseInt(t.querySelector('.milestone-coupons').value) || 0;
-        milestones.push({ pct, coupons });
+        const pctEl = t.querySelector('.milestone-pct');
+        const couponsEl = t.querySelector('.milestone-coupons');
+        if (pctEl && couponsEl) {
+          const pct = parseInt(pctEl.value) || 50;
+          const coupons = parseInt(couponsEl.value) || 0;
+          milestones.push({ pct, coupons });
+        } else {
+          const inps = t.querySelectorAll('input[type="number"]');
+          if (inps.length >= 3) {
+            const pct = parseInt(inps[0].value) || 50;
+            const coupons = parseInt(inps[2].value) || 0;
+            milestones.push({ pct, coupons });
+          } else if (inps.length >= 1) {
+            const pct = parseInt(inps[0].value) || 50;
+            const coupons = inps.length > 1 ? (parseInt(inps[1].value) || 0) : 0;
+            milestones.push({ pct, coupons });
+          }
+        }
       });
       const tiers = convertMilestonesToTiers(milestones);
 
