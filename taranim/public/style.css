@@ -80,15 +80,15 @@ input[type="checkbox"]:checked {
 }
 
 input[type="checkbox"]:checked::after {
-  content: '' !important;
-  width: 6px !important;
-  height: 10px !important;
-  border: solid #ffffff !important;
-  border-width: 0 2px 2px 0 !important;
-  transform: rotate(45deg) translate(-50%, -50%) !important;
+  content: '✓' !important;
+  color: #ffffff !important;
+  font-size: 14px !important;
+  font-weight: 900 !important;
   position: absolute !important;
-  top: 42% !important;
-  left: 24% !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  line-height: 1 !important;
 }
 
 .app-container {
