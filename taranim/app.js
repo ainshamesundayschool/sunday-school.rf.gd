@@ -2602,6 +2602,7 @@ document.addEventListener('DOMContentLoaded', () => {
       state.isBlank = false;
       renderPresentationLinesList();
       syncLiveState();
+      inputEl.blur();
       if (els.popoverSlideJump) els.popoverSlideJump.classList.add('hidden');
     }
   }
@@ -2612,13 +2613,24 @@ document.addEventListener('DOMContentLoaded', () => {
     els.currentLineCounter.addEventListener('click', toggleSlideJumpPopover);
   }
 
-  const btnConfirmJump = document.getElementById('btn-confirm-slide-jump');
+  const slideJumpForm = document.getElementById('slide-jump-form');
   const inputSlideJump = document.getElementById('slide-jump-popover-input');
-  if (btnConfirmJump) btnConfirmJump.addEventListener('click', doSlideJump);
+  if (slideJumpForm) {
+    slideJumpForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      doSlideJump();
+    });
+  }
   if (inputSlideJump) {
     inputSlideJump.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') doSlideJump();
-      if (e.key === 'Escape' && els.popoverSlideJump) els.popoverSlideJump.classList.add('hidden');
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        doSlideJump();
+      }
+      if (e.key === 'Escape' && els.popoverSlideJump) {
+        els.popoverSlideJump.classList.add('hidden');
+        inputSlideJump.blur();
+      }
     });
   }
 
