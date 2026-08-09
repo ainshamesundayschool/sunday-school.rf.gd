@@ -104,15 +104,33 @@ if (is_writable($sessionPath)) {
 
 
 
-ini_set('session.gc_maxlifetime', 315360000);
+$cookieLifetime = 315360000;
 
+ini_set('session.gc_maxlifetime', $cookieLifetime);
 
+ini_set('session.cookie_lifetime', $cookieLifetime);
 
-ini_set('session.cookie_lifetime', 315360000);
+if (session_status() === PHP_SESSION_NONE) {
 
+  @session_set_cookie_params([
 
+    'lifetime' => $cookieLifetime,
 
-session_start();
+    'path' => '/',
+
+    'domain' => '',
+
+    'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+
+    'httponly' => true,
+
+    'samesite' => 'Lax'
+
+  ]);
+
+  @session_start();
+
+}
 
 
 
@@ -150,6 +168,14 @@ if (!$hasUncle && !$hasChurch) {
 
       (function () {
 
+        var KEY = '_tasksRestoreAttempted';
+
+        var loginUrl = (window.location.pathname.indexOf('/testing/') !== -1 ? '/testing/login/' : '/login/') + '?redirect=' + encodeURIComponent(window.location.href);
+
+        if (!navigator.onLine) return;
+
+        if (sessionStorage.getItem(KEY)) return;
+
         var ul = localStorage.getItem('uncleLoggedIn') === 'true';
 
         var cl = localStorage.getItem('loggedIn') === 'true';
@@ -158,13 +184,7 @@ if (!$hasUncle && !$hasChurch) {
 
         var cc = localStorage.getItem('churchCode');
 
-        var KEY = '_tasksRestoreAttempted';
-
-        var loginUrl = (window.location.pathname.indexOf('/testing/') !== -1 ? '/testing/login/' : '/login/') + '?redirect=' + encodeURIComponent(window.location.href);
-
         if (!ul && !cl) { window.location.href = loginUrl; return; }
-
-        if (sessionStorage.getItem(KEY) === '1') { window.location.href = loginUrl; return; }
 
         var fd = new FormData();
 
@@ -184,11 +204,25 @@ if (!$hasUncle && !$hasChurch) {
 
           .then(r => r.json()).then(d => {
 
-            if (d.success) window.location.reload();
+            if (d.success) {
 
-            else window.location.href = loginUrl;
+              window.location.reload();
 
-          }).catch(() => window.location.href = loginUrl);
+            } else {
+
+              if (d.message && (d.message.includes('not found') || d.message.includes('No credentials'))) {
+
+                localStorage.removeItem('loggedIn');
+
+                localStorage.removeItem('uncleLoggedIn');
+
+                window.location.href = loginUrl;
+
+              }
+
+            }
+
+          }).catch(() => {});
 
       })();
 
