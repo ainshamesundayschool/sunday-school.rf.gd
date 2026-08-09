@@ -1421,6 +1421,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (els.popoverBible && els.popoverBible !== exceptPopover) {
       els.popoverBible.classList.add('hidden');
+      if (els.btnMenuBible) els.btnMenuBible.classList.remove('active');
     }
   }
 
@@ -1533,9 +1534,11 @@ document.addEventListener('DOMContentLoaded', () => {
       closeAllPopovers(els.popoverBible);
       if (willShow) {
         els.popoverBible.classList.remove('hidden');
+        els.btnMenuBible.classList.add('active');
         showBibleBooksStep();
       } else {
         els.popoverBible.classList.add('hidden');
+        els.btnMenuBible.classList.remove('active');
       }
     });
 
@@ -1543,6 +1546,7 @@ document.addEventListener('DOMContentLoaded', () => {
       els.btnCloseBiblePopover.addEventListener('click', (e) => {
         e.stopPropagation();
         els.popoverBible.classList.add('hidden');
+        if (els.btnMenuBible) els.btnMenuBible.classList.remove('active');
       });
     }
 
