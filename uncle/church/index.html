@@ -22949,6 +22949,16 @@
 
                 items = extractArray(log.old_data) || extractArray(log.new_data) || [];
 
+                let itemCountDisplay = items.length;
+                const textToMatch = (log.entity_name || '') + ' ' + (log.notes || '') + ' ' + (log.description || '');
+                const mCount = textToMatch.match(/لعدد\s*(\d+)\s*طفل/) || textToMatch.match(/\((\d+)\s*طفل\)/) || textToMatch.match(/(\d+)\s*طفل/);
+                if (mCount) {
+                    itemCountDisplay = parseInt(mCount[1]);
+                }
+
+                let mDate = textToMatch.match(/(\d{4}-\d{2}-\d{2})/);
+                let extractedDate = mDate ? mDate[1] : '';
+
                 let itemsHtml = '';
                 if (items.length > 0) {
                     items.forEach(item => {
@@ -23005,11 +23015,20 @@
                     const fallbackDesc = log.description || log.notes || log.entity_name || 'عملية جماعية على عدة أطفال';
                     itemsHtml = `
                         <tr>
-                            <td colspan="3" style="text-align:center; padding:24px; color:var(--text-2);">
-                                <div style="display:flex; flex-direction:column; align-items:center; gap:6px;">
-                                    <i class="fas fa-layer-group" style="font-size:1.6rem; color:var(--primary); opacity:0.8; margin-bottom:4px;"></i>
-                                    <div style="font-weight:700; font-size:0.92rem; color:var(--text-1);">${escHtml(fallbackDesc)}</div>
-                                    <span style="font-size:0.8rem; color:var(--text-3);">تفاصيل أطفال العملية مسجلة بالسجل العام</span>
+                            <td colspan="3" style="text-align:center; padding:28px 16px; background:var(--bg-card,#ffffff);">
+                                <div style="display:flex; flex-direction:column; align-items:center; gap:10px; max-width:480px; margin:0 auto;">
+                                    <div style="width:52px; height:52px; border-radius:50%; background:rgba(59,130,246,0.1); display:flex; align-items:center; justify-content:center;">
+                                        <i class="fas fa-users-cog" style="font-size:1.5rem; color:var(--primary);"></i>
+                                    </div>
+                                    <div style="font-weight:700; font-size:1rem; color:var(--text-1);">${escHtml(fallbackDesc)}</div>
+                                    <div style="font-size:0.85rem; color:var(--text-2); line-height:1.5;">
+                                        تتضمن هذه العملية الجماعية <strong>${itemCountDisplay > 0 ? itemCountDisplay : 'عدة'} أطفال</strong>. البيانات موثقة بالحسابات وسجل النظام.
+                                    </div>
+                                    ${extractedDate ? `
+                                    <button class="btn btn-outline btn-sm" onclick="closeModal('auditDetailModal'); if(typeof loadAttendanceForDate==='function') loadAttendanceForDate('${extractedDate}');" style="margin-top:6px; font-weight:600;">
+                                        <i class="fas fa-calendar-check" style="margin-left:6px; color:var(--primary);"></i> فتح كشف حضور تاريخ ${extractedDate}
+                                    </button>
+                                    ` : ''}
                                 </div>
                             </td>
                         </tr>
@@ -23044,7 +23063,7 @@
                     </div>
 
                     <div style="display:flex; justify-content:space-between; align-items:center; margin:20px 0 10px; flex-wrap:wrap; gap:10px;">
-                        <h4 style="margin:0;">أطفال العملية الجماعية (${items.length})</h4>
+                        <h4 style="margin:0;">أطفال العملية الجماعية (${itemCountDisplay})</h4>
                         <button class="btn btn-primary btn-sm" onclick="restoreBulkAll(${log.id})">
                             <i class="fas fa-undo-alt" style="margin-left:4px;"></i> استرجاع العملية بالكامل
                         </button>
