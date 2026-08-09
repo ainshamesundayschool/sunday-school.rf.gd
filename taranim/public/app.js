@@ -2811,35 +2811,27 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       screens = [
         { label: 'Built-in Retina Display', width: window.screen.width || 1920, height: window.screen.height || 1080, isPrimary: true },
-        { label: 'شاشة عرض خارجية 2 (TV / البروجيكتور)', width: 1920, height: 1080, isPrimary: false }
+        { label: '\u0634\u0627\u0634\u0629 \u0639\u0631\u0636 \u062e\u0627\u0631\u062c\u064a\u0629 2 (TV / \u0627\u0644\u0628\u0631\u0648\u062c\u064a\u0643\u062a\u0648\u0631)', width: 1920, height: 1080, isPrimary: false }
       ];
     }
 
     if (els.connectedScreensSelect) {
       els.connectedScreensSelect.innerHTML = screens.map((s, idx) => {
         const isMain = Boolean(s.isPrimary || idx === 0);
-        const type = isMain ? ' (الرئيسية - بنفس التبويب)' : ' (خارجية - نافذة منبثقة)';
-        const label = s.label || (isMain ? 'الشاشة الرئيسية' : `شاشة خارجية ${idx + 1}`);
+        const type = isMain ? ' (\u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629 - \u0628\u0646\u0641\u0633 \u0627\u0644\u062a\u0628\u0648\u064a\u0628)' : ' (\u062e\u0627\u0631\u062c\u064a\u0629 - \u0646\u0627\u0641\u0630\u0629 \u0645\u0646\u0628\u062b\u0642\u0629)';
+        const label = s.label || (isMain ? '\u0627\u0644\u0634\u0627\u0634\u0629 \u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629' : '\u0634\u0627\u0634\u0629 \u062e\u0627\u0631\u062c\u064a\u0629 ' + (idx + 1));
         const val = isMain ? 'primary' : 'external';
-        return `<option value="${val}">${escapeHtml(label)} (${s.width} × ${s.height})${type}</option>`;
+        return '<option value="' + val + '">' + escapeHtml(label) + ' (' + s.width + ' \u00d7 ' + s.height + ')' + type + '</option>';
       }).join('');
     }
 
     if (els.screensCastList) {
       els.screensCastList.innerHTML = screens.map((s, idx) => {
         const isMain = Boolean(s.isPrimary || idx === 0);
-        const name = s.label || (isMain ? 'الشاشة الرئيسية (هذا الجهاز - بنفس التبويب)' : `شاشة عرض خارجية 2 (نافذة منبثقة)`);
+        const name = s.label || (isMain ? '\u0627\u0644\u0634\u0627\u0634\u0629 \u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629 (\u0647\u0630\u0627 \u0627\u0644\u062c\u0647\u0627\u0632 - \u0628\u0646\u0641\u0633 \u0627\u0644\u062a\u0628\u0648\u064a\u0628)' : '\u0634\u0627\u0634\u0629 \u0639\u0631\u0636 \u062e\u0627\u0631\u062c\u064a\u0629 2 (\u0646\u0627\u0641\u0630\u0629 \u0645\u0646\u0628\u062b\u0642\u0629)');
         const cardClass = isMain ? 'screen-cast-card main-screen-card' : 'screen-cast-card';
         const val = isMain ? 'primary' : 'external';
-        return `
-          <div class="${cardClass}" data-val="${val}">
-            <div class="screen-info">
-              <span class="screen-name"><i class="fa-solid fa-desktop"></i> ${escapeHtml(name)}</span>
-              <span class="screen-res">${s.width} × ${s.height} px</span>
-            </div>
-            <i class="fa-solid fa-expand launch-btn-icon"></i>
-          </div>
-        `;
+        return '<div class="' + cardClass + '" data-val="' + val + '"><div class="screen-info"><span class="screen-name"><i class="fa-solid fa-desktop"></i> ' + escapeHtml(name) + '</span><span class="screen-res">' + s.width + ' \u00d7 ' + s.height + ' px</span></div><i class="fa-solid fa-expand launch-btn-icon"></i></div>';
       }).join('');
 
       els.screensCastList.querySelectorAll('.screen-cast-card').forEach(card => {
@@ -2869,7 +2861,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ? String(selectedVal) 
       : (select && select.value ? String(select.value) : 'primary');
 
-    // 1. MAIN DISPLAY (Built-in Screen) -> OPEN IN SAME TAB IN FULLSCREEN!
+    // 1. MAIN DISPLAY (Built-in Screen)
     if (val === 'primary' || val === 'in_app_overlay' || val === '0') {
       if (presenterWindow && !presenterWindow.closed) {
         try { presenterWindow.close(); } catch(e) {}
@@ -2878,7 +2870,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       state.selectedScreen = {
         val: 'primary',
-        label: 'الشاشة الرئيسية (هذا الجهاز)',
+        label: '\u0627\u0644\u0634\u0627\u0634\u0629 \u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629 (\u0647\u0630\u0627 \u0627\u0644\u062c\u0647\u0627\u0632)',
         width: window.screen.width || 1920,
         height: window.screen.height || 1080,
         isPrimary: true
@@ -2899,7 +2891,8 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // 2. EXTERNAL DISPLAY (TV / Projector) -> OPEN POPUP WINDOW ON SECONDARY MONITOR!
+    // 2. EXTERNAL DISPLAY (TV / Projector)
+    let extScreen = null;
     let left = 1920;
     let top = 0;
     let width = 1920;
@@ -2907,7 +2900,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let targetIdx = 1;
 
     if (screenDetails && screenDetails.screens && screenDetails.screens.length > 1) {
-      const extScreen = screenDetails.screens.find(s => !s.isPrimary) || screenDetails.screens[1];
+      extScreen = screenDetails.screens.find(s => !s.isPrimary) || screenDetails.screens[1];
       if (extScreen) {
         left = extScreen.left !== undefined ? extScreen.left : (extScreen.availLeft !== undefined ? extScreen.availLeft : 1920);
         top = extScreen.top !== undefined ? extScreen.top : (extScreen.availTop !== undefined ? extScreen.availTop : 0);
@@ -2916,12 +2909,10 @@ document.addEventListener('DOMContentLoaded', () => {
         targetIdx = screenDetails.screens.indexOf(extScreen);
       }
     } else {
-      // Calculate real secondary monitor offset relative to current control panel window position
       const winX = window.screenX !== undefined ? window.screenX : (window.screenLeft !== undefined ? window.screenLeft : 0);
       const primaryW = window.screen.width || 1920;
       const availL = window.screen.availLeft || 0;
 
-      // If control panel window is currently on external display:
       if (winX >= (availL + primaryW * 0.75)) {
         left = availL;
       } else {
@@ -2935,7 +2926,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     state.selectedScreen = {
       val: 'external',
-      label: 'شاشة عرض خارجية 2 (TV / البروجيكتور)',
+      label: '\u0634\u0627\u0634\u0629 \u0639\u0631\u0636 \u062e\u0627\u0631\u062c\u064a\u0629 2 (TV / \u0627\u0644\u0628\u0631\u0648\u062c\u064a\u0643\u062a\u0648\u0631)',
       width: width,
       height: height,
       isPrimary: false
@@ -2943,8 +2934,8 @@ document.addEventListener('DOMContentLoaded', () => {
     lastWindowOpenTime = Date.now();
     updateDisplayButtonUI();
 
-    const windowFeatures = `left=${left},top=${top},screenX=${left},screenY=${top},width=${width},height=${height},outerWidth=${width},outerHeight=${height},menubar=no,toolbar=no,location=no,status=no,resizable=yes,fullscreen=yes`;
-    const obsUrl = `obs.html?autofs=true&screenIdx=${targetIdx}&screenLeft=${left}&screenTop=${top}&screenWidth=${width}&screenHeight=${height}`;
+    const windowFeatures = 'left=' + left + ',top=' + top + ',screenX=' + left + ',screenY=' + top + ',width=' + width + ',height=' + height + ',outerWidth=' + width + ',outerHeight=' + height + ',menubar=no,toolbar=no,location=no,status=no,resizable=yes,fullscreen=yes';
+    const obsUrl = 'obs.html?autofs=true&screenIdx=' + targetIdx + '&screenLeft=' + left + '&screenTop=' + top + '&screenWidth=' + width + '&screenHeight=' + height;
     
     if (presenterWindow && !presenterWindow.closed) {
       try { presenterWindow.close(); } catch(e) {}
@@ -2963,12 +2954,25 @@ document.addEventListener('DOMContentLoaded', () => {
       moveWin();
       setTimeout(moveWin, 150);
       setTimeout(moveWin, 450);
-      showToast('تم فتح شاشة العرض الخارجية. اسحب النافذة للشاشة الثانية إذا لم تنتقل تلقائياً.');
+
+      // USE WINDOW MANAGEMENT API: requestFullscreen on the target screen
+      if (extScreen) {
+        const tryFullscreenOnScreen = () => {
+          try {
+            if (presenterWindow.document && presenterWindow.document.documentElement) {
+              presenterWindow.document.documentElement.requestFullscreen({ screen: extScreen }).catch(() => {});
+            }
+          } catch(e) {}
+        };
+        setTimeout(tryFullscreenOnScreen, 600);
+        setTimeout(tryFullscreenOnScreen, 1200);
+      }
+
+      showToast('\u062a\u0645 \u0641\u062a\u062d \u0634\u0627\u0634\u0629 \u0627\u0644\u0639\u0631\u0636 \u0627\u0644\u062e\u0627\u0631\u062c\u064a\u0629. \u0627\u0633\u062d\u0628 \u0627\u0644\u0646\u0627\u0641\u0630\u0629 \u0644\u0644\u0634\u0627\u0634\u0629 \u0627\u0644\u062b\u0627\u0646\u064a\u0629 \u0625\u0630\u0627 \u0644\u0645 \u062a\u0646\u062a\u0642\u0644 \u062a\u0644\u0642\u0627\u0626\u064a\u0627\u064b.');
     }
 
     syncLiveState();
   }
-
   function makeDraggableCenterPivot() {
     const box = els.obsLowerThirdBox;
     if (!box) return;
@@ -3594,6 +3598,27 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isBible) return song;
 
     if (song.verses && Array.isArray(song.verses) && song.verses.length > 0) {
+      // FIRST PASS: Detect if verse[0] is an unlabelled chorus by examining verse[1]
+      let forceFirstAsChorus = false;
+      const firstVerse = song.verses[0];
+      const firstType = firstVerse.type;
+      const firstAlreadyChorus = (firstType === 1 || firstType === '1' || firstVerse.isChorus === true || String(firstType).toLowerCase() === 'chorus');
+      
+      if (!firstAlreadyChorus && song.verses.length > 1) {
+        const secondVerse = song.verses[1];
+        const secondSlides = secondVerse.slides || [];
+        const secondFirstLine = (secondSlides[0] && (secondSlides[0].lines ? secondSlides[0].lines[0] : secondSlides[0].text)) || '';
+        // If verse[1] has stanzaNum 1 or its text starts with "1" or "١", then verse[0] must be the chorus
+        if (
+          secondVerse.stanzaNum === 1 || secondVerse.stanzaNum === '1' ||
+          /^\(?1\)?[:\s\-]/i.test(secondFirstLine) ||
+          /^\(?١\)?[:\s\-]/i.test(secondFirstLine)
+        ) {
+          forceFirstAsChorus = true;
+        }
+      }
+
+      // SECOND PASS: Assign types
       let currentStanzaNum = 0;
       song.verses.forEach((verse, verseIdx) => {
         const rawVerseType = verse.type;
@@ -3609,29 +3634,20 @@ document.addEventListener('DOMContentLoaded', () => {
           /^\(?(القرار|قرار|ق)\)?[:\s\-]?/i.test(firstRawLine || '')
         );
 
-        // SMART CHORUS DETECTION FOR UNLABELLED VERSE 1 IN VERSES ARRAY:
-        // If verse 1 is unlabelled, check if verse 2 has verse number 1 or 2
-        if (verseIdx === 0 && !isChorus && !verse.stanzaNum) {
-          const nextVerse = song.verses[1];
-          if (nextVerse) {
-            const nextSlides = nextVerse.slides || [];
-            const nextFirstLine = (nextSlides[0] && (nextSlides[0].lines ? nextSlides[0].lines[0] : nextSlides[0].text)) || '';
-            if (/^\(?1\)?[:\s\-]?/i.test(nextFirstLine) || /^\(?١\)?[:\s\-]?/i.test(nextFirstLine) || /^\(?2\)?[:\s\-]?/i.test(nextFirstLine) || (nextVerse.stanzaNum && nextVerse.stanzaNum === 1)) {
-              isChorus = true;
-            }
-          }
+        // Apply forced chorus detection for verse[0]
+        if (verseIdx === 0 && forceFirstAsChorus) {
+          isChorus = true;
         }
 
         if (isChorus) {
           verse.type = 1;
           verse.isChorus = true;
+          delete verse.stanzaNum; // Chorus should never have a stanza number
         } else {
           verse.type = 0;
           verse.isChorus = false;
           currentStanzaNum++;
-          if (!verse.stanzaNum) {
-            verse.stanzaNum = currentStanzaNum;
-          }
+          verse.stanzaNum = currentStanzaNum; // Always recalculate
         }
       });
       return song;
