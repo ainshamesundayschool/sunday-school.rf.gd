@@ -658,15 +658,18 @@ input[type="checkbox"]:checked::after {
   color: #1e293b;
 }
 
-.search-inside-toggle.active {
-  background: #2563eb !important;
-  color: #ffffff !important;
-  border: none !important;
-  box-shadow: none !important;
+#franco-toggle-btn.active {
+  background: transparent !important;
+  color: #2563eb !important;
 }
 
-.search-inside-toggle.active::after {
-  display: none;
+#franco-toggle-btn.active i {
+  color: #2563eb !important;
+}
+
+#btn-menu-bible.active {
+  background: #2563eb !important;
+  color: #ffffff !important;
 }
 
 .search-inside-toggle i {
