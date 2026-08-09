@@ -5735,13 +5735,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
     <!-- ③ Result view -->
     <div id="examResultView"
-      style="display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px 16px;">
-      <div class="exam-result-wrap">
+      style="display:none;flex-direction:column;align-items:center;justify-content:center;min-height:auto;max-width:520px;width:92%;margin:auto;padding:24px 16px;">
+      <div class="exam-result-wrap" style="width:100%;">
         <div id="examResultCard"></div>
-        <button class="btn btn-p" style="width:100%;padding:14px;font-size:1rem;margin-top:4px;"
-          onclick="exitExamScreen()">
-          <i class="fas fa-home"></i> الرجوع للصفحة الرئيسية
-        </button>
       </div>
     </div>
 
@@ -8136,80 +8132,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     }
 
     function buildResultCard(score, total, pct, coupons, hasOpenQs, taskId, showAnswers, isGraded = true) {
-      let grad, iconCls, msg, color;
+      let iconCls, msg, badgeBg, badgeColor;
       if (!isGraded) {
-        grad = 'linear-gradient(135deg, #d97706 0%, #f59e0b 100%)';
         iconCls = 'fas fa-hourglass-half';
         msg = 'تم تسليم إجاباتك بنجاح! التكليف في انتظار تصحيح المدرس.';
-        color = '#d97706';
+        badgeBg = 'var(--warn-bg, rgba(217,119,6,0.1))';
+        badgeColor = 'var(--warn, #d97706)';
       } else if (pct >= 90) {
-        grad = 'linear-gradient(135deg, #059669 0%, #10b981 100%)';
         iconCls = 'fas fa-trophy';
         msg = 'ممتاز! إجاباتك رائعة، أنت نجم الفصل!';
-        color = '#059669';
+        badgeBg = 'var(--ok-bg, rgba(5,150,105,0.1))';
+        badgeColor = 'var(--ok, #059669)';
       } else if (pct >= 70) {
-        grad = 'linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%)';
         iconCls = 'fas fa-medal';
         msg = 'أحسنت جداً! نتيجة جميلة وأنت تستاهل أكثر من كده.';
-        color = '#1d4ed8';
+        badgeBg = 'rgba(37,99,235,0.1)';
+        badgeColor = '#2563eb';
       } else if (pct >= 50) {
-        grad = 'linear-gradient(135deg, #b45309 0%, #f59e0b 100%)';
         iconCls = 'fas fa-star';
         msg = 'برافو! في تحسّن واضح وأنت على الطريق الصح.';
-        color = '#b45309';
+        badgeBg = 'var(--warn-bg, rgba(217,119,6,0.1))';
+        badgeColor = 'var(--warn, #d97706)';
       } else {
-        grad = 'linear-gradient(135deg, #4f46e5 0%, #818cf8 100%)';
         iconCls = 'fas fa-heart';
         msg = 'شكراً على مشاركتك! كل خطوة بتخليك أقوى وأحسن.';
-        color = '#4f46e5';
+        badgeBg = 'rgba(79,70,229,0.1)';
+        badgeColor = '#4f46e5';
       }
 
       const couponHtml = (isGraded && coupons > 0) ? `
-    <div style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:var(--cou-bg);color:var(--cou);border-radius:var(--r-full);font-weight:800;font-size:1.1rem;box-shadow:0 4px 15px rgba(124,58,237,.2);margin-top:15px;animation:bounce 2s infinite;">
+    <div style="display:inline-flex;align-items:center;gap:8px;padding:8px 18px;background:var(--cou-bg, rgba(234,179,8,0.15));color:var(--cou, #d97706);border-radius:20px;font-weight:800;font-size:1.05rem;margin-top:14px;border:1px solid rgba(234,179,8,0.3);">
       <i class="fas fa-star"></i> حصلت على ${coupons} كوبون!
     </div>` : '';
 
       const pendingNote = !isGraded ? `
-    <div style="display:flex;align-items:center;gap:10px;margin-top:20px;padding:12px 18px;background:#fef3c7;border:1.5px solid #fde68a;border-radius:var(--r-md);font-size:.85rem;color:#92400e;font-weight:700;line-height:1.5;">
-      <i class="fas fa-clock" style="font-size:1.2rem;flex-shrink:0;"></i>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:16px;padding:12px 16px;background:var(--warn-bg, rgba(217,119,6,0.08));border:1px solid rgba(217,119,6,0.2);border-radius:12px;font-size:.85rem;color:var(--t1);font-weight:700;line-height:1.5;">
+      <i class="fas fa-clock" style="font-size:1.1rem;flex-shrink:0;color:var(--warn, #d97706);"></i>
       <span>لم يتم تحديد الدرجة أو الكوبونات بعد. ستظهر النتيجة والكوبونات فور قيام الخادم بتصحيح التكليف.</span>
     </div>` : (hasOpenQs ? `
-    <div style="display:flex;align-items:center;gap:10px;margin-top:20px;padding:12px 18px;background:var(--warn-bg);border:1.5px solid #fde68a;border-radius:var(--r-md);font-size:.85rem;color:#92400e;font-weight:700;line-height:1.5;">
-      <i class="fas fa-check-circle" style="font-size:1.2rem;flex-shrink:0;color:#059669;"></i>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:16px;padding:12px 16px;background:var(--ok-bg, rgba(5,150,105,0.08));border:1px solid rgba(5,150,105,0.2);border-radius:12px;font-size:.85rem;color:var(--t1);font-weight:700;line-height:1.5;">
+      <i class="fas fa-check-circle" style="font-size:1.1rem;flex-shrink:0;color:var(--ok, #059669);"></i>
       <span>تم تقييم التكليف وتحديث درجاتك وكوبوناتك بنجاح!</span>
     </div>` : '');
 
       const scoreBannerHtml = isGraded
-        ? `<div style="font-size:4rem;font-weight:900;color:#fff;line-height:1;text-shadow:0 4px 15px rgba(0,0,0,.2);">${score} <span style="font-size:1.5rem;opacity:.7;">/ ${total}</span></div>
-           <div style="color:rgba(255,255,255,.9);font-weight:800;font-size:1.3rem;margin-top:5px;">${pct}%</div>`
-        : `<div style="font-size:2.2rem;font-weight:900;color:#fff;line-height:1.2;text-shadow:0 4px 15px rgba(0,0,0,.2);"><i class="fas fa-clock"></i> لم يتم التقييم بعد</div>
-           <div style="color:rgba(255,255,255,.9);font-weight:800;font-size:1.1rem;margin-top:6px;">في انتظار تصحيح الخادم</div>`;
+        ? `<div style="font-size:3.2rem;font-weight:900;color:var(--t1);line-height:1.1;">${score} <span style="font-size:1.3rem;color:var(--t3);font-weight:700;">/ ${total}</span></div>
+           <div style="color:${badgeColor};font-weight:800;font-size:1.2rem;margin-top:4px;">نسبة النجاح: ${pct}%</div>`
+        : `<div style="font-size:1.8rem;font-weight:900;color:var(--t1);line-height:1.2;"><i class="fas fa-clock" style="color:var(--warn);"></i> لم يتم التقييم بعد</div>
+           <div style="color:var(--t3);font-weight:700;font-size:1rem;margin-top:4px;">في انتظار تصحيح الخادم</div>`;
 
       return `
-    <div style="background:#fff;border-radius:var(--r-2xl);overflow:hidden;box-shadow:var(--sh-xl);animation:pop-in .5s var(--norm);">
-      <div style="background:${grad};padding:40px 20px 60px;text-align:center;position:relative;">
-        <div style="width:100px;height:100px;background:rgba(255,255,255,.2);backdrop-filter:blur(10px);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;border:3px solid #fff;box-shadow:0 8px 30px rgba(0,0,0,.2);">
-          <i class="${iconCls}" style="color:#fff;font-size:3.2rem;"></i>
-        </div>
-        ${scoreBannerHtml}
-        <div style="position:absolute;bottom:-30px;left:0;right:0;height:40px;background:#fff;clip-path:ellipse(55% 100% at 50% 100%);"></div>
+    <div style="background:var(--surf, var(--bg, #ffffff));border-radius:20px;padding:28px 22px 22px;border:1px solid var(--bdr);box-shadow:var(--sh-md);text-align:center;">
+      <div style="width:72px;height:72px;background:${badgeBg};color:${badgeColor};border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:2.2rem;">
+        <i class="${iconCls}"></i>
       </div>
-      <div style="padding:40px 30px 30px;text-align:center;">
-        <div style="font-size:1.35rem;font-weight:800;color:var(--t1);line-height:1.4;margin-bottom:10px;">${msg}</div>
-        ${couponHtml}
-        ${pendingNote}
-        <div style="margin-top:35px;display:flex;flex-direction:column;gap:12px;">
-          ${showAnswers && taskId ? `<button onclick="viewMyAnswers(${taskId})" style="width:100%;padding:14px;border-radius:var(--r-lg);background:var(--s2);border:2.5px solid ${color};color:${color};font-family:inherit;font-weight:800;font-size:.95rem;cursor:pointer;transition:var(--fast);display:flex;align-items:center;justify-content:center;gap:10px;"><i class="fas fa-eye"></i> راجع إجاباتك وتعلم من أخطائك</button>` : ''}
-          <button onclick="exitExamScreen()" style="width:100%;padding:14px;border-radius:var(--r-lg);background:${color};border:none;color:#fff;font-family:inherit;font-weight:800;font-size:.95rem;cursor:pointer;box-shadow:0 6px 20px ${color}44;transition:var(--fast);">
-             العودة للملف الشخصي
-          </button>
-        </div>
+      ${scoreBannerHtml}
+      <div style="font-size:1.15rem;font-weight:800;color:var(--t1);line-height:1.4;margin-top:16px;">${msg}</div>
+      ${couponHtml}
+      ${pendingNote}
+      <div style="margin-top:24px;display:flex;flex-direction:column;gap:10px;">
+        ${showAnswers && taskId ? `<button onclick="viewMyAnswers(${taskId})" style="width:100%;padding:13px;border-radius:12px;background:var(--bg2);border:1px solid var(--bdr);color:var(--t1);font-family:inherit;font-weight:800;font-size:.92rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:0.2s;"><i class="fas fa-eye"></i> راجع إجاباتك وتعلم من أخطائك</button>` : ''}
+        <button onclick="exitExamScreen()" style="width:100%;padding:13px;border-radius:12px;background:var(--brand, #4f46e5);border:none;color:#fff;font-family:inherit;font-weight:800;font-size:.92rem;cursor:pointer;transition:0.2s;">
+           <i class="fas fa-home"></i> العودة للملف الشخصي
+        </button>
       </div>
     </div>
-    <style>
-      @keyframes pop-in { from { transform: scale(.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-      @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-  </style>
   `;
     }
     function showExamResult(t, sub) {
