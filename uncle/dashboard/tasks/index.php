@@ -150,97 +150,44 @@ $hasChurch = isset($_SESSION['church_id']);
 
 
 
-if (!$hasUncle && !$hasChurch) {
+if (!$hasUncle && !$hasChurch) { ?>
+  <script>
+    (function () {
+      var KEY = '_tasksRestoreAttempted';
+      var loginUrl = (window.location.pathname.indexOf('/testing/') !== -1 ? '/testing/login/' : '/login/') + '?redirect=' + encodeURIComponent(window.location.href);
 
+      if (!navigator.onLine) return;
+      if (sessionStorage.getItem(KEY)) return;
 
+      var ul = localStorage.getItem('uncleLoggedIn') === 'true';
+      var cl = localStorage.getItem('loggedIn') === 'true';
+      var un = localStorage.getItem('uncleUsername');
+      var cc = localStorage.getItem('churchCode');
 
-  ?><!DOCTYPE html>
-  <html>
+      if (!ul && !cl) { window.location.href = loginUrl; return; }
 
-  <head>
-    <meta charset="UTF-8">
-  </head>
+      var fd = new FormData();
+      fd.append('action', 'restore_session');
+      if (ul && un) fd.append('username', un);
+      else if (cl && cc) fd.append('church_code', cc);
+      else { window.location.href = loginUrl; return; }
 
-  <body>
-    <script>
+      sessionStorage.setItem(KEY, '1');
 
-
-
-      (function () {
-
-        var KEY = '_tasksRestoreAttempted';
-
-        var loginUrl = (window.location.pathname.indexOf('/testing/') !== -1 ? '/testing/login/' : '/login/') + '?redirect=' + encodeURIComponent(window.location.href);
-
-        if (!navigator.onLine) return;
-
-        if (sessionStorage.getItem(KEY)) return;
-
-        var ul = localStorage.getItem('uncleLoggedIn') === 'true';
-
-        var cl = localStorage.getItem('loggedIn') === 'true';
-
-        var un = localStorage.getItem('uncleUsername');
-
-        var cc = localStorage.getItem('churchCode');
-
-        if (!ul && !cl) { window.location.href = loginUrl; return; }
-
-        var fd = new FormData();
-
-        fd.append('action', 'restore_session');
-
-        if (ul && un) fd.append('username', un);
-
-        else if (cl && cc) fd.append('church_code', cc);
-
-        else { window.location.href = loginUrl; return; }
-
-        sessionStorage.setItem(KEY, '1');
-
-        var dynamicApiUrl = window.location.pathname.indexOf('/testing/') !== -1 ? '/testing/api.php' : '/api.php';
-
-        fetch(dynamicApiUrl, { method: 'POST', body: fd, credentials: 'include' })
-
-          .then(r => r.json()).then(d => {
-
-            if (d.success) {
-
-              window.location.reload();
-
-            } else {
-
-              if (d.message && (d.message.includes('not found') || d.message.includes('No credentials'))) {
-
-                localStorage.removeItem('loggedIn');
-
-                localStorage.removeItem('uncleLoggedIn');
-
-                window.location.href = loginUrl;
-
-              }
-
-            }
-
-          }).catch(() => {});
-
-      })();
-
-
-
-    </script>
-  </body>
-
-  </html>
-  <?php
-
-
-
-  exit;
-
-
-
-}
+      var dynamicApiUrl = window.location.pathname.indexOf('/testing/') !== -1 ? '/testing/api.php' : '/api.php';
+      fetch(dynamicApiUrl, { method: 'POST', body: fd, credentials: 'include' })
+        .then(r => r.json()).then(d => {
+          if (d.success) {
+            window.location.reload();
+          } else if (d.message && (d.message.includes('not found') || d.message.includes('No credentials'))) {
+            localStorage.removeItem('loggedIn');
+            localStorage.removeItem('uncleLoggedIn');
+            window.location.href = loginUrl;
+          }
+        }).catch(() => {});
+    })();
+  </script>
+<?php }
 
 
 
