@@ -13951,34 +13951,49 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
 
 
-    async function api(action, extra = {}) {
-
-
-
+    async function api(action, extra = {}, isRetry = false) {
       const fd = new FormData();
-
-
-
       fd.append('action', action);
 
+      const uncleUn = localStorage.getItem('uncleUsername');
+      const uncleId = localStorage.getItem('uncleId');
+      const churchCc = localStorage.getItem('churchCode');
+      const churchId = localStorage.getItem('churchId');
+      const devId = localStorage.getItem('devViewChurchId');
 
+      if (uncleUn && !fd.has('username')) fd.append('username', uncleUn);
+      if (uncleId && !fd.has('uncle_id')) fd.append('uncle_id', uncleId);
+      if (churchCc && !fd.has('church_code')) fd.append('church_code', churchCc);
+      if (churchId && !fd.has('church_id')) fd.append('church_id', churchId);
+      if (devId && devId > 0 && !fd.has('dev_override_church_id')) fd.append('dev_override_church_id', devId);
 
-      Object.entries(extra).forEach(([k, v]) => { if (v !== null && v !== undefined) fd.append(k, v); });
-
-
+      Object.entries(extra).forEach(([k, v]) => { 
+        if (v !== null && v !== undefined) {
+          fd.append(k, typeof v === 'object' && k !== 'action' ? JSON.stringify(v) : v);
+        }
+      });
 
       const r = await fetch(API, { method: 'POST', body: fd, credentials: 'include' });
-
-
-
       if (!r.ok) throw new Error('HTTP ' + r.status);
+      const d = await r.json();
 
+      if (!isRetry && d && d.success === false && d.message && (d.message.includes('غير مصرح') || d.message.includes('تسجيل الدخول') || d.message.includes('No credentials'))) {
+        if (uncleUn || churchCc) {
+          try {
+            const restoreFd = new FormData();
+            restoreFd.append('action', 'restore_session');
+            if (uncleUn) restoreFd.append('username', uncleUn);
+            else if (churchCc) restoreFd.append('church_code', churchCc);
+            const restoreRes = await fetch(API, { method: 'POST', body: restoreFd, credentials: 'include' });
+            const restoreData = await restoreRes.json();
+            if (restoreData && restoreData.success) {
+              return await api(action, extra, true);
+            }
+          } catch (e) {}
+        }
+      }
 
-
-      return r.json();
-
-
-
+      return d;
     }
 
 
