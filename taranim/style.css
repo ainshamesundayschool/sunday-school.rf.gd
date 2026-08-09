@@ -1226,12 +1226,14 @@ html, body {
   text-align: center;
   width: 100%;
   max-width: 100%;
+  overflow: visible !important;
 }
 
 .obs-lines-wrapper {
   display: block;
   text-align: center;
   width: 100%;
+  overflow: visible !important;
 }
 
 .obs-first-line-wrapper {
@@ -1239,6 +1241,7 @@ html, body {
   display: inline-block;
   text-align: center;
   max-width: 100%;
+  overflow: visible !important;
 }
 
 .slide-badge-layer {
@@ -1255,6 +1258,9 @@ html, body {
   white-space: nowrap;
   pointer-events: none;
   user-select: none;
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .slide-badge-layer.chorus-badge-side,

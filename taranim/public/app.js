@@ -1115,7 +1115,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const state = {
     allSongs: [],
     arabicDictionary: [],
-    sessionRecents: JSON.parse(sessionStorage.getItem('sunday_school_taranim_session_recents') || '[]'),
+    sessionRecents: JSON.parse(localStorage.getItem('sunday_school_taranim_session_recents') || '[]'),
     activeSong: null,
     presentationLines: [],
     currentLineIndex: 0,
@@ -3154,6 +3154,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const formatted = Number(realTotalCount).toLocaleString('ar-EG');
         els.totalSongsCount.innerHTML = `<i class="fa-solid fa-music"></i> <span>${formatted} ترنيمة</span>`;
       }
+
+      // Fetch live total songs count from server database
+      try {
+        const apiUrl = getApiUrl();
+        let liveRes = await fetch(`${apiUrl}?action=songs&limit=1`).catch(() => null);
+        if (!liveRes || !liveRes.ok) liveRes = await fetch('api.php?action=songs&limit=1').catch(() => null);
+        if (liveRes && liveRes.ok) {
+          const liveData = await liveRes.json();
+          if (liveData && liveData.total_songs && liveData.total_songs > 0) {
+            const formattedLive = Number(liveData.total_songs).toLocaleString('ar-EG');
+            if (els.totalSongsCount) {
+              els.totalSongsCount.innerHTML = `<i class="fa-solid fa-music"></i> <span>${formattedLive} ترنيمة</span>`;
+            }
+          }
+        }
+      } catch (liveErr) {}
     } catch (err) {
       if (els.totalSongsCount) {
         els.totalSongsCount.innerHTML = `<i class="fa-solid fa-music"></i> <span>١١٬٦١١ ترنيمة</span>`;
@@ -3955,12 +3971,11 @@ document.addEventListener('DOMContentLoaded', () => {
             items: deduplicateItems((p.items || []).map(item => ensureSongVerses(item)))
           }));
         }
-      } else {
-        const legacyRecents = sessionStorage.getItem('sunday_school_taranim_session_recents');
+        const legacyRecents = localStorage.getItem('sunday_school_taranim_session_recents');
         if (legacyRecents) {
           try {
             const parsedRecents = JSON.parse(legacyRecents);
-            if (Array.isArray(parsedRecents)) {
+            if (Array.isArray(parsedRecents) && parsedRecents.length > 0) {
               state.playlists[0].items = deduplicateItems(parsedRecents.map(item => ensureSongVerses(item)));
             }
           } catch(e) {}
@@ -3974,6 +3989,16 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch(e) {}
 
     const active = getActivePlaylist();
+    const savedRecentsRaw = localStorage.getItem('sunday_school_taranim_session_recents');
+    if (savedRecentsRaw) {
+      try {
+        const savedRecents = JSON.parse(savedRecentsRaw);
+        if (Array.isArray(savedRecents) && savedRecents.length > 0 && active.items.length === 0) {
+          active.items = savedRecents;
+        }
+      } catch(e) {}
+    }
+
     active.items = deduplicateItems((active.items || []).map(item => ensureSongVerses(item)));
     state.sessionRecents = active.items;
   }
@@ -3985,6 +4010,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       localStorage.setItem('sunday_school_taranim_playlists', JSON.stringify(state.playlists));
       localStorage.setItem('sunday_school_taranim_active_playlist_id', state.activePlaylistId);
+      localStorage.setItem('sunday_school_taranim_session_recents', JSON.stringify(state.sessionRecents));
     } catch(e) {}
   }
 
@@ -4208,12 +4234,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!detectedBadge) {
       const badgeMatch = text.match(/^\s*\((ق|قرار|\d+|[٠-٩]+)\)\s*/i);
       if (badgeMatch) {
-        detectedBadge = `(${badgeMatch[1]})`;
         const isChorus = /ق|قرار/i.test(badgeMatch[1]);
+        detectedBadge = isChorus ? '(ق)' : `(${badgeMatch[1]})`;
         detectedBadgeClass = isChorus ? 'chorus-badge-side chorus-num' : 'stanza-badge-side verse-num';
         text = text.replace(/^\s*\((ق|قرار|\d+|[٠-٩]+)\)\s*/i, '').trim();
       }
     } else {
+      const isChorus = /ق|قرار/i.test(detectedBadge);
+      if (isChorus) {
+        detectedBadge = '(ق)';
+        detectedBadgeClass = 'chorus-badge-side chorus-num';
+      }
       text = text.replace(/^\s*\((ق|قرار|\d+|[٠-٩]+)\)\s*/i, '').trim();
     }
 
@@ -4264,12 +4295,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let lineSegments = lines.map((l, idx) => {
       if (idx === 0) {
-        return `<span class="obs-line-segment obs-first-line" style="display: block; white-space: normal; word-break: keep-all; overflow-wrap: break-word; text-align: center; width: 100%; font-size: inherit;"><span class="obs-first-line-wrapper" style="position: relative; display: inline-block; text-align: center; max-width: 100%;">${badgeHtml}${l}</span></span>`;
+        return `<span class="obs-line-segment obs-first-line" style="display: block; white-space: normal; word-break: keep-all; overflow-wrap: break-word; text-align: center; width: 100%; font-size: inherit; overflow: visible;"><span class="obs-first-line-wrapper" style="position: relative; display: inline-block; text-align: center; max-width: 100%; overflow: visible;">${badgeHtml}${l}</span></span>`;
       }
-      return `<span class="obs-line-segment" style="display: block; white-space: normal; word-break: keep-all; overflow-wrap: break-word; text-align: center; width: 100%; font-size: inherit;">${l}</span>`;
+      return `<span class="obs-line-segment" style="display: block; white-space: normal; word-break: keep-all; overflow-wrap: break-word; text-align: center; width: 100%; font-size: inherit; overflow: visible;">${l}</span>`;
     }).join('');
 
-    return `<div class="obs-slide-wrapper"><div class="obs-lines-wrapper">${lineSegments}</div></div>`;
+    return `<div class="obs-slide-wrapper" style="overflow: visible;"><div class="obs-lines-wrapper" style="overflow: visible;">${lineSegments}</div></div>`;
   }
 
   function exportPlaylistObj(targetPl) {
