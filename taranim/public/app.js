@@ -1400,6 +1400,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function closeAllPopovers(exceptPopover = null) {
     if (els.popoverStyle && els.popoverStyle !== exceptPopover) {
       els.popoverStyle.classList.add('hidden');
+      const backdrop = document.getElementById('popover-style-backdrop');
+      if (backdrop) backdrop.classList.add('hidden');
     }
     if (els.popoverCast && els.popoverCast !== exceptPopover) {
       els.popoverCast.classList.add('hidden');
@@ -1810,16 +1812,36 @@ document.addEventListener('DOMContentLoaded', () => {
       loadInitialData();
     });
 
+    const popoverStyleBackdrop = document.getElementById('popover-style-backdrop');
+    const btnCloseStyleDrawer = document.getElementById('btn-close-style-drawer');
+
     els.btnMenuStyle.addEventListener('click', (e) => {
       e.stopPropagation();
       const willShow = els.popoverStyle.classList.contains('hidden');
       closeAllPopovers(els.popoverStyle);
       if (willShow) {
         els.popoverStyle.classList.remove('hidden');
+        if (popoverStyleBackdrop) popoverStyleBackdrop.classList.remove('hidden');
       } else {
         els.popoverStyle.classList.add('hidden');
+        if (popoverStyleBackdrop) popoverStyleBackdrop.classList.add('hidden');
       }
     });
+
+    if (btnCloseStyleDrawer) {
+      btnCloseStyleDrawer.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (els.popoverStyle) els.popoverStyle.classList.add('hidden');
+        if (popoverStyleBackdrop) popoverStyleBackdrop.classList.add('hidden');
+      });
+    }
+
+    if (popoverStyleBackdrop) {
+      popoverStyleBackdrop.addEventListener('click', () => {
+        if (els.popoverStyle) els.popoverStyle.classList.add('hidden');
+        popoverStyleBackdrop.classList.add('hidden');
+      });
+    }
 
     els.btnMenuCast.addEventListener('click', async (e) => {
       e.stopPropagation();

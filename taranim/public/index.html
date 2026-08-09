@@ -102,8 +102,14 @@
             <i class="fa-solid fa-palette"></i>
           </button>
 
+          <div id="popover-style-backdrop" class="drawer-backdrop hidden"></div>
           <div class="dropdown-popover hidden" id="popover-style">
-            <div class="popover-title"><i class="fa-solid fa-sliders"></i> التنسيق والخط</div>
+            <div class="popover-title" style="display: flex; align-items: center; justify-content: space-between; width: 100%; border-bottom: 1px solid rgba(0,0,0,0.08); padding-bottom: 8px; margin-bottom: 12px;">
+              <span><i class="fa-solid fa-sliders"></i> التنسيق والخط</span>
+              <button id="btn-close-style-drawer" class="drawer-close-btn" type="button" title="إغلاق">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
 
             <!-- SECTION 1: FONT & TEXT -->
             <div class="popover-section-title"><i class="fa-solid fa-font"></i> الخط والنص</div>
