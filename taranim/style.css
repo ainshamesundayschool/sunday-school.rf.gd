@@ -580,9 +580,9 @@ input[type="checkbox"]:checked::after {
 
 .centered-search-box input:focus,
 .centered-search-box input:active {
-  background: #f1f5f9 !important;
+  background: #f0f7ff !important;
   border: none !important;
-  box-shadow: none !important;
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.08) !important;
   outline: none !important;
 }
 
