@@ -540,7 +540,7 @@ input[type="checkbox"]:checked::after {
   margin: 0.65rem auto 0.65rem auto;
 }
 
-.centered-search-box .search-icon-glow {
+.centered-search-box .search-icon {
   position: absolute;
   right: 1.25rem;
   top: 50%;
@@ -553,7 +553,7 @@ input[type="checkbox"]:checked::after {
 .centered-search-box input {
   width: 100%;
   background: #ffffff;
-  border: 2px solid rgba(37, 99, 235, 0.28);
+  border: 1.5px solid #cbd5e1;
   color: #0f172a;
   padding: 1.15rem 3.8rem 1.15rem 7.5rem !important;
   min-height: 68px;
@@ -561,7 +561,7 @@ input[type="checkbox"]:checked::after {
   font-size: 1.15rem;
   font-weight: 700;
   outline: none;
-  box-shadow: 0 6px 22px rgba(37, 99, 235, 0.08);
+  box-shadow: none;
 }
 
 .search-item.keyboard-selected {
@@ -572,7 +572,7 @@ input[type="checkbox"]:checked::after {
 
 .centered-search-box input:focus {
   border-color: var(--accent-blue);
-  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.18);
+  box-shadow: none;
 }
 
 .centered-search-box .clear-btn {
