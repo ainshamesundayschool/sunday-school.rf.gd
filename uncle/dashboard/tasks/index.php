@@ -4962,17 +4962,6 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
       position: relative;
       padding: 0 8px;
     }
-    .connection-line {
-      position: absolute;
-      top: 50%;
-      left: -28px;
-      right: -28px;
-      height: 4px;
-      background: linear-gradient(90deg, #6366f1, #ec4899);
-      z-index: 1;
-      border-radius: 4px;
-      opacity: 0.7;
-    }
     .connection-standalone-icon {
       font-size: 2.6rem;
       color: #6366f1;
@@ -22060,7 +22049,6 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
         
         <!-- Connection Node Art -->
         <div class="connection-node">
-          <div class="connection-line"></div>
           <i class="fas fa-link connection-standalone-icon"></i>
         </div>
 
