@@ -13077,11 +13077,9 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
         <button class="btn btn-g" id="draftBtn" onclick="saveDraft()"><i class="fas fa-save"></i> Draft</button>
 
-
+        <button class="btn btn-p" id="quickSaveBtn" onclick="publishTask()" style="display:none;"><i class="fas fa-save"></i> حفظ التعديلات</button>
 
         <button class="btn btn-p" id="nextBtn" onclick="nextStep()">التالي <i class="fas fa-chevron-left"></i></button>
-
-
 
         <button class="btn btn-p" id="pubBtn" onclick="publishTask()" style="display:none;"><i
             class="fas fa-paper-plane"></i> نشر</button>
@@ -13156,7 +13154,7 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
 
 
-  <div class="overlay" id="confOv">
+  <div class="overlay" id="confOv" style="z-index: 10000 !important;">
 
 
 
@@ -13257,7 +13255,7 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
 
 
-  <div class="overlay" id="delSubConfOv">
+  <div class="overlay" id="delSubConfOv" style="z-index: 10000 !important;">
 
 
 
@@ -15376,53 +15374,45 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
 
     function goStep(n) {
-
-
-
       [1, 2, 3].forEach(i => {
-
-
-
-        document.getElementById(`sp${i}`).style.display = i === n ? '' : 'none';
-
-
-
+        const sp = document.getElementById(`sp${i}`);
+        if (sp) sp.style.display = i === n ? '' : 'none';
         const d = document.getElementById(`sd${i}`);
-
-
-
-        d.className = 'step' + (i < n ? ' done' : i === n ? ' active' : '');
-
-
-
+        if (d) d.className = 'step' + (i < n ? ' done' : i === n ? ' active' : '');
       });
 
+      const isEditing = !!editId;
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const pubBtn = document.getElementById('pubBtn');
+      const quickSaveBtn = document.getElementById('quickSaveBtn');
 
+      if (prevBtn) prevBtn.style.display = n > 1 ? '' : 'none';
+      if (nextBtn) nextBtn.style.display = n < 3 ? '' : 'none';
 
-      document.getElementById('prevBtn').style.display = n > 1 ? '' : 'none';
+      if (isEditing) {
+        if (pubBtn) {
+          pubBtn.innerHTML = '<i class="fas fa-save"></i> حفظ التعديلات';
+          pubBtn.style.display = n === 3 ? '' : 'none';
+        }
+        if (quickSaveBtn) {
+          quickSaveBtn.innerHTML = '<i class="fas fa-save"></i> حفظ التعديلات';
+          quickSaveBtn.style.display = n < 3 ? '' : 'none';
+        }
+      } else {
+        if (pubBtn) {
+          pubBtn.innerHTML = '<i class="fas fa-paper-plane"></i> نشر';
+          pubBtn.style.display = n === 3 ? '' : 'none';
+        }
+        if (quickSaveBtn) {
+          quickSaveBtn.style.display = 'none';
+        }
+      }
 
-
-
-      document.getElementById('nextBtn').style.display = n < 3 ? '' : 'none';
-
-
-
-      document.getElementById('pubBtn').style.display = n === 3 ? '' : 'none';
-
-
-
-      document.getElementById('stepNum').textContent = n;
-
-
-
+      const stepNum = document.getElementById('stepNum');
+      if (stepNum) stepNum.textContent = n;
       curStep = n;
-
-
-
     }
-
-
-
     function nextStep() {
 
 
@@ -16998,53 +16988,45 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
 
     function goStep(n) {
-
-
-
       [1, 2, 3].forEach(i => {
-
-
-
-        document.getElementById(`sp${i}`).style.display = i === n ? '' : 'none';
-
-
-
+        const sp = document.getElementById(`sp${i}`);
+        if (sp) sp.style.display = i === n ? '' : 'none';
         const d = document.getElementById(`sd${i}`);
-
-
-
-        d.className = 'step' + (i < n ? ' done' : i === n ? ' active' : '');
-
-
-
+        if (d) d.className = 'step' + (i < n ? ' done' : i === n ? ' active' : '');
       });
 
+      const isEditing = !!editId;
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const pubBtn = document.getElementById('pubBtn');
+      const quickSaveBtn = document.getElementById('quickSaveBtn');
 
+      if (prevBtn) prevBtn.style.display = n > 1 ? '' : 'none';
+      if (nextBtn) nextBtn.style.display = n < 3 ? '' : 'none';
 
-      document.getElementById('prevBtn').style.display = n > 1 ? '' : 'none';
+      if (isEditing) {
+        if (pubBtn) {
+          pubBtn.innerHTML = '<i class="fas fa-save"></i> حفظ التعديلات';
+          pubBtn.style.display = n === 3 ? '' : 'none';
+        }
+        if (quickSaveBtn) {
+          quickSaveBtn.innerHTML = '<i class="fas fa-save"></i> حفظ التعديلات';
+          quickSaveBtn.style.display = n < 3 ? '' : 'none';
+        }
+      } else {
+        if (pubBtn) {
+          pubBtn.innerHTML = '<i class="fas fa-paper-plane"></i> نشر';
+          pubBtn.style.display = n === 3 ? '' : 'none';
+        }
+        if (quickSaveBtn) {
+          quickSaveBtn.style.display = 'none';
+        }
+      }
 
-
-
-      document.getElementById('nextBtn').style.display = n < 3 ? '' : 'none';
-
-
-
-      document.getElementById('pubBtn').style.display = n === 3 ? '' : 'none';
-
-
-
-      document.getElementById('stepNum').textContent = n;
-
-
-
+      const stepNum = document.getElementById('stepNum');
+      if (stepNum) stepNum.textContent = n;
       curStep = n;
-
-
-
     }
-
-
-
     function nextStep() {
 
 

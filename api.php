@@ -42685,6 +42685,8 @@ function updateTask()
 
         $showResult = (int) ($_POST['show_result'] ?? 1);
 
+        $showAnswers = (int) ($_POST['show_answers'] ?? 0);
+
         $allowReview = (int) ($_POST['allow_review'] ?? 1);
 
         $questionsJson = $_POST['questions'] ?? '[]';
@@ -42745,7 +42747,7 @@ function updateTask()
 
                 status=?, assign_to=?, specific_ids=?,
 
-                shuffle=?, show_result=?, allow_review=?,
+                shuffle=?, show_result=?, show_answers=?, allow_review=?,
 
                 group_name=?, group_icon=?,
 
@@ -42792,6 +42794,8 @@ function updateTask()
             $shuffle,
 
             $showResult,
+
+            $showAnswers,
 
             $allowReview,
 
