@@ -291,7 +291,7 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
 
   <link
-    href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&family=Cairo:wght@300;400;500;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap"
     rel="stylesheet">
 
 
@@ -4900,9 +4900,9 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
     .taranim-onboard-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(15, 23, 42, 0.75);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      background: rgba(15, 23, 42, 0.78);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       z-index: 11000 !important;
       display: flex;
       align-items: center;
@@ -4912,24 +4912,24 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
     }
     .taranim-onboard-card {
       background: var(--bg1, #ffffff);
-      border: 1px solid var(--bdr, rgba(226, 232, 240, 0.8));
-      border-radius: 24px;
+      border: 1px solid var(--bdr, rgba(226, 232, 240, 0.9));
+      border-radius: 28px;
       width: 100%;
-      max-width: 480px;
-      padding: 32px 24px;
+      max-width: 580px;
+      padding: 42px 36px;
       text-align: center;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.3);
       position: relative;
       overflow: hidden;
     }
     .taranim-onboard-card::before {
       content: '';
       position: absolute;
-      top: -50px; left: 50%;
+      top: -60px; left: 50%;
       transform: translateX(-50%);
-      width: 250px; height: 100px;
-      background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(236, 72, 153, 0.2));
-      filter: blur(40px);
+      width: 320px; height: 130px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(236, 72, 153, 0.25));
+      filter: blur(50px);
       border-radius: 50%;
       pointer-events: none;
     }
@@ -4937,93 +4937,91 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 18px;
-      margin: 10px 0 24px 0;
+      gap: 28px;
+      margin: 12px 0 28px 0;
       position: relative;
     }
     .brand-node-logo {
-      width: 76px;
-      height: 76px;
-      border-radius: 20px;
-      object-fit: cover;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 0 0 3px rgba(255, 255, 255, 0.8);
-      background: var(--bg2, #f8fafc);
+      width: 92px;
+      height: 92px;
+      border-radius: 24px;
+      object-fit: contain;
+      padding: 10px;
+      box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.15), 0 0 0 4px rgba(255, 255, 255, 0.9);
+      background: #ffffff;
       transition: transform 0.3s ease;
     }
     .brand-node-logo:hover {
-      transform: scale(1.05);
+      transform: scale(1.06);
     }
     .connection-node {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 4px;
       position: relative;
+      padding: 0 8px;
     }
     .connection-line {
       position: absolute;
       top: 50%;
-      left: -20px;
-      right: -20px;
-      height: 3px;
+      left: -28px;
+      right: -28px;
+      height: 4px;
       background: linear-gradient(90deg, #6366f1, #ec4899);
       z-index: 1;
-      border-radius: 3px;
-      opacity: 0.6;
+      border-radius: 4px;
+      opacity: 0.7;
     }
-    .connection-badge {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.1rem;
-      box-shadow: 0 0 16px rgba(99, 102, 241, 0.6);
+    .connection-standalone-icon {
+      font-size: 2.6rem;
+      color: #6366f1;
       z-index: 2;
-      animation: pulseLink 2s infinite ease-in-out;
+      position: relative;
+      filter: drop-shadow(0 0 14px rgba(99, 102, 241, 0.8));
+      animation: pulseStandaloneIcon 2s infinite ease-in-out;
     }
-    @keyframes pulseLink {
-      0%, 100% { transform: scale(1); box-shadow: 0 0 16px rgba(99, 102, 241, 0.6); }
-      50% { transform: scale(1.12); box-shadow: 0 0 24px rgba(236, 72, 153, 0.8); }
+    @keyframes pulseStandaloneIcon {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 14px rgba(99, 102, 241, 0.8)); }
+      50% { transform: scale(1.22); filter: drop-shadow(0 0 24px rgba(236, 72, 153, 0.95)); }
     }
     .taranim-onboard-title {
-      font-family: 'Baloo Bhaijaan 2', sans-serif;
-      font-size: 1.35rem;
-      font-weight: 700;
+      font-family: 'Baloo Bhaijaan 2', 'Cairo', system-ui, -apple-system, sans-serif !important;
+      font-size: 1.65rem;
+      font-weight: 800;
       color: var(--t1, #0f172a);
-      margin-bottom: 8px;
+      margin-bottom: 12px;
+      line-height: 1.3;
     }
     .taranim-onboard-desc {
-      font-size: 0.92rem;
+      font-family: 'Cairo', 'Baloo Bhaijaan 2', system-ui, sans-serif;
+      font-size: 1.02rem;
       color: var(--t2, #475569);
-      line-height: 1.6;
-      margin-bottom: 24px;
+      line-height: 1.7;
+      margin-bottom: 28px;
     }
     .taranim-onboard-btn {
       width: 100%;
-      padding: 12px 20px;
+      padding: 14px 28px;
       background: linear-gradient(135deg, #6366f1, #4f46e5);
       color: #ffffff;
       border: none;
-      border-radius: 14px;
-      font-size: 1rem;
-      font-weight: 700;
+      border-radius: 16px;
+      font-family: 'Baloo Bhaijaan 2', 'Cairo', system-ui, sans-serif !important;
+      font-size: 1.1rem;
+      font-weight: 800;
       cursor: pointer;
-      box-shadow: 0 8px 20px -4px rgba(99, 102, 241, 0.4);
+      box-shadow: 0 10px 24px -4px rgba(99, 102, 241, 0.45);
       transition: all 0.2s ease;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 10px;
     }
     .taranim-onboard-btn:hover {
       background: linear-gradient(135deg, #4f46e5, #4338ca);
       transform: translateY(-2px);
-      box-shadow: 0 12px 24px -4px rgba(99, 102, 241, 0.5);
+      box-shadow: 0 14px 28px -4px rgba(99, 102, 241, 0.55);
     }
 
     /* Bible Verse Search Picker Modal */
@@ -22063,9 +22061,7 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
         <!-- Connection Node Art -->
         <div class="connection-node">
           <div class="connection-line"></div>
-          <div class="connection-badge">
-            <i class="fas fa-link"></i>
-          </div>
+          <i class="fas fa-link connection-standalone-icon"></i>
         </div>
 
         <!-- Taranim Logo -->
