@@ -3514,18 +3514,22 @@ document.addEventListener('DOMContentLoaded', () => {
           const score = getMatchScore(song, searchTarget);
           if (score > 0) {
             candidateMap.set(song.id || song.item_id, { ...song, _score: score });
+            if (candidateMap.size >= 80) break; // Capped at top 80 candidates for 0ms ultra-fast response
           }
         }
       }
 
-      // Fallback: If no candidate matched using fast filters, score full catalog for any non-empty query (capped at 150 for 0ms speed)
+      // Fallback: If no candidate matched using fast filters, score catalog for any non-empty query (capped at 60 for speed)
       if (candidateMap.size === 0 && searchTarget.length >= 1) {
         for (let i = 0; i < len; i++) {
           const song = state.allSongs[i];
-          const score = getMatchScore(song, searchTarget);
-          if (score > 0) {
-            candidateMap.set(song.id || song.item_id, { ...song, _score: score });
-            if (candidateMap.size >= 150) break;
+          const tNorm = song._tNorm || '';
+          if (tNorm.startsWith(qTarget.charAt(0)) || tNorm.includes(searchTarget.slice(0, 2))) {
+            const score = getMatchScore(song, searchTarget);
+            if (score > 0) {
+              candidateMap.set(song.id || song.item_id, { ...song, _score: score });
+              if (candidateMap.size >= 60) break;
+            }
           }
         }
       }
@@ -3569,7 +3573,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // RENDER LOCAL RESULTS INSTANTLY (0ms DELAY!)
-    renderProcessedResults(songsList, trimmedQuery, bibleInfo);
+    renderProcessedResults(songsList, trimmedQuery, bibleInfo, true);
 
     // 2. NON-BLOCKING ASYNC SERVER FETCH (30MS FAST DEBOUNCE & IMMEDIATE ABORT)
     if (searchDebounceTimeout) clearTimeout(searchDebounceTimeout);
@@ -3591,19 +3595,19 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
 
-        if (apiResults.length > 0) {
-          const mergedList = [...apiResults, ...songsList];
-          renderProcessedResults(mergedList, trimmedQuery, bibleInfo);
-        }
-      } catch (err) {}
+        const mergedList = apiResults.length > 0 ? [...apiResults, ...songsList] : songsList;
+        renderProcessedResults(mergedList, trimmedQuery, bibleInfo, false);
+      } catch (err) {
+        renderProcessedResults(songsList, trimmedQuery, bibleInfo, false);
+      }
     }, 30);
   }
 
-  function renderProcessedResults(rawSongsList, query, bibleInfo) {
+  function renderProcessedResults(rawSongsList, query, bibleInfo, isApiPending = false) {
     const uniqueMap = new Map();
     rawSongsList.forEach(song => {
       if (song && (song.id !== undefined && song.id !== null)) {
-        const isBible = Boolean(song.is_bible || song.chapter_number !== undefined);
+        const isBible = Boolean((song.is_bible === true || song.is_bible === '1' || song.is_bible === 1) || (song.chapter_number !== undefined && song.chapter_number !== null && song.chapter_number !== ''));
         const key = (isBible ? 'bible_' : 'song_') + song.id;
         uniqueMap.set(key, song);
       }
@@ -3612,7 +3616,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const uniqueSongs = Array.from(uniqueMap.values());
 
     const scored = uniqueSongs.map(song => {
-      let score = getMatchScore(song, query);
+      let score = song._score !== undefined ? song._score : getMatchScore(song, query);
       return {
         ...song,
         _score: score
@@ -3620,19 +3624,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }).sort((a, b) => b._score - a._score);
 
     if (bibleInfo && bibleInfo.bookName) {
-      const bibleOnly = scored.filter(s => Boolean(s.is_bible || s.chapter_number !== undefined));
+      const bibleOnly = scored.filter(s => Boolean((s.is_bible === true || s.is_bible === '1' || s.is_bible === 1) || (s.chapter_number !== undefined && s.chapter_number !== null && s.chapter_number !== '')));
       if (bibleOnly.length > 0) {
-        renderSearchDropdown(bibleOnly, query);
+        renderSearchDropdown(bibleOnly, query, 15, isApiPending);
         return;
       }
     }
 
-    renderSearchDropdown(scored, query);
+    renderSearchDropdown(scored, query, 15, isApiPending);
   }
 
   let activeSearchLimit = 15;
 
-  function renderSearchDropdown(songs, query, displayLimit = 15) {
+  function renderSearchDropdown(songs, query, displayLimit = 15, isApiPending = false) {
     activeSearchLimit = displayLimit;
     const qNorm  = normalizeArabic(query);
     const qWords = qNorm.split(/\s+/).filter(w => w.length >= 2);
@@ -3641,12 +3645,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (state.francoAutoTranslate && /[a-z]/i.test(query) && !/[\u0600-\u06FF]/.test(query)) {
       const rawTranslated = francoToArabic(query);
       if (rawTranslated) {
-        francoHeaderHtml = `<div class="franco-translation-header"><i class="fa-solid fa-wand-magic-sparkles"></i> الترجمة الحية: <strong>${escapeHtml(rawTranslated)}</strong></div>`;
+        francoHeaderHtml = `<div class="franco-translation-header"><i class="fa-solid fa-wand-magic-sparkles"></i> <strong>${escapeHtml(rawTranslated)}</strong></div>`;
       }
     }
 
     if (!songs || songs.length === 0) {
-      els.searchDropdown.innerHTML = francoHeaderHtml + `<div class="search-item no-results-item"><i class="fa-solid fa-circle-exclamation" style="color:#94a3b8; margin-left:6px;"></i><span class="item-title">لم يتم العثور على ترنيمة أو شاهد كتابي</span></div>`;
+      if (isApiPending || (!state.allSongs || state.allSongs.length === 0)) {
+        els.searchDropdown.innerHTML = francoHeaderHtml + `<div class="search-item no-results-item"><i class="fa-solid fa-spinner fa-spin" style="color:#2563eb; margin-left:8px;"></i><span class="item-title">جاري البحث...</span></div>`;
+      } else {
+        els.searchDropdown.innerHTML = francoHeaderHtml + `<div class="search-item no-results-item"><i class="fa-solid fa-circle-exclamation" style="color:#94a3b8; margin-left:6px;"></i><span class="item-title">لم يتم العثور على ترنيمة أو شاهد كتابي</span></div>`;
+      }
     } else {
       const visibleSongs = songs.slice(0, activeSearchLimit);
       state.lastSearchResultSongs = visibleSongs;
