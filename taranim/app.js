@@ -3761,9 +3761,16 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       if (canonicalSong) {
         if (!targetSong) {
+          // No local data at all → use canonical as base
           targetSong = JSON.parse(JSON.stringify(canonicalSong));
-        } else if (canonicalSong.verses && Array.isArray(canonicalSong.verses) && canonicalSong.verses.length > 0) {
-          targetSong.verses = JSON.parse(JSON.stringify(canonicalSong.verses));
+        } else {
+          // Local data exists → only enrich MISSING fields, NEVER replace existing verses
+          if (!targetSong.notes && canonicalSong.notes) targetSong.notes = canonicalSong.notes;
+          if (!targetSong.title && canonicalSong.title) targetSong.title = canonicalSong.title;
+          if ((!targetSong.verses || !Array.isArray(targetSong.verses) || targetSong.verses.length === 0)
+              && canonicalSong.verses && Array.isArray(canonicalSong.verses) && canonicalSong.verses.length > 0) {
+            targetSong.verses = JSON.parse(JSON.stringify(canonicalSong.verses));
+          }
         }
       }
     }
@@ -3831,6 +3838,21 @@ document.addEventListener('DOMContentLoaded', () => {
              /^\s*\(ق\)$/i.test(txt);
     };
 
+    // Helper: get all text from a verse (for duplicate detection)
+    const getVerseFullText = (verse) => {
+      if (!verse) return '';
+      if (verse.slides && verse.slides.length > 0) {
+        return verse.slides.map(s => {
+          if (s.lines && s.lines.length > 0) return s.lines.join('\n');
+          if (s.text) return s.text;
+          return '';
+        }).join('\n');
+      }
+      if (verse.lines && verse.lines.length > 0) return verse.lines.join('\n');
+      if (verse.text) return verse.text;
+      return '';
+    };
+
     if (song.verses && Array.isArray(song.verses) && song.verses.length > 0) {
       // FIRST PASS: Detect if verse[0] is an unlabelled chorus by examining verse[1]
       let forceFirstAsChorus = false;
@@ -3850,8 +3872,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
+      // DUPLICATE CONTENT CHORUS DETECTION:
+      // If no verse is already marked as chorus, detect chorus by finding duplicate verse content.
+      // The verse whose text appears more than once is the chorus.
+      let duplicateChorusIdx = -1;
+      const anyAlreadyChorus = song.verses.some(v => v.type === 1 || v.isChorus === true);
+      if (!anyAlreadyChorus && !forceFirstAsChorus && song.verses.length >= 3) {
+        const verseTexts = song.verses.map(v => normalizeArabic(getVerseFullText(v)).trim());
+        const textCount = {};
+        verseTexts.forEach((t, i) => {
+          if (t.length > 0) {
+            if (!textCount[t]) textCount[t] = { count: 0, firstIdx: i };
+            textCount[t].count++;
+          }
+        });
+        // Find the most-repeated text with count >= 2
+        let maxCount = 1;
+        let chorusText = null;
+        for (const [text, info] of Object.entries(textCount)) {
+          if (info.count > maxCount) {
+            maxCount = info.count;
+            chorusText = text;
+            duplicateChorusIdx = info.firstIdx;
+          }
+        }
+      }
+
       // SECOND PASS: Assign types
       let currentStanzaNum = 0;
+      const chorusRefText = duplicateChorusIdx >= 0
+        ? normalizeArabic(getVerseFullText(song.verses[duplicateChorusIdx])).trim()
+        : null;
+
       song.verses.forEach((verse, verseIdx) => {
         const rawVerseType = verse.type;
         const firstRawLine = getVerseFirstLine(verse);
@@ -3866,6 +3918,11 @@ document.addEventListener('DOMContentLoaded', () => {
         );
 
         if (verseIdx === 0 && forceFirstAsChorus) {
+          isChorus = true;
+        }
+
+        // Duplicate-content chorus detection
+        if (!isChorus && chorusRefText && normalizeArabic(getVerseFullText(verse)).trim() === chorusRefText) {
           isChorus = true;
         }
 
@@ -3972,6 +4029,27 @@ document.addEventListener('DOMContentLoaded', () => {
                     .replace(/^\(?[\d٠-٩]+\)?[:\s\-]\s*/, '')
                     .trim();
           }).filter(l => l.length > 0);
+
+          // LINE REPETITION DETECTION: collapse consecutive duplicate lines into "line ×N"
+          // Also detect explicit repeat markers like (مرتين) or ×2 or x2
+          if (!isBible && cleanLines.length > 1) {
+            const collapsed = [];
+            let i = 0;
+            while (i < cleanLines.length) {
+              const current = cleanLines[i];
+              let repeatCount = 1;
+              while (i + repeatCount < cleanLines.length && normalizeArabic(cleanLines[i + repeatCount]) === normalizeArabic(current)) {
+                repeatCount++;
+              }
+              if (repeatCount > 1) {
+                collapsed.push(`${current} ×${repeatCount}`);
+              } else {
+                collapsed.push(current);
+              }
+              i += repeatCount;
+            }
+            cleanLines = collapsed;
+          }
 
 
 
@@ -4126,6 +4204,26 @@ document.addEventListener('DOMContentLoaded', () => {
                   .replace(/^\(?[\d٠-٩]+\)?[:\s\-]\s*/, '')
                   .trim();
         }).filter(l => l.length > 0);
+
+        // LINE REPETITION DETECTION (notes fallback path)
+        if (lines.length > 1) {
+          const collapsed = [];
+          let j = 0;
+          while (j < lines.length) {
+            const current = lines[j];
+            let repeatCount = 1;
+            while (j + repeatCount < lines.length && normalizeArabic(lines[j + repeatCount]) === normalizeArabic(current)) {
+              repeatCount++;
+            }
+            if (repeatCount > 1) {
+              collapsed.push(`${current} ×${repeatCount}`);
+            } else {
+              collapsed.push(current);
+            }
+            j += repeatCount;
+          }
+          lines = collapsed;
+        }
 
         if (lines.length === 0) return;
 
