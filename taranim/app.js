@@ -3482,7 +3482,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (isCandidate) {
-          const score = calculateSongMatchScore(song, searchTarget);
+          const score = getMatchScore(song, searchTarget);
           if (score > 0) {
             candidateMap.set(song.id || song.item_id, { ...song, _score: score });
           }
@@ -3493,7 +3493,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (candidateMap.size === 0 && searchTarget.length >= 3) {
         for (let i = 0; i < len; i++) {
           const song = state.allSongs[i];
-          const score = calculateSongMatchScore(song, searchTarget);
+          const score = getMatchScore(song, searchTarget);
           if (score > 0) {
             candidateMap.set(song.id || song.item_id, { ...song, _score: score });
           }
