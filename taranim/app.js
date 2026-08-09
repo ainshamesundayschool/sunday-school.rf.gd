@@ -3853,6 +3853,63 @@ document.addEventListener('DOMContentLoaded', () => {
       return '';
     };
 
+    // If song.notes is available and verses is missing OR lacks chorus markers, re-parse notes!
+    const hasVerses = song.verses && Array.isArray(song.verses) && song.verses.length > 0;
+    const hasChorusInVerses = hasVerses && song.verses.some(v => v.type === 1 || v.isChorus === true || isChorusText(getVerseFirstLine(v)));
+
+    if (!hasChorusInVerses && song.notes) {
+      const rawNotes = String(song.notes).replace(/\r\n/g, '\n');
+      const blocks = rawNotes.split(/\n\s*\n/).map(b => b.trim()).filter(b => b.length > 0);
+      if (blocks.length > 0) {
+        const parsedVerses = [];
+        let currentStanzaNum = 0;
+
+        blocks.forEach((block, blockIdx) => {
+          let lines = block.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+          if (lines.length === 0) return;
+
+          let isChorus = false;
+          let foundStanzaNum = null;
+
+          const firstLine = lines[0];
+          if (isChorusText(firstLine)) {
+            isChorus = true;
+          } else {
+            const matchNum = firstLine.match(/^\s*\(?\s*([\d٠-٩]+)\s*\)?\s*[:\s\-]?/);
+            if (matchNum) {
+              foundStanzaNum = matchNum[1];
+            }
+          }
+
+          if (blockIdx === 0 && !isChorus && !foundStanzaNum) {
+            const secondBlock = blocks[1];
+            if (secondBlock) {
+              const secondFirstLine = secondBlock.split('\n')[0].trim();
+              if (/^\s*\(?\s*1\s*\)?\s*[:\s\-]?/i.test(secondFirstLine) || /^\s*\(?\s*١\s*\)?\s*[:\s\-]?/i.test(secondFirstLine)) {
+                isChorus = true;
+              }
+            }
+          }
+
+          if (isChorus) {
+            parsedVerses.push({ type: 1, isChorus: true, slides: [{ text: lines.join('\n'), lines: lines }] });
+          } else {
+            if (foundStanzaNum) {
+              currentStanzaNum = parseInt(foundStanzaNum.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))) || (currentStanzaNum + 1);
+            } else {
+              currentStanzaNum++;
+            }
+            parsedVerses.push({ type: 0, isChorus: false, stanzaNum: currentStanzaNum, slides: [{ text: lines.join('\n'), lines: lines }] });
+          }
+        });
+
+        if (parsedVerses.length > 0) {
+          song.verses = parsedVerses;
+          return song;
+        }
+      }
+    }
+
     if (song.verses && Array.isArray(song.verses) && song.verses.length > 0) {
       // FIRST PASS: Detect if verse[0] is an unlabelled chorus by examining verse[1]
       let forceFirstAsChorus = false;
@@ -3873,8 +3930,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // DUPLICATE CONTENT CHORUS DETECTION:
-      // If no verse is already marked as chorus, detect chorus by finding duplicate verse content.
-      // The verse whose text appears more than once is the chorus.
       let duplicateChorusIdx = -1;
       const anyAlreadyChorus = song.verses.some(v => v.type === 1 || v.isChorus === true);
       if (!anyAlreadyChorus && !forceFirstAsChorus && song.verses.length >= 3) {
@@ -3886,13 +3941,10 @@ document.addEventListener('DOMContentLoaded', () => {
             textCount[t].count++;
           }
         });
-        // Find the most-repeated text with count >= 2
         let maxCount = 1;
-        let chorusText = null;
         for (const [text, info] of Object.entries(textCount)) {
           if (info.count > maxCount) {
             maxCount = info.count;
-            chorusText = text;
             duplicateChorusIdx = info.firstIdx;
           }
         }
@@ -3921,7 +3973,6 @@ document.addEventListener('DOMContentLoaded', () => {
           isChorus = true;
         }
 
-        // Duplicate-content chorus detection
         if (!isChorus && chorusRefText && normalizeArabic(getVerseFullText(verse)).trim() === chorusRefText) {
           isChorus = true;
         }
@@ -4030,8 +4081,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     .trim();
           }).filter(l => l.length > 0);
 
-          // LINE REPETITION DETECTION: collapse consecutive duplicate lines into "line ×N"
-          // Also detect explicit repeat markers like (مرتين) or ×2 or x2
+          // Explicit repeat markers e.g. (مرتين) or (2) -> format as 2 (line)
+          cleanLines = cleanLines.map(line => {
+            const matchRepeat = line.match(/^(.*?)\s*[\(\[\{]\s*(مرتين|مرتان|2|٢|×2|x2)\s*[\)\]\}]$/i);
+            if (matchRepeat && matchRepeat[1]) {
+              return `2 (${matchRepeat[1].trim()})`;
+            }
+            return line;
+          });
+
+          // LINE REPETITION DETECTION: collapse consecutive duplicate lines into "2 (line)"
           if (!isBible && cleanLines.length > 1) {
             const collapsed = [];
             let i = 0;
@@ -4042,7 +4101,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 repeatCount++;
               }
               if (repeatCount > 1) {
-                collapsed.push(`${current} ×${repeatCount}`);
+                collapsed.push(`${repeatCount} (${current.replace(/^\d+\s*\((.*)\)$/, '$1')})`);
               } else {
                 collapsed.push(current);
               }
@@ -4568,9 +4627,15 @@ document.addEventListener('DOMContentLoaded', () => {
     els.recentSessionContainer.querySelectorAll('.recent-item').forEach(item => {
       item.addEventListener('click', (e) => {
         if (e.target.closest('.recent-item-cb')) return;
+        const index = parseInt(item.dataset.index);
+        const songObj = (state.sessionRecents && !isNaN(index)) ? state.sessionRecents[index] : null;
         const id = item.dataset.id;
         const isBible = item.dataset.isBible === '1';
-        openAndPresentItem(id, isBible);
+        if (songObj) {
+          openAndPresentItem(songObj, isBible);
+        } else {
+          openAndPresentItem(id, isBible);
+        }
       });
     });
 
