@@ -3507,41 +3507,41 @@ document.addEventListener('DOMContentLoaded', () => {
   async function openAndPresentItem(songOrId, isBible = false) {
     if (!songOrId && songOrId !== 0) return;
 
+    let inputObject = (typeof songOrId === 'object' && songOrId !== null) ? songOrId : null;
+    let songId = inputObject ? (inputObject.id !== undefined ? inputObject.id : inputObject.item_id) : songOrId;
+    let isItemBible = Boolean(isBible || (inputObject && (inputObject.is_bible || inputObject.chapter_number !== undefined)));
+
     let targetSong = null;
 
-    // 0. IF DIRECT OBJECT IS PASSED, USE IT DIRECTLY
-    if (typeof songOrId === 'object' && songOrId !== null && (songOrId.title || songOrId.verses || songOrId.id)) {
-      targetSong = JSON.parse(JSON.stringify(songOrId));
-    }
-
-    const songId = targetSong ? targetSong.id : songOrId;
-
-    // 1. ALWAYS PRIORITIZE CANONICAL CATALOG SONG BY ID FIRST (For non-Bible items)
-    if (!targetSong && !isBible && state.allSongs && state.allSongs.length > 0) {
-      let canonicalSong = state.allSongs.find(s => !s.is_bible && String(s.id) === String(songId));
-      if (!canonicalSong) {
-        canonicalSong = state.allSongs.find(s => !s.is_bible && String(s.item_id) === String(songId));
-      }
+    // 1. ALWAYS RESOLVE NON-BIBLE SONGS BY ID FROM CANONICAL CATALOG FIRST!
+    if (!isItemBible && songId !== undefined && songId !== null && state.allSongs && state.allSongs.length > 0) {
+      let canonicalSong = state.allSongs.find(s => !s.is_bible && (String(s.id) === String(songId) || String(s.item_id) === String(songId)));
       if (canonicalSong) {
-        // Deep clone so rendering line modifications never corrupt the canonical catalog object
         targetSong = JSON.parse(JSON.stringify(canonicalSong));
+        if (inputObject && inputObject.verses && Array.isArray(inputObject.verses) && inputObject.verses.length > 0) {
+          targetSong.verses = inputObject.verses;
+        }
       }
     }
 
-    // 2. Search in active session recents matching id AND is_bible type if not found in catalog
-    if (!targetSong) {
+    // 2. IF NOT IN CATALOG, USE PASSED OBJECT OR SEARCH RECENTS
+    if (!targetSong && inputObject && (inputObject.title || inputObject.verses)) {
+      targetSong = JSON.parse(JSON.stringify(inputObject));
+    }
+
+    if (!targetSong && songId !== undefined && songId !== null) {
       let foundInRecents = state.sessionRecents.find(r => 
-        Boolean(r.is_bible) === Boolean(isBible) && (String(r.id) === String(songId) || String(r.item_id) === String(songId))
+        Boolean(r.is_bible) === Boolean(isItemBible) && (String(r.id) === String(songId) || String(r.item_id) === String(songId))
       );
       if (foundInRecents) {
         targetSong = JSON.parse(JSON.stringify(foundInRecents));
       }
     }
 
-    // 3. Fetch full structured data from API if still not found
-    if (!targetSong) {
+    // 3. FETCH FULL STRUCTURED DATA FROM API BY ID IF STILL NOT FOUND
+    if (!targetSong && songId !== undefined && songId !== null) {
       try {
-        const bibleParam = isBible ? '&type=bible&is_bible=1' : '';
+        const bibleParam = isItemBible ? '&type=bible&is_bible=1' : '';
         const apiUrl = getApiUrl();
         let res = await fetch(`${apiUrl}?action=song&id=${songId}${bibleParam}`).catch(() => null);
         if (!res || !res.ok) res = await fetch(`/api.php?action=song&id=${songId}${bibleParam}`).catch(() => null);
@@ -3551,7 +3551,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const fullSong = await res.json();
           if (fullSong && (fullSong.title || fullSong.id)) {
             targetSong = fullSong;
-            if (isBible) targetSong.is_bible = true;
+            if (isItemBible) targetSong.is_bible = true;
           }
         }
       } catch (err) {}
@@ -3563,7 +3563,7 @@ document.addEventListener('DOMContentLoaded', () => {
       addToSessionRecents(targetSong);
       loadSongIntoPresentation(targetSong);
     } else {
-      showToast('تعذر تحميل بيانات العناصر.');
+      showToast('تعذر تحميل بيانات العنصر.');
     }
   }
 
@@ -4163,14 +4163,9 @@ document.addEventListener('DOMContentLoaded', () => {
     els.recentSessionContainer.querySelectorAll('.recent-item').forEach(item => {
       item.addEventListener('click', (e) => {
         if (e.target.closest('.recent-item-cb')) return;
-        const idx = parseInt(item.dataset.index);
+        const id = item.dataset.id;
         const isBible = item.dataset.isBible === '1';
-        if (!isNaN(idx) && state.sessionRecents[idx]) {
-          openAndPresentItem(state.sessionRecents[idx], isBible);
-        } else {
-          const id = item.dataset.id;
-          openAndPresentItem(id, isBible);
-        }
+        openAndPresentItem(id, isBible);
       });
     });
 
