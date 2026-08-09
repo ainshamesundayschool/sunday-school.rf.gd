@@ -2427,22 +2427,21 @@ document.addEventListener('DOMContentLoaded', () => {
       btnSyncLiveFile.addEventListener('click', setLiveSyncFile);
     }
 
-    let searchTimer;
     els.intelligentSearch.addEventListener('input', (e) => {
       const query = e.target.value;
       if (query) els.clearSearchBtn.classList.remove('hidden');
       else {
         els.clearSearchBtn.classList.add('hidden');
+        els.searchDropdown.classList.add('hidden');
+        if (els.searchSuggestionsChips) {
+          els.searchSuggestionsChips.classList.add('hidden');
+          els.searchSuggestionsChips.innerHTML = '';
+        }
+        return;
       }
 
-      clearTimeout(searchTimer);
-      const isMobile = window.innerWidth <= 768;
-      const delay = isMobile ? 220 : 90;
-
-      searchTimer = setTimeout(() => {
-        renderSearchWordSuggestions(query);
-        performIntelligentSearch(query);
-      }, delay);
+      renderSearchWordSuggestions(query);
+      performIntelligentSearch(query);
     });
 
     els.intelligentSearch.addEventListener('focus', () => {
@@ -3192,11 +3191,16 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (data && data.songs) {
           rawList = data.songs;
         }
-        state.allSongs = rawList.map(song => ({
-          ...song,
-          _tNorm: normalizeArabic(song.title || ''),
-          _nNorm: normalizeArabic(song.notes || '')
-        }));
+        state.allSongs = rawList.map(song => {
+          const tNorm = normalizeArabic(song.title || '');
+          const nNorm = normalizeArabic(song.notes || '');
+          return {
+            ...song,
+            _tNorm: tNorm,
+            _nNorm: nNorm,
+            _searchIndex: tNorm + ' ' + nNorm
+          };
+        });
         // Re-hydrate active song from canonical catalog if it was restored on page load before catalog fetched
         if (state.activeSong && !state.activeSong.is_bible && (state.activeSong.id !== undefined || state.activeSong.item_id !== undefined)) {
           const songId = state.activeSong.id !== undefined ? state.activeSong.id : state.activeSong.item_id;
@@ -3253,26 +3257,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const bibleInfo = parseBibleSearchShortcut(trimmedQuery);
     const searchTarget = bibleInfo ? bibleInfo.searchQuery : trimmedQuery;
 
-    // 1. INSTANT LOCAL SEARCH (0ms UI RESPONSE TIME!)
+    // 1. INSTANT 0ms LOCAL SEARCH VIA PRE-INDEXED CATALOG
     let localMatches = [];
     if (state.allSongs && state.allSongs.length > 0) {
-      let qNorm = normalizeArabic(searchTarget);
-      let isFrancoInput = state.francoAutoTranslate && /[a-z]/i.test(searchTarget) && !/[\u0600-\u06FF]/.test(searchTarget);
-      let qFrancoRaw = isFrancoInput ? francoToArabic(searchTarget) : '';
+      const qNorm = normalizeArabic(searchTarget);
+      const isFrancoInput = state.francoAutoTranslate && /[a-z]/i.test(searchTarget) && !/[\u0600-\u06FF]/.test(searchTarget);
+      const qFrancoRaw = isFrancoInput ? francoToArabic(searchTarget) : '';
+      const qTarget = isFrancoInput && qFrancoRaw ? qFrancoRaw : qNorm;
 
-      localMatches = state.allSongs.filter(song => {
-        const tNorm = song._tNorm || normalizeArabic(song.title || '');
-        const nNorm = song._nNorm || normalizeArabic(song.notes || '');
+      const titleMatches = [];
+      const bodyMatches = [];
+      const len = state.allSongs.length;
 
-        if (isFrancoInput) {
-          return (qFrancoRaw && (tNorm.includes(qFrancoRaw) || nNorm.includes(qFrancoRaw)));
+      for (let i = 0; i < len; i++) {
+        const song = state.allSongs[i];
+        const tNorm = song._tNorm;
+        const sIndex = song._searchIndex || (tNorm + ' ' + (song._nNorm || ''));
+
+        if (tNorm.includes(qTarget)) {
+          titleMatches.push(song);
+        } else if (sIndex.includes(qTarget)) {
+          bodyMatches.push(song);
         }
+      }
 
-        return tNorm.includes(qNorm) || nNorm.includes(qNorm);
-      });
+      localMatches = titleMatches.concat(bodyMatches);
     }
 
-    let songsList = [...localMatches];
+    let songsList = localMatches;
 
     // GUARANTEE BIBLE CHAPTER RESULT IF SHORTCUT/BIBLE QUERY WAS TYPED
     if (bibleInfo && bibleInfo.bookName) {
@@ -3294,7 +3306,7 @@ document.addEventListener('DOMContentLoaded', () => {
         );
 
         if (!existingInList) {
-          songsList.unshift({
+          songsList = [{
             id: `bible_${bookId}_${chNum}`,
             item_id: `bible_${bookId}_${chNum}`,
             title: fallbackTitle,
@@ -3302,15 +3314,15 @@ document.addEventListener('DOMContentLoaded', () => {
             book_id: bookId,
             chapter_number: chNum,
             notes: `سفر ${targetBookData.title} - الإصحاح ${chNum}`
-          });
+          }, ...songsList];
         }
       }
     }
 
-    // RENDER LOCAL RESULTS INSTANTLY (0ms DELAY)
+    // RENDER LOCAL RESULTS INSTANTLY (0ms DELAY!)
     renderProcessedResults(songsList, trimmedQuery, bibleInfo);
 
-    // 2. ASYNC NON-BLOCKING SERVER FETCH (DEBOUNCED BY 120MS & ABORTABLE)
+    // 2. NON-BLOCKING ASYNC SERVER FETCH (30MS FAST DEBOUNCE & IMMEDIATE ABORT)
     if (searchDebounceTimeout) clearTimeout(searchDebounceTimeout);
     if (searchAbortController) searchAbortController.abort();
 
@@ -3323,21 +3335,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const apiUrl = getApiUrl();
         let res = await fetch(`${apiUrl}?q=${encodeURIComponent(trimmedQuery)}&limit=60`, { signal }).catch(() => null);
         if (!res || !res.ok) res = await fetch(`/api.php?q=${encodeURIComponent(trimmedQuery)}&limit=60`, { signal }).catch(() => null);
-        if (res.ok) {
+        if (res && res.ok) {
           let data = await res.json();
           if (data && data.songs && data.songs.length > 0) {
             apiResults = apiResults.concat(data.songs);
-          }
-        }
-
-        if (bibleInfo && bibleInfo.searchQuery && bibleInfo.searchQuery !== trimmedQuery) {
-          let bRes = await fetch(`${apiUrl}?q=${encodeURIComponent(bibleInfo.searchQuery)}&limit=60`, { signal }).catch(() => null);
-          if (!bRes || !bRes.ok) bRes = await fetch(`/api.php?q=${encodeURIComponent(bibleInfo.searchQuery)}&limit=60`, { signal }).catch(() => null);
-          if (bRes.ok) {
-            let bData = await bRes.json();
-            if (bData && bData.songs && bData.songs.length > 0) {
-              apiResults = apiResults.concat(bData.songs);
-            }
           }
         }
 
@@ -3346,7 +3347,7 @@ document.addEventListener('DOMContentLoaded', () => {
           renderProcessedResults(mergedList, trimmedQuery, bibleInfo);
         }
       } catch (err) {}
-    }, 120);
+    }, 30);
   }
 
   function renderProcessedResults(rawSongsList, query, bibleInfo) {
