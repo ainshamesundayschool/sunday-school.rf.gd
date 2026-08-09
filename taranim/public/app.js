@@ -2548,23 +2548,88 @@ document.addEventListener('DOMContentLoaded', () => {
       els.btnClosePresentationOverlay.addEventListener('click', exitPresentation);
     }
 
-    if (els.currentLineCounter) {
-      els.currentLineCounter.style.cursor = 'pointer';
-      els.currentLineCounter.title = 'انقر للانتقال إلى رقم شريحة معين';
-      els.currentLineCounter.addEventListener('click', () => {
-        if (!state.presentationLines || state.presentationLines.length === 0) return;
-        const inputVal = prompt(`أدخل رقم الشريحة للانتقال (1 - ${state.presentationLines.length}):`, state.currentLineIndex + 1);
-        if (inputVal !== null) {
-          const targetNum = parseInt(inputVal);
-          if (!isNaN(targetNum) && targetNum >= 1 && targetNum <= state.presentationLines.length) {
-            state.currentLineIndex = targetNum - 1;
-            state.isBlank = false;
-            renderPresentationLinesList();
-            syncLiveState();
-          }
+  function showSlideJumpModal() {
+    const total = state.presentationLines ? state.presentationLines.length : 0;
+    if (total === 0) return;
+    const curVal = (state.currentLineIndex >= 0) ? (state.currentLineIndex + 1) : 1;
+
+    let modal = document.getElementById('custom-slide-jump-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'custom-slide-jump-modal';
+      modal.className = 'custom-modal-backdrop hidden';
+      modal.innerHTML = `
+        <div class="custom-modal-card animate-appear-pop">
+          <div class="custom-modal-header">
+            <span><i class="fa-solid fa-arrow-turn-down-left"></i> الانتقال للشريحة</span>
+            <button type="button" id="btn-close-slide-jump-modal" class="custom-modal-close-x">&times;</button>
+          </div>
+          <div class="custom-modal-body">
+            <p class="custom-modal-subtext">أدخل رقم الشريحة للانتقال (1 - <span id="slide-jump-modal-max"></span>)</p>
+            <div class="custom-modal-input-row">
+              <input type="number" id="slide-jump-modal-input" min="1" autocomplete="off">
+              <button type="button" id="btn-confirm-slide-jump-modal" class="custom-modal-submit-btn">انتقال</button>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      const closeBtn = modal.querySelector('#btn-close-slide-jump-modal');
+      const submitBtn = modal.querySelector('#btn-confirm-slide-jump-modal');
+      const inputEl = modal.querySelector('#slide-jump-modal-input');
+
+      const closeModal = () => modal.classList.add('hidden');
+
+      closeBtn.addEventListener('click', closeModal);
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+
+      const doJump = () => {
+        const val = parseInt(inputEl.value);
+        const maxSlides = state.presentationLines ? state.presentationLines.length : 0;
+        if (!isNaN(val) && val >= 1 && val <= maxSlides) {
+          state.liveSong = state.activeSong;
+          state.livePresentationLines = state.presentationLines;
+          state.liveLineIndex = val - 1;
+          state.currentLineIndex = val - 1;
+          state.isBlank = false;
+          renderPresentationLinesList();
+          syncLiveState();
+          closeModal();
         }
+      };
+
+      submitBtn.addEventListener('click', doJump);
+      inputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') doJump();
+        if (e.key === 'Escape') closeModal();
       });
     }
+
+    const maxSpan = modal.querySelector('#slide-jump-modal-max');
+    const inputEl = modal.querySelector('#slide-jump-modal-input');
+    if (maxSpan) maxSpan.textContent = total;
+    if (inputEl) {
+      inputEl.max = total;
+      inputEl.value = curVal;
+    }
+
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+      if (inputEl) {
+        inputEl.focus();
+        inputEl.select();
+      }
+    }, 50);
+  }
+
+  if (els.currentLineCounter) {
+    els.currentLineCounter.style.cursor = 'pointer';
+    els.currentLineCounter.title = 'انقر للانتقال إلى رقم شريحة معين';
+    els.currentLineCounter.addEventListener('click', showSlideJumpModal);
+  }
 
     if (els.obsOverlay) {
       let overlayTouchStartX = 0;
