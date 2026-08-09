@@ -3552,11 +3552,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const chNum = parseInt(bibleInfo.chapter) || 1;
         const fallbackTitle = `${targetBookData.title} - الأصحاح ${chNum}`;
 
-        const existingInList = songsList.find(s => 
-          Boolean(s.is_bible) && 
-          String(s.chapter_number) === String(chNum) &&
-          (normalizeArabic(s.title).includes(normalizeArabic(targetBookData.title)) || String(s.book_id) === String(bookId))
-        );
+        const targetBookNorm = normalizeArabic(bibleInfo.bookName || targetBookData.title);
+        const existingInList = songsList.find(s => {
+          const isItemBible = Boolean((s.is_bible === true || s.is_bible === '1' || s.is_bible === 1) || (s.chapter_number !== undefined && s.chapter_number !== null && s.chapter_number !== ''));
+          if (!isItemBible) return false;
+          const sTitleNorm = normalizeArabic(s.title || '');
+          const chMatches = String(s.chapter_number || '') === String(chNum) || sTitleNorm.includes(`الاصحاح ${chNum}`) || sTitleNorm.includes(`الأصحاح ${chNum}`) || sTitleNorm.includes(`إصحاح ${chNum}`);
+          return chMatches && (sTitleNorm.includes(targetBookNorm) || (s.book_id && String(s.book_id) === String(bookId)));
+        });
 
         if (!existingInList) {
           songsList = [{
@@ -3624,9 +3627,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }).sort((a, b) => b._score - a._score);
 
     if (bibleInfo && bibleInfo.bookName) {
-      const bibleOnly = scored.filter(s => Boolean((s.is_bible === true || s.is_bible === '1' || s.is_bible === 1) || (s.chapter_number !== undefined && s.chapter_number !== null && s.chapter_number !== '')));
-      if (bibleOnly.length > 0) {
-        renderSearchDropdown(bibleOnly, query, 15, isApiPending);
+      const targetBookNorm = normalizeArabic(bibleInfo.bookName);
+      const targetCh = bibleInfo.chapter ? String(bibleInfo.chapter) : '';
+
+      const exactBibleMatches = scored.filter(s => {
+        const isItemBible = Boolean((s.is_bible === true || s.is_bible === '1' || s.is_bible === 1) || (s.chapter_number !== undefined && s.chapter_number !== null && s.chapter_number !== ''));
+        if (!isItemBible) return false;
+        const sTitleNorm = normalizeArabic(s.title || '');
+        if (!sTitleNorm.includes(targetBookNorm)) return false;
+        if (targetCh && s.chapter_number !== undefined && s.chapter_number !== null && s.chapter_number !== '') {
+          return String(s.chapter_number) === targetCh;
+        }
+        return true;
+      });
+
+      if (exactBibleMatches.length > 0) {
+        const dedupBibleMap = new Map();
+        exactBibleMatches.forEach(b => {
+          const normTitle = normalizeArabic(b.title || '');
+          if (!dedupBibleMap.has(normTitle)) {
+            dedupBibleMap.set(normTitle, b);
+          }
+        });
+        const cleanBibleOnly = Array.from(dedupBibleMap.values());
+        renderSearchDropdown(cleanBibleOnly, query, 15, isApiPending);
         return;
       }
     }
