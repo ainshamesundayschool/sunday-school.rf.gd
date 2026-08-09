@@ -38661,9 +38661,26 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
 
 
         if (empty($oldData) && empty($newData)) {
-
+            // Attempt fallback extraction if log notes/description contains date or action details
+            $logNotes = ($log['notes'] ?? '') . ' ' . ($log['description'] ?? '') . ' ' . ($log['entity_name'] ?? '');
+            if ($action === 'bulk_attendance_save' || strpos($logNotes, 'حضور') !== false) {
+                preg_match('/(\d{4}-\d{2}-\d{2})/', $logNotes, $mDate);
+                $attDate = $mDate[1] ?? date('Y-m-d', strtotime($log['created_at']));
+                $churchId = intval($log['church_id']);
+                $targetStudentId = intval($targetStudentId ?: ($_POST['target_student_id'] ?? 0));
+                
+                if ($targetStudentId > 0) {
+                    $conn->query("DELETE FROM attendance WHERE student_id = $targetStudentId AND attendance_date = '$attDate'");
+                    return ['success' => true, 'message' => "تم استرجاع سجل حضور الطفل لهذا التاريخ ($attDate)"];
+                } else {
+                    $logTime = $log['created_at'];
+                    $delAtt = $conn->prepare("DELETE FROM attendance WHERE church_id = ? AND attendance_date = ? AND created_at BETWEEN DATE_SUB(?, INTERVAL 30 MINUTE) AND DATE_ADD(?, INTERVAL 30 MINUTE)");
+                    $delAtt->bind_param("isss", $churchId, $attDate, $logTime, $logTime);
+                    $delAtt->execute();
+                    return ['success' => true, 'message' => "تم استرجاع عمليات حضور وغياب التاريخ ($attDate) بنجاح"];
+                }
+            }
             return ['success' => false, 'message' => 'لا توجد بيانات تاريخية لاسترجاعها لهذا السجل'];
-
         }
 
 

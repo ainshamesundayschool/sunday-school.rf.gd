@@ -49,8 +49,13 @@ function writeAuditLog($action, $entity, $entity_id = null, $entity_name = '', $
         $ip_address = $_SERVER['REMOTE_ADDR'] ?? '';
         $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
 
-        // 1. Delta JSON Compression: If both old and new data are arrays, extract ONLY the changed keys
-        if (is_array($old_data) && is_array($new_data)) {
+        // 1. Delta JSON Compression: If both old and new data are associative arrays (NOT list arrays or bulk items), extract ONLY changed keys
+        $isAssoc = function($arr) {
+            if (!is_array($arr) || empty($arr)) return false;
+            return array_keys($arr) !== range(0, count($arr) - 1);
+        };
+
+        if (is_array($old_data) && is_array($new_data) && $entity !== 'bulk_action' && strpos((string)$action, 'bulk_') !== 0 && $isAssoc($old_data) && $isAssoc($new_data)) {
             $changed_old = [];
             $changed_new = [];
             $all_keys = array_unique(array_merge(array_keys($old_data), array_keys($new_data)));
@@ -326,8 +331,8 @@ function getAuditLogs() {
             $row['old_data'] = !empty($row['old_data']) ? json_decode($row['old_data'], true) : null;
             $row['new_data'] = !empty($row['new_data']) ? json_decode($row['new_data'], true) : null;
             
-            // Format created_at
-            $row['created_at'] = $row['created_at_formatted'];
+            // Format created_at to ISO 8601 with Cairo timezone offset
+            $row['created_at'] = !empty($row['created_at_formatted']) ? date('c', strtotime($row['created_at_formatted'])) : $row['created_at'];
             unset($row['created_at_formatted']);
             
             $logs[] = $row;

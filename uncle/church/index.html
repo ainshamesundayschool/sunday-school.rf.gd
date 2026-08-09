@@ -21203,11 +21203,26 @@
 
         function formatRelativeTimeAr(dateInput) {
             if (!dateInput) return '';
-            const date = new Date(dateInput);
+            let date = new Date(dateInput);
+            if (isNaN(date.getTime())) {
+                let s = String(dateInput).trim().replace(' ', 'T');
+                const m = s.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/);
+                if (m) {
+                    date = new Date(parseInt(m[1]), parseInt(m[2]) - 1, parseInt(m[3]), parseInt(m[4]), parseInt(m[5]), parseInt(m[6]));
+                }
+            }
             if (isNaN(date.getTime())) return '';
             
             const now = new Date();
-            const diffSec = Math.floor((now - date) / 1000);
+            let diffSec = Math.floor((now - date) / 1000);
+
+            // Handle 1-hour Egypt DST server/client drift if present
+            if (diffSec > 3300 && diffSec < 3900) {
+                diffSec -= 3600;
+            } else if (diffSec < -3300 && diffSec > -3900) {
+                diffSec += 3600;
+            }
+
             if (diffSec < 0) return 'الآن';
             if (diffSec < 45) return 'منذ لحظات';
 
