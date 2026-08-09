@@ -497,7 +497,7 @@ input[type="checkbox"]:checked::after {
 
 /* HERO COMPACT CENTERED SEARCH (FITTED NO SCROLL) */
 .search-hero {
-  padding: 0.65rem 1.5rem 0.4rem 1.5rem;
+  padding: 0.65rem 1.5rem 0.65rem 1.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -537,7 +537,7 @@ input[type="checkbox"]:checked::after {
   position: relative;
   width: 100%;
   max-width: 720px;
-  margin-top: 0.65rem;
+  margin: 0.65rem auto 0.65rem auto;
 }
 
 .centered-search-box .search-icon-glow {
@@ -606,13 +606,13 @@ input[type="checkbox"]:checked::after {
   align-items: center;
   justify-content: center;
   height: 100%;
-  width: 48px;
-  min-width: 48px;
+  padding: 0 14px;
+  min-width: 44px;
   background: #f1f5f9;
   border: 1.5px solid #cbd5e1;
   color: #475569;
   cursor: pointer;
-  border-radius: 50%;
+  border-radius: 14px;
   transition: all 0.2s ease;
   box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
 }
@@ -1643,17 +1643,27 @@ input[type="checkbox"]:checked::after {
 }
 
 .slide-num-enter-pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.16);
-  border: 1.5px solid rgba(255, 255, 255, 0.35);
-  color: #ffffff;
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  font-size: 1.1rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  background: rgba(37, 99, 235, 0.9) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
+  color: #ffffff !important;
+  padding: 4px 10px !important;
+  min-width: 44px !important;
+  height: 38px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4) !important;
+}
+
+.slide-num-enter-pill i,
+.slide-num-enter-pill span {
+  color: #ffffff !important;
+  font-size: 1.1rem !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  display: inline-block !important;
 }
 
 .slide-num-subtext {
@@ -3061,15 +3071,21 @@ input[type="checkbox"]:checked::after {
   font-size: 0.85rem;
 }
 
-.bible-search-input-box input {
+.bible-search-input-box input,
+#bible-book-filter {
   width: 100%;
-  background: #f8fafc;
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  padding: 8px 36px 8px 12px;
-  color: #0f172a;
-  font-size: 0.84rem;
-  outline: none;
+  height: 38px !important;
+  min-height: 38px !important;
+  max-height: 38px !important;
+  background: #f8fafc !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 10px !important;
+  padding: 6px 36px 6px 12px !important;
+  color: #0f172a !important;
+  font-size: 0.88rem !important;
+  font-weight: 600 !important;
+  outline: none !important;
+  box-shadow: none !important;
   font-family: inherit;
 }
 

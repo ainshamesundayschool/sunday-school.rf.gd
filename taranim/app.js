@@ -2645,9 +2645,18 @@ document.addEventListener('DOMContentLoaded', () => {
         showNumberJumpToast(numberJumpBuffer);
 
         if (numberJumpTimer) clearTimeout(numberJumpTimer);
+        // Clear buffer silently after 4s idle without jumping automatically
         numberJumpTimer = setTimeout(() => {
-          jumpToBufferedSlide();
-        }, 2200);
+          numberJumpBuffer = '';
+        }, 4000);
+        return;
+      }
+
+      if (e.key === 'Escape' && numberJumpBuffer) {
+        numberJumpBuffer = '';
+        if (numberJumpTimer) clearTimeout(numberJumpTimer);
+        const toast = document.getElementById('app-toast');
+        if (toast) toast.classList.add('hidden');
         return;
       }
 
@@ -2679,6 +2688,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="slide-num-big-val">${escapeHtml(numStr)}</span>
             <div class="slide-num-enter-pill" title="اضغط Enter للانتقال">
               <i class="fa-solid fa-arrow-turn-down-left"></i>
+              <span class="enter-sym">↵</span>
             </div>
           </div>
           <div class="slide-num-subtext">الانتقال للشريحة رقم</div>
