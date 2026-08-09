@@ -3508,14 +3508,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!songOrId && songOrId !== 0) return;
 
     let inputObject = (typeof songOrId === 'object' && songOrId !== null) ? songOrId : null;
-    let songId = inputObject ? (inputObject.id !== undefined ? inputObject.id : inputObject.item_id) : songOrId;
+    let rawSongId = inputObject ? (inputObject.id !== undefined ? inputObject.id : inputObject.item_id) : songOrId;
     let isItemBible = Boolean(isBible || (inputObject && (inputObject.is_bible || inputObject.chapter_number !== undefined)));
+    
+    const cleanId = String(rawSongId || '').replace(/^(song_|bible_)/, '').trim();
 
     let targetSong = null;
 
-    // 1. ALWAYS RESOLVE NON-BIBLE SONGS BY ID FROM CANONICAL CATALOG FIRST!
-    if (!isItemBible && songId !== undefined && songId !== null && state.allSongs && state.allSongs.length > 0) {
-      let canonicalSong = state.allSongs.find(s => !s.is_bible && (String(s.id) === String(songId) || String(s.item_id) === String(songId)));
+    // 1. MATCH BY CLEAN NUMERIC ID IN CANONICAL CATALOG FIRST!
+    if (!isItemBible && cleanId && state.allSongs && state.allSongs.length > 0) {
+      let canonicalSong = state.allSongs.find(s => {
+        if (s.is_bible) return false;
+        const sId = String(s.id !== undefined ? s.id : s.item_id).replace(/^(song_|bible_)/, '').trim();
+        return sId === cleanId;
+      });
+
       if (canonicalSong) {
         targetSong = JSON.parse(JSON.stringify(canonicalSong));
         if (inputObject && inputObject.verses && Array.isArray(inputObject.verses) && inputObject.verses.length > 0) {
@@ -3524,29 +3531,31 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // 2. IF NOT IN CATALOG, USE PASSED OBJECT OR SEARCH RECENTS
-    if (!targetSong && inputObject && (inputObject.title || inputObject.verses)) {
-      targetSong = JSON.parse(JSON.stringify(inputObject));
-    }
-
-    if (!targetSong && songId !== undefined && songId !== null) {
-      let foundInRecents = state.sessionRecents.find(r => 
-        Boolean(r.is_bible) === Boolean(isItemBible) && (String(r.id) === String(songId) || String(r.item_id) === String(songId))
-      );
+    // 2. MATCH IN SESSION RECENTS IF NOT IN CATALOG
+    if (!targetSong && cleanId) {
+      let foundInRecents = state.sessionRecents.find(r => {
+        const rId = String(r.id !== undefined ? r.id : r.item_id).replace(/^(song_|bible_)/, '').trim();
+        return Boolean(r.is_bible) === Boolean(isItemBible) && rId === cleanId;
+      });
       if (foundInRecents) {
         targetSong = JSON.parse(JSON.stringify(foundInRecents));
       }
     }
 
-    // 3. FETCH FULL STRUCTURED DATA FROM API BY ID IF STILL NOT FOUND
-    if (!targetSong && songId !== undefined && songId !== null) {
+    // 3. IF PASSED DIRECT OBJECT AND STILL NO MATCH, USE PASSED OBJECT
+    if (!targetSong && inputObject && (inputObject.title || inputObject.verses)) {
+      targetSong = JSON.parse(JSON.stringify(inputObject));
+    }
+
+    // 4. FETCH FROM API IF STILL NOT FOUND
+    if (!targetSong && cleanId) {
       try {
         const bibleParam = isItemBible ? '&type=bible&is_bible=1' : '';
         const apiUrl = getApiUrl();
-        let res = await fetch(`${apiUrl}?action=song&id=${songId}${bibleParam}`).catch(() => null);
-        if (!res || !res.ok) res = await fetch(`/api.php?action=song&id=${songId}${bibleParam}`).catch(() => null);
-        if (!res.ok) res = await fetch(`/api/song/${songId}?${bibleParam}`);
-        if (!res.ok) res = await fetch(`../api.php?action=song&id=${songId}${bibleParam}`);
+        let res = await fetch(`${apiUrl}?action=song&id=${cleanId}${bibleParam}`).catch(() => null);
+        if (!res || !res.ok) res = await fetch(`/api.php?action=song&id=${cleanId}${bibleParam}`).catch(() => null);
+        if (!res.ok) res = await fetch(`/api/song/${cleanId}?${bibleParam}`);
+        if (!res.ok) res = await fetch(`../api.php?action=song&id=${cleanId}${bibleParam}`);
         if (res.ok) {
           const fullSong = await res.json();
           if (fullSong && (fullSong.title || fullSong.id)) {
