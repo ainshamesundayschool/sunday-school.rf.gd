@@ -3178,7 +3178,10 @@ document.addEventListener('DOMContentLoaded', () => {
           const songId = state.activeSong.id !== undefined ? state.activeSong.id : state.activeSong.item_id;
           const canonical = state.allSongs.find(s => !s.is_bible && (String(s.id) === String(songId) || String(s.item_id) === String(songId)));
           if (canonical) {
-            const restoredSong = JSON.parse(JSON.stringify(canonical));
+            const restoredSong = { ...canonical, ...state.activeSong };
+            if (state.activeSong.verses && Array.isArray(state.activeSong.verses) && state.activeSong.verses.length > 0) {
+              restoredSong.verses = state.activeSong.verses;
+            }
             loadSongIntoPresentation(restoredSong);
             syncLiveState();
           }
