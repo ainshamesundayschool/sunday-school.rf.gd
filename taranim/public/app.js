@@ -2848,14 +2848,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderScreenOptions();
   }
 
-  async function launchPresenterOnSelectedScreen(selectedVal) {
-    if ('getScreenDetails' in window) {
-      try {
-        screenDetails = await window.getScreenDetails();
-        renderScreenOptions();
-      } catch (err) {}
-    }
-
+  function launchPresenterOnSelectedScreen(selectedVal) {
     const select = els.connectedScreensSelect;
     const val = (selectedVal !== undefined && selectedVal !== null && selectedVal !== '') 
       ? String(selectedVal) 
@@ -2891,21 +2884,21 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // 2. EXTERNAL DISPLAY (TV / Projector)
+    // 2. EXTERNAL DISPLAY (TV / Projector) -> SYNCHRONOUS window.open FOR REAL MULTI-SCREEN PLACEMENT
     let extScreen = null;
-    let left = 1920;
-    let top = 0;
-    let width = 1920;
-    let height = 1080;
+    let left = (window.screen.availLeft || 0) + (window.screen.width || 1920);
+    let top = window.screen.availTop || 0;
+    let width = window.screen.availWidth || window.screen.width || 1920;
+    let height = window.screen.availHeight || window.screen.height || 1080;
     let targetIdx = 1;
 
     if (screenDetails && screenDetails.screens && screenDetails.screens.length > 1) {
       extScreen = screenDetails.screens.find(s => !s.isPrimary) || screenDetails.screens[1];
       if (extScreen) {
-        left = extScreen.left !== undefined ? extScreen.left : (extScreen.availLeft !== undefined ? extScreen.availLeft : 1920);
-        top = extScreen.top !== undefined ? extScreen.top : (extScreen.availTop !== undefined ? extScreen.availTop : 0);
-        width = extScreen.width || extScreen.availWidth || 1920;
-        height = extScreen.height || extScreen.availHeight || 1080;
+        left = extScreen.availLeft !== undefined ? extScreen.availLeft : (extScreen.left !== undefined ? extScreen.left : left);
+        top = extScreen.availTop !== undefined ? extScreen.availTop : (extScreen.top !== undefined ? extScreen.top : top);
+        width = extScreen.availWidth || extScreen.width || width;
+        height = extScreen.availHeight || extScreen.height || height;
         targetIdx = screenDetails.screens.indexOf(extScreen);
       }
     } else {
@@ -2918,10 +2911,6 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         left = availL + primaryW;
       }
-
-      top = window.screen.availTop || 0;
-      width = window.screen.availWidth || 1920;
-      height = window.screen.availHeight || 1080;
     }
 
     state.selectedScreen = {
@@ -2954,21 +2943,14 @@ document.addEventListener('DOMContentLoaded', () => {
       moveWin();
       setTimeout(moveWin, 150);
       setTimeout(moveWin, 450);
+      showToast('\u062a\u0645 \u0641\u062a\u062d \u0634\u0627\u0634\u0629 \u0627\u0644\u0639\u0631\u0636 \u0627\u0644\u062e\u0627\u0631\u062c\u064a\u0629.');
+    }
 
-      // USE WINDOW MANAGEMENT API: requestFullscreen on the target screen
-      if (extScreen) {
-        const tryFullscreenOnScreen = () => {
-          try {
-            if (presenterWindow.document && presenterWindow.document.documentElement) {
-              presenterWindow.document.documentElement.requestFullscreen({ screen: extScreen }).catch(() => {});
-            }
-          } catch(e) {}
-        };
-        setTimeout(tryFullscreenOnScreen, 600);
-        setTimeout(tryFullscreenOnScreen, 1200);
-      }
-
-      showToast('\u062a\u0645 \u0641\u062a\u062d \u0634\u0627\u0634\u0629 \u0627\u0644\u0639\u0631\u0636 \u0627\u0644\u062e\u0627\u0631\u062c\u064a\u0629. \u0627\u0633\u062d\u0628 \u0627\u0644\u0646\u0627\u0641\u0630\u0629 \u0644\u0644\u0634\u0627\u0634\u0629 \u0627\u0644\u062b\u0627\u0646\u064a\u0629 \u0625\u0630\u0627 \u0644\u0645 \u062a\u0646\u062a\u0642\u0644 \u062a\u0644\u0642\u0627\u0626\u064a\u0627\u064b.');
+    if ('getScreenDetails' in window && !screenDetails) {
+      window.getScreenDetails().then(details => {
+        screenDetails = details;
+        renderScreenOptions();
+      }).catch(() => {});
     }
 
     syncLiveState();
