@@ -8168,18 +8168,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       const pendingNote = !isGraded ? `
     <div style="display:flex;align-items:center;gap:10px;margin-top:16px;padding:12px 16px;background:var(--warn-bg, rgba(217,119,6,0.08));border:1px solid rgba(217,119,6,0.2);border-radius:12px;font-size:.85rem;color:var(--t1);font-weight:700;line-height:1.5;">
       <i class="fas fa-clock" style="font-size:1.1rem;flex-shrink:0;color:var(--warn, #d97706);"></i>
-      <span>لم يتم تحديد الدرجة أو الكوبونات بعد. ستظهر النتيجة والكوبونات فور قيام الخادم بتصحيح التكليف.</span>
+      <span>لم يتم تحديد الدرجة بعد. ستظهر النتيجة والكوبونات فور قيام الخادم بتصحيح التكليف.</span>
     </div>` : (hasOpenQs ? `
     <div style="display:flex;align-items:center;gap:10px;margin-top:16px;padding:12px 16px;background:var(--ok-bg, rgba(5,150,105,0.08));border:1px solid rgba(5,150,105,0.2);border-radius:12px;font-size:.85rem;color:var(--t1);font-weight:700;line-height:1.5;">
       <i class="fas fa-check-circle" style="font-size:1.1rem;flex-shrink:0;color:var(--ok, #059669);"></i>
-      <span>تم تقييم التكليف وتحديث درجاتك وكوبوناتك بنجاح!</span>
+      <span>تم تصحيح التكليف وتقييمه وتحديث درجاتك وكوبوناتك بنجاح!</span>
     </div>` : '');
 
       const scoreBannerHtml = isGraded
         ? `<div style="font-size:3.2rem;font-weight:900;color:var(--t1);line-height:1.1;">${score} <span style="font-size:1.3rem;color:var(--t3);font-weight:700;">/ ${total}</span></div>
            <div style="color:${badgeColor};font-weight:800;font-size:1.2rem;margin-top:4px;">نسبة النجاح: ${pct}%</div>`
-        : `<div style="font-size:1.8rem;font-weight:900;color:var(--t1);line-height:1.2;"><i class="fas fa-clock" style="color:var(--warn);"></i> لم يتم التقييم بعد</div>
-           <div style="color:var(--t3);font-weight:700;font-size:1rem;margin-top:4px;">في انتظار تصحيح الخادم</div>`;
+        : `<div style="font-size:1.5rem;font-weight:900;color:var(--t1);line-height:1.3;"><i class="fas fa-clock" style="color:var(--warn);margin-left:4px;"></i> في انتظار تصحيح الخادم</div>
+           <div style="color:var(--t3);font-weight:700;font-size:.95rem;margin-top:4px;">لم يتم حساب الدرجة أو الكوبونات بعد</div>`;
 
       return `
     <div style="background:var(--surf, var(--bg, #ffffff));border-radius:20px;padding:28px 22px 22px;border:1px solid var(--bdr);box-shadow:var(--sh-md);text-align:center;">
@@ -8201,9 +8201,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     }
     function showExamResult(t, sub) {
       curTask = t; examDone = true;
-      const isGraded = parseInt(sub?.is_graded || 0) === 1;
-      const pct = t.total_degree > 0 ? Math.round((sub?.score || 0) / t.total_degree * 100) : 0;
       const hasOpenQs = (t.questions || []).some(q => q.question_type === 'open');
+      const isGraded = (parseInt(sub?.is_graded || 0) === 1) || !hasOpenQs;
+      const pct = t.total_degree > 0 ? Math.round((sub?.score || 0) / t.total_degree * 100) : 0;
       document.getElementById('examResultCard').innerHTML = buildResultCard(sub?.score || 0, t.total_degree, pct, sub?.coupons_awarded || 0, hasOpenQs, t.id, !!parseInt(t.show_answers || 0), isGraded);
       examShowView('result');
       examScreenOpen();
@@ -8485,7 +8485,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           document.getElementById('couponHero').style.display = 'grid';
           if (d.show_result) {
             const hasOpenQs = (curTask.questions || []).some(q => q.question_type === 'open');
-            document.getElementById('examResultCard').innerHTML = buildResultCard(d.score, curTask.total_degree, d.percentage, d.coupons_awarded, hasOpenQs, curTask.id, !!d.show_answers);
+            const isGraded = (parseInt(d.is_graded || 0) === 1) || !hasOpenQs;
+            document.getElementById('examResultCard').innerHTML = buildResultCard(d.score, curTask.total_degree, d.percentage, d.coupons_awarded, hasOpenQs, curTask.id, !!d.show_answers, isGraded);
             examShowView('result');
           } else { toast('تم التسليم ✓', 'ok'); examScreenClose(); }
           loadTasks();
