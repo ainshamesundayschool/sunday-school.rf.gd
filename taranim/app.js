@@ -4217,14 +4217,19 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    let lineSegments = lines.map(l => `<span class="obs-line-segment" style="display: block; white-space: normal; word-break: keep-all; overflow-wrap: break-word; text-align: center; width: 100%; font-size: inherit;">${l}</span>`).join('');
-
     let badgeHtml = '';
     if (detectedBadge) {
-      badgeHtml = `<div class="slide-badge-layer ${detectedBadgeClass}">${escapeHtml(detectedBadge)}</div>`;
+      badgeHtml = `<span class="slide-badge-layer ${detectedBadgeClass}">${escapeHtml(detectedBadge)}</span>`;
     }
 
-    return `<div class="obs-slide-wrapper">${badgeHtml}<div class="obs-lines-wrapper">${lineSegments}</div></div>`;
+    let lineSegments = lines.map((l, idx) => {
+      if (idx === 0) {
+        return `<span class="obs-line-segment obs-first-line" style="display: block; white-space: normal; word-break: keep-all; overflow-wrap: break-word; text-align: center; width: 100%; font-size: inherit;"><span class="obs-first-line-wrapper" style="position: relative; display: inline-block; text-align: center; max-width: 100%;">${badgeHtml}${l}</span></span>`;
+      }
+      return `<span class="obs-line-segment" style="display: block; white-space: normal; word-break: keep-all; overflow-wrap: break-word; text-align: center; width: 100%; font-size: inherit;">${l}</span>`;
+    }).join('');
+
+    return `<div class="obs-slide-wrapper"><div class="obs-lines-wrapper">${lineSegments}</div></div>`;
   }
 
   function exportPlaylistObj(targetPl) {

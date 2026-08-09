@@ -483,47 +483,48 @@
 
     .obs-slide-wrapper {
       position: relative;
-      display: inline-flex;
-      flex-direction: row;
-      align-items: flex-end;
-      justify-content: center;
+      display: block;
+      text-align: center;
       width: 100%;
       max-width: 100%;
     }
 
     .obs-lines-wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      flex: 1;
+      display: block;
+      text-align: center;
+      width: 100%;
+    }
+
+    .obs-first-line-wrapper {
+      position: relative;
+      display: inline-block;
+      text-align: center;
+      max-width: 100%;
     }
 
     .slide-badge-layer {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      position: absolute;
+      right: 100%;
+      top: 50%;
+      transform: translateY(-50%);
+      margin-right: 6px;
       font-weight: 800;
       font-size: 0.65em !important;
       line-height: 1;
-      padding: 2px 6px;
-      margin-left: 8px;
-      margin-bottom: 0.15em;
-      align-self: flex-end;
-      transform-origin: bottom center;
       white-space: nowrap;
-      flex-shrink: 0;
+      pointer-events: none;
+      user-select: none;
     }
 
     .slide-badge-layer.chorus-badge-side,
     .slide-badge-layer.chorus-num {
-      color: #ef4444;
+      color: #ef4444 !important;
     }
 
     .slide-badge-layer.stanza-badge-side,
     .slide-badge-layer.verse-badge-side,
     .slide-badge-layer.verse-num {
-      color: #ef4444;
+      color: #ef4444 !important;
     }
 
     .hidden { display: none !important; }
@@ -1081,14 +1082,19 @@
         }
       }
 
-      let lineSegments = lines.map(l => `<span class="obs-line-segment" style="display: block; white-space: normal; word-break: keep-all; overflow-wrap: break-word; text-align: center; width: 100%; font-size: inherit;">${l}</span>`).join('');
-
       let badgeHtml = '';
       if (detectedBadge) {
-        badgeHtml = `<div class="slide-badge-layer ${detectedBadgeClass}">${detectedBadge}</div>`;
+        badgeHtml = `<span class="slide-badge-layer ${detectedBadgeClass}">${detectedBadge}</span>`;
       }
 
-      return `<div class="obs-slide-wrapper">${badgeHtml}<div class="obs-lines-wrapper">${lineSegments}</div></div>`;
+      let lineSegments = lines.map((l, idx) => {
+        if (idx === 0) {
+          return `<span class="obs-line-segment obs-first-line" style="display: block; white-space: normal; word-break: keep-all; overflow-wrap: break-word; text-align: center; width: 100%; font-size: inherit;"><span class="obs-first-line-wrapper" style="position: relative; display: inline-block; text-align: center; max-width: 100%;">${badgeHtml}${l}</span></span>`;
+        }
+        return `<span class="obs-line-segment" style="display: block; white-space: normal; word-break: keep-all; overflow-wrap: break-word; text-align: center; width: 100%; font-size: inherit;">${l}</span>`;
+      }).join('');
+
+      return `<div class="obs-slide-wrapper"><div class="obs-lines-wrapper">${lineSegments}</div></div>`;
     }
 
     function applyState(data, source = 'local') {
