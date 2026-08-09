@@ -23198,6 +23198,9 @@
                     if (typeof loadStudents === 'function') loadStudents();
                     if (typeof loadStatistics === 'function') loadStatistics();
                     if (typeof loadAuditLogs === 'function') loadAuditLogs();
+                    if (typeof currentAttendanceDate !== 'undefined' && currentAttendanceDate && typeof loadAttendanceForDate === 'function') {
+                        loadAttendanceForDate(currentAttendanceDate);
+                    }
                 } else {
                     showToast(d.message || 'فشل في استرجاع الطفل', 'error');
                 }
@@ -23221,6 +23224,9 @@
                     if (typeof loadStudents === 'function') loadStudents();
                     if (typeof loadStatistics === 'function') loadStatistics();
                     if (typeof loadAuditLogs === 'function') loadAuditLogs();
+                    if (typeof currentAttendanceDate !== 'undefined' && currentAttendanceDate && typeof loadAttendanceForDate === 'function') {
+                        loadAttendanceForDate(currentAttendanceDate);
+                    }
                 } else {
                     showToast(d.message || 'فشل في استرجاع العملية', 'error');
                 }

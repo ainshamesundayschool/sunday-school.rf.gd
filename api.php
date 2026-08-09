@@ -38670,14 +38670,32 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
                 $targetStudentId = intval($targetStudentId ?: ($_POST['target_student_id'] ?? 0));
                 
                 if ($targetStudentId > 0) {
-                    $conn->query("DELETE FROM attendance WHERE student_id = $targetStudentId AND attendance_date = '$attDate'");
-                    return ['success' => true, 'message' => "تم استرجاع سجل حضور الطفل لهذا التاريخ ($attDate)"];
+                    $chkAtt = $conn->prepare("SELECT status FROM attendance WHERE student_id = ? AND attendance_date = ?");
+                    $chkAtt->bind_param("is", $targetStudentId, $attDate);
+                    $chkAtt->execute();
+                    $attRow = $chkAtt->get_result()->fetch_assoc();
+                    if ($attRow) {
+                        if ($attRow['status'] === 'present') {
+                            $conn->query("UPDATE students SET attendance_coupons = GREATEST(0, attendance_coupons - 100), coupons = GREATEST(0, coupons - 100) WHERE id = $targetStudentId");
+                        }
+                        $conn->query("DELETE FROM attendance WHERE student_id = $targetStudentId AND attendance_date = '$attDate'");
+                    }
+                    return ['success' => true, 'message' => "تم استرجاع وتراجع سجل حضور الطفل لهذا التاريخ ($attDate) بنجاح"];
                 } else {
-                    $logTime = $log['created_at'];
-                    $delAtt = $conn->prepare("DELETE FROM attendance WHERE church_id = ? AND attendance_date = ? AND created_at BETWEEN DATE_SUB(?, INTERVAL 30 MINUTE) AND DATE_ADD(?, INTERVAL 30 MINUTE)");
-                    $delAtt->bind_param("isss", $churchId, $attDate, $logTime, $logTime);
+                    $getPresent = $conn->prepare("SELECT student_id FROM attendance WHERE church_id = ? AND attendance_date = ? AND status = 'present'");
+                    $getPresent->bind_param("is", $churchId, $attDate);
+                    $getPresent->execute();
+                    $resPresent = $getPresent->get_result();
+                    while ($pRow = $resPresent->fetch_assoc()) {
+                        $pSid = intval($pRow['student_id']);
+                        $conn->query("UPDATE students SET attendance_coupons = GREATEST(0, attendance_coupons - 100), coupons = GREATEST(0, coupons - 100) WHERE id = $pSid");
+                    }
+                    
+                    $delAtt = $conn->prepare("DELETE FROM attendance WHERE church_id = ? AND attendance_date = ?");
+                    $delAtt->bind_param("is", $churchId, $attDate);
                     $delAtt->execute();
-                    return ['success' => true, 'message' => "تم استرجاع عمليات حضور وغياب التاريخ ($attDate) بنجاح"];
+                    $affectedRows = $delAtt->affected_rows;
+                    return ['success' => true, 'message' => "تم استرجاع وتراجع سجلات حضور وغياب التاريخ ($attDate) لعدد $affectedRows طفل بنجاح"];
                 }
             }
             return ['success' => false, 'message' => 'لا توجد بيانات تاريخية لاسترجاعها لهذا السجل'];
