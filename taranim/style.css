@@ -590,7 +590,7 @@ input[type="checkbox"]:checked::after {
 
 .centered-search-box .clear-btn {
   position: absolute;
-  left: 8.8rem;
+  left: 6.8rem;
   top: 50%;
   transform: translateY(-50%);
   background: transparent;
@@ -608,9 +608,15 @@ input[type="checkbox"]:checked::after {
   transform: translateY(-50%);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0;
   z-index: 15;
   height: calc(100% - 16px);
+  background: #f1f5f9;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 30px;
+  padding: 2px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
+  box-sizing: border-box;
 }
 
 .search-inside-toggle {
@@ -619,31 +625,34 @@ input[type="checkbox"]:checked::after {
   align-items: center;
   justify-content: center;
   height: 100%;
-  width: 48px;
-  min-width: 48px;
-  max-width: 48px;
+  width: 44px;
+  min-width: 44px;
+  max-width: 44px;
   padding: 0 !important;
-  background: #f1f5f9;
-  border: 1.5px solid #cbd5e1;
+  background: transparent;
+  border: none;
   color: #475569;
   cursor: pointer;
-  border-radius: 30px;
+  border-radius: 26px;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
   flex-shrink: 0;
   box-sizing: border-box;
 }
 
+.search-inside-toggle:not(:last-child) {
+  border-right: 1px solid #cbd5e1;
+}
+
 .search-inside-toggle:hover {
-  background: #e2e8f0;
+  background: rgba(226, 232, 240, 0.7);
   color: #1e293b;
 }
 
 .search-inside-toggle.active {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  border-color: #2563eb;
-  color: #ffffff;
-  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.35);
+  background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+  color: #ffffff !important;
+  border-right-color: transparent !important;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
 }
 
 .search-inside-toggle i {
