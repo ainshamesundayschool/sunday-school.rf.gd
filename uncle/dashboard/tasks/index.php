@@ -150,67 +150,45 @@ if (!$hasUncle && !$hasChurch) {
 
       (function () {
 
-
-
         var ul = localStorage.getItem('uncleLoggedIn') === 'true';
-
-
 
         var cl = localStorage.getItem('loggedIn') === 'true';
 
-
-
         var un = localStorage.getItem('uncleUsername');
-
-
 
         var cc = localStorage.getItem('churchCode');
 
+        var KEY = '_tasksRestoreAttempted';
 
+        var loginUrl = (window.location.pathname.indexOf('/testing/') !== -1 ? '/testing/login/' : '/login/') + '?redirect=' + encodeURIComponent(window.location.href);
 
-        if (!ul && !cl) { window.location.href = '/login/'; return; }
+        if (!ul && !cl) { window.location.href = loginUrl; return; }
 
-
+        if (sessionStorage.getItem(KEY) === '1') { window.location.href = loginUrl; return; }
 
         var fd = new FormData();
 
-
-
         fd.append('action', 'restore_session');
-
-
 
         if (ul && un) fd.append('username', un);
 
-
-
         else if (cl && cc) fd.append('church_code', cc);
 
+        else { window.location.href = loginUrl; return; }
 
+        sessionStorage.setItem(KEY, '1');
 
-        else { window.location.href = '/login/'; return; }
+        var dynamicApiUrl = window.location.pathname.indexOf('/testing/') !== -1 ? '/testing/api.php' : '/api.php';
 
-
-
-        fetch('../../api.php', { method: 'POST', body: fd, credentials: 'include' })
-
-
+        fetch(dynamicApiUrl, { method: 'POST', body: fd, credentials: 'include' })
 
           .then(r => r.json()).then(d => {
 
-
-
             if (d.success) window.location.reload();
 
+            else window.location.href = loginUrl;
 
-
-            else window.location.href = '/login/';
-
-
-
-          }).catch(() => window.location.href = '/login/');
-
-
+          }).catch(() => window.location.href = loginUrl);
 
       })();
 
@@ -13851,21 +13829,11 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
 
 
-    // Resolve api.php path relative to this page's URL depth
-
-
+    // Resolve api.php path using absolute root path (or /testing/api.php in testing environment)
 
     const API = (() => {
 
-
-
-      const parts = window.location.pathname.split('/').filter(Boolean);
-
-
-
-      return '../'.repeat(parts.length - 1) + 'api.php';
-
-
+      return window.location.pathname.indexOf('/testing/') !== -1 ? '/testing/api.php' : '/api.php';
 
     })();
 
