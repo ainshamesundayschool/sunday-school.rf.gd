@@ -3473,11 +3473,11 @@ document.addEventListener('DOMContentLoaded', () => {
           isCandidate = true;
         } else if (qNorm && (tNorm.includes(qNorm) || sIndex.includes(qNorm))) {
           isCandidate = true;
-        } else if (qTargetSkeleton && qTargetSkeleton.length >= 3 && tSkeleton.includes(qTargetSkeleton)) {
+        } else if (qTargetSkeleton && tSkeleton.includes(qTargetSkeleton)) {
           isCandidate = true;
-        } else if (qWordSkeletons.length > 0 && qWordSkeletons.every(qw => tSkeleton.includes(qw))) {
+        } else if (qWordSkeletons.length > 0 && qWordSkeletons.some(qw => tSkeleton.includes(qw) || tNorm.includes(qw))) {
           isCandidate = true;
-        } else if (qWords.length > 1 && qWords.every(w => sIndex.includes(w))) {
+        } else if (qWords.length > 0 && qWords.some(w => sIndex.includes(w))) {
           isCandidate = true;
         }
 
@@ -3489,8 +3489,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // Fallback: If no candidate matched using fast filters, score full catalog
-      if (candidateMap.size === 0 && searchTarget.length >= 3) {
+      // Fallback: If no candidate matched using fast filters, score full catalog for any non-empty query
+      if (candidateMap.size === 0 && searchTarget.length >= 1) {
         for (let i = 0; i < len; i++) {
           const song = state.allSongs[i];
           const score = getMatchScore(song, searchTarget);
