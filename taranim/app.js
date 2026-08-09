@@ -1286,6 +1286,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   const els = {
+    centeredSearchBox: document.querySelector('.centered-search-box'),
     intelligentSearch: document.getElementById('intelligent-search'),
     clearSearchBtn: document.getElementById('clear-search-btn'),
     searchDropdown: document.getElementById('search-results-dropdown'),
@@ -1296,6 +1297,9 @@ document.addEventListener('DOMContentLoaded', () => {
     popoverStyle: document.getElementById('popover-style'),
     btnMenuCast: document.getElementById('btn-menu-cast'),
     popoverCast: document.getElementById('popover-cast'),
+
+    popoverSlideJump: document.getElementById('popover-slide-jump'),
+    currentLineCounter: document.getElementById('current-line-counter'),
 
     btnMenuBible: document.getElementById('btn-menu-bible'),
     popoverBible: document.getElementById('popover-bible'),
@@ -1425,6 +1429,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.popoverBible && els.popoverBible !== exceptPopover) {
       els.popoverBible.classList.add('hidden');
       if (els.btnMenuBible) els.btnMenuBible.classList.remove('active');
+    }
+    if (els.popoverSlideJump && els.popoverSlideJump !== exceptPopover) {
+      els.popoverSlideJump.classList.add('hidden');
     }
   }
 
@@ -2002,6 +2009,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (els.popoverPlaylist && !els.popoverPlaylist.contains(e.target) && e.target !== els.btnPlaylistSelector && !els.btnPlaylistSelector.contains(e.target)) {
         els.popoverPlaylist.classList.add('hidden');
       }
+      if (els.popoverSlideJump && !els.popoverSlideJump.contains(e.target) && e.target !== els.currentLineCounter && !els.currentLineCounter.contains(e.target)) {
+        els.popoverSlideJump.classList.add('hidden');
+      }
       if (els.searchDropdown && !els.searchDropdown.contains(e.target) && e.target !== els.intelligentSearch) {
         els.searchDropdown.classList.add('hidden');
       }
@@ -2548,87 +2558,68 @@ document.addEventListener('DOMContentLoaded', () => {
       els.btnClosePresentationOverlay.addEventListener('click', exitPresentation);
     }
 
-  function showSlideJumpModal() {
+  function toggleSlideJumpPopover(e) {
+    if (e) e.stopPropagation();
     const total = state.presentationLines ? state.presentationLines.length : 0;
-    if (total === 0) return;
-    const curVal = (state.currentLineIndex >= 0) ? (state.currentLineIndex + 1) : 1;
+    if (total === 0 || !els.popoverSlideJump) return;
 
-    let modal = document.getElementById('custom-slide-jump-modal');
-    if (!modal) {
-      modal = document.createElement('div');
-      modal.id = 'custom-slide-jump-modal';
-      modal.className = 'custom-modal-backdrop hidden';
-      modal.innerHTML = `
-        <div class="custom-modal-card animate-appear-pop">
-          <div class="custom-modal-header">
-            <span><i class="fa-solid fa-arrow-turn-down-left"></i> الانتقال للشريحة</span>
-            <button type="button" id="btn-close-slide-jump-modal" class="custom-modal-close-x">&times;</button>
-          </div>
-          <div class="custom-modal-body">
-            <p class="custom-modal-subtext">أدخل رقم الشريحة للانتقال (1 - <span id="slide-jump-modal-max"></span>)</p>
-            <div class="custom-modal-input-row">
-              <input type="number" id="slide-jump-modal-input" min="1" autocomplete="off">
-              <button type="button" id="btn-confirm-slide-jump-modal" class="custom-modal-submit-btn">انتقال</button>
-            </div>
-          </div>
-        </div>
-      `;
-      document.body.appendChild(modal);
+    const willShow = els.popoverSlideJump.classList.contains('hidden');
+    closeAllPopovers(els.popoverSlideJump);
 
-      const closeBtn = modal.querySelector('#btn-close-slide-jump-modal');
-      const submitBtn = modal.querySelector('#btn-confirm-slide-jump-modal');
-      const inputEl = modal.querySelector('#slide-jump-modal-input');
+    if (willShow) {
+      const curVal = (state.currentLineIndex >= 0) ? (state.currentLineIndex + 1) : 1;
+      const maxSpan = document.getElementById('slide-jump-max-val');
+      const inputEl = document.getElementById('slide-jump-popover-input');
 
-      const closeModal = () => modal.classList.add('hidden');
-
-      closeBtn.addEventListener('click', closeModal);
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) closeModal();
-      });
-
-      const doJump = () => {
-        const val = parseInt(inputEl.value);
-        const maxSlides = state.presentationLines ? state.presentationLines.length : 0;
-        if (!isNaN(val) && val >= 1 && val <= maxSlides) {
-          state.liveSong = state.activeSong;
-          state.livePresentationLines = state.presentationLines;
-          state.liveLineIndex = val - 1;
-          state.currentLineIndex = val - 1;
-          state.isBlank = false;
-          renderPresentationLinesList();
-          syncLiveState();
-          closeModal();
-        }
-      };
-
-      submitBtn.addEventListener('click', doJump);
-      inputEl.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') doJump();
-        if (e.key === 'Escape') closeModal();
-      });
-    }
-
-    const maxSpan = modal.querySelector('#slide-jump-modal-max');
-    const inputEl = modal.querySelector('#slide-jump-modal-input');
-    if (maxSpan) maxSpan.textContent = total;
-    if (inputEl) {
-      inputEl.max = total;
-      inputEl.value = curVal;
-    }
-
-    modal.classList.remove('hidden');
-    setTimeout(() => {
+      if (maxSpan) maxSpan.textContent = total;
       if (inputEl) {
-        inputEl.focus();
-        inputEl.select();
+        inputEl.max = total;
+        inputEl.value = curVal;
       }
-    }, 50);
+
+      els.popoverSlideJump.classList.remove('hidden');
+      setTimeout(() => {
+        if (inputEl) {
+          inputEl.focus();
+          inputEl.select();
+        }
+      }, 50);
+    } else {
+      els.popoverSlideJump.classList.add('hidden');
+    }
+  }
+
+  function doSlideJump() {
+    const inputEl = document.getElementById('slide-jump-popover-input');
+    if (!inputEl) return;
+    const val = parseInt(inputEl.value);
+    const maxSlides = state.presentationLines ? state.presentationLines.length : 0;
+    if (!isNaN(val) && val >= 1 && val <= maxSlides) {
+      state.liveSong = state.activeSong;
+      state.livePresentationLines = state.presentationLines;
+      state.liveLineIndex = val - 1;
+      state.currentLineIndex = val - 1;
+      state.isBlank = false;
+      renderPresentationLinesList();
+      syncLiveState();
+      if (els.popoverSlideJump) els.popoverSlideJump.classList.add('hidden');
+    }
   }
 
   if (els.currentLineCounter) {
     els.currentLineCounter.style.cursor = 'pointer';
     els.currentLineCounter.title = 'انقر للانتقال إلى رقم شريحة معين';
-    els.currentLineCounter.addEventListener('click', showSlideJumpModal);
+    els.currentLineCounter.addEventListener('click', toggleSlideJumpPopover);
+  }
+
+  const btnConfirmJump = document.getElementById('btn-confirm-slide-jump');
+  const inputSlideJump = document.getElementById('slide-jump-popover-input');
+  if (btnConfirmJump) btnConfirmJump.addEventListener('click', doSlideJump);
+  if (inputSlideJump) {
+    inputSlideJump.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') doSlideJump();
+      if (e.key === 'Escape' && els.popoverSlideJump) els.popoverSlideJump.classList.add('hidden');
+    });
   }
 
     if (els.obsOverlay) {
@@ -4917,6 +4908,18 @@ document.addEventListener('DOMContentLoaded', () => {
         els.obsLowerThirdBox.style.left = `${xPct}%`;
         els.obsLowerThirdBox.style.top = `${yPct}%`;
         els.obsLowerThirdBox.style.transform = 'translate3d(-50%, -50%, 0)';
+      }
+    }
+
+    if (els.btnToggleBlank) {
+      if (state.isBlank) {
+        els.btnToggleBlank.classList.add('active');
+        els.btnToggleBlank.title = 'إظهار النص';
+        els.btnToggleBlank.innerHTML = '<i class="fa-solid fa-eye"></i>';
+      } else {
+        els.btnToggleBlank.classList.remove('active');
+        els.btnToggleBlank.title = 'إخفاء النص';
+        els.btnToggleBlank.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
       }
     }
 

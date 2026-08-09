@@ -476,10 +476,24 @@
       <!-- LEFT HALF IN RTL: ACTIVE PRESENTATION LINES LIST -->
       <section class="half-panel presentation-lines-panel">
         <div class="panel-bar">
-          <div class="panel-bar-start panel-controls">
+          <div class="panel-bar-start panel-controls dropdown-wrapper" style="position: relative;">
             <button id="btn-prev-line" class="mini-btn-flat" title="السطر السابق"><i class="fa-solid fa-chevron-right"></i></button>
             <span id="current-line-counter" class="counter-text">0 / 0</span>
             <button id="btn-next-line" class="mini-btn-flat" title="السطر التالي"><i class="fa-solid fa-chevron-left"></i></button>
+
+            <!-- SLIDE JUMP FLOATING POPOVER ATTACHED UNDER COUNTER -->
+            <div id="popover-slide-jump" class="dropdown-popover slide-jump-popover hidden">
+              <div class="popover-title" style="margin-bottom: 8px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px; font-size: 0.88rem;">
+                <span><i class="fa-solid fa-arrow-turn-down-left"></i> الانتقال للشريحة</span>
+              </div>
+              <div class="slide-jump-popover-body">
+                <span class="slide-jump-hint-text">رقم الشريحة (1 - <span id="slide-jump-max-val">1</span>):</span>
+                <div class="slide-jump-input-group">
+                  <input type="number" id="slide-jump-popover-input" min="1" autocomplete="off" class="slide-jump-clean-input">
+                  <button type="button" id="btn-confirm-slide-jump" class="slide-jump-btn-go">انتقال</button>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="panel-bar-end panel-controls">
             <button id="btn-toggle-blank" class="mini-btn-flat" title="إخفاء النص"><i class="fa-solid fa-eye-slash"></i></button>
