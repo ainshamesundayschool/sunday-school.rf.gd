@@ -27356,44 +27356,47 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
 
             if (localStorage.getItem(INSTALLED_KEY) === 'true') return;
 
-            const lastDismissed = parseInt(localStorage.getItem(DISMISSED_KEY) || '0', 10);
-            if (Date.now() - lastDismissed < 86400000) return;
+            // If user previously dismissed the prompt, do not show modal popup again
+            if (localStorage.getItem(DISMISSED_KEY) === 'true') return;
 
             if (!navigator.onLine) return;
 
+            // Automatically install offline data silently in background when internet is available
             setTimeout(() => {
-                const modal = document.getElementById('offlineDataInstallModal');
-                if (modal) modal.style.display = 'flex';
-            }, 2500);
+                _startOfflineDataInstallation({ silent: true });
+            }, 3000);
         }
 
         function _dismissOfflineDataModal() {
             const modal = document.getElementById('offlineDataInstallModal');
             if (modal) modal.style.display = 'none';
-            localStorage.setItem('ss_offline_data_dismissed', Date.now().toString());
+            localStorage.setItem('ss_offline_data_dismissed', 'true');
         }
 
-        async function _startOfflineDataInstallation() {
+        async function _startOfflineDataInstallation(options = {}) {
+            const isSilent = !!(options && options.silent);
             const btnGroup = document.getElementById('offlineInstallBtnGroup');
             const progressArea = document.getElementById('offlineInstallProgressArea');
             const bar = document.getElementById('offlineInstallProgressBar');
             const txt = document.getElementById('offlineInstallProgressText');
 
-            if (btnGroup) btnGroup.style.display = 'none';
-            if (progressArea) progressArea.style.display = 'block';
+            if (!isSilent) {
+                if (btnGroup) btnGroup.style.display = 'none';
+                if (progressArea) progressArea.style.display = 'block';
+            }
 
             try {
                 // Step 1: Precache shell files (20%)
-                if (bar) bar.style.width = '20%';
-                if (txt) txt.textContent = 'جاري تخزين شفرات وملفات النظام محلياً...';
+                if (!isSilent && bar) bar.style.width = '20%';
+                if (!isSilent && txt) txt.textContent = 'جاري تخزين شفرات وملفات النظام محلياً...';
 
                 if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
                     navigator.serviceWorker.controller.postMessage({ type: 'PRECACHE_OFFLINE_DATA' });
                 }
 
                 // Step 2: Fetch and save all students data & classes (50%)
-                if (bar) bar.style.width = '50%';
-                if (txt) txt.textContent = 'جاري جلب وحفظ كافة أسماء الأطفال والفصول محلياً...';
+                if (!isSilent && bar) bar.style.width = '50%';
+                if (!isSilent && txt) txt.textContent = 'جاري جلب وحفظ كافة أسماء الأطفال والفصول محلياً...';
 
                 const photosToCache = [];
 
@@ -27417,8 +27420,8 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 });
 
                 // Step 3: Fetch and save all servants / uncles data (75%)
-                if (bar) bar.style.width = '75%';
-                if (txt) txt.textContent = 'جاري جلب وحفظ كافة بيانات الخدام محلياً...';
+                if (!isSilent && bar) bar.style.width = '75%';
+                if (!isSilent && txt) txt.textContent = 'جاري جلب وحفظ كافة بيانات الخدام محلياً...';
 
                 await new Promise((resolve) => {
                     makeApiCall({ action: 'getAllUncles' }, r => {
@@ -27441,8 +27444,8 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 });
 
                 // Step 4: Fetch and save all guests data (90%)
-                if (bar) bar.style.width = '90%';
-                if (txt) txt.textContent = 'جاري جلب وحفظ بيانات الزوار محلياً...';
+                if (!isSilent && bar) bar.style.width = '90%';
+                if (!isSilent && txt) txt.textContent = 'جاري جلب وحفظ بيانات الزوار محلياً...';
 
                 await new Promise((resolve) => {
                     makeApiCall({ action: 'getAllGuests' }, r => {
@@ -27469,25 +27472,33 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                     } catch (e) {}
                 }
 
-                if (bar) bar.style.width = '100%';
-                if (txt) txt.textContent = 'تم تثبيت وقراءة كافة البيانات بنجاح!';
+                if (!isSilent && bar) bar.style.width = '100%';
+                if (!isSilent && txt) txt.textContent = 'تم تثبيت وقراءة كافة البيانات بنجاح!';
                 localStorage.setItem('ss_offline_data_installed', 'true');
 
-                showToast('تم تثبيت وتأهيل التطبيق للعمل بدون إنترنت!', 'success', { dur: 5000 });
-
-                setTimeout(() => {
-                    _dismissOfflineDataModal();
+                if (!isSilent) {
+                    showToast('تم تثبيت وتأهيل التطبيق للعمل بدون إنترنت!', 'success', { dur: 5000 });
+                    setTimeout(() => {
+                        _dismissOfflineDataModal();
+                        if (currentClass === 'الخدام' || currentClass === 'الزوار') {
+                            renderAttendanceList(currentClass);
+                        }
+                    }, 1500);
+                } else {
+                    showToast('تم تجهيز وحفظ البيانات محلياً للعمل بدون إنترنت تلقائياً ✓', 'success', { dur: 3500 });
                     if (currentClass === 'الخدام' || currentClass === 'الزوار') {
                         renderAttendanceList(currentClass);
                     }
-                }, 1500);
+                }
 
             } catch (err) {
-                if (txt) txt.textContent = 'تعذّر إكمال التثبيت تلقائياً، يمكنك المحاولة لاحقاً';
-                setTimeout(() => {
-                    if (btnGroup) btnGroup.style.display = 'flex';
-                    if (progressArea) progressArea.style.display = 'none';
-                }, 2000);
+                if (!isSilent) {
+                    if (txt) txt.textContent = 'تعذّر إكمال التثبيت تلقائياً، يمكنك المحاولة لاحقاً';
+                    setTimeout(() => {
+                        if (btnGroup) btnGroup.style.display = 'flex';
+                        if (progressArea) progressArea.style.display = 'none';
+                    }, 2000);
+                }
             }
         }
 
