@@ -498,7 +498,7 @@ function getMatchScore(song, query) {
   const bibleInfo = parseBibleSearchShortcut(query);
   if (bibleInfo) {
     const bookNorm = normalizeArabic(bibleInfo.bookName);
-    const isBibleItem = Boolean(song.is_bible || song.chapter_number !== undefined);
+    const isBibleItem = Boolean((song.is_bible === true || song.is_bible === '1' || song.is_bible === 1) || (song.chapter_number !== undefined && song.chapter_number !== null && song.chapter_number !== ''));
     if (isBibleItem || tNorm.includes(bookNorm)) {
       if (bibleInfo.chapter) {
         const chStr = String(bibleInfo.chapter);
@@ -3758,7 +3758,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let inputObject = (typeof songOrId === 'object' && songOrId !== null) ? songOrId : null;
     let rawSongId = inputObject ? (inputObject.id !== undefined ? inputObject.id : inputObject.item_id) : songOrId;
-    let isItemBible = Boolean(isBible || (inputObject && (inputObject.is_bible || inputObject.chapter_number !== undefined)));
+    let isItemBible = Boolean(isBible || (inputObject && ((inputObject.is_bible === true || inputObject.is_bible === '1' || inputObject.is_bible === 1) || (inputObject.chapter_number !== undefined && inputObject.chapter_number !== null && inputObject.chapter_number !== ''))));
     
     const cleanId = String(rawSongId || '').replace(/^(song_|bible_)/, '').trim();
     console.log('Resolved cleanId:', cleanId, 'isItemBible:', isItemBible);
@@ -3853,7 +3853,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function ensureSongVerses(song) {
     if (!song) return song;
 
-    const isBible = Boolean(song.is_bible || song.chapter_number !== undefined);
+    const isBible = Boolean((song.is_bible === true || song.is_bible === '1' || song.is_bible === 1) || (song.chapter_number !== undefined && song.chapter_number !== null && song.chapter_number !== ''));
     if (isBible) return song;
 
     const getVerseFirstLine = (verse) => {
@@ -4091,7 +4091,7 @@ document.addEventListener('DOMContentLoaded', () => {
     state.activeSong = song;
     let linesList = [];
 
-    const isBible = Boolean(song.is_bible || song.chapter_number !== undefined);
+    const isBible = Boolean((song.is_bible === true || song.is_bible === '1' || song.is_bible === 1) || (song.chapter_number !== undefined && song.chapter_number !== null && song.chapter_number !== ''));
     const mode = state.presentationMode || 'oneline';
 
     if (song.verses && Array.isArray(song.verses) && song.verses.length > 0) {
@@ -4518,7 +4518,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function getItemKey(item) {
     if (!item) return '';
-    const isBible = Boolean(item.is_bible || item.chapter_number !== undefined || item.type === 'bible');
+    const isBible = Boolean((item.is_bible === true || item.is_bible === '1' || item.is_bible === 1) || (item.chapter_number !== undefined && item.chapter_number !== null && item.chapter_number !== '') || item.type === 'bible');
     const rawId = item.id !== undefined && item.id !== null ? item.id : item.item_id;
     return `${isBible ? 'bible' : 'song'}_${String(rawId)}`;
   }
@@ -4575,7 +4575,15 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch(e) {}
     }
 
-    active.items = deduplicateItems((active.items || []).map(item => ensureSongVerses(item)));
+    active.items = deduplicateItems((active.items || []).map(item => {
+      // Clean legacy erroneously-flagged is_bible / chapter_number: null items from localStorage recents
+      if (item && item.chapter_number === null) delete item.chapter_number;
+      if (item && item.is_bible === false) delete item.is_bible;
+      if (item && (item.is_bible !== true && item.is_bible !== '1' && item.is_bible !== 1) && !item.chapter_number) {
+        delete item.is_bible;
+      }
+      return ensureSongVerses(item);
+    }));
     state.sessionRecents = active.items;
     console.log('Restored Recents Count:', state.sessionRecents.length);
     console.log('Restored Recents Items:', state.sessionRecents);
@@ -4606,7 +4614,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const targetKey = getItemKey(song);
     if (!targetKey) return;
 
-    const isBibleItem = Boolean(song.is_bible || song.chapter_number !== undefined || song.type === 'bible');
+    const isBibleItem = Boolean((song.is_bible === true || song.is_bible === '1' || song.is_bible === 1) || (song.chapter_number !== undefined && song.chapter_number !== null && song.chapter_number !== '') || song.type === 'bible');
 
     let fullSongData = {
       id: song.id !== undefined ? song.id : song.item_id,
@@ -4615,7 +4623,7 @@ document.addEventListener('DOMContentLoaded', () => {
       verses: song.verses || null,
       notes: song.notes || null,
       abbr: song.abbr || null,
-      chapter_number: song.chapter_number || null,
+      chapter_number: (song.chapter_number !== undefined && song.chapter_number !== null && song.chapter_number !== '') ? song.chapter_number : undefined,
       is_bible: isBibleItem
     };
 
@@ -5000,7 +5008,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const totalSlides = targetLines.length;
     const scaleText = getSongScaleText(targetSong);
 
-    const isBible = Boolean(targetSong && (targetSong.is_bible || targetSong.chapter_number !== undefined || targetSong.type === 'bible'));
+    const isBible = Boolean(targetSong && ((targetSong.is_bible === true || targetSong.is_bible === '1' || targetSong.is_bible === 1) || (targetSong.chapter_number !== undefined && targetSong.chapter_number !== null && targetSong.chapter_number !== '') || targetSong.type === 'bible'));
 
     const payload = {
       type: 'PRESENT_LINE',
