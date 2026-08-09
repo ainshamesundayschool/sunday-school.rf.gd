@@ -3595,36 +3595,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
     /* ── Start card ── */
     .exam-start-card {
-      background: var(--surf);
-      border-radius: var(--r-xl);
+      background: var(--surf, #ffffff);
+      border-radius: 20px;
       border: 1px solid var(--bdr);
-      box-shadow: var(--sh-lg);
+      box-shadow: var(--sh-xl);
       overflow: hidden;
     }
 
     .exam-start-hero {
-      background: linear-gradient(145deg, #312e81 0%, #4f46e5 45%, #7c3aed 100%);
-      padding: 32px 24px 28px;
+      background: var(--surf, #ffffff);
+      padding: 32px 24px 20px;
+      border-bottom: 1px solid var(--bdr);
       text-align: center;
       position: relative;
-      overflow: hidden;
-    }
-
-    .exam-start-hero::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at 20% 30%, rgba(255, 255, 255, .07) 0%, transparent 50%),
-        radial-gradient(circle at 80% 70%, rgba(255, 255, 255, .05) 0%, transparent 40%);
-    }
-
-    .exam-start-hero::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background-image: radial-gradient(circle, rgba(255, 255, 255, .06) 1px, transparent 1px);
-      background-size: 24px 24px;
     }
 
     .exam-start-icon {
@@ -3633,15 +3616,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       width: 64px;
       height: 64px;
       border-radius: 50%;
-      background: rgba(255, 255, 255, .15);
-      backdrop-filter: blur(8px);
-      border: 2px solid rgba(255, 255, 255, .3);
+      background: var(--brand-bg, rgba(79,70,229,0.1));
+      color: var(--brand, #4f46e5);
+      border: none;
       display: flex;
       align-items: center;
       justify-content: center;
       margin: 0 auto 16px;
       font-size: 1.7rem;
-      color: #fff;
     }
 
     .exam-start-title {
@@ -3649,7 +3631,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       z-index: 1;
       font-size: 1.3rem;
       font-weight: 800;
-      color: #fff;
+      color: var(--t1);
       margin-bottom: 5px;
       line-height: 1.25;
     }
@@ -3657,8 +3639,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     .exam-start-sub {
       position: relative;
       z-index: 1;
-      font-size: .82rem;
-      color: rgba(255, 255, 255, .78);
+      font-size: .88rem;
+      color: var(--t3);
       font-weight: 600;
     }
 
@@ -5735,8 +5717,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
     <!-- ③ Result view -->
     <div id="examResultView"
-      style="display:none;flex-direction:column;align-items:center;justify-content:center;min-height:auto;max-width:520px;width:92%;margin:auto;padding:24px 16px;">
-      <div class="exam-result-wrap" style="width:100%;">
+      style="display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;min-height:100dvh;width:100%;padding:20px 16px;box-sizing:border-box;">
+      <div class="exam-result-wrap" style="width:100%;max-width:480px;margin:auto;">
         <div id="examResultCard"></div>
       </div>
     </div>
@@ -8169,11 +8151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     <div style="display:flex;align-items:center;gap:10px;margin-top:16px;padding:12px 16px;background:var(--warn-bg, rgba(217,119,6,0.08));border:1px solid rgba(217,119,6,0.2);border-radius:12px;font-size:.85rem;color:var(--t1);font-weight:700;line-height:1.5;">
       <i class="fas fa-clock" style="font-size:1.1rem;flex-shrink:0;color:var(--warn, #d97706);"></i>
       <span>لم يتم تحديد الدرجة بعد. ستظهر النتيجة والكوبونات فور قيام الخادم بتصحيح التكليف.</span>
-    </div>` : (hasOpenQs ? `
-    <div style="display:flex;align-items:center;gap:10px;margin-top:16px;padding:12px 16px;background:var(--ok-bg, rgba(5,150,105,0.08));border:1px solid rgba(5,150,105,0.2);border-radius:12px;font-size:.85rem;color:var(--t1);font-weight:700;line-height:1.5;">
-      <i class="fas fa-check-circle" style="font-size:1.1rem;flex-shrink:0;color:var(--ok, #059669);"></i>
-      <span>تم تصحيح التكليف وتقييمه وتحديث درجاتك وكوبوناتك بنجاح!</span>
-    </div>` : '');
+    </div>` : '';
 
       const scoreBannerHtml = isGraded
         ? `<div style="font-size:3.2rem;font-weight:900;color:var(--t1);line-height:1.1;">${score} <span style="font-size:1.3rem;color:var(--t3);font-weight:700;">/ ${total}</span></div>
@@ -8182,7 +8160,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
            <div style="color:var(--t3);font-weight:700;font-size:.95rem;margin-top:4px;">لم يتم حساب الدرجة أو الكوبونات بعد</div>`;
 
       return `
-    <div style="background:var(--surf, var(--bg, #ffffff));border-radius:20px;padding:28px 22px 22px;border:1px solid var(--bdr);box-shadow:var(--sh-md);text-align:center;">
+    <div style="background:var(--surf, var(--bg, #ffffff));border-radius:20px;padding:28px 22px 22px;border:1px solid var(--bdr);box-shadow:var(--sh-md);text-align:center;position:relative;">
+      <button onclick="exitExamScreen()" title="إغلاق" style="position:absolute;top:16px;left:16px;background:var(--s2);border:1px solid var(--bdr);color:var(--t1);width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:0.2s;z-index:2;">
+        <i class="fas fa-times"></i>
+      </button>
       <div style="width:72px;height:72px;background:${badgeBg};color:${badgeColor};border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:2.2rem;">
         <i class="${iconCls}"></i>
       </div>
@@ -8190,12 +8171,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       <div style="font-size:1.15rem;font-weight:800;color:var(--t1);line-height:1.4;margin-top:16px;">${msg}</div>
       ${couponHtml}
       ${pendingNote}
-      <div style="margin-top:24px;display:flex;flex-direction:column;gap:10px;">
-        ${showAnswers && taskId ? `<button onclick="viewMyAnswers(${taskId})" style="width:100%;padding:13px;border-radius:12px;background:var(--bg2);border:1px solid var(--bdr);color:var(--t1);font-family:inherit;font-weight:800;font-size:.92rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:0.2s;"><i class="fas fa-eye"></i> راجع إجاباتك وتعلم من أخطائك</button>` : ''}
-        <button onclick="exitExamScreen()" style="width:100%;padding:13px;border-radius:12px;background:var(--brand, #4f46e5);border:none;color:#fff;font-family:inherit;font-weight:800;font-size:.92rem;cursor:pointer;transition:0.2s;">
-           <i class="fas fa-home"></i> العودة للملف الشخصي
-        </button>
-      </div>
+      ${showAnswers && taskId ? `
+      <div style="margin-top:24px;">
+        <button onclick="viewMyAnswers(${taskId})" style="width:100%;padding:13px;border-radius:12px;background:var(--brand, #4f46e5);border:none;color:#fff;font-family:inherit;font-weight:800;font-size:.92rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:0.2s;"><i class="fas fa-eye"></i> راجع إجاباتك وتعلم من أخطائك</button>
+      </div>` : ''}
     </div>
   `;
     }
@@ -8278,17 +8257,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
     function examScreenOpen() {
       const scr = document.getElementById('examScreen');
-      scr.style.display = 'block';
+      const resultView = document.getElementById('examResultView');
+      const isResult = resultView && resultView.style.display !== 'none';
+      if (isResult) {
+        scr.style.display = 'flex';
+        scr.style.alignItems = 'center';
+        scr.style.justifyContent = 'center';
+      } else {
+        scr.style.display = 'block';
+      }
       scr.scrollTop = 0;
       document.documentElement.classList.add('ov-open');
     }
 
     function examScreenClose() {
       clearInterval(examTimerIv);
-      document.getElementById('examScreen').style.display = 'none';
+      const scr = document.getElementById('examScreen');
+      if (scr) {
+        scr.style.display = 'none';
+        scr.style.background = 'var(--bg)';
+        scr.style.backdropFilter = 'none';
+        scr.style.webkitBackdropFilter = 'none';
+      }
+      ['examStartView', 'examActiveView', 'examResultView'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
       if (!document.querySelector('.overlay.open')) document.documentElement.classList.remove('ov-open');
       curTask = null; examDone = false; examStartedAt = null; taskAnswers = {};
-      examShowView('start');
     }
 
     function confirmExitExam() {
@@ -9064,27 +9060,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       } catch (e) { return iso; }
     }
     function openModal(html) {
-      const ov = document.getElementById('genericModalOv');
+      let ov = document.getElementById('genericModalOv');
       if (!ov) {
-        const div = document.createElement('div');
-        div.id = 'genericModalOv';
-        div.className = 'overlay';
-        div.style.zIndex = '3000';
-        div.innerHTML = `
-      <div class="modal" style="max-width:600px;margin-top:40px;">
-        <div class="mhdr" style="background:var(--brand);padding:15px 20px;border-radius:var(--r-xl) var(--r-xl) 0 0;display:flex;align-items:center;justify-content:space-between;">
-          <div id="genericModalTitle" style="color:#fff;font-weight:800;font-size:1rem;">مراجعة إجاباتي</div>
-          <button onclick="closeModal()" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:8px;cursor:pointer;"><i class="fas fa-times"></i></button>
+        ov = document.createElement('div');
+        ov.id = 'genericModalOv';
+        ov.className = 'overlay';
+        ov.style.zIndex = '3000';
+        ov.innerHTML = `
+      <div class="modal" style="max-width:600px;margin:auto;border:none;border-radius:20px;overflow:hidden;box-shadow:var(--sh-xl);background:var(--surf, #ffffff);">
+        <div class="mhdr" style="background:var(--surf, #ffffff);padding:16px 20px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;">
+          <div id="genericModalTitle" style="color:var(--t1);font-weight:800;font-size:1.05rem;">مراجعة إجاباتي</div>
+          <button onclick="closeModal()" style="background:var(--s2);border:1px solid var(--bdr);color:var(--t1);width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:0.2s;"><i class="fas fa-times"></i></button>
         </div>
         <div class="mbody" id="genericModalBody" style="padding:0;"></div>
       </div>
     `;
-        document.body.appendChild(div);
-        div.onclick = (e) => { if (e.target === div) closeModal(); };
-        div.classList.add('open');
-      } else {
-        ov.classList.add('open');
+        document.body.appendChild(ov);
+        ov.onclick = (e) => { if (e.target === ov) closeModal(); };
       }
+      ov.classList.add('open');
       document.getElementById('genericModalBody').innerHTML = html;
       document.documentElement.classList.add('ov-open');
     }
