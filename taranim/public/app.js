@@ -3519,23 +3519,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let targetSong = null;
 
-    // 1. MATCH BY CLEAN NUMERIC ID IN CANONICAL CATALOG FIRST!
-    if (!isItemBible && cleanId && state.allSongs && state.allSongs.length > 0) {
-      let canonicalSong = state.allSongs.find(s => {
-        if (s.is_bible) return false;
-        const sId = String(s.id !== undefined ? s.id : s.item_id).replace(/^(song_|bible_)/, '').trim();
-        return sId === cleanId;
-      });
-
-      if (canonicalSong) {
-        targetSong = JSON.parse(JSON.stringify(canonicalSong));
-        if (inputObject && inputObject.verses && Array.isArray(inputObject.verses) && inputObject.verses.length > 0) {
-          targetSong.verses = inputObject.verses;
-        }
-      }
+    // 1. IF COMPLETE SONG OBJECT IS PASSED (e.g. from recents, search, playlist), USE IT INSTANTLY (0ms!)
+    if (inputObject && (inputObject.title || (inputObject.verses && inputObject.verses.length > 0) || inputObject.notes)) {
+      targetSong = JSON.parse(JSON.stringify(inputObject));
     }
 
-    // 2. MATCH IN SESSION RECENTS IF NOT IN CATALOG
+    // 2. MATCH IN SESSION RECENTS BY ID (0ms!)
     if (!targetSong && cleanId) {
       let foundInRecents = state.sessionRecents.find(r => {
         const rId = String(r.id !== undefined ? r.id : r.item_id).replace(/^(song_|bible_)/, '').trim();
@@ -3546,21 +3535,26 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // 3. IF PASSED DIRECT OBJECT AND STILL NO MATCH, USE PASSED OBJECT
-    if (!targetSong && inputObject && (inputObject.title || inputObject.verses)) {
-      targetSong = JSON.parse(JSON.stringify(inputObject));
+    // 3. MATCH BY ID IN CANONICAL CATALOG FAST INDEX
+    if (!targetSong && !isItemBible && cleanId && state.allSongs && state.allSongs.length > 0) {
+      let canonicalSong = state.allSongs.find(s => {
+        if (s.is_bible) return false;
+        const sId = String(s.id !== undefined ? s.id : s.item_id).replace(/^(song_|bible_)/, '').trim();
+        return sId === cleanId;
+      });
+      if (canonicalSong) {
+        targetSong = JSON.parse(JSON.stringify(canonicalSong));
+      }
     }
 
-    // 4. FETCH FROM API IF STILL NOT FOUND
+    // 4. FETCH FROM API ONLY IF NOT FOUND LOCALLY AT ALL
     if (!targetSong && cleanId) {
       try {
         const bibleParam = isItemBible ? '&type=bible&is_bible=1' : '';
         const apiUrl = getApiUrl();
         let res = await fetch(`${apiUrl}?action=song&id=${cleanId}${bibleParam}`).catch(() => null);
         if (!res || !res.ok) res = await fetch(`/api.php?action=song&id=${cleanId}${bibleParam}`).catch(() => null);
-        if (!res.ok) res = await fetch(`/api/song/${cleanId}?${bibleParam}`);
-        if (!res.ok) res = await fetch(`../api.php?action=song&id=${cleanId}${bibleParam}`);
-        if (res.ok) {
+        if (res && res.ok) {
           const fullSong = await res.json();
           if (fullSong && (fullSong.title || fullSong.id)) {
             targetSong = fullSong;
