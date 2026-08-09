@@ -20471,22 +20471,6 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
 
 
-      if (!iso) return false;
-
-
-
-      const d = new Date(iso);
-
-
-
-      return d.getHours() === 23 && d.getMinutes() === 59;
-
-
-
-    }
-
-
-
     function toggleNoDeadline(sync = false) {
 
 
