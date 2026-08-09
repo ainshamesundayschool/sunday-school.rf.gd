@@ -569,23 +569,44 @@
     <i class="fa-solid fa-xmark"></i>
   </button>
 
-  <script>
+    function updateFullscreenBtnIcon() {
+      const btn = document.getElementById('btn-close-window-bottom');
+      if (!btn) return;
+      const isFS = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+      if (isFS) {
+        btn.innerHTML = `<i class="fa-solid fa-xmark"></i>`;
+        btn.title = 'إنهاء ملء الشاشة (Esc)';
+      } else {
+        btn.innerHTML = `<i class="fa-solid fa-expand"></i>`;
+        btn.title = 'ملء الشاشة';
+      }
+    }
+
+    document.addEventListener('fullscreenchange', updateFullscreenBtnIcon);
+    document.addEventListener('webkitfullscreenchange', updateFullscreenBtnIcon);
+    document.addEventListener('DOMContentLoaded', updateFullscreenBtnIcon);
+
     function closePresentationWindow(e) {
       if (e) {
         if (typeof e.preventDefault === 'function') e.preventDefault();
         if (typeof e.stopPropagation === 'function') e.stopPropagation();
       }
-      const doClose = () => {
-        try { window.close(); } catch(err) {}
-      };
-      if (document.fullscreenElement && document.exitFullscreen) {
-        document.exitFullscreen().then(doClose).catch(doClose);
-      } else if (document.webkitFullscreenElement && document.webkitExitFullscreen) {
-        try { document.webkitExitFullscreen(); } catch(err) {}
-        setTimeout(doClose, 100);
+
+      const isFS = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+      if (!isFS) {
+        if (document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else if (document.documentElement.webkitRequestFullscreen) {
+          document.documentElement.webkitRequestFullscreen();
+        }
       } else {
-        doClose();
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        } else if (document.webkitExitFullscreen) {
+          try { document.webkitExitFullscreen(); } catch(err) {}
+        }
       }
+      setTimeout(updateFullscreenBtnIcon, 100);
     }
     const box = document.getElementById('presenter-box');
     const textEl = document.getElementById('presenter-text');
@@ -913,6 +934,10 @@
         }
       }
     })();
+
+    let currentTextState = '';
+    let currentAnimState = '';
+    let currentIsBlankState = false;
 
     // AUTO FULLSCREEN REQUEST ON CLICK, TOUCH, POINTER, KEY, OR FOCUS
     function requestAutoFullscreen() {
@@ -1454,6 +1479,23 @@
     } catch (e) {
       setInterval(fetchLiveHTTP, 80);
     }
+
+    // INITIALIZE INSTANTLY FROM LOCAL STORAGE SETTINGS / LIVE PAYLOAD ON STARTUP
+    (function initSavedState() {
+      try {
+        const savedLive = localStorage.getItem('sunday_school_taranim_live_presentation');
+        if (savedLive) {
+          const parsedLive = JSON.parse(savedLive);
+          applyState(parsedLive, 'local');
+        } else {
+          const savedSettings = localStorage.getItem('sunday_school_taranim_style_settings');
+          if (savedSettings) {
+            const parsedSettings = JSON.parse(savedSettings);
+            applyState(parsedSettings, 'local');
+          }
+        }
+      } catch(e) {}
+    })();
 
     // IMMEDIATE RE-FETCH ON VISIBILITY OR FOCUS RESTORATION
     document.addEventListener('visibilitychange', () => {
