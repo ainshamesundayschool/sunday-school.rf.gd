@@ -3358,12 +3358,42 @@ document.addEventListener('DOMContentLoaded', () => {
       })
       .catch(() => {});
 
+    // Helper: index raw catalog items with fast search keys
+    const indexCatalogList = (list) => {
+      if (!Array.isArray(list)) return [];
+      return list.map(song => {
+        const tNorm = normalizeArabic(song.title || '');
+        const nNorm = normalizeArabic(song.notes || '');
+        const tSkeleton = typeof extractArabicConsonantSkeleton === 'function' ? extractArabicConsonantSkeleton(song.title || '') : '';
+        return {
+          ...song,
+          _tNorm: tNorm,
+          _nNorm: nNorm,
+          _tSkeleton: tSkeleton,
+          _searchIndex: tNorm + ' ' + nNorm + ' ' + tSkeleton
+        };
+      });
+    };
+
+    // 1. INSTANT 0ms LOAD FROM LOCALSTORAGE CACHE
+    try {
+      const cachedRaw = localStorage.getItem('sunday_school_taranim_cached_catalog');
+      if (cachedRaw) {
+        const parsedCache = JSON.parse(cachedRaw);
+        if (Array.isArray(parsedCache) && parsedCache.length > 0) {
+          state.allSongs = indexCatalogList(parsedCache);
+          console.log('⚡ [FAST-LOAD] Instant Catalog loaded from cache (0ms):', state.allSongs.length, 'songs');
+        }
+      }
+    } catch(e) {}
+
+    // 2. NETWORK FETCH FOR FRESH CATALOG DISCOVERY
     try {
       let res = await fetch('songs_catalog.json').catch(() => null);
-      if (!res.ok) res = await fetch('./songs_catalog.json');
-      if (!res.ok) res = await fetch('/api/songs?limit=500');
+      if (!res || !res.ok) res = await fetch('./songs_catalog.json').catch(() => null);
+      if (!res || !res.ok) res = await fetch('/api/songs?limit=500').catch(() => null);
       
-      if (res.ok) {
+      if (res && res.ok) {
         const data = await res.json();
         let rawList = [];
         if (Array.isArray(data)) {
@@ -3371,61 +3401,56 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (data && data.songs) {
           rawList = data.songs;
         }
-        state.allSongs = rawList.map(song => {
-          const tNorm = normalizeArabic(song.title || '');
-          const nNorm = normalizeArabic(song.notes || '');
-          const tSkeleton = typeof extractArabicConsonantSkeleton === 'function' ? extractArabicConsonantSkeleton(song.title || '') : '';
-          return {
-            ...song,
-            _tNorm: tNorm,
-            _nNorm: nNorm,
-            _tSkeleton: tSkeleton,
-            _searchIndex: tNorm + ' ' + nNorm + ' ' + tSkeleton
-          };
-        });
-        // Re-hydrate active song from canonical catalog if it was restored on page load before catalog fetched
-        if (state.activeSong && !state.activeSong.is_bible && (state.activeSong.id !== undefined || state.activeSong.item_id !== undefined)) {
-          const songId = state.activeSong.id !== undefined ? state.activeSong.id : state.activeSong.item_id;
-          const canonical = state.allSongs.find(s => !s.is_bible && (String(s.id) === String(songId) || String(s.item_id) === String(songId)));
-          if (canonical) {
-            const restoredSong = { ...canonical, ...state.activeSong };
-            if (state.activeSong.verses && Array.isArray(state.activeSong.verses) && state.activeSong.verses.length > 0) {
-              restoredSong.verses = state.activeSong.verses;
-            }
-            loadSongIntoPresentation(restoredSong);
-            syncLiveState();
+        if (rawList.length > 0) {
+          state.allSongs = indexCatalogList(rawList);
+          try {
+            localStorage.setItem('sunday_school_taranim_cached_catalog', JSON.stringify(rawList));
+          } catch(e) {}
+          // If user typed into search input while catalog was fetching, re-trigger search instantly!
+          if (els.intelligentSearch && els.intelligentSearch.value.trim()) {
+            performIntelligentSearch(els.intelligentSearch.value.trim());
           }
         }
       }
 
-      const realTotalCount = state.allSongs.length > 0 ? state.allSongs.length : 11611;
-      
-      if (els.totalSongsCount) {
-        const formatted = Number(realTotalCount).toLocaleString('ar-EG');
-        els.totalSongsCount.innerHTML = `<i class="fa-solid fa-music"></i> <span>${formatted} ترنيمة</span>`;
-      }
-
-      // Fetch live total songs count from server database
-      try {
-        const apiUrl = getApiUrl();
-        let liveRes = await fetch(`${apiUrl}?action=songs&limit=1`).catch(() => null);
-        if (!liveRes || !liveRes.ok) liveRes = await fetch('api.php?action=songs&limit=1').catch(() => null);
-        if (liveRes && liveRes.ok) {
-          const liveData = await liveRes.json();
-          if (liveData && liveData.total_songs && liveData.total_songs > 0) {
-            const maxCount = Math.max(realTotalCount, liveData.total_songs);
-            const formattedLive = Number(maxCount).toLocaleString('ar-EG');
-            if (els.totalSongsCount) {
-              els.totalSongsCount.innerHTML = `<i class="fa-solid fa-music"></i> <span>${formattedLive} ترنيمة</span>`;
-            }
+      // Re-hydrate active song from canonical catalog if restored on load
+      if (state.activeSong && !state.activeSong.is_bible && (state.activeSong.id !== undefined || state.activeSong.item_id !== undefined)) {
+        const songId = state.activeSong.id !== undefined ? state.activeSong.id : state.activeSong.item_id;
+        const canonical = state.allSongs.find(s => !s.is_bible && (String(s.id) === String(songId) || String(s.item_id) === String(songId)));
+        if (canonical) {
+          const restoredSong = { ...canonical, ...state.activeSong };
+          if (state.activeSong.verses && Array.isArray(state.activeSong.verses) && state.activeSong.verses.length > 0) {
+            restoredSong.verses = state.activeSong.verses;
           }
+          loadSongIntoPresentation(restoredSong);
+          syncLiveState();
         }
-      } catch (liveErr) {}
-    } catch (err) {
-      if (els.totalSongsCount) {
-        els.totalSongsCount.innerHTML = `<i class="fa-solid fa-music"></i> <span>١١٬٦١١ ترنيمة</span>`;
       }
+    } catch(err) {}
+
+    const realTotalCount = state.allSongs.length > 0 ? state.allSongs.length : 11611;
+    
+    if (els.totalSongsCount) {
+      const formatted = Number(realTotalCount).toLocaleString('ar-EG');
+      els.totalSongsCount.innerHTML = `<i class="fa-solid fa-music"></i> <span>${formatted} ترنيمة</span>`;
     }
+
+    // Fetch live total songs count from server database
+    try {
+      const apiUrl = getApiUrl();
+      let liveRes = await fetch(`${apiUrl}?action=songs&limit=1`).catch(() => null);
+      if (!liveRes || !liveRes.ok) liveRes = await fetch('api.php?action=songs&limit=1').catch(() => null);
+      if (liveRes && liveRes.ok) {
+        const liveData = await liveRes.json();
+        if (liveData && liveData.total_songs && liveData.total_songs > 0) {
+          const maxCount = Math.max(realTotalCount, liveData.total_songs);
+          const formattedLive = Number(maxCount).toLocaleString('ar-EG');
+          if (els.totalSongsCount) {
+            els.totalSongsCount.innerHTML = `<i class="fa-solid fa-music"></i> <span>${formattedLive} ترنيمة</span>`;
+          }
+        }
+      }
+    } catch (liveErr) {}
   }
 
   function performIntelligentSearch(query) {
