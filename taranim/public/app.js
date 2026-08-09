@@ -4895,13 +4895,7 @@ document.addEventListener('DOMContentLoaded', () => {
     syncLiveState();
   }
 
-  function exitPresentation() {
-    state.isBlank = true;
-    if (els.obsOverlay) {
-      els.obsOverlay.classList.add('hidden');
-    }
-    syncLiveState();
-  }
+
 
   function escapeHtml(str) {
     if (!str) return '';

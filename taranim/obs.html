@@ -595,19 +595,21 @@
 
       const isFS = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
       if (!isFS) {
+        // Not in fullscreen -> enter fullscreen
         if (document.documentElement.requestFullscreen) {
           document.documentElement.requestFullscreen().catch(() => {});
         } else if (document.documentElement.webkitRequestFullscreen) {
           document.documentElement.webkitRequestFullscreen();
         }
       } else {
+        // In fullscreen -> exit fullscreen
         if (document.exitFullscreen) {
           document.exitFullscreen().catch(() => {});
         } else if (document.webkitExitFullscreen) {
           try { document.webkitExitFullscreen(); } catch(err) {}
         }
       }
-      setTimeout(updateFullscreenBtnIcon, 100);
+      setTimeout(updateFullscreenBtnIcon, 150);
     }
     const box = document.getElementById('presenter-box');
     const textEl = document.getElementById('presenter-text');
@@ -959,8 +961,9 @@
       }
     })();
 
-    async function requestAutoFullscreen() {
+    async function requestAutoFullscreen(e) {
       if (document.fullscreenElement) return;
+      if (e && e.target && e.target.closest && e.target.closest('#btn-close-window-bottom, .btn-close-overlay-left')) return;
 
       // First interaction: request screen permission if not yet granted
       if (!_screenDetailsReady && 'getScreenDetails' in window) {
