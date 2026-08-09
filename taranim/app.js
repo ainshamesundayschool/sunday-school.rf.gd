@@ -2946,15 +2946,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const windowFeatures = `left=${left},top=${top},screenX=${left},screenY=${top},width=${width},height=${height},outerWidth=${width},outerHeight=${height},menubar=no,toolbar=no,location=no,status=no,resizable=yes,fullscreen=yes`;
     const obsUrl = `obs.html?autofs=true&screenIdx=${targetIdx}&screenLeft=${left}&screenTop=${top}&screenWidth=${width}&screenHeight=${height}`;
     
-    if (!presenterWindow || presenterWindow.closed) {
-      presenterWindow = window.open(obsUrl, 'SundaySchoolPresenterWindow', windowFeatures);
-    } else {
-      try {
-        presenterWindow.location.href = obsUrl;
-      } catch(e) {
-        presenterWindow = window.open(obsUrl, 'SundaySchoolPresenterWindow', windowFeatures);
-      }
+    if (presenterWindow && !presenterWindow.closed) {
+      try { presenterWindow.close(); } catch(e) {}
     }
+
+    presenterWindow = window.open(obsUrl, 'SundaySchoolPresenterWindow_' + Date.now(), windowFeatures);
 
     if (presenterWindow) {
       const moveWin = () => {
@@ -2967,6 +2963,7 @@ document.addEventListener('DOMContentLoaded', () => {
       moveWin();
       setTimeout(moveWin, 150);
       setTimeout(moveWin, 450);
+      showToast('تم فتح شاشة العرض الخارجية. اسحب النافذة للشاشة الثانية إذا لم تنتقل تلقائياً.');
     }
 
     syncLiveState();
