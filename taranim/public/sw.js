@@ -1,25 +1,34 @@
-// IMMEDIATELY UNREGISTER SERVICE WORKER AND CLEAR ALL CACHES PERMANENTLY
+// TARANIM PWA SERVICE WORKER (NETWORK-FIRST WITH OFFLINE CACHE FALLBACK)
+const CACHE_NAME = 'taranim-pwa-v2';
+
 self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
+    caches.keys().then((keys) => {
       return Promise.all(
-        cacheNames.map((cacheName) => caches.delete(cacheName))
+        keys.map((key) => {
+          if (key !== CACHE_NAME) return caches.delete(key);
+        })
       );
-    }).then(() => self.clients.claim()).then(() => {
-      return self.registration.unregister();
-    })
+    }).then(() => self.clients.claim())
   );
 });
 
 self.addEventListener('fetch', (event) => {
-  // Always fetch directly from network with fallback catch
+  if (event.request.method !== 'GET') return;
+  // Network-first strategy for live freshness with offline cache backup
   event.respondWith(
-    fetch(event.request).catch(() => {
-      return caches.match(event.request).then((res) => res || Response.error());
+    fetch(event.request).then((response) => {
+      if (response && response.status === 200 && response.type === 'basic') {
+        const responseToCache = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
+      }
+      return response;
+    }).catch(() => {
+      return caches.match(event.request);
     })
   );
 });

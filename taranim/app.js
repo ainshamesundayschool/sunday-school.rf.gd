@@ -811,17 +811,7 @@ function correctWithArabicDictionary(draftArabic, dictionary) {
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').then((reg) => {
-      reg.update();
-    }).catch(() => {});
-
-    let isRefreshing = false;
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (!isRefreshing) {
-        isRefreshing = true;
-        window.location.reload();
-      }
-    });
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
   });
 }
 
