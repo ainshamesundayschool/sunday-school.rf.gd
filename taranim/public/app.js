@@ -3629,7 +3629,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const verses = [];
     let currentStanzaNum = 0;
 
-    blocks.forEach((block) => {
+    blocks.forEach((block, blockIdx) => {
       let lines = block.split('\n').map(l => l.trim()).filter(l => l.length > 0);
       if (lines.length === 0) return;
 
@@ -3643,6 +3643,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const matchNum = firstLine.match(/^\(?([\d٠-٩]+)\)?[:\s\-]?/);
         if (matchNum) {
           foundStanzaNum = matchNum[1];
+        }
+      }
+
+      // SMART CHORUS DETECTION FOR UNLABELLED BLOCK 1:
+      // If block 1 doesn't have a stanza number, but block 2 starts with (1) or 1-, then block 1 IS the Chorus!
+      if (blockIdx === 0 && !isChorus && !foundStanzaNum) {
+        const secondBlock = blocks[1];
+        if (secondBlock) {
+          const secondFirstLine = secondBlock.split('\n')[0].trim();
+          if (/^\(?1\)?[:\s\-]?/i.test(secondFirstLine) || /^\(?١\)?[:\s\-]?/i.test(secondFirstLine) || /^\(?2\)?[:\s\-]?/i.test(secondFirstLine)) {
+            isChorus = true;
+          }
         }
       }
 
