@@ -2504,11 +2504,15 @@ document.addEventListener('DOMContentLoaded', () => {
           els.searchSuggestionsChips.classList.add('hidden');
           els.searchSuggestionsChips.innerHTML = '';
         }
+        if (searchDebounceTimeout) clearTimeout(searchDebounceTimeout);
         return;
       }
 
-      renderSearchWordSuggestions(query);
-      performIntelligentSearch(query);
+      if (searchDebounceTimeout) clearTimeout(searchDebounceTimeout);
+      searchDebounceTimeout = setTimeout(() => {
+        renderSearchWordSuggestions(query);
+        performIntelligentSearch(query);
+      }, 100);
     });
 
     els.intelligentSearch.addEventListener('keydown', (e) => {
@@ -3514,13 +3518,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // Fallback: If no candidate matched using fast filters, score full catalog for any non-empty query
+      // Fallback: If no candidate matched using fast filters, score full catalog for any non-empty query (capped at 150 for 0ms speed)
       if (candidateMap.size === 0 && searchTarget.length >= 1) {
         for (let i = 0; i < len; i++) {
           const song = state.allSongs[i];
           const score = getMatchScore(song, searchTarget);
           if (score > 0) {
             candidateMap.set(song.id || song.item_id, { ...song, _score: score });
+            if (candidateMap.size >= 150) break;
           }
         }
       }
