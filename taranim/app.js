@@ -1124,6 +1124,9 @@ document.addEventListener('DOMContentLoaded', () => {
     activeSong: null,
     presentationLines: [],
     currentLineIndex: 0,
+    liveSong: null,
+    livePresentationLines: [],
+    liveLineIndex: 0,
     isBlank: false,
     selectedScreen: savedLockedScreen,
 
@@ -4023,16 +4026,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     state.presentationLines = linesList;
-    state.currentLineIndex = 0;
-    state.isBlank = false;
 
-    renderPresentationLinesList();
-    syncLiveState();
+    if (!state.liveSong) {
+      state.liveSong = song;
+      state.livePresentationLines = linesList;
+      state.liveLineIndex = 0;
+      state.currentLineIndex = 0;
+      state.isBlank = false;
+      renderPresentationLinesList();
+      syncLiveState();
+    } else {
+      const isSameAsLive = Boolean(state.liveSong && song && getItemKey(state.liveSong) === getItemKey(song));
+      if (isSameAsLive) {
+        state.currentLineIndex = state.liveLineIndex;
+      } else {
+        state.currentLineIndex = -1;
+      }
+      renderPresentationLinesList();
+    }
   }
 
   function renderPresentationLinesList() {
-    const { presentationLines, currentLineIndex } = state;
-    els.currentLineCounter.textContent = `${presentationLines.length ? currentLineIndex + 1 : 0} / ${presentationLines.length}`;
+    const { presentationLines } = state;
+    const isLiveSongDisplayed = Boolean(state.liveSong && state.activeSong && getItemKey(state.liveSong) === getItemKey(state.activeSong));
+    const activeSlideIdx = isLiveSongDisplayed ? state.liveLineIndex : state.currentLineIndex;
+
+    const displayCounterVal = (activeSlideIdx >= 0 && activeSlideIdx < presentationLines.length) ? (activeSlideIdx + 1) : 1;
+    els.currentLineCounter.textContent = `${presentationLines.length ? displayCounterVal : 0} / ${presentationLines.length}`;
 
     if (presentationLines.length === 0) {
       els.presentationLinesContainer.innerHTML = `
@@ -4051,8 +4071,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return `<div class="slide-line-row"><span>${text}</span></div>`;
       }).join('');
 
+      const isActive = isLiveSongDisplayed ? (idx === state.liveLineIndex) : (idx === state.currentLineIndex);
+
       return `
-        <div class="line-item ${idx === currentLineIndex ? 'active' : ''}" data-idx="${idx}">
+        <div class="line-item ${isActive ? 'active' : ''}" data-idx="${idx}">
           <div class="line-item-actions-right">
             <button class="launch-fullscreen-btn" data-idx="${idx}" title="عرض ملء الشاشة">
               <i class="fa-solid fa-expand"></i>
@@ -4096,9 +4118,13 @@ document.addEventListener('DOMContentLoaded', () => {
         e.stopPropagation();
         const idx = parseInt(btn.dataset.idx);
         if (!isNaN(idx)) {
+          state.liveSong = state.activeSong;
+          state.livePresentationLines = state.presentationLines;
+          state.liveLineIndex = idx;
           state.currentLineIndex = idx;
           state.isBlank = false;
           renderPresentationLinesList();
+          syncLiveState();
         }
         launchPresenterOnSelectedScreen('primary');
       });
@@ -4107,7 +4133,11 @@ document.addEventListener('DOMContentLoaded', () => {
     els.presentationLinesContainer.querySelectorAll('.line-item').forEach(item => {
       item.addEventListener('click', (e) => {
         if (e.target.closest('.copy-line-btn') || e.target.closest('.launch-fullscreen-btn')) return;
-        state.currentLineIndex = parseInt(item.dataset.idx);
+        const clickedIdx = parseInt(item.dataset.idx);
+        state.liveSong = state.activeSong;
+        state.livePresentationLines = state.presentationLines;
+        state.liveLineIndex = clickedIdx;
+        state.currentLineIndex = clickedIdx;
         state.isBlank = false;
         renderPresentationLinesList();
         syncLiveState();
@@ -4585,13 +4615,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function syncLiveState(isExplicitPositionUpdate = false) {
-    const currentSlideItem = state.presentationLines[state.currentLineIndex] || null;
-    const text = currentSlideItem ? (currentSlideItem.text || '') : '';
-    const currentSlide = state.presentationLines.length > 0 ? (state.currentLineIndex + 1) : 0;
-    const totalSlides = state.presentationLines.length;
-    const scaleText = getSongScaleText(state.activeSong);
+    const targetSong = state.liveSong || state.activeSong;
+    const targetLines = (state.livePresentationLines && state.livePresentationLines.length > 0) ? state.livePresentationLines : state.presentationLines;
+    const targetIndex = (state.liveLineIndex >= 0) ? state.liveLineIndex : (state.currentLineIndex >= 0 ? state.currentLineIndex : 0);
 
-    const isBible = Boolean(state.activeSong && (state.activeSong.is_bible || state.activeSong.chapter_number !== undefined || state.activeSong.type === 'bible'));
+    const currentSlideItem = targetLines[targetIndex] || null;
+    const text = currentSlideItem ? (currentSlideItem.text || '') : '';
+    const currentSlide = targetLines.length > 0 ? (targetIndex + 1) : 0;
+    const totalSlides = targetLines.length;
+    const scaleText = getSongScaleText(targetSong);
+
+    const isBible = Boolean(targetSong && (targetSong.is_bible || targetSong.chapter_number !== undefined || targetSong.type === 'bible'));
 
     const payload = {
       type: 'PRESENT_LINE',
@@ -4600,7 +4634,7 @@ document.addEventListener('DOMContentLoaded', () => {
       badgeClass: currentSlideItem ? (currentSlideItem.badgeClass || '') : '',
       isBible: isBible,
       is_bible: isBible,
-      songTitle: state.activeSong ? state.activeSong.title : '',
+      songTitle: targetSong ? targetSong.title : '',
       currentSlide: currentSlide,
       totalSlides: totalSlides,
       scaleText: scaleText,
@@ -4959,12 +4993,26 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function nextLine() {
-    if (state.currentLineIndex < state.presentationLines.length - 1) {
-      state.currentLineIndex++;
+    if (!state.liveSong && state.activeSong) {
+      state.liveSong = state.activeSong;
+      state.livePresentationLines = state.presentationLines;
+      state.liveLineIndex = 0;
+      state.currentLineIndex = 0;
       state.isBlank = false;
       renderPresentationLinesList();
       syncLiveState();
-    } else if (state.currentLineIndex === state.presentationLines.length - 1) {
+      return;
+    }
+    const currentLines = (state.livePresentationLines && state.livePresentationLines.length > 0) ? state.livePresentationLines : state.presentationLines;
+    if (state.liveLineIndex < currentLines.length - 1) {
+      state.liveLineIndex++;
+      if (state.liveSong && state.activeSong && getItemKey(state.liveSong) === getItemKey(state.activeSong)) {
+        state.currentLineIndex = state.liveLineIndex;
+      }
+      state.isBlank = false;
+      renderPresentationLinesList();
+      syncLiveState();
+    } else if (state.liveLineIndex === currentLines.length - 1) {
       if (!state.isBlank) {
         state.isBlank = true;
         syncLiveState();
@@ -4985,8 +5033,11 @@ document.addEventListener('DOMContentLoaded', () => {
       syncLiveState();
       return;
     }
-    if (state.currentLineIndex > 0) {
-      state.currentLineIndex--;
+    if (state.liveLineIndex > 0) {
+      state.liveLineIndex--;
+      if (state.liveSong && state.activeSong && getItemKey(state.liveSong) === getItemKey(state.activeSong)) {
+        state.currentLineIndex = state.liveLineIndex;
+      }
       renderPresentationLinesList();
       syncLiveState();
     }
