@@ -1305,6 +1305,7 @@ document.addEventListener('DOMContentLoaded', () => {
     popoverPlaylist: document.getElementById('popover-playlist'),
     btnClosePlaylistPopover: document.getElementById('btn-close-playlist-popover'),
     playlistCurrentName: document.getElementById('playlist-current-name'),
+    playlistsListContainer: document.getElementById('playlists-list-container'),
     newPlaylistBar: document.getElementById('new-playlist-bar'),
     newPlaylistNameInput: document.getElementById('new-playlist-name-input'),
     newPlaylistInputWrapper: document.getElementById('new-playlist-input-wrapper'),
