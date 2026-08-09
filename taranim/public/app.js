@@ -2899,9 +2899,9 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // 2. EXTERNAL DISPLAY (TV / Projector) -> OPEN POPUP WINDOW ON OTHER MONITOR!
-    let left = (window.screen.availLeft || 0) + (window.screen.width || 1920);
-    let top = window.screen.availTop || 0;
+    // 2. EXTERNAL DISPLAY (TV / Projector) -> OPEN POPUP WINDOW ON SECONDARY MONITOR!
+    let left = 1920;
+    let top = 0;
     let width = 1920;
     let height = 1080;
     let targetIdx = 1;
@@ -2915,6 +2915,22 @@ document.addEventListener('DOMContentLoaded', () => {
         height = extScreen.height || extScreen.availHeight || 1080;
         targetIdx = screenDetails.screens.indexOf(extScreen);
       }
+    } else {
+      // Calculate real secondary monitor offset relative to current control panel window position
+      const winX = window.screenX !== undefined ? window.screenX : (window.screenLeft !== undefined ? window.screenLeft : 0);
+      const primaryW = window.screen.width || 1920;
+      const availL = window.screen.availLeft || 0;
+
+      // If control panel window is currently on external display:
+      if (winX >= (availL + primaryW * 0.75)) {
+        left = availL;
+      } else {
+        left = availL + primaryW;
+      }
+
+      top = window.screen.availTop || 0;
+      width = window.screen.availWidth || 1920;
+      height = window.screen.availHeight || 1080;
     }
 
     state.selectedScreen = {

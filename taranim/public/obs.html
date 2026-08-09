@@ -894,6 +894,26 @@
 
     window.addEventListener('resize', () => fitTextToSafeArea());
 
+    // AUTO POSITION WINDOW TO TARGET SCREEN IF QUERY PARAMS ARE PRESENT
+    (function autoPositionWindow() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('autofs') === 'true') {
+        const sLeft = parseInt(params.get('screenLeft'));
+        const sTop = parseInt(params.get('screenTop'));
+        const sWidth = parseInt(params.get('screenWidth'));
+        const sHeight = parseInt(params.get('screenHeight'));
+
+        if (!isNaN(sLeft) && !isNaN(sTop)) {
+          try {
+            window.moveTo(sLeft, sTop);
+            if (!isNaN(sWidth) && !isNaN(sHeight)) {
+              window.resizeTo(sWidth, sHeight);
+            }
+          } catch(e) {}
+        }
+      }
+    })();
+
     // AUTO FULLSCREEN REQUEST ON CLICK, TOUCH, POINTER, KEY, OR FOCUS
     function requestAutoFullscreen() {
       if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
