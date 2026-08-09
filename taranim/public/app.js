@@ -3753,18 +3753,13 @@ document.addEventListener('DOMContentLoaded', () => {
   async function openAndPresentItem(songOrId, isBible = false) {
     if (!songOrId && songOrId !== 0) return;
 
-    console.group('🔍 [DEBUG] openAndPresentItem');
-    console.log('Input parameter:', songOrId, 'isBible:', isBible);
-
     let inputObject = (typeof songOrId === 'object' && songOrId !== null) ? songOrId : null;
     let rawSongId = inputObject ? (inputObject.id !== undefined ? inputObject.id : inputObject.item_id) : songOrId;
     let isItemBible = Boolean(isBible || (inputObject && ((inputObject.is_bible === true || inputObject.is_bible === '1' || inputObject.is_bible === 1) || (inputObject.chapter_number !== undefined && inputObject.chapter_number !== null && inputObject.chapter_number !== ''))));
     
     const cleanId = String(rawSongId || '').replace(/^(song_|bible_)/, '').trim();
-    console.log('Resolved cleanId:', cleanId, 'isItemBible:', isItemBible);
 
     let targetSong = null;
-    let originSource = 'unknown';
 
     // 1. IF COMPLETE SONG OBJECT IS PASSED (e.g. from recents, search, playlist), USE IT INSTANTLY (0ms!)
     if (inputObject && (inputObject.title || (inputObject.verses && inputObject.verses.length > 0) || inputObject.notes)) {
@@ -3833,10 +3828,8 @@ document.addEventListener('DOMContentLoaded', () => {
       addToSessionRecents(targetSong);
       loadSongIntoPresentation(targetSong);
     } else {
-      console.error('❌ Could not load targetSong data for cleanId:', cleanId);
       showToast('تعذر تحميل بيانات العنصر.');
     }
-    console.groupEnd();
   }
 
   function updateScaleModeLockState() {
@@ -3993,9 +3986,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ? normalizeArabic(getVerseFullText(song.verses[duplicateChorusIdx])).trim()
         : null;
 
-      console.group('🎵 [DEBUG] ensureSongVerses -> ' + (song.title || 'Untitled'));
-      console.log('Verses count:', song.verses.length);
-
       song.verses.forEach((verse, verseIdx) => {
         const rawVerseType = verse.type;
         const firstRawLine = getVerseFirstLine(verse);
@@ -4021,16 +4011,13 @@ document.addEventListener('DOMContentLoaded', () => {
           verse.type = 1;
           verse.isChorus = true;
           delete verse.stanzaNum;
-          console.log(`[Verse #${verseIdx + 1}] -> 🟢 CHORUS (ق) | First line: "${firstRawLine}"`);
         } else {
           verse.type = 0;
           verse.isChorus = false;
           currentStanzaNum++;
           verse.stanzaNum = currentStanzaNum;
-          console.log(`[Verse #${verseIdx + 1}] -> 🔵 STANZA (${currentStanzaNum}) | First line: "${firstRawLine}"`);
         }
       });
-      console.groupEnd();
       return song;
     }
 
@@ -4381,10 +4368,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     state.presentationLines = linesList;
 
-    console.group('📺 [DEBUG] loadSongIntoPresentation -> ' + (song.title || 'Untitled'));
-    console.log('Total Generated Presentation Slides:', linesList.length);
-    console.log('Presentation Lines List:', linesList);
-
     if (!state.liveSong) {
       state.liveSong = song;
       state.livePresentationLines = linesList;
@@ -4402,7 +4385,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       renderPresentationLinesList();
     }
-    console.groupEnd();
   }
 
   function renderPresentationLinesList() {
@@ -4536,7 +4518,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function loadPlaylists() {
-    console.group('📂 [DEBUG] loadPlaylists (Startup)');
     try {
       const saved = localStorage.getItem('sunday_school_taranim_playlists');
       if (saved) {
@@ -4585,26 +4566,17 @@ document.addEventListener('DOMContentLoaded', () => {
       return ensureSongVerses(item);
     }));
     state.sessionRecents = active.items;
-    console.log('Restored Recents Count:', state.sessionRecents.length);
-    console.log('Restored Recents Items:', state.sessionRecents);
-    console.groupEnd();
   }
 
   function savePlaylists() {
     const active = getActivePlaylist();
     active.items = deduplicateItems((state.sessionRecents || []).map(item => ensureSongVerses(item)));
     state.sessionRecents = active.items;
-    console.group('💾 [DEBUG] savePlaylists');
-    console.log('Saving Session Recents Count:', state.sessionRecents.length);
-    console.log('Session Recents Items:', state.sessionRecents);
     try {
       localStorage.setItem('sunday_school_taranim_playlists', JSON.stringify(state.playlists));
       localStorage.setItem('sunday_school_taranim_active_playlist_id', state.activePlaylistId);
       localStorage.setItem('sunday_school_taranim_session_recents', JSON.stringify(state.sessionRecents));
-    } catch(e) {
-      console.error('Failed to save to localStorage:', e);
-    }
-    console.groupEnd();
+    } catch(e) {}
   }
 
   function addToSessionRecents(song) {
@@ -5404,21 +5376,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (state.liveSong && state.activeSong && getItemKey(state.liveSong) === getItemKey(state.activeSong)) {
         state.currentLineIndex = state.liveLineIndex;
       }
-      state.isBlank = false;
       renderPresentationLinesList();
       syncLiveState();
-    } else if (state.liveLineIndex === currentLines.length - 1) {
-      if (!state.isBlank) {
-        state.isBlank = true;
-        syncLiveState();
-      } else {
-        if (els.obsOverlay && !els.obsOverlay.classList.contains('hidden')) {
-          els.obsOverlay.classList.add('hidden');
-          if (document.fullscreenElement) {
-            document.exitFullscreen().catch(() => {});
-          }
-        }
-      }
     }
   }
 
