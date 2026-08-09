@@ -1003,56 +1003,9 @@ input[type="checkbox"]:checked::after {
 .recent-select-all-label {
   display: inline-flex;
   align-items: center;
-  cursor: pointer;
-  margin: 0;
-}
-
-.recent-item-start {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-}
-
-.recent-item-cb, #recent-select-all-cb {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 18px !important;
-  height: 18px !important;
-  min-width: 18px !important;
-  min-height: 18px !important;
-  background-color: #e2e8f0;
-  border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
-  border-radius: 50% !important;
-  cursor: pointer;
-  flex-shrink: 0;
-  margin: 0;
-  display: inline-flex;
-  align-items: center;
   justify-content: center;
-  transition: background-color 0.15s ease;
-  position: relative;
-}
-
-.recent-item-cb:hover, #recent-select-all-cb:hover {
-  background-color: #cbd5e1;
-}
-
-.recent-item-cb:checked, #recent-select-all-cb:checked {
-  background-color: #2563eb;
-  border: none !important;
-}
-
-.recent-item-cb:checked::after, #recent-select-all-cb:checked::after {
-  content: '';
-  width: 4px;
-  height: 8px;
-  border: solid white;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg) translate(-1px, -1px);
-  display: block;
+  cursor: pointer;
+  margin: 0;
 }
 
 /* POPOVER PLAYLIST MATCHING APP SLEEK CLEAN DESIGN SYSTEM */
