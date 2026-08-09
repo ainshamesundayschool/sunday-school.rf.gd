@@ -21306,7 +21306,7 @@
                     <span class="badge ${meta.cls}"><i class="fas fa-${meta.icon}" style="font-size:9px;margin-left:4px;"></i>${meta.label}</span>
                     <span style="font-size:0.78rem;color:var(--text-2);"><i class="fas fa-${entityIcon}" style="color:var(--primary);margin-left:4px;"></i>${escHtml(entityType)}</span>
                     <span style="font-size:0.8rem;">${escHtml(String(entityName || '').substring(0, 28))}</span>
-                    <span style="font-size:0.75rem;color:var(--text-3);overflow:hidden;text-overflow:ellipsis;">${escHtml((l.notes || l.description || '').substring(0, 40))}</span>
+                    <span style="font-size:0.75rem;color:var(--text-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(l.description || l.notes || '')}">${escHtml((l.description || l.notes || '').substring(0, 120))}</span>
                     <div class="data-row-actions-cell">
                         <i class="fas fa-chevron-left data-row-chevron"></i>
                         ${renderInlineRowActions(actKey)}
@@ -23003,10 +23003,10 @@
                     <div style="font-weight:600;">${escHtml(log.entity_name || '')}</div>
                 </div>
             </div>
-            ${log.notes ? `
-            <div style="margin-top:8px; padding:8px; background:white; border-radius:8px;">
-                <div style="color:var(--muted); font-size:0.75rem;">ملاحظات</div>
-                <div>${escHtml(log.notes)}</div>
+            ${(log.description || log.notes) ? `
+            <div style="margin-top:10px; padding:10px 14px; background:white; border:1px solid var(--border); border-radius:8px;">
+                <div style="color:var(--muted); font-size:0.75rem; font-weight:700; margin-bottom:3px;">السبب وتفاصيل العملية</div>
+                <div style="font-weight:700; color:var(--text-1); font-size:0.88rem; line-height:1.5;">${escHtml(log.description || log.notes)}</div>
             </div>` : ''}
         </div>
     `;

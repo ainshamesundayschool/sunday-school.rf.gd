@@ -747,10 +747,11 @@ function auditAttendanceDelete(int $attendanceId, array $row): void {
 function auditCouponChange(int $studentId, string $studentName, int $oldTotal, int $newTotal, string $reason = ''): void {
     $change = $newTotal - $oldTotal;
     $sign   = $change >= 0 ? "+$change" : "$change";
+    $reasonText = $reason ? " — السبب: $reason" : '';
     writeAuditLog('coupon_edit', 'coupon', $studentId, $studentName,
         ['coupons' => $oldTotal],
         ['coupons' => $newTotal],
-        "كوبونات $studentName: $oldTotal → $newTotal ($sign)" . ($reason ? " | $reason" : ''));
+        "كوبونات $studentName: $oldTotal → $newTotal ($sign)$reasonText");
 }
 
 // ── UNCLES ───────────────────────────────────────────────────
