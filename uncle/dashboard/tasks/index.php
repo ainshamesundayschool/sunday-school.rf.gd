@@ -12961,7 +12961,7 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
                       <div class="sopt-lbl">إظهار الإجابات المفصلة</div>
                       <div class="sopt-desc">السماح للطفل بمعرفة إجاباته الصحيحة والخاطئة</div>
                     </div>
-                    <label class="tgl" onclick="event.stopPropagation()"><input type="checkbox" id="fShowAns"><span
+                    <label class="tgl" onclick="event.stopPropagation()"><input type="checkbox" id="fShowAns" checked><span
                         class="tgl-s"></span></label>
                   </div>
 
@@ -12976,7 +12976,7 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
                         checked><span class="tgl-s"></span></label>
                   </div>
 
-                  <div class="sopt-row" onclick="document.getElementById('fShowAns').click()">
+                  <div class="sopt-row" onclick="document.getElementById('fShuffle').click()">
                     <div class="sopt-ico" style="background:var(--brand-bg);color:var(--brand);"><i
                         class="fas fa-random"></i></div>
                     <div class="sopt-txt">
@@ -13759,8 +13759,209 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
 
   <script>
+    // ─── Top-level Timing & Date Helpers ──────────────────────────────
+    window.parseDateSafe = function(iso) {
+      if (!iso) return null;
+      let s = String(iso).trim();
+      if (!s) return null;
+      if (s.indexOf('T') === -1 && s.indexOf(' ') !== -1) s = s.replace(' ', 'T');
+      const d = new Date(s);
+      return isNaN(d.getTime()) ? null : d;
+    };
 
+    window.fmtDate = function(iso) {
+      const d = window.parseDateSafe(iso);
+      if (!d) return '—';
+      return d.toLocaleDateString('ar-EG', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    };
 
+    window.toLocalDT = function(iso) {
+      const d = window.parseDateSafe(iso);
+      if (!d) return '';
+      const p = n => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+    };
+
+    window.toLocalDateOnly = function(iso) {
+      const d = window.parseDateSafe(iso);
+      if (!d) return '';
+      const p = n => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+    };
+
+    window.isEndDateOnly = function(iso) {
+      const d = window.parseDateSafe(iso);
+      if (!d) return false;
+      return d.getHours() === 23 && d.getMinutes() === 59;
+    };
+
+    window.syncDateOnlyFromDateTime = function() {
+      const el = document.getElementById('fEnd');
+      const target = document.getElementById('fEndDateOnly');
+      if (el && target && el.value) {
+        target.value = el.value.split('T')[0];
+      }
+    };
+
+    window.syncDateTimeFromDateOnly = function() {
+      const el = document.getElementById('fEndDateOnly');
+      const target = document.getElementById('fEnd');
+      if (el && target && el.value) {
+        target.value = `${el.value}T23:59`;
+      }
+    };
+
+    window.toggleEndDateMode = function(syncFromCurrent = true) {
+      if (document.getElementById('fNoDeadline')?.checked) return;
+      const dateMode = document.getElementById('fEndDateMode')?.checked;
+      const endInput = document.getElementById('fEnd');
+      const endDateOnly = document.getElementById('fEndDateOnly');
+      const note = document.getElementById('endModeNote');
+      if (syncFromCurrent) {
+        if (dateMode) window.syncDateOnlyFromDateTime();
+        else window.syncDateTimeFromDateOnly();
+      }
+      if (endInput) endInput.style.display = dateMode ? 'none' : '';
+      if (endDateOnly) endDateOnly.style.display = dateMode ? '' : 'none';
+      if (note) {
+        note.textContent = dateMode
+          ? 'سيُغلق الامتحان تلقائياً في نهاية هذا اليوم.'
+          : 'سيُغلق الامتحان في الساعة التي تحددها هنا.';
+      }
+      window.updateTimingSummaryBadge();
+    };
+
+    window.toggleNoDeadline = function(sync = false) {
+      const noDeadline = document.getElementById('fNoDeadline')?.checked;
+      const block = document.getElementById('deadlineBlock');
+      const endDateMode = document.getElementById('fEndDateMode');
+      const note = document.getElementById('endModeNote');
+
+      if (sync && !noDeadline) {
+        window.toggleEndDateMode(false);
+      }
+      if (block) block.classList.toggle('is-disabled', !!noDeadline);
+      if (endDateMode) endDateMode.disabled = !!noDeadline;
+
+      if (note && noDeadline) {
+        note.textContent = 'لن يكون هناك آخر موعد، وستظل التاسك متاحة بعد البداية.';
+      } else if (note) {
+        note.textContent = document.getElementById('fEndDateMode')?.checked
+          ? 'سيُغلق الامتحان تلقائياً في نهاية هذا اليوم.'
+          : 'سيُغلق الامتحان في الساعة التي تحددها هنا.';
+      }
+      window.updateTimingSummaryBadge();
+    };
+
+    window.getNormalizedEndDateValue = function() {
+      if (document.getElementById('fNoDeadline')?.checked) return '';
+      const dateMode = document.getElementById('fEndDateMode')?.checked;
+      if (dateMode) {
+        const dateOnly = document.getElementById('fEndDateOnly')?.value;
+        return dateOnly ? `${dateOnly}T23:59` : '';
+      }
+      return document.getElementById('fEnd')?.value || '';
+    };
+
+    window.applyDuePreset = function(days) {
+      if (document.getElementById('fNoDeadline')?.checked) return;
+      const startVal = document.getElementById('fStart')?.value;
+      const base = startVal ? new Date(startVal) : new Date();
+      if (Number.isNaN(base.getTime())) return;
+
+      const target = new Date(base.getTime());
+      target.setDate(target.getDate() + days);
+      const p = n => String(n).padStart(2, '0');
+      const dateOnly = `${target.getFullYear()}-${p(target.getMonth() + 1)}-${p(target.getDate())}`;
+
+      const fEco = document.getElementById('fEndDateOnly');
+      const fE = document.getElementById('fEnd');
+      if (fEco) fEco.value = dateOnly;
+      if (fE) fE.value = `${dateOnly}T23:59`;
+
+      const note = document.getElementById('endModeNote');
+      if (document.getElementById('fEndDateMode')?.checked && note) {
+        note.textContent = 'سيُغلق الامتحان تلقائياً في نهاية هذا اليوم.';
+      }
+      window.updateTimingSummaryBadge();
+    };
+
+    window.setDefaultDates = function() {
+      const now = new Date();
+      const p = n => String(n).padStart(2, '0');
+      const f = d => `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+      const fd = d => `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+      const weekLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+      const fS = document.getElementById('fStart');
+      const fE = document.getElementById('fEnd');
+      const fEco = document.getElementById('fEndDateOnly');
+      if (fS) fS.value = f(now);
+      if (fE) fE.value = f(weekLater);
+      if (fEco) fEco.value = fd(weekLater);
+
+      window.updateTimingSummaryBadge();
+    };
+
+    window.updateTimingSummaryBadge = function() {
+      const pill = document.getElementById('timingSummaryPill');
+      const text = document.getElementById('timingSummaryText');
+      if (!text) return;
+
+      const noDeadline = document.getElementById('fNoDeadline')?.checked;
+      if (noDeadline) {
+        text.textContent = 'بدون تاريخ إنهاء (التاسك مفتوحة بدون حد أقصى)';
+        return;
+      }
+
+      const startVal = document.getElementById('fStart')?.value;
+      const endVal = window.getNormalizedEndDateValue();
+
+      let str = '';
+      if (startVal) {
+        const sDate = window.parseDateSafe(startVal);
+        if (sDate && !isNaN(sDate.getTime())) {
+          str += 'تبدأ في: ' + sDate.toLocaleDateString('ar-EG', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+        }
+      } else {
+        str += 'تبدأ فوراً';
+      }
+
+      if (endVal) {
+        const eDate = window.parseDateSafe(endVal);
+        if (eDate && !isNaN(eDate.getTime())) {
+          str += ' — تنتهي في: ' + eDate.toLocaleDateString('ar-EG', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+        }
+      } else {
+        str += ' — بدون موعد إغلاق محدد';
+      }
+
+      text.textContent = str;
+    };
+
+    window.toggleTimerRowDisplay = function(checked) {
+      const r = document.getElementById('timerRow');
+      if (r) r.style.display = checked ? 'block' : 'none';
+    };
+
+    window.applySimplePreset = function(days) {
+      window.applyDuePreset(days);
+      window.updateTimingSummaryBadge();
+    };
+
+    window.setNoDeadlineMode = function() {
+      const nd = document.getElementById('fNoDeadline');
+      if (nd) {
+        nd.checked = true;
+        window.toggleNoDeadline(true);
+      }
+      window.updateTimingSummaryBadge();
+    };
+
+    window.onEndDateTimeChange = function() {
+      window.syncDateOnlyFromDateTime();
+      window.updateTimingSummaryBadge();
+    };
 
     // ─── PHP config ────────────────────────────────────────────────
 
@@ -14977,7 +15178,7 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
 
 
-      document.getElementById('fShowAns').checked = false;
+      document.getElementById('fShowAns').checked = true;
 
 
 
@@ -16599,7 +16800,7 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
 
 
-      document.getElementById('fShowAns').checked = false;
+      document.getElementById('fShowAns').checked = true;
 
 
 
@@ -20701,37 +20902,88 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
     function setDefaultDates() {
 
-
-
       const now = new Date(); const p = n => String(n).padStart(2, '0');
-
-
 
       const f = d => `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 
-
-
       const fd = d => `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-
-
 
       const weekLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-
-
       document.getElementById('fStart').value = f(now);
-
-
 
       document.getElementById('fEnd').value = f(weekLater);
 
-
-
       document.getElementById('fEndDateOnly').value = fd(weekLater);
 
-
+      if (typeof updateTimingSummaryBadge === 'function') updateTimingSummaryBadge();
 
     }
+
+    function updateTimingSummaryBadge() {
+      const pill = document.getElementById('timingSummaryPill');
+      const text = document.getElementById('timingSummaryText');
+      if (!text) return;
+
+      const noDeadline = document.getElementById('fNoDeadline')?.checked;
+      if (noDeadline) {
+        text.textContent = 'بدون تاريخ إنهاء (التاسك مفتوحة بدون حد أقصى)';
+        return;
+      }
+
+      const startVal = document.getElementById('fStart')?.value;
+      const endVal = typeof getNormalizedEndDateValue === 'function' ? getNormalizedEndDateValue() : (document.getElementById('fEnd')?.value || '');
+
+      let str = '';
+      if (startVal) {
+        const sDate = typeof parseDateSafe === 'function' ? parseDateSafe(startVal) : new Date(startVal);
+        if (sDate && !isNaN(sDate.getTime())) {
+          str += 'تبدأ في: ' + (typeof formatDateArabic === 'function' ? formatDateArabic(sDate) : sDate.toLocaleString('ar-EG'));
+        }
+      } else {
+        str += 'تبدأ فوراً';
+      }
+
+      if (endVal) {
+        const eDate = typeof parseDateSafe === 'function' ? parseDateSafe(endVal) : new Date(endVal);
+        if (eDate && !isNaN(eDate.getTime())) {
+          str += ' — تنتهي في: ' + (typeof formatDateArabic === 'function' ? formatDateArabic(eDate) : eDate.toLocaleString('ar-EG'));
+        }
+      } else {
+        str += ' — بدون موعد إغلاق محدد';
+      }
+
+      text.textContent = str;
+    }
+    window.updateTimingSummaryBadge = updateTimingSummaryBadge;
+
+    function toggleTimerRowDisplay(checked) {
+      const r = document.getElementById('timerRow');
+      if (r) r.style.display = checked ? 'block' : 'none';
+    }
+    window.toggleTimerRowDisplay = toggleTimerRowDisplay;
+
+    function applySimplePreset(days) {
+      if (typeof applyDuePreset === 'function') applyDuePreset(days);
+      updateTimingSummaryBadge();
+    }
+    window.applySimplePreset = applySimplePreset;
+
+    function setNoDeadlineMode() {
+      const nd = document.getElementById('fNoDeadline');
+      if (nd) {
+        nd.checked = true;
+        if (typeof toggleNoDeadline === 'function') toggleNoDeadline(true);
+      }
+      updateTimingSummaryBadge();
+    }
+    window.setNoDeadlineMode = setNoDeadlineMode;
+
+    function onEndDateTimeChange() {
+      if (typeof syncDateOnlyFromDateTime === 'function') syncDateOnlyFromDateTime();
+      updateTimingSummaryBadge();
+    }
+    window.onEndDateTimeChange = onEndDateTimeChange;
 
 
 
