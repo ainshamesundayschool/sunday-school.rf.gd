@@ -11642,23 +11642,13 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
     .ans-shell {
 
-
-
       padding: 20px;
-
-
 
       max-height: min(78vh, 760px);
 
-
-
       overflow-y: auto;
 
-
-
-      background: var(--bg2);
-
-
+      background: var(--bg);
 
     }
 
@@ -11670,43 +11660,21 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
     .ans-head {
 
-
-
       display: flex;
-
-
 
       align-items: center;
 
-
-
       gap: 14px;
-
-
 
       padding: 16px 18px;
 
-
-
       border-radius: var(--r-lg);
 
-
-
-      background: var(--bg);
-
-
+      background: var(--bg2);
 
       border: 1px solid var(--bdr);
 
-
-
-      box-shadow: var(--sh-sm);
-
-
-
       margin-bottom: 14px;
-
-
 
     }
 
@@ -11830,31 +11798,15 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
     .ans-question {
 
-
-
       margin-bottom: 14px;
-
-
 
       padding: 16px;
 
-
-
       border: 1px solid var(--bdr);
-
-
 
       border-radius: var(--r-lg);
 
-
-
-      background: var(--bg);
-
-
-
-      box-shadow: var(--sh-sm);
-
-
+      background: var(--bg2);
 
     }
 
@@ -20591,27 +20543,29 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
       const ov = document.createElement('div');
       ov.className = 'overlay open';
       ov.style.zIndex = '3000';
-      ov.style.padding = '0';
-      ov.style.alignItems = 'stretch';
+      ov.style.padding = '16px';
+      ov.style.display = 'flex';
+      ov.style.alignItems = 'center';
+      ov.style.justifyContent = 'center';
 
       ov.innerHTML = `
-    <div class="modal" style="width:100%; height:100vh; height:100dvh; max-width:100%; max-height:100vh; max-height:100dvh; margin:0; border-radius:0; display:flex; flex-direction:column; background:var(--bg3);">
-      <div class="mhdr" style="background:var(--bg3); padding:16px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--bdr);">
+    <div class="modal" style="width:92%; max-width:840px; max-height:88vh; max-height:88dvh; margin:auto; border-radius:20px; display:flex; flex-direction:column; background:var(--bg); border:1px solid var(--bdr); box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); overflow:hidden;">
+      <div class="mhdr" style="background:var(--bg); padding:16px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--bdr);">
         <div style="display:flex; align-items:center; gap:10px;">
-          <div style="width:32px;height:32px;border-radius:10px;background:var(--brand-bg);color:var(--brand);display:flex;align-items:center;justify-content:center;"><i class="fas fa-eye" style="font-size:.85rem;"></i></div>
+          <div style="width:34px;height:34px;border-radius:10px;background:var(--bg2);color:var(--t1);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;"><i class="fas fa-eye" style="font-size:.85rem;"></i></div>
           <div style="color:var(--t1);font-weight:800;font-size:1rem;font-family:'Cairo',sans-serif;">مراجعة الإجابات</div>
         </div>
         
         <!-- Navigation Arrows -->
-        <div class="modal-nav-arrows" style="display:flex; align-items:center; gap:12px; margin-right:auto; margin-left:20px; direction:rtl;">
-          <button onclick="navigateSubmission(-1)" id="prevSubBtn" style="background:var(--bg2); border:1px solid var(--bdr); color:var(--t1); width:36px; height:36px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;" onmouseover="this.style.background='var(--brand-bg)'; this.style.color='var(--brand)';" onmouseout="this.style.background='var(--bg2)'; this.style.color='var(--t1)';"><i class="fas fa-chevron-right"></i></button>
+        <div class="modal-nav-arrows" style="display:flex; align-items:center; gap:10px; margin-right:auto; margin-left:20px; direction:rtl;">
+          <button onclick="navigateSubmission(-1)" id="prevSubBtn" style="background:var(--bg2); border:1px solid var(--bdr); color:var(--t1); width:34px; height:34px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;" onmouseover="this.style.background='var(--brand-bg)'; this.style.color='var(--brand)';" onmouseout="this.style.background='var(--bg2)'; this.style.color='var(--t1)';"><i class="fas fa-chevron-right"></i></button>
           <span id="subIndexIndicator" style="font-size:0.8rem; font-weight:800; color:var(--t2); min-width:45px; text-align:center;">—</span>
-          <button onclick="navigateSubmission(1)" id="nextSubBtn" style="background:var(--bg2); border:1px solid var(--bdr); color:var(--t1); width:36px; height:36px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;" onmouseover="this.style.background='var(--brand-bg)'; this.style.color='var(--brand)';" onmouseout="this.style.background='var(--bg2)'; this.style.color='var(--t1)';"><i class="fas fa-chevron-left"></i></button>
+          <button onclick="navigateSubmission(1)" id="nextSubBtn" style="background:var(--bg2); border:1px solid var(--bdr); color:var(--t1); width:34px; height:34px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;" onmouseover="this.style.background='var(--brand-bg)'; this.style.color='var(--brand)';" onmouseout="this.style.background='var(--bg2)'; this.style.color='var(--t1)';"><i class="fas fa-chevron-left"></i></button>
         </div>
 
-        <button onclick="this.closest('.overlay').remove(); document.documentElement.classList.remove('ov-open');" style="background:var(--bg2); border:1px solid var(--bdr); color:var(--t2); width:34px; height:34px; border-radius:10px; cursor:pointer; font-size:.85rem; display:flex; align-items:center; justify-content:center; transition:0.2s;" onmouseover="this.style.background='var(--err-bg)'; this.style.color='var(--err)';" onmouseout="this.style.background='var(--bg2)'; this.style.color='var(--t2)';"><i class="fas fa-times"></i></button>
+        <button onclick="this.closest('.overlay').remove(); document.documentElement.classList.remove('ov-open');" style="background:var(--bg2); border:1px solid var(--bdr); color:var(--t2); width:32px; height:32px; border-radius:10px; cursor:pointer; font-size:.85rem; display:flex; align-items:center; justify-content:center; transition:0.2s;" onmouseover="this.style.background='var(--err-bg)'; this.style.color='var(--err)';" onmouseout="this.style.background='var(--bg2)'; this.style.color='var(--t2)';"><i class="fas fa-times"></i></button>
       </div>
-      <div class="mbody" id="modalSubmissionsBody" style="padding:0; flex:1; overflow-y:auto; background:var(--bg2);">${html}</div>
+      <div class="mbody" id="modalSubmissionsBody" style="padding:0; flex:1; overflow-y:auto; background:var(--bg);">${html}</div>
     </div>
   `;
 
