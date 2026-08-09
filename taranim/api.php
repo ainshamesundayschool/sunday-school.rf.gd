@@ -65,49 +65,116 @@ try {
     }
 }
 
+function fetchExternalUrl($url) {
+    if (function_exists('curl_init')) {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 8);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'SundaySchoolTaranim/2.0');
+        $output = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        if ($httpCode === 200 && !empty($output)) {
+            return $output;
+        }
+    }
+    $opts = [
+        'http' => [
+            'method' => 'GET',
+            'header' => "User-Agent: SundaySchoolTaranim/2.0\r\n",
+            'timeout' => 8
+        ],
+        'ssl' => ['verify_peer' => false, 'verify_peer_name' => false]
+    ];
+    $context = stream_context_create($opts);
+    return @file_get_contents($url, false, $context);
+}
+
 // SILENT BACKGROUND SYNC WITH ONLINE TASBE7NA REPOSITORY
-function syncOnlineTasbe7naDatabase($pdo) {
+function syncOnlineTasbe7naDatabase($pdo, $force = false) {
     if (!$pdo) return;
     $syncLockFile = __DIR__ . '/.tasbe7na_sync.lock';
-    if (file_exists($syncLockFile) && (time() - filemtime($syncLockFile) < 21600)) {
+    if (!$force && file_exists($syncLockFile) && (time() - filemtime($syncLockFile) < 14400)) {
         return;
     }
-    @touch($syncLockFile);
 
-    try {
-        $opts = [
-            'http' => [
-                'method' => 'GET',
-                'header' => "User-Agent: SundaySchoolTaranim/2.0\r\n",
-                'timeout' => 4
-            ],
-            'ssl' => ['verify_peer' => false, 'verify_peer_name' => false]
-        ];
-        $context = stream_context_create($opts);
-        $json = @file_get_contents('https://raw.githubusercontent.com/tashbe7na/database/main/latest.json', false, $context);
+    $sourceUrls = [
+        'https://raw.githubusercontent.com/josephwasily/TasbehnaToOpenLyrics/main/tasbe7naDB.json',
+        'https://raw.githubusercontent.com/josephwasily/TasbehnaToOpenLyrics/master/tasbe7naDB.json',
+        'https://raw.githubusercontent.com/ainshamesundayschool/sunday-school.rf.gd/main/taranim/songs_catalog.json'
+    ];
 
-        if ($json) {
-            $data = json_decode($json, true);
-            if (is_array($data)) {
-                $checkStmt  = $pdo->prepare("SELECT id FROM songs WHERE title = :title");
-                $insertStmt = $pdo->prepare("INSERT INTO songs (item_id, title, notes) VALUES (:itemId, :title, :notes)");
-
-                foreach ($data as $song) {
-                    if (!empty($song['title'])) {
-                        $checkStmt->execute([':title' => $song['title']]);
-                        if (!$checkStmt->fetch()) {
-                            $newItemId = rand(900000, 999999);
-                            $insertStmt->execute([
-                                ':itemId' => $newItemId,
-                                ':title'  => $song['title'],
-                                ':notes'  => isset($song['notes']) ? $song['notes'] : ''
-                            ]);
-                        }
-                    }
-                }
+    $json = null;
+    foreach ($sourceUrls as $url) {
+        $res = fetchExternalUrl($url);
+        if ($res) {
+            $testData = json_decode($res, true);
+            if (is_array($testData) && count($testData) > 0) {
+                $json = $res;
+                break;
             }
         }
-    } catch (Exception $e) {}
+    }
+
+    if ($json) {
+        $data = json_decode($json, true);
+        if (is_array($data)) {
+            try {
+                $checkStmt  = $pdo->prepare("SELECT id FROM songs WHERE title = :title OR title = :titleClean");
+                $insertSong = $pdo->prepare("INSERT INTO songs (item_id, title, notes) VALUES (:itemId, :title, :notes)");
+                $insertItem = null;
+                try {
+                    $insertItem = $pdo->prepare("INSERT INTO items (item_id, type) VALUES (:itemId, 0)");
+                } catch (Exception $e) {}
+
+                $importedCount = 0;
+                foreach ($data as $song) {
+                    $rawTitle = isset($song['title']) ? trim($song['title']) : (isset($song['name']) ? trim($song['name']) : '');
+                    if (empty($rawTitle)) continue;
+
+                    $checkStmt->execute([':title' => $rawTitle, ':titleClean' => normalizeArabic($rawTitle)]);
+                    if (!$checkStmt->fetch()) {
+                        $newItemId = rand(900000, 999999);
+                        $songNotes = '';
+                        if (isset($song['notes']) && !empty($song['notes'])) {
+                            $songNotes = is_string($song['notes']) ? $song['notes'] : json_encode($song['notes'], JSON_UNESCAPED_UNICODE);
+                        } else if (isset($song['text']) && !empty($song['text'])) {
+                            $songNotes = $song['text'];
+                        } else if (isset($song['verses']) && is_array($song['verses'])) {
+                            $verseTexts = [];
+                            foreach ($song['verses'] as $v) {
+                                if (isset($v['slides']) && is_array($v['slides'])) {
+                                    foreach ($v['slides'] as $sl) {
+                                        if (isset($sl['lines']) && is_array($sl['lines'])) {
+                                            $verseTexts[] = implode("\n", $sl['lines']);
+                                        } else if (isset($sl['text'])) {
+                                            $verseTexts[] = $sl['text'];
+                                        }
+                                    }
+                                }
+                            }
+                            $songNotes = implode("\n\n", $verseTexts);
+                        }
+
+                        $insertSong->execute([
+                            ':itemId' => $newItemId,
+                            ':title'  => $rawTitle,
+                            ':notes'  => $songNotes
+                        ]);
+                        if ($insertItem) {
+                            try { $insertItem->execute([':itemId' => $newItemId]); } catch (Exception $ex) {}
+                        }
+                        $importedCount++;
+                    }
+                }
+                @touch($syncLockFile);
+            } catch (Exception $e) {}
+        }
+    }
 }
 
 function normalizeArabic($text) {
@@ -120,7 +187,13 @@ function normalizeArabic($text) {
     return trim(mb_strtolower($text, 'UTF-8'));
 }
 
-if ($pdo && rand(1, 4) === 1) {
+if (isset($_GET['action']) && $_GET['action'] === 'sync') {
+    syncOnlineTasbe7naDatabase($pdo, true);
+    echo json_encode(['status' => 'success', 'message' => 'Sync triggered']);
+    exit;
+}
+
+if ($pdo && rand(1, 3) === 1) {
     syncOnlineTasbe7naDatabase($pdo);
 }
 
