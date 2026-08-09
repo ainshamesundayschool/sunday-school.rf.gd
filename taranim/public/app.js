@@ -2890,38 +2890,52 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // 2. EXTERNAL DISPLAY (TV / Projector) -> SYNCHRONOUS window.open FOR REAL MULTI-SCREEN PLACEMENT
+    // 2. EXTERNAL DISPLAY (TV / Projector) -> TARGET THE OTHER MONITOR THAT DOES NOT HAVE CONTROL PANEL
     let extScreen = null;
-    let left = (window.screen.availLeft || 0) + (window.screen.width || 1920);
-    let top = window.screen.availTop || 0;
-    let width = window.screen.availWidth || window.screen.width || 1920;
-    let height = window.screen.availHeight || window.screen.height || 1080;
+    let left = 1920;
+    let top = 0;
+    let width = 1920;
+    let height = 1080;
     let targetIdx = 1;
 
+    // Detect where the control panel window is currently positioned
+    const winX = window.screenX !== undefined ? window.screenX : (window.screenLeft !== undefined ? window.screenLeft : 0);
+    const winY = window.screenY !== undefined ? window.screenY : (window.screenTop !== undefined ? window.screenTop : 0);
+
     if (screenDetails && screenDetails.screens && screenDetails.screens.length > 1) {
-      extScreen = screenDetails.screens.find(s => !s.isPrimary) || screenDetails.screens[1];
+      // Find screen that DOES NOT contain current control panel window
+      const controlPanelScreen = screenDetails.screens.find(s => 
+        winX >= (s.availLeft || s.left || 0) && winX < ((s.availLeft || s.left || 0) + (s.width || 1920))
+      );
+
+      extScreen = screenDetails.screens.find(s => s !== controlPanelScreen) || screenDetails.screens.find(s => !s.isPrimary) || screenDetails.screens[1];
+
       if (extScreen) {
-        left = extScreen.availLeft !== undefined ? extScreen.availLeft : (extScreen.left !== undefined ? extScreen.left : left);
-        top = extScreen.availTop !== undefined ? extScreen.availTop : (extScreen.top !== undefined ? extScreen.top : top);
-        width = extScreen.availWidth || extScreen.width || width;
-        height = extScreen.availHeight || extScreen.height || height;
+        left = extScreen.availLeft !== undefined ? extScreen.availLeft : (extScreen.left !== undefined ? extScreen.left : 1920);
+        top = extScreen.availTop !== undefined ? extScreen.availTop : (extScreen.top !== undefined ? extScreen.top : 0);
+        width = extScreen.availWidth || extScreen.width || 1920;
+        height = extScreen.availHeight || extScreen.height || 1080;
         targetIdx = screenDetails.screens.indexOf(extScreen);
       }
     } else {
-      const winX = window.screenX !== undefined ? window.screenX : (window.screenLeft !== undefined ? window.screenLeft : 0);
       const primaryW = window.screen.width || 1920;
       const availL = window.screen.availLeft || 0;
 
+      // If control panel is on secondary monitor (x >= 75% of primary width), target primary monitor (availL)
+      // Otherwise, target secondary monitor (availL + primaryW)
       if (winX >= (availL + primaryW * 0.75)) {
         left = availL;
       } else {
         left = availL + primaryW;
       }
+      top = window.screen.availTop || 0;
+      width = window.screen.availWidth || 1920;
+      height = window.screen.availHeight || 1080;
     }
 
     state.selectedScreen = {
       val: 'external',
-      label: '\u0634\u0627\u0634\u0629 \u0639\u0631\u0636 \u062e\u0627\u0631\u062c\u064a\u0629 2 (TV / \u0627\u0644\u0628\u0631\u0648\u062c\u064a\u0643\u062a\u0648\u0631)',
+      label: 'شاشة عرض خارجية 2 (TV / البروجيكتور)',
       width: width,
       height: height,
       isPrimary: false
@@ -2949,7 +2963,7 @@ document.addEventListener('DOMContentLoaded', () => {
       moveWin();
       setTimeout(moveWin, 150);
       setTimeout(moveWin, 450);
-      showToast('\u062a\u0645 \u0641\u062a\u062d \u0634\u0627\u0634\u0629 \u0627\u0644\u0639\u0631\u0636 \u0627\u0644\u062e\u0627\u0631\u062c\u064a\u0629.');
+      showToast('تم فتح شاشة العرض الخارجية.');
     }
 
     if ('getScreenDetails' in window && !screenDetails) {
