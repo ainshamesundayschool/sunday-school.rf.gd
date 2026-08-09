@@ -3374,11 +3374,13 @@ document.addEventListener('DOMContentLoaded', () => {
         state.allSongs = rawList.map(song => {
           const tNorm = normalizeArabic(song.title || '');
           const nNorm = normalizeArabic(song.notes || '');
+          const tSkeleton = typeof extractArabicConsonantSkeleton === 'function' ? extractArabicConsonantSkeleton(song.title || '') : '';
           return {
             ...song,
             _tNorm: tNorm,
             _nNorm: nNorm,
-            _searchIndex: tNorm + ' ' + nNorm
+            _tSkeleton: tSkeleton,
+            _searchIndex: tNorm + ' ' + nNorm + ' ' + tSkeleton
           };
         });
         // Re-hydrate active song from canonical catalog if it was restored on page load before catalog fetched
@@ -3442,27 +3444,63 @@ document.addEventListener('DOMContentLoaded', () => {
     let localMatches = [];
     if (state.allSongs && state.allSongs.length > 0) {
       const qNorm = normalizeArabic(searchTarget);
-      const isFrancoInput = state.francoAutoTranslate && /[a-z]/i.test(searchTarget) && !/[\u0600-\u06FF]/.test(searchTarget);
+      const isFrancoInput = /[a-z]/i.test(searchTarget) && !/[\u0600-\u06FF]/.test(searchTarget);
       const qFrancoRaw = isFrancoInput ? francoToArabic(searchTarget) : '';
       const qTarget = isFrancoInput && qFrancoRaw ? qFrancoRaw : qNorm;
+      
+      const qTargetSkeleton = typeof extractArabicConsonantSkeleton === 'function' 
+        ? extractArabicConsonantSkeleton(qTarget) 
+        : '';
 
-      const titleMatches = [];
-      const bodyMatches = [];
+      const qWords = qTarget.split(/\s+/).filter(w => w.length >= 2);
+      const qWordSkeletons = typeof getWordConsonantSkeleton === 'function'
+        ? qWords.map(getWordConsonantSkeleton).filter(w => w.length >= 2)
+        : [];
+
+      const candidateMap = new Map();
       const len = state.allSongs.length;
 
       for (let i = 0; i < len; i++) {
         const song = state.allSongs[i];
-        const tNorm = song._tNorm;
-        const sIndex = song._searchIndex || (tNorm + ' ' + (song._nNorm || ''));
+        const tNorm = song._tNorm || '';
+        const nNorm = song._nNorm || '';
+        const tSkeleton = song._tSkeleton || '';
+        const sIndex = song._searchIndex || (tNorm + ' ' + nNorm);
 
-        if (tNorm.includes(qTarget)) {
-          titleMatches.push(song);
-        } else if (sIndex.includes(qTarget)) {
-          bodyMatches.push(song);
+        let isCandidate = false;
+
+        if (tNorm.includes(qTarget) || sIndex.includes(qTarget)) {
+          isCandidate = true;
+        } else if (qNorm && (tNorm.includes(qNorm) || sIndex.includes(qNorm))) {
+          isCandidate = true;
+        } else if (qTargetSkeleton && qTargetSkeleton.length >= 3 && tSkeleton.includes(qTargetSkeleton)) {
+          isCandidate = true;
+        } else if (qWordSkeletons.length > 0 && qWordSkeletons.every(qw => tSkeleton.includes(qw))) {
+          isCandidate = true;
+        } else if (qWords.length > 1 && qWords.every(w => sIndex.includes(w))) {
+          isCandidate = true;
+        }
+
+        if (isCandidate) {
+          const score = calculateSongMatchScore(song, searchTarget);
+          if (score > 0) {
+            candidateMap.set(song.id || song.item_id, { ...song, _score: score });
+          }
         }
       }
 
-      localMatches = titleMatches.concat(bodyMatches);
+      // Fallback: If no candidate matched using fast filters, score full catalog
+      if (candidateMap.size === 0 && searchTarget.length >= 3) {
+        for (let i = 0; i < len; i++) {
+          const song = state.allSongs[i];
+          const score = calculateSongMatchScore(song, searchTarget);
+          if (score > 0) {
+            candidateMap.set(song.id || song.item_id, { ...song, _score: score });
+          }
+        }
+      }
+
+      localMatches = Array.from(candidateMap.values()).sort((a, b) => b._score - a._score);
     }
 
     let songsList = localMatches;
