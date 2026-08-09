@@ -8320,11 +8320,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       });
       const map = { start: 'examStartView', active: 'examActiveView', result: 'examResultView' };
       const el = document.getElementById(map[which]);
+      const scr = document.getElementById('examScreen');
+      if (which === 'result') {
+        scr.style.background = 'rgba(15, 23, 42, 0.65)';
+        scr.style.backdropFilter = 'blur(8px)';
+        scr.style.webkitBackdropFilter = 'blur(8px)';
+        scr.style.display = 'flex';
+        scr.style.alignItems = 'center';
+        scr.style.justifyContent = 'center';
+      } else {
+        scr.style.background = 'var(--bg)';
+        scr.style.backdropFilter = 'none';
+        scr.style.webkitBackdropFilter = 'none';
+        scr.style.display = 'block';
+      }
       if (el) { el.style.display = 'flex'; }
     }
 
 
-    function buildResultCard(score, total, pct, coupons, hasOpenQs, taskId, showAnswers) {
+    function _legacyBuildResultCard(score, total, pct, coupons, hasOpenQs, taskId, showAnswers) {
       let grad, iconCls, msg, color;
       if (pct >= 90) {
         grad = 'linear-gradient(135deg, #059669 0%, #10b981 100%)';
@@ -8390,7 +8404,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
   </style>
   `;
     }
-    function showExamResult(t, sub) {
+    function _legacyShowExamResult(t, sub) {
       curTask = t; examDone = true;
       const pct = t.total_degree > 0 ? Math.round(sub.score / t.total_degree * 100) : 0;
       const hasOpenQs = (t.questions || []).some(q => q.question_type === 'open');
