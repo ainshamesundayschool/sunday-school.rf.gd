@@ -4869,6 +4869,240 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
     }
 
+    /* Taranim & Bible Verses Integration Styles */
+    .q-bible-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.15));
+      color: #6366f1;
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      border-radius: var(--r-md, 10px);
+      padding: 6px 10px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+    .q-bible-btn:hover {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: #fff;
+      border-color: transparent;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+    .q-bible-btn i {
+      font-size: 0.85rem;
+    }
+
+    /* Onboarding Connection Banner Modal */
+    .taranim-onboard-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 11000 !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .taranim-onboard-card {
+      background: var(--bg1, #ffffff);
+      border: 1px solid var(--bdr, rgba(226, 232, 240, 0.8));
+      border-radius: 24px;
+      width: 100%;
+      max-width: 480px;
+      padding: 32px 24px;
+      text-align: center;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      position: relative;
+      overflow: hidden;
+    }
+    .taranim-onboard-card::before {
+      content: '';
+      position: absolute;
+      top: -50px; left: 50%;
+      transform: translateX(-50%);
+      width: 250px; height: 100px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(236, 72, 153, 0.2));
+      filter: blur(40px);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .logo-connection-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      margin: 10px 0 24px 0;
+      position: relative;
+    }
+    .brand-node-logo {
+      width: 76px;
+      height: 76px;
+      border-radius: 20px;
+      object-fit: cover;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 0 0 3px rgba(255, 255, 255, 0.8);
+      background: var(--bg2, #f8fafc);
+      transition: transform 0.3s ease;
+    }
+    .brand-node-logo:hover {
+      transform: scale(1.05);
+    }
+    .connection-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      position: relative;
+    }
+    .connection-line {
+      position: absolute;
+      top: 50%;
+      left: -20px;
+      right: -20px;
+      height: 3px;
+      background: linear-gradient(90deg, #6366f1, #ec4899);
+      z-index: 1;
+      border-radius: 3px;
+      opacity: 0.6;
+    }
+    .connection-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      box-shadow: 0 0 16px rgba(99, 102, 241, 0.6);
+      z-index: 2;
+      animation: pulseLink 2s infinite ease-in-out;
+    }
+    @keyframes pulseLink {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 16px rgba(99, 102, 241, 0.6); }
+      50% { transform: scale(1.12); box-shadow: 0 0 24px rgba(236, 72, 153, 0.8); }
+    }
+    .taranim-onboard-title {
+      font-family: 'Baloo Bhaijaan 2', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--t1, #0f172a);
+      margin-bottom: 8px;
+    }
+    .taranim-onboard-desc {
+      font-size: 0.92rem;
+      color: var(--t2, #475569);
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .taranim-onboard-btn {
+      width: 100%;
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: #ffffff;
+      border: none;
+      border-radius: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 8px 20px -4px rgba(99, 102, 241, 0.4);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .taranim-onboard-btn:hover {
+      background: linear-gradient(135deg, #4f46e5, #4338ca);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px -4px rgba(99, 102, 241, 0.5);
+    }
+
+    /* Bible Verse Search Picker Modal */
+    .bible-modal-card {
+      max-width: 620px;
+      width: 100%;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      padding: 24px !important;
+      text-align: right !important;
+    }
+    .bible-modal-body {
+      overflow-y: auto;
+      padding: 12px 4px;
+      flex: 1;
+    }
+    .bible-verse-item {
+      background: var(--bg2, #f8fafc);
+      border: 1px solid var(--bdr, #e2e8f0);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 10px;
+      transition: all 0.2s ease;
+      text-align: right;
+    }
+    .bible-verse-item:hover {
+      border-color: #6366f1;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.08);
+    }
+    .bible-verse-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .bible-verse-ref {
+      font-weight: 700;
+      color: #6366f1;
+      font-size: 0.95rem;
+    }
+    .bible-verse-text {
+      font-size: 0.92rem;
+      color: var(--t1, #1e293b);
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+    .bible-verse-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+    .btn-insert-verse {
+      padding: 6px 12px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-insert-full {
+      background: #6366f1;
+      color: #fff;
+    }
+    .btn-insert-full:hover {
+      background: #4f46e5;
+    }
+    .btn-insert-ref {
+      background: var(--bg3, #f1f5f9);
+      color: var(--t2, #475569);
+      border: 1px solid var(--bdr, #cbd5e1);
+    }
+    .btn-insert-ref:hover {
+      background: var(--bdr, #cbd5e1);
+      color: var(--t1, #0f172a);
+    }
+
 
 
 
@@ -15625,6 +15859,8 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
         '<input class="qi" type="text" placeholder="نص السؤال\u2026" value="' + esc(qtxt) + '">' +
 
+        '<button type="button" class="q-bible-btn" onclick="openBibleVerseModalForQ(\'' + id + '\')" title="إضافة آية من الكتاب المقدس"><i class="fas fa-bible"></i> آية</button>' +
+
 
 
         '<div class="qdeg"><span class="qdeg-l">الدرجة</span><input class="qdeg-i" type="number" min="1" max="100" value="' + deg + '" oninput="updDeg()"></div>' +
@@ -17238,6 +17474,8 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
 
         '<input class="qi" type="text" placeholder="نص السؤال\u2026" value="' + esc(qtxt) + '">' +
+
+        '<button type="button" class="q-bible-btn" onclick="openBibleVerseModalForQ(\'' + id + '\')" title="إضافة آية من الكتاب المقدس"><i class="fas fa-bible"></i> آية</button>' +
 
 
 
@@ -21810,6 +22048,306 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
       </div>
     </div>
   </div>
+
+  <!-- TARANIM & BIBLE CONNECTION ONBOARDING MODAL -->
+  <div id="taranimOnboardingModal" class="taranim-onboard-overlay" style="display:none;">
+    <div class="taranim-onboard-card">
+      <button type="button" onclick="closeTaranimOnboardingModal()" style="position:absolute; top:16px; left:16px; background:var(--bg2, #f1f5f9); border:none; width:32px; height:32px; border-radius:50%; color:var(--t2); cursor:pointer; display:flex; align-items:center; justify-content:center;">
+        <i class="fas fa-times"></i>
+      </button>
+
+      <div class="logo-connection-container">
+        <!-- Sunday School Logo -->
+        <img src="/logo.png" class="brand-node-logo" alt="Sunday School Logo">
+        
+        <!-- Connection Node Art -->
+        <div class="connection-node">
+          <div class="connection-line"></div>
+          <div class="connection-badge">
+            <i class="fas fa-link"></i>
+          </div>
+        </div>
+
+        <!-- Taranim Logo -->
+        <img src="/taranim/logo_t.png" class="brand-node-logo" alt="Taranim Logo">
+      </div>
+
+      <h3 class="taranim-onboard-title">ربط قاعدة الترانيم والكتاب المقدس</h3>
+      <p class="taranim-onboard-desc">
+        تم ربط نظام مدارس الأحد بنجاح مع قاعدة بيانات الكتاب المقدس والترانيم! يمكنك الآن البحث عن الآيات والتطبيقات مباشرة وتضمينها في نص أسئلة التاسكات بضغطة زر.
+      </p>
+
+      <button type="button" class="taranim-onboard-btn" onclick="confirmTaranimOnboarding()">
+        <span>متابعة</span>
+        <i class="fas fa-arrow-left"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- BIBLE VERSE SEARCH & PICKER MODAL -->
+  <div id="bibleVerseModal" class="taranim-onboard-overlay" style="display:none;">
+    <div class="taranim-onboard-card bible-modal-card">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding-bottom:12px; border-bottom:1px solid var(--bdr, #e2e8f0);">
+        <h3 style="font-family:'Baloo Bhaijaan 2', sans-serif; font-size:1.15rem; font-weight:700; color:var(--t1); margin:0; display:flex; align-items:center; gap:8px;">
+          <i class="fas fa-bible" style="color:#6366f1;"></i> إضافة آية من الكتاب المقدس
+        </h3>
+        <button type="button" onclick="closeBibleVerseModal()" style="background:var(--bg2, #f1f5f9); border:none; width:32px; height:32px; border-radius:50%; color:var(--t2); cursor:pointer; display:flex; align-items:center; justify-content:center;">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Search Controls -->
+      <div style="padding:14px 0 10px 0; display:flex; flex-direction:column; gap:10px;">
+        <div style="position:relative;">
+          <input type="text" id="bibleSearchInput" oninput="onBibleSearchInput()" placeholder="ابحث باسم السفر، الأصحاح، أو كلمة في الآية (مثال: يوحنا 3، تكوين 1، محبة)..." style="width:100%; padding:10px 38px 10px 14px; border-radius:12px; border:1px solid var(--bdr); background:var(--bg2); color:var(--t1); font-size:0.88rem; outline:none;" />
+          <i class="fas fa-search" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); color:var(--t3); font-size:0.9rem;"></i>
+        </div>
+
+        <div style="display:flex; gap:8px;">
+          <select id="bibleBookSelect" onchange="onBibleBookSelectChange()" style="flex:2; padding:8px 10px; border-radius:10px; border:1px solid var(--bdr); background:var(--bg2); color:var(--t1); font-size:0.82rem; outline:none;">
+            <option value="">جميع أسفار الكتاب المقدس...</option>
+          </select>
+          <select id="bibleChapterSelect" onchange="onBibleChapterSelectChange()" style="flex:1; padding:8px 10px; border-radius:10px; border:1px solid var(--bdr); background:var(--bg2); color:var(--t1); font-size:0.82rem; outline:none;">
+            <option value="">الأصحاح...</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Results Body -->
+      <div class="bible-modal-body" id="bibleResultsList">
+        <div style="text-align:center; padding:30px 10px; color:var(--t3); font-size:0.88rem;">
+          <i class="fas fa-search" style="font-size:2rem; margin-bottom:10px; opacity:0.5; display:block;"></i>
+          اكتب كلمة البحث أو اختر السفر والأصحاح لعرض الآيات
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ══════════════════════════════════════════════════════════════════
+    // TARANIM & BIBLE VERSES INTEGRATION JARS
+    // ══════════════════════════════════════════════════════════════════
+    window.currentBibleTargetQId = null;
+    window.bibleBooksData = [];
+
+    function openBibleVerseModalForQ(qId) {
+      window.currentBibleTargetQId = qId;
+      var onboarded = localStorage.getItem('taranim_bible_tool_onboarded');
+      if (!onboarded) {
+        var obm = document.getElementById('taranimOnboardingModal');
+        if (obm) obm.style.display = 'flex';
+      } else {
+        showBibleVerseModal();
+      }
+    }
+
+    function closeTaranimOnboardingModal() {
+      var obm = document.getElementById('taranimOnboardingModal');
+      if (obm) obm.style.display = 'none';
+    }
+
+    function confirmTaranimOnboarding() {
+      localStorage.setItem('taranim_bible_tool_onboarded', 'true');
+      closeTaranimOnboardingModal();
+      showBibleVerseModal();
+    }
+
+    function showBibleVerseModal() {
+      var bvm = document.getElementById('bibleVerseModal');
+      if (bvm) bvm.style.display = 'flex';
+      if (!window.bibleBooksData || window.bibleBooksData.length === 0) {
+        loadBibleBooksData();
+      }
+    }
+
+    function closeBibleVerseModal() {
+      var bvm = document.getElementById('bibleVerseModal');
+      if (bvm) bvm.style.display = 'none';
+    }
+
+    async function loadBibleBooksData() {
+      try {
+        const res = await fetch('/taranim/bible_books_data.json');
+        if (res.ok) {
+          window.bibleBooksData = await res.json();
+          populateBibleBookSelect();
+        }
+      } catch (e) {
+        console.error('Failed loading bible books data:', e);
+      }
+    }
+
+    function populateBibleBookSelect() {
+      var sel = document.getElementById('bibleBookSelect');
+      if (!sel) return;
+      sel.innerHTML = '<option value="">جميع أسفار الكتاب المقدس...</option>';
+      if (Array.isArray(window.bibleBooksData)) {
+        window.bibleBooksData.forEach(function(b) {
+          var opt = document.createElement('option');
+          opt.value = b.id;
+          opt.textContent = b.title + ' (' + b.totalChapters + ' أصحاح)';
+          opt.dataset.chapters = b.totalChapters;
+          opt.dataset.title = b.title;
+          sel.appendChild(opt);
+        });
+      }
+    }
+
+    function onBibleBookSelectChange() {
+      var bSel = document.getElementById('bibleBookSelect');
+      var cSel = document.getElementById('bibleChapterSelect');
+      if (!bSel || !cSel) return;
+      
+      var selectedBookId = bSel.value;
+      cSel.innerHTML = '<option value="">الأصحاح...</option>';
+      
+      if (selectedBookId) {
+        var bookObj = window.bibleBooksData.find(function(b){ return b.id == selectedBookId; });
+        if (bookObj && bookObj.totalChapters) {
+          for (var i = 1; i <= bookObj.totalChapters; i++) {
+            var opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = 'الأصحاح ' + i;
+            cSel.appendChild(opt);
+          }
+        }
+      }
+      executeBibleSearch();
+    }
+
+    function onBibleChapterSelectChange() {
+      executeBibleSearch();
+    }
+
+    var bibleSearchTimeout = null;
+    function onBibleSearchInput() {
+      clearTimeout(bibleSearchTimeout);
+      bibleSearchTimeout = setTimeout(executeBibleSearch, 300);
+    }
+
+    async function executeBibleSearch() {
+      var qInp = document.getElementById('bibleSearchInput');
+      var bSel = document.getElementById('bibleBookSelect');
+      var cSel = document.getElementById('bibleChapterSelect');
+      var container = document.getElementById('bibleResultsList');
+      if (!container) return;
+
+      var q = qInp ? qInp.value.trim() : '';
+      var bookId = bSel ? bSel.value : '';
+      var chNum = cSel ? cSel.value : '';
+
+      if (!q && !bookId) {
+        container.innerHTML = '<div style="text-align:center; padding:30px 10px; color:var(--t3); font-size:0.88rem;"><i class="fas fa-search" style="font-size:2rem; margin-bottom:10px; opacity:0.5; display:block;"></i>اكتب كلمة البحث أو اختر السفر والأصحاح لعرض الآيات</div>';
+        return;
+      }
+
+      container.innerHTML = '<div style="text-align:center; padding:30px 10px; color:var(--t2);"><i class="fas fa-spinner fa-spin" style="font-size:1.5rem; margin-bottom:8px; display:block; color:#6366f1;"></i>جاري البحث في الكتاب المقدس...</div>';
+
+      try {
+        let url = '/taranim/api.php?q=' + encodeURIComponent(q);
+        if (bookId && chNum) {
+          url = '/taranim/api.php?action=bible_chapter&book_id=' + bookId + '&chapter=' + chNum;
+        }
+
+        const res = await fetch(url);
+        const data = await res.json();
+
+        let items = [];
+        if (data.songs && Array.isArray(data.songs)) {
+          items = data.songs.filter(function(s){ return s.is_bible == 1 || (s.title && s.title.includes('الأصحاح')); });
+        } else if (data.title || data.id) {
+          items = [data];
+        }
+
+        if (!items || items.length === 0) {
+          container.innerHTML = '<div style="text-align:center; padding:30px 10px; color:var(--t3);">لا توجد نتائج مطابقة لبحثك</div>';
+          return;
+        }
+
+        if (typeof getMatchScore === 'function' && q) {
+          items.forEach(function(it) {
+            it._score = getMatchScore(it, q, ['title', 'notes']);
+          });
+          items.sort(function(a,b){ return (b._score || 0) - (a._score || 0); });
+        }
+
+        container.innerHTML = '';
+        
+        for (let i = 0; i < Math.min(items.length, 10); i++) {
+          let item = items[i];
+          let detailsRes = await fetch('/taranim/api.php?action=song&id=' + item.id + '&is_bible=1');
+          if (!detailsRes.ok) continue;
+          let detailedData = await detailsRes.json();
+          
+          let itemTitle = detailedData.title || item.title || 'آية';
+          
+          if (detailedData.verses && Array.isArray(detailedData.verses)) {
+            detailedData.verses.forEach(function(v, vIdx) {
+              if (v.slides && Array.isArray(v.slides)) {
+                v.slides.forEach(function(sl, sIdx) {
+                  if (sl.lines && Array.isArray(sl.lines) && sl.lines.length > 0) {
+                    let verseTxt = sl.lines.join(' ').trim();
+                    if (!verseTxt) return;
+                    
+                    let fullRef = itemTitle + (sl.heading ? ' : ' + sl.heading : '');
+                    let escapedVerseTxt = verseTxt.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                    let escapedRef = fullRef.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                    
+                    let vCard = document.createElement('div');
+                    vCard.className = 'bible-verse-item';
+                    vCard.innerHTML = `
+                      <div class="bible-verse-header">
+                        <span class="bible-verse-ref"><i class="fas fa-bookmark" style="margin-left:4px;"></i> ${esc(fullRef)}</span>
+                      </div>
+                      <div class="bible-verse-text">«${esc(verseTxt)}»</div>
+                      <div class="bible-verse-actions">
+                        <button type="button" class="btn-insert-verse btn-insert-ref" onclick="doInsertVerseText('${escapedRef}')">تضمين الشاهد فقط</button>
+                        <button type="button" class="btn-insert-verse btn-insert-full" onclick="doInsertVerseText('«${escapedVerseTxt}» (${escapedRef})')">تضمين الآية والشاهد</button>
+                      </div>
+                    `;
+                    container.appendChild(vCard);
+                  }
+                });
+              }
+            });
+          }
+        }
+
+        if (container.children.length === 0) {
+          container.innerHTML = '<div style="text-align:center; padding:30px 10px; color:var(--t3);">لم يتم العثور على نصوص للآيات في النتائج</div>';
+        }
+
+      } catch (e) {
+        console.error('Error fetching Bible search:', e);
+        container.innerHTML = '<div style="text-align:center; padding:30px 10px; color:var(--err);">حدث خطأ أثناء تحميل الآيات، يرجى المحاولة مرة أخرى.</div>';
+      }
+    }
+
+    function doInsertVerseText(textToInsert) {
+      if (!window.currentBibleTargetQId) {
+        showToast('لم يتم تحديد السؤال الهدف', 'error');
+        return;
+      }
+      
+      var targetCard = document.querySelector('.qcard[data-qid="' + window.currentBibleTargetQId + '"]');
+      if (targetCard) {
+        var qiInp = targetCard.querySelector('input.qi');
+        if (qiInp) {
+          var currentVal = qiInp.value ? qiInp.value.trim() : '';
+          if (currentVal) {
+            qiInp.value = currentVal + ' ' + textToInsert;
+          } else {
+            qiInp.value = textToInsert;
+          }
+          qiInp.dispatchEvent(new Event('input', { bubbles: true }));
+          showToast('تمت إضافة الآية بنجاح ✓', 'success');
+          closeBibleVerseModal();
+        }
+      } else {
+        showToast('تعذر العثور على حقل السؤال', 'error');
+      }
+    }
+  </script>
 
 </body>
 
