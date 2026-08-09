@@ -2040,11 +2040,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (state.selectedRecentIndexes.size === 0) return;
         const sortedIndexes = Array.from(state.selectedRecentIndexes).sort((a, b) => b - a);
         let activeWasDeleted = false;
+        let liveWasDeleted = false;
 
         sortedIndexes.forEach(idx => {
           const itemToDelete = state.sessionRecents[idx];
-          if (itemToDelete && state.activeSong && getItemKey(itemToDelete) === getItemKey(state.activeSong)) {
-            activeWasDeleted = true;
+          if (itemToDelete) {
+            if (state.activeSong && getItemKey(itemToDelete) === getItemKey(state.activeSong)) {
+              activeWasDeleted = true;
+            }
+            if (state.liveSong && getItemKey(itemToDelete) === getItemKey(state.liveSong)) {
+              liveWasDeleted = true;
+            }
           }
           state.sessionRecents.splice(idx, 1);
         });
@@ -2056,9 +2062,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (activeWasDeleted) {
           state.activeSong = null;
           state.presentationLines = [];
-          state.currentLineIndex = 0;
-          state.isBlank = true;
+          state.currentLineIndex = -1;
           renderPresentationLinesList();
+        }
+
+        if (liveWasDeleted) {
+          state.liveSong = null;
+          state.livePresentationLines = [];
+          state.liveLineIndex = 0;
+          state.isBlank = true;
           syncLiveState();
         }
 
