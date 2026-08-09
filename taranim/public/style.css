@@ -1083,7 +1083,7 @@ html, body {
   color: #2563eb !important;
 }
 
-/* INLINE EXPANDABLE NEW PLAYLIST BAR */
+/* INLINE EXPANDABLE NEW PLAYLIST BAR (2 BUTTONS TOTAL: X and ✓) */
 .new-playlist-bar {
   display: flex;
   align-items: center;
@@ -1114,6 +1114,10 @@ html, body {
   box-shadow: none;
 }
 
+.btn-create-playlist-pill .icon-close {
+  display: none;
+}
+
 .btn-create-playlist-pill:hover {
   background: rgba(37, 99, 235, 0.14);
   border-color: #2563eb;
@@ -1125,15 +1129,26 @@ html, body {
   min-width: 40px;
   height: 40px;
   border-radius: 10px;
-  border: 1.5px solid #2563eb;
-  background: #2563eb;
-  color: #ffffff;
+  border: 1px solid #cbd5e1;
+  background: #f1f5f9;
+  color: #64748b;
   padding: 0;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+  font-size: 1rem;
 }
 
+.new-playlist-bar.active .btn-create-playlist-pill:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+  border-color: #94a3b8;
+}
+
+.new-playlist-bar.active .btn-create-playlist-pill .icon-plus,
 .new-playlist-bar.active .btn-create-playlist-pill .btn-text {
   display: none;
+}
+
+.new-playlist-bar.active .btn-create-playlist-pill .icon-close {
+  display: inline-block;
 }
 
 .new-playlist-input-wrapper {
@@ -1198,28 +1213,6 @@ html, body {
 .btn-save-inline:hover {
   background: #059669;
   transform: translateY(-1px);
-}
-
-.btn-cancel-inline {
-  height: 40px;
-  min-width: 36px;
-  width: 36px;
-  border-radius: 10px;
-  background: #f1f5f9;
-  color: #64748b;
-  border: 1px solid #cbd5e1;
-  font-size: 0.95rem;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s ease;
-  flex-shrink: 0;
-}
-
-.btn-cancel-inline:hover {
-  background: #e2e8f0;
-  color: #1e293b;
 }
 
 .lines-list-box, .recent-list-box {

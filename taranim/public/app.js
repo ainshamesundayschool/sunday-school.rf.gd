@@ -2073,33 +2073,40 @@ document.addEventListener('DOMContentLoaded', () => {
       if (els.newPlaylistNameInput) els.newPlaylistNameInput.value = '';
     }
 
-    function submitCreatePlaylist() {
-      const name = els.newPlaylistNameInput ? els.newPlaylistNameInput.value.trim() : '';
-      if (!name) return;
+    function submitCreatePlaylist(e) {
+      if (e) {
+        e.stopPropagation();
+        e.preventDefault();
+      }
+      const inputEl = document.getElementById('new-playlist-name-input') || els.newPlaylistNameInput;
+      const name = inputEl ? inputEl.value.trim() : '';
+      if (!name) {
+        showToast('يرجى كتابة اسم القائمة أولاً');
+        return;
+      }
       const newId = 'pl_' + Date.now();
-      state.playlists.push({
+      const newPl = {
         id: newId,
         name: name,
         items: []
-      });
+      };
+      state.playlists.push(newPl);
       state.activePlaylistId = newId;
+      state.sessionRecents = [];
       closeNewPlaylistInput();
       savePlaylists();
       renderRecentSession();
       renderPlaylistsList();
-      showToast(`تم إنشاء قائمة "${name}"!`);
+      showToast(`تم إنشاء قائمة "${name}" بنجاح!`);
     }
 
     if (els.btnShowNewPlaylistInput) {
-      els.btnShowNewPlaylistInput.addEventListener('click', () => {
+      els.btnShowNewPlaylistInput.addEventListener('click', (e) => {
+        e.stopPropagation();
         if (!els.newPlaylistBar) return;
         const isActive = els.newPlaylistBar.classList.contains('active');
         if (isActive) {
-          if (els.newPlaylistNameInput && els.newPlaylistNameInput.value.trim()) {
-            submitCreatePlaylist();
-          } else {
-            closeNewPlaylistInput();
-          }
+          closeNewPlaylistInput();
         } else {
           openNewPlaylistInput();
         }
@@ -2110,16 +2117,16 @@ document.addEventListener('DOMContentLoaded', () => {
       els.btnCreatePlaylist.addEventListener('click', submitCreatePlaylist);
     }
 
-    if (els.btnCancelNewPlaylist) {
-      els.btnCancelNewPlaylist.addEventListener('click', closeNewPlaylistInput);
-    }
-
-    if (els.newPlaylistNameInput) {
-      els.newPlaylistNameInput.addEventListener('keydown', (e) => {
+    const newPlInput = document.getElementById('new-playlist-name-input') || els.newPlaylistNameInput;
+    if (newPlInput) {
+      newPlInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
-          submitCreatePlaylist();
+          e.stopPropagation();
+          submitCreatePlaylist(e);
         } else if (e.key === 'Escape') {
+          e.preventDefault();
+          e.stopPropagation();
           closeNewPlaylistInput();
         }
       });
