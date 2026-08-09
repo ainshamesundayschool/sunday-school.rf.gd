@@ -4270,11 +4270,11 @@ document.addEventListener('DOMContentLoaded', () => {
     els.playlistsListContainer.innerHTML = state.playlists.map(p => `
       <div class="playlist-entry-row ${p.id === state.activePlaylistId ? 'active' : ''}" data-id="${p.id}">
         <div class="playlist-row-actions">
-          <button class="pl-icon-btn btn-export-pl" data-id="${p.id}" title="تصدير القائمة">
-            <i class="fa-solid fa-file-export"></i>
+          <button class="pl-icon-btn btn-export-pl" data-id="${p.id}" title="تنزيل / تصدير القائمة">
+            <i class="fa-solid fa-download"></i>
           </button>
-          <label class="pl-icon-btn btn-import-pl" title="استيراد قائمة" style="cursor:pointer; margin:0;">
-            <i class="fa-solid fa-file-import"></i>
+          <label class="pl-icon-btn btn-import-pl" title="استيراد قائمة من ملف" style="cursor:pointer; margin:0;">
+            <i class="fa-solid fa-upload"></i>
             <input type="file" class="import-pl-file-item hidden" data-id="${p.id}" accept=".json">
           </label>
           ${p.id !== 'default' ? `
@@ -4292,7 +4292,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     els.playlistsListContainer.querySelectorAll('.playlist-entry-row').forEach(row => {
       row.addEventListener('click', (e) => {
-        if (e.target.closest('.pl-icon-btn')) return;
+        if (e.target.closest('.pl-icon-btn') || e.target.closest('label') || e.target.closest('input')) return;
         const pid = row.dataset.id;
         state.activePlaylistId = pid;
         savePlaylists();
@@ -4303,10 +4303,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     els.playlistsListContainer.querySelectorAll('.btn-export-pl').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        e.stopPropagation();
+        if (e) { e.preventDefault(); e.stopPropagation(); }
         const pid = btn.dataset.id;
         const targetPl = state.playlists.find(p => p.id === pid) || getActivePlaylist();
         exportPlaylistObj(targetPl);
+      });
+    });
+
+    els.playlistsListContainer.querySelectorAll('.btn-import-pl').forEach(label => {
+      label.addEventListener('click', (e) => {
+        e.stopPropagation();
       });
     });
 
@@ -4317,9 +4323,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (file) importPlaylistFromFile(file);
       });
     });
+
     els.playlistsListContainer.querySelectorAll('.btn-delete-pl').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        e.stopPropagation();
+        if (e) { e.preventDefault(); e.stopPropagation(); }
         const pid = btn.dataset.id;
         state.playlists = state.playlists.filter(p => p.id !== pid);
         if (state.activePlaylistId === pid) state.activePlaylistId = 'default';
