@@ -1122,7 +1122,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (typeof e.preventDefault === 'function') e.preventDefault();
       if (typeof e.stopPropagation === 'function') e.stopPropagation();
     }
-    state.isBlank = true;
+    state.isBlank = false;
     if (els && els.obsOverlay) {
       els.obsOverlay.classList.add('hidden');
     }
@@ -2099,7 +2099,7 @@ document.addEventListener('DOMContentLoaded', () => {
           state.liveSong = null;
           state.livePresentationLines = [];
           state.liveLineIndex = 0;
-          state.isBlank = true;
+          state.isBlank = false;
           syncLiveState();
         }
 
