@@ -940,17 +940,52 @@
     let currentAnimState = '';
     let currentIsBlankState = false;
 
-    // AUTO FULLSCREEN REQUEST ON CLICK, TOUCH, POINTER, KEY, OR FOCUS
-    function requestAutoFullscreen() {
-      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+    // AUTO FULLSCREEN ON SECONDARY SCREEN VIA WINDOW MANAGEMENT API
+    let _targetScreen = null;
+    let _screenDetailsReady = false;
+
+    // Try to get screen details immediately (permission may already be granted)
+    (async function detectScreens() {
+      if ('getScreenDetails' in window) {
+        try {
+          const details = await window.getScreenDetails();
+          if (details && details.screens && details.screens.length > 1) {
+            _targetScreen = details.screens.find(s => !s.isPrimary) || details.screens[1];
+          }
+          _screenDetailsReady = true;
+        } catch(e) { _screenDetailsReady = true; }
+      } else {
+        _screenDetailsReady = true;
+      }
+    })();
+
+    async function requestAutoFullscreen() {
+      if (document.fullscreenElement) return;
+
+      // First interaction: request screen permission if not yet granted
+      if (!_screenDetailsReady && 'getScreenDetails' in window) {
+        try {
+          const details = await window.getScreenDetails();
+          if (details && details.screens && details.screens.length > 1) {
+            _targetScreen = details.screens.find(s => !s.isPrimary) || details.screens[1];
+          }
+          _screenDetailsReady = true;
+        } catch(e) { _screenDetailsReady = true; }
+      }
+
+      // Fullscreen on secondary screen if available, otherwise normal fullscreen
+      if (_targetScreen && document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen({ screen: _targetScreen }).catch(() => {
+          // Fallback to normal fullscreen
+          document.documentElement.requestFullscreen().catch(() => {});
+        });
+      } else if (document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen().catch(() => {});
       }
     }
     window.addEventListener('click', requestAutoFullscreen);
     window.addEventListener('touchstart', requestAutoFullscreen);
     window.addEventListener('pointerdown', requestAutoFullscreen);
-    window.addEventListener('focus', requestAutoFullscreen);
-    window.addEventListener('keydown', requestAutoFullscreen);
 
     // DRAGGING LOGIC (ONLY ENABLED IN GREEN SCREEN CHROMA MODE)
     let isDragging = false;
