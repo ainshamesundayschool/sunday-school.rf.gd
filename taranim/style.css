@@ -1313,7 +1313,8 @@ input[type="checkbox"]:checked::after {
   position: relative;
   display: flex;
   flex-direction: column;
-  padding: 0.85rem 2.4rem 1.5rem 1.15rem;
+  padding: 0.95rem 2.5rem 1.85rem 1.15rem;
+  min-height: 68px;
   border-bottom: 1px solid #f1f5f9;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -1346,12 +1347,17 @@ input[type="checkbox"]:checked::after {
   color: #0f172a;
   line-height: 1.7;
   letter-spacing: 0.01em;
+  padding-left: 36px;
+  padding-right: 32px;
 }
 
 .slide-line-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  max-width: 100%;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .repeat-tag {
@@ -2736,14 +2742,21 @@ input[type="checkbox"]:checked::after {
   }
 
   .line-item {
-    padding: 6px 8px;
+    padding: 8px 30px 22px 38px;
     font-size: 0.8rem;
     margin-bottom: 4px;
+    min-height: 60px;
+  }
+
+  .slide-lines-body {
+    padding-left: 32px;
+    padding-right: 28px;
   }
 
   .slide-line-row {
     font-size: 0.8rem;
-    line-height: 1.35;
+    line-height: 1.4;
+    max-width: 100%;
   }
 
   .slide-badge-side {
