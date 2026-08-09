@@ -3714,15 +3714,19 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // 3. MATCH BY ID IN CANONICAL CATALOG FAST INDEX
-    if (!targetSong && !isItemBible && cleanId && state.allSongs && state.allSongs.length > 0) {
+    // 3. MATCH OR ENRICH BY ID IN CANONICAL CATALOG FAST INDEX
+    if (!isItemBible && cleanId && state.allSongs && state.allSongs.length > 0) {
       let canonicalSong = state.allSongs.find(s => {
         if (s.is_bible) return false;
         const sId = String(s.id !== undefined ? s.id : s.item_id).replace(/^(song_|bible_)/, '').trim();
         return sId === cleanId;
       });
       if (canonicalSong) {
-        targetSong = JSON.parse(JSON.stringify(canonicalSong));
+        if (!targetSong) {
+          targetSong = JSON.parse(JSON.stringify(canonicalSong));
+        } else if (canonicalSong.verses && Array.isArray(canonicalSong.verses) && canonicalSong.verses.length > 0) {
+          targetSong.verses = JSON.parse(JSON.stringify(canonicalSong.verses));
+        }
       }
     }
 
@@ -3770,6 +3774,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const isBible = Boolean(song.is_bible || song.chapter_number !== undefined);
     if (isBible) return song;
 
+    const getVerseFirstLine = (verse) => {
+      if (!verse) return '';
+      if (verse.slides && verse.slides.length > 0) {
+        const s0 = verse.slides[0];
+        if (s0.lines && s0.lines.length > 0) return s0.lines[0];
+        if (s0.text) return s0.text.split('\n')[0];
+      }
+      if (verse.lines && verse.lines.length > 0) return verse.lines[0];
+      if (verse.text) return verse.text.split('\n')[0];
+      return '';
+    };
+
+    const isChorusText = (txt) => {
+      if (!txt) return false;
+      return /^\s*\(?\s*(القرار|قرار|ق)\s*\)?\s*[:\s\-]?/i.test(txt) ||
+             /^\s*\(القرار\)$/i.test(txt) ||
+             /^\s*\(ق\)$/i.test(txt);
+    };
+
     if (song.verses && Array.isArray(song.verses) && song.verses.length > 0) {
       // FIRST PASS: Detect if verse[0] is an unlabelled chorus by examining verse[1]
       let forceFirstAsChorus = false;
@@ -3779,13 +3802,11 @@ document.addEventListener('DOMContentLoaded', () => {
       
       if (!firstAlreadyChorus && song.verses.length > 1) {
         const secondVerse = song.verses[1];
-        const secondSlides = secondVerse.slides || [];
-        const secondFirstLine = (secondSlides[0] && (secondSlides[0].lines ? secondSlides[0].lines[0] : secondSlides[0].text)) || '';
-        // If verse[1] has stanzaNum 1 or its text starts with "1" or "١", then verse[0] must be the chorus
+        const secondFirstLine = getVerseFirstLine(secondVerse);
         if (
           secondVerse.stanzaNum === 1 || secondVerse.stanzaNum === '1' ||
-          /^\(?1\)?[:\s\-]/i.test(secondFirstLine) ||
-          /^\(?١\)?[:\s\-]/i.test(secondFirstLine)
+          /^\s*\(?\s*1\s*\)?\s*[:\s\-]?/i.test(secondFirstLine) ||
+          /^\s*\(?\s*١\s*\)?\s*[:\s\-]?/i.test(secondFirstLine)
         ) {
           forceFirstAsChorus = true;
         }
@@ -3795,8 +3816,7 @@ document.addEventListener('DOMContentLoaded', () => {
       let currentStanzaNum = 0;
       song.verses.forEach((verse, verseIdx) => {
         const rawVerseType = verse.type;
-        const slides = verse.slides || [];
-        const firstRawLine = (slides[0] && (slides[0].lines ? slides[0].lines[0] : slides[0].text)) || '';
+        const firstRawLine = getVerseFirstLine(verse);
         
         let isChorus = (
           rawVerseType === 1 ||
@@ -3804,10 +3824,9 @@ document.addEventListener('DOMContentLoaded', () => {
           verse.isChorus === true ||
           String(rawVerseType).toLowerCase() === 'chorus' ||
           /القرار|قرار|^ق$/i.test(verse.title || '') ||
-          /^\(?(القرار|قرار|ق)\)?[:\s\-]?/i.test(firstRawLine || '')
+          isChorusText(firstRawLine)
         );
 
-        // Apply forced chorus detection for verse[0]
         if (verseIdx === 0 && forceFirstAsChorus) {
           isChorus = true;
         }
@@ -3815,12 +3834,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isChorus) {
           verse.type = 1;
           verse.isChorus = true;
-          delete verse.stanzaNum; // Chorus should never have a stanza number
+          delete verse.stanzaNum;
         } else {
           verse.type = 0;
           verse.isChorus = false;
           currentStanzaNum++;
-          verse.stanzaNum = currentStanzaNum; // Always recalculate
+          verse.stanzaNum = currentStanzaNum;
         }
       });
       return song;
@@ -3841,22 +3860,20 @@ document.addEventListener('DOMContentLoaded', () => {
       let foundStanzaNum = null;
 
       const firstLine = lines[0];
-      if (/^\(?(القرار|قرار|ق)\)?[:\s\-]?/i.test(firstLine) || /^\(القرار\)$/i.test(firstLine) || /^\(ق\)$/i.test(firstLine)) {
+      if (isChorusText(firstLine)) {
         isChorus = true;
       } else {
-        const matchNum = firstLine.match(/^\(?([\d٠-٩]+)\)?[:\s\-]?/);
+        const matchNum = firstLine.match(/^\s*\(?\s*([\d٠-٩]+)\s*\)?\s*[:\s\-]?/);
         if (matchNum) {
           foundStanzaNum = matchNum[1];
         }
       }
 
-      // SMART CHORUS DETECTION FOR UNLABELLED BLOCK 1:
-      // If block 1 doesn't have a stanza number, but block 2 starts with (1) or 1-, then block 1 IS the Chorus!
       if (blockIdx === 0 && !isChorus && !foundStanzaNum) {
         const secondBlock = blocks[1];
         if (secondBlock) {
           const secondFirstLine = secondBlock.split('\n')[0].trim();
-          if (/^\(?1\)?[:\s\-]?/i.test(secondFirstLine) || /^\(?١\)?[:\s\-]?/i.test(secondFirstLine) || /^\(?2\)?[:\s\-]?/i.test(secondFirstLine)) {
+          if (/^\s*\(?\s*1\s*\)?\s*[:\s\-]?/i.test(secondFirstLine) || /^\s*\(?\s*١\s*\)?\s*[:\s\-]?/i.test(secondFirstLine)) {
             isChorus = true;
           }
         }
