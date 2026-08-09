@@ -8161,7 +8161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       }
 
       const couponHtml = (isGraded && coupons > 0) ? `
-    <div style="display:inline-flex;align-items:center;gap:8px;padding:8px 18px;background:var(--cou-bg, rgba(234,179,8,0.15));color:var(--cou, #d97706);border-radius:20px;font-weight:800;font-size:1.05rem;margin-top:14px;border:1px solid rgba(234,179,8,0.3);">
+    <div style="display:inline-flex;align-items:center;gap:8px;padding:8px 18px;background:var(--cou-bg, rgba(234,179,8,0.15));color:var(--cou, #d97706);border-radius:20px;font-weight:800;font-size:1.05rem;margin-top:14px;">
       <i class="fas fa-star"></i> حصلت على ${coupons} كوبون!
     </div>` : '';
 
@@ -8323,8 +8323,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       const scr = document.getElementById('examScreen');
       if (which === 'result') {
         scr.style.background = 'rgba(15, 23, 42, 0.65)';
-        scr.style.backdropFilter = 'blur(8px)';
-        scr.style.webkitBackdropFilter = 'blur(8px)';
+        scr.style.backdropFilter = 'none';
+        scr.style.webkitBackdropFilter = 'none';
         scr.style.display = 'flex';
         scr.style.alignItems = 'center';
         scr.style.justifyContent = 'center';

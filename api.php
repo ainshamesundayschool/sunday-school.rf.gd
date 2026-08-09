@@ -9836,7 +9836,7 @@ function updateCoupons()
 
                     auditCouponChange($studentId, $studentName, $oldTotal, $totalCoupons, 'تعديل دفعة (التزام)');
 
-                    _sendWebPushToKids($conn, $churchId, 'رصيد كوبونات جديد 🎟️', "تم تحديث رصيد الكوبونات الخاص بك. الرصيد الحالي: {$totalCoupons}", [
+                    _sendWebPushToKids($conn, $churchId, 'رصيد كوبونات جديد ⭐', "تم تحديث رصيد الكوبونات الخاص بك. الرصيد الحالي: {$totalCoupons}", [
                         'notifType' => 'coupons',
                         'url' => '/user/',
                         'student_ids' => (string)$studentId
@@ -23171,7 +23171,7 @@ function updateCouponsKids()
                 auditCouponChange($studentId, $student['name'] ?? '', $oldCount, $coupons, 'تعديل يدوي');
 
                 $churchId = getChurchId();
-                _sendWebPushToKids($conn, $churchId, 'رصيد كوبونات جديد 🎟️', "تم تحديث رصيد الكوبونات الخاص بك. الرصيد الحالي: {$coupons}", [
+                _sendWebPushToKids($conn, $churchId, 'رصيد كوبونات جديد ⭐', "تم تحديث رصيد الكوبونات الخاص بك. الرصيد الحالي: {$coupons}", [
                     'notifType' => 'coupons',
                     'url' => '/user/',
                     'student_ids' => (string)$studentId
@@ -24051,7 +24051,7 @@ function updateCouponsWithReason()
             auditCouponChange($studentId, $sName, $oldTotal, $coupons, $reason ?? 'تعديل يدوي');
 
             $churchId = getChurchId();
-            _sendWebPushToKids($conn, $churchId, 'رصيد كوبونات جديد 🎟️', "تم تحديث رصيد الكوبونات الخاص بك. الرصيد الحالي: {$coupons}", [
+            _sendWebPushToKids($conn, $churchId, 'رصيد كوبونات جديد ⭐', "تم تحديث رصيد الكوبونات الخاص بك. الرصيد الحالي: {$coupons}", [
                 'notifType' => 'coupons',
                 'url' => '/user/',
                 'student_ids' => (string)$studentId
@@ -42397,7 +42397,7 @@ function createTask()
         $conn->commit();
 
         if ($status === 'published') {
-            $extra = ['notifType' => 'task', 'url' => '/user/'];
+            $extra = ['notifType' => 'task', 'task_id' => $taskId, 'url' => '/user/profile/'];
             if ($assignTo === 'specific') {
                 $dec = json_decode($specificIds, true);
                 if (is_array($dec) && !empty($dec)) {
@@ -42413,6 +42413,16 @@ function createTask()
                 }
             }
             _sendWebPushToKids($conn, $churchId, 'تاسك جديد 📝', "تاسك جديد: {$title}", $extra);
+
+            // Also insert announcement for in-app notification feed
+            try {
+                $annText = "تاسك جديد: \"{$title}\"";
+                $annStmt = $conn->prepare("INSERT INTO announcements (church_id, type, text, link, class, is_active, created_at) VALUES (?, 'task', ?, '/user/profile/', ?, 1, NOW())");
+                if ($annStmt) {
+                    $annStmt->bind_param('iss', $churchId, $annText, $className);
+                    $annStmt->execute();
+                }
+            } catch (Exception $annEx) {}
         }
 
         if (function_exists('writeAuditLog')) {
@@ -47155,25 +47165,32 @@ function gradeOpenAnswer()
 
 
 
-        // Push notification
-
+        // Push notification to church dashboard
         pushNotification(
-
             $conn,
-
             $churchId,
-
             'task_submission',
-
             'تم تصحيح إجابة مفتوحة',
-
             "تم تصحيح إجابة الطفل بدرجة {$totalScore} من {$sub['total_degree']}",
-
             'task',
-
             $sub['task_id']
-
         );
+
+        // Web Push notification to student's installed PWA app
+        if (!empty($sub['student_id'])) {
+            $pushBody = "تم تصحيح تاسك \"{$taskTitle}\" وحصلت على {$totalScore} من {$sub['total_degree']} درجة";
+            if ($coupons > 0) {
+                $pushBody .= " و{$coupons} كوبون ⭐!";
+            } else {
+                $pushBody .= "!";
+            }
+            _sendWebPushToKids($conn, $churchId, 'تم تصحيح التاسك 📝⭐', $pushBody, [
+                'notifType' => 'task_graded',
+                'student_ids' => (string)$sub['student_id'],
+                'task_id' => $sub['task_id'],
+                'url' => '/user/profile/'
+            ]);
+        }
 
 
 
