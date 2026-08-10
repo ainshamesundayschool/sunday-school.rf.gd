@@ -2711,7 +2711,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnStandbyExit = document.getElementById('btn-standby-exit');
 
     if (btnStandbyPrev) {
-      btnStandbyPrev.addEventListener('click', (e) => {
+      btnStandbyPrev.addEventListener('click', async (e) => {
         e.stopPropagation();
         const recents = state.sessionRecents || [];
         let currentIdx = -1;
@@ -2720,13 +2720,21 @@ document.addEventListener('DOMContentLoaded', () => {
           currentIdx = recents.findIndex(r => getItemKey(r) === getItemKey(currentSong));
         }
         if (currentIdx > 0) {
-          openAndPresentItem(recents[currentIdx - 1]);
+          await openAndPresentItem(recents[currentIdx - 1]);
+          state.liveSong = state.activeSong;
+          state.livePresentationLines = state.presentationLines;
+          state.liveLineIndex = 0;
+          state.currentLineIndex = 0;
+          state.isBlank = false;
+          state.highlightedLineIndices = [];
+          renderPresentationLinesList();
+          syncLiveState();
         }
       });
     }
 
     if (btnStandbyNext) {
-      btnStandbyNext.addEventListener('click', (e) => {
+      btnStandbyNext.addEventListener('click', async (e) => {
         e.stopPropagation();
         const recents = state.sessionRecents || [];
         let currentIdx = -1;
@@ -2735,7 +2743,15 @@ document.addEventListener('DOMContentLoaded', () => {
           currentIdx = recents.findIndex(r => getItemKey(r) === getItemKey(currentSong));
         }
         if (currentIdx >= 0 && currentIdx < recents.length - 1) {
-          openAndPresentItem(recents[currentIdx + 1]);
+          await openAndPresentItem(recents[currentIdx + 1]);
+          state.liveSong = state.activeSong;
+          state.livePresentationLines = state.presentationLines;
+          state.liveLineIndex = 0;
+          state.currentLineIndex = 0;
+          state.isBlank = false;
+          state.highlightedLineIndices = [];
+          renderPresentationLinesList();
+          syncLiveState();
         }
       });
     }
