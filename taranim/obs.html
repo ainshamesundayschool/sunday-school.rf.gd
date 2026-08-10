@@ -90,8 +90,8 @@
       top: 50%;
       transform: translate(-50%, -50%);
       width: auto;
-      max-width: 92vw;
-      max-height: 88vh;
+      max-width: 96vw;
+      max-height: 92vh;
       text-align: center;
       padding: 0;
       z-index: 10;
@@ -105,18 +105,17 @@
     }
 
     .line-text {
-      display: block !important;
+      display: inline-block !important;
       font-size: 54px;
       font-weight: 800;
       color: #ffffff;
       line-height: 1.4;
-      white-space: pre-line;
+      white-space: nowrap;
       text-align: center;
       margin: 0 auto;
-      width: 100% !important;
-      max-width: 90vw !important;
-      word-break: keep-all !important;
-      overflow-wrap: break-word !important;
+      width: max-content !important;
+      max-width: 96vw !important;
+      overflow: visible !important;
       text-shadow: 0 4px 18px rgba(0, 0, 0, 0.95);
       will-change: transform, opacity;
       transform: translateZ(0);
@@ -129,25 +128,26 @@
         top: 50% !important;
         left: 50% !important;
         transform: translate(-50%, -50%) !important;
-        width: 100% !important;
-        max-width: 90vw !important;
-        padding-top: 1.5rem !important;
-        padding-bottom: 1.5rem !important;
-        max-height: 82vh !important;
+        width: auto !important;
+        max-width: 96vw !important;
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
+        max-height: 92vh !important;
       }
       .line-text {
-        width: 100% !important;
-        max-width: 90vw !important;
-        line-height: 1.5 !important;
-        margin-top: 1vh !important;
-        margin-bottom: 1vh !important;
+        width: auto !important;
+        max-width: 96vw !important;
+        line-height: 1.4 !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
       }
       .obs-line-segment {
-        width: 100% !important;
+        width: auto !important;
+        white-space: nowrap !important;
         display: block !important;
         text-align: center !important;
-        margin-top: 0.35em !important;
-        margin-bottom: 0.35em !important;
+        margin-top: 0.15em !important;
+        margin-bottom: 0.15em !important;
       }
     }
 
@@ -899,11 +899,9 @@
       currentIsBible = isBible;
       let baseSize = (lastStyleData && lastStyleData.fontSize) || stateFontSize || 54;
       const scaleMode = (lastStyleData && lastStyleData.scaleMode) || 'auto';
-      const container = document.getElementById('obs-overlay-container') || document.body;
-      const maxH = container.clientHeight ? (container.clientHeight * 0.86) : (window.innerHeight * 0.86);
-      const maxW = container.clientWidth ? (container.clientWidth * 0.92) : (window.innerWidth * 0.92);
+      const maxH = window.innerHeight * 0.88;
+      const maxW = window.innerWidth * 0.94;
 
-      // Lock line breaks on segments so words don't wrap awkwardly into thin tall text
       const segments = Array.from(textEl.querySelectorAll('.obs-line-segment'));
       segments.forEach(s => {
         s.style.whiteSpace = 'nowrap';
@@ -916,18 +914,21 @@
 
       if (scaleMode === 'auto') {
         const isVertical = window.innerHeight > window.innerWidth;
-        // In vertical mode, format against reference landscape width to lock horizontal layout form
         const refTargetW = isVertical ? Math.max(maxW, maxH * (16 / 9)) : maxW;
+        const lineCount = segments.length || 1;
         
         let low = 16;
-        let high = Math.max(180, Math.floor(maxH / 1.4));
+        let high = Math.min(260, Math.max(120, Math.floor(maxH / Math.max(1, lineCount * 0.85))));
         renderSize = 16;
+
+        textEl.style.whiteSpace = 'nowrap';
+        textEl.style.maxWidth = 'none';
 
         while (low <= high) {
           const mid = Math.floor((low + high) / 2);
           textEl.style.fontSize = `${mid}px`;
-          const h = textEl.scrollHeight;
-          const w = textEl.scrollWidth;
+          const h = textEl.scrollHeight || textEl.offsetHeight;
+          const w = textEl.scrollWidth || textEl.offsetWidth;
 
           if (h <= maxH && w <= refTargetW) {
             renderSize = mid;
@@ -937,9 +938,8 @@
           }
         }
 
-        // On vertical screens, scale down font size proportionally if horizontal block exceeds vertical width
         textEl.style.fontSize = `${renderSize}px`;
-        const currentW = textEl.scrollWidth;
+        const currentW = textEl.scrollWidth || textEl.offsetWidth;
         if (isVertical && currentW > maxW && currentW > 0) {
           const scaleFactor = maxW / currentW;
           renderSize = Math.max(14, Math.floor(renderSize * scaleFactor));

@@ -5312,8 +5312,8 @@ document.addEventListener('DOMContentLoaded', () => {
       requestAnimationFrame(() => {
         if (els.obsLineText && snapText.trim() && els.obsLineText.style.display !== 'none') {
           const container = els.obsOverlay || els.obsLineText.parentElement || document.body;
-          const maxContainerH = container.clientHeight ? (container.clientHeight * 0.86) : (window.innerHeight * 0.86);
-          const maxContainerW = container.clientWidth ? (container.clientWidth * 0.92) : (window.innerWidth * 0.92);
+          const maxContainerH = (container.clientHeight || window.innerHeight) * 0.88;
+          const maxContainerW = (container.clientWidth || window.innerWidth) * 0.94;
           const baseSize = state.fontSize || 54;
           const scaleMode = state.scaleMode || 'auto';
 
@@ -5330,16 +5330,20 @@ document.addEventListener('DOMContentLoaded', () => {
           if (scaleMode === 'auto') {
             const isVertical = window.innerHeight > window.innerWidth;
             const refTargetW = isVertical ? Math.max(maxContainerW, maxContainerH * (16 / 9)) : maxContainerW;
+            const lineCount = segments.length || 1;
 
             let low = 16;
-            let high = Math.max(180, Math.floor(maxContainerH / 1.4));
+            let high = Math.min(260, Math.max(120, Math.floor(maxContainerH / Math.max(1, lineCount * 0.85))));
             renderSize = 16;
+
+            els.obsLineText.style.whiteSpace = 'nowrap';
+            els.obsLineText.style.maxWidth = 'none';
 
             while (low <= high) {
               const mid = Math.floor((low + high) / 2);
               els.obsLineText.style.fontSize = `${mid}px`;
-              const h = els.obsLineText.scrollHeight;
-              const w = els.obsLineText.scrollWidth;
+              const h = els.obsLineText.scrollHeight || els.obsLineText.offsetHeight;
+              const w = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
 
               if (h <= maxContainerH && w <= refTargetW) {
                 renderSize = mid;
@@ -5350,7 +5354,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             els.obsLineText.style.fontSize = `${renderSize}px`;
-            const currentW = els.obsLineText.scrollWidth;
+            const currentW = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
             if (isVertical && currentW > maxContainerW && currentW > 0) {
               const scaleFactor = maxContainerW / currentW;
               renderSize = Math.max(14, Math.floor(renderSize * scaleFactor));
@@ -5358,7 +5362,8 @@ document.addEventListener('DOMContentLoaded', () => {
           }
 
           els.obsLineText.style.fontSize = `${renderSize}px`;
-          els.obsLineText.style.lineHeight = '1.5';
+          els.obsLineText.style.lineHeight = '1.4';
+          els.obsLineText.style.maxWidth = '96vw';
           els.obsLineText.style.transform = 'none';
         }
       });
