@@ -1646,7 +1646,7 @@ input[type="checkbox"]:checked::after {
 
 .recent-title, .recent-item .recent-title, .recent-item span {
   font-size: 0.95rem;
-  font-weight: 400 !important;
+  font-weight: 700 !important;
   color: #0f172a;
 }
 

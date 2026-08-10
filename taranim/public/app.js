@@ -5640,7 +5640,8 @@ document.addEventListener('DOMContentLoaded', () => {
       boxPadding: state.styleOptions.boxPadding,
       hideControls: Boolean(state.hideControls),
       highlightedLines: state.highlightedLineIndices || [],
-      highlightColor: savedSettings.highlightColor || "#ef4444"
+      highlightColor: savedSettings.highlightColor || "#ef4444",
+      allSlideTexts: targetLines.map(item => item ? (item.text || '') : '')
     };
 
     // ONLY ATTACH POSITION IF IT WAS EXPLICITLY DRAGGED/MODIFIED
@@ -5669,105 +5670,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const sColor = state.styleOptions.strokeColor || '#000000';
         const sBlur = state.styleOptions.shadowBlur || 0;
         const sShadowCol = state.styleOptions.shadowColor || 'rgba(0,0,0,0.85)';
-        const sDist = state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 6;
-        const sAngle = state.styleOptions.shadowAngle !== undefined ? state.styleOptions.shadowAngle : 90;
-
-        const filters = [];
-        if (sWidth > 0 && sColor) {
-          const sw = Math.min(sWidth, 6);
-          filters.push(`drop-shadow(${sw}px 0 0 ${sColor})`);
-          filters.push(`drop-shadow(-${sw}px 0 0 ${sColor})`);
-          filters.push(`drop-shadow(0 ${sw}px 0 ${sColor})`);
-          filters.push(`drop-shadow(0 -${sw}px 0 ${sColor})`);
-        }
-        if (sBlur > 0 || sDist > 0) {
-          const angleRad = sAngle * (Math.PI / 180);
-          const offX = Math.round(sDist * Math.cos(angleRad));
-          const offY = Math.round(sDist * Math.sin(angleRad));
-          filters.push(`drop-shadow(${offX}px ${offY}px ${sBlur}px ${sShadowCol})`);
-        } else {
-          filters.push('drop-shadow(0 8px 24px rgba(0, 0, 0, 0.6))');
-        }
-        logoImg.style.filter = filters.join(' ');
-      }
-
-      const hasText = Boolean(text && text.trim() && !state.isBlank);
-
-      const obsFooterBar = document.getElementById('obs-footer-bar');
-      const obsScaleBadge = document.getElementById('obs-scale-badge');
-      const obsScaleText = document.getElementById('obs-scale-text');
-      const obsSlideCounter = document.getElementById('obs-slide-counter');
-      const obsCounterText = document.getElementById('obs-counter-text');
-
-      if (obsFooterBar) {
-        let hasContent = false;
-        if (scaleText && hasText) {
-          if (obsScaleText) obsScaleText.textContent = `السلم: ${scaleText}`;
-          if (obsScaleBadge) obsScaleBadge.classList.remove('hidden');
-          hasContent = true;
-        } else if (obsScaleBadge) {
-          obsScaleBadge.classList.add('hidden');
-        }
-
-        if (totalSlides > 0 && hasText) {
-          if (obsCounterText) obsCounterText.textContent = `${currentSlide} من ${totalSlides}`;
-          if (obsSlideCounter) obsSlideCounter.classList.remove('hidden');
-          hasContent = true;
-        } else if (obsSlideCounter) {
-          obsSlideCounter.classList.add('hidden');
-        }
-
-        if (hasContent && hasText && !state.isBlank) {
-          obsFooterBar.classList.remove('hidden');
-        } else {
-          obsFooterBar.classList.add('hidden');
-          if (obsSlideCounter) obsSlideCounter.classList.add('hidden');
-        }
-      }
-
-      if (!hasText) {
-        els.obsLineText.classList.add('hidden');
-        els.obsLineText.style.display = 'none';
-
-        if (standbyEl) {
-          standbyEl.classList.remove('hidden');
-          standbyEl.style.display = 'flex';
-
-          const btnPrev = document.getElementById('btn-standby-prev-song');
-          const btnExit = document.getElementById('btn-standby-exit');
-          const btnNext = document.getElementById('btn-standby-next-song');
-          const prevTitle = document.getElementById('standby-prev-title');
-          const nextTitle = document.getElementById('standby-next-title');
-
-          const recents = state.sessionRecents || [];
-          let currentIdx = -1;
-          const currentSong = state.liveSong || state.activeSong;
-          if (currentSong) {
-            currentIdx = recents.findIndex(r => getItemKey(r) === getItemKey(currentSong));
-          }
-
-          const hasPrev = (currentIdx > 0 && currentIdx < recents.length);
-          const hasNext = (currentIdx >= 0 && currentIdx < recents.length - 1);
-
-          if (hasPrev) {
-            const prevSong = recents[currentIdx - 1];
-            if (prevTitle) prevTitle.textContent = prevSong.title || prevSong.name || 'السابقة';
-            if (btnPrev) btnPrev.classList.remove('hidden');
-            if (btnExit) btnExit.classList.add('hidden');
-          } else {
-            if (btnPrev) btnPrev.classList.add('hidden');
-            if (btnExit) btnExit.classList.remove('hidden');
-          }
-
-          if (hasNext) {
-            const nextSong = recents[currentIdx + 1];
-            if (nextTitle) nextTitle.textContent = nextSong.title || nextSong.name || 'التالية';
-            if (btnNext) btnNext.classList.remove('hidden');
-          } else {
-            if (btnNext) btnNext.classList.add('hidden');
-          }
-        }
-      } else {
+        const sDist = state.styleOptions      } else {
         if (standbyEl) {
           standbyEl.classList.add('hidden');
           standbyEl.style.display = 'none';
@@ -5776,21 +5679,40 @@ document.addEventListener('DOMContentLoaded', () => {
         els.obsLineText.style.display = 'inline-block';
         els.obsLineText.style.visibility = 'visible';
 
-        els.obsLineText.style.fontFamily = state.selectedFont;
         const isJomhuria = /jomhuria/i.test(state.selectedFont || '');
         const align = state.styleOptions.textAlign || 'center';
         const lHeight = state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : 1.5;
-        const lSpacing = state.styleOptions.letterSpacing !== undefined ? `${state.styleOptions.letterSpacing}px` : 'normal';
+        const lSpacing = state.styleOptions.letterSpacing !== undefined ? state.styleOptions.letterSpacing : 0;
         const fWeight = state.styleOptions.fontWeight || '400';
         const fStyle = state.styleOptions.fontStyle || 'normal';
         const tDeco = state.styleOptions.textDecoration || 'none';
 
-        els.obsLineText.style.textAlign = align;
+        if (align === 'justify' && !isJomhuria) {
+          els.obsLineText.style.textAlign = 'justify';
+          els.obsLineText.style.textJustify = 'kashida';
+          els.obsLineText.style.textAlignLast = 'justify';
+        } else {
+          els.obsLineText.style.textAlign = align === 'justify' ? 'center' : align;
+          els.obsLineText.style.textJustify = 'auto';
+          els.obsLineText.style.textAlignLast = align === 'justify' ? 'center' : align;
+        }
         els.obsLineText.style.fontStyle = fStyle;
         els.obsLineText.style.textDecoration = tDeco;
-        els.obsLineText.style.fontWeight = fWeight;
-        els.obsLineText.style.lineHeight = `${lHeight}`;
-        els.obsLineText.style.letterSpacing = isJomhuria ? '2px' : lSpacing;
+
+        const finalLineHeight = lHeight !== undefined ? lHeight : 1.5;
+        els.obsLineText.style.lineHeight = `${finalLineHeight}`;
+
+        if (isJomhuria) {
+          els.obsLineText.style.fontFamily = 'Jomhuria, Arial, sans-serif';
+          els.obsLineText.style.letterSpacing = `${lSpacing || 2}px`;
+          els.obsLineText.style.wordSpacing = '6px';
+          els.obsLineText.style.fontWeight = '400';
+        } else {
+          els.obsLineText.style.fontFamily = state.selectedFont || 'sans-serif';
+          els.obsLineText.style.letterSpacing = `${lSpacing}px`;
+          els.obsLineText.style.wordSpacing = 'normal';
+          els.obsLineText.style.fontWeight = fWeight;
+        }
 
         if (els.obsLowerThirdBox) {
           els.obsLowerThirdBox.style.textAlign = align;
@@ -5798,7 +5720,6 @@ document.addEventListener('DOMContentLoaded', () => {
           const boxOpacity = state.styleOptions.boxOpacity !== undefined ? (state.styleOptions.boxOpacity / 100) : 0;
           const boxRadius = state.styleOptions.boxRadius !== undefined ? `${state.styleOptions.boxRadius}px` : '12px';
           const boxPadding = state.styleOptions.boxPadding !== undefined ? `${state.styleOptions.boxPadding}px` : '20px';
-
           let rgbaBg = 'transparent';
           if (boxOpacity > 0) {
             const hex = boxBg.replace('#', '');
@@ -5812,29 +5733,37 @@ document.addEventListener('DOMContentLoaded', () => {
           els.obsLowerThirdBox.style.padding = boxPadding;
         }
 
-        if (isJomhuria) {
-          els.obsLineText.style.fontSize = (state.fontSize || 54) + 'px';
-          els.obsLineText.style.lineHeight = `${lHeight || 1.25}`;
-          els.obsLineText.style.letterSpacing = '2px';
-          els.obsLineText.style.wordSpacing = '6px';
-          els.obsLineText.style.fontWeight = '400';
-        } else {
-          els.obsLineText.style.fontSize = (state.fontSize || 54) + 'px';
-        }
-
         els.obsLineText.innerHTML = formatPresenterText(text, isBible, badgeTxt, badgeCls);
+
         const activeLineRows = els.obsLineText.querySelectorAll('.obs-line-row');
         activeLineRows.forEach(r => {
-          r.style.lineHeight = `${lHeight}`;
-          r.style.marginBottom = `${Math.round((lHeight - 1) * 14)}px`;
+          r.style.lineHeight = `${finalLineHeight}`;
+          r.style.marginBottom = `${Math.round((finalLineHeight - 1) * 14)}px`;
         });
+
+        const obsSegments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
+        obsSegments.forEach(s => {
+          s.style.display = 'inline-block';
+          s.style.width = 'auto';
+          if (isBible || align === 'justify') {
+            s.style.whiteSpace = 'pre-wrap';
+            s.style.wordBreak = 'break-word';
+            s.style.overflowWrap = 'break-word';
+            s.style.textAlign = align;
+          } else {
+            s.style.whiteSpace = 'nowrap';
+            s.style.wordBreak = 'keep-all';
+            s.style.overflowWrap = 'normal';
+            s.style.textAlign = align;
+          }
+        });
+
         const strokeW = parseInt(state.styleOptions.strokeWidth || 0);
         const strokeC = state.styleOptions.strokeColor || '#000000';
         const shadowB = parseInt(state.styleOptions.shadowBlur || 0);
         const shadowD = parseInt(state.styleOptions.shadowDistance || 0);
         const shadowA = parseInt(state.styleOptions.shadowAngle !== undefined ? state.styleOptions.shadowAngle : 90);
         const shadowC = state.styleOptions.shadowColor || '#000000';
-
         const radA = shadowA * Math.PI / 180;
         const offX = Math.round(shadowD * Math.cos(radA));
         const offY = Math.round(shadowD * Math.sin(radA));
@@ -5847,7 +5776,6 @@ document.addEventListener('DOMContentLoaded', () => {
           const s = Math.max(1, Math.round(strokeW * 1.2));
           els.obsLineText.style.webkitTextStroke = `${s}px ${strokeC}`;
           els.obsLineText.style.textStroke = `${s}px ${strokeC}`;
-
           for (let a = 0; a < 360; a += 22.5) {
             const rA = a * Math.PI / 180;
             const sx = (s * Math.cos(rA)).toFixed(1);
@@ -5863,28 +5791,8 @@ document.addEventListener('DOMContentLoaded', () => {
           shadowParts.push(`${offX}px ${offY}px ${shadowB}px ${shadowC}`);
         }
         els.obsLineText.style.textShadow = shadowParts.length > 0 ? shadowParts.join(', ') : 'none';
+        els.obsLineText.style.color = state.styleOptions.textColor || '#ffffff';
 
-        if (state.styleOptions.boxOpacity > 0) {
-          const hex = state.styleOptions.boxBgColor || '#000000';
-          const r = parseInt(hex.slice(1, 3), 16) || 0;
-          const g = parseInt(hex.slice(3, 5), 16) || 0;
-          const b = parseInt(hex.slice(5, 7), 16) || 0;
-          const alpha = state.styleOptions.boxOpacity / 100;
-          els.obsLowerThirdBox.style.background = `rgba(${r}, ${g}, ${b}, ${alpha})`;
-        } else {
-          els.obsLowerThirdBox.style.background = 'transparent';
-        }
-
-        els.obsLowerThirdBox.style.borderRadius = `${state.styleOptions.boxRadius || 12}px`;
-        els.obsLowerThirdBox.style.padding = `${state.styleOptions.boxPadding || 20}px`;
-
-        let size = state.fontSize || 54;
-        els.obsLineText.style.fontSize = `${size}px`;
-        els.obsLineText.style.lineHeight = '1.5';
-        
-
-
-        // Re-trigger animation on EVERY text change, not just animation type change
         const textChanged = (currentPresenterText !== text);
         const animChanged = (currentPresenterAnim !== state.textAnimation);
         currentPresenterText = text;
@@ -5896,10 +5804,112 @@ document.addEventListener('DOMContentLoaded', () => {
           els.obsLineText.classList.add(`animate-appear-${state.textAnimation}`);
         }
 
-        // APPLY HIGHLIGHT LINE LOGIC TO IN-APP OVERLAY (MATCHING PRESENT.HTML EXACTLY)
         const hColor = state.highlightColor || '#ef4444';
         const activeHighlights = state.highlightedLineIndices || [];
-        const obsSegments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
+        const highlightSegs = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
+        highlightSegs.forEach((seg, idx) => {
+          const segLineIdx = parseInt(seg.dataset.lineIdx !== undefined ? seg.dataset.lineIdx : idx);
+          const isH = Array.isArray(activeHighlights) ? activeHighlights.includes(segLineIdx) : (activeHighlights === segLineIdx);
+          if (isH) {
+            seg.style.setProperty('--highlight-bg', `${hColor}cc`);
+            if (!seg.classList.contains('line-highlighted')) {
+              seg.classList.remove('line-unhighlighting');
+              seg.classList.add('line-highlighted', 'line-animating');
+              setTimeout(() => seg.classList.remove('line-animating'), 650);
+            }
+          } else {
+            seg.classList.remove('line-highlighted', 'line-animating', 'line-unhighlighting');
+          }
+        });
+      }
+
+      // AUTO-FIT: uniform font size across all slides (matching present.html)
+      const snapText = text;
+      requestAnimationFrame(() => {
+        if (els.obsLineText && snapText.trim() && els.obsLineText.style.display !== 'none') {
+          const container = els.obsOverlay || els.obsLineText.parentElement || document.body;
+          const maxContainerH = (container.clientHeight || window.innerHeight) * 0.88;
+          const maxContainerW = (container.clientWidth || window.innerWidth) * 0.94;
+          const baseSize = state.fontSize || 54;
+          const scaleMode = state.scaleMode || 'auto';
+          const isJomhuriaF = /jomhuria/i.test(state.selectedFont || '');
+          const lHeightF = state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : 1.5;
+
+          if (isBible || scaleMode === 'fixed') {
+            els.obsLineText.style.fontSize = `${baseSize}px`;
+          } else if (scaleMode === 'auto') {
+            const songKeyOverlay = `overlay_${targetSong ? targetSong.title : ''}_${state.selectedFont}_${baseSize}_${state.styleOptions.letterSpacing}_${lHeightF}_${state.styleOptions.fontWeight}_${state.styleOptions.textAlign}_${container.clientWidth}_${container.clientHeight}`;
+            if (songKeyOverlay !== state._overlayUniformSongKey && targetLines && targetLines.length > 0) {
+              state._overlayUniformSongKey = songKeyOverlay;
+              let minSize = Infinity;
+              for (const slideItem of targetLines) {
+                const slideText = slideItem ? (slideItem.text || '') : '';
+                if (!slideText.trim()) continue;
+                const origHTML = els.obsLineText.innerHTML;
+                const origVis = els.obsLineText.style.visibility;
+                els.obsLineText.style.visibility = 'hidden';
+                els.obsLineText.innerHTML = formatPresenterText(slideText, isBible, '', '');
+                const segs = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
+                segs.forEach(s => { s.style.display = 'inline-block'; s.style.width = 'auto'; s.style.whiteSpace = 'nowrap'; s.style.wordBreak = 'keep-all'; s.style.overflowWrap = 'normal'; });
+                const isVertical = window.innerHeight > window.innerWidth;
+                const refTargetW = isVertical ? Math.max(maxContainerW, maxContainerH * (16 / 9)) : maxContainerW;
+                let low = 16;
+                let maxLimit = isJomhuriaF ? 300 : 260;
+                let high = Math.min(maxLimit, Math.max(120, Math.floor(maxContainerH / Math.max(1, (segs.length || 1) * 0.85))));
+                let renderSize = 16;
+                els.obsLineText.style.maxWidth = 'none';
+                while (low <= high) {
+                  const mid = Math.floor((low + high) / 2);
+                  els.obsLineText.style.fontSize = `${mid}px`;
+                  const h = els.obsLineText.scrollHeight || els.obsLineText.offsetHeight;
+                  const w = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
+                  if (h <= maxContainerH && w <= refTargetW) { renderSize = mid; low = mid + 1; } else { high = mid - 1; }
+                }
+                els.obsLineText.style.fontSize = `${renderSize}px`;
+                let cW = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
+                let cH = els.obsLineText.scrollHeight || els.obsLineText.offsetHeight;
+                while ((cW > maxContainerW || cH > maxContainerH) && renderSize > 14) {
+                  renderSize--;
+                  els.obsLineText.style.fontSize = `${renderSize}px`;
+                  cW = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
+                  cH = els.obsLineText.scrollHeight || els.obsLineText.offsetHeight;
+                }
+                if (renderSize < minSize) minSize = renderSize;
+                els.obsLineText.innerHTML = origHTML;
+                els.obsLineText.style.visibility = origVis;
+              }
+              state._overlayUniformFontSize = (minSize === Infinity) ? (baseSize || 54) : minSize;
+            }
+            const uniformSize = state._overlayUniformFontSize || baseSize;
+            els.obsLineText.style.fontSize = `${uniformSize}px`;
+            els.obsLineText.innerHTML = formatPresenterText(snapText, isBible, badgeTxt, badgeCls);
+            const finalRows = els.obsLineText.querySelectorAll('.obs-line-row');
+            finalRows.forEach(r => { r.style.lineHeight = `${lHeightF}`; r.style.marginBottom = `${Math.round((lHeightF - 1) * 14)}px`; });
+            const finalSegs = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
+            const alignF = state.styleOptions.textAlign || 'center';
+            finalSegs.forEach(s => {
+              s.style.display = 'inline-block';
+              s.style.width = 'auto';
+              if (isBible || alignF === 'justify') {
+                s.style.whiteSpace = 'pre-wrap'; s.style.wordBreak = 'break-word'; s.style.overflowWrap = 'break-word'; s.style.textAlign = alignF;
+              } else {
+                s.style.whiteSpace = 'nowrap'; s.style.wordBreak = 'keep-all'; s.style.overflowWrap = 'normal'; s.style.textAlign = alignF;
+              }
+            });
+          }
+          els.obsLineText.style.transform = 'none';
+        }
+      });
+
+      if (els.obsLowerThirdBox) {
+        const xPct = (state.dragPivot && state.dragPivot.xPct !== undefined) ? state.dragPivot.xPct : 50;
+        let yPct = (state.dragPivot && state.dragPivot.yPct !== undefined) ? state.dragPivot.yPct : 50;
+        if (yPct === 75) yPct = 50;
+        els.obsLowerThirdBox.style.left = `${xPct}%`;
+        els.obsLowerThirdBox.style.top = `${yPct}%`;
+        els.obsLowerThirdBox.style.transform = 'translate3d(-50%, -50%, 0)';
+      }
+    }nts = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
         obsSegments.forEach((seg, idx) => {
           const segLineIdx = parseInt(seg.dataset.lineIdx !== undefined ? seg.dataset.lineIdx : idx);
           const isH = Array.isArray(activeHighlights) ? activeHighlights.includes(segLineIdx) : (activeHighlights === segLineIdx);
@@ -5917,71 +5927,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
 
-      // Calculate optimal font size for mobile vs landscape viewports with Binary-Search Auto Fit
-      const snapText = text;
-      requestAnimationFrame(() => {
-        if (els.obsLineText && snapText.trim() && els.obsLineText.style.display !== 'none') {
-          const container = els.obsOverlay || els.obsLineText.parentElement || document.body;
-          const maxContainerH = (container.clientHeight || window.innerHeight) * 0.90;
-          const maxContainerW = (container.clientWidth || window.innerWidth) * 0.94;
-          const baseSize = state.fontSize || 54;
-          const scaleMode = state.scaleMode || 'auto';
 
-          const lineRows = Array.from(els.obsLineText.querySelectorAll('.obs-line-row'));
-          lineRows.forEach(r => {
-            r.style.display = 'block';
-            r.style.width = '100%';
-            r.style.textAlign = state.textAlign || 'center';
-          });
-
-          const segments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
-          segments.forEach(s => {
-            s.style.display = 'inline-block';
-            s.style.width = 'auto';
-            s.style.whiteSpace = 'nowrap';
-            s.style.wordBreak = 'keep-all';
-            s.style.overflowWrap = 'normal';
-          });
-
-          let renderSize = baseSize;
-
-          if (scaleMode === 'auto') {
-            const isVertical = window.innerHeight > window.innerWidth;
-            const refTargetW = isVertical ? Math.max(maxContainerW, maxContainerH * (16 / 9)) : maxContainerW;
-
-            let low = 16;
-            let high = Math.min(260, Math.max(120, Math.floor(maxContainerH / Math.max(1, (segments.length || 1) * 0.85))));
-            renderSize = 16;
-
-            els.obsLineText.style.maxWidth = 'none';
-
-            while (low <= high) {
-              const mid = Math.floor((low + high) / 2);
-              els.obsLineText.style.fontSize = `${mid}px`;
-              const h = els.obsLineText.scrollHeight || els.obsLineText.offsetHeight;
-              const w = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
-
-              if (h <= maxContainerH && w <= refTargetW) {
-                renderSize = mid;
-                low = mid + 1;
-              } else {
-                high = mid - 1;
-              }
-            }
-
-            els.obsLineText.style.fontSize = `${renderSize}px`;
-            const currentW = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
-            if (isVertical && currentW > maxContainerW && currentW > 0) {
-              const scaleFactor = maxContainerW / currentW;
-              renderSize = Math.max(14, Math.floor(renderSize * scaleFactor));
-            }
-          }
-
-          els.obsLineText.style.fontSize = `${renderSize}px`;
-          els.obsLineText.style.lineHeight = '1.4';
-          els.obsLineText.style.transform = 'none';
-        }
-      });
 
       if (els.obsLowerThirdBox) {
         const xPct = (state.dragPivot && state.dragPivot.xPct !== undefined) ? state.dragPivot.xPct : 50;

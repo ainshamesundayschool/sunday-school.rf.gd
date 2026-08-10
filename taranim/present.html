@@ -949,6 +949,84 @@
     }
 
     let currentIsBible = false;
+    let _uniformFontSize = null;
+    let _uniformSongKey = '';
+
+    // Compute the optimal font size for a given HTML string rendered in textEl
+    function _computeOptimalSize(htmlContent, maxW, maxH, isJomhuria, segCountHint) {
+      const isVertical = window.innerHeight > window.innerWidth;
+      const refTargetW = isVertical ? Math.max(maxW, maxH * (16 / 9)) : maxW;
+
+      const origHTML = textEl.innerHTML;
+      const origDisplay = textEl.style.display;
+      const origVis = textEl.style.visibility;
+
+      textEl.innerHTML = htmlContent;
+      textEl.style.display = 'inline-block';
+      textEl.style.visibility = 'hidden';
+
+      const segments = textEl.querySelectorAll('.obs-line-segment');
+      const segCount = segments.length || segCountHint || 1;
+
+      segments.forEach(s => {
+        s.style.display = 'inline-block';
+        s.style.width = 'auto';
+        s.style.whiteSpace = 'nowrap';
+        s.style.wordBreak = 'keep-all';
+        s.style.overflowWrap = 'normal';
+      });
+
+      let low = 16;
+      let maxLimit = isJomhuria ? 300 : 260;
+      let high = Math.min(maxLimit, Math.max(120, Math.floor(maxH / Math.max(1, segCount * 0.85))));
+      let renderSize = 16;
+
+      textEl.style.whiteSpace = 'nowrap';
+      textEl.style.maxWidth = 'none';
+
+      while (low <= high) {
+        const mid = Math.floor((low + high) / 2);
+        textEl.style.fontSize = `${mid}px`;
+        const h = textEl.scrollHeight || textEl.offsetHeight;
+        const w = textEl.scrollWidth || textEl.offsetWidth;
+
+        if (h <= maxH && w <= refTargetW) {
+          renderSize = mid;
+          low = mid + 1;
+        } else {
+          high = mid - 1;
+        }
+      }
+
+      textEl.style.fontSize = `${renderSize}px`;
+      let currentW = textEl.scrollWidth || textEl.offsetWidth;
+      let currentH = textEl.scrollHeight || textEl.offsetHeight;
+      while ((currentW > maxW || currentH > maxH) && renderSize > 14) {
+        renderSize--;
+        textEl.style.fontSize = `${renderSize}px`;
+        currentW = textEl.scrollWidth || textEl.offsetWidth;
+        currentH = textEl.scrollHeight || textEl.offsetHeight;
+      }
+
+      textEl.innerHTML = origHTML;
+      textEl.style.display = origDisplay;
+      textEl.style.visibility = origVis;
+
+      return renderSize;
+    }
+
+    function _computeUniformFontSize(allSlideTexts, isBible, maxW, maxH, isJomhuria) {
+      let minSize = Infinity;
+
+      for (const slideText of allSlideTexts) {
+        if (!slideText || !slideText.trim()) continue;
+        const html = formatPresenterText(slideText, isBible, '', '');
+        const size = _computeOptimalSize(html, maxW, maxH, isJomhuria, 1);
+        if (size < minSize) minSize = size;
+      }
+
+      return minSize === Infinity ? 54 : minSize;
+    }
 
     function fitTextToSafeArea(isBible = currentIsBible) {
       if (!textEl) return;
@@ -1025,42 +1103,50 @@
         renderSize = baseSize;
         textEl.style.fontSize = `${renderSize}px`;
       } else if (scaleMode === 'auto') {
-        const isVertical = window.innerHeight > window.innerWidth;
-        const refTargetW = isVertical ? Math.max(maxW, maxH * (16 / 9)) : maxW;
+        // USE CACHED UNIFORM FONT SIZE IF AVAILABLE
+        if (_uniformFontSize !== null) {
+          renderSize = _uniformFontSize;
+        } else {
+          // Fallback: single-slide auto-fit (should not normally reach here)
+          const isVertical = window.innerHeight > window.innerWidth;
+          const refTargetW = isVertical ? Math.max(maxW, maxH * (16 / 9)) : maxW;
 
-        let low = 16;
-        let maxLimit = isJomhuria ? 300 : 260;
-        let high = Math.min(maxLimit, Math.max(120, Math.floor(maxH / Math.max(1, (segments.length || 1) * 0.85))));
-        renderSize = 16;
+          let low = 16;
+          let maxLimit = isJomhuria ? 300 : 260;
+          let high = Math.min(maxLimit, Math.max(120, Math.floor(maxH / Math.max(1, (segments.length || 1) * 0.85))));
+          renderSize = 16;
 
-        textEl.style.whiteSpace = 'nowrap';
-        textEl.style.maxWidth = 'none';
+          textEl.style.whiteSpace = 'nowrap';
+          textEl.style.maxWidth = 'none';
 
-        while (low <= high) {
-          const mid = Math.floor((low + high) / 2);
-          textEl.style.fontSize = `${mid}px`;
-          const h = textEl.scrollHeight || textEl.offsetHeight;
-          const w = textEl.scrollWidth || textEl.offsetWidth;
+          while (low <= high) {
+            const mid = Math.floor((low + high) / 2);
+            textEl.style.fontSize = `${mid}px`;
+            const h = textEl.scrollHeight || textEl.offsetHeight;
+            const w = textEl.scrollWidth || textEl.offsetWidth;
 
-          if (h <= maxH && w <= refTargetW) {
-            renderSize = mid;
-            low = mid + 1;
-          } else {
-            high = mid - 1;
+            if (h <= maxH && w <= refTargetW) {
+              renderSize = mid;
+              low = mid + 1;
+            } else {
+              high = mid - 1;
+            }
+          }
+
+          textEl.style.fontSize = `${renderSize}px`;
+
+          // Safety clamp: shrink if text still overflows maxW or maxH
+          let currentW = textEl.scrollWidth || textEl.offsetWidth;
+          let currentH = textEl.scrollHeight || textEl.offsetHeight;
+          while ((currentW > maxW || currentH > maxH) && renderSize > 14) {
+            renderSize--;
+            textEl.style.fontSize = `${renderSize}px`;
+            currentW = textEl.scrollWidth || textEl.offsetWidth;
+            currentH = textEl.scrollHeight || textEl.offsetHeight;
           }
         }
 
         textEl.style.fontSize = `${renderSize}px`;
-
-        // Safety clamp: shrink if text still overflows maxW or maxH
-        let currentW = textEl.scrollWidth || textEl.offsetWidth;
-        let currentH = textEl.scrollHeight || textEl.offsetHeight;
-        while ((currentW > maxW || currentH > maxH) && renderSize > 14) {
-          renderSize--;
-          textEl.style.fontSize = `${renderSize}px`;
-          currentW = textEl.scrollWidth || textEl.offsetWidth;
-          currentH = textEl.scrollHeight || textEl.offsetHeight;
-        }
       }
 
       textEl.style.fontSize = renderSize + 'px';
@@ -1502,6 +1588,44 @@
         textEl.style.display = 'inline-block';
         textEl.style.visibility = 'visible';
         const isBible = Boolean(data.isBible || data.is_bible);
+
+        // UNIFORM FONT SIZE: Recompute when song or style changes
+        const scaleMode = (data.scaleMode) || 'auto';
+        if (scaleMode === 'auto' && !isBible) {
+          const songKey = `${data.songTitle || ''}_${data.font || ''}_${data.fontSize || ''}_${data.letterSpacing || ''}_${data.lineHeight || ''}_${data.fontWeight || ''}_${data.textAlign || ''}_${window.innerWidth}_${window.innerHeight}`;
+          if (songKey !== _uniformSongKey && data.allSlideTexts && data.allSlideTexts.length > 0) {
+            _uniformSongKey = songKey;
+            // Store current style data for computation
+            if (data.scaleMode) lastStyleData.scaleMode = data.scaleMode;
+            const currentFont = data.font || textEl.style.fontFamily || '';
+            const isJomhuria = /jomhuria/i.test(currentFont);
+
+            // Apply font before measuring
+            if (isJomhuria) {
+              textEl.style.fontFamily = 'Jomhuria, Arial, sans-serif';
+              textEl.style.letterSpacing = `${data.letterSpacing || 2}px`;
+              textEl.style.wordSpacing = '6px';
+              textEl.style.fontWeight = '400';
+            } else {
+              textEl.style.fontFamily = currentFont || 'sans-serif';
+              textEl.style.letterSpacing = `${data.letterSpacing || 0}px`;
+              textEl.style.wordSpacing = 'normal';
+              textEl.style.fontWeight = data.fontWeight || '400';
+            }
+            textEl.style.lineHeight = `${data.lineHeight !== undefined ? data.lineHeight : 1.5}`;
+
+            const container = document.getElementById('obs-overlay-container') || document.body;
+            const maxH = (container.clientHeight || window.innerHeight) * 0.88;
+            const maxW = (container.clientWidth || window.innerWidth) * 0.94;
+
+            _uniformFontSize = _computeUniformFontSize(data.allSlideTexts, isBible, maxW, maxH, isJomhuria);
+          }
+        } else {
+          // Fixed mode or Bible: don't use uniform size
+          _uniformFontSize = null;
+          _uniformSongKey = '';
+        }
+
         const styleKey = `${data.text}_${data.font}_${data.fontSize}_${data.textAlign}_${data.fontWeight}_${data.fontStyle}_${data.letterSpacing}_${data.lineHeight}`;
         if (currentTextState !== styleKey) {
           currentTextState = styleKey;
