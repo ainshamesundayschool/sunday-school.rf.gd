@@ -45,13 +45,38 @@ function getWordConsonantSkeleton(word) {
     .trim();
 }
 
+const FRANCO_DICTIONARY_GLOBAL = {
+  "toba": "طوبى", "touba": "طوبى", "tuba": "طوبى", "6oba": "طوبى", "6ouba": "طوبى", "6uba": "طوبى", "2elba": "طوبى",
+  "lely": "للي", "lelli": "للي", "lelly": "للي", "lilly": "للي", "lilli": "للي", "lel": "للي", "lally": "للي",
+  "yesma3": "يسمع", "yasma3": "يسمع", "yesma": "يسمع", "yasma": "يسمع", "esma3": "اسمع", "esma": "اسمع",
+  "ely": "اللي", "elli": "اللي", "elly": "اللي",
+  "seedy": "سيدي", "seedi": "سيدي", "sidy": "سيدي",
+  "elahi": "إلهي", "elahy": "إلهي", "ilahi": "إلهي",
+  "3ayez": "عايز", "ayez": "عايز", "3aiz": "عايز",
+  "esmak": "اسمك", "ismak": "اسمك",
+  "elsama": "السما", "elsamaa": "السما", "es-sama": "السما",
+  "elmagd": "المجد", "almagd": "المجد",
+  "kalama": "كلامه", "kalamo": "كلامه", "kalamah": "كلامه", "kalam": "كلام",
+  "rabena": "ربنا", "rabbina": "ربنا", "rbna": "ربنا", "rabina": "ربنا",
+  "rabby": "ربي", "raby": "ربي", "rab": "رب", "rabb": "رب",
+  "yasou3": "يسوع", "yaso3": "يسوع", "yassou3": "يسوع", "yasu3": "يسوع", "yasoa": "يسوع", "yasu": "يسوع",
+  "elmasih": "المسيح", "almasih": "المسيح", "lmasih": "المسيح", "masih": "مسيح",
+  "kirolos": "كيرلس", "kyrollos": "كيرلس", "kyrillos": "كيرلس",
+  "allah": "الله", "alla": "الله"
+};
+
 function francoToArabic(text) {
   if (!text) return "";
   let s = text.toLowerCase().trim();
   if (!/[a-z0-9]/.test(s)) return "";
 
-  // Common Franco mappings to Arabic
-  const mappings = [
+  let words = s.split(/\s+/);
+  let translated = words.map(w => {
+    if (FRANCO_DICTIONARY_GLOBAL[w]) return FRANCO_DICTIONARY_GLOBAL[w];
+    const cleanW = w.replace(/^(el|al|l)/, '');
+    if (FRANCO_DICTIONARY_GLOBAL[cleanW]) return (w.startsWith('el') || w.startsWith('al') ? 'ال' : '') + FRANCO_DICTIONARY_GLOBAL[cleanW];
+    let tw = w;
+    const mappings = [
     { franco: "3a", arabic: "عا" },
     { franco: "3i", arabic: "عي" },
     { franco: "3u", arabic: "عو" },
@@ -95,10 +120,12 @@ function francoToArabic(text) {
     { franco: "a", arabic: "ا" }
   ];
 
-  mappings.forEach(m => {
-    s = s.split(m.franco).join(m.arabic);
+    mappings.forEach(m => {
+      tw = tw.split(m.franco).join(m.arabic);
+    });
+    return tw;
   });
-  return s;
+  return translated.join(" ");
 }
 
 function arabicToLatin(text) {
