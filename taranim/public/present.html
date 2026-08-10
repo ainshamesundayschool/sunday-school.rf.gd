@@ -1310,12 +1310,35 @@
       let isJustify = isBible || Boolean(lastStyleData && (lastStyleData.isJustified || lastStyleData.textAlign === 'justify')) && !isJomhuria;
       const connectableRegex = /([\u0628\u062A\u062B\u062C\u062D\u062E\u0633\u0634\u0635\u0636\u0637\u0638\u0639\u063A\u0641\u0642\u0643\u0644\u0645\u0646\u0647])(?=[\u0600-\u064A])/g;
 
-      let lineSegments = lines.map((l, idx) => {
-        let lineStr = l.trim();
-        if (!lineStr) return '';
-        if (isJustify && /[\u0600-\u06FF]/.test(lineStr)) {
-          lineStr = lineStr.replace(connectableRegex, '$1ـ');
-        }
+      let processedLines = lines.map(l => l.trim()).filter(Boolean);
+
+      if (isJustify && processedLines.length > 0) {
+        const getCleanLen = (s) => s.replace(/[\u064B-\u0652]/g, '').length;
+        const lineLens = processedLines.map(getCleanLen);
+        const maxLen = Math.max(...lineLens);
+
+        processedLines = processedLines.map((lineStr) => {
+          if (!/[\u0600-\u06FF]/.test(lineStr)) return lineStr;
+          const curLen = getCleanLen(lineStr);
+          const diff = maxLen - curLen;
+
+          const slotsMatches = lineStr.match(connectableRegex);
+          const slotCount = slotsMatches ? slotsMatches.length : 0;
+
+          if (slotCount === 0) return lineStr;
+
+          let repeats = 1;
+          if (diff > 0) {
+            repeats = Math.min(4, Math.max(1, Math.round(diff / slotCount) + 1));
+          }
+
+          const kashidaStr = 'ـ'.repeat(repeats);
+          return lineStr.replace(connectableRegex, `$1${kashidaStr}`);
+        });
+      }
+
+      let lineSegments = processedLines.map((l, idx) => {
+        let lineStr = l;
         if (lineStr.startsWith('(')) {
           lineStr = '<span class="rep-num-grey" style="color:#94a3b8; font-weight:600; margin-left:1px;">(</span>' + lineStr.substring(1);
         }
