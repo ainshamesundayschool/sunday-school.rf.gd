@@ -2973,7 +2973,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     els.searchSuggestionsChips.innerHTML = suggestions.map(s => `
       <button class="suggestion-chip" type="button" data-replacement="${escapeHtml(s.text)}" data-start="${start}" data-end="${end}">
-        <i class="fa-solid fa-wand-magic-sparkles"></i> ${escapeHtml(s.text)}
+        <svg class="gemini-spark-icon" viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="display:inline-block; vertical-align:-2px; margin-left:4px;"><path d="M12 0C12 6.627 6.627 12 0 12C6.627 12 12 17.373 12 24C12 17.373 17.373 12 24 12C17.373 12 12 6.627 12 0Z"/></svg> ${escapeHtml(s.text)}
       </button>
     `).join('');
 
@@ -3703,7 +3703,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (state.francoAutoTranslate && /[a-z]/i.test(query) && !/[\u0600-\u06FF]/.test(query)) {
       const rawTranslated = francoToArabic(query);
       if (rawTranslated) {
-        francoHeaderHtml = `<div class="franco-translation-header"><i class="fa-solid fa-wand-magic-sparkles"></i> <strong>${escapeHtml(rawTranslated)}</strong></div>`;
+        francoHeaderHtml = `<div class="franco-translation-header"><svg class="gemini-spark-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="display:inline-block; vertical-align:-2px; margin-left:6px;"><path d="M12 0C12 6.627 6.627 12 0 12C6.627 12 12 17.373 12 24C12 17.373 17.373 12 24 12C17.373 12 12 6.627 12 0Z"/></svg> <strong>${escapeHtml(rawTranslated)}</strong></div>`;
       }
     }
 
@@ -4526,8 +4526,10 @@ document.addEventListener('DOMContentLoaded', () => {
     els.presentationLinesContainer.innerHTML = presentationLines.map((l, idx) => {
       const linesPreviewHtml = (l.lines || [l.text]).map(lineText => {
         let text = escapeHtml(lineText);
-        text = text.replace(/\((\d+|[٠-٩]+)\)$/g, '<span class="repeat-tag">($1)</span>')
-                   .replace(/\)([\d٠-٩]+)$/g, ')<span class="rep-num-grey" style="color:#94a3b8; font-weight:600; margin-right:2px;">$1</span>');
+        if (text.startsWith('(')) {
+          text = '<span class="rep-num-grey" style="color:#94a3b8; font-weight:600; margin-left:1px;">(</span>' + text.substring(1);
+        }
+        text = text.replace(/\)([\d٠-٩]*)$/, '<span class="rep-num-grey" style="color:#94a3b8; font-weight:600; margin-right:1px;">)$1</span>');
         return `<div class="slide-line-row"><span>${text}</span></div>`;
       }).join('');
 
@@ -4943,55 +4945,24 @@ document.addEventListener('DOMContentLoaded', () => {
     let html = escapeHtml(text);
     let lines = html.split('\n');
 
-    for (let i = 0; i < lines.length; i++) {
-      let lineStr = lines[i].trim();
-      if (!lineStr) continue;
-
-      let hasOpenBracket = /^\s*[\(\[]/.test(lineStr);
-      let hasCloseBracket = /[\)\]]\s*(\d+|[٠-٩]+)?\s*$/i.test(lineStr) || /[\)\]]/.test(lineStr);
-
-      if (hasOpenBracket && !hasCloseBracket && lines.length === 1) {
-        lineStr = lineStr.replace(/^\s*[\(\[]\s*/, '').trim();
-        lines[i] = lineStr;
-      }
-
-      let endMatch = lineStr.match(/(?:\)\s*)?(?:\(|\[)?\s*(?:x|X|×|\*)?\s*(\d+|[٠-٩]+)\s*(?:x|X|×)?\s*(?:\)|\])?$/i) || 
-                     lineStr.match(/\s*(?:x|X|×|\*)\s*(\d+|[٠-٩]+)$/i) || 
-                     lineStr.match(/\(\s*(\d+|[٠-٩]+)\s*\)$/);
-
-      if (endMatch && endMatch[1]) {
-        let repeatNum = endMatch[1];
-        let cleanedLine = lineStr
-          .replace(/(?:\)\s*)?(?:\(|\[)?\s*(?:x|X|×|\*)?\s*(\d+|[٠-٩]+)\s*(?:x|X|×)?\s*(?:\)|\])?$/i, '')
-          .replace(/\s*(?:x|X|×|\*)\s*(\d+|[٠-٩]+)$/i, '')
-          .trim();
-
-        if (cleanedLine.startsWith('(') || cleanedLine.startsWith('[')) {
-          cleanedLine = cleanedLine.substring(1).trim();
-        }
-        if (cleanedLine.endsWith(')')) {
-          cleanedLine = cleanedLine.slice(0, -1).trim();
-        }
-
-        lines[i] = `${cleanedLine} <span class="repeat-tag">(${repeatNum})</span>`;
-      } else if (lineStr.startsWith('(') && lineStr.endsWith(')')) {
-        let inside = lineStr.substring(1, lineStr.length - 1).trim();
-        lines[i] = inside;
-      }
-    }
-
     let badgeHtml = '';
     if (detectedBadge) {
       badgeHtml = `<span class="slide-badge-layer ${detectedBadgeClass}">${escapeHtml(detectedBadge)}</span>`;
     }
 
-      let lineSegments = lines.map((l, idx) => {
-        let styledL = l.replace(/\)([\d٠-٩]+)$/, ')<span class="rep-num-grey" style="color:#94a3b8; opacity:0.85; font-weight:600; font-size:0.9em; margin-right:2px;">$1</span>');
-        if (idx === 0) {
-          return `<span class="obs-line-segment obs-first-line" style="display: block; white-space: normal; word-break: keep-all; overflow-wrap: break-word; text-align: center; width: 100%; font-size: inherit; overflow: visible;"><span class="obs-first-line-wrapper" style="position: relative; display: inline-block; text-align: center; max-width: 100%; overflow: visible;">${badgeHtml}${styledL}</span></span>`;
-        }
-        return `<span class="obs-line-segment" style="display: block; white-space: normal; word-break: keep-all; overflow-wrap: break-word; text-align: center; width: 100%; font-size: inherit; overflow: visible;">${styledL}</span>`;
-      }).join('');
+    let lineSegments = lines.map((l, idx) => {
+      let lineStr = l.trim();
+      if (!lineStr) return '';
+      if (lineStr.startsWith('(')) {
+        lineStr = '<span class="rep-num-grey" style="color:#94a3b8; font-weight:600; margin-left:1px;">(</span>' + lineStr.substring(1);
+      }
+      lineStr = lineStr.replace(/\)([\d٠-٩]*)$/, '<span class="rep-num-grey" style="color:#94a3b8; font-weight:600; margin-right:1px;">)$1</span>');
+
+      if (idx === 0) {
+        return `<span class="obs-line-segment obs-first-line" style="display: block; white-space: normal; word-break: keep-all; overflow-wrap: break-word; text-align: center; width: 100%; font-size: inherit; overflow: visible;"><span class="obs-first-line-wrapper" style="position: relative; display: inline-block; text-align: center; max-width: 100%; overflow: visible;">${badgeHtml}${lineStr}</span></span>`;
+      }
+      return `<span class="obs-line-segment" style="display: block; white-space: normal; word-break: keep-all; overflow-wrap: break-word; text-align: center; width: 100%; font-size: inherit; overflow: visible;">${lineStr}</span>`;
+    }).filter(Boolean).join('');
 
     return `<div class="obs-slide-wrapper" style="overflow: visible;"><div class="obs-lines-wrapper" style="overflow: visible;">${lineSegments}</div></div>`;
   }
