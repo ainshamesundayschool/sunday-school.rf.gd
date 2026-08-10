@@ -447,7 +447,7 @@ if (preg_match('#/api/song/(\d+)#', $parsedUrl, $matches) || (isset($_GET['actio
     $repMap = [];
     try {
         $repStmt = $pdo->prepare("
-            SELECT r.start_segment, r.end_segment, r.repetitions
+            SELECT r.start_segment, r.end_segment, r.opening_position, r.closing_position, r.repetitions
             FROM repetitions r
             JOIN segments sg ON sg.id = r.start_segment
             JOIN slides sl ON sl.id = sg.slide
@@ -461,11 +461,15 @@ if (preg_match('#/api/song/(\d+)#', $parsedUrl, $matches) || (isset($_GET['actio
         foreach ($repRows as $rRow) {
             $sId = (int)$rRow['start_segment'];
             $eId = (int)$rRow['end_segment'];
+            $op  = (int)$rRow['opening_position'];
+            $cp  = (int)$rRow['closing_position'];
             $cnt = (int)$rRow['repetitions'];
-            if (!isset($repMap[$sId])) $repMap[$sId] = ['start' => [], 'end' => []];
-            if (!isset($repMap[$eId])) $repMap[$eId] = ['start' => [], 'end' => []];
-            $repMap[$sId]['start'][] = $cnt;
-            $repMap[$eId]['end'][] = $cnt;
+
+            if (!isset($repMap[$sId])) $repMap[$sId] = ['starts' => [], 'ends' => []];
+            if (!isset($repMap[$eId])) $repMap[$eId] = ['starts' => [], 'ends' => []];
+
+            $repMap[$sId]['starts'][] = ['pos' => $op, 'cnt' => $cnt];
+            $repMap[$eId]['ends'][] = ['pos' => $cp, 'cnt' => $cnt];
         }
     } catch (Exception $ex) {}
 
@@ -493,12 +497,26 @@ if (preg_match('#/api/song/(\d+)#', $parsedUrl, $matches) || (isset($_GET['actio
                 $segId = (int)$seg['id'];
                 $txt = trim($seg['content']);
                 if (isset($repMap[$segId])) {
-                    if (!empty($repMap[$segId]['start'])) {
-                        $txt = '(' . $txt;
+                    if (!empty($repMap[$segId]['starts'])) {
+                        foreach ($repMap[$segId]['starts'] as $st) {
+                            $pos = $st['pos'];
+                            $cnt = $st['cnt'];
+                            if ($pos > 0 && $pos < mb_strlen($txt)) {
+                                $txt = mb_substr($txt, 0, $pos) . $cnt . '(' . mb_substr($txt, $pos);
+                            } else {
+                                $txt = $cnt . '(' . $txt;
+                            }
+                        }
                     }
-                    if (!empty($repMap[$segId]['end'])) {
-                        $count = $repMap[$segId]['end'][0];
-                        $txt = $txt . ')' . $count;
+                    if (!empty($repMap[$segId]['ends'])) {
+                        foreach ($repMap[$segId]['ends'] as $en) {
+                            $pos = $en['pos'];
+                            if ($pos > 0 && $pos < mb_strlen($txt)) {
+                                $txt = mb_substr($txt, 0, $pos) . ')' . mb_substr($txt, $pos);
+                            } else {
+                                $txt = $txt . ')';
+                            }
+                        }
                     }
                 }
                 $lines[] = $txt;

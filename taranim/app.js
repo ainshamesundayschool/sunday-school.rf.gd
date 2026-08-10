@@ -2720,74 +2720,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        if (els.modalCredits && !els.modalCredits.classList.contains('hidden')) {
-          els.modalCredits.classList.add('hidden');
-          return;
-        }
-        if (els.obsOverlay && !els.obsOverlay.classList.contains('hidden')) {
-          els.obsOverlay.classList.add('hidden');
-          if (document.fullscreenElement) {
-            document.exitFullscreen().catch(() => {});
-          }
-          return;
-        }
-        els.intelligentSearch.focus();
-        els.intelligentSearch.select();
-        els.searchDropdown.classList.add('hidden');
-        if (document.fullscreenElement) {
-          document.exitFullscreen().catch(() => {});
-        }
-        return;
-      }
-
-      if (document.activeElement === els.intelligentSearch || (document.activeElement && document.activeElement.tagName === 'INPUT') || (document.activeElement && document.activeElement.tagName === 'TEXTAREA')) {
-        return;
-      }
-
-      // Check for numeric keys (0-9 or Numpad 0-9 or Arabic digits ٠-٩)
-      const isDigit = /^[0-9٠-٩]$/.test(e.key);
-      if (isDigit) {
-        const standardDigit = e.key.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
-        numberJumpBuffer += standardDigit;
-        showNumberJumpToast(numberJumpBuffer);
-
-        if (numberJumpTimer) clearTimeout(numberJumpTimer);
-        // Clear buffer silently after 4s idle without jumping automatically
-        numberJumpTimer = setTimeout(() => {
-          numberJumpBuffer = '';
-        }, 4000);
-        return;
-      }
-
-      if (e.key === 'Escape' && numberJumpBuffer) {
-        numberJumpBuffer = '';
-        if (numberJumpTimer) clearTimeout(numberJumpTimer);
-        const toast = document.getElementById('app-toast');
-        if (toast) toast.classList.add('hidden');
-        return;
-      }
-
-      if (e.key === 'Enter' && numberJumpBuffer) {
-        e.preventDefault();
-        if (numberJumpTimer) clearTimeout(numberJumpTimer);
-        jumpToBufferedSlide();
-        return;
-      }
-
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowDown' || e.key === ' ') {
-        e.preventDefault();
-        nextLine();
-      } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
-        e.preventDefault();
-        prevLine();
-      } else if (e.key === 'b' || e.key === 'B') {
-        toggleBlank();
-      }
-    });
-
     let numberJumpBuffer = '';
     let numberJumpTimer = null;
 
@@ -2816,27 +2748,101 @@ document.addEventListener('DOMContentLoaded', () => {
       const toast = document.getElementById('app-toast');
       if (toast) toast.classList.add('hidden');
 
-      if (!state.presentationLines || state.presentationLines.length === 0) {
+      const lines = (state.activeSong && state.presentationLines && state.presentationLines.length > 0)
+        ? state.presentationLines
+        : (state.livePresentationLines || []);
+
+      if (!lines || lines.length === 0) {
         showToast('لا توجد شريحة معروضة حالياً');
         return;
       }
 
-      if (!isNaN(targetNum) && targetNum >= 1 && targetNum <= state.presentationLines.length) {
-        state.currentLineIndex = targetNum - 1;
+      const targetIdx = targetNum - 1;
+
+      if (!isNaN(targetNum) && targetIdx >= 0 && targetIdx < lines.length) {
+        state.liveSong = state.activeSong || state.liveSong;
+        state.livePresentationLines = lines;
+        state.liveLineIndex = targetIdx;
+        state.currentLineIndex = targetIdx;
         state.isBlank = false;
         renderPresentationLinesList();
         syncLiveState();
 
         if (els.presentationLinesList) {
-          const activeEl = els.presentationLinesList.children[state.currentLineIndex];
+          const activeEl = els.presentationLinesList.children[targetIdx];
           if (activeEl) activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
         }
       } else if (!isNaN(targetNum)) {
-        showToast(`رقم الشريحة غير موجود (${targetNum}) — الإجمالي ${state.presentationLines.length}`);
+        showToast(`رقم الشريحة غير موجود (${targetNum}) — الإجمالي ${lines.length}`);
       }
     }
     window.jumpToBufferedSlideGlobal = jumpToBufferedSlide;
-  }
+
+    window.addEventListener('keydown', (e) => {
+      if (document.activeElement === els.intelligentSearch || (document.activeElement && document.activeElement.tagName === 'INPUT') || (document.activeElement && document.activeElement.tagName === 'TEXTAREA')) {
+        return;
+      }
+
+      if (e.key === 'Escape') {
+        if (numberJumpBuffer) {
+          numberJumpBuffer = '';
+          if (numberJumpTimer) clearTimeout(numberJumpTimer);
+          const toast = document.getElementById('app-toast');
+          if (toast) toast.classList.add('hidden');
+          return;
+        }
+        e.preventDefault();
+        if (els.modalCredits && !els.modalCredits.classList.contains('hidden')) {
+          els.modalCredits.classList.add('hidden');
+          return;
+        }
+        if (els.obsOverlay && !els.obsOverlay.classList.contains('hidden')) {
+          els.obsOverlay.classList.add('hidden');
+          if (document.fullscreenElement) {
+            document.exitFullscreen().catch(() => {});
+          }
+          return;
+        }
+        els.intelligentSearch.focus();
+        els.intelligentSearch.select();
+        els.searchDropdown.classList.add('hidden');
+        if (document.fullscreenElement) {
+          document.exitFullscreen().catch(() => {});
+        }
+        return;
+      }
+
+      // Check for numeric keys (0-9 or Numpad 0-9 or Arabic digits ٠-٩)
+      const isDigit = /^[0-9٠-٩]$/.test(e.key);
+      if (isDigit) {
+        const standardDigit = e.key.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+        numberJumpBuffer += standardDigit;
+        showNumberJumpToast(numberJumpBuffer);
+
+        if (numberJumpTimer) clearTimeout(numberJumpTimer);
+        numberJumpTimer = setTimeout(() => {
+          numberJumpBuffer = '';
+        }, 4000);
+        return;
+      }
+
+      if ((e.key === 'Enter' || e.key === 'NumpadEnter') && numberJumpBuffer) {
+        e.preventDefault();
+        if (numberJumpTimer) clearTimeout(numberJumpTimer);
+        jumpToBufferedSlide();
+        return;
+      }
+
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowDown' || e.key === ' ') {
+        e.preventDefault();
+        nextLine();
+      } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        prevLine();
+      } else if (e.key === 'b' || e.key === 'B') {
+        toggleBlank();
+      }
+    });
 
   function getActiveWordAtCursor(input) {
     if (!input) return { word: '', start: 0, end: 0 };
@@ -3805,8 +3811,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function hasCompleteContent(obj) {
     if (!obj || typeof obj !== 'object') return false;
+    const isBible = Boolean((obj.is_bible === true || obj.is_bible === '1' || obj.is_bible === 1) || (obj.chapter_number !== undefined && obj.chapter_number !== null && obj.chapter_number !== '') || obj.type === 'bible');
+    
     if (obj.verses && Array.isArray(obj.verses) && obj.verses.length > 0) return true;
     if (obj.slides && Array.isArray(obj.slides) && obj.slides.length > 0) return true;
+    
+    if (isBible) {
+      if (!obj.notes && !obj.text && !obj.content) return false;
+      const txt = String(obj.notes || obj.text || obj.content).trim();
+      const titleTxt = String(obj.title || '').trim();
+      if (txt === titleTxt) return false;
+      if (txt.length < 30 && !/[\d٠-٩]/.test(txt)) return false;
+      return true;
+    }
+
     if (obj.notes && String(obj.notes).trim().length > 0) return true;
     if (obj.text && String(obj.text).trim().length > 0) return true;
     return false;
