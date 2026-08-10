@@ -3020,39 +3020,68 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderScreenOptions() {
+    const winX = window.screenX !== undefined ? window.screenX : (window.screenLeft !== undefined ? window.screenLeft : 0);
+
     let screens = [];
     if (screenDetails && screenDetails.screens && screenDetails.screens.length > 0) {
       screens = screenDetails.screens;
     } else {
       screens = [
         { label: 'Built-in Retina Display', width: window.screen.width || 1920, height: window.screen.height || 1080, isPrimary: true },
-        { label: '\u0634\u0627\u0634\u0629 \u0639\u0631\u0636 \u062e\u0627\u0631\u062c\u064a\u0629 2 (TV / \u0627\u0644\u0628\u0631\u0648\u062c\u064a\u0643\u062a\u0648\u0631)', width: 1920, height: 1080, isPrimary: false }
+        { label: 'PHL24M1N3200Z', width: 1920, height: 1080, isPrimary: false }
       ];
     }
 
     if (els.connectedScreensSelect) {
-      els.connectedScreensSelect.innerHTML = screens.map((s, idx) => {
-        const isMain = Boolean(s.isPrimary || idx === 0);
-        const type = isMain ? ' (\u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629 - \u0628\u0646\u0641\u0633 \u0627\u0644\u062a\u0628\u0648\u064a\u0628)' : ' (\u062e\u0627\u0631\u062c\u064a\u0629 - \u0646\u0627\u0641\u0630\u0629 \u0645\u0646\u0628\u062b\u0642\u0629)';
-        const label = s.label || (isMain ? '\u0627\u0644\u0634\u0627\u0634\u0629 \u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629' : '\u0634\u0627\u0634\u0629 \u062e\u0627\u0631\u062c\u064a\u0629 ' + (idx + 1));
-        const val = isMain ? 'primary' : 'external';
-        return '<option value="' + val + '">' + escapeHtml(label) + ' (' + s.width + ' \u00d7 ' + s.height + ')' + type + '</option>';
+      let optionsHtml = screens.map((s, idx) => {
+        const sLeft = s.availLeft !== undefined ? s.availLeft : (s.left || 0);
+        const sWidth = s.width || 1920;
+        const isCurrentScreen = winX >= sLeft && winX < (sLeft + sWidth);
+        const isMain = Boolean(s.isPrimary);
+        
+        let tags = [];
+        if (isMain) tags.push('الرئيسية');
+        if (isCurrentScreen) tags.push('لوحة التحكم');
+        const tagText = tags.length > 0 ? ' (' + tags.join(' - ') + ')' : '';
+        const label = s.label || (isMain ? 'Built-in Retina Display' : ('Display ' + (idx + 1)));
+        const val = 'screen_' + idx;
+        return '<option value="' + val + '">' + escapeHtml(label) + ' (' + s.width + ' × ' + s.height + ' px)' + tagText + '</option>';
       }).join('');
+
+      optionsHtml += '<option value="in_app_overlay">عرض داخل التبويب الحالي (Overlay)</option>';
+      els.connectedScreensSelect.innerHTML = optionsHtml;
     }
 
     if (els.screensCastList) {
-      els.screensCastList.innerHTML = screens.map((s, idx) => {
-        const isMain = Boolean(s.isPrimary || idx === 0);
-        const name = s.label || (isMain ? 'الشاشة الرئيسية (هذا الجهاز - بنفس التبويب)' : 'شاشة عرض خارجية 2 (نافذة منبثقة)');
-        const cardClass = isMain ? 'screen-cast-card main-screen-card' : 'screen-cast-card';
-        const val = isMain ? 'primary' : 'external';
-        return '<div class="' + cardClass + '" data-val="' + val + '"><div class="screen-info"><span class="screen-name"><i class="fa-solid fa-desktop"></i> ' + escapeHtml(name) + '</span><span class="screen-res">' + s.width + ' \u00d7 ' + s.height + ' px</span></div><i class="fa-solid fa-expand launch-btn-icon"></i></div>';
+      let cardsHtml = screens.map((s, idx) => {
+        const sLeft = s.availLeft !== undefined ? s.availLeft : (s.left || 0);
+        const sWidth = s.width || 1920;
+        const isCurrentScreen = winX >= sLeft && winX < (sLeft + sWidth);
+        const isMain = Boolean(s.isPrimary);
+
+        let badgeHtml = '';
+        if (isMain) {
+          badgeHtml += '<span class="screen-badge" style="font-size:0.75rem; background:rgba(148,163,184,0.2); color:#94a3b8; padding:2px 8px; border-radius:12px; margin-right:6px;">الرئيسية</span>';
+        }
+        if (isCurrentScreen) {
+          badgeHtml += '<span class="screen-badge" style="font-size:0.75rem; background:rgba(59,130,246,0.2); color:#60a5fa; padding:2px 8px; border-radius:12px; margin-right:6px;">لوحة التحكم</span>';
+        }
+
+        const name = s.label || (isMain ? 'Built-in Retina Display' : ('Display ' + (idx + 1)));
+        const cardClass = 'screen-cast-card' + (isCurrentScreen ? ' current-screen-card' : '');
+        const val = 'screen_' + idx;
+
+        return '<div class="' + cardClass + '" data-val="' + val + '"><div class="screen-info"><span class="screen-name"><i class="fa-solid fa-desktop"></i> ' + escapeHtml(name) + ' ' + badgeHtml + '</span><span class="screen-res">' + s.width + ' × ' + s.height + ' px</span></div><i class="fa-solid fa-expand launch-btn-icon"></i></div>';
       }).join('');
+
+      cardsHtml += '<div class="screen-cast-card" data-val="in_app_overlay"><div class="screen-info"><span class="screen-name"><i class="fa-solid fa-window-maximize"></i> عرض داخل التبويب الحالي (Overlay)</span><span class="screen-res">عرض الشريحة بالكامل فوق لوحة التحكم</span></div><i class="fa-solid fa-up-right-and-down-left-from-center launch-btn-icon"></i></div>';
+
+      els.screensCastList.innerHTML = cardsHtml;
 
       els.screensCastList.querySelectorAll('.screen-cast-card').forEach(card => {
         card.addEventListener('click', async () => {
           const val = card.dataset.val;
-          if (val === 'external' && 'getScreenDetails' in window && !screenDetails) {
+          if (val.startsWith('screen_') && 'getScreenDetails' in window && !screenDetails) {
             try {
               screenDetails = await window.getScreenDetails();
               renderScreenOptions();
@@ -3071,20 +3100,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function launchPresenterOnSelectedScreen(selectedVal) {
     const select = els.connectedScreensSelect;
-    const val = (selectedVal !== undefined && selectedVal !== null && selectedVal !== '') 
+    let val = (selectedVal !== undefined && selectedVal !== null && selectedVal !== '') 
       ? String(selectedVal) 
-      : (select && select.value ? String(select.value) : 'primary');
+      : (select && select.value ? String(select.value) : '');
 
-    // 1. MAIN DISPLAY (Built-in Screen)
-    if (val === 'primary' || val === 'in_app_overlay' || val === '0') {
+    if (!val) {
+      val = 'screen_0';
+    }
+
+    if (val === 'external') {
+      let extIdx = 1;
+      if (screenDetails && screenDetails.screens && screenDetails.screens.length > 1) {
+        const winX = window.screenX !== undefined ? window.screenX : (window.screenLeft !== undefined ? window.screenLeft : 0);
+        const controlPanelScreen = screenDetails.screens.find(s => {
+          const sLeft = s.availLeft !== undefined ? s.availLeft : (s.left || 0);
+          const sWidth = s.width || 1920;
+          return winX >= sLeft && winX < (sLeft + sWidth);
+        });
+        const nonCP = screenDetails.screens.find(s => s !== controlPanelScreen);
+        if (nonCP) {
+          extIdx = screenDetails.screens.indexOf(nonCP);
+        } else {
+          extIdx = screenDetails.screens.findIndex(s => !s.isPrimary);
+          if (extIdx < 0) extIdx = 1;
+        }
+      }
+      val = 'screen_' + extIdx;
+    } else if (val === 'primary') {
+      val = 'in_app_overlay';
+    }
+
+    // 1. IN-APP TAB OVERLAY MODE
+    if (val === 'in_app_overlay') {
       if (presenterWindow && !presenterWindow.closed) {
         try { presenterWindow.close(); } catch(e) {}
         presenterWindow = null;
       }
 
       state.selectedScreen = {
-        val: 'primary',
-        label: '\u0627\u0644\u0634\u0627\u0634\u0629 \u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629 (\u0647\u0630\u0627 \u0627\u0644\u062c\u0647\u0627\u0632)',
+        val: 'in_app_overlay',
+        label: 'عرض داخل التبويب الحالي (Overlay)',
         width: window.screen.width || 1920,
         height: window.screen.height || 1080,
         isPrimary: true
@@ -3105,43 +3160,38 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // 2. EXTERNAL DISPLAY (TV / Projector) -> TARGET THE OTHER MONITOR THAT DOES NOT HAVE CONTROL PANEL
-    let extScreen = null;
-    let left = 1920;
+    // 2. TARGETED POPUP WINDOW ON SELECTED SCREEN
+    let targetIdx = 0;
+    if (val.startsWith('screen_')) {
+      targetIdx = parseInt(val.replace('screen_', '')) || 0;
+    } else if (!isNaN(parseInt(val))) {
+      targetIdx = parseInt(val);
+    }
+
+    let left = 0;
     let top = 0;
     let width = 1920;
     let height = 1080;
-    let targetIdx = 1;
+    let screenLabel = 'Display ' + (targetIdx + 1);
 
-    // Detect where the control panel window is currently positioned
-    const winX = window.screenX !== undefined ? window.screenX : (window.screenLeft !== undefined ? window.screenLeft : 0);
-    const winY = window.screenY !== undefined ? window.screenY : (window.screenTop !== undefined ? window.screenTop : 0);
-
-    if (screenDetails && screenDetails.screens && screenDetails.screens.length > 1) {
-      // Find screen that DOES NOT contain current control panel window
-      const controlPanelScreen = screenDetails.screens.find(s => 
-        winX >= (s.availLeft || s.left || 0) && winX < ((s.availLeft || s.left || 0) + (s.width || 1920))
-      );
-
-      extScreen = screenDetails.screens.find(s => s !== controlPanelScreen) || screenDetails.screens.find(s => !s.isPrimary) || screenDetails.screens[1];
-
-      if (extScreen) {
-        left = extScreen.availLeft !== undefined ? extScreen.availLeft : (extScreen.left !== undefined ? extScreen.left : 1920);
-        top = extScreen.availTop !== undefined ? extScreen.availTop : (extScreen.top !== undefined ? extScreen.top : 0);
-        width = extScreen.availWidth || extScreen.width || 1920;
-        height = extScreen.availHeight || extScreen.height || 1080;
-        targetIdx = screenDetails.screens.indexOf(extScreen);
-      }
+    if (screenDetails && screenDetails.screens && screenDetails.screens[targetIdx]) {
+      const targetScreen = screenDetails.screens[targetIdx];
+      left = targetScreen.availLeft !== undefined ? targetScreen.availLeft : (targetScreen.left !== undefined ? targetScreen.left : 0);
+      top = targetScreen.availTop !== undefined ? targetScreen.availTop : (targetScreen.top !== undefined ? targetScreen.top : 0);
+      width = targetScreen.availWidth || targetScreen.width || 1920;
+      height = targetScreen.availHeight || targetScreen.height || 1080;
+      screenLabel = targetScreen.label || (targetScreen.isPrimary ? 'Built-in Retina Display' : screenLabel);
     } else {
+      const winX = window.screenX !== undefined ? window.screenX : (window.screenLeft !== undefined ? window.screenLeft : 0);
       const primaryW = window.screen.width || 1920;
       const availL = window.screen.availLeft || 0;
 
-      // If control panel is on secondary monitor (x >= 75% of primary width), target primary monitor (availL)
-      // Otherwise, target secondary monitor (availL + primaryW)
-      if (winX >= (availL + primaryW * 0.75)) {
+      if (targetIdx === 0) {
         left = availL;
+        screenLabel = 'Built-in Retina Display';
       } else {
-        left = availL + primaryW;
+        left = (winX >= (availL + primaryW * 0.75)) ? availL : (availL + primaryW);
+        screenLabel = 'Display 2';
       }
       top = window.screen.availTop || 0;
       width = window.screen.availWidth || 1920;
@@ -3149,11 +3199,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     state.selectedScreen = {
-      val: 'external',
-      label: 'شاشة عرض خارجية 2 (TV / البروجيكتور)',
+      val: 'screen_' + targetIdx,
+      label: screenLabel,
       width: width,
       height: height,
-      isPrimary: false
+      isPrimary: (targetIdx === 0)
     };
     lastWindowOpenTime = Date.now();
     updateDisplayButtonUI();
@@ -3178,7 +3228,7 @@ document.addEventListener('DOMContentLoaded', () => {
       moveWin();
       setTimeout(moveWin, 150);
       setTimeout(moveWin, 450);
-      showToast('تم فتح شاشة العرض الخارجية.');
+      showToast('تم فتح شاشة العرض على: ' + screenLabel);
     }
 
     if ('getScreenDetails' in window && !screenDetails) {

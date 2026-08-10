@@ -990,7 +990,10 @@
       if ('getScreenDetails' in window) {
         try {
           const details = await window.getScreenDetails();
-          if (details && details.screens && details.screens.length > 1) {
+          const sIdx = screenIdx !== null ? parseInt(screenIdx) : -1;
+          if (details && details.screens && sIdx >= 0 && details.screens[sIdx]) {
+            _targetScreen = details.screens[sIdx];
+          } else if (details && details.screens && details.screens.length > 1) {
             _targetScreen = details.screens.find(s => !s.isPrimary) || details.screens[1];
           }
           _screenDetailsReady = true;
@@ -1008,7 +1011,10 @@
       if (!_screenDetailsReady && 'getScreenDetails' in window) {
         try {
           const details = await window.getScreenDetails();
-          if (details && details.screens && details.screens.length > 1) {
+          const sIdx = screenIdx !== null ? parseInt(screenIdx) : -1;
+          if (details && details.screens && sIdx >= 0 && details.screens[sIdx]) {
+            _targetScreen = details.screens[sIdx];
+          } else if (details && details.screens && details.screens.length > 1) {
             _targetScreen = details.screens.find(s => !s.isPrimary) || details.screens[1];
           }
           _screenDetailsReady = true;
