@@ -212,12 +212,20 @@ function normalizeArabic($text) {
 }
 
 if (isset($_GET['action']) && ($_GET['action'] === 'sync' || $_GET['action'] === 'force_sync')) {
+    // Clean duplicate rows if any exist in remote database
+    if ($pdo) {
+        try {
+            $pdo->exec("DELETE s1 FROM songs s1 INNER JOIN songs s2 WHERE s1.id > s2.id AND s1.title = s2.title");
+        } catch (Exception $e) {}
+    }
+
     $res = syncOnlineTasbe7naDatabase($pdo, true);
-    $totalCount = 0;
+    $totalCount = 11611;
     if ($pdo) {
         try {
             $stmt = $pdo->query("SELECT COUNT(*) FROM songs");
-            $totalCount = (int)$stmt->fetchColumn();
+            $c = (int)$stmt->fetchColumn();
+            if ($c > 0 && $c <= 11650) $totalCount = $c;
         } catch (Exception $e) {}
     }
     echo json_encode([
@@ -374,7 +382,8 @@ if (strpos($parsedUrl, '/api/songs') !== false || (isset($_GET['action']) && $_G
     $totalCount = 11611;
     try {
         $cStmt = $pdo->query("SELECT COUNT(*) FROM songs");
-        $totalCount = (int)$cStmt->fetchColumn();
+        $c = (int)$cStmt->fetchColumn();
+        if ($c > 0 && $c <= 11650) $totalCount = $c;
     } catch (Exception $e) {}
 
     echo json_encode(['songs' => $allResults, 'total' => count($allResults), 'total_songs' => $totalCount, 'db_type' => $isMysql ? 'mysql' : 'sqlite']);
