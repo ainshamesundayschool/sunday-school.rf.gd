@@ -4938,7 +4938,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const clickedIdx = parseInt(item.dataset.idx);
 
         const lineRow = e.target.closest('.slide-line-row');
-        if (lineRow && clickedIdx === state.liveLineIndex && isLiveSongDisplayed) {
+        if (lineRow && clickedIdx === state.liveLineIndex && isLiveSongDisplayed && state.isHighlightMode) {
           const lineIdx = parseInt(lineRow.dataset.lineIdx);
           if (!isNaN(lineIdx)) {
             if (!Array.isArray(state.highlightedLineIndices)) state.highlightedLineIndices = [];
@@ -5469,7 +5469,9 @@ document.addEventListener('DOMContentLoaded', () => {
       boxOpacity: state.styleOptions.boxOpacity,
       boxRadius: state.styleOptions.boxRadius,
       boxPadding: state.styleOptions.boxPadding,
-      hideControls: Boolean(state.hideControls)
+      hideControls: Boolean(state.hideControls),
+      highlightedLines: state.highlightedLineIndices || [],
+      highlightColor: state.highlightColor || '#f59e0b'
     };
 
     // ONLY ATTACH POSITION IF IT WAS EXPLICITLY DRAGGED/MODIFIED
@@ -5653,6 +5655,26 @@ document.addEventListener('DOMContentLoaded', () => {
           void els.obsLineText.offsetWidth;
           els.obsLineText.classList.add(`animate-appear-${state.textAnimation}`);
         }
+
+        // APPLY HIGHLIGHT LINE LOGIC TO IN-APP OVERLAY (MATCHING PRESENT.HTML EXACTLY)
+        const hColor = state.highlightColor || '#f59e0b';
+        const activeHighlights = state.highlightedLineIndices || [];
+        const obsSegments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
+        obsSegments.forEach((seg, idx) => {
+          const isH = Array.isArray(activeHighlights) ? activeHighlights.includes(idx) : (activeHighlights === idx);
+          if (isH) {
+            seg.style.setProperty('--highlight-bg', `linear-gradient(90deg, ${hColor} 0%, ${hColor}dd 100%)`);
+            seg.style.setProperty('--highlight-glow', `${hColor}aa`);
+            seg.classList.remove('line-unhighlighting');
+            seg.classList.add('line-highlighted');
+          } else {
+            if (seg.classList.contains('line-highlighted')) {
+              seg.classList.remove('line-highlighted');
+              seg.classList.add('line-unhighlighting');
+              setTimeout(() => seg.classList.remove('line-unhighlighting'), 300);
+            }
+          }
+        });
       }
 
       // Calculate optimal font size for mobile vs landscape viewports with Binary-Search Auto Fit
