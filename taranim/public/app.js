@@ -3884,9 +3884,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // Non-blocking background sync for new database updates
+      // Non-blocking background sync for new database updates with console debug logs
       setTimeout(() => {
-        fetch(`${apiUrl}?action=sync`).catch(() => null);
+        console.log('%c🔄 [Tasbe7na Sync] Checking online Tasbe7na database for updates...', 'color: #2563eb; font-weight: bold;');
+        fetch(`${apiUrl}?action=sync`)
+          .then(r => r.json())
+          .then(data => {
+            if (data && data.status === 'success') {
+              const added = (data.syncResult && data.syncResult.added) || 0;
+              const updated = (data.syncResult && data.syncResult.updated) || 0;
+              console.log(`%c✅ [Tasbe7na Sync] Sync complete! Database total: ${data.total_songs || 11611} songs. (Added: ${added}, Updated: ${updated})`, 'color: #10b981; font-weight: bold;');
+            } else {
+              console.log('%cℹ️ [Tasbe7na Sync] Database is up to date with Tasbe7na.', 'color: #64748b;');
+            }
+          })
+          .catch(() => {
+            console.log('%cℹ️ [Tasbe7na Sync] Running in offline cached mode.', 'color: #64748b;');
+          });
       }, 1500);
     } catch (liveErr) {}
   }
