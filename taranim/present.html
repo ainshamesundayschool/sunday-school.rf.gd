@@ -1457,14 +1457,10 @@
         logoImg.style.filter = filters.join(' ');
       }
 
-      if (data.isBlank || !hasText) {
+      if (!hasText) {
         textEl.classList.add('hidden');
         textEl.style.display = 'none';
-        if (data.isBlank) {
-          if (standbyEl) standbyEl.classList.add('hidden');
-        } else {
-          if (standbyEl) standbyEl.classList.remove('hidden');
-        }
+        if (standbyEl) standbyEl.classList.remove('hidden');
         currentIsBlankState = true;
       } else {
         if (standbyEl) standbyEl.classList.add('hidden');

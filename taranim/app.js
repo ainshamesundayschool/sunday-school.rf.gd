@@ -5622,19 +5622,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      if (state.isBlank || !hasText) {
+      if (!hasText) {
         els.obsLineText.classList.add('hidden');
         els.obsLineText.style.display = 'none';
 
-        if (state.isBlank) {
-          if (standbyEl) {
-            standbyEl.classList.add('hidden');
-            standbyEl.style.display = 'none';
-          }
-        } else {
-          if (standbyEl) {
-            standbyEl.classList.remove('hidden');
-            standbyEl.style.display = 'flex';
+        if (standbyEl) {
+          standbyEl.classList.remove('hidden');
+          standbyEl.style.display = 'flex';
 
             const btnPrev = document.getElementById('btn-standby-prev-song');
             const btnExit = document.getElementById('btn-standby-exit');
@@ -5670,7 +5664,6 @@ document.addEventListener('DOMContentLoaded', () => {
               if (btnNext) btnNext.classList.add('hidden');
             }
           }
-        }
       } else {
         if (standbyEl) {
           standbyEl.classList.add('hidden');
