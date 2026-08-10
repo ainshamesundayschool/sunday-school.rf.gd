@@ -1346,7 +1346,7 @@ input[type="checkbox"]:checked::after {
   gap: 8px;
   text-align: right;
   font-size: 1.05rem;
-  font-weight: 800;
+  font-weight: 650;
   color: #0f172a;
   line-height: 1.7;
   letter-spacing: 0.01em;
@@ -1363,9 +1363,11 @@ input[type="checkbox"]:checked::after {
   overflow-wrap: break-word;
 }
 
-.repeat-tag {
+.repeat-tag,
+.slide-line-row .repeat-tag,
+.rep-num-grey {
   color: #94a3b8 !important;
-  font-weight: 700;
+  font-weight: 400 !important;
   font-size: 0.95em;
   margin: 0 3px;
   display: inline-block;
@@ -1381,13 +1383,6 @@ input[type="checkbox"]:checked::after {
   letter-spacing: 2.5px;
   word-spacing: 8px;
   font-weight: 400 !important;
-}
-
-.slide-line-row .repeat-tag {
-  color: #94a3b8 !important;
-  font-weight: 700;
-  font-size: 0.95rem;
-  margin: 0 4px;
 }
 
 .slide-badge-side {
