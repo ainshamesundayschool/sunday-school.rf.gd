@@ -1458,20 +1458,24 @@ input[type="checkbox"]:checked::after {
 .chorus-num {
   color: #ef4444 !important;
   font-weight: 700 !important;
+  font-size: 0.68em !important;
 }
 
 .badge-num {
   font-weight: 700;
-  font-size: 0.72em !important;
+  font-size: 0.68em !important;
   display: inline-block;
   margin-left: 4px;
 }
 
 .badge-num.verse-num,
-.verse-num {
-  color: #ef4444 !important;
+.verse-num,
+.stanza-badge-side,
+.verse-badge-side,
+.slide-badge-layer {
+  color: #94a3b8 !important;
   font-weight: 700 !important;
-  font-size: 0.72em !important;
+  font-size: 0.68em !important;
 }
 
 .stanza-badge-side {
@@ -4004,7 +4008,9 @@ input[type="range"]:active::-moz-range-thumb {
    ========================================================================== */
 .obs-line-segment {
   position: relative;
-  display: inline-block;
+  display: inline-block !important;
+  width: auto !important;
+  max-width: 100%;
   transition: color 0.25s ease;
 }
 
@@ -4021,12 +4027,20 @@ input[type="range"]:active::-moz-range-thumb {
 .obs-line-segment.line-highlighted::before {
   content: '';
   position: absolute;
-  inset: 20% -4px 10% -4px;
+  top: 15%;
+  bottom: 8%;
+  left: -6px;
+  right: -6px;
   background: var(--highlight-bg, rgba(245, 158, 11, 0.82));
-  border-radius: 3px;
+  border-radius: 4px;
   z-index: -1;
   box-shadow: none !important;
-  animation: highlightLinearWipe 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  opacity: 1;
+}
+
+.obs-line-segment.line-animating::before {
+  animation: highlightLinearWipe 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   will-change: clip-path, opacity;
 }
 

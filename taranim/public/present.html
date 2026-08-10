@@ -500,26 +500,31 @@
       font-family: inherit;
     }
 
-    .badge-num,
-    .verse-num,
-    .chorus-num {
-      display: inline-block;
-      font-weight: 700;
-      font-size: 0.72em !important;
-      margin: 0 4px;
-      line-height: 1;
+    .chorus-num,
+    .chorus-badge-side {
+      color: #ef4444 !important;
+      font-weight: 700 !important;
+      font-size: 0.68em !important;
     }
 
+    .badge-num,
     .verse-num,
-    .chorus-num {
-      color: #ef4444 !important;
+    .stanza-badge-side,
+    .verse-badge-side,
+    .slide-badge-layer {
+      color: #94a3b8 !important;
+      font-size: 0.68em !important;
+      font-weight: 700 !important;
+      display: inline-block;
+      margin: 0 4px;
+      line-height: 1;
     }
 
     .rep-num-grey,
     .repeat-tag {
       display: inline-block;
       font-weight: 700;
-      font-size: 0.72em !important;
+      font-size: 0.68em !important;
       margin: 0 4px;
       opacity: 0.85;
       color: #94a3b8 !important;
@@ -535,7 +540,9 @@
 
     .obs-line-segment {
       position: relative;
-      display: inline-block;
+      display: inline-block !important;
+      width: auto !important;
+      max-width: 100%;
       transition: color 0.25s ease;
     }
 
@@ -552,12 +559,20 @@
     .obs-line-segment.line-highlighted::before {
       content: '';
       position: absolute;
-      inset: 15% 0% 8% 0%;
+      top: 15%;
+      bottom: 8%;
+      left: -6px;
+      right: -6px;
       background: var(--highlight-bg, rgba(245, 158, 11, 0.82));
       border-radius: 4px;
       z-index: -1;
       box-shadow: none !important;
-      animation: highlightLinearWipe 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+      opacity: 1;
+    }
+
+    .obs-line-segment.line-animating::before {
+      animation: highlightLinearWipe 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       will-change: clip-path, opacity;
     }
 
@@ -973,11 +988,11 @@
       textEl.style.textDecoration = tDeco;
 
       segments.forEach(s => {
+        s.style.display = 'inline-block';
+        s.style.width = 'auto';
         if (align === 'justify' && !isJomhuria) {
           s.style.whiteSpace = 'normal';
           s.style.wordBreak = 'break-word';
-          s.style.display = 'block';
-          s.style.width = '100%';
           s.style.textAlign = 'justify';
           s.style.textJustify = 'kashida';
           s.style.textAlignLast = 'justify';
@@ -1430,8 +1445,11 @@
         textEl.style.display = 'inline-block';
         textEl.style.visibility = 'visible';
         const isBible = Boolean(data.isBible || data.is_bible);
-        textEl.innerHTML = formatPresenterText(data.text, isBible, data.badgeText, data.badgeClass);
-        fitTextToSafeArea(isBible);
+        if (currentTextState !== data.text) {
+          currentTextState = data.text;
+          textEl.innerHTML = formatPresenterText(data.text, isBible, data.badgeText, data.badgeClass);
+          fitTextToSafeArea(isBible);
+        }
 
         // HIGHLIGHT LINE LOGIC (LINEAR WIPE & FADE OUT) AFTER TEXT & FIT ARE APPLIED
         if (data.highlightedLines !== undefined) {
@@ -1449,11 +1467,14 @@
           const isH = Array.isArray(activeHighlights) ? activeHighlights.includes(segLineIdx) : (activeHighlights === segLineIdx);
           if (isH) {
             seg.style.setProperty('--highlight-bg', `${hColor}cc`);
-            seg.classList.remove('line-unhighlighting');
-            seg.classList.add('line-highlighted');
+            if (!seg.classList.contains('line-highlighted')) {
+              seg.classList.remove('line-unhighlighting');
+              seg.classList.add('line-highlighted', 'line-animating');
+              setTimeout(() => seg.classList.remove('line-animating'), 650);
+            }
           } else {
             if (seg.classList.contains('line-highlighted')) {
-              seg.classList.remove('line-highlighted');
+              seg.classList.remove('line-highlighted', 'line-animating');
               seg.classList.add('line-unhighlighting');
               setTimeout(() => seg.classList.remove('line-unhighlighting'), 300);
             }

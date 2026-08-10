@@ -5662,11 +5662,14 @@ document.addEventListener('DOMContentLoaded', () => {
           const isH = Array.isArray(activeHighlights) ? activeHighlights.includes(segLineIdx) : (activeHighlights === segLineIdx);
           if (isH) {
             seg.style.setProperty('--highlight-bg', `${hColor}cc`);
-            seg.classList.remove('line-unhighlighting');
-            seg.classList.add('line-highlighted');
+            if (!seg.classList.contains('line-highlighted')) {
+              seg.classList.remove('line-unhighlighting');
+              seg.classList.add('line-highlighted', 'line-animating');
+              setTimeout(() => seg.classList.remove('line-animating'), 650);
+            }
           } else {
             if (seg.classList.contains('line-highlighted')) {
-              seg.classList.remove('line-highlighted');
+              seg.classList.remove('line-highlighted', 'line-animating');
               seg.classList.add('line-unhighlighting');
               setTimeout(() => seg.classList.remove('line-unhighlighting'), 300);
             }
