@@ -2657,7 +2657,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function initKeyboardShortcuts() {
     if (els.obsOverlay) {
       let overlayTouchStartX = 0;
       let overlayTouchStartY = 0;
