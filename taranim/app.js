@@ -2657,6 +2657,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function initKeyboardShortcuts() {
     if (els.obsOverlay) {
       let overlayTouchStartX = 0;
       let overlayTouchStartY = 0;
@@ -2843,6 +2844,7 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleBlank();
       }
     });
+  }
 
   function getActiveWordAtCursor(input) {
     if (!input) return { word: '', start: 0, end: 0 };
