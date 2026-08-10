@@ -6030,6 +6030,7 @@ document.addEventListener('DOMContentLoaded', () => {
       state.liveLineIndex = 0;
       state.currentLineIndex = 0;
       state.isBlank = false;
+      state.highlightedLineIndices = [];
       renderPresentationLinesList();
       syncLiveState();
       return;
@@ -6037,6 +6038,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentLines = (state.livePresentationLines && state.livePresentationLines.length > 0) ? state.livePresentationLines : state.presentationLines;
     if (state.liveLineIndex < currentLines.length - 1) {
       state.liveLineIndex++;
+      state.highlightedLineIndices = [];
       if (state.liveSong && state.activeSong && getItemKey(state.liveSong) === getItemKey(state.activeSong)) {
         state.currentLineIndex = state.liveLineIndex;
       }
@@ -6046,6 +6048,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (state.liveLineIndex === currentLines.length - 1) {
       if (!state.isBlank) {
         state.isBlank = true;
+        state.highlightedLineIndices = [];
         renderPresentationLinesList();
         syncLiveState();
       }
@@ -6055,11 +6058,13 @@ document.addEventListener('DOMContentLoaded', () => {
   function prevLine() {
     if (state.isBlank) {
       state.isBlank = false;
+      state.highlightedLineIndices = [];
       syncLiveState();
       return;
     }
     if (state.liveLineIndex > 0) {
       state.liveLineIndex--;
+      state.highlightedLineIndices = [];
       if (state.liveSong && state.activeSong && getItemKey(state.liveSong) === getItemKey(state.activeSong)) {
         state.currentLineIndex = state.liveLineIndex;
       }
