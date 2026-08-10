@@ -542,7 +542,7 @@
     .hidden { display: none !important; }
   </style>
 </head>
-<body data-chroma="transparent">
+<body data-chroma="black">
 
   <!-- TOP-LEFT BIBLE / CHAPTER REFERENCE HEADER -->
   <div id="obs-top-left-header" class="obs-top-left-header hidden"></div>
@@ -635,10 +635,31 @@
     window.addEventListener('keydown', requestAutoFullscreen);
 
     const urlParams = new URLSearchParams(window.location.search);
-    const paramChroma = urlParams.get('chroma');
-    if (paramChroma) {
-      document.body.setAttribute('data-chroma', paramChroma);
+    let initialChroma = urlParams.get('chroma');
+    if (!initialChroma) {
+      try {
+        const savedLiveRaw = localStorage.getItem('sunday_school_taranim_live_presentation');
+        if (savedLiveRaw) {
+          const parsed = JSON.parse(savedLiveRaw);
+          if (parsed && (parsed.chroma || parsed.chromaKey)) {
+            initialChroma = parsed.chroma || parsed.chromaKey;
+          }
+        }
+        if (!initialChroma) {
+          const savedStyleRaw = localStorage.getItem('sunday_school_taranim_style_settings');
+          if (savedStyleRaw) {
+            const parsedStyle = JSON.parse(savedStyleRaw);
+            if (parsedStyle && parsedStyle.chromaKey) {
+              initialChroma = parsedStyle.chromaKey;
+            }
+          }
+        }
+      } catch(e) {}
     }
+    if (!initialChroma) {
+      initialChroma = 'black';
+    }
+    document.body.setAttribute('data-chroma', initialChroma);
 
     const screenLeft = urlParams.get('screenLeft');
     const screenTop = urlParams.get('screenTop');
@@ -1241,6 +1262,11 @@
       const animType = data.anim || 'fade';
 
       if (!textEl || !box) return;
+
+      const incomingChroma = data.chroma || data.chromaKey;
+      if (incomingChroma) {
+        document.body.setAttribute('data-chroma', incomingChroma);
+      }
 
       const customFontUrl = data.customFontDataUrl || localStorage.getItem('sunday_school_custom_font_dataurl');
       const customFontName = data.customFontName || localStorage.getItem('sunday_school_custom_font_name');
