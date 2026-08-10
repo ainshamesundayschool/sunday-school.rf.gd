@@ -493,81 +493,39 @@
       font-family: inherit;
     }
 
-    .badge-num {
+    .badge-num,
+    .verse-num,
+    .chorus-num {
       display: inline-block;
-      font-weight: 800;
-      font-size: 1em !important;
+      font-weight: 700;
+      font-size: 0.72em !important;
       margin: 0 4px;
       line-height: 1;
     }
 
-    .verse-num {
-      color: #ef4444;
-      font-weight: 800;
-    }
-
+    .verse-num,
     .chorus-num {
-      color: #ef4444; /* Reddish accent matching Image 3 */
-    }
-
-    .obs-slide-wrapper {
-      position: relative;
-      display: block;
-      text-align: center;
-      width: 100%;
-      max-width: 100%;
-    }
-
-    .obs-lines-wrapper {
-      display: block;
-      text-align: center;
-      width: 100%;
-    }
-
-    .obs-first-line-wrapper {
-      position: relative;
-      display: inline-block;
-      text-align: center;
-      max-width: 100%;
-    }
-
-    .slide-badge-layer {
-      position: absolute;
-      left: 100% !important;
-      right: auto !important;
-      top: 50%;
-      transform: translateY(-50%);
-      margin-left: 8px !important;
-      margin-right: 0 !important;
-      font-weight: 800;
-      font-size: 0.65em !important;
-      line-height: 1;
-      white-space: nowrap;
-      pointer-events: none;
-      user-select: none;
-    }
-
-    .slide-badge-layer.chorus-badge-side,
-    .slide-badge-layer.chorus-num {
       color: #ef4444 !important;
     }
 
-    .slide-badge-layer.stanza-badge-side,
-    .slide-badge-layer.verse-badge-side,
-    .slide-badge-layer.verse-num {
-      color: #94a3b8 !important;
-    }
-
+    .rep-num-grey,
     .repeat-tag {
       display: inline-block;
       font-weight: 700;
-      font-size: 0.85em;
+      font-size: 0.72em !important;
       margin: 0 4px;
-      opacity: 0.9;
-      color: inherit;
+      opacity: 0.85;
+      color: #94a3b8 !important;
     }
 
     /* LIVE SLIDE LINE HIGHLIGHT STYLES FOR PRESENTER WINDOW */
+    .obs-line-row {
+      display: block;
+      width: 100%;
+      text-align: center;
+      margin: 0.12em 0;
+    }
+
     .obs-line-segment {
       position: relative;
       display: inline-block;
@@ -587,9 +545,9 @@
     .obs-line-segment.line-highlighted::before {
       content: '';
       position: absolute;
-      inset: 20% -4px 10% -4px;
+      inset: 15% 0% 8% 0%;
       background: var(--highlight-bg, rgba(245, 158, 11, 0.82));
-      border-radius: 3px;
+      border-radius: 4px;
       z-index: -1;
       box-shadow: none !important;
       animation: highlightLinearWipe 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -1342,9 +1300,9 @@
         lineStr = lineStr.replace(/\)([\d٠-٩]*)$/, '<span class="rep-num-grey" style="color:#94a3b8; font-weight:600; margin-right:1px;">)$1</span>');
 
         if (idx === 0) {
-          return `<span class="obs-line-segment obs-first-line" data-line-idx="0"><span class="obs-first-line-wrapper">${badgeHtml}${lineStr}</span></span>`;
+          return `<div class="obs-line-row"><span class="obs-line-segment obs-first-line" data-line-idx="0"><span class="obs-first-line-wrapper">${badgeHtml}${lineStr}</span></span></div>`;
         }
-        return `<span class="obs-line-segment" data-line-idx="${idx}">${lineStr}</span>`;
+        return `<div class="obs-line-row"><span class="obs-line-segment" data-line-idx="${idx}">${lineStr}</span></div>`;
       }).filter(Boolean).join('');
 
       return `<div class="obs-slide-wrapper" style="overflow: visible;"><div class="obs-lines-wrapper" style="overflow: visible;">${lineSegments}</div></div>`;

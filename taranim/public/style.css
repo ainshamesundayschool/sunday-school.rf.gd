@@ -1465,9 +1465,9 @@ input[type="checkbox"]:checked::after {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 32px;
-  font-size: 0.95rem;
-  font-weight: 800;
+  min-width: 28px;
+  font-size: 0.78rem;
+  font-weight: 700;
   color: #64748b;
   user-select: none;
 }
@@ -1476,20 +1476,22 @@ input[type="checkbox"]:checked::after {
 .chorus-badge-side,
 .badge-num.chorus-num,
 .chorus-num {
-  color: #ef4444 !important; /* Bright vivid red accent matching control panel */
-  font-weight: 800 !important;
+  color: #ef4444 !important;
+  font-weight: 700 !important;
 }
 
 .badge-num {
-  font-weight: 800;
+  font-weight: 700;
+  font-size: 0.72em !important;
   display: inline-block;
   margin-left: 4px;
 }
 
 .badge-num.verse-num,
 .verse-num {
-  color: #ef4444 !important; /* Vivid red accent matching chorus badge */
-  font-weight: 800 !important;
+  color: #ef4444 !important;
+  font-weight: 700 !important;
+  font-size: 0.72em !important;
 }
 
 .stanza-badge-side {
