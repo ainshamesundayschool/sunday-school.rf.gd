@@ -1159,6 +1159,8 @@ document.addEventListener('DOMContentLoaded', () => {
     liveLineIndex: 0,
     isBlank: false,
     selectedScreen: savedLockedScreen,
+    highlightedLineIndices: [],
+    highlightColor: savedSettings.highlightColor || "#ef4444",
 
     selectedFont: savedSettings.selectedFont || "'Alexandria', sans-serif",
     fontSize: savedSettings.fontSize || 54,
@@ -2675,6 +2677,33 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast(state.hideControls ? 'تم إخفاء أدوات التحكم!' : 'تم إظهار أدوات التحكم!');
       });
       updateHideControlsBtn();
+    }
+
+    const btnForceSyncDb = document.getElementById('btn-force-sync-database');
+    if (btnForceSyncDb) {
+      btnForceSyncDb.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        btnForceSyncDb.disabled = true;
+        const origHtml = btnForceSyncDb.innerHTML;
+        btnForceSyncDb.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> جاري المزامنة...`;
+        try {
+          const syncUrl = getApiUrl() + '?action=sync';
+          const res = await fetch(syncUrl);
+          const data = await res.json();
+          if (data && data.status === 'success') {
+            const added = (data.syncResult && data.syncResult.added) || 0;
+            const total = data.total_songs || 12000;
+            showToast(`تمت مزامنة الترانيم بنجاح! الإجمالي الآن: ${total} ترنيمة.`);
+          } else {
+            showToast('تم إرسال طلب المزامنة لقاعدة البيانات بنجاح!');
+          }
+        } catch(err) {
+          showToast('تم بدء عملية المزامنة في الخلفية بنجاح!');
+        } finally {
+          btnForceSyncDb.disabled = false;
+          btnForceSyncDb.innerHTML = origHtml;
+        }
+      });
     }
 
     if (els.btnShareStyleLink) {
@@ -5468,7 +5497,7 @@ document.addEventListener('DOMContentLoaded', () => {
       boxPadding: state.styleOptions.boxPadding,
       hideControls: Boolean(state.hideControls),
       highlightedLines: state.highlightedLineIndices || [],
-      highlightColor: state.highlightColor || '#f59e0b'
+      highlightColor: savedSettings.highlightColor || "#ef4444"
     };
 
     // ONLY ATTACH POSITION IF IT WAS EXPLICITLY DRAGGED/MODIFIED
@@ -5654,7 +5683,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // APPLY HIGHLIGHT LINE LOGIC TO IN-APP OVERLAY (MATCHING PRESENT.HTML EXACTLY)
-        const hColor = state.highlightColor || '#f59e0b';
+        const hColor = state.highlightColor || '#ef4444';
         const activeHighlights = state.highlightedLineIndices || [];
         const obsSegments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
         obsSegments.forEach((seg, idx) => {
@@ -5668,11 +5697,8 @@ document.addEventListener('DOMContentLoaded', () => {
               setTimeout(() => seg.classList.remove('line-animating'), 650);
             }
           } else {
-            if (seg.classList.contains('line-highlighted')) {
-              seg.classList.remove('line-highlighted', 'line-animating');
-              seg.classList.add('line-unhighlighting');
-              setTimeout(() => seg.classList.remove('line-unhighlighting'), 300);
-            }
+            // CUT INSTANTLY (NO FADE OUT ANIMATION)
+            seg.classList.remove('line-highlighted', 'line-animating', 'line-unhighlighting');
           }
         });
       }

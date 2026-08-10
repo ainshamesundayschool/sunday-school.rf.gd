@@ -500,8 +500,11 @@
               </div>
             </div>
 
-            <div class="popover-actions" style="margin-top:10px;">
-              <button id="btn-share-style-link" class="btn btn-sm btn-secondary" style="width:100%; font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px;">
+            <div class="popover-actions" style="margin-top:10px; display:flex; flex-direction:column; gap:6px;">
+              <button id="btn-force-sync-database" class="btn btn-sm btn-outline-primary" type="button" style="width:100%; font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px;">
+                <i class="fa-solid fa-rotate"></i> مزامنة الترانيم مع تسبيحنا الآن
+              </button>
+              <button id="btn-share-style-link" class="btn btn-sm btn-secondary" type="button" style="width:100%; font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px;">
                 <i class="fa-solid fa-share-nodes"></i> مشاركة التنسيق
               </button>
             </div>
@@ -599,16 +602,16 @@
 
             <!-- 4. COLOR SELECTOR CIRCLE (TO THE RIGHT SIDE OF HIGHLIGHT BUTTON) -->
             <div id="highlight-color-picker-wrap" class="highlight-color-picker-wrap hidden" style="position:relative; display:inline-flex; align-items:center;">
-              <button type="button" id="btn-highlight-color-circle" class="highlight-color-circle-btn" title="تغيير لون التظليل" style="width:20px; height:20px; border-radius:50%; border:2px solid #ffffff; box-shadow:0 0 0 1.5px #cbd5e1; cursor:pointer; background:#f59e0b; padding:0; outline:none; transition:transform 0.15s ease;"></button>
+              <button type="button" id="btn-highlight-color-circle" class="highlight-color-circle-btn" title="تغيير لون التظليل" style="width:20px; height:20px; border-radius:50%; border:2px solid #ffffff; box-shadow:0 0 0 1.5px #cbd5e1; cursor:pointer; background:#ef4444; padding:0; outline:none; transition:transform 0.15s ease;"></button>
 
               <!-- INLINE COLOR PALETTE POPUP -->
               <div id="popover-highlight-color" class="highlight-palette-popover hidden" style="position:absolute; top:calc(100% + 6px); left:0; background:#ffffff; border:1px solid #cbd5e1; border-radius:10px; padding:6px; box-shadow:0 8px 24px rgba(15,23,42,0.2); display:flex; gap:5px; align-items:center; z-index:999999;">
-                <button type="button" class="highlight-color-pill active" data-color="#f59e0b" style="background:#f59e0b; width:20px; height:20px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px #cbd5e1; cursor:pointer; padding:0;" title="ذهبي"></button>
+                <button type="button" class="highlight-color-pill active" data-color="#ef4444" style="background:#ef4444; width:20px; height:20px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px #cbd5e1; cursor:pointer; padding:0;" title="أحمر"></button>
+                <button type="button" class="highlight-color-pill" data-color="#f59e0b" style="background:#f59e0b; width:20px; height:20px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px #cbd5e1; cursor:pointer; padding:0;" title="ذهبي"></button>
                 <button type="button" class="highlight-color-pill" data-color="#3b82f6" style="background:#3b82f6; width:20px; height:20px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px #cbd5e1; cursor:pointer; padding:0;" title="أزرق"></button>
-                <button type="button" class="highlight-color-pill" data-color="#ef4444" style="background:#ef4444; width:20px; height:20px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px #cbd5e1; cursor:pointer; padding:0;" title="أحمر"></button>
                 <button type="button" class="highlight-color-pill" data-color="#10b981" style="background:#10b981; width:20px; height:20px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px #cbd5e1; cursor:pointer; padding:0;" title="أخضر"></button>
                 <button type="button" class="highlight-color-pill" data-color="#8b5cf6" style="background:#8b5cf6; width:20px; height:20px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px #cbd5e1; cursor:pointer; padding:0;" title="بنفسجي"></button>
-                <input type="color" id="highlight-custom-color" value="#f59e0b" style="width:20px; height:20px; border-radius:50%; border:none; cursor:pointer; padding:0; background:none;" title="اختيار لون مخصص">
+                <input type="color" id="highlight-custom-color" value="#ef4444" style="width:20px; height:20px; border-radius:50%; border:none; cursor:pointer; padding:0; background:none;" title="اختيار لون مخصص">
               </div>
             </div>
           </div>
