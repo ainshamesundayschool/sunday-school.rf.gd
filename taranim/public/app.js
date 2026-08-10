@@ -1901,60 +1901,71 @@ document.addEventListener('DOMContentLoaded', () => {
       loadInitialData();
     });
 
-    // HIGHLIGHT TOOL POPOVER & EVENT BINDINGS
+    // HIGHLIGHT TOOL & CIRCLE COLOR SELECTOR BINDINGS
     const btnToggleHighlight = document.getElementById('btn-toggle-highlight-tool');
-    const popoverHighlight = document.getElementById('popover-highlight-color');
-    const btnCloseHighlight = document.getElementById('btn-close-highlight-popover');
+    const colorPickerWrap = document.getElementById('highlight-color-picker-wrap');
+    const btnColorCircle = document.getElementById('btn-highlight-color-circle');
+    const popoverHighlightColor = document.getElementById('popover-highlight-color');
     const highlightCustomColor = document.getElementById('highlight-custom-color');
 
-    if (btnToggleHighlight && popoverHighlight) {
-      btnToggleHighlight.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const willShow = popoverHighlight.classList.contains('hidden');
-        closeAllPopovers(popoverHighlight);
-        if (willShow) {
-          popoverHighlight.classList.remove('hidden');
-          const backdrop = document.getElementById('popover-style-backdrop');
-          if (backdrop) backdrop.classList.remove('hidden');
-        } else {
-          popoverHighlight.classList.add('hidden');
-          const backdrop = document.getElementById('popover-style-backdrop');
-          if (backdrop) backdrop.classList.add('hidden');
-        }
-      });
-
-      if (btnCloseHighlight) {
-        btnCloseHighlight.addEventListener('click', (e) => {
-          e.stopPropagation();
-          popoverHighlight.classList.add('hidden');
-          const backdrop = document.getElementById('popover-style-backdrop');
-          if (backdrop) backdrop.classList.add('hidden');
-        });
-      }
+    function updateHighlightCircleUI() {
+      const activeColor = state.highlightColor || '#f59e0b';
+      if (btnColorCircle) btnColorCircle.style.background = activeColor;
+      if (highlightCustomColor) highlightCustomColor.value = activeColor;
 
       document.querySelectorAll('.highlight-color-pill').forEach(pill => {
-        pill.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const color = pill.dataset.color;
-          state.highlightColor = color;
-          document.querySelectorAll('.highlight-color-pill').forEach(p => p.classList.remove('active'));
-          pill.classList.add('active');
-          if (highlightCustomColor) highlightCustomColor.value = color;
-          saveUserSettings();
-          renderPresentationLinesList();
-          syncLiveState();
-        });
+        pill.classList.toggle('active', pill.dataset.color === activeColor);
       });
+    }
 
-      if (highlightCustomColor) {
-        highlightCustomColor.addEventListener('input', (e) => {
-          state.highlightColor = e.target.value;
-          document.querySelectorAll('.highlight-color-pill').forEach(p => p.classList.remove('active'));
-          saveUserSettings();
+    if (btnToggleHighlight) {
+      btnToggleHighlight.addEventListener('click', (e) => {
+        e.stopPropagation();
+        state.isHighlightMode = !state.isHighlightMode;
+        btnToggleHighlight.classList.toggle('active', state.isHighlightMode);
+        if (colorPickerWrap) {
+          colorPickerWrap.classList.toggle('hidden', !state.isHighlightMode);
+        }
+        if (!state.isHighlightMode) {
+          if (popoverHighlightColor) popoverHighlightColor.classList.add('hidden');
+          state.highlightedLineIndices = [];
           renderPresentationLinesList();
           syncLiveState();
-        });
-      }
+        } else {
+          updateHighlightCircleUI();
+        }
+      });
+    }
+
+    if (btnColorCircle && popoverHighlightColor) {
+      btnColorCircle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        popoverHighlightColor.classList.toggle('hidden');
+      });
+    }
+
+    document.querySelectorAll('.highlight-color-pill').forEach(pill => {
+      pill.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const color = pill.dataset.color;
+        state.highlightColor = color;
+        updateHighlightCircleUI();
+        if (popoverHighlightColor) popoverHighlightColor.classList.add('hidden');
+        saveUserSettings();
+        renderPresentationLinesList();
+        syncLiveState();
+      });
+    });
+
+    if (highlightCustomColor) {
+      highlightCustomColor.addEventListener('input', (e) => {
+        state.highlightColor = e.target.value;
+        if (btnColorCircle) btnColorCircle.style.background = e.target.value;
+        document.querySelectorAll('.highlight-color-pill').forEach(p => p.classList.remove('active'));
+        saveUserSettings();
+        renderPresentationLinesList();
+        syncLiveState();
+      });
     }
 
     const popoverStyleBackdrop = document.getElementById('popover-style-backdrop');
