@@ -5927,38 +5927,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 s.style.whiteSpace = 'nowrap'; s.style.wordBreak = 'keep-all'; s.style.overflowWrap = 'normal'; s.style.textAlign = alignF;
               }
             });
+
+            const hColor = state.highlightColor || '#ef4444';
+            const activeHighlights = state.highlightedLineIndices || [];
+            const obsSegments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
+            obsSegments.forEach((seg, idx) => {
+              const segLineIdx = parseInt(seg.dataset.lineIdx !== undefined ? seg.dataset.lineIdx : idx);
+              const isH = Array.isArray(activeHighlights) ? activeHighlights.includes(segLineIdx) : (activeHighlights === segLineIdx);
+              if (isH) {
+                seg.style.setProperty('--highlight-bg', `${hColor}cc`);
+                if (!seg.classList.contains('line-highlighted')) {
+                  seg.classList.remove('line-unhighlighting');
+                  seg.classList.add('line-highlighted', 'line-animating');
+                  setTimeout(() => seg.classList.remove('line-animating'), 650);
+                }
+              } else {
+                // CUT INSTANTLY (NO FADE OUT ANIMATION)
+                seg.classList.remove('line-highlighted', 'line-animating', 'line-unhighlighting');
+              }
+            });
           }
           els.obsLineText.style.transform = 'none';
         }
       });
-
-      if (els.obsLowerThirdBox) {
-        const xPct = (state.dragPivot && state.dragPivot.xPct !== undefined) ? state.dragPivot.xPct : 50;
-        let yPct = (state.dragPivot && state.dragPivot.yPct !== undefined) ? state.dragPivot.yPct : 50;
-        if (yPct === 75) yPct = 50;
-        els.obsLowerThirdBox.style.left = `${xPct}%`;
-        els.obsLowerThirdBox.style.top = `${yPct}%`;
-        els.obsLowerThirdBox.style.transform = 'translate3d(-50%, -50%, 0)';
-      }
-    }nts = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
-        obsSegments.forEach((seg, idx) => {
-          const segLineIdx = parseInt(seg.dataset.lineIdx !== undefined ? seg.dataset.lineIdx : idx);
-          const isH = Array.isArray(activeHighlights) ? activeHighlights.includes(segLineIdx) : (activeHighlights === segLineIdx);
-          if (isH) {
-            seg.style.setProperty('--highlight-bg', `${hColor}cc`);
-            if (!seg.classList.contains('line-highlighted')) {
-              seg.classList.remove('line-unhighlighting');
-              seg.classList.add('line-highlighted', 'line-animating');
-              setTimeout(() => seg.classList.remove('line-animating'), 650);
-            }
-          } else {
-            // CUT INSTANTLY (NO FADE OUT ANIMATION)
-            seg.classList.remove('line-highlighted', 'line-animating', 'line-unhighlighting');
-          }
-        });
-      }
-
-
 
       if (els.obsLowerThirdBox) {
         const xPct = (state.dragPivot && state.dragPivot.xPct !== undefined) ? state.dragPivot.xPct : 50;

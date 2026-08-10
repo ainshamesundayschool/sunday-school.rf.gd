@@ -9,7 +9,7 @@
  * Hostinger Cron Job Setup:
  * - Recommended Command: curl -s https://sunday-school.rf.gd/cron_keepalive.php
  *   (or: php /home/uXXXXXX/public_html/cron_keepalive.php)
- * - Recommended Schedule: Every 2 to 5 minutes (e.g. */3 * * * *)
+ * - Recommended Schedule: Every 2 to 5 minutes (e.g. rate of every 3 min)
  */
 
 header('Content-Type: text/plain; charset=utf-8');

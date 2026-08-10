@@ -6003,93 +6003,36 @@ document.addEventListener('DOMContentLoaded', () => {
               r.style.lineHeight = `${lHeightF}`; r.style.marginBottom = `${Math.round((lHeightF - 1) * 14)}px`;
             });
             const finalSegs = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
+            const alignF = state.styleOptions.textAlign || 'center';
             finalSegs.forEach(s => {
-              s.style.display = 'inline-block'; s.style.width = 'auto'; const alignF = state.styleOptions.textAlign || 'center';
+              s.style.display = 'inline-block';
+              s.style.width = 'auto';
               if (isBible || alignF === 'justify') {
-
-        // APPLY HIGHLIGHT LINE LOGIC TO IN-APP OVERLAY (MATCHING PRESENT.HTML EXACTLY)
-        const hColor = state.highlightColor || '#ef4444';
-        const activeHighlights = state.highlightedLineIndices || [];
-        const obsSegments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
-        obsSegments.forEach((seg, idx) => {
-          const segLineIdx = parseInt(seg.dataset.lineIdx !== undefined ? seg.dataset.lineIdx : idx);
-          const isH = Array.isArray(activeHighlights) ? activeHighlights.includes(segLineIdx) : (activeHighlights === segLineIdx);
-          if (isH) {
-            seg.style.setProperty('--highlight-bg', `${hColor}cc`);
-            if (!seg.classList.contains('line-highlighted')) {
-              seg.classList.remove('line-unhighlighting');
-              seg.classList.add('line-highlighted', 'line-animating');
-              setTimeout(() => seg.classList.remove('line-animating'), 650);
-            }
-          } else {
-            // CUT INSTANTLY (NO FADE OUT ANIMATION)
-            seg.classList.remove('line-highlighted', 'line-animating', 'line-unhighlighting');
-          }
-        });
-      }
-
-      // Calculate optimal font size for mobile vs landscape viewports with Binary-Search Auto Fit
-      const snapText = text;
-      requestAnimationFrame(() => {
-        if (els.obsLineText && snapText.trim() && els.obsLineText.style.display !== 'none') {
-          const container = els.obsOverlay || els.obsLineText.parentElement || document.body;
-          const maxContainerH = (container.clientHeight || window.innerHeight) * 0.90;
-          const maxContainerW = (container.clientWidth || window.innerWidth) * 0.94;
-          const baseSize = state.fontSize || 54;
-          const scaleMode = state.scaleMode || 'auto';
-
-          const lineRows = Array.from(els.obsLineText.querySelectorAll('.obs-line-row'));
-          lineRows.forEach(r => {
-            r.style.display = 'block';
-            r.style.width = '100%';
-            r.style.textAlign = state.textAlign || 'center';
-          });
-
-          const segments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
-          segments.forEach(s => {
-            s.style.display = 'inline-block';
-            s.style.width = 'auto';
-            s.style.whiteSpace = 'nowrap';
-            s.style.wordBreak = 'keep-all';
-            s.style.overflowWrap = 'normal';
-          });
-
-          let renderSize = baseSize;
-
-          if (scaleMode === 'auto') {
-            const isVertical = window.innerHeight > window.innerWidth;
-            const refTargetW = isVertical ? Math.max(maxContainerW, maxContainerH * (16 / 9)) : maxContainerW;
-
-            let low = 16;
-            let high = Math.min(260, Math.max(120, Math.floor(maxContainerH / Math.max(1, (segments.length || 1) * 0.85))));
-            renderSize = 16;
-
-            els.obsLineText.style.maxWidth = 'none';
-
-            while (low <= high) {
-              const mid = Math.floor((low + high) / 2);
-              els.obsLineText.style.fontSize = `${mid}px`;
-              const h = els.obsLineText.scrollHeight || els.obsLineText.offsetHeight;
-              const w = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
-
-              if (h <= maxContainerH && w <= refTargetW) {
-                renderSize = mid;
-                low = mid + 1;
+                s.style.whiteSpace = 'pre-wrap'; s.style.wordBreak = 'break-word'; s.style.overflowWrap = 'break-word'; s.style.textAlign = alignF;
               } else {
-                high = mid - 1;
+                s.style.whiteSpace = 'nowrap'; s.style.wordBreak = 'keep-all'; s.style.overflowWrap = 'normal'; s.style.textAlign = alignF;
               }
-            }
+            });
 
-            els.obsLineText.style.fontSize = `${renderSize}px`;
-            const currentW = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
-            if (isVertical && currentW > maxContainerW && currentW > 0) {
-              const scaleFactor = maxContainerW / currentW;
-              renderSize = Math.max(14, Math.floor(renderSize * scaleFactor));
-            }
+            const hColor = state.highlightColor || '#ef4444';
+            const activeHighlights = state.highlightedLineIndices || [];
+            const obsSegments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
+            obsSegments.forEach((seg, idx) => {
+              const segLineIdx = parseInt(seg.dataset.lineIdx !== undefined ? seg.dataset.lineIdx : idx);
+              const isH = Array.isArray(activeHighlights) ? activeHighlights.includes(segLineIdx) : (activeHighlights === segLineIdx);
+              if (isH) {
+                seg.style.setProperty('--highlight-bg', `${hColor}cc`);
+                if (!seg.classList.contains('line-highlighted')) {
+                  seg.classList.remove('line-unhighlighting');
+                  seg.classList.add('line-highlighted', 'line-animating');
+                  setTimeout(() => seg.classList.remove('line-animating'), 650);
+                }
+              } else {
+                // CUT INSTANTLY (NO FADE OUT ANIMATION)
+                seg.classList.remove('line-highlighted', 'line-animating', 'line-unhighlighting');
+              }
+            });
           }
-
-          els.obsLineText.style.fontSize = `${renderSize}px`;
-          els.obsLineText.style.lineHeight = '1.4';
           els.obsLineText.style.transform = 'none';
         }
       });
