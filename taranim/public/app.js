@@ -4005,7 +4005,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // RENDER LOCAL RESULTS INSTANTLY (0ms DELAY!)
-    renderProcessedResults(songsList, trimmedQuery, bibleInfo, true);
+    renderProcessedResults(songsList, trimmedQuery, bibleInfo, false);
 
     // 2. NON-BLOCKING ASYNC SERVER FETCH (30MS FAST DEBOUNCE & IMMEDIATE ABORT)
     if (searchDebounceTimeout) clearTimeout(searchDebounceTimeout);
@@ -4027,10 +4027,11 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
 
-        const mergedList = apiResults.length > 0 ? [...apiResults, ...songsList] : songsList;
-        renderProcessedResults(mergedList, trimmedQuery, bibleInfo, false);
+        if (apiResults.length > 0) {
+          const mergedList = [...apiResults, ...songsList];
+          renderProcessedResults(mergedList, trimmedQuery, bibleInfo, false);
+        }
       } catch (err) {
-        renderProcessedResults(songsList, trimmedQuery, bibleInfo, false);
       }
     }, 30);
   }
@@ -4103,7 +4104,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (!songs || songs.length === 0) {
-      if (isApiPending || (!state.allSongs || state.allSongs.length === 0)) {
+      if (isApiPending) {
         els.searchDropdown.innerHTML = francoHeaderHtml + `<div class="search-item no-results-item"><i class="fa-solid fa-spinner fa-spin" style="color:#2563eb; margin-left:8px;"></i><span class="item-title">جاري البحث...</span></div>`;
       } else {
         els.searchDropdown.innerHTML = francoHeaderHtml + `<div class="search-item no-results-item"><i class="fa-solid fa-circle-exclamation" style="color:#94a3b8; margin-left:6px;"></i><span class="item-title">لم يتم العثور على ترنيمة أو شاهد كتابي</span></div>`;
@@ -4114,8 +4115,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const remainingCount = songs.length - visibleSongs.length;
 
       const itemsHtml = visibleSongs.map(s => {
-        const rawNotes = s.notes || '';
-        const allLines = rawNotes.split(/[\n,]+/).map(l => l.trim()).filter(l => l.length > 0);
+        let rawNotes = s.notes || s.text || s.content || '';
+        if (!rawNotes && s.verses && Array.isArray(s.verses) && s.verses.length > 0) {
+          rawNotes = s.verses.map(v => (typeof v === 'string' ? v : (v.text || v.line || ''))).filter(Boolean).join('\n');
+        }
+
+        const allLines = rawNotes ? rawNotes.split(/[\n,]+/).map(l => l.trim()).filter(l => l.length > 0) : [];
 
         // Highlighted title
         const titleHighlighted = highlightMatches(s.title || '', qNorm, qWords);
@@ -4125,11 +4130,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const matchIsInTitle = qNorm && (titleNorm.includes(qNorm) || qWords.some(w => titleNorm.includes(w)));
         const matchIsInLyrics = !matchIsInTitle && allLines.length > 0;
 
-        // Build lyric preview snippet
+        // Build lyric preview snippet (OPEN BY DEFAULT FOR ALL)
         let snippetHtml = '';
         if (allLines.length > 0) {
           try {
-            // Find the best-matching lyric line
             const bestMatch = findBestLyricMatch(allLines, qNorm, qWords);
             const startIdx = bestMatch ? Math.max(0, bestMatch.idx - 1) : 0;
             const previewSlice = allLines.slice(startIdx, startIdx + 3);
@@ -4165,12 +4169,11 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="item-top">
               <span class="item-title">${titleHighlighted}</span>
               <div class="item-badges-group">
-                ${snippetHtml ? `<button type="button" class="btn-toggle-item-preview" title="معاينة كلمات الترنيمة"><i class="fa-solid fa-chevron-down"></i> معاينة</button>` : ''}
                 ${lyricsMatchBadge}
                 ${typeBadge}
               </div>
             </div>
-            ${snippetHtml ? `<div class="item-preview-box preview-expandable hidden">${snippetHtml}</div>` : ''}
+            ${snippetHtml ? `<div class="item-preview-box preview-expandable">${snippetHtml}</div>` : ''}
           </div>
         `;
       }).join('');
@@ -4904,6 +4907,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     state.presentationLines = linesList;
+    if (song && song.title) {
+      document.title = `${song.title} | Taranim Online`;
+    }
 
     if (!state.liveSong) {
       state.liveSong = song;

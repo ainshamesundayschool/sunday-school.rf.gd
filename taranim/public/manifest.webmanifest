@@ -1,7 +1,7 @@
 {
   "name": "Sunday School Taranim - تطبيق الترانيم والتحكم بالكلمات",
   "short_name": "الترانيم",
-  "description": "تطبيق الترانيم المباشر للخدمة والعرض على الشاشات و OBS بدون الحاجة لإنترنت",
+  "description": "تطبيق الترانيم المباشر للخدمة والعرض على الشاشات بدون الحاجة لإنترنت",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
