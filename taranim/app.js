@@ -3927,13 +3927,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateScaleModeLockState() {
-    const isAuto = (state.scaleMode || 'auto') === 'auto';
     if (els.obsFontSizeRange) {
-      els.obsFontSizeRange.disabled = isAuto;
+      els.obsFontSizeRange.disabled = false;
     }
     if (els.fontSizePopoverRow) {
-      els.fontSizePopoverRow.style.opacity = isAuto ? '0.5' : '1';
-      els.fontSizePopoverRow.style.pointerEvents = isAuto ? 'none' : 'auto';
+      els.fontSizePopoverRow.style.opacity = '1';
+      els.fontSizePopoverRow.style.pointerEvents = 'auto';
     }
   }
 
@@ -4266,7 +4265,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let labelText = '';
 
             if (isBible) {
-              const vNum = slide.heading || slide.number || verse.heading || verse.number || (slideIndex + 1);
+              const vNum = slide.heading || slide.number || verse.heading || verse.number || verse.verse_number || (verseIndex + 1);
               badgeText = `(${vNum})`;
               badgeClass = 'verse-badge-side';
               labelText = `آية ${vNum}`;
@@ -5257,20 +5256,36 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // Calculate optimal font size for mobile vs landscape viewports
+      // Calculate optimal font size for mobile vs landscape viewports with Binary-Search Auto Fit
       const snapText = text;
       requestAnimationFrame(() => {
         if (els.obsLineText && snapText.trim() && els.obsLineText.style.display !== 'none') {
-          const vW = els.obsOverlay ? els.obsOverlay.clientWidth : window.innerWidth;
+          const container = els.obsOverlay || els.obsLineText.parentElement || document.body;
+          const maxContainerH = container.clientHeight ? (container.clientHeight * 0.86) : (window.innerHeight * 0.86);
+          const maxContainerW = container.clientWidth ? (container.clientWidth * 0.92) : (window.innerWidth * 0.92);
           const baseSize = state.fontSize || 54;
           const scaleMode = state.scaleMode || 'auto';
 
           let renderSize = baseSize;
 
-          if (vW < 768 && scaleMode === 'auto') {
-            renderSize = Math.max(22, Math.min(baseSize, Math.round(vW * 0.07)));
-          } else {
+          if (scaleMode === 'auto') {
+            let low = 16;
+            let high = baseSize;
             renderSize = baseSize;
+
+            while (low <= high) {
+              const mid = Math.floor((low + high) / 2);
+              els.obsLineText.style.fontSize = `${mid}px`;
+              const h = els.obsLineText.scrollHeight;
+              const w = els.obsLineText.scrollWidth;
+
+              if (h <= maxContainerH && w <= maxContainerW) {
+                renderSize = mid;
+                low = mid + 1;
+              } else {
+                high = mid - 1;
+              }
+            }
           }
 
           els.obsLineText.style.fontSize = `${renderSize}px`;
