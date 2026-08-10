@@ -4204,7 +4204,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const items = [];
         let isFirstSlideOfVerse = true;
 
-        slides.forEach((slide) => {
+        slides.forEach((slide, slideIndex) => {
           let rawLines = slide.lines || (slide.text ? slide.text.split('\n') : []);
           let cleanLines = rawLines.map(l => l.trim()).filter(l => l.length > 0);
           const firstRawLine = rawLines[0] || '';
