@@ -16502,7 +16502,7 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
 
 
-      if (inp && !inp.value) inp.value = src;
+      if (inp) inp.value = src;
 
 
 
@@ -16570,6 +16570,8 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
 
 
+      var inp = document.getElementById('imgurl_' + qid);
+      if (inp && inp.value && inp.value.trim()) return inp.value.trim();
       var img = document.getElementById('imgel_' + qid);
 
 
@@ -18186,6 +18188,8 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
 
 
+      var inp = document.getElementById('imgurl_' + qid);
+      if (inp && inp.value && inp.value.trim()) return inp.value.trim();
       var img = document.getElementById('imgel_' + qid);
 
 
@@ -20252,11 +20256,11 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
           const ans = answers[qId] !== undefined ? String(answers[qId]) : (answers[q.id] !== undefined ? String(answers[q.id]) : '');
           const existingScore = openScores[q.id] !== undefined ? openScores[q.id] : (openScores[qId] !== undefined ? openScores[qId] : 0);
           return `<div class="grade-q-row" style="background:var(--bg2);border:1.5px solid #fde68a;border-radius:var(--r-sm);padding:11px 13px;margin-bottom:10px;">
+        ${imgH}
         <div class="grade-q-text" style="color:#b45309;margin-bottom:4px;">
           <span style="background:#fef3c7;color:#92400e;border-radius:var(--r-full);padding:1px 8px;font-size:.66rem;font-weight:700;margin-left:5px;"><i class="fas fa-pen-nib"></i> مفتوح</span>
           <strong>${qi + 1}.</strong> ${esc(q.question_text)} <span style="color:var(--t3);font-size:.72rem;">(${q.degree} درجة)</span>
         </div>
-        ${imgH}
         <div class="grade-ans-text" style="background:var(--bg);border:1px solid #fde68a;">${ans ? esc(ans) : '<em style="color:var(--t3);">— لم يُجب —</em>'}</div>
         <div class="grade-score-row">
           <span style="font-size:.78rem;color:var(--t2);font-weight:600;">الدرجة:</span>
@@ -20887,13 +20891,12 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
           const imgH = q.image_url ? `<div style="margin:0 0 10px;border-radius:var(--r-md);overflow:hidden;border:1px solid var(--bdr);"><img src="${esc(q.image_url)}" alt="" style="width:100%;max-height:200px;object-fit:contain;display:block;background:var(--bg2);"></div>` : '';
 
           html += `<div class="ans-question">`;
+          html += imgH;
           html += `<div class="ans-qhead">
         <div class="ans-qnum">${i + 1}</div>
         <div class="ans-qtext">${esc(q.question_text)}</div>
         <div style="flex-shrink:0;font-size:.7rem;color:var(--t3);font-weight:600;padding:2px 7px;background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r-full);">${q.degree} درجة</div>
       </div>`;
-
-          html += imgH;
 
           if (qType === 'open') {
             const hasAns = given && String(given).trim().length > 0;
@@ -22075,9 +22078,16 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
         <h3 style="font-family:'Baloo Bhaijaan 2', sans-serif; font-size:1.15rem; font-weight:700; color:var(--t1); margin:0; display:flex; align-items:center; gap:8px;">
           <i class="fas fa-bible" style="color:#6366f1;"></i> إضافة آية من الكتاب المقدس
         </h3>
-        <button type="button" onclick="closeBibleVerseModal()" style="background:var(--bg2, #f1f5f9); border:none; width:32px; height:32px; border-radius:50%; color:var(--t2); cursor:pointer; display:flex; align-items:center; justify-content:center;">
-          <i class="fas fa-times"></i>
-        </button>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <a href="/taranim/" target="_blank" title="منصة الترانيم والكتاب المقدس" style="display:inline-flex; align-items:center; gap:6px; text-decoration:none; background:var(--bg2, #f8fafc); padding:4px 10px; border-radius:10px; border:1px solid var(--bdr, #e2e8f0); transition:all 0.2s ease;">
+            <img src="/taranim/logo_t.png" style="width:24px; height:24px; object-fit:contain; border-radius:6px;" alt="Taranim Logo">
+            <span style="font-size:0.75rem; font-weight:700; color:var(--t2);">منصة الترانيم</span>
+            <i class="fas fa-external-link-alt" style="font-size:0.65rem; color:var(--t3);"></i>
+          </a>
+          <button type="button" onclick="closeBibleVerseModal()" style="background:var(--bg2, #f1f5f9); border:none; width:32px; height:32px; border-radius:50%; color:var(--t2); cursor:pointer; display:flex; align-items:center; justify-content:center;">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
       </div>
 
       <!-- Search Controls -->

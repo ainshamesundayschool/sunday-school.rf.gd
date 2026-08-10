@@ -113,7 +113,10 @@ try {
     $file = $_FILES['photo'];
     $studentName = $_POST['studentName'] ?? '';
     $studentPhone = $_POST['studentPhone'] ?? '';
-    $applyEnhancement = isset($_POST['enhanceImage']) && $_POST['enhanceImage'] === 'true';
+    $uploadType = $_POST['type'] ?? 'student';
+    $isQuestion = in_array($uploadType, ['question', 'task']);
+    
+    $applyEnhancement = !$isQuestion && isset($_POST['enhanceImage']) && $_POST['enhanceImage'] === 'true';
     
     // Validate file
     $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
@@ -127,26 +130,33 @@ try {
         sendJson(['success' => false, 'message' => 'حجم الملف كبير جداً']);
     }
     
-    // Generate unique filename
+    // Generate unique filename and upload dir based on type
     $timestamp = time();
     $random = bin2hex(random_bytes(4));
-    $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-    $filename = "profile_{$studentPhone}_{$timestamp}_{$random}.{$extension}";
-    
-    // Upload directory
-    $uploadDir = __DIR__ . '/uploads/students/';
+    $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    if (empty($extension)) $extension = 'jpg';
+
+    if ($isQuestion) {
+        $filename = "q_{$timestamp}_{$random}.{$extension}";
+        $uploadSubdir = '/uploads/questions/';
+    } else {
+        $filename = "profile_{$studentPhone}_{$timestamp}_{$random}.{$extension}";
+        $uploadSubdir = '/uploads/students/';
+    }
+
+    $uploadDir = __DIR__ . $uploadSubdir;
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0755, true);
     }
     
     $filePath = $uploadDir . $filename;
     
-    // Move uploaded file temporarily
+    // Move uploaded file
     if (!move_uploaded_file($file['tmp_name'], $filePath)) {
         sendJson(['success' => false, 'message' => 'فشل في رفع الملف']);
     }
     
-    // Apply enhancement if requested and GD is available
+    // Apply enhancement if requested and GD is available (for profile photos only)
     if ($applyEnhancement && extension_loaded('gd')) {
         $enhanced = @enhanceImage($filePath, 400, 500);
         if ($enhanced) {
@@ -155,9 +165,7 @@ try {
         }
     }
     
-    // Full URL to the uploaded image
-    $baseUrl = 'https://' . $_SERVER['HTTP_HOST'];
-    $imageUrl = $baseUrl . '/uploads/students/' . $filename;
+    $imageUrl = $uploadSubdir . $filename;
     
     sendJson([
         'success' => true,

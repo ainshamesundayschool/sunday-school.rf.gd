@@ -8023,13 +8023,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         if (qtype === 'open') {
           const savedAns = taskAnswers[String(q.id)] || '';
           return `<div class="qcard" id="qc_${q.id}">
+        ${imgHtml}
         <div class="qhdr">
           <div class="qnum" style="background:linear-gradient(135deg,#f59e0b,#d97706);">${i + 1}</div>
           <div class="qtext">${esc(q.question_text)}</div>
           <span style="background:#fef3c7;color:#92400e;border-radius:var(--r-full);padding:2px 8px;font-size:.65rem;font-weight:700;flex-shrink:0;"><i class="fas fa-pen-nib"></i> مفتوح</span>
           <span class="qdeg" style="background:#fef3c7;color:#d97706;">${q.degree} درجة</span>
         </div>
-        ${imgHtml}
         <div class="qopts" style="padding:10px 12px;display:block;">
           <textarea class="open-ans-textarea" id="openans_${q.id}"
             placeholder="اكتب إجابتك هنا…"
@@ -8046,12 +8046,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           const saved = taskAnswers[String(q.id)];
           const trueOn = saved === 0; const falseOn = saved === 1;
           return `<div class="qcard" id="qc_${q.id}">
+        ${imgHtml}
         <div class="qhdr">
           <div class="qnum">${i + 1}</div>
           <div class="qtext">${esc(q.question_text)}</div>
           <span class="qdeg">${q.degree} درجة</span>
         </div>
-        ${imgHtml}
         <div class="qopts" style="display:flex;gap:10px;padding:10px 12px;">
           <button id="tfbtn_${q.id}_0" onclick="pickOpt(${q.id},0,null)"
             style="flex:1;padding:13px 8px;border-radius:var(--r-sm);border:2px solid ${trueOn ? 'var(--ok)' : 'var(--bdr)'};background:${trueOn ? 'var(--ok-bg)' : 'var(--surf)'};color:${trueOn ? 'var(--ok)' : 'var(--t2)'};font-family:inherit;font-size:.88rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:var(--fast);">
@@ -8069,13 +8069,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         const opts = typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || []);
         const sel = taskAnswers[String(q.id)] !== undefined ? taskAnswers[String(q.id)] : null;
         return `<div class="qcard" id="qc_${q.id}">
+      ${imgHtml}
       <div class="qhdr">
         <div class="qnum">${i + 1}</div>
         <div class="qtext">${esc(q.question_text)}</div>
         ${sel !== null ? `<span style="background:var(--ok-bg);color:var(--ok);border-radius:var(--r-full);padding:2px 7px;font-size:.62rem;font-weight:700;flex-shrink:0;"><i class="fas fa-check"></i></span>` : ''}
         <span class="qdeg">${q.degree} درجة</span>
       </div>
-      ${imgHtml}
       <div class="qopts">${opts.map((o, j) => `<div class="qopt${sel === j ? ' selected' : ''}" onclick="pickOpt(${q.id},${j},this)"><div class="oradio"></div><div class="olet">${LETTERS[j]}</div>${esc(o)}</div>`).join('')}</div>
     </div>`;
       }).join('');
