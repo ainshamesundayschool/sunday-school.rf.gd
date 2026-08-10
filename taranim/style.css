@@ -1940,13 +1940,27 @@ input[type="checkbox"]:checked::after {
 
 /* OBS EMBEDDED OVERLAY */
 .obs-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 2000;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  min-height: 100% !important;
+  z-index: 20000 !important;
   display: flex;
   flex-direction: column;
-  overflow: visible !important;
+  overflow: hidden !important;
   user-select: none;
+  background-color: #000000 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+body.has-active-overlay {
+  background-color: #000000 !important;
 }
 
 .obs-overlay[data-chroma="green"] { background-color: #00FF00 !important; }

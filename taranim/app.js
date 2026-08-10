@@ -3862,7 +3862,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch(err) {}
 
-    const realTotalCount = state.allSongs.length > 0 ? state.allSongs.length : 11611;
+    const realTotalCount = state.allSongs.length > 0 ? state.allSongs.length : 12000;
     
     if (els.totalSongsCount) {
       const formatted = Number(realTotalCount).toLocaleString('ar-EG');
@@ -5572,6 +5572,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. INSTANT PRESENTER PREVIEW SYNC (0ms)
     if (els.obsOverlay) {
+      const isOverlayOpen = !els.obsOverlay.classList.contains('hidden');
+      document.body.classList.toggle('has-active-overlay', isOverlayOpen);
       els.obsOverlay.classList.toggle('controls-hidden', Boolean(state.hideControls));
     }
 
@@ -5615,7 +5617,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (obsFooterBar) {
         let hasContent = false;
-        if (scaleText) {
+        if (scaleText && hasText) {
           if (obsScaleText) obsScaleText.textContent = `السلم: ${scaleText}`;
           if (obsScaleBadge) obsScaleBadge.classList.remove('hidden');
           hasContent = true;
@@ -5623,7 +5625,7 @@ document.addEventListener('DOMContentLoaded', () => {
           obsScaleBadge.classList.add('hidden');
         }
 
-        if (totalSlides > 0) {
+        if (totalSlides > 0 && hasText) {
           if (obsCounterText) obsCounterText.textContent = `${currentSlide} من ${totalSlides}`;
           if (obsSlideCounter) obsSlideCounter.classList.remove('hidden');
           hasContent = true;
@@ -5631,10 +5633,11 @@ document.addEventListener('DOMContentLoaded', () => {
           obsSlideCounter.classList.add('hidden');
         }
 
-        if (hasContent && !state.isBlank && text) {
+        if (hasContent && hasText && !state.isBlank) {
           obsFooterBar.classList.remove('hidden');
         } else {
           obsFooterBar.classList.add('hidden');
+          if (obsSlideCounter) obsSlideCounter.classList.add('hidden');
         }
       }
 
