@@ -2793,10 +2793,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showNumberJumpToast(numStr) {
       const html = `
-        <div class="slide-num-toast-card">
+        <div class="slide-num-toast-card" onclick="window.jumpToBufferedSlideGlobal && window.jumpToBufferedSlideGlobal()" style="cursor:pointer;">
           <div class="slide-num-toast-top">
             <span class="slide-num-big-val">${escapeHtml(numStr)}</span>
-            <div class="slide-num-enter-pill" title="اضغط Enter للانتقال">
+            <div class="slide-num-enter-pill" title="اضغط Enter للانتقال" onclick="event.stopPropagation(); window.jumpToBufferedSlideGlobal && window.jumpToBufferedSlideGlobal()">
               <i class="fa-solid fa-arrow-turn-down-left"></i>
               <span class="enter-sym">↵</span>
             </div>
@@ -2810,16 +2810,32 @@ document.addEventListener('DOMContentLoaded', () => {
     function jumpToBufferedSlide() {
       if (!numberJumpBuffer) return;
       const targetNum = parseInt(numberJumpBuffer);
+      numberJumpBuffer = '';
+      if (numberJumpTimer) clearTimeout(numberJumpTimer);
+
+      const toast = document.getElementById('app-toast');
+      if (toast) toast.classList.add('hidden');
+
+      if (!state.presentationLines || state.presentationLines.length === 0) {
+        showToast('لا توجد شريحة معروضة حالياً');
+        return;
+      }
+
       if (!isNaN(targetNum) && targetNum >= 1 && targetNum <= state.presentationLines.length) {
         state.currentLineIndex = targetNum - 1;
         state.isBlank = false;
         renderPresentationLinesList();
         syncLiveState();
+
+        if (els.presentationLinesList) {
+          const activeEl = els.presentationLinesList.children[state.currentLineIndex];
+          if (activeEl) activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
       } else if (!isNaN(targetNum)) {
-        showToast(`رقم الشريحة غير موجود (${targetNum})`);
+        showToast(`رقم الشريحة غير موجود (${targetNum}) — الإجمالي ${state.presentationLines.length}`);
       }
-      numberJumpBuffer = '';
     }
+    window.jumpToBufferedSlideGlobal = jumpToBufferedSlide;
   }
 
   function getActiveWordAtCursor(input) {

@@ -1,21 +1,24 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>تثبيت تطبيق الترانيم | الاستخدام بدون إنترنت</title>
-  
+
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;600;700;800&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-  
+  <link
+    href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;600;700;800&family=Cairo:wght@400;600;700&display=swap"
+    rel="stylesheet">
+
   <!-- Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="apple-touch-icon" href="favicon.png">
-  
+
   <!-- Manifest -->
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#4f46e5">
@@ -76,7 +79,7 @@
       object-fit: cover;
       margin-bottom: 1rem;
       box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
-      border: 2px solid rgba(255,255,255,0.15);
+      border: 2px solid rgba(255, 255, 255, 0.15);
     }
 
     .app-title {
@@ -228,16 +231,17 @@
     }
   </style>
 </head>
+
 <body>
 
   <div class="container">
-    
+
     <!-- HEADER CARD -->
     <div class="header-card">
       <img src="logo.png" alt="Taranim Logo" class="logo-img">
       <h1 class="app-title">تطبيق الترانيم والعرض</h1>
       <p class="app-subtitle">ثبّت التطبيق وحمّل جميع الترانيم والمعجم للعمل بشكل كامل وبدون الحاجة لإنترنت إطلاقاً.</p>
-      
+
       <div id="pwa-status-badge" class="status-badge">
         <i class="fa-solid fa-circle-check"></i>
         <span id="pwa-status-text">جاري فحص الخدمة محلياً...</span>
@@ -253,7 +257,7 @@
       <p style="font-size:0.88rem; color:var(--text-sub); line-height:1.4;">
         يُتيح لك تثبيت التطبيق كـ App مستقل يفتح مباشرة من الشاشة الرئيسية بدون متصفح.
       </p>
-      
+
       <button id="btn-install-pwa" class="btn-main" style="display:none;">
         <i class="fa-solid fa-download"></i>
         <span>تثبيت تطبيق الترانيم الآن</span>
@@ -263,11 +267,14 @@
         <ul class="instructions-list">
           <li>
             <i class="fa-brands fa-chrome"></i>
-            <span><strong>على أندرويد / الكمبيوتر (Chrome/Edge):</strong> اضغط على قائمة المتصفح (⋮) ثم اختر "تثبيت التطبيق" (Install app) أو "إضافة إلى الشاشة الرئيسية".</span>
+            <span><strong>على أندرويد / الكمبيوتر (Chrome/Edge):</strong> اضغط على قائمة المتصفح (⋮) ثم اختر "تثبيت
+              التطبيق" (Install app) أو "إضافة إلى الشاشة الرئيسية".</span>
           </li>
           <li>
             <i class="fa-brands fa-apple"></i>
-            <span><strong>على آيفون / آيباد (Safari):</strong> اضغط على زر المشاركة <i class="fa-solid fa-share-from-square"></i> ثم اختر "إضافة إلى الشاشة الرئيسية" (Add to Home Screen).</span>
+            <span><strong>على آيفون / آيباد (Safari):</strong> اضغط على زر المشاركة <i
+                class="fa-solid fa-share-from-square"></i> ثم اختر "إضافة إلى الشاشة الرئيسية" (Add to Home
+              Screen).</span>
           </li>
         </ul>
       </div>
@@ -372,7 +379,7 @@
       btnPrecacheData.disabled = true;
       progressContainer.style.display = 'block';
       progressStatusText.style.display = 'block';
-      
+
       let loadedCount = 0;
       const total = ASSETS_TO_CACHE.length;
 
@@ -387,7 +394,7 @@
             if (res && res.ok) {
               await cache.put(url, res);
             }
-          } catch (err) {}
+          } catch (err) { }
 
           loadedCount++;
           const pct = Math.round((loadedCount / total) * 100);
@@ -407,4 +414,5 @@
   </script>
 
 </body>
+
 </html>
