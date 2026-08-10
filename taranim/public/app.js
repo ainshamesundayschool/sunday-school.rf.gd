@@ -2458,6 +2458,51 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    // Tab switching for Style Drawer
+    const styleTabBtns = document.querySelectorAll('.style-tab-btn');
+    styleTabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetTab = btn.dataset.tab;
+        styleTabBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.style-tab-content').forEach(content => {
+          content.classList.toggle('hidden', content.id !== targetTab);
+        });
+      });
+    });
+
+    // Chroma Chip Group Syncing
+    const chromaChips = document.querySelectorAll('.chroma-chip');
+    chromaChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        const val = chip.dataset.chroma;
+        chromaChips.forEach(c => c.classList.toggle('active', c.dataset.chroma === val));
+        if (els.chromaSelect) {
+          els.chromaSelect.value = val;
+          els.chromaSelect.dispatchEvent(new Event('change'));
+        }
+      });
+    });
+
+    // Sync Chroma chip active state on load
+    if (els.chromaSelect) {
+      chromaChips.forEach(c => c.classList.toggle('active', c.dataset.chroma === els.chromaSelect.value));
+    }
+
+    // Update Hex Badge text when color input changes
+    const colorPickers = document.querySelectorAll('.color-picker-input');
+    colorPickers.forEach(picker => {
+      const updateHex = () => {
+        const hexSpan = picker.nextElementSibling;
+        if (hexSpan && hexSpan.classList.contains('color-val-hex')) {
+          hexSpan.textContent = picker.value.toUpperCase();
+        }
+      };
+      picker.addEventListener('input', updateHex);
+      picker.addEventListener('change', updateHex);
+      updateHex();
+    });
+
     if (els.btnShareStyleLink) {
       els.btnShareStyleLink.addEventListener('click', async () => {
         const shareUrl = generateShareableStyleUrl();

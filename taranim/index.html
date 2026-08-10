@@ -217,203 +217,283 @@
 
       <!-- STYLE & FONT PANEL (DOCKS INLINE ON DESKTOP, OVERLAPS AS FLOATING POPOVER ON MOBILE) -->
       <section class="half-panel style-drawer-panel hidden" id="popover-style">
-        <div class="popover-title" style="display: flex; align-items: center; justify-content: space-between; width: 100%; border-bottom: 1px solid rgba(0,0,0,0.08); padding-bottom: 8px; margin-bottom: 12px;">
-          <span><i class="fa-solid fa-sliders"></i> التنسيق والخط</span>
+        <div class="style-drawer-header">
+          <span class="drawer-header-title"><i class="fa-solid fa-sliders"></i> التنسيق والخط</span>
           <button id="btn-close-style-drawer" class="drawer-close-btn" type="button" title="إغلاق">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
 
+        <!-- SLEEK SEGMENTED TAB NAV -->
+        <div class="style-nav-tabs">
+          <button type="button" class="style-tab-btn active" data-tab="tab-font">
+            <i class="fa-solid fa-font"></i> الخط والقياس
+          </button>
+          <button type="button" class="style-tab-btn" data-tab="tab-effects">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> التأثيرات والظل
+          </button>
+          <button type="button" class="style-tab-btn" data-tab="tab-display">
+            <i class="fa-solid fa-palette"></i> الخلفية والشاشة
+          </button>
+        </div>
+
         <div class="style-drawer-scroll-body">
-          <!-- SECTION 1: FONT & TEXT -->
-          <div class="popover-section-title"><i class="fa-solid fa-font"></i> الخط والنص</div>
+          <!-- TAB 1: FONT & TEXT FORMATTING -->
+          <div id="tab-font" class="style-tab-content active">
+            <div class="style-card">
+              <div class="style-card-title"><i class="fa-solid fa-font"></i> نوع الخط والمقياس</div>
+              
+              <div class="style-grid-2">
+                <div class="control-field">
+                  <label>نوع الخط</label>
+                  <select id="font-family-select" class="control-select">
+                    <option value="'Alexandria', sans-serif">Alexandria</option>
+                    <option value="'Cairo', sans-serif">Cairo</option>
+                    <option value="'Almarai', sans-serif">Almarai</option>
+                    <option value="'Amiri', serif">Amiri</option>
+                    <option value="'Tajawal', sans-serif">Tajawal</option>
+                    <option value="Jomhuria, Arial, sans-serif">Jomhuria</option>
+                    <option value="custom">خط محلي...</option>
+                  </select>
+                </div>
 
-          <div class="popover-row">
-            <label>الخط</label>
-            <select id="font-family-select" class="control-select">
-              <option value="'Alexandria', sans-serif">Alexandria</option>
-              <option value="'Cairo', sans-serif">Cairo</option>
-              <option value="'Almarai', sans-serif">Almarai</option>
-              <option value="'Amiri', serif">Amiri</option>
-              <option value="'Tajawal', sans-serif">Tajawal</option>
-              <option value="Jomhuria, Arial, sans-serif">Jomhuria</option>
-              <option value="custom">خط محلي...</option>
-            </select>
-          </div>
-
-          <div class="popover-row hidden" id="custom-font-wrapper" style="flex-direction: column; align-items: stretch; gap: 8px;">
-            <label style="margin-bottom: 2px;">خط محلي من الجهاز</label>
-            <div style="display: flex; gap: 6px; width: 100%;">
-              <label for="custom-font-file-input" class="control-btn" style="flex: 1; text-align: center; cursor: pointer; padding: 8px 12px; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 6px; background: var(--bg-hover, #e2e8f0); border-radius: 8px; font-weight: 500;">
-                <i class="fa-solid fa-folder-open"></i>
-                <span id="custom-font-file-name">اختر ملف خط (.ttf, .otf, .woff)...</span>
-              </label>
-              <input type="file" id="custom-font-file-input" accept=".ttf,.otf,.woff,.woff2" class="hidden">
-            </div>
-            <input type="text" id="custom-font-input" class="control-input" placeholder="أو اكتب اسم خط مثبت بنظامك..." value="" style="font-size: 0.82rem;">
-          </div>
-
-          <div class="popover-row">
-            <label>مقياس النص</label>
-            <select id="obs-scale-mode-select" class="control-select">
-              <option value="auto" selected>تلقائي (Auto Fit)</option>
-              <option value="fixed">ثابت (Fixed Size)</option>
-            </select>
-          </div>
-
-          <div class="popover-row" id="font-size-popover-row">
-            <label>حجم الخط</label>
-            <div class="compact-control-group">
-              <input type="range" id="obs-font-size-range" min="24" max="120" value="54" class="slider-input">
-              <span id="font-size-val-badge" class="counter-text">54px</span>
-            </div>
-          </div>
-
-          <div class="popover-row">
-            <label>السُّك</label>
-            <select id="obs-font-weight-select" class="control-select">
-              <option value="400">عادي 400</option>
-              <option value="600">شبه عريض 600</option>
-              <option value="700">عريض 700</option>
-              <option value="800" selected>عريض جداً 800</option>
-              <option value="900">أسود 900</option>
-            </select>
-          </div>
-
-          <div class="popover-row">
-            <label>لون النص</label>
-            <input type="color" id="obs-text-color" value="#ffffff" class="color-picker-input">
-          </div>
-
-          <!-- SECTION 2: FORMAT & ALIGNMENT -->
-          <div class="popover-section-title"><i class="fa-solid fa-align-right"></i> التنسيق والمحاذاة</div>
-
-          <div class="popover-row">
-            <label>المحاذاة</label>
-            <div class="btn-group-row" style="display:flex; gap:4px;">
-              <button type="button" class="btn btn-sm btn-secondary active" id="btn-align-center" title="وسط"><i class="fa-solid fa-align-center"></i></button>
-              <button type="button" class="btn btn-sm btn-secondary" id="btn-align-right" title="يمين"><i class="fa-solid fa-align-right"></i></button>
-              <button type="button" class="btn btn-sm btn-secondary" id="btn-align-left" title="يسار"><i class="fa-solid fa-align-left"></i></button>
-              <button type="button" class="btn btn-sm btn-secondary" id="btn-align-justify" title="ضبط"><i class="fa-solid fa-align-justify"></i></button>
-            </div>
-          </div>
-
-          <div class="popover-row">
-            <label>التنسيق</label>
-            <div class="btn-group-row" style="display:flex; gap:4px;">
-              <button type="button" class="btn btn-sm btn-secondary" id="btn-toggle-bold" title="عريض"><i class="fa-solid fa-bold"></i></button>
-              <button type="button" class="btn btn-sm btn-secondary" id="btn-toggle-italic" title="مائل"><i class="fa-solid fa-italic"></i></button>
-              <button type="button" class="btn btn-sm btn-secondary" id="btn-toggle-underline" title="سطر سفلي"><i class="fa-solid fa-underline"></i></button>
-            </div>
-          </div>
-
-          <div class="popover-row">
-            <label>تباعد الحروف</label>
-            <input type="range" id="obs-letter-spacing-range" min="-2" max="15" value="0" class="slider-input">
-          </div>
-
-          <div class="popover-row">
-            <label>ارتفاع السطر</label>
-            <input type="range" id="obs-line-height-range" min="1.0" max="2.5" step="0.1" value="1.5" class="slider-input">
-          </div>
-
-          <!-- SECTION 3: SHADOW & BORDER -->
-          <div class="popover-section-title"><i class="fa-solid fa-sun"></i> الظل والحدود</div>
-
-          <div class="popover-row">
-            <label>الحدود</label>
-            <div class="compact-control-group">
-              <input type="range" id="obs-stroke-range" min="0" max="10" value="0" class="slider-input">
-              <input type="color" id="obs-stroke-color" value="#000000" class="color-picker-input">
-            </div>
-          </div>
-
-          <div class="popover-row">
-            <label>ضبابية الظل</label>
-            <input type="range" id="obs-shadow-range" min="0" max="60" value="12" class="slider-input" title="ضبابية الظل">
-          </div>
-
-          <div class="popover-row">
-            <label>لون الظل</label>
-            <input type="color" id="obs-shadow-color" value="#000000" class="color-picker-input">
-          </div>
-
-          <div class="popover-row">
-            <label>زاوية الظل</label>
-            <div class="circle-angle-picker-wrapper">
-              <div id="circle-angle-dial" class="circle-angle-dial" title="اسحب أو اضغط لتغيير الزاوية">
-                <div id="circle-angle-pointer" class="circle-angle-pointer"></div>
-                <div class="circle-angle-center-dot"></div>
+                <div class="control-field">
+                  <label>مقياس النص</label>
+                  <select id="obs-scale-mode-select" class="control-select">
+                    <option value="auto" selected>تلقائي (Auto Fit)</option>
+                    <option value="fixed">ثابت (Fixed Size)</option>
+                  </select>
+                </div>
               </div>
-              <input type="range" id="obs-shadow-angle-range" min="0" max="360" value="90" class="slider-input" title="زاوية الظل">
-              <span id="shadow-angle-badge" class="counter-text">90°</span>
+
+              <div class="control-field hidden" id="custom-font-wrapper" style="margin-top:8px;">
+                <label style="margin-bottom:4px;">خط محلي من الجهاز</label>
+                <div style="display: flex; gap: 6px; width: 100%;">
+                  <label for="custom-font-file-input" class="control-btn" style="flex: 1; text-align: center; cursor: pointer; padding: 8px 12px; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 6px; background: var(--bg-hover, #e2e8f0); border-radius: 8px; font-weight: 500;">
+                    <i class="fa-solid fa-folder-open"></i>
+                    <span id="custom-font-file-name">اختر ملف خط (.ttf, .otf, .woff)...</span>
+                  </label>
+                  <input type="file" id="custom-font-file-input" accept=".ttf,.otf,.woff,.woff2" class="hidden">
+                </div>
+                <input type="text" id="custom-font-input" class="control-input" placeholder="أو اكتب اسم خط مثبت بنظامك..." value="" style="font-size: 0.82rem; margin-top:6px;">
+              </div>
+
+              <div class="control-field" id="font-size-popover-row" style="margin-top:10px;">
+                <div class="field-label-row">
+                  <label>حجم الخط</label>
+                  <span id="font-size-val-badge" class="counter-text-chip">54px</span>
+                </div>
+                <input type="range" id="obs-font-size-range" min="24" max="120" value="54" class="slider-input">
+              </div>
+
+              <div class="style-grid-2" style="margin-top:10px;">
+                <div class="control-field">
+                  <label>السُّمك</label>
+                  <select id="obs-font-weight-select" class="control-select">
+                    <option value="400">عادي 400</option>
+                    <option value="600">شبه عريض 600</option>
+                    <option value="700">عريض 700</option>
+                    <option value="800" selected>عريض جداً 800</option>
+                    <option value="900">أسود 900</option>
+                  </select>
+                </div>
+
+                <div class="control-field">
+                  <label>لون النص</label>
+                  <div class="color-picker-badge-wrap">
+                    <input type="color" id="obs-text-color" value="#ffffff" class="color-picker-input">
+                    <span class="color-val-hex">#FFFFFF</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="style-card" style="margin-top:10px;">
+              <div class="style-card-title"><i class="fa-solid fa-align-right"></i> المحاذاة والتنسيق</div>
+              
+              <div class="control-field">
+                <label>محاذاة النص</label>
+                <div class="segmented-control-group">
+                  <button type="button" class="segmented-btn active" id="btn-align-center" title="وسط"><i class="fa-solid fa-align-center"></i> وسط</button>
+                  <button type="button" class="segmented-btn" id="btn-align-right" title="يمين"><i class="fa-solid fa-align-right"></i> يمين</button>
+                  <button type="button" class="segmented-btn" id="btn-align-left" title="يسار"><i class="fa-solid fa-align-left"></i> يسار</button>
+                  <button type="button" class="segmented-btn" id="btn-align-justify" title="ضبط"><i class="fa-solid fa-align-justify"></i> ضبط</button>
+                </div>
+              </div>
+
+              <div class="control-field" style="margin-top:10px;">
+                <label>تنسيق الخط</label>
+                <div class="segmented-control-group">
+                  <button type="button" class="segmented-btn" id="btn-toggle-bold" title="عريض"><i class="fa-solid fa-bold"></i> عريض</button>
+                  <button type="button" class="segmented-btn" id="btn-toggle-italic" title="مائل"><i class="fa-solid fa-italic"></i> مائل</button>
+                  <button type="button" class="segmented-btn" id="btn-toggle-underline" title="سطر سفلي"><i class="fa-solid fa-underline"></i> سطر</button>
+                </div>
+              </div>
+
+              <div class="style-grid-2" style="margin-top:10px;">
+                <div class="control-field">
+                  <label>تباعد الحروف</label>
+                  <input type="range" id="obs-letter-spacing-range" min="-2" max="15" value="0" class="slider-input">
+                </div>
+                <div class="control-field">
+                  <label>ارتفاع السطر</label>
+                  <input type="range" id="obs-line-height-range" min="1.0" max="2.5" step="0.1" value="1.5" class="slider-input">
+                </div>
+              </div>
             </div>
           </div>
 
-          <div class="popover-row">
-            <label>مسافة الظل</label>
-            <div class="compact-control-group">
-              <input type="range" id="obs-shadow-distance-range" min="0" max="50" value="6" class="slider-input" title="مسافة الظل">
-              <span id="shadow-distance-badge" class="counter-text">6px</span>
+          <!-- TAB 2: SHADOW & STROKE EFFECTS -->
+          <div id="tab-effects" class="style-tab-content hidden">
+            <div class="style-card">
+              <div class="style-card-title"><i class="fa-solid fa-border-all"></i> حدود الحروف (Stroke)</div>
+              <div class="style-grid-2">
+                <div class="control-field">
+                  <label>حجم الحدود</label>
+                  <input type="range" id="obs-stroke-range" min="0" max="10" value="0" class="slider-input">
+                </div>
+                <div class="control-field">
+                  <label>لون الحدود</label>
+                  <div class="color-picker-badge-wrap">
+                    <input type="color" id="obs-stroke-color" value="#000000" class="color-picker-input">
+                    <span class="color-val-hex">#000000</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="style-card" style="margin-top:10px;">
+              <div class="style-card-title"><i class="fa-solid fa-sun"></i> ضبابية وزاوية الظل</div>
+              
+              <div class="style-grid-2">
+                <div class="control-field">
+                  <label>ضبابية الظل</label>
+                  <input type="range" id="obs-shadow-range" min="0" max="60" value="12" class="slider-input">
+                </div>
+                <div class="control-field">
+                  <label>لون الظل</label>
+                  <div class="color-picker-badge-wrap">
+                    <input type="color" id="obs-shadow-color" value="#000000" class="color-picker-input">
+                    <span class="color-val-hex">#000000</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="control-field" style="margin-top:10px;">
+                <div class="field-label-row">
+                  <label>زاوية ومسافة الظل</label>
+                  <span id="shadow-angle-badge" class="counter-text-chip">90°</span>
+                </div>
+                <div class="circle-angle-picker-wrapper" style="margin-top:6px; display:flex; align-items:center; gap:12px;">
+                  <div id="circle-angle-dial" class="circle-angle-dial" title="اسحب أو اضغط لتغيير الزاوية">
+                    <div id="circle-angle-pointer" class="circle-angle-pointer"></div>
+                    <div class="circle-angle-center-dot"></div>
+                  </div>
+                  <div style="flex:1;">
+                    <input type="range" id="obs-shadow-angle-range" min="0" max="360" value="90" class="slider-input">
+                    <div class="field-label-row" style="margin-top:6px;">
+                      <span style="font-size:0.75rem; color:var(--text-muted);">مسافة الظل</span>
+                      <span id="shadow-distance-badge" class="counter-text-chip">6px</span>
+                    </div>
+                    <input type="range" id="obs-shadow-distance-range" min="0" max="50" value="6" class="slider-input">
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- SECTION 4: BACKGROUND & CONTAINER -->
-          <div class="popover-section-title"><i class="fa-solid fa-square"></i> خلفية الشاشة والصندوق</div>
+          <!-- TAB 3: CHROMA BACKGROUND & BOX CONTAINER -->
+          <div id="tab-display" class="style-tab-content hidden">
+            <div class="style-card">
+              <div class="style-card-title"><i class="fa-solid fa-display"></i> خلفية شاشة العرض (Chroma)</div>
+              
+              <div class="control-field">
+                <label>اختر لون الخلفية</label>
+                <!-- HIDDEN SELECT FOR LEGACY SYNC -->
+                <select id="chroma-select" class="control-select hidden">
+                  <option value="black" selected>أسود داكن</option>
+                  <option value="green">خلفية خضراء</option>
+                  <option value="blue">خلفية زرقاء</option>
+                  <option value="transparent">خلفية شفافة</option>
+                </select>
 
-          <div class="popover-row">
-            <label>الخلفية</label>
-            <select id="chroma-select" class="control-select">
-              <option value="black" selected>أسود داكن</option>
-              <option value="green">خلفية خضراء</option>
-              <option value="blue">خلفية زرقاء</option>
-              <option value="transparent">خلفية شفافة</option>
-            </select>
-          </div>
-
-          <div class="popover-row">
-            <label>خلفية الصندوق</label>
-            <div class="compact-control-group">
-              <input type="color" id="obs-box-bg-color" value="#000000" class="color-picker-input">
-              <input type="range" id="obs-box-opacity-range" min="0" max="100" value="0" class="slider-input" title="الشفافية">
+                <div class="chroma-chip-group">
+                  <button type="button" class="chroma-chip active" data-chroma="black">
+                    <span class="chroma-swatch swatch-black"></span> أسود
+                  </button>
+                  <button type="button" class="chroma-chip" data-chroma="green">
+                    <span class="chroma-swatch swatch-green"></span> خضراء
+                  </button>
+                  <button type="button" class="chroma-chip" data-chroma="blue">
+                    <span class="chroma-swatch swatch-blue"></span> زرقاء
+                  </button>
+                  <button type="button" class="chroma-chip" data-chroma="transparent">
+                    <span class="chroma-swatch swatch-trans"></span> شفافة
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
 
-          <div class="popover-row">
-            <label>حواف الحاوية</label>
-            <div class="compact-control-group">
-              <input type="range" id="obs-box-radius-range" min="0" max="40" value="12" class="slider-input" title="الاستدوار">
-              <input type="range" id="obs-box-padding-range" min="0" max="50" value="20" class="slider-input" title="الهامش الداخلي">
+            <div class="style-card" style="margin-top:10px;">
+              <div class="style-card-title"><i class="fa-solid fa-square"></i> صندوق حافات النص</div>
+              
+              <div class="style-grid-2">
+                <div class="control-field">
+                  <label>لون الصندوق</label>
+                  <div class="color-picker-badge-wrap">
+                    <input type="color" id="obs-box-bg-color" value="#000000" class="color-picker-input">
+                    <span class="color-val-hex">#000000</span>
+                  </div>
+                </div>
+                <div class="control-field">
+                  <label>شفافية الصندوق</label>
+                  <input type="range" id="obs-box-opacity-range" min="0" max="100" value="0" class="slider-input">
+                </div>
+              </div>
+
+              <div class="style-grid-2" style="margin-top:10px;">
+                <div class="control-field">
+                  <label>انحناء الحواف</label>
+                  <input type="range" id="obs-box-radius-range" min="0" max="40" value="12" class="slider-input">
+                </div>
+                <div class="control-field">
+                  <label>الهامش الداخلي</label>
+                  <input type="range" id="obs-box-padding-range" min="0" max="50" value="20" class="slider-input">
+                </div>
+              </div>
             </div>
-          </div>
 
-          <!-- SECTION 5: PRESENTATION OPTIONS & ANIMATION -->
-          <div class="popover-section-title"><i class="fa-solid fa-display"></i> خيارات العرض والحركة</div>
+            <div class="style-card" style="margin-top:10px;">
+              <div class="style-card-title"><i class="fa-solid fa-film"></i> نمط وحركة ظهور النص</div>
+              
+              <div class="style-grid-2">
+                <div class="control-field">
+                  <label>نمط العرض</label>
+                  <select id="pres-mode-select" class="control-select">
+                    <option value="oneline">سطر واحد أسفل الشاشة</option>
+                    <option value="fullslide">شريحة كاملة بالمنتصف</option>
+                  </select>
+                </div>
 
-          <div class="popover-row">
-            <label>نمط العرض</label>
-            <select id="pres-mode-select" class="control-select">
-              <option value="oneline">سطر واحد أسفل الشاشة</option>
-              <option value="fullslide">شريحة كاملة بالمنتصف</option>
-            </select>
-          </div>
+                <div class="control-field">
+                  <label>الحركة</label>
+                  <select id="obs-text-anim-select" class="control-select">
+                    <option value="slide" selected>صعود (Slide Up)</option>
+                    <option value="drop">هبوط (Drop Down)</option>
+                    <option value="pop">تكبير (Pop)</option>
+                    <option value="flip">دوران (Flip)</option>
+                    <option value="glow">ضبابي (Dissolve)</option>
+                    <option value="none">بدون حركة</option>
+                  </select>
+                </div>
+              </div>
+            </div>
 
-          <div class="popover-row">
-            <label>الحركة</label>
-            <select id="obs-text-anim-select" class="control-select">
-              <option value="slide" selected>صعود (Slide Up)</option>
-              <option value="drop">هبوط (Drop Down)</option>
-              <option value="pop">تكبير (Pop)</option>
-              <option value="flip">دوران (Flip)</option>
-              <option value="glow">ضبابي (Dissolve)</option>
-              <option value="none">بدون حركة</option>
-            </select>
-          </div>
-
-          <div class="popover-actions" style="margin-top:10px;">
-            <button id="btn-share-style-link" class="btn btn-sm btn-secondary" style="width:100%; font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px;">
-              <i class="fa-solid fa-share-nodes"></i> مشاركة التنسيق
-            </button>
+            <div class="popover-actions" style="margin-top:10px;">
+              <button id="btn-share-style-link" class="btn btn-sm btn-secondary" style="width:100%; font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px;">
+                <i class="fa-solid fa-share-nodes"></i> مشاركة التنسيق
+              </button>
+            </div>
           </div>
         </div>
       </section>

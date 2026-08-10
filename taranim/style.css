@@ -3447,3 +3447,256 @@ input[type="checkbox"]:checked::after {
   border: none !important;
   border-color: transparent !important;
 }
+
+/* ==========================================================================
+   SLEEK STYLE DRAWER & SEGMENTED CONTROLS (DESIGN UPGRADE)
+   ========================================================================== */
+.style-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.drawer-header-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.drawer-header-title i {
+  color: #2563eb;
+}
+
+/* SLEEK SEGMENTED NAV TABS */
+.style-nav-tabs {
+  display: flex;
+  background: #f1f5f9;
+  border-radius: 12px;
+  padding: 4px;
+  gap: 4px;
+  margin: 10px 0;
+}
+
+.style-tab-btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 7px 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+  border-radius: 9px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.style-tab-btn i {
+  font-size: 0.82rem;
+}
+
+.style-tab-btn:hover {
+  color: #0f172a;
+}
+
+.style-tab-btn.active {
+  background: #ffffff;
+  color: #2563eb;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+.style-tab-content {
+  display: block;
+}
+
+.style-tab-content.hidden {
+  display: none !important;
+}
+
+/* STYLE CARDS & 2-COLUMN CONTROL GRID */
+.style-card {
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03);
+}
+
+.style-card-title {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.style-card-title i {
+  color: #3b82f6;
+}
+
+.style-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 480px) {
+  .style-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.control-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.control-field label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.field-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.counter-text-chip {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #2563eb;
+  background: #eff6ff;
+  padding: 1px 7px;
+  border-radius: 10px;
+}
+
+/* APPLE-STYLE SEGMENTED BUTTONS */
+.segmented-control-group {
+  display: flex;
+  background: #f1f5f9;
+  border-radius: 10px;
+  padding: 3px;
+  gap: 3px;
+  width: 100%;
+}
+
+.segmented-btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 6px 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748b;
+  border-radius: 7px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.18s ease;
+}
+
+.segmented-btn:hover {
+  color: #0f172a;
+}
+
+.segmented-btn.active {
+  background: #ffffff;
+  color: #2563eb;
+  font-weight: 700;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* COLOR PICKER HEX BADGE WRAPPER */
+.color-picker-badge-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  padding: 4px 8px;
+  border-radius: 10px;
+}
+
+.color-picker-badge-wrap .color-picker-input {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: transparent;
+}
+
+.color-val-hex {
+  font-size: 0.76rem;
+  font-weight: 700;
+  font-family: monospace;
+  color: #475569;
+}
+
+/* CHROMA BACKGROUND CHIPS */
+.chroma-chip-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.chroma-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  color: #334155;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.chroma-chip:hover {
+  border-color: #93c5fd;
+  background: #f0f9ff;
+}
+
+.chroma-chip.active {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1e40af;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
+}
+
+.chroma-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.swatch-black { background: #0b0f19; }
+.swatch-green { background: #00ff00; }
+.swatch-blue { background: #0000ff; }
+.swatch-trans { background: linear-gradient(135deg, #cbd5e1 25%, transparent 25%), linear-gradient(225deg, #cbd5e1 25%, transparent 25%), linear-gradient(45deg, #cbd5e1 25%, transparent 25%), linear-gradient(135deg, transparent 75%, #cbd5e1 75%); background-size: 8px 8px; }
