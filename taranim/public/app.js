@@ -4779,7 +4779,12 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             if (isBible) {
-              pushSlideItem(cleanLines);
+              const multiLines = [];
+              cleanLines.forEach(l => {
+                const sub = splitBibleTextIntoLines(l, 45);
+                multiLines.push(...sub);
+              });
+              pushSlideItem(multiLines.length > 0 ? multiLines : cleanLines);
             } else if (mode === 'oneline') {
               cleanLines.forEach((singleLine) => {
                 pushSlideItem([singleLine]);
@@ -6212,6 +6217,23 @@ document.addEventListener('DOMContentLoaded', () => {
       syncLiveState();
     }
   });
+
+  const btnOverlayFS = document.getElementById('btn-presenter-overlay-fullscreen');
+  if (btnOverlayFS) {
+    btnOverlayFS.addEventListener('click', () => {
+      const isFS = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+      if (!isFS) {
+        const container = els.obsOverlay || document.documentElement;
+        if (container.requestFullscreen) container.requestFullscreen().catch(() => {});
+        else if (container.webkitRequestFullscreen) container.webkitRequestFullscreen();
+        btnOverlayFS.innerHTML = `<i class="fa-solid fa-compress"></i>`;
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        btnOverlayFS.innerHTML = `<i class="fa-solid fa-expand"></i>`;
+      }
+    });
+  }
 
   window.addEventListener('focus', () => syncLiveState());
   window.addEventListener('online', () => syncLiveState());

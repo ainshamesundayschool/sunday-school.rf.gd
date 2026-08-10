@@ -1021,7 +1021,10 @@
 
       let renderSize = baseSize;
 
-      if (scaleMode === 'auto') {
+      if (isBible || scaleMode === 'fixed') {
+        renderSize = baseSize;
+        textEl.style.fontSize = `${renderSize}px`;
+      } else if (scaleMode === 'auto') {
         const isVertical = window.innerHeight > window.innerWidth;
         const refTargetW = isVertical ? Math.max(maxW, maxH * (16 / 9)) : maxW;
 
