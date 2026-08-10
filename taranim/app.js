@@ -2707,6 +2707,48 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    const btnStandbyPrev = document.getElementById('btn-standby-prev-song');
+    const btnStandbyNext = document.getElementById('btn-standby-next-song');
+    const btnStandbyExit = document.getElementById('btn-standby-exit');
+
+    if (btnStandbyPrev) {
+      btnStandbyPrev.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const recents = state.sessionRecents || [];
+        let currentIdx = -1;
+        const currentSong = state.liveSong || state.activeSong;
+        if (currentSong) {
+          currentIdx = recents.findIndex(r => getItemKey(r) === getItemKey(currentSong));
+        }
+        if (currentIdx > 0) {
+          selectRecentItem(currentIdx - 1);
+        }
+      });
+    }
+
+    if (btnStandbyNext) {
+      btnStandbyNext.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const recents = state.sessionRecents || [];
+        let currentIdx = -1;
+        const currentSong = state.liveSong || state.activeSong;
+        if (currentSong) {
+          currentIdx = recents.findIndex(r => getItemKey(r) === getItemKey(currentSong));
+        }
+        if (currentIdx >= 0 && currentIdx < recents.length - 1) {
+          selectRecentItem(currentIdx + 1);
+        }
+      });
+    }
+
+    if (btnStandbyExit) {
+      btnStandbyExit.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (els.obsOverlay) els.obsOverlay.classList.add('hidden');
+        if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+      });
+    }
+
     if (els.btnShareStyleLink) {
       els.btnShareStyleLink.addEventListener('click', async () => {
         const shareUrl = generateShareableStyleUrl();
@@ -5562,6 +5604,40 @@ document.addEventListener('DOMContentLoaded', () => {
         if (standbyEl) {
           standbyEl.classList.remove('hidden');
           standbyEl.style.display = 'flex';
+
+          const btnPrev = document.getElementById('btn-standby-prev-song');
+          const btnExit = document.getElementById('btn-standby-exit');
+          const btnNext = document.getElementById('btn-standby-next-song');
+          const prevTitle = document.getElementById('standby-prev-title');
+          const nextTitle = document.getElementById('standby-next-title');
+
+          const recents = state.sessionRecents || [];
+          let currentIdx = -1;
+          const currentSong = state.liveSong || state.activeSong;
+          if (currentSong) {
+            currentIdx = recents.findIndex(r => getItemKey(r) === getItemKey(currentSong));
+          }
+
+          const hasPrev = (currentIdx > 0 && currentIdx < recents.length);
+          const hasNext = (currentIdx >= 0 && currentIdx < recents.length - 1);
+
+          if (hasPrev) {
+            const prevSong = recents[currentIdx - 1];
+            if (prevTitle) prevTitle.textContent = prevSong.title || prevSong.name || 'السابقة';
+            if (btnPrev) btnPrev.classList.remove('hidden');
+            if (btnExit) btnExit.classList.add('hidden');
+          } else {
+            if (btnPrev) btnPrev.classList.add('hidden');
+            if (btnExit) btnExit.classList.remove('hidden');
+          }
+
+          if (hasNext) {
+            const nextSong = recents[currentIdx + 1];
+            if (nextTitle) nextTitle.textContent = nextSong.title || nextSong.name || 'التالية';
+            if (btnNext) btnNext.classList.remove('hidden');
+          } else {
+            if (btnNext) btnNext.classList.add('hidden');
+          }
         }
       } else {
         if (standbyEl) {
