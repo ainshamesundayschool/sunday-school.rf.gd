@@ -1455,10 +1455,9 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   function closeAllPopovers(exceptPopover = null) {
+    const backdrop = document.getElementById('popover-style-backdrop');
     if (els.popoverStyle && els.popoverStyle !== exceptPopover) {
       els.popoverStyle.classList.add('hidden');
-      const backdrop = document.getElementById('popover-style-backdrop');
-      if (backdrop) backdrop.classList.add('hidden');
     }
     if (els.popoverCast && els.popoverCast !== exceptPopover) {
       els.popoverCast.classList.add('hidden');
@@ -1475,6 +1474,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (els.popoverSlideJump && els.popoverSlideJump !== exceptPopover) {
       els.popoverSlideJump.classList.add('hidden');
+    }
+    const playlistPopover = document.getElementById('popover-playlist');
+    if (playlistPopover && playlistPopover !== exceptPopover) {
+      playlistPopover.classList.add('hidden');
+    }
+
+    if (!exceptPopover && backdrop) {
+      backdrop.classList.add('hidden');
     }
   }
 
@@ -1920,8 +1927,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (popoverStyleBackdrop) {
       popoverStyleBackdrop.addEventListener('click', () => {
-        if (els.popoverStyle) els.popoverStyle.classList.add('hidden');
-        popoverStyleBackdrop.classList.add('hidden');
+        closeAllPopovers(null);
       });
     }
 
@@ -1931,9 +1937,11 @@ document.addEventListener('DOMContentLoaded', () => {
       closeAllPopovers(els.popoverCast);
       if (willShow) {
         els.popoverCast.classList.remove('hidden');
+        if (popoverStyleBackdrop) popoverStyleBackdrop.classList.remove('hidden');
         await detectConnectedScreens();
       } else {
         els.popoverCast.classList.add('hidden');
+        if (popoverStyleBackdrop) popoverStyleBackdrop.classList.add('hidden');
       }
     });
 
@@ -1944,8 +1952,10 @@ document.addEventListener('DOMContentLoaded', () => {
         closeAllPopovers(els.popoverInstall);
         if (willShow) {
           els.popoverInstall.classList.remove('hidden');
+          if (popoverStyleBackdrop) popoverStyleBackdrop.classList.remove('hidden');
         } else {
           els.popoverInstall.classList.add('hidden');
+          if (popoverStyleBackdrop) popoverStyleBackdrop.classList.add('hidden');
         }
       });
 
@@ -2498,6 +2508,33 @@ document.addEventListener('DOMContentLoaded', () => {
         state.styleOptions.boxPadding = parseInt(e.target.value);
         saveUserSettings();
         syncLiveState();
+      });
+    }
+
+    const btnOverlayFullscreen = document.getElementById('btn-overlay-toggle-fullscreen');
+    if (btnOverlayFullscreen) {
+      btnOverlayFullscreen.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!document.fullscreenElement) {
+          if (els.obsOverlay && els.obsOverlay.requestFullscreen) {
+            els.obsOverlay.requestFullscreen();
+          } else if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen();
+          }
+        } else {
+          if (document.exitFullscreen) document.exitFullscreen();
+        }
+      });
+
+      document.addEventListener('fullscreenchange', () => {
+        const icon = btnOverlayFullscreen.querySelector('i');
+        if (icon) {
+          if (document.fullscreenElement) {
+            icon.className = 'fa-solid fa-compress';
+          } else {
+            icon.className = 'fa-solid fa-expand';
+          }
+        }
       });
     }
 

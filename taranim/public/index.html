@@ -215,6 +215,9 @@
     <!-- MULTI-COLUMN DASHBOARD LAYOUT (RIGHT = STYLE PANEL / RECENT SESSION, LEFT = PRESENTATION LINES) -->
     <main class="dashboard-halves">
 
+      <!-- DARK LOW OPACITY OVERLAY BACKDROP FOR POPOVERS AND DRAWERS -->
+      <div id="popover-style-backdrop" class="drawer-backdrop hidden"></div>
+
       <!-- STYLE & FONT PANEL (DOCKS INLINE ON DESKTOP, OVERLAPS AS FLOATING POPOVER ON MOBILE) -->
       <section class="half-panel style-drawer-panel hidden" id="popover-style">
         <div class="style-drawer-header">
@@ -653,17 +656,23 @@
       <div id="obs-line-text" class="obs-line-text hidden"></div>
     </div>
 
-    <!-- EMBEDDED PRESENTATION FOOTER BAR (SLIDE COUNTER & CLOSE BUTTON) -->
-    <div id="obs-footer-bar" class="presenter-footer-bar hidden">
+    <!-- BOTTOM LEFT CONTROLS GROUP (X EXIT BUTTON & FULLSCREEN TOGGLE BUTTON) -->
+    <div class="overlay-bottom-left-controls">
+      <button id="btn-close-presentation-overlay" class="btn-overlay-control btn-close-overlay-left" title="إغلاق العرض (Esc)">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <button id="btn-overlay-toggle-fullscreen" class="btn-overlay-control btn-fullscreen-overlay-left" title="ملء الشاشة">
+        <i class="fa-solid fa-expand"></i>
+      </button>
+    </div>
+
+    <!-- BOTTOM RIGHT SLIDE COUNTER BADGE -->
+    <div id="obs-footer-bar" class="presenter-footer-bar-right hidden">
       <div id="obs-slide-counter" class="presenter-slide-counter hidden">
+        <i class="fa-solid fa-layer-group" style="font-size:0.85rem; opacity:0.8;"></i>
         <span id="obs-counter-text"></span>
       </div>
     </div>
-
-    <!-- SLEEK ICON EXIT BUTTON AT LEFT END -->
-    <button id="btn-close-presentation-overlay" class="btn-close-overlay-left" title="إنهاء العرض (Esc)">
-      <i class="fa-solid fa-xmark"></i>
-    </button>
   </div>
 
   <script src="app.js?v=20260806_v32"></script>
