@@ -5714,12 +5714,20 @@ document.addEventListener('DOMContentLoaded', () => {
           const baseSize = state.fontSize || 54;
           const scaleMode = state.scaleMode || 'auto';
 
+          const lineRows = Array.from(els.obsLineText.querySelectorAll('.obs-line-row'));
+          lineRows.forEach(r => {
+            r.style.display = 'block';
+            r.style.width = '100%';
+            r.style.textAlign = state.textAlign || 'center';
+          });
+
           const segments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
           segments.forEach(s => {
+            s.style.display = 'inline-block';
+            s.style.width = 'auto';
             s.style.whiteSpace = 'nowrap';
             s.style.wordBreak = 'keep-all';
             s.style.overflowWrap = 'normal';
-            s.style.textAlign = 'center';
           });
 
           let renderSize = baseSize;
@@ -5732,7 +5740,6 @@ document.addEventListener('DOMContentLoaded', () => {
             let high = Math.min(260, Math.max(120, Math.floor(maxContainerH / Math.max(1, (segments.length || 1) * 0.85))));
             renderSize = 16;
 
-            els.obsLineText.style.whiteSpace = 'nowrap';
             els.obsLineText.style.maxWidth = 'none';
 
             while (low <= high) {
