@@ -5316,12 +5316,23 @@ document.addEventListener('DOMContentLoaded', () => {
           const baseSize = state.fontSize || 54;
           const scaleMode = state.scaleMode || 'auto';
 
+          const segments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
+          segments.forEach(s => {
+            s.style.whiteSpace = 'nowrap';
+            s.style.wordBreak = 'keep-all';
+            s.style.overflowWrap = 'normal';
+            s.style.textAlign = 'center';
+          });
+
           let renderSize = baseSize;
 
           if (scaleMode === 'auto') {
+            const isVertical = window.innerHeight > window.innerWidth;
+            const refTargetW = isVertical ? Math.max(maxContainerW, maxContainerH * (16 / 9)) : maxContainerW;
+
             let low = 16;
-            let high = baseSize;
-            renderSize = baseSize;
+            let high = Math.max(180, Math.floor(maxContainerH / 1.4));
+            renderSize = 16;
 
             while (low <= high) {
               const mid = Math.floor((low + high) / 2);
@@ -5329,12 +5340,19 @@ document.addEventListener('DOMContentLoaded', () => {
               const h = els.obsLineText.scrollHeight;
               const w = els.obsLineText.scrollWidth;
 
-              if (h <= maxContainerH && w <= maxContainerW) {
+              if (h <= maxContainerH && w <= refTargetW) {
                 renderSize = mid;
                 low = mid + 1;
               } else {
                 high = mid - 1;
               }
+            }
+
+            els.obsLineText.style.fontSize = `${renderSize}px`;
+            const currentW = els.obsLineText.scrollWidth;
+            if (isVertical && currentW > maxContainerW && currentW > 0) {
+              const scaleFactor = maxContainerW / currentW;
+              renderSize = Math.max(14, Math.floor(renderSize * scaleFactor));
             }
           }
 

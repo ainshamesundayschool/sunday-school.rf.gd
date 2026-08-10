@@ -903,12 +903,25 @@
       const maxH = container.clientHeight ? (container.clientHeight * 0.86) : (window.innerHeight * 0.86);
       const maxW = container.clientWidth ? (container.clientWidth * 0.92) : (window.innerWidth * 0.92);
 
+      // Lock line breaks on segments so words don't wrap awkwardly into thin tall text
+      const segments = Array.from(textEl.querySelectorAll('.obs-line-segment'));
+      segments.forEach(s => {
+        s.style.whiteSpace = 'nowrap';
+        s.style.wordBreak = 'keep-all';
+        s.style.overflowWrap = 'normal';
+        s.style.textAlign = 'center';
+      });
+
       let renderSize = baseSize;
 
       if (scaleMode === 'auto') {
+        const isVertical = window.innerHeight > window.innerWidth;
+        // In vertical mode, format against reference landscape width to lock horizontal layout form
+        const refTargetW = isVertical ? Math.max(maxW, maxH * (16 / 9)) : maxW;
+        
         let low = 16;
-        let high = baseSize;
-        renderSize = baseSize;
+        let high = Math.max(180, Math.floor(maxH / 1.4));
+        renderSize = 16;
 
         while (low <= high) {
           const mid = Math.floor((low + high) / 2);
@@ -916,12 +929,20 @@
           const h = textEl.scrollHeight;
           const w = textEl.scrollWidth;
 
-          if (h <= maxH && w <= maxW) {
+          if (h <= maxH && w <= refTargetW) {
             renderSize = mid;
             low = mid + 1;
           } else {
             high = mid - 1;
           }
+        }
+
+        // On vertical screens, scale down font size proportionally if horizontal block exceeds vertical width
+        textEl.style.fontSize = `${renderSize}px`;
+        const currentW = textEl.scrollWidth;
+        if (isVertical && currentW > maxW && currentW > 0) {
+          const scaleFactor = maxW / currentW;
+          renderSize = Math.max(14, Math.floor(renderSize * scaleFactor));
         }
       }
 
@@ -943,14 +964,6 @@
 
       textEl.style.fontSize = renderSize + 'px';
       textEl.style.transform = 'none';
-
-      const segments = Array.from(textEl.querySelectorAll('.obs-line-segment'));
-      segments.forEach(s => {
-        s.style.whiteSpace = 'normal';
-        s.style.wordBreak = 'keep-all';
-        s.style.overflowWrap = 'break-word';
-        s.style.textAlign = 'center';
-      });
 
       applyDynamicShadow();
     }
