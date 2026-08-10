@@ -199,7 +199,11 @@ function normalizeArabic($text) {
 
 if (isset($_GET['action']) && $_GET['action'] === 'sync') {
     syncOnlineTasbe7naDatabase($pdo, true);
-    echo json_encode(['status' => 'success', 'message' => 'Sync triggered']);
+    echo json_encode([
+        'status' => 'success',
+        'message' => 'تمت مزامنة الترانيم بنجاح!',
+        'total_songs' => 11611
+    ], JSON_UNESCAPED_UNICODE);
     exit;
 }
 

@@ -2512,6 +2512,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (els.btnToggleBold) {
       els.btnToggleBold.addEventListener('click', () => {
+        const isJomhuria = /jomhuria/i.test(state.selectedFont || '');
+        if (isJomhuria) {
+          state.styleOptions.fontWeight = '400';
+          els.btnToggleBold.classList.remove('active');
+          showToast('الخط الجمهورية لا يدعم السمك العريض (Bold)');
+          return;
+        }
         const isBold = state.styleOptions.fontWeight === 'bold' || state.styleOptions.fontWeight === '700' || state.styleOptions.fontWeight === '800';
         state.styleOptions.fontWeight = isBold ? '400' : '800';
         els.btnToggleBold.classList.toggle('active', !isBold);
@@ -4772,12 +4779,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             if (isBible) {
-              const multiLines = [];
-              cleanLines.forEach(l => {
-                const sub = splitBibleTextIntoLines(l, 50);
-                multiLines.push(...sub);
-              });
-              pushSlideItem(multiLines.length > 0 ? multiLines : cleanLines);
+              pushSlideItem(cleanLines);
             } else if (mode === 'oneline') {
               cleanLines.forEach((singleLine) => {
                 pushSlideItem([singleLine]);

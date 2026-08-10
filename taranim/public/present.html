@@ -990,12 +990,11 @@
       segments.forEach(s => {
         s.style.display = 'inline-block';
         s.style.width = 'auto';
-        if (align === 'justify' && !isJomhuria) {
-          s.style.whiteSpace = 'normal';
+        if (isBible || align === 'justify') {
+          s.style.whiteSpace = 'pre-wrap';
           s.style.wordBreak = 'break-word';
-          s.style.textAlign = 'justify';
-          s.style.textJustify = 'kashida';
-          s.style.textAlignLast = 'justify';
+          s.style.overflowWrap = 'break-word';
+          s.style.textAlign = align;
         } else {
           s.style.whiteSpace = 'nowrap';
           s.style.wordBreak = 'keep-all';
@@ -1004,16 +1003,22 @@
         }
       });
 
+      // Automatically calculate optimal line height for dense multi-line vs single line text
+      let autoLineHeight = lHeight;
+      if (isBible || segments.length > 2 || (textEl.textContent && textEl.textContent.length > 100)) {
+        autoLineHeight = isJomhuria ? 1.15 : 1.35;
+      }
+
       // Apply Font & Typography Metrics BEFORE Binary Search so measurements reflect real font bounds
       if (isJomhuria) {
         textEl.style.fontFamily = 'Jomhuria, Arial, sans-serif';
-        textEl.style.lineHeight = `${lHeight || 1.25}`;
+        textEl.style.lineHeight = `${autoLineHeight}`;
         textEl.style.letterSpacing = `${lSpacing || 2}px`;
         textEl.style.wordSpacing = '6px';
-        textEl.style.fontWeight = fWeight || '400';
+        textEl.style.fontWeight = '400'; // BLOCK BOLD WEIGHT FOR JOMHURIA
       } else {
         textEl.style.fontFamily = currentFont || 'sans-serif';
-        textEl.style.lineHeight = `${lHeight || 1.5}`;
+        textEl.style.lineHeight = `${autoLineHeight}`;
         textEl.style.letterSpacing = `${lSpacing}px`;
         textEl.style.wordSpacing = 'normal';
         textEl.style.fontWeight = fWeight;

@@ -230,7 +230,7 @@ if (isset($_GET['action']) && ($_GET['action'] === 'sync' || $_GET['action'] ===
     }
     echo json_encode([
         'status' => 'success',
-        'message' => 'تمت مزامنة الترانيم مع تسبيحنا بنجاح!',
+        'message' => 'تمت مزامنة الترانيم بنجاح!',
         'syncResult' => $res,
         'total_songs' => $totalCount
     ], JSON_UNESCAPED_UNICODE);
