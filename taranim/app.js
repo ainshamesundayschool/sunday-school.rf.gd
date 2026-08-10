@@ -5661,10 +5661,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const activeHighlights = state.highlightedLineIndices || [];
         const obsSegments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
         obsSegments.forEach((seg, idx) => {
-          const isH = Array.isArray(activeHighlights) ? activeHighlights.includes(idx) : (activeHighlights === idx);
+          const segLineIdx = parseInt(seg.dataset.lineIdx !== undefined ? seg.dataset.lineIdx : idx);
+          const isH = Array.isArray(activeHighlights) ? activeHighlights.includes(segLineIdx) : (activeHighlights === segLineIdx);
           if (isH) {
-            seg.style.setProperty('--highlight-bg', `linear-gradient(90deg, ${hColor} 0%, ${hColor}dd 100%)`);
-            seg.style.setProperty('--highlight-glow', `${hColor}aa`);
+            seg.style.setProperty('--highlight-bg', `${hColor}33`);
+            seg.style.setProperty('--highlight-text-color', hColor);
             seg.classList.remove('line-unhighlighting');
             seg.classList.add('line-highlighted');
           } else {
