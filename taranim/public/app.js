@@ -1902,6 +1902,62 @@ document.addEventListener('DOMContentLoaded', () => {
       loadInitialData();
     });
 
+    // HIGHLIGHT TOOL POPOVER & EVENT BINDINGS
+    const btnToggleHighlight = document.getElementById('btn-toggle-highlight-tool');
+    const popoverHighlight = document.getElementById('popover-highlight-color');
+    const btnCloseHighlight = document.getElementById('btn-close-highlight-popover');
+    const highlightCustomColor = document.getElementById('highlight-custom-color');
+
+    if (btnToggleHighlight && popoverHighlight) {
+      btnToggleHighlight.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const willShow = popoverHighlight.classList.contains('hidden');
+        closeAllPopovers(popoverHighlight);
+        if (willShow) {
+          popoverHighlight.classList.remove('hidden');
+          const backdrop = document.getElementById('popover-style-backdrop');
+          if (backdrop) backdrop.classList.remove('hidden');
+        } else {
+          popoverHighlight.classList.add('hidden');
+          const backdrop = document.getElementById('popover-style-backdrop');
+          if (backdrop) backdrop.classList.add('hidden');
+        }
+      });
+
+      if (btnCloseHighlight) {
+        btnCloseHighlight.addEventListener('click', (e) => {
+          e.stopPropagation();
+          popoverHighlight.classList.add('hidden');
+          const backdrop = document.getElementById('popover-style-backdrop');
+          if (backdrop) backdrop.classList.add('hidden');
+        });
+      }
+
+      document.querySelectorAll('.highlight-color-pill').forEach(pill => {
+        pill.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const color = pill.dataset.color;
+          state.highlightColor = color;
+          document.querySelectorAll('.highlight-color-pill').forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          if (highlightCustomColor) highlightCustomColor.value = color;
+          saveUserSettings();
+          renderPresentationLinesList();
+          syncLiveState();
+        });
+      });
+
+      if (highlightCustomColor) {
+        highlightCustomColor.addEventListener('input', (e) => {
+          state.highlightColor = e.target.value;
+          document.querySelectorAll('.highlight-color-pill').forEach(p => p.classList.remove('active'));
+          saveUserSettings();
+          renderPresentationLinesList();
+          syncLiveState();
+        });
+      }
+    }
+
     const popoverStyleBackdrop = document.getElementById('popover-style-backdrop');
     const btnCloseStyleDrawer = document.getElementById('btn-close-style-drawer');
 
@@ -2320,7 +2376,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateScaleModeLockState();
         saveUserSettings();
         syncLiveState();
-        renderPresenterText(currentPresenterText);
       });
     }
 
@@ -4791,16 +4846,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     els.presentationLinesContainer.innerHTML = presentationLines.map((l, idx) => {
-      const linesPreviewHtml = (l.lines || [l.text]).map(lineText => {
+      const isActive = (!state.isBlank) && (isLiveSongDisplayed ? (idx === state.liveLineIndex) : (idx === state.currentLineIndex));
+
+      const linesPreviewHtml = (l.lines || [l.text]).map((lineText, lineIdx) => {
         let text = escapeHtml(lineText);
         if (text.startsWith('(')) {
           text = '<span class="rep-num-grey" style="color:#94a3b8; font-weight:600; margin-left:1px;">(</span>' + text.substring(1);
         }
         text = text.replace(/\)([\d٠-٩]*)$/, '<span class="rep-num-grey" style="color:#94a3b8; font-weight:600; margin-right:1px;">)$1</span>');
-        return `<div class="slide-line-row"><span>${text}</span></div>`;
-      }).join('');
 
-      const isActive = (!state.isBlank) && (isLiveSongDisplayed ? (idx === state.liveLineIndex) : (idx === state.currentLineIndex));
+        const isHighlighted = isActive && Array.isArray(state.highlightedLineIndices) && state.highlightedLineIndices.includes(lineIdx);
+        const hColor = state.highlightColor || '#f59e0b';
+
+        return `<div class="slide-line-row ${isHighlighted ? 'line-highlight-active' : ''}" data-line-idx="${lineIdx}" style="${isHighlighted ? `--highlight-color:${hColor};` : ''}"><span>${text}</span></div>`;
+      }).join('');
 
       return `
         <div class="line-item ${isActive ? 'active' : ''}" data-idx="${idx}">
@@ -4852,6 +4911,7 @@ document.addEventListener('DOMContentLoaded', () => {
           state.liveLineIndex = idx;
           state.currentLineIndex = idx;
           state.isBlank = false;
+          state.highlightedLineIndices = [];
           renderPresentationLinesList();
           syncLiveState();
         }
@@ -4863,11 +4923,30 @@ document.addEventListener('DOMContentLoaded', () => {
       item.addEventListener('click', (e) => {
         if (e.target.closest('.copy-line-btn') || e.target.closest('.launch-fullscreen-btn')) return;
         const clickedIdx = parseInt(item.dataset.idx);
+
+        const lineRow = e.target.closest('.slide-line-row');
+        if (lineRow && clickedIdx === state.liveLineIndex && isLiveSongDisplayed) {
+          const lineIdx = parseInt(lineRow.dataset.lineIdx);
+          if (!isNaN(lineIdx)) {
+            if (!Array.isArray(state.highlightedLineIndices)) state.highlightedLineIndices = [];
+            const pos = state.highlightedLineIndices.indexOf(lineIdx);
+            if (pos >= 0) {
+              state.highlightedLineIndices.splice(pos, 1);
+            } else {
+              state.highlightedLineIndices.push(lineIdx);
+            }
+            renderPresentationLinesList();
+            syncLiveState();
+            return;
+          }
+        }
+
         state.liveSong = state.activeSong;
         state.livePresentationLines = state.presentationLines;
         state.liveLineIndex = clickedIdx;
         state.currentLineIndex = clickedIdx;
         state.isBlank = false;
+        state.highlightedLineIndices = [];
         renderPresentationLinesList();
         syncLiveState();
       });

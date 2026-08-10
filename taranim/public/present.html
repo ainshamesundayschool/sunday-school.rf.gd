@@ -962,10 +962,20 @@
       textEl.style.textDecoration = tDeco;
 
       segments.forEach(s => {
-        s.style.whiteSpace = 'nowrap';
-        s.style.wordBreak = 'keep-all';
-        s.style.overflowWrap = 'normal';
-        s.style.textAlign = align === 'justify' ? (isJomhuria ? 'center' : 'justify') : align;
+        if (align === 'justify' && !isJomhuria) {
+          s.style.whiteSpace = 'normal';
+          s.style.wordBreak = 'break-word';
+          s.style.display = 'block';
+          s.style.width = '100%';
+          s.style.textAlign = 'justify';
+          s.style.textJustify = 'kashida';
+          s.style.textAlignLast = 'justify';
+        } else {
+          s.style.whiteSpace = 'nowrap';
+          s.style.wordBreak = 'keep-all';
+          s.style.overflowWrap = 'normal';
+          s.style.textAlign = align;
+        }
       });
 
       // Apply Font & Typography Metrics BEFORE Binary Search so measurements reflect real font bounds
@@ -1270,18 +1280,24 @@
         badgeHtml = `<span class="slide-badge-layer ${detectedBadgeClass}">${detectedBadge}</span>`;
       }
 
+      let isJustify = lastStyleData && lastStyleData.textAlign === 'justify' && !isJomhuria;
+      const connectableRegex = /([\u0628\u062A\u062B\u062C\u062D\u062E\u0633\u0634\u0635\u0636\u0637\u0638\u0639\u063A\u0641\u0642\u0643\u0644\u0645\u0646\u0647\u064A\u0649])(?=[\u0600-\u06FF])/g;
+
       let lineSegments = lines.map((l, idx) => {
         let lineStr = l.trim();
         if (!lineStr) return '';
+        if (isJustify && /[\u0600-\u06FF]/.test(lineStr)) {
+          lineStr = lineStr.replace(connectableRegex, '$1ـ');
+        }
         if (lineStr.startsWith('(')) {
           lineStr = '<span class="rep-num-grey" style="color:#94a3b8; font-weight:600; margin-left:1px;">(</span>' + lineStr.substring(1);
         }
         lineStr = lineStr.replace(/\)([\d٠-٩]*)$/, '<span class="rep-num-grey" style="color:#94a3b8; font-weight:600; margin-right:1px;">)$1</span>');
 
         if (idx === 0) {
-          return `<span class="obs-line-segment obs-first-line" style="display: block; white-space: normal; word-break: keep-all; overflow-wrap: break-word; text-align: center; width: 100%; font-size: inherit; overflow: visible;"><span class="obs-first-line-wrapper" style="position: relative; display: inline-block; text-align: center; max-width: 100%; overflow: visible;">${badgeHtml}${lineStr}</span></span>`;
+          return `<span class="obs-line-segment obs-first-line" data-line-idx="0"><span class="obs-first-line-wrapper">${badgeHtml}${lineStr}</span></span>`;
         }
-        return `<span class="obs-line-segment" style="display: block; white-space: normal; word-break: keep-all; overflow-wrap: break-word; text-align: center; width: 100%; font-size: inherit; overflow: visible;">${lineStr}</span>`;
+        return `<span class="obs-line-segment" data-line-idx="${idx}">${lineStr}</span>`;
       }).filter(Boolean).join('');
 
       return `<div class="obs-slide-wrapper" style="overflow: visible;"><div class="obs-lines-wrapper" style="overflow: visible;">${lineSegments}</div></div>`;
@@ -1364,6 +1380,33 @@
 
       if (data.boxRadius !== undefined) box.style.borderRadius = `${data.boxRadius}px`;
       if (data.boxPadding !== undefined) box.style.padding = `${data.boxPadding}px`;
+
+      // HIGHLIGHT LINE LOGIC (LINEAR WIPE & FADE OUT)
+      if (data.highlightedLines !== undefined) {
+        if (!lastStyleData) lastStyleData = {};
+        lastStyleData.highlightedLines = data.highlightedLines;
+        if (data.highlightColor) lastStyleData.highlightColor = data.highlightColor;
+      }
+
+      const hColor = (lastStyleData && lastStyleData.highlightColor) || '#f59e0b';
+      const activeHighlights = (lastStyleData && lastStyleData.highlightedLines) || [];
+
+      const segments = Array.from(textEl.querySelectorAll('.obs-line-segment'));
+      segments.forEach((seg, idx) => {
+        const isH = Array.isArray(activeHighlights) ? activeHighlights.includes(idx) : (activeHighlights === idx);
+        if (isH) {
+          seg.style.setProperty('--highlight-bg', `linear-gradient(90deg, ${hColor} 0%, ${hColor}dd 100%)`);
+          seg.style.setProperty('--highlight-glow', `${hColor}aa`);
+          seg.classList.remove('line-unhighlighting');
+          seg.classList.add('line-highlighted');
+        } else {
+          if (seg.classList.contains('line-highlighted')) {
+            seg.classList.remove('line-highlighted');
+            seg.classList.add('line-unhighlighting');
+            setTimeout(() => seg.classList.remove('line-unhighlighting'), 300);
+          }
+        }
+      });
 
       const textColor = data.textColor || '#ffffff';
       textEl.style.color = textColor;
