@@ -3803,6 +3803,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+  function hasCompleteContent(obj) {
+    if (!obj || typeof obj !== 'object') return false;
+    if (obj.verses && Array.isArray(obj.verses) && obj.verses.length > 0) return true;
+    if (obj.slides && Array.isArray(obj.slides) && obj.slides.length > 0) return true;
+    if (obj.notes && String(obj.notes).trim().length > 0) return true;
+    if (obj.text && String(obj.text).trim().length > 0) return true;
+    return false;
+  }
+
   async function openAndPresentItem(songOrId, isBible = false) {
     if (!songOrId && songOrId !== 0) return;
 
@@ -3813,18 +3822,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const cleanId = String(rawSongId || '').replace(/^(song_|bible_)/, '').trim();
 
     let targetSong = null;
+    let originSource = 'unknown';
 
-    // 1. IF COMPLETE SONG OBJECT IS PASSED (e.g. from recents, search, playlist), USE IT INSTANTLY (0ms!)
-    if (inputObject && (inputObject.title || (inputObject.verses && inputObject.verses.length > 0) || inputObject.notes)) {
+    // 1. IF COMPLETE SONG OBJECT IS PASSED, USE IT INSTANTLY (0ms!)
+    if (inputObject && hasCompleteContent(inputObject)) {
       targetSong = JSON.parse(JSON.stringify(inputObject));
       originSource = 'direct_object_parameter';
     }
 
-    // 2. MATCH IN SESSION RECENTS BY ID (0ms!)
-    if (!targetSong && cleanId) {
+    // 2. MATCH IN SESSION RECENTS BY ID IF COMPLETE
+    if ((!targetSong || !hasCompleteContent(targetSong)) && cleanId) {
       let foundInRecents = state.sessionRecents.find(r => {
         const rId = String(r.id !== undefined ? r.id : r.item_id).replace(/^(song_|bible_)/, '').trim();
-        return Boolean(r.is_bible) === Boolean(isItemBible) && rId === cleanId;
+        return Boolean(r.is_bible) === Boolean(isItemBible) && rId === cleanId && hasCompleteContent(r);
       });
       if (foundInRecents) {
         targetSong = JSON.parse(JSON.stringify(foundInRecents));
@@ -3855,13 +3865,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // 4. FETCH FROM API ONLY IF NOT FOUND LOCALLY AT ALL
-    if (!targetSong && cleanId) {
+    // 4. FETCH FROM API IF NOT FULLY POPULATED LOCALLY
+    if ((!targetSong || !hasCompleteContent(targetSong)) && cleanId) {
       try {
         const bibleParam = isItemBible ? '&type=bible&is_bible=1' : '';
         const apiUrl = getApiUrl();
         let res = await fetch(`${apiUrl}?action=song&id=${cleanId}${bibleParam}`).catch(() => null);
         if (!res || !res.ok) res = await fetch(`/api.php?action=song&id=${cleanId}${bibleParam}`).catch(() => null);
+        if (!res || !res.ok) res = await fetch(`/taranim/api.php?action=song&id=${cleanId}${bibleParam}`).catch(() => null);
         if (res && res.ok) {
           const fullSong = await res.json();
           if (fullSong && (fullSong.title || fullSong.id)) {
@@ -3899,8 +3910,30 @@ document.addEventListener('DOMContentLoaded', () => {
   function ensureSongVerses(song) {
     if (!song) return song;
 
-    const isBible = Boolean((song.is_bible === true || song.is_bible === '1' || song.is_bible === 1) || (song.chapter_number !== undefined && song.chapter_number !== null && song.chapter_number !== ''));
-    if (isBible) return song;
+    const isBible = Boolean((song.is_bible === true || song.is_bible === '1' || song.is_bible === 1) || (song.chapter_number !== undefined && song.chapter_number !== null && song.chapter_number !== '') || song.type === 'bible');
+    if (isBible) {
+      if ((!song.verses || !Array.isArray(song.verses) || song.verses.length === 0) && (song.notes || song.text || song.content)) {
+        const rawText = String(song.notes || song.text || song.content).replace(/\r\n/g, '\n');
+        const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        const parsedSlides = [];
+        let curVerseNum = 1;
+        lines.forEach((l) => {
+          const m = l.match(/^[\(\[\{]?([\d٠-٩]+)[\)\]\}]?[\.\-:\s]\s*(.*)/);
+          if (m) {
+            const vNum = parseInt(m[1].replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))) || curVerseNum;
+            curVerseNum = vNum;
+            parsedSlides.push({ heading: String(vNum), lines: [m[2].trim()] });
+          } else {
+            parsedSlides.push({ heading: String(curVerseNum), lines: [l] });
+            curVerseNum++;
+          }
+        });
+        if (parsedSlides.length > 0) {
+          song.verses = [{ type: 0, slides: parsedSlides }];
+        }
+      }
+      return song;
+    }
 
     const getVerseFirstLine = (verse) => {
       if (!verse) return '';
@@ -4203,9 +4236,11 @@ document.addEventListener('DOMContentLoaded', () => {
             let labelText = '';
 
             if (isBible) {
-              badgeText = `(${verseIndex + 1})`;
+              const vNum = slide.heading || slide.number || verse.heading || verse.number || (slideIndex + 1);
+              badgeText = `(${vNum})`;
               badgeClass = 'verse-badge-side';
-              labelText = `آية ${verseIndex + 1}`;
+              labelText = `آية ${vNum}`;
+              isFirstSlideOfVerse = true;
             } else if (isChorusVerse) {
               badgeText = `(ق)`;
               badgeClass = 'chorus-badge-side';
@@ -4218,8 +4253,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const pushSlideItem = (linesArray) => {
-              let curBadgeText = isFirstSlideOfVerse ? badgeText : '';
-              let curBadgeClass = isFirstSlideOfVerse ? badgeClass : '';
+              let curBadgeText = (isFirstSlideOfVerse || isBible) ? badgeText : '';
+              let curBadgeClass = (isFirstSlideOfVerse || isBible) ? badgeClass : '';
               let fullText = curBadgeText ? `${curBadgeText} ${linesArray.join('\n')}` : linesArray.join('\n');
               
               items.push({
