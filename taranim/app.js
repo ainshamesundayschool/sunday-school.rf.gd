@@ -1277,13 +1277,26 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     const castBtn = container.querySelector('#btn-menu-cast');
     if (castBtn) {
-      castBtn.addEventListener('click', (e) => {
+      castBtn.addEventListener('click', async (e) => {
         e.stopPropagation();
+        if ('getScreenDetails' in window && !screenDetails) {
+          try { screenDetails = await window.getScreenDetails(); } catch(err) {}
+        }
+        const screens = (screenDetails && screenDetails.screens && screenDetails.screens.length > 0)
+          ? screenDetails.screens
+          : [];
+        
+        if (screens.length <= 1) {
+          closeAllPopovers();
+          launchPresenterOnSelectedScreen('in_app_overlay');
+          return;
+        }
+
         const willShow = els.popoverCast.classList.contains('hidden');
         closeAllPopovers(els.popoverCast);
         if (willShow) {
           els.popoverCast.classList.remove('hidden');
-          detectConnectedScreens();
+          renderScreenOptions();
         } else {
           els.popoverCast.classList.add('hidden');
         }
@@ -3075,7 +3088,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return '<div class="' + cardClass + '" data-val="' + val + '"><div class="screen-info"><span class="screen-name"><i class="fa-solid fa-desktop"></i> ' + escapeHtml(name) + '</span>' + chipsHtml + '<span class="screen-res" style="font-size:0.75rem; color:#94a3b8; margin-top:3px; display:block;">' + s.width + ' × ' + s.height + ' px</span></div><i class="fa-solid fa-expand launch-btn-icon"></i></div>';
       }).join('');
 
-      cardsHtml += '<div class="screen-cast-card" data-val="in_app_overlay"><div class="screen-info"><span class="screen-name"><i class="fa-solid fa-window-maximize"></i> عرض داخل التبويب الحالي (Overlay)</span><span class="screen-res">عرض الشريحة بالكامل فوق لوحة التحكم</span></div><i class="fa-solid fa-up-right-and-down-left-from-center launch-btn-icon"></i></div>';
+      cardsHtml += '<div class="screen-cast-card" data-val="in_app_overlay"><div class="screen-info"><span class="screen-name"><i class="fa-solid fa-window-maximize"></i> هذه الشاشة</span><span class="screen-res">عرض الكلمات بالكامل على هذه الشاشة</span></div><i class="fa-solid fa-up-right-and-down-left-from-center launch-btn-icon"></i></div>';
 
       els.screensCastList.innerHTML = cardsHtml;
 
@@ -5320,43 +5333,49 @@ document.addEventListener('DOMContentLoaded', () => {
 
           const segments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
           segments.forEach(s => {
-            s.style.whiteSpace = 'normal';
+            s.style.whiteSpace = 'nowrap';
             s.style.wordBreak = 'keep-all';
-            s.style.overflowWrap = 'break-word';
+            s.style.overflowWrap = 'normal';
             s.style.textAlign = 'center';
-            s.style.width = '100%';
           });
 
           let renderSize = baseSize;
 
           if (scaleMode === 'auto') {
+            const isVertical = window.innerHeight > window.innerWidth;
+            const refTargetW = isVertical ? Math.max(maxContainerW, maxContainerH * (16 / 9)) : maxContainerW;
+
             let low = 16;
-            let high = 260;
+            let high = Math.min(260, Math.max(120, Math.floor(maxContainerH / Math.max(1, (segments.length || 1) * 0.85))));
             renderSize = 16;
 
-            els.obsLineText.style.whiteSpace = 'normal';
-            els.obsLineText.style.width = '100%';
-            els.obsLineText.style.maxWidth = '94vw';
+            els.obsLineText.style.whiteSpace = 'nowrap';
+            els.obsLineText.style.maxWidth = 'none';
 
             while (low <= high) {
               const mid = Math.floor((low + high) / 2);
               els.obsLineText.style.fontSize = `${mid}px`;
-              els.obsLineText.style.lineHeight = '1.35';
-
               const h = els.obsLineText.scrollHeight || els.obsLineText.offsetHeight;
               const w = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
 
-              if (h <= maxContainerH && w <= maxContainerW) {
+              if (h <= maxContainerH && w <= refTargetW) {
                 renderSize = mid;
                 low = mid + 1;
               } else {
                 high = mid - 1;
               }
             }
+
+            els.obsLineText.style.fontSize = `${renderSize}px`;
+            const currentW = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
+            if (isVertical && currentW > maxContainerW && currentW > 0) {
+              const scaleFactor = maxContainerW / currentW;
+              renderSize = Math.max(14, Math.floor(renderSize * scaleFactor));
+            }
           }
 
           els.obsLineText.style.fontSize = `${renderSize}px`;
-          els.obsLineText.style.lineHeight = '1.35';
+          els.obsLineText.style.lineHeight = '1.4';
           els.obsLineText.style.transform = 'none';
         }
       });

@@ -908,43 +908,49 @@
       let baseSize = (lastStyleData && lastStyleData.fontSize) || stateFontSize || 54;
       const scaleMode = (lastStyleData && lastStyleData.scaleMode) || 'auto';
       const container = document.getElementById('obs-overlay-container') || document.body;
-      const maxH = (container.clientHeight || window.innerHeight) * 0.90;
+      const maxH = (container.clientHeight || window.innerHeight) * 0.88;
       const maxW = (container.clientWidth || window.innerWidth) * 0.94;
 
       const segments = Array.from(textEl.querySelectorAll('.obs-line-segment'));
       segments.forEach(s => {
-        s.style.whiteSpace = 'normal';
+        s.style.whiteSpace = 'nowrap';
         s.style.wordBreak = 'keep-all';
-        s.style.overflowWrap = 'break-word';
+        s.style.overflowWrap = 'normal';
         s.style.textAlign = 'center';
-        s.style.width = '100%';
       });
 
       let renderSize = baseSize;
 
       if (scaleMode === 'auto') {
+        const isVertical = window.innerHeight > window.innerWidth;
+        const refTargetW = isVertical ? Math.max(maxW, maxH * (16 / 9)) : maxW;
+
         let low = 16;
-        let high = 260;
+        let high = Math.min(260, Math.max(120, Math.floor(maxH / Math.max(1, (segments.length || 1) * 0.85))));
         renderSize = 16;
 
-        textEl.style.whiteSpace = 'normal';
-        textEl.style.width = '100%';
-        textEl.style.maxWidth = '94vw';
+        textEl.style.whiteSpace = 'nowrap';
+        textEl.style.maxWidth = 'none';
 
         while (low <= high) {
           const mid = Math.floor((low + high) / 2);
           textEl.style.fontSize = `${mid}px`;
-          textEl.style.lineHeight = '1.35';
-
           const h = textEl.scrollHeight || textEl.offsetHeight;
           const w = textEl.scrollWidth || textEl.offsetWidth;
 
-          if (h <= maxH && w <= maxW) {
+          if (h <= maxH && w <= refTargetW) {
             renderSize = mid;
             low = mid + 1;
           } else {
             high = mid - 1;
           }
+        }
+
+        textEl.style.fontSize = `${renderSize}px`;
+        const currentW = textEl.scrollWidth || textEl.offsetWidth;
+        if (isVertical && currentW > maxW && currentW > 0) {
+          const scaleFactor = maxW / currentW;
+          renderSize = Math.max(14, Math.floor(renderSize * scaleFactor));
         }
       }
 
