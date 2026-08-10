@@ -5850,12 +5850,17 @@ document.addEventListener('DOMContentLoaded', () => {
           els.obsLowerThirdBox.style.padding = boxPadding;
         }
 
-        els.obsLineText.innerHTML = formatPresenterText(text, isBible, badgeTxt, badgeCls);
+        // 1. UPDATE INNERHTML ONLY IF CONTENT CHANGED (PREVENTS DOM WIPING AND ANIMATION FLICKER)
+        const contentKey = `${text}_${isBible}_${badgeTxt}_${badgeCls}`;
+        const textChanged = (state._currentPresenterContentKey !== contentKey);
+        if (textChanged) {
+          state._currentPresenterContentKey = contentKey;
+          els.obsLineText.innerHTML = formatPresenterText(text, isBible, badgeTxt, badgeCls);
+        }
 
-        const activeLineRows = els.obsLineText.querySelectorAll('.obs-line-segment');
+        const activeLineRows = els.obsLineText.querySelectorAll('.obs-line-row');
         activeLineRows.forEach(r => {
-          r.style.lineHeight = `${finalLineHeight}`;
-          r.style.marginBottom = `${Math.round((finalLineHeight - 1) * 14)}px`;
+          r.style.display = 'block'; r.style.width = '100%'; r.style.lineHeight = `${finalLineHeight}`; r.style.marginBottom = `${Math.round((finalLineHeight - 1) * 14)}px`;
         });
 
         const obsSegments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
@@ -5863,17 +5868,22 @@ document.addEventListener('DOMContentLoaded', () => {
           s.style.display = 'inline-block';
           s.style.width = 'auto';
           if (isBible || align === 'justify') {
-            s.style.whiteSpace = 'pre-wrap';
-            s.style.wordBreak = 'break-word';
-            s.style.overflowWrap = 'break-word';
-            s.style.textAlign = align;
+            s.style.whiteSpace = 'pre-wrap'; s.style.wordBreak = 'break-word'; s.style.overflowWrap = 'break-word'; s.style.textAlign = align;
           } else {
-            s.style.whiteSpace = 'nowrap';
-            s.style.wordBreak = 'keep-all';
-            s.style.overflowWrap = 'normal';
-            s.style.textAlign = align;
+            s.style.whiteSpace = 'nowrap'; s.style.wordBreak = 'keep-all'; s.style.overflowWrap = 'normal'; s.style.textAlign = align;
           }
         });
+
+        // 2. TRIGGER TEXT APPEARANCE ANIMATION ONLY IF TEXT OR ANIMATION SETTING CHANGED
+        const animChanged = (currentPresenterAnim !== state.textAnimation);
+        if (textChanged || animChanged) {
+          currentPresenterAnim = state.textAnimation;
+          els.obsLineText.classList.remove('animate-appear-slide', 'animate-appear-drop', 'animate-appear-pop', 'animate-appear-flip', 'animate-appear-glow');
+          if (state.textAnimation !== 'none' && text) {
+            void els.obsLineText.offsetWidth;
+            els.obsLineText.classList.add(`animate-appear-${state.textAnimation}`);
+          }
+        }
 
         const strokeW = parseInt(state.styleOptions.strokeWidth || 0);
         const strokeC = state.styleOptions.strokeColor || '#000000';
@@ -5911,21 +5921,10 @@ document.addEventListener('DOMContentLoaded', () => {
         els.obsLineText.style.textShadow = shadowParts.length > 0 ? shadowParts.join(', ') : 'none';
         els.obsLineText.style.color = state.styleOptions.textColor || '#ffffff';
 
-        const textChanged = (currentPresenterText !== text);
-        const animChanged = (currentPresenterAnim !== state.textAnimation);
-        currentPresenterText = text;
-        currentPresenterAnim = state.textAnimation;
-
-        els.obsLineText.classList.remove('animate-appear-slide', 'animate-appear-drop', 'animate-appear-pop', 'animate-appear-flip', 'animate-appear-glow');
-        if (state.textAnimation !== 'none' && text && (textChanged || animChanged)) {
-          void els.obsLineText.offsetWidth;
-          els.obsLineText.classList.add(`animate-appear-${state.textAnimation}`);
-        }
-
+        // 3. UPDATE HIGHLIGHTS IN-PLACE WITHOUT RE-CREATING DOM (FLICKER-FREE)
         const hColor = state.highlightColor || '#ef4444';
         const activeHighlights = state.highlightedLineIndices || [];
-        const highlightSegs = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
-        highlightSegs.forEach((seg, idx) => {
+        obsSegments.forEach((seg, idx) => {
           const segLineIdx = parseInt(seg.dataset.lineIdx !== undefined ? seg.dataset.lineIdx : idx);
           const isH = Array.isArray(activeHighlights) ? activeHighlights.includes(segLineIdx) : (activeHighlights === segLineIdx);
           if (isH) {
@@ -5941,8 +5940,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
 
+      // 4. NON-DESTRUCTIVE FONT AUTO-FIT USING OFF-SCREEN MEASUREMENT CONTAINER
+      const snapText = text;
       requestAnimationFrame(() => {
-        if (els.obsLineText && text.trim() && els.obsLineText.style.display !== 'none') {
+        if (els.obsLineText && snapText.trim() && els.obsLineText.style.display !== 'none') {
           const container = els.obsOverlay || els.obsLineText.parentElement || document.body;
           const maxContainerH = (container.clientHeight || window.innerHeight) * 0.88;
           const maxContainerW = (container.clientWidth || window.innerWidth) * 0.94;
@@ -5958,14 +5959,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (songKeyOverlay !== state._overlayUniformSongKey && targetLines && targetLines.length > 0) {
               state._overlayUniformSongKey = songKeyOverlay;
               let minSize = Infinity;
+              const measureDiv = document.createElement('div');
+              measureDiv.style.cssText = `position: absolute; visibility: hidden; top: -9999px; left: -9999px; width: ${container.clientWidth}px; font-family: ${els.obsLineText.style.fontFamily}; font-weight: ${els.obsLineText.style.fontWeight}; letter-spacing: ${els.obsLineText.style.letterSpacing};`;
+              document.body.appendChild(measureDiv);
+
               for (const slideItem of targetLines) {
                 const slideText = slideItem ? (slideItem.text || '') : '';
                 if (!slideText.trim()) continue;
-                const origHTML = els.obsLineText.innerHTML;
-                const origVis = els.obsLineText.style.visibility;
-                els.obsLineText.style.visibility = 'hidden';
-                els.obsLineText.innerHTML = formatPresenterText(slideText, isBible, '', '');
-                const segs = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
+                measureDiv.innerHTML = formatPresenterText(slideText, isBible, '', '');
+                const segs = Array.from(measureDiv.querySelectorAll('.obs-line-segment'));
                 segs.forEach(s => {
                   s.style.display = 'inline-block'; s.style.width = 'auto'; s.style.whiteSpace = 'nowrap'; s.style.wordBreak = 'keep-all'; s.style.overflowWrap = 'normal';
                 });
@@ -5975,63 +5977,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 let maxLimit = isJomhuriaF ? 300 : 260;
                 let high = Math.min(maxLimit, Math.max(120, Math.floor(maxContainerH / Math.max(1, (segs.length || 1) * 0.85))));
                 let renderSize = 16;
-                els.obsLineText.style.maxWidth = 'none';
+                measureDiv.style.maxWidth = 'none';
                 while (low <= high) {
                   const mid = Math.floor((low + high) / 2);
-                  els.obsLineText.style.fontSize = `${mid}px`;
-                  const h = els.obsLineText.scrollHeight || els.obsLineText.offsetHeight;
-                  const w = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
+                  measureDiv.style.fontSize = `${mid}px`;
+                  const h = measureDiv.scrollHeight || measureDiv.offsetHeight;
+                  const w = measureDiv.scrollWidth || measureDiv.offsetWidth;
                   if (h <= maxContainerH && w <= refTargetW) { renderSize = mid; low = mid + 1; } else { high = mid - 1; }
                 }
-                els.obsLineText.style.fontSize = `${renderSize}px`;
-                let cW = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
-                let cH = els.obsLineText.scrollHeight || els.obsLineText.offsetHeight;
+                measureDiv.style.fontSize = `${renderSize}px`;
+                let cW = measureDiv.scrollWidth || measureDiv.offsetWidth;
+                let cH = measureDiv.scrollHeight || measureDiv.offsetHeight;
                 while ((cW > maxContainerW || cH > maxContainerH) && renderSize > 14) {
-                  renderSize--; els.obsLineText.style.fontSize = `${renderSize}px`;
-                  cW = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth; cH = els.obsLineText.scrollHeight || els.obsLineText.offsetHeight;
+                  renderSize--; measureDiv.style.fontSize = `${renderSize}px`;
+                  cW = measureDiv.scrollWidth || measureDiv.offsetWidth; cH = measureDiv.scrollHeight || measureDiv.offsetHeight;
                 }
                 if (renderSize < minSize) minSize = renderSize;
-                els.obsLineText.innerHTML = origHTML; els.obsLineText.style.visibility = origVis;
               }
+              document.body.removeChild(measureDiv);
               state._overlayUniformFontSize = (minSize === Infinity) ? (baseSize || 54) : minSize;
             }
             const uniformSize = state._overlayUniformFontSize || baseSize;
             els.obsLineText.style.fontSize = `${uniformSize}px`;
-            els.obsLineText.innerHTML = formatPresenterText(text, isBible, badgeTxt, badgeCls);
-            const finalRows = els.obsLineText.querySelectorAll('.obs-line-row');
-            finalRows.forEach(r => {
-              r.style.display = 'block'; r.style.width = '100%'; r.style.lineHeight = `${lHeightF}`; r.style.marginBottom = `${Math.round((lHeightF - 1) * 14)}px`;
-            });
-            const finalSegs = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
-            const alignF = state.styleOptions.textAlign || 'center';
-            finalSegs.forEach(s => {
-              s.style.display = 'inline-block';
-              s.style.width = 'auto';
-              if (isBible || alignF === 'justify') {
-                s.style.whiteSpace = 'pre-wrap'; s.style.wordBreak = 'break-word'; s.style.overflowWrap = 'break-word'; s.style.textAlign = alignF;
-              } else {
-                s.style.whiteSpace = 'nowrap'; s.style.wordBreak = 'keep-all'; s.style.overflowWrap = 'normal'; s.style.textAlign = alignF;
-              }
-            });
-
-            const hColor = state.highlightColor || '#ef4444';
-            const activeHighlights = state.highlightedLineIndices || [];
-            const obsSegments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
-            obsSegments.forEach((seg, idx) => {
-              const segLineIdx = parseInt(seg.dataset.lineIdx !== undefined ? seg.dataset.lineIdx : idx);
-              const isH = Array.isArray(activeHighlights) ? activeHighlights.includes(segLineIdx) : (activeHighlights === segLineIdx);
-              if (isH) {
-                seg.style.setProperty('--highlight-bg', `${hColor}cc`);
-                if (!seg.classList.contains('line-highlighted')) {
-                  seg.classList.remove('line-unhighlighting');
-                  seg.classList.add('line-highlighted', 'line-animating');
-                  setTimeout(() => seg.classList.remove('line-animating'), 650);
-                }
-              } else {
-                // CUT INSTANTLY (NO FADE OUT ANIMATION)
-                seg.classList.remove('line-highlighted', 'line-animating', 'line-unhighlighting');
-              }
-            });
           }
           els.obsLineText.style.transform = 'none';
         }
