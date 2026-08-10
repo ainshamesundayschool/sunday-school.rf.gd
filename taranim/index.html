@@ -489,6 +489,17 @@
               </div>
             </div>
 
+            <div class="style-card" style="margin-top:10px;">
+              <div class="style-card-title"><i class="fa-solid fa-eye-slash"></i> أدوات العرض والتحكم</div>
+              
+              <div class="control-field">
+                <label>أدوات التحكم للشاشة</label>
+                <button type="button" id="btn-toggle-hide-controls" class="segmented-btn" style="width:100%; justify-content:center; padding:8px; gap:8px; background:#f1f5f9; border-radius:10px; font-weight:600;">
+                  <i class="fa-solid fa-eye-slash"></i> <span id="hide-controls-btn-text">إخفاء أدوات التحكم</span>
+                </button>
+              </div>
+            </div>
+
             <div class="popover-actions" style="margin-top:10px;">
               <button id="btn-share-style-link" class="btn btn-sm btn-secondary" style="width:100%; font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px;">
                 <i class="fa-solid fa-share-nodes"></i> مشاركة التنسيق
@@ -630,6 +641,9 @@
 
   <!-- EMBEDDED PRESENTATION OVERLAY -->
   <div id="obs-presentation-overlay" class="obs-overlay hidden" data-chroma="black">
+    <!-- PURE BLACK BLACKOUT OVERLAY FOR IN-APP BLANK MODE -->
+    <div id="obs-blank-blackout-overlay" class="blank-blackout-overlay hidden"></div>
+
     <div id="snap-guide-h" class="snap-guide horizontal hidden"></div>
     <div id="snap-guide-v" class="snap-guide vertical hidden"></div>
 

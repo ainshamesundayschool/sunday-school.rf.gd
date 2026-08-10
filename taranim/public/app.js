@@ -2427,8 +2427,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (els.btnToggleBold) {
       els.btnToggleBold.addEventListener('click', () => {
-        state.styleOptions.fontStyle = state.styleOptions.fontStyle === 'bold' ? 'normal' : 'bold';
-        els.btnToggleBold.classList.toggle('active', state.styleOptions.fontStyle === 'bold');
+        const isBold = state.styleOptions.fontWeight === 'bold' || state.styleOptions.fontWeight === '700' || state.styleOptions.fontWeight === '800';
+        state.styleOptions.fontWeight = isBold ? '400' : '800';
+        els.btnToggleBold.classList.toggle('active', !isBold);
         saveUserSettings();
         syncLiveState();
       });
@@ -2447,6 +2448,54 @@ document.addEventListener('DOMContentLoaded', () => {
       els.btnToggleUnderline.addEventListener('click', () => {
         state.styleOptions.textDecoration = state.styleOptions.textDecoration === 'underline' ? 'none' : 'underline';
         els.btnToggleUnderline.classList.toggle('active', state.styleOptions.textDecoration === 'underline');
+        saveUserSettings();
+        syncLiveState();
+      });
+    }
+
+    if (els.obsLetterSpacingRange) {
+      els.obsLetterSpacingRange.addEventListener('input', (e) => {
+        state.styleOptions.letterSpacing = parseInt(e.target.value);
+        saveUserSettings();
+        syncLiveState();
+      });
+    }
+
+    if (els.obsLineHeightRange) {
+      els.obsLineHeightRange.addEventListener('input', (e) => {
+        state.styleOptions.lineHeight = parseFloat(e.target.value);
+        saveUserSettings();
+        syncLiveState();
+      });
+    }
+
+    if (els.obsBoxBgColor) {
+      els.obsBoxBgColor.addEventListener('input', (e) => {
+        state.styleOptions.boxBgColor = e.target.value;
+        saveUserSettings();
+        syncLiveState();
+      });
+    }
+
+    if (els.obsBoxOpacityRange) {
+      els.obsBoxOpacityRange.addEventListener('input', (e) => {
+        state.styleOptions.boxOpacity = parseInt(e.target.value);
+        saveUserSettings();
+        syncLiveState();
+      });
+    }
+
+    if (els.obsBoxRadiusRange) {
+      els.obsBoxRadiusRange.addEventListener('input', (e) => {
+        state.styleOptions.boxRadius = parseInt(e.target.value);
+        saveUserSettings();
+        syncLiveState();
+      });
+    }
+
+    if (els.obsBoxPaddingRange) {
+      els.obsBoxPaddingRange.addEventListener('input', (e) => {
+        state.styleOptions.boxPadding = parseInt(e.target.value);
         saveUserSettings();
         syncLiveState();
       });
@@ -2502,6 +2551,28 @@ document.addEventListener('DOMContentLoaded', () => {
       picker.addEventListener('change', updateHex);
       updateHex();
     });
+
+    // Hide Controls Toggle Handler
+    const btnToggleHideControls = document.getElementById('btn-toggle-hide-controls');
+    if (btnToggleHideControls) {
+      const updateHideControlsBtn = () => {
+        const isHidden = Boolean(state.hideControls);
+        btnToggleHideControls.classList.toggle('active', isHidden);
+        const btnText = document.getElementById('hide-controls-btn-text');
+        if (btnText) {
+          btnText.textContent = isHidden ? 'إظهار أدوات التحكم' : 'إخفاء أدوات التحكم';
+        }
+      };
+      btnToggleHideControls.addEventListener('click', () => {
+        state.hideControls = !state.hideControls;
+        try { localStorage.setItem('sunday_school_taranim_hide_controls', state.hideControls); } catch(e) {}
+        updateHideControlsBtn();
+        if (els.obsOverlay) els.obsOverlay.classList.toggle('controls-hidden', state.hideControls);
+        syncLiveState();
+        showToast(state.hideControls ? 'تم إخفاء أدوات التحكم!' : 'تم إظهار أدوات التحكم!');
+      });
+      updateHideControlsBtn();
+    }
 
     if (els.btnShareStyleLink) {
       els.btnShareStyleLink.addEventListener('click', async () => {
@@ -5218,7 +5289,8 @@ document.addEventListener('DOMContentLoaded', () => {
       boxBgColor: state.styleOptions.boxBgColor,
       boxOpacity: state.styleOptions.boxOpacity,
       boxRadius: state.styleOptions.boxRadius,
-      boxPadding: state.styleOptions.boxPadding
+      boxPadding: state.styleOptions.boxPadding,
+      hideControls: Boolean(state.hideControls)
     };
 
     // ONLY ATTACH POSITION IF IT WAS EXPLICITLY DRAGGED/MODIFIED
@@ -5233,6 +5305,14 @@ document.addEventListener('DOMContentLoaded', () => {
     try { localStorage.setItem('sunday_school_taranim_live_presentation', JSON.stringify(payload)); } catch(e) {}
 
     // 2. INSTANT PRESENTER PREVIEW SYNC (0ms)
+    const obsBlackoutOverlay = document.getElementById('obs-blank-blackout-overlay');
+    if (obsBlackoutOverlay) {
+      obsBlackoutOverlay.classList.toggle('hidden', !state.isBlank);
+    }
+    if (els.obsOverlay) {
+      els.obsOverlay.classList.toggle('controls-hidden', Boolean(state.hideControls));
+    }
+
     if (els.obsLineText) {
       const standbyEl = document.getElementById('obs-standby-branding');
       const hasText = Boolean(text && text.trim() && !state.isBlank);
@@ -5280,18 +5360,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
         els.obsLineText.style.fontFamily = state.selectedFont;
         const isJomhuria = /jomhuria/i.test(state.selectedFont || '');
+        const align = state.styleOptions.textAlign || 'center';
+        const lHeight = state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : 1.5;
+        const lSpacing = state.styleOptions.letterSpacing !== undefined ? `${state.styleOptions.letterSpacing}px` : 'normal';
+        const fWeight = state.styleOptions.fontWeight || '400';
+        const fStyle = state.styleOptions.fontStyle || 'normal';
+        const tDeco = state.styleOptions.textDecoration || 'none';
+
+        els.obsLineText.style.textAlign = align;
+        els.obsLineText.style.fontStyle = fStyle;
+        els.obsLineText.style.textDecoration = tDeco;
+        els.obsLineText.style.fontWeight = fWeight;
+        els.obsLineText.style.lineHeight = `${lHeight}`;
+        els.obsLineText.style.letterSpacing = isJomhuria ? '2px' : lSpacing;
+
+        if (els.obsLowerThirdBox) {
+          els.obsLowerThirdBox.style.textAlign = align;
+          const boxBg = state.styleOptions.boxBgColor || '#000000';
+          const boxOpacity = state.styleOptions.boxOpacity !== undefined ? (state.styleOptions.boxOpacity / 100) : 0;
+          const boxRadius = state.styleOptions.boxRadius !== undefined ? `${state.styleOptions.boxRadius}px` : '12px';
+          const boxPadding = state.styleOptions.boxPadding !== undefined ? `${state.styleOptions.boxPadding}px` : '20px';
+
+          let rgbaBg = 'transparent';
+          if (boxOpacity > 0) {
+            const hex = boxBg.replace('#', '');
+            const r = parseInt(hex.substring(0, 2), 16) || 0;
+            const g = parseInt(hex.substring(2, 4), 16) || 0;
+            const b = parseInt(hex.substring(4, 6), 16) || 0;
+            rgbaBg = `rgba(${r}, ${g}, ${b}, ${boxOpacity})`;
+          }
+          els.obsLowerThirdBox.style.background = rgbaBg;
+          els.obsLowerThirdBox.style.borderRadius = boxRadius;
+          els.obsLowerThirdBox.style.padding = boxPadding;
+        }
+
         if (isJomhuria) {
-          els.obsLineText.style.fontSize = Math.round((state.fontSize || 54) * 1.55) + 'px';
-          els.obsLineText.style.lineHeight = '1.5';
-          els.obsLineText.style.letterSpacing = '3px';
-          els.obsLineText.style.wordSpacing = '9px';
+          els.obsLineText.style.fontSize = (state.fontSize || 54) + 'px';
+          els.obsLineText.style.lineHeight = `${lHeight || 1.25}`;
+          els.obsLineText.style.letterSpacing = '2px';
+          els.obsLineText.style.wordSpacing = '6px';
           els.obsLineText.style.fontWeight = '400';
         } else {
           els.obsLineText.style.fontSize = (state.fontSize || 54) + 'px';
-          els.obsLineText.style.lineHeight = '1.45';
-          els.obsLineText.style.letterSpacing = (state.styleOptions.letterSpacing !== undefined ? `${state.styleOptions.letterSpacing}px` : 'normal');
-          els.obsLineText.style.wordSpacing = 'normal';
-          els.obsLineText.style.fontWeight = state.styleOptions.fontWeight || '400';
         }
 
         const badgeTxt = currentSlideItem ? (currentSlideItem.badgeText || '') : '';

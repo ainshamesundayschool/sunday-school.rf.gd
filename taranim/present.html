@@ -381,58 +381,67 @@
       display: none !important;
     }
 
-    @media (max-width: 768px) {
-      .standby-branding .standby-logo {
-        width: 180px;
-        height: 180px;
-      }
+    .blank-blackout-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000000 !important;
+      z-index: 9999999 !important;
+      pointer-events: auto;
+      opacity: 1;
     }
 
     .btn-close-overlay-left {
-      position: absolute;
-      bottom: max(20px, env(safe-area-inset-bottom, 20px));
-      left: max(20px, env(safe-area-inset-left, 20px));
-      min-width: 48px;
-      min-height: 48px;
-      width: 48px;
-      height: 48px;
-      background: rgba(0, 0, 0, 0.45) !important;
-      backdrop-filter: blur(8px) !important;
-      -webkit-backdrop-filter: blur(8px) !important;
-      border: 1px solid rgba(255, 255, 255, 0.25) !important;
-      color: rgba(255, 255, 255, 0.95) !important;
+      position: fixed !important;
+      top: 8px !important;
+      left: 8px !important;
+      bottom: auto !important;
+      right: auto !important;
+      min-width: 26px !important;
+      min-height: 26px !important;
+      width: 26px !important;
+      height: 26px !important;
+      background: transparent !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      border: none !important;
+      color: rgba(255, 255, 255, 0.45) !important;
       border-radius: 50%;
-      font-size: 1.5rem !important;
+      font-size: 0.85rem !important;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       z-index: 99999 !important;
-      transition: all 0.2s cubic-bezier(0.2, 0.9, 0.3, 1);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+      transition: all 0.2s ease;
+      box-shadow: none !important;
       pointer-events: auto !important;
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
-      opacity: 0.95;
+      opacity: 0.7;
     }
 
     .btn-close-overlay-left:hover,
     .btn-close-overlay-left:active {
-      background: rgba(0, 0, 0, 0.7) !important;
-      border-color: rgba(255, 255, 255, 0.5) !important;
-      transform: scale(1.15);
-      color: #ffffff !important;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      color: rgba(255, 255, 255, 0.95) !important;
       opacity: 1;
     }
 
-    /* Sleek bottom footer info bar for presenter display */
+    /* Sleek bottom footer info bar for presenter display - NO BACKGROUND OVERLAY */
     .presenter-footer-bar {
       position: fixed;
-      bottom: 16px;
-      left: 24px;
-      right: 24px;
+      bottom: 8px;
+      left: 12px;
+      right: auto;
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-start;
       align-items: center;
       pointer-events: none;
       z-index: 999;
@@ -442,21 +451,32 @@
 
     .presenter-scale-badge,
     .presenter-slide-counter {
-      background: rgba(15, 23, 42, 0.65);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      color: rgba(255, 255, 255, 0.9);
-      font-size: 0.82rem;
+      background: transparent !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      border: none !important;
+      color: rgba(255, 255, 255, 0.55) !important;
+      font-size: 0.78rem;
       font-weight: 600;
-      padding: 4px 14px;
-      border-radius: 20px;
+      padding: 0;
+      border-radius: 0;
       display: flex;
       align-items: center;
       gap: 6px;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
-      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+      box-shadow: none !important;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
       letter-spacing: 0.3px;
+    }
+
+    /* HIDE CONTROLS MODE */
+    body.controls-hidden #btn-close-window-bottom,
+    body.controls-hidden .btn-close-overlay-left,
+    body.controls-hidden #presenter-footer-bar,
+    body.controls-hidden #presenter-slide-counter,
+    body.controls-hidden .obs-top-left-header {
+      display: none !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
     }
 
     .obs-top-left-header {
@@ -912,12 +932,41 @@
       const maxW = (container.clientWidth || window.innerWidth) * 0.94;
 
       const segments = Array.from(textEl.querySelectorAll('.obs-line-segment'));
+      const currentFont = (lastStyleData && lastStyleData.font) || textEl.style.fontFamily || '';
+      const isJomhuria = /jomhuria/i.test(currentFont);
+
+      const align = (lastStyleData && lastStyleData.textAlign) || textEl.style.textAlign || 'center';
+      const lSpacing = (lastStyleData && lastStyleData.letterSpacing !== undefined) ? lastStyleData.letterSpacing : 0;
+      const lHeight = (lastStyleData && lastStyleData.lineHeight !== undefined) ? lastStyleData.lineHeight : 1.5;
+      const fWeight = (lastStyleData && lastStyleData.fontWeight) || '400';
+      const fStyle = (lastStyleData && lastStyleData.fontStyle) || 'normal';
+      const tDeco = (lastStyleData && lastStyleData.textDecoration) || 'none';
+
+      textEl.style.textAlign = align;
+      textEl.style.fontStyle = fStyle;
+      textEl.style.textDecoration = tDeco;
+
       segments.forEach(s => {
         s.style.whiteSpace = 'nowrap';
         s.style.wordBreak = 'keep-all';
         s.style.overflowWrap = 'normal';
-        s.style.textAlign = 'center';
+        s.style.textAlign = align;
       });
+
+      // Apply Font & Typography Metrics BEFORE Binary Search so measurements reflect real font bounds
+      if (isJomhuria) {
+        textEl.style.fontFamily = 'Jomhuria, Arial, sans-serif';
+        textEl.style.lineHeight = `${lHeight || 1.25}`;
+        textEl.style.letterSpacing = `${lSpacing || 2}px`;
+        textEl.style.wordSpacing = '6px';
+        textEl.style.fontWeight = fWeight || '400';
+      } else {
+        textEl.style.fontFamily = currentFont || 'sans-serif';
+        textEl.style.lineHeight = `${lHeight || 1.5}`;
+        textEl.style.letterSpacing = `${lSpacing}px`;
+        textEl.style.wordSpacing = 'normal';
+        textEl.style.fontWeight = fWeight;
+      }
 
       let renderSize = baseSize;
 
@@ -926,7 +975,8 @@
         const refTargetW = isVertical ? Math.max(maxW, maxH * (16 / 9)) : maxW;
 
         let low = 16;
-        let high = Math.min(260, Math.max(120, Math.floor(maxH / Math.max(1, (segments.length || 1) * 0.85))));
+        let maxLimit = isJomhuria ? 300 : 260;
+        let high = Math.min(maxLimit, Math.max(120, Math.floor(maxH / Math.max(1, (segments.length || 1) * 0.85))));
         renderSize = 16;
 
         textEl.style.whiteSpace = 'nowrap';
@@ -947,27 +997,16 @@
         }
 
         textEl.style.fontSize = `${renderSize}px`;
-        const currentW = textEl.scrollWidth || textEl.offsetWidth;
-        if (isVertical && currentW > maxW && currentW > 0) {
-          const scaleFactor = maxW / currentW;
-          renderSize = Math.max(14, Math.floor(renderSize * scaleFactor));
+
+        // Safety clamp: shrink if text still overflows maxW or maxH
+        let currentW = textEl.scrollWidth || textEl.offsetWidth;
+        let currentH = textEl.scrollHeight || textEl.offsetHeight;
+        while ((currentW > maxW || currentH > maxH) && renderSize > 14) {
+          renderSize--;
+          textEl.style.fontSize = `${renderSize}px`;
+          currentW = textEl.scrollWidth || textEl.offsetWidth;
+          currentH = textEl.scrollHeight || textEl.offsetHeight;
         }
-      }
-
-      const currentFont = (lastStyleData && lastStyleData.font) || textEl.style.fontFamily || '';
-      const isJomhuria = /jomhuria/i.test(currentFont);
-
-      if (isJomhuria) {
-        renderSize = Math.round(renderSize * 1.55);
-        textEl.style.lineHeight = '1.5';
-        textEl.style.letterSpacing = '3px';
-        textEl.style.wordSpacing = '9px';
-        textEl.style.fontWeight = '400';
-      } else {
-        textEl.style.lineHeight = '1.5';
-        textEl.style.letterSpacing = (lastStyleData && lastStyleData.letterSpacing !== undefined) ? `${lastStyleData.letterSpacing}px` : 'normal';
-        textEl.style.wordSpacing = 'normal';
-        if (lastStyleData && lastStyleData.fontWeight) textEl.style.fontWeight = lastStyleData.fontWeight;
       }
 
       textEl.style.fontSize = renderSize + 'px';
@@ -1278,13 +1317,17 @@
         stateFontSize = data.fontSize;
       }
 
-      if (data.scaleMode) {
-        if (!lastStyleData) lastStyleData = {};
-        lastStyleData.scaleMode = data.scaleMode;
-      }
+      if (!lastStyleData) lastStyleData = {};
+      if (data.font) lastStyleData.font = data.font;
+      if (data.textAlign) lastStyleData.textAlign = data.textAlign;
+      if (data.letterSpacing !== undefined) lastStyleData.letterSpacing = data.letterSpacing;
+      if (data.lineHeight !== undefined) lastStyleData.lineHeight = data.lineHeight;
+      if (data.fontWeight) lastStyleData.fontWeight = data.fontWeight;
+      if (data.fontStyle) lastStyleData.fontStyle = data.fontStyle;
+      if (data.textDecoration) lastStyleData.textDecoration = data.textDecoration;
 
       if (data.fontWeight) textEl.style.fontWeight = data.fontWeight;
-      if (data.fontStyle) textEl.style.fontStyle = data.fontStyle === 'bold' ? 'normal' : data.fontStyle;
+      if (data.fontStyle) textEl.style.fontStyle = data.fontStyle;
       if (data.textDecoration) textEl.style.textDecoration = data.textDecoration;
       if (data.textAlign) {
         textEl.style.textAlign = data.textAlign;
@@ -1311,6 +1354,15 @@
       textEl.style.color = textColor;
 
       applyDynamicShadow(data);
+
+      const blankOverlayEl = document.getElementById('blank-screen-overlay');
+      if (blankOverlayEl) {
+        blankOverlayEl.classList.toggle('hidden', !data.isBlank);
+      }
+
+      if (data.hideControls !== undefined) {
+        document.body.classList.toggle('controls-hidden', Boolean(data.hideControls));
+      }
 
       const topLeftHeaderEl = document.getElementById('obs-top-left-header');
       if (topLeftHeaderEl) {
@@ -1578,6 +1630,12 @@
     })();
 
     // IMMEDIATE RE-FETCH ON VISIBILITY OR FOCUS RESTORATION
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'h' || e.key === 'H' || e.key === 'ا') {
+        document.body.classList.toggle('controls-hidden');
+      }
+    });
+
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') fetchLiveHTTP();
     });

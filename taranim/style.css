@@ -161,17 +161,20 @@ input[type="checkbox"]:checked::after {
 .circle-angle-picker-wrapper {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 14px;
   flex: 1;
 }
 
 .circle-angle-dial {
   position: relative;
-  width: 30px;
-  height: 30px;
+  width: 58px;
+  height: 58px;
+  min-width: 58px;
+  min-height: 58px;
   border-radius: 50%;
-  background: #f1f5f9;
+  background: radial-gradient(circle at 35% 35%, #ffffff 0%, #f8fafc 65%, #e2e8f0 100%);
   border: 2px solid #cbd5e1;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08), inset 0 2px 4px rgba(255, 255, 255, 0.9), inset 0 -2px 4px rgba(0, 0, 0, 0.06);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -179,32 +182,45 @@ input[type="checkbox"]:checked::after {
   user-select: none;
   touch-action: none;
   flex-shrink: 0;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.circle-angle-dial::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  border: 1px dashed rgba(148, 163, 184, 0.4);
+  pointer-events: none;
 }
 
 .circle-angle-dial:hover {
   border-color: var(--accent-blue, #2563eb);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15), 0 6px 18px rgba(37, 99, 235, 0.18);
+  transform: scale(1.04);
 }
 
 .circle-angle-pointer {
   position: absolute;
-  top: 3px;
-  width: 3px;
-  height: 10px;
-  background: var(--accent-blue, #2563eb);
-  border-radius: 2px;
-  transform-origin: 50% 12px;
+  top: 6px;
+  width: 4px;
+  height: 23px;
+  background: linear-gradient(180deg, #2563eb 0%, #3b82f6 100%);
+  border-radius: 3px;
+  transform-origin: 50% 23px;
   transform: rotate(90deg);
   pointer-events: none;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
 }
 
 .circle-angle-center-dot {
-  width: 5px;
-  height: 5px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: #64748b;
-  z-index: 2;
+  background: linear-gradient(135deg, #1e293b, #475569);
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  z-index: 3;
   pointer-events: none;
 }
 
@@ -268,7 +284,7 @@ input[type="checkbox"]:checked::after {
   right: 0 !important;
   bottom: 0 !important;
   left: auto !important;
-  width: 350px !important;
+  width: 430px !important;
   max-width: 90vw !important;
   height: 100vh !important;
   max-height: 100vh !important;
@@ -3700,3 +3716,191 @@ input[type="checkbox"]:checked::after {
 .swatch-green { background: #00ff00; }
 .swatch-blue { background: #0000ff; }
 .swatch-trans { background: linear-gradient(135deg, #cbd5e1 25%, transparent 25%), linear-gradient(225deg, #cbd5e1 25%, transparent 25%), linear-gradient(45deg, #cbd5e1 25%, transparent 25%), linear-gradient(135deg, transparent 75%, #cbd5e1 75%); background-size: 8px 8px; }
+
+/* PURE BLACK BLACKOUT OVERLAY FOR BLANK MODE */
+.blank-blackout-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000000 !important;
+  z-index: 9999999 !important;
+  pointer-events: auto;
+}
+
+/* SLEEK TRANSPARENT CORNER CLOSE BUTTON */
+.btn-close-overlay-left,
+#btn-close-presentation-overlay {
+  position: absolute !important;
+  top: 8px !important;
+  left: 8px !important;
+  bottom: auto !important;
+  right: auto !important;
+  min-width: 26px !important;
+  min-height: 26px !important;
+  width: 26px !important;
+  height: 26px !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  color: rgba(255, 255, 255, 0.45) !important;
+  border-radius: 50% !important;
+  font-size: 0.85rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  z-index: 99999 !important;
+  transition: all 0.2s ease !important;
+  box-shadow: none !important;
+  opacity: 0.7 !important;
+}
+
+.btn-close-overlay-left:hover,
+#btn-close-presentation-overlay:hover {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: rgba(255, 255, 255, 0.95) !important;
+  opacity: 1 !important;
+}
+
+/* BACKGROUNDLESS SLIDE COUNTER */
+.presenter-slide-counter,
+#obs-slide-counter {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: rgba(255, 255, 255, 0.55) !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  padding: 0 !important;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* HIDE CONTROLS MODE FOR IN-APP OVERLAY */
+.obs-overlay.controls-hidden .btn-close-overlay-left,
+.obs-overlay.controls-hidden #obs-footer-bar,
+.obs-overlay.controls-hidden #obs-slide-counter {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* ==========================================================================
+   CUSTOM APPLE-GRADE RANGE SLIDERS (DESIGN UPGRADE)
+   ========================================================================== */
+.slider-input,
+.strip-range,
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 24px;
+  background: transparent;
+  cursor: pointer;
+  outline: none;
+  margin: 4px 0;
+}
+
+/* TRACK */
+.slider-input::-webkit-slider-runnable-track,
+.strip-range::-webkit-slider-runnable-track,
+input[type="range"]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  border: none;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.slider-input::-moz-range-track,
+.strip-range::-moz-range-track,
+input[type="range"]::-moz-range-track {
+  width: 100%;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  border: none;
+  transition: background 0.2s ease;
+}
+
+.slider-input:hover::-webkit-slider-runnable-track,
+.strip-range:hover::-webkit-slider-runnable-track,
+input[type="range"]:hover::-webkit-slider-runnable-track {
+  background: #cbd5e1;
+}
+
+/* THUMB */
+.slider-input::-webkit-slider-thumb,
+.strip-range::-webkit-slider-thumb,
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ffffff 0%, #f8fafc 70%, #eff6ff 100%);
+  border: 2px solid #2563eb;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.9);
+  margin-top: -7px;
+  cursor: grab;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.slider-input::-moz-range-thumb,
+.strip-range::-moz-range-thumb,
+input[type="range"]::-moz-range-thumb {
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ffffff 0%, #f8fafc 70%, #eff6ff 100%);
+  border: 2px solid #2563eb;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.9);
+  cursor: grab;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+/* HOVER & ACTIVE THUMB STATES */
+.slider-input:hover::-webkit-slider-thumb,
+.strip-range:hover::-webkit-slider-thumb,
+input[type="range"]:hover::-webkit-slider-thumb {
+  transform: scale(1.15);
+  border-color: #1d4ed8;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.4);
+}
+
+.slider-input:active::-webkit-slider-thumb,
+.strip-range:active::-webkit-slider-thumb,
+input[type="range"]:active::-webkit-slider-thumb {
+  cursor: grabbing;
+  transform: scale(1.25);
+  background: #2563eb;
+  border-color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25), 0 4px 12px rgba(37, 99, 235, 0.5);
+}
+
+.slider-input:hover::-moz-range-thumb,
+.strip-range:hover::-moz-range-thumb,
+input[type="range"]:hover::-moz-range-thumb {
+  transform: scale(1.15);
+  border-color: #1d4ed8;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.4);
+}
+
+.slider-input:active::-moz-range-thumb,
+.strip-range:active::-moz-range-thumb,
+input[type="range"]:active::-moz-range-thumb {
+  cursor: grabbing;
+  transform: scale(1.25);
+  background: #2563eb;
+  border-color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25), 0 4px 12px rgba(37, 99, 235, 0.5);
+}
