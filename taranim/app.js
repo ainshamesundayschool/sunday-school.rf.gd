@@ -1794,8 +1794,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (state.selectedFont) {
-      document.documentElement.style.setProperty('--font-family', state.selectedFont);
-      document.body.style.fontFamily = state.selectedFont;
+      document.documentElement.style.setProperty('--slide-font-family', state.selectedFont);
+      if (els.obsLineText) els.obsLineText.style.fontFamily = state.selectedFont;
     }
     if (els.fontSelect) els.fontSelect.value = state.selectedFont;
     if (els.obsFontSizeRange) els.obsFontSizeRange.value = state.fontSize;
@@ -3426,7 +3426,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function applyFont(fontFamily) {
     state.selectedFont = fontFamily;
-    document.documentElement.style.setProperty('--font-family', fontFamily);
+    document.documentElement.style.setProperty('--slide-font-family', fontFamily);
+    if (els.obsLineText) els.obsLineText.style.fontFamily = fontFamily;
     saveUserSettings();
     syncLiveState();
   }

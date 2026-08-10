@@ -4,7 +4,9 @@
    ========================================================================== */
 
 :root {
-  --font-family: 'Alexandria', sans-serif;
+  --font-family: 'Cairo', 'Alexandria', sans-serif;
+  --panel-font-family: 'Cairo', 'Alexandria', sans-serif;
+  --slide-font-family: 'Alexandria', sans-serif;
   
   --bg-light: #f4f6fc;
   --bg-card: #ffffff;
@@ -31,7 +33,7 @@
 }
 
 body, input, button, select, textarea {
-  font-family: var(--font-family);
+  font-family: var(--panel-font-family);
 }
 
 .fa, .fas, .far, .fab, .fa-solid, .fa-regular, .fa-brands, [class*=" fa-"], [class^="fa-"] {
