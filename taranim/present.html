@@ -567,6 +567,59 @@
       color: inherit;
     }
 
+    /* LIVE SLIDE LINE HIGHLIGHT STYLES FOR PRESENTER WINDOW */
+    .obs-line-segment {
+      position: relative;
+      display: inline-block;
+      transition: color 0.25s ease;
+    }
+
+    .obs-line-segment.line-highlighted {
+      position: relative;
+      z-index: 5;
+      color: #ffffff !important;
+      text-shadow: none !important;
+      transform: none !important;
+      font-size: inherit !important;
+      font-weight: inherit !important;
+    }
+
+    .obs-line-segment.line-highlighted::before {
+      content: '';
+      position: absolute;
+      inset: 20% -4px 10% -4px;
+      background: var(--highlight-bg, rgba(245, 158, 11, 0.82));
+      border-radius: 3px;
+      z-index: -1;
+      box-shadow: none !important;
+      animation: highlightLinearWipe 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      will-change: clip-path, opacity;
+    }
+
+    @keyframes highlightLinearWipe {
+      0% {
+        clip-path: polygon(100% 0, 100% 0, 100% 100%, 100% 100%);
+        opacity: 0;
+      }
+      100% {
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+        opacity: 1;
+      }
+    }
+
+    .obs-line-segment.line-unhighlighting::before {
+      animation: highlightFadeOut 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    @keyframes highlightFadeOut {
+      0% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0;
+      }
+    }
+
     .hidden { display: none !important; }
   </style>
 </head>
