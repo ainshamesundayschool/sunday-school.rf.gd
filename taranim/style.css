@@ -4075,6 +4075,83 @@ input[type="range"]:active::-moz-range-thumb {
   max-width: 180px;
 }
 
+/* SLEEK CONTROLS MATCHING PRESENT.HTML EXACTLY */
+.btn-close-overlay-left {
+  position: fixed !important;
+  bottom: 12px !important;
+  left: 14px !important;
+  right: auto !important;
+  width: 34px !important;
+  height: 34px !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  color: rgba(255, 255, 255, 0.45) !important;
+  border-radius: 50% !important;
+  font-size: 0.9rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  z-index: 99999 !important;
+  transition: all 0.2s ease !important;
+  box-shadow: none !important;
+  pointer-events: auto !important;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  opacity: 0.7;
+}
+
+.btn-close-overlay-left:hover,
+.btn-close-overlay-left:active {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: rgba(255, 255, 255, 0.95) !important;
+  opacity: 1;
+}
+
+.presenter-footer-bar {
+  position: fixed !important;
+  bottom: 12px !important;
+  right: 14px !important;
+  left: auto !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  pointer-events: none !important;
+  z-index: 999 !important;
+  direction: rtl !important;
+  font-family: 'Baloo Bhaijaan 2', 'Alexandria', sans-serif !important;
+}
+
+.presenter-slide-counter {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  color: rgba(255, 255, 255, 0.55) !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  box-shadow: none !important;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8) !important;
+  letter-spacing: 0.3px !important;
+}
+
+.controls-hidden .btn-close-overlay-left,
+.controls-hidden .presenter-footer-bar,
+.controls-hidden .presenter-slide-counter {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 .obs-line-segment {
   position: relative;
   display: inline-block !important;
