@@ -3347,7 +3347,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     els.searchSuggestionsChips.innerHTML = suggestions.map(s => `
       <button class="suggestion-chip" type="button" data-replacement="${escapeHtml(s.text)}" data-start="${start}" data-end="${end}">
-        <i class="fa-solid fa-wand-magic-sparkles"></i> ${escapeHtml(s.text)}
+        <svg class="gemini-spark-icon" viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="display:inline-block; vertical-align:-2px; margin-left:4px;"><path d="M12 0C12 6.627 6.627 12 0 12C6.627 12 12 17.373 12 24C12 17.373 17.373 12 24 12C17.373 12 12 6.627 12 0Z"/></svg> ${escapeHtml(s.text)}
       </button>
     `).join('');
 
