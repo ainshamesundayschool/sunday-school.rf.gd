@@ -494,10 +494,12 @@
     }
 
     .chorus-num,
-    .chorus-badge-side {
+    .chorus-badge-side,
+    .slide-badge-layer.chorus-badge-side,
+    .slide-badge-layer.chorus-num {
       color: #ef4444 !important;
       font-weight: 700 !important;
-      font-size: 0.68em !important;
+      font-size: 0.62em !important;
     }
 
     .badge-num,
@@ -1315,7 +1317,7 @@
         lineStr = lineStr.replace(/\)([\d٠-٩]*)$/, '<span class="rep-num-grey" style="color:#94a3b8; font-weight:600; margin-right:1px;">)$1</span>');
 
         if (idx === 0) {
-          return `<div class="obs-line-row"><span class="obs-line-segment obs-first-line" data-line-idx="0"><span class="obs-first-line-wrapper">${badgeHtml}${lineStr}</span></span></div>`;
+          return `<div class="obs-line-row" style="position:relative;">${badgeHtml}<span class="obs-line-segment obs-first-line" data-line-idx="0">${lineStr}</span></div>`;
         }
         return `<div class="obs-line-row"><span class="obs-line-segment" data-line-idx="${idx}">${lineStr}</span></div>`;
       }).filter(Boolean).join('');
@@ -1451,7 +1453,7 @@
           if (data.highlightColor) lastStyleData.highlightColor = data.highlightColor;
         }
 
-        const hColor = (lastStyleData && lastStyleData.highlightColor) || '#f59e0b';
+        const hColor = (lastStyleData && lastStyleData.highlightColor) || '#ef4444';
         const activeHighlights = (lastStyleData && lastStyleData.highlightedLines) || [];
 
         const segments = Array.from(textEl.querySelectorAll('.obs-line-segment'));
@@ -1466,11 +1468,8 @@
               setTimeout(() => seg.classList.remove('line-animating'), 650);
             }
           } else {
-            if (seg.classList.contains('line-highlighted')) {
-              seg.classList.remove('line-highlighted', 'line-animating');
-              seg.classList.add('line-unhighlighting');
-              setTimeout(() => seg.classList.remove('line-unhighlighting'), 300);
-            }
+            // CUT INSTANTLY (NO FADE OUT ANIMATION)
+            seg.classList.remove('line-highlighted', 'line-animating', 'line-unhighlighting');
           }
         });
 

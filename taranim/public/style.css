@@ -4026,6 +4026,28 @@ input[type="range"]:active::-moz-range-thumb {
 /* ==========================================================================
    LIVE SLIDE LINE HIGHLIGHT TOOL WITH LINEAR WIPE ANIMATION
    ========================================================================== */
+/* STANDBY BRANDING LOGO FOR OVERLAY & PRESENTER */
+.standby-branding {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.standby-branding .standby-logo {
+  width: 220px;
+  max-width: 45vw;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.6));
+}
+
 .obs-line-segment {
   position: relative;
   display: inline-block !important;
