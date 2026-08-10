@@ -1307,15 +1307,9 @@
       }
 
       const isJomhuria = /jomhuria/i.test((lastStyleData && lastStyleData.font) || '');
-      let isJustify = isBible || (lastStyleData && lastStyleData.textAlign === 'justify' && !isJomhuria);
-      const connectableRegex = /([\u0628\u062A\u062B\u062C\u062D\u062E\u0633\u0634\u0635\u0636\u0637\u0638\u0639\u063A\u0641\u0642\u0643\u0644\u0645\u0646\u0647\u064A\u0649])(?=[\u0600-\u06FF])/g;
-
       let lineSegments = lines.map((l, idx) => {
         let lineStr = l.trim();
         if (!lineStr) return '';
-        if (isJustify && /[\u0600-\u06FF]/.test(lineStr)) {
-          lineStr = lineStr.replace(connectableRegex, '$1ـ');
-        }
         if (lineStr.startsWith('(')) {
           lineStr = '<span class="rep-num-grey" style="color:#94a3b8; font-weight:600; margin-left:1px;">(</span>' + lineStr.substring(1);
         }

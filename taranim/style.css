@@ -2912,17 +2912,15 @@ body.has-active-overlay {
 }
 
 .obs-lines-wrapper.is-bible-lines {
-  text-align: justify !important;
-  text-justify: inter-word !important;
+  text-align: center !important;
   direction: rtl !important;
 }
 
 .obs-line-row.is-bible-row {
   display: block !important;
   width: 100% !important;
-  text-align: justify !important;
-  text-justify: inter-word !important;
-  margin-bottom: 0.25em !important;
+  text-align: center !important;
+  margin-bottom: 0.35em !important;
 }
 
 .standby-branding {

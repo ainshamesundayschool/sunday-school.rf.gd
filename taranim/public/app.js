@@ -3868,7 +3868,7 @@ document.addEventListener('DOMContentLoaded', () => {
       els.totalSongsCount.innerHTML = `<i class="fa-solid fa-music"></i> <span>${formatted} ترنيمة</span>`;
     }
 
-    // Fetch live total songs count from server database
+    // Fetch live total songs count & trigger background auto-sync for new songs
     try {
       const apiUrl = getApiUrl();
       let liveRes = await fetch(`${apiUrl}?action=songs&limit=1`).catch(() => null);
@@ -3883,6 +3883,11 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
       }
+
+      // Non-blocking background sync for new database updates
+      setTimeout(() => {
+        fetch(`${apiUrl}?action=sync`).catch(() => null);
+      }, 1500);
     } catch (liveErr) {}
   }
 
