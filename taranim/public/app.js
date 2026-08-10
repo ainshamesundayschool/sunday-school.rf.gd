@@ -1899,6 +1899,30 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    const modalGeminiIntro = document.getElementById('modal-gemini-intro');
+    const btnCloseGeminiIntro = document.getElementById('btn-close-gemini-intro');
+    const btnConfirmGeminiIntro = document.getElementById('btn-confirm-gemini-intro');
+
+    window.showGeminiIntroModal = function() {
+      if (modalGeminiIntro) modalGeminiIntro.classList.remove('hidden');
+    };
+    window.hideGeminiIntroModal = function() {
+      if (modalGeminiIntro) modalGeminiIntro.classList.add('hidden');
+      localStorage.setItem('gemini_franco_intro_seen', 'true');
+    };
+
+    if (btnCloseGeminiIntro) btnCloseGeminiIntro.addEventListener('click', window.hideGeminiIntroModal);
+    if (btnConfirmGeminiIntro) btnConfirmGeminiIntro.addEventListener('click', window.hideGeminiIntroModal);
+    if (modalGeminiIntro) {
+      modalGeminiIntro.addEventListener('click', (e) => {
+        if (e.target === modalGeminiIntro) window.hideGeminiIntroModal();
+      });
+    }
+
+    if (state.francoAutoTranslate && localStorage.getItem('gemini_franco_intro_seen') !== 'true') {
+      setTimeout(() => window.showGeminiIntroModal(), 600);
+    }
+
     window.addEventListener('online', () => {
       loadInitialData();
     });
@@ -2900,6 +2924,13 @@ document.addEventListener('DOMContentLoaded', () => {
         state.francoAutoTranslate = !state.francoAutoTranslate;
         saveUserSettings();
         els.francoToggleBtn.classList.toggle('active', state.francoAutoTranslate);
+
+        if (state.francoAutoTranslate && localStorage.getItem('gemini_franco_intro_seen') !== 'true') {
+          if (typeof window.showGeminiIntroModal === 'function') {
+            window.showGeminiIntroModal();
+          }
+        }
+
         if (els.intelligentSearch && els.intelligentSearch.value.trim()) {
           renderSearchWordSuggestions(els.intelligentSearch.value);
           performIntelligentSearch(els.intelligentSearch.value);

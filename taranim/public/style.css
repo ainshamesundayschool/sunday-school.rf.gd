@@ -1895,6 +1895,40 @@ input[type="checkbox"]:checked::after {
   transition: all 0.15s ease;
 }
 
+/* GEMINI INTRO BANNER MODAL STYLES */
+.gemini-intro-banner-header {
+  position: relative;
+  padding: 1.75rem 1.25rem 0.5rem;
+  background: linear-gradient(180deg, #f0f9ff 0%, #f8fafc 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gemini-intro-banner-header .modal-close-btn {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+}
+
+.gemini-icon-hero-wrapper {
+  width: 80px;
+  height: 80px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.12), rgba(192, 132, 252, 0.12));
+  border: 1px solid rgba(129, 140, 248, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 30px rgba(129, 140, 248, 0.18);
+  animation: floatGemini 3s ease-in-out infinite;
+}
+
+@keyframes floatGemini {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
 .modal-close-btn:hover {
   background: #fee2e2;
   color: #dc2626;
