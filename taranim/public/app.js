@@ -4392,30 +4392,45 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function splitBibleTextIntoLines(text, maxCharsPerLine = 50) {
-    if (!text || text.length <= maxCharsPerLine) return [text.trim()];
-    const rawSegments = text.split(/(?<=[\.؛:\!\؟\،])\s+/).filter(s => s.trim().length > 0);
-    const resultLines = [];
-    for (let seg of rawSegments) {
-      if (seg.length <= maxCharsPerLine + 10) {
-        resultLines.push(seg.trim());
+  function splitBibleTextIntoLines(text, targetCharsPerLine = 45, minWordsPerLine = 3) {
+    if (!text || !text.trim()) return [text ? text.trim() : ''];
+    const clean = text.trim();
+
+    const rawParts = clean.split(/(?<=[\.؛:\!\؟\،])\s+/).map(p => p.trim()).filter(Boolean);
+    if (!rawParts || rawParts.length === 0) return [clean];
+
+    const lines = [];
+    let currentLine = '';
+
+    for (let part of rawParts) {
+      if (!currentLine) {
+        currentLine = part;
       } else {
-        const words = seg.split(/\s+/);
-        let cur = '';
-        for (let w of words) {
-          if ((cur + ' ' + w).trim().length > maxCharsPerLine && cur.length > 0) {
-            resultLines.push(cur.trim());
-            cur = w;
-          } else {
-            cur = cur ? (cur + ' ' + w) : w;
-          }
-        }
-        if (cur.trim().length > 0) {
-          resultLines.push(cur.trim());
+        const currWords = currentLine.split(/\s+/).filter(Boolean);
+        const combinedLen = currentLine.length + part.length + 1;
+
+        if (currWords.length < minWordsPerLine || combinedLen <= targetCharsPerLine + 12) {
+          currentLine += ' ' + part;
+        } else {
+          lines.push(currentLine);
+          currentLine = part;
         }
       }
     }
-    return resultLines.length > 0 ? resultLines : [text.trim()];
+
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+
+    if (lines.length > 1) {
+      const lastWords = lines[lines.length - 1].split(/\s+/).filter(Boolean);
+      if (lastWords.length < minWordsPerLine) {
+        lines[lines.length - 2] += ' ' + lines[lines.length - 1];
+        lines.pop();
+      }
+    }
+
+    return lines.length > 0 ? lines : [clean];
   }
 
   function ensureSongVerses(song) {
@@ -5807,9 +5822,12 @@ document.addEventListener('DOMContentLoaded', () => {
           els.obsLineText.style.fontSize = (state.fontSize || 54) + 'px';
         }
 
-        const badgeTxt = currentSlideItem ? (currentSlideItem.badgeText || '') : '';
-        const badgeCls = currentSlideItem ? (currentSlideItem.badgeClass || '') : '';
         els.obsLineText.innerHTML = formatPresenterText(text, isBible, badgeTxt, badgeCls);
+        const activeLineRows = els.obsLineText.querySelectorAll('.obs-line-row');
+        activeLineRows.forEach(r => {
+          r.style.lineHeight = `${lHeight}`;
+          r.style.marginBottom = `${Math.round((lHeight - 1) * 14)}px`;
+        });
         const strokeW = parseInt(state.styleOptions.strokeWidth || 0);
         const strokeC = state.styleOptions.strokeColor || '#000000';
         const shadowB = parseInt(state.styleOptions.shadowBlur || 0);

@@ -998,22 +998,22 @@
         }
       });
 
-      // Automatically calculate optimal line height for dense multi-line vs single line text
-      let autoLineHeight = lHeight;
-      if (isBible || segments.length > 2 || (textEl.textContent && textEl.textContent.length > 100)) {
-        autoLineHeight = isJomhuria ? 1.15 : 1.35;
-      }
-
       // Apply Font & Typography Metrics BEFORE Binary Search so measurements reflect real font bounds
+      const finalLineHeight = lHeight !== undefined ? lHeight : 1.5;
+      textEl.style.lineHeight = `${finalLineHeight}`;
+      const lineRows = textEl.querySelectorAll('.obs-line-row');
+      lineRows.forEach(r => {
+        r.style.lineHeight = `${finalLineHeight}`;
+        r.style.marginBottom = `${Math.round((finalLineHeight - 1) * 14)}px`;
+      });
+
       if (isJomhuria) {
         textEl.style.fontFamily = 'Jomhuria, Arial, sans-serif';
-        textEl.style.lineHeight = `${autoLineHeight}`;
         textEl.style.letterSpacing = `${lSpacing || 2}px`;
         textEl.style.wordSpacing = '6px';
         textEl.style.fontWeight = '400'; // BLOCK BOLD WEIGHT FOR JOMHURIA
       } else {
         textEl.style.fontFamily = currentFont || 'sans-serif';
-        textEl.style.lineHeight = `${autoLineHeight}`;
         textEl.style.letterSpacing = `${lSpacing}px`;
         textEl.style.wordSpacing = 'normal';
         textEl.style.fontWeight = fWeight;
