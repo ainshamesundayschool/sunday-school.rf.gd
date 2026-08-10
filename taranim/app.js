@@ -3862,7 +3862,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch(err) {}
 
-    const realTotalCount = state.allSongs.length > 0 ? state.allSongs.length : 12000;
+    const realTotalCount = state.allSongs.length > 0 ? state.allSongs.length : 11611;
     
     if (els.totalSongsCount) {
       const formatted = Number(realTotalCount).toLocaleString('ar-EG');
