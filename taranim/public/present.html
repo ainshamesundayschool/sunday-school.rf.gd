@@ -1307,7 +1307,7 @@
       }
 
       const isJomhuria = /jomhuria/i.test((lastStyleData && lastStyleData.font) || '');
-      let isJustify = (lastStyleData && lastStyleData.textAlign === 'justify' && !isJomhuria);
+      let isJustify = isBible || Boolean(lastStyleData && (lastStyleData.isJustified || lastStyleData.textAlign === 'justify')) && !isJomhuria;
       const connectableRegex = /([\u0628\u062A\u062B\u062C\u062D\u062E\u0633\u0634\u0635\u0636\u0637\u0638\u0639\u063A\u0641\u0642\u0643\u0644\u0645\u0646\u0647])(?=[\u0600-\u064A])/g;
 
       let lineSegments = lines.map((l, idx) => {
@@ -1476,8 +1476,9 @@
         textEl.style.display = 'inline-block';
         textEl.style.visibility = 'visible';
         const isBible = Boolean(data.isBible || data.is_bible);
-        if (currentTextState !== data.text) {
-          currentTextState = data.text;
+        const styleKey = `${data.text}_${data.font}_${data.fontSize}_${data.textAlign}_${data.fontWeight}_${data.fontStyle}_${data.letterSpacing}_${data.lineHeight}`;
+        if (currentTextState !== styleKey) {
+          currentTextState = styleKey;
           textEl.innerHTML = formatPresenterText(data.text, isBible, data.badgeText, data.badgeClass);
           fitTextToSafeArea(isBible);
         }

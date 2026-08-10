@@ -2493,14 +2493,21 @@ document.addEventListener('DOMContentLoaded', () => {
         els.btnAlignCenter.classList.toggle('active', align === 'center');
         els.btnAlignRight.classList.toggle('active', align === 'right');
         els.btnAlignLeft.classList.toggle('active', align === 'left');
-        if (els.btnAlignJustify) els.btnAlignJustify.classList.toggle('active', align === 'justify');
         saveUserSettings();
         syncLiveState();
       };
       els.btnAlignCenter.addEventListener('click', () => setAlign('center'));
       els.btnAlignRight.addEventListener('click', () => setAlign('right'));
       els.btnAlignLeft.addEventListener('click', () => setAlign('left'));
-      if (els.btnAlignJustify) els.btnAlignJustify.addEventListener('click', () => setAlign('justify'));
+    }
+
+    if (els.btnAlignJustify) {
+      els.btnAlignJustify.addEventListener('click', () => {
+        state.styleOptions.isJustified = !Boolean(state.styleOptions.isJustified);
+        els.btnAlignJustify.classList.toggle('active', Boolean(state.styleOptions.isJustified));
+        saveUserSettings();
+        syncLiveState();
+      });
     }
 
     if (els.btnToggleBold) {
@@ -5602,6 +5609,7 @@ document.addEventListener('DOMContentLoaded', () => {
       fontStyle: state.styleOptions.fontStyle,
       textDecoration: state.styleOptions.textDecoration,
       textAlign: state.styleOptions.textAlign,
+      isJustified: Boolean(state.styleOptions.isJustified),
       letterSpacing: state.styleOptions.letterSpacing,
       lineHeight: state.styleOptions.lineHeight,
       boxBgColor: state.styleOptions.boxBgColor,

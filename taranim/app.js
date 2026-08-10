@@ -2494,14 +2494,21 @@ document.addEventListener('DOMContentLoaded', () => {
         els.btnAlignCenter.classList.toggle('active', align === 'center');
         els.btnAlignRight.classList.toggle('active', align === 'right');
         els.btnAlignLeft.classList.toggle('active', align === 'left');
-        if (els.btnAlignJustify) els.btnAlignJustify.classList.toggle('active', align === 'justify');
         saveUserSettings();
         syncLiveState();
       };
       els.btnAlignCenter.addEventListener('click', () => setAlign('center'));
       els.btnAlignRight.addEventListener('click', () => setAlign('right'));
       els.btnAlignLeft.addEventListener('click', () => setAlign('left'));
-      if (els.btnAlignJustify) els.btnAlignJustify.addEventListener('click', () => setAlign('justify'));
+    }
+
+    if (els.btnAlignJustify) {
+      els.btnAlignJustify.addEventListener('click', () => {
+        state.styleOptions.isJustified = !Boolean(state.styleOptions.isJustified);
+        els.btnAlignJustify.classList.toggle('active', Boolean(state.styleOptions.isJustified));
+        saveUserSettings();
+        syncLiveState();
+      });
     }
 
     if (els.btnToggleBold) {
@@ -3885,23 +3892,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // Non-blocking background sync for new database updates with console debug logs
+      // Non-blocking background sync for new database updates
       setTimeout(() => {
-        console.log('%c🔄 [Tasbe7na Sync] Checking online Tasbe7na database for updates...', 'color: #2563eb; font-weight: bold;');
-        fetch(`${apiUrl}?action=sync`)
-          .then(r => r.json())
-          .then(data => {
-            if (data && data.status === 'success') {
-              const added = (data.syncResult && data.syncResult.added) || 0;
-              const updated = (data.syncResult && data.syncResult.updated) || 0;
-              console.log(`%c✅ [Tasbe7na Sync] Sync complete! Database total: ${data.total_songs || 11611} songs. (Added: ${added}, Updated: ${updated})`, 'color: #10b981; font-weight: bold;');
-            } else {
-              console.log('%cℹ️ [Tasbe7na Sync] Database is up to date with Tasbe7na.', 'color: #64748b;');
-            }
-          })
-          .catch(() => {
-            console.log('%cℹ️ [Tasbe7na Sync] Running in offline cached mode.', 'color: #64748b;');
-          });
+        fetch(`${apiUrl}?action=sync`).catch(() => null);
       }, 1500);
     } catch (liveErr) {}
   }
@@ -5603,6 +5596,7 @@ document.addEventListener('DOMContentLoaded', () => {
       fontStyle: state.styleOptions.fontStyle,
       textDecoration: state.styleOptions.textDecoration,
       textAlign: state.styleOptions.textAlign,
+      isJustified: Boolean(state.styleOptions.isJustified),
       letterSpacing: state.styleOptions.letterSpacing,
       lineHeight: state.styleOptions.lineHeight,
       boxBgColor: state.styleOptions.boxBgColor,
