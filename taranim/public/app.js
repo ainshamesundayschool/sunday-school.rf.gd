@@ -5661,8 +5661,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const segLineIdx = parseInt(seg.dataset.lineIdx !== undefined ? seg.dataset.lineIdx : idx);
           const isH = Array.isArray(activeHighlights) ? activeHighlights.includes(segLineIdx) : (activeHighlights === segLineIdx);
           if (isH) {
-            seg.style.setProperty('--highlight-bg', `${hColor}33`);
-            seg.style.setProperty('--highlight-text-color', hColor);
+            seg.style.setProperty('--highlight-bg', `${hColor}cc`);
             seg.classList.remove('line-unhighlighting');
             seg.classList.add('line-highlighted');
           } else {

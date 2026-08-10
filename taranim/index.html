@@ -588,9 +588,16 @@
             </div>
           </div>
           <div class="panel-bar-end panel-controls" style="display:flex; align-items:center; gap:6px; position:relative; direction:ltr !important;">
+            <!-- 1. FULLSCREEN BUTTON (FIRST FROM THE LEFT) -->
+            <button id="btn-presenter-fullscreen" class="mini-btn-flat btn-fullscreen-launch" title="عرض ملء الشاشة"><i class="fa-solid fa-expand"></i></button>
+
+            <!-- 2. HIDE BUTTON (SECOND FROM THE LEFT) -->
+            <button id="btn-toggle-blank" class="mini-btn-flat" title="إخفاء النص"><i class="fa-solid fa-eye-slash"></i></button>
+
+            <!-- 3. HIGHLIGHT BUTTON (THIRD FROM THE LEFT) -->
             <button id="btn-toggle-highlight-tool" class="mini-btn-flat" title="أداة تظليل السطر"><i class="fa-solid fa-highlighter"></i></button>
 
-            <!-- COLOR SELECTOR CIRCLE (APPEARS TO THE RIGHT SIDE OF HIGHLIGHT BUTTON WHEN ACTIVE) -->
+            <!-- 4. COLOR SELECTOR CIRCLE (TO THE RIGHT SIDE OF HIGHLIGHT BUTTON) -->
             <div id="highlight-color-picker-wrap" class="highlight-color-picker-wrap hidden" style="position:relative; display:inline-flex; align-items:center;">
               <button type="button" id="btn-highlight-color-circle" class="highlight-color-circle-btn" title="تغيير لون التظليل" style="width:20px; height:20px; border-radius:50%; border:2px solid #ffffff; box-shadow:0 0 0 1.5px #cbd5e1; cursor:pointer; background:#f59e0b; padding:0; outline:none; transition:transform 0.15s ease;"></button>
 
@@ -604,9 +611,6 @@
                 <input type="color" id="highlight-custom-color" value="#f59e0b" style="width:20px; height:20px; border-radius:50%; border:none; cursor:pointer; padding:0; background:none;" title="اختيار لون مخصص">
               </div>
             </div>
-
-            <button id="btn-toggle-blank" class="mini-btn-flat" title="إخفاء النص"><i class="fa-solid fa-eye-slash"></i></button>
-            <button id="btn-presenter-fullscreen" class="mini-btn-flat btn-fullscreen-launch" title="عرض ملء الشاشة"><i class="fa-solid fa-expand"></i></button>
           </div>
         </div>
 
