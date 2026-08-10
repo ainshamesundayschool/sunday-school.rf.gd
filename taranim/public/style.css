@@ -1371,9 +1371,13 @@ input[type="checkbox"]:checked::after {
   display: inline-block;
 }
 
-/* Un-condense Jomhuria font for wide spacious layout */
-[style*="Jomhuria"],
-[style*="jomhuria"] {
+/* Un-condense Jomhuria font for wide spacious layout - SLIDES ONLY */
+#obs-presentation-overlay [style*="Jomhuria"],
+#obs-presentation-overlay [style*="jomhuria"],
+#obs-line-text[style*="Jomhuria"],
+#obs-line-text[style*="jomhuria"],
+.line-text[style*="Jomhuria"],
+.line-text[style*="jomhuria"] {
   letter-spacing: 2.5px;
   word-spacing: 8px;
   font-weight: 400 !important;
