@@ -942,7 +942,15 @@
       const fStyle = (lastStyleData && lastStyleData.fontStyle) || 'normal';
       const tDeco = (lastStyleData && lastStyleData.textDecoration) || 'none';
 
-      textEl.style.textAlign = align;
+      if (align === 'justify' && !isJomhuria) {
+        textEl.style.textAlign = 'justify';
+        textEl.style.textJustify = 'kashida';
+        textEl.style.textAlignLast = 'justify';
+      } else {
+        textEl.style.textAlign = align === 'justify' ? 'center' : align;
+        textEl.style.textJustify = 'auto';
+        textEl.style.textAlignLast = align === 'justify' ? 'center' : align;
+      }
       textEl.style.fontStyle = fStyle;
       textEl.style.textDecoration = tDeco;
 
@@ -950,7 +958,7 @@
         s.style.whiteSpace = 'nowrap';
         s.style.wordBreak = 'keep-all';
         s.style.overflowWrap = 'normal';
-        s.style.textAlign = align;
+        s.style.textAlign = align === 'justify' ? (isJomhuria ? 'center' : 'justify') : align;
       });
 
       // Apply Font & Typography Metrics BEFORE Binary Search so measurements reflect real font bounds

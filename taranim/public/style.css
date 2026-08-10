@@ -3672,30 +3672,41 @@ input[type="checkbox"]:checked::after {
 
 .segmented-btn {
   flex: 1;
+  min-width: 0;
   border: none;
   background: transparent;
   padding: 6px 4px;
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-size: 0.8rem;
+  font-weight: 700;
   color: #64748b;
   border-radius: 7px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  text-align: center;
+  gap: 5px;
   transition: all 0.18s ease;
+  white-space: nowrap;
 }
 
-.segmented-btn:hover {
+.segmented-btn:hover:not(:disabled):not(.disabled-btn) {
   color: #0f172a;
 }
 
 .segmented-btn.active {
   background: #ffffff;
   color: #2563eb;
-  font-weight: 700;
+  font-weight: 800;
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+}
+
+.segmented-btn:disabled,
+.segmented-btn.disabled-btn {
+  opacity: 0.38 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+  filter: grayscale(1);
 }
 
 /* COLOR PICKER HEX BADGE WRAPPER */

@@ -1514,6 +1514,7 @@ document.addEventListener('DOMContentLoaded', () => {
     detectConnectedScreens();
     loadInitialData();
     renderRecentSession();
+    updateJustifyButtonState();
   }
 
   function initCircleAnglePicker() {
@@ -3591,10 +3592,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function updateJustifyButtonState() {
+    if (!els.btnAlignJustify) return;
+    const currentFont = state.selectedFont || (els.fontSelect ? els.fontSelect.value : '');
+    const isJomhuria = /jomhuria/i.test(currentFont);
+
+    if (isJomhuria) {
+      els.btnAlignJustify.disabled = true;
+      els.btnAlignJustify.classList.add('disabled-btn');
+      els.btnAlignJustify.classList.remove('active');
+      els.btnAlignJustify.title = 'خط الجمهوريات لا يدعم الضبط بالكشيدة';
+      if (state.styleOptions.textAlign === 'justify') {
+        state.styleOptions.textAlign = 'center';
+        if (els.btnAlignCenter) els.btnAlignCenter.classList.add('active');
+        if (els.btnAlignRight) els.btnAlignRight.classList.remove('active');
+        if (els.btnAlignLeft) els.btnAlignLeft.classList.remove('active');
+      }
+    } else {
+      els.btnAlignJustify.disabled = false;
+      els.btnAlignJustify.classList.remove('disabled-btn');
+      els.btnAlignJustify.title = 'ضبط المحاذاة بالكشيدة';
+    }
+  }
+
   function applyFont(fontFamily) {
     state.selectedFont = fontFamily;
     document.documentElement.style.setProperty('--slide-font-family', fontFamily);
     if (els.obsLineText) els.obsLineText.style.fontFamily = fontFamily;
+    updateJustifyButtonState();
     saveUserSettings();
     syncLiveState();
   }
