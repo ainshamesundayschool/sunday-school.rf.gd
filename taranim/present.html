@@ -1302,7 +1302,7 @@
       }
 
       const isJomhuria = /jomhuria/i.test((lastStyleData && lastStyleData.font) || '');
-      let isJustify = lastStyleData && lastStyleData.textAlign === 'justify' && !isJomhuria;
+      let isJustify = isBible || (lastStyleData && lastStyleData.textAlign === 'justify' && !isJomhuria);
       const connectableRegex = /([\u0628\u062A\u062B\u062C\u062D\u062E\u0633\u0634\u0635\u0636\u0637\u0638\u0639\u063A\u0641\u0642\u0643\u0644\u0645\u0646\u0647\u064A\u0649])(?=[\u0600-\u06FF])/g;
 
       let lineSegments = lines.map((l, idx) => {
@@ -1316,13 +1316,16 @@
         }
         lineStr = lineStr.replace(/\)([\d٠-٩]*)$/, '<span class="rep-num-grey" style="color:#94a3b8; font-weight:600; margin-right:1px;">)$1</span>');
 
+        const rowClass = isBible ? 'obs-line-row is-bible-row' : 'obs-line-row';
+
         if (idx === 0) {
-          return `<div class="obs-line-row" style="position:relative;">${badgeHtml}<span class="obs-line-segment obs-first-line" data-line-idx="0">${lineStr}</span></div>`;
+          return `<div class="${rowClass}" style="position:relative;">${badgeHtml}<span class="obs-line-segment obs-first-line" data-line-idx="0">${lineStr}</span></div>`;
         }
-        return `<div class="obs-line-row"><span class="obs-line-segment" data-line-idx="${idx}">${lineStr}</span></div>`;
+        return `<div class="${rowClass}"><span class="obs-line-segment" data-line-idx="${idx}">${lineStr}</span></div>`;
       }).filter(Boolean).join('');
 
-      return `<div class="obs-slide-wrapper" style="overflow: visible;"><div class="obs-lines-wrapper" style="overflow: visible;">${lineSegments}</div></div>`;
+      const wrapperClass = isBible ? 'obs-lines-wrapper is-bible-lines' : 'obs-lines-wrapper';
+      return `<div class="obs-slide-wrapper" style="overflow: visible;"><div class="${wrapperClass}" style="overflow: visible;">${lineSegments}</div></div>`;
     }
 
     function applyState(data, source = 'local') {

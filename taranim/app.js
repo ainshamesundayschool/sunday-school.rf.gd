@@ -4360,6 +4360,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function splitBibleTextIntoLines(text, maxCharsPerLine = 50) {
+    if (!text || text.length <= maxCharsPerLine) return [text.trim()];
+    const rawSegments = text.split(/(?<=[\.؛:\!\؟\،])\s+/).filter(s => s.trim().length > 0);
+    const resultLines = [];
+    for (let seg of rawSegments) {
+      if (seg.length <= maxCharsPerLine + 10) {
+        resultLines.push(seg.trim());
+      } else {
+        const words = seg.split(/\s+/);
+        let cur = '';
+        for (let w of words) {
+          if ((cur + ' ' + w).trim().length > maxCharsPerLine && cur.length > 0) {
+            resultLines.push(cur.trim());
+            cur = w;
+          } else {
+            cur = cur ? (cur + ' ' + w) : w;
+          }
+        }
+        if (cur.trim().length > 0) {
+          resultLines.push(cur.trim());
+        }
+      }
+    }
+    return resultLines.length > 0 ? resultLines : [text.trim()];
+  }
+
   function ensureSongVerses(song) {
     if (!song) return song;
 
@@ -4721,8 +4747,12 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             if (isBible) {
-              // Bible verses combine all lines into ONE slide with each line stacked under the other
-              pushSlideItem(cleanLines);
+              const multiLines = [];
+              cleanLines.forEach(l => {
+                const sub = splitBibleTextIntoLines(l, 50);
+                multiLines.push(...sub);
+              });
+              pushSlideItem(multiLines.length > 0 ? multiLines : cleanLines);
             } else if (mode === 'oneline') {
               cleanLines.forEach((singleLine) => {
                 pushSlideItem([singleLine]);
