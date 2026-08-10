@@ -781,7 +781,7 @@ function getObsUrl() {
   } else if (!path.endsWith('/')) {
     path += '/';
   }
-  return `${loc.origin}${path}obs.html`;
+  return `${loc.origin}${path}present.html`;
 }
 
 function copyToClipboard(text) {
@@ -1947,7 +1947,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const ASSETS_TO_CACHE = [
           './',
           './index.html',
-          './obs.html',
+          './present.html',
           './install.html',
           './app.js',
           './style.css',
@@ -2471,9 +2471,9 @@ document.addEventListener('DOMContentLoaded', () => {
       
       try {
         await copyToClipboard(obsUrl);
-        showToast('تم نسخ رابط OBS Browser Source بنجاح!');
+        showToast('تم نسخ رابط شاشة العرض بنجاح!');
       } catch (e) {
-        showToast('رابط OBS: ' + obsUrl);
+        showToast('رابط العرض: ' + obsUrl);
       }
 
       const originalHtml = els.btnCopyObsUrl.innerHTML;
@@ -3059,19 +3059,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const isCurrentScreen = winX >= sLeft && winX < (sLeft + sWidth);
         const isMain = Boolean(s.isPrimary);
 
-        let badgeHtml = '';
+        let chips = [];
         if (isMain) {
-          badgeHtml += '<span class="screen-badge" style="font-size:0.75rem; background:rgba(148,163,184,0.2); color:#94a3b8; padding:2px 8px; border-radius:12px; margin-right:6px;">الرئيسية</span>';
+          chips.push('<span class="screen-chip" style="font-size:0.7rem; font-weight:600; background:rgba(148,163,184,0.2); color:#94a3b8; padding:2px 8px; border-radius:10px;">الرئيسية</span>');
         }
         if (isCurrentScreen) {
-          badgeHtml += '<span class="screen-badge" style="font-size:0.75rem; background:rgba(59,130,246,0.2); color:#60a5fa; padding:2px 8px; border-radius:12px; margin-right:6px;">لوحة التحكم</span>';
+          chips.push('<span class="screen-chip" style="font-size:0.7rem; font-weight:600; background:rgba(59,130,246,0.2); color:#60a5fa; padding:2px 8px; border-radius:10px;">لوحة التحكم</span>');
         }
 
+        const chipsHtml = chips.length > 0 ? '<div class="screen-chips-row" style="margin-top:4px; display:flex; gap:4px; flex-wrap:wrap;">' + chips.join('') + '</div>' : '';
         const name = s.label || (isMain ? 'Built-in Retina Display' : ('Display ' + (idx + 1)));
         const cardClass = 'screen-cast-card' + (isCurrentScreen ? ' current-screen-card' : '');
         const val = 'screen_' + idx;
 
-        return '<div class="' + cardClass + '" data-val="' + val + '"><div class="screen-info"><span class="screen-name"><i class="fa-solid fa-desktop"></i> ' + escapeHtml(name) + ' ' + badgeHtml + '</span><span class="screen-res">' + s.width + ' × ' + s.height + ' px</span></div><i class="fa-solid fa-expand launch-btn-icon"></i></div>';
+        return '<div class="' + cardClass + '" data-val="' + val + '"><div class="screen-info"><span class="screen-name"><i class="fa-solid fa-desktop"></i> ' + escapeHtml(name) + '</span>' + chipsHtml + '<span class="screen-res" style="font-size:0.75rem; color:#94a3b8; margin-top:3px; display:block;">' + s.width + ' × ' + s.height + ' px</span></div><i class="fa-solid fa-expand launch-btn-icon"></i></div>';
       }).join('');
 
       cardsHtml += '<div class="screen-cast-card" data-val="in_app_overlay"><div class="screen-info"><span class="screen-name"><i class="fa-solid fa-window-maximize"></i> عرض داخل التبويب الحالي (Overlay)</span><span class="screen-res">عرض الشريحة بالكامل فوق لوحة التحكم</span></div><i class="fa-solid fa-up-right-and-down-left-from-center launch-btn-icon"></i></div>';
@@ -3108,26 +3109,26 @@ document.addEventListener('DOMContentLoaded', () => {
       val = 'screen_0';
     }
 
-    if (val === 'external') {
-      let extIdx = 1;
-      if (screenDetails && screenDetails.screens && screenDetails.screens.length > 1) {
-        const winX = window.screenX !== undefined ? window.screenX : (window.screenLeft !== undefined ? window.screenLeft : 0);
-        const controlPanelScreen = screenDetails.screens.find(s => {
-          const sLeft = s.availLeft !== undefined ? s.availLeft : (s.left || 0);
-          const sWidth = s.width || 1920;
-          return winX >= sLeft && winX < (sLeft + sWidth);
-        });
-        const nonCP = screenDetails.screens.find(s => s !== controlPanelScreen);
-        if (nonCP) {
-          extIdx = screenDetails.screens.indexOf(nonCP);
-        } else {
-          extIdx = screenDetails.screens.findIndex(s => !s.isPrimary);
-          if (extIdx < 0) extIdx = 1;
+    if (val.startsWith('screen_')) {
+      const targetIdx = parseInt(val.replace('screen_', '')) || 0;
+      const winX = window.screenX !== undefined ? window.screenX : (window.screenLeft !== undefined ? window.screenLeft : 0);
+
+      if (screenDetails && screenDetails.screens && screenDetails.screens[targetIdx]) {
+        const sTarget = screenDetails.screens[targetIdx];
+        const sLeft = sTarget.availLeft !== undefined ? sTarget.availLeft : (sTarget.left || 0);
+        const sWidth = sTarget.width || 1920;
+        if (winX >= sLeft && winX < (sLeft + sWidth)) {
+          val = 'in_app_overlay';
+        }
+      } else {
+        const primaryW = window.screen.width || 1920;
+        const availL = window.screen.availLeft || 0;
+        const isTargetCP = (targetIdx === 0 && (winX < (availL + primaryW * 0.75))) ||
+                           (targetIdx !== 0 && (winX >= (availL + primaryW * 0.75)));
+        if (isTargetCP) {
+          val = 'in_app_overlay';
         }
       }
-      val = 'screen_' + extIdx;
-    } else if (val === 'primary') {
-      val = 'in_app_overlay';
     }
 
     // 1. IN-APP TAB OVERLAY MODE
@@ -3209,7 +3210,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateDisplayButtonUI();
 
     const windowFeatures = 'left=' + left + ',top=' + top + ',screenX=' + left + ',screenY=' + top + ',width=' + width + ',height=' + height + ',outerWidth=' + width + ',outerHeight=' + height + ',menubar=no,toolbar=no,location=no,status=no,resizable=yes,fullscreen=yes';
-    const obsUrl = 'obs.html?autofs=true&screenIdx=' + targetIdx + '&screenLeft=' + left + '&screenTop=' + top + '&screenWidth=' + width + '&screenHeight=' + height;
+    const obsUrl = 'present.html?autofs=true&screenIdx=' + targetIdx + '&screenLeft=' + left + '&screenTop=' + top + '&screenWidth=' + width + '&screenHeight=' + height;
     
     if (presenterWindow && !presenterWindow.closed) {
       try { presenterWindow.close(); } catch(e) {}
@@ -5312,58 +5313,50 @@ document.addEventListener('DOMContentLoaded', () => {
       requestAnimationFrame(() => {
         if (els.obsLineText && snapText.trim() && els.obsLineText.style.display !== 'none') {
           const container = els.obsOverlay || els.obsLineText.parentElement || document.body;
-          const maxContainerH = (container.clientHeight || window.innerHeight) * 0.88;
+          const maxContainerH = (container.clientHeight || window.innerHeight) * 0.90;
           const maxContainerW = (container.clientWidth || window.innerWidth) * 0.94;
           const baseSize = state.fontSize || 54;
           const scaleMode = state.scaleMode || 'auto';
 
           const segments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
           segments.forEach(s => {
-            s.style.whiteSpace = 'nowrap';
+            s.style.whiteSpace = 'normal';
             s.style.wordBreak = 'keep-all';
-            s.style.overflowWrap = 'normal';
+            s.style.overflowWrap = 'break-word';
             s.style.textAlign = 'center';
+            s.style.width = '100%';
           });
 
           let renderSize = baseSize;
 
           if (scaleMode === 'auto') {
-            const isVertical = window.innerHeight > window.innerWidth;
-            const refTargetW = isVertical ? Math.max(maxContainerW, maxContainerH * (16 / 9)) : maxContainerW;
-            const lineCount = segments.length || 1;
-
             let low = 16;
-            let high = Math.min(260, Math.max(120, Math.floor(maxContainerH / Math.max(1, lineCount * 0.85))));
+            let high = 260;
             renderSize = 16;
 
-            els.obsLineText.style.whiteSpace = 'nowrap';
-            els.obsLineText.style.maxWidth = 'none';
+            els.obsLineText.style.whiteSpace = 'normal';
+            els.obsLineText.style.width = '100%';
+            els.obsLineText.style.maxWidth = '94vw';
 
             while (low <= high) {
               const mid = Math.floor((low + high) / 2);
               els.obsLineText.style.fontSize = `${mid}px`;
+              els.obsLineText.style.lineHeight = '1.35';
+
               const h = els.obsLineText.scrollHeight || els.obsLineText.offsetHeight;
               const w = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
 
-              if (h <= maxContainerH && w <= refTargetW) {
+              if (h <= maxContainerH && w <= maxContainerW) {
                 renderSize = mid;
                 low = mid + 1;
               } else {
                 high = mid - 1;
               }
             }
-
-            els.obsLineText.style.fontSize = `${renderSize}px`;
-            const currentW = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
-            if (isVertical && currentW > maxContainerW && currentW > 0) {
-              const scaleFactor = maxContainerW / currentW;
-              renderSize = Math.max(14, Math.floor(renderSize * scaleFactor));
-            }
           }
 
           els.obsLineText.style.fontSize = `${renderSize}px`;
-          els.obsLineText.style.lineHeight = '1.4';
-          els.obsLineText.style.maxWidth = '96vw';
+          els.obsLineText.style.lineHeight = '1.35';
           els.obsLineText.style.transform = 'none';
         }
       });
@@ -5410,7 +5403,7 @@ document.addEventListener('DOMContentLoaded', () => {
             accept: { 'text/plain': ['.txt'] },
           }],
         });
-        showToast('تم ربط ملف live.txt بنجاح! اختر خيار "قراءة من ملف" داخل مصدر النص في OBS.');
+        showToast('تم حفظ/تحميل ملف live.txt بنجاح!');
         const currentLine = state.presentationLines[state.currentLineIndex];
         saveLiveTextToDisk(currentLine ? currentLine.text : '');
       } catch (err) {

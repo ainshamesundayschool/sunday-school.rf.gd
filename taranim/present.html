@@ -89,9 +89,10 @@
       left: 50%;
       top: 50%;
       transform: translate(-50%, -50%);
-      width: auto;
+      width: 96vw;
+      height: 90vh;
       max-width: 96vw;
-      max-height: 92vh;
+      max-height: 90vh;
       text-align: center;
       padding: 0;
       z-index: 10;
@@ -100,22 +101,24 @@
       align-items: center;
       justify-content: center;
       margin: 0 auto;
-      overflow: visible !important;
+      overflow: visible;
       cursor: grab;
     }
 
     .line-text {
-      display: inline-block !important;
+      display: block;
       font-size: 54px;
       font-weight: 800;
       color: #ffffff;
-      line-height: 1.4;
-      white-space: nowrap;
+      line-height: 1.35;
+      white-space: normal;
       text-align: center;
       margin: 0 auto;
-      width: max-content !important;
-      max-width: 96vw !important;
-      overflow: visible !important;
+      width: 100%;
+      max-width: 96vw;
+      overflow: visible;
+      word-break: keep-all;
+      overflow-wrap: break-word;
       text-shadow: 0 4px 18px rgba(0, 0, 0, 0.95);
       will-change: transform, opacity;
       transform: translateZ(0);
@@ -124,69 +127,74 @@
 
     @media (min-width: 769px) and (orientation: landscape) {
       .lower-third-container {
-        position: absolute !important;
-        top: 50% !important;
-        left: 50% !important;
-        transform: translate(-50%, -50%) !important;
-        width: auto !important;
-        max-width: 96vw !important;
-        padding-top: 0.5rem !important;
-        padding-bottom: 0.5rem !important;
-        max-height: 92vh !important;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 96vw;
+        max-width: 96vw;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        max-height: 90vh;
       }
       .line-text {
-        width: auto !important;
-        max-width: 96vw !important;
-        line-height: 1.4 !important;
-        margin-top: 0 !important;
-        margin-bottom: 0 !important;
+        width: 100%;
+        max-width: 96vw;
+        line-height: 1.35;
+        margin-top: 0;
+        margin-bottom: 0;
       }
       .obs-line-segment {
-        width: auto !important;
-        white-space: nowrap !important;
-        display: block !important;
-        text-align: center !important;
-        margin-top: 0.15em !important;
-        margin-bottom: 0.15em !important;
+        width: 100%;
+        white-space: normal;
+        word-break: keep-all;
+        overflow-wrap: break-word;
+        display: block;
+        text-align: center;
+        margin-top: 0.15em;
+        margin-bottom: 0.15em;
       }
     }
 
     @media (max-width: 768px) {
       .lower-third-container {
-        position: absolute !important;
-        top: 50% !important;
-        left: 50% !important;
-        transform: translate(-50%, -50%) !important;
-        width: 100% !important;
-        max-width: 92vw !important;
-        height: auto !important;
-        max-height: 85vh !important;
-        margin: 0 auto !important;
-        padding: 10px 14px !important;
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        justify-content: center !important;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 96vw;
+        max-width: 96vw;
+        height: auto;
+        max-height: 90vh;
+        margin: 0 auto;
+        padding: 5px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
       }
       .line-text {
-        height: auto !important;
-        line-height: 1.5 !important;
-        width: 100% !important;
-        max-width: 90vw !important;
-        margin: 0 auto !important;
+        height: auto;
+        line-height: 1.35;
+        width: 100%;
+        max-width: 96vw;
+        margin: 0 auto;
       }
       .obs-line-segment {
-        width: 100% !important;
-        display: block !important;
-        text-align: center !important;
-        margin-top: 0.22em !important;
-        margin-bottom: 0.22em !important;
+        width: 100%;
+        white-space: normal;
+        word-break: keep-all;
+        overflow-wrap: break-word;
+        display: block;
+        text-align: center;
+        margin-top: 0.15em;
+        margin-bottom: 0.15em;
       }
     }
 
     /* TEXT APPEARANCE ANIMATIONS FOR CONTAINER (WITH MOBILE SAFARI WEBKIT COMPATIBILITY) */
     /* HIGH-PERFORMANCE 60FPS GPU ACCELERATED TEXT APPEARANCE ANIMATIONS */
-    /* NOTE: In obs.html, animation is applied to the CONTAINER box which uses translate(-50%,-50%) for centering */
+    /* NOTE: In present.html, animation is applied to the CONTAINER box which uses translate(-50%,-50%) for centering */
     @-webkit-keyframes textAppearSlide {
       0% {
         opacity: 0;
@@ -899,50 +907,43 @@
       currentIsBible = isBible;
       let baseSize = (lastStyleData && lastStyleData.fontSize) || stateFontSize || 54;
       const scaleMode = (lastStyleData && lastStyleData.scaleMode) || 'auto';
-      const maxH = window.innerHeight * 0.88;
-      const maxW = window.innerWidth * 0.94;
+      const container = document.getElementById('obs-overlay-container') || document.body;
+      const maxH = (container.clientHeight || window.innerHeight) * 0.86;
+      const maxW = (container.clientWidth || window.innerWidth) * 0.92;
 
       const segments = Array.from(textEl.querySelectorAll('.obs-line-segment'));
       segments.forEach(s => {
-        s.style.whiteSpace = 'nowrap';
+        s.style.whiteSpace = 'normal';
         s.style.wordBreak = 'keep-all';
-        s.style.overflowWrap = 'normal';
+        s.style.overflowWrap = 'break-word';
         s.style.textAlign = 'center';
+        s.style.width = '100%';
       });
 
       let renderSize = baseSize;
 
       if (scaleMode === 'auto') {
-        const isVertical = window.innerHeight > window.innerWidth;
-        const refTargetW = isVertical ? Math.max(maxW, maxH * (16 / 9)) : maxW;
-        const lineCount = segments.length || 1;
-        
         let low = 16;
-        let high = Math.min(260, Math.max(120, Math.floor(maxH / Math.max(1, lineCount * 0.85))));
+        let high = Math.min(240, Math.floor(maxH / 1.2));
         renderSize = 16;
 
-        textEl.style.whiteSpace = 'nowrap';
-        textEl.style.maxWidth = 'none';
+        textEl.style.whiteSpace = 'normal';
+        textEl.style.width = '100%';
 
         while (low <= high) {
           const mid = Math.floor((low + high) / 2);
           textEl.style.fontSize = `${mid}px`;
+          textEl.style.lineHeight = '1.4';
+
           const h = textEl.scrollHeight || textEl.offsetHeight;
           const w = textEl.scrollWidth || textEl.offsetWidth;
 
-          if (h <= maxH && w <= refTargetW) {
+          if (h <= maxH && w <= maxW) {
             renderSize = mid;
             low = mid + 1;
           } else {
             high = mid - 1;
           }
-        }
-
-        textEl.style.fontSize = `${renderSize}px`;
-        const currentW = textEl.scrollWidth || textEl.offsetWidth;
-        if (isVertical && currentW > maxW && currentW > 0) {
-          const scaleFactor = maxW / currentW;
-          renderSize = Math.max(14, Math.floor(renderSize * scaleFactor));
         }
       }
 
@@ -1202,43 +1203,6 @@
         .replace(/'/g, '&#039;');
 
       let lines = html.split('\n');
-
-      for (let i = 0; i < lines.length; i++) {
-        let lineStr = lines[i].trim();
-        if (!lineStr) continue;
-
-        let hasOpenBracket = /^\s*[\(\[]/.test(lineStr);
-        let hasCloseBracket = /[\)\]]\s*(\d+|[٠-٩]+)?\s*$/i.test(lineStr) || /[\)\]]/.test(lineStr);
-
-        if (hasOpenBracket && !hasCloseBracket && lines.length === 1) {
-          lineStr = lineStr.replace(/^\s*[\(\[]\s*/, '').trim();
-          lines[i] = lineStr;
-        }
-
-        let endMatch = lineStr.match(/(?:\)\s*)?(?:\(|\[)?\s*(?:x|X|×|\*)?\s*(\d+|[٠-٩]+)\s*(?:x|X|×)?\s*(?:\)|\])?$/i) || 
-                       lineStr.match(/\s*(?:x|X|×|\*)\s*(\d+|[٠-٩]+)$/i) || 
-                       lineStr.match(/\(\s*(\d+|[٠-٩]+)\s*\)$/);
-
-        if (endMatch && endMatch[1]) {
-          let repeatNum = endMatch[1];
-          let cleanedLine = lineStr
-            .replace(/(?:\)\s*)?(?:\(|\[)?\s*(?:x|X|×|\*)?\s*(\d+|[٠-٩]+)\s*(?:x|X|×)?\s*(?:\)|\])?$/i, '')
-            .replace(/\s*(?:x|X|×|\*)\s*(\d+|[٠-٩]+)$/i, '')
-            .trim();
-
-          if (cleanedLine.startsWith('(') || cleanedLine.startsWith('[')) {
-            cleanedLine = cleanedLine.substring(1).trim();
-          }
-          if (cleanedLine.endsWith(')')) {
-            cleanedLine = cleanedLine.slice(0, -1).trim();
-          }
-
-          lines[i] = `${cleanedLine} <span class="repeat-tag">(${repeatNum})</span>`;
-        } else if (lineStr.startsWith('(') && lineStr.endsWith(')')) {
-          let inside = lineStr.substring(1, lineStr.length - 1).trim();
-          lines[i] = inside;
-        }
-      }
 
       let badgeHtml = '';
       if (detectedBadge) {

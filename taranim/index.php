@@ -19,9 +19,9 @@ if (strpos($uri, 'manifest.webmanifest') !== false && file_exists(__DIR__ . '/pu
     exit;
 }
 
-if (strpos($uri, 'obs.html') !== false && file_exists(__DIR__ . '/public/obs.html')) {
+if ((strpos($uri, 'present.html') !== false || strpos($uri, 'obs.html') !== false) && file_exists(__DIR__ . '/public/present.html')) {
     header('Content-Type: text/html; charset=utf-8');
-    readfile(__DIR__ . '/public/obs.html');
+    readfile(__DIR__ . '/public/present.html');
     exit;
 }
 
