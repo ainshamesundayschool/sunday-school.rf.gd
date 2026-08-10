@@ -500,21 +500,21 @@ if (preg_match('#/api/song/(\d+)#', $parsedUrl, $matches) || (isset($_GET['actio
                     if (!empty($repMap[$segId]['starts'])) {
                         foreach ($repMap[$segId]['starts'] as $st) {
                             $pos = $st['pos'];
-                            $cnt = $st['cnt'];
                             if ($pos > 0 && $pos < mb_strlen($txt)) {
-                                $txt = mb_substr($txt, 0, $pos) . $cnt . '(' . mb_substr($txt, $pos);
+                                $txt = mb_substr($txt, 0, $pos) . '(' . mb_substr($txt, $pos);
                             } else {
-                                $txt = $cnt . '(' . $txt;
+                                $txt = '(' . $txt;
                             }
                         }
                     }
                     if (!empty($repMap[$segId]['ends'])) {
                         foreach ($repMap[$segId]['ends'] as $en) {
                             $pos = $en['pos'];
+                            $cnt = $en['cnt'];
                             if ($pos > 0 && $pos < mb_strlen($txt)) {
-                                $txt = mb_substr($txt, 0, $pos) . ')' . mb_substr($txt, $pos);
+                                $txt = mb_substr($txt, 0, $pos) . ')' . $cnt . mb_substr($txt, $pos);
                             } else {
-                                $txt = $txt . ')';
+                                $txt = $txt . ')' . $cnt;
                             }
                         }
                     }

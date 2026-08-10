@@ -4515,7 +4515,8 @@ document.addEventListener('DOMContentLoaded', () => {
     els.presentationLinesContainer.innerHTML = presentationLines.map((l, idx) => {
       const linesPreviewHtml = (l.lines || [l.text]).map(lineText => {
         let text = escapeHtml(lineText);
-        text = text.replace(/\((\d+|[٠-٩]+)\)$/g, '<span class="repeat-tag">($1)</span>');
+        text = text.replace(/\((\d+|[٠-٩]+)\)$/g, '<span class="repeat-tag">($1)</span>')
+                   .replace(/\)([\d٠-٩]+)$/g, ')<span class="rep-num-grey" style="color:#94a3b8; font-weight:600; margin-right:2px;">$1</span>');
         return `<div class="slide-line-row"><span>${text}</span></div>`;
       }).join('');
 
@@ -4973,12 +4974,13 @@ document.addEventListener('DOMContentLoaded', () => {
       badgeHtml = `<span class="slide-badge-layer ${detectedBadgeClass}">${escapeHtml(detectedBadge)}</span>`;
     }
 
-    let lineSegments = lines.map((l, idx) => {
-      if (idx === 0) {
-        return `<span class="obs-line-segment obs-first-line" style="display: block; white-space: normal; word-break: keep-all; overflow-wrap: break-word; text-align: center; width: 100%; font-size: inherit; overflow: visible;"><span class="obs-first-line-wrapper" style="position: relative; display: inline-block; text-align: center; max-width: 100%; overflow: visible;">${badgeHtml}${l}</span></span>`;
-      }
-      return `<span class="obs-line-segment" style="display: block; white-space: normal; word-break: keep-all; overflow-wrap: break-word; text-align: center; width: 100%; font-size: inherit; overflow: visible;">${l}</span>`;
-    }).join('');
+      let lineSegments = lines.map((l, idx) => {
+        let styledL = l.replace(/\)([\d٠-٩]+)$/, ')<span class="rep-num-grey" style="color:#94a3b8; opacity:0.85; font-weight:600; font-size:0.9em; margin-right:2px;">$1</span>');
+        if (idx === 0) {
+          return `<span class="obs-line-segment obs-first-line" style="display: block; white-space: normal; word-break: keep-all; overflow-wrap: break-word; text-align: center; width: 100%; font-size: inherit; overflow: visible;"><span class="obs-first-line-wrapper" style="position: relative; display: inline-block; text-align: center; max-width: 100%; overflow: visible;">${badgeHtml}${styledL}</span></span>`;
+        }
+        return `<span class="obs-line-segment" style="display: block; white-space: normal; word-break: keep-all; overflow-wrap: break-word; text-align: center; width: 100%; font-size: inherit; overflow: visible;">${styledL}</span>`;
+      }).join('');
 
     return `<div class="obs-slide-wrapper" style="overflow: visible;"><div class="obs-lines-wrapper" style="overflow: visible;">${lineSegments}</div></div>`;
   }
