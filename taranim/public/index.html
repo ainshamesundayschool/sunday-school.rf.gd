@@ -154,8 +154,8 @@
         <input type="text" id="intelligent-search" placeholder="بحث في الترانيم..." autofocus autocomplete="off">
         <button id="clear-search-btn" class="clear-btn hidden" type="button"><i class="fa-solid fa-xmark"></i></button>
         <div class="search-inside-controls">
-          <button id="franco-toggle-btn" class="search-inside-toggle icon-only-toggle active" type="button" title="مترجم الفرنكو والبحث الذكي (Gemini AI)">
-            <svg class="gemini-spark-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="display:inline-block; vertical-align:-2px;"><path d="M12 0C12 6.627 6.627 12 0 12C6.627 12 12 17.373 12 24C12 17.373 17.373 12 24 12C17.373 12 12 6.627 12 0Z"/></svg>
+          <button id="franco-toggle-btn" class="search-inside-toggle icon-only-toggle active" type="button" title="مترجم الفرنكو والبحث الذكي">
+            <i class="fa-solid fa-language" style="font-size: 1.15rem; vertical-align: middle;"></i>
           </button>
           <button id="btn-menu-bible" class="search-inside-toggle icon-only-toggle" type="button" title="الكتاب المقدس">
             <i class="fa-solid fa-book-bible"></i>
@@ -660,36 +660,22 @@
     </div>
   </div>
 
-  <!-- GEMINI FRANCO INTRO MODAL POPUP -->
+  <!-- FRANCO TRANSLATOR INTRO MODAL POPUP -->
   <div id="modal-gemini-intro" class="modal-overlay hidden">
     <div class="modal-card gemini-intro-card">
       <div class="gemini-intro-banner-header">
-        <div class="gemini-icon-hero-wrapper">
-          <svg class="gemini-spark-icon-large" viewBox="0 0 24 24" width="60" height="60" fill="url(#gemini-gradient-pub)">
-            <defs>
-              <linearGradient id="gemini-gradient-pub" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#38bdf8" />
-                <stop offset="50%" stop-color="#818cf8" />
-                <stop offset="100%" stop-color="#c084fc" />
-              </linearGradient>
-            </defs>
-            <path d="M12 0C12 6.627 6.627 12 0 12C6.627 12 12 17.373 12 24C12 17.373 17.373 12 24 12C17.373 12 12 6.627 12 0Z"/>
-          </svg>
-        </div>
         <button id="btn-close-gemini-intro" class="modal-close-btn" type="button" title="إغلاق"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-      <div class="modal-body text-center" style="text-align: center; padding: 1.5rem 1.25rem 1.75rem;">
-        <h3 class="gemini-intro-title" style="font-size: 1.2rem; font-weight: 800; color: #0f172a; margin-bottom: 8px;">مترجم الفرنكو والبحث الذكي بواسطة Gemini AI</h3>
-        <p class="gemini-intro-text" style="color: #475569; font-size: 0.95rem; line-height: 1.6; margin-top: 6px; margin-bottom: 18px;">
-          عند تفعيل خيار <strong>Gemini</strong>، يمكنك البحث عن أي ترنيمة بكتابة اسمها بالحروف اللاتينية <strong>(Franco / الفرنكو)</strong> وسيقوم النظام تلقائياً بفهمها وترجمتها واقتراح الترنيمة المطلوبة!
-        </p>
-        <div class="gemini-examples-box" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 14px; margin-bottom: 20px; display: inline-flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
-          <span class="example-pill" style="background: #eff6ff; color: #2563eb; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 0.88rem; border: 1px solid #bfdbfe;">A3badak</span>
-          <span class="example-pill" style="background: #eff6ff; color: #2563eb; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 0.88rem; border: 1px solid #bfdbfe;">Kolo Yaseer</span>
-          <span class="example-pill" style="background: #eff6ff; color: #2563eb; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 0.88rem; border: 1px solid #bfdbfe;">Yasa3iyya</span>
+        <div class="gemini-icon-hero-wrapper">
+          <i class="fa-solid fa-language"></i>
         </div>
+      </div>
+      <div class="modal-body text-center">
+        <h3 class="gemini-intro-title">مترجم الفرنكو والبحث الذكي</h3>
+        <p class="gemini-intro-text">
+          عند تفعيل خيار <strong>مترجم الفرنكو</strong>، يمكنك البحث عن أي ترنيمة بكتابة اسمها بالحروف اللاتينية <strong>(Franco / الفرنكو)</strong> وسيقوم النظام تلقائياً بفهمها وترجمتها واقتراح الترنيمة المطلوبة!
+        </p>
         <div>
-          <button id="btn-confirm-gemini-intro" class="gemini-confirm-btn" type="button" style="background: linear-gradient(135deg, #2563eb, #7c3aed); color: #ffffff; border: none; border-radius: 10px; padding: 10px 28px; font-weight: 700; font-size: 0.98rem; cursor: pointer; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.35);">
+          <button id="btn-confirm-gemini-intro" class="gemini-confirm-btn" type="button">
             حسناً، فهمت!
           </button>
         </div>

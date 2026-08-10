@@ -1938,6 +1938,105 @@ input[type="checkbox"]:checked::after {
   gap: 0.4rem;
 }
 
+/* FRANCO TRANSLATOR INTRO BANNER MODAL STYLES */
+.gemini-intro-card {
+  max-width: 420px;
+  width: 90%;
+  border-radius: 24px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 25px 60px rgba(15, 23, 42, 0.22), 0 0 0 1px rgba(226, 232, 240, 0.9);
+  animation: modalPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gemini-intro-banner-header {
+  position: relative;
+  padding: 2.25rem 1.5rem 1.25rem;
+  background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 50%, #faf5ff 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.gemini-intro-banner-header .modal-close-btn {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.gemini-intro-banner-header .modal-close-btn:hover {
+  background: #fee2e2;
+  color: #ef4444;
+  border-color: #fca5a5;
+  transform: rotate(90deg);
+}
+
+.gemini-icon-hero-wrapper {
+  width: 76px;
+  height: 76px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #8b5cf6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 2.2rem;
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 0.3s ease;
+}
+
+.gemini-icon-hero-wrapper:hover {
+  transform: scale(1.05) rotate(3deg);
+}
+
+.gemini-intro-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 10px;
+}
+
+.gemini-intro-text {
+  color: #475569;
+  font-size: 0.96rem;
+  line-height: 1.7;
+  margin-top: 4px;
+  margin-bottom: 22px;
+}
+
+.gemini-confirm-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 14px;
+  padding: 13px 24px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.32);
+  transition: all 0.2s ease;
+}
+
+.gemini-confirm-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.45);
+}
+
 /* OBS EMBEDDED OVERLAY */
 .obs-overlay {
   position: fixed !important;

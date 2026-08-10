@@ -3337,7 +3337,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     els.searchSuggestionsChips.innerHTML = suggestions.map(s => `
       <button class="suggestion-chip" type="button" data-replacement="${escapeHtml(s.text)}" data-start="${start}" data-end="${end}">
-        <svg class="gemini-spark-icon" viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="display:inline-block; vertical-align:-2px; margin-left:4px;"><path d="M12 0C12 6.627 6.627 12 0 12C6.627 12 12 17.373 12 24C12 17.373 17.373 12 24 12C17.373 12 12 6.627 12 0Z"/></svg> ${escapeHtml(s.text)}
+        <i class="fa-solid fa-language" style="display:inline-block; vertical-align:-1px; margin-left:4px; color:#2563eb;"></i> ${escapeHtml(s.text)}
       </button>
     `).join('');
 
@@ -3762,7 +3762,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     els.searchSuggestionsChips.innerHTML = suggestions.map(s => `
       <button class="suggestion-chip" type="button" data-replacement="${escapeHtml(s.text)}" data-start="${start}" data-end="${end}">
-        <svg class="gemini-spark-icon" viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="display:inline-block; vertical-align:-2px; margin-left:4px;"><path d="M12 0C12 6.627 6.627 12 0 12C6.627 12 12 17.373 12 24C12 17.373 17.373 12 24 12C17.373 12 12 6.627 12 0Z"/></svg> ${escapeHtml(s.text)}
+        <i class="fa-solid fa-language" style="display:inline-block; vertical-align:-1px; margin-left:4px; color:#2563eb;"></i> ${escapeHtml(s.text)}
       </button>
     `).join('');
 
@@ -4163,7 +4163,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (state.francoAutoTranslate && /[a-z]/i.test(query) && !/[\u0600-\u06FF]/.test(query)) {
       const rawTranslated = francoToArabic(query);
       if (rawTranslated) {
-        francoHeaderHtml = `<div class="franco-translation-header"><svg class="gemini-spark-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="display:inline-block; vertical-align:-2px; margin-left:6px;"><path d="M12 0C12 6.627 6.627 12 0 12C6.627 12 12 17.373 12 24C12 17.373 17.373 12 24 12C17.373 12 12 6.627 12 0Z"/></svg> <strong>${escapeHtml(rawTranslated)}</strong></div>`;
+        francoHeaderHtml = `<div class="franco-translation-header"><i class="fa-solid fa-language" style="display:inline-block; vertical-align:-1px; margin-left:6px; color:#2563eb;"></i> <strong>${escapeHtml(rawTranslated)}</strong></div>`;
       }
     }
 
@@ -5517,9 +5517,9 @@ document.addEventListener('DOMContentLoaded', () => {
       lineStr = lineStr.replace(/\)([\d٠-٩]*)$/, '<span class="rep-num-grey" style="color:#94a3b8; font-weight:600; margin-right:1px;">)$1</span>');
 
       if (idx === 0) {
-        return `<span class="obs-line-segment obs-first-line" style="display: block; white-space: normal; word-break: keep-all; overflow-wrap: break-word; text-align: center; width: 100%; font-size: inherit; overflow: visible;"><span class="obs-first-line-wrapper" style="position: relative; display: inline-block; text-align: center; max-width: 100%; overflow: visible;">${badgeHtml}${lineStr}</span></span>`;
+        return `<div class="obs-line-row obs-first-row" style="display: block; width: 100%; text-align: center; position: relative;"><span class="obs-line-segment obs-first-line" data-line-idx="0" style="display: inline-block; width: auto; font-size: inherit; overflow: visible;"><span class="obs-first-line-wrapper" style="position: relative; display: inline-block; text-align: center; max-width: 100%; overflow: visible;">${badgeHtml}${lineStr}</span></span></div>`;
       }
-      return `<span class="obs-line-segment" style="display: block; white-space: normal; word-break: keep-all; overflow-wrap: break-word; text-align: center; width: 100%; font-size: inherit; overflow: visible;">${lineStr}</span>`;
+      return `<div class="obs-line-row" style="display: block; width: 100%; text-align: center;"><span class="obs-line-segment" data-line-idx="${idx}" style="display: inline-block; width: auto; font-size: inherit; overflow: visible;">${lineStr}</span></div>`;
     }).filter(Boolean).join('');
 
     return `<div class="obs-slide-wrapper" style="overflow: visible;"><div class="obs-lines-wrapper" style="overflow: visible;">${lineSegments}</div></div>`;
@@ -5915,7 +5915,9 @@ document.addEventListener('DOMContentLoaded', () => {
             els.obsLineText.style.fontSize = `${uniformSize}px`;
             els.obsLineText.innerHTML = formatPresenterText(snapText, isBible, badgeTxt, badgeCls);
             const finalRows = els.obsLineText.querySelectorAll('.obs-line-row');
-            finalRows.forEach(r => { r.style.lineHeight = `${lHeightF}`; r.style.marginBottom = `${Math.round((lHeightF - 1) * 14)}px`; });
+            finalRows.forEach(r => {
+              r.style.display = 'block'; r.style.width = '100%'; r.style.lineHeight = `${lHeightF}`; r.style.marginBottom = `${Math.round((lHeightF - 1) * 14)}px`;
+            });
             const finalSegs = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
             const alignF = state.styleOptions.textAlign || 'center';
             finalSegs.forEach(s => {
