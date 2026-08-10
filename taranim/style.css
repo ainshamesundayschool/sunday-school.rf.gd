@@ -1334,7 +1334,7 @@ input[type="checkbox"]:checked::after {
 
 .line-item.active {
   background: #fffbe6 !important;
-  border-right: 4px solid var(--accent-gold, #f59e0b);
+  border-right: none !important;
 }
 
 .slide-card-inner {
@@ -1667,7 +1667,7 @@ input[type="checkbox"]:checked::after {
 
 .recent-item.active {
   background: #eff6ff;
-  border-right: 4px solid var(--accent-blue);
+  border-right: none !important;
 }
 
 .empty-state {
