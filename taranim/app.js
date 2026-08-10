@@ -2044,7 +2044,7 @@ document.addEventListener('DOMContentLoaded', () => {
           './install.html',
           './app.js',
           './style.css',
-          './logo.png',
+          './logoicon.png',
           './manifest.webmanifest',
           './songs_catalog.json',
           './arabic_dictionary.json',
@@ -5561,6 +5561,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (els.obsLineText) {
       const standbyEl = document.getElementById('obs-standby-branding');
+      const logoImg = document.querySelector('.standby-logo');
+      if (logoImg) {
+        const sWidth = state.styleOptions.strokeWidth || 0;
+        const sColor = state.styleOptions.strokeColor || '#000000';
+        const sBlur = state.styleOptions.shadowBlur || 0;
+        const sShadowCol = state.styleOptions.shadowColor || 'rgba(0,0,0,0.85)';
+        const sDist = state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 6;
+        const sAngle = state.styleOptions.shadowAngle !== undefined ? state.styleOptions.shadowAngle : 90;
+
+        const filters = [];
+        if (sWidth > 0 && sColor) {
+          const sw = Math.min(sWidth, 6);
+          filters.push(`drop-shadow(${sw}px 0 0 ${sColor})`);
+          filters.push(`drop-shadow(-${sw}px 0 0 ${sColor})`);
+          filters.push(`drop-shadow(0 ${sw}px 0 ${sColor})`);
+          filters.push(`drop-shadow(0 -${sw}px 0 ${sColor})`);
+        }
+        if (sBlur > 0 || sDist > 0) {
+          const angleRad = sAngle * (Math.PI / 180);
+          const offX = Math.round(sDist * Math.cos(angleRad));
+          const offY = Math.round(sDist * Math.sin(angleRad));
+          filters.push(`drop-shadow(${offX}px ${offY}px ${sBlur}px ${sShadowCol})`);
+        } else {
+          filters.push('drop-shadow(0 8px 24px rgba(0, 0, 0, 0.6))');
+        }
+        logoImg.style.filter = filters.join(' ');
+      }
+
       const hasText = Boolean(text && text.trim() && !state.isBlank);
 
       const obsFooterBar = document.getElementById('obs-footer-bar');

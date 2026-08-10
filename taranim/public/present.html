@@ -18,8 +18,8 @@
   <meta property="og:site_name" content="Sunday School Taranim">
   <meta property="og:title" content="Sunday School Taranim - OBS & TV Presenter">
   <meta property="og:description" content="شاشة بث وعرض الترانيم والإصحاحات الكتابية ببث مباشر للشاشات و OBS.">
-  <meta property="og:image" content="https://ainshamesundayschool.rf.gd/taranim/logo.png">
-  <meta property="og:image:secure_url" content="https://ainshamesundayschool.rf.gd/taranim/logo.png">
+  <meta property="og:image" content="https://ainshamesundayschool.rf.gd/taranim/logoicon.png">
+  <meta property="og:image:secure_url" content="https://ainshamesundayschool.rf.gd/taranim/logoicon.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:locale" content="ar_EG">
 
@@ -27,7 +27,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Sunday School Taranim - OBS & TV Presenter">
   <meta name="twitter:description" content="شاشة بث وعرض الترانيم والإصحاحات الكتابية ببث مباشر للشاشات و OBS.">
-  <meta name="twitter:image" content="https://ainshamesundayschool.rf.gd/taranim/logo.png">
+  <meta name="twitter:image" content="https://ainshamesundayschool.rf.gd/taranim/logoicon.png">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1434,10 +1434,42 @@
 
       const hasText = Boolean(data.text && String(data.text).trim() && !data.isBlank);
 
-      if (!hasText) {
+      const logoImg = document.querySelector('.standby-logo');
+      if (logoImg && data) {
+        const sWidth = data.strokeWidth || 0;
+        const sColor = data.strokeColor || '#000000';
+        const sBlur = data.shadowBlur || 0;
+        const sShadowCol = data.shadowColor || 'rgba(0,0,0,0.85)';
+        const sDist = data.shadowDistance !== undefined ? data.shadowDistance : 6;
+        const sAngle = data.shadowAngle !== undefined ? data.shadowAngle : 90;
+
+        const filters = [];
+        if (sWidth > 0 && sColor) {
+          const sw = Math.min(sWidth, 6);
+          filters.push(`drop-shadow(${sw}px 0 0 ${sColor})`);
+          filters.push(`drop-shadow(-${sw}px 0 0 ${sColor})`);
+          filters.push(`drop-shadow(0 ${sw}px 0 ${sColor})`);
+          filters.push(`drop-shadow(0 -${sw}px 0 ${sColor})`);
+        }
+        if (sBlur > 0 || sDist > 0) {
+          const angleRad = sAngle * (Math.PI / 180);
+          const offX = Math.round(sDist * Math.cos(angleRad));
+          const offY = Math.round(sDist * Math.sin(angleRad));
+          filters.push(`drop-shadow(${offX}px ${offY}px ${sBlur}px ${sShadowCol})`);
+        } else {
+          filters.push('drop-shadow(0 8px 24px rgba(0, 0, 0, 0.6))');
+        }
+        logoImg.style.filter = filters.join(' ');
+      }
+
+      if (data.isBlank || !hasText) {
         textEl.classList.add('hidden');
         textEl.style.display = 'none';
-        if (standbyEl) standbyEl.classList.remove('hidden');
+        if (data.isBlank) {
+          if (standbyEl) standbyEl.classList.add('hidden');
+        } else {
+          if (standbyEl) standbyEl.classList.remove('hidden');
+        }
         currentIsBlankState = true;
       } else {
         if (standbyEl) standbyEl.classList.add('hidden');
