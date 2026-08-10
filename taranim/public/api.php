@@ -495,15 +495,18 @@ if (preg_match('#/api/song/(\d+)#', $parsedUrl, $matches) || (isset($_GET['actio
             $lines = [];
             foreach ($segRows as $seg) {
                 $segId = (int)$seg['id'];
-                $txt = trim($seg['content']);
+                $origTxt = trim($seg['content']);
+                $txt = $origTxt;
+                $prefix = '';
+                $suffix = '';
                 if (isset($repMap[$segId])) {
                     if (!empty($repMap[$segId]['starts'])) {
                         foreach ($repMap[$segId]['starts'] as $st) {
                             $pos = $st['pos'];
-                            if ($pos > 0 && $pos < mb_strlen($txt)) {
-                                $txt = mb_substr($txt, 0, $pos) . '(' . mb_substr($txt, $pos);
+                            if ($pos > 0 && $pos < mb_strlen($origTxt)) {
+                                $txt = mb_substr($origTxt, 0, $pos) . '(' . mb_substr($origTxt, $pos);
                             } else {
-                                $txt = '(' . $txt;
+                                $prefix .= '(';
                             }
                         }
                     }
@@ -511,15 +514,15 @@ if (preg_match('#/api/song/(\d+)#', $parsedUrl, $matches) || (isset($_GET['actio
                         foreach ($repMap[$segId]['ends'] as $en) {
                             $pos = $en['pos'];
                             $cnt = $en['cnt'];
-                            if ($pos > 0 && $pos < mb_strlen($txt)) {
-                                $txt = mb_substr($txt, 0, $pos) . ')' . $cnt . mb_substr($txt, $pos);
+                            if ($pos > 0 && $pos < mb_strlen($origTxt)) {
+                                $txt = mb_substr($origTxt, 0, $pos) . ')' . $cnt . mb_substr($origTxt, $pos);
                             } else {
-                                $txt = $txt . ')' . $cnt;
+                                $suffix .= ')' . $cnt;
                             }
                         }
                     }
                 }
-                $lines[] = $txt;
+                $lines[] = $prefix . $txt . $suffix;
             }
 
             $slidesData[] = [
