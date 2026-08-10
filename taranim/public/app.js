@@ -1455,7 +1455,6 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   function closeAllPopovers(exceptPopover = null) {
-    const backdrop = document.getElementById('popover-style-backdrop');
     if (els.popoverStyle && els.popoverStyle !== exceptPopover) {
       els.popoverStyle.classList.add('hidden');
     }
@@ -1479,9 +1478,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (playlistPopover && playlistPopover !== exceptPopover) {
       playlistPopover.classList.add('hidden');
     }
-
-    if (!exceptPopover && backdrop) {
-      backdrop.classList.add('hidden');
+    const highlightPopover = document.getElementById('popover-highlight-color');
+    if (highlightPopover && highlightPopover !== exceptPopover) {
+      highlightPopover.classList.add('hidden');
     }
   }
 

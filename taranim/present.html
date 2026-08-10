@@ -397,14 +397,14 @@
 
     .btn-close-overlay-left {
       position: fixed !important;
-      top: 8px !important;
-      left: 8px !important;
-      bottom: auto !important;
+      bottom: 12px !important;
+      left: 12px !important;
+      top: auto !important;
       right: auto !important;
-      min-width: 26px !important;
-      min-height: 26px !important;
-      width: 26px !important;
-      height: 26px !important;
+      min-width: 32px !important;
+      min-height: 32px !important;
+      width: 32px !important;
+      height: 32px !important;
       background: transparent !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
@@ -1374,33 +1374,6 @@
       if (data.boxRadius !== undefined) box.style.borderRadius = `${data.boxRadius}px`;
       if (data.boxPadding !== undefined) box.style.padding = `${data.boxPadding}px`;
 
-      // HIGHLIGHT LINE LOGIC (LINEAR WIPE & FADE OUT)
-      if (data.highlightedLines !== undefined) {
-        if (!lastStyleData) lastStyleData = {};
-        lastStyleData.highlightedLines = data.highlightedLines;
-        if (data.highlightColor) lastStyleData.highlightColor = data.highlightColor;
-      }
-
-      const hColor = (lastStyleData && lastStyleData.highlightColor) || '#f59e0b';
-      const activeHighlights = (lastStyleData && lastStyleData.highlightedLines) || [];
-
-      const segments = Array.from(textEl.querySelectorAll('.obs-line-segment'));
-      segments.forEach((seg, idx) => {
-        const isH = Array.isArray(activeHighlights) ? activeHighlights.includes(idx) : (activeHighlights === idx);
-        if (isH) {
-          seg.style.setProperty('--highlight-bg', `linear-gradient(90deg, ${hColor} 0%, ${hColor}dd 100%)`);
-          seg.style.setProperty('--highlight-glow', `${hColor}aa`);
-          seg.classList.remove('line-unhighlighting');
-          seg.classList.add('line-highlighted');
-        } else {
-          if (seg.classList.contains('line-highlighted')) {
-            seg.classList.remove('line-highlighted');
-            seg.classList.add('line-unhighlighting');
-            setTimeout(() => seg.classList.remove('line-unhighlighting'), 300);
-          }
-        }
-      });
-
       const textColor = data.textColor || '#ffffff';
       textEl.style.color = textColor;
 
@@ -1440,6 +1413,33 @@
         const isBible = Boolean(data.isBible || data.is_bible);
         textEl.innerHTML = formatPresenterText(data.text, isBible, data.badgeText, data.badgeClass);
         fitTextToSafeArea(isBible);
+
+        // HIGHLIGHT LINE LOGIC (LINEAR WIPE & FADE OUT) AFTER TEXT & FIT ARE APPLIED
+        if (data.highlightedLines !== undefined) {
+          if (!lastStyleData) lastStyleData = {};
+          lastStyleData.highlightedLines = data.highlightedLines;
+          if (data.highlightColor) lastStyleData.highlightColor = data.highlightColor;
+        }
+
+        const hColor = (lastStyleData && lastStyleData.highlightColor) || '#f59e0b';
+        const activeHighlights = (lastStyleData && lastStyleData.highlightedLines) || [];
+
+        const segments = Array.from(textEl.querySelectorAll('.obs-line-segment'));
+        segments.forEach((seg, idx) => {
+          const isH = Array.isArray(activeHighlights) ? activeHighlights.includes(idx) : (activeHighlights === idx);
+          if (isH) {
+            seg.style.setProperty('--highlight-bg', `linear-gradient(90deg, ${hColor} 0%, ${hColor}dd 100%)`);
+            seg.style.setProperty('--highlight-glow', `${hColor}aa`);
+            seg.classList.remove('line-unhighlighting');
+            seg.classList.add('line-highlighted');
+          } else {
+            if (seg.classList.contains('line-highlighted')) {
+              seg.classList.remove('line-highlighted');
+              seg.classList.add('line-unhighlighting');
+              setTimeout(() => seg.classList.remove('line-unhighlighting'), 300);
+            }
+          }
+        });
 
         if (currentTextState !== data.text || currentAnimState !== animType) {
           currentTextState = data.text;

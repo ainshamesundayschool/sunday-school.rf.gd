@@ -255,18 +255,16 @@ input[type="checkbox"]:checked::after {
   top: 110%;
   right: 0;
   left: auto;
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(226, 232, 240, 0.85);
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.16);
+  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.22) !important;
   padding: 0.55rem 0.75rem;
   min-width: 260px;
   max-width: min(320px, calc(100vw - 1.5rem));
   max-height: calc(100vh - 80px);
   overflow-y: auto;
-  z-index: 500;
+  z-index: 99999 !important;
   display: flex;
   flex-direction: column;
   gap: 0.38rem;
@@ -290,7 +288,7 @@ input[type="checkbox"]:checked::after {
   max-height: 100vh !important;
   background: #ffffff !important;
   box-shadow: -8px 0 30px rgba(15, 23, 42, 0.2) !important;
-  z-index: 9999 !important;
+  z-index: 999999 !important;
   border-radius: 0 !important;
   border: none !important;
   border-left: 1px solid rgba(226, 232, 240, 0.8) !important;
@@ -316,25 +314,8 @@ input[type="checkbox"]:checked::after {
 }
 
 .drawer-backdrop,
-.popover-backdrop-overlay {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  background: rgba(15, 23, 42, 0.45) !important;
-  backdrop-filter: blur(4px) !important;
-  -webkit-backdrop-filter: blur(4px) !important;
-  z-index: 9998 !important;
-  opacity: 1;
-  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  pointer-events: auto !important;
-}
-
-.drawer-backdrop.hidden,
-.popover-backdrop-overlay.hidden {
+.popover-backdrop-overlay,
+#popover-style-backdrop {
   display: none !important;
   opacity: 0 !important;
   pointer-events: none !important;
@@ -4014,49 +3995,101 @@ input[type="range"]:active::-moz-range-thumb {
 .obs-line-segment {
   position: relative;
   display: inline-block;
-  transition: all 0.3s ease;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s ease;
 }
 
 .obs-line-segment.line-highlighted {
   position: relative;
   z-index: 5;
   color: #ffffff !important;
-  text-shadow: 0 0 12px var(--highlight-glow, rgba(245, 158, 11, 0.8)), 0 2px 5px rgba(0, 0, 0, 0.9) !important;
+  text-shadow: 0 0 16px var(--highlight-glow, rgba(245, 158, 11, 0.9)), 0 2px 6px rgba(0, 0, 0, 0.95) !important;
+  transform: scale(1.02);
 }
 
 .obs-line-segment.line-highlighted::before {
   content: '';
   position: absolute;
-  inset: -2px -12px;
+  inset: -3px -14px;
   background: var(--highlight-bg, linear-gradient(90deg, #f59e0b 0%, #d97706 100%));
-  border-radius: 8px;
+  border-radius: 10px;
   z-index: -1;
-  box-shadow: 0 4px 16px var(--highlight-glow, rgba(245, 158, 11, 0.5));
-  animation: highlightLinearWipe 0.42s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  box-shadow: 0 6px 20px var(--highlight-glow, rgba(245, 158, 11, 0.6));
+  animation: highlightLinearWipe 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: clip-path, opacity, transform;
 }
 
 @keyframes highlightLinearWipe {
   0% {
     clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
     opacity: 0;
+    transform: scaleX(0.95);
   }
   100% {
     clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
     opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+.obs-line-segment.line-unhighlighting::before {
+  animation: highlightFadeOut 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes highlightFadeOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.96);
   }
 }
 
 .slide-line-row.line-highlight-active {
-  background: var(--highlight-bg-light, rgba(245, 158, 11, 0.15)) !important;
-  border-radius: 6px;
-  padding: 2px 6px;
-  border-right: 4px solid var(--highlight-color, #f59e0b) !important;
-  transition: all 0.2s ease;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
 }
 
-.highlight-popover {
-  min-width: 210px !important;
-  padding: 0.6rem 0.8rem !important;
+.slide-line-row.line-highlight-active span {
+  background: var(--highlight-bg-light, rgba(245, 158, 11, 0.2)) !important;
+  color: #1e293b !important;
+  border-radius: 6px;
+  padding: 3px 9px;
+  border: none !important;
+  display: inline-block;
+  width: fit-content;
+  max-width: 100%;
+  font-weight: 800;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);
+  animation: pillWipeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pillWipeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.highlight-popover,
+#popover-highlight-color {
+  position: absolute !important;
+  top: calc(100% + 6px) !important;
+  left: 0 !important;
+  right: auto !important;
+  min-width: 220px !important;
+  max-width: calc(100vw - 24px) !important;
+  z-index: 999999 !important;
+  padding: 0.65rem 0.85rem !important;
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.22) !important;
 }
 
 .highlight-color-pill {
