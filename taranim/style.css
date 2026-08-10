@@ -1386,6 +1386,48 @@ input[type="checkbox"]:checked::after {
   max-width: 100%;
   word-break: break-word;
   overflow-wrap: break-word;
+  font-size: 1.05rem !important;
+}
+
+#btn-playlist-selector,
+.panel-title-btn,
+#btn-playlist-selector span,
+.panel-title-btn span {
+  font-weight: 800 !important;
+  font-size: 1.05rem !important;
+}
+
+/* EXTEND/PREVIEW BUTTON FOR SEARCH ITEMS */
+.btn-toggle-item-preview {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-toggle-item-preview:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #2563eb;
+}
+
+.btn-toggle-item-preview.active {
+  background: #2563eb !important;
+  color: #ffffff !important;
+  border-color: #1d4ed8 !important;
+}
+
+.item-preview-box.preview-expandable.hidden {
+  display: none !important;
 }
 
 .repeat-tag,
@@ -1535,32 +1577,38 @@ input[type="checkbox"]:checked::after {
 
 .copy-line-btn,
 .launch-fullscreen-btn {
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  color: #475569;
+  background: transparent !important;
+  border: none !important;
+  color: #64748b;
   width: 26px;
   height: 26px;
   border-radius: 6px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.78rem;
+  font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  box-shadow: none !important;
+  opacity: 0.75;
 }
 
 .copy-line-btn:hover,
 .launch-fullscreen-btn:hover {
-  background: #eff6ff;
-  border-color: #93c5fd;
-  color: #2563eb;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #2563eb !important;
+  opacity: 1;
+  transform: scale(1.15);
 }
 
 .copy-line-btn.copied {
-  background: #10b981 !important;
-  color: #ffffff !important;
-  border-color: #059669 !important;
+  background: transparent !important;
+  color: #10b981 !important;
+  border: none !important;
+  box-shadow: none !important;
+  opacity: 1;
 }
 
 .recent-item {
@@ -2781,8 +2829,8 @@ input[type="checkbox"]:checked::after {
   }
 
   .slide-line-row {
-    font-size: 0.8rem;
-    line-height: 1.4;
+    font-size: 1.05rem !important;
+    line-height: 1.45;
     max-width: 100%;
   }
 

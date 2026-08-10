@@ -3987,9 +3987,13 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="search-item" data-id="${s.id}" data-is-bible="${isBibleItem ? '1' : '0'}">
             <div class="item-top">
               <span class="item-title">${titleHighlighted}</span>
-              <div class="item-badges-group">${lyricsMatchBadge}${typeBadge}</div>
+              <div class="item-badges-group">
+                ${snippetHtml ? `<button type="button" class="btn-toggle-item-preview" title="معاينة كلمات الترنيمة"><i class="fa-solid fa-chevron-down"></i> معاينة</button>` : ''}
+                ${lyricsMatchBadge}
+                ${typeBadge}
+              </div>
             </div>
-            ${snippetHtml ? `<div class="item-preview-box">${snippetHtml}</div>` : ''}
+            ${snippetHtml ? `<div class="item-preview-box preview-expandable hidden">${snippetHtml}</div>` : ''}
           </div>
         `;
       }).join('');
@@ -4009,6 +4013,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     els.searchDropdown.classList.remove('hidden');
+
+    els.searchDropdown.querySelectorAll('.btn-toggle-item-preview').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const searchItem = btn.closest('.search-item');
+        if (!searchItem) return;
+        const previewBox = searchItem.querySelector('.item-preview-box');
+        if (previewBox) {
+          const isHidden = previewBox.classList.contains('hidden');
+          if (isHidden) {
+            previewBox.classList.remove('hidden');
+            btn.classList.add('active');
+            btn.innerHTML = `<i class="fa-solid fa-chevron-up"></i> طي`;
+          } else {
+            previewBox.classList.add('hidden');
+            btn.classList.remove('active');
+            btn.innerHTML = `<i class="fa-solid fa-chevron-down"></i> معاينة`;
+          }
+        }
+      });
+    });
 
     els.searchDropdown.querySelectorAll('.search-item').forEach((item, idx) => {
       item.addEventListener('click', () => {
