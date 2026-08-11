@@ -7103,6 +7103,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const containerW = Math.max(320, container.clientWidth || window.innerWidth);
             const containerH = Math.max(240, container.clientHeight || window.innerHeight);
 
+            if (containerH > containerW) {
+              els.obsLineText.classList.add('obs-vertical-mode');
+            } else {
+              els.obsLineText.classList.remove('obs-vertical-mode');
+            }
+
             const currentItemKey = (state.activeSong && (state.activeSong.id || state.activeSong.item_id || state.activeSong.title)) 
               ? (state.activeSong.id || state.activeSong.item_id || state.activeSong.title) 
               : 'default_item';

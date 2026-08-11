@@ -640,6 +640,53 @@
       line-height: 1;
     }
 
+    /* VERTICAL MODE: Position verse/chorus badge at TOP MIDDLE above the first line */
+    @media (max-aspect-ratio: 1/1), (orientation: portrait), (max-width: 768px) {
+      .obs-first-line-wrapper {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        position: relative !important;
+        width: 100% !important;
+      }
+      .obs-first-line-wrapper .slide-badge-layer {
+        display: block !important;
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        transform: none !important;
+        margin: 0 0 0.35em 0 !important;
+        text-align: center !important;
+        align-self: center !important;
+        font-size: 0.85em !important;
+      }
+    }
+
+    .obs-vertical-mode .obs-first-line-wrapper {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      position: relative !important;
+      width: 100% !important;
+    }
+    .obs-vertical-mode .obs-first-line-wrapper .slide-badge-layer {
+      display: block !important;
+      position: relative !important;
+      top: auto !important;
+      left: auto !important;
+      right: auto !important;
+      bottom: auto !important;
+      transform: none !important;
+      margin: 0 0 0.35em 0 !important;
+      text-align: center !important;
+      align-self: center !important;
+      font-size: 0.85em !important;
+    }
+
     .rep-num-grey,
     .repeat-tag {
       display: inline-block;
