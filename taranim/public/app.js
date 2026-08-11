@@ -1169,6 +1169,7 @@ document.addEventListener('DOMContentLoaded', () => {
     splitLongLines: savedSettings.splitLongLines !== undefined ? savedSettings.splitLongLines : true,
     francoAutoTranslate: savedSettings.francoAutoTranslate !== undefined ? savedSettings.francoAutoTranslate : true,
     textAnimation: savedSettings.textAnimation || "none",
+    obsMode: savedSettings.obsMode !== undefined ? Boolean(savedSettings.obsMode) : (localStorage.getItem('sunday_school_obs_mode') !== 'false'),
     
     styleOptions: {
       textColor: savedSettings.styleOptions?.textColor || "#ffffff",
@@ -1399,6 +1400,8 @@ document.addEventListener('DOMContentLoaded', () => {
     customFontFileName: document.getElementById('custom-font-file-name'),
     chromaSelect: document.getElementById('chroma-select'),
     presModeSelect: document.getElementById('pres-mode-select'),
+    btnToggleObsMode: document.getElementById('btn-toggle-obs-mode'),
+    btnFixObsFreeze: document.getElementById('btn-fix-obs-freeze'),
 
     btnOpenTvWindow: document.getElementById('btn-open-tv-window'),
     btnCopyObsUrl: document.getElementById('btn-copy-obs-url'),
@@ -1742,9 +1745,32 @@ document.addEventListener('DOMContentLoaded', () => {
       francoAutoTranslate: state.francoAutoTranslate,
       textAnimation: state.textAnimation,
       highlightColor: state.highlightColor,
+      obsMode: state.obsMode,
       styleOptions: state.styleOptions
     };
     localStorage.setItem('sunday_school_taranim_user_settings', JSON.stringify(settings));
+    localStorage.setItem('sunday_school_obs_mode', state.obsMode ? 'true' : 'false');
+  }
+
+  function updateObsModeUI() {
+    const isObsModeOn = Boolean(state.obsMode !== false);
+    if (els.btnFixObsFreeze) {
+      els.btnFixObsFreeze.classList.toggle('hidden', !isObsModeOn);
+    }
+  }
+
+  let liveSyncDebounceTimer = null;
+  function debouncedSyncLiveState(delay = 120) {
+    if (state.obsMode !== false) {
+      if (liveSyncDebounceTimer) clearTimeout(liveSyncDebounceTimer);
+      liveSyncDebounceTimer = setTimeout(() => {
+        saveUserSettings();
+        syncLiveState();
+      }, delay);
+    } else {
+      saveUserSettings();
+      syncLiveState();
+    }
   }
 
   function generateShareableStyleUrl() {
@@ -1821,6 +1847,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.presModeSelect) els.presModeSelect.value = state.presentationMode;
     if (els.francoToggleBtn) els.francoToggleBtn.classList.toggle('active', state.francoAutoTranslate);
     if (els.obsTextAnimSelect) els.obsTextAnimSelect.value = state.textAnimation;
+    if (els.btnToggleObsMode) els.btnToggleObsMode.checked = Boolean(state.obsMode !== false);
+    updateObsModeUI();
 
     if (els.obsTextColor) els.obsTextColor.value = state.styleOptions.textColor;
     if (els.obsStrokeRange) els.obsStrokeRange.value = state.styleOptions.strokeWidth;
@@ -2514,9 +2542,34 @@ document.addEventListener('DOMContentLoaded', () => {
     els.obsFontSizeRange.addEventListener('input', (e) => {
       state.fontSize = parseInt(e.target.value);
       if (els.fontSizeValBadge) els.fontSizeValBadge.textContent = `${state.fontSize}px`;
+      debouncedSyncLiveState(120);
+    });
+    els.obsFontSizeRange.addEventListener('change', () => {
       saveUserSettings();
       syncLiveState();
     });
+
+    if (els.btnToggleObsMode) {
+      els.btnToggleObsMode.addEventListener('change', (e) => {
+        state.obsMode = e.target.checked;
+        saveUserSettings();
+        updateObsModeUI();
+        syncLiveState();
+        showToast(state.obsMode ? 'تم تفعيل وضع OBS المباشر (منع التجميد)' : 'تم إيقاف وضع OBS المباشر');
+      });
+    }
+
+    if (els.btnFixObsFreeze) {
+      els.btnFixObsFreeze.addEventListener('click', () => {
+        const icon = els.btnFixObsFreeze.querySelector('i');
+        if (icon) icon.classList.add('fa-spin');
+        syncLiveState(false, true); // Send forceRefresh update
+        showToast('تم فك جمود وتحديث شاشة OBS بنجاح!', 2500);
+        setTimeout(() => {
+          if (icon) icon.classList.remove('fa-spin');
+        }, 800);
+      });
+    }
 
     if (els.obsScaleModeSelect) {
       els.obsScaleModeSelect.addEventListener('change', (e) => {
@@ -2609,24 +2662,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
     els.obsTextColor.addEventListener('input', (e) => {
       state.styleOptions.textColor = e.target.value;
+      debouncedSyncLiveState(100);
+    });
+    els.obsTextColor.addEventListener('change', () => {
       saveUserSettings();
       syncLiveState();
     });
 
     els.obsStrokeRange.addEventListener('input', (e) => {
       state.styleOptions.strokeWidth = parseInt(e.target.value);
+      debouncedSyncLiveState(120);
+    });
+    els.obsStrokeRange.addEventListener('change', () => {
       saveUserSettings();
       syncLiveState();
     });
 
     els.obsStrokeColor.addEventListener('input', (e) => {
       state.styleOptions.strokeColor = e.target.value;
+      debouncedSyncLiveState(100);
+    });
+    els.obsStrokeColor.addEventListener('change', () => {
       saveUserSettings();
       syncLiveState();
     });
 
     els.obsShadowRange.addEventListener('input', (e) => {
       state.styleOptions.shadowBlur = parseInt(e.target.value);
+      debouncedSyncLiveState(120);
+    });
+    els.obsShadowRange.addEventListener('change', () => {
       saveUserSettings();
       syncLiveState();
     });
@@ -2637,6 +2702,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (els.shadowAngleBadge) els.shadowAngleBadge.textContent = `${state.styleOptions.shadowAngle}°`;
         const pointer = document.getElementById('circle-angle-pointer');
         if (pointer) pointer.style.transform = `rotate(${state.styleOptions.shadowAngle}deg)`;
+        debouncedSyncLiveState(120);
+      });
+      els.obsShadowAngleRange.addEventListener('change', () => {
         saveUserSettings();
         syncLiveState();
       });
@@ -2648,6 +2716,9 @@ document.addEventListener('DOMContentLoaded', () => {
       els.obsShadowDistanceRange.addEventListener('input', (e) => {
         state.styleOptions.shadowDistance = parseInt(e.target.value);
         if (els.shadowDistanceBadge) els.shadowDistanceBadge.textContent = `${state.styleOptions.shadowDistance}px`;
+        debouncedSyncLiveState(120);
+      });
+      els.obsShadowDistanceRange.addEventListener('change', () => {
         saveUserSettings();
         syncLiveState();
       });
@@ -2714,6 +2785,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.obsLetterSpacingRange) {
       els.obsLetterSpacingRange.addEventListener('input', (e) => {
         state.styleOptions.letterSpacing = parseInt(e.target.value);
+        debouncedSyncLiveState(120);
+      });
+      els.obsLetterSpacingRange.addEventListener('change', () => {
         saveUserSettings();
         syncLiveState();
       });
@@ -2722,6 +2796,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.obsLineHeightRange) {
       els.obsLineHeightRange.addEventListener('input', (e) => {
         state.styleOptions.lineHeight = parseFloat(e.target.value);
+        debouncedSyncLiveState(120);
+      });
+      els.obsLineHeightRange.addEventListener('change', () => {
         saveUserSettings();
         syncLiveState();
       });
@@ -2730,6 +2807,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.obsBoxBgColor) {
       els.obsBoxBgColor.addEventListener('input', (e) => {
         state.styleOptions.boxBgColor = e.target.value;
+        debouncedSyncLiveState(100);
+      });
+      els.obsBoxBgColor.addEventListener('change', () => {
         saveUserSettings();
         syncLiveState();
       });
@@ -2738,6 +2818,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.obsBoxOpacityRange) {
       els.obsBoxOpacityRange.addEventListener('input', (e) => {
         state.styleOptions.boxOpacity = parseInt(e.target.value);
+        debouncedSyncLiveState(120);
+      });
+      els.obsBoxOpacityRange.addEventListener('change', () => {
         saveUserSettings();
         syncLiveState();
       });
@@ -2746,6 +2829,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.obsBoxRadiusRange) {
       els.obsBoxRadiusRange.addEventListener('input', (e) => {
         state.styleOptions.boxRadius = parseInt(e.target.value);
+        debouncedSyncLiveState(120);
+      });
+      els.obsBoxRadiusRange.addEventListener('change', () => {
         saveUserSettings();
         syncLiveState();
       });
@@ -2754,6 +2840,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.obsBoxPaddingRange) {
       els.obsBoxPaddingRange.addEventListener('input', (e) => {
         state.styleOptions.boxPadding = parseInt(e.target.value);
+        debouncedSyncLiveState(120);
+      });
+      els.obsBoxPaddingRange.addEventListener('change', () => {
         saveUserSettings();
         syncLiveState();
       });
@@ -5913,7 +6002,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, delay);
   }
 
-  function syncLiveState(isExplicitPositionUpdate = false) {
+  function syncLiveState(isExplicitPositionUpdate = false, isForceRefresh = false) {
     const targetSong = state.liveSong || state.activeSong;
     const targetLines = (state.livePresentationLines && state.livePresentationLines.length > 0) ? state.livePresentationLines : state.presentationLines;
     const targetIndex = (state.liveLineIndex >= 0) ? state.liveLineIndex : (state.currentLineIndex >= 0 ? state.currentLineIndex : 0);
@@ -5970,11 +6059,15 @@ document.addEventListener('DOMContentLoaded', () => {
       highlightedLines: state.highlightedLineIndices || [],
       mode: state.presentationMode || 'oneline',
       highlightColor: state.highlightColor || '#f59e0b',
-      allSlideTexts: targetLines.map(item => item ? (item.text || '') : '')
+      allSlideTexts: targetLines.map(item => item ? (item.text || '') : ''),
+      obsMode: Boolean(state.obsMode !== false)
     };
 
     if (isExplicitPositionUpdate) {
       payload.pos = state.dragPivot;
+    }
+    if (isForceRefresh) {
+      payload.forceRefresh = true;
     }
 
     payload.updatedAt = Date.now();

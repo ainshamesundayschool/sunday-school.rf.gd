@@ -10,8 +10,8 @@
   <meta name="theme-color" content="#0f172a">
 
   <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <link rel="icon" type="image/png" href="logoicon.png">
-  <link rel="apple-touch-icon" href="logoicon.png">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="apple-touch-icon" href="favicon.png">
 
   <!-- Open Graph Meta Tags -->
   <meta property="og:type" content="website">
@@ -435,22 +435,11 @@
     }
 
     /* Sleek bottom footer info bar for presenter display - NO BACKGROUND OVERLAY */
-    .presenter-footer-bar {
+    .presenter-scale-badge {
       position: fixed;
       bottom: 12px;
       right: 14px !important;
       left: auto !important;
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      pointer-events: none;
-      z-index: 999;
-      direction: rtl;
-      font-family: 'Baloo Bhaijaan 2', 'Alexandria', sans-serif;
-    }
-
-    .presenter-scale-badge,
-    .presenter-slide-counter {
       background: transparent !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
@@ -466,6 +455,37 @@
       box-shadow: none !important;
       text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
       letter-spacing: 0.3px;
+      z-index: 999;
+      direction: rtl;
+      font-family: 'Baloo Bhaijaan 2', 'Alexandria', sans-serif;
+      pointer-events: none;
+    }
+
+    .presenter-slide-counter {
+      position: fixed;
+      bottom: 12px;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+      right: auto !important;
+      background: transparent !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      border: none !important;
+      color: rgba(255, 255, 255, 0.55) !important;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0;
+      border-radius: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: none !important;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+      letter-spacing: 0.3px;
+      z-index: 999;
+      direction: rtl;
+      font-family: 'Baloo Bhaijaan 2', 'Alexandria', sans-serif;
+      pointer-events: none;
     }
 
     /* HIDE CONTROLS MODE */
@@ -477,13 +497,6 @@
       display: none !important;
       opacity: 0 !important;
       pointer-events: none !important;
-    }
-
-    @media (max-width: 768px) {
-      .standby-branding .standby-logo {
-        width: 180px;
-        height: 180px;
-      }
     }
 
     .obs-top-left-header {
@@ -501,10 +514,12 @@
     }
 
     .chorus-num,
-    .chorus-badge-side {
+    .chorus-badge-side,
+    .slide-badge-layer.chorus-badge-side,
+    .slide-badge-layer.chorus-num {
       color: #ef4444 !important;
       font-weight: 700 !important;
-      font-size: 0.68em !important;
+      font-size: 0.62em !important;
     }
 
     .badge-num,
@@ -524,7 +539,7 @@
     .repeat-tag {
       display: inline-block;
       font-weight: 700;
-      font-size: 0.68em !important;
+      font-size: 0.72em !important;
       margin: 0 4px;
       opacity: 0.85;
       color: #94a3b8 !important;
@@ -954,6 +969,85 @@
     }
 
     let currentIsBible = false;
+    let _uniformFontSize = null;
+    let _uniformSongKey = '';
+    let _lastAnimSlideText = '';
+
+    // Compute the optimal font size for a given HTML string rendered in textEl
+    function _computeOptimalSize(htmlContent, maxW, maxH, isJomhuria, segCountHint) {
+      const isVertical = window.innerHeight > window.innerWidth;
+      const refTargetW = isVertical ? Math.max(maxW, maxH * (16 / 9)) : maxW;
+
+      const origHTML = textEl.innerHTML;
+      const origDisplay = textEl.style.display;
+      const origVis = textEl.style.visibility;
+
+      textEl.innerHTML = htmlContent;
+      textEl.style.display = 'inline-block';
+      textEl.style.visibility = 'hidden';
+
+      const segments = textEl.querySelectorAll('.obs-line-segment');
+      const segCount = segments.length || segCountHint || 1;
+
+      segments.forEach(s => {
+        s.style.display = 'inline-block';
+        s.style.width = 'auto';
+        s.style.whiteSpace = 'nowrap';
+        s.style.wordBreak = 'keep-all';
+        s.style.overflowWrap = 'normal';
+      });
+
+      let low = 16;
+      let maxLimit = isJomhuria ? 300 : 260;
+      let high = Math.min(maxLimit, Math.max(120, Math.floor(maxH / Math.max(1, segCount * 0.85))));
+      let renderSize = 16;
+
+      textEl.style.whiteSpace = 'nowrap';
+      textEl.style.maxWidth = 'none';
+
+      while (low <= high) {
+        const mid = Math.floor((low + high) / 2);
+        textEl.style.fontSize = `${mid}px`;
+        const h = textEl.scrollHeight || textEl.offsetHeight;
+        const w = textEl.scrollWidth || textEl.offsetWidth;
+
+        if (h <= maxH && w <= refTargetW) {
+          renderSize = mid;
+          low = mid + 1;
+        } else {
+          high = mid - 1;
+        }
+      }
+
+      textEl.style.fontSize = `${renderSize}px`;
+      let currentW = textEl.scrollWidth || textEl.offsetWidth;
+      let currentH = textEl.scrollHeight || textEl.offsetHeight;
+      while ((currentW > maxW || currentH > maxH) && renderSize > 14) {
+        renderSize--;
+        textEl.style.fontSize = `${renderSize}px`;
+        currentW = textEl.scrollWidth || textEl.offsetWidth;
+        currentH = textEl.scrollHeight || textEl.offsetHeight;
+      }
+
+      textEl.innerHTML = origHTML;
+      textEl.style.display = origDisplay;
+      textEl.style.visibility = origVis;
+
+      return renderSize;
+    }
+
+    function _computeUniformFontSize(allSlideTexts, isBible, maxW, maxH, isJomhuria) {
+      let minSize = Infinity;
+
+      for (const slideText of allSlideTexts) {
+        if (!slideText || !slideText.trim()) continue;
+        const html = formatPresenterText(slideText, isBible, '', '');
+        const size = _computeOptimalSize(html, maxW, maxH, isJomhuria, 1);
+        if (size < minSize) minSize = size;
+      }
+
+      return minSize === Infinity ? 54 : minSize;
+    }
 
     function fitTextToSafeArea(isBible = currentIsBible) {
       if (!textEl) return;
@@ -1030,42 +1124,50 @@
         renderSize = baseSize;
         textEl.style.fontSize = `${renderSize}px`;
       } else if (scaleMode === 'auto') {
-        const isVertical = window.innerHeight > window.innerWidth;
-        const refTargetW = isVertical ? Math.max(maxW, maxH * (16 / 9)) : maxW;
+        // USE CACHED UNIFORM FONT SIZE IF AVAILABLE
+        if (_uniformFontSize !== null) {
+          renderSize = _uniformFontSize;
+        } else {
+          // Fallback: single-slide auto-fit (should not normally reach here)
+          const isVertical = window.innerHeight > window.innerWidth;
+          const refTargetW = isVertical ? Math.max(maxW, maxH * (16 / 9)) : maxW;
 
-        let low = 16;
-        let maxLimit = isJomhuria ? 300 : 260;
-        let high = Math.min(maxLimit, Math.max(120, Math.floor(maxH / Math.max(1, (segments.length || 1) * 0.85))));
-        renderSize = 16;
+          let low = 16;
+          let maxLimit = isJomhuria ? 300 : 260;
+          let high = Math.min(maxLimit, Math.max(120, Math.floor(maxH / Math.max(1, (segments.length || 1) * 0.85))));
+          renderSize = 16;
 
-        textEl.style.whiteSpace = 'nowrap';
-        textEl.style.maxWidth = 'none';
+          textEl.style.whiteSpace = 'nowrap';
+          textEl.style.maxWidth = 'none';
 
-        while (low <= high) {
-          const mid = Math.floor((low + high) / 2);
-          textEl.style.fontSize = `${mid}px`;
-          const h = textEl.scrollHeight || textEl.offsetHeight;
-          const w = textEl.scrollWidth || textEl.offsetWidth;
+          while (low <= high) {
+            const mid = Math.floor((low + high) / 2);
+            textEl.style.fontSize = `${mid}px`;
+            const h = textEl.scrollHeight || textEl.offsetHeight;
+            const w = textEl.scrollWidth || textEl.offsetWidth;
 
-          if (h <= maxH && w <= refTargetW) {
-            renderSize = mid;
-            low = mid + 1;
-          } else {
-            high = mid - 1;
+            if (h <= maxH && w <= refTargetW) {
+              renderSize = mid;
+              low = mid + 1;
+            } else {
+              high = mid - 1;
+            }
+          }
+
+          textEl.style.fontSize = `${renderSize}px`;
+
+          // Safety clamp: shrink if text still overflows maxW or maxH
+          let currentW = textEl.scrollWidth || textEl.offsetWidth;
+          let currentH = textEl.scrollHeight || textEl.offsetHeight;
+          while ((currentW > maxW || currentH > maxH) && renderSize > 14) {
+            renderSize--;
+            textEl.style.fontSize = `${renderSize}px`;
+            currentW = textEl.scrollWidth || textEl.offsetWidth;
+            currentH = textEl.scrollHeight || textEl.offsetHeight;
           }
         }
 
         textEl.style.fontSize = `${renderSize}px`;
-
-        // Safety clamp: shrink if text still overflows maxW or maxH
-        let currentW = textEl.scrollWidth || textEl.offsetWidth;
-        let currentH = textEl.scrollHeight || textEl.offsetHeight;
-        while ((currentW > maxW || currentH > maxH) && renderSize > 14) {
-          renderSize--;
-          textEl.style.fontSize = `${renderSize}px`;
-          currentW = textEl.scrollWidth || textEl.offsetWidth;
-          currentH = textEl.scrollHeight || textEl.offsetHeight;
-        }
       }
 
       textEl.style.fontSize = renderSize + 'px';
@@ -1384,10 +1486,23 @@
 
       if (!textEl || !box) return;
 
+      if (data.forceRefresh) {
+        // Force complete DOM repaint and reset stuck transitions to unfreeze OBS
+        box.style.display = 'none';
+        void box.offsetHeight;
+        box.style.display = '';
+        if (textEl) {
+          textEl.classList.remove('anim-slide', 'anim-drop', 'anim-pop', 'anim-flip', 'anim-glow');
+          void textEl.offsetHeight;
+        }
+      }
+
       const incomingChroma = data.chroma || data.chromaKey;
       if (incomingChroma) {
         document.body.setAttribute('data-chroma', incomingChroma);
       }
+      const incomingMode = data.mode || data.presentationMode || 'oneline';
+      document.body.setAttribute('data-mode', incomingMode);
 
       const customFontUrl = data.customFontDataUrl || localStorage.getItem('sunday_school_custom_font_dataurl');
       const customFontName = data.customFontName || localStorage.getItem('sunday_school_custom_font_name');
@@ -1507,21 +1622,25 @@
         textEl.style.display = 'inline-block';
         textEl.style.visibility = 'visible';
         const isBible = Boolean(data.isBible || data.is_bible);
-        const styleKey = `${data.text}_${data.font}_${data.fontSize}_${data.textAlign}_${data.fontWeight}_${data.fontStyle}_${data.letterSpacing}_${data.lineHeight}`;
-        if (currentTextState !== styleKey) {
-          currentTextState = styleKey;
+
+        // UPDATE TEXT INNERHTML ONLY WHEN RAW TEXT/BADGE CONTENT CHANGES (FLICKER-FREE)
+        const textKey = `${data.text || ''}_${isBible}_${data.badgeText || ''}_${data.badgeClass || ''}`;
+        if (currentTextState !== textKey) {
+          currentTextState = textKey;
           textEl.innerHTML = formatPresenterText(data.text, isBible, data.badgeText, data.badgeClass);
-          fitTextToSafeArea(isBible);
         }
 
-        // HIGHLIGHT LINE LOGIC (LINEAR WIPE & FADE OUT) AFTER TEXT & FIT ARE APPLIED
+        // APPLY STYLING & FIT TO SAFE AREA IN-PLACE WITHOUT RE-CREATING DOM
+        fitTextToSafeArea(isBible);
+
+        // HIGHLIGHT LINE LOGIC (UPDATE IN-PLACE WITH NO FLICKER)
         if (data.highlightedLines !== undefined) {
           if (!lastStyleData) lastStyleData = {};
           lastStyleData.highlightedLines = data.highlightedLines;
           if (data.highlightColor) lastStyleData.highlightColor = data.highlightColor;
         }
 
-        const hColor = (lastStyleData && lastStyleData.highlightColor) || '#f59e0b';
+        const hColor = (lastStyleData && lastStyleData.highlightColor) || '#ef4444';
         const activeHighlights = (lastStyleData && lastStyleData.highlightedLines) || [];
 
         const segments = Array.from(textEl.querySelectorAll('.obs-line-segment'));
@@ -1536,16 +1655,12 @@
               setTimeout(() => seg.classList.remove('line-animating'), 650);
             }
           } else {
-            if (seg.classList.contains('line-highlighted')) {
-              seg.classList.remove('line-highlighted', 'line-animating');
-              seg.classList.add('line-unhighlighting');
-              setTimeout(() => seg.classList.remove('line-unhighlighting'), 300);
-            }
+            seg.classList.remove('line-highlighted', 'line-animating', 'line-unhighlighting');
           }
         });
 
-        if (currentTextState !== data.text || currentAnimState !== animType) {
-          currentTextState = data.text;
+        if (_lastAnimSlideText !== data.text || currentAnimState !== animType) {
+          _lastAnimSlideText = data.text;
           currentAnimState = animType;
 
           box.classList.remove('animate-appear-slide', 'animate-appear-drop', 'animate-appear-pop', 'animate-appear-flip', 'animate-appear-glow');
@@ -1569,7 +1684,8 @@
       if (footerBarEl) {
         let hasFooter = false;
         if (data.scaleText) {
-          if (scaleTextEl) scaleTextEl.textContent = `السلم: ${data.scaleText}`;
+          const cleanScaleText = String(data.scaleText).replace(/\s*\([^)]*\)/g, '').trim();
+          if (scaleTextEl) scaleTextEl.textContent = `السلم: ${cleanScaleText}`;
           if (scaleBadgeEl) scaleBadgeEl.classList.remove('hidden');
           hasFooter = true;
         } else if (scaleBadgeEl) {
@@ -1639,19 +1755,22 @@
       }
     });
 
-    // 0ms FAST LOCAL TICKER FOR OBS CEF PROCESS ON SAME DEVICE
+    let lastRawPayloadString = null;
+    // SMART LOCAL TICKER FOR OBS CEF PROCESS ON SAME DEVICE
     setInterval(() => {
       try {
         const raw = localStorage.getItem('sunday_school_taranim_live_presentation');
         if (raw) {
+          if (raw === lastRawPayloadString && !raw.includes('"forceRefresh":true')) return;
           const data = JSON.parse(raw);
-          if (data && data.updatedAt && data.updatedAt > lastLocalPayloadTime) {
+          if (data && data.updatedAt && (data.updatedAt > lastLocalPayloadTime || data.forceRefresh)) {
+            lastRawPayloadString = raw;
             lastLocalPayloadTime = data.updatedAt;
             applyState(data, 'local');
           }
         }
       } catch(e) {}
-    }, 30);
+    }, 45);
 
     const initialLiveRaw = localStorage.getItem('sunday_school_taranim_live_presentation');
     if (initialLiveRaw) {
@@ -1662,13 +1781,22 @@
       } catch(err) {}
     }
 
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      });
+    }
+
     let isFetching = false;
     let lastFetchStartTime = 0;
     let activeLiveApiUrl = null;
 
     async function fetchLiveHTTP() {
-      // IF LOCAL STORAGE / BROADCAST WAS UPDATED IN LAST 4 SECONDS (SAME DEVICE PRESENTER), BYPASS INTERNET HTTP FETCH!
-      if (Date.now() - lastLocalPayloadTime < 4000) {
+      // 1. IF WI-FI / INTERNET IS OFF, SILENTLY BYPASS NETWORK FETCH (100% OFFLINE MODE)
+      if (navigator.onLine === false) return;
+
+      // 2. IF LOCAL STORAGE / BROADCAST WAS UPDATED IN LAST 10 SECONDS (SAME DEVICE PRESENTER), BYPASS INTERNET HTTP FETCH!
+      if (Date.now() - lastLocalPayloadTime < 10000) {
         return;
       }
 

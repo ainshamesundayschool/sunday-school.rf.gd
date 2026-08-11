@@ -533,6 +533,13 @@
             <div class="style-card" style="margin-top:10px;">
               <div class="style-card-title"><i class="fa-solid fa-eye-slash"></i> أدوات العرض والتحكم</div>
               
+              <div class="control-field" style="margin-bottom:10px;">
+                <label class="toggle-switch-label" style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; font-size:0.88rem; background:#eff6ff; border:1px solid #bfdbfe; padding:8px 10px; border-radius:10px; font-weight:600; color:#1e40af;">
+                  <span><i class="fa-solid fa-video" style="margin-left:6px; color:#2563eb;"></i> وضع OBS المباشر (منع التجميد)</span>
+                  <input type="checkbox" id="btn-toggle-obs-mode" class="toggle-checkbox" checked>
+                </label>
+              </div>
+
               <div class="control-field">
                 <label>أدوات التحكم للشاشة</label>
                 <button type="button" id="btn-toggle-hide-controls" class="segmented-btn" style="width:100%; justify-content:center; padding:8px; gap:8px; background:#f1f5f9; border-radius:10px; font-weight:600;">
@@ -629,6 +636,11 @@
             </div>
           </div>
           <div class="panel-bar-end panel-controls" style="display:flex; align-items:center; gap:6px; position:relative; direction:ltr !important;">
+            <!-- OBS FREEZE FIX BUTTON (VISIBLE WHEN OBS MODE IS ON) -->
+            <button id="btn-fix-obs-freeze" class="mini-btn-flat btn-obs-fix hidden" title="فك جمود وتحديث شاشة OBS" style="background:#fef3c7; color:#b45309; border:1px solid #fde68a;">
+              <i class="fa-solid fa-rotate-right"></i> <span style="font-size:0.75rem; font-weight:700; margin-right:4px;">فك جمود OBS</span>
+            </button>
+
             <!-- 1. FULLSCREEN BUTTON (FIRST FROM THE LEFT) -->
             <button id="btn-presenter-fullscreen" class="mini-btn-flat btn-fullscreen-launch" title="عرض ملء الشاشة"><i class="fa-solid fa-expand"></i></button>
 

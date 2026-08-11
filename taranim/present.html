@@ -1486,6 +1486,17 @@
 
       if (!textEl || !box) return;
 
+      if (data.forceRefresh) {
+        // Force complete DOM repaint and reset stuck transitions to unfreeze OBS
+        box.style.display = 'none';
+        void box.offsetHeight;
+        box.style.display = '';
+        if (textEl) {
+          textEl.classList.remove('anim-slide', 'anim-drop', 'anim-pop', 'anim-flip', 'anim-glow');
+          void textEl.offsetHeight;
+        }
+      }
+
       const incomingChroma = data.chroma || data.chromaKey;
       if (incomingChroma) {
         document.body.setAttribute('data-chroma', incomingChroma);
@@ -1744,19 +1755,22 @@
       }
     });
 
-    // 0ms FAST LOCAL TICKER FOR OBS CEF PROCESS ON SAME DEVICE
+    let lastRawPayloadString = null;
+    // SMART LOCAL TICKER FOR OBS CEF PROCESS ON SAME DEVICE
     setInterval(() => {
       try {
         const raw = localStorage.getItem('sunday_school_taranim_live_presentation');
         if (raw) {
+          if (raw === lastRawPayloadString && !raw.includes('"forceRefresh":true')) return;
           const data = JSON.parse(raw);
-          if (data && data.updatedAt && data.updatedAt > lastLocalPayloadTime) {
+          if (data && data.updatedAt && (data.updatedAt > lastLocalPayloadTime || data.forceRefresh)) {
+            lastRawPayloadString = raw;
             lastLocalPayloadTime = data.updatedAt;
             applyState(data, 'local');
           }
         }
       } catch(e) {}
-    }, 30);
+    }, 45);
 
     const initialLiveRaw = localStorage.getItem('sunday_school_taranim_live_presentation');
     if (initialLiveRaw) {
