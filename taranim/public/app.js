@@ -1287,12 +1287,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (presentationTimerInterval) clearInterval(presentationTimerInterval);
 
       container.innerHTML = `
-        <div id="active-cast-pill" class="active-cast-pill" style="display:inline-flex; align-items:center; background:#eff6ff; border:1.5px solid #bfdbfe; border-radius:20px; padding:2px 8px; gap:6px;">
-          <button type="button" id="btn-menu-cast" class="icon-menu-btn-compact" title="البث والشاشات (فتح القائمة)" style="background:none; border:none; color:#2563eb; cursor:pointer; padding:2px; font-size:0.92rem; display:flex; align-items:center;">
+        <div id="active-cast-pill" class="active-cast-pill">
+          <button type="button" id="btn-menu-cast" class="cast-live-badge-icon" title="البث والشاشات (فتح القائمة)">
+            <span class="cast-live-dot"></span>
             <i class="fa-solid fa-tv"></i>
           </button>
-          <span id="display-pill-timer" style="font-size:0.76rem; font-weight:800; color:#1e40af; font-family:monospace; min-width:38px; text-align:center;">00:00</span>
-          <button type="button" id="btn-close-cast-window" title="إغلاق شاشة العرض الخارجي" style="background:#ef4444; border:none; color:#ffffff; width:20px; height:20px; border-radius:50%; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; font-size:0.7rem; padding:0; transition:transform 0.15s ease;">
+          <span id="display-pill-timer" class="cast-timer-text">00:00</span>
+          <button type="button" id="btn-close-cast-window" class="btn-close-cast-pill" title="إغلاق شاشة العرض الخارجي">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
@@ -2732,9 +2733,9 @@ document.addEventListener('DOMContentLoaded', () => {
         state.styleOptions.strokeWidth = 0;
         state.styleOptions.shadowBlur = 0;
 
-        els.obsTextColor.value = '#ffffff';
-        els.obsStrokeRange.value = 0;
-        els.obsShadowRange.value = 0;
+        if (els.obsTextColor) els.obsTextColor.value = '#ffffff';
+        if (els.obsStrokeRange) els.obsStrokeRange.value = 0;
+        if (els.obsShadowRange) els.obsShadowRange.value = 0;
       }
 
       if (els.obsOverlay) els.obsOverlay.setAttribute('data-chroma', state.chromaKey);
