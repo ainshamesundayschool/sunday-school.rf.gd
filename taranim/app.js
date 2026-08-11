@@ -2652,38 +2652,36 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!state.presentationLines || state.presentationLines.length === 0) return;
 
         const hasAnySplit = state.presentationLines.some(l => l.isCustomSplit);
-        const shouldSplit = !hasAnySplit;
+        const targetSplitState = !hasAnySplit;
 
-        state.presentationLines.forEach((l) => {
-          if (l.isLogoSlide) return;
+        state.presentationLines.forEach((item) => {
+          if (item.isLogoSlide) return;
 
-          if (shouldSplit) {
-            if (!l.isCustomSplit) {
-              const fullText = l.lines ? l.lines.join(' ') : (l.text || '');
-              const splitParts = splitLineIntoTwo(fullText);
-              if (splitParts.length > 1) {
-                l.lines = splitParts;
-                l.text = splitParts.join('\n');
-                l.isCustomSplit = true;
-              }
-            }
+          item.isCustomSplit = targetSplitState;
+          if (!item._origLines) {
+            item._origLines = [...(item.lines || [item.text])];
+          }
+
+          if (item.isCustomSplit) {
+            const splitRes = [];
+            item._origLines.forEach(single => {
+              splitRes.push(...splitLineIntoTwo(single));
+            });
+            item.lines = splitRes;
+            item.text = (item.badgeText ? `${item.badgeText} ` : '') + item.lines.join('\n');
           } else {
-            if (l.isCustomSplit) {
-              const fullText = (l.lines ? l.lines.join(' ') : (l.text || '')).replace(/\n/g, ' ');
-              l.lines = [fullText];
-              l.text = fullText;
-              l.isCustomSplit = false;
-            }
+            item.lines = [...item._origLines];
+            item.text = (item.badgeText ? `${item.badgeText} ` : '') + item.lines.join('\n');
           }
         });
 
-        if (state.livePresentationLines) {
+        if (state.liveSong) {
           state.livePresentationLines = state.presentationLines;
         }
 
         renderPresentationLinesList();
         syncLiveState();
-        showToast(shouldSplit ? 'تم تقسيم جميع شرائح الترنيمة لسطرين!' : 'تم تحويل جميع شرائح الترنيمة لسطر واحد');
+        showToast(targetSplitState ? 'تم تقسيم جميع شرائح الترنيمة لسطرين!' : 'تم تحويل جميع شرائح الترنيمة لسطر واحد');
       });
     }
 
@@ -3268,6 +3266,18 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       els.popoverSlideJump.classList.add('hidden');
     }
+  }
+
+  if (els.presentationLinesContainer) {
+    els.presentationLinesContainer.addEventListener('scroll', () => {
+      if (state.presentationMode === 'allinone') {
+        const el = els.presentationLinesContainer;
+        const maxScroll = el.scrollHeight - el.clientHeight;
+        const scrollRatio = maxScroll > 0 ? (el.scrollTop / maxScroll) : 0;
+        state.allInOneScrollRatio = scrollRatio;
+        debouncedSyncLiveState(40);
+      }
+    });
   }
 
   function doSlideJump() {
@@ -6164,6 +6174,7 @@ document.addEventListener('DOMContentLoaded', () => {
       hideControls: Boolean(state.hideControls),
       highlightedLines: state.highlightedLineIndices || [],
       mode: state.presentationMode || 'oneline',
+      scrollRatio: state.allInOneScrollRatio !== undefined ? state.allInOneScrollRatio : 0,
       highlightColor: state.highlightColor || '#f59e0b',
       allSlideTexts: targetLines.map(item => item ? (item.text || '') : ''),
       obsMode: Boolean(state.obsMode !== false)
