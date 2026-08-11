@@ -1730,17 +1730,17 @@ document.addEventListener('DOMContentLoaded', () => {
       if (willShow) {
         els.popoverBible.classList.remove('hidden');
         if (els.btnMenuBible) els.btnMenuBible.classList.add('active');
-        if (els.btnMenuBibleTop) els.btnMenuBibleTop.classList.add('active');
         showBibleBooksStep();
       } else {
         els.popoverBible.classList.add('hidden');
-        if (els.btnMenuBible) els.btnMenuBible.classList.remove('active');
-        if (els.btnMenuBibleTop) els.btnMenuBibleTop.classList.remove('active');
+        if (els.btnMenuBible) {
+          els.btnMenuBible.classList.remove('active');
+          try { els.btnMenuBible.blur(); } catch(err) {}
+        }
       }
     };
 
     if (els.btnMenuBible) els.btnMenuBible.addEventListener('click', toggleBiblePopover);
-    if (els.btnMenuBibleTop) els.btnMenuBibleTop.addEventListener('click', toggleBiblePopover);
 
     els.popoverBible.addEventListener('click', (e) => e.stopPropagation());
 
@@ -1748,7 +1748,10 @@ document.addEventListener('DOMContentLoaded', () => {
       els.btnCloseBiblePopover.addEventListener('click', (e) => {
         e.stopPropagation();
         els.popoverBible.classList.add('hidden');
-        if (els.btnMenuBible) els.btnMenuBible.classList.remove('active');
+        if (els.btnMenuBible) {
+          els.btnMenuBible.classList.remove('active');
+          try { els.btnMenuBible.blur(); } catch(err) {}
+        }
       });
     }
 
@@ -1868,19 +1871,19 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function openBibleChapterByBookAndChapter(bookId, chNum) {
-    try {
-      const apiUrl = getApiUrl();
-      let res = await fetch(`${apiUrl}?action=bible_chapter&book_id=${bookId}&chapter=${chNum}`).catch(() => null);
-      if (!res || !res.ok) res = await fetch(`/api.php?action=bible_chapter&book_id=${bookId}&chapter=${chNum}`).catch(() => null);
-      if (!res || !res.ok) res = await fetch(`/taranim/api.php?action=bible_chapter&book_id=${bookId}&chapter=${chNum}`).catch(() => null);
-      if (res && res.ok) {
-        const chapterData = await res.json();
-        if (chapterData && (chapterData.id || chapterData.item_id || (chapterData.verses && chapterData.verses.length > 0))) {
-          chapterData.is_bible = true;
-          await openAndPresentItem(chapterData, true);
-        }
-      }
-    } catch(err) {}
+    const bId = parseInt(bookId);
+    const cNum = parseInt(chNum);
+    const bookObj = (typeof BIBLE_BOOKS_DATA !== 'undefined' && Array.isArray(BIBLE_BOOKS_DATA)) ? BIBLE_BOOKS_DATA.find(b => parseInt(b.id) === bId) : null;
+    const bookTitle = bookObj ? bookObj.title : '';
+    const syntheticItem = {
+      id: `bible_${bId}_${cNum}`,
+      item_id: `bible_${bId}_${cNum}`,
+      book_id: bId,
+      chapter_number: cNum,
+      is_bible: true,
+      title: bookTitle ? `سفر ${bookTitle} - الأصحاح ${cNum}` : `الكتاب المقدس - الأصحاح ${cNum}`
+    };
+    await openAndPresentItem(syntheticItem, true);
   }
 
   function saveUserSettings() {
@@ -4935,6 +4938,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let targetSong = inputObject ? JSON.parse(JSON.stringify(inputObject)) : null;
     let originSource = inputObject ? 'direct_object_parameter' : 'unknown';
+
+    // 0. BIBLE LOCAL MEMORY LOOKUP (INSTANT 0ms FOR ALL 1,189 BIBLE CHAPTERS)
+    if (isItemBible) {
+      let bId = (inputObject && inputObject.book_id !== undefined && inputObject.book_id !== null && inputObject.book_id !== '') ? inputObject.book_id : (inputObject && inputObject.book ? inputObject.book : '');
+      let cNum = (inputObject && inputObject.chapter_number !== undefined && inputObject.chapter_number !== null && inputObject.chapter_number !== '') ? inputObject.chapter_number : (inputObject && inputObject.chapter !== undefined ? inputObject.chapter : '');
+      
+      if (!bId || !cNum) {
+        const m = String(rawSongId || '').match(/^(?:bible_)?(\d+)_(\d+)$/);
+        if (m) {
+          bId = m[1];
+          cNum = m[2];
+        }
+      }
+
+      if (bId && cNum) {
+        const cacheKey = `${bId}_${cNum}`;
+        let localChapter = null;
+
+        if (state.bibleChaptersData && state.bibleChaptersData[cacheKey]) {
+          localChapter = JSON.parse(JSON.stringify(state.bibleChaptersData[cacheKey]));
+        }
+
+        if (localChapter && hasCompleteContent(localChapter)) {
+          localChapter.is_bible = true;
+          localChapter.book_id = parseInt(bId);
+          localChapter.chapter_number = parseInt(cNum);
+          state.activeSong = localChapter;
+          addToSessionRecents(localChapter);
+          loadSongIntoPresentation(localChapter);
+          return;
+        }
+      }
+    }
 
     // 1. MATCH IN SESSION RECENTS BY ID IF NOT COMPLETE
     if ((!targetSong || !hasCompleteContent(targetSong)) && cleanId) {
