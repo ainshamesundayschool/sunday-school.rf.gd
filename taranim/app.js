@@ -2120,6 +2120,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (els.dropdownPwaInstallRow) els.dropdownPwaInstallRow.classList.remove('hidden');
     });
 
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+    const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+    const dropdownIosInstallRow = document.getElementById('dropdown-ios-install-row');
+    if (isIOS && !isStandalone && dropdownIosInstallRow) {
+      dropdownIosInstallRow.classList.remove('hidden');
+    }
+
     if (els.btnDropdownPwaInstall) {
       els.btnDropdownPwaInstall.addEventListener('click', async () => {
         if (!deferredPrompt) return;
