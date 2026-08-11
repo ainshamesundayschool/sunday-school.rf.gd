@@ -6680,15 +6680,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const container = els.obsOverlay || els.obsLineText.parentElement || document.body;
             const containerW = Math.max(400, container.clientWidth || window.innerWidth);
             const containerH = Math.max(300, container.clientHeight || window.innerHeight);
-            const maxContainerH = containerH * 0.82;
-            const maxContainerW = containerW * 0.86;
+            const maxContainerH = containerH * 0.88;
+            const maxContainerW = containerW * 0.92;
             const isVertical = window.innerHeight > window.innerWidth;
             const refTargetW = isVertical ? Math.max(maxContainerW, maxContainerH * (16 / 9)) : maxContainerW;
 
             const segmentsCount = els.obsLineText.querySelectorAll('.obs-line-segment').length || 1;
             const isJomhuriaFont = /jomhuria/i.test(state.selectedFont || '');
 
-            // OPTIMIZE LINE SPACING AUTOMATICALLY IN AUTO-FIT MODE
             let optimalLineHeight = 1.3;
             if (isJomhuriaFont) {
               optimalLineHeight = 1.4;
@@ -6699,10 +6698,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             els.obsLineText.style.lineHeight = `${optimalLineHeight}`;
 
-            const minFloor = isJomhuriaFont ? 56 : 44;
-            let low = minFloor;
-            let high = isJomhuriaFont ? 300 : 260;
-            let bestFit = minFloor;
+            let low = Math.max(48, Math.floor(containerH * 0.05));
+            let maxLimit = isJomhuriaFont ? Math.max(380, Math.floor(containerH * 0.45)) : Math.max(300, Math.floor(containerH * 0.35));
+            let high = Math.min(maxLimit, Math.max(low + 20, Math.floor(maxContainerH / Math.max(1, (segmentsCount || 1) * 0.65))));
+            let bestFit = low;
 
             while (low <= high) {
               const mid = Math.floor((low + high) / 2);
@@ -6718,16 +6717,8 @@ document.addEventListener('DOMContentLoaded', () => {
               }
             }
 
-            bestFit = Math.max(minFloor, bestFit);
+            bestFit = Math.max(Math.floor(containerH * 0.05), bestFit);
             els.obsLineText.style.fontSize = `${bestFit}px`;
-            let curW = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
-            let curH = els.obsLineText.scrollHeight || els.obsLineText.offsetHeight;
-            while ((curW > maxContainerW || curH > maxContainerH) && bestFit > minFloor) {
-              bestFit--;
-              els.obsLineText.style.fontSize = `${bestFit}px`;
-              curW = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
-              curH = els.obsLineText.scrollHeight || els.obsLineText.offsetHeight;
-            }
           }
           els.obsLineText.style.transform = 'none';
         }

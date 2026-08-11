@@ -1203,8 +1203,8 @@
       let baseSize = (lastStyleData && lastStyleData.fontSize) || stateFontSize || 54;
       const scaleMode = (lastStyleData && lastStyleData.scaleMode) || 'auto';
       const container = document.getElementById('obs-overlay-container') || document.body;
-      const maxH = (container.clientHeight || window.innerHeight) * 0.82;
-      const maxW = (container.clientWidth || window.innerWidth) * 0.86;
+      const maxH = (container.clientHeight || window.innerHeight) * 0.88;
+      const maxW = (container.clientWidth || window.innerWidth) * 0.92;
 
       const segments = Array.from(textEl.querySelectorAll('.obs-line-segment'));
       const currentFont = (lastStyleData && lastStyleData.font) || textEl.style.fontFamily || '';
@@ -1232,17 +1232,10 @@
       segments.forEach(s => {
         s.style.display = 'inline-block';
         s.style.width = 'auto';
-        if (isBible || align === 'justify') {
-          s.style.whiteSpace = 'pre-wrap';
-          s.style.wordBreak = 'break-word';
-          s.style.overflowWrap = 'break-word';
-          s.style.textAlign = align;
-        } else {
-          s.style.whiteSpace = 'nowrap';
-          s.style.wordBreak = 'keep-all';
-          s.style.overflowWrap = 'normal';
-          s.style.textAlign = align;
-        }
+        s.style.whiteSpace = 'pre-wrap';
+        s.style.wordBreak = 'break-word';
+        s.style.overflowWrap = 'break-word';
+        s.style.textAlign = align;
       });
 
       // Apply Font & Typography Metrics BEFORE Binary Search so measurements reflect real font bounds
@@ -1258,7 +1251,7 @@
         textEl.style.fontFamily = 'Jomhuria, Arial, sans-serif';
         textEl.style.letterSpacing = `${lSpacing || 2}px`;
         textEl.style.wordSpacing = '6px';
-        textEl.style.fontWeight = '400'; // BLOCK BOLD WEIGHT FOR JOMHURIA
+        textEl.style.fontWeight = '400';
       } else {
         textEl.style.fontFamily = currentFont || 'sans-serif';
         textEl.style.letterSpacing = `${lSpacing}px`;
@@ -1285,48 +1278,30 @@
         }
         textEl.style.lineHeight = `${autoLineHeight}`;
 
-        // USE CACHED UNIFORM FONT SIZE IF AVAILABLE
-        if (_uniformFontSize !== null) {
-          renderSize = _uniformFontSize;
-        } else {
-          const isVertical = window.innerHeight > window.innerWidth;
-          const refTargetW = isVertical ? Math.max(maxW, maxH * (16 / 9)) : maxW;
+        const isVertical = window.innerHeight > window.innerWidth;
+        const refTargetW = isVertical ? Math.max(maxW, maxH * (16 / 9)) : maxW;
 
-          let low = 16;
-          let maxLimit = isJomhuria ? 300 : 260;
-          let high = Math.min(maxLimit, Math.max(120, Math.floor(maxH / Math.max(1, (segmentsCount || 1) * 0.85))));
-          renderSize = 16;
+        const screenH = container.clientHeight || window.innerHeight || 1080;
+        let low = Math.max(48, Math.floor(screenH * 0.05));
+        let maxLimit = isJomhuria ? Math.max(380, Math.floor(screenH * 0.45)) : Math.max(300, Math.floor(screenH * 0.35));
+        let high = Math.min(maxLimit, Math.max(low + 20, Math.floor(maxH / Math.max(1, (segmentsCount || 1) * 0.65))));
+        renderSize = low;
 
-          textEl.style.whiteSpace = 'nowrap';
-          textEl.style.maxWidth = 'none';
+        while (low <= high) {
+          const mid = Math.floor((low + high) / 2);
+          textEl.style.fontSize = `${mid}px`;
+          const h = textEl.scrollHeight || textEl.offsetHeight;
+          const w = textEl.scrollWidth || textEl.offsetWidth;
 
-          while (low <= high) {
-            const mid = Math.floor((low + high) / 2);
-            textEl.style.fontSize = `${mid}px`;
-            const h = textEl.scrollHeight || textEl.offsetHeight;
-            const w = textEl.scrollWidth || textEl.offsetWidth;
-
-            if (h <= maxH && w <= refTargetW) {
-              renderSize = mid;
-              low = mid + 1;
-            } else {
-              high = mid - 1;
-            }
-          }
-
-          textEl.style.fontSize = `${renderSize}px`;
-
-          // Safety clamp: shrink if text still overflows maxW or maxH
-          let currentW = textEl.scrollWidth || textEl.offsetWidth;
-          let currentH = textEl.scrollHeight || textEl.offsetHeight;
-          if (currentW > maxW || currentH > maxH) {
-            const ratioW = maxW / Math.max(1, currentW);
-            const ratioH = maxH / Math.max(1, currentH);
-            renderSize = Math.max(14, Math.floor(renderSize * Math.min(ratioW, ratioH)));
-            textEl.style.fontSize = `${renderSize}px`;
+          if (h <= maxH && w <= refTargetW) {
+            renderSize = mid;
+            low = mid + 1;
+          } else {
+            high = mid - 1;
           }
         }
 
+        renderSize = Math.max(Math.floor(screenH * 0.05), renderSize);
         textEl.style.fontSize = `${renderSize}px`;
       }
 
