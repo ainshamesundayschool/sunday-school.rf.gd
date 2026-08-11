@@ -3065,12 +3065,13 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('رابط العرض: ' + obsUrl);
       }
 
-      const originalHtml = els.btnCopyObsUrl.innerHTML;
-      els.btnCopyObsUrl.innerHTML = `<i class="fa-solid fa-check fa-lg"></i> تم النسخ!`;
+      els.btnCopyObsUrl.innerHTML = `<i class="fa-solid fa-check"></i> تم النسخ!`;
       els.btnCopyObsUrl.classList.add('btn-copied-anim');
 
-      setTimeout(() => {
-        els.btnCopyObsUrl.innerHTML = originalHtml;
+      if (els.btnCopyObsUrl._copyTimeout) clearTimeout(els.btnCopyObsUrl._copyTimeout);
+
+      els.btnCopyObsUrl._copyTimeout = setTimeout(() => {
+        els.btnCopyObsUrl.innerHTML = `<i class="fa-solid fa-copy"></i> نسخ الرابط`;
         els.btnCopyObsUrl.classList.remove('btn-copied-anim');
       }, 1400);
     });
