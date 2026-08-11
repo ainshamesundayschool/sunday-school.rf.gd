@@ -1851,9 +1851,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!res || !res.ok) res = await fetch(`/taranim/api.php?action=bible_chapter&book_id=${bookId}&chapter=${chNum}`).catch(() => null);
       if (res && res.ok) {
         const chapterData = await res.json();
-        if (chapterData && (chapterData.id || chapterData.item_id)) {
-          const targetId = chapterData.id || chapterData.item_id;
-          await openAndPresentItem(targetId, true);
+        if (chapterData && (chapterData.id || chapterData.item_id || (chapterData.verses && chapterData.verses.length > 0))) {
+          chapterData.is_bible = true;
+          await openAndPresentItem(chapterData, true);
         }
       }
     } catch(err) {}
@@ -4543,27 +4543,30 @@ document.addEventListener('DOMContentLoaded', () => {
       if (targetBookData) {
         const bookId = targetBookData.id;
         const chNum = parseInt(bibleInfo.chapter) || 1;
-        const fallbackTitle = `${targetBookData.title} - الأصحاح ${chNum}`;
+        const maxCh = parseInt(targetBookData.totalChapters || targetBookData.chapters) || 150;
 
-        const targetBookNorm = normalizeArabic(bibleInfo.bookName || targetBookData.title);
-        const existingInList = songsList.find(s => {
-          const isItemBible = Boolean((s.is_bible === true || s.is_bible === '1' || s.is_bible === 1) || (s.chapter_number !== undefined && s.chapter_number !== null && s.chapter_number !== ''));
-          if (!isItemBible) return false;
-          const sTitleNorm = normalizeArabic(s.title || '');
-          const chMatches = String(s.chapter_number || '') === String(chNum) || sTitleNorm.includes(`الاصحاح ${chNum}`) || sTitleNorm.includes(`الأصحاح ${chNum}`) || sTitleNorm.includes(`إصحاح ${chNum}`);
-          return chMatches && (sTitleNorm.includes(targetBookNorm) || (s.book_id && String(s.book_id) === String(bookId)));
-        });
+        if (chNum > 0 && chNum <= maxCh) {
+          const fallbackTitle = `سفر ${targetBookData.title} - الأصحاح ${chNum}`;
+          const targetBookNorm = normalizeArabic(bibleInfo.bookName || targetBookData.title);
+          const existingInList = songsList.find(s => {
+            const isItemBible = Boolean((s.is_bible === true || s.is_bible === '1' || s.is_bible === 1) || (s.chapter_number !== undefined && s.chapter_number !== null && s.chapter_number !== ''));
+            if (!isItemBible) return false;
+            const sTitleNorm = normalizeArabic(s.title || '');
+            const chMatches = String(s.chapter_number || '') === String(chNum) || sTitleNorm.includes(`الاصحاح ${chNum}`) || sTitleNorm.includes(`الأصحاح ${chNum}`) || sTitleNorm.includes(`إصحاح ${chNum}`);
+            return chMatches && (sTitleNorm.includes(targetBookNorm) || (s.book_id && String(s.book_id) === String(bookId)));
+          });
 
-        if (!existingInList) {
-          songsList = [{
-            id: `bible_${bookId}_${chNum}`,
-            item_id: `bible_${bookId}_${chNum}`,
-            title: fallbackTitle,
-            is_bible: true,
-            book_id: bookId,
-            chapter_number: chNum,
-            notes: `سفر ${targetBookData.title} - الإصحاح ${chNum}`
-          }, ...songsList];
+          if (!existingInList) {
+            songsList = [{
+              id: `bible_${bookId}_${chNum}`,
+              item_id: `bible_${bookId}_${chNum}`,
+              title: fallbackTitle,
+              is_bible: true,
+              book_id: bookId,
+              chapter_number: chNum,
+              notes: ""
+            }, ...songsList];
+          }
         }
       }
     }

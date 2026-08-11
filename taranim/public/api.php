@@ -415,6 +415,47 @@ if (isset($_GET['action']) && $_GET['action'] === 'bible_chapter') {
             $chapter = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($chapter) {
+                $vStmt = $pdo->prepare("SELECT id, type FROM verses WHERE item_id = :itemId OR item_id = :cId ORDER BY id ASC");
+                $vStmt->bindValue(':itemId', $chapter['item_id'], PDO::PARAM_INT);
+                $vStmt->bindValue(':cId', $chapter['id'], PDO::PARAM_INT);
+                $vStmt->execute();
+                $verses = $vStmt->fetchAll(PDO::FETCH_ASSOC);
+
+                $versesData = [];
+                foreach ($verses as $verse) {
+                    $sStmt = $pdo->prepare("SELECT id, heading FROM slides WHERE verse = :vid ORDER BY id ASC");
+                    $sStmt->bindValue(':vid', $verse['id'], PDO::PARAM_INT);
+                    $sStmt->execute();
+                    $slides = $sStmt->fetchAll(PDO::FETCH_ASSOC);
+
+                    $slidesData = [];
+                    foreach ($slides as $slide) {
+                        $lineStmt = $pdo->prepare("SELECT id, content FROM segments WHERE slide = :sid ORDER BY id ASC");
+                        $lineStmt->bindValue(':sid', $slide['id'], PDO::PARAM_INT);
+                        $lineStmt->execute();
+                        $segRows = $lineStmt->fetchAll(PDO::FETCH_ASSOC);
+
+                        $lines = [];
+                        foreach ($segRows as $seg) {
+                            $lines[] = trim($seg['content']);
+                        }
+
+                        $slidesData[] = [
+                            'id' => $slide['id'],
+                            'heading' => $slide['heading'],
+                            'lines' => $lines,
+                            'text' => implode("\n", array_filter($lines))
+                        ];
+                    }
+
+                    $versesData[] = [
+                        'id' => $verse['id'],
+                        'type' => $verse['type'],
+                        'slides' => $slidesData
+                    ];
+                }
+
+                $chapter['verses'] = $versesData;
                 echo json_encode($chapter);
                 exit;
             }
