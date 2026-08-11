@@ -1400,8 +1400,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <i class="fa-solid fa-expand"></i>
           </div>
           <h3 style="margin:0 0 8px; font-size:1.15rem; font-weight:800; color:#1e293b;">فتح الشاشة الخارجية ملء الشاشة</h3>
-          <p style="margin:0 0 18px; font-size:0.88rem; color:#64748b; line-height:1.5;">
-            اضغط على <strong>زر المسافة (Space)</strong> أو انقر على الشاشة الخارجية لفتح العرض ملء الشاشة الكامل، وسيعود التركيز فوراً للوحة التحكم للتحكم دون انقطاع.
+          <p style="margin:0 0 18px; font-size:0.92rem; color:#475569; font-weight:600; line-height:1.5;">
+            اضغط على زر المسافة (Space) أو انقر على الشاشة الخارجية
           </p>
           <button type="button" id="btn-close-ext-notice" style="background:#2563eb; color:#ffffff; border:none; padding:10px 24px; border-radius:10px; font-weight:700; font-size:0.9rem; cursor:pointer; width:100%; transition:all 0.15s ease;">
             حسناً، فهمت
@@ -3932,8 +3932,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         return '<div class="' + cardClass + '" data-val="' + val + '"><div class="screen-info"><span class="screen-name"><i class="fa-solid fa-desktop"></i> ' + escapeHtml(name) + '</span>' + chipsHtml + '<span class="screen-res" style="font-size:0.75rem; color:#94a3b8; margin-top:3px; display:block;">' + s.width + ' × ' + s.height + ' px</span></div><i class="fa-solid fa-expand launch-btn-icon"></i></div>';
       }).join('');
-
-      cardsHtml += '<div class="screen-cast-card mini-overlay-card" data-val="in_app_overlay" style="padding:6px 10px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:8px; font-size:0.76rem; font-weight:600; color:#475569; display:flex; align-items:center; justify-content:space-between; margin-top:3px; cursor:pointer;"><span style="display:flex; align-items:center; gap:6px;"><i class="fa-solid fa-window-maximize" style="color:#64748b;"></i> عرض overlay داخل هذه الشاشة</span><span style="font-size:0.72rem; color:#2563eb; font-weight:700; background:#eff6ff; padding:2px 6px; border-radius:4px; border:1px solid #bfdbfe;">عرض</span></div>';
 
       els.screensCastList.innerHTML = cardsHtml;
 
