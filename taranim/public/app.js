@@ -2081,65 +2081,44 @@ document.addEventListener('DOMContentLoaded', () => {
       els.popoverInstall.addEventListener('click', (e) => e.stopPropagation());
     }
 
-    // OFFLINE BROADCAST GUIDE MODAL & APP TABS
-    const btnOpenOfflineGuide = document.getElementById('btn-open-offline-guide');
-    const modalOfflineGuide = document.getElementById('modal-offline-broadcast-guide');
-    const btnCloseOfflineGuide = document.getElementById('btn-close-offline-guide');
-    const btnGuideCloseBottom = document.getElementById('btn-guide-close-bottom');
-    const btnGuideLaunchStealth = document.getElementById('btn-guide-launch-stealth');
-    const btnGuideCopyUrl = document.getElementById('btn-guide-copy-url');
+    // LIVE FILE FORMAT CHOICE MODAL HANDLERS
+    const modalLiveFileFormat = document.getElementById('modal-live-file-format');
+    const btnCloseFileFormatModal = document.getElementById('btn-close-file-format-modal');
+    const btnDownloadFormatHtml = document.getElementById('btn-download-format-html');
+    const btnDownloadFormatTxt = document.getElementById('btn-download-format-txt');
+    const btnDownloadFormatJson = document.getElementById('btn-download-format-json');
 
-    if (btnOpenOfflineGuide && modalOfflineGuide) {
-      btnOpenOfflineGuide.addEventListener('click', (e) => {
-        e.stopPropagation();
-        modalOfflineGuide.classList.remove('hidden');
-      });
-    }
-
-    const closeGuideModal = () => {
-      if (modalOfflineGuide) modalOfflineGuide.classList.add('hidden');
+    const closeLiveFileFormatModal = () => {
+      if (modalLiveFileFormat) modalLiveFileFormat.classList.add('hidden');
     };
 
-    if (btnCloseOfflineGuide) btnCloseOfflineGuide.addEventListener('click', closeGuideModal);
-    if (btnGuideCloseBottom) btnGuideCloseBottom.addEventListener('click', closeGuideModal);
-    if (modalOfflineGuide) {
-      modalOfflineGuide.addEventListener('click', (e) => {
-        if (e.target === modalOfflineGuide) closeGuideModal();
+    if (btnCloseFileFormatModal) btnCloseFileFormatModal.addEventListener('click', closeLiveFileFormatModal);
+    if (modalLiveFileFormat) {
+      modalLiveFileFormat.addEventListener('click', (e) => {
+        if (e.target === modalLiveFileFormat) closeLiveFileFormatModal();
       });
     }
 
-    if (btnGuideLaunchStealth) {
-      btnGuideLaunchStealth.addEventListener('click', () => {
-        const obsBtn = document.getElementById('btn-open-obs-window');
-        if (obsBtn) obsBtn.click();
-        closeGuideModal();
+    if (btnDownloadFormatHtml) {
+      btnDownloadFormatHtml.addEventListener('click', () => {
+        closeLiveFileFormatModal();
+        setLiveSyncFile('html');
       });
     }
 
-    if (btnGuideCopyUrl) {
-      btnGuideCopyUrl.addEventListener('click', () => {
-        const copyBtn = document.getElementById('btn-copy-obs-url');
-        if (copyBtn) copyBtn.click();
+    if (btnDownloadFormatTxt) {
+      btnDownloadFormatTxt.addEventListener('click', () => {
+        closeLiveFileFormatModal();
+        setLiveSyncFile('txt');
       });
     }
 
-    const guideAppBtns = document.querySelectorAll('.guide-app-btn');
-    guideAppBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        guideAppBtns.forEach(b => {
-          b.classList.remove('active');
-          b.style.border = '1px solid #cbd5e1';
-          b.style.background = '#ffffff';
-          const txt = b.querySelector('span');
-          if (txt) txt.style.color = '#475569';
-        });
-        btn.classList.add('active');
-        btn.style.border = '2px solid #2563eb';
-        btn.style.background = '#eff6ff';
-        const txt = btn.querySelector('span');
-        if (txt) txt.style.color = '#1e40af';
+    if (btnDownloadFormatJson) {
+      btnDownloadFormatJson.addEventListener('click', () => {
+        closeLiveFileFormatModal();
+        setLiveSyncFile('json');
       });
-    });
+    }
 
     if (els.btnDropdownPrecache) {
       els.btnDropdownPrecache.addEventListener('click', async () => {
@@ -3098,7 +3077,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const btnSyncLiveFile = document.getElementById('btn-sync-live-file');
     if (btnSyncLiveFile) {
-      btnSyncLiveFile.addEventListener('click', setLiveSyncFile);
+      btnSyncLiveFile.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const modal = document.getElementById('modal-live-file-format');
+        if (modal) modal.classList.remove('hidden');
+      });
     }
 
     let highlightedSearchIndex = -1;
@@ -6466,18 +6449,28 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   let liveFileHandle = null;
+  let liveFileFormat = 'html';
 
-  async function setLiveSyncFile() {
+  async function setLiveSyncFile(chosenFormat = 'html') {
+    liveFileFormat = chosenFormat;
+    let suggestedName = 'live.html';
+    let fileTypes = [{ description: 'HTML File for OBS Browser', accept: { 'text/html': ['.html'] } }];
+
+    if (chosenFormat === 'txt') {
+      suggestedName = 'live.txt';
+      fileTypes = [{ description: 'Text File for OBS', accept: { 'text/plain': ['.txt'] } }];
+    } else if (chosenFormat === 'json') {
+      suggestedName = 'live.json';
+      fileTypes = [{ description: 'JSON File for Broadcast', accept: { 'application/json': ['.json'] } }];
+    }
+
     if ('showSaveFilePicker' in window) {
       try {
         liveFileHandle = await window.showSaveFilePicker({
-          suggestedName: 'live.txt',
-          types: [{
-            description: 'Text File for OBS',
-            accept: { 'text/plain': ['.txt'] },
-          }],
+          suggestedName: suggestedName,
+          types: fileTypes
         });
-        showToast('تم حفظ/تحميل ملف live.txt بنجاح!');
+        showToast(`تم ربط ملف ${suggestedName} بنجاح!`);
         const currentLine = state.presentationLines[state.currentLineIndex];
         saveLiveTextToDisk(currentLine ? currentLine.text : '');
       } catch (err) {
@@ -6486,8 +6479,81 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     } else {
-      alert('لتحديث ملف النص أوفلاين تلقائياً على جهازك، يرجى استخدام متصفح Chrome أو Edge أو فتح النافذة المنبثقة.');
+      downloadLiveFileDirectly(chosenFormat);
     }
+  }
+
+  function downloadLiveFileDirectly(format) {
+    const currentLine = state.presentationLines[state.currentLineIndex];
+    const text = currentLine ? currentLine.text : '';
+    let content = '';
+    let filename = `live.${format}`;
+    let mimeType = 'text/html';
+
+    if (format === 'txt') {
+      mimeType = 'text/plain;charset=utf-8';
+      content = state.isBlank ? '' : (text || '').replace(/<[^>]*>/g, '');
+    } else if (format === 'json') {
+      mimeType = 'application/json;charset=utf-8';
+      content = JSON.stringify({
+        text: state.isBlank ? '' : text,
+        songTitle: state.liveSong ? state.liveSong.title : '',
+        currentSlide: state.liveLineIndex + 1,
+        totalSlides: state.presentationLines ? state.presentationLines.length : 0,
+        isBlank: state.isBlank,
+        updatedAt: Date.now()
+      }, null, 2);
+    } else {
+      mimeType = 'text/html;charset=utf-8';
+      const cleanText = state.isBlank ? '' : text;
+      content = `<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="refresh" content="2">
+<title>Live Presenter</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@700;800&family=Cairo:wght@700;800&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: transparent;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-family: 'Baloo Bhaijaan 2', 'Cairo', sans-serif;
+    text-align: center;
+  }
+  .lyrics-box {
+    color: ${state.styleOptions.textColor || '#ffffff'};
+    font-size: ${state.styleOptions.fontSize || 54}px;
+    font-weight: ${state.styleOptions.fontWeight || '800'};
+    line-height: ${state.styleOptions.lineHeight || 1.4};
+    text-shadow: 0 4px 18px ${state.styleOptions.shadowColor || '#000000'};
+    -webkit-text-stroke: ${state.styleOptions.strokeWidth || 3}px ${state.styleOptions.strokeColor || '#000000'};
+    padding: 20px 40px;
+    max-width: 90vw;
+  }
+</style>
+</head>
+<body>
+  <div class="lyrics-box">${cleanText}</div>
+</body>
+</html>`;
+    }
+
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast(`تم تحميل ملف ${filename} بنجاح!`);
   }
 
   const ARABIC_GLYPH_MAP = {
@@ -6597,9 +6663,71 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!liveFileHandle) return;
     try {
       const writable = await liveFileHandle.createWritable();
-      const cleanText = state.isBlank ? '' : (text || '').replace(/<[^>]*>/g, '');
-      const formattedObsText = reshapeArabicStringForObs(cleanText);
-      await writable.write(formattedObsText);
+      let content = '';
+
+      if (liveFileFormat === 'txt') {
+        const cleanText = state.isBlank ? '' : (text || '').replace(/<[^>]*>/g, '');
+        content = reshapeArabicStringForObs(cleanText);
+      } else if (liveFileFormat === 'json') {
+        content = JSON.stringify({
+          text: state.isBlank ? '' : text,
+          songTitle: state.liveSong ? state.liveSong.title : '',
+          currentSlide: state.liveLineIndex + 1,
+          totalSlides: state.presentationLines ? state.presentationLines.length : 0,
+          isBlank: state.isBlank,
+          updatedAt: Date.now()
+        }, null, 2);
+      } else {
+        // HTML Format (Recommended for OBS Browser Local File)
+        const cleanText = state.isBlank ? '' : text;
+        const shadowD = parseInt(state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 6);
+        const shadowA = parseInt(state.styleOptions.shadowAngle !== undefined ? state.styleOptions.shadowAngle : 142);
+        const shadowRad = (shadowA * Math.PI) / 180;
+        const shadowX = Math.round(Math.cos(shadowRad) * shadowD);
+        const shadowY = Math.round(Math.sin(shadowRad) * shadowD);
+        const shadowBlur = state.styleOptions.shadowBlur || 18;
+        const shadowColor = state.styleOptions.shadowColor || '#000000';
+        const shadowCss = `${shadowX}px ${shadowY}px ${shadowBlur}px ${shadowColor}`;
+
+        content = `<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="refresh" content="1">
+<title>Live Presenter</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@700;800&family=Cairo:wght@700;800&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: transparent;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-family: 'Baloo Bhaijaan 2', 'Cairo', sans-serif;
+    text-align: center;
+  }
+  .lyrics-box {
+    color: ${state.styleOptions.textColor || '#ffffff'};
+    font-size: ${state.styleOptions.fontSize || 54}px;
+    font-weight: ${state.styleOptions.fontWeight || '800'};
+    line-height: ${state.styleOptions.lineHeight || 1.4};
+    text-shadow: ${shadowCss};
+    -webkit-text-stroke: ${state.styleOptions.strokeWidth || 3}px ${state.styleOptions.strokeColor || '#000000'};
+    padding: 20px 40px;
+    max-width: 90vw;
+  }
+</style>
+</head>
+<body>
+  <div class="lyrics-box">${cleanText}</div>
+</body>
+</html>`;
+      }
+
+      await writable.write(content);
       await writable.close();
     } catch (err) {
       liveFileHandle = null;
