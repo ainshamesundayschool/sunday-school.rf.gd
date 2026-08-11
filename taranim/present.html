@@ -1829,49 +1829,58 @@
       }
     }
 
-      let lastLocalPayloadTime = 0;
+    let lastRenderedPayloadHash = null;
 
-      if (channel) {
-        channel.onmessage = (event) => {
-          if (event.data && event.data.updatedAt) lastLocalPayloadTime = event.data.updatedAt;
-          applyState(event.data, 'local');
-        };
-      }
+    function checkAndApplyLatestState(explicitData = null) {
+      try {
+        let data = explicitData;
+        let raw = null;
+
+        if (!data) {
+          raw = localStorage.getItem('sunday_school_taranim_live_presentation');
+          if (!raw) return;
+          if (raw === lastRenderedPayloadHash && !raw.includes('"forceRefresh":true')) return;
+          data = JSON.parse(raw);
+        } else {
+          try { raw = JSON.stringify(data); } catch(e) {}
+        }
+
+        if (data && typeof data === 'object') {
+          if (raw) lastRenderedPayloadHash = raw;
+          if (data.updatedAt) lastLocalPayloadTime = data.updatedAt;
+          applyState(data, 'local');
+        }
+      } catch(e) {}
+    }
+
+    if (channel) {
+      channel.onmessage = (event) => {
+        if (event.data) {
+          checkAndApplyLatestState(event.data);
+        }
+      };
+    }
 
     window.addEventListener('storage', (e) => {
       if (e.key === 'sunday_school_taranim_live_presentation') {
-        try {
-          const data = JSON.parse(e.newValue);
-          if (data && data.updatedAt) lastLocalPayloadTime = data.updatedAt;
-          applyState(data, 'local');
-        } catch(err) {}
+        checkAndApplyLatestState();
       }
     });
 
-    let lastRawPayloadString = null;
-    // SMART LOCAL TICKER FOR OBS CEF PROCESS ON SAME DEVICE
+    // HIGH-FREQUENCY DUAL TICKER (SETINTERVAL + REQUESTANIMATIONFRAME) TO PREVENT OBS CEF FREEZING
     setInterval(() => {
-      try {
-        const raw = localStorage.getItem('sunday_school_taranim_live_presentation');
-        if (raw) {
-          if (raw === lastRawPayloadString && !raw.includes('"forceRefresh":true')) return;
-          const data = JSON.parse(raw);
-          if (data && data.updatedAt && (data.updatedAt > lastLocalPayloadTime || data.forceRefresh)) {
-            lastRawPayloadString = raw;
-            lastLocalPayloadTime = data.updatedAt;
-            applyState(data, 'local');
-          }
-        }
-      } catch(e) {}
-    }, 45);
+      checkAndApplyLatestState();
+    }, 40);
+
+    function tickObsFrame() {
+      checkAndApplyLatestState();
+      requestAnimationFrame(tickObsFrame);
+    }
+    requestAnimationFrame(tickObsFrame);
 
     const initialLiveRaw = localStorage.getItem('sunday_school_taranim_live_presentation');
     if (initialLiveRaw) {
-      try {
-        const data = JSON.parse(initialLiveRaw);
-        if (data && data.updatedAt) lastLocalPayloadTime = data.updatedAt;
-        applyState(data, 'local');
-      } catch(err) {}
+      checkAndApplyLatestState();
     }
 
     if ('serviceWorker' in navigator) {
