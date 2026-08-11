@@ -1767,13 +1767,22 @@
       } catch(err) {}
     }
 
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      });
+    }
+
     let isFetching = false;
     let lastFetchStartTime = 0;
     let activeLiveApiUrl = null;
 
     async function fetchLiveHTTP() {
-      // IF LOCAL STORAGE / BROADCAST WAS UPDATED IN LAST 4 SECONDS (SAME DEVICE PRESENTER), BYPASS INTERNET HTTP FETCH!
-      if (Date.now() - lastLocalPayloadTime < 4000) {
+      // 1. IF WI-FI / INTERNET IS OFF, SILENTLY BYPASS NETWORK FETCH (100% OFFLINE MODE)
+      if (navigator.onLine === false) return;
+
+      // 2. IF LOCAL STORAGE / BROADCAST WAS UPDATED IN LAST 10 SECONDS (SAME DEVICE PRESENTER), BYPASS INTERNET HTTP FETCH!
+      if (Date.now() - lastLocalPayloadTime < 10000) {
         return;
       }
 

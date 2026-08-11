@@ -1620,6 +1620,13 @@ input[type="checkbox"]:checked::after {
   transform: scale(1.15);
 }
 
+.split-line-btn.active {
+  color: #2563eb !important;
+  background: rgba(37, 99, 235, 0.12) !important;
+  opacity: 1 !important;
+  border-radius: 6px !important;
+}
+
 .copy-line-btn.copied {
   background: transparent !important;
   color: #10b981 !important;

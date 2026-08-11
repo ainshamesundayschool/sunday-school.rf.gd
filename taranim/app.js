@@ -5297,7 +5297,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     els.presentationLinesContainer.querySelectorAll('.line-item').forEach(item => {
       item.addEventListener('click', (e) => {
-        if (e.target.closest('.copy-line-btn') || e.target.closest('.launch-fullscreen-btn')) return;
+        if (e.target.closest('.copy-line-btn') || e.target.closest('.split-line-btn') || e.target.closest('.launch-fullscreen-btn')) return;
         const clickedIdx = parseInt(item.dataset.idx);
 
         const lineRow = e.target.closest('.slide-line-row');
