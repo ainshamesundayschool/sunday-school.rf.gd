@@ -435,22 +435,11 @@
     }
 
     /* Sleek bottom footer info bar for presenter display - NO BACKGROUND OVERLAY */
-    .presenter-footer-bar {
+    .presenter-scale-badge {
       position: fixed;
       bottom: 12px;
       right: 14px !important;
       left: auto !important;
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      pointer-events: none;
-      z-index: 999;
-      direction: rtl;
-      font-family: 'Baloo Bhaijaan 2', 'Alexandria', sans-serif;
-    }
-
-    .presenter-scale-badge,
-    .presenter-slide-counter {
       background: transparent !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
@@ -466,6 +455,37 @@
       box-shadow: none !important;
       text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
       letter-spacing: 0.3px;
+      z-index: 999;
+      direction: rtl;
+      font-family: 'Baloo Bhaijaan 2', 'Alexandria', sans-serif;
+      pointer-events: none;
+    }
+
+    .presenter-slide-counter {
+      position: fixed;
+      bottom: 12px;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+      right: auto !important;
+      background: transparent !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      border: none !important;
+      color: rgba(255, 255, 255, 0.55) !important;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0;
+      border-radius: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: none !important;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+      letter-spacing: 0.3px;
+      z-index: 999;
+      direction: rtl;
+      font-family: 'Baloo Bhaijaan 2', 'Alexandria', sans-serif;
+      pointer-events: none;
     }
 
     /* HIDE CONTROLS MODE */
@@ -1685,7 +1705,8 @@
       if (footerBarEl) {
         let hasFooter = false;
         if (data.scaleText) {
-          if (scaleTextEl) scaleTextEl.textContent = `السلم: ${data.scaleText}`;
+          const cleanScaleText = String(data.scaleText).replace(/\s*\([^)]*\)/g, '').trim();
+          if (scaleTextEl) scaleTextEl.textContent = `السلم: ${cleanScaleText}`;
           if (scaleBadgeEl) scaleBadgeEl.classList.remove('hidden');
           hasFooter = true;
         } else if (scaleBadgeEl) {

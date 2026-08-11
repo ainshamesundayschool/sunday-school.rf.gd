@@ -5806,7 +5806,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (obsFooterBar) {
         let hasContent = false;
         if (scaleText && hasText) {
-          if (obsScaleText) obsScaleText.textContent = `السلم: ${scaleText}`;
+          const cleanScaleText = String(scaleText).replace(/\s*\([^)]*\)/g, '').trim();
+          if (obsScaleText) obsScaleText.textContent = `السلم: ${cleanScaleText}`;
           if (obsScaleBadge) obsScaleBadge.classList.remove('hidden');
           hasContent = true;
         } else if (obsScaleBadge) {
@@ -6028,65 +6029,59 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
 
-      // 4. NON-DESTRUCTIVE FONT AUTO-FIT USING OFF-SCREEN MEASUREMENT CONTAINER
+      // 4. ACCURATE FONT AUTO-FIT (MATCHING PRESENT.HTML)
       const snapText = text;
       requestAnimationFrame(() => {
         if (els.obsLineText && snapText.trim() && els.obsLineText.style.display !== 'none') {
-          const container = els.obsOverlay || els.obsLineText.parentElement || document.body;
-          const maxContainerH = (container.clientHeight || window.innerHeight) * 0.88;
-          const maxContainerW = (container.clientWidth || window.innerWidth) * 0.94;
           const baseSize = state.fontSize || 54;
           const scaleMode = state.scaleMode || 'auto';
-          const isJomhuriaF = /jomhuria/i.test(state.selectedFont || '');
-          const lHeightF = state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : 1.5;
 
           if (isBible || scaleMode === 'fixed') {
             els.obsLineText.style.fontSize = `${baseSize}px`;
           } else if (scaleMode === 'auto') {
-            const songKeyOverlay = `overlay_${targetSong ? targetSong.title : ''}_${state.selectedFont}_${baseSize}_${state.styleOptions.letterSpacing}_${lHeightF}_${state.styleOptions.fontWeight}_${state.styleOptions.textAlign}_${container.clientWidth}_${container.clientHeight}`;
-            if (songKeyOverlay !== state._overlayUniformSongKey && targetLines && targetLines.length > 0) {
-              state._overlayUniformSongKey = songKeyOverlay;
-              let minSize = Infinity;
-              const measureDiv = document.createElement('div');
-              measureDiv.style.cssText = `position: absolute; visibility: hidden; top: -9999px; left: -9999px; width: ${container.clientWidth}px; font-family: ${els.obsLineText.style.fontFamily}; font-weight: ${els.obsLineText.style.fontWeight}; letter-spacing: ${els.obsLineText.style.letterSpacing};`;
-              document.body.appendChild(measureDiv);
+            const container = els.obsOverlay || els.obsLineText.parentElement || document.body;
+            const containerW = Math.max(400, container.clientWidth || window.innerWidth);
+            const containerH = Math.max(300, container.clientHeight || window.innerHeight);
+            const maxContainerH = containerH * 0.88;
+            const maxContainerW = containerW * 0.94;
+            const isVertical = window.innerHeight > window.innerWidth;
+            const refTargetW = isVertical ? Math.max(maxContainerW, maxContainerH * (16 / 9)) : maxContainerW;
 
-              for (const slideItem of targetLines) {
-                const slideText = slideItem ? (slideItem.text || '') : '';
-                if (!slideText.trim()) continue;
-                measureDiv.innerHTML = formatPresenterText(slideText, isBible, '', '');
-                const segs = Array.from(measureDiv.querySelectorAll('.obs-line-segment'));
-                segs.forEach(s => {
-                  s.style.display = 'inline-block'; s.style.width = 'auto'; s.style.whiteSpace = 'nowrap'; s.style.wordBreak = 'keep-all'; s.style.overflowWrap = 'normal';
-                });
-                const isVertical = window.innerHeight > window.innerWidth;
-                const refTargetW = isVertical ? Math.max(maxContainerW, maxContainerH * (16 / 9)) : maxContainerW;
-                let low = 16;
-                let maxLimit = isJomhuriaF ? 300 : 260;
-                let high = Math.min(maxLimit, Math.max(120, Math.floor(maxContainerH / Math.max(1, (segs.length || 1) * 0.85))));
-                let renderSize = 16;
-                measureDiv.style.maxWidth = 'none';
-                while (low <= high) {
-                  const mid = Math.floor((low + high) / 2);
-                  measureDiv.style.fontSize = `${mid}px`;
-                  const h = measureDiv.scrollHeight || measureDiv.offsetHeight;
-                  const w = measureDiv.scrollWidth || measureDiv.offsetWidth;
-                  if (h <= maxContainerH && w <= refTargetW) { renderSize = mid; low = mid + 1; } else { high = mid - 1; }
+            els.obsLineText.style.fontSize = `${baseSize}px`;
+            let curW = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
+            let curH = els.obsLineText.scrollHeight || els.obsLineText.offsetHeight;
+
+            if (curW <= refTargetW && curH <= maxContainerH) {
+              els.obsLineText.style.fontSize = `${baseSize}px`;
+            } else {
+              let low = 28;
+              let high = baseSize;
+              let bestFit = low;
+
+              while (low <= high) {
+                const mid = Math.floor((low + high) / 2);
+                els.obsLineText.style.fontSize = `${mid}px`;
+                const h = els.obsLineText.scrollHeight || els.obsLineText.offsetHeight;
+                const w = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
+
+                if (h <= maxContainerH && w <= refTargetW) {
+                  bestFit = mid;
+                  low = mid + 1;
+                } else {
+                  high = mid - 1;
                 }
-                measureDiv.style.fontSize = `${renderSize}px`;
-                let cW = measureDiv.scrollWidth || measureDiv.offsetWidth;
-                let cH = measureDiv.scrollHeight || measureDiv.offsetHeight;
-                while ((cW > maxContainerW || cH > maxContainerH) && renderSize > 14) {
-                  renderSize--; measureDiv.style.fontSize = `${renderSize}px`;
-                  cW = measureDiv.scrollWidth || measureDiv.offsetWidth; cH = measureDiv.scrollHeight || measureDiv.offsetHeight;
-                }
-                if (renderSize < minSize) minSize = renderSize;
               }
-              document.body.removeChild(measureDiv);
-              state._overlayUniformFontSize = (minSize === Infinity) ? (baseSize || 54) : minSize;
+
+              els.obsLineText.style.fontSize = `${bestFit}px`;
+              curW = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
+              curH = els.obsLineText.scrollHeight || els.obsLineText.offsetHeight;
+              while ((curW > maxContainerW || curH > maxContainerH) && bestFit > 22) {
+                bestFit--;
+                els.obsLineText.style.fontSize = `${bestFit}px`;
+                curW = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
+                curH = els.obsLineText.scrollHeight || els.obsLineText.offsetHeight;
+              }
             }
-            const uniformSize = state._overlayUniformFontSize || baseSize;
-            els.obsLineText.style.fontSize = `${uniformSize}px`;
           }
           els.obsLineText.style.transform = 'none';
         }
