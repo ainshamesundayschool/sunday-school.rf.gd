@@ -1829,6 +1829,13 @@
       }
     }
 
+    // 1. CEF BACKGROUND OCCLUSION & SLEEP OVERRIDE
+    try {
+      Object.defineProperty(document, 'hidden', { get: () => false, configurable: true });
+      Object.defineProperty(document, 'visibilityState', { get: () => 'visible', configurable: true });
+      document.addEventListener('visibilitychange', (e) => { e.stopImmediatePropagation(); }, true);
+    } catch(e) {}
+
     let lastRenderedPayloadHash = null;
 
     function checkAndApplyLatestState(explicitData = null) {
@@ -1839,7 +1846,7 @@
         if (!data) {
           raw = localStorage.getItem('sunday_school_taranim_live_presentation');
           if (!raw) return;
-          if (raw === lastRenderedPayloadHash && !raw.includes('"forceRefresh":true')) return;
+          if (raw === lastRenderedPayloadHash) return;
           data = JSON.parse(raw);
         } else {
           try { raw = JSON.stringify(data); } catch(e) {}
@@ -1859,6 +1866,19 @@
       } catch(e) {}
     }
 
+    // 2. UNTHROTTLED BACKGROUND WEB WORKER TICKER (NEVER SLEEPS OR THROTTLES IN CEF)
+    try {
+      const workerBlob = new Blob([`
+        setInterval(function() {
+          postMessage('tick');
+        }, 20);
+      `], { type: 'application/javascript' });
+      const bgWorker = new Worker(URL.createObjectURL(workerBlob));
+      bgWorker.onmessage = function() {
+        checkAndApplyLatestState();
+      };
+    } catch(e) {}
+
     if (channel) {
       channel.onmessage = (event) => {
         if (event.data) {
@@ -1873,10 +1893,9 @@
       }
     });
 
-    // HIGH-FREQUENCY DUAL TICKER (SETINTERVAL + REQUESTANIMATIONFRAME) TO PREVENT OBS CEF FREEZING
     setInterval(() => {
       checkAndApplyLatestState();
-    }, 40);
+    }, 20);
 
     function tickObsFrame() {
       checkAndApplyLatestState();
