@@ -2606,6 +2606,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const toggleSplitLongLines = document.getElementById('btn-toggle-split-long-lines');
+    const btnQuickToggleSplit = document.getElementById('btn-quick-toggle-split');
+    const iconSplitLines = document.getElementById('icon-split-lines');
     const splitLongLinesField = document.getElementById('split-long-lines-field');
 
     const updateSplitLongLinesUI = () => {
@@ -2613,20 +2615,42 @@ document.addEventListener('DOMContentLoaded', () => {
       if (splitLongLinesField) {
         splitLongLinesField.style.display = isOneLineMode ? 'block' : 'none';
       }
+      const isSplitActive = Boolean(state.splitLongLines !== false);
       if (toggleSplitLongLines) {
-        toggleSplitLongLines.checked = Boolean(state.splitLongLines !== false);
+        toggleSplitLongLines.checked = isSplitActive;
       }
+      if (iconSplitLines) {
+        if (isSplitActive) {
+          iconSplitLines.className = 'fa-solid fa-equals';
+          if (btnQuickToggleSplit) btnQuickToggleSplit.title = 'نمط السطرين مفعل (اضغط للتحويل لسطر واحد)';
+        } else {
+          iconSplitLines.className = 'fa-solid fa-minus';
+          if (btnQuickToggleSplit) btnQuickToggleSplit.title = 'نمط السطر الواحد مفعل (اضغط للتقسيم لسطرين)';
+        }
+      }
+    };
+
+    const performSplitToggle = (forcedVal = null) => {
+      state.splitLongLines = (forcedVal !== null) ? Boolean(forcedVal) : !Boolean(state.splitLongLines !== false);
+      saveUserSettings();
+      updateSplitLongLinesUI();
+      if (state.activeSong) {
+        loadSongIntoPresentation(state.activeSong);
+      }
+      syncLiveState();
+      showToast(state.splitLongLines ? 'تم تفعيل تقسيم السطر لسطرين!' : 'تم التحويل لنمط السطر الواحد');
     };
 
     if (toggleSplitLongLines) {
       toggleSplitLongLines.addEventListener('change', (e) => {
-        state.splitLongLines = e.target.checked;
-        saveUserSettings();
-        if (state.activeSong) {
-          loadSongIntoPresentation(state.activeSong);
-        }
-        syncLiveState();
-        showToast(state.splitLongLines ? 'تم تفعيل تقسيم السطر الطويل لسطرين!' : 'تم إيقاف تقسيم السطر الطويل');
+        performSplitToggle(e.target.checked);
+      });
+    }
+
+    if (btnQuickToggleSplit) {
+      btnQuickToggleSplit.addEventListener('click', (e) => {
+        e.stopPropagation();
+        performSplitToggle();
       });
     }
 
