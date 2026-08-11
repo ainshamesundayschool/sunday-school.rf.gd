@@ -3541,9 +3541,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (screenDetails && screenDetails.screens && screenDetails.screens.length > 0) {
       screens = screenDetails.screens;
     } else {
+      const currentW = window.screen.width || window.innerWidth || 1920;
+      const currentH = window.screen.height || window.innerHeight || 1080;
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+
       screens = [
-        { label: 'Built-in Retina Display', width: window.screen.width || 1920, height: window.screen.height || 1080, isPrimary: true },
-        { label: 'PHL24M1N3200Z', width: 1920, height: 1080, isPrimary: false }
+        {
+          label: isMobile ? 'شاشة الهاتف المحمول' : 'الشاشة الرئيسية',
+          width: currentW,
+          height: currentH,
+          isPrimary: true
+        }
       ];
     }
 
