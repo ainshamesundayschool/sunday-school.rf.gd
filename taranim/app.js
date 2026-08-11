@@ -1137,6 +1137,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els && els.obsOverlay) {
       els.obsOverlay.classList.add('hidden');
     }
+    document.body.classList.remove('has-active-overlay');
+    document.body.style.backgroundColor = '';
+    document.body.style.background = '';
+
     if (document.fullscreenElement && document.exitFullscreen) {
       document.exitFullscreen().catch(() => {});
     } else if (document.webkitFullscreenElement && document.webkitExitFullscreen) {
@@ -1374,12 +1378,54 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function showExternalFullscreenNotice() {
+    let noticeEl = document.getElementById('notice-ext-fs-modal');
+    if (!noticeEl) {
+      noticeEl = document.createElement('div');
+      noticeEl.id = 'notice-ext-fs-modal';
+      noticeEl.style.cssText = 'position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(15,23,42,0.65); backdrop-filter:blur(8px); z-index:99999; display:flex; align-items:center; justify-content:center; padding:20px; animation:fadeIn 0.2s ease;';
+      noticeEl.innerHTML = `
+        <div style="background:#ffffff; color:#0f172a; border-radius:16px; padding:24px 28px; max-width:440px; width:100%; text-align:center; box-shadow:0 20px 40px rgba(0,0,0,0.3); border:1px solid #e2e8f0; font-family:inherit;">
+          <div style="width:52px; height:52px; background:#eff6ff; color:#2563eb; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; font-size:1.5rem;">
+            <i class="fa-solid fa-expand"></i>
+          </div>
+          <h3 style="margin:0 0 8px; font-size:1.15rem; font-weight:800; color:#1e293b;">فتح الشاشة الخارجية ملء الشاشة</h3>
+          <p style="margin:0 0 18px; font-size:0.88rem; color:#64748b; line-height:1.5;">
+            اضغط على <strong>زر المسافة (Space)</strong> أو انقر على الشاشة الخارجية لفتح العرض ملء الشاشة الكامل، وسيعود التركيز فوراً للوحة التحكم للتحكم دون انقطاع.
+          </p>
+          <button type="button" id="btn-close-ext-notice" style="background:#2563eb; color:#ffffff; border:none; padding:10px 24px; border-radius:10px; font-weight:700; font-size:0.9rem; cursor:pointer; width:100%; transition:all 0.15s ease;">
+            حسناً، فهمت
+          </button>
+        </div>
+      `;
+      document.body.appendChild(noticeEl);
+
+      const closeBtn = noticeEl.querySelector('#btn-close-ext-notice');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => hideExternalFullscreenNotice());
+      }
+    }
+    noticeEl.classList.remove('hidden');
+    noticeEl.style.display = 'flex';
+  }
+
+  function hideExternalFullscreenNotice() {
+    const noticeEl = document.getElementById('notice-ext-fs-modal');
+    if (noticeEl) {
+      noticeEl.classList.add('hidden');
+      noticeEl.style.display = 'none';
+    }
+  }
+
   broadcastChannel.onmessage = (event) => {
     if (event.data) {
       if (event.data.action === 'NEXT_SLIDE') {
         nextLine();
       } else if (event.data.action === 'PREV_SLIDE') {
         prevLine();
+      } else if (event.data.action === 'EXTERNAL_FULLSCREEN_ACTIVATED') {
+        window.focus();
+        hideExternalFullscreenNotice();
       }
       if (event.data.type === 'UPDATE_POS' || event.data.pos) {
         if (event.data.pos) {
@@ -2520,8 +2566,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.addEventListener('fullscreenchange', () => {
-      if (!document.fullscreenElement && els.obsOverlay) {
-        els.obsOverlay.classList.add('hidden');
+      if (!document.fullscreenElement) {
+        if (els.obsOverlay) {
+          els.obsOverlay.classList.add('hidden');
+        }
+        document.body.classList.remove('has-active-overlay');
+        document.body.style.backgroundColor = '';
+        document.body.style.background = '';
+      }
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' || e.key === 'Esc') {
+        if (els.obsOverlay && !els.obsOverlay.classList.contains('hidden')) {
+          exitPresentation(e);
+        }
       }
     });
 
@@ -4050,6 +4109,7 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(moveWin, 150);
       setTimeout(moveWin, 450);
       updateDisplayButtonUI();
+      showExternalFullscreenNotice();
       showToast('تم فتح شاشة العرض على: ' + screenLabel);
     }
 
@@ -6604,8 +6664,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const container = els.obsOverlay || els.obsLineText.parentElement || document.body;
             const containerW = Math.max(400, container.clientWidth || window.innerWidth);
             const containerH = Math.max(300, container.clientHeight || window.innerHeight);
-            const maxContainerH = containerH * 0.88;
-            const maxContainerW = containerW * 0.94;
+            const maxContainerH = containerH * 0.82;
+            const maxContainerW = containerW * 0.86;
             const isVertical = window.innerHeight > window.innerWidth;
             const refTargetW = isVertical ? Math.max(maxContainerW, maxContainerH * (16 / 9)) : maxContainerW;
 

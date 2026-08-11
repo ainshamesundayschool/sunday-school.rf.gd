@@ -944,6 +944,14 @@
 
     const channel = new BroadcastChannel('sunday_school_taranim_obs_channel');
 
+    document.addEventListener('fullscreenchange', () => {
+      if (document.fullscreenElement) {
+        try {
+          if (channel) channel.postMessage({ action: 'EXTERNAL_FULLSCREEN_ACTIVATED' });
+        } catch(err) {}
+      }
+    });
+
     function triggerNextSlide() {
       requestFS();
       try {
@@ -1200,8 +1208,8 @@
       let baseSize = (lastStyleData && lastStyleData.fontSize) || stateFontSize || 54;
       const scaleMode = (lastStyleData && lastStyleData.scaleMode) || 'auto';
       const container = document.getElementById('obs-overlay-container') || document.body;
-      const maxH = (container.clientHeight || window.innerHeight) * 0.88;
-      const maxW = (container.clientWidth || window.innerWidth) * 0.94;
+      const maxH = (container.clientHeight || window.innerHeight) * 0.82;
+      const maxW = (container.clientWidth || window.innerWidth) * 0.86;
 
       const segments = Array.from(textEl.querySelectorAll('.obs-line-segment'));
       const currentFont = (lastStyleData && lastStyleData.font) || textEl.style.fontFamily || '';
