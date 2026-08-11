@@ -1278,13 +1278,18 @@
         }
         textEl.style.lineHeight = `${autoLineHeight}`;
 
-        const isVertical = window.innerHeight > window.innerWidth;
-        const targetMaxH = (container.clientHeight || window.innerHeight) * 0.88;
-        const targetMaxW = (container.clientWidth || window.innerWidth) * (isVertical ? 0.94 : 0.92);
+        const curW = container.clientWidth || window.innerWidth || 1920;
+        const curH = container.clientHeight || window.innerHeight || 1080;
 
-        const screenH = container.clientHeight || window.innerHeight || 1080;
-        let low = 40;
-        let high = isJomhuria ? Math.max(450, Math.floor(screenH * 0.45)) : Math.max(380, Math.floor(screenH * 0.38));
+        // Lock maximum height to 16:9 horizontal format ratio (never fill tall vertical areas)
+        const horizontalFormatMaxH = curW * (9 / 16);
+        const effectiveCanvasH = Math.min(curH, horizontalFormatMaxH);
+
+        const targetMaxW = curW * 0.92;
+        const targetMaxH = effectiveCanvasH * 0.88;
+
+        let low = 24;
+        let high = isJomhuria ? Math.max(350, Math.floor(effectiveCanvasH * 0.50)) : Math.max(300, Math.floor(effectiveCanvasH * 0.42));
         renderSize = low;
 
         while (low <= high) {
@@ -1301,7 +1306,7 @@
           }
         }
 
-        renderSize = Math.max(36, renderSize);
+        renderSize = Math.max(16, renderSize);
         textEl.style.fontSize = `${renderSize}px`;
       }
 

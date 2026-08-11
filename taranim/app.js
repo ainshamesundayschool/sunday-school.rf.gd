@@ -6733,10 +6733,15 @@ document.addEventListener('DOMContentLoaded', () => {
             els.obsLineText.style.lineHeight = `${fixedLH}`;
           } else if (scaleMode === 'auto') {
             const container = els.obsOverlay || els.obsLineText.parentElement || document.body;
-            const containerW = Math.max(400, container.clientWidth || window.innerWidth);
-            const containerH = Math.max(300, container.clientHeight || window.innerHeight);
-            const maxContainerH = containerH * 0.88;
+            const containerW = Math.max(320, container.clientWidth || window.innerWidth);
+            const containerH = Math.max(240, container.clientHeight || window.innerHeight);
+
+            // Lock maximum height to 16:9 horizontal format ratio (never fill tall vertical areas)
+            const horizontalFormatMaxH = containerW * (9 / 16);
+            const effectiveCanvasH = Math.min(containerH, horizontalFormatMaxH);
+
             const maxContainerW = containerW * 0.92;
+            const maxContainerH = effectiveCanvasH * 0.88;
 
             const segmentsCount = els.obsLineText.querySelectorAll('.obs-line-segment').length || 1;
             const isJomhuriaFont = /jomhuria/i.test(state.selectedFont || '');
@@ -6751,8 +6756,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             els.obsLineText.style.lineHeight = `${optimalLineHeight}`;
 
-            let low = 40;
-            let high = isJomhuriaFont ? Math.max(450, Math.floor(containerH * 0.45)) : Math.max(380, Math.floor(containerH * 0.38));
+            let low = 24;
+            let high = isJomhuriaFont ? Math.max(350, Math.floor(effectiveCanvasH * 0.50)) : Math.max(300, Math.floor(effectiveCanvasH * 0.42));
             let bestFit = low;
 
             while (low <= high) {
@@ -6769,7 +6774,7 @@ document.addEventListener('DOMContentLoaded', () => {
               }
             }
 
-            bestFit = Math.max(36, bestFit);
+            bestFit = Math.max(16, bestFit);
             els.obsLineText.style.fontSize = `${bestFit}px`;
           }
           els.obsLineText.style.transform = 'none';
