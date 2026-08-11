@@ -134,7 +134,7 @@
             </button>
           </div>
 
-          <div class="dropdown-popover hidden" id="popover-cast" style="min-width:285px; max-width:320px; padding:10px 12px; gap:8px;">
+          <div class="dropdown-popover hidden" id="popover-cast" style="min-width:290px; max-width:325px; padding:10px 12px; gap:8px;">
             <!-- POPUP HEADER WITH MINI REFRESH BUTTON -->
             <div class="popover-title" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:2px; font-size:0.92rem; font-weight:800; border-bottom:1px solid #f1f5f9; padding-bottom:6px;">
               <span><i class="fa-solid fa-display" style="color:#2563eb;"></i> البث والشاشات</span>
@@ -143,25 +143,12 @@
               </button>
             </div>
 
-            <!-- PRIMARY STEALTH ACTION -->
-            <button id="btn-open-obs-window" class="btn btn-sm btn-primary" style="width:100%; font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px; background:#2563eb; color:#ffffff; padding:9px 10px; border-radius:10px; font-size:0.82rem; box-shadow:0 3px 10px rgba(37,99,235,0.25);">
-              <i class="fa-solid fa-ghost"></i> فتح شاشة خفية لـ (Window Capture)
-            </button>
-
-            <!-- OBS MODE TOGGLE COMPACT CARD -->
-            <div class="control-field" style="margin:0;">
-              <label class="toggle-switch-label" style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; font-size:0.82rem; background:#eff6ff; border:1px solid #bfdbfe; padding:7px 10px; border-radius:9px; font-weight:600; color:#1e40af;">
-                <span><i class="fa-solid fa-video" style="margin-left:6px; color:#2563eb;"></i> وضع OBS المباشر</span>
-                <input type="checkbox" id="btn-toggle-obs-mode" class="toggle-checkbox">
-              </label>
-            </div>
-
-            <!-- SECONDARY QUICK ACTIONS (2-COLUMN GRID) -->
+            <!-- QUICK ACTIONS (2-COLUMN GRID) -->
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
-              <button id="btn-copy-obs-url" class="btn btn-sm btn-secondary" style="width:100%; font-size:0.78rem; padding:6px 8px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:4px;" title="نسخ رابط العرض لمتصفح OBS">
+              <button id="btn-copy-obs-url" class="btn btn-sm btn-secondary" style="width:100%; font-size:0.78rem; padding:7px 8px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:4px;" title="نسخ رابط العرض لمتصفح OBS">
                 <i class="fa-solid fa-copy"></i> نسخ الرابط
               </button>
-              <button id="btn-sync-live-file" class="btn btn-sm btn-secondary" style="width:100%; font-size:0.78rem; padding:6px 8px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:4px;" title="تحميل ملف live.txt للنصوص">
+              <button id="btn-sync-live-file" class="btn btn-sm btn-secondary" style="width:100%; font-size:0.78rem; padding:7px 8px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:4px;" title="تحميل ملف live.txt للنصوص">
                 <i class="fa-solid fa-file-arrow-down"></i> ملف live.txt
               </button>
             </div>
@@ -173,6 +160,20 @@
               </div>
               <div id="screens-cast-list" style="display:flex; flex-direction:column; gap:4px;">
                 <!-- Screens will be rendered dynamically -->
+              </div>
+            </div>
+
+            <!-- BOTTOM SECTION: STEALTH WINDOW + OBS MODE ON SAME LINE -->
+            <div style="display:grid; grid-template-columns:1fr 1.15fr; gap:6px; margin-top:4px; border-top:1px solid #f1f5f9; padding-top:8px; align-items:center;">
+              <button id="btn-open-obs-window" class="btn btn-sm btn-primary" style="width:100%; font-weight:700; display:flex; align-items:center; justify-content:center; gap:4px; background:#2563eb; color:#ffffff; padding:7px 8px; border-radius:8px; font-size:0.78rem; white-space:nowrap;" title="فتح شاشة خفية لـ OBS">
+                <i class="fa-solid fa-ghost"></i> فتح شاشة خفية
+              </button>
+
+              <div class="control-field" style="margin:0;">
+                <label class="toggle-switch-label" style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; font-size:0.78rem; background:#eff6ff; border:1px solid #bfdbfe; padding:6px 8px; border-radius:8px; font-weight:600; color:#1e40af; white-space:nowrap;">
+                  <span><i class="fa-solid fa-video" style="margin-left:4px; color:#2563eb;"></i> وضع OBS المباشر</span>
+                  <input type="checkbox" id="btn-toggle-obs-mode" class="toggle-checkbox">
+                </label>
               </div>
             </div>
           </div>

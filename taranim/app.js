@@ -3651,7 +3651,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return '<div class="' + cardClass + '" data-val="' + val + '"><div class="screen-info"><span class="screen-name"><i class="fa-solid fa-desktop"></i> ' + escapeHtml(name) + '</span>' + chipsHtml + '<span class="screen-res" style="font-size:0.75rem; color:#94a3b8; margin-top:3px; display:block;">' + s.width + ' × ' + s.height + ' px</span></div><i class="fa-solid fa-expand launch-btn-icon"></i></div>';
       }).join('');
 
-      cardsHtml += '<div class="screen-cast-card" data-val="in_app_overlay"><div class="screen-info"><span class="screen-name"><i class="fa-solid fa-window-maximize"></i> هذه الشاشة</span><span class="screen-res">عرض الكلمات بالكامل على هذه الشاشة</span></div><i class="fa-solid fa-up-right-and-down-left-from-center launch-btn-icon"></i></div>';
+      cardsHtml += '<div class="screen-cast-card mini-overlay-card" data-val="in_app_overlay" style="padding:6px 10px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:8px; font-size:0.76rem; font-weight:600; color:#475569; display:flex; align-items:center; justify-content:space-between; margin-top:3px; cursor:pointer;"><span style="display:flex; align-items:center; gap:6px;"><i class="fa-solid fa-window-maximize" style="color:#64748b;"></i> عرض overlay داخل هذه الشاشة</span><span style="font-size:0.72rem; color:#2563eb; font-weight:700; background:#eff6ff; padding:2px 6px; border-radius:4px; border:1px solid #bfdbfe;">عرض</span></div>';
 
       els.screensCastList.innerHTML = cardsHtml;
 
