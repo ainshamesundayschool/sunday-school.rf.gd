@@ -2128,12 +2128,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (!state.isHighlightMode) {
           if (popoverHighlightColor) popoverHighlightColor.classList.add('hidden');
-          state.highlightedLineIndices = [];
-          renderPresentationLinesList();
-          syncLiveState();
         } else {
           updateHighlightCircleUI();
         }
+        renderPresentationLinesList();
+        syncLiveState();
       });
     }
 
@@ -6077,7 +6076,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const lineRow = e.target.closest('.slide-line-row');
         const isLiveSongDisplayed = Boolean(state.liveSong && state.activeSong && getItemKey(state.liveSong) === getItemKey(state.activeSong));
 
-        if (clickedIdx === state.liveLineIndex && isLiveSongDisplayed) {
+        if (clickedIdx === state.liveLineIndex && isLiveSongDisplayed && state.isHighlightMode) {
           let lineIdx = lineRow ? parseInt(lineRow.dataset.lineIdx) : null;
           if (lineIdx !== null && !isNaN(lineIdx)) {
             if (!Array.isArray(state.highlightedLineIndices)) state.highlightedLineIndices = [];
@@ -6771,7 +6770,7 @@ document.addEventListener('DOMContentLoaded', () => {
       boxRadius: state.styleOptions.boxRadius,
       boxPadding: state.styleOptions.boxPadding,
       hideControls: Boolean(state.hideControls),
-      highlightedLines: state.highlightedLineIndices || [],
+      highlightedLines: state.isHighlightMode ? (state.highlightedLineIndices || []) : [],
       mode: state.presentationMode || 'oneline',
       scrollRatio: state.allInOneScrollRatio !== undefined ? state.allInOneScrollRatio : 0,
       highlightColor: state.highlightColor || '#f59e0b',
@@ -7071,7 +7070,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 3. UPDATE HIGHLIGHTS IN-PLACE WITHOUT RE-CREATING DOM (FLICKER-FREE)
         const hColor = state.highlightColor || '#ef4444';
-        const activeHighlights = state.highlightedLineIndices || [];
+        const activeHighlights = state.isHighlightMode ? (state.highlightedLineIndices || []) : [];
         const currentSegments = els.obsLineText ? Array.from(els.obsLineText.querySelectorAll('.obs-line-segment')) : [];
         currentSegments.forEach((seg, idx) => {
           const segLineIdx = parseInt(seg.dataset.lineIdx !== undefined ? seg.dataset.lineIdx : idx);
