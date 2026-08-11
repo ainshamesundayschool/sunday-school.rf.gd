@@ -5945,14 +5945,17 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         });
 
-        // 2. TRIGGER TEXT APPEARANCE ANIMATION ONLY IF TEXT OR ANIMATION SETTING CHANGED
+        // 2. TRIGGER TEXT APPEARANCE ANIMATION ONLY IF TEXT OR ANIMATION SETTING CHANGED (ON CONTAINER BOX MATCHING PRESENT.HTML)
         const animChanged = (currentPresenterAnim !== state.textAnimation);
         if (textChanged || animChanged) {
           currentPresenterAnim = state.textAnimation;
-          els.obsLineText.classList.remove('animate-appear-slide', 'animate-appear-drop', 'animate-appear-pop', 'animate-appear-flip', 'animate-appear-glow');
-          if (state.textAnimation !== 'none' && text) {
-            void els.obsLineText.offsetWidth;
-            els.obsLineText.classList.add(`animate-appear-${state.textAnimation}`);
+          const animTarget = els.obsLowerThirdBox || els.obsLineText;
+          if (animTarget) {
+            animTarget.classList.remove('animate-appear-slide', 'animate-appear-drop', 'animate-appear-pop', 'animate-appear-flip', 'animate-appear-glow');
+            if (state.textAnimation !== 'none' && text) {
+              void animTarget.offsetWidth;
+              animTarget.classList.add(`animate-appear-${state.textAnimation}`);
+            }
           }
         }
 
