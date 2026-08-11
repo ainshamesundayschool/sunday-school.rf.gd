@@ -1591,6 +1591,7 @@ input[type="checkbox"]:checked::after {
 }
 
 .copy-line-btn,
+.split-line-btn,
 .launch-fullscreen-btn {
   background: transparent !important;
   border: none !important;
@@ -1609,6 +1610,7 @@ input[type="checkbox"]:checked::after {
 }
 
 .copy-line-btn:hover,
+.split-line-btn:hover,
 .launch-fullscreen-btn:hover {
   background: transparent !important;
   border: none !important;
@@ -4109,19 +4111,49 @@ body[data-mode="allinone"] .lower-third-container,
   padding-top: 1.5rem !important;
 }
 
-.allinone-section {
+.allinone-section,
+.allinone-slide-group {
   display: block !important;
   width: 100% !important;
-  margin-bottom: 2.2rem !important;
+  margin-bottom: 2rem !important;
   padding-bottom: 1.2rem !important;
   border-bottom: 1px dashed rgba(255, 255, 255, 0.2) !important;
   text-align: center !important;
   position: relative !important;
 }
 
-.allinone-section:last-child {
+.allinone-section:last-child,
+.allinone-slide-group:last-child {
   border-bottom: none !important;
   margin-bottom: 0 !important;
+}
+
+/* ELEGANT PRESENTATION SCROLLBAR DESIGN */
+.obs-overlay[data-mode="allinone"] .obs-lower-third-box::-webkit-scrollbar,
+body[data-mode="allinone"] #presenter-box::-webkit-scrollbar,
+#presenter-box::-webkit-scrollbar {
+  width: 6px !important;
+  height: 6px !important;
+}
+
+.obs-overlay[data-mode="allinone"] .obs-lower-third-box::-webkit-scrollbar-track,
+body[data-mode="allinone"] #presenter-box::-webkit-scrollbar-track,
+#presenter-box::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.obs-overlay[data-mode="allinone"] .obs-lower-third-box::-webkit-scrollbar-thumb,
+body[data-mode="allinone"] #presenter-box::-webkit-scrollbar-thumb,
+#presenter-box::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3) !important;
+  border-radius: 999px !important;
+  transition: background 0.2s ease !important;
+}
+
+.obs-overlay[data-mode="allinone"] .obs-lower-third-box::-webkit-scrollbar-thumb:hover,
+body[data-mode="allinone"] #presenter-box::-webkit-scrollbar-thumb:hover,
+#presenter-box::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.6) !important;
 }
 
 /* ==========================================================================

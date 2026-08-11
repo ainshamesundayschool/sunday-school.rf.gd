@@ -5032,10 +5032,29 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
 
-      orderedVersesToProcess.forEach(({ verse, idx, stanzaNum }) => {
-        const slideItems = buildVerseSlideItems(verse, idx, stanzaNum);
-        linesList = linesList.concat(slideItems);
-      });
+      if (mode === 'allinone') {
+        const allGroupsHtml = [];
+        orderedVersesToProcess.forEach(({ verse, idx, stanzaNum }) => {
+          const slideItems = buildVerseSlideItems(verse, idx, stanzaNum);
+          slideItems.forEach(item => {
+            const bHtml = item.badgeText ? `<span class="slide-badge-layer ${item.badgeClass}">${item.badgeText}</span>` : '';
+            const linesHtml = (item.lines || [item.text]).map(l => `<div class="obs-line-row"><span class="obs-line-segment">${escapeHtml(l)}</span></div>`).join('');
+            allGroupsHtml.push(`<div class="allinone-slide-group">${bHtml}${linesHtml}</div>`);
+          });
+        });
+        const combinedText = allGroupsHtml.join('');
+        linesList = [{
+          text: combinedText,
+          lines: [combinedText],
+          isAllInOne: true,
+          label: 'الترنيمة بالكامل'
+        }];
+      } else {
+        orderedVersesToProcess.forEach(({ verse, idx, stanzaNum }) => {
+          const slideItems = buildVerseSlideItems(verse, idx, stanzaNum);
+          linesList = linesList.concat(slideItems);
+        });
+      }
     }
 
     if (linesList.length === 0 && song.notes) {
