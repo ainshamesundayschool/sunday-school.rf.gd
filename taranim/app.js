@@ -4336,19 +4336,33 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function loadInitialData() {
+    const startupOverlay = document.getElementById('startup-loading-overlay');
+    const statusText = document.getElementById('startup-status-text');
+    const progressFill = document.getElementById('startup-progress-fill');
+
+    const updateStartupProgress = (pct, text) => {
+      if (progressFill) progressFill.style.width = `${pct}%`;
+      if (statusText) statusText.textContent = text;
+    };
+
+    updateStartupProgress(15, 'جاري تحضير المحتوى والقاموس الذكي...');
+
     if (navigator.onLine && 'serviceWorker' in navigator && navigator.serviceWorker.controller) {
       try {
         navigator.serviceWorker.controller.postMessage({ type: 'VERIFY_AND_PRECACHE_DATA' });
       } catch (e) {}
     }
 
-    fetch('arabic_dictionary.json')
-      .then(r => r.json())
-      .then(dict => { 
-        state.arabicDictionary = dict; 
+    try {
+      const dictRes = await fetch('arabic_dictionary.json').catch(() => null);
+      if (dictRes && dictRes.ok) {
+        const dict = await dictRes.json();
+        state.arabicDictionary = dict;
         state.dictKeys = Object.keys(dict);
-      })
-      .catch(() => {});
+      }
+    } catch (e) {}
+
+    updateStartupProgress(40, 'جاري معالجة الفهارس وسجلات الترانيم...');
 
     // Helper: index raw catalog items with fast search keys
     const indexCatalogList = (list) => {
@@ -4367,19 +4381,25 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     };
 
-    // 1. INSTANT 0ms LOAD FROM LOCALSTORAGE CACHE
+    // 1. INSTANT LOAD FROM LOCAL CACHE STORAGE IF AVAILABLE
     try {
-      const cachedRaw = localStorage.getItem('sunday_school_taranim_cached_catalog');
-      if (cachedRaw) {
-        const parsedCache = JSON.parse(cachedRaw);
-        if (Array.isArray(parsedCache) && parsedCache.length > 0) {
-          state.allSongs = indexCatalogList(parsedCache);
-          console.log('⚡ [FAST-LOAD] Instant Catalog loaded from cache (0ms):', state.allSongs.length, 'songs');
+      if ('caches' in window) {
+        const cache = await caches.open('taranim-pwa-v8').catch(() => null);
+        if (cache) {
+          const cachedCatalog = await cache.match('songs_catalog.json').catch(() => null);
+          if (cachedCatalog && cachedCatalog.ok) {
+            const data = await cachedCatalog.json();
+            const rawList = Array.isArray(data) ? data : (data && data.songs ? data.songs : []);
+            if (rawList.length > 0) {
+              state.allSongs = indexCatalogList(rawList);
+              updateStartupProgress(75, 'تم تجهيز فهارس البحث محلياً...');
+            }
+          }
         }
       }
     } catch(e) {}
 
-    // 2. NETWORK FETCH FOR FRESH CATALOG DISCOVERY
+    // 2. NETWORK FETCH FOR FRESH CATALOG DISCOVERY & BACKGROUND UPDATE
     try {
       let res = await fetch('songs_catalog.json').catch(() => null);
       if (!res || !res.ok) res = await fetch('./songs_catalog.json').catch(() => null);
@@ -4395,30 +4415,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (rawList.length > 0) {
           state.allSongs = indexCatalogList(rawList);
-          try {
-            localStorage.setItem('sunday_school_taranim_cached_catalog', JSON.stringify(rawList));
-          } catch(e) {}
-          // If user typed into search input while catalog was fetching, re-trigger search instantly!
-          if (els.intelligentSearch && els.intelligentSearch.value.trim()) {
-            performIntelligentSearch(els.intelligentSearch.value.trim());
-          }
+          updateStartupProgress(95, 'تم تحديث البيانات بالكامل...');
         }
       }
+    } catch(e) {}
 
-      // Re-hydrate active song from canonical catalog if restored on load
-      if (state.activeSong && !state.activeSong.is_bible && (state.activeSong.id !== undefined || state.activeSong.item_id !== undefined)) {
-        const songId = state.activeSong.id !== undefined ? state.activeSong.id : state.activeSong.item_id;
-        const canonical = state.allSongs.find(s => !s.is_bible && (String(s.id) === String(songId) || String(s.item_id) === String(songId)));
-        if (canonical) {
-          const restoredSong = { ...canonical, ...state.activeSong };
-          if (state.activeSong.verses && Array.isArray(state.activeSong.verses) && state.activeSong.verses.length > 0) {
-            restoredSong.verses = state.activeSong.verses;
-          }
-          loadSongIntoPresentation(restoredSong);
-          syncLiveState();
+    // Update total songs count badge UI
+    if (els.totalSongsCount && state.allSongs.length > 0) {
+      els.totalSongsCount.textContent = `${state.allSongs.length} ترنيمة وإصحاح`;
+    }
+
+    // Re-hydrate active song from canonical catalog if restored on load
+    if (state.activeSong && !state.activeSong.is_bible && (state.activeSong.id !== undefined || state.activeSong.item_id !== undefined)) {
+      const songId = state.activeSong.id !== undefined ? state.activeSong.id : state.activeSong.item_id;
+      const canonical = state.allSongs.find(s => !s.is_bible && (String(s.id) === String(songId) || String(s.item_id) === String(songId)));
+      if (canonical) {
+        const restoredSong = { ...canonical, ...state.activeSong };
+        if (state.activeSong.verses && Array.isArray(state.activeSong.verses) && state.activeSong.verses.length > 0) {
+          restoredSong.verses = state.activeSong.verses;
         }
+        loadSongIntoPresentation(restoredSong);
+        syncLiveState();
       }
-    } catch(err) {}
+    updateStartupProgress(100, 'التطبيق جاهز للعمل 100%!');
 
     const realTotalCount = state.allSongs.length > 0 ? state.allSongs.length : 11611;
     
@@ -4426,6 +4445,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const formatted = Number(realTotalCount).toLocaleString('ar-EG');
       els.totalSongsCount.innerHTML = `<i class="fa-solid fa-music"></i> <span>${formatted} ترنيمة</span>`;
     }
+
+    setTimeout(() => {
+      if (startupOverlay) {
+        startupOverlay.classList.add('fade-out');
+        setTimeout(() => startupOverlay.remove(), 450);
+      }
+    }, 250);
+  }
 
     // Fetch live total songs count & trigger background auto-sync for new songs
     try {

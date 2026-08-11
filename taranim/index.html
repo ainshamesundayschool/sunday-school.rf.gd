@@ -50,7 +50,19 @@
 </head>
 <body>
 
-
+  <!-- STARTUP LOADING & INDEXING OVERLAY -->
+  <div id="startup-loading-overlay" class="startup-loading-overlay">
+    <div class="startup-loading-card">
+      <div class="startup-logo-wrapper">
+        <img src="logoicon.png" alt="Logo" class="startup-logo">
+      </div>
+      <h2 class="startup-title">تطبيق الترنم</h2>
+      <p class="startup-subtitle" id="startup-status-text">جاري تحضير المحتوى والبحث الذكي والترجمة...</p>
+      <div class="startup-progress-bar">
+        <div id="startup-progress-fill" class="startup-progress-fill"></div>
+      </div>
+    </div>
+  </div>
 
   <div id="app" class="app-container">
     
@@ -60,29 +72,15 @@
       <!-- RIGHT SIDE: DROPDOWN MENU ICONS -->
       <div class="top-options">
 
-        <!-- DROPDOWN: INSTALL & OFFLINE HUB -->
+        <!-- DROPDOWN: INSTALL HUB -->
         <div class="dropdown-wrapper">
-          <button class="icon-menu-btn" id="btn-menu-install" title="تثبيت التطبيق والعمل أوفلاين">
+          <button class="icon-menu-btn" id="btn-menu-install" title="تثبيت التطبيق">
             <i class="fa-solid fa-download"></i>
           </button>
 
           <div class="dropdown-popover hidden" id="popover-install" style="min-width:240px; padding:12px;">
             <div class="popover-title">
-              <i class="fa-solid fa-wifi"></i> العمل أوفلاين
-            </div>
-
-            <!-- PRECACHE DATA BUTTON -->
-            <div class="popover-row" style="flex-direction:column; align-items:stretch; gap:6px; margin-top:6px;">
-              <button id="btn-dropdown-precache" class="btn btn-sm btn-primary" style="width:100%; padding:8px 10px; font-size:0.84rem; font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px;">
-                <i class="fa-solid fa-download"></i> حفظ البيانات أوفلاين
-              </button>
-              
-              <div id="popover-progress-wrapper" style="display:none; margin-top:4px;">
-                <div style="width:100%; height:6px; background:rgba(0,0,0,0.12); border-radius:3px; overflow:hidden;">
-                  <div id="popover-progress-fill" style="width:0%; height:100%; background:linear-gradient(90deg, #10b981, #34d399); transition:width 0.25s;"></div>
-                </div>
-                <div id="popover-progress-text" style="font-size:0.72rem; color:rgba(255,255,255,0.7); margin-top:3px; text-align:center;"></div>
-              </div>
+              <i class="fa-solid fa-download"></i> تثبيت التطبيق
             </div>
 
             <!-- PWA INSTALLATION BUTTON -->
