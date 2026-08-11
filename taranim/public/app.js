@@ -2081,6 +2081,66 @@ document.addEventListener('DOMContentLoaded', () => {
       els.popoverInstall.addEventListener('click', (e) => e.stopPropagation());
     }
 
+    // OFFLINE BROADCAST GUIDE MODAL & APP TABS
+    const btnOpenOfflineGuide = document.getElementById('btn-open-offline-guide');
+    const modalOfflineGuide = document.getElementById('modal-offline-broadcast-guide');
+    const btnCloseOfflineGuide = document.getElementById('btn-close-offline-guide');
+    const btnGuideCloseBottom = document.getElementById('btn-guide-close-bottom');
+    const btnGuideLaunchStealth = document.getElementById('btn-guide-launch-stealth');
+    const btnGuideCopyUrl = document.getElementById('btn-guide-copy-url');
+
+    if (btnOpenOfflineGuide && modalOfflineGuide) {
+      btnOpenOfflineGuide.addEventListener('click', (e) => {
+        e.stopPropagation();
+        modalOfflineGuide.classList.remove('hidden');
+      });
+    }
+
+    const closeGuideModal = () => {
+      if (modalOfflineGuide) modalOfflineGuide.classList.add('hidden');
+    };
+
+    if (btnCloseOfflineGuide) btnCloseOfflineGuide.addEventListener('click', closeGuideModal);
+    if (btnGuideCloseBottom) btnGuideCloseBottom.addEventListener('click', closeGuideModal);
+    if (modalOfflineGuide) {
+      modalOfflineGuide.addEventListener('click', (e) => {
+        if (e.target === modalOfflineGuide) closeGuideModal();
+      });
+    }
+
+    if (btnGuideLaunchStealth) {
+      btnGuideLaunchStealth.addEventListener('click', () => {
+        const obsBtn = document.getElementById('btn-open-obs-window');
+        if (obsBtn) obsBtn.click();
+        closeGuideModal();
+      });
+    }
+
+    if (btnGuideCopyUrl) {
+      btnGuideCopyUrl.addEventListener('click', () => {
+        const copyBtn = document.getElementById('btn-copy-obs-url');
+        if (copyBtn) copyBtn.click();
+      });
+    }
+
+    const guideAppBtns = document.querySelectorAll('.guide-app-btn');
+    guideAppBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        guideAppBtns.forEach(b => {
+          b.classList.remove('active');
+          b.style.border = '1px solid #cbd5e1';
+          b.style.background = '#ffffff';
+          const txt = b.querySelector('span');
+          if (txt) txt.style.color = '#475569';
+        });
+        btn.classList.add('active');
+        btn.style.border = '2px solid #2563eb';
+        btn.style.background = '#eff6ff';
+        const txt = btn.querySelector('span');
+        if (txt) txt.style.color = '#1e40af';
+      });
+    });
+
     if (els.btnDropdownPrecache) {
       els.btnDropdownPrecache.addEventListener('click', async () => {
         els.btnDropdownPrecache.disabled = true;
