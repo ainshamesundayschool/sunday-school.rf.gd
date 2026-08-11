@@ -6686,9 +6686,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             els.obsLineText.style.lineHeight = `${optimalLineHeight}`;
 
-            let low = 20;
+            const minFloor = isJomhuriaFont ? 56 : 44;
+            let low = minFloor;
             let high = isJomhuriaFont ? 300 : 260;
-            let bestFit = low;
+            let bestFit = minFloor;
 
             while (low <= high) {
               const mid = Math.floor((low + high) / 2);
@@ -6704,10 +6705,11 @@ document.addEventListener('DOMContentLoaded', () => {
               }
             }
 
+            bestFit = Math.max(minFloor, bestFit);
             els.obsLineText.style.fontSize = `${bestFit}px`;
             let curW = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
             let curH = els.obsLineText.scrollHeight || els.obsLineText.offsetHeight;
-            while ((curW > maxContainerW || curH > maxContainerH) && bestFit > 16) {
+            while ((curW > maxContainerW || curH > maxContainerH) && bestFit > minFloor) {
               bestFit--;
               els.obsLineText.style.fontSize = `${bestFit}px`;
               curW = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;

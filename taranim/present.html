@@ -1132,10 +1132,11 @@
         s.style.overflowWrap = 'normal';
       });
 
-      let low = 16;
+      let minFloor = isJomhuria ? 56 : 44;
+      let low = minFloor;
       let maxLimit = isJomhuria ? 300 : 260;
       let high = Math.min(maxLimit, Math.max(120, Math.floor(maxH / Math.max(1, segCount * 0.85))));
-      let renderSize = 16;
+      let renderSize = minFloor;
 
       textEl.style.whiteSpace = 'nowrap';
       textEl.style.maxWidth = 'none';
@@ -1154,15 +1155,8 @@
         }
       }
 
+      renderSize = Math.max(minFloor, renderSize);
       textEl.style.fontSize = `${renderSize}px`;
-      let currentW = textEl.scrollWidth || textEl.offsetWidth;
-      let currentH = textEl.scrollHeight || textEl.offsetHeight;
-      if (currentW > maxW || currentH > maxH) {
-        const ratioW = maxW / Math.max(1, currentW);
-        const ratioH = maxH / Math.max(1, currentH);
-        renderSize = Math.max(14, Math.floor(renderSize * Math.min(ratioW, ratioH)));
-        textEl.style.fontSize = `${renderSize}px`;
-      }
 
       textEl.innerHTML = origHTML;
       textEl.style.display = origDisplay;
@@ -1175,7 +1169,8 @@
     let _cachedUniformSize = null;
 
     function _computeUniformFontSize(allSlideTexts, isBible, maxW, maxH, isJomhuria) {
-      if (!allSlideTexts || !Array.isArray(allSlideTexts) || allSlideTexts.length === 0) return 54;
+      const minFloor = isJomhuria ? 56 : 44;
+      if (!allSlideTexts || !Array.isArray(allSlideTexts) || allSlideTexts.length === 0) return minFloor;
       const key = `${allSlideTexts.length}_${allSlideTexts[0] || ''}_${isBible}_${Math.round(maxW)}_${Math.round(maxH)}_${isJomhuria}`;
       if (_cachedUniformKey === key && _cachedUniformSize !== null) {
         return _cachedUniformSize;
@@ -1198,7 +1193,7 @@
       }
 
       _cachedUniformKey = key;
-      _cachedUniformSize = minSize === Infinity ? 54 : minSize;
+      _cachedUniformSize = (minSize === Infinity || minSize < minFloor) ? minFloor : minSize;
       return _cachedUniformSize;
     }
 
