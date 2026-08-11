@@ -1178,7 +1178,7 @@ document.addEventListener('DOMContentLoaded', () => {
       shadowBlur: savedSettings.styleOptions?.shadowBlur || 0,
       shadowColor: savedSettings.styleOptions?.shadowColor || "#000000",
       shadowAngle: savedSettings.styleOptions?.shadowAngle !== undefined ? savedSettings.styleOptions?.shadowAngle : 142,
-      shadowDistance: savedSettings.styleOptions?.shadowDistance !== undefined ? savedSettings.styleOptions?.shadowDistance : 6,
+      shadowDistance: savedSettings.styleOptions?.shadowDistance !== undefined ? savedSettings.styleOptions?.shadowDistance : 13,
       shadowStyle: savedSettings.styleOptions?.shadowStyle || "soft",
       fontWeight: savedSettings.styleOptions?.fontWeight || "800",
       fontStyle: savedSettings.styleOptions?.fontStyle || "normal",
@@ -1860,8 +1860,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.obsShadowColor) els.obsShadowColor.value = state.styleOptions.shadowColor || '#000000';
     if (els.obsShadowAngleRange) els.obsShadowAngleRange.value = state.styleOptions.shadowAngle !== undefined ? state.styleOptions.shadowAngle : 142;
     if (els.shadowAngleBadge) els.shadowAngleBadge.textContent = `${state.styleOptions.shadowAngle !== undefined ? state.styleOptions.shadowAngle : 142}°`;
-    if (els.obsShadowDistanceRange) els.obsShadowDistanceRange.value = state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 6;
-    if (els.shadowDistanceBadge) els.shadowDistanceBadge.textContent = `${state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 6}px`;
+    if (els.obsShadowDistanceRange) els.obsShadowDistanceRange.value = state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 13;
+    if (els.shadowDistanceBadge) els.shadowDistanceBadge.textContent = `${state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 13}px`;
 
     if (els.obsFontWeightSelect) els.obsFontWeightSelect.value = state.styleOptions.fontWeight;
     if (els.obsScaleModeSelect) els.obsScaleModeSelect.value = state.scaleMode || 'auto';
@@ -2605,7 +2605,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state.styleOptions.shadowBlur = state.styleOptions.shadowBlur || 18;
         state.styleOptions.shadowColor = '#000000';
         state.styleOptions.shadowAngle = 142;
-        state.styleOptions.shadowDistance = 6;
+        state.styleOptions.shadowDistance = 13;
 
         if (els.obsTextColor) els.obsTextColor.value = '#ffffff';
         if (els.obsStrokeRange) els.obsStrokeRange.value = state.styleOptions.strokeWidth;
@@ -2614,8 +2614,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (els.obsShadowColor) els.obsShadowColor.value = '#000000';
         if (els.obsShadowAngleRange) els.obsShadowAngleRange.value = 142;
         if (els.shadowAngleBadge) els.shadowAngleBadge.textContent = '142°';
-        if (els.obsShadowDistanceRange) els.obsShadowDistanceRange.value = 6;
-        if (els.shadowDistanceBadge) els.shadowDistanceBadge.textContent = '6px';
+        if (els.obsShadowDistanceRange) els.obsShadowDistanceRange.value = 13;
+        if (els.shadowDistanceBadge) els.shadowDistanceBadge.textContent = '13px';
       } else if (state.chromaKey === 'black') {
         state.styleOptions.textColor = '#ffffff';
         state.styleOptions.strokeWidth = 0;
@@ -6073,7 +6073,7 @@ document.addEventListener('DOMContentLoaded', () => {
       shadowBlur: state.styleOptions.shadowBlur,
       shadowColor: state.styleOptions.shadowColor || '#000000',
       shadowAngle: state.styleOptions.shadowAngle !== undefined ? state.styleOptions.shadowAngle : 142,
-      shadowDistance: state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 6,
+      shadowDistance: state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 13,
       shadowStyle: state.styleOptions.shadowStyle || 'soft',
       fontWeight: state.styleOptions.fontWeight,
       fontStyle: state.styleOptions.fontStyle,
@@ -6709,7 +6709,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         // HTML Format (Recommended for OBS Browser Local File)
         const cleanText = state.isBlank ? '' : text;
-        const shadowD = parseInt(state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 6);
+        const shadowD = parseInt(state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 13);
         const shadowA = parseInt(state.styleOptions.shadowAngle !== undefined ? state.styleOptions.shadowAngle : 142);
         const shadowRad = (shadowA * Math.PI) / 180;
         const shadowX = Math.round(Math.cos(shadowRad) * shadowD);
