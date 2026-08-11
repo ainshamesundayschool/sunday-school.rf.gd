@@ -1284,15 +1284,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if ('getScreenDetails' in window && !screenDetails) {
           try { screenDetails = await window.getScreenDetails(); } catch(err) {}
         }
-        const screens = (screenDetails && screenDetails.screens && screenDetails.screens.length > 0)
-          ? screenDetails.screens
-          : [];
-        
-        if (screens.length <= 1) {
-          closeAllPopovers();
-          launchPresenterOnSelectedScreen('in_app_overlay');
-          return;
-        }
 
         const willShow = els.popoverCast.classList.contains('hidden');
         closeAllPopovers(els.popoverCast);
@@ -2618,32 +2609,38 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    const btnOverlayFullscreen = document.getElementById('btn-overlay-toggle-fullscreen');
-    if (btnOverlayFullscreen) {
-      btnOverlayFullscreen.addEventListener('click', (e) => {
+    const btnCloseOverlay = els.btnClosePresentationOverlay || document.getElementById('btn-close-presentation-overlay');
+    if (btnCloseOverlay) {
+      btnCloseOverlay.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (!document.fullscreenElement) {
-          if (els.obsOverlay && els.obsOverlay.requestFullscreen) {
-            els.obsOverlay.requestFullscreen();
-          } else if (document.documentElement.requestFullscreen) {
-            document.documentElement.requestFullscreen();
+        const isFS = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+        if (isFS) {
+          if (document.exitFullscreen) {
+            document.exitFullscreen().catch(() => {});
+          } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
           }
         } else {
-          if (document.exitFullscreen) document.exitFullscreen();
-        }
-      });
-
-      document.addEventListener('fullscreenchange', () => {
-        const icon = btnOverlayFullscreen.querySelector('i');
-        if (icon) {
-          if (document.fullscreenElement) {
-            icon.className = 'fa-solid fa-compress';
-          } else {
-            icon.className = 'fa-solid fa-expand';
-          }
+          if (els.obsOverlay) els.obsOverlay.classList.add('hidden');
         }
       });
     }
+
+    function updateOverlayFullscreenIcon() {
+      const btn = els.btnClosePresentationOverlay || document.getElementById('btn-close-presentation-overlay');
+      if (!btn) return;
+      const isFS = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+      if (isFS) {
+        btn.innerHTML = `<i class="fa-solid fa-xmark"></i>`;
+        btn.title = 'إنهاء ملء الشاشة (Esc)';
+      } else {
+        btn.innerHTML = `<i class="fa-solid fa-expand"></i>`;
+        btn.title = 'ملء الشاشة';
+      }
+    }
+
+    document.addEventListener('fullscreenchange', updateOverlayFullscreenIcon);
+    document.addEventListener('webkitfullscreenchange', updateOverlayFullscreenIcon);
 
     if (els.btnOpenTvWindow) {
       els.btnOpenTvWindow.addEventListener('click', () => {
@@ -3081,17 +3078,37 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       if (els.btnPresenterFullscreen) {
-        els.btnPresenterFullscreen.addEventListener('click', () => {
-          if (els.obsOverlay) {
-            els.obsOverlay.classList.remove('hidden');
-            const docEl = document.documentElement || els.obsOverlay;
-            if (docEl.requestFullscreen) {
-              docEl.requestFullscreen().catch(() => {});
-            } else if (docEl.webkitRequestFullscreen) {
-              docEl.webkitRequestFullscreen();
-            }
-            syncLiveState();
-          }
+        els.btnPresenterFullscreen.addEventListener('click', (e) => {
+          e.stopPropagation();
+          handleFullscreenLaunch();
+        });
+      }
+
+      const modalScreenChoice = document.getElementById('modal-screen-choice');
+      const btnCloseChoice = document.getElementById('btn-close-screen-choice');
+      const btnChoiceOverlay = document.getElementById('btn-launch-choice-overlay');
+      const btnChoiceExternal = document.getElementById('btn-launch-choice-external');
+
+      if (btnCloseChoice) {
+        btnCloseChoice.addEventListener('click', () => {
+          if (modalScreenChoice) modalScreenChoice.classList.add('hidden');
+        });
+      }
+      if (modalScreenChoice) {
+        modalScreenChoice.addEventListener('click', (e) => {
+          if (e.target === modalScreenChoice) modalScreenChoice.classList.add('hidden');
+        });
+      }
+      if (btnChoiceOverlay) {
+        btnChoiceOverlay.addEventListener('click', () => {
+          if (modalScreenChoice) modalScreenChoice.classList.add('hidden');
+          launchPresenterOnSelectedScreen('in_app_overlay');
+        });
+      }
+      if (btnChoiceExternal) {
+        btnChoiceExternal.addEventListener('click', () => {
+          if (modalScreenChoice) modalScreenChoice.classList.add('hidden');
+          launchPresenterOnSelectedScreen(pendingChoiceExtVal || 'screen_1');
         });
       }
     }
@@ -3460,8 +3477,62 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function renderFallbackScreenOptions() {
-    renderScreenOptions();
+  let pendingChoiceExtVal = 'screen_1';
+
+  async function handleFullscreenLaunch(targetLineIdx = null) {
+    if (targetLineIdx !== null && targetLineIdx !== undefined && !isNaN(targetLineIdx)) {
+      state.liveSong = state.activeSong;
+      state.livePresentationLines = state.presentationLines;
+      state.liveLineIndex = targetLineIdx;
+      state.currentLineIndex = targetLineIdx;
+      state.isBlank = false;
+      state.highlightedLineIndices = [];
+      renderPresentationLinesList();
+      syncLiveState();
+    }
+
+    if ('getScreenDetails' in window && !screenDetails) {
+      try { screenDetails = await window.getScreenDetails(); } catch(e) {}
+    }
+
+    const screens = (screenDetails && screenDetails.screens && screenDetails.screens.length > 0)
+      ? screenDetails.screens
+      : [];
+
+    const winX = window.screenX !== undefined ? window.screenX : (window.screenLeft !== undefined ? window.screenLeft : 0);
+
+    const externalScreens = [];
+    screens.forEach((s, idx) => {
+      const sLeft = s.availLeft !== undefined ? s.availLeft : (s.left || 0);
+      const sWidth = s.width || 1920;
+      const isControlPanelScreen = winX >= sLeft && winX < (sLeft + sWidth);
+      if (!isControlPanelScreen) {
+        externalScreens.push({ screen: s, idx: idx });
+      }
+    });
+
+    if (externalScreens.length === 0) {
+      launchPresenterOnSelectedScreen('in_app_overlay');
+      return;
+    }
+
+    const firstExt = externalScreens[0];
+    const extVal = `screen_${firstExt.idx}`;
+    const extName = firstExt.screen.label || (firstExt.screen.isPrimary ? 'Built-in Display' : `Display ${firstExt.idx + 1}`);
+
+    pendingChoiceExtVal = extVal;
+
+    const modal = document.getElementById('modal-screen-choice');
+    const textExtName = document.getElementById('text-choice-external-name');
+    if (textExtName) {
+      textExtName.textContent = extName;
+    }
+
+    if (modal) {
+      modal.classList.remove('hidden');
+    } else {
+      launchPresenterOnSelectedScreen(extVal);
+    }
   }
 
   function launchPresenterOnSelectedScreen(selectedVal) {
@@ -5104,17 +5175,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const idx = parseInt(btn.dataset.idx);
-        if (!isNaN(idx)) {
-          state.liveSong = state.activeSong;
-          state.livePresentationLines = state.presentationLines;
-          state.liveLineIndex = idx;
-          state.currentLineIndex = idx;
-          state.isBlank = false;
-          state.highlightedLineIndices = [];
-          renderPresentationLinesList();
-          syncLiveState();
-        }
-        launchPresenterOnSelectedScreen('primary');
+        handleFullscreenLaunch(idx);
       });
     });
 
@@ -5711,6 +5772,16 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const hasText = Boolean(text && text.trim() && !state.isBlank);
+
+      const obsTopLeftHeader = document.getElementById('obs-top-left-header');
+      if (obsTopLeftHeader) {
+        if (badgeTxt && isBible && hasText) {
+          obsTopLeftHeader.textContent = badgeTxt;
+          obsTopLeftHeader.classList.remove('hidden');
+        } else {
+          obsTopLeftHeader.classList.add('hidden');
+        }
+      }
 
       const obsFooterBar = document.getElementById('obs-footer-bar');
       const obsScaleBadge = document.getElementById('obs-scale-badge');

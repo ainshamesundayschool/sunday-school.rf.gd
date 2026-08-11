@@ -38,7 +38,7 @@
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800&family=Almarai:wght@400;700&family=Amiri:wght@400;700&family=Cairo:wght@400;600;700&family=Jomhuria&family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800&family=Almarai:wght@400;700&family=Amiri:wght@400;700&family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&family=Cairo:wght@400;600;700&family=Jomhuria&family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
 
   <!-- Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
@@ -289,11 +289,12 @@
                 <div class="control-field">
                   <label>السُّمك</label>
                   <select id="obs-font-weight-select" class="control-select">
-                    <option value="400">عادي 400</option>
-                    <option value="600">شبه عريض 600</option>
-                    <option value="700">عريض 700</option>
-                    <option value="800" selected>عريض جداً 800</option>
-                    <option value="900">أسود 900</option>
+                    <option value="400">عادي (400)</option>
+                    <option value="500">متوسط (500)</option>
+                    <option value="600">شبه عريض (600)</option>
+                    <option value="700">عريض (700)</option>
+                    <option value="800" selected>عريض جداً (800)</option>
+                    <option value="900">أسود (900)</option>
                   </select>
                 </div>
 
@@ -683,8 +684,37 @@
     </div>
   </div>
 
+  <!-- SCREEN LAUNCH TARGET CHOICE MODAL POPUP -->
+  <div id="modal-screen-choice" class="modal-overlay hidden">
+    <div class="modal-card gemini-intro-card" style="max-width: 440px;">
+      <div class="gemini-intro-banner-header">
+        <button id="btn-close-screen-choice" class="modal-close-btn" type="button" title="إغلاق"><i class="fa-solid fa-xmark"></i></button>
+        <div class="gemini-icon-hero-wrapper" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+          <i class="fa-solid fa-display"></i>
+        </div>
+      </div>
+      <div class="modal-body text-center" style="padding: 1.5rem 1.75rem;">
+        <h3 class="gemini-intro-title" style="font-size: 1.25rem; margin-bottom: 0.5rem;">أين تريد فتح العرض؟</h3>
+        <p class="gemini-intro-text" style="font-size: 0.9rem; color: #64748b; margin-bottom: 1.25rem;">
+          تم رصد شاشة عرض خارجية متصلة بجهازك، اختر المكان المفضل لبدء العرض:
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button id="btn-launch-choice-overlay" class="gemini-confirm-btn" type="button" style="background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; box-shadow: none;">
+            <i class="fa-solid fa-window-maximize" style="margin-left:6px; color:#2563eb;"></i> هذه الشاشة (Overlay)
+          </button>
+          <button id="btn-launch-choice-external" class="gemini-confirm-btn" type="button">
+            <i class="fa-solid fa-desktop" style="margin-left:6px;"></i> <span id="text-choice-external-name">شاشة العرض الخارجية</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- EMBEDDED PRESENTATION OVERLAY -->
   <div id="obs-presentation-overlay" class="obs-overlay hidden" data-chroma="black">
+
+    <!-- TOP-LEFT BIBLE / CHAPTER REFERENCE HEADER -->
+    <div id="obs-top-left-header" class="obs-top-left-header hidden"></div>
 
     <div id="snap-guide-h" class="snap-guide horizontal hidden"></div>
     <div id="snap-guide-v" class="snap-guide vertical hidden"></div>
@@ -708,20 +738,20 @@
       <div id="obs-line-text" class="obs-line-text hidden"></div>
     </div>
 
-    <!-- SLEEK FULLSCREEN & EXIT BUTTONS AT LEFT END (MATCHING PRESENT.HTML) -->
-    <button id="btn-presenter-overlay-fullscreen" class="btn-close-overlay-left" style="left:56px;" title="ملء الشاشة">
-      <i class="fa-solid fa-expand"></i>
-    </button>
-    <button id="btn-close-presentation-overlay" class="btn-close-overlay-left" title="إغلاق العرض (Esc)">
-      <i class="fa-solid fa-xmark"></i>
-    </button>
-
-    <!-- PRESENTATION FOOTER BAR (SLIDE COUNTER AT RIGHT END MATCHING PRESENT.HTML) -->
+    <!-- PRESENTATION FOOTER BAR (SLIDE COUNTER & SCALE AT RIGHT END MATCHING PRESENT.HTML) -->
     <div id="obs-footer-bar" class="presenter-footer-bar hidden">
+      <div id="obs-scale-badge" class="presenter-scale-badge hidden">
+        <i class="fa-solid fa-music"></i> <span id="obs-scale-text"></span>
+      </div>
       <div id="obs-slide-counter" class="presenter-slide-counter hidden">
         <span id="obs-counter-text"></span>
       </div>
     </div>
+
+    <!-- SLEEK ICON EXIT / FULLSCREEN BUTTON AT LEFT END (MATCHING PRESENT.HTML) -->
+    <button id="btn-close-presentation-overlay" class="btn-close-overlay-left" title="إغلاق النافذة (Esc)">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
   </div>
 
   <script src="app.js?v=20260806_v32"></script>

@@ -4,8 +4,8 @@
    ========================================================================== */
 
 :root {
-  --font-family: 'Cairo', 'Alexandria', sans-serif;
-  --panel-font-family: 'Cairo', 'Alexandria', sans-serif;
+  --font-family: 'Baloo Bhaijaan 2', 'Alexandria', 'Cairo', sans-serif;
+  --panel-font-family: 'Baloo Bhaijaan 2', 'Alexandria', 'Cairo', sans-serif;
   --slide-font-family: 'Alexandria', sans-serif;
   
   --bg-light: #f4f6fc;
@@ -2840,23 +2840,6 @@ body.has-active-overlay {
     height: auto;
     max-height: 46vh;
     font-size: 0.88rem;
-    font-weight: 600 !important;
-  }
-
-  .half-panel,
-  .presentation-lines-container,
-  .line-item,
-  .slide-line-row,
-  .recent-list-box,
-  .recent-session-card,
-  .panel-header,
-  .panel-title,
-  .search-item {
-    font-weight: 700 !important;
-  }
-
-  .slide-line-row span {
-    font-weight: 800 !important;
   }
 
   /* MOBILE APP BOTTOM BAR STICKS TO BOTTOM OF VIEWPORT EVEN IF PAGE ENDS MID SCREEN */
@@ -3991,41 +3974,95 @@ body.has-active-overlay {
   box-shadow: 0 8px 24px rgba(37, 99, 235, 0.45) !important;
 }
 
-/* OVERLAY BOTTOM-RIGHT SLIDE COUNTER */
+/* OVERLAY BOTTOM-RIGHT SLIDE COUNTER & FOOTER BAR (MATCHING PRESENT.HTML) */
+.presenter-footer-bar,
 .presenter-footer-bar-right,
 #obs-footer-bar {
-  position: absolute !important;
-  bottom: 24px !important;
-  right: 24px !important;
+  position: fixed !important;
+  bottom: 12px !important;
+  right: 14px !important;
   left: auto !important;
   top: auto !important;
-  z-index: 99999 !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 12px !important;
   pointer-events: none !important;
+  z-index: 99999 !important;
+  direction: rtl !important;
+  font-family: 'Baloo Bhaijaan 2', 'Alexandria', sans-serif !important;
 }
 
+.presenter-scale-badge,
 .presenter-slide-counter,
+#obs-scale-badge,
 #obs-slide-counter {
-  background: rgba(15, 23, 42, 0.65) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  color: rgba(255, 255, 255, 0.95) !important;
-  font-size: 0.95rem !important;
-  font-weight: 700 !important;
-  padding: 8px 16px !important;
-  border-radius: 999px !important;
-  display: inline-flex !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  color: rgba(255, 255, 255, 0.55) !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  display: flex !important;
   align-items: center !important;
-  gap: 8px !important;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3) !important;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6) !important;
+  gap: 6px !important;
+  box-shadow: none !important;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8) !important;
+  letter-spacing: 0.3px !important;
+}
+
+.btn-close-overlay-left {
+  position: fixed !important;
+  bottom: 12px !important;
+  left: 14px !important;
+  right: auto !important;
+  top: auto !important;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  background: rgba(15, 23, 42, 0.4) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 0.95rem !important;
+  cursor: pointer !important;
+  z-index: 99999 !important;
+  transition: all 0.2s ease !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+.btn-close-overlay-left:hover {
+  background: rgba(15, 23, 42, 0.8) !important;
+  color: #ffffff !important;
+  transform: scale(1.08) !important;
+}
+
+.obs-top-left-header {
+  position: absolute !important;
+  top: 1.8rem !important;
+  left: 2.2rem !important;
+  color: rgba(255, 255, 255, 0.75) !important;
+  font-size: 1.5rem !important;
+  font-weight: 800 !important;
+  z-index: 100 !important;
+  letter-spacing: 0.5px !important;
+  pointer-events: none !important;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85) !important;
+  font-family: inherit !important;
 }
 
 /* HIDE CONTROLS MODE FOR IN-APP OVERLAY */
 .obs-overlay.controls-hidden .overlay-bottom-left-controls,
 .obs-overlay.controls-hidden .btn-close-overlay-left,
 .obs-overlay.controls-hidden #obs-footer-bar,
-.obs-overlay.controls-hidden #obs-slide-counter {
+.obs-overlay.controls-hidden #obs-slide-counter,
+.obs-overlay.controls-hidden .obs-top-left-header {
   display: none !important;
   opacity: 0 !important;
   pointer-events: none !important;
