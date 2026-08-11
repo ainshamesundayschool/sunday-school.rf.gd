@@ -1177,8 +1177,8 @@ document.addEventListener('DOMContentLoaded', () => {
       strokeColor: savedSettings.styleOptions?.strokeColor || "#000000",
       shadowBlur: savedSettings.styleOptions?.shadowBlur || 0,
       shadowColor: savedSettings.styleOptions?.shadowColor || "#000000",
-      shadowAngle: savedSettings.styleOptions?.shadowAngle !== undefined ? savedSettings.styleOptions?.shadowAngle : 114,
-      shadowDistance: savedSettings.styleOptions?.shadowDistance !== undefined ? savedSettings.styleOptions?.shadowDistance : 20,
+      shadowAngle: savedSettings.styleOptions?.shadowAngle !== undefined ? savedSettings.styleOptions?.shadowAngle : 142,
+      shadowDistance: savedSettings.styleOptions?.shadowDistance !== undefined ? savedSettings.styleOptions?.shadowDistance : 6,
       shadowStyle: savedSettings.styleOptions?.shadowStyle || "soft",
       fontWeight: savedSettings.styleOptions?.fontWeight || "800",
       fontStyle: savedSettings.styleOptions?.fontStyle || "normal",
@@ -1858,10 +1858,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.obsStrokeColor) els.obsStrokeColor.value = state.styleOptions.strokeColor;
     if (els.obsShadowRange) els.obsShadowRange.value = state.styleOptions.shadowBlur;
     if (els.obsShadowColor) els.obsShadowColor.value = state.styleOptions.shadowColor || '#000000';
-    if (els.obsShadowAngleRange) els.obsShadowAngleRange.value = state.styleOptions.shadowAngle !== undefined ? state.styleOptions.shadowAngle : 114;
-    if (els.shadowAngleBadge) els.shadowAngleBadge.textContent = `${state.styleOptions.shadowAngle !== undefined ? state.styleOptions.shadowAngle : 114}°`;
-    if (els.obsShadowDistanceRange) els.obsShadowDistanceRange.value = state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 20;
-    if (els.shadowDistanceBadge) els.shadowDistanceBadge.textContent = `${state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 20}px`;
+    if (els.obsShadowAngleRange) els.obsShadowAngleRange.value = state.styleOptions.shadowAngle !== undefined ? state.styleOptions.shadowAngle : 142;
+    if (els.shadowAngleBadge) els.shadowAngleBadge.textContent = `${state.styleOptions.shadowAngle !== undefined ? state.styleOptions.shadowAngle : 142}°`;
+    if (els.obsShadowDistanceRange) els.obsShadowDistanceRange.value = state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 6;
+    if (els.shadowDistanceBadge) els.shadowDistanceBadge.textContent = `${state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 6}px`;
 
     if (els.obsFontWeightSelect) els.obsFontWeightSelect.value = state.styleOptions.fontWeight;
     if (els.obsScaleModeSelect) els.obsScaleModeSelect.value = state.scaleMode || 'auto';
@@ -2537,18 +2537,18 @@ document.addEventListener('DOMContentLoaded', () => {
         state.styleOptions.strokeColor = '#000000';
         state.styleOptions.shadowBlur = state.styleOptions.shadowBlur || 18;
         state.styleOptions.shadowColor = '#000000';
-        state.styleOptions.shadowAngle = 114;
-        state.styleOptions.shadowDistance = 20;
+        state.styleOptions.shadowAngle = 142;
+        state.styleOptions.shadowDistance = 6;
 
         if (els.obsTextColor) els.obsTextColor.value = '#ffffff';
         if (els.obsStrokeRange) els.obsStrokeRange.value = state.styleOptions.strokeWidth;
         if (els.obsStrokeColor) els.obsStrokeColor.value = '#000000';
         if (els.obsShadowRange) els.obsShadowRange.value = state.styleOptions.shadowBlur;
         if (els.obsShadowColor) els.obsShadowColor.value = '#000000';
-        if (els.obsShadowAngleRange) els.obsShadowAngleRange.value = 114;
-        if (els.shadowAngleBadge) els.shadowAngleBadge.textContent = '114°';
-        if (els.obsShadowDistanceRange) els.obsShadowDistanceRange.value = 20;
-        if (els.shadowDistanceBadge) els.shadowDistanceBadge.textContent = '20px';
+        if (els.obsShadowAngleRange) els.obsShadowAngleRange.value = 142;
+        if (els.shadowAngleBadge) els.shadowAngleBadge.textContent = '142°';
+        if (els.obsShadowDistanceRange) els.obsShadowDistanceRange.value = 6;
+        if (els.shadowDistanceBadge) els.shadowDistanceBadge.textContent = '6px';
       } else if (state.chromaKey === 'black') {
         state.styleOptions.textColor = '#ffffff';
         state.styleOptions.strokeWidth = 0;
@@ -6000,7 +6000,7 @@ document.addEventListener('DOMContentLoaded', () => {
       strokeColor: state.styleOptions.strokeColor,
       shadowBlur: state.styleOptions.shadowBlur,
       shadowColor: state.styleOptions.shadowColor || '#000000',
-      shadowAngle: state.styleOptions.shadowAngle !== undefined ? state.styleOptions.shadowAngle : 90,
+      shadowAngle: state.styleOptions.shadowAngle !== undefined ? state.styleOptions.shadowAngle : 142,
       shadowDistance: state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 6,
       shadowStyle: state.styleOptions.shadowStyle || 'soft',
       fontWeight: state.styleOptions.fontWeight,
