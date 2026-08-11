@@ -1268,11 +1268,11 @@
         textEl.style.lineHeight = `${fixedLH}`;
       } else if (scaleMode === 'auto') {
         const segmentsCount = segments ? segments.length : 1;
-        let autoLineHeight = 1.2;
+        let autoLineHeight = 1.25;
         if (isJomhuria) {
           autoLineHeight = 1.35;
         } else if (segmentsCount > 2) {
-          autoLineHeight = 1.18;
+          autoLineHeight = 1.2;
         } else if (segmentsCount === 1) {
           autoLineHeight = 1.15;
         }
@@ -1285,11 +1285,14 @@
         const horizontalFormatMaxH = curW * (9 / 16);
         const effectiveCanvasH = Math.min(curH, horizontalFormatMaxH);
 
-        const targetMaxW = curW * 0.92;
+        const targetMaxW = curW * 0.94;
         const targetMaxH = effectiveCanvasH * 0.88;
 
-        let low = 24;
-        let high = isJomhuria ? Math.max(350, Math.floor(effectiveCanvasH * 0.50)) : Math.max(300, Math.floor(effectiveCanvasH * 0.42));
+        // Set whiteSpace to nowrap during binary search measurement so lines don't prematurely wrap and artificially collapse font size
+        segments.forEach(s => s.style.whiteSpace = 'nowrap');
+
+        let low = 36;
+        let high = isJomhuria ? Math.max(450, Math.floor(effectiveCanvasH * 0.55)) : Math.max(380, Math.floor(effectiveCanvasH * 0.45));
         renderSize = low;
 
         while (low <= high) {
@@ -1306,7 +1309,13 @@
           }
         }
 
-        renderSize = Math.max(16, renderSize);
+        // Restore pre-wrap after measurement
+        segments.forEach(s => {
+          s.style.whiteSpace = 'pre-wrap';
+          s.style.wordBreak = 'break-word';
+        });
+
+        renderSize = Math.max(28, renderSize);
         textEl.style.fontSize = `${renderSize}px`;
       }
 

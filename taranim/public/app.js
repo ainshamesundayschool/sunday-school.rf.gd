@@ -6483,13 +6483,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (obsFooterBar) {
         let hasContent = false;
-        if (scaleText && hasText) {
+        const validScale = scaleText && String(scaleText).trim().length > 0 && !isBible;
+        if (validScale && hasText) {
           const cleanScaleText = String(scaleText).replace(/\s*\([^)]*\)/g, '').trim();
           if (obsScaleText) obsScaleText.textContent = `السلم: ${cleanScaleText}`;
           if (obsScaleBadge) obsScaleBadge.classList.remove('hidden');
           hasContent = true;
-        } else if (obsScaleBadge) {
-          obsScaleBadge.classList.add('hidden');
+        } else {
+          if (obsScaleBadge) obsScaleBadge.classList.add('hidden');
         }
 
         if (totalSlides > 0 && hasText) {
@@ -6740,24 +6741,28 @@ document.addEventListener('DOMContentLoaded', () => {
             const horizontalFormatMaxH = containerW * (9 / 16);
             const effectiveCanvasH = Math.min(containerH, horizontalFormatMaxH);
 
-            const maxContainerW = containerW * 0.92;
+            const maxContainerW = containerW * 0.94;
             const maxContainerH = effectiveCanvasH * 0.88;
 
-            const segmentsCount = els.obsLineText.querySelectorAll('.obs-line-segment').length || 1;
+            const segments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
+            const segmentsCount = segments.length || 1;
             const isJomhuriaFont = /jomhuria/i.test(state.selectedFont || '');
 
-            let optimalLineHeight = 1.2;
+            let optimalLineHeight = 1.25;
             if (isJomhuriaFont) {
               optimalLineHeight = 1.35;
             } else if (segmentsCount > 2) {
-              optimalLineHeight = 1.18;
+              optimalLineHeight = 1.2;
             } else if (segmentsCount === 1) {
               optimalLineHeight = 1.15;
             }
             els.obsLineText.style.lineHeight = `${optimalLineHeight}`;
 
-            let low = 24;
-            let high = isJomhuriaFont ? Math.max(350, Math.floor(effectiveCanvasH * 0.50)) : Math.max(300, Math.floor(effectiveCanvasH * 0.42));
+            // Temporarily set nowrap during measurement so lines don't prematurely wrap and shrink font size
+            segments.forEach(s => s.style.whiteSpace = 'nowrap');
+
+            let low = 36;
+            let high = isJomhuriaFont ? Math.max(450, Math.floor(effectiveCanvasH * 0.55)) : Math.max(380, Math.floor(effectiveCanvasH * 0.45));
             let bestFit = low;
 
             while (low <= high) {
@@ -6774,7 +6779,13 @@ document.addEventListener('DOMContentLoaded', () => {
               }
             }
 
-            bestFit = Math.max(16, bestFit);
+            // Restore pre-wrap after measurement
+            segments.forEach(s => {
+              s.style.whiteSpace = 'pre-wrap';
+              s.style.wordBreak = 'break-word';
+            });
+
+            bestFit = Math.max(28, bestFit);
             els.obsLineText.style.fontSize = `${bestFit}px`;
           }
           els.obsLineText.style.transform = 'none';
