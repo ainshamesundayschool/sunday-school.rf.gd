@@ -50,6 +50,18 @@
 </head>
 <body>
 
+  <!-- LIGHT AUTOMATIC DATA SYNC LOADING SCREEN -->
+  <div id="pwa-auto-sync-overlay" class="pwa-sync-overlay hidden">
+    <div class="pwa-sync-card">
+      <img src="logo_t.png" alt="Taranim Logo" class="pwa-sync-logo">
+      <div class="pwa-sync-title">جاري تحديث الترانيم والبيانات أوفلاين...</div>
+      <div class="pwa-sync-progress-bar">
+        <div id="pwa-sync-progress-fill" class="pwa-sync-progress-fill"></div>
+      </div>
+      <div id="pwa-sync-status-text" class="pwa-sync-status-text">جاري التحقق من الترانيم...</div>
+    </div>
+  </div>
+
   <div id="app" class="app-container">
     
     <!-- TOP NAVIGATION BAR -->

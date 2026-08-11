@@ -4157,6 +4157,81 @@ body[data-mode="allinone"] #presenter-box::-webkit-scrollbar-thumb:hover,
   background: rgba(255, 255, 255, 0.6) !important;
 }
 
+/* LIGHT AUTOMATIC DATA SYNC LOADING SCREEN */
+.pwa-sync-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(248, 250, 252, 0.97) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  z-index: 999999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: opacity 0.4s ease, visibility 0.4s ease !important;
+  direction: rtl !important;
+  font-family: 'Baloo Bhaijaan 2', 'Alexandria', sans-serif !important;
+}
+
+.pwa-sync-overlay.hidden {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.pwa-sync-card {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.08) !important;
+  border-radius: 20px !important;
+  padding: 2.2rem 2.5rem !important;
+  width: 90% !important;
+  max-width: 420px !important;
+  text-align: center !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 16px !important;
+}
+
+.pwa-sync-logo {
+  height: 52px !important;
+  width: auto !important;
+  object-fit: contain !important;
+}
+
+.pwa-sync-title {
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  line-height: 1.5 !important;
+}
+
+.pwa-sync-progress-bar {
+  width: 100% !important;
+  height: 8px !important;
+  background: #f1f5f9 !important;
+  border-radius: 999px !important;
+  overflow: hidden !important;
+}
+
+.pwa-sync-progress-fill {
+  width: 0% !important;
+  height: 100% !important;
+  background: linear-gradient(90deg, #2563eb, #3b82f6) !important;
+  border-radius: 999px !important;
+  transition: width 0.25s ease !important;
+}
+
+.pwa-sync-status-text {
+  font-size: 0.82rem !important;
+  color: #64748b !important;
+  font-weight: 500 !important;
+}
+
 /* ==========================================================================
    CUSTOM APPLE-GRADE RANGE SLIDERS (DESIGN UPGRADE)
    ========================================================================== */

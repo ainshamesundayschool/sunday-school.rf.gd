@@ -2123,7 +2123,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
     const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
     const dropdownIosInstallRow = document.getElementById('dropdown-ios-install-row');
-    if (isIOS && !isStandalone && dropdownIosInstallRow) {
+
+    if (isStandalone) {
+      if (els.btnMenuInstall) els.btnMenuInstall.style.display = 'none';
+      if (els.dropdownPwaInstallRow) els.dropdownPwaInstallRow.classList.add('hidden');
+      if (dropdownIosInstallRow) dropdownIosInstallRow.classList.add('hidden');
+    } else if (isIOS && dropdownIosInstallRow) {
       dropdownIosInstallRow.classList.remove('hidden');
     }
 
@@ -2138,6 +2143,74 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         deferredPrompt = null;
       });
+    }
+
+    // AUTOMATIC OFFLINE DATA SYNC WITH LIGHT LOADING SCREEN ON STARTUP
+    const triggerAutoOfflineSync = async () => {
+      const syncOverlay = document.getElementById('pwa-auto-sync-overlay');
+      const syncFill = document.getElementById('pwa-sync-progress-fill');
+      const syncStatus = document.getElementById('pwa-sync-status-text');
+
+      if (!navigator.onLine) {
+        if (syncOverlay) syncOverlay.classList.add('hidden');
+        return;
+      }
+
+      if (syncOverlay) syncOverlay.classList.remove('hidden');
+
+      const ASSETS_TO_CACHE = [
+        './',
+        './index.html',
+        './present.html',
+        './app.js',
+        './style.css',
+        './logoicon.png',
+        './manifest.webmanifest',
+        './songs_catalog.json',
+        './arabic_dictionary.json',
+        './playlists.json',
+        './song_scales_map.json',
+        './bible_books_data.json'
+      ];
+
+      let loadedCount = 0;
+      const total = ASSETS_TO_CACHE.length;
+
+      try {
+        let cacheName = 'taranim-pwa-v4';
+        if ('caches' in window) {
+          const keys = await caches.keys();
+          const found = keys.find(k => k.includes('taranim') || k.includes('sunday_school'));
+          if (found) cacheName = found;
+        }
+        const cache = await caches.open(cacheName);
+
+        for (let i = 0; i < total; i++) {
+          const url = ASSETS_TO_CACHE[i];
+          if (syncStatus) syncStatus.textContent = `مزامنة: ${url.replace('./', '')}...`;
+          try {
+            const res = await fetch(url, { cache: 'no-cache' });
+            if (res && res.ok) {
+              await cache.put(url, res);
+            }
+          } catch(err) {}
+
+          loadedCount++;
+          const pct = Math.round((loadedCount / total) * 100);
+          if (syncFill) syncFill.style.width = pct + '%';
+        }
+
+        if (syncStatus) syncStatus.textContent = 'تم حفظ جميع البيانات أوفلاين بنجاح!';
+        setTimeout(() => {
+          if (syncOverlay) syncOverlay.classList.add('hidden');
+        }, 500);
+      } catch(err) {
+        if (syncOverlay) syncOverlay.classList.add('hidden');
+      }
+    };
+
+    if (navigator.onLine) {
+      setTimeout(triggerAutoOfflineSync, 300);
     }
 
     document.addEventListener('click', (e) => {
