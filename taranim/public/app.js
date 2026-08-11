@@ -1271,33 +1271,106 @@ document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('btn-menu-cast-wrapper');
     if (!container) return;
 
-    stopPresentationTimer();
-    if (displayMonitorInterval) {
-      clearInterval(displayMonitorInterval);
-      displayMonitorInterval = null;
-    }
-    container.innerHTML = `
-      <button class="icon-menu-btn" id="btn-menu-cast" title="البث والشاشات الخارجية (TV / OBS)" type="button">
-        <i class="fa-solid fa-tv"></i>
-      </button>
-    `;
-    const castBtn = container.querySelector('#btn-menu-cast');
-    if (castBtn) {
-      castBtn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        if ('getScreenDetails' in window && !screenDetails) {
-          try { screenDetails = await window.getScreenDetails(); } catch(err) {}
-        }
+    const isExternalActive = Boolean(presenterWindow && !presenterWindow.closed);
 
-        const willShow = els.popoverCast.classList.contains('hidden');
-        closeAllPopovers(els.popoverCast);
-        if (willShow) {
-          els.popoverCast.classList.remove('hidden');
-          renderScreenOptions();
-        } else {
-          els.popoverCast.classList.add('hidden');
+    if (isExternalActive) {
+      if (!presentationStartTime) {
+        presentationStartTime = Date.now();
+      }
+      if (presentationTimerInterval) clearInterval(presentationTimerInterval);
+
+      container.innerHTML = `
+        <div id="active-cast-pill" class="active-cast-pill" style="display:inline-flex; align-items:center; background:#eff6ff; border:1.5px solid #bfdbfe; border-radius:20px; padding:2px 8px; gap:6px;">
+          <button type="button" id="btn-menu-cast" class="icon-menu-btn-compact" title="البث والشاشات (فتح القائمة)" style="background:none; border:none; color:#2563eb; cursor:pointer; padding:2px; font-size:0.92rem; display:flex; align-items:center;">
+            <i class="fa-solid fa-tv"></i>
+          </button>
+          <span id="display-pill-timer" style="font-size:0.76rem; font-weight:800; color:#1e40af; font-family:monospace; min-width:38px; text-align:center;">00:00</span>
+          <button type="button" id="btn-close-cast-window" title="إغلاق شاشة العرض الخارجي" style="background:#ef4444; border:none; color:#ffffff; width:20px; height:20px; border-radius:50%; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; font-size:0.7rem; padding:0; transition:transform 0.15s ease;">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      `;
+
+      const closeBtn = document.getElementById('btn-close-cast-window');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          closeActiveDisplay();
+        });
+      }
+
+      const castBtn = document.getElementById('btn-menu-cast');
+      if (castBtn) {
+        castBtn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          if ('getScreenDetails' in window && !screenDetails) {
+            try { screenDetails = await window.getScreenDetails(); } catch(err) {}
+          }
+          const willShow = els.popoverCast.classList.contains('hidden');
+          closeAllPopovers(els.popoverCast);
+          if (willShow) {
+            els.popoverCast.classList.remove('hidden');
+            renderScreenOptions();
+          } else {
+            els.popoverCast.classList.add('hidden');
+          }
+        });
+      }
+
+      presentationTimerInterval = setInterval(() => {
+        if (!presenterWindow || presenterWindow.closed) {
+          closeActiveDisplay();
+          return;
         }
-      });
+        const el = document.getElementById('display-pill-timer');
+        if (el && presentationStartTime) {
+          const elapsedSecs = Math.floor((Date.now() - presentationStartTime) / 1000);
+          const hrs = Math.floor(elapsedSecs / 3600);
+          const mins = Math.floor((elapsedSecs % 3600) / 60);
+          const secs = elapsedSecs % 60;
+          const timeStr = hrs > 0 
+            ? `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+            : `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+          el.textContent = timeStr;
+        }
+      }, 1000);
+
+      if (!displayMonitorInterval) {
+        displayMonitorInterval = setInterval(() => {
+          if (!presenterWindow || presenterWindow.closed) {
+            closeActiveDisplay();
+          }
+        }, 800);
+      }
+    } else {
+      stopPresentationTimer();
+      if (displayMonitorInterval) {
+        clearInterval(displayMonitorInterval);
+        displayMonitorInterval = null;
+      }
+      container.innerHTML = `
+        <button class="icon-menu-btn" id="btn-menu-cast" title="البث والشاشات الخارجية (TV / OBS)" type="button">
+          <i class="fa-solid fa-tv"></i>
+        </button>
+      `;
+      const castBtn = container.querySelector('#btn-menu-cast');
+      if (castBtn) {
+        castBtn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          if ('getScreenDetails' in window && !screenDetails) {
+            try { screenDetails = await window.getScreenDetails(); } catch(err) {}
+          }
+
+          const willShow = els.popoverCast.classList.contains('hidden');
+          closeAllPopovers(els.popoverCast);
+          if (willShow) {
+            els.popoverCast.classList.remove('hidden');
+            renderScreenOptions();
+          } else {
+            els.popoverCast.classList.add('hidden');
+          }
+        });
+      }
     }
   }
 
@@ -3974,6 +4047,7 @@ document.addEventListener('DOMContentLoaded', () => {
       moveWin();
       setTimeout(moveWin, 150);
       setTimeout(moveWin, 450);
+      updateDisplayButtonUI();
       showToast('تم فتح شاشة العرض على: ' + screenLabel);
     }
 
