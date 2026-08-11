@@ -2145,18 +2145,22 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // AUTOMATIC OFFLINE DATA SYNC WITH LIGHT LOADING SCREEN ON STARTUP
+    // AUTOMATIC OFFLINE DATA SYNC WITH LIGHT LOADING SCREEN ON FIRST STARTUP ONLY
     const triggerAutoOfflineSync = async () => {
       const syncOverlay = document.getElementById('pwa-auto-sync-overlay');
       const syncFill = document.getElementById('pwa-sync-progress-fill');
       const syncStatus = document.getElementById('pwa-sync-status-text');
 
-      if (!navigator.onLine) {
+      const isInitialDone = localStorage.getItem('taranim_pwa_initial_download_done') === 'true';
+
+      // ON SUBSEQUENT OPENS: DO NOT RE-DOWNLOAD ALL FILES, DO NOT SHOW HEAVY LOADING OVERLAY
+      if (isInitialDone || !navigator.onLine) {
         if (syncOverlay) syncOverlay.classList.add('hidden');
         return;
       }
 
       if (syncOverlay) syncOverlay.classList.remove('hidden');
+      if (syncStatus) syncStatus.textContent = 'جاري إعداد الترانيم والكتاب المقدس أوفلاين...';
 
       const ASSETS_TO_CACHE = [
         './',
@@ -2177,7 +2181,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const total = ASSETS_TO_CACHE.length;
 
       try {
-        let cacheName = 'taranim-pwa-v4';
+        let cacheName = 'taranim-pwa-v5';
         if ('caches' in window) {
           const keys = await caches.keys();
           const found = keys.find(k => k.includes('taranim') || k.includes('sunday_school'));
@@ -2187,7 +2191,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         for (let i = 0; i < total; i++) {
           const url = ASSETS_TO_CACHE[i];
-          if (syncStatus) syncStatus.textContent = `مزامنة: ${url.replace('./', '')}...`;
           try {
             const res = await fetch(url, { cache: 'no-cache' });
             if (res && res.ok) {
@@ -2198,12 +2201,18 @@ document.addEventListener('DOMContentLoaded', () => {
           loadedCount++;
           const pct = Math.round((loadedCount / total) * 100);
           if (syncFill) syncFill.style.width = pct + '%';
+          if (syncStatus) {
+            if (pct < 40) syncStatus.textContent = 'جاري إعداد محرك البحث السريع...';
+            else if (pct < 85) syncStatus.textContent = 'جاري حفظ الترانيم والكتاب المقدس أوفلاين...';
+            else syncStatus.textContent = 'جاري إنهاء التجهيز...';
+          }
         }
 
-        if (syncStatus) syncStatus.textContent = 'تم حفظ جميع البيانات أوفلاين بنجاح!';
+        localStorage.setItem('taranim_pwa_initial_download_done', 'true');
+        if (syncStatus) syncStatus.textContent = 'جاهز للعمل بدون إنترنت!';
         setTimeout(() => {
           if (syncOverlay) syncOverlay.classList.add('hidden');
-        }, 500);
+        }, 400);
       } catch(err) {
         if (syncOverlay) syncOverlay.classList.add('hidden');
       }
