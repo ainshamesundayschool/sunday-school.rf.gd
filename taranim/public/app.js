@@ -3714,12 +3714,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let isDragging = false;
     let startX, startY;
-    const SNAP_THRESHOLD = 22;
-
+    // DRAGGING DISABLED FOR IN-APP OVERLAY (KEPT FOR PRESENT.HTML GREEN SCREEN ONLY)
     box.addEventListener('mousedown', (e) => {
-      isDragging = true;
-      startX = e.clientX;
-      startY = e.clientY;
+      return;
     });
 
     window.addEventListener('mousemove', (e) => {
@@ -5829,6 +5826,7 @@ document.addEventListener('DOMContentLoaded', () => {
       boxPadding: state.styleOptions.boxPadding,
       hideControls: Boolean(state.hideControls),
       highlightedLines: state.highlightedLineIndices || [],
+      mode: state.presentationMode || 'oneline',
       highlightColor: state.highlightColor || '#f59e0b',
       allSlideTexts: targetLines.map(item => item ? (item.text || '') : '')
     };
@@ -5848,6 +5846,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const isOverlayOpen = !els.obsOverlay.classList.contains('hidden');
       document.body.classList.toggle('has-active-overlay', isOverlayOpen);
       els.obsOverlay.classList.toggle('controls-hidden', Boolean(state.hideControls));
+      els.obsOverlay.setAttribute('data-mode', state.presentationMode || 'oneline');
     }
 
     if (els.obsLineText) {

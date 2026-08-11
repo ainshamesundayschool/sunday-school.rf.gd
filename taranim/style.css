@@ -4090,6 +4090,34 @@ body.has-active-overlay {
   pointer-events: none !important;
 }
 
+/* ALL IN ONE SCROLLABLE PRESENTATION MODE */
+.obs-overlay[data-mode="allinone"] .obs-lower-third-box,
+body[data-mode="allinone"] .lower-third-container,
+.obs-overlay.mode-allinone .obs-lower-third-box {
+  overflow-y: auto !important;
+  max-height: 84vh !important;
+  pointer-events: auto !important;
+  scroll-behavior: smooth !important;
+  padding-right: 12px !important;
+  justify-content: flex-start !important;
+  padding-top: 1.5rem !important;
+}
+
+.allinone-section {
+  display: block !important;
+  width: 100% !important;
+  margin-bottom: 2.2rem !important;
+  padding-bottom: 1.2rem !important;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.2) !important;
+  text-align: center !important;
+  position: relative !important;
+}
+
+.allinone-section:last-child {
+  border-bottom: none !important;
+  margin-bottom: 0 !important;
+}
+
 /* ==========================================================================
    CUSTOM APPLE-GRADE RANGE SLIDERS (DESIGN UPGRADE)
    ========================================================================== */

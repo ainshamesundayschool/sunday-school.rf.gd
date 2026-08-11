@@ -1490,6 +1490,8 @@
       if (incomingChroma) {
         document.body.setAttribute('data-chroma', incomingChroma);
       }
+      const incomingMode = data.mode || data.presentationMode || 'oneline';
+      document.body.setAttribute('data-mode', incomingMode);
 
       const customFontUrl = data.customFontDataUrl || localStorage.getItem('sunday_school_custom_font_dataurl');
       const customFontName = data.customFontName || localStorage.getItem('sunday_school_custom_font_name');
