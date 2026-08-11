@@ -1137,10 +1137,16 @@
     let _uniformSongKey = '';
     let _lastAnimSlideText = '';
 
-    // Compute the optimal font size for a given HTML string rendered in textEl
     function _computeOptimalSize(htmlContent, maxW, maxH, isJomhuria, segCountHint) {
-      const isVertical = window.innerHeight > window.innerWidth;
-      const refTargetW = isVertical ? Math.max(maxW, maxH * (16 / 9)) : maxW;
+      const container = document.getElementById('obs-overlay-container') || document.body;
+      const curW = maxW || container.clientWidth || window.innerWidth || 1920;
+      const curH = maxH || container.clientHeight || window.innerHeight || 1080;
+
+      // Lock maximum height to 16:9 horizontal format ratio so vertical screens scale based on landscape reference
+      const horizontalFormatMaxH = curW * (9 / 16);
+      const effectiveCanvasH = Math.min(curH, horizontalFormatMaxH);
+      const effectiveMaxH = effectiveCanvasH * 0.88;
+      const refTargetW = curW * 0.92;
 
       const origHTML = textEl.innerHTML;
       const origDisplay = textEl.style.display;
@@ -1176,7 +1182,7 @@
         const h = textEl.scrollHeight || textEl.offsetHeight;
         const w = textEl.scrollWidth || textEl.offsetWidth;
 
-        if (h <= maxH && w <= refTargetW) {
+        if (h <= effectiveMaxH && w <= refTargetW) {
           renderSize = mid;
           low = mid + 1;
         } else {
