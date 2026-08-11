@@ -2606,8 +2606,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const toggleSplitLongLines = document.getElementById('btn-toggle-split-long-lines');
-    const btnQuickToggleSplit = document.getElementById('btn-quick-toggle-split');
-    const iconSplitLines = document.getElementById('icon-split-lines');
     const splitLongLinesField = document.getElementById('split-long-lines-field');
 
     const updateSplitLongLinesUI = () => {
@@ -2615,42 +2613,20 @@ document.addEventListener('DOMContentLoaded', () => {
       if (splitLongLinesField) {
         splitLongLinesField.style.display = isOneLineMode ? 'block' : 'none';
       }
-      const isSplitActive = Boolean(state.splitLongLines !== false);
       if (toggleSplitLongLines) {
-        toggleSplitLongLines.checked = isSplitActive;
+        toggleSplitLongLines.checked = Boolean(state.splitLongLines !== false);
       }
-      if (iconSplitLines) {
-        if (isSplitActive) {
-          iconSplitLines.className = 'fa-solid fa-equals';
-          if (btnQuickToggleSplit) btnQuickToggleSplit.title = 'نمط السطرين مفعل (اضغط للتحويل لسطر واحد)';
-        } else {
-          iconSplitLines.className = 'fa-solid fa-minus';
-          if (btnQuickToggleSplit) btnQuickToggleSplit.title = 'نمط السطر الواحد مفعل (اضغط للتقسيم لسطرين)';
-        }
-      }
-    };
-
-    const performSplitToggle = (forcedVal = null) => {
-      state.splitLongLines = (forcedVal !== null) ? Boolean(forcedVal) : !Boolean(state.splitLongLines !== false);
-      saveUserSettings();
-      updateSplitLongLinesUI();
-      if (state.activeSong) {
-        loadSongIntoPresentation(state.activeSong);
-      }
-      syncLiveState();
-      showToast(state.splitLongLines ? 'تم تفعيل تقسيم السطر لسطرين!' : 'تم التحويل لنمط السطر الواحد');
     };
 
     if (toggleSplitLongLines) {
       toggleSplitLongLines.addEventListener('change', (e) => {
-        performSplitToggle(e.target.checked);
-      });
-    }
-
-    if (btnQuickToggleSplit) {
-      btnQuickToggleSplit.addEventListener('click', (e) => {
-        e.stopPropagation();
-        performSplitToggle();
+        state.splitLongLines = e.target.checked;
+        saveUserSettings();
+        if (state.activeSong) {
+          loadSongIntoPresentation(state.activeSong);
+        }
+        syncLiveState();
+        showToast(state.splitLongLines ? 'تم تفعيل تقسيم السطر الطويل لسطرين!' : 'تم إيقاف تقسيم السطر الطويل');
       });
     }
 
@@ -5399,6 +5375,17 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    // ALWAYS ADD OFFICIAL LOGO SLIDE AT THE END OF EVERY SONG'S SLIDE LIST
+    if (linesList.length > 0) {
+      linesList.push({
+        isLogoSlide: true,
+        text: '',
+        badgeText: '',
+        badgeClass: '',
+        label: 'الشعار الرسمي (الشاشة الرئيسية)'
+      });
+    }
+
     state.presentationLines = linesList;
     if (song && song.title) {
       document.title = `${song.title} | Taranim Online`;
@@ -5444,6 +5431,18 @@ document.addEventListener('DOMContentLoaded', () => {
     els.presentationLinesContainer.innerHTML = presentationLines.map((l, idx) => {
       const isActive = (!state.isBlank) && (isLiveSongDisplayed ? (idx === state.liveLineIndex) : (idx === state.currentLineIndex));
 
+      if (l.isLogoSlide) {
+        return `
+          <div class="line-item ${isActive ? 'active' : ''} logo-slide-item" data-idx="${idx}" style="background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%); border: 1.5px solid #bfdbfe; border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: all 0.2s ease;">
+            <div style="display: flex; align-items: center; gap: 10px; color: #1e40af; font-weight: 800; font-size: 0.92rem;">
+              <i class="fa-solid fa-compact-disc" style="font-size: 1.2rem; color: #2563eb;"></i>
+              <span>الشعار الرسمي (الشاشة الرئيسية)</span>
+            </div>
+            <span class="slide-index-corner" style="position:relative; bottom:0; left:0; color:#2563eb; font-weight:800; font-size:0.8rem;">${idx + 1}</span>
+          </div>
+        `;
+      }
+
       const isAllInOne = Boolean(l.isAllInOne || (l.text && l.text.includes('allinone-slide-group')));
 
       const linesPreviewHtml = isAllInOne ? l.text : (l.lines || [l.text]).map((lineText, lineIdx) => {
@@ -5474,8 +5473,8 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <span class="slide-index-corner">${idx + 1}</span>
           <div class="line-item-actions-left">
-            <button class="split-line-btn" data-idx="${idx}" title="${l.isCustomSplit ? 'إلغاء تقسيم السطر' : 'تقسيم السطر إلى سطرين'}">
-              <i class="fa-solid ${l.isCustomSplit ? 'fa-arrows-to-line' : 'fa-arrows-split-up-and-left'}"></i>
+            <button class="split-line-btn" data-idx="${idx}" title="${l.isCustomSplit ? 'تحويل لسطر واحد' : 'تقسيم لسطرين'}">
+              <i class="fa-solid ${l.isCustomSplit ? 'fa-minus' : 'fa-equals'}"></i>
             </button>
             <button class="copy-line-btn" data-text="${escapeHtml(l.text)}" title="نسخ هذا المقطع">
               <i class="fa-solid fa-copy"></i>
@@ -6037,6 +6036,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const targetIndex = (state.liveLineIndex >= 0) ? state.liveLineIndex : (state.currentLineIndex >= 0 ? state.currentLineIndex : 0);
 
     const currentSlideItem = targetLines[targetIndex] || null;
+    const isLogoSlide = Boolean(currentSlideItem && currentSlideItem.isLogoSlide);
     const text = currentSlideItem ? (currentSlideItem.text || '') : '';
     const currentSlide = targetLines.length > 0 ? (targetIndex + 1) : 0;
     const totalSlides = targetLines.length;
@@ -6048,6 +6048,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const payload = {
       type: 'PRESENT_LINE',
+      isLogoSlide: isLogoSlide,
       text: text,
       badgeText: badgeTxt,
       badgeClass: badgeCls,

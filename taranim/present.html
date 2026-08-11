@@ -1726,16 +1726,17 @@
       }
 
       const isBlankMode = Boolean(data.isBlank);
+      const isLogoSlide = Boolean(data.isLogoSlide);
       const hasTextContent = Boolean(data.text && String(data.text).trim());
 
       if (isBlankMode) {
-        // HIDE BUTTON IS ON: Hide everything (text + logo), keep chosen background intact
+        // HIDE BUTTON IS ON: Hide text AND hide logo, keep chosen background intact
         textEl.classList.add('hidden');
         textEl.style.display = 'none';
         if (standbyEl) standbyEl.classList.add('hidden');
         currentIsBlankState = true;
-      } else if (!hasTextContent) {
-        // NO ACTIVE SONG/SLIDE: Show Logo as standby slide
+      } else if (isLogoSlide || !hasTextContent) {
+        // LOGO SLIDE OR NO SONG: Show official logo standby screen
         textEl.classList.add('hidden');
         textEl.style.display = 'none';
         if (standbyEl) standbyEl.classList.remove('hidden');
