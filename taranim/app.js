@@ -4955,13 +4955,21 @@ document.addEventListener('DOMContentLoaded', () => {
           }
 
           if (bId && cNum) {
+            const pathDir = window.location.pathname.replace(/\/[^\/]*$/, '/');
+            endpoints.push(`api.php?action=bible_chapter&book_id=${bId}&chapter=${cNum}`);
+            endpoints.push(`./api.php?action=bible_chapter&book_id=${bId}&chapter=${cNum}`);
+            endpoints.push(`${window.location.origin}${pathDir}api.php?action=bible_chapter&book_id=${bId}&chapter=${cNum}`);
             endpoints.push(`${apiUrl}?action=bible_chapter&book_id=${bId}&chapter=${cNum}`);
             endpoints.push(`/api.php?action=bible_chapter&book_id=${bId}&chapter=${cNum}`);
           } else if (cleanId && !isNaN(parseInt(cleanId))) {
+            endpoints.push(`api.php?action=song&id=${cleanId}&type=bible&is_bible=1`);
+            endpoints.push(`./api.php?action=song&id=${cleanId}&type=bible&is_bible=1`);
             endpoints.push(`${apiUrl}?action=song&id=${cleanId}&type=bible&is_bible=1`);
             endpoints.push(`/api.php?action=song&id=${cleanId}&type=bible&is_bible=1`);
           }
         } else if (cleanId && !isNaN(parseInt(cleanId))) {
+          endpoints.push(`api.php?action=song&id=${cleanId}`);
+          endpoints.push(`./api.php?action=song&id=${cleanId}`);
           endpoints.push(`${apiUrl}?action=song&id=${cleanId}`);
           endpoints.push(`/api.php?action=song&id=${cleanId}`);
         }
@@ -4974,13 +4982,37 @@ document.addEventListener('DOMContentLoaded', () => {
           );
 
           const results = await Promise.all(fetchPromises);
-          const fullSong = results.find(data => data && (
+          let fullSong = results.find(data => data && (
             (data.verses && Array.isArray(data.verses) && data.verses.length > 0) ||
             (data.notes && String(data.notes).trim().length > 0) ||
             (data.text && String(data.text).trim().length > 0) ||
-            (data.slides && Array.isArray(data.slides) && data.slides.length > 0) ||
-            (data.title && isItemBible)
+            (data.slides && Array.isArray(data.slides) && data.slides.length > 0)
           ));
+
+          // OFFLINE BIBLE CHAPTER FALLBACK IF ENDPOINTS RETURN NO VERSES
+          if (!fullSong && isItemBible) {
+            let bId = (inputObject && inputObject.book_id !== undefined) ? inputObject.book_id : '';
+            let cNum = (inputObject && inputObject.chapter_number !== undefined) ? inputObject.chapter_number : '';
+            if (!bId || !cNum) {
+              const m = String(rawSongId || '').match(/^bible_(\d+)_(\d+)$/);
+              if (m) { bId = m[1]; cNum = m[2]; }
+            }
+            if (bId && cNum) {
+              if (!state.bibleChaptersData) {
+                try {
+                  const pathDir = window.location.pathname.replace(/\/[^\/]*$/, '/');
+                  let bRes = await fetch('./bible_chapters_data.json').catch(() => null);
+                  if (!bRes || !bRes.ok) bRes = await fetch(`${window.location.origin}${pathDir}bible_chapters_data.json`).catch(() => null);
+                  if (!bRes || !bRes.ok) bRes = await fetch('bible_chapters_data.json').catch(() => null);
+                  if (bRes && bRes.ok) state.bibleChaptersData = await bRes.json();
+                } catch(e) {}
+              }
+              const cacheKey = `${bId}_${cNum}`;
+              if (state.bibleChaptersData && state.bibleChaptersData[cacheKey]) {
+                fullSong = JSON.parse(JSON.stringify(state.bibleChaptersData[cacheKey]));
+              }
+            }
+          }
 
           if (fullSong) {
             targetSong = fullSong;
