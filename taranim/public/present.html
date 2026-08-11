@@ -1299,13 +1299,24 @@
         const curW = container.clientWidth || window.innerWidth || 1920;
         const curH = container.clientHeight || window.innerHeight || 1080;
 
-        // 16:9 Horizontal format ratio cap
-        const horizontalFormatMaxH = curW * (9 / 16);
-        const effectiveCanvasH = Math.min(curH, horizontalFormatMaxH);
+        const currentItemKey = (activeSong && (activeSong.id || activeSong.item_id || activeSong.title)) 
+          ? (activeSong.id || activeSong.item_id || activeSong.title) 
+          : 'default_item';
 
-        // Safe margins: 2.5% padding left/right (0.95), 4% padding top/bottom (0.92)
-        const targetMaxW = curW * 0.95;
-        const targetMaxH = effectiveCanvasH * 0.92;
+        if (!window._uniformFontCache || window._uniformFontCache.key !== currentItemKey || window._uniformFontCache.w !== curW || window._uniformFontCache.h !== curH || window._uniformFontCache.font !== currentFont) {
+          const linesToMeasure = (statePresentationLines && statePresentationLines.length > 0) 
+            ? statePresentationLines 
+            : (activeSong && activeSong.verses ? activeSong.verses : []);
+          
+          const uniformSize = computeSongUniformAutoFitFontSize(linesToMeasure, curW, curH, currentFont, lastStyleData);
+          window._uniformFontCache = {
+            key: currentItemKey,
+            w: curW,
+            h: curH,
+            font: currentFont,
+            size: uniformSize
+          };
+        }
 
         const segmentsCount = segments ? segments.length : 1;
         let defaultLH = 1.18;
@@ -1316,45 +1327,17 @@
         } else if (segmentsCount === 1) {
           defaultLH = 1.15;
         }
-        const autoLineHeight = (lastStyleData && lastStyleData.lineHeight !== undefined) ? lastStyleData.lineHeight : defaultLH;
-        textEl.style.lineHeight = `${autoLineHeight}`;
-
-        // Smart measurement: Taranim short lines use nowrap so they render big & bold as before; Bible verses use pre-wrap so multi-sentence paragraphs fit nicely on 2-3 lines
-        const isBibleOrLongParagraph = isBible || (segmentsCount > 3) || (segments && segments.some(s => s.textContent && s.textContent.length > 60));
-        segments.forEach(s => {
-          s.style.whiteSpace = isBibleOrLongParagraph ? 'pre-wrap' : 'nowrap';
-          s.style.wordBreak = 'break-word';
-        });
-
-        let low = 36;
-        let high = isJomhuria ? 130 : Math.max(160, Math.floor(effectiveCanvasH * 0.55));
-        renderSize = low;
-
-        while (low <= high) {
-          const mid = Math.floor((low + high) / 2);
-          textEl.style.fontSize = `${mid}px`;
-          const h = textEl.scrollHeight || textEl.offsetHeight;
-          const w = textEl.scrollWidth || textEl.offsetWidth;
-
-          if (h <= targetMaxH && w <= targetMaxW) {
-            renderSize = mid;
-            low = mid + 1;
+        let autoLineHeight = defaultLH;
+        if (lastStyleData && lastStyleData.lineHeight !== undefined) {
+          if (!isJomhuria && lastStyleData.lineHeight <= 0.95) {
+            autoLineHeight = defaultLH;
           } else {
-            high = mid - 1;
+            autoLineHeight = lastStyleData.lineHeight;
           }
         }
+        textEl.style.lineHeight = `${autoLineHeight}`;
 
-        if (isJomhuria) {
-          renderSize = Math.min(125, renderSize);
-        }
-
-        // Restore pre-wrap after measurement
-        segments.forEach(s => {
-          s.style.whiteSpace = 'pre-wrap';
-          s.style.wordBreak = 'break-word';
-        });
-
-        renderSize = Math.max(32, renderSize);
+        renderSize = window._uniformFontCache.size;
         textEl.style.fontSize = `${renderSize}px`;
       }
 
@@ -1764,7 +1747,7 @@
 
       const topLeftHeaderEl = document.getElementById('obs-top-left-header');
       if (topLeftHeaderEl) {
-        if (data.bibleRef && !data.isBlank) {
+        if (data.isBible && data.bibleRef && !data.isBlank && data.text && String(data.text).trim()) {
           topLeftHeaderEl.textContent = data.bibleRef;
           topLeftHeaderEl.classList.remove('hidden');
         } else {

@@ -4449,48 +4449,95 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     };
 
-    // 1. INSTANT LOAD FROM LOCAL CACHE STORAGE IF AVAILABLE
-    try {
-      if ('caches' in window) {
-        const cache = await caches.open('taranim-pwa-v8').catch(() => null);
-        if (cache) {
-          const cachedCatalog = await cache.match('songs_catalog.json').catch(() => null);
-          if (cachedCatalog && cachedCatalog.ok) {
-            const data = await cachedCatalog.json();
-            const rawList = Array.isArray(data) ? data : (data && data.songs ? data.songs : []);
-            if (rawList.length > 0) {
-              state.allSongs = indexCatalogList(rawList);
-              updateStartupProgress(75, 'تم تجهيز فهارس البحث محلياً...');
+    // 1. FAST 0ms LOCAL CACHE CHECK
+    let hasLocalCatalog = false;
+    let hasLocalBible = false;
+
+    if ('caches' in window) {
+      try {
+        const keys = await caches.keys().catch(() => []);
+        for (const key of keys) {
+          const cache = await caches.open(key).catch(() => null);
+          if (cache) {
+            if (!hasLocalCatalog) {
+              const resCat = await cache.match('songs_catalog.json', { ignoreSearch: true }).catch(() => null) ||
+                             await cache.match('./songs_catalog.json', { ignoreSearch: true }).catch(() => null);
+              if (resCat && resCat.ok) {
+                const data = await resCat.json().catch(() => null);
+                const rawList = Array.isArray(data) ? data : (data && data.songs ? data.songs : []);
+                if (rawList && rawList.length > 0) {
+                  state.allSongs = indexCatalogList(rawList);
+                  hasLocalCatalog = true;
+                }
+              }
+            }
+            if (!hasLocalBible) {
+              const resBible = await cache.match('bible_chapters_data.json', { ignoreSearch: true }).catch(() => null) ||
+                               await cache.match('./bible_chapters_data.json', { ignoreSearch: true }).catch(() => null);
+              if (resBible && resBible.ok) {
+                const dataB = await resBible.json().catch(() => null);
+                if (dataB && Object.keys(dataB).length > 0) {
+                  state.bibleChaptersData = dataB;
+                  hasLocalBible = true;
+                }
+              }
             }
           }
         }
+      } catch(e) {}
+    }
+
+    const isDataFullyLoaded = hasLocalCatalog && hasLocalBible && state.allSongs.length > 0 && state.bibleChaptersData;
+
+    // 2. ONLY SHOW SPLASH SCREEN IF DATA NEEDS TO BE DOWNLOADED!
+    if (!isDataFullyLoaded && overlayEl) {
+      overlayEl.classList.remove('hidden');
+      document.body.classList.add('startup-active');
+      if (btnBgContinue) {
+        setTimeout(() => {
+          if (btnBgContinue) btnBgContinue.classList.remove('hidden');
+        }, 2000);
       }
-    } catch(e) {}
+    }
 
-    // 2. NETWORK FETCH FOR FRESH CATALOG DISCOVERY & BIBLE CHAPTERS PRELOAD
+    // 3. FETCH ARABIC DICTIONARY & MISSING DATA IF NEEDED
     try {
-      const pathDir = window.location.pathname.replace(/\/[^\/]*$/, '/');
-      const fetchCatalog = fetch('./songs_catalog.json')
-        .then(r => r.ok ? r.json() : null)
-        .catch(() => null);
-
-      const fetchBible = fetch('./bible_chapters_data.json')
-        .then(r => r.ok ? r.json() : null)
-        .catch(() => fetch(`${window.location.origin}${pathDir}bible_chapters_data.json`).then(r => r.ok ? r.json() : null).catch(() => null));
-
-      const [data, bibleData] = await Promise.all([fetchCatalog, fetchBible]);
-
-      if (data) {
-        let rawList = Array.isArray(data) ? data : (data && data.songs ? data.songs : []);
-        if (rawList.length > 0) {
-          state.allSongs = indexCatalogList(rawList);
+      const dictRes = await fetch('arabic_dictionary.json').catch(() => null);
+      if (dictRes && dictRes.ok) {
+        const dict = await dictRes.json().catch(() => null);
+        if (dict) {
+          state.arabicDictionary = dict;
+          state.dictKeys = Object.keys(dict);
         }
       }
-      if (bibleData) {
-        state.bibleChaptersData = bibleData;
-      }
-      updateStartupProgress(95, 'تم تحضير أسفار الكتاب المقدس والترانيم بالكامل...');
-    } catch(e) {}
+    } catch (e) {}
+
+    if (!isDataFullyLoaded) {
+      updateStartupProgress(40, 'جاري تنزيل الفهارس وسجلات الترانيم والكتاب المقدس...');
+      try {
+        const pathDir = window.location.pathname.replace(/\/[^\/]*$/, '/');
+        const fetchCatalog = fetch('./songs_catalog.json')
+          .then(r => r.ok ? r.json() : null)
+          .catch(() => null);
+
+        const fetchBible = fetch('./bible_chapters_data.json')
+          .then(r => r.ok ? r.json() : null)
+          .catch(() => fetch(`${window.location.origin}${pathDir}bible_chapters_data.json`).then(r => r.ok ? r.json() : null).catch(() => null));
+
+        const [data, bibleData] = await Promise.all([fetchCatalog, fetchBible]);
+
+        if (data) {
+          let rawList = Array.isArray(data) ? data : (data && data.songs ? data.songs : []);
+          if (rawList.length > 0) {
+            state.allSongs = indexCatalogList(rawList);
+          }
+        }
+        if (bibleData) {
+          state.bibleChaptersData = bibleData;
+        }
+        updateStartupProgress(95, 'تم تنزيل وتحضير المحتوى بالكامل...');
+      } catch(e) {}
+    }
 
     // Update total songs count badge UI
     if (els.totalSongsCount && state.allSongs.length > 0) {
@@ -4511,7 +4558,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    updateStartupProgress(100, 'التطبيق جاهز للعمل 100%!');
+    updateStartupProgress(100, 'التطبيق جاهز للعمل!');
 
     const realTotalCount = state.allSongs.length > 0 ? state.allSongs.length : 11611;
     
@@ -6511,6 +6558,48 @@ document.addEventListener('DOMContentLoaded', () => {
     }, delay);
   }
 
+  function getBibleVerseShortcut(song, currentSlideItem) {
+    if (!song) return '';
+    let bId = song.book_id !== undefined ? song.book_id : (song.book !== undefined ? song.book : null);
+    let cNum = song.chapter_number !== undefined ? song.chapter_number : (song.chapter !== undefined ? song.chapter : '');
+    
+    if (!bId || !cNum) {
+      const rawId = song.id || song.item_id || '';
+      const m = String(rawId).match(/^(?:bible_)?(\d+)_(\d+)$/);
+      if (m) {
+        if (!bId) bId = m[1];
+        if (!cNum) cNum = m[2];
+      }
+    }
+
+    let bookObj = null;
+    if (bId && typeof BIBLE_BOOKS_DATA !== 'undefined' && Array.isArray(BIBLE_BOOKS_DATA)) {
+      bookObj = BIBLE_BOOKS_DATA.find(b => parseInt(b.id) === parseInt(bId));
+    }
+    if (!bookObj && song.title && typeof BIBLE_BOOKS_DATA !== 'undefined' && Array.isArray(BIBLE_BOOKS_DATA)) {
+      const cleanT = normalizeArabic(song.title).replace(/سفر|إصحاح|\(\d+\)|\d+/g, '').trim();
+      bookObj = BIBLE_BOOKS_DATA.find(b => normalizeArabic(b.title).includes(cleanT) || cleanT.includes(normalizeArabic(b.title)));
+    }
+
+    const abbr = bookObj ? bookObj.abbr : (song.book_title || song.title || '');
+    
+    let vNum = '';
+    if (currentSlideItem) {
+      const rawBadge = currentSlideItem.badgeText || currentSlideItem.number || currentSlideItem.heading || '';
+      const m = String(rawBadge).match(/\d+/);
+      if (m) vNum = m[0];
+    }
+
+    if (abbr && cNum && vNum) {
+      return `${abbr} ${cNum}: ${vNum}`;
+    } else if (abbr && cNum) {
+      return `${abbr} ${cNum}`;
+    } else if (abbr) {
+      return abbr;
+    }
+    return '';
+  }
+
   function syncLiveState(isExplicitPositionUpdate = false, isForceRefresh = false) {
     const targetSong = state.liveSong || state.activeSong;
     const targetLines = (state.livePresentationLines && state.livePresentationLines.length > 0) ? state.livePresentationLines : state.presentationLines;
@@ -6526,6 +6615,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const badgeCls = currentSlideItem ? (currentSlideItem.badgeClass || '') : '';
 
     const isBible = Boolean(targetSong && ((targetSong.is_bible === true || targetSong.is_bible === '1' || targetSong.is_bible === 1) || (targetSong.chapter_number !== undefined && targetSong.chapter_number !== null && targetSong.chapter_number !== '') || targetSong.type === 'bible'));
+    const bibleRefShortcut = isBible ? getBibleVerseShortcut(targetSong, currentSlideItem) : '';
 
     const payload = {
       type: 'PRESENT_LINE',
@@ -6535,6 +6625,7 @@ document.addEventListener('DOMContentLoaded', () => {
       badgeClass: badgeCls,
       isBible: isBible,
       is_bible: isBible,
+      bibleRef: bibleRefShortcut,
       songTitle: targetSong ? targetSong.title : '',
       currentSlide: currentSlide,
       totalSlides: totalSlides,
@@ -6630,8 +6721,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const obsTopLeftHeader = document.getElementById('obs-top-left-header');
       if (obsTopLeftHeader) {
-        if (badgeTxt && isBible && hasText) {
-          obsTopLeftHeader.textContent = badgeTxt;
+        if (isBible && bibleRefShortcut && hasText) {
+          obsTopLeftHeader.textContent = bibleRefShortcut;
           obsTopLeftHeader.classList.remove('hidden');
         } else {
           obsTopLeftHeader.classList.add('hidden');
@@ -6900,16 +6991,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const containerW = Math.max(320, container.clientWidth || window.innerWidth);
             const containerH = Math.max(240, container.clientHeight || window.innerHeight);
 
-            // Lock maximum height to 16:9 horizontal format ratio (never fill tall vertical areas)
-            const horizontalFormatMaxH = containerW * (9 / 16);
-            const effectiveCanvasH = Math.min(containerH, horizontalFormatMaxH);
+            const currentItemKey = (state.activeSong && (state.activeSong.id || state.activeSong.item_id || state.activeSong.title)) 
+              ? (state.activeSong.id || state.activeSong.item_id || state.activeSong.title) 
+              : 'default_item';
 
-            // Safe margins: 2.5% padding left/right (0.95), 4% padding top/bottom (0.92)
-            const maxContainerW = containerW * 0.95;
-            const maxContainerH = effectiveCanvasH * 0.92;
+            if (!window._obsUniformFontCache || window._obsUniformFontCache.key !== currentItemKey || window._obsUniformFontCache.w !== containerW || window._obsUniformFontCache.h !== containerH || window._obsUniformFontCache.font !== state.selectedFont) {
+              const linesToMeasure = (state.activeSong && state.activeSong.verses) ? state.activeSong.verses : state.presentationLines;
+              const uniformSize = computeSongUniformAutoFitFontSize(linesToMeasure, containerW, containerH, state.selectedFont, state.styleOptions);
+              window._obsUniformFontCache = {
+                key: currentItemKey,
+                w: containerW,
+                h: containerH,
+                font: state.selectedFont,
+                size: uniformSize
+              };
+            }
 
-            const segments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
-            const segmentsCount = segments.length || 1;
+            const segmentsCount = obsSegments.length || 1;
             const isJomhuriaFont = /jomhuria/i.test(state.selectedFont || '');
 
             let defaultLH = 1.18;
@@ -6920,45 +7018,17 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (segmentsCount === 1) {
               defaultLH = 1.15;
             }
-            const optimalLineHeight = state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : defaultLH;
-            els.obsLineText.style.lineHeight = `${optimalLineHeight}`;
-
-            // Smart measurement: Taranim short lines use nowrap so they render big & bold as before; Bible verses use pre-wrap so multi-sentence paragraphs fit nicely on 2-3 lines
-            const isBibleOrLongParagraph = isBible || (segmentsCount > 3) || (segments && segments.some(s => s.textContent && s.textContent.length > 60));
-            segments.forEach(s => {
-              s.style.whiteSpace = isBibleOrLongParagraph ? 'pre-wrap' : 'nowrap';
-              s.style.wordBreak = 'break-word';
-            });
-
-            let low = 36;
-            let high = isJomhuriaFont ? 130 : Math.max(160, Math.floor(effectiveCanvasH * 0.55));
-            let bestFit = low;
-
-            while (low <= high) {
-              const mid = Math.floor((low + high) / 2);
-              els.obsLineText.style.fontSize = `${mid}px`;
-              const h = els.obsLineText.scrollHeight || els.obsLineText.offsetHeight;
-              const w = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
-
-              if (h <= maxContainerH && w <= maxContainerW) {
-                bestFit = mid;
-                low = mid + 1;
+            let optimalLineHeight = defaultLH;
+            if (state.styleOptions.lineHeight !== undefined) {
+              if (!isJomhuriaFont && state.styleOptions.lineHeight <= 0.95) {
+                optimalLineHeight = defaultLH;
               } else {
-                high = mid - 1;
+                optimalLineHeight = state.styleOptions.lineHeight;
               }
             }
+            els.obsLineText.style.lineHeight = `${optimalLineHeight}`;
 
-            if (isJomhuriaFont) {
-              bestFit = Math.min(125, bestFit);
-            }
-
-            // Restore pre-wrap after measurement
-            segments.forEach(s => {
-              s.style.whiteSpace = 'pre-wrap';
-              s.style.wordBreak = 'break-word';
-            });
-
-            bestFit = Math.max(32, bestFit);
+            const bestFit = window._obsUniformFontCache.size;
             els.obsLineText.style.fontSize = `${bestFit}px`;
           }
           els.obsLineText.style.transform = 'none';
