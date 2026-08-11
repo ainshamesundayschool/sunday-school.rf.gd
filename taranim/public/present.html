@@ -1268,14 +1268,15 @@
         textEl.style.lineHeight = `${fixedLH}`;
       } else if (scaleMode === 'auto') {
         const segmentsCount = segments ? segments.length : 1;
-        let autoLineHeight = 1.25;
+        let defaultLH = 1.18;
         if (isJomhuria) {
-          autoLineHeight = 1.35;
+          defaultLH = 0.92;
         } else if (segmentsCount > 2) {
-          autoLineHeight = 1.2;
+          defaultLH = 1.18;
         } else if (segmentsCount === 1) {
-          autoLineHeight = 1.15;
+          defaultLH = 1.15;
         }
+        const autoLineHeight = (lastStyleData && lastStyleData.lineHeight !== undefined) ? lastStyleData.lineHeight : defaultLH;
         textEl.style.lineHeight = `${autoLineHeight}`;
 
         const curW = container.clientWidth || window.innerWidth || 1920;
@@ -1292,7 +1293,7 @@
         segments.forEach(s => s.style.whiteSpace = 'nowrap');
 
         let low = 36;
-        let high = isJomhuria ? Math.max(450, Math.floor(effectiveCanvasH * 0.55)) : Math.max(380, Math.floor(effectiveCanvasH * 0.45));
+        let high = isJomhuria ? 120 : Math.max(380, Math.floor(effectiveCanvasH * 0.45));
         renderSize = low;
 
         while (low <= high) {
@@ -1307,6 +1308,10 @@
           } else {
             high = mid - 1;
           }
+        }
+
+        if (isJomhuria) {
+          renderSize = Math.min(120, renderSize);
         }
 
         // Restore pre-wrap after measurement

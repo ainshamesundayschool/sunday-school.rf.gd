@@ -1465,6 +1465,7 @@ document.addEventListener('DOMContentLoaded', () => {
     currentLineCounter: document.getElementById('current-line-counter'),
 
     btnMenuBible: document.getElementById('btn-menu-bible'),
+    btnMenuBibleTop: document.getElementById('btn-menu-bible-top'),
     popoverBible: document.getElementById('popover-bible'),
     btnBibleBack: document.getElementById('btn-bible-back'),
     btnCloseBiblePopover: document.getElementById('btn-close-bible-popover'),
@@ -1710,23 +1711,30 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedBibleBook = null;
 
   function initBiblePopover() {
-    if (!els.btnMenuBible || !els.popoverBible) return;
+    if (!els.popoverBible) return;
 
-    els.btnMenuBible.addEventListener('click', (e) => {
-      e.stopPropagation();
-      e.preventDefault();
+    const toggleBiblePopover = (e) => {
+      if (e) {
+        e.stopPropagation();
+        e.preventDefault();
+      }
       const willShow = els.popoverBible.classList.contains('hidden');
       closeAllPopovers(els.popoverBible);
       if (els.searchDropdown) els.searchDropdown.classList.add('hidden');
       if (willShow) {
         els.popoverBible.classList.remove('hidden');
-        els.btnMenuBible.classList.add('active');
+        if (els.btnMenuBible) els.btnMenuBible.classList.add('active');
+        if (els.btnMenuBibleTop) els.btnMenuBibleTop.classList.add('active');
         showBibleBooksStep();
       } else {
         els.popoverBible.classList.add('hidden');
-        els.btnMenuBible.classList.remove('active');
+        if (els.btnMenuBible) els.btnMenuBible.classList.remove('active');
+        if (els.btnMenuBibleTop) els.btnMenuBibleTop.classList.remove('active');
       }
-    });
+    };
+
+    if (els.btnMenuBible) els.btnMenuBible.addEventListener('click', toggleBiblePopover);
+    if (els.btnMenuBibleTop) els.btnMenuBibleTop.addEventListener('click', toggleBiblePopover);
 
     els.popoverBible.addEventListener('click', (e) => e.stopPropagation());
 
@@ -2707,6 +2715,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.obsScaleModeSelect) {
       els.obsScaleModeSelect.addEventListener('change', (e) => {
         state.scaleMode = e.target.value;
+        const isJomhuriaFont = /jomhuria/i.test(state.selectedFont || '');
+        if (state.scaleMode === 'auto') {
+          state.styleOptions.lineHeight = isJomhuriaFont ? 0.92 : 1.18;
+          if (els.obsLineHeightRange) els.obsLineHeightRange.value = state.styleOptions.lineHeight;
+        }
         updateScaleModeLockState();
         saveUserSettings();
         syncLiveState();
@@ -3384,6 +3397,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.btnClosePresentationOverlay) {
       els.btnClosePresentationOverlay.addEventListener('click', exitPresentation);
     }
+
+    updateScaleModeLockState();
 
   function toggleSlideJumpPopover(e) {
     if (e) e.stopPropagation();
@@ -4346,6 +4361,11 @@ document.addEventListener('DOMContentLoaded', () => {
     state.selectedFont = fontFamily;
     document.documentElement.style.setProperty('--slide-font-family', fontFamily);
     if (els.obsLineText) els.obsLineText.style.fontFamily = fontFamily;
+    const isJomhuriaFont = /jomhuria/i.test(fontFamily || '');
+    if (state.scaleMode === 'auto') {
+      state.styleOptions.lineHeight = isJomhuriaFont ? 0.92 : 1.18;
+      if (els.obsLineHeightRange) els.obsLineHeightRange.value = state.styleOptions.lineHeight;
+    }
     updateJustifyButtonState();
     saveUserSettings();
     syncLiveState();
@@ -5082,15 +5102,15 @@ document.addEventListener('DOMContentLoaded', () => {
       fontSizeRow.style.pointerEvents = isAuto ? 'none' : 'auto';
     }
 
-    // 2. Lock / Unlock Line Height Control
-    if (els.obsLetterSpacingRange && els.obsLineHeightRange) {
-      els.obsLineHeightRange.disabled = isAuto;
-      els.obsLineHeightRange.title = isAuto ? 'تباعد الأسطر محدد تلقائياً في نمط الملائمة التلقائية' : 'تباعد الأسطر';
+    // 2. Line Height Control is ALWAYS UNLOCKED and EDITABLE in both Auto & Fixed mode
+    if (els.obsLineHeightRange) {
+      els.obsLineHeightRange.disabled = false;
+      els.obsLineHeightRange.title = 'تباعد الأسطر';
     }
     const lineHeightRow = document.getElementById('line-height-popover-row') || (els.obsLineHeightRange && els.obsLineHeightRange.closest('.control-field'));
     if (lineHeightRow) {
-      lineHeightRow.style.opacity = isAuto ? '0.45' : '1';
-      lineHeightRow.style.pointerEvents = isAuto ? 'none' : 'auto';
+      lineHeightRow.style.opacity = '1';
+      lineHeightRow.style.pointerEvents = 'auto';
     }
   }
 
@@ -6797,21 +6817,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const segmentsCount = segments.length || 1;
             const isJomhuriaFont = /jomhuria/i.test(state.selectedFont || '');
 
-            let optimalLineHeight = 1.25;
+            let defaultLH = 1.18;
             if (isJomhuriaFont) {
-              optimalLineHeight = 1.35;
+              defaultLH = 0.92;
             } else if (segmentsCount > 2) {
-              optimalLineHeight = 1.2;
+              defaultLH = 1.18;
             } else if (segmentsCount === 1) {
-              optimalLineHeight = 1.15;
+              defaultLH = 1.15;
             }
+            const optimalLineHeight = state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : defaultLH;
             els.obsLineText.style.lineHeight = `${optimalLineHeight}`;
 
             // Temporarily set nowrap during measurement so lines don't prematurely wrap and shrink font size
             segments.forEach(s => s.style.whiteSpace = 'nowrap');
 
             let low = 36;
-            let high = isJomhuriaFont ? Math.max(450, Math.floor(effectiveCanvasH * 0.55)) : Math.max(380, Math.floor(effectiveCanvasH * 0.45));
+            let high = isJomhuriaFont ? 120 : Math.max(380, Math.floor(effectiveCanvasH * 0.45));
             let bestFit = low;
 
             while (low <= high) {
@@ -6826,6 +6847,10 @@ document.addEventListener('DOMContentLoaded', () => {
               } else {
                 high = mid - 1;
               }
+            }
+
+            if (isJomhuriaFont) {
+              bestFit = Math.min(120, bestFit);
             }
 
             // Restore pre-wrap after measurement
