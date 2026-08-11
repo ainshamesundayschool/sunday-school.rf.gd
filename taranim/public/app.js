@@ -1726,9 +1726,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function openBibleChapterByBookAndChapter(bookId, chNum) {
     try {
-      let res = await fetch(`api.php?action=bible_chapter&book_id=${bookId}&chapter=${chNum}`);
-      if (!res.ok) res = await fetch(`../api.php?action=bible_chapter&book_id=${bookId}&chapter=${chNum}`);
-      if (res.ok) {
+      const apiUrl = getApiUrl();
+      let res = await fetch(`${apiUrl}?action=bible_chapter&book_id=${bookId}&chapter=${chNum}`).catch(() => null);
+      if (!res || !res.ok) res = await fetch(`/api.php?action=bible_chapter&book_id=${bookId}&chapter=${chNum}`).catch(() => null);
+      if (!res || !res.ok) res = await fetch(`/taranim/api.php?action=bible_chapter&book_id=${bookId}&chapter=${chNum}`).catch(() => null);
+      if (res && res.ok) {
         const chapterData = await res.json();
         if (chapterData && (chapterData.id || chapterData.item_id)) {
           const targetId = chapterData.id || chapterData.item_id;
@@ -4626,11 +4628,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (obj.slides && Array.isArray(obj.slides) && obj.slides.length > 0) return true;
     
     if (isBible) {
-      if (!obj.notes && !obj.text && !obj.content) return false;
-      const txt = String(obj.notes || obj.text || obj.content).trim();
+      const txt = String(obj.notes || obj.text || obj.content || '').trim();
       const titleTxt = String(obj.title || '').trim();
-      if (txt === titleTxt) return false;
-      if (txt.length < 30 && !/[\d٠-٩]/.test(txt)) return false;
+      if (!txt || txt === titleTxt) return false;
+      const lines = txt.split('\n').filter(l => l.trim().length > 0);
+      if (lines.length < 2 && txt.length < 100) return false;
       return true;
     }
 
@@ -5375,17 +5377,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // ALWAYS ADD OFFICIAL LOGO SLIDE AT THE END OF EVERY SONG'S SLIDE LIST
-    if (linesList.length > 0) {
-      linesList.push({
-        isLogoSlide: true,
-        text: '',
-        badgeText: '',
-        badgeClass: '',
-        label: 'الشعار الرسمي (الشاشة الرئيسية)'
-      });
-    }
-
     state.presentationLines = linesList;
     if (song && song.title) {
       document.title = `${song.title} | Taranim Online`;
@@ -5430,18 +5421,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     els.presentationLinesContainer.innerHTML = presentationLines.map((l, idx) => {
       const isActive = (!state.isBlank) && (isLiveSongDisplayed ? (idx === state.liveLineIndex) : (idx === state.currentLineIndex));
-
-      if (l.isLogoSlide) {
-        return `
-          <div class="line-item ${isActive ? 'active' : ''} logo-slide-item" data-idx="${idx}" style="background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%); border: 1.5px solid #bfdbfe; border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: all 0.2s ease;">
-            <div style="display: flex; align-items: center; gap: 10px; color: #1e40af; font-weight: 800; font-size: 0.92rem;">
-              <i class="fa-solid fa-compact-disc" style="font-size: 1.2rem; color: #2563eb;"></i>
-              <span>الشعار الرسمي (الشاشة الرئيسية)</span>
-            </div>
-            <span class="slide-index-corner" style="position:relative; bottom:0; left:0; color:#2563eb; font-weight:800; font-size:0.8rem;">${idx + 1}</span>
-          </div>
-        `;
-      }
 
       const isAllInOne = Boolean(l.isAllInOne || (l.text && l.text.includes('allinone-slide-group')));
 
@@ -6788,29 +6767,41 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     const currentLines = (state.livePresentationLines && state.livePresentationLines.length > 0) ? state.livePresentationLines : state.presentationLines;
+    
+    // IF CURRENTLY ON THE LOGO STANDBY SCREEN (index >= currentLines.length) AND CLICKED AGAIN: CLOSE OVERLAY & RETURN TO CONTROL PANEL!
+    if (state.liveLineIndex >= currentLines.length) {
+      exitPresentation();
+      return;
+    }
+
     if (state.liveLineIndex < currentLines.length - 1) {
       state.liveLineIndex++;
       state.highlightedLineIndices = [];
       if (state.liveSong && state.activeSong && getItemKey(state.liveSong) === getItemKey(state.activeSong)) {
         state.currentLineIndex = state.liveLineIndex;
       }
-      state.isBlank = false;
       renderPresentationLinesList();
       syncLiveState();
     } else if (state.liveLineIndex === currentLines.length - 1) {
-      if (!state.isBlank) {
-        state.isBlank = true;
-        state.highlightedLineIndices = [];
-        renderPresentationLinesList();
-        syncLiveState();
-      }
+      // Advancing past the last verse goes to the official LOGO standby screen (NOT blank mode)
+      state.liveLineIndex = currentLines.length;
+      state.currentLineIndex = -1;
+      state.highlightedLineIndices = [];
+      renderPresentationLinesList();
+      syncLiveState();
     }
   }
 
   function prevLine() {
-    if (state.isBlank) {
-      state.isBlank = false;
+    const currentLines = (state.livePresentationLines && state.livePresentationLines.length > 0) ? state.livePresentationLines : state.presentationLines;
+    if (state.liveLineIndex >= currentLines.length) {
+      // Returning from logo standby screen back to the last verse
+      state.liveLineIndex = currentLines.length - 1;
       state.highlightedLineIndices = [];
+      if (state.liveSong && state.activeSong && getItemKey(state.liveSong) === getItemKey(state.activeSong)) {
+        state.currentLineIndex = state.liveLineIndex;
+      }
+      renderPresentationLinesList();
       syncLiveState();
       return;
     }
