@@ -7114,7 +7114,8 @@ document.addEventListener('DOMContentLoaded', () => {
               };
             }
 
-            const segmentsCount = obsSegments.length || 1;
+            const obsSegmentsList = els.obsLineText ? Array.from(els.obsLineText.querySelectorAll('.obs-line-segment')) : [];
+            const segmentsCount = obsSegmentsList.length || 1;
             const isJomhuriaFont = /jomhuria/i.test(state.selectedFont || '');
 
             let defaultLH = 1.18;

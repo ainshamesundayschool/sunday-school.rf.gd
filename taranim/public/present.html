@@ -1258,8 +1258,15 @@
       let baseSize = (lastStyleData && lastStyleData.fontSize) || stateFontSize || 54;
       const scaleMode = (lastStyleData && lastStyleData.scaleMode) || 'auto';
       const container = document.getElementById('obs-overlay-container') || document.body;
-      const maxH = (container.clientHeight || window.innerHeight) * 0.88;
-      const maxW = (container.clientWidth || window.innerWidth) * 0.92;
+      const curW = container.clientWidth || window.innerWidth || 1920;
+      const curH = container.clientHeight || window.innerHeight || 1080;
+
+      // Lock height limit to 16:9 horizontal format ratio when in vertical orientation (never fill tall vertical screen height)
+      const isVertical = curH > curW;
+      const effectiveH = isVertical ? (curW * (9 / 16)) : curH;
+
+      const maxH = effectiveH * 0.85;
+      const maxW = curW * 0.90;
 
       const segments = Array.from(textEl.querySelectorAll('.obs-line-segment'));
       const currentFont = (lastStyleData && lastStyleData.font) || textEl.style.fontFamily || '';
