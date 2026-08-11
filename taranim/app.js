@@ -4026,35 +4026,12 @@ document.addEventListener('DOMContentLoaded', () => {
       val = 'screen_0';
     }
 
-    if (val.startsWith('screen_')) {
-      const targetIdx = parseInt(val.replace('screen_', '')) || 0;
-      const winX = window.screenX !== undefined ? window.screenX : (window.screenLeft !== undefined ? window.screenLeft : 0);
-
-      if (screenDetails && screenDetails.screens && screenDetails.screens[targetIdx]) {
-        const sTarget = screenDetails.screens[targetIdx];
-        const sLeft = sTarget.availLeft !== undefined ? sTarget.availLeft : (sTarget.left || 0);
-        const sWidth = sTarget.width || 1920;
-        if (winX >= sLeft && winX < (sLeft + sWidth)) {
-          val = 'in_app_overlay';
-        }
-      } else {
-        const primaryW = window.screen.width || 1920;
-        const availL = window.screen.availLeft || 0;
-        const isTargetCP = (targetIdx === 0 && (winX < (availL + primaryW * 0.75))) ||
-                           (targetIdx !== 0 && (winX >= (availL + primaryW * 0.75)));
-        if (isTargetCP) {
-          val = 'in_app_overlay';
-        }
-      }
+    // ALWAYS keep in-app overlay visible so both present.html & overlay run simultaneously!
+    if (els.obsOverlay) {
+      els.obsOverlay.classList.remove('hidden');
     }
 
-    // 1. IN-APP TAB OVERLAY MODE
     if (val === 'in_app_overlay') {
-      if (presenterWindow && !presenterWindow.closed) {
-        try { presenterWindow.close(); } catch(e) {}
-        presenterWindow = null;
-      }
-
       state.selectedScreen = {
         val: 'in_app_overlay',
         label: 'عرض داخل التبويب الحالي (Overlay)',
@@ -4064,16 +4041,6 @@ document.addEventListener('DOMContentLoaded', () => {
       };
       try { localStorage.setItem('sunday_school_taranim_locked_screen', JSON.stringify(state.selectedScreen)); } catch(e) {}
       updateDisplayButtonUI();
-
-      if (els.obsOverlay) {
-        els.obsOverlay.classList.remove('hidden');
-        const elem = els.obsOverlay;
-        if (elem.requestFullscreen) {
-          elem.requestFullscreen().catch(() => {});
-        } else if (document.documentElement.requestFullscreen) {
-          document.documentElement.requestFullscreen().catch(() => {});
-        }
-      }
       syncLiveState();
       return;
     }
@@ -6901,9 +6868,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const horizontalFormatMaxH = containerW * (9 / 16);
             const effectiveCanvasH = Math.min(containerH, horizontalFormatMaxH);
 
-            // Safe margins: 7% padding left/right (0.86), 9% padding top/bottom (0.82)
-            const maxContainerW = containerW * 0.86;
-            const maxContainerH = effectiveCanvasH * 0.82;
+            // Safe margins: 2.5% padding left/right (0.95), 4% padding top/bottom (0.92)
+            const maxContainerW = containerW * 0.95;
+            const maxContainerH = effectiveCanvasH * 0.92;
 
             const segments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
             const segmentsCount = segments.length || 1;
@@ -6920,11 +6887,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const optimalLineHeight = state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : defaultLH;
             els.obsLineText.style.lineHeight = `${optimalLineHeight}`;
 
-            // Temporarily set nowrap during measurement so lines don't prematurely wrap and shrink font size
-            segments.forEach(s => s.style.whiteSpace = 'nowrap');
+            // Smart measurement: Taranim short lines use nowrap so they render big & bold as before; Bible verses use pre-wrap so multi-sentence paragraphs fit nicely on 2-3 lines
+            const isBibleOrLongParagraph = isBible || (segmentsCount > 3) || (segments && segments.some(s => s.textContent && s.textContent.length > 60));
+            segments.forEach(s => {
+              s.style.whiteSpace = isBibleOrLongParagraph ? 'pre-wrap' : 'nowrap';
+              s.style.wordBreak = 'break-word';
+            });
 
-            let low = 32;
-            let high = isJomhuriaFont ? 120 : Math.max(380, Math.floor(effectiveCanvasH * 0.45));
+            let low = 36;
+            let high = isJomhuriaFont ? 130 : Math.max(160, Math.floor(effectiveCanvasH * 0.55));
             let bestFit = low;
 
             while (low <= high) {
@@ -6942,7 +6913,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (isJomhuriaFont) {
-              bestFit = Math.min(120, bestFit);
+              bestFit = Math.min(125, bestFit);
             }
 
             // Restore pre-wrap after measurement
@@ -6951,7 +6922,7 @@ document.addEventListener('DOMContentLoaded', () => {
               s.style.wordBreak = 'break-word';
             });
 
-            bestFit = Math.max(28, bestFit);
+            bestFit = Math.max(32, bestFit);
             els.obsLineText.style.fontSize = `${bestFit}px`;
           }
           els.obsLineText.style.transform = 'none';

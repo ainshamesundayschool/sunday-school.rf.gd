@@ -1303,9 +1303,9 @@
         const horizontalFormatMaxH = curW * (9 / 16);
         const effectiveCanvasH = Math.min(curH, horizontalFormatMaxH);
 
-        // Safe margins: 7% padding left/right (0.86), 9% padding top/bottom (0.82)
-        const targetMaxW = curW * 0.86;
-        const targetMaxH = effectiveCanvasH * 0.82;
+        // Safe margins: 2.5% padding left/right (0.95), 4% padding top/bottom (0.92)
+        const targetMaxW = curW * 0.95;
+        const targetMaxH = effectiveCanvasH * 0.92;
 
         const segmentsCount = segments ? segments.length : 1;
         let defaultLH = 1.18;
@@ -1319,10 +1319,15 @@
         const autoLineHeight = (lastStyleData && lastStyleData.lineHeight !== undefined) ? lastStyleData.lineHeight : defaultLH;
         textEl.style.lineHeight = `${autoLineHeight}`;
 
-        segments.forEach(s => s.style.whiteSpace = 'nowrap');
+        // Smart measurement: Taranim short lines use nowrap so they render big & bold as before; Bible verses use pre-wrap so multi-sentence paragraphs fit nicely on 2-3 lines
+        const isBibleOrLongParagraph = isBible || (segmentsCount > 3) || (segments && segments.some(s => s.textContent && s.textContent.length > 60));
+        segments.forEach(s => {
+          s.style.whiteSpace = isBibleOrLongParagraph ? 'pre-wrap' : 'nowrap';
+          s.style.wordBreak = 'break-word';
+        });
 
-        let low = 32;
-        let high = isJomhuria ? 120 : Math.max(380, Math.floor(effectiveCanvasH * 0.45));
+        let low = 36;
+        let high = isJomhuria ? 130 : Math.max(160, Math.floor(effectiveCanvasH * 0.55));
         renderSize = low;
 
         while (low <= high) {
@@ -1340,15 +1345,16 @@
         }
 
         if (isJomhuria) {
-          renderSize = Math.min(120, renderSize);
+          renderSize = Math.min(125, renderSize);
         }
 
+        // Restore pre-wrap after measurement
         segments.forEach(s => {
           s.style.whiteSpace = 'pre-wrap';
           s.style.wordBreak = 'break-word';
         });
 
-        renderSize = Math.max(28, renderSize);
+        renderSize = Math.max(32, renderSize);
         textEl.style.fontSize = `${renderSize}px`;
       }
 
