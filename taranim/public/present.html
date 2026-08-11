@@ -1234,18 +1234,30 @@
       if (isBible || scaleMode === 'fixed') {
         renderSize = baseSize;
         textEl.style.fontSize = `${renderSize}px`;
+        const fixedLH = (lastStyleData && lastStyleData.lineHeight !== undefined) ? lastStyleData.lineHeight : 1.5;
+        textEl.style.lineHeight = `${fixedLH}`;
       } else if (scaleMode === 'auto') {
+        const segmentsCount = segments ? segments.length : 1;
+        let autoLineHeight = 1.3;
+        if (isJomhuria) {
+          autoLineHeight = 1.4;
+        } else if (segmentsCount > 2) {
+          autoLineHeight = 1.25;
+        } else if (segmentsCount === 1) {
+          autoLineHeight = 1.2;
+        }
+        textEl.style.lineHeight = `${autoLineHeight}`;
+
         // USE CACHED UNIFORM FONT SIZE IF AVAILABLE
         if (_uniformFontSize !== null) {
           renderSize = _uniformFontSize;
         } else {
-          // Fallback: single-slide auto-fit (should not normally reach here)
           const isVertical = window.innerHeight > window.innerWidth;
           const refTargetW = isVertical ? Math.max(maxW, maxH * (16 / 9)) : maxW;
 
           let low = 16;
           let maxLimit = isJomhuria ? 300 : 260;
-          let high = Math.min(maxLimit, Math.max(120, Math.floor(maxH / Math.max(1, (segments.length || 1) * 0.85))));
+          let high = Math.min(maxLimit, Math.max(120, Math.floor(maxH / Math.max(1, (segmentsCount || 1) * 0.85))));
           renderSize = 16;
 
           textEl.style.whiteSpace = 'nowrap';

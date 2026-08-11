@@ -2645,6 +2645,48 @@ document.addEventListener('DOMContentLoaded', () => {
       updateSplitLongLinesUI();
     }
 
+    const btnSplitAllLines = document.getElementById('btn-split-all-lines');
+    if (btnSplitAllLines) {
+      btnSplitAllLines.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!state.presentationLines || state.presentationLines.length === 0) return;
+
+        const hasAnySplit = state.presentationLines.some(l => l.isCustomSplit);
+        const shouldSplit = !hasAnySplit;
+
+        state.presentationLines.forEach((l) => {
+          if (l.isLogoSlide) return;
+
+          if (shouldSplit) {
+            if (!l.isCustomSplit) {
+              const fullText = l.lines ? l.lines.join(' ') : (l.text || '');
+              const splitParts = splitLineIntoTwo(fullText);
+              if (splitParts.length > 1) {
+                l.lines = splitParts;
+                l.text = splitParts.join('\n');
+                l.isCustomSplit = true;
+              }
+            }
+          } else {
+            if (l.isCustomSplit) {
+              const fullText = (l.lines ? l.lines.join(' ') : (l.text || '')).replace(/\n/g, ' ');
+              l.lines = [fullText];
+              l.text = fullText;
+              l.isCustomSplit = false;
+            }
+          }
+        });
+
+        if (state.livePresentationLines) {
+          state.livePresentationLines = state.presentationLines;
+        }
+
+        renderPresentationLinesList();
+        syncLiveState();
+        showToast(shouldSplit ? 'تم تقسيم جميع شرائح الترنيمة لسطرين!' : 'تم تحويل جميع شرائح الترنيمة لسطر واحد');
+      });
+    }
+
     if (els.obsTextAnimSelect) {
       const handleAnimChange = (e) => {
         const val = e.target.value;
@@ -4650,16 +4692,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const cleanId = String(rawSongId || '').replace(/^(song_|bible_)/, '').trim();
 
-    let targetSong = null;
-    let originSource = 'unknown';
+    let targetSong = inputObject ? JSON.parse(JSON.stringify(inputObject)) : null;
+    let originSource = inputObject ? 'direct_object_parameter' : 'unknown';
 
-    // 1. IF COMPLETE SONG OBJECT IS PASSED, USE IT INSTANTLY (0ms!)
-    if (inputObject && hasCompleteContent(inputObject)) {
-      targetSong = JSON.parse(JSON.stringify(inputObject));
-      originSource = 'direct_object_parameter';
-    }
-
-    // 2. MATCH IN SESSION RECENTS BY ID IF COMPLETE
+    // 1. MATCH IN SESSION RECENTS BY ID IF NOT COMPLETE
     if ((!targetSong || !hasCompleteContent(targetSong)) && cleanId) {
       let foundInRecents = state.sessionRecents.find(r => {
         const rId = String(r.id !== undefined ? r.id : r.item_id).replace(/^(song_|bible_)/, '').trim();
@@ -4671,8 +4707,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // 3. MATCH OR ENRICH BY ID IN CANONICAL CATALOG FAST INDEX
-    if (!isItemBible && cleanId && state.allSongs && state.allSongs.length > 0) {
+    // 2. MATCH OR ENRICH BY ID IN CANONICAL CATALOG FAST INDEX
+    if (!isItemBible && (!targetSong || !hasCompleteContent(targetSong)) && cleanId && state.allSongs && state.allSongs.length > 0) {
       let canonicalSong = state.allSongs.find(s => {
         if (s.is_bible) return false;
         const sId = String(s.id !== undefined ? s.id : s.item_id).replace(/^(song_|bible_)/, '').trim();
@@ -4694,23 +4730,68 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // 4. FETCH FROM API IF NOT FULLY POPULATED LOCALLY
-    if ((!targetSong || !hasCompleteContent(targetSong)) && cleanId) {
+    // 3. INSTANT 0ms UI PRESENTATION (IF TARGET SONG IS AVAILABLE)
+    if (targetSong) {
+      const readySong = ensureSongVerses(targetSong);
+      state.activeSong = readySong;
+      addToSessionRecents(readySong);
+      loadSongIntoPresentation(readySong);
+    }
+
+    // 4. PARALLEL API FETCH (Enrichment / Full Verses Loading)
+    if (!targetSong || !hasCompleteContent(targetSong)) {
       try {
-        const bibleParam = isItemBible ? '&type=bible&is_bible=1' : '';
         const apiUrl = getApiUrl();
-        let res = await fetch(`${apiUrl}?action=song&id=${cleanId}${bibleParam}`).catch(() => null);
-        if (!res || !res.ok) res = await fetch(`/api.php?action=song&id=${cleanId}${bibleParam}`).catch(() => null);
-        if (!res || !res.ok) res = await fetch(`/taranim/api.php?action=song&id=${cleanId}${bibleParam}`).catch(() => null);
-        if (res && res.ok) {
-          const fullSong = await res.json();
-          if (fullSong && (fullSong.title || fullSong.id)) {
+        let endpoints = [];
+        if (isItemBible) {
+          const bId = (inputObject && inputObject.book_id !== undefined) ? inputObject.book_id : (inputObject && inputObject.book ? inputObject.book : '');
+          const cNum = (inputObject && inputObject.chapter_number !== undefined) ? inputObject.chapter_number : (inputObject && inputObject.chapter !== undefined ? inputObject.chapter : '');
+          if (bId && cNum) {
+            endpoints.push(`${apiUrl}?action=bible_chapter&book_id=${bId}&chapter=${cNum}`);
+            endpoints.push(`/api.php?action=bible_chapter&book_id=${bId}&chapter=${cNum}`);
+          } else if (cleanId) {
+            endpoints.push(`${apiUrl}?action=song&id=${cleanId}&type=bible&is_bible=1`);
+            endpoints.push(`/api.php?action=song&id=${cleanId}&type=bible&is_bible=1`);
+          }
+        } else if (cleanId) {
+          endpoints.push(`${apiUrl}?action=song&id=${cleanId}`);
+          endpoints.push(`/api.php?action=song&id=${cleanId}`);
+        }
+
+        if (endpoints.length > 0) {
+          const fetchPromises = endpoints.map(url => 
+            fetch(url)
+              .then(r => r.ok ? r.json() : null)
+              .catch(() => null)
+          );
+
+          const results = await Promise.all(fetchPromises);
+          const fullSong = results.find(data => data && (data.title || data.id || data.text || data.notes || (data.verses && data.verses.length > 0)));
+
+          if (fullSong) {
             targetSong = fullSong;
             if (isItemBible) targetSong.is_bible = true;
-            originSource = 'api_fetch';
+            const finalSong = ensureSongVerses(targetSong);
+            state.activeSong = finalSong;
+            addToSessionRecents(finalSong);
+            loadSongIntoPresentation(finalSong);
+            return;
           }
         }
       } catch (err) {}
+    }
+
+    // 5. SAFE FALLBACK (IF API IS OFFLINE / UNREACHABLE & NO SONG PRESENTED YET)
+    if (!state.activeSong && (inputObject || cleanId)) {
+      targetSong = inputObject || {
+        id: cleanId,
+        title: isItemBible ? `سفر - أصحاح ${cleanId}` : `ترنيمة ${cleanId}`,
+        is_bible: isItemBible
+      };
+      const fallbackSong = ensureSongVerses(targetSong);
+      state.activeSong = fallbackSong;
+      addToSessionRecents(fallbackSong);
+      loadSongIntoPresentation(fallbackSong);
     }
 
     console.log('Resolved targetSong origin:', originSource, targetSong);
@@ -4726,12 +4807,28 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateScaleModeLockState() {
+    const isAuto = (state.scaleMode === 'auto');
+
+    // 1. Lock / Unlock Font Size Control
     if (els.obsFontSizeRange) {
-      els.obsFontSizeRange.disabled = false;
+      els.obsFontSizeRange.disabled = isAuto;
+      els.obsFontSizeRange.title = isAuto ? 'حجم الخط محدد تلقائياً في نمط الملائمة التلقائية' : 'حجم الخط';
     }
-    if (els.fontSizePopoverRow) {
-      els.fontSizePopoverRow.style.opacity = '1';
-      els.fontSizePopoverRow.style.pointerEvents = 'auto';
+    const fontSizeRow = document.getElementById('font-size-popover-row') || (els.obsFontSizeRange && els.obsFontSizeRange.closest('.control-field'));
+    if (fontSizeRow) {
+      fontSizeRow.style.opacity = isAuto ? '0.45' : '1';
+      fontSizeRow.style.pointerEvents = isAuto ? 'none' : 'auto';
+    }
+
+    // 2. Lock / Unlock Line Height Control
+    if (els.obsLetterSpacingRange && els.obsLineHeightRange) {
+      els.obsLineHeightRange.disabled = isAuto;
+      els.obsLineHeightRange.title = isAuto ? 'تباعد الأسطر محدد تلقائياً في نمط الملائمة التلقائية' : 'تباعد الأسطر';
+    }
+    const lineHeightRow = document.getElementById('line-height-popover-row') || (els.obsLineHeightRange && els.obsLineHeightRange.closest('.control-field'));
+    if (lineHeightRow) {
+      lineHeightRow.style.opacity = isAuto ? '0.45' : '1';
+      lineHeightRow.style.pointerEvents = isAuto ? 'none' : 'auto';
     }
   }
 
@@ -6389,6 +6486,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
           if (isBible || scaleMode === 'fixed') {
             els.obsLineText.style.fontSize = `${baseSize}px`;
+            const fixedLH = state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : 1.5;
+            els.obsLineText.style.lineHeight = `${fixedLH}`;
           } else if (scaleMode === 'auto') {
             const container = els.obsOverlay || els.obsLineText.parentElement || document.body;
             const containerW = Math.max(400, container.clientWidth || window.innerWidth);
@@ -6398,40 +6497,46 @@ document.addEventListener('DOMContentLoaded', () => {
             const isVertical = window.innerHeight > window.innerWidth;
             const refTargetW = isVertical ? Math.max(maxContainerW, maxContainerH * (16 / 9)) : maxContainerW;
 
-            els.obsLineText.style.fontSize = `${baseSize}px`;
+            const segmentsCount = els.obsLineText.querySelectorAll('.obs-line-segment').length || 1;
+            const isJomhuriaFont = /jomhuria/i.test(state.selectedFont || '');
+
+            // OPTIMIZE LINE SPACING AUTOMATICALLY IN AUTO-FIT MODE
+            let optimalLineHeight = 1.3;
+            if (isJomhuriaFont) {
+              optimalLineHeight = 1.4;
+            } else if (segmentsCount > 2) {
+              optimalLineHeight = 1.25;
+            } else if (segmentsCount === 1) {
+              optimalLineHeight = 1.2;
+            }
+            els.obsLineText.style.lineHeight = `${optimalLineHeight}`;
+
+            let low = 20;
+            let high = isJomhuriaFont ? 300 : 260;
+            let bestFit = low;
+
+            while (low <= high) {
+              const mid = Math.floor((low + high) / 2);
+              els.obsLineText.style.fontSize = `${mid}px`;
+              const h = els.obsLineText.scrollHeight || els.obsLineText.offsetHeight;
+              const w = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
+
+              if (h <= maxContainerH && w <= refTargetW) {
+                bestFit = mid;
+                low = mid + 1;
+              } else {
+                high = mid - 1;
+              }
+            }
+
+            els.obsLineText.style.fontSize = `${bestFit}px`;
             let curW = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
             let curH = els.obsLineText.scrollHeight || els.obsLineText.offsetHeight;
-
-            if (curW <= refTargetW && curH <= maxContainerH) {
-              els.obsLineText.style.fontSize = `${baseSize}px`;
-            } else {
-              let low = 28;
-              let high = baseSize;
-              let bestFit = low;
-
-              while (low <= high) {
-                const mid = Math.floor((low + high) / 2);
-                els.obsLineText.style.fontSize = `${mid}px`;
-                const h = els.obsLineText.scrollHeight || els.obsLineText.offsetHeight;
-                const w = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
-
-                if (h <= maxContainerH && w <= refTargetW) {
-                  bestFit = mid;
-                  low = mid + 1;
-                } else {
-                  high = mid - 1;
-                }
-              }
-
+            while ((curW > maxContainerW || curH > maxContainerH) && bestFit > 16) {
+              bestFit--;
               els.obsLineText.style.fontSize = `${bestFit}px`;
               curW = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
               curH = els.obsLineText.scrollHeight || els.obsLineText.offsetHeight;
-              while ((curW > maxContainerW || curH > maxContainerH) && bestFit > 22) {
-                bestFit--;
-                els.obsLineText.style.fontSize = `${bestFit}px`;
-                curW = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
-                curH = els.obsLineText.scrollHeight || els.obsLineText.offsetHeight;
-              }
             }
           }
           els.obsLineText.style.transform = 'none';
