@@ -6075,9 +6075,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const clickedIdx = parseInt(item.dataset.idx);
 
         const lineRow = e.target.closest('.slide-line-row');
-        if (lineRow && clickedIdx === state.liveLineIndex && isLiveSongDisplayed && state.isHighlightMode) {
-          const lineIdx = parseInt(lineRow.dataset.lineIdx);
-          if (!isNaN(lineIdx)) {
+        const isLiveSongDisplayed = Boolean(state.liveSong && state.activeSong && getItemKey(state.liveSong) === getItemKey(state.activeSong));
+
+        if (clickedIdx === state.liveLineIndex && isLiveSongDisplayed) {
+          let lineIdx = lineRow ? parseInt(lineRow.dataset.lineIdx) : null;
+          if (lineIdx !== null && !isNaN(lineIdx)) {
             if (!Array.isArray(state.highlightedLineIndices)) state.highlightedLineIndices = [];
             const pos = state.highlightedLineIndices.indexOf(lineIdx);
             if (pos >= 0) {
