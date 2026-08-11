@@ -1196,19 +1196,24 @@
       const effectiveMaxH = effectiveCanvasH * 0.85;
       const refTargetW = curW * 0.90;
 
-      const origHTML = textEl.innerHTML;
-      const origDisplay = textEl.style.display;
-      const origVis = textEl.style.visibility;
-      const origWidth = textEl.style.width;
-      const origMaxW = textEl.style.maxWidth;
+      let measurer = document.getElementById('_presenter_offscreen_measurer');
+      if (!measurer) {
+        measurer = document.createElement('div');
+        measurer.id = '_presenter_offscreen_measurer';
+        measurer.style.cssText = 'position:fixed; left:-9999px; top:-9999px; visibility:hidden; pointer-events:none; z-index:-9999;';
+        document.body.appendChild(measurer);
+      }
 
-      textEl.innerHTML = htmlContent;
-      textEl.style.display = 'inline-block';
-      textEl.style.visibility = 'hidden';
-      textEl.style.width = '100%';
-      textEl.style.maxWidth = `${Math.round(refTargetW)}px`;
+      measurer.innerHTML = htmlContent;
+      measurer.style.display = 'inline-block';
+      measurer.style.visibility = 'hidden';
+      measurer.style.width = '100%';
+      measurer.style.maxWidth = `${Math.round(refTargetW)}px`;
 
-      const segments = textEl.querySelectorAll('.obs-line-segment');
+      const wrapper = measurer.querySelector('.obs-slide-wrapper') || measurer;
+      wrapper.style.fontFamily = isJomhuria ? 'Jomhuria, Arial, sans-serif' : ((lastStyleData && lastStyleData.font) || 'sans-serif');
+
+      const segments = measurer.querySelectorAll('.obs-line-segment');
       const segCount = segments.length || segCountHint || 1;
 
       segments.forEach(s => {
@@ -1229,9 +1234,9 @@
 
       while (low <= high) {
         const mid = Math.floor((low + high) / 2);
-        textEl.style.fontSize = `${mid}px`;
-        const h = textEl.scrollHeight || textEl.offsetHeight;
-        const w = textEl.scrollWidth || textEl.offsetWidth;
+        wrapper.style.fontSize = `${mid}px`;
+        const h = wrapper.scrollHeight || wrapper.offsetHeight;
+        const w = wrapper.scrollWidth || wrapper.offsetWidth;
 
         if (h <= effectiveMaxH && w <= refTargetW) {
           renderSize = mid;
@@ -1241,16 +1246,7 @@
         }
       }
 
-      renderSize = Math.max(minFloor, renderSize);
-      textEl.style.fontSize = `${renderSize}px`;
-
-      textEl.innerHTML = origHTML;
-      textEl.style.display = origDisplay;
-      textEl.style.visibility = origVis;
-      textEl.style.width = origWidth;
-      textEl.style.maxWidth = origMaxW;
-
-      return renderSize;
+      return Math.max(minFloor, renderSize);
     }
 
     function computeSongUniformAutoFitFontSize(linesToMeasure, containerW, containerH, fontName, styleOptions) {
