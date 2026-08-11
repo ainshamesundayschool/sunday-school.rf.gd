@@ -7035,6 +7035,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const bestFit = window._obsUniformFontCache.size;
             els.obsLineText.style.fontSize = `${bestFit}px`;
+            
+            if (bestFit && scaleMode === 'auto') {
+              state.fontSize = bestFit;
+              if (els.obsFontSizeRange) els.obsFontSizeRange.value = bestFit;
+              if (els.obsFontSizeVal) els.obsFontSizeVal.textContent = `${bestFit}px`;
+              if (els.fontSizeInput) els.fontSizeInput.value = bestFit;
+            }
           }
           els.obsLineText.style.transform = 'none';
         }
