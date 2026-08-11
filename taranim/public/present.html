@@ -1018,33 +1018,36 @@
       const data = lastStyleData;
       
       const currentFontSize = parseFloat(textEl.style.fontSize) || data.fontSize || stateFontSize || 54;
-      const scale = currentFontSize / 50;
+      const scale = currentFontSize / 54;
 
       const strokeWidth = parseInt(data.strokeWidth || 0);
       const strokeColor = data.strokeColor || '#000000';
 
       const angleDeg = (data && data.shadowAngle !== undefined) ? data.shadowAngle : 142;
-      const distPx = (data && data.shadowDistance !== undefined) ? data.shadowDistance : 13;
-      const shadowBlur = (data && data.shadowBlur !== undefined) ? data.shadowBlur : 18;
+      const baseDistPx = (data && data.shadowDistance !== undefined) ? data.shadowDistance : 13;
+      const baseShadowBlur = (data && data.shadowBlur !== undefined) ? data.shadowBlur : 18;
       const shadowColor = (data && data.shadowColor) ? data.shadowColor : '#000000';
 
-      const rad = (angleDeg || 90) * Math.PI / 180;
-      const offX = Math.round(distPx * Math.cos(rad));
-      const offY = Math.round(distPx * Math.sin(rad));
+      const scaledStrokeWidth = strokeWidth > 0 ? Math.max(1, Math.round(strokeWidth * scale)) : 0;
+      const scaledDistPx = Math.round(baseDistPx * scale);
+      const scaledShadowBlur = Math.round(baseShadowBlur * scale);
+
+      const rad = (angleDeg || 142) * Math.PI / 180;
+      const offX = Math.round(scaledDistPx * Math.cos(rad));
+      const offY = Math.round(scaledDistPx * Math.sin(rad));
 
       textEl.style.paintOrder = 'stroke fill markers';
       textEl.style.webkitPaintOrder = 'stroke fill markers';
 
       let shadowParts = [];
-      if (strokeWidth > 0) {
-        const s = Math.max(1, Math.round(strokeWidth * scale * 1.2));
-        textEl.style.webkitTextStroke = `${s}px ${strokeColor}`;
-        textEl.style.textStroke = `${s}px ${strokeColor}`;
+      if (scaledStrokeWidth > 0) {
+        textEl.style.webkitTextStroke = `${scaledStrokeWidth}px ${strokeColor}`;
+        textEl.style.textStroke = `${scaledStrokeWidth}px ${strokeColor}`;
         
         for (let angle = 0; angle < 360; angle += 22.5) {
           const rA = angle * Math.PI / 180;
-          const sx = (s * Math.cos(rA)).toFixed(1);
-          const sy = (s * Math.sin(rA)).toFixed(1);
+          const sx = (scaledStrokeWidth * Math.cos(rA)).toFixed(1);
+          const sy = (scaledStrokeWidth * Math.sin(rA)).toFixed(1);
           shadowParts.push(`${sx}px ${sy}px 0 ${strokeColor}`);
         }
       } else {
@@ -1052,8 +1055,8 @@
         textEl.style.textStroke = '0px transparent';
       }
 
-      if (shadowBlur > 0 || distPx > 0) {
-        shadowParts.push(`${offX}px ${offY}px ${shadowBlur}px ${shadowColor}`);
+      if (scaledShadowBlur > 0 || scaledDistPx > 0) {
+        shadowParts.push(`${offX}px ${offY}px ${scaledShadowBlur}px ${shadowColor}`);
       }
       textEl.style.textShadow = shadowParts.length > 0 ? shadowParts.join(', ') : 'none';
     }
@@ -1722,7 +1725,17 @@
         logoImg.style.filter = filters.join(' ');
       }
 
-      if (!hasText) {
+      const isBlankMode = Boolean(data.isBlank);
+      const hasTextContent = Boolean(data.text && String(data.text).trim());
+
+      if (isBlankMode) {
+        // HIDE BUTTON IS ON: Hide everything (text + logo), keep chosen background intact
+        textEl.classList.add('hidden');
+        textEl.style.display = 'none';
+        if (standbyEl) standbyEl.classList.add('hidden');
+        currentIsBlankState = true;
+      } else if (!hasTextContent) {
+        // NO ACTIVE SONG/SLIDE: Show Logo as standby slide
         textEl.classList.add('hidden');
         textEl.style.display = 'none';
         if (standbyEl) standbyEl.classList.remove('hidden');
@@ -1732,6 +1745,7 @@
         textEl.classList.remove('hidden');
         textEl.style.display = 'inline-block';
         textEl.style.visibility = 'visible';
+        currentIsBlankState = false;
         const isBible = Boolean(data.isBible || data.is_bible);
 
         // UPDATE TEXT INNERHTML ONLY WHEN RAW TEXT/BADGE CONTENT CHANGES (FLICKER-FREE)
