@@ -406,7 +406,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'bible_chapter') {
                 FROM chapters c
                 JOIN bible_chapters bc ON c.bible_chapter = bc.id
                 JOIN books b ON bc.book = b.id
-                WHERE bc.book = :bookId AND bc.number = :chNum
+                WHERE (bc.book = :bookId OR b.id = :bookId) AND bc.number = :chNum
                 LIMIT 1
             ");
             $stmt->bindValue(':bookId', $bookId, PDO::PARAM_INT);

@@ -4893,16 +4893,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const apiUrl = getApiUrl();
         let endpoints = [];
         if (isItemBible) {
-          const bId = (inputObject && inputObject.book_id !== undefined) ? inputObject.book_id : (inputObject && inputObject.book ? inputObject.book : '');
-          const cNum = (inputObject && inputObject.chapter_number !== undefined) ? inputObject.chapter_number : (inputObject && inputObject.chapter !== undefined ? inputObject.chapter : '');
+          let bId = (inputObject && inputObject.book_id !== undefined) ? inputObject.book_id : (inputObject && inputObject.book ? inputObject.book : '');
+          let cNum = (inputObject && inputObject.chapter_number !== undefined) ? inputObject.chapter_number : (inputObject && inputObject.chapter !== undefined ? inputObject.chapter : '');
+          
+          if (!bId || !cNum) {
+            const m = String(rawSongId || '').match(/^bible_(\d+)_(\d+)$/);
+            if (m) {
+              bId = m[1];
+              cNum = m[2];
+            }
+          }
+
           if (bId && cNum) {
             endpoints.push(`${apiUrl}?action=bible_chapter&book_id=${bId}&chapter=${cNum}`);
             endpoints.push(`/api.php?action=bible_chapter&book_id=${bId}&chapter=${cNum}`);
-          } else if (cleanId) {
+          } else if (cleanId && !isNaN(parseInt(cleanId))) {
             endpoints.push(`${apiUrl}?action=song&id=${cleanId}&type=bible&is_bible=1`);
             endpoints.push(`/api.php?action=song&id=${cleanId}&type=bible&is_bible=1`);
           }
-        } else if (cleanId) {
+        } else if (cleanId && !isNaN(parseInt(cleanId))) {
           endpoints.push(`${apiUrl}?action=song&id=${cleanId}`);
           endpoints.push(`/api.php?action=song&id=${cleanId}`);
         }
@@ -4915,7 +4924,11 @@ document.addEventListener('DOMContentLoaded', () => {
           );
 
           const results = await Promise.all(fetchPromises);
-          const fullSong = results.find(data => data && (data.title || data.id || data.text || data.notes || (data.verses && data.verses.length > 0)));
+          const fullSong = results.find(data => data && (
+            (data.verses && Array.isArray(data.verses) && data.verses.length > 0) ||
+            (data.notes && String(data.notes).trim().length > 0) ||
+            (data.text && String(data.text).trim().length > 0)
+          ));
 
           if (fullSong) {
             targetSong = fullSong;
