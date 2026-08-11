@@ -1846,7 +1846,13 @@
         }
 
         if (data && typeof data === 'object') {
-          if (raw) lastRenderedPayloadHash = raw;
+          if (data.forceRefresh) {
+            currentTextState = null;
+            _lastAnimSlideText = null;
+            lastRenderedPayloadHash = null;
+          } else {
+            if (raw) lastRenderedPayloadHash = raw;
+          }
           if (data.updatedAt) lastLocalPayloadTime = data.updatedAt;
           applyState(data, 'local');
         }

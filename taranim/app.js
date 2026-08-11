@@ -2072,8 +2072,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // 1. Force refresh live state sync without resetting active song, line index, or styling
         syncLiveState(false, true);
 
-        // 2. Button feedback animation
-        const originalHtml = btnUnfreezeObs.innerHTML;
+        // 2. Also refresh local disk sync file if active
+        const currentLines = (state.livePresentationLines && state.livePresentationLines.length > 0) ? state.livePresentationLines : state.presentationLines;
+        const targetIndex = (state.liveLineIndex >= 0) ? state.liveLineIndex : (state.currentLineIndex >= 0 ? state.currentLineIndex : 0);
+        const currentLine = currentLines[targetIndex] || null;
+        if (currentLine) {
+          saveLiveTextToDisk(currentLine.text || '');
+        }
+
+        // 3. Button feedback animation
         btnUnfreezeObs.innerHTML = `<i class="fa-solid fa-check"></i> تم التنشيط!`;
         btnUnfreezeObs.style.background = '#dcfce7';
         btnUnfreezeObs.style.color = '#166534';
@@ -2088,7 +2095,7 @@ document.addEventListener('DOMContentLoaded', () => {
           btnUnfreezeObs.style.borderColor = '#fecaca';
         }, 1400);
 
-        showToast('تم إرسال إشارة فك الجمود وتنشيط اتصال OBS بنجاح!');
+        showToast('تم إرسال إشارة تنشيط وتعديل شاشة OBS بنجاح!');
       });
     }
 
