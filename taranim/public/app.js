@@ -6901,8 +6901,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const horizontalFormatMaxH = containerW * (9 / 16);
             const effectiveCanvasH = Math.min(containerH, horizontalFormatMaxH);
 
-            const maxContainerW = containerW * 0.94;
-            const maxContainerH = effectiveCanvasH * 0.88;
+            // Safe margins: 7% padding left/right (0.86), 9% padding top/bottom (0.82)
+            const maxContainerW = containerW * 0.86;
+            const maxContainerH = effectiveCanvasH * 0.82;
 
             const segments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
             const segmentsCount = segments.length || 1;
@@ -6922,7 +6923,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Temporarily set nowrap during measurement so lines don't prematurely wrap and shrink font size
             segments.forEach(s => s.style.whiteSpace = 'nowrap');
 
-            let low = 36;
+            let low = 32;
             let high = isJomhuriaFont ? 120 : Math.max(380, Math.floor(effectiveCanvasH * 0.45));
             let bestFit = low;
 

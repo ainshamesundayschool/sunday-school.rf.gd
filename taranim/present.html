@@ -1296,6 +1296,17 @@
         const fixedLH = (lastStyleData && lastStyleData.lineHeight !== undefined) ? lastStyleData.lineHeight : 1.5;
         textEl.style.lineHeight = `${fixedLH}`;
       } else if (scaleMode === 'auto') {
+        const curW = container.clientWidth || window.innerWidth || 1920;
+        const curH = container.clientHeight || window.innerHeight || 1080;
+
+        // 16:9 Horizontal format ratio cap
+        const horizontalFormatMaxH = curW * (9 / 16);
+        const effectiveCanvasH = Math.min(curH, horizontalFormatMaxH);
+
+        // Safe margins: 7% padding left/right (0.86), 9% padding top/bottom (0.82)
+        const targetMaxW = curW * 0.86;
+        const targetMaxH = effectiveCanvasH * 0.82;
+
         const segmentsCount = segments ? segments.length : 1;
         let defaultLH = 1.18;
         if (isJomhuria) {
@@ -1308,20 +1319,9 @@
         const autoLineHeight = (lastStyleData && lastStyleData.lineHeight !== undefined) ? lastStyleData.lineHeight : defaultLH;
         textEl.style.lineHeight = `${autoLineHeight}`;
 
-        const curW = container.clientWidth || window.innerWidth || 1920;
-        const curH = container.clientHeight || window.innerHeight || 1080;
-
-        // Lock maximum height to 16:9 horizontal format ratio (never fill tall vertical areas)
-        const horizontalFormatMaxH = curW * (9 / 16);
-        const effectiveCanvasH = Math.min(curH, horizontalFormatMaxH);
-
-        const targetMaxW = curW * 0.94;
-        const targetMaxH = effectiveCanvasH * 0.88;
-
-        // Set whiteSpace to nowrap during binary search measurement so lines don't prematurely wrap and artificially collapse font size
         segments.forEach(s => s.style.whiteSpace = 'nowrap');
 
-        let low = 36;
+        let low = 32;
         let high = isJomhuria ? 120 : Math.max(380, Math.floor(effectiveCanvasH * 0.45));
         renderSize = low;
 
@@ -1343,7 +1343,6 @@
           renderSize = Math.min(120, renderSize);
         }
 
-        // Restore pre-wrap after measurement
         segments.forEach(s => {
           s.style.whiteSpace = 'pre-wrap';
           s.style.wordBreak = 'break-word';
