@@ -3695,6 +3695,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function launchPresenterOnSelectedScreen(selectedVal) {
+    closeAllPopovers();
+    if (els.popoverCast) els.popoverCast.classList.add('hidden');
+    const modalChoice = document.getElementById('modal-screen-choice');
+    if (modalChoice) modalChoice.classList.add('hidden');
+
     const select = els.connectedScreensSelect;
     let val = (selectedVal !== undefined && selectedVal !== null && selectedVal !== '') 
       ? String(selectedVal) 
