@@ -6722,15 +6722,26 @@ document.addEventListener('DOMContentLoaded', () => {
           } else if (scaleMode === 'auto') {
             const container = els.obsOverlay || els.obsLineText.parentElement || document.body;
             const containerW = Math.max(400, container.clientWidth || window.innerWidth);
+            const containerH = Math.max(300, container.clientHeight || window.innerHeight);
+            const maxContainerH = containerH * 0.88;
+            const maxContainerW = containerW * 0.92;
+
+            const segmentsCount = els.obsLineText.querySelectorAll('.obs-line-segment').length || 1;
             const isJomhuriaFont = /jomhuria/i.test(state.selectedFont || '');
 
-            const refCanvasW = 1920;
-            const refMaxW = refCanvasW * 0.90;
-            const refMaxH = 1080 * 0.85;
+            let optimalLineHeight = 1.2;
+            if (isJomhuriaFont) {
+              optimalLineHeight = 1.35;
+            } else if (segmentsCount > 2) {
+              optimalLineHeight = 1.18;
+            } else if (segmentsCount === 1) {
+              optimalLineHeight = 1.15;
+            }
+            els.obsLineText.style.lineHeight = `${optimalLineHeight}`;
 
-            let low = 36;
-            let high = isJomhuriaFont ? 280 : 220;
-            let refBestSize = low;
+            let low = 40;
+            let high = isJomhuriaFont ? Math.max(450, Math.floor(containerH * 0.45)) : Math.max(380, Math.floor(containerH * 0.38));
+            let bestFit = low;
 
             while (low <= high) {
               const mid = Math.floor((low + high) / 2);
@@ -6738,16 +6749,15 @@ document.addEventListener('DOMContentLoaded', () => {
               const h = els.obsLineText.scrollHeight || els.obsLineText.offsetHeight;
               const w = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
 
-              if (h <= refMaxH && w <= refMaxW) {
-                refBestSize = mid;
+              if (h <= maxContainerH && w <= maxContainerW) {
+                bestFit = mid;
                 low = mid + 1;
               } else {
                 high = mid - 1;
               }
             }
 
-            const scaleFactor = containerW / refCanvasW;
-            const bestFit = Math.max(16, Math.round(refBestSize * scaleFactor));
+            bestFit = Math.max(36, bestFit);
             els.obsLineText.style.fontSize = `${bestFit}px`;
           }
           els.obsLineText.style.transform = 'none';
