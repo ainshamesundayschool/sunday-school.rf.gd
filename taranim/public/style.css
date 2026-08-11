@@ -255,18 +255,16 @@ input[type="checkbox"]:checked::after {
   top: 110%;
   right: 0;
   left: auto;
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(226, 232, 240, 0.85);
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.16);
+  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.22) !important;
   padding: 0.55rem 0.75rem;
   min-width: 260px;
   max-width: min(320px, calc(100vw - 1.5rem));
   max-height: calc(100vh - 80px);
   overflow-y: auto;
-  z-index: 500;
+  z-index: 99999 !important;
   display: flex;
   flex-direction: column;
   gap: 0.38rem;
@@ -286,12 +284,11 @@ input[type="checkbox"]:checked::after {
   left: auto !important;
   width: 430px !important;
   max-width: 90vw !important;
-  max-width: 90vw !important;
   height: 100vh !important;
   max-height: 100vh !important;
   background: #ffffff !important;
   box-shadow: -8px 0 30px rgba(15, 23, 42, 0.2) !important;
-  z-index: 9999 !important;
+  z-index: 999999 !important;
   border-radius: 0 !important;
   border: none !important;
   border-left: 1px solid rgba(226, 232, 240, 0.8) !important;
@@ -317,25 +314,8 @@ input[type="checkbox"]:checked::after {
 }
 
 .drawer-backdrop,
-.popover-backdrop-overlay {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  background: rgba(15, 23, 42, 0.45) !important;
-  backdrop-filter: blur(4px) !important;
-  -webkit-backdrop-filter: blur(4px) !important;
-  z-index: 9998 !important;
-  opacity: 1;
-  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  pointer-events: auto !important;
-}
-
-.drawer-backdrop.hidden,
-.popover-backdrop-overlay.hidden {
+.popover-backdrop-overlay,
+#popover-style-backdrop {
   display: none !important;
   opacity: 0 !important;
   pointer-events: none !important;
@@ -1542,22 +1522,22 @@ input[type="checkbox"]:checked::after {
 }
 
 .slide-badge-layer {
-  position: absolute;
-  left: 100% !important;
-  right: auto !important;
-  top: 50%;
-  transform: translateY(-50%);
-  margin-left: 8px !important;
-  margin-right: 0 !important;
-  font-weight: 800;
-  font-size: 0.65em !important;
-  line-height: 1;
-  white-space: nowrap;
-  pointer-events: none;
-  user-select: none;
+  position: absolute !important;
+  right: calc(100% + 8px) !important;
+  left: auto !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  margin: 0 !important;
+  font-weight: 800 !important;
+  font-size: 0.7em !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  pointer-events: none !important;
+  user-select: none !important;
   display: inline-block !important;
   visibility: visible !important;
   opacity: 1 !important;
+  z-index: 15 !important;
 }
 
 .slide-badge-layer.chorus-badge-side,
@@ -1918,6 +1898,69 @@ input[type="checkbox"]:checked::after {
   transition: all 0.15s ease;
 }
 
+.modal-close-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.modal-body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.modal-body .credits-text {
+  font-size: 0.92rem;
+  color: #334155;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+.modal-body .credits-link {
+  color: var(--accent-blue);
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.modal-body .credits-link:hover {
+  text-decoration: underline;
+}
+
+.modal-body .credits-author {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  padding: 0.65rem 0.9rem;
+  border-radius: 12px;
+  color: #1e40af;
+  font-size: 0.88rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modal-body .credits-author strong {
+  color: #1e3a8a;
+  font-weight: 800;
+}
+
+.songs-count-subtext {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent-blue);
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  padding: 3px 14px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
 /* FRANCO TRANSLATOR INTRO BANNER MODAL STYLES */
 .gemini-intro-card {
   max-width: 420px;
@@ -2015,64 +2058,6 @@ input[type="checkbox"]:checked::after {
 .gemini-confirm-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 25px rgba(37, 99, 235, 0.45);
-}
-
-.modal-body {
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.modal-body .credits-text {
-  font-size: 0.92rem;
-  color: #334155;
-  line-height: 1.6;
-  font-weight: 500;
-}
-
-.modal-body .credits-link {
-  color: var(--accent-blue);
-  font-weight: 700;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-}
-
-.modal-body .credits-link:hover {
-  text-decoration: underline;
-}
-
-.modal-body .credits-author {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  padding: 0.65rem 0.9rem;
-  border-radius: 12px;
-  color: #1e40af;
-  font-size: 0.88rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.modal-body .credits-author strong {
-  color: #1e3a8a;
-  font-weight: 800;
-}
-
-.songs-count-subtext {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--accent-blue);
-  background: #eff6ff;
-  border: 1px solid #dbeafe;
-  padding: 3px 14px;
-  border-radius: 14px;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
 }
 
 /* OBS EMBEDDED OVERLAY */
@@ -3020,6 +3005,15 @@ body.has-active-overlay {
 }
 
 /* STANDBY PRESENTER BRANDING SCREEN (NO TARANIM SELECTED / LAST SLIDE LOGO) */
+.obs-lines-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15em;
+  width: 100%;
+}
+
 .obs-lines-wrapper.is-bible-lines {
   text-align: center !important;
   direction: rtl !important;
@@ -4141,6 +4135,24 @@ body[data-mode="allinone"] .lower-third-container,
   border-bottom: 1px dashed rgba(255, 255, 255, 0.2) !important;
   text-align: center !important;
   position: relative !important;
+  padding-right: 48px !important;
+  padding-left: 20px !important;
+  box-sizing: border-box !important;
+}
+
+.allinone-slide-group .slide-badge-layer {
+  position: absolute !important;
+  right: 6px !important;
+  left: auto !important;
+  top: 4px !important;
+  transform: none !important;
+  margin: 0 !important;
+  font-size: 0.85em !important;
+  font-weight: 800 !important;
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 15 !important;
 }
 
 .allinone-section:last-child,

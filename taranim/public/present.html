@@ -1112,11 +1112,11 @@
       textEl.style.fontSize = `${renderSize}px`;
       let currentW = textEl.scrollWidth || textEl.offsetWidth;
       let currentH = textEl.scrollHeight || textEl.offsetHeight;
-      while ((currentW > maxW || currentH > maxH) && renderSize > 14) {
-        renderSize--;
+      if (currentW > maxW || currentH > maxH) {
+        const ratioW = maxW / Math.max(1, currentW);
+        const ratioH = maxH / Math.max(1, currentH);
+        renderSize = Math.max(14, Math.floor(renderSize * Math.min(ratioW, ratioH)));
         textEl.style.fontSize = `${renderSize}px`;
-        currentW = textEl.scrollWidth || textEl.offsetWidth;
-        currentH = textEl.scrollHeight || textEl.offsetHeight;
       }
 
       textEl.innerHTML = origHTML;
@@ -1126,17 +1126,35 @@
       return renderSize;
     }
 
-    function _computeUniformFontSize(allSlideTexts, isBible, maxW, maxH, isJomhuria) {
-      let minSize = Infinity;
+    let _cachedUniformKey = '';
+    let _cachedUniformSize = null;
 
-      for (const slideText of allSlideTexts) {
+    function _computeUniformFontSize(allSlideTexts, isBible, maxW, maxH, isJomhuria) {
+      if (!allSlideTexts || !Array.isArray(allSlideTexts) || allSlideTexts.length === 0) return 54;
+      const key = `${allSlideTexts.length}_${allSlideTexts[0] || ''}_${isBible}_${Math.round(maxW)}_${Math.round(maxH)}_${isJomhuria}`;
+      if (_cachedUniformKey === key && _cachedUniformSize !== null) {
+        return _cachedUniformSize;
+      }
+
+      let minSize = Infinity;
+      const slidesToEvaluate = allSlideTexts.length <= 6 ? allSlideTexts : [
+        allSlideTexts[0],
+        allSlideTexts[Math.floor(allSlideTexts.length / 4)],
+        allSlideTexts[Math.floor(allSlideTexts.length / 2)],
+        allSlideTexts[Math.floor((3 * allSlideTexts.length) / 4)],
+        allSlideTexts[allSlideTexts.length - 1]
+      ];
+
+      for (const slideText of slidesToEvaluate) {
         if (!slideText || !slideText.trim()) continue;
         const html = formatPresenterText(slideText, isBible, '', '');
         const size = _computeOptimalSize(html, maxW, maxH, isJomhuria, 1);
         if (size < minSize) minSize = size;
       }
 
-      return minSize === Infinity ? 54 : minSize;
+      _cachedUniformKey = key;
+      _cachedUniformSize = minSize === Infinity ? 54 : minSize;
+      return _cachedUniformSize;
     }
 
     function fitTextToSafeArea(isBible = currentIsBible) {
@@ -1249,11 +1267,11 @@
           // Safety clamp: shrink if text still overflows maxW or maxH
           let currentW = textEl.scrollWidth || textEl.offsetWidth;
           let currentH = textEl.scrollHeight || textEl.offsetHeight;
-          while ((currentW > maxW || currentH > maxH) && renderSize > 14) {
-            renderSize--;
+          if (currentW > maxW || currentH > maxH) {
+            const ratioW = maxW / Math.max(1, currentW);
+            const ratioH = maxH / Math.max(1, currentH);
+            renderSize = Math.max(14, Math.floor(renderSize * Math.min(ratioW, ratioH)));
             textEl.style.fontSize = `${renderSize}px`;
-            currentW = textEl.scrollWidth || textEl.offsetWidth;
-            currentH = textEl.scrollHeight || textEl.offsetHeight;
           }
         }
 
