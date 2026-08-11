@@ -4345,7 +4345,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (statusText) statusText.textContent = text;
     };
 
-    updateStartupProgress(15, 'جاري تحضير المحتوى والقاموس الذكي...');
+    updateStartupProgress(30, 'جاري معالجة فهارس المحتوى والتطابق والترجمة...');
 
     if (navigator.onLine && 'serviceWorker' in navigator && navigator.serviceWorker.controller) {
       try {
