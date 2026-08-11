@@ -4339,13 +4339,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const startupOverlay = document.getElementById('startup-loading-overlay');
     const statusText = document.getElementById('startup-status-text');
     const progressFill = document.getElementById('startup-progress-fill');
+    const btnBgContinue = document.getElementById('btn-startup-bg-continue');
+
+    let isDismissed = false;
+
+    const dismissSplash = () => {
+      if (isDismissed) return;
+      isDismissed = true;
+      if (startupOverlay) {
+        startupOverlay.classList.add('fade-out');
+        setTimeout(() => { try { startupOverlay.remove(); } catch(e) {} }, 300);
+      }
+    };
+
+    if (btnBgContinue) {
+      btnBgContinue.addEventListener('click', () => dismissSplash());
+      setTimeout(() => {
+        if (!isDismissed && btnBgContinue) {
+          btnBgContinue.classList.remove('hidden');
+        }
+      }, 2500);
+    }
 
     const updateStartupProgress = (pct, text) => {
       if (progressFill) progressFill.style.width = `${pct}%`;
       if (statusText) statusText.textContent = text;
     };
 
-    updateStartupProgress(30, 'جاري معالجة فهارس المحتوى والتطابق والترجمة...');
+    updateStartupProgress(30, 'جاري معالجة فهارس المحتوى والقاموس الذكي...');
 
     if (navigator.onLine && 'serviceWorker' in navigator && navigator.serviceWorker.controller) {
       try {
@@ -4446,12 +4467,7 @@ document.addEventListener('DOMContentLoaded', () => {
       els.totalSongsCount.innerHTML = `<i class="fa-solid fa-music"></i> <span>${formatted} ترنيمة</span>`;
     }
 
-    setTimeout(() => {
-      if (startupOverlay) {
-        startupOverlay.classList.add('fade-out');
-        setTimeout(() => startupOverlay.remove(), 450);
-      }
-    }, 250);
+    dismissSplash();
   }
 
     // Fetch live total songs count & trigger background auto-sync for new songs
@@ -6706,29 +6722,15 @@ document.addEventListener('DOMContentLoaded', () => {
           } else if (scaleMode === 'auto') {
             const container = els.obsOverlay || els.obsLineText.parentElement || document.body;
             const containerW = Math.max(400, container.clientWidth || window.innerWidth);
-            const containerH = Math.max(300, container.clientHeight || window.innerHeight);
-            const maxContainerH = containerH * 0.88;
-            const maxContainerW = containerW * 0.92;
-            const isVertical = window.innerHeight > window.innerWidth;
-            const refTargetW = isVertical ? Math.max(maxContainerW, maxContainerH * (16 / 9)) : maxContainerW;
-
-            const segmentsCount = els.obsLineText.querySelectorAll('.obs-line-segment').length || 1;
             const isJomhuriaFont = /jomhuria/i.test(state.selectedFont || '');
 
-            let optimalLineHeight = 1.3;
-            if (isJomhuriaFont) {
-              optimalLineHeight = 1.4;
-            } else if (segmentsCount > 2) {
-              optimalLineHeight = 1.25;
-            } else if (segmentsCount === 1) {
-              optimalLineHeight = 1.2;
-            }
-            els.obsLineText.style.lineHeight = `${optimalLineHeight}`;
+            const refCanvasW = 1920;
+            const refMaxW = refCanvasW * 0.90;
+            const refMaxH = 1080 * 0.85;
 
-            let low = Math.max(48, Math.floor(containerH * 0.05));
-            let maxLimit = isJomhuriaFont ? Math.max(380, Math.floor(containerH * 0.45)) : Math.max(300, Math.floor(containerH * 0.35));
-            let high = Math.min(maxLimit, Math.max(low + 20, Math.floor(maxContainerH / Math.max(1, (segmentsCount || 1) * 0.65))));
-            let bestFit = low;
+            let low = 36;
+            let high = isJomhuriaFont ? 280 : 220;
+            let refBestSize = low;
 
             while (low <= high) {
               const mid = Math.floor((low + high) / 2);
@@ -6736,15 +6738,16 @@ document.addEventListener('DOMContentLoaded', () => {
               const h = els.obsLineText.scrollHeight || els.obsLineText.offsetHeight;
               const w = els.obsLineText.scrollWidth || els.obsLineText.offsetWidth;
 
-              if (h <= maxContainerH && w <= refTargetW) {
-                bestFit = mid;
+              if (h <= refMaxH && w <= refMaxW) {
+                refBestSize = mid;
                 low = mid + 1;
               } else {
                 high = mid - 1;
               }
             }
 
-            bestFit = Math.max(Math.floor(containerH * 0.05), bestFit);
+            const scaleFactor = containerW / refCanvasW;
+            const bestFit = Math.max(16, Math.round(refBestSize * scaleFactor));
             els.obsLineText.style.fontSize = `${bestFit}px`;
           }
           els.obsLineText.style.transform = 'none';

@@ -1278,14 +1278,14 @@
         }
         textEl.style.lineHeight = `${autoLineHeight}`;
 
-        const isVertical = window.innerHeight > window.innerWidth;
-        const refTargetW = isVertical ? Math.max(maxW, maxH * (16 / 9)) : maxW;
+        // 16:9 Horizontal Reference Canvas (1920 x 1080)
+        const refCanvasW = 1920;
+        const refMaxW = refCanvasW * 0.90;
+        const refMaxH = 1080 * 0.85;
 
-        const screenH = container.clientHeight || window.innerHeight || 1080;
-        let low = Math.max(48, Math.floor(screenH * 0.05));
-        let maxLimit = isJomhuria ? Math.max(380, Math.floor(screenH * 0.45)) : Math.max(300, Math.floor(screenH * 0.35));
-        let high = Math.min(maxLimit, Math.max(low + 20, Math.floor(maxH / Math.max(1, (segmentsCount || 1) * 0.65))));
-        renderSize = low;
+        let low = 36;
+        let high = isJomhuria ? 280 : 220;
+        let refBestSize = low;
 
         while (low <= high) {
           const mid = Math.floor((low + high) / 2);
@@ -1293,15 +1293,17 @@
           const h = textEl.scrollHeight || textEl.offsetHeight;
           const w = textEl.scrollWidth || textEl.offsetWidth;
 
-          if (h <= maxH && w <= refTargetW) {
-            renderSize = mid;
+          if (h <= refMaxH && w <= refMaxW) {
+            refBestSize = mid;
             low = mid + 1;
           } else {
             high = mid - 1;
           }
         }
 
-        renderSize = Math.max(Math.floor(screenH * 0.05), renderSize);
+        const curContainerW = container.clientWidth || window.innerWidth || 1920;
+        const scaleFactor = curContainerW / refCanvasW;
+        renderSize = Math.max(16, Math.round(refBestSize * scaleFactor));
         textEl.style.fontSize = `${renderSize}px`;
       }
 

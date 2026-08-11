@@ -4742,9 +4742,10 @@ input[type="range"]:active::-moz-range-thumb {
 .startup-logo {
   width: 80px;
   height: 80px;
-  object-fit: contain;
+  object-fit: cover;
+  border-radius: 20px;
   margin-bottom: 20px;
-  filter: drop-shadow(0 6px 16px rgba(37, 99, 235, 0.25));
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
   animation: pulseLogo 1.5s infinite ease-in-out;
 }
 
@@ -4782,4 +4783,28 @@ input[type="range"]:active::-moz-range-thumb {
   background: #2563eb;
   border-radius: 3px;
   transition: width 0.15s ease;
+}
+
+.btn-startup-bg-continue {
+  margin-top: 24px;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  color: #334155;
+  padding: 8px 18px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.btn-startup-bg-continue:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
+  transform: translateY(-1px);
 }
