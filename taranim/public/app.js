@@ -2064,6 +2064,34 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
+    const btnUnfreezeObs = document.getElementById('btn-unfreeze-obs');
+    if (btnUnfreezeObs) {
+      btnUnfreezeObs.addEventListener('click', (e) => {
+        e.stopPropagation();
+
+        // 1. Force refresh live state sync without resetting active song, line index, or styling
+        syncLiveState(false, true);
+
+        // 2. Button feedback animation
+        const originalHtml = btnUnfreezeObs.innerHTML;
+        btnUnfreezeObs.innerHTML = `<i class="fa-solid fa-check"></i> تم التنشيط!`;
+        btnUnfreezeObs.style.background = '#dcfce7';
+        btnUnfreezeObs.style.color = '#166534';
+        btnUnfreezeObs.style.borderColor = '#bbf7d0';
+
+        if (btnUnfreezeObs._unfreezeTimeout) clearTimeout(btnUnfreezeObs._unfreezeTimeout);
+
+        btnUnfreezeObs._unfreezeTimeout = setTimeout(() => {
+          btnUnfreezeObs.innerHTML = originalHtml;
+          btnUnfreezeObs.style.background = '#fef2f2';
+          btnUnfreezeObs.style.color = '#991b1b';
+          btnUnfreezeObs.style.borderColor = '#fecaca';
+        }, 1400);
+
+        showToast('تم إرسال إشارة فك الجمود وتنشيط اتصال OBS بنجاح!');
+      });
+    }
+
     if (els.btnMenuInstall && els.popoverInstall) {
       els.btnMenuInstall.addEventListener('click', (e) => {
         e.stopPropagation();
