@@ -5878,6 +5878,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!rawText) return '';
 
     let text = String(rawText);
+    if (text.includes('allinone-slide-group') || text.includes('obs-line-row')) {
+      return text;
+    }
     let detectedBadge = badgeTextOverride || '';
     let detectedBadgeClass = badgeClassOverride || '';
 
