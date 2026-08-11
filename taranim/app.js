@@ -1169,7 +1169,7 @@ document.addEventListener('DOMContentLoaded', () => {
     splitLongLines: savedSettings.splitLongLines !== undefined ? savedSettings.splitLongLines : true,
     francoAutoTranslate: savedSettings.francoAutoTranslate !== undefined ? savedSettings.francoAutoTranslate : true,
     textAnimation: savedSettings.textAnimation || "none",
-    obsMode: savedSettings.obsMode !== undefined ? Boolean(savedSettings.obsMode) : (localStorage.getItem('sunday_school_obs_mode') !== 'false'),
+    obsMode: savedSettings.obsMode !== undefined ? Boolean(savedSettings.obsMode) : (localStorage.getItem('sunday_school_obs_mode') === 'true'),
     
     styleOptions: {
       textColor: savedSettings.styleOptions?.textColor || "#ffffff",
@@ -1848,7 +1848,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.presModeSelect) els.presModeSelect.value = state.presentationMode;
     if (els.francoToggleBtn) els.francoToggleBtn.classList.toggle('active', state.francoAutoTranslate);
     if (els.obsTextAnimSelect) els.obsTextAnimSelect.value = state.textAnimation;
-    if (els.btnToggleObsMode) els.btnToggleObsMode.checked = Boolean(state.obsMode !== false);
+    if (els.btnToggleObsMode) els.btnToggleObsMode.checked = Boolean(state.obsMode === true);
     updateObsModeUI();
 
     if (els.obsTextColor) els.obsTextColor.value = state.styleOptions.textColor;
@@ -2082,33 +2082,28 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.btnDropdownPrecache) {
       els.btnDropdownPrecache.addEventListener('click', async () => {
         els.btnDropdownPrecache.disabled = true;
-        
-        const syncOverlay = document.getElementById('pwa-auto-sync-overlay');
-        const syncFill = document.getElementById('pwa-sync-progress-fill');
-        const syncStatus = document.getElementById('pwa-sync-status-text');
 
-        if (syncOverlay) syncOverlay.classList.remove('hidden');
-        if (syncFill) syncFill.style.width = '10%';
-        if (syncStatus) syncStatus.textContent = 'جاري حفظ الترانيم والكتاب المقدس أوفلاين...';
+        if (els.popoverProgressWrapper) els.popoverProgressWrapper.classList.remove('hidden');
+        if (els.popoverProgressFill) els.popoverProgressFill.style.width = '0%';
+        if (els.popoverProgressText) els.popoverProgressText.textContent = 'جاري تحضير البيانات...';
 
         const ASSETS_TO_CACHE = [
-          './',
-          './index.html',
-          './present.html',
-          './install.html',
-          './app.js',
-          './style.css',
-          './logoicon.png',
-          './manifest.webmanifest',
-          './songs_catalog.json',
-          './arabic_dictionary.json',
-          './playlists.json',
-          './song_scales_map.json',
-          './bible_books_data.json'
+          { url: './', size: 5000 },
+          { url: './index.html', size: 48000 },
+          { url: './present.html', size: 75000 },
+          { url: './app.js', size: 290000 },
+          { url: './style.css', size: 106000 },
+          { url: './logoicon.png', size: 70000 },
+          { url: './manifest.webmanifest', size: 800 },
+          { url: './songs_catalog.json', size: 33693104 },
+          { url: './arabic_dictionary.json', size: 208186 },
+          { url: './playlists.json', size: 100 },
+          { url: './song_scales_map.json', size: 20400 },
+          { url: './bible_books_data.json', size: 8064 }
         ];
 
-        let loadedCount = 0;
-        const total = ASSETS_TO_CACHE.length;
+        const TOTAL_BYTES = ASSETS_TO_CACHE.reduce((acc, item) => acc + item.size, 0);
+        let downloadedBytes = 0;
 
         try {
           let cacheName = 'taranim-pwa-v6';
@@ -2119,38 +2114,51 @@ document.addEventListener('DOMContentLoaded', () => {
           }
           const cache = await caches.open(cacheName);
 
-          for (let i = 0; i < total; i++) {
-            const url = ASSETS_TO_CACHE[i];
+          for (const item of ASSETS_TO_CACHE) {
             try {
-              const res = await fetch(url, { cache: 'no-cache' });
+              const res = await fetch(item.url, { cache: 'no-cache' });
               if (res && res.ok) {
-                await cache.put(url, res);
-              }
-            } catch (err) {}
+                const clone = res.clone();
+                await cache.put(item.url, clone);
 
-            loadedCount++;
-            const pct = Math.max(10, Math.round((loadedCount / total) * 100));
-            if (syncFill) syncFill.style.width = pct + '%';
-            if (syncStatus) {
-              if (pct < 40) syncStatus.textContent = 'جاري حفظ بيانات البحث الفوري...';
-              else if (pct < 85) syncStatus.textContent = 'جاري حفظ الترانيم والإصحاحات الكتابية...';
-              else syncStatus.textContent = 'جاري إنهاء التجهيز أوفلاين...';
+                if (res.body && typeof res.body.getReader === 'function') {
+                  const reader = res.body.getReader();
+                  while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    if (value && value.length) {
+                      downloadedBytes += value.length;
+                      const pct = Math.min(99, Math.round((downloadedBytes / TOTAL_BYTES) * 100));
+                      if (els.popoverProgressFill) els.popoverProgressFill.style.width = `${pct}%`;
+                      if (els.popoverProgressText) els.popoverProgressText.textContent = `جاري التحميل أوفلاين (${pct}%)...`;
+                    }
+                  }
+                } else {
+                  downloadedBytes += item.size;
+                  const pct = Math.min(99, Math.round((downloadedBytes / TOTAL_BYTES) * 100));
+                  if (els.popoverProgressFill) els.popoverProgressFill.style.width = `${pct}%`;
+                  if (els.popoverProgressText) els.popoverProgressText.textContent = `جاري التحميل أوفلاين (${pct}%)...`;
+                }
+              }
+            } catch (err) {
+              downloadedBytes += item.size;
             }
           }
 
+          if (els.popoverProgressFill) els.popoverProgressFill.style.width = '100%';
+          if (els.popoverProgressText) els.popoverProgressText.textContent = 'تم إكتمال التحميل 100%';
           localStorage.setItem('taranim_pwa_initial_download_done', 'true');
           if (els.btnDropdownPrecache) els.btnDropdownPrecache.innerHTML = '<i class="fa-solid fa-circle-check"></i> تم حفظ جميع البيانات أوفلاين';
           if (els.popoverOfflineStatusText) els.popoverOfflineStatusText.innerHTML = '<i class="fa-solid fa-circle-check"></i> جاهز للعمل بدون إنترنت';
-          if (syncStatus) syncStatus.textContent = 'تم حفظ جميع البيانات أوفلاين بنجاح!';
+          showToast('تم حفظ الترانيم والكتاب المقدس أوفلاين بنجاح!');
           setTimeout(() => {
-            if (syncOverlay) syncOverlay.classList.add('hidden');
-          }, 400);
+            if (els.popoverProgressWrapper) els.popoverProgressWrapper.classList.add('hidden');
+          }, 1500);
         } catch (err) {
           if (els.btnDropdownPrecache) {
             els.btnDropdownPrecache.disabled = false;
             els.btnDropdownPrecache.textContent = 'إعادة المحاولة';
           }
-          if (syncOverlay) syncOverlay.classList.add('hidden');
         }
       });
     }
@@ -2203,82 +2211,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // AUTOMATIC OFFLINE DATA SYNC WITH LIGHT LOADING SCREEN ON FIRST STARTUP ONLY
-    const triggerAutoOfflineSync = async () => {
-      const syncOverlay = document.getElementById('pwa-auto-sync-overlay');
-      const syncFill = document.getElementById('pwa-sync-progress-fill');
-      const syncStatus = document.getElementById('pwa-sync-status-text');
 
-      const isInitialDone = localStorage.getItem('taranim_pwa_initial_download_done') === 'true';
-
-      // ON SUBSEQUENT OPENS: DO NOT RE-DOWNLOAD ALL FILES, DO NOT SHOW HEAVY LOADING OVERLAY
-      if (isInitialDone || !navigator.onLine) {
-        if (syncOverlay) syncOverlay.classList.add('hidden');
-        return;
-      }
-
-      if (syncOverlay) syncOverlay.classList.remove('hidden');
-      if (syncStatus) syncStatus.textContent = 'جاري إعداد الترانيم والكتاب المقدس أوفلاين...';
-
-      const ASSETS_TO_CACHE = [
-        './',
-        './index.html',
-        './present.html',
-        './app.js',
-        './style.css',
-        './logoicon.png',
-        './manifest.webmanifest',
-        './songs_catalog.json',
-        './arabic_dictionary.json',
-        './playlists.json',
-        './song_scales_map.json',
-        './bible_books_data.json'
-      ];
-
-      let loadedCount = 0;
-      const total = ASSETS_TO_CACHE.length;
-
-      try {
-        let cacheName = 'taranim-pwa-v5';
-        if ('caches' in window) {
-          const keys = await caches.keys();
-          const found = keys.find(k => k.includes('taranim') || k.includes('sunday_school'));
-          if (found) cacheName = found;
-        }
-        const cache = await caches.open(cacheName);
-
-        for (let i = 0; i < total; i++) {
-          const url = ASSETS_TO_CACHE[i];
-          try {
-            const res = await fetch(url, { cache: 'no-cache' });
-            if (res && res.ok) {
-              await cache.put(url, res);
-            }
-          } catch(err) {}
-
-          loadedCount++;
-          const pct = Math.round((loadedCount / total) * 100);
-          if (syncFill) syncFill.style.width = pct + '%';
-          if (syncStatus) {
-            if (pct < 40) syncStatus.textContent = 'جاري إعداد محرك البحث السريع...';
-            else if (pct < 85) syncStatus.textContent = 'جاري حفظ الترانيم والكتاب المقدس أوفلاين...';
-            else syncStatus.textContent = 'جاري إنهاء التجهيز...';
-          }
-        }
-
-        localStorage.setItem('taranim_pwa_initial_download_done', 'true');
-        if (syncStatus) syncStatus.textContent = 'جاهز للعمل بدون إنترنت!';
-        setTimeout(() => {
-          if (syncOverlay) syncOverlay.classList.add('hidden');
-        }, 400);
-      } catch(err) {
-        if (syncOverlay) syncOverlay.classList.add('hidden');
-      }
-    };
-
-    if (navigator.onLine) {
-      setTimeout(triggerAutoOfflineSync, 300);
-    }
 
     document.addEventListener('click', (e) => {
       if (window.innerWidth <= 768 && els.popoverStyle && !els.popoverStyle.contains(e.target) && e.target !== els.btnMenuStyle && !els.btnMenuStyle.contains(e.target)) {
@@ -2556,7 +2489,7 @@ document.addEventListener('DOMContentLoaded', () => {
         saveUserSettings();
         updateObsModeUI();
         syncLiveState();
-        showToast(state.obsMode ? 'تم تفعيل وضع OBS المباشر (منع التجميد)' : 'تم إيقاف وضع OBS المباشر');
+        showToast(state.obsMode ? 'تم تفعيل وضع OBS المباشر' : 'تم إيقاف وضع OBS المباشر');
       });
     }
 

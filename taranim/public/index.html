@@ -50,17 +50,7 @@
 </head>
 <body>
 
-  <!-- LIGHT AUTOMATIC DATA SYNC LOADING SCREEN -->
-  <div id="pwa-auto-sync-overlay" class="pwa-sync-overlay hidden">
-    <div class="pwa-sync-card">
-      <img src="logo_t.png" alt="Taranim Logo" class="pwa-sync-logo">
-      <div class="pwa-sync-title">جاري تحديث الترانيم والبيانات أوفلاين...</div>
-      <div class="pwa-sync-progress-bar">
-        <div id="pwa-sync-progress-fill" class="pwa-sync-progress-fill"></div>
-      </div>
-      <div id="pwa-sync-status-text" class="pwa-sync-status-text">جاري التحقق من الترانيم...</div>
-    </div>
-  </div>
+
 
   <div id="app" class="app-container">
     
@@ -158,6 +148,12 @@
             </div>
 
             <div class="popover-actions" style="margin-top:2px; display:flex; flex-direction:column; gap:6px;">
+              <div class="control-field" style="margin-bottom:2px;">
+                <label class="toggle-switch-label" style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; font-size:0.82rem; background:#eff6ff; border:1px solid #bfdbfe; padding:7px 10px; border-radius:8px; font-weight:600; color:#1e40af;">
+                  <span><i class="fa-solid fa-video" style="margin-left:6px; color:#2563eb;"></i> وضع OBS المباشر</span>
+                  <input type="checkbox" id="btn-toggle-obs-mode" class="toggle-checkbox">
+                </label>
+              </div>
               <button id="btn-open-obs-window" class="btn btn-sm btn-primary" style="width:100%; font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px; background:#2563eb; color:#ffffff;">
                 <i class="fa-solid fa-ghost"></i> فتح شاشة خفية لـ (Window Capture)
               </button>
@@ -536,13 +532,6 @@
 
             <div class="style-card" style="margin-top:10px;">
               <div class="style-card-title"><i class="fa-solid fa-eye-slash"></i> أدوات العرض والتحكم</div>
-              
-              <div class="control-field" style="margin-bottom:10px;">
-                <label class="toggle-switch-label" style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; font-size:0.88rem; background:#eff6ff; border:1px solid #bfdbfe; padding:8px 10px; border-radius:10px; font-weight:600; color:#1e40af;">
-                  <span><i class="fa-solid fa-video" style="margin-left:6px; color:#2563eb;"></i> وضع OBS المباشر (منع التجميد)</span>
-                  <input type="checkbox" id="btn-toggle-obs-mode" class="toggle-checkbox" checked>
-                </label>
-              </div>
 
               <div class="control-field">
                 <label>أدوات التحكم للشاشة</label>
