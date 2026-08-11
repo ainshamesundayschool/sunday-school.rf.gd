@@ -6669,23 +6669,27 @@ document.addEventListener('DOMContentLoaded', () => {
       wrapper.style.letterSpacing = `${lSpacing}px`;
       wrapper.style.fontWeight = fWeight;
 
+      measurer.style.width = `${Math.round(maxW)}px`;
+      measurer.style.maxWidth = `${Math.round(maxW)}px`;
+
       const segments = measurer.querySelectorAll('.obs-line-segment');
       const segCount = segments.length || 1;
 
       segments.forEach(s => {
         s.style.display = 'inline-block';
         s.style.width = 'auto';
-        s.style.whiteSpace = 'nowrap';
-        s.style.wordBreak = 'keep-all';
+        s.style.whiteSpace = 'pre-wrap';
+        s.style.wordBreak = 'break-word';
+        s.style.overflowWrap = 'break-word';
       });
 
+      let minFloor = isJomhuria ? 24 : 18;
       let low = minFloor;
       let maxLimit = isJomhuria ? 300 : 260;
-      let high = Math.min(maxLimit, Math.max(120, Math.floor(maxH / Math.max(1, segCount * 0.85))));
-      let bestForSlide = minFloor;
+      let high = Math.min(maxLimit, Math.floor(maxH / Math.max(1, segCount * 0.6)));
+      if (high < low) high = maxLimit;
 
-      wrapper.style.whiteSpace = 'nowrap';
-      wrapper.style.maxWidth = 'none';
+      let bestForSlide = minFloor;
 
       while (low <= high) {
         const mid = Math.floor((low + high) / 2);

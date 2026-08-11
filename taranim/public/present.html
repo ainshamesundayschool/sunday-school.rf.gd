@@ -1137,24 +1137,29 @@
     let _uniformSongKey = '';
     let _lastAnimSlideText = '';
 
-    function _computeOptimalSize(htmlContent, maxW, maxH, isJomhuria, segCountHint) {
+    function _computeOptimalSize(htmlContent, targetW, targetH, isJomhuria, segCountHint) {
       const container = document.getElementById('obs-overlay-container') || document.body;
-      const curW = maxW || container.clientWidth || window.innerWidth || 1920;
-      const curH = maxH || container.clientHeight || window.innerHeight || 1080;
+      const curW = targetW || container.clientWidth || window.innerWidth || 1920;
+      const curH = targetH || container.clientHeight || window.innerHeight || 1080;
 
-      // Lock maximum height to 16:9 horizontal format ratio so vertical screens scale based on landscape reference
-      const horizontalFormatMaxH = curW * (9 / 16);
-      const effectiveCanvasH = Math.min(curH, horizontalFormatMaxH);
-      const effectiveMaxH = effectiveCanvasH * 0.88;
-      const refTargetW = curW * 0.92;
+      // Lock height limit to 16:9 landscape aspect ratio when orientation is vertical (curH > curW)
+      const isVertical = curH > curW;
+      const effectiveCanvasH = isVertical ? (curW * (9 / 16)) : curH;
+
+      const effectiveMaxH = effectiveCanvasH * 0.85;
+      const refTargetW = curW * 0.90;
 
       const origHTML = textEl.innerHTML;
       const origDisplay = textEl.style.display;
       const origVis = textEl.style.visibility;
+      const origWidth = textEl.style.width;
+      const origMaxW = textEl.style.maxWidth;
 
       textEl.innerHTML = htmlContent;
       textEl.style.display = 'inline-block';
       textEl.style.visibility = 'hidden';
+      textEl.style.width = '100%';
+      textEl.style.maxWidth = `${Math.round(refTargetW)}px`;
 
       const segments = textEl.querySelectorAll('.obs-line-segment');
       const segCount = segments.length || segCountHint || 1;
@@ -1162,19 +1167,18 @@
       segments.forEach(s => {
         s.style.display = 'inline-block';
         s.style.width = 'auto';
-        s.style.whiteSpace = 'nowrap';
-        s.style.wordBreak = 'keep-all';
-        s.style.overflowWrap = 'normal';
+        s.style.whiteSpace = 'pre-wrap';
+        s.style.wordBreak = 'break-word';
+        s.style.overflowWrap = 'break-word';
       });
 
-      let minFloor = isJomhuria ? 56 : 44;
+      let minFloor = isJomhuria ? 24 : 18;
       let low = minFloor;
       let maxLimit = isJomhuria ? 300 : 260;
-      let high = Math.min(maxLimit, Math.max(120, Math.floor(maxH / Math.max(1, segCount * 0.85))));
-      let renderSize = minFloor;
+      let high = Math.min(maxLimit, Math.floor(effectiveMaxH / Math.max(1, segCount * 0.6)));
+      if (high < low) high = maxLimit;
 
-      textEl.style.whiteSpace = 'nowrap';
-      textEl.style.maxWidth = 'none';
+      let renderSize = minFloor;
 
       while (low <= high) {
         const mid = Math.floor((low + high) / 2);
@@ -1196,6 +1200,8 @@
       textEl.innerHTML = origHTML;
       textEl.style.display = origDisplay;
       textEl.style.visibility = origVis;
+      textEl.style.width = origWidth;
+      textEl.style.maxWidth = origMaxW;
 
       return renderSize;
     }
