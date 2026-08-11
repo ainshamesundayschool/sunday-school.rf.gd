@@ -4458,6 +4458,8 @@ document.addEventListener('DOMContentLoaded', () => {
         loadSongIntoPresentation(restoredSong);
         syncLiveState();
       }
+    }
+
     updateStartupProgress(100, 'التطبيق جاهز للعمل 100%!');
 
     const realTotalCount = state.allSongs.length > 0 ? state.allSongs.length : 11611;
@@ -4468,9 +4470,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     dismissSplash();
-  }
 
-    // Fetch live total songs count & trigger background auto-sync for new songs
+    // Fetch live total songs count & trigger background auto-sync for new songs / Tasbe7na updates
     try {
       const apiUrl = getApiUrl();
       let liveRes = await fetch(`${apiUrl}?action=songs&limit=1`).catch(() => null);
@@ -4486,9 +4487,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // Non-blocking background sync for new database updates
+      // Non-blocking background sync for new database updates from Tasbe7na / server
       setTimeout(() => {
         fetch(`${apiUrl}?action=sync`).catch(() => null);
+        fetch('api.php?action=sync').catch(() => null);
       }, 1500);
     } catch (liveErr) {}
   }
