@@ -400,8 +400,9 @@ if (isset($_GET['action']) && $_GET['action'] === 'bible_chapter') {
 
     if ($bookId > 0 && $chNum > 0) {
         try {
+            $titleConcatSql = $isMysql ? "CONCAT(b.title, ' - الأصحاح ', bc.number)" : "(b.title || ' - الأصحاح ' || bc.number)";
             $stmt = $pdo->prepare("
-                SELECT c.id, c.item_id, (b.title || ' - الأصحاح ' || bc.number) as title, 1 as is_bible
+                SELECT c.id, c.item_id, {$titleConcatSql} as title, 1 as is_bible
                 FROM chapters c
                 JOIN bible_chapters bc ON c.bible_chapter = bc.id
                 JOIN books b ON bc.book = b.id
@@ -434,11 +435,12 @@ if (preg_match('#/api/song/(\d+)#', $parsedUrl, $matches) || (isset($_GET['actio
     $isBibleReq = (isset($_GET['type']) && $_GET['type'] === 'bible') || (isset($_GET['is_bible']) && ($_GET['is_bible'] == '1' || $_GET['is_bible'] === 'true'));
 
     $song = null;
+    $titleConcatSql = $isMysql ? "CONCAT(b.title, ' - الأصحاح ', bc.number)" : "(b.title || ' - الأصحاح ' || bc.number)";
 
     if ($isBibleReq) {
         try {
             $cStmt = $pdo->prepare("
-                SELECT c.id, c.item_id, (b.title || ' - الأصحاح ' || bc.number) as title, b.abbr, bc.number as chapter_number, 1 as is_bible
+                SELECT c.id, c.item_id, {$titleConcatSql} as title, b.abbr, bc.number as chapter_number, 1 as is_bible
                 FROM chapters c
                 JOIN bible_chapters bc ON c.bible_chapter = bc.id
                 JOIN books b ON bc.book = b.id
@@ -460,7 +462,7 @@ if (preg_match('#/api/song/(\d+)#', $parsedUrl, $matches) || (isset($_GET['actio
     if (!$song) {
         try {
             $cStmt = $pdo->prepare("
-                SELECT c.id, c.item_id, (b.title || ' - الأصحاح ' || bc.number) as title, b.abbr, bc.number as chapter_number, 1 as is_bible
+                SELECT c.id, c.item_id, {$titleConcatSql} as title, b.abbr, bc.number as chapter_number, 1 as is_bible
                 FROM chapters c
                 JOIN bible_chapters bc ON c.bible_chapter = bc.id
                 JOIN books b ON bc.book = b.id

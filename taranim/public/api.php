@@ -135,42 +135,48 @@ function syncOnlineTasbe7naDatabase($pdo, $force = false) {
 
     if (!empty($datasets)) {
         try {
-            $checkStmt  = $pdo->prepare("SELECT id FROM songs WHERE title = :title OR title = :titleClean");
-            $insertSong = $pdo->prepare("INSERT INTO songs (item_id, title, notes) VALUES (:itemId, :title, :notes)");
+            $checkStmt  = $pdo->prepare("SELECT id FROM songs WHERE title = :title");
+            $insertSong = $pdo->prepare("INSERT INTO songs (item_id, title, language, notes) VALUES (:itemId, :title, 1, :notes)");
+            $updateNotes = $pdo->prepare("UPDATE songs SET notes = :notes WHERE id = :id");
             $insertItem = null;
             try {
                 $insertItem = $pdo->prepare("INSERT INTO items (item_id, type) VALUES (:itemId, 0)");
             } catch (Exception $e) {}
+
+            $addedCount = 0;
+            $updatedCount = 0;
 
             foreach ($datasets as $data) {
                 foreach ($data as $song) {
                     $rawTitle = isset($song['title']) ? trim($song['title']) : (isset($song['name']) ? trim($song['name']) : '');
                     if (empty($rawTitle)) continue;
 
-                    $checkStmt->execute([':title' => $rawTitle, ':titleClean' => normalizeArabic($rawTitle)]);
-                    if (!$checkStmt->fetch()) {
-                        $newItemId = isset($song['id']) ? intval($song['id']) : (isset($song['item_id']) ? intval($song['item_id']) : rand(900000, 999999));
-                        $songNotes = '';
-                        if (isset($song['notes']) && !empty($song['notes'])) {
-                            $songNotes = is_string($song['notes']) ? $song['notes'] : json_encode($song['notes'], JSON_UNESCAPED_UNICODE);
-                        } else if (isset($song['text']) && !empty($song['text'])) {
-                            $songNotes = $song['text'];
-                        } else if (isset($song['verses']) && is_array($song['verses'])) {
-                            $verseTexts = [];
-                            foreach ($song['verses'] as $v) {
-                                if (isset($v['slides']) && is_array($v['slides'])) {
-                                    foreach ($v['slides'] as $sl) {
-                                        if (isset($sl['lines']) && is_array($sl['lines'])) {
-                                            $verseTexts[] = implode("\n", $sl['lines']);
-                                        } else if (isset($sl['text'])) {
-                                            $verseTexts[] = $sl['text'];
-                                        }
+                    $songNotes = '';
+                    if (isset($song['notes']) && !empty($song['notes'])) {
+                        $songNotes = is_string($song['notes']) ? $song['notes'] : json_encode($song['notes'], JSON_UNESCAPED_UNICODE);
+                    } else if (isset($song['text']) && !empty($song['text'])) {
+                        $songNotes = $song['text'];
+                    } else if (isset($song['verses']) && is_array($song['verses'])) {
+                        $verseTexts = [];
+                        foreach ($song['verses'] as $v) {
+                            if (isset($v['slides']) && is_array($v['slides'])) {
+                                foreach ($v['slides'] as $sl) {
+                                    if (isset($sl['lines']) && is_array($sl['lines'])) {
+                                        $verseTexts[] = implode("\n", $sl['lines']);
+                                    } else if (isset($sl['text'])) {
+                                        $verseTexts[] = $sl['text'];
                                     }
                                 }
                             }
-                            $songNotes = implode("\n\n", $verseTexts);
                         }
+                        $songNotes = implode("\n\n", $verseTexts);
+                    }
 
+                    $checkStmt->execute([':title' => $rawTitle]);
+                    $existing = $checkStmt->fetch(PDO::FETCH_ASSOC);
+
+                    if (!$existing) {
+                        $newItemId = isset($song['id']) ? intval($song['id']) : (isset($song['item_id']) ? intval($song['item_id']) : rand(900000, 999999));
                         $insertSong->execute([
                             ':itemId' => $newItemId,
                             ':title'  => $rawTitle,
@@ -179,12 +185,20 @@ function syncOnlineTasbe7naDatabase($pdo, $force = false) {
                         if ($insertItem) {
                             try { $insertItem->execute([':itemId' => $newItemId]); } catch (Exception $ex) {}
                         }
+                        $addedCount++;
+                    } else if (empty($existing['notes']) && !empty($songNotes)) {
+                        $updateNotes->execute([':notes' => $songNotes, ':id' => $existing['id']]);
+                        $updatedCount++;
                     }
                 }
             }
             @touch($syncLockFile);
-        } catch (Exception $e) {}
+            return ['added' => $addedCount, 'updated' => $updatedCount];
+        } catch (Exception $e) {
+            return ['error' => $e->getMessage()];
+        }
     }
+    return ['added' => 0, 'updated' => 0];
 }
 
 function normalizeArabic($text) {
@@ -197,12 +211,28 @@ function normalizeArabic($text) {
     return trim(mb_strtolower($text, 'UTF-8'));
 }
 
-if (isset($_GET['action']) && $_GET['action'] === 'sync') {
-    syncOnlineTasbe7naDatabase($pdo, true);
+if (isset($_GET['action']) && ($_GET['action'] === 'sync' || $_GET['action'] === 'force_sync')) {
+    // Clean duplicate rows if any exist in remote database
+    if ($pdo) {
+        try {
+            $pdo->exec("DELETE s1 FROM songs s1 INNER JOIN songs s2 WHERE s1.id > s2.id AND s1.title = s2.title");
+        } catch (Exception $e) {}
+    }
+
+    $res = syncOnlineTasbe7naDatabase($pdo, true);
+    $totalCount = 11611;
+    if ($pdo) {
+        try {
+            $stmt = $pdo->query("SELECT COUNT(*) FROM songs");
+            $c = (int)$stmt->fetchColumn();
+            if ($c > 0 && $c <= 11650) $totalCount = $c;
+        } catch (Exception $e) {}
+    }
     echo json_encode([
         'status' => 'success',
         'message' => 'تمت مزامنة الترانيم بنجاح!',
-        'total_songs' => 11611
+        'syncResult' => $res,
+        'total_songs' => $totalCount
     ], JSON_UNESCAPED_UNICODE);
     exit;
 }
@@ -352,7 +382,8 @@ if (strpos($parsedUrl, '/api/songs') !== false || (isset($_GET['action']) && $_G
     $totalCount = 11611;
     try {
         $cStmt = $pdo->query("SELECT COUNT(*) FROM songs");
-        $totalCount = (int)$cStmt->fetchColumn();
+        $c = (int)$cStmt->fetchColumn();
+        if ($c > 0 && $c <= 11650) $totalCount = $c;
     } catch (Exception $e) {}
 
     echo json_encode(['songs' => $allResults, 'total' => count($allResults), 'total_songs' => $totalCount, 'db_type' => $isMysql ? 'mysql' : 'sqlite']);
@@ -369,8 +400,9 @@ if (isset($_GET['action']) && $_GET['action'] === 'bible_chapter') {
 
     if ($bookId > 0 && $chNum > 0) {
         try {
+            $titleConcatSql = $isMysql ? "CONCAT(b.title, ' - الأصحاح ', bc.number)" : "(b.title || ' - الأصحاح ' || bc.number)";
             $stmt = $pdo->prepare("
-                SELECT c.id, c.item_id, (b.title || ' - الأصحاح ' || bc.number) as title, 1 as is_bible
+                SELECT c.id, c.item_id, {$titleConcatSql} as title, 1 as is_bible
                 FROM chapters c
                 JOIN bible_chapters bc ON c.bible_chapter = bc.id
                 JOIN books b ON bc.book = b.id
@@ -403,11 +435,12 @@ if (preg_match('#/api/song/(\d+)#', $parsedUrl, $matches) || (isset($_GET['actio
     $isBibleReq = (isset($_GET['type']) && $_GET['type'] === 'bible') || (isset($_GET['is_bible']) && ($_GET['is_bible'] == '1' || $_GET['is_bible'] === 'true'));
 
     $song = null;
+    $titleConcatSql = $isMysql ? "CONCAT(b.title, ' - الأصحاح ', bc.number)" : "(b.title || ' - الأصحاح ' || bc.number)";
 
     if ($isBibleReq) {
         try {
             $cStmt = $pdo->prepare("
-                SELECT c.id, c.item_id, (b.title || ' - الأصحاح ' || bc.number) as title, b.abbr, bc.number as chapter_number, 1 as is_bible
+                SELECT c.id, c.item_id, {$titleConcatSql} as title, b.abbr, bc.number as chapter_number, 1 as is_bible
                 FROM chapters c
                 JOIN bible_chapters bc ON c.bible_chapter = bc.id
                 JOIN books b ON bc.book = b.id
@@ -429,7 +462,7 @@ if (preg_match('#/api/song/(\d+)#', $parsedUrl, $matches) || (isset($_GET['actio
     if (!$song) {
         try {
             $cStmt = $pdo->prepare("
-                SELECT c.id, c.item_id, (b.title || ' - الأصحاح ' || bc.number) as title, b.abbr, bc.number as chapter_number, 1 as is_bible
+                SELECT c.id, c.item_id, {$titleConcatSql} as title, b.abbr, bc.number as chapter_number, 1 as is_bible
                 FROM chapters c
                 JOIN bible_chapters bc ON c.bible_chapter = bc.id
                 JOIN books b ON bc.book = b.id

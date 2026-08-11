@@ -3827,7 +3827,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const chipsHtml = chips.length > 0 ? '<div class="screen-chips-row" style="margin-top:4px; display:flex; gap:4px; flex-wrap:wrap;">' + chips.join('') + '</div>' : '';
-        const name = s.label || (isMain ? 'Built-in Retina Display' : ('Display ' + (idx + 1)));
+        const name = (s && s.label && s.label.trim()) ? s.label.trim() : (isMain ? 'الشاشة الرئيسية (Main Display)' : ('الشاشة الخارجية ' + (idx + 1)));
         const cardClass = 'screen-cast-card' + (isCurrentScreen ? ' current-screen-card' : '');
         const val = 'screen_' + idx;
 
@@ -3895,7 +3895,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const firstExt = externalScreens[0];
     const extVal = `screen_${firstExt.idx}`;
-    const extName = firstExt.screen.label || (firstExt.screen.isPrimary ? 'Built-in Display' : `Display ${firstExt.idx + 1}`);
+    const extName = (firstExt.screen && firstExt.screen.label && firstExt.screen.label.trim()) 
+      ? firstExt.screen.label.trim() 
+      : (firstExt.screen.isPrimary ? 'الشاشة الرئيسية (Main Display)' : `الشاشة الخارجية ${firstExt.idx + 1}`);
 
     pendingChoiceExtVal = extVal;
 
@@ -3999,7 +4001,7 @@ document.addEventListener('DOMContentLoaded', () => {
       top = targetScreen.availTop !== undefined ? targetScreen.availTop : (targetScreen.top !== undefined ? targetScreen.top : 0);
       width = targetScreen.availWidth || targetScreen.width || 1920;
       height = targetScreen.availHeight || targetScreen.height || 1080;
-      screenLabel = targetScreen.label || (targetScreen.isPrimary ? 'Built-in Retina Display' : screenLabel);
+      screenLabel = (targetScreen.label && targetScreen.label.trim()) ? targetScreen.label.trim() : (targetScreen.isPrimary ? 'الشاشة الرئيسية (Main Display)' : `الشاشة الخارجية ${targetIdx + 1}`);
     } else {
       const winX = window.screenX !== undefined ? window.screenX : (window.screenLeft !== undefined ? window.screenLeft : 0);
       const primaryW = window.screen.width || 1920;
@@ -4007,10 +4009,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (targetIdx === 0) {
         left = availL;
-        screenLabel = 'Built-in Retina Display';
+        screenLabel = 'الشاشة الرئيسية (Main Display)';
       } else {
         left = (winX >= (availL + primaryW * 0.75)) ? availL : (availL + primaryW);
-        screenLabel = 'Display 2';
+        screenLabel = `الشاشة الخارجية ${targetIdx + 1}`;
       }
       top = window.screen.availTop || 0;
       width = window.screen.availWidth || 1920;
@@ -4027,7 +4029,7 @@ document.addEventListener('DOMContentLoaded', () => {
     lastWindowOpenTime = Date.now();
     updateDisplayButtonUI();
 
-    const windowFeatures = 'left=' + left + ',top=' + top + ',screenX=' + left + ',screenY=' + top + ',width=' + width + ',height=' + height + ',outerWidth=' + width + ',outerHeight=' + height + ',menubar=no,toolbar=no,location=no,status=no,resizable=yes,fullscreen=yes';
+    const windowFeatures = 'left=' + left + ',top=' + top + ',screenX=' + left + ',screenY=' + top + ',width=' + width + ',height=' + height + ',outerWidth=' + width + ',outerHeight=' + height + ',menubar=no,toolbar=no,location=no,status=no,resizable=yes,fullscreen=yes,popup=1';
     const obsUrl = 'present.html?autofs=true&screenIdx=' + targetIdx + '&screenLeft=' + left + '&screenTop=' + top + '&screenWidth=' + width + '&screenHeight=' + height;
     
     if (presenterWindow && !presenterWindow.closed) {
@@ -4814,8 +4816,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // 3. INSTANT 0ms UI PRESENTATION (IF TARGET SONG IS AVAILABLE)
-    if (targetSong) {
+    // 3. INSTANT 0ms UI PRESENTATION (IF TARGET SONG IS COMPLETE)
+    if (targetSong && hasCompleteContent(targetSong)) {
       const readySong = ensureSongVerses(targetSong);
       state.activeSong = readySong;
       addToSessionRecents(readySong);
@@ -5432,17 +5434,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (mode === 'allinone') {
         const allGroupsHtml = [];
+        const cleanStanzaTexts = [];
         orderedVersesToProcess.forEach(({ verse, idx, stanzaNum }) => {
           const slideItems = buildVerseSlideItems(verse, idx, stanzaNum);
           slideItems.forEach(item => {
             const bHtml = item.badgeText ? `<span class="slide-badge-layer ${item.badgeClass}">${item.badgeText}</span>` : '';
             const linesHtml = (item.lines || [item.text]).map(l => `<div class="obs-line-row"><span class="obs-line-segment">${escapeHtml(l)}</span></div>`).join('');
             allGroupsHtml.push(`<div class="allinone-slide-group">${bHtml}${linesHtml}</div>`);
+
+            const bClean = item.badgeText ? `(${item.badgeText}) ` : '';
+            const tClean = (item.lines || [item.text]).join('\n');
+            cleanStanzaTexts.push(bClean + tClean);
           });
         });
         const combinedText = allGroupsHtml.join('');
+        const plainTextAll = cleanStanzaTexts.join('\n\n');
         linesList = [{
           text: combinedText,
+          rawText: plainTextAll,
           lines: [combinedText],
           isAllInOne: true,
           label: 'الترنيمة بالكامل'
@@ -5582,6 +5591,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function updateSplitAllLinesButtonIcon() {
+    const btn = document.getElementById('btn-split-all-lines');
+    if (!btn) return;
+    const hasAnySplit = state.presentationLines && state.presentationLines.some(l => l.isCustomSplit);
+    if (hasAnySplit) {
+      btn.innerHTML = `<i class="fa-solid fa-minus"></i>`;
+      btn.title = 'تحويل جميع الشرائح لسطر واحد';
+    } else {
+      btn.innerHTML = `<i class="fa-solid fa-equals"></i>`;
+      btn.title = 'تقسيم جميع شرائح الترنيمة لسطرين';
+    }
+  }
+
   function renderPresentationLinesList() {
     const { presentationLines } = state;
     const isLiveSongDisplayed = Boolean(state.liveSong && state.activeSong && getItemKey(state.liveSong) === getItemKey(state.activeSong));
@@ -5681,7 +5703,10 @@ document.addEventListener('DOMContentLoaded', () => {
     els.presentationLinesContainer.querySelectorAll('.copy-line-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const textToCopy = btn.dataset.text;
+        const idx = parseInt(btn.dataset.idx);
+        const item = state.presentationLines ? state.presentationLines[idx] : null;
+        let textToCopy = (item && item.rawText) ? item.rawText : (btn.dataset.text || '');
+        textToCopy = textToCopy.replace(/<[^>]*>/g, '').replace(/\n\s*\n+/g, '\n\n').trim();
         navigator.clipboard.writeText(textToCopy);
 
         btn.innerHTML = `<i class="fa-solid fa-check"></i>`;
@@ -5692,6 +5717,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1200);
       });
     });
+
+    updateSplitAllLinesButtonIcon();
 
     els.presentationLinesContainer.querySelectorAll('.launch-fullscreen-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {

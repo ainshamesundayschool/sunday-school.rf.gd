@@ -885,12 +885,34 @@
     setTimeout(maximizeToScreen, 500);
 
     if (isAutoFS) {
+      const fsBanner = document.createElement('div');
+      fsBanner.id = 'auto-fs-banner';
+      fsBanner.style.cssText = 'position:fixed; top:14px; left:50%; transform:translateX(-50%); background:rgba(15,23,42,0.92); color:#ffffff; backdrop-filter:blur(8px); border:1.5px solid #3b82f6; padding:8px 20px; border-radius:20px; font-size:0.85rem; font-weight:700; z-index:999999; cursor:pointer; box-shadow:0 4px 18px rgba(0,0,0,0.5); font-family:sans-serif; transition:all 0.2s ease; display:none;';
+      fsBanner.innerHTML = `<i class="fa-solid fa-expand" style="margin-left:6px; color:#60a5fa;"></i> اضغط هنا لفتح العرض ملء الشاشة الكامل`;
+      document.body.appendChild(fsBanner);
+
+      const updateBannerVisibility = () => {
+        if (document.fullscreenElement) {
+          fsBanner.style.display = 'none';
+        } else {
+          fsBanner.style.display = 'block';
+        }
+      };
+
+      document.addEventListener('fullscreenchange', updateBannerVisibility);
+
+      fsBanner.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.triggerFullscreen();
+      });
+
+      window.addEventListener('click', () => window.triggerFullscreen(), { once: true });
+      window.addEventListener('keydown', () => window.triggerFullscreen(), { once: true });
+
       window.addEventListener('load', () => {
-        // Re-maximize on load
         maximizeToScreen();
 
         setTimeout(async () => {
-          // Try Fullscreen API (will succeed only if user gesture context exists)
           if ('getScreenDetails' in window && screenIdx !== null && screenIdx !== '-1') {
             try {
               const details = await window.getScreenDetails();
@@ -899,13 +921,18 @@
                 const targetScreen = details.screens[idx];
                 if (document.documentElement.requestFullscreen) {
                   await document.documentElement.requestFullscreen({ screen: targetScreen });
+                  updateBannerVisibility();
                   return;
                 }
               }
             } catch (err) {}
           }
           if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-            document.documentElement.requestFullscreen().catch(() => {});
+            document.documentElement.requestFullscreen().then(updateBannerVisibility).catch(() => {
+              updateBannerVisibility();
+            });
+          } else {
+            updateBannerVisibility();
           }
         }, 300);
       });
