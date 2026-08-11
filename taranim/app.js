@@ -7070,7 +7070,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // 3. UPDATE HIGHLIGHTS IN-PLACE WITHOUT RE-CREATING DOM (FLICKER-FREE)
         const hColor = state.highlightColor || '#ef4444';
         const activeHighlights = state.highlightedLineIndices || [];
-        obsSegments.forEach((seg, idx) => {
+        const currentSegments = els.obsLineText ? Array.from(els.obsLineText.querySelectorAll('.obs-line-segment')) : [];
+        currentSegments.forEach((seg, idx) => {
           const segLineIdx = parseInt(seg.dataset.lineIdx !== undefined ? seg.dataset.lineIdx : idx);
           const isH = Array.isArray(activeHighlights) ? activeHighlights.includes(segLineIdx) : (activeHighlights === segLineIdx);
           if (isH) {
