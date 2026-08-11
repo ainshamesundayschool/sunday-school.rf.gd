@@ -2051,7 +2051,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.btnDropdownPrecache) {
       els.btnDropdownPrecache.addEventListener('click', async () => {
         els.btnDropdownPrecache.disabled = true;
-        if (els.popoverProgressWrapper) els.popoverProgressWrapper.style.display = 'block';
+        
+        const syncOverlay = document.getElementById('pwa-auto-sync-overlay');
+        const syncFill = document.getElementById('pwa-sync-progress-fill');
+        const syncStatus = document.getElementById('pwa-sync-status-text');
+
+        if (syncOverlay) syncOverlay.classList.remove('hidden');
+        if (syncFill) syncFill.style.width = '10%';
+        if (syncStatus) syncStatus.textContent = 'جاري حفظ الترانيم والكتاب المقدس أوفلاين...';
 
         const ASSETS_TO_CACHE = [
           './',
@@ -2073,19 +2080,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const total = ASSETS_TO_CACHE.length;
 
         try {
-          let cacheName = 'sunday_school_taranim_v20260731_v20';
+          let cacheName = 'taranim-pwa-v6';
           if ('caches' in window) {
             const keys = await caches.keys();
-            const found = keys.find(k => k.includes('sunday_school_taranim'));
+            const found = keys.find(k => k.includes('taranim') || k.includes('sunday_school'));
             if (found) cacheName = found;
           }
           const cache = await caches.open(cacheName);
 
           for (let i = 0; i < total; i++) {
             const url = ASSETS_TO_CACHE[i];
-            if (els.popoverProgressText) {
-              els.popoverProgressText.textContent = `تحميل: ${url.replace('./', '')}...`;
-            }
             try {
               const res = await fetch(url, { cache: 'no-cache' });
               if (res && res.ok) {
@@ -2094,20 +2098,28 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (err) {}
 
             loadedCount++;
-            const pct = Math.round((loadedCount / total) * 100);
-            if (els.popoverProgressFill) els.popoverProgressFill.style.width = pct + '%';
-            if (els.popoverProgressText) {
-              els.popoverProgressText.textContent = `تم حفظ ${loadedCount} من ${total} ملفات (${pct}%)`;
+            const pct = Math.max(10, Math.round((loadedCount / total) * 100));
+            if (syncFill) syncFill.style.width = pct + '%';
+            if (syncStatus) {
+              if (pct < 40) syncStatus.textContent = 'جاري حفظ بيانات البحث الفوري...';
+              else if (pct < 85) syncStatus.textContent = 'جاري حفظ الترانيم والإصحاحات الكتابية...';
+              else syncStatus.textContent = 'جاري إنهاء التجهيز أوفلاين...';
             }
           }
 
+          localStorage.setItem('taranim_pwa_initial_download_done', 'true');
           if (els.btnDropdownPrecache) els.btnDropdownPrecache.innerHTML = '<i class="fa-solid fa-circle-check"></i> تم حفظ جميع البيانات أوفلاين';
           if (els.popoverOfflineStatusText) els.popoverOfflineStatusText.innerHTML = '<i class="fa-solid fa-circle-check"></i> جاهز للعمل بدون إنترنت';
+          if (syncStatus) syncStatus.textContent = 'تم حفظ جميع البيانات أوفلاين بنجاح!';
+          setTimeout(() => {
+            if (syncOverlay) syncOverlay.classList.add('hidden');
+          }, 400);
         } catch (err) {
           if (els.btnDropdownPrecache) {
             els.btnDropdownPrecache.disabled = false;
             els.btnDropdownPrecache.textContent = 'إعادة المحاولة';
           }
+          if (syncOverlay) syncOverlay.classList.add('hidden');
         }
       });
     }
@@ -2159,6 +2171,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       if (syncOverlay) syncOverlay.classList.remove('hidden');
+      if (syncFill) syncFill.style.width = '12%';
       if (syncStatus) syncStatus.textContent = 'جاري إعداد الترانيم والكتاب المقدس أوفلاين...';
 
       const ASSETS_TO_CACHE = [
@@ -2180,7 +2193,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const total = ASSETS_TO_CACHE.length;
 
       try {
-        let cacheName = 'taranim-pwa-v5';
+        let cacheName = 'taranim-pwa-v6';
         if ('caches' in window) {
           const keys = await caches.keys();
           const found = keys.find(k => k.includes('taranim') || k.includes('sunday_school'));
@@ -2198,7 +2211,7 @@ document.addEventListener('DOMContentLoaded', () => {
           } catch(err) {}
 
           loadedCount++;
-          const pct = Math.round((loadedCount / total) * 100);
+          const pct = Math.max(12, Math.round((loadedCount / total) * 100));
           if (syncFill) syncFill.style.width = pct + '%';
           if (syncStatus) {
             if (pct < 40) syncStatus.textContent = 'جاري إعداد محرك البحث السريع...';

@@ -1,5 +1,5 @@
 // TARANIM PWA & OBS PRESENTER SERVICE WORKER (100% OFFLINE CAPABLE)
-const CACHE_NAME = 'taranim-pwa-v5';
+const CACHE_NAME = 'taranim-pwa-v6';
 const PRECACHE_ASSETS = [
   './',
   './index.html',
@@ -52,12 +52,13 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
       if (cachedResponse) {
-        // Fetch fresh copy in background if online
-        fetch(event.request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
-          }
-        }).catch(() => {});
+        if (navigator.onLine) {
+          fetch(event.request).then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200) {
+              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
+            }
+          }).catch(() => {});
+        }
         return cachedResponse;
       }
 
@@ -68,6 +69,12 @@ self.addEventListener('fetch', (event) => {
         }
         return networkResponse;
       }).catch(() => {
+        // Navigation fallback for HTML documents offline
+        if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+          return caches.match('./index.html', { ignoreSearch: true }).then(idxRes => {
+            return idxRes || caches.match('./present.html', { ignoreSearch: true });
+          });
+        }
         // Fallback for CSS offline if not in cache
         if (event.request.destination === 'style' || url.endsWith('.css') || url.includes('.css?')) {
           return caches.match('./style.css', { ignoreSearch: true }).then(cssRes => {
