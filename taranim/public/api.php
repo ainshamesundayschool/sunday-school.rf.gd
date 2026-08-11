@@ -77,7 +77,7 @@ function fetchExternalUrl($url) {
         curl_setopt($ch, CURLOPT_USERAGENT, 'SundaySchoolTaranim/2.0');
         $output = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        @curl_close($ch);
         if ($httpCode === 200 && !empty($output)) {
             return $output;
         }

@@ -5,18 +5,6 @@
 //  Place it next to api.php / config.php
 // =============================================================
 
-// ── Core writer ──────────────────────────────────────────────
-/**
- * Write one audit record.
- *
- * @param string      $action      e.g. 'student_add', 'student_edit', 'student_delete'
- * @param string      $entity      e.g. 'student', 'uncle', 'attendance', 'coupon', 'trip'
- * @param int|null    $entityId    Primary key of the affected row
- * @param string|null $entityName  Human-readable label (student name, trip title …)
- * @param array|null  $oldData     Snapshot BEFORE the change (null for inserts)
- * @param array|null  $newData     Snapshot AFTER  the change (null for deletes)
- * @param string|null $notes       Any extra context you want to store
- */
 function ensureAuditLogsTable($conn) {
     $conn->query("
         CREATE TABLE IF NOT EXISTS `audit_logs` (
@@ -38,6 +26,17 @@ function ensureAuditLogsTable($conn) {
     ");
 }
 
+/**
+ * Write one audit record.
+ *
+ * @param string      $action      e.g. 'student_add', 'student_edit', 'student_delete'
+ * @param string      $entity      e.g. 'student', 'uncle', 'attendance', 'coupon', 'trip'
+ * @param int|null    $entity_id   Primary key of the affected row
+ * @param string|null $entity_name Human-readable label (student name, trip title …)
+ * @param array|null  $old_data    Snapshot BEFORE the change (null for inserts)
+ * @param array|null  $new_data    Snapshot AFTER  the change (null for deletes)
+ * @param string|null $notes       Any extra context you want to store
+ */
 function writeAuditLog($action, $entity, $entity_id = null, $entity_name = '', $old_data = null, $new_data = null, $notes = '') {
     try {
         $conn = getDBConnection();

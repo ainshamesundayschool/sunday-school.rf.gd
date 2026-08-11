@@ -18509,7 +18509,7 @@ function generateExcelTemplate()
 
             $sheet->getStyle('A1:D1')->getFill()
 
-                ->setFillType(Fill::FILL_SOLID)
+                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
 
                 ->getStartColor()->setARGB('FF4F46E5');
 
@@ -18553,7 +18553,7 @@ function generateExcelTemplate()
 
         // Create Excel file
 
-        $writer = new Xlsx($spreadsheet);
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
 
 
 
