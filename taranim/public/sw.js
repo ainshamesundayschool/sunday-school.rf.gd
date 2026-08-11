@@ -1,14 +1,21 @@
 // TARANIM PWA & OBS PRESENTER SERVICE WORKER (100% OFFLINE CAPABLE)
-const CACHE_NAME = 'taranim-pwa-v6';
+const CACHE_NAME = 'taranim-pwa-v8';
 const PRECACHE_ASSETS = [
   './',
   './index.html',
   './present.html',
   './style.css',
   './app.js',
-  './favicon.png',
+  './favicon.ico',
   './logoicon.png',
+  './logo.png',
+  './logo_t.png',
+  './logo_tw.png',
   './song_scales_map.js',
+  './song_scales_map.json',
+  './arabic_dictionary.json',
+  './bible_books_data.json',
+  './songs_catalog.json',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css'
 ];
 
