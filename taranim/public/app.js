@@ -4972,7 +4972,9 @@ document.addEventListener('DOMContentLoaded', () => {
           const fullSong = results.find(data => data && (
             (data.verses && Array.isArray(data.verses) && data.verses.length > 0) ||
             (data.notes && String(data.notes).trim().length > 0) ||
-            (data.text && String(data.text).trim().length > 0)
+            (data.text && String(data.text).trim().length > 0) ||
+            (data.slides && Array.isArray(data.slides) && data.slides.length > 0) ||
+            (data.title && isItemBible)
           ));
 
           if (fullSong) {
@@ -5106,25 +5108,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const isBible = Boolean((song.is_bible === true || song.is_bible === '1' || song.is_bible === 1) || (song.chapter_number !== undefined && song.chapter_number !== null && song.chapter_number !== '') || song.type === 'bible');
     if (isBible) {
-      if ((!song.verses || !Array.isArray(song.verses) || song.verses.length === 0) && (song.notes || song.text || song.content)) {
-        const rawText = String(song.notes || song.text || song.content).replace(/\r\n/g, '\n');
-        const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      if (!song.verses || !Array.isArray(song.verses) || song.verses.length === 0) {
+        const rawText = String(song.notes || song.text || song.content || '').replace(/\r\n/g, '\n').trim();
         const parsedSlides = [];
-        let curVerseNum = 1;
-        lines.forEach((l) => {
-          const m = l.match(/^[\(\[\{]?([\d٠-٩]+)[\)\]\}]?[\.\-:\s]\s*(.*)/);
-          if (m) {
-            const vNum = parseInt(m[1].replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))) || curVerseNum;
-            curVerseNum = vNum;
-            parsedSlides.push({ heading: String(vNum), lines: [m[2].trim()] });
-          } else {
-            parsedSlides.push({ heading: String(curVerseNum), lines: [l] });
-            curVerseNum++;
-          }
-        });
-        if (parsedSlides.length > 0) {
-          song.verses = [{ type: 0, slides: parsedSlides }];
+        if (rawText.length > 0) {
+          const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+          let curVerseNum = 1;
+          lines.forEach((l) => {
+            const m = l.match(/^[\(\[\{]?([\d٠-٩]+)[\)\]\}]?[\.\-:\s]\s*(.*)/);
+            if (m) {
+              const vNum = parseInt(m[1].replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))) || curVerseNum;
+              curVerseNum = vNum;
+              parsedSlides.push({ heading: String(vNum), lines: [m[2].trim()] });
+            } else {
+              parsedSlides.push({ heading: String(curVerseNum), lines: [l] });
+              curVerseNum++;
+            }
+          });
         }
+        if (parsedSlides.length === 0) {
+          const titleName = song.title || 'الأصحاح الكتابي';
+          parsedSlides.push({ heading: '1', lines: [titleName] });
+        }
+        song.verses = [{ type: 0, slides: parsedSlides }];
       }
       return song;
     }
