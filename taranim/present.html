@@ -61,6 +61,78 @@
     body[data-chroma="black"] { background-color: #000000 !important; }
     body[data-chroma="transparent"] { background-color: transparent !important; }
 
+    /* STEALTH OBS WINDOW CONTROL TOOLBAR */
+    .stealth-bar {
+      position: fixed;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 999999;
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      padding: 6px 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .stealth-bar.hidden {
+      display: none !important;
+    }
+    .stealth-bar-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .stealth-badge {
+      color: #60a5fa;
+      font-size: 0.82rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .stealth-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .stealth-btn {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+    }
+    .stealth-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: translateY(-1px);
+    }
+    .stealth-btn.stealth-close {
+      background: rgba(239, 68, 68, 0.25);
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+    }
+    .stealth-btn.stealth-close:hover {
+      background: rgba(239, 68, 68, 0.45);
+      color: #ffffff;
+    }
+
+    body.is-mini-stealth {
+      font-size: 0.6em !important;
+    }
+    body.is-mini-stealth .line-text {
+      font-size: 32px !important;
+    }
+
     /* MAGNETIC SNAP GUIDES */
     .snap-guide {
       position: absolute;
@@ -619,6 +691,24 @@
   </style>
 </head>
 <body data-chroma="black">
+
+  <!-- STEALTH OBS WINDOW CONTROL TOOLBAR -->
+  <div id="stealth-control-bar" class="stealth-bar hidden">
+    <div class="stealth-bar-content">
+      <span class="stealth-badge"><i class="fa-solid fa-ghost"></i> نافذة OBS الخفية (0ms)</span>
+      <div class="stealth-actions">
+        <button type="button" id="btn-toggle-mini-stealth" class="stealth-btn" title="تصغير النافذة لشاشة مصغرة خفية">
+          <i class="fa-solid fa-compress"></i> <span id="mini-stealth-txt">تصغير خفي</span>
+        </button>
+        <button type="button" id="btn-toggle-stealth-chroma" class="stealth-btn" title="تغيير الخلفية الشفافة / الخضراء">
+          <i class="fa-solid fa-palette"></i> <span>الخلفية</span>
+        </button>
+        <button type="button" id="btn-hide-stealth-bar" class="stealth-btn stealth-close" title="إخفاء هذا الشريط (اضغط S لإظهاره/إخفائه)">
+          <i class="fa-solid fa-eye-slash"></i> <span>إخفاء الشريط (S)</span>
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- TOP-LEFT BIBLE / CHAPTER REFERENCE HEADER -->
   <div id="obs-top-left-header" class="obs-top-left-header hidden"></div>
@@ -1926,6 +2016,57 @@
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').catch(() => {});
     }
+
+    // STEALTH POPOUT WINDOW ENGINE
+    (function initStealthMode() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const isStealthParam = urlParams.has('stealth');
+      const stealthBar = document.getElementById('stealth-control-bar');
+
+      if (isStealthParam && stealthBar) {
+        stealthBar.classList.remove('hidden');
+      }
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 's' || e.key === 'S' || e.key === 'س') {
+          if (stealthBar) stealthBar.classList.toggle('hidden');
+        }
+      });
+
+      const btnToggleMiniStealth = document.getElementById('btn-toggle-mini-stealth');
+      const miniStealthTxt = document.getElementById('mini-stealth-txt');
+      let isMiniStealth = false;
+
+      if (btnToggleMiniStealth) {
+        btnToggleMiniStealth.addEventListener('click', () => {
+          isMiniStealth = !isMiniStealth;
+          document.body.classList.toggle('is-mini-stealth', isMiniStealth);
+          if (isMiniStealth) {
+            try { window.resizeTo(340, 200); } catch(err) {}
+            if (miniStealthTxt) miniStealthTxt.textContent = 'تكبير النافذة';
+          } else {
+            try { window.resizeTo(640, 360); } catch(err) {}
+            if (miniStealthTxt) miniStealthTxt.textContent = 'تصغير خفي';
+          }
+        });
+      }
+
+      const btnToggleStealthChroma = document.getElementById('btn-toggle-stealth-chroma');
+      if (btnToggleStealthChroma) {
+        btnToggleStealthChroma.addEventListener('click', () => {
+          const currentChroma = document.body.getAttribute('data-chroma') || 'black';
+          const nextChroma = currentChroma === 'black' ? 'green' : (currentChroma === 'green' ? 'transparent' : 'black');
+          document.body.setAttribute('data-chroma', nextChroma);
+        });
+      }
+
+      const btnHideStealthBar = document.getElementById('btn-hide-stealth-bar');
+      if (btnHideStealthBar && stealthBar) {
+        btnHideStealthBar.addEventListener('click', () => {
+          stealthBar.classList.add('hidden');
+        });
+      }
+    })();
   </script>
 </body>
 </html>

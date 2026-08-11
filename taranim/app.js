@@ -1404,6 +1404,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnFixObsFreeze: document.getElementById('btn-fix-obs-freeze'),
 
     btnOpenTvWindow: document.getElementById('btn-open-tv-window'),
+    btnOpenObsWindow: document.getElementById('btn-open-obs-window'),
     btnCopyObsUrl: document.getElementById('btn-copy-obs-url'),
     btnClosePresentationOverlay: document.getElementById('btn-close-presentation-overlay'),
 
@@ -2568,6 +2569,18 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
           if (icon) icon.classList.remove('fa-spin');
         }, 800);
+      });
+    }
+
+    if (els.btnOpenObsWindow) {
+      els.btnOpenObsWindow.addEventListener('click', () => {
+        const url = 'present.html?stealth=1';
+        const w = 640;
+        const h = 360;
+        const left = 50;
+        const top = 50;
+        window.open(url, 'taranim_obs_stealth_win', `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=no,toolbar=no,menubar=no`);
+        showToast('تم فتح الشاشة الخفية! اختر هذه النافذة في OBS (Window Capture)');
       });
     }
 
