@@ -1166,6 +1166,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fontSize: savedSettings.fontSize || 54,
     chromaKey: savedSettings.chromaKey || "black",
     presentationMode: savedSettings.presentationMode || "oneline",
+    splitLongLines: savedSettings.splitLongLines !== undefined ? savedSettings.splitLongLines : true,
     francoAutoTranslate: savedSettings.francoAutoTranslate !== undefined ? savedSettings.francoAutoTranslate : true,
     textAnimation: savedSettings.textAnimation || "none",
     
@@ -1736,6 +1737,7 @@ document.addEventListener('DOMContentLoaded', () => {
       fontSize: state.fontSize,
       chromaKey: state.chromaKey,
       presentationMode: state.presentationMode,
+      splitLongLines: state.splitLongLines,
       francoAutoTranslate: state.francoAutoTranslate,
       textAnimation: state.textAnimation,
       styleOptions: state.styleOptions
@@ -2434,13 +2436,43 @@ document.addEventListener('DOMContentLoaded', () => {
       syncLiveState();
     });
 
-    els.presModeSelect.addEventListener('change', (e) => {
-      state.presentationMode = e.target.value;
-      saveUserSettings();
-      if (state.activeSong) {
-        loadSongIntoPresentation(state.activeSong);
+    const toggleSplitLongLines = document.getElementById('btn-toggle-split-long-lines');
+    const splitLongLinesField = document.getElementById('split-long-lines-field');
+
+    const updateSplitLongLinesUI = () => {
+      const isOneLineMode = (state.presentationMode === 'oneline');
+      if (splitLongLinesField) {
+        splitLongLinesField.style.display = isOneLineMode ? 'block' : 'none';
       }
-    });
+      if (toggleSplitLongLines) {
+        toggleSplitLongLines.checked = Boolean(state.splitLongLines !== false);
+      }
+    };
+
+    if (toggleSplitLongLines) {
+      toggleSplitLongLines.addEventListener('change', (e) => {
+        state.splitLongLines = e.target.checked;
+        saveUserSettings();
+        if (state.activeSong) {
+          loadSongIntoPresentation(state.activeSong);
+        }
+        syncLiveState();
+        showToast(state.splitLongLines ? 'تم تفعيل تقسيم السطر الطويل لسطرين!' : 'تم إيقاف تقسيم السطر الطويل');
+      });
+    }
+
+    if (els.presModeSelect) {
+      els.presModeSelect.addEventListener('change', (e) => {
+        state.presentationMode = e.target.value;
+        saveUserSettings();
+        updateSplitLongLinesUI();
+        if (state.activeSong) {
+          loadSongIntoPresentation(state.activeSong);
+        }
+        syncLiveState();
+      });
+      updateSplitLongLinesUI();
+    }
 
     if (els.obsTextAnimSelect) {
       const handleAnimChange = (e) => {
@@ -4494,6 +4526,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function splitLineIntoTwo(text) {
+    if (!text || !text.trim()) return [text ? text.trim() : ''];
+    const clean = text.trim();
+    const words = clean.split(/\s+/).filter(Boolean);
+    if (words.length <= 3) return [clean];
+
+    const mid = Math.floor(words.length / 2);
+    let splitIndex = mid;
+
+    for (let i = Math.max(1, mid - 2); i <= Math.min(words.length - 2, mid + 2); i++) {
+      if (/[\،\؛\:\.\!\؟]/.test(words[i])) {
+        splitIndex = i + 1;
+        break;
+      }
+    }
+
+    const firstHalf = words.slice(0, splitIndex).join(' ');
+    const secondHalf = words.slice(splitIndex).join(' ');
+    return [firstHalf, secondHalf];
+  }
+
   function splitBibleTextIntoLines(text, targetCharsPerLine = 45, minWordsPerLine = 3) {
     if (!text || !text.trim()) return [text ? text.trim() : ''];
     const clean = text.trim();
@@ -4904,7 +4957,12 @@ document.addEventListener('DOMContentLoaded', () => {
               pushSlideItem(multiLines.length > 0 ? multiLines : cleanLines);
             } else if (mode === 'oneline') {
               cleanLines.forEach((singleLine) => {
-                pushSlideItem([singleLine]);
+                if (state.splitLongLines !== false) {
+                  const split2 = splitLineIntoTwo(singleLine);
+                  pushSlideItem(split2);
+                } else {
+                  pushSlideItem([singleLine]);
+                }
               });
             } else if (mode === 'twelines') {
               for (let i = 0; i < cleanLines.length; i += 2) {
@@ -5161,6 +5219,9 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <span class="slide-index-corner">${idx + 1}</span>
           <div class="line-item-actions-left">
+            <button class="split-line-btn" data-idx="${idx}" title="${l.isCustomSplit ? 'إلغاء تقسيم السطر' : 'تقسيم السطر إلى سطرين'}">
+              <i class="fa-solid ${l.isCustomSplit ? 'fa-arrows-to-line' : 'fa-arrows-split-up-and-left'}"></i>
+            </button>
             <button class="copy-line-btn" data-text="${escapeHtml(l.text)}" title="نسخ هذا المقطع">
               <i class="fa-solid fa-copy"></i>
             </button>
@@ -5168,6 +5229,40 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `;
     }).join('');
+
+    els.presentationLinesContainer.querySelectorAll('.split-line-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const idx = parseInt(btn.dataset.idx);
+        const item = state.presentationLines[idx];
+        if (!item) return;
+
+        item.isCustomSplit = !item.isCustomSplit;
+        if (!item._origLines) {
+          item._origLines = [...(item.lines || [item.text])];
+        }
+
+        if (item.isCustomSplit) {
+          const splitRes = [];
+          item._origLines.forEach(single => {
+            splitRes.push(...splitLineIntoTwo(single));
+          });
+          item.lines = splitRes;
+          item.text = (item.badgeText ? `${item.badgeText} ` : '') + item.lines.join('\n');
+        } else {
+          item.lines = [...item._origLines];
+          item.text = (item.badgeText ? `${item.badgeText} ` : '') + item.lines.join('\n');
+        }
+
+        if (state.liveSong && state.liveLineIndex === idx) {
+          state.livePresentationLines = state.presentationLines;
+        }
+
+        renderPresentationLinesList();
+        syncLiveState();
+        showToast(item.isCustomSplit ? 'تم تقسيم السطر إلى سطرين!' : 'تم إلغاء تقسيم السطر!');
+      });
+    });
 
     els.presentationLinesContainer.querySelectorAll('.copy-line-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
