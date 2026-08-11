@@ -1385,6 +1385,7 @@ document.addEventListener('DOMContentLoaded', () => {
     shadowDistanceBadge: document.getElementById('shadow-distance-badge'),
     btnAlignJustify: document.getElementById('btn-align-justify'),
     screensCastList: document.getElementById('screens-cast-list'),
+    btnDetectScreens: document.getElementById('btn-detect-screens'),
 
     btnCreditsInfo: document.getElementById('btn-credits-info'),
     modalCredits: document.getElementById('modal-credits'),
@@ -1740,6 +1741,7 @@ document.addEventListener('DOMContentLoaded', () => {
       splitLongLines: state.splitLongLines,
       francoAutoTranslate: state.francoAutoTranslate,
       textAnimation: state.textAnimation,
+      highlightColor: state.highlightColor,
       styleOptions: state.styleOptions
     };
     localStorage.setItem('sunday_school_taranim_user_settings', JSON.stringify(settings));
@@ -2156,6 +2158,22 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    if (els.btnDetectScreens) {
+      els.btnDetectScreens.addEventListener('click', async () => {
+        if ('getScreenDetails' in window) {
+          try {
+            screenDetails = await window.getScreenDetails();
+            showToast('تم كشف وتحديث الشاشات المتصلة بنجاح!');
+          } catch(err) {
+            showToast('تعذر كشف الشاشات الإضافية (يرجى السماح بالصلاحيات)');
+          }
+        } else {
+          showToast('تم كشف الشاشة الحالية فقط (المتصفح يدعم شاشة واحدة)');
+        }
+        renderScreenOptions();
+      });
+    }
+
     // AUTOMATIC OFFLINE DATA SYNC WITH LIGHT LOADING SCREEN ON FIRST STARTUP ONLY
     const triggerAutoOfflineSync = async () => {
       const syncOverlay = document.getElementById('pwa-auto-sync-overlay');
@@ -2171,7 +2189,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       if (syncOverlay) syncOverlay.classList.remove('hidden');
-      if (syncFill) syncFill.style.width = '12%';
       if (syncStatus) syncStatus.textContent = 'جاري إعداد الترانيم والكتاب المقدس أوفلاين...';
 
       const ASSETS_TO_CACHE = [
@@ -2193,7 +2210,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const total = ASSETS_TO_CACHE.length;
 
       try {
-        let cacheName = 'taranim-pwa-v6';
+        let cacheName = 'taranim-pwa-v5';
         if ('caches' in window) {
           const keys = await caches.keys();
           const found = keys.find(k => k.includes('taranim') || k.includes('sunday_school'));
@@ -2211,7 +2228,7 @@ document.addEventListener('DOMContentLoaded', () => {
           } catch(err) {}
 
           loadedCount++;
-          const pct = Math.max(12, Math.round((loadedCount / total) * 100));
+          const pct = Math.round((loadedCount / total) * 100);
           if (syncFill) syncFill.style.width = pct + '%';
           if (syncStatus) {
             if (pct < 40) syncStatus.textContent = 'جاري إعداد محرك البحث السريع...';
@@ -3536,6 +3553,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderScreenOptions() {
     const winX = window.screenX !== undefined ? window.screenX : (window.screenLeft !== undefined ? window.screenLeft : 0);
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
 
     let screens = [];
     if (screenDetails && screenDetails.screens && screenDetails.screens.length > 0) {
@@ -3543,7 +3561,6 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       const currentW = window.screen.width || window.innerWidth || 1920;
       const currentH = window.screen.height || window.innerHeight || 1080;
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
 
       screens = [
         {
@@ -3566,7 +3583,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isMain) tags.push('الرئيسية');
         if (isCurrentScreen) tags.push('لوحة التحكم');
         const tagText = tags.length > 0 ? ' (' + tags.join(' - ') + ')' : '';
-        const label = s.label || (isMain ? 'Built-in Retina Display' : ('Display ' + (idx + 1)));
+        const defaultName = isMain ? (isMobile ? 'شاشة الهاتف المحمول' : 'الشاشة الرئيسية') : ('شاشة خارجية ' + (idx + 1));
+        const label = s.label || defaultName;
         const val = 'screen_' + idx;
         return '<option value="' + val + '">' + escapeHtml(label) + ' (' + s.width + ' × ' + s.height + ' px)' + tagText + '</option>';
       }).join('');
@@ -4139,23 +4157,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // Non-blocking background sync for new database updates with console debug logs
+      // Non-blocking background sync for new database updates
       setTimeout(() => {
-        console.log('%c🔄 [Tasbe7na Sync] Checking online Tasbe7na database for updates...', 'color: #2563eb; font-weight: bold;');
-        fetch(`${apiUrl}?action=sync`)
-          .then(r => r.json())
-          .then(data => {
-            if (data && data.status === 'success') {
-              const added = (data.syncResult && data.syncResult.added) || 0;
-              const updated = (data.syncResult && data.syncResult.updated) || 0;
-              console.log(`%c✅ [Tasbe7na Sync] Sync complete! Database total: ${data.total_songs || 11611} songs. (Added: ${added}, Updated: ${updated})`, 'color: #10b981; font-weight: bold;');
-            } else {
-              console.log('%cℹ️ [Tasbe7na Sync] Database is up to date with Tasbe7na.', 'color: #64748b;');
-            }
-          })
-          .catch(() => {
-            console.log('%cℹ️ [Tasbe7na Sync] Running in offline cached mode.', 'color: #64748b;');
-          });
+        fetch(`${apiUrl}?action=sync`).catch(() => null);
       }, 1500);
     } catch (liveErr) {}
   }
@@ -5076,6 +5080,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const pair = cleanLines.slice(i, i + 2);
                 pushSlideItem(pair);
               }
+            } else if (mode === 'threelines') {
+              for (let i = 0; i < cleanLines.length; i += 3) {
+                const group = cleanLines.slice(i, i + 3);
+                pushSlideItem(group);
+              }
             } else {
               // fullslide
               pushSlideItem(cleanLines);
@@ -5886,7 +5895,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // THROTTLED HTTP PUSH: fires at most once per 30ms to avoid hammering server
-  // BroadcastChannel + localStorage still fire instantly on every call
   function throttledHttpPush(postBody) {
     const now = Date.now();
     if (pendingHttpPush) {
@@ -6309,7 +6317,6 @@ document.addEventListener('DOMContentLoaded', () => {
           els.obsLineText.style.transform = 'none';
         }
       });
-
 
       if (els.obsLowerThirdBox) {
         const xPct = (state.dragPivot && state.dragPivot.xPct !== undefined) ? state.dragPivot.xPct : 50;

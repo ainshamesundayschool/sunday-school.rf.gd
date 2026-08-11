@@ -1385,6 +1385,7 @@ document.addEventListener('DOMContentLoaded', () => {
     shadowDistanceBadge: document.getElementById('shadow-distance-badge'),
     btnAlignJustify: document.getElementById('btn-align-justify'),
     screensCastList: document.getElementById('screens-cast-list'),
+    btnDetectScreens: document.getElementById('btn-detect-screens'),
 
     btnCreditsInfo: document.getElementById('btn-credits-info'),
     modalCredits: document.getElementById('modal-credits'),
@@ -2154,6 +2155,22 @@ document.addEventListener('DOMContentLoaded', () => {
           showToast('تم تثبيت تطبيق Taranim Online بنجاح!');
         }
         deferredPrompt = null;
+      });
+    }
+
+    if (els.btnDetectScreens) {
+      els.btnDetectScreens.addEventListener('click', async () => {
+        if ('getScreenDetails' in window) {
+          try {
+            screenDetails = await window.getScreenDetails();
+            showToast('تم كشف وتحديث الشاشات المتصلة بنجاح!');
+          } catch(err) {
+            showToast('تعذر كشف الشاشات الإضافية (يرجى السماح بالصلاحيات)');
+          }
+        } else {
+          showToast('تم كشف الشاشة الحالية فقط (المتصفح يدعم شاشة واحدة)');
+        }
+        renderScreenOptions();
       });
     }
 
@@ -3536,6 +3553,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderScreenOptions() {
     const winX = window.screenX !== undefined ? window.screenX : (window.screenLeft !== undefined ? window.screenLeft : 0);
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
 
     let screens = [];
     if (screenDetails && screenDetails.screens && screenDetails.screens.length > 0) {
@@ -3543,7 +3561,6 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       const currentW = window.screen.width || window.innerWidth || 1920;
       const currentH = window.screen.height || window.innerHeight || 1080;
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
 
       screens = [
         {
@@ -3566,7 +3583,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isMain) tags.push('الرئيسية');
         if (isCurrentScreen) tags.push('لوحة التحكم');
         const tagText = tags.length > 0 ? ' (' + tags.join(' - ') + ')' : '';
-        const label = s.label || (isMain ? 'Built-in Retina Display' : ('Display ' + (idx + 1)));
+        const defaultName = isMain ? (isMobile ? 'شاشة الهاتف المحمول' : 'الشاشة الرئيسية') : ('شاشة خارجية ' + (idx + 1));
+        const label = s.label || defaultName;
         const val = 'screen_' + idx;
         return '<option value="' + val + '">' + escapeHtml(label) + ' (' + s.width + ' × ' + s.height + ' px)' + tagText + '</option>';
       }).join('');
