@@ -1290,7 +1290,7 @@
 
       let renderSize = baseSize;
 
-      if (isBible || scaleMode === 'fixed') {
+      if (scaleMode === 'fixed') {
         renderSize = baseSize;
         textEl.style.fontSize = `${renderSize}px`;
         const fixedLH = (lastStyleData && lastStyleData.lineHeight !== undefined) ? lastStyleData.lineHeight : 1.5;

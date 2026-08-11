@@ -4925,6 +4925,55 @@ document.addEventListener('DOMContentLoaded', () => {
     return false;
   }
 
+  let bibleChaptersLoadingPromise = null;
+
+  async function ensureBibleChaptersLoaded() {
+    if (state.bibleChaptersData && Object.keys(state.bibleChaptersData).length > 0) {
+      return state.bibleChaptersData;
+    }
+    if (bibleChaptersLoadingPromise) {
+      return await bibleChaptersLoadingPromise;
+    }
+
+    bibleChaptersLoadingPromise = (async () => {
+      try {
+        if ('caches' in window) {
+          const keys = await caches.keys().catch(() => []);
+          for (const key of keys) {
+            const cache = await caches.open(key).catch(() => null);
+            if (cache) {
+              const res = await cache.match('bible_chapters_data.json', { ignoreSearch: true }).catch(() => null) ||
+                          await cache.match('./bible_chapters_data.json', { ignoreSearch: true }).catch(() => null);
+              if (res && res.ok) {
+                const data = await res.json().catch(() => null);
+                if (data && Object.keys(data).length > 0) {
+                  state.bibleChaptersData = data;
+                  return data;
+                }
+              }
+            }
+          }
+        }
+
+        const pathDir = window.location.pathname.replace(/\/[^\/]*$/, '/');
+        let res = await fetch('./bible_chapters_data.json').catch(() => null);
+        if (!res || !res.ok) res = await fetch('bible_chapters_data.json').catch(() => null);
+        if (!res || !res.ok) res = await fetch(`${window.location.origin}${pathDir}bible_chapters_data.json`).catch(() => null);
+
+        if (res && res.ok) {
+          const data = await res.json().catch(() => null);
+          if (data && Object.keys(data).length > 0) {
+            state.bibleChaptersData = data;
+            return data;
+          }
+        }
+      } catch (err) {}
+      return null;
+    })();
+
+    return await bibleChaptersLoadingPromise;
+  }
+
   async function openAndPresentItem(songOrId, isBible = false) {
     if (!songOrId && songOrId !== 0) return;
 
@@ -4951,6 +5000,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       if (bId && cNum) {
+        await ensureBibleChaptersLoaded();
+
         const cacheKey = `${bId}_${cNum}`;
         let localChapter = null;
 
@@ -6837,7 +6888,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const baseSize = state.fontSize || 54;
           const scaleMode = state.scaleMode || 'auto';
 
-          if (isBible || scaleMode === 'fixed') {
+          if (scaleMode === 'fixed') {
             els.obsLineText.style.fontSize = `${baseSize}px`;
             const fixedLH = state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : 1.5;
             els.obsLineText.style.lineHeight = `${fixedLH}`;
