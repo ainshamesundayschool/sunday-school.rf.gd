@@ -5364,7 +5364,9 @@ document.addEventListener('DOMContentLoaded', () => {
     els.presentationLinesContainer.innerHTML = presentationLines.map((l, idx) => {
       const isActive = (!state.isBlank) && (isLiveSongDisplayed ? (idx === state.liveLineIndex) : (idx === state.currentLineIndex));
 
-      const linesPreviewHtml = (l.lines || [l.text]).map((lineText, lineIdx) => {
+      const isAllInOne = Boolean(l.isAllInOne || (l.text && l.text.includes('allinone-slide-group')));
+
+      const linesPreviewHtml = isAllInOne ? l.text : (l.lines || [l.text]).map((lineText, lineIdx) => {
         let text = escapeHtml(lineText);
         if (text.startsWith('(')) {
           text = '<span class="rep-num-grey" style="color:#94a3b8; font-weight:600; margin-left:1px;">(</span>' + text.substring(1);
@@ -5385,9 +5387,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </button>
           </div>
           <div class="slide-card-inner">
-            <div class="slide-badge-side ${l.badgeClass || ''}">
-              ${escapeHtml(l.badgeText || '')}
-            </div>
+            ${l.badgeText ? `<div class="slide-badge-side ${l.badgeClass || ''}">${escapeHtml(l.badgeText || '')}</div>` : ''}
             <div class="slide-lines-body">
               ${linesPreviewHtml}
             </div>

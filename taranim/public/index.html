@@ -134,35 +134,46 @@
             </button>
           </div>
 
-          <div class="dropdown-popover hidden" id="popover-cast">
-            <div class="popover-title"><i class="fa-solid fa-display"></i> البث والشاشات</div>
+          <div class="dropdown-popover hidden" id="popover-cast" style="min-width:285px; max-width:320px; padding:10px 12px; gap:8px;">
+            <!-- POPUP HEADER WITH MINI REFRESH BUTTON -->
+            <div class="popover-title" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:2px; font-size:0.92rem; font-weight:800; border-bottom:1px solid #f1f5f9; padding-bottom:6px;">
+              <span><i class="fa-solid fa-display" style="color:#2563eb;"></i> البث والشاشات</span>
+              <button id="btn-detect-screens" type="button" title="تحديث الشاشات الخارجية" style="background:#f1f5f9; border:none; color:#475569; width:26px; height:26px; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; font-size:0.78rem; transition:all 0.15s ease;">
+                <i class="fa-solid fa-rotate"></i>
+              </button>
+            </div>
 
-            <button id="btn-detect-screens" class="btn btn-sm btn-secondary" style="width:100%; margin-bottom:8px; font-size:0.78rem; font-weight:600; display:flex; align-items:center; justify-content:center; gap:6px;">
-              <i class="fa-solid fa-rotate"></i> تحديث وكشف الشاشات الخارجية
+            <!-- PRIMARY STEALTH ACTION -->
+            <button id="btn-open-obs-window" class="btn btn-sm btn-primary" style="width:100%; font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px; background:#2563eb; color:#ffffff; padding:9px 10px; border-radius:10px; font-size:0.82rem; box-shadow:0 3px 10px rgba(37,99,235,0.25);">
+              <i class="fa-solid fa-ghost"></i> فتح شاشة خفية لـ (Window Capture)
             </button>
 
-            <div id="screens-cast-container" style="display:flex; flex-direction:column; gap:6px; margin-bottom:4px;">
+            <!-- OBS MODE TOGGLE COMPACT CARD -->
+            <div class="control-field" style="margin:0;">
+              <label class="toggle-switch-label" style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; font-size:0.82rem; background:#eff6ff; border:1px solid #bfdbfe; padding:7px 10px; border-radius:9px; font-weight:600; color:#1e40af;">
+                <span><i class="fa-solid fa-video" style="margin-left:6px; color:#2563eb;"></i> وضع OBS المباشر</span>
+                <input type="checkbox" id="btn-toggle-obs-mode" class="toggle-checkbox">
+              </label>
+            </div>
+
+            <!-- SECONDARY QUICK ACTIONS (2-COLUMN GRID) -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+              <button id="btn-copy-obs-url" class="btn btn-sm btn-secondary" style="width:100%; font-size:0.78rem; padding:6px 8px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:4px;" title="نسخ رابط العرض لمتصفح OBS">
+                <i class="fa-solid fa-copy"></i> نسخ الرابط
+              </button>
+              <button id="btn-sync-live-file" class="btn btn-sm btn-secondary" style="width:100%; font-size:0.78rem; padding:6px 8px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:4px;" title="تحميل ملف live.txt للنصوص">
+                <i class="fa-solid fa-file-arrow-down"></i> ملف live.txt
+              </button>
+            </div>
+
+            <!-- EXTERNAL SCREENS SECTION -->
+            <div id="screens-cast-container" style="display:flex; flex-direction:column; gap:4px; margin-top:2px; border-top:1px dashed #e2e8f0; padding-top:6px;">
+              <div style="font-size:0.75rem; font-weight:700; color:#64748b; margin-bottom:2px; display:flex; align-items:center; gap:4px;">
+                <i class="fa-solid fa-tv"></i> الشاشات الخارجية المتصلة:
+              </div>
               <div id="screens-cast-list" style="display:flex; flex-direction:column; gap:4px;">
                 <!-- Screens will be rendered dynamically -->
               </div>
-            </div>
-
-            <div class="popover-actions" style="margin-top:2px; display:flex; flex-direction:column; gap:6px;">
-              <div class="control-field" style="margin-bottom:2px;">
-                <label class="toggle-switch-label" style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; font-size:0.82rem; background:#eff6ff; border:1px solid #bfdbfe; padding:7px 10px; border-radius:8px; font-weight:600; color:#1e40af;">
-                  <span><i class="fa-solid fa-video" style="margin-left:6px; color:#2563eb;"></i> وضع OBS المباشر</span>
-                  <input type="checkbox" id="btn-toggle-obs-mode" class="toggle-checkbox">
-                </label>
-              </div>
-              <button id="btn-open-obs-window" class="btn btn-sm btn-primary" style="width:100%; font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px; background:#2563eb; color:#ffffff;">
-                <i class="fa-solid fa-ghost"></i> فتح شاشة خفية لـ (Window Capture)
-              </button>
-              <button id="btn-copy-obs-url" class="btn btn-sm btn-secondary" style="width:100%;">
-                <i class="fa-solid fa-copy"></i> نسخ رابط العرض
-              </button>
-              <button id="btn-sync-live-file" class="btn btn-sm btn-secondary" style="width:100%; font-weight:600; display:flex; align-items:center; justify-content:center; gap:6px;">
-                <i class="fa-solid fa-file-arrow-down"></i> تحميل ملف live.txt
-              </button>
             </div>
           </div>
         </div>
