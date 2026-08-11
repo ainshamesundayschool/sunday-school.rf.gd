@@ -1097,6 +1097,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const broadcastChannel = new BroadcastChannel('sunday_school_taranim_obs_channel');
   let screenDetails = null;
 
+  broadcastChannel.onmessage = (event) => {
+    if (event && event.data && (event.data.type === 'FOCUS_CONTROL_PANEL' || event.data.type === 'PRESENTATION_FULLSCREEN_ENTERED')) {
+      try { window.focus(); } catch(e) {}
+    }
+  };
+
   function getLatestSavedPivot() {
     const savedPivotRaw = localStorage.getItem('sunday_school_taranim_drag_pivot');
     if (savedPivotRaw) {

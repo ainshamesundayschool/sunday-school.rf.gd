@@ -820,18 +820,48 @@
     let stateFontSize = 54;
     let lastDragTime = 0;
 
+    const returnFocusToControlPanel = () => {
+      try {
+        if (typeof channel !== 'undefined' && channel) {
+          channel.postMessage({ type: 'FOCUS_CONTROL_PANEL' });
+        }
+        if (window.opener && !window.opener.closed) {
+          window.opener.focus();
+        }
+      } catch (err) {}
+    };
+
     function requestAutoFullscreen() {
       if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen().catch(() => {});
       }
+      setTimeout(returnFocusToControlPanel, 50);
     }
 
     window.addEventListener('load', () => { setTimeout(requestAutoFullscreen, 100); });
-    window.addEventListener('click', requestAutoFullscreen);
+    window.addEventListener('click', () => {
+      requestAutoFullscreen();
+      returnFocusToControlPanel();
+    });
     window.addEventListener('touchstart', requestAutoFullscreen);
     window.addEventListener('pointerdown', requestAutoFullscreen);
     window.addEventListener('focus', requestAutoFullscreen);
-    window.addEventListener('keydown', requestAutoFullscreen);
+    
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' || e.key === ' ' || e.keyCode === 32) {
+        e.preventDefault();
+        requestAutoFullscreen();
+        returnFocusToControlPanel();
+      } else {
+        requestAutoFullscreen();
+      }
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        returnFocusToControlPanel();
+      }
+    });
 
     const urlParams = new URLSearchParams(window.location.search);
     let initialChroma = urlParams.get('chroma');
