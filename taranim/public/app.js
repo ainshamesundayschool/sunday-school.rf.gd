@@ -5569,7 +5569,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return song;
   }
 
-  function loadSongIntoPresentation(song) {
+  function loadSongIntoPresentation(song, forceLive = true) {
     if (!song) return;
 
     song = ensureSongVerses(song);
@@ -5911,7 +5911,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.title = `${song.title} | Taranim Online`;
     }
 
-    if (!state.liveSong) {
+    if (forceLive || !state.liveSong) {
       state.liveSong = song;
       state.livePresentationLines = linesList;
       state.liveLineIndex = 0;
