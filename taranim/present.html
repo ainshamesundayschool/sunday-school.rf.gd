@@ -1200,16 +1200,38 @@
       return renderSize;
     }
 
-    let _cachedUniformKey = '';
-    let _cachedUniformSize = null;
+    function computeSongUniformAutoFitFontSize(linesToMeasure, containerW, containerH, fontName, styleOptions) {
+      if (!linesToMeasure || !Array.isArray(linesToMeasure) || linesToMeasure.length === 0) return 54;
+      const isJomhuria = /jomhuria/i.test(fontName || '');
+      const minFloor = isJomhuria ? 44 : 34;
 
-    function _computeUniformFontSize(allSlideTexts, isBible, maxW, maxH, isJomhuria) {
-      const minFloor = isJomhuria ? 56 : 44;
-      if (!allSlideTexts || !Array.isArray(allSlideTexts) || allSlideTexts.length === 0) return minFloor;
-      const key = `${allSlideTexts.length}_${allSlideTexts[0] || ''}_${isBible}_${Math.round(maxW)}_${Math.round(maxH)}_${isJomhuria}`;
-      if (_cachedUniformKey === key && _cachedUniformSize !== null) {
-        return _cachedUniformSize;
-      }
+      const container = document.getElementById('obs-overlay-container') || document.body;
+      const curW = containerW || (container ? container.clientWidth : 0) || window.innerWidth || 1920;
+      const curH = containerH || (container ? container.clientHeight : 0) || window.innerHeight || 1080;
+
+      // Lock height limit to 16:9 horizontal format ratio when in vertical orientation (never fill tall vertical screen height)
+      const isVertical = curH > curW;
+      const effectiveH = isVertical ? (curW * (9 / 16)) : curH;
+
+      const maxH = effectiveH * 0.85;
+      const maxW = curW * 0.90;
+
+      const allSlideTexts = [];
+      linesToMeasure.forEach(item => {
+        if (!item) return;
+        if (typeof item === 'string') {
+          if (item.trim()) allSlideTexts.push(item.trim());
+        } else if (item.text && item.text.trim()) {
+          allSlideTexts.push(item.text.trim());
+        } else if (item.slides && Array.isArray(item.slides)) {
+          item.slides.forEach(s => {
+            if (s && s.text && s.text.trim()) allSlideTexts.push(s.text.trim());
+          });
+        }
+      });
+
+      if (allSlideTexts.length === 0) return minFloor;
+      const isBible = Boolean(activeSong && (activeSong.is_bible || activeSong.chapter_number !== undefined));
 
       let minSize = Infinity;
       const slidesToEvaluate = allSlideTexts.length <= 6 ? allSlideTexts : [
@@ -1227,9 +1249,7 @@
         if (size < minSize) minSize = size;
       }
 
-      _cachedUniformKey = key;
-      _cachedUniformSize = (minSize === Infinity || minSize < minFloor) ? minFloor : minSize;
-      return _cachedUniformSize;
+      return (minSize === Infinity || minSize < minFloor) ? minFloor : minSize;
     }
 
     function fitTextToSafeArea(isBible = currentIsBible) {

@@ -4485,15 +4485,17 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch(e) {}
     }
 
+    const overlayEl = document.getElementById('startup-overlay');
+    const btnBgContinueEl = document.getElementById('btn-bg-continue') || (typeof btnBgContinue !== 'undefined' ? btnBgContinue : null);
     const isDataFullyLoaded = hasLocalCatalog && hasLocalBible && state.allSongs.length > 0 && state.bibleChaptersData;
 
     // 2. ONLY SHOW SPLASH SCREEN IF DATA NEEDS TO BE DOWNLOADED!
     if (!isDataFullyLoaded && overlayEl) {
       overlayEl.classList.remove('hidden');
       document.body.classList.add('startup-active');
-      if (btnBgContinue) {
+      if (btnBgContinueEl) {
         setTimeout(() => {
-          if (btnBgContinue) btnBgContinue.classList.remove('hidden');
+          if (btnBgContinueEl) btnBgContinueEl.classList.remove('hidden');
         }, 2000);
       }
     }
@@ -6603,6 +6605,106 @@ document.addEventListener('DOMContentLoaded', () => {
       return abbr;
     }
     return '';
+  }
+
+  function computeSongUniformAutoFitFontSize(linesToMeasure, containerW, containerH, fontName, styleOptions) {
+    if (!linesToMeasure || !Array.isArray(linesToMeasure) || linesToMeasure.length === 0) return 54;
+    const isJomhuria = /jomhuria/i.test(fontName || '');
+    const minFloor = isJomhuria ? 44 : 34;
+
+    const curW = containerW || window.innerWidth || 1920;
+    const curH = containerH || window.innerHeight || 1080;
+    
+    // Lock height limit to 16:9 horizontal format ratio when in vertical orientation (never fill tall vertical screen height)
+    const isVertical = curH > curW;
+    const effectiveCanvasH = isVertical ? (curW * (9 / 16)) : curH;
+
+    const maxH = effectiveCanvasH * 0.85;
+    const maxW = curW * 0.90;
+
+    const allSlideTexts = [];
+    linesToMeasure.forEach(item => {
+      if (!item) return;
+      if (typeof item === 'string') {
+        if (item.trim()) allSlideTexts.push(item.trim());
+      } else if (item.text && item.text.trim()) {
+        allSlideTexts.push(item.text.trim());
+      } else if (item.slides && Array.isArray(item.slides)) {
+        item.slides.forEach(s => {
+          if (s && s.text && s.text.trim()) allSlideTexts.push(s.text.trim());
+        });
+      }
+    });
+
+    if (allSlideTexts.length === 0) return minFloor;
+
+    let measurer = document.getElementById('_obs_offscreen_measurer');
+    if (!measurer) {
+      measurer = document.createElement('div');
+      measurer.id = '_obs_offscreen_measurer';
+      measurer.style.cssText = 'position:fixed; left:-9999px; top:-9999px; visibility:hidden; pointer-events:none; z-index:-9999;';
+      document.body.appendChild(measurer);
+    }
+
+    const isBible = Boolean(state.activeSong && (state.activeSong.is_bible || state.activeSong.chapter_number !== undefined));
+    const lSpacing = (styleOptions && styleOptions.letterSpacing !== undefined) ? styleOptions.letterSpacing : 0;
+    const lHeight = (styleOptions && styleOptions.lineHeight !== undefined) ? styleOptions.lineHeight : 1.5;
+    const fWeight = (styleOptions && styleOptions.fontWeight) || '400';
+
+    const slidesToEval = allSlideTexts.length <= 6 ? allSlideTexts : [
+      allSlideTexts[0],
+      allSlideTexts[Math.floor(allSlideTexts.length / 4)],
+      allSlideTexts[Math.floor(allSlideTexts.length / 2)],
+      allSlideTexts[Math.floor((3 * allSlideTexts.length) / 4)],
+      allSlideTexts[allSlideTexts.length - 1]
+    ];
+
+    let minOptimal = Infinity;
+
+    slidesToEval.forEach(slideText => {
+      measurer.innerHTML = formatPresenterText(slideText, isBible, '', '');
+      const wrapper = measurer.querySelector('.obs-slide-wrapper') || measurer;
+      wrapper.style.fontFamily = isJomhuria ? 'Jomhuria, Arial, sans-serif' : (fontName || 'sans-serif');
+      wrapper.style.lineHeight = `${lHeight}`;
+      wrapper.style.letterSpacing = `${lSpacing}px`;
+      wrapper.style.fontWeight = fWeight;
+
+      const segments = measurer.querySelectorAll('.obs-line-segment');
+      const segCount = segments.length || 1;
+
+      segments.forEach(s => {
+        s.style.display = 'inline-block';
+        s.style.width = 'auto';
+        s.style.whiteSpace = 'nowrap';
+        s.style.wordBreak = 'keep-all';
+      });
+
+      let low = minFloor;
+      let maxLimit = isJomhuria ? 300 : 260;
+      let high = Math.min(maxLimit, Math.max(120, Math.floor(maxH / Math.max(1, segCount * 0.85))));
+      let bestForSlide = minFloor;
+
+      wrapper.style.whiteSpace = 'nowrap';
+      wrapper.style.maxWidth = 'none';
+
+      while (low <= high) {
+        const mid = Math.floor((low + high) / 2);
+        wrapper.style.fontSize = `${mid}px`;
+        const h = wrapper.scrollHeight || wrapper.offsetHeight;
+        const w = wrapper.scrollWidth || wrapper.offsetWidth;
+
+        if (h <= maxH && w <= maxW) {
+          bestForSlide = mid;
+          low = mid + 1;
+        } else {
+          high = mid - 1;
+        }
+      }
+
+      if (bestForSlide < minOptimal) minOptimal = bestForSlide;
+    });
+
+    return (minOptimal === Infinity || minOptimal < minFloor) ? minFloor : minOptimal;
   }
 
   function syncLiveState(isExplicitPositionUpdate = false, isForceRefresh = false) {
