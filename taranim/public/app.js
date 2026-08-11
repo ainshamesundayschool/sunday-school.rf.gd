@@ -4056,10 +4056,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (screenDetails && screenDetails.screens && screenDetails.screens[targetIdx]) {
       const targetScreen = screenDetails.screens[targetIdx];
-      left = targetScreen.availLeft !== undefined ? targetScreen.availLeft : (targetScreen.left !== undefined ? targetScreen.left : 0);
-      top = targetScreen.availTop !== undefined ? targetScreen.availTop : (targetScreen.top !== undefined ? targetScreen.top : 0);
-      width = targetScreen.availWidth || targetScreen.width || 1920;
-      height = targetScreen.availHeight || targetScreen.height || 1080;
+      left = targetScreen.left !== undefined ? targetScreen.left : (targetScreen.availLeft || 0);
+      top = targetScreen.top !== undefined ? targetScreen.top : 0;
+      width = targetScreen.width || 1920;
+      height = targetScreen.height || 1080;
       screenLabel = (targetScreen.label && targetScreen.label.trim()) ? targetScreen.label.trim() : (targetScreen.isPrimary ? 'الشاشة الرئيسية (Main Display)' : `الشاشة الخارجية ${targetIdx + 1}`);
     } else {
       const winX = window.screenX !== undefined ? window.screenX : (window.screenLeft !== undefined ? window.screenLeft : 0);
@@ -4073,9 +4073,9 @@ document.addEventListener('DOMContentLoaded', () => {
         left = (winX >= (availL + primaryW * 0.75)) ? availL : (availL + primaryW);
         screenLabel = `الشاشة الخارجية ${targetIdx + 1}`;
       }
-      top = window.screen.availTop || 0;
-      width = window.screen.availWidth || 1920;
-      height = window.screen.availHeight || 1080;
+      top = 0;
+      width = window.screen.width || 1920;
+      height = window.screen.height || 1080;
     }
 
     state.selectedScreen = {
