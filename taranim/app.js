@@ -1180,12 +1180,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     styleOptions: {
       textColor: savedSettings.styleOptions?.textColor || "#ffffff",
-      strokeWidth: savedSettings.styleOptions?.strokeWidth || 0,
+      strokeWidth: savedSettings.styleOptions?.strokeWidth !== undefined ? savedSettings.styleOptions.strokeWidth : 0,
       strokeColor: savedSettings.styleOptions?.strokeColor || "#000000",
-      shadowBlur: savedSettings.styleOptions?.shadowBlur || 0,
+      shadowBlur: savedSettings.styleOptions?.shadowBlur !== undefined ? savedSettings.styleOptions.shadowBlur : 0,
       shadowColor: savedSettings.styleOptions?.shadowColor || "#000000",
-      shadowAngle: savedSettings.styleOptions?.shadowAngle !== undefined ? savedSettings.styleOptions?.shadowAngle : 142,
-      shadowDistance: savedSettings.styleOptions?.shadowDistance !== undefined ? savedSettings.styleOptions?.shadowDistance : 13,
+      shadowAngle: savedSettings.styleOptions?.shadowAngle !== undefined ? savedSettings.styleOptions.shadowAngle : 0,
+      shadowDistance: savedSettings.styleOptions?.shadowDistance !== undefined ? savedSettings.styleOptions.shadowDistance : 0,
       shadowStyle: savedSettings.styleOptions?.shadowStyle || "soft",
       fontWeight: savedSettings.styleOptions?.fontWeight || "800",
       fontStyle: savedSettings.styleOptions?.fontStyle || "normal",
@@ -1714,8 +1714,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     els.btnMenuBible.addEventListener('click', (e) => {
       e.stopPropagation();
+      e.preventDefault();
       const willShow = els.popoverBible.classList.contains('hidden');
       closeAllPopovers(els.popoverBible);
+      if (els.searchDropdown) els.searchDropdown.classList.add('hidden');
       if (willShow) {
         els.popoverBible.classList.remove('hidden');
         els.btnMenuBible.classList.add('active');
@@ -1725,6 +1727,8 @@ document.addEventListener('DOMContentLoaded', () => {
         els.btnMenuBible.classList.remove('active');
       }
     });
+
+    els.popoverBible.addEventListener('click', (e) => e.stopPropagation());
 
     if (els.btnCloseBiblePopover) {
       els.btnCloseBiblePopover.addEventListener('click', (e) => {
@@ -1764,7 +1768,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.bibleBooksStep) els.bibleBooksStep.classList.remove('hidden');
     if (els.bibleChaptersStep) els.bibleChaptersStep.classList.add('hidden');
     if (els.btnBibleBack) els.btnBibleBack.classList.add('hidden');
-    if (els.biblePopoverHeading) els.biblePopoverHeading.innerHTML = `<i class="fa-solid fa-book-open"></i> أسفار الكتاب المقدس`;
+    if (els.biblePopoverHeading) {
+      els.biblePopoverHeading.innerHTML = `<i class="fa-solid fa-book-open"></i> أسفار الكتاب المقدس`;
+    }
     renderBibleBooksGrid();
   }
 
@@ -1983,10 +1989,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.obsStrokeColor) els.obsStrokeColor.value = state.styleOptions.strokeColor;
     if (els.obsShadowRange) els.obsShadowRange.value = state.styleOptions.shadowBlur;
     if (els.obsShadowColor) els.obsShadowColor.value = state.styleOptions.shadowColor || '#000000';
-    if (els.obsShadowAngleRange) els.obsShadowAngleRange.value = state.styleOptions.shadowAngle !== undefined ? state.styleOptions.shadowAngle : 142;
-    if (els.shadowAngleBadge) els.shadowAngleBadge.textContent = `${state.styleOptions.shadowAngle !== undefined ? state.styleOptions.shadowAngle : 142}°`;
-    if (els.obsShadowDistanceRange) els.obsShadowDistanceRange.value = state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 13;
-    if (els.shadowDistanceBadge) els.shadowDistanceBadge.textContent = `${state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 13}px`;
+    if (els.obsShadowAngleRange) els.obsShadowAngleRange.value = state.styleOptions.shadowAngle !== undefined ? state.styleOptions.shadowAngle : 0;
+    if (els.shadowAngleBadge) els.shadowAngleBadge.textContent = `${state.styleOptions.shadowAngle !== undefined ? state.styleOptions.shadowAngle : 0}°`;
+    if (els.obsShadowDistanceRange) els.obsShadowDistanceRange.value = state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 0;
+    if (els.shadowDistanceBadge) els.shadowDistanceBadge.textContent = `${state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 0}px`;
 
     if (els.obsFontWeightSelect) els.obsFontWeightSelect.value = state.styleOptions.fontWeight;
     if (els.obsScaleModeSelect) els.obsScaleModeSelect.value = state.scaleMode || 'auto';
@@ -2732,10 +2738,16 @@ document.addEventListener('DOMContentLoaded', () => {
         state.styleOptions.textColor = '#ffffff';
         state.styleOptions.strokeWidth = 0;
         state.styleOptions.shadowBlur = 0;
+        state.styleOptions.shadowDistance = 0;
+        state.styleOptions.shadowAngle = 0;
 
         if (els.obsTextColor) els.obsTextColor.value = '#ffffff';
         if (els.obsStrokeRange) els.obsStrokeRange.value = 0;
         if (els.obsShadowRange) els.obsShadowRange.value = 0;
+        if (els.obsShadowAngleRange) els.obsShadowAngleRange.value = 0;
+        if (els.shadowAngleBadge) els.shadowAngleBadge.textContent = '0°';
+        if (els.obsShadowDistanceRange) els.obsShadowDistanceRange.value = 0;
+        if (els.shadowDistanceBadge) els.shadowDistanceBadge.textContent = '0px';
       }
 
       if (els.obsOverlay) els.obsOverlay.setAttribute('data-chroma', state.chromaKey);
@@ -4425,25 +4437,29 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch(e) {}
 
-    // 2. NETWORK FETCH FOR FRESH CATALOG DISCOVERY & BACKGROUND UPDATE
+    // 2. NETWORK FETCH FOR FRESH CATALOG DISCOVERY & BIBLE CHAPTERS PRELOAD
     try {
-      let res = await fetch('songs_catalog.json').catch(() => null);
-      if (!res || !res.ok) res = await fetch('./songs_catalog.json').catch(() => null);
-      if (!res || !res.ok) res = await fetch('/api/songs?limit=500').catch(() => null);
-      
-      if (res && res.ok) {
-        const data = await res.json();
-        let rawList = [];
-        if (Array.isArray(data)) {
-          rawList = data;
-        } else if (data && data.songs) {
-          rawList = data.songs;
-        }
+      const pathDir = window.location.pathname.replace(/\/[^\/]*$/, '/');
+      const fetchCatalog = fetch('./songs_catalog.json')
+        .then(r => r.ok ? r.json() : null)
+        .catch(() => null);
+
+      const fetchBible = fetch('./bible_chapters_data.json')
+        .then(r => r.ok ? r.json() : null)
+        .catch(() => fetch(`${window.location.origin}${pathDir}bible_chapters_data.json`).then(r => r.ok ? r.json() : null).catch(() => null));
+
+      const [data, bibleData] = await Promise.all([fetchCatalog, fetchBible]);
+
+      if (data) {
+        let rawList = Array.isArray(data) ? data : (data && data.songs ? data.songs : []);
         if (rawList.length > 0) {
           state.allSongs = indexCatalogList(rawList);
-          updateStartupProgress(95, 'تم تحديث البيانات بالكامل...');
         }
       }
+      if (bibleData) {
+        state.bibleChaptersData = bibleData;
+      }
+      updateStartupProgress(95, 'تم تحضير أسفار الكتاب المقدس والترانيم بالكامل...');
     } catch(e) {}
 
     // Update total songs count badge UI
