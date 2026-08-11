@@ -1523,11 +1523,12 @@ input[type="checkbox"]:checked::after {
 
 .slide-badge-layer {
   position: absolute !important;
-  right: calc(100% + 8px) !important;
-  left: auto !important;
+  left: 100% !important;
+  right: auto !important;
   top: 50% !important;
   transform: translateY(-50%) !important;
-  margin: 0 !important;
+  margin-left: 8px !important;
+  margin-right: 0 !important;
   font-weight: 800 !important;
   font-size: 0.7em !important;
   line-height: 1 !important;

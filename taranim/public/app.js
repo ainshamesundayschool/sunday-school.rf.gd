@@ -6189,7 +6189,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      if (!hasText) {
+      const isBlankMode = Boolean(state.isBlank);
+      const isLogoSlide = Boolean(currentSlideItem && currentSlideItem.isLogoSlide);
+      const hasTextContent = Boolean(text && text.trim());
+
+      if (isBlankMode) {
+        // HIDE BUTTON IS ON: Hide text AND hide logo, keep chosen background intact
+        els.obsLineText.classList.add('hidden');
+        els.obsLineText.style.display = 'none';
+        if (standbyEl) {
+          standbyEl.classList.add('hidden');
+          standbyEl.style.display = 'none';
+        }
+      } else if (isLogoSlide || !hasTextContent) {
+        // LOGO SLIDE OR NO ACTIVE SONG: Show official logo standby screen
         els.obsLineText.classList.add('hidden');
         els.obsLineText.style.display = 'none';
 

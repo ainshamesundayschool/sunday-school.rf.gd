@@ -135,7 +135,7 @@
           </div>
 
           <div class="dropdown-popover hidden" id="popover-cast" style="min-width:280px; max-width:320px; padding:10px 12px; gap:8px;">
-            <!-- POPUP HEADER WITH MINI REFRESH BUTTON -->
+            <!-- 1. POPUP HEADER WITH REFRESH BUTTON -->
             <div class="popover-title" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:2px; font-size:0.92rem; font-weight:800; border-bottom:1px solid #f1f5f9; padding-bottom:6px;">
               <span><i class="fa-solid fa-display" style="color:#2563eb;"></i> البث والشاشات</span>
               <button id="btn-detect-screens" type="button" title="تحديث الشاشات الخارجية" style="background:#f1f5f9; border:none; color:#475569; width:26px; height:26px; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; font-size:0.78rem; transition:all 0.15s ease;">
@@ -143,16 +143,8 @@
               </button>
             </div>
 
-            <!-- OBS MODE TOGGLE CARD -->
-            <div class="control-field" style="margin:0;">
-              <label class="toggle-switch-label" style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; font-size:0.82rem; background:#eff6ff; border:1px solid #bfdbfe; padding:7px 10px; border-radius:9px; font-weight:600; color:#1e40af;">
-                <span><i class="fa-solid fa-video" style="margin-left:6px; color:#2563eb;"></i> وضع OBS المباشر</span>
-                <input type="checkbox" id="btn-toggle-obs-mode" class="toggle-checkbox">
-              </label>
-            </div>
-
-            <!-- EXTERNAL SCREENS SECTION -->
-            <div id="screens-cast-container" style="display:flex; flex-direction:column; gap:4px; margin-top:2px; border-top:1px dashed #e2e8f0; padding-top:6px;">
+            <!-- 2. EXTERNAL SCREENS SECTION -->
+            <div id="screens-cast-container" style="display:flex; flex-direction:column; gap:4px; margin-top:2px;">
               <div style="font-size:0.75rem; font-weight:700; color:#64748b; margin-bottom:2px; display:flex; align-items:center; gap:4px;">
                 <i class="fa-solid fa-tv"></i> الشاشات الخارجية المتصلة:
               </div>
@@ -161,7 +153,7 @@
               </div>
             </div>
 
-            <!-- BOTTOM ACTIONS: COPY URL & DOWNLOAD LIVE FILE -->
+            <!-- 3. ACTIONS ROW: COPY URL & DOWNLOAD LIVE FILE -->
             <div style="display:grid; grid-template-columns:1fr 1.15fr; gap:6px; margin-top:4px; border-top:1px solid #f1f5f9; padding-top:8px; align-items:center;">
               <button id="btn-copy-obs-url" class="btn btn-sm btn-secondary" style="width:100%; font-size:0.78rem; padding:7px 8px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:4px;" title="نسخ رابط العرض المباشر">
                 <i class="fa-solid fa-copy"></i> نسخ الرابط
@@ -169,6 +161,14 @@
               <button id="btn-sync-live-file" class="btn btn-sm btn-primary" style="width:100%; font-size:0.78rem; padding:7px 8px; font-weight:700; background:#2563eb; color:#ffffff; display:flex; align-items:center; justify-content:center; gap:4px;" title="تحميل ملف البث المباشر">
                 <i class="fa-solid fa-file-arrow-down"></i> تحميل ملف live
               </button>
+            </div>
+
+            <!-- 4. OBS MODE TOGGLE CARD (AT THE BOTTOM) -->
+            <div class="control-field" style="margin-top:6px; border-top:1px dashed #e2e8f0; padding-top:6px;">
+              <label class="toggle-switch-label" style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; font-size:0.82rem; background:#eff6ff; border:1px solid #bfdbfe; padding:7px 10px; border-radius:9px; font-weight:600; color:#1e40af;">
+                <span><i class="fa-solid fa-video" style="margin-left:6px; color:#2563eb;"></i> وضع OBS المباشر</span>
+                <input type="checkbox" id="btn-toggle-obs-mode" class="toggle-checkbox">
+              </label>
             </div>
           </div>
         </div>
