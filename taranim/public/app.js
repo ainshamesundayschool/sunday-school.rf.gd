@@ -467,6 +467,9 @@ const SONG_SCALES_MAP = {"1": 7, "5": 15, "7": 12, "8": 11, "11": 12, "13": 12, 
 
 function getSongScaleText(song) {
   if (!song) return '';
+  const isBible = Boolean((song.is_bible === true || song.is_bible === '1' || song.is_bible === 1) || (song.chapter_number !== undefined && song.chapter_number !== null && song.chapter_number !== '') || song.type === 'bible');
+  if (isBible) return '';
+
   let scaleId = song.scale_id || song.scale;
   if (!scaleId && song.id && SONG_SCALES_MAP[song.id]) {
     scaleId = SONG_SCALES_MAP[song.id];
@@ -4346,6 +4349,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const dismissSplash = () => {
       if (isDismissed) return;
       isDismissed = true;
+      document.body.classList.remove('startup-active');
       if (startupOverlay) {
         startupOverlay.classList.add('fade-out');
         setTimeout(() => { try { startupOverlay.remove(); } catch(e) {} }, 300);

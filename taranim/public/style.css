@@ -4703,6 +4703,12 @@ input[type="range"]:active::-moz-range-thumb {
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8) !important;
 }
 
+body.startup-active {
+  overflow: hidden !important;
+  touch-action: none !important;
+  height: 100vh !important;
+}
+
 /* STARTUP LOADING OVERLAY (LIGHT MODE FULL-SCREEN) */
 .startup-loading-overlay {
   position: fixed;
@@ -4710,10 +4716,14 @@ input[type="range"]:active::-moz-range-thumb {
   left: 0;
   right: 0;
   bottom: 0;
+  inset: 0;
   width: 100vw;
+  height: 100dvh;
   height: 100vh;
+  overflow: hidden;
+  touch-action: none;
   background: #f8fafc;
-  z-index: 999999;
+  z-index: 9999999;
   display: flex;
   flex-direction: column;
   align-items: center;
