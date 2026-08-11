@@ -2082,7 +2082,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btnUnfreezeObs._unfreezeTimeout) clearTimeout(btnUnfreezeObs._unfreezeTimeout);
 
         btnUnfreezeObs._unfreezeTimeout = setTimeout(() => {
-          btnUnfreezeObs.innerHTML = originalHtml;
+          btnUnfreezeObs.innerHTML = `<i class="fa-solid fa-bolt" style="color:#dc2626;"></i> Refresh OBS`;
           btnUnfreezeObs.style.background = '#fef2f2';
           btnUnfreezeObs.style.color = '#991b1b';
           btnUnfreezeObs.style.borderColor = '#fecaca';

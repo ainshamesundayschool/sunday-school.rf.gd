@@ -151,7 +151,7 @@
               </label>
 
               <button id="btn-unfreeze-obs" type="button" class="btn btn-sm" style="width:100%; font-size:0.78rem; font-weight:700; padding:6px 10px; border-radius:8px; background:#fef2f2; color:#991b1b; border:1px solid #fecaca; display:flex; align-items:center; justify-content:center; gap:6px; transition:all 0.15s ease;" title="تحديث وتنشيط اتصال OBS بدون إغلاق الترنيمة الحالية أو التنسيق">
-                <i class="fa-solid fa-bolt" style="color:#dc2626;"></i> فك جمود OBS
+                <i class="fa-solid fa-bolt" style="color:#dc2626;"></i> Refresh OBS
               </button>
             </div>
 
@@ -435,9 +435,9 @@
                     <input type="range" id="obs-shadow-angle-range" min="0" max="360" value="142" class="slider-input">
                     <div class="field-label-row" style="margin-top:6px;">
                       <span style="font-size:0.75rem; color:var(--text-muted);">مسافة الظل</span>
-                      <span id="shadow-distance-badge" class="counter-text-chip">6px</span>
+                      <span id="shadow-distance-badge" class="counter-text-chip">13px</span>
                     </div>
-                    <input type="range" id="obs-shadow-distance-range" min="0" max="50" value="6" class="slider-input">
+                    <input type="range" id="obs-shadow-distance-range" min="0" max="50" value="13" class="slider-input">
                   </div>
                 </div>
               </div>
@@ -638,22 +638,17 @@
               </div>
             </div>
           </div>
-          <div class="panel-bar-end panel-controls" style="display:flex; align-items:center; gap:6px; position:relative; direction:ltr !important;">
-            <!-- OBS FREEZE FIX BUTTON (VISIBLE WHEN OBS MODE IS ON) -->
-            <button id="btn-fix-obs-freeze" class="mini-btn-flat btn-obs-fix hidden" title="فك جمود وتحديث شاشة OBS" style="background:#fef3c7; color:#b45309; border:1px solid #fde68a;">
-              <i class="fa-solid fa-rotate-right"></i> <span style="font-size:0.75rem; font-weight:700; margin-right:4px;">فك جمود OBS</span>
-            </button>
-
-            <!-- 1. FULLSCREEN BUTTON (FIRST FROM THE LEFT) -->
+          <div class="panel-bar-end panel-controls" style="display:flex; align-items:center; gap:6px; position:relative;">
+            <!-- 1. FULLSCREEN BUTTON -->
             <button id="btn-presenter-fullscreen" class="mini-btn-flat btn-fullscreen-launch" title="عرض ملء الشاشة"><i class="fa-solid fa-expand"></i></button>
 
-            <!-- 2. HIDE BUTTON (SECOND FROM THE LEFT) -->
+            <!-- 2. HIDE BUTTON -->
             <button id="btn-toggle-blank" class="mini-btn-flat" title="إخفاء النص"><i class="fa-solid fa-eye-slash"></i></button>
 
-            <!-- 3. HIGHLIGHT BUTTON (THIRD FROM THE LEFT) -->
+            <!-- 3. HIGHLIGHT BUTTON -->
             <button id="btn-toggle-highlight-tool" class="mini-btn-flat" title="أداة تظليل السطر"><i class="fa-solid fa-highlighter"></i></button>
 
-            <!-- 4. COLOR SELECTOR CIRCLE (TO THE RIGHT SIDE OF HIGHLIGHT BUTTON) -->
+            <!-- 4. HIGHLIGHT COLOR CIRCLE -->
             <div id="highlight-color-picker-wrap" class="highlight-color-picker-wrap hidden" style="position:relative; display:inline-flex; align-items:center;">
               <button type="button" id="btn-highlight-color-circle" class="highlight-color-circle-btn" title="تغيير لون التظليل" style="width:20px; height:20px; border-radius:50%; border:2px solid #ffffff; box-shadow:0 0 0 1.5px #cbd5e1; cursor:pointer; background:#ef4444; padding:0; outline:none; transition:transform 0.15s ease;"></button>
 
@@ -667,6 +662,11 @@
                 <input type="color" id="highlight-custom-color" value="#ef4444" style="width:20px; height:20px; border-radius:50%; border:none; cursor:pointer; padding:0; background:none;" title="اختيار لون مخصص">
               </div>
             </div>
+
+            <!-- REFRESH OBS BUTTON BESIDE HIGHLIGHT BUTTON AT THE RIGHT -->
+            <button id="btn-unfreeze-obs" class="mini-btn-flat btn-obs-fix" title="Refresh OBS" style="background:#fef2f2; color:#991b1b; border:1px solid #fecaca; display:inline-flex; align-items:center; gap:4px; padding:4px 8px; font-weight:700; font-size:0.75rem; border-radius:8px; white-space:nowrap;">
+              <i class="fa-solid fa-bolt" style="color:#dc2626;"></i> Refresh OBS
+            </button>
           </div>
         </div>
 
