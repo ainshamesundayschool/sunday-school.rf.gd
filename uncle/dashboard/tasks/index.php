@@ -12919,7 +12919,7 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
           <div class="mhdr-sub">اختبار MCQ مع مكافآت كوبونات</div>
         </div>
         <div style="margin-right:auto; display:flex; align-items:center; gap:8px;">
-          <button type="button" id="clearDraftBtn" onclick="confirmClearDraft()" style="display:none; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); color:#ef4444; font-size:0.78rem; font-weight:700; padding:5px 11px; border-radius:8px; cursor:pointer;"><i class="fas fa-trash-alt"></i> مسح</button>
+          <button type="button" id="clearDraftBtn" onclick="confirmClearDraft()" style="display:none; align-items:center; justify-content:center; gap:6px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); color:#ef4444; font-size:0.78rem; font-weight:700; padding:5px 11px; border-radius:8px; cursor:pointer;"><i class="fas fa-trash-alt" style="font-size:0.75rem; line-height:1;"></i><span>مسح</span></button>
           <div class="mclose" onclick="closeCreate()"><i class="fas fa-times"></i></div>
         </div>
       </div>
@@ -15246,9 +15246,9 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
         document.getElementById('createTitle').textContent = 'إنشاء تاسك جديد';
         const restored = restoreLocalDraft();
         if (!restored) {
-          addQ(); addQ();
           initTiers();
           hideDraftSaveBadge();
+          updDeg();
         }
       }
 
@@ -19202,8 +19202,8 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
       if (confirm('هل أنت تأكد من مسح المسودة المحفوظة تلقائياً؟')) {
         clearLocalDraft();
         resetForm();
-        addQ(); addQ();
         initTiers();
+        updDeg();
         showToast('تم مسح المسودة المحفوطة', 'info');
       }
     }
