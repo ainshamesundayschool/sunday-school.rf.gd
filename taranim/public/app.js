@@ -7096,6 +7096,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const scaleMode = state.scaleMode || 'auto';
 
           if (scaleMode === 'fixed') {
+            window._obsUniformFontCache = null;
             els.obsLineText.style.fontSize = `${baseSize}px`;
             const fixedLH = state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : 1.5;
             els.obsLineText.style.lineHeight = `${fixedLH}`;
@@ -7114,7 +7115,7 @@ document.addEventListener('DOMContentLoaded', () => {
               ? (state.activeSong.id || state.activeSong.item_id || state.activeSong.title) 
               : 'default_item';
 
-            if (!window._obsUniformFontCache || window._obsUniformFontCache.key !== currentItemKey || window._obsUniformFontCache.w !== containerW || window._obsUniformFontCache.h !== containerH || window._obsUniformFontCache.font !== state.selectedFont) {
+            if (!window._obsUniformFontCache || window._obsUniformFontCache.key !== currentItemKey || window._obsUniformFontCache.w !== containerW || window._obsUniformFontCache.h !== containerH || window._obsUniformFontCache.font !== state.selectedFont || window._obsUniformFontCache.scaleMode !== scaleMode) {
               const linesToMeasure = (state.activeSong && state.activeSong.verses) ? state.activeSong.verses : state.presentationLines;
               const uniformSize = computeSongUniformAutoFitFontSize(linesToMeasure, containerW, containerH, state.selectedFont, state.styleOptions);
               window._obsUniformFontCache = {
@@ -7122,9 +7123,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 w: containerW,
                 h: containerH,
                 font: state.selectedFont,
+                scaleMode: scaleMode,
                 size: uniformSize
               };
             }
+
+            els.obsLineText.style.fontSize = `${window._obsUniformFontCache.size}px`;
 
             const obsSegmentsList = els.obsLineText ? Array.from(els.obsLineText.querySelectorAll('.obs-line-segment')) : [];
             const segmentsCount = obsSegmentsList.length || 1;

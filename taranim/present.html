@@ -1376,6 +1376,7 @@
       let renderSize = baseSize;
 
       if (scaleMode === 'fixed') {
+        window._uniformFontCache = null;
         renderSize = baseSize;
         textEl.style.fontSize = `${renderSize}px`;
         const fixedLH = (lastStyleData && lastStyleData.lineHeight !== undefined) ? lastStyleData.lineHeight : 1.5;
@@ -1388,7 +1389,7 @@
           ? (activeSong.id || activeSong.item_id || activeSong.title) 
           : 'default_item';
 
-        if (!window._uniformFontCache || window._uniformFontCache.key !== currentItemKey || window._uniformFontCache.w !== curW || window._uniformFontCache.h !== curH || window._uniformFontCache.font !== currentFont) {
+        if (!window._uniformFontCache || window._uniformFontCache.key !== currentItemKey || window._uniformFontCache.w !== curW || window._uniformFontCache.h !== curH || window._uniformFontCache.font !== currentFont || window._uniformFontCache.scaleMode !== scaleMode) {
           const linesToMeasure = (statePresentationLines && statePresentationLines.length > 0) 
             ? statePresentationLines 
             : (activeSong && activeSong.verses ? activeSong.verses : []);
@@ -1399,6 +1400,7 @@
             w: curW,
             h: curH,
             font: currentFont,
+            scaleMode: scaleMode,
             size: uniformSize
           };
         }
