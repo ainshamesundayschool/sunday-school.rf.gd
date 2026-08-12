@@ -3448,6 +3448,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const maxScroll = el.scrollHeight - el.clientHeight;
         const scrollRatio = maxScroll > 0 ? (el.scrollTop / maxScroll) : 0;
         state.allInOneScrollRatio = scrollRatio;
+
+        const groups = el.querySelectorAll('.allinone-slide-group');
+        if (groups.length > 0) {
+          let closestGroupIdx = 0;
+          let minDiff = Infinity;
+          const containerRect = el.getBoundingClientRect();
+          const targetY = containerRect.top + 70;
+          groups.forEach((g, idx) => {
+            const gRect = g.getBoundingClientRect();
+            const diff = Math.abs(gRect.top - targetY);
+            if (diff < minDiff) {
+              minDiff = diff;
+              closestGroupIdx = idx;
+            }
+          });
+          if (state.allInOneActiveGroupIndex !== closestGroupIdx) {
+            state.allInOneActiveGroupIndex = closestGroupIdx;
+            groups.forEach((g, idx) => {
+              g.classList.toggle('active-allinone-group', idx === closestGroupIdx);
+            });
+          }
+        }
         debouncedSyncLiveState(40);
       }
     });
@@ -3622,6 +3644,16 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const targetIdx = targetNum - 1;
+
+      if (state.presentationMode === 'allinone') {
+        state.allInOneActiveGroupIndex = targetIdx;
+        syncLiveState();
+        if (els.presentationLinesContainer) {
+          const targetG = els.presentationLinesContainer.querySelector(`.allinone-slide-group[data-group-idx="${targetIdx}"]`);
+          if (targetG) targetG.scrollIntoView({ block: 'start', behavior: 'smooth' });
+        }
+        return;
+      }
 
       if (!isNaN(targetNum) && targetIdx >= 0 && targetIdx < lines.length) {
         state.liveSong = state.activeSong || state.liveSong;
@@ -5787,16 +5819,18 @@ document.addEventListener('DOMContentLoaded', () => {
       if (mode === 'allinone') {
         const allGroupsHtml = [];
         const cleanStanzaTexts = [];
+        let groupCounter = 0;
         orderedVersesToProcess.forEach(({ verse, idx, stanzaNum }) => {
           const slideItems = buildVerseSlideItems(verse, idx, stanzaNum);
           slideItems.forEach(item => {
-            const bHtml = item.badgeText ? `<span class="slide-badge-layer ${item.badgeClass}">${item.badgeText}</span>` : '';
+            const bHtml = item.badgeText ? `<span class="slide-badge-layer ${item.badgeClass}">${escapeHtml(item.badgeText)}</span>` : '';
             const linesHtml = (item.lines || [item.text]).map(l => `<div class="obs-line-row"><span class="obs-line-segment">${escapeHtml(l)}</span></div>`).join('');
-            allGroupsHtml.push(`<div class="allinone-slide-group">${bHtml}${linesHtml}</div>`);
+            allGroupsHtml.push(`<div class="allinone-slide-group" data-group-idx="${groupCounter}">${bHtml}${linesHtml}</div>`);
 
             const bClean = item.badgeText ? `(${item.badgeText}) ` : '';
             const tClean = (item.lines || [item.text]).join('\n');
             cleanStanzaTexts.push(bClean + tClean);
+            groupCounter++;
           });
         });
         const combinedText = allGroupsHtml.join('');
@@ -5806,6 +5840,7 @@ document.addEventListener('DOMContentLoaded', () => {
           rawText: plainTextAll,
           lines: [combinedText],
           isAllInOne: true,
+          totalGroups: groupCounter,
           label: 'الترنيمة بالكامل'
         }];
       } else {
@@ -6071,6 +6106,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     updateSplitAllLinesButtonIcon();
+
+    els.presentationLinesContainer.querySelectorAll('.allinone-slide-group').forEach((group) => {
+      group.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const gIdx = parseInt(group.dataset.groupIdx);
+        if (!isNaN(gIdx)) {
+          state.allInOneActiveGroupIndex = gIdx;
+          els.presentationLinesContainer.querySelectorAll('.allinone-slide-group').forEach((g) => {
+            const idx = parseInt(g.dataset.groupIdx);
+            g.classList.toggle('active-allinone-group', idx === gIdx);
+          });
+          syncLiveState();
+        }
+      });
+    });
 
     els.presentationLinesContainer.querySelectorAll('.launch-fullscreen-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -6684,6 +6734,7 @@ document.addEventListener('DOMContentLoaded', () => {
       highlightedLines: state.isHighlightMode ? (state.highlightedLineIndices || []) : [],
       mode: state.presentationMode || 'oneline',
       scrollRatio: state.allInOneScrollRatio !== undefined ? state.allInOneScrollRatio : 0,
+      activeGroupIndex: state.allInOneActiveGroupIndex !== undefined ? state.allInOneActiveGroupIndex : 0,
       highlightColor: state.highlightColor || '#f59e0b',
       allSlideTexts: targetLines.map(item => item ? (item.text || '') : ''),
       obsMode: Boolean(state.obsMode !== false)
@@ -7357,6 +7408,20 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function nextLine() {
+    if (state.presentationMode === 'allinone') {
+      const activeLine = (state.livePresentationLines && state.livePresentationLines[0]) || (state.presentationLines && state.presentationLines[0]);
+      const totalGroups = (activeLine && activeLine.totalGroups) ? activeLine.totalGroups : (els.presentationLinesContainer ? els.presentationLinesContainer.querySelectorAll('.allinone-slide-group').length : 0);
+      let currentG = state.allInOneActiveGroupIndex !== undefined ? state.allInOneActiveGroupIndex : 0;
+      if (currentG < totalGroups - 1) {
+        state.allInOneActiveGroupIndex = currentG + 1;
+        syncLiveState();
+        if (els.presentationLinesContainer) {
+          const targetG = els.presentationLinesContainer.querySelector(`.allinone-slide-group[data-group-idx="${state.allInOneActiveGroupIndex}"]`);
+          if (targetG) targetG.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+      }
+      return;
+    }
     if (!state.liveSong && state.activeSong) {
       state.liveSong = state.activeSong;
       state.livePresentationLines = state.presentationLines;
@@ -7395,6 +7460,18 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function prevLine() {
+    if (state.presentationMode === 'allinone') {
+      let currentG = state.allInOneActiveGroupIndex !== undefined ? state.allInOneActiveGroupIndex : 0;
+      if (currentG > 0) {
+        state.allInOneActiveGroupIndex = currentG - 1;
+        syncLiveState();
+        if (els.presentationLinesContainer) {
+          const targetG = els.presentationLinesContainer.querySelector(`.allinone-slide-group[data-group-idx="${state.allInOneActiveGroupIndex}"]`);
+          if (targetG) targetG.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+      }
+      return;
+    }
     const currentLines = (state.livePresentationLines && state.livePresentationLines.length > 0) ? state.livePresentationLines : state.presentationLines;
     if (state.liveLineIndex >= currentLines.length) {
       // Returning from logo standby screen back to the last verse

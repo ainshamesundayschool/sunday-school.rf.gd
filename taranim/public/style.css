@@ -4187,6 +4187,13 @@ body[data-mode="allinone"] .lower-third-container,
   padding-right: 48px !important;
   padding-left: 20px !important;
   box-sizing: border-box !important;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.allinone-slide-group.active-allinone-group {
+  background: rgba(37, 99, 235, 0.08) !important;
+  border-radius: 10px !important;
+  border-right: 4px solid #2563eb !important;
 }
 
 .allinone-slide-group .slide-badge-layer {
