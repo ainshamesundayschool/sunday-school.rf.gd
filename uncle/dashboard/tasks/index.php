@@ -16034,7 +16034,7 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
 
 
-        '<small>JPG, PNG, WebP — حتى 5 MB</small>' +
+        '<small>JPG, PNG, WebP — يتم ضغط وتحسين الصورة تلقائياً ⚡</small>' +
 
 
 
@@ -16640,15 +16640,55 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
 
 
+    function optimizeImage(file, maxDim = 1200, quality = 0.82) {
+      return new Promise(function(resolve) {
+        if (!file || !file.type || !file.type.startsWith('image/')) {
+          resolve(file);
+          return;
+        }
+        var img = new Image();
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          img.onload = function() {
+            var width = img.width;
+            var height = img.height;
+            if (width > maxDim || height > maxDim) {
+              if (width > height) {
+                height = Math.round((height * maxDim) / width);
+                width = maxDim;
+              } else {
+                width = Math.round((width * maxDim) / height);
+                height = maxDim;
+              }
+            }
+            var canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            canvas.toBlob(function(blob) {
+              if (blob && blob.size < file.size) {
+                var fileName = file.name.replace(/\.[^/.]+$/, "") + ".webp";
+                var optimizedFile = new File([blob], fileName, { type: 'image/webp', lastModified: Date.now() });
+                resolve(optimizedFile);
+              } else {
+                resolve(file);
+              }
+            }, 'image/webp', quality);
+          };
+          img.onerror = function() { resolve(file); };
+          img.src = e.target.result;
+        };
+        reader.onerror = function() { resolve(file); };
+        reader.readAsDataURL(file);
+      });
+    }
+
     async function uploadQImg(qid, file) {
 
 
 
       if (!file) return;
-
-
-
-      if (file.size > 5 * 1024 * 1024) { showToast('الحجم الأقصى 5 MB', 'err'); return; }
 
 
 
@@ -16664,19 +16704,19 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
 
 
-      if (status) { status.className = 'q-img-status'; status.textContent = 'جارٍ رفع الصورة…'; }
+      if (status) { status.className = 'q-img-status'; status.textContent = 'جارٍ تحسين ورفع الصورة…'; }
 
 
 
       try {
 
-
+        file = await optimizeImage(file);
 
         var fd = new FormData();
 
 
 
-        fd.append('photo', file, 'question_img_' + Date.now() + '.' + file.name.split('.').pop());
+        fd.append('photo', file, 'question_img_' + Date.now() + '.' + (file.name.split('.').pop() || 'webp'));
 
 
 
@@ -17660,7 +17700,7 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
 
 
-        '<small>JPG, PNG, WebP — حتى 5 MB</small>' +
+        '<small>JPG, PNG, WebP — يتم ضغط وتحسين الصورة تلقائياً ⚡</small>' +
 
 
 
@@ -19087,7 +19127,7 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
       const clearBtn = document.getElementById('clearDraftBtn');
       if (badge) {
         badge.style.display = 'inline-flex';
-        if (badgeText) badgeText.textContent = `مسودة محفوظة محلياً (${timeStr})`;
+        if (badgeText) badgeText.textContent = `محفوظة محلياً (${timeStr})`;
       }
       if (clearBtn) clearBtn.style.display = 'inline-flex';
     }
@@ -22425,16 +22465,17 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
               <thead style="background:var(--bg2); position:sticky; top:0; font-weight:700; color:var(--t1); border-bottom:1px solid var(--bdr);">
                 <tr>
                   <th style="padding:8px 10px; width:35px; text-align:center;">#</th>
-                  <th style="padding:8px 10px; width:90px;">النوع</th>
+                  <th style="padding:8px 10px; width:85px;">النوع</th>
                   <th style="padding:8px 10px;">السؤال</th>
                   <th style="padding:8px 10px;">الخيارات</th>
-                  <th style="padding:8px 10px; width:70px; text-align:center;">الدرجة</th>
-                  <th style="padding:8px 10px; width:70px; text-align:center;">الحالة</th>
+                  <th style="padding:8px 10px; width:65px; text-align:center;">الصورة</th>
+                  <th style="padding:8px 10px; width:55px; text-align:center;">الدرجة</th>
+                  <th style="padding:8px 10px; width:65px; text-align:center;">الحالة</th>
                 </tr>
               </thead>
               <tbody id="bulkQPreviewTbody">
                 <tr>
-                  <td colspan="6" style="text-align:center; padding:24px; color:var(--t3);">
+                  <td colspan="7" style="text-align:center; padding:24px; color:var(--t3);">
                     قم برفع ملف أو لصق بيانات المعاينة لعرض الأسئلة هنا
                   </td>
                 </tr>
@@ -22466,10 +22507,10 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
     function downloadEmptyTaskTemplate() {
       var csvContent = "\uFEFF"; // UTF-8 BOM for Excel Arabic support
-      csvContent += "نوع السؤال,نص السؤال,الدرجة,الخيار الأول,الخيار الثاني,الخيار الثالث,الخيار الرابع,رقم الإجابة الصحيحة (1-4)\n";
-      csvContent += "اختيار من متعدد,ما هي أول أسفار العهد القديم؟,25,التكوين,الخروج,اللاويين,العدد,1\n";
-      csvContent += "صح وخطأ,ولد السيد المسيح في مدينة بيت لحم,25,صحيح,خطأ,,,1\n";
-      csvContent += "مقالي,اذكر آية تدل على المحبة والرحمة في الإنجيل,25,,,,\n";
+      csvContent += "نوع السؤال,نص السؤال,الدرجة,الخيار الأول,الخيار الثاني,الخيار الثالث,الخيار الرابع,رقم الإجابة الصحيحة (1-4),رابط الصورة (اختياري)\n";
+      csvContent += "اختيار من متعدد,ما هي أول أسفار العهد القديم؟,25,التكوين,الخروج,اللاويين,العدد,1,https://example.com/genesis.jpg\n";
+      csvContent += "صح وخطأ,ولد السيد المسيح في مدينة بيت لحم,25,صحيح,خطأ,,,1,\n";
+      csvContent += "مقالي,اذكر آية تدل على المحبة والرحمة في الإنجيل,25,,,,,\n";
 
       var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       var link = document.createElement("a");
@@ -22586,6 +22627,17 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
         var opt3 = (row[5] || '').toString().trim();
         var opt4 = (row[6] || '').toString().trim();
         var rawAns = (row[7] || '').toString().trim();
+        var rawImg = (row[8] || '').toString().trim();
+
+        if (!rawImg) {
+          for (var colIdx = 7; colIdx < row.length; colIdx++) {
+            var val = (row[colIdx] || '').toString().trim();
+            if (val.indexOf('http://') === 0 || val.indexOf('https://') === 0 || val.indexOf('data:image/') === 0) {
+              rawImg = val;
+              break;
+            }
+          }
+        }
 
         if (!rawText) continue;
 
@@ -22646,6 +22698,7 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
           degree: rawDeg,
           options: options,
           correct_index: correctIndex,
+          image_url: rawImg,
           valid: isValid,
           errorMsg: errorMsg
         });
@@ -22666,7 +22719,7 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
       if (badge) badge.textContent = validCount + ' أسئلة صالحة من أصل ' + qList.length;
 
       if (qList.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:24px; color:var(--t3);">قم برفع ملف أو لصق بيانات المعاينة لعرض الأسئلة هنا</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:24px; color:var(--t3);">قم برفع ملف أو لصق بيانات المعاينة لعرض الأسئلة هنا</td></tr>';
         if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
         return;
       }
@@ -22682,6 +22735,10 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
           return (idx === q.correct_index ? '<b>✓ ' + esc(o) + '</b>' : esc(o));
         }).join(' | ');
 
+        var imgCell = q.image_url
+          ? '<a href="' + esc(q.image_url) + '" target="_blank" title="' + esc(q.image_url) + '" style="color:var(--brand); text-decoration:none; display:inline-flex; align-items:center; gap:4px; font-weight:700;"><i class="fas fa-image"></i> صورة</a>'
+          : '<span style="color:var(--t3);">—</span>';
+
         var statusBadge = q.valid
           ? '<span style="color:#10b981; font-weight:700;"><i class="fas fa-check-circle"></i> صالح</span>'
           : '<span style="color:#ef4444; font-weight:700;" title="' + esc(q.errorMsg) + '"><i class="fas fa-exclamation-circle"></i> خطأ</span>';
@@ -22691,6 +22748,7 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
           '<td style="padding:8px 10px;">' + typeBadge + '</td>' +
           '<td style="padding:8px 10px; font-weight:600; color:var(--t1);">' + esc(q.question_text) + '</td>' +
           '<td style="padding:8px 10px; color:var(--t2); font-size:0.75rem;">' + optsText + '</td>' +
+          '<td style="padding:8px 10px; text-align:center;">' + imgCell + '</td>' +
           '<td style="padding:8px 10px; text-align:center; font-weight:700; color:var(--brand);">' + q.degree + '</td>' +
           '<td style="padding:8px 10px; text-align:center;">' + statusBadge + '</td>' +
           '</tr>';
