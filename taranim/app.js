@@ -2732,7 +2732,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         updateScaleModeLockState();
         saveUserSettings();
-        renderOBSOverlayText();
         syncLiveState(false, true);
       });
     }
