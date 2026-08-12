@@ -12919,7 +12919,7 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
           <div class="mhdr-sub">اختبار MCQ مع مكافآت كوبونات</div>
         </div>
         <div style="margin-right:auto; display:flex; align-items:center; gap:8px;">
-          <button type="button" id="clearDraftBtn" onclick="confirmClearDraft()" style="display:none; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); color:#ef4444; font-size:0.78rem; font-weight:700; padding:5px 11px; border-radius:8px; cursor:pointer;"><i class="fas fa-trash-alt"></i> مسح المسودة</button>
+          <button type="button" id="clearDraftBtn" onclick="confirmClearDraft()" style="display:none; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); color:#ef4444; font-size:0.78rem; font-weight:700; padding:5px 11px; border-radius:8px; cursor:pointer;"><i class="fas fa-trash-alt"></i> مسح</button>
           <div class="mclose" onclick="closeCreate()"><i class="fas fa-times"></i></div>
         </div>
       </div>
@@ -13217,7 +13217,7 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
             <div style="display:flex; gap:10px; align-items:center; margin-bottom:12px; flex-wrap:wrap;">
               <button type="button" class="add-q" onclick="addQ()" style="flex:1; min-width:140px; margin-bottom:0;"><i class="fas fa-plus-circle"></i>إضافة سؤال</button>
-              <button type="button" class="add-q" onclick="openBulkQModal()" style="flex:1; min-width:180px; margin-bottom:0; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; border:none; box-shadow:0 4px 14px rgba(16,185,129,0.3);"><i class="fas fa-file-excel"></i> استيراد شيت أسئلة (Bulk Add)</button>
+              <button type="button" class="add-q" onclick="openBulkQModal()" style="flex:1; min-width:180px; margin-bottom:0; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; border:none; box-shadow:0 4px 14px rgba(16,185,129,0.3);"><i class="fas fa-file-excel"></i> استيراد شيت أسئلة</button>
             </div>
 
 
@@ -22353,7 +22353,7 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
       <!-- Modal Header -->
       <div style="display:flex; align-items:center; justify-content:space-between; padding-bottom:14px; border-bottom:1px solid var(--bdr, #e2e8f0);">
         <h3 style="font-family:'Baloo Bhaijaan 2', sans-serif; font-size:1.2rem; font-weight:700; color:var(--t1); margin:0; display:flex; align-items:center; gap:8px;">
-          <i class="fas fa-file-excel" style="color:#10b981;"></i> استيراد أسئلة دفعة واحدة (Bulk Add)
+          <i class="fas fa-file-excel" style="color:#10b981;"></i> استيراد شيت أسئلة
         </h3>
         <button type="button" onclick="closeBulkQModal()" style="background:var(--bg2, #f1f5f9); border:none; width:32px; height:32px; border-radius:50%; color:var(--t2); cursor:pointer; display:flex; align-items:center; justify-content:center;">
           <i class="fas fa-times"></i>
