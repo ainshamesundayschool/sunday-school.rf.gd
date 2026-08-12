@@ -6729,6 +6729,38 @@ document.addEventListener('DOMContentLoaded', () => {
     const isBible = Boolean(targetSong && ((targetSong.is_bible === true || targetSong.is_bible === '1' || targetSong.is_bible === 1) || (targetSong.chapter_number !== undefined && targetSong.chapter_number !== null && targetSong.chapter_number !== '') || targetSong.type === 'bible'));
     const bibleRefShortcut = isBible ? getBibleVerseShortcut(targetSong, currentSlideItem) : '';
 
+    const currentScaleMode = state.scaleMode || 'auto';
+    let effectiveFontSize = state.fontSize || 54;
+
+    if (currentScaleMode === 'auto') {
+      const container = els.obsOverlay || (els.obsLineText ? els.obsLineText.parentElement : null) || document.body;
+      const containerW = Math.max(320, container.clientWidth || window.innerWidth);
+      const containerH = Math.max(240, container.clientHeight || window.innerHeight);
+
+      const currentItemKey = (targetSong && (targetSong.id || targetSong.item_id || targetSong.title)) 
+        ? (targetSong.id || targetSong.item_id || targetSong.title) 
+        : 'default_item';
+
+      if (!window._obsUniformFontCache || window._obsUniformFontCache.key !== currentItemKey || window._obsUniformFontCache.w !== containerW || window._obsUniformFontCache.h !== containerH || window._obsUniformFontCache.font !== state.selectedFont || window._obsUniformFontCache.scaleMode !== currentScaleMode) {
+        const linesToMeasure = (targetSong && targetSong.verses) ? targetSong.verses : targetLines;
+        const uniformSize = computeSongUniformAutoFitFontSize(linesToMeasure, containerW, containerH, state.selectedFont, state.styleOptions);
+        window._obsUniformFontCache = {
+          key: currentItemKey,
+          w: containerW,
+          h: containerH,
+          font: state.selectedFont,
+          scaleMode: currentScaleMode,
+          size: uniformSize
+        };
+      }
+
+      effectiveFontSize = window._obsUniformFontCache.size;
+      state.fontSize = effectiveFontSize;
+      if (els.obsFontSizeRange) els.obsFontSizeRange.value = effectiveFontSize;
+      if (els.obsFontSizeVal) els.obsFontSizeVal.textContent = `${effectiveFontSize}px`;
+      if (els.fontSizeInput) els.fontSizeInput.value = effectiveFontSize;
+    }
+
     const payload = {
       type: 'PRESENT_LINE',
       isLogoSlide: isLogoSlide,
@@ -6743,10 +6775,10 @@ document.addEventListener('DOMContentLoaded', () => {
       totalSlides: totalSlides,
       scaleText: scaleText,
       font: state.selectedFont,
-      scaleMode: state.scaleMode || 'auto',
+      scaleMode: currentScaleMode,
       customFontDataUrl: localStorage.getItem('sunday_school_custom_font_dataurl') || state.customFontDataUrl || '',
       customFontName: localStorage.getItem('sunday_school_custom_font_name') || '',
-      fontSize: state.fontSize,
+      fontSize: effectiveFontSize,
       chroma: state.chromaKey,
       isBlank: state.isBlank,
       anim: state.textAnimation,
@@ -7156,14 +7188,10 @@ document.addEventListener('DOMContentLoaded', () => {
             els.obsLineText.style.fontSize = `${bestFit}px`;
             
             if (bestFit && scaleMode === 'auto') {
-              const fontSizeChanged = (state.fontSize !== bestFit);
               state.fontSize = bestFit;
               if (els.obsFontSizeRange) els.obsFontSizeRange.value = bestFit;
               if (els.obsFontSizeVal) els.obsFontSizeVal.textContent = `${bestFit}px`;
               if (els.fontSizeInput) els.fontSizeInput.value = bestFit;
-              if (fontSizeChanged) {
-                syncLiveState();
-              }
             }
           }
           els.obsLineText.style.transform = 'none';
