@@ -1116,6 +1116,9 @@
       } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') {
         e.preventDefault();
         triggerPrevSlide();
+      } else if (e.key === 'f' || e.key === 'F' || e.key === 'ب' || e.key === '[' || e.code === 'KeyF') {
+        e.preventDefault();
+        requestAutoFullscreen();
       }
     });
 

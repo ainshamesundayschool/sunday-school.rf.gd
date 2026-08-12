@@ -1400,8 +1400,16 @@ document.addEventListener('DOMContentLoaded', () => {
             <i class="fa-solid fa-expand"></i>
           </div>
           <h3 style="margin:0 0 8px; font-size:1.15rem; font-weight:800; color:#1e293b;">فتح الشاشة الخارجية ملء الشاشة</h3>
-          <p style="margin:0 0 18px; font-size:0.92rem; color:#475569; font-weight:600; line-height:1.5;">
-            اضغط على زر المسافة (Space) أو انقر على الشاشة الخارجية
+          <p style="margin:0 0 18px; font-size:0.95rem; color:#475569; font-weight:600; line-height:1.6; display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:6px;">
+            اضغط على زر
+            <kbd style="display:inline-flex; flex-direction:column; justify-content:space-between; width:44px; height:44px; padding:3px 6px; background:linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%); border:1px solid #cbd5e1; border-bottom:3px solid #94a3b8; border-radius:8px; font-family:inherit; vertical-align:middle; box-shadow:0 2px 5px rgba(0,0,0,0.15); line-height:1; user-select:none; margin:0 2px;">
+              <span style="display:flex; justify-content:space-between; font-size:0.68rem; color:#64748b; font-weight:700; font-family:monospace;">
+                <span>F</span>
+                <span>[</span>
+              </span>
+              <span style="font-size:0.9rem; font-weight:800; color:#1e293b; text-align:right; margin-top:2px;">ب</span>
+            </kbd>
+            أو انقر على الشاشة الخارجية
           </p>
           <button type="button" id="btn-close-ext-notice" style="background:#2563eb; color:#ffffff; border:none; padding:10px 24px; border-radius:10px; font-weight:700; font-size:0.9rem; cursor:pointer; width:100%; transition:all 0.15s ease;">
             حسناً، فهمت
@@ -3747,6 +3755,13 @@ document.addEventListener('DOMContentLoaded', () => {
         prevLine();
       } else if (e.key === 'b' || e.key === 'B') {
         toggleBlank();
+      } else if (e.key === 'f' || e.key === 'F' || e.key === 'ب' || e.key === '[' || e.code === 'KeyF') {
+        e.preventDefault();
+        const noticeEl = document.getElementById('notice-ext-fs-modal');
+        if (noticeEl && noticeEl.style.display !== 'none' && !noticeEl.classList.contains('hidden')) {
+          hideExternalFullscreenNotice();
+        }
+        handleFullscreenLaunch();
       }
     });
   }
