@@ -4587,6 +4587,7 @@ input[type="range"]:active::-moz-range-thumb {
 
 .obs-line-segment {
   position: relative;
+  isolation: isolate;
   display: inline-block !important;
   width: auto !important;
   max-width: 100%;
@@ -4595,6 +4596,7 @@ input[type="range"]:active::-moz-range-thumb {
 
 .obs-line-segment.line-highlighted {
   position: relative;
+  isolation: isolate;
   z-index: 5;
   color: #ffffff !important;
   text-shadow: none !important;
@@ -4606,16 +4608,17 @@ input[type="range"]:active::-moz-range-thumb {
 .obs-line-segment.line-highlighted::before {
   content: '';
   position: absolute;
-  top: 15%;
-  bottom: 8%;
-  left: -6px;
-  right: -6px;
-  background: var(--highlight-bg, rgba(245, 158, 11, 0.82));
-  border-radius: 4px;
+  top: 10%;
+  bottom: 5%;
+  left: -8px;
+  right: -8px;
+  background: var(--highlight-bg, rgba(239, 68, 68, 0.85)) !important;
+  border-radius: 6px;
   z-index: -1;
-  box-shadow: none !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
   clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
-  opacity: 1;
+  opacity: 1 !important;
+  display: block !important;
 }
 
 .obs-line-segment.line-animating::before {
