@@ -5231,17 +5231,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateScaleModeLockState() {
-    const isAuto = (state.scaleMode === 'auto');
-
-    // 1. Lock / Unlock Font Size Control
     if (els.obsFontSizeRange) {
-      els.obsFontSizeRange.disabled = isAuto;
-      els.obsFontSizeRange.title = isAuto ? 'حجم الخط محدد تلقائياً في نمط الملائمة التلقائية' : 'حجم الخط';
+      els.obsFontSizeRange.disabled = false;
+      els.obsFontSizeRange.title = 'حجم الخط';
     }
     const fontSizeRow = document.getElementById('font-size-popover-row') || (els.obsFontSizeRange && els.obsFontSizeRange.closest('.control-field'));
     if (fontSizeRow) {
-      fontSizeRow.style.opacity = isAuto ? '0.45' : '1';
-      fontSizeRow.style.pointerEvents = isAuto ? 'none' : 'auto';
+      fontSizeRow.style.opacity = '1';
+      fontSizeRow.style.pointerEvents = 'auto';
     }
 
     // 2. Line Height Control is ALWAYS UNLOCKED and EDITABLE in both Auto & Fixed mode
@@ -6608,109 +6605,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return '';
   }
 
-  function computeSongUniformAutoFitFontSize(linesToMeasure, containerW, containerH, fontName, styleOptions) {
-    if (!linesToMeasure || !Array.isArray(linesToMeasure) || linesToMeasure.length === 0) return 54;
-    const isJomhuria = /jomhuria/i.test(fontName || '');
-    const minFloor = isJomhuria ? 44 : 34;
 
-    const curW = containerW || window.innerWidth || 1920;
-    const curH = containerH || window.innerHeight || 1080;
-    
-    // Lock height limit to 16:9 horizontal format ratio when in vertical orientation (never fill tall vertical screen height)
-    const isVertical = curH > curW;
-    const effectiveCanvasH = isVertical ? (curW * (9 / 16)) : curH;
-
-    const maxH = effectiveCanvasH * 0.85;
-    const maxW = curW * 0.90;
-
-    const allSlideTexts = [];
-    linesToMeasure.forEach(item => {
-      if (!item) return;
-      if (typeof item === 'string') {
-        if (item.trim()) allSlideTexts.push(item.trim());
-      } else if (item.text && item.text.trim()) {
-        allSlideTexts.push(item.text.trim());
-      } else if (item.slides && Array.isArray(item.slides)) {
-        item.slides.forEach(s => {
-          if (s && s.text && s.text.trim()) allSlideTexts.push(s.text.trim());
-        });
-      }
-    });
-
-    if (allSlideTexts.length === 0) return minFloor;
-
-    let measurer = document.getElementById('_obs_offscreen_measurer');
-    if (!measurer) {
-      measurer = document.createElement('div');
-      measurer.id = '_obs_offscreen_measurer';
-      measurer.style.cssText = 'position:absolute; left:0; top:0; opacity:0; pointer-events:none; z-index:-9999; overflow:hidden;';
-      document.body.appendChild(measurer);
-    }
-
-    const isBible = Boolean(state.activeSong && (state.activeSong.is_bible || state.activeSong.chapter_number !== undefined));
-    const lSpacing = (styleOptions && styleOptions.letterSpacing !== undefined) ? styleOptions.letterSpacing : 0;
-    const lHeight = (styleOptions && styleOptions.lineHeight !== undefined) ? styleOptions.lineHeight : 1.5;
-    const fWeight = (styleOptions && styleOptions.fontWeight) || '400';
-
-    const slidesToEval = allSlideTexts.length <= 6 ? allSlideTexts : [
-      allSlideTexts[0],
-      allSlideTexts[Math.floor(allSlideTexts.length / 4)],
-      allSlideTexts[Math.floor(allSlideTexts.length / 2)],
-      allSlideTexts[Math.floor((3 * allSlideTexts.length) / 4)],
-      allSlideTexts[allSlideTexts.length - 1]
-    ];
-
-    let minOptimal = Infinity;
-
-    slidesToEval.forEach(slideText => {
-      measurer.innerHTML = formatPresenterText(slideText, isBible, '', '');
-      const wrapper = measurer.querySelector('.obs-slide-wrapper') || measurer;
-      wrapper.style.fontFamily = isJomhuria ? 'Jomhuria, Arial, sans-serif' : (fontName || 'sans-serif');
-      wrapper.style.lineHeight = `${lHeight}`;
-      wrapper.style.letterSpacing = `${lSpacing}px`;
-      wrapper.style.fontWeight = fWeight;
-
-      measurer.style.width = `${Math.round(maxW)}px`;
-      measurer.style.maxWidth = `${Math.round(maxW)}px`;
-
-      const segments = measurer.querySelectorAll('.obs-line-segment');
-      const segCount = segments.length || 1;
-
-      segments.forEach(s => {
-        s.style.display = 'inline-block';
-        s.style.width = 'auto';
-        s.style.whiteSpace = 'pre-wrap';
-        s.style.wordBreak = 'break-word';
-        s.style.overflowWrap = 'break-word';
-      });
-
-      let minFloor = isJomhuria ? 24 : 18;
-      let low = minFloor;
-      let maxLimit = isJomhuria ? 300 : 260;
-      let high = Math.min(maxLimit, Math.floor(maxH / Math.max(1, segCount * 0.6)));
-      if (high < low) high = maxLimit;
-
-      let bestForSlide = minFloor;
-
-      while (low <= high) {
-        const mid = Math.floor((low + high) / 2);
-        wrapper.style.fontSize = `${mid}px`;
-        const h = wrapper.scrollHeight || wrapper.offsetHeight;
-        const w = wrapper.scrollWidth || wrapper.offsetWidth;
-
-        if (h <= maxH && w <= maxW) {
-          bestForSlide = mid;
-          low = mid + 1;
-        } else {
-          high = mid - 1;
-        }
-      }
-
-      if (bestForSlide < minOptimal) minOptimal = bestForSlide;
-    });
-
-    return (minOptimal === Infinity || minOptimal < minFloor) ? minFloor : minOptimal;
-  }
 
   function syncLiveState(isExplicitPositionUpdate = false, isForceRefresh = false) {
     const targetSong = state.liveSong || state.activeSong;
@@ -6729,37 +6624,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const isBible = Boolean(targetSong && ((targetSong.is_bible === true || targetSong.is_bible === '1' || targetSong.is_bible === 1) || (targetSong.chapter_number !== undefined && targetSong.chapter_number !== null && targetSong.chapter_number !== '') || targetSong.type === 'bible'));
     const bibleRefShortcut = isBible ? getBibleVerseShortcut(targetSong, currentSlideItem) : '';
 
-    const currentScaleMode = state.scaleMode || 'auto';
-    let effectiveFontSize = state.fontSize || 54;
-
-    if (currentScaleMode === 'auto') {
-      const container = els.obsOverlay || (els.obsLineText ? els.obsLineText.parentElement : null) || document.body;
-      const containerW = Math.max(320, container.clientWidth || window.innerWidth);
-      const containerH = Math.max(240, container.clientHeight || window.innerHeight);
-
-      const currentItemKey = (targetSong && (targetSong.id || targetSong.item_id || targetSong.title)) 
-        ? (targetSong.id || targetSong.item_id || targetSong.title) 
-        : 'default_item';
-
-      if (!window._obsUniformFontCache || window._obsUniformFontCache.key !== currentItemKey || window._obsUniformFontCache.w !== containerW || window._obsUniformFontCache.h !== containerH || window._obsUniformFontCache.font !== state.selectedFont || window._obsUniformFontCache.scaleMode !== currentScaleMode) {
-        const linesToMeasure = (targetSong && targetSong.verses) ? targetSong.verses : targetLines;
-        const uniformSize = computeSongUniformAutoFitFontSize(linesToMeasure, containerW, containerH, state.selectedFont, state.styleOptions);
-        window._obsUniformFontCache = {
-          key: currentItemKey,
-          w: containerW,
-          h: containerH,
-          font: state.selectedFont,
-          scaleMode: currentScaleMode,
-          size: uniformSize
-        };
-      }
-
-      effectiveFontSize = window._obsUniformFontCache.size;
-      state.fontSize = effectiveFontSize;
-      if (els.obsFontSizeRange) els.obsFontSizeRange.value = effectiveFontSize;
-      if (els.obsFontSizeVal) els.obsFontSizeVal.textContent = `${effectiveFontSize}px`;
-      if (els.fontSizeInput) els.fontSizeInput.value = effectiveFontSize;
-    }
+    const effectiveFontSize = state.fontSize || 54;
 
     const payload = {
       type: 'PRESENT_LINE',
@@ -7120,76 +6985,27 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
 
-      // 4. ACCURATE FONT AUTO-FIT (MATCHING PRESENT.HTML)
+      // 4. ACCURATE FONT APPLICATION & HIGHLIGHT RENDERING
       const snapText = text;
       requestAnimationFrame(() => {
         if (els.obsLineText && snapText.trim() && els.obsLineText.style.display !== 'none') {
           const baseSize = state.fontSize || 54;
-          const scaleMode = state.scaleMode || 'auto';
+          const container = els.obsOverlay || els.obsLineText.parentElement || document.body;
+          const containerW = Math.max(320, container.clientWidth || window.innerWidth);
+          const containerH = Math.max(240, container.clientHeight || window.innerHeight);
 
-          if (scaleMode === 'fixed') {
-            window._obsUniformFontCache = null;
-            els.obsLineText.style.fontSize = `${baseSize}px`;
-            const fixedLH = state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : 1.5;
-            els.obsLineText.style.lineHeight = `${fixedLH}`;
-          } else if (scaleMode === 'auto') {
-            const container = els.obsOverlay || els.obsLineText.parentElement || document.body;
-            const containerW = Math.max(320, container.clientWidth || window.innerWidth);
-            const containerH = Math.max(240, container.clientHeight || window.innerHeight);
-
-            if (containerH > containerW) {
-              els.obsLineText.classList.add('obs-vertical-mode');
-            } else {
-              els.obsLineText.classList.remove('obs-vertical-mode');
-            }
-
-            const currentItemKey = (state.activeSong && (state.activeSong.id || state.activeSong.item_id || state.activeSong.title)) 
-              ? (state.activeSong.id || state.activeSong.item_id || state.activeSong.title) 
-              : 'default_item';
-
-            if (!window._obsUniformFontCache || window._obsUniformFontCache.key !== currentItemKey || window._obsUniformFontCache.w !== containerW || window._obsUniformFontCache.h !== containerH || window._obsUniformFontCache.font !== state.selectedFont || window._obsUniformFontCache.scaleMode !== scaleMode) {
-              const linesToMeasure = (state.activeSong && state.activeSong.verses) ? state.activeSong.verses : state.presentationLines;
-              const uniformSize = computeSongUniformAutoFitFontSize(linesToMeasure, containerW, containerH, state.selectedFont, state.styleOptions);
-              window._obsUniformFontCache = {
-                key: currentItemKey,
-                w: containerW,
-                h: containerH,
-                font: state.selectedFont,
-                scaleMode: scaleMode,
-                size: uniformSize
-              };
-            }
-
-            els.obsLineText.style.fontSize = `${window._obsUniformFontCache.size}px`;
-
-            const obsSegmentsList = els.obsLineText ? Array.from(els.obsLineText.querySelectorAll('.obs-line-segment')) : [];
-            const segmentsCount = obsSegmentsList.length || 1;
-            const isJomhuriaFont = /jomhuria/i.test(state.selectedFont || '');
-
-            let defaultLH = 1.18;
-            if (isJomhuriaFont) {
-              defaultLH = 0.92;
-            } else if (segmentsCount > 2) {
-              defaultLH = 1.18;
-            } else if (segmentsCount === 1) {
-              defaultLH = 1.15;
-            }
-            let optimalLineHeight = defaultLH;
-            if (state.styleOptions.lineHeight !== undefined) {
-              if (!isJomhuriaFont && state.styleOptions.lineHeight <= 0.95) {
-                optimalLineHeight = defaultLH;
-              } else {
-                optimalLineHeight = state.styleOptions.lineHeight;
-              }
-            }
-            els.obsLineText.style.lineHeight = `${optimalLineHeight}`;
-
-            const bestFit = window._obsUniformFontCache.size;
-            els.obsLineText.style.fontSize = `${bestFit}px`;
+          if (containerH > containerW) {
+            els.obsLineText.classList.add('obs-vertical-mode');
+          } else {
+            els.obsLineText.classList.remove('obs-vertical-mode');
           }
+
+          els.obsLineText.style.fontSize = `${baseSize}px`;
+          const fixedLH = state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : 1.5;
+          els.obsLineText.style.lineHeight = `${fixedLH}`;
           els.obsLineText.style.transform = 'none';
           
-          // Re-apply highlights after Auto-Fit formatting
+          // Re-apply highlights after formatting
           const hColor = state.highlightColor || '#ef4444';
           const activeHighlights = state.isHighlightMode ? (state.highlightedLineIndices || []) : [];
           const currentSegments = els.obsLineText ? Array.from(els.obsLineText.querySelectorAll('.obs-line-segment')) : [];
