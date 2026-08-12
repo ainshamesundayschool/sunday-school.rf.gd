@@ -828,11 +828,14 @@
           obsChannel.postMessage({ type: 'FOCUS_CONTROL_PANEL' });
         }
       } catch (err) {}
-      try {
-        if (window.opener && !window.opener.closed) {
-          window.opener.focus();
-        }
-      } catch (err) {}
+      const isFS = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+      if (!isFS) {
+        try {
+          if (window.opener && !window.opener.closed) {
+            window.opener.focus();
+          }
+        } catch (err) {}
+      }
     };
 
     function updateFullscreenBtnIcon() {
@@ -875,7 +878,6 @@
         }
       }
       setTimeout(updateFullscreenBtnIcon, 150);
-      returnFocusToControlPanel();
     }
     const box = document.getElementById('presenter-box');
     const textEl = document.getElementById('presenter-text');
@@ -890,27 +892,14 @@
       if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen().catch(() => {});
       }
-      returnFocusToControlPanel();
     }
 
-    window.addEventListener('click', () => {
+    window.addEventListener('click', (e) => {
+      if (e && e.target && e.target.closest && e.target.closest('#btn-close-window-bottom, .btn-close-overlay-left, button, a')) return;
       requestAutoFullscreen();
-      returnFocusToControlPanel();
     });
     window.addEventListener('touchstart', requestAutoFullscreen);
     window.addEventListener('pointerdown', requestAutoFullscreen);
-    
-    window.addEventListener('keydown', (e) => {
-      if (e.code === 'Space' || e.key === ' ' || e.keyCode === 32) {
-        e.preventDefault();
-        requestAutoFullscreen();
-        returnFocusToControlPanel();
-      }
-    });
-
-    document.addEventListener('fullscreenchange', () => {
-      returnFocusToControlPanel();
-    });
 
     const urlParams = new URLSearchParams(window.location.search);
     let initialChroma = urlParams.get('chroma');
@@ -1032,7 +1021,9 @@
     });
 
     function triggerNextSlide() {
-      requestFS();
+      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
       try {
         if (channel) channel.postMessage({ action: 'NEXT_SLIDE' });
       } catch(err) {}
@@ -1056,7 +1047,9 @@
     })();
 
     function triggerPrevSlide() {
-      requestFS();
+      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
       try {
         if (channel) channel.postMessage({ action: 'PREV_SLIDE' });
       } catch(err) {}

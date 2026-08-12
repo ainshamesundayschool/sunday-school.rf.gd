@@ -3548,6 +3548,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (els.btnPresenterFullscreen) {
         els.btnPresenterFullscreen.addEventListener('click', (e) => {
           e.stopPropagation();
+          if (els.btnPresenterFullscreen && typeof els.btnPresenterFullscreen.blur === 'function') {
+            els.btnPresenterFullscreen.blur();
+          }
           handleFullscreenLaunch();
         });
       }
@@ -3696,9 +3699,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (e.key === 'ArrowLeft' || e.key === 'ArrowDown' || e.key === ' ') {
         e.preventDefault();
+        if (document.activeElement && typeof document.activeElement.blur === 'function' && (document.activeElement.tagName === 'BUTTON' || document.activeElement.classList.contains('launch-fullscreen-btn'))) {
+          document.activeElement.blur();
+        }
+        const noticeEl = document.getElementById('notice-ext-fs-modal');
+        if (noticeEl && noticeEl.style.display !== 'none' && !noticeEl.classList.contains('hidden')) {
+          hideExternalFullscreenNotice();
+        }
         nextLine();
       } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
         e.preventDefault();
+        if (document.activeElement && typeof document.activeElement.blur === 'function' && (document.activeElement.tagName === 'BUTTON' || document.activeElement.classList.contains('launch-fullscreen-btn'))) {
+          document.activeElement.blur();
+        }
         prevLine();
       } else if (e.key === 'b' || e.key === 'B') {
         toggleBlank();
@@ -6062,6 +6075,7 @@ document.addEventListener('DOMContentLoaded', () => {
     els.presentationLinesContainer.querySelectorAll('.launch-fullscreen-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
+        if (typeof btn.blur === 'function') btn.blur();
         const idx = parseInt(btn.dataset.idx);
         handleFullscreenLaunch(idx);
       });
@@ -7438,7 +7452,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const btnOverlayFS = document.getElementById('btn-presenter-overlay-fullscreen');
   if (btnOverlayFS) {
-    btnOverlayFS.addEventListener('click', () => {
+    btnOverlayFS.addEventListener('click', (e) => {
+      if (e && typeof e.preventDefault === 'function') e.preventDefault();
+      if (typeof btnOverlayFS.blur === 'function') btnOverlayFS.blur();
       const isFS = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
       if (!isFS) {
         const container = els.obsOverlay || document.documentElement;
