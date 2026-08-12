@@ -1,5 +1,5 @@
-// TARANIM PWA & OBS PRESENTER SERVICE WORKER (100% OFFLINE CAPABLE ON ALL DEVICES & IOS SAFARI)
-const CACHE_NAME = 'taranim-pwa-v10';
+// TARANIM PWA & OBS PRESENTER SERVICE WORKER (NETWORK-FIRST FOR LIVE REFRESH)
+const CACHE_NAME = 'taranim-pwa-v25';
 const PRECACHE_ASSETS = [
   '/',
   './',
@@ -49,7 +49,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+        keys.map((key) => caches.delete(key))
       );
     }).then(() => self.clients.claim())
   );
@@ -72,61 +72,27 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Handle all HTML navigation & document requests 100% Cache-First (Instant 0ms offline capability for iOS PWA)
-  const isNavigation = event.request.mode === 'navigate' || 
-                       event.request.destination === 'document' ||
-                       url.includes('present.html') ||
-                       url.includes('index.html') ||
-                       (event.request.headers.get('accept') || '').includes('text/html');
+  // Handle HTML, JS, CSS requests Network-First to guarantee instant updates
+  const isCodeAsset = event.request.mode === 'navigate' || 
+                      event.request.destination === 'document' ||
+                      url.includes('present.html') ||
+                      url.includes('index.html') ||
+                      url.endsWith('.js') ||
+                      url.endsWith('.css') ||
+                      (event.request.headers.get('accept') || '').includes('text/html');
 
-  if (isNavigation) {
+  if (isCodeAsset) {
     event.respondWith(
-      (async () => {
-        try {
-          const cache = await caches.open(CACHE_NAME).catch(() => null);
-          if (cache) {
-            if (url.includes('present.html')) {
-              const cachedPresent = await cache.match('present.html', { ignoreSearch: true }) ||
-                                   await cache.match('./present.html', { ignoreSearch: true });
-              if (cachedPresent) return cachedPresent;
-            }
-
-            const cachedIndex = await cache.match('index.html', { ignoreSearch: true }) ||
-                               await cache.match('./index.html', { ignoreSearch: true }) ||
-                               await cache.match('/', { ignoreSearch: true }) ||
-                               await cache.match('./', { ignoreSearch: true });
-            if (cachedIndex) return cachedIndex;
-
-            const directMatch = await cache.match(event.request, { ignoreSearch: true });
-            if (directMatch) return directMatch;
-          }
-        } catch (e) {}
-
-        try {
-          const directMatch = await caches.match(event.request, { ignoreSearch: true }) ||
-                              await caches.match('./index.html', { ignoreSearch: true }) ||
-                              await caches.match('index.html', { ignoreSearch: true }) ||
-                              await caches.match('./present.html', { ignoreSearch: true });
-          if (directMatch) return directMatch;
-        } catch (e) {}
-
-        if (navigator.onLine) {
-          try {
-            const netRes = await fetch(event.request);
-            if (netRes && netRes.ok) return netRes;
-          } catch (e) {}
+      fetch(event.request).then(async (networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const cache = await caches.open(CACHE_NAME);
+          cache.put(event.request, networkResponse.clone());
         }
-
-        const fallbackIndex = await caches.match('./index.html', { ignoreSearch: true }) || 
-                              await caches.match('index.html', { ignoreSearch: true }) ||
-                              await caches.match('./present.html', { ignoreSearch: true });
-        if (fallbackIndex) return fallbackIndex;
-
-        return new Response(
-          '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>تطبيق الترنم</title></head><body><script>location.reload();</script></body></html>',
-          { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
-        );
-      })()
+        return networkResponse;
+      }).catch(async () => {
+        const cache = await caches.open(CACHE_NAME);
+        return cache.match(event.request, { ignoreSearch: true });
+      })
     );
     return;
   }
