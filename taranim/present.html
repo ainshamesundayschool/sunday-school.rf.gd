@@ -1824,13 +1824,14 @@
         if (data.mode === 'allinone' || (data.text && data.text.includes('allinone-slide-group'))) {
           const docEl = document.documentElement || document.body;
           const groups = document.querySelectorAll('.allinone-slide-group');
-          let targetGroup = null;
-          if (data.activeGroupIndex !== undefined && data.activeGroupIndex !== null && groups.length > 0) {
-            targetGroup = document.querySelector(`.allinone-slide-group[data-group-idx="${data.activeGroupIndex}"]`) || groups[data.activeGroupIndex];
-          }
 
-          if (targetGroup) {
-            targetGroup.scrollIntoView({ block: 'start', behavior: 'smooth' });
+          if (data.activeGroupIndex === 0 || (!data.activeGroupIndex && data.scrollRatio === 0)) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          } else if (data.activeGroupIndex !== undefined && data.activeGroupIndex !== null && groups.length > 0) {
+            const targetGroup = document.querySelector(`.allinone-slide-group[data-group-idx="${data.activeGroupIndex}"]`) || groups[data.activeGroupIndex];
+            if (targetGroup) {
+              targetGroup.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            }
           } else if (data.scrollRatio !== undefined && !isNaN(data.scrollRatio)) {
             const maxScrollHeight = Math.max(0, docEl.scrollHeight - window.innerHeight);
             if (maxScrollHeight > 0) {

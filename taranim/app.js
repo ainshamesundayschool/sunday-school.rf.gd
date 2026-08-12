@@ -1400,15 +1400,9 @@ document.addEventListener('DOMContentLoaded', () => {
             <i class="fa-solid fa-expand"></i>
           </div>
           <h3 style="margin:0 0 8px; font-size:1.15rem; font-weight:800; color:#1e293b;">فتح الشاشة الخارجية ملء الشاشة</h3>
-          <p style="margin:0 0 18px; font-size:0.95rem; color:#475569; font-weight:600; line-height:1.6; display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:6px;">
+          <p style="margin:0 0 18px; font-size:0.95rem; color:#475569; font-weight:600; line-height:1.6; display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:4px;">
             اضغط على زر
-            <kbd style="display:inline-flex; flex-direction:column; justify-content:space-between; width:44px; height:44px; padding:3px 6px; background:linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%); border:1px solid #cbd5e1; border-bottom:3px solid #94a3b8; border-radius:8px; font-family:inherit; vertical-align:middle; box-shadow:0 2px 5px rgba(0,0,0,0.15); line-height:1; user-select:none; margin:0 2px;">
-              <span style="display:flex; justify-content:space-between; font-size:0.68rem; color:#64748b; font-weight:700; font-family:monospace;">
-                <span>F</span>
-                <span>[</span>
-              </span>
-              <span style="font-size:0.9rem; font-weight:800; color:#1e293b; text-align:right; margin-top:2px;">ب</span>
-            </kbd>
+            <kbd style="display:inline-flex; align-items:center; justify-content:center; min-width:38px; height:38px; padding:0 10px; background:linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%); border:1px solid #cbd5e1; border-bottom:3px solid #94a3b8; border-radius:8px; font-weight:800; font-size:1.2rem; color:#1e293b; font-family:monospace, inherit; box-shadow:0 2px 5px rgba(0,0,0,0.15); vertical-align:middle; margin:0 4px; user-select:none;">F</kbd>
             أو انقر على الشاشة الخارجية
           </p>
           <button type="button" id="btn-close-ext-notice" style="background:#2563eb; color:#ffffff; border:none; padding:10px 24px; border-radius:10px; font-weight:700; font-size:0.9rem; cursor:pointer; width:100%; transition:all 0.15s ease;">
@@ -3457,25 +3451,32 @@ document.addEventListener('DOMContentLoaded', () => {
         const scrollRatio = maxScroll > 0 ? (el.scrollTop / maxScroll) : 0;
         state.allInOneScrollRatio = scrollRatio;
 
-        const groups = el.querySelectorAll('.allinone-slide-group');
-        if (groups.length > 0) {
-          let closestGroupIdx = 0;
-          let minDiff = Infinity;
-          const containerRect = el.getBoundingClientRect();
-          const targetY = containerRect.top + 70;
-          groups.forEach((g, idx) => {
-            const gRect = g.getBoundingClientRect();
-            const diff = Math.abs(gRect.top - targetY);
-            if (diff < minDiff) {
-              minDiff = diff;
-              closestGroupIdx = idx;
-            }
+        if (el.scrollTop <= 30) {
+          state.allInOneActiveGroupIndex = 0;
+          el.querySelectorAll('.allinone-slide-group').forEach((g, idx) => {
+            g.classList.toggle('active-allinone-group', idx === 0);
           });
-          if (state.allInOneActiveGroupIndex !== closestGroupIdx) {
-            state.allInOneActiveGroupIndex = closestGroupIdx;
+        } else {
+          const groups = el.querySelectorAll('.allinone-slide-group');
+          if (groups.length > 0) {
+            let closestGroupIdx = 0;
+            let minDiff = Infinity;
+            const containerRect = el.getBoundingClientRect();
+            const targetY = containerRect.top + 30;
             groups.forEach((g, idx) => {
-              g.classList.toggle('active-allinone-group', idx === closestGroupIdx);
+              const gRect = g.getBoundingClientRect();
+              const diff = Math.abs(gRect.top - targetY);
+              if (diff < minDiff) {
+                minDiff = diff;
+                closestGroupIdx = idx;
+              }
             });
+            if (state.allInOneActiveGroupIndex !== closestGroupIdx) {
+              state.allInOneActiveGroupIndex = closestGroupIdx;
+              groups.forEach((g, idx) => {
+                g.classList.toggle('active-allinone-group', idx === closestGroupIdx);
+              });
+            }
           }
         }
         debouncedSyncLiveState(40);
@@ -3658,7 +3659,7 @@ document.addEventListener('DOMContentLoaded', () => {
         syncLiveState();
         if (els.presentationLinesContainer) {
           const targetG = els.presentationLinesContainer.querySelector(`.allinone-slide-group[data-group-idx="${targetIdx}"]`);
-          if (targetG) targetG.scrollIntoView({ block: 'start', behavior: 'smooth' });
+          if (targetG) targetG.scrollIntoView({ block: 'center', behavior: 'smooth' });
         }
         return;
       }
@@ -5832,6 +5833,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       if (mode === 'allinone') {
+        state.allInOneActiveGroupIndex = 0;
+        state.allInOneScrollRatio = 0;
         const allGroupsHtml = [];
         const cleanStanzaTexts = [];
         let groupCounter = 0;
@@ -7432,7 +7435,7 @@ document.addEventListener('DOMContentLoaded', () => {
         syncLiveState();
         if (els.presentationLinesContainer) {
           const targetG = els.presentationLinesContainer.querySelector(`.allinone-slide-group[data-group-idx="${state.allInOneActiveGroupIndex}"]`);
-          if (targetG) targetG.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          if (targetG) targetG.scrollIntoView({ block: 'center', behavior: 'smooth' });
         }
       }
       return;
@@ -7482,7 +7485,7 @@ document.addEventListener('DOMContentLoaded', () => {
         syncLiveState();
         if (els.presentationLinesContainer) {
           const targetG = els.presentationLinesContainer.querySelector(`.allinone-slide-group[data-group-idx="${state.allInOneActiveGroupIndex}"]`);
-          if (targetG) targetG.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          if (targetG) targetG.scrollIntoView({ block: 'center', behavior: 'smooth' });
         }
       }
       return;
