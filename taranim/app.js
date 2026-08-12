@@ -6076,11 +6076,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const clickedIdx = parseInt(item.dataset.idx);
 
         const lineRow = e.target.closest('.slide-line-row');
-        const isLiveSongDisplayed = Boolean(state.liveSong && state.activeSong && getItemKey(state.liveSong) === getItemKey(state.activeSong));
-
-        if (clickedIdx === state.liveLineIndex && isLiveSongDisplayed && state.isHighlightMode) {
-          let lineIdx = lineRow ? parseInt(lineRow.dataset.lineIdx) : null;
-          if (lineIdx !== null && !isNaN(lineIdx)) {
+        if (clickedIdx === state.liveLineIndex && state.isHighlightMode) {
+          let lineIdx = lineRow ? parseInt(lineRow.dataset.lineIdx) : 0;
+          if (!isNaN(lineIdx)) {
             if (!Array.isArray(state.highlightedLineIndices)) state.highlightedLineIndices = [];
             const pos = state.highlightedLineIndices.indexOf(lineIdx);
             if (pos >= 0) {
@@ -7165,6 +7163,25 @@ document.addEventListener('DOMContentLoaded', () => {
             }
           }
           els.obsLineText.style.transform = 'none';
+          
+          // Re-apply highlights after Auto-Fit formatting
+          const hColor = state.highlightColor || '#ef4444';
+          const activeHighlights = state.isHighlightMode ? (state.highlightedLineIndices || []) : [];
+          const currentSegments = els.obsLineText ? Array.from(els.obsLineText.querySelectorAll('.obs-line-segment')) : [];
+          currentSegments.forEach((seg, idx) => {
+            const segLineIdx = parseInt(seg.dataset.lineIdx !== undefined ? seg.dataset.lineIdx : idx);
+            const isH = Array.isArray(activeHighlights) ? activeHighlights.includes(segLineIdx) : (activeHighlights === segLineIdx);
+            if (isH) {
+              seg.style.setProperty('--highlight-bg', `${hColor}cc`);
+              if (!seg.classList.contains('line-highlighted')) {
+                seg.classList.remove('line-unhighlighting');
+                seg.classList.add('line-highlighted', 'line-animating');
+                setTimeout(() => seg.classList.remove('line-animating'), 650);
+              }
+            } else {
+              seg.classList.remove('line-highlighted', 'line-animating', 'line-unhighlighting');
+            }
+          });
         }
       });
 
