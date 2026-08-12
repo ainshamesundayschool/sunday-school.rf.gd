@@ -1176,7 +1176,7 @@ document.addEventListener('DOMContentLoaded', () => {
     highlightColor: savedSettings.highlightColor || "#ef4444",
 
     selectedFont: savedSettings.selectedFont || "'Alexandria', sans-serif",
-    fontSize: savedSettings.fontSize || 54,
+    fontSize: savedSettings.fontSize || 105,
     chromaKey: savedSettings.chromaKey || "black",
     presentationMode: savedSettings.presentationMode || "oneline",
     splitLongLines: savedSettings.splitLongLines !== undefined ? savedSettings.splitLongLines : true,
@@ -6624,7 +6624,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const isBible = Boolean(targetSong && ((targetSong.is_bible === true || targetSong.is_bible === '1' || targetSong.is_bible === 1) || (targetSong.chapter_number !== undefined && targetSong.chapter_number !== null && targetSong.chapter_number !== '') || targetSong.type === 'bible'));
     const bibleRefShortcut = isBible ? getBibleVerseShortcut(targetSong, currentSlideItem) : '';
 
-    const effectiveFontSize = state.fontSize || 54;
+    const effectiveFontSize = state.fontSize || 105;
 
     const payload = {
       type: 'PRESENT_LINE',
@@ -6989,7 +6989,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const snapText = text;
       requestAnimationFrame(() => {
         if (els.obsLineText && snapText.trim() && els.obsLineText.style.display !== 'none') {
-          const baseSize = state.fontSize || 54;
+          const baseSize = state.fontSize || 105;
           const container = els.obsOverlay || els.obsLineText.parentElement || document.body;
           const containerW = Math.max(320, container.clientWidth || window.innerWidth);
           const containerH = Math.max(240, container.clientHeight || window.innerHeight);
