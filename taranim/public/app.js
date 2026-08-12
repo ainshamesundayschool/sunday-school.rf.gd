@@ -5838,11 +5838,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const allGroupsHtml = [];
         const cleanStanzaTexts = [];
         let groupCounter = 0;
+        let globalLineCounter = 0;
         orderedVersesToProcess.forEach(({ verse, idx, stanzaNum }) => {
           const slideItems = buildVerseSlideItems(verse, idx, stanzaNum);
           slideItems.forEach(item => {
             const bHtml = item.badgeText ? `<span class="slide-badge-layer ${item.badgeClass}">${escapeHtml(item.badgeText)}</span>` : '';
-            const linesHtml = (item.lines || [item.text]).map(l => `<div class="obs-line-row"><span class="obs-line-segment">${escapeHtml(l)}</span></div>`).join('');
+            const linesHtml = (item.lines || [item.text]).map(l => {
+              const row = `<div class="obs-line-row slide-line-row" data-line-idx="${globalLineCounter}"><span class="obs-line-segment" data-line-idx="${globalLineCounter}">${escapeHtml(l)}</span></div>`;
+              globalLineCounter++;
+              return row;
+            }).join('');
             allGroupsHtml.push(`<div class="allinone-slide-group" data-group-idx="${groupCounter}">${bHtml}${linesHtml}</div>`);
 
             const bClean = item.badgeText ? `(${item.badgeText}) ` : '';
@@ -6128,6 +6133,24 @@ document.addEventListener('DOMContentLoaded', () => {
     els.presentationLinesContainer.querySelectorAll('.allinone-slide-group').forEach((group) => {
       group.addEventListener('click', (e) => {
         e.stopPropagation();
+        
+        const lineRow = e.target.closest('.obs-line-row, .slide-line-row, .obs-line-segment');
+        if (state.isHighlightMode && lineRow) {
+          const lineIdx = parseInt(lineRow.dataset.lineIdx);
+          if (!isNaN(lineIdx)) {
+            if (!Array.isArray(state.highlightedLineIndices)) state.highlightedLineIndices = [];
+            const pos = state.highlightedLineIndices.indexOf(lineIdx);
+            if (pos >= 0) {
+              state.highlightedLineIndices.splice(pos, 1);
+            } else {
+              state.highlightedLineIndices.push(lineIdx);
+            }
+            renderPresentationLinesList();
+            syncLiveState();
+            return;
+          }
+        }
+
         const gIdx = parseInt(group.dataset.groupIdx);
         if (!isNaN(gIdx)) {
           state.allInOneActiveGroupIndex = gIdx;
@@ -6181,6 +6204,24 @@ document.addEventListener('DOMContentLoaded', () => {
         syncLiveState();
       });
     });
+
+    if (state.presentationMode === 'allinone') {
+      const activeHighlights = state.isHighlightMode ? (state.highlightedLineIndices || []) : [];
+      const hColor = state.highlightColor || '#f59e0b';
+      els.presentationLinesContainer.querySelectorAll('.allinone-slide-group .obs-line-row, .allinone-slide-group .obs-line-segment').forEach((seg) => {
+        const segLineIdx = parseInt(seg.dataset.lineIdx);
+        if (!isNaN(segLineIdx)) {
+          const isH = activeHighlights.includes(segLineIdx);
+          if (isH) {
+            seg.style.setProperty('--highlight-bg', `${hColor}cc`);
+            seg.style.setProperty('--highlight-color', hColor);
+            seg.classList.add('line-highlighted');
+          } else {
+            seg.classList.remove('line-highlighted');
+          }
+        }
+      });
+    }
 
     const activeEl = els.presentationLinesContainer.querySelector('.line-item.active');
     if (activeEl) {

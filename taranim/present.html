@@ -249,6 +249,18 @@
       padding-right: 20px !important;
       padding-left: 20px !important;
       box-sizing: border-box !important;
+      -ms-overflow-style: none !important;
+      scrollbar-width: none !important;
+    }
+
+    #presenter-box::-webkit-scrollbar,
+    .lower-third-container::-webkit-scrollbar,
+    body[data-mode="allinone"] #presenter-box::-webkit-scrollbar,
+    body[data-mode="allinone"] .lower-third-container::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+      background: transparent !important;
     }
 
     .allinone-slide-group {
