@@ -22079,19 +22079,14 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
   <div id="bibleVerseModal" class="taranim-onboard-overlay" style="display:none;">
     <div class="taranim-onboard-card bible-modal-card">
       <div style="display:flex; align-items:center; justify-content:space-between; padding-bottom:12px; border-bottom:1px solid var(--bdr, #e2e8f0);">
-        <h3 style="font-family:'Baloo Bhaijaan 2', sans-serif; font-size:1.15rem; font-weight:700; color:var(--t1); margin:0; display:flex; align-items:center; gap:8px;">
-          <i class="fas fa-bible" style="color:#6366f1;"></i> إضافة آية من الكتاب المقدس
-        </h3>
-        <div style="display:flex; align-items:center; gap:10px;">
-          <a href="/taranim/" target="_blank" title="منصة الترانيم والكتاب المقدس" style="display:inline-flex; align-items:center; gap:6px; text-decoration:none; background:var(--bg2, #f8fafc); padding:4px 10px; border-radius:10px; border:1px solid var(--bdr, #e2e8f0); transition:all 0.2s ease;">
-            <img src="/taranim/logo_t.png" style="width:24px; height:24px; object-fit:contain; border-radius:6px;" alt="Taranim Logo">
-            <span style="font-size:0.75rem; font-weight:700; color:var(--t2);">منصة الترانيم</span>
-            <i class="fas fa-external-link-alt" style="font-size:0.65rem; color:var(--t3);"></i>
-          </a>
-          <button type="button" onclick="closeBibleVerseModal()" style="background:var(--bg2, #f1f5f9); border:none; width:32px; height:32px; border-radius:50%; color:var(--t2); cursor:pointer; display:flex; align-items:center; justify-content:center;">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
+        <a href="/taranim/" target="_blank" title="منصة الترانيم والكتاب المقدس" style="display:inline-flex; align-items:center; gap:6px; text-decoration:none; background:var(--bg2, #f8fafc); padding:4px 10px; border-radius:10px; border:1px solid var(--bdr, #e2e8f0); transition:all 0.2s ease;">
+          <img src="/taranim/logo_t.png" style="width:24px; height:24px; object-fit:contain; border-radius:6px;" alt="Taranim Logo">
+          <span style="font-size:0.75rem; font-weight:700; color:var(--t2);">منصة الترانيم</span>
+          <i class="fas fa-external-link-alt" style="font-size:0.65rem; color:var(--t3);"></i>
+        </a>
+        <button type="button" onclick="closeBibleVerseModal()" style="background:var(--bg2, #f1f5f9); border:none; width:32px; height:32px; border-radius:50%; color:var(--t2); cursor:pointer; display:flex; align-items:center; justify-content:center;">
+          <i class="fas fa-times"></i>
+        </button>
       </div>
 
       <!-- Search Controls -->
