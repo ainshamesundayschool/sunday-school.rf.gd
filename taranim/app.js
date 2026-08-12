@@ -6640,7 +6640,7 @@ document.addEventListener('DOMContentLoaded', () => {
       totalSlides: totalSlides,
       scaleText: scaleText,
       font: state.selectedFont,
-      scaleMode: currentScaleMode,
+      scaleMode: state.scaleMode || 'fixed',
       customFontDataUrl: localStorage.getItem('sunday_school_custom_font_dataurl') || state.customFontDataUrl || '',
       customFontName: localStorage.getItem('sunday_school_custom_font_name') || '',
       fontSize: effectiveFontSize,
