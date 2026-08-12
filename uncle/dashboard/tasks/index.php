@@ -12739,6 +12739,7 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="/js/search_intelligent.js"></script>
 </head>
 
@@ -13214,7 +13215,10 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
 
 
-            <button class="add-q" onclick="addQ()"><i class="fas fa-plus-circle"></i>إضافة سؤال</button>
+            <div style="display:flex; gap:10px; align-items:center; margin-bottom:12px; flex-wrap:wrap;">
+              <button type="button" class="add-q" onclick="addQ()" style="flex:1; min-width:140px; margin-bottom:0;"><i class="fas fa-plus-circle"></i>إضافة سؤال</button>
+              <button type="button" class="add-q" onclick="openBulkQModal()" style="flex:1; min-width:180px; margin-bottom:0; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; border:none; box-shadow:0 4px 14px rgba(16,185,129,0.3);"><i class="fas fa-file-excel"></i> استيراد شيت أسئلة (Bulk Add)</button>
+            </div>
 
 
 
@@ -22343,6 +22347,373 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
     }
   </script>
 
+  <!-- BULK QUESTIONS IMPORT MODAL -->
+  <div id="bulkQModal" class="taranim-onboard-overlay" style="display:none;">
+    <div class="taranim-onboard-card" style="max-width:760px; width:100%; max-height:88vh; max-height:88dvh; display:flex; flex-direction:column; padding:24px !important; text-align:right !important; border-radius:24px;">
+      <!-- Modal Header -->
+      <div style="display:flex; align-items:center; justify-content:space-between; padding-bottom:14px; border-bottom:1px solid var(--bdr, #e2e8f0);">
+        <h3 style="font-family:'Baloo Bhaijaan 2', sans-serif; font-size:1.2rem; font-weight:700; color:var(--t1); margin:0; display:flex; align-items:center; gap:8px;">
+          <i class="fas fa-file-excel" style="color:#10b981;"></i> استيراد أسئلة دفعة واحدة (Bulk Add)
+        </h3>
+        <button type="button" onclick="closeBulkQModal()" style="background:var(--bg2, #f1f5f9); border:none; width:32px; height:32px; border-radius:50%; color:var(--t2); cursor:pointer; display:flex; align-items:center; justify-content:center;">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Modal Content Body -->
+      <div style="overflow-y:auto; flex:1; padding:16px 4px; display:flex; flex-direction:column; gap:16px; text-align:right;">
+        
+        <!-- Step 1 / Action Header: Download Template & Instructions -->
+        <div style="background:var(--bg2, #f8fafc); border:1px dashed var(--bdr, #cbd5e1); border-radius:16px; padding:16px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+          <div>
+            <div style="font-weight:700; font-size:0.95rem; color:var(--t1); margin-bottom:4px;">
+              <i class="fas fa-info-circle" style="color:var(--brand, #6366f1); margin-left:4px;"></i> تعليمات الاستيراد
+            </div>
+            <div style="font-size:0.8rem; color:var(--t2); line-height:1.6;">
+              حمل نموذج الشيت الفارغ لتعبئة الأسئلة والخيارات والدرجات، ثم ارفعه أو انسخ محتواه مباشرة.
+            </div>
+          </div>
+          <button type="button" onclick="downloadEmptyTaskTemplate()" class="btn" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; border:none; border-radius:12px; padding:8px 16px; font-weight:700; font-size:0.82rem; cursor:pointer; display:inline-flex; align-items:center; gap:8px; box-shadow:0 4px 12px rgba(16,185,129,0.25);">
+            <i class="fas fa-download"></i> تحميل نموذج شيت فارغ (CSV)
+          </button>
+        </div>
+
+        <!-- Inputs Grid: Upload File OR Copy-Paste -->
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:14px;">
+          <!-- File Drop Zone -->
+          <div style="border:2px dashed var(--bdr); border-radius:16px; padding:16px; text-align:center; background:var(--bg2); transition:all 0.2s ease; cursor:pointer;" onclick="document.getElementById('bulkQFileInput').click()">
+            <i class="fas fa-cloud-upload-alt" style="font-size:2rem; color:var(--brand); margin-bottom:8px; display:block;"></i>
+            <div style="font-weight:700; font-size:0.88rem; color:var(--t1); margin-bottom:4px;">رفع ملف شيت (Excel / CSV)</div>
+            <div style="font-size:0.75rem; color:var(--t3);">اضغط هنا لاختيار ملف .csv أو .xlsx أو .xls</div>
+            <input type="file" id="bulkQFileInput" accept=".csv, .xlsx, .xls, .txt" style="display:none;" onchange="handleBulkQFileUpload(event)" />
+            <div id="bulkQFileName" style="margin-top:8px; font-size:0.8rem; font-weight:700; color:#10b981;"></div>
+          </div>
+
+          <!-- Direct Copy-Paste Area -->
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <label style="font-size:0.82rem; font-weight:700; color:var(--t1); display:flex; align-items:center; gap:6px;">
+              <i class="fas fa-paste" style="color:var(--brand);"></i> أو لصق جدول البيانات مباشرة:
+            </label>
+            <textarea id="bulkQPasteArea" placeholder="قم بنسخ الجدول من Excel ولصقه هنا مباشرة..." oninput="parseBulkQPasteText()" style="flex:1; min-height:90px; width:100%; border-radius:12px; border:1px solid var(--bdr); background:var(--bg2); color:var(--t1); padding:10px; font-size:0.8rem; font-family:monospace; resize:vertical; outline:none;"></textarea>
+          </div>
+        </div>
+
+        <!-- Preview Section -->
+        <div>
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+            <div style="font-weight:700; font-size:0.9rem; color:var(--t1); display:flex; align-items:center; gap:6px;">
+              <i class="fas fa-list-check" style="color:var(--brand);"></i> معاينة الأسئلة المستخرجة
+            </div>
+            <div id="bulkQCountBadge" style="font-size:0.78rem; font-weight:700; color:var(--t3); background:var(--bg2); padding:2px 10px; border-radius:20px; border:1px solid var(--bdr);">
+              0 أسئلة
+            </div>
+          </div>
+
+          <div style="max-height:220px; overflow-y:auto; border:1px solid var(--bdr); border-radius:14px; background:var(--bg);">
+            <table style="width:100%; border-collapse:collapse; text-align:right; font-size:0.8rem;">
+              <thead style="background:var(--bg2); position:sticky; top:0; font-weight:700; color:var(--t1); border-bottom:1px solid var(--bdr);">
+                <tr>
+                  <th style="padding:8px 10px; width:35px; text-align:center;">#</th>
+                  <th style="padding:8px 10px; width:90px;">النوع</th>
+                  <th style="padding:8px 10px;">السؤال</th>
+                  <th style="padding:8px 10px;">الخيارات</th>
+                  <th style="padding:8px 10px; width:70px; text-align:center;">الدرجة</th>
+                  <th style="padding:8px 10px; width:70px; text-align:center;">الحالة</th>
+                </tr>
+              </thead>
+              <tbody id="bulkQPreviewTbody">
+                <tr>
+                  <td colspan="6" style="text-align:center; padding:24px; color:var(--t3);">
+                    قم برفع ملف أو لصق بيانات المعاينة لعرض الأسئلة هنا
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div style="display:flex; align-items:center; justify-content:flex-end; gap:10px; padding-top:14px; border-top:1px solid var(--bdr, #e2e8f0);">
+        <button type="button" onclick="closeBulkQModal()" style="padding:10px 18px; border-radius:12px; border:1px solid var(--bdr); background:var(--bg2); color:var(--t2); font-weight:700; font-size:0.85rem; cursor:pointer;">
+          إلغاء
+        </button>
+        <button type="button" id="btnConfirmBulkQImport" onclick="confirmImportTaskQuestions()" disabled style="padding:10px 22px; border-radius:12px; border:none; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; font-weight:700; font-size:0.85rem; cursor:pointer; opacity:0.5; display:inline-flex; align-items:center; gap:8px; box-shadow:0 4px 14px rgba(16,185,129,0.3);">
+          <i class="fas fa-plus-circle"></i> إضافة الأسئلة المقبولة للتاسك
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // ══════════════════════════════════════════════════════════════════
+    // BULK QUESTION IMPORT & TEMPLATE PROVIDER
+    // ══════════════════════════════════════════════════════════════════
+    window.parsedBulkQuestions = [];
+
+    function downloadEmptyTaskTemplate() {
+      var csvContent = "\uFEFF"; // UTF-8 BOM for Excel Arabic support
+      csvContent += "نوع السؤال,نص السؤال,الدرجة,الخيار الأول,الخيار الثاني,الخيار الثالث,الخيار الرابع,رقم الإجابة الصحيحة (1-4)\n";
+      csvContent += "اختيار من متعدد,ما هي أول أسفار العهد القديم؟,25,التكوين,الخروج,اللاويين,العدد,1\n";
+      csvContent += "صح وخطأ,ولد السيد المسيح في مدينة بيت لحم,25,صحيح,خطأ,,,1\n";
+      csvContent += "مقالي,اذكر آية تدل على المحبة والرحمة في الإنجيل,25,,,,\n";
+
+      var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      var link = document.createElement("a");
+      var url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", "نموذج_أسئلة_التاسك.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      if (typeof showToast === 'function') showToast('تم تحميل نموذج الشيت بنجاح!', 'ok');
+    }
+
+    function openBulkQModal() {
+      var modal = document.getElementById('bulkQModal');
+      if (modal) {
+        modal.style.display = 'flex';
+        window.parsedBulkQuestions = [];
+        var fileInp = document.getElementById('bulkQFileInput');
+        var pasteArea = document.getElementById('bulkQPasteArea');
+        var fileName = document.getElementById('bulkQFileName');
+        if (fileInp) fileInp.value = '';
+        if (pasteArea) pasteArea.value = '';
+        if (fileName) fileName.textContent = '';
+        renderBulkQPreview();
+      }
+    }
+
+    function closeBulkQModal() {
+      var modal = document.getElementById('bulkQModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function handleBulkQFileUpload(event) {
+      var file = event.target.files[0];
+      if (!file) return;
+
+      var nameEl = document.getElementById('bulkQFileName');
+      if (nameEl) nameEl.textContent = '📄 ' + file.name;
+
+      var ext = file.name.split('.').pop().toLowerCase();
+
+      if (ext === 'xlsx' || ext === 'xls') {
+        if (typeof XLSX === 'undefined') {
+          if (typeof showToast === 'function') showToast('مكتبة قراءة Excel غير محملة. يرجى استخدام ملف CSV', 'err');
+          return;
+        }
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            var data = new Uint8Array(e.target.result);
+            var workbook = XLSX.read(data, { type: 'array' });
+            var firstSheetName = workbook.SheetNames[0];
+            var worksheet = workbook.Sheets[firstSheetName];
+            var jsonRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+            processRowsToQuestions(jsonRows);
+          } catch (ex) {
+            if (typeof showToast === 'function') showToast('خطأ في قراءة ملف Excel: ' + ex.message, 'err');
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      } else {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          var text = e.target.result;
+          var lines = text.split(/\r?\n/);
+          var rows = lines.map(function(line) {
+            return line.split(',').map(function(c) { return c.trim().replace(/^"|"$/g, ''); });
+          });
+          processRowsToQuestions(rows);
+        };
+        reader.readAsText(file);
+      }
+    }
+
+    function parseBulkQPasteText() {
+      var pasteArea = document.getElementById('bulkQPasteArea');
+      if (!pasteArea) return;
+      var text = pasteArea.value.trim();
+      if (!text) {
+        window.parsedBulkQuestions = [];
+        renderBulkQPreview();
+        return;
+      }
+      var lines = text.split(/\r?\n/);
+      var rows = lines.map(function(line) {
+        var sep = line.indexOf('\t') !== -1 ? '\t' : ',';
+        return line.split(sep).map(function(c) { return c.trim().replace(/^"|"$/g, ''); });
+      });
+      processRowsToQuestions(rows);
+    }
+
+    function processRowsToQuestions(rows) {
+      window.parsedBulkQuestions = [];
+      if (!rows || rows.length === 0) {
+        renderBulkQPreview();
+        return;
+      }
+
+      var startIndex = 0;
+      var firstRowStr = (rows[0] || []).join(' ').toLowerCase();
+      if (firstRowStr.indexOf('نوع') !== -1 || firstRowStr.indexOf('سؤال') !== -1 || firstRowStr.indexOf('type') !== -1 || firstRowStr.indexOf('question') !== -1) {
+        startIndex = 1;
+      }
+
+      for (var i = startIndex; i < rows.length; i++) {
+        var row = rows[i];
+        if (!row || row.length === 0 || (row.length === 1 && !row[0])) continue;
+
+        var rawType = (row[0] || '').toString().trim().toLowerCase();
+        var rawText = (row[1] || '').toString().trim();
+        var rawDeg = parseInt(row[2]) || 25;
+        var opt1 = (row[3] || '').toString().trim();
+        var opt2 = (row[4] || '').toString().trim();
+        var opt3 = (row[5] || '').toString().trim();
+        var opt4 = (row[6] || '').toString().trim();
+        var rawAns = (row[7] || '').toString().trim();
+
+        if (!rawText) continue;
+
+        var qType = 'mcq';
+        if (rawType.indexOf('صح') !== -1 || rawType.indexOf('tf') !== -1 || rawType.indexOf('خطأ') !== -1 || rawType.indexOf('true') !== -1) {
+          qType = 'tf';
+        } else if (rawType.indexOf('مقال') !== -1 || rawType.indexOf('open') !== -1 || rawType.indexOf('مفتوح') !== -1 || rawType.indexOf('essay') !== -1) {
+          qType = 'open';
+        }
+
+        var isValid = true;
+        var errorMsg = '';
+        var options = [];
+        var correctIndex = 0;
+
+        if (qType === 'mcq') {
+          if (opt1) options.push(opt1);
+          if (opt2) options.push(opt2);
+          if (opt3) options.push(opt3);
+          if (opt4) options.push(opt4);
+
+          if (options.length < 2) {
+            isValid = false;
+            errorMsg = 'يجب توفير خيارين على الأقل';
+          } else {
+            var ansNum = parseInt(rawAns);
+            if (!isNaN(ansNum) && ansNum >= 1 && ansNum <= options.length) {
+              correctIndex = ansNum - 1;
+            } else if (!isNaN(ansNum) && ansNum >= 0 && ansNum < options.length) {
+              correctIndex = ansNum;
+            } else if (rawAns) {
+              var matchedIdx = options.findIndex(function(o) { return o.toLowerCase() === rawAns.toLowerCase(); });
+              if (matchedIdx !== -1) {
+                correctIndex = matchedIdx;
+              } else {
+                correctIndex = 0;
+              }
+            } else {
+              correctIndex = 0;
+            }
+          }
+        } else if (qType === 'tf') {
+          options = ['صحيح', 'خطأ'];
+          var ansLower = rawAns.toLowerCase();
+          if (ansLower === '2' || ansLower.indexOf('خطأ') !== -1 || ansLower === 'false' || ansLower === 'f') {
+            correctIndex = 1;
+          } else {
+            correctIndex = 0;
+          }
+        } else if (qType === 'open') {
+          options = [];
+          correctIndex = null;
+        }
+
+        window.parsedBulkQuestions.push({
+          question_type: qType,
+          question_text: rawText,
+          degree: rawDeg,
+          options: options,
+          correct_index: correctIndex,
+          valid: isValid,
+          errorMsg: errorMsg
+        });
+      }
+
+      renderBulkQPreview();
+    }
+
+    function renderBulkQPreview() {
+      var tbody = document.getElementById('bulkQPreviewTbody');
+      var badge = document.getElementById('bulkQCountBadge');
+      var btn = document.getElementById('btnConfirmBulkQImport');
+      if (!tbody) return;
+
+      var qList = window.parsedBulkQuestions || [];
+      var validCount = qList.filter(function(q) { return q.valid; }).length;
+
+      if (badge) badge.textContent = validCount + ' أسئلة صالحة من أصل ' + qList.length;
+
+      if (qList.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:24px; color:var(--t3);">قم برفع ملف أو لصق بيانات المعاينة لعرض الأسئلة هنا</td></tr>';
+        if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
+        return;
+      }
+
+      var html = '';
+      qList.forEach(function(q, i) {
+        var typeBadge = '';
+        if (q.question_type === 'mcq') typeBadge = '<span style="background:#e0e7ff; color:#4338ca; padding:2px 8px; border-radius:6px; font-weight:700; font-size:0.75rem;">اختيارات</span>';
+        else if (q.question_type === 'tf') typeBadge = '<span style="background:#dcfce7; color:#15803d; padding:2px 8px; border-radius:6px; font-weight:700; font-size:0.75rem;">صح/خطأ</span>';
+        else typeBadge = '<span style="background:#fef3c7; color:#b45309; padding:2px 8px; border-radius:6px; font-weight:700; font-size:0.75rem;">مقال</span>';
+
+        var optsText = q.question_type === 'open' ? '—' : q.options.map(function(o, idx) {
+          return (idx === q.correct_index ? '<b>✓ ' + esc(o) + '</b>' : esc(o));
+        }).join(' | ');
+
+        var statusBadge = q.valid
+          ? '<span style="color:#10b981; font-weight:700;"><i class="fas fa-check-circle"></i> صالح</span>'
+          : '<span style="color:#ef4444; font-weight:700;" title="' + esc(q.errorMsg) + '"><i class="fas fa-exclamation-circle"></i> خطأ</span>';
+
+        html += '<tr style="border-bottom:1px solid var(--bdr); ' + (!q.valid ? 'background:rgba(239,68,68,0.05);' : '') + '">' +
+          '<td style="padding:8px 10px; text-align:center; font-weight:700;">' + (i + 1) + '</td>' +
+          '<td style="padding:8px 10px;">' + typeBadge + '</td>' +
+          '<td style="padding:8px 10px; font-weight:600; color:var(--t1);">' + esc(q.question_text) + '</td>' +
+          '<td style="padding:8px 10px; color:var(--t2); font-size:0.75rem;">' + optsText + '</td>' +
+          '<td style="padding:8px 10px; text-align:center; font-weight:700; color:var(--brand);">' + q.degree + '</td>' +
+          '<td style="padding:8px 10px; text-align:center;">' + statusBadge + '</td>' +
+          '</tr>';
+      });
+
+      tbody.innerHTML = html;
+
+      if (btn) {
+        if (validCount > 0) {
+          btn.disabled = false;
+          btn.style.opacity = '1';
+        } else {
+          btn.disabled = true;
+          btn.style.opacity = '0.5';
+        }
+      }
+    }
+
+    function confirmImportTaskQuestions() {
+      var validQuestions = (window.parsedBulkQuestions || []).filter(function(q) { return q.valid; });
+      if (validQuestions.length === 0) {
+        if (typeof showToast === 'function') showToast('لا توجد أسئلة صالحة للإضافة', 'err');
+        return;
+      }
+
+      validQuestions.forEach(function(q) {
+        if (typeof addQ === 'function') addQ(q);
+      });
+
+      if (typeof updDeg === 'function') updDeg();
+      if (typeof showToast === 'function') showToast('تم إضافة ' + validQuestions.length + ' سؤال بنجاح!', 'ok');
+      closeBulkQModal();
+    }
+  </script>
 </body>
 
 </html>
