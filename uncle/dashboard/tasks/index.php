@@ -16054,7 +16054,15 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
 
 
-        '<div class="q-img-status" id="imgstatus_' + id + '"> class="fas fa-times"></i></button>' +
+        '<div class="q-img-status" id="imgstatus_' + id + '"></div>' +
+
+        '<div class="q-img-preview" id="imgpreview_' + id + '" style="display:none; position:relative; margin-top:10px;">' +
+
+        '<img id="imgel_' + id + '" src="" style="max-width:100%; max-height:220px; border-radius:12px; border:1px solid var(--bdr); object-fit:contain; display:block; margin:0 auto;" alt="Question Image">' +
+
+        '<button type="button" class="q-img-remove-btn" onclick="removeQImg(\'' + id + '\')" style="position:absolute; top:8px; left:8px; background:rgba(239,68,68,0.88); color:#fff; border:none; border-radius:50%; width:28px; height:28px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,0.2);" title="حذف الصورة"><i class="fas fa-times"></i></button>' +
+
+        '</div>' +
 
 
 
@@ -17672,7 +17680,15 @@ $dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeC
 
 
 
-        '<div class="q-img-status" id="imgstatus_' + id + '"> class="fas fa-times"></i></button>' +
+        '<div class="q-img-status" id="imgstatus_' + id + '"></div>' +
+
+        '<div class="q-img-preview" id="imgpreview_' + id + '" style="display:none; position:relative; margin-top:10px;">' +
+
+        '<img id="imgel_' + id + '" src="" style="max-width:100%; max-height:220px; border-radius:12px; border:1px solid var(--bdr); object-fit:contain; display:block; margin:0 auto;" alt="Question Image">' +
+
+        '<button type="button" class="q-img-remove-btn" onclick="removeQImg(\'' + id + '\')" style="position:absolute; top:8px; left:8px; background:rgba(239,68,68,0.88); color:#fff; border:none; border-radius:50%; width:28px; height:28px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,0.2);" title="حذف الصورة"><i class="fas fa-times"></i></button>' +
+
+        '</div>' +
 
 
 
