@@ -2732,6 +2732,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         updateScaleModeLockState();
         saveUserSettings();
+        renderOBSOverlayText();
         syncLiveState(false, true);
       });
     }
@@ -7156,10 +7157,14 @@ document.addEventListener('DOMContentLoaded', () => {
             els.obsLineText.style.fontSize = `${bestFit}px`;
             
             if (bestFit && scaleMode === 'auto') {
+              const fontSizeChanged = (state.fontSize !== bestFit);
               state.fontSize = bestFit;
               if (els.obsFontSizeRange) els.obsFontSizeRange.value = bestFit;
               if (els.obsFontSizeVal) els.obsFontSizeVal.textContent = `${bestFit}px`;
               if (els.fontSizeInput) els.fontSizeInput.value = bestFit;
+              if (fontSizeChanged) {
+                syncLiveState();
+              }
             }
           }
           els.obsLineText.style.transform = 'none';
