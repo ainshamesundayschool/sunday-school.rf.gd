@@ -1375,61 +1375,16 @@
 
       let renderSize = baseSize;
 
-      if (scaleMode === 'fixed') {
-        window._uniformFontCache = null;
-        renderSize = baseSize;
-        textEl.style.fontSize = `${renderSize}px`;
-        const fixedLH = (lastStyleData && lastStyleData.lineHeight !== undefined) ? lastStyleData.lineHeight : 1.5;
-        textEl.style.lineHeight = `${fixedLH}`;
-      } else if (scaleMode === 'auto') {
-        const curW = container.clientWidth || window.innerWidth || 1920;
-        const curH = container.clientHeight || window.innerHeight || 1080;
-
-        const currentItemKey = (activeSong && (activeSong.id || activeSong.item_id || activeSong.title)) 
-          ? (activeSong.id || activeSong.item_id || activeSong.title) 
-          : 'default_item';
-
-        if (!window._uniformFontCache || window._uniformFontCache.key !== currentItemKey || window._uniformFontCache.w !== curW || window._uniformFontCache.h !== curH || window._uniformFontCache.font !== currentFont || window._uniformFontCache.scaleMode !== scaleMode) {
-          const linesToMeasure = (statePresentationLines && statePresentationLines.length > 0) 
-            ? statePresentationLines 
-            : (activeSong && activeSong.verses ? activeSong.verses : []);
-          
-          const uniformSize = computeSongUniformAutoFitFontSize(linesToMeasure, curW, curH, currentFont, lastStyleData);
-          window._uniformFontCache = {
-            key: currentItemKey,
-            w: curW,
-            h: curH,
-            font: currentFont,
-            scaleMode: scaleMode,
-            size: uniformSize
-          };
+      if (scaleMode === 'auto') {
+        const linesToMeasure = (statePresentationLines && statePresentationLines.length > 0) 
+          ? statePresentationLines 
+          : [];
+        if (linesToMeasure.length > 0) {
+          renderSize = computeSongUniformAutoFitFontSize(linesToMeasure, curW, curH, currentFont, lastStyleData);
         }
-
-        const segmentsCount = segments ? segments.length : 1;
-        let defaultLH = 1.18;
-        if (isJomhuria) {
-          defaultLH = 0.92;
-        } else if (segmentsCount > 2) {
-          defaultLH = 1.18;
-        } else if (segmentsCount === 1) {
-          defaultLH = 1.15;
-        }
-        let autoLineHeight = defaultLH;
-        if (lastStyleData && lastStyleData.lineHeight !== undefined) {
-          if (!isJomhuria && lastStyleData.lineHeight <= 0.95) {
-            autoLineHeight = defaultLH;
-          } else {
-            autoLineHeight = lastStyleData.lineHeight;
-          }
-        }
-        textEl.style.lineHeight = `${autoLineHeight}`;
-
-        renderSize = window._uniformFontCache.size;
-        baseSize = renderSize;
-        textEl.style.fontSize = `${renderSize}px`;
       }
 
-      textEl.style.fontSize = renderSize + 'px';
+      textEl.style.fontSize = `${renderSize}px`;
       textEl.style.transform = 'none';
 
       applyDynamicShadow();
