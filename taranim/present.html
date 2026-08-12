@@ -228,11 +228,34 @@
       }
     }
 
+    /* ALL IN ONE SCROLLABLE PRESENTATION MODE - PRESENTER WINDOW FIX */
+    body[data-mode="allinone"] .lower-third-container,
+    body[data-mode="allinone"] #presenter-box {
+      display: block !important;
+      position: absolute !important;
+      top: 30px !important;
+      bottom: 30px !important;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+      width: 96vw !important;
+      max-width: 96vw !important;
+      height: calc(100vh - 60px) !important;
+      max-height: calc(100vh - 60px) !important;
+      overflow-y: auto !important;
+      pointer-events: auto !important;
+      scroll-behavior: smooth !important;
+      padding-top: 25px !important;
+      padding-bottom: 50px !important;
+      padding-right: 20px !important;
+      padding-left: 20px !important;
+      box-sizing: border-box !important;
+    }
+
     .allinone-slide-group {
       display: block !important;
       width: 100% !important;
-      margin-bottom: 2rem !important;
-      padding-bottom: 1.2rem !important;
+      margin-bottom: 1.8rem !important;
+      padding-bottom: 1rem !important;
       border-bottom: 1px dashed rgba(255, 255, 255, 0.3) !important;
       text-align: center !important;
       position: relative !important;
@@ -1823,9 +1846,11 @@
         // ALL-IN-ONE REAL-TIME SCROLL SYNCHRONIZATION
         if (data.mode === 'allinone' || (data.text && data.text.includes('allinone-slide-group'))) {
           const docEl = document.documentElement || document.body;
+          const presenterBox = document.getElementById('presenter-box');
           const groups = document.querySelectorAll('.allinone-slide-group');
 
           if (data.activeGroupIndex === 0 || (!data.activeGroupIndex && data.scrollRatio === 0)) {
+            if (presenterBox) presenterBox.scrollTop = 0;
             window.scrollTo({ top: 0, behavior: 'smooth' });
           } else if (data.activeGroupIndex !== undefined && data.activeGroupIndex !== null && groups.length > 0) {
             const targetGroup = document.querySelector(`.allinone-slide-group[data-group-idx="${data.activeGroupIndex}"]`) || groups[data.activeGroupIndex];
@@ -1833,10 +1858,15 @@
               targetGroup.scrollIntoView({ block: 'center', behavior: 'smooth' });
             }
           } else if (data.scrollRatio !== undefined && !isNaN(data.scrollRatio)) {
-            const maxScrollHeight = Math.max(0, docEl.scrollHeight - window.innerHeight);
-            if (maxScrollHeight > 0) {
-              const targetY = Math.round(data.scrollRatio * maxScrollHeight);
-              window.scrollTo({ top: targetY, behavior: 'smooth' });
+            if (presenterBox) {
+              const maxScrollHeight = Math.max(0, presenterBox.scrollHeight - presenterBox.clientHeight);
+              if (maxScrollHeight > 0) {
+                presenterBox.scrollTop = Math.round(data.scrollRatio * maxScrollHeight);
+              }
+            }
+            const maxWindowScroll = Math.max(0, docEl.scrollHeight - window.innerHeight);
+            if (maxWindowScroll > 0) {
+              window.scrollTo({ top: Math.round(data.scrollRatio * maxWindowScroll), behavior: 'smooth' });
             }
           }
         }
