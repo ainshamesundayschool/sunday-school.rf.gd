@@ -4162,26 +4162,50 @@ input[type="checkbox"]:checked::after {
   pointer-events: none !important;
 }
 
-/* ALL IN ONE SCROLLABLE PRESENTATION MODE */
-.obs-overlay[data-mode="allinone"] .obs-lower-third-box,
+/* ALL IN ONE SCROLLABLE PRESENTATION MODE - PRESENTER WINDOW */
 body[data-mode="allinone"] .lower-third-container,
-.obs-overlay.mode-allinone .obs-lower-third-box {
+body[data-mode="allinone"] #presenter-box {
   overflow-y: auto !important;
-  max-height: 84vh !important;
+  max-height: 88vh !important;
   pointer-events: auto !important;
   scroll-behavior: smooth !important;
   padding-right: 12px !important;
   justify-content: flex-start !important;
-  padding-top: 1.5rem !important;
+  padding-top: 1.2rem !important;
+}
+
+/* ALL IN ONE SCROLLABLE PRESENTATION MODE - IN-APP OVERLAY ONLY */
+.obs-overlay[data-mode="allinone"] .obs-lower-third-box,
+.obs-overlay.mode-allinone .obs-lower-third-box {
+  overflow-y: auto !important;
+  max-height: 88vh !important;
+  pointer-events: auto !important;
+  scroll-behavior: smooth !important;
+  padding-right: 12px !important;
+  justify-content: flex-start !important;
+  padding-top: 0.6rem !important;
+  font-size: 0.52em !important;
+}
+
+.obs-overlay[data-mode="allinone"] .allinone-slide-group {
+  margin-bottom: 0.7rem !important;
+  padding-bottom: 0.5rem !important;
+  padding-top: 0.25rem !important;
+}
+
+.obs-overlay[data-mode="allinone"] .allinone-slide-group .obs-line-row {
+  margin-top: 0.06em !important;
+  margin-bottom: 0.06em !important;
+  line-height: 1.32 !important;
 }
 
 .allinone-section,
 .allinone-slide-group {
   display: block !important;
   width: 100% !important;
-  margin-bottom: 2rem !important;
-  padding-bottom: 1.2rem !important;
-  border-bottom: 1px dashed rgba(255, 255, 255, 0.2) !important;
+  margin-bottom: 1.8rem !important;
+  padding-bottom: 1rem !important;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.22) !important;
   text-align: center !important;
   position: relative !important;
   padding-right: 48px !important;
@@ -4191,8 +4215,8 @@ body[data-mode="allinone"] .lower-third-container,
 }
 
 .allinone-slide-group.active-allinone-group {
-  background: rgba(37, 99, 235, 0.08) !important;
-  border-radius: 10px !important;
+  background: rgba(37, 99, 235, 0.12) !important;
+  border-radius: 8px !important;
 }
 
 .allinone-slide-group .slide-badge-layer {
