@@ -1787,13 +1787,7 @@
       }
 
       if (!lastStyleData) lastStyleData = {};
-      if (data.font) lastStyleData.font = data.font;
-      if (data.textAlign) lastStyleData.textAlign = data.textAlign;
-      if (data.letterSpacing !== undefined) lastStyleData.letterSpacing = data.letterSpacing;
-      if (data.lineHeight !== undefined) lastStyleData.lineHeight = data.lineHeight;
-      if (data.fontWeight) lastStyleData.fontWeight = data.fontWeight;
-      if (data.fontStyle) lastStyleData.fontStyle = data.fontStyle;
-      if (data.textDecoration) lastStyleData.textDecoration = data.textDecoration;
+      lastStyleData = Object.assign(lastStyleData, data);
 
       if (data.fontWeight) textEl.style.fontWeight = data.fontWeight;
       if (data.fontStyle) textEl.style.fontStyle = data.fontStyle;

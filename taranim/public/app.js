@@ -2723,6 +2723,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.obsScaleModeSelect) {
       els.obsScaleModeSelect.addEventListener('change', (e) => {
         state.scaleMode = e.target.value;
+        window._obsUniformFontCache = null;
+        window._uniformFontCache = null;
         const isJomhuriaFont = /jomhuria/i.test(state.selectedFont || '');
         if (state.scaleMode === 'auto') {
           state.styleOptions.lineHeight = isJomhuriaFont ? 0.92 : 1.18;
@@ -2730,7 +2732,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         updateScaleModeLockState();
         saveUserSettings();
-        syncLiveState();
+        syncLiveState(false, true);
       });
     }
 
