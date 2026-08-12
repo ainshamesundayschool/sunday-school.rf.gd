@@ -1203,13 +1203,13 @@
       if (!measurer) {
         measurer = document.createElement('div');
         measurer.id = '_presenter_offscreen_measurer';
-        measurer.style.cssText = 'position:fixed; left:-9999px; top:-9999px; visibility:hidden; pointer-events:none; z-index:-9999;';
+        measurer.style.cssText = 'position:absolute; left:0; top:0; opacity:0; pointer-events:none; z-index:-9999; overflow:hidden;';
         document.body.appendChild(measurer);
       }
 
       measurer.innerHTML = htmlContent;
       measurer.style.display = 'inline-block';
-      measurer.style.visibility = 'hidden';
+      measurer.style.visibility = 'visible';
       measurer.style.width = '100%';
       measurer.style.maxWidth = `${Math.round(refTargetW)}px`;
 
@@ -1788,6 +1788,9 @@
 
       if (!lastStyleData) lastStyleData = {};
       lastStyleData = Object.assign(lastStyleData, data);
+      if (data.allSlideTexts && Array.isArray(data.allSlideTexts) && data.allSlideTexts.length > 0) {
+        statePresentationLines = data.allSlideTexts;
+      }
 
       if (data.fontWeight) textEl.style.fontWeight = data.fontWeight;
       if (data.fontStyle) textEl.style.fontStyle = data.fontStyle;

@@ -6643,7 +6643,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!measurer) {
       measurer = document.createElement('div');
       measurer.id = '_obs_offscreen_measurer';
-      measurer.style.cssText = 'position:fixed; left:-9999px; top:-9999px; visibility:hidden; pointer-events:none; z-index:-9999;';
+      measurer.style.cssText = 'position:absolute; left:0; top:0; opacity:0; pointer-events:none; z-index:-9999; overflow:hidden;';
       document.body.appendChild(measurer);
     }
 
