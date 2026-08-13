@@ -4636,6 +4636,20 @@ input[type="range"]:active::-moz-range-thumb {
   transition: color 0.25s ease;
 }
 
+body[data-chroma="black"] #presenter-text,
+body[data-chroma="black"] .line-text,
+body[data-chroma="black"] .obs-line-segment,
+[data-chroma="black"] .obs-line-segment,
+.obs-overlay[data-chroma="black"] .obs-line-segment {
+  text-shadow: none !important;
+  -webkit-text-stroke: 0px transparent !important;
+}
+
+body[data-chroma="black"] .standby-logo,
+.obs-overlay[data-chroma="black"] .standby-logo {
+  filter: none !important;
+}
+
 .obs-line-segment.line-highlighted {
   position: relative;
   isolation: isolate;
