@@ -2139,15 +2139,16 @@ input[type="checkbox"]:checked::after {
 .obs-overlay[data-chroma="black"] { background: #000000 !important; background-color: #000000 !important; }
 .obs-embedded-preview-card {
   margin: 0 auto 16px auto;
-  max-width: 320px;
+  max-width: 340px;
   width: calc(100% - 32px);
-  background: var(--bg-card, rgba(15, 23, 42, 0.85));
+  background: var(--bg-card, #0f172a);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 14px;
   padding: 10px 12px;
   box-shadow: none !important;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: width 0.05s ease, max-width 0.05s ease;
+  position: relative;
 }
 
 .obs-preview-header {
@@ -2164,15 +2165,16 @@ input[type="checkbox"]:checked::after {
   gap: 8px;
   font-weight: 700;
   font-size: 13px;
-  color: #f1f5f9;
+  color: #ffffff !important;
+  opacity: 1 !important;
 }
 
 .obs-live-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #ef4444;
-  box-shadow: none !important;
+  background: #ef4444 !important;
+  box-shadow: 0 0 6px #ef4444 !important;
   animation: pulse-live-dot 1.5s infinite;
 }
 
@@ -2192,13 +2194,13 @@ input[type="checkbox"]:checked::after {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   padding: 0;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #e2e8f0;
-  font-size: 12px;
+  background: rgba(255, 255, 255, 0.15) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
+  font-size: 13px;
   border-radius: 6px;
   cursor: pointer;
   box-shadow: none !important;
@@ -2206,14 +2208,14 @@ input[type="checkbox"]:checked::after {
 }
 
 .btn-preview-tool:hover {
-  background: rgba(255, 255, 255, 0.18);
-  color: #ffffff;
+  background: rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
 }
 
 .btn-preview-tool.btn-primary-accent {
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #ffffff;
+  background: rgba(255, 255, 255, 0.18) !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  color: #ffffff !important;
 }
 
 .obs-preview-canvas-wrapper {
@@ -2225,6 +2227,31 @@ input[type="checkbox"]:checked::after {
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: #000000;
   box-shadow: none !important;
+}
+
+.obs-preview-scale-handle {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #ffffff;
+  border-radius: 6px 0 10px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  cursor: nwse-resize;
+  z-index: 20;
+  user-select: none;
+  transition: background 0.2s ease;
+}
+
+.obs-preview-scale-handle:hover {
+  background: rgba(245, 158, 11, 0.8);
+  color: #ffffff;
 }
 
 .obs-preview-embedded-screen {

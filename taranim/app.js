@@ -2728,6 +2728,39 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    // CORNER DRAG TO SCALE EMBEDDED OBS PREVIEW CARD (ANCHORED TO CENTER)
+    const scaleHandle = document.getElementById('obs-preview-scale-handle');
+    const previewContainer = document.getElementById('obs-embedded-preview-container');
+
+    if (scaleHandle && previewContainer) {
+      let isScaling = false;
+      let startX = 0;
+      let startWidth = 340;
+
+      scaleHandle.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        isScaling = true;
+        startX = e.clientX;
+        startWidth = previewContainer.getBoundingClientRect().width;
+        document.body.style.cursor = 'nwse-resize';
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!isScaling) return;
+        const dx = e.clientX - startX;
+        const newWidth = Math.max(260, Math.min(800, startWidth + dx * 2));
+        previewContainer.style.maxWidth = `${newWidth}px`;
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (isScaling) {
+          isScaling = false;
+          document.body.style.cursor = '';
+        }
+      });
+    }
+
     if (els.btnFixObsFreeze) {
       els.btnFixObsFreeze.addEventListener('click', () => {
         const icon = els.btnFixObsFreeze.querySelector('i');
