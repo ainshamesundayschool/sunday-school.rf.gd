@@ -1247,7 +1247,7 @@
       const lSpacing = (styleOptions && styleOptions.letterSpacing !== undefined) ? styleOptions.letterSpacing : 0;
       const fWeight = (styleOptions && styleOptions.fontWeight) || '400';
 
-      const isBible = Boolean(styleOptions && (styleOptions.isBible || styleOptions.is_bible));
+      const isBible = Boolean(isFullSlideOrBible || (styleOptions && (styleOptions.isBible || styleOptions.is_bible)));
       let startTestSize = isFullSlideOrBible ? 140 : baseSize;
       let minAllowed = startTestSize;
 
@@ -1261,6 +1261,21 @@
         wrapper.style.fontWeight = fWeight;
         measurer.style.width = `${Math.round(maxW)}px`;
         measurer.style.maxWidth = `${Math.round(maxW)}px`;
+
+        const segs = measurer.querySelectorAll('.obs-line-segment');
+        segs.forEach(s => {
+          if (isBible) {
+            s.style.display = 'block';
+            s.style.width = '100%';
+            s.style.whiteSpace = 'pre-wrap';
+            s.style.wordBreak = 'break-word';
+            s.style.overflowWrap = 'break-word';
+          } else {
+            s.style.display = 'inline-block';
+            s.style.width = 'auto';
+            s.style.whiteSpace = 'nowrap';
+          }
+        });
 
         let testSize = startTestSize;
         wrapper.style.fontSize = `${testSize}px`;
