@@ -6356,15 +6356,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let uniformScaleFactor = 1.0;
     if (maxSlideLines >= 5) {
-      uniformScaleFactor = 0.68;
+      uniformScaleFactor = 0.58;
     } else if (maxSlideLines === 4) {
-      uniformScaleFactor = 0.78;
+      uniformScaleFactor = 0.68;
     } else if (maxSlideLines === 3) {
-      uniformScaleFactor = 0.88;
+      uniformScaleFactor = 0.82;
     }
 
-    if (maxSlideChars > 55) {
-      uniformScaleFactor = Math.min(uniformScaleFactor, 55 / maxSlideChars);
+    if (maxSlideChars > 32) {
+      uniformScaleFactor = Math.min(uniformScaleFactor, 32 / maxSlideChars);
     }
 
     song._uniformScaleFactor = uniformScaleFactor;
@@ -7425,16 +7425,37 @@ document.addEventListener('DOMContentLoaded', () => {
           const container = els.obsOverlay || els.obsLineText.parentElement || document.body;
           const containerW = Math.max(320, container.clientWidth || window.innerWidth);
 
-          // PROPORTIONAL RESIZE BASED ON CONTAINER/WINDOW WIDTH (ZERO FLICKER, PROPORTIONAL SCALE DOWN)
+          // PROPORTIONAL RESIZE BASED ON CONTAINER/WINDOW WIDTH & LINE LENGTH
           const scaleFactor = containerW / 1920;
-          const scaledFontSize = Math.max(14, Math.round(effectiveBase * scaleFactor));
+          const segments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
+          let maxCharLen = 0;
+          segments.forEach(s => {
+            const textLen = (s.textContent || '').trim().length;
+            if (textLen > maxCharLen) maxCharLen = textLen;
+          });
+
+          let safeCharFactor = 1.0;
+          if (maxCharLen > 32) {
+            safeCharFactor = Math.min(1.0, 32 / maxCharLen);
+          }
+
+          let safeLineCountFactor = 1.0;
+          if (segments.length >= 5) {
+            safeLineCountFactor = 0.65;
+          } else if (segments.length === 4) {
+            safeLineCountFactor = 0.75;
+          } else if (segments.length === 3) {
+            safeLineCountFactor = 0.88;
+          }
+
+          const effectiveScale = Math.min(safeCharFactor, safeLineCountFactor);
+          const scaledFontSize = Math.max(14, Math.round(effectiveBase * scaleFactor * effectiveScale));
           els.obsLineText.style.fontSize = `${scaledFontSize}px`;
 
           const fixedLH = state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : 1.5;
           els.obsLineText.style.lineHeight = `${fixedLH}`;
 
           const isAllInOneMode = state.presentationMode === 'allinone' || Boolean(snapText && snapText.includes('allinone-slide-group'));
-          const segments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
 
           if (isAllInOneMode) {
             segments.forEach(s => {

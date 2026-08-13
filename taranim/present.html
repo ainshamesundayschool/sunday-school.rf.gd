@@ -203,18 +203,20 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        width: 1800px;
-        max-width: 1800px;
+        width: 92vw;
+        max-width: 92vw;
         padding-top: 0.5rem;
         padding-bottom: 0.5rem;
-        max-height: 960px;
+        max-height: 90vh;
+        box-sizing: border-box;
       }
       .line-text {
         width: 100%;
-        max-width: 1800px;
+        max-width: 100%;
         line-height: 1.35;
         margin-top: 0;
         margin-bottom: 0;
+        box-sizing: border-box;
       }
       .obs-line-segment {
         width: 100%;
@@ -1298,9 +1300,31 @@
         textEl.style.fontWeight = fWeight;
       }
 
-      // PROPORTIONAL RESIZE BASED ON WINDOW WIDTH (ZERO FLICKER, PROPORTIONAL SCALE DOWN)
+      // PROPORTIONAL RESIZE BASED ON WINDOW WIDTH & LINE LENGTH (PREVENTS WIDTH OVERFLOW)
       const scaleFactor = curW / 1920;
-      const scaledFontSize = Math.max(14, Math.round(baseSize * scaleFactor));
+      const segmentEls = Array.from(textEl.querySelectorAll('.obs-line-segment'));
+      let maxCharLen = 0;
+      segmentEls.forEach(s => {
+        const textLen = (s.textContent || '').trim().length;
+        if (textLen > maxCharLen) maxCharLen = textLen;
+      });
+
+      let safeCharFactor = 1.0;
+      if (maxCharLen > 32) {
+        safeCharFactor = Math.min(1.0, 32 / maxCharLen);
+      }
+
+      let safeLineCountFactor = 1.0;
+      if (segmentEls.length >= 5) {
+        safeLineCountFactor = 0.65;
+      } else if (segmentEls.length === 4) {
+        safeLineCountFactor = 0.75;
+      } else if (segmentEls.length === 3) {
+        safeLineCountFactor = 0.88;
+      }
+
+      const effectiveScale = Math.min(safeCharFactor, safeLineCountFactor);
+      const scaledFontSize = Math.max(14, Math.round(baseSize * scaleFactor * effectiveScale));
       textEl.style.fontSize = `${scaledFontSize}px`;
 
       const wrapper = textEl.querySelector('.obs-slide-wrapper') || textEl;
