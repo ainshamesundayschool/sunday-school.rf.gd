@@ -7066,8 +7066,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const fWeight = (styleOptions && styleOptions.fontWeight) || '400';
       const isBible = Boolean(isFullSlideOrBible || (styleOptions && (styleOptions.isBible || styleOptions.is_bible)));
 
-      const maxCeiling = isFullSlideOrBible ? 120 : Math.max(80, baseSize || 54);
-      const minFloor = isFullSlideOrBible ? 48 : 24;
+      const maxCeiling = isFullSlideOrBible ? 140 : Math.max(100, baseSize || 54);
+      const minFloor = 14;
 
       let globalOptimalSize = maxCeiling;
 
@@ -7075,6 +7075,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!slideText || !String(slideText).trim()) return;
         measurer.innerHTML = formatPresenterText(String(slideText).trim(), isBible, '', '');
         const wrapper = measurer.querySelector('.obs-slide-wrapper') || measurer;
+        measurer.style.fontSize = `${maxCeiling}px`;
         wrapper.style.fontFamily = isJomhuria ? 'Jomhuria, Arial, sans-serif' : (fontName || 'sans-serif');
         wrapper.style.lineHeight = `${lHeight}`;
         wrapper.style.letterSpacing = `${lSpacing}px`;
@@ -7103,6 +7104,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         while (low <= high) {
           const mid = Math.floor((low + high) / 2);
+          measurer.style.fontSize = `${mid}px`;
           wrapper.style.fontSize = `${mid}px`;
           const h = wrapper.scrollHeight || wrapper.offsetHeight;
           const w = wrapper.scrollWidth || wrapper.offsetWidth;
