@@ -1238,85 +1238,6 @@
     let _uniformSongKey = '';
     let _lastAnimSlideText = '';
 
-    function getSafeFontScaleSize(slideTexts, baseSize, curW, curH, fontName, styleOptions, isFullSlideOrBible = false) {
-      if (!slideTexts || !Array.isArray(slideTexts) || slideTexts.length === 0) return baseSize;
-
-      const maxH = Math.max(180, curH * 0.85);
-      const maxW = Math.max(280, curW * 0.90);
-
-      let measurer = document.getElementById('_safe_area_measurer');
-      if (!measurer) {
-        measurer = document.createElement('div');
-        measurer.id = '_safe_area_measurer';
-        measurer.style.cssText = 'position:absolute; left:0; top:0; opacity:0; pointer-events:none; z-index:-9999; overflow:hidden; box-sizing:border-box; margin:0; padding:0;';
-        document.body.appendChild(measurer);
-      }
-
-      const isJomhuria = /jomhuria/i.test(fontName || '');
-      const lHeight = (styleOptions && styleOptions.lineHeight !== undefined) ? styleOptions.lineHeight : 1.5;
-      const lSpacing = (styleOptions && styleOptions.letterSpacing !== undefined) ? styleOptions.letterSpacing : 0;
-      const fWeight = (styleOptions && styleOptions.fontWeight) || '400';
-      const isBible = Boolean(isFullSlideOrBible || (styleOptions && (styleOptions.isBible || styleOptions.is_bible)));
-
-      const maxCeiling = isFullSlideOrBible ? 140 : Math.max(100, baseSize || 54);
-      const minFloor = 14;
-
-      let globalOptimalSize = maxCeiling;
-
-      slideTexts.forEach(slideText => {
-        if (!slideText || !String(slideText).trim()) return;
-        measurer.innerHTML = formatPresenterText(String(slideText).trim(), isBible, '', '');
-        const wrapper = measurer.querySelector('.obs-slide-wrapper') || measurer;
-        measurer.style.fontSize = `${maxCeiling}px`;
-        wrapper.style.fontFamily = isJomhuria ? 'Jomhuria, Arial, sans-serif' : (fontName || 'sans-serif');
-        wrapper.style.lineHeight = `${lHeight}`;
-        wrapper.style.letterSpacing = `${lSpacing}px`;
-        wrapper.style.fontWeight = fWeight;
-        measurer.style.width = `${Math.round(maxW)}px`;
-        measurer.style.maxWidth = `${Math.round(maxW)}px`;
-
-        const segs = measurer.querySelectorAll('.obs-line-segment');
-        segs.forEach(s => {
-          if (isBible) {
-            s.style.display = 'block';
-            s.style.width = '100%';
-            s.style.whiteSpace = 'pre-wrap';
-            s.style.wordBreak = 'break-word';
-            s.style.overflowWrap = 'break-word';
-          } else {
-            s.style.display = 'inline-block';
-            s.style.width = 'auto';
-            s.style.whiteSpace = 'nowrap';
-          }
-        });
-
-        let low = minFloor;
-        let high = maxCeiling;
-        let bestForThisSlide = minFloor;
-
-        while (low <= high) {
-          const mid = Math.floor((low + high) / 2);
-          measurer.style.fontSize = `${mid}px`;
-          wrapper.style.fontSize = `${mid}px`;
-          const h = wrapper.scrollHeight || wrapper.offsetHeight;
-          const w = wrapper.scrollWidth || wrapper.offsetWidth;
-
-          if (h <= maxH && w <= maxW) {
-            bestForThisSlide = mid;
-            low = mid + 1;
-          } else {
-            high = mid - 1;
-          }
-        }
-
-        if (bestForThisSlide < globalOptimalSize) {
-          globalOptimalSize = bestForThisSlide;
-        }
-      });
-
-      return globalOptimalSize;
-    }
-
     function updateSlideScale() {
       const container = document.getElementById('obs-overlay-container') || document.body;
       const curW = container.clientWidth || window.innerWidth || 1920;
@@ -1343,10 +1264,7 @@
       const currentFont = (lastStyleData && lastStyleData.font) || textEl.style.fontFamily || '';
       const isJomhuria = /jomhuria/i.test(currentFont);
 
-      const isFullSlide = (lastStyleData && (lastStyleData.mode === 'fullslide' || lastStyleData.presentationMode === 'fullslide'));
       const isBibleMode = Boolean(isBible || (lastStyleData && (lastStyleData.isBible || lastStyleData.is_bible)));
-      const isFullSlideOrBible = isFullSlide || isBibleMode;
-
       const align = isBibleMode ? 'justify' : ((lastStyleData && lastStyleData.textAlign) || textEl.style.textAlign || 'center');
       const lSpacing = (lastStyleData && lastStyleData.letterSpacing !== undefined) ? lastStyleData.letterSpacing : 0;
       const lHeight = (lastStyleData && lastStyleData.lineHeight !== undefined) ? lastStyleData.lineHeight : 1.5;
@@ -1366,40 +1284,14 @@
       textEl.style.fontStyle = fStyle;
       textEl.style.textDecoration = tDeco;
 
-      const isAllInOne = (lastStyleData && (lastStyleData.mode === 'allinone' || lastStyleData.presentationMode === 'allinone')) || Boolean(textEl && textEl.innerHTML && textEl.innerHTML.includes('allinone-slide-group'));
-
-      if (isAllInOne) {
-        const segments = Array.from(textEl.querySelectorAll('.obs-line-segment'));
-        segments.forEach(s => {
-          s.style.display = 'block';
-          s.style.width = '100%';
-          s.style.whiteSpace = 'pre-wrap';
-          s.style.wordBreak = 'break-word';
-          s.style.overflowWrap = 'break-word';
-        });
-        const wrapper = textEl.querySelector('.obs-slide-wrapper') || textEl;
-        wrapper.style.transform = 'none';
-        applyDynamicShadow();
-        return;
-      }
-
       const segments = Array.from(textEl.querySelectorAll('.obs-line-segment'));
       segments.forEach(s => {
-        if (isBibleMode) {
-          s.style.display = 'block';
-          s.style.width = '100%';
-          s.style.whiteSpace = 'pre-wrap';
-          s.style.wordBreak = 'break-word';
-          s.style.overflowWrap = 'break-word';
-          s.style.textAlign = align;
-        } else {
-          s.style.display = 'inline-block';
-          s.style.width = 'auto';
-          s.style.whiteSpace = 'nowrap';
-          s.style.wordBreak = 'normal';
-          s.style.overflowWrap = 'normal';
-          s.style.textAlign = align === 'justify' ? 'justify' : align;
-        }
+        s.style.display = 'block';
+        s.style.width = '100%';
+        s.style.whiteSpace = 'pre-wrap';
+        s.style.wordBreak = 'break-word';
+        s.style.overflowWrap = 'break-word';
+        s.style.textAlign = align === 'justify' ? 'justify' : align;
       });
 
       const finalLineHeight = lHeight !== undefined ? lHeight : 1.5;
@@ -1407,7 +1299,6 @@
       const lineRows = textEl.querySelectorAll('.obs-line-row');
       lineRows.forEach(r => {
         r.style.lineHeight = `${finalLineHeight}`;
-        r.style.marginBottom = `${Math.round((finalLineHeight - 1) * 14)}px`;
       });
 
       if (isJomhuria) {
@@ -1422,10 +1313,7 @@
         textEl.style.fontWeight = fWeight;
       }
 
-      const slideTextsToEvaluate = [textEl.innerText || textEl.textContent || ''];
-      const safeSize = getSafeFontScaleSize(slideTextsToEvaluate, baseSize, 1920, 1080, currentFont, lastStyleData, isFullSlideOrBible);
-
-      textEl.style.fontSize = `${safeSize}px`;
+      textEl.style.fontSize = `${baseSize}px`;
 
       const wrapper = textEl.querySelector('.obs-slide-wrapper') || textEl;
       wrapper.style.transform = 'none';
