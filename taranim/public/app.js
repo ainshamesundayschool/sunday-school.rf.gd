@@ -7021,6 +7021,60 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+    function getSafeFontScaleSize(slideTexts, baseSize, curW, curH, fontName, styleOptions, isFullSlideOrBible = false) {
+      if (!slideTexts || !Array.isArray(slideTexts) || slideTexts.length === 0) return baseSize;
+
+      const isVertical = curH > curW;
+      const effectiveCanvasH = isVertical ? (curW * (9 / 16)) : curH;
+      const maxH = effectiveCanvasH * 0.85;
+      const maxW = curW * 0.90;
+
+      let measurer = document.getElementById('_safe_area_measurer');
+      if (!measurer) {
+        measurer = document.createElement('div');
+        measurer.id = '_safe_area_measurer';
+        measurer.style.cssText = 'position:absolute; left:0; top:0; opacity:0; pointer-events:none; z-index:-9999; overflow:hidden;';
+        document.body.appendChild(measurer);
+      }
+
+      const isJomhuria = /jomhuria/i.test(fontName || '');
+      const lHeight = (styleOptions && styleOptions.lineHeight !== undefined) ? styleOptions.lineHeight : 1.5;
+      const lSpacing = (styleOptions && styleOptions.letterSpacing !== undefined) ? styleOptions.letterSpacing : 0;
+      const fWeight = (styleOptions && styleOptions.fontWeight) || '400';
+
+      const isBible = Boolean(styleOptions && (styleOptions.isBible || styleOptions.is_bible));
+      let startTestSize = isFullSlideOrBible ? 140 : baseSize;
+      let minAllowed = startTestSize;
+
+      slideTexts.forEach(slideText => {
+        if (!slideText || !String(slideText).trim()) return;
+        measurer.innerHTML = formatPresenterText(String(slideText).trim(), isBible, '', '');
+        const wrapper = measurer.querySelector('.obs-slide-wrapper') || measurer;
+        wrapper.style.fontFamily = isJomhuria ? 'Jomhuria, Arial, sans-serif' : (fontName || 'sans-serif');
+        wrapper.style.lineHeight = `${lHeight}`;
+        wrapper.style.letterSpacing = `${lSpacing}px`;
+        wrapper.style.fontWeight = fWeight;
+        measurer.style.width = `${Math.round(maxW)}px`;
+        measurer.style.maxWidth = `${Math.round(maxW)}px`;
+
+        let testSize = startTestSize;
+        wrapper.style.fontSize = `${testSize}px`;
+        let h = wrapper.scrollHeight || wrapper.offsetHeight;
+        let w = wrapper.scrollWidth || wrapper.offsetWidth;
+
+        while ((h > maxH || w > maxW) && testSize > 24) {
+          testSize -= 2;
+          wrapper.style.fontSize = `${testSize}px`;
+          h = wrapper.scrollHeight || wrapper.offsetHeight;
+          w = wrapper.scrollWidth || wrapper.offsetWidth;
+        }
+
+        if (testSize < minAllowed) minAllowed = testSize;
+      });
+
+      return minAllowed;
+    }
+
   function syncLiveState(isExplicitPositionUpdate = false, isForceRefresh = false) {
     const targetSong = state.liveSong || state.activeSong;
     const targetLines = (state.livePresentationLines && state.livePresentationLines.length > 0) ? state.livePresentationLines : state.presentationLines;
@@ -7415,7 +7469,15 @@ document.addEventListener('DOMContentLoaded', () => {
             els.obsLineText.classList.remove('obs-vertical-mode');
           }
 
-          els.obsLineText.style.fontSize = `${baseSize}px`;
+          const isFullSlideOrBible = (state.presentationMode === 'fullslide' || Boolean(state.isBibleMode));
+          const allTexts = (targetLines && targetLines.length > 0)
+            ? targetLines.map(l => (l.lines && Array.isArray(l.lines)) ? l.lines.join('\n') : (l.text || ''))
+            : [snapText];
+
+          const computedSafeSize = getSafeFontScaleSize(allTexts, baseSize, containerW, containerH, state.selectedFont, state.styleOptions, isFullSlideOrBible);
+          const fontToApply = isFullSlideOrBible ? computedSafeSize : baseSize;
+
+          els.obsLineText.style.fontSize = `${fontToApply}px`;
           const fixedLH = state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : 1.5;
           els.obsLineText.style.lineHeight = `${fixedLH}`;
 
