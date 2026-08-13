@@ -1319,6 +1319,22 @@
       return globalOptimalSize;
     }
 
+    function updateSlideScale() {
+      const container = document.getElementById('obs-overlay-container') || document.body;
+      const curW = container.clientWidth || window.innerWidth || 1920;
+      const curH = container.clientHeight || window.innerHeight || 1080;
+
+      const scaleX = curW / 1920;
+      const scaleY = curH / 1080;
+      const scaleFactor = Math.min(scaleX, scaleY);
+
+      const box = document.getElementById('obs-lower-third-box');
+      if (box) {
+        box.style.transformOrigin = 'center center';
+        box.style.transform = `translate(-50%, -50%) scale(${scaleFactor.toFixed(4)})`;
+      }
+    }
+
     let _lastFitW = 0;
     let _lastFitH = 0;
     let _lastFitFontSize = 0;
@@ -1329,16 +1345,11 @@
       if (!textEl) return;
       currentIsBible = isBible;
 
-      const container = document.getElementById('obs-overlay-container') || document.body;
-      const curW = container.clientWidth || window.innerWidth || 1920;
-      const curH = container.clientHeight || window.innerHeight || 1080;
+      updateSlideScale();
 
-      if (_isResizingWindow && _lastFitW > 0 && _lastFitFontSize > 0) {
-        const scaleFactor = curW / _lastFitW;
-        const fastScaledSize = Math.max(14, Math.round(_lastFitFontSize * scaleFactor));
-        textEl.style.fontSize = `${fastScaledSize}px`;
-        return;
-      }
+      const container = document.getElementById('obs-overlay-container') || document.body;
+      const curW = 1920;
+      const curH = 1080;
 
       const isVertical = curH > curW;
       if (isVertical) {
@@ -1430,13 +1441,9 @@
 
       const baseSize = (lastStyleData && lastStyleData.fontSize) || stateFontSize || 105;
       const slideTextsToEvaluate = [textEl.innerText || textEl.textContent || ''];
-      const safeSize = getSafeFontScaleSize(slideTextsToEvaluate, baseSize, curW, curH, currentFont, lastStyleData, isFullSlideOrBible);
+      const safeSize = getSafeFontScaleSize(slideTextsToEvaluate, baseSize, 1920, 1080, currentFont, lastStyleData, isFullSlideOrBible);
 
       textEl.style.fontSize = `${safeSize}px`;
-
-      _lastFitW = curW;
-      _lastFitH = curH;
-      _lastFitFontSize = safeSize;
 
       const wrapper = textEl.querySelector('.obs-slide-wrapper') || textEl;
       wrapper.style.transform = 'none';
@@ -1446,6 +1453,8 @@
 
       applyDynamicShadow();
     }
+
+    window.addEventListener('resize', updateSlideScale);
 
     window.addEventListener('resize', () => {
       _isResizingWindow = true;
