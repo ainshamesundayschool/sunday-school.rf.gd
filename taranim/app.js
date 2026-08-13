@@ -4747,55 +4747,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function loadInitialData() {
-    const startupOverlay = document.getElementById('startup-loading-overlay');
-    const statusText = document.getElementById('startup-status-text');
-    const progressFill = document.getElementById('startup-progress-fill');
-    const btnBgContinue = document.getElementById('btn-startup-bg-continue');
-
-    let isDismissed = false;
-
-    const dismissSplash = () => {
-      if (isDismissed) return;
-      isDismissed = true;
-      document.body.classList.remove('startup-active');
-      if (startupOverlay) {
-        startupOverlay.classList.add('fade-out');
-        setTimeout(() => { try { startupOverlay.remove(); } catch(e) {} }, 300);
-      }
-    };
-
-    if (btnBgContinue) {
-      btnBgContinue.addEventListener('click', () => dismissSplash());
-      setTimeout(() => {
-        if (!isDismissed && btnBgContinue) {
-          btnBgContinue.classList.remove('hidden');
-        }
-      }, 2500);
+    const startupOverlay = document.getElementById('startup-loading-overlay') || document.getElementById('startup-overlay');
+    if (startupOverlay) {
+      startupOverlay.classList.add('fade-out');
+      startupOverlay.style.display = 'none';
+      try { startupOverlay.remove(); } catch(e) {}
     }
-
-    const updateStartupProgress = (pct, text) => {
-      if (progressFill) progressFill.style.width = `${pct}%`;
-      if (statusText) statusText.textContent = text;
-    };
-
-    updateStartupProgress(30, 'جاري معالجة فهارس المحتوى والقاموس الذكي...');
-
-    if (navigator.onLine && 'serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      try {
-        navigator.serviceWorker.controller.postMessage({ type: 'VERIFY_AND_PRECACHE_DATA' });
-      } catch (e) {}
-    }
-
-    try {
-      const dictRes = await fetch('arabic_dictionary.json').catch(() => null);
-      if (dictRes && dictRes.ok) {
-        const dict = await dictRes.json();
-        state.arabicDictionary = dict;
-        state.dictKeys = Object.keys(dict);
-      }
-    } catch (e) {}
-
-    updateStartupProgress(40, 'جاري معالجة الفهارس وسجلات الترانيم...');
+    document.body.classList.remove('startup-active');
 
     // Helper: index raw catalog items with fast search keys
     const indexCatalogList = (list) => {
@@ -4814,102 +4772,39 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     };
 
-    // 1. FAST 0ms LOCAL CACHE CHECK
-    let hasLocalCatalog = false;
-    let hasLocalBible = false;
-
-    if ('caches' in window) {
-      try {
-        const keys = await caches.keys().catch(() => []);
-        for (const key of keys) {
-          const cache = await caches.open(key).catch(() => null);
-          if (cache) {
-            if (!hasLocalCatalog) {
-              const resCat = await cache.match('songs_catalog.json', { ignoreSearch: true }).catch(() => null) ||
-                             await cache.match('./songs_catalog.json', { ignoreSearch: true }).catch(() => null);
-              if (resCat && resCat.ok) {
-                const data = await resCat.json().catch(() => null);
-                const rawList = Array.isArray(data) ? data : (data && data.songs ? data.songs : []);
-                if (rawList && rawList.length > 0) {
-                  state.allSongs = indexCatalogList(rawList);
-                  hasLocalCatalog = true;
-                }
-              }
-            }
-            if (!hasLocalBible) {
-              const resBible = await cache.match('bible_chapters_data.json', { ignoreSearch: true }).catch(() => null) ||
-                               await cache.match('./bible_chapters_data.json', { ignoreSearch: true }).catch(() => null);
-              if (resBible && resBible.ok) {
-                const dataB = await resBible.json().catch(() => null);
-                if (dataB && Object.keys(dataB).length > 0) {
-                  state.bibleChaptersData = dataB;
-                  hasLocalBible = true;
-                }
-              }
-            }
-          }
-        }
-      } catch(e) {}
+    if (els.totalSongsCount) {
+      const formatted = Number(11611).toLocaleString('ar-EG');
+      els.totalSongsCount.innerHTML = `<i class="fa-solid fa-music"></i> <span>${formatted} ترنيمة</span>`;
     }
 
-    const overlayEl = document.getElementById('startup-overlay');
-    const btnBgContinueEl = document.getElementById('btn-bg-continue') || (typeof btnBgContinue !== 'undefined' ? btnBgContinue : null);
-    const isDataFullyLoaded = hasLocalCatalog && hasLocalBible && state.allSongs.length > 0 && state.bibleChaptersData;
-
-    // 2. ONLY SHOW SPLASH SCREEN IF DATA NEEDS TO BE DOWNLOADED!
-    if (!isDataFullyLoaded && overlayEl) {
-      overlayEl.classList.remove('hidden');
-      document.body.classList.add('startup-active');
-      if (btnBgContinueEl) {
-        setTimeout(() => {
-          if (btnBgContinueEl) btnBgContinueEl.classList.remove('hidden');
-        }, 2000);
-      }
-    }
-
-    // 3. FETCH ARABIC DICTIONARY & MISSING DATA IF NEEDED
+    // Fast non-blocking parallel fetch of catalog & bible data directly into memory
     try {
-      const dictRes = await fetch('arabic_dictionary.json').catch(() => null);
-      if (dictRes && dictRes.ok) {
-        const dict = await dictRes.json().catch(() => null);
-        if (dict) {
-          state.arabicDictionary = dict;
-          state.dictKeys = Object.keys(dict);
+      const pathDir = window.location.pathname.replace(/\/[^\/]*$/, '/');
+      const fetchCatalog = fetch('./songs_catalog.json')
+        .then(r => r.ok ? r.json() : null)
+        .catch(() => null);
+
+      const fetchBible = fetch('./bible_chapters_data.json')
+        .then(r => r.ok ? r.json() : null)
+        .catch(() => fetch(`${window.location.origin}${pathDir}bible_chapters_data.json`).then(r => r.ok ? r.json() : null).catch(() => null));
+
+      const [data, bibleData] = await Promise.all([fetchCatalog, fetchBible]);
+
+      if (data) {
+        let rawList = Array.isArray(data) ? data : (data && data.songs ? data.songs : []);
+        if (rawList.length > 0) {
+          state.allSongs = indexCatalogList(rawList);
         }
       }
-    } catch (e) {}
+      if (bibleData) {
+        state.bibleChaptersData = bibleData;
+      }
 
-    if (!isDataFullyLoaded) {
-      updateStartupProgress(40, 'جاري تنزيل الفهارس وسجلات الترانيم والكتاب المقدس...');
-      try {
-        const pathDir = window.location.pathname.replace(/\/[^\/]*$/, '/');
-        const fetchCatalog = fetch('./songs_catalog.json')
-          .then(r => r.ok ? r.json() : null)
-          .catch(() => null);
-
-        const fetchBible = fetch('./bible_chapters_data.json')
-          .then(r => r.ok ? r.json() : null)
-          .catch(() => fetch(`${window.location.origin}${pathDir}bible_chapters_data.json`).then(r => r.ok ? r.json() : null).catch(() => null));
-
-        const [data, bibleData] = await Promise.all([fetchCatalog, fetchBible]);
-
-        if (data) {
-          let rawList = Array.isArray(data) ? data : (data && data.songs ? data.songs : []);
-          if (rawList.length > 0) {
-            state.allSongs = indexCatalogList(rawList);
-          }
-        }
-        if (bibleData) {
-          state.bibleChaptersData = bibleData;
-        }
-        updateStartupProgress(95, 'تم تنزيل وتحضير المحتوى بالكامل...');
-      } catch(e) {}
-    }
-
-    // Update total songs count badge UI
-    if (els.totalSongsCount && state.allSongs.length > 0) {
-      els.totalSongsCount.textContent = `${state.allSongs.length} ترنيمة وإصحاح`;
-    }
+      if (els.totalSongsCount && state.allSongs.length > 0) {
+        const formatted = Number(state.allSongs.length).toLocaleString('ar-EG');
+        els.totalSongsCount.innerHTML = `<i class="fa-solid fa-music"></i> <span>${formatted} ترنيمة</span>`;
+      }
+    } catch(e) {}
 
     // Re-hydrate active song from canonical catalog if restored on load
     if (state.activeSong && !state.activeSong.is_bible && (state.activeSong.id !== undefined || state.activeSong.item_id !== undefined)) {
@@ -4924,40 +4819,6 @@ document.addEventListener('DOMContentLoaded', () => {
         syncLiveState();
       }
     }
-
-    updateStartupProgress(100, 'التطبيق جاهز للعمل!');
-
-    const realTotalCount = state.allSongs.length > 0 ? state.allSongs.length : 11611;
-    
-    if (els.totalSongsCount) {
-      const formatted = Number(realTotalCount).toLocaleString('ar-EG');
-      els.totalSongsCount.innerHTML = `<i class="fa-solid fa-music"></i> <span>${formatted} ترنيمة</span>`;
-    }
-
-    dismissSplash();
-
-    // Fetch live total songs count & trigger background auto-sync for new songs / Tasbe7na updates
-    try {
-      const apiUrl = getApiUrl();
-      let liveRes = await fetch(`${apiUrl}?action=songs&limit=1`).catch(() => null);
-      if (!liveRes || !liveRes.ok) liveRes = await fetch('api.php?action=songs&limit=1').catch(() => null);
-      if (liveRes && liveRes.ok) {
-        const liveData = await liveRes.json();
-        if (liveData && liveData.total_songs && liveData.total_songs > 0) {
-          const cleanCount = (liveData.total_songs <= 11650) ? liveData.total_songs : 11611;
-          const formattedLive = Number(cleanCount).toLocaleString('ar-EG');
-          if (els.totalSongsCount) {
-            els.totalSongsCount.innerHTML = `<i class="fa-solid fa-music"></i> <span>${formattedLive} ترنيمة</span>`;
-          }
-        }
-      }
-
-      // Non-blocking background sync for new database updates from Tasbe7na / server
-      setTimeout(() => {
-        fetch(`${apiUrl}?action=sync`).catch(() => null);
-        fetch('api.php?action=sync').catch(() => null);
-      }, 1500);
-    } catch (liveErr) {}
   }
 
   function performIntelligentSearch(query) {
