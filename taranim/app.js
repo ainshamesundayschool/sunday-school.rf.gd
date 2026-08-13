@@ -3483,6 +3483,122 @@ document.addEventListener('DOMContentLoaded', () => {
       renderQuickTemplatesDropdown();
     };
 
+    // In-Website Template Editor Modal (Save New / Rename)
+    let tmplEditorMode = 'save'; // 'save' | 'rename'
+    let currentEditingTemplateId = null;
+
+    const openTemplateEditorModal = (mode = 'save', templateId = null) => {
+      tmplEditorMode = mode;
+      currentEditingTemplateId = templateId;
+
+      const modal = document.getElementById('modal-template-editor');
+      const titleEl = document.getElementById('tmpl-editor-modal-title');
+      const subtitleEl = document.getElementById('tmpl-editor-modal-subtitle');
+      const iconEl = document.getElementById('tmpl-editor-modal-icon');
+      const submitTextEl = document.getElementById('tmpl-editor-submit-text');
+      const nameInput = document.getElementById('tmpl-editor-name-input');
+
+      if (!modal || !nameInput) return;
+
+      if (mode === 'save') {
+        if (titleEl) titleEl.textContent = 'حفظ كقالب جديد';
+        if (subtitleEl) subtitleEl.textContent = 'حفظ جميع إعدادات التنسيق والشاشة الحالية';
+        if (iconEl) iconEl.className = 'fa-solid fa-layer-group';
+        if (submitTextEl) submitTextEl.textContent = 'حفظ القالب';
+        nameInput.value = (els.customTemplateNameInput ? els.customTemplateNameInput.value.trim() : '') || '';
+      } else if (mode === 'rename') {
+        const tmpl = getUserTemplates().find(t => t.id === templateId);
+        if (titleEl) titleEl.textContent = 'تعديل اسم القالب';
+        if (subtitleEl) subtitleEl.textContent = 'تغيير اسم هذا القالب المحفوظ';
+        if (iconEl) iconEl.className = 'fa-solid fa-pen-to-square';
+        if (submitTextEl) submitTextEl.textContent = 'حفظ الاسم الجديد';
+        nameInput.value = tmpl ? tmpl.name : '';
+      }
+
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        nameInput.focus();
+        nameInput.select();
+      }, 100);
+    };
+
+    const closeTemplateEditorModal = () => {
+      const modal = document.getElementById('modal-template-editor');
+      if (modal) modal.classList.add('hidden');
+      currentEditingTemplateId = null;
+    };
+
+    const submitTemplateEditorModal = () => {
+      const nameInput = document.getElementById('tmpl-editor-name-input');
+      const name = nameInput ? nameInput.value.trim() : '';
+
+      if (!name) {
+        showToast('يرجى كتابة اسم القالب أولاً!', 'warning');
+        if (nameInput) nameInput.focus();
+        return;
+      }
+
+      const templates = getUserTemplates();
+
+      if (tmplEditorMode === 'save') {
+        const newTemplate = {
+          id: 'tmpl_' + Date.now(),
+          name: name,
+          createdAt: new Date().toISOString(),
+          settings: getCurrentStyleSnapshot()
+        };
+
+        templates.unshift(newTemplate);
+        saveUserTemplates(templates);
+        state.activeTemplateName = name;
+        const headerLabel = document.getElementById('current-template-header-label');
+        if (headerLabel) headerLabel.textContent = name;
+
+        if (els.customTemplateNameInput) els.customTemplateNameInput.value = '';
+        renderUserTemplatesList();
+        renderQuickTemplatesDropdown();
+        closeTemplateEditorModal();
+        showToast(`تم حفظ وتفعيل قالب "${name}" بنجاح!`);
+      } else if (tmplEditorMode === 'rename') {
+        const tmpl = templates.find(t => t.id === currentEditingTemplateId);
+        if (tmpl) {
+          const oldName = tmpl.name;
+          tmpl.name = name;
+          saveUserTemplates(templates);
+
+          if (state.activeTemplateName === oldName) {
+            state.activeTemplateName = name;
+            const headerLabel = document.getElementById('current-template-header-label');
+            if (headerLabel) headerLabel.textContent = name;
+          }
+
+          renderUserTemplatesList();
+          renderQuickTemplatesDropdown();
+          closeTemplateEditorModal();
+          showToast(`تم تغيير اسم القالب إلى "${name}" بنجاح!`);
+        }
+      }
+    };
+
+    const btnCloseTmplModal = document.getElementById('btn-close-template-editor-modal');
+    const btnCancelTmplModal = document.getElementById('btn-cancel-template-editor');
+    const btnSubmitTmplModal = document.getElementById('btn-submit-template-editor');
+    const tmplNameInputEl = document.getElementById('tmpl-editor-name-input');
+
+    if (btnCloseTmplModal) btnCloseTmplModal.addEventListener('click', closeTemplateEditorModal);
+    if (btnCancelTmplModal) btnCancelTmplModal.addEventListener('click', closeTemplateEditorModal);
+    if (btnSubmitTmplModal) btnSubmitTmplModal.addEventListener('click', submitTemplateEditorModal);
+    if (tmplNameInputEl) {
+      tmplNameInputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          submitTemplateEditorModal();
+        } else if (e.key === 'Escape') {
+          closeTemplateEditorModal();
+        }
+      });
+    }
+
     const renderQuickTemplatesDropdown = () => {
       const dropdownItemsContainer = document.getElementById('templates-quick-dropdown-items');
       if (!dropdownItemsContainer) return;
@@ -3501,7 +3617,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 <i class="fa-solid ${isActive ? 'fa-circle-check' : 'fa-bookmark'}" style="color:${isActive ? '#2563eb' : '#94a3b8'}; font-size:0.82rem;"></i>
                 <span>${escapeHtml(t.name)}</span>
               </span>
-              <span style="font-size:0.7rem; color:#94a3b8;">${escapeHtml(t.settings?.presentationMode || 'عام')}</span>
+              <div style="display:flex; align-items:center; gap:4px;">
+                <button type="button" class="btn-quick-update-tmpl" data-id="${t.id}" title="تحديث هذا القالب بالإعدادات الحالية" style="padding:2px 5px; font-size:0.7rem; border:none; background:transparent; color:#2563eb; cursor:pointer; border-radius:4px;">
+                  <i class="fa-solid fa-arrows-rotate"></i>
+                </button>
+                <button type="button" class="btn-quick-rename-tmpl" data-id="${t.id}" title="تعديل اسم القالب" style="padding:2px 5px; font-size:0.7rem; border:none; background:transparent; color:#64748b; cursor:pointer; border-radius:4px;">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+              </div>
             </div>
           `;
         });
@@ -3512,7 +3635,8 @@ document.addEventListener('DOMContentLoaded', () => {
       dropdownItemsContainer.innerHTML = html;
 
       dropdownItemsContainer.querySelectorAll('.quick-tmpl-item').forEach(item => {
-        item.addEventListener('click', () => {
+        item.addEventListener('click', (e) => {
+          if (e.target.closest('.btn-quick-update-tmpl') || e.target.closest('.btn-quick-rename-tmpl')) return;
           const id = item.getAttribute('data-id');
           const tmpl = userTemplates.find(t => t.id === id);
           if (tmpl && tmpl.settings) {
@@ -3523,6 +3647,36 @@ document.addEventListener('DOMContentLoaded', () => {
             if (menu) menu.classList.add('hidden');
             if (arrow) arrow.style.transform = 'rotate(0deg)';
           }
+        });
+      });
+
+      // Quick Update from dropdown
+      dropdownItemsContainer.querySelectorAll('.btn-quick-update-tmpl').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = btn.getAttribute('data-id');
+          const templates = getUserTemplates();
+          const tmpl = templates.find(t => t.id === id);
+          if (tmpl) {
+            tmpl.settings = getCurrentStyleSnapshot();
+            tmpl.updatedAt = new Date().toISOString();
+            saveUserTemplates(templates);
+            state.activeTemplateName = tmpl.name;
+            const headerLabel = document.getElementById('current-template-header-label');
+            if (headerLabel) headerLabel.textContent = tmpl.name;
+            renderUserTemplatesList();
+            renderQuickTemplatesDropdown();
+            showToast(`تم تحديث قالب "${tmpl.name}" بالإعدادات الحالية بنجاح!`);
+          }
+        });
+      });
+
+      // Quick Rename from dropdown
+      dropdownItemsContainer.querySelectorAll('.btn-quick-rename-tmpl').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = btn.getAttribute('data-id');
+          openTemplateEditorModal('rename', id);
         });
       });
     };
@@ -3549,6 +3703,12 @@ document.addEventListener('DOMContentLoaded', () => {
             <button type="button" class="btn-apply-template btn btn-sm btn-primary" data-id="${t.id}" title="تطبيق هذا القالب" style="padding:4px 10px; font-size:0.78rem; font-weight:700; background:#2563eb; color:#fff;">
               <i class="fa-solid fa-check"></i> تطبيق
             </button>
+            <button type="button" class="btn-update-template btn btn-sm btn-secondary" data-id="${t.id}" title="تحديث هذا القالب بالإعدادات الحالية (حفظ التعديلات)" style="padding:4px 8px; font-size:0.78rem; color:#2563eb;">
+              <i class="fa-solid fa-arrows-rotate"></i>
+            </button>
+            <button type="button" class="btn-rename-template btn btn-sm btn-secondary" data-id="${t.id}" title="تعديل اسم القالب" style="padding:4px 8px; font-size:0.78rem;">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
             <button type="button" class="btn-share-template btn btn-sm btn-secondary" data-id="${t.id}" title="مشاركة القالب" style="padding:4px 8px; font-size:0.78rem;">
               <i class="fa-solid fa-share-nodes"></i>
             </button>
@@ -3562,6 +3722,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `).join('');
 
+      // Apply
       container.querySelectorAll('.btn-apply-template').forEach(btn => {
         btn.addEventListener('click', () => {
           const id = btn.getAttribute('data-id');
@@ -3570,6 +3731,34 @@ document.addEventListener('DOMContentLoaded', () => {
             applyStyleSnapshot(tmpl.settings, tmpl.name);
             showToast(`تم تطبيق قالب "${tmpl.name}" بنجاح!`);
           }
+        });
+      });
+
+      // Update Template with current styles
+      container.querySelectorAll('.btn-update-template').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-id');
+          const templates = getUserTemplates();
+          const tmpl = templates.find(item => item.id === id);
+          if (tmpl) {
+            tmpl.settings = getCurrentStyleSnapshot();
+            tmpl.updatedAt = new Date().toISOString();
+            saveUserTemplates(templates);
+            state.activeTemplateName = tmpl.name;
+            const headerLabel = document.getElementById('current-template-header-label');
+            if (headerLabel) headerLabel.textContent = tmpl.name;
+            renderUserTemplatesList();
+            renderQuickTemplatesDropdown();
+            showToast(`تم تحديث قالب "${tmpl.name}" بالإعدادات الحالية بنجاح!`);
+          }
+        });
+      });
+
+      // Rename Template
+      container.querySelectorAll('.btn-rename-template').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-id');
+          openTemplateEditorModal('rename', id);
         });
       });
 
@@ -3582,7 +3771,7 @@ document.addEventListener('DOMContentLoaded', () => {
             navigator.clipboard.writeText(shareUrl).then(() => {
               showToast(`تم نسخ رابط مشاركة قالب "${tmpl.name}"!`);
             }).catch(() => {
-              prompt('انسخ رابط مشاركة القالب:', shareUrl);
+              showToast('تعذر نسخ الرابط إلى الحافظة', 'warning');
             });
           }
         });
@@ -3923,26 +4112,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnQuickSaveHeader) {
       btnQuickSaveHeader.addEventListener('click', (e) => {
         e.stopPropagation();
-        const name = prompt('اكتب اسماً للقالب الجديد لحفظ جميع إعدادات الشاشة والتنسيق والانتقال:');
-        if (!name || !name.trim()) return;
-
-        const templates = getUserTemplates();
-        const newTemplate = {
-          id: 'tmpl_' + Date.now(),
-          name: name.trim(),
-          createdAt: new Date().toISOString(),
-          settings: getCurrentStyleSnapshot()
-        };
-
-        templates.unshift(newTemplate);
-        saveUserTemplates(templates);
-        state.activeTemplateName = name.trim();
-        const headerLabel = document.getElementById('current-template-header-label');
-        if (headerLabel) headerLabel.textContent = name.trim();
-
-        renderUserTemplatesList();
-        renderQuickTemplatesDropdown();
-        showToast(`تم حفظ وتفعيل قالب "${name.trim()}" بنجاح!`);
+        openTemplateEditorModal('save');
       });
     }
 
