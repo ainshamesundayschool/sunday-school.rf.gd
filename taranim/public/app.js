@@ -7080,9 +7080,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function getSafeFontScaleSize(slideTexts, baseSize, curW, curH, fontName, styleOptions, isFullSlideOrBible = false) {
       if (!slideTexts || !Array.isArray(slideTexts) || slideTexts.length === 0) return baseSize;
 
-      const isVertical = curH > curW;
-      const effectiveCanvasH = isVertical ? (curW * (9 / 16)) : curH;
-      const maxH = Math.max(180, effectiveCanvasH * 0.85);
+      const maxH = Math.max(180, curH * 0.85);
       const maxW = Math.max(280, curW * 0.90);
 
       let measurer = document.getElementById('_safe_area_measurer');
