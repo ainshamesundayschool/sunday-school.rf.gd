@@ -1037,6 +1037,9 @@
 
     let stateFontSize = 105;
     let lastDragTime = 0;
+    let currentSlidesBgSrc = '';
+    let currentStandbyBgSrc = '';
+    let currentStingerSrc = '';
 
     function requestAutoFullscreen() {
       if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
@@ -1855,26 +1858,37 @@
         if (bgConf.type === 'template' || bgConf.type === 'custom_video') {
           const vUrl = bgConf.url || (bgConf.type === 'template' ? 'Templates/SlidesBg/Shabahak Akon 2026/Shabahak Akoon Loop Empty Centered.mp4' : '');
           if (vUrl) {
-            if (slidesBgVideo.src !== vUrl && !slidesBgVideo.src.endsWith(vUrl)) {
+            if (currentSlidesBgSrc !== vUrl) {
+              currentSlidesBgSrc = vUrl;
               slidesBgVideo.src = vUrl;
+              slidesBgVideo.load();
             }
+            slidesBgVideo.muted = true;
             slidesBgVideo.loop = (bgConf.loop !== false);
             slidesBgVideo.classList.remove('hidden');
             slidesBgImg.classList.add('hidden');
             slidesBgContainer.classList.remove('hidden');
-            slidesBgVideo.play().catch(() => {});
+            if (slidesBgVideo.paused) {
+              slidesBgVideo.play().catch(() => {});
+            }
           } else {
+            currentSlidesBgSrc = '';
             slidesBgContainer.classList.add('hidden');
+            if (slidesBgVideo && !slidesBgVideo.paused) slidesBgVideo.pause();
           }
         } else if (bgConf.type === 'custom_image' && bgConf.url) {
+          currentSlidesBgSrc = '';
           slidesBgImg.src = bgConf.url;
           slidesBgImg.classList.remove('hidden');
           slidesBgVideo.classList.add('hidden');
           slidesBgContainer.classList.remove('hidden');
+          if (slidesBgVideo && !slidesBgVideo.paused) slidesBgVideo.pause();
         } else {
+          currentSlidesBgSrc = '';
           slidesBgContainer.classList.add('hidden');
           slidesBgImg.classList.add('hidden');
           slidesBgVideo.classList.add('hidden');
+          if (slidesBgVideo && !slidesBgVideo.paused) slidesBgVideo.pause();
         }
       }
 
@@ -1896,7 +1910,9 @@
           }
           if (standbyFullscreenContainer) {
             standbyFullscreenContainer.classList.add('hidden');
-            if (standbyFullscreenVideo) standbyFullscreenVideo.pause();
+            if (standbyFullscreenVideo && !standbyFullscreenVideo.paused) {
+              try { standbyFullscreenVideo.pause(); } catch(e) {}
+            }
           }
           return;
         }
@@ -1905,28 +1921,39 @@
           if (standbyEl) standbyEl.classList.add('hidden');
           if (standbyFullscreenContainer && standbyFullscreenVideo) {
             const vUrl = standbyConf.url || 'Templates/Standby/Shabahak Akon 2026/Shabahak Akoon Loop.mp4';
-            if (standbyFullscreenVideo.src !== vUrl && !standbyFullscreenVideo.src.endsWith(vUrl)) {
+            if (currentStandbyBgSrc !== vUrl) {
+              currentStandbyBgSrc = vUrl;
               standbyFullscreenVideo.src = vUrl;
+              standbyFullscreenVideo.load();
             }
+            standbyFullscreenVideo.muted = true;
             standbyFullscreenVideo.loop = (standbyConf.loop !== false);
             standbyFullscreenVideo.classList.remove('hidden');
             if (standbyFullscreenImg) standbyFullscreenImg.classList.add('hidden');
             standbyFullscreenContainer.classList.remove('hidden');
-            standbyFullscreenVideo.play().catch(() => {});
+            if (standbyFullscreenVideo.paused) {
+              standbyFullscreenVideo.play().catch(() => {});
+            }
           }
         } else if (standbyConf.type === 'custom_image' && standbyConf.url) {
+          currentStandbyBgSrc = '';
           if (standbyEl) standbyEl.classList.add('hidden');
           if (standbyFullscreenContainer && standbyFullscreenImg) {
             standbyFullscreenImg.src = standbyConf.url;
             standbyFullscreenImg.classList.remove('hidden');
-            if (standbyFullscreenVideo) standbyFullscreenVideo.classList.add('hidden');
+            if (standbyFullscreenVideo) {
+              standbyFullscreenVideo.classList.add('hidden');
+              if (!standbyFullscreenVideo.paused) standbyFullscreenVideo.pause();
+            }
             standbyFullscreenContainer.classList.remove('hidden');
           }
         } else {
-          // Default logo
+          currentStandbyBgSrc = '';
           if (standbyFullscreenContainer) {
             standbyFullscreenContainer.classList.add('hidden');
-            if (standbyFullscreenVideo) standbyFullscreenVideo.pause();
+            if (standbyFullscreenVideo && !standbyFullscreenVideo.paused) {
+              try { standbyFullscreenVideo.pause(); } catch(e) {}
+            }
           }
           if (standbyEl) {
             standbyEl.classList.remove('hidden');
@@ -1935,7 +1962,7 @@
         }
       };
 
-      // 4. TRANSITION TRIGGER LOGIC
+      // 4. TRANSITION TRIGGER OR DIRECT DISPLAY
       if (data.triggerTransition) {
         const transType = data.transitionType || 'stinger';
         const stingerUrl = data.stingerMediaUrl || 'Templates/Stringer/Shabahak Akon 2026/Stringer 1.webm';
@@ -1947,6 +1974,7 @@
             if (stingerEl.src !== stingerUrl && !stingerEl.src.endsWith(stingerUrl)) {
               stingerEl.src = stingerUrl;
             }
+            stingerEl.muted = true;
             stingerEl.classList.remove('hidden');
             stingerEl.style.display = 'block';
             stingerEl.currentTime = 0;
@@ -1958,10 +1986,13 @@
                 textEl.classList.add('hidden');
                 textEl.style.display = 'none';
                 updateStandbyMediaDisplay(true);
+                currentIsBlankState = true;
               } else {
                 updateStandbyMediaDisplay(false);
                 textEl.classList.remove('hidden');
                 textEl.style.display = 'inline-block';
+                textEl.style.visibility = 'visible';
+                currentIsBlankState = false;
               }
             }, cutPoint);
 
@@ -1980,36 +2011,40 @@
               textEl.classList.add('hidden');
               textEl.style.display = 'none';
               updateStandbyMediaDisplay(true);
+              currentIsBlankState = true;
             } else {
               updateStandbyMediaDisplay(false);
               textEl.classList.remove('hidden');
               textEl.style.display = 'inline-block';
+              textEl.style.visibility = 'visible';
+              currentIsBlankState = false;
             }
             setTimeout(() => {
               container.classList.remove('luma-wipe-active');
             }, 300);
           }, 280);
         }
+      } else {
+        if (isBlankMode) {
+          textEl.classList.add('hidden');
+          textEl.style.display = 'none';
+          updateStandbyMediaDisplay(false);
+          currentIsBlankState = true;
+        } else if (isStandbyMode || !hasTextContent) {
+          textEl.classList.add('hidden');
+          textEl.style.display = 'none';
+          updateStandbyMediaDisplay(true);
+          currentIsBlankState = true;
+        } else {
+          updateStandbyMediaDisplay(false);
+          textEl.classList.remove('hidden');
+          textEl.style.display = 'inline-block';
+          textEl.style.visibility = 'visible';
+          currentIsBlankState = false;
+        }
       }
 
-      if (isBlankMode) {
-        // HIDE BUTTON IS ON: Hide text AND hide standby
-        textEl.classList.add('hidden');
-        textEl.style.display = 'none';
-        updateStandbyMediaDisplay(false);
-        currentIsBlankState = true;
-      } else if (isStandbyMode || !hasTextContent) {
-        // STANDBY MODE OR NO SONG: Show standby media
-        textEl.classList.add('hidden');
-        textEl.style.display = 'none';
-        updateStandbyMediaDisplay(true);
-        currentIsBlankState = true;
-      } else {
-        updateStandbyMediaDisplay(false);
-        textEl.classList.remove('hidden');
-        textEl.style.display = 'inline-block';
-        textEl.style.visibility = 'visible';
-        currentIsBlankState = false;
+      if (!isBlankMode && !isStandbyMode && hasTextContent) {
         const isBible = Boolean(data.isBible || data.is_bible);
 
         // UPDATE TEXT INNERHTML ONLY WHEN RAW TEXT/BADGE CONTENT CHANGES (FLICKER-FREE)

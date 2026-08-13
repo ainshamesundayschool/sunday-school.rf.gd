@@ -917,6 +917,18 @@
   <!-- EMBEDDED PRESENTATION OVERLAY -->
   <div id="obs-presentation-overlay" class="obs-overlay hidden" data-chroma="black">
 
+    <!-- SLIDES BACKGROUND MEDIA CONTAINER -->
+    <div id="obs-slides-bg-container" class="slides-bg-container hidden">
+      <img id="obs-slides-bg-img" class="slides-bg-media hidden" alt="Slides Background">
+      <video id="obs-slides-bg-video" class="slides-bg-media hidden" playsinline webkit-playsinline muted loop></video>
+    </div>
+
+    <!-- STANDBY CUSTOM FULLSCREEN MEDIA -->
+    <div id="obs-standby-fullscreen-container" class="standby-fullscreen-container hidden">
+      <img id="obs-standby-fullscreen-img" class="standby-fullscreen-media hidden" alt="Standby Image">
+      <video id="obs-standby-fullscreen-video" class="standby-fullscreen-media hidden" playsinline webkit-playsinline muted loop></video>
+    </div>
+
     <!-- TOP-LEFT BIBLE / CHAPTER REFERENCE HEADER -->
     <div id="obs-top-left-header" class="obs-top-left-header hidden"></div>
 
@@ -941,6 +953,9 @@
       </div>
       <div id="obs-line-text" class="obs-line-text hidden"></div>
     </div>
+
+    <!-- STINGER ALPHA VIDEO TRANSITION OVERLAY -->
+    <video id="obs-stinger-transition-video" class="stinger-transition-video hidden" playsinline webkit-playsinline muted></video>
 
     <!-- PRESENTATION FOOTER BAR (SLIDE COUNTER & SCALE AT RIGHT END MATCHING PRESENT.HTML) -->
     <div id="obs-footer-bar" class="presenter-footer-bar hidden">

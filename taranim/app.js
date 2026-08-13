@@ -7558,19 +7558,138 @@ document.addEventListener('DOMContentLoaded', () => {
       const standbyEl = document.getElementById('obs-standby-branding') || document.getElementById('standby-branding');
       const hasTextContent = Boolean(text && String(text).trim());
 
+      // 2.1 SYNC IN-APP TEXT TRANSFORMS
+      if (state.textTransform && els.obsLowerThirdBox) {
+        const tf = state.textTransform;
+        const scale = tf.scale !== undefined ? (tf.scale / 100) : 1;
+        const posX = tf.posX !== undefined ? `${tf.posX}%` : '0%';
+        const posY = tf.posY !== undefined ? `${tf.posY}%` : '0%';
+        const rot = tf.rotation !== undefined ? `${tf.rotation}deg` : '0deg';
+        els.obsLowerThirdBox.style.setProperty('--text-scale', `${scale}`);
+        els.obsLowerThirdBox.style.setProperty('--text-pos-x', `${posX}`);
+        els.obsLowerThirdBox.style.setProperty('--text-pos-y', `${posY}`);
+        els.obsLowerThirdBox.style.setProperty('--text-rot', `${rot}`);
+      }
+
+      // 2.2 SYNC IN-APP SLIDES BACKGROUND MEDIA
+      const obsSlidesBgContainer = document.getElementById('obs-slides-bg-container');
+      const obsSlidesBgImg = document.getElementById('obs-slides-bg-img');
+      const obsSlidesBgVideo = document.getElementById('obs-slides-bg-video');
+      if (obsSlidesBgContainer && state.slidesBgConfig) {
+        const bgConf = state.slidesBgConfig;
+        if (bgConf.type === 'template' || bgConf.type === 'custom_video') {
+          const vUrl = bgConf.url || (bgConf.type === 'template' ? 'Templates/SlidesBg/Shabahak Akon 2026/Shabahak Akoon Loop Empty Centered.mp4' : '');
+          if (vUrl) {
+            if (obsSlidesBgVideo && obsSlidesBgVideo.getAttribute('data-active-src') !== vUrl) {
+              obsSlidesBgVideo.setAttribute('data-active-src', vUrl);
+              obsSlidesBgVideo.src = vUrl;
+              obsSlidesBgVideo.load();
+            }
+            if (obsSlidesBgVideo) {
+              obsSlidesBgVideo.muted = true;
+              obsSlidesBgVideo.loop = (bgConf.loop !== false);
+              obsSlidesBgVideo.classList.remove('hidden');
+              if (obsSlidesBgVideo.paused) obsSlidesBgVideo.play().catch(() => {});
+            }
+            if (obsSlidesBgImg) obsSlidesBgImg.classList.add('hidden');
+            obsSlidesBgContainer.classList.remove('hidden');
+          } else {
+            obsSlidesBgContainer.classList.add('hidden');
+            if (obsSlidesBgVideo && !obsSlidesBgVideo.paused) obsSlidesBgVideo.pause();
+          }
+        } else if (bgConf.type === 'custom_image' && bgConf.url) {
+          if (obsSlidesBgImg) {
+            obsSlidesBgImg.src = bgConf.url;
+            obsSlidesBgImg.classList.remove('hidden');
+          }
+          if (obsSlidesBgVideo) {
+            obsSlidesBgVideo.classList.add('hidden');
+            if (!obsSlidesBgVideo.paused) obsSlidesBgVideo.pause();
+          }
+          obsSlidesBgContainer.classList.remove('hidden');
+        } else {
+          obsSlidesBgContainer.classList.add('hidden');
+          if (obsSlidesBgImg) obsSlidesBgImg.classList.add('hidden');
+          if (obsSlidesBgVideo) {
+            obsSlidesBgVideo.classList.add('hidden');
+            if (!obsSlidesBgVideo.paused) obsSlidesBgVideo.pause();
+          }
+        }
+      }
+
+      // 2.3 SYNC IN-APP STANDBY FULLSCREEN MEDIA
+      const obsStandbyFullscreenContainer = document.getElementById('obs-standby-fullscreen-container');
+      const obsStandbyFullscreenImg = document.getElementById('obs-standby-fullscreen-img');
+      const obsStandbyFullscreenVideo = document.getElementById('obs-standby-fullscreen-video');
+
+      const updateObsStandbyDisplay = (showStandby) => {
+        const standbyConf = state.standbyConfig || { type: 'logo' };
+        if (!showStandby) {
+          if (standbyEl) {
+            standbyEl.classList.add('hidden');
+            standbyEl.style.display = 'none';
+          }
+          if (obsStandbyFullscreenContainer) {
+            obsStandbyFullscreenContainer.classList.add('hidden');
+            if (obsStandbyFullscreenVideo && !obsStandbyFullscreenVideo.paused) {
+              try { obsStandbyFullscreenVideo.pause(); } catch(e) {}
+            }
+          }
+          return;
+        }
+
+        if (standbyConf.type === 'template' || standbyConf.type === 'custom_video') {
+          if (standbyEl) standbyEl.classList.add('hidden');
+          if (obsStandbyFullscreenContainer && obsStandbyFullscreenVideo) {
+            const vUrl = standbyConf.url || 'Templates/Standby/Shabahak Akon 2026/Shabahak Akoon Loop.mp4';
+            if (obsStandbyFullscreenVideo.getAttribute('data-active-src') !== vUrl) {
+              obsStandbyFullscreenVideo.setAttribute('data-active-src', vUrl);
+              obsStandbyFullscreenVideo.src = vUrl;
+              obsStandbyFullscreenVideo.load();
+            }
+            obsStandbyFullscreenVideo.muted = true;
+            obsStandbyFullscreenVideo.loop = (standbyConf.loop !== false);
+            obsStandbyFullscreenVideo.classList.remove('hidden');
+            if (obsStandbyFullscreenImg) obsStandbyFullscreenImg.classList.add('hidden');
+            obsStandbyFullscreenContainer.classList.remove('hidden');
+            if (obsStandbyFullscreenVideo.paused) obsStandbyFullscreenVideo.play().catch(() => {});
+          }
+        } else if (standbyConf.type === 'custom_image' && standbyConf.url) {
+          if (standbyEl) standbyEl.classList.add('hidden');
+          if (obsStandbyFullscreenContainer && obsStandbyFullscreenImg) {
+            obsStandbyFullscreenImg.src = standbyConf.url;
+            obsStandbyFullscreenImg.classList.remove('hidden');
+            if (obsStandbyFullscreenVideo) {
+              obsStandbyFullscreenVideo.classList.add('hidden');
+              if (!obsStandbyFullscreenVideo.paused) obsStandbyFullscreenVideo.pause();
+            }
+            obsStandbyFullscreenContainer.classList.remove('hidden');
+          }
+        } else {
+          // Default logo
+          if (obsStandbyFullscreenContainer) {
+            obsStandbyFullscreenContainer.classList.add('hidden');
+            if (obsStandbyFullscreenVideo && !obsStandbyFullscreenVideo.paused) {
+              try { obsStandbyFullscreenVideo.pause(); } catch(e) {}
+            }
+          }
+          if (standbyEl) {
+            standbyEl.classList.remove('hidden');
+            standbyEl.style.display = 'flex';
+          }
+        }
+      };
+
       if (state.isBlank) {
         els.obsLineText.classList.add('hidden');
         els.obsLineText.style.display = 'none';
-        if (standbyEl) {
-          standbyEl.classList.add('hidden');
-          standbyEl.style.display = 'none';
-        }
+        updateObsStandbyDisplay(false);
       } else if (state.isStandbyMode || isLogoSlide || !hasTextContent) {
         els.obsLineText.classList.add('hidden');
         els.obsLineText.style.display = 'none';
-        if (standbyEl) {
-          standbyEl.classList.remove('hidden');
-          standbyEl.style.display = 'flex';
+        updateObsStandbyDisplay(true);
+
+        if (standbyEl && (state.standbyConfig?.type === 'logo' || !state.standbyConfig?.type)) {
 
           const recents = state.sessionRecents || [];
           let currentIdx = -1;
