@@ -7198,38 +7198,63 @@ document.addEventListener('DOMContentLoaded', () => {
       timestamp: Date.now()
     };
 
-    // BROADCAST TO OBS WINDOW / OVERLAYS
-    if (state.obsBroadcastChannel) {
-      state.obsBroadcastChannel.postMessage(payload);
-    }
-    localStorage.setItem('taranim_obs_live_state', JSON.stringify(payload));
+    // 1. INSTANT LOCAL BROADCAST & STORAGE SYNC (0ms)
+    try { broadcastChannel.postMessage(payload); } catch(e) {}
+    try { localStorage.setItem('sunday_school_taranim_live_presentation', JSON.stringify(payload)); } catch(e) {}
 
-    // LIVE OVERLAY DOM SYNC
+    // 2. LIVE OVERLAY DOM SYNC
     if (els.obsLineText) {
-      const standbyEl = document.getElementById('obs-standby-screen');
-      if (isLogoSlide) {
+      const standbyEl = document.getElementById('obs-standby-branding') || document.getElementById('standby-branding');
+      const hasTextContent = Boolean(text && String(text).trim());
+
+      if (state.isBlank) {
+        els.obsLineText.classList.add('hidden');
+        els.obsLineText.style.display = 'none';
+        if (standbyEl) {
+          standbyEl.classList.add('hidden');
+          standbyEl.style.display = 'none';
+        }
+      } else if (isLogoSlide || !hasTextContent) {
+        els.obsLineText.classList.add('hidden');
+        els.obsLineText.style.display = 'none';
         if (standbyEl) {
           standbyEl.classList.remove('hidden');
           standbyEl.style.display = 'flex';
+
+          const recents = state.sessionRecents || [];
+          let currentIdx = -1;
+          const currentSong = state.liveSong || state.activeSong;
+          if (currentSong) {
+            currentIdx = recents.findIndex(r => getItemKey(r) === getItemKey(currentSong));
+          }
+
           const hasPrev = (currentIdx > 0 && currentIdx < recents.length);
           const hasNext = (currentIdx >= 0 && currentIdx < recents.length - 1);
 
-          if (hasPrev) {
-            const prevSong = recents[currentIdx - 1];
-            if (prevTitle) prevTitle.textContent = prevSong.title || prevSong.name || 'السابقة';
-            if (btnPrev) btnPrev.classList.remove('hidden');
-            if (btnExit) btnExit.classList.add('hidden');
-          } else {
-            if (btnPrev) btnPrev.classList.add('hidden');
-            if (btnExit) btnExit.classList.remove('hidden');
-          }
+          const btnPrev = document.getElementById('btn-standby-prev-song');
+          const btnNext = document.getElementById('btn-standby-next-song');
+          const btnExit = document.getElementById('btn-standby-exit');
+          const prevTitle = document.getElementById('standby-prev-title');
+          const nextTitle = document.getElementById('standby-next-title');
 
-          if (hasNext) {
-            const nextSong = recents[currentIdx + 1];
-            if (nextTitle) nextTitle.textContent = nextSong.title || nextSong.name || 'التالية';
-            if (btnNext) btnNext.classList.remove('hidden');
-          } else {
-            if (btnNext) btnNext.classList.add('hidden');
+          if (btnPrev || btnNext) {
+            if (hasPrev) {
+              const prevSong = recents[currentIdx - 1];
+              if (prevTitle) prevTitle.textContent = prevSong.title || prevSong.name || 'السابقة';
+              if (btnPrev) btnPrev.classList.remove('hidden');
+              if (btnExit) btnExit.classList.add('hidden');
+            } else {
+              if (btnPrev) btnPrev.classList.add('hidden');
+              if (btnExit) btnExit.classList.remove('hidden');
+            }
+
+            if (hasNext) {
+              const nextSong = recents[currentIdx + 1];
+              if (nextTitle) nextTitle.textContent = nextSong.title || nextSong.name || 'التالية';
+              if (btnNext) btnNext.classList.remove('hidden');
+            } else {
+              if (btnNext) btnNext.classList.add('hidden');
+            }
           }
         }
       } else {

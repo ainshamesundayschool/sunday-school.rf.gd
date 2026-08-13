@@ -1734,16 +1734,25 @@
         // HIDE BUTTON IS ON: Hide text AND hide logo, keep chosen background intact
         textEl.classList.add('hidden');
         textEl.style.display = 'none';
-        if (standbyEl) standbyEl.classList.add('hidden');
+        if (standbyEl) {
+          standbyEl.classList.add('hidden');
+          standbyEl.style.display = 'none';
+        }
         currentIsBlankState = true;
       } else if (isLogoSlide || !hasTextContent) {
         // LOGO SLIDE OR NO SONG: Show official logo standby screen
         textEl.classList.add('hidden');
         textEl.style.display = 'none';
-        if (standbyEl) standbyEl.classList.remove('hidden');
+        if (standbyEl) {
+          standbyEl.classList.remove('hidden');
+          standbyEl.style.display = 'flex';
+        }
         currentIsBlankState = true;
       } else {
-        if (standbyEl) standbyEl.classList.add('hidden');
+        if (standbyEl) {
+          standbyEl.classList.add('hidden');
+          standbyEl.style.display = 'none';
+        }
         textEl.classList.remove('hidden');
         textEl.style.display = 'inline-block';
         textEl.style.visibility = 'visible';
