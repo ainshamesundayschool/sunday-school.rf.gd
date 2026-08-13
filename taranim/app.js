@@ -8248,21 +8248,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const isJomhuria = /jomhuria/i.test(state.selectedFont || '');
         const align = state.styleOptions.textAlign || 'center';
+        
+        if (align === 'justify' && !isJomhuria) {
+          els.obsLineText.style.textAlign = 'justify';
+          els.obsLineText.style.textJustify = 'inter-word';
+          els.obsLineText.style.textAlignLast = 'center';
+        } else {
+          els.obsLineText.style.textAlign = align === 'justify' ? 'center' : align;
+          els.obsLineText.style.textJustify = 'auto';
+          els.obsLineText.style.textAlignLast = align === 'justify' ? 'center' : align;
+        }
+
         const lHeight = state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : 1.5;
         const lSpacing = state.styleOptions.letterSpacing !== undefined ? state.styleOptions.letterSpacing : 0;
         const fWeight = state.styleOptions.fontWeight || '400';
         const fStyle = state.styleOptions.fontStyle || 'normal';
         const tDeco = state.styleOptions.textDecoration || 'none';
 
-        if (align === 'justify' && !isJomhuria) {
-          els.obsLineText.style.textAlign = 'justify';
-          els.obsLineText.style.textJustify = 'kashida';
-          els.obsLineText.style.textAlignLast = 'justify';
-        } else {
-          els.obsLineText.style.textAlign = align === 'justify' ? 'center' : align;
-          els.obsLineText.style.textJustify = 'auto';
-          els.obsLineText.style.textAlignLast = align === 'justify' ? 'center' : align;
-        }
         els.obsLineText.style.fontStyle = fStyle;
         els.obsLineText.style.textDecoration = tDeco;
 
@@ -8416,35 +8418,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
           const isAllInOneMode = state.presentationMode === 'allinone' || Boolean(snapText && snapText.includes('allinone-slide-group'));
           const segments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
+          segments.forEach(s => {
+            s.style.display = 'block';
+            s.style.width = '100%';
+            s.style.whiteSpace = 'pre-wrap';
+            s.style.wordBreak = 'break-word';
+            s.style.overflowWrap = 'break-word';
+            s.style.wordSpacing = 'normal';
+            s.style.textAlign = state.styleOptions.textAlign === 'justify' ? 'justify' : (state.styleOptions.textAlign || 'center');
+            s.style.textJustify = state.styleOptions.textAlign === 'justify' ? 'inter-word' : 'auto';
+            s.style.textAlignLast = state.styleOptions.textAlign === 'justify' ? 'center' : (state.styleOptions.textAlign || 'center');
+          });
 
-          if (isAllInOneMode) {
-            segments.forEach(s => {
-              s.style.display = 'block';
-              s.style.width = '100%';
-              s.style.whiteSpace = 'pre-wrap';
-              s.style.wordBreak = 'break-word';
-            });
-            const wrapper = els.obsLineText.querySelector('.obs-slide-wrapper') || els.obsLineText;
-            wrapper.style.transform = 'none';
-          } else {
-            const isBibleMode = Boolean(isBible || state.isBibleMode);
-            segments.forEach(s => {
-              s.style.display = 'block';
-              s.style.width = '100%';
-              s.style.whiteSpace = 'pre-wrap';
-              s.style.wordBreak = 'break-word';
-              s.style.overflowWrap = 'break-word';
-              s.style.textAlign = isBibleMode ? 'justify' : (state.styleOptions.textAlign || 'center');
-              s.style.textJustify = isBibleMode ? 'inter-word' : 'auto';
-              s.style.textAlignLast = isBibleMode ? 'center' : (state.styleOptions.textAlign || 'center');
-            });
-
-            const wrapper = els.obsLineText.querySelector('.obs-slide-wrapper') || els.obsLineText;
-            wrapper.style.transform = 'none';
-            wrapper.style.display = 'inline-block';
-            wrapper.style.maxWidth = '100%';
-            wrapper.style.width = 'auto';
-          }
+          const wrapper = els.obsLineText.querySelector('.obs-slide-wrapper') || els.obsLineText;
+          wrapper.style.transform = 'none';
+          wrapper.style.display = 'inline-block';
+          wrapper.style.maxWidth = '100%';
+          wrapper.style.width = 'auto';
           
           // Re-apply highlights after formatting
           const hColor = state.highlightColor || '#ef4444';

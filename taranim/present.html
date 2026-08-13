@@ -1439,10 +1439,10 @@
       const fStyle = (lastStyleData && lastStyleData.fontStyle) || 'normal';
       const tDeco = (lastStyleData && lastStyleData.textDecoration) || 'none';
 
-      if ((align === 'justify' || isBibleMode) && !isJomhuria) {
+      if (align === 'justify' && !isJomhuria) {
         textEl.style.textAlign = 'justify';
-        textEl.style.textJustify = 'kashida';
-        textEl.style.textAlignLast = 'justify';
+        textEl.style.textJustify = 'inter-word';
+        textEl.style.textAlignLast = 'center';
       } else {
         textEl.style.textAlign = align === 'justify' ? 'center' : align;
         textEl.style.textJustify = 'auto';
@@ -1458,7 +1458,10 @@
         s.style.whiteSpace = 'pre-wrap';
         s.style.wordBreak = 'break-word';
         s.style.overflowWrap = 'break-word';
+        s.style.wordSpacing = 'normal';
         s.style.textAlign = align === 'justify' ? 'justify' : align;
+        s.style.textJustify = align === 'justify' ? 'inter-word' : 'auto';
+        s.style.textAlignLast = align === 'justify' ? 'center' : align;
       });
 
       const finalLineHeight = lHeight !== undefined ? lHeight : 1.5;
