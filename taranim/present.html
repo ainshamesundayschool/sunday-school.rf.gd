@@ -1231,14 +1231,14 @@
 
       const isVertical = curH > curW;
       const effectiveCanvasH = isVertical ? (curW * (9 / 16)) : curH;
-      const maxH = effectiveCanvasH * 0.85;
-      const maxW = curW * 0.90;
+      const maxH = Math.max(180, effectiveCanvasH * 0.85);
+      const maxW = Math.max(280, curW * 0.90);
 
       let measurer = document.getElementById('_safe_area_measurer');
       if (!measurer) {
         measurer = document.createElement('div');
         measurer.id = '_safe_area_measurer';
-        measurer.style.cssText = 'position:absolute; left:0; top:0; opacity:0; pointer-events:none; z-index:-9999; overflow:hidden;';
+        measurer.style.cssText = 'position:absolute; left:0; top:0; opacity:0; pointer-events:none; z-index:-9999; overflow:hidden; box-sizing:border-box; margin:0; padding:0;';
         document.body.appendChild(measurer);
       }
 
@@ -1246,10 +1246,12 @@
       const lHeight = (styleOptions && styleOptions.lineHeight !== undefined) ? styleOptions.lineHeight : 1.5;
       const lSpacing = (styleOptions && styleOptions.letterSpacing !== undefined) ? styleOptions.letterSpacing : 0;
       const fWeight = (styleOptions && styleOptions.fontWeight) || '400';
-
       const isBible = Boolean(isFullSlideOrBible || (styleOptions && (styleOptions.isBible || styleOptions.is_bible)));
-      let startTestSize = isFullSlideOrBible ? 120 : (baseSize || 54);
-      let minAllowed = startTestSize;
+
+      const maxCeiling = isFullSlideOrBible ? 120 : Math.max(80, baseSize || 54);
+      const minFloor = isFullSlideOrBible ? 48 : 24;
+
+      let globalOptimalSize = maxCeiling;
 
       slideTexts.forEach(slideText => {
         if (!slideText || !String(slideText).trim()) return;
@@ -1277,22 +1279,30 @@
           }
         });
 
-        let testSize = startTestSize;
-        wrapper.style.fontSize = `${testSize}px`;
-        let h = wrapper.scrollHeight || wrapper.offsetHeight;
-        let w = wrapper.scrollWidth || wrapper.offsetWidth;
+        let low = minFloor;
+        let high = maxCeiling;
+        let bestForThisSlide = minFloor;
 
-        while ((h > maxH || w > maxW) && testSize > 24) {
-          testSize -= 2;
-          wrapper.style.fontSize = `${testSize}px`;
-          h = wrapper.scrollHeight || wrapper.offsetHeight;
-          w = wrapper.scrollWidth || wrapper.offsetWidth;
+        while (low <= high) {
+          const mid = Math.floor((low + high) / 2);
+          wrapper.style.fontSize = `${mid}px`;
+          const h = wrapper.scrollHeight || wrapper.offsetHeight;
+          const w = wrapper.scrollWidth || wrapper.offsetWidth;
+
+          if (h <= maxH && w <= maxW) {
+            bestForThisSlide = mid;
+            low = mid + 1;
+          } else {
+            high = mid - 1;
+          }
         }
 
-        if (testSize < minAllowed) minAllowed = testSize;
+        if (bestForThisSlide < globalOptimalSize) {
+          globalOptimalSize = bestForThisSlide;
+        }
       });
 
-      return minAllowed;
+      return globalOptimalSize;
     }
 
     function fitTextToSafeArea(isBible = currentIsBible) {
