@@ -7881,6 +7881,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         });
       }
+    }
 
       // 4. ACCURATE FONT APPLICATION & HIGHLIGHT RENDERING
       const snapText = text;
