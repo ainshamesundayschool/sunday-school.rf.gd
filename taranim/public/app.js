@@ -3575,7 +3575,23 @@ document.addEventListener('DOMContentLoaded', () => {
       if (templateSelect && state.slidesBgConfig?.url) {
         templateSelect.value = state.slidesBgConfig.url;
       }
+
+      const sFit = state.slidesBgConfig?.fitMode || 'cover';
+      document.querySelectorAll('.slides-fit-segmented .segmented-btn').forEach(b => {
+        b.classList.toggle('active', b.getAttribute('data-fit') === sFit);
+      });
     };
+
+    document.querySelectorAll('.slides-fit-segmented .segmented-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const fit = btn.getAttribute('data-fit') || 'cover';
+        if (!state.slidesBgConfig) state.slidesBgConfig = {};
+        state.slidesBgConfig.fitMode = fit;
+        updateSlidesBgUI();
+        saveMediaConfig();
+        syncLiveState();
+      });
+    });
 
     const bgSourceButtons = document.querySelectorAll('.bg-source-segmented .segmented-btn');
     bgSourceButtons.forEach(btn => {
@@ -3637,7 +3653,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    const slidesBgLoopCb = document.getElementById('slides-bg-loop-cb');
+    const slidesBgLoopCb = document.getElementById('slides-bg-loop-field');
     if (slidesBgLoopCb) {
       slidesBgLoopCb.addEventListener('change', (e) => {
         state.slidesBgConfig.loop = Boolean(e.target.checked);
@@ -3832,7 +3848,23 @@ document.addEventListener('DOMContentLoaded', () => {
       if (els.standbyTemplateSelect && state.standbyConfig?.url) {
         els.standbyTemplateSelect.value = state.standbyConfig.url;
       }
+
+      const stFit = state.standbyConfig?.fitMode || 'cover';
+      document.querySelectorAll('.standby-fit-segmented .segmented-btn').forEach(b => {
+        b.classList.toggle('active', b.getAttribute('data-fit') === stFit);
+      });
     };
+
+    document.querySelectorAll('.standby-fit-segmented .segmented-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const fit = btn.getAttribute('data-fit') || 'cover';
+        if (!state.standbyConfig) state.standbyConfig = {};
+        state.standbyConfig.fitMode = fit;
+        updateStandbyUI();
+        saveMediaConfig();
+        syncLiveState();
+      });
+    });
 
     if (els.standbyTypeSelect) {
       els.standbyTypeSelect.addEventListener('change', (e) => {

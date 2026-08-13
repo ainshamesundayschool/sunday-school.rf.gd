@@ -545,7 +545,29 @@
                 </div>
               </div>
 
-              <!-- 4. LOOP VIDEO TOGGLE -->
+              <!-- 4. FIT MODE SELECTOR (COVER, FIT WIDTH, FIT HEIGHT, FILL, CONTAIN) -->
+              <div class="control-field" id="slides-bg-fit-field" style="margin-top:10px;">
+                <label>طريقة ملاءمة خلفية الشرائح (Fit Mode)</label>
+                <div class="segmented-control-group slides-fit-segmented" style="display:grid; grid-template-columns:repeat(5, 1fr); gap:3px;">
+                  <button type="button" class="segmented-btn active" data-fit="cover" title="ملء الشاشة بالكامل (Cover)">
+                    ملء
+                  </button>
+                  <button type="button" class="segmented-btn" data-fit="fit_width" title="ملاءمة العرض (Fit Width)">
+                    العرض
+                  </button>
+                  <button type="button" class="segmented-btn" data-fit="fit_height" title="ملاءمة الارتفاع (Fit Height)">
+                    الارتفاع
+                  </button>
+                  <button type="button" class="segmented-btn" data-fit="fill" title="تمديد ومط (Stretch / Fill)">
+                    مط
+                  </button>
+                  <button type="button" class="segmented-btn" data-fit="contain" title="احتواء متناسب (Contain)">
+                    احتواء
+                  </button>
+                </div>
+              </div>
+
+              <!-- 5. LOOP VIDEO TOGGLE -->
               <div class="control-field hidden" id="slides-bg-loop-field" style="margin-top:10px;">
                 <label class="toggle-switch-label" style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; font-size:0.88rem; background:#f8fafc; padding:8px 10px; border-radius:8px; border:1px solid #e2e8f0;">
                   <span><i class="fa-solid fa-repeat" style="margin-left:6px; color:#2563eb;"></i> تكرار تشغيل الفيديو تلقائياً (Loop)</span>
@@ -636,7 +658,29 @@
                 </div>
               </div>
 
-              <div class="control-field" id="standby-loop-field" style="margin-top:8px;">
+              <!-- STANDBY FIT MODE SELECTOR -->
+              <div class="control-field" id="standby-fit-field" style="margin-top:10px;">
+                <label>طريقة ملاءمة ميديا الانتظار (Fit Mode)</label>
+                <div class="segmented-control-group standby-fit-segmented" style="display:grid; grid-template-columns:repeat(5, 1fr); gap:3px;">
+                  <button type="button" class="segmented-btn active" data-fit="cover" title="ملء الشاشة بالكامل (Cover)">
+                    ملء
+                  </button>
+                  <button type="button" class="segmented-btn" data-fit="fit_width" title="ملاءمة العرض (Fit Width)">
+                    العرض
+                  </button>
+                  <button type="button" class="segmented-btn" data-fit="fit_height" title="ملاءمة الارتفاع (Fit Height)">
+                    الارتفاع
+                  </button>
+                  <button type="button" class="segmented-btn" data-fit="fill" title="تمديد ومط (Stretch / Fill)">
+                    مط
+                  </button>
+                  <button type="button" class="segmented-btn" data-fit="contain" title="احتواء متناسب (Contain)">
+                    احتواء
+                  </button>
+                </div>
+              </div>
+
+              <div class="control-field" id="standby-loop-field" style="margin-top:10px;">
                 <label class="toggle-switch-label" style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; font-size:0.88rem; background:#f8fafc; padding:8px 10px; border-radius:8px; border:1px solid #e2e8f0;">
                   <span><i class="fa-solid fa-repeat" style="margin-left:6px; color:#2563eb;"></i> تكرار تشغيل فيديو الانتظار (Loop)</span>
                   <input type="checkbox" id="standby-loop-cb" class="toggle-checkbox" checked>

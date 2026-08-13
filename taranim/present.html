@@ -539,12 +539,16 @@
       z-index: 1;
       pointer-events: none;
       overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .slides-bg-media {
       width: 100vw;
       height: 100vh;
       object-fit: cover;
+      transition: object-fit 0.2s ease;
     }
 
     /* STANDBY CUSTOM FULLSCREEN MEDIA */
@@ -557,12 +561,47 @@
       z-index: 2;
       pointer-events: none;
       overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .standby-fullscreen-media {
       width: 100vw;
       height: 100vh;
       object-fit: cover;
+      transition: object-fit 0.2s ease;
+    }
+
+    /* MEDIA FIT MODES */
+    .media-fit-cover {
+      width: 100vw !important;
+      height: 100vh !important;
+      object-fit: cover !important;
+    }
+    .media-fit-fit_width {
+      width: 100vw !important;
+      height: auto !important;
+      max-height: 100vh !important;
+      object-fit: contain !important;
+      margin: auto !important;
+    }
+    .media-fit-fit_height {
+      width: auto !important;
+      height: 100vh !important;
+      max-width: 100vw !important;
+      object-fit: contain !important;
+      margin: auto !important;
+    }
+    .media-fit-fill {
+      width: 100vw !important;
+      height: 100vh !important;
+      object-fit: fill !important;
+    }
+    .media-fit-contain {
+      width: 100vw !important;
+      height: 100vh !important;
+      object-fit: contain !important;
     }
 
     /* STINGER VIDEO TRANSITION OVERLAY (ALPHA WEBM) */
@@ -1886,12 +1925,23 @@
         document.documentElement.style.setProperty('--text-rot', `${rot}`);
       }
 
+      // Helper to apply fit modes
+      const applyMediaFitMode = (el, fitMode = 'cover') => {
+        if (!el) return;
+        el.classList.remove('media-fit-cover', 'media-fit-fit_width', 'media-fit-fit_height', 'media-fit-fill', 'media-fit-contain');
+        el.classList.add(`media-fit-${fitMode}`);
+      };
+
       // 2. APPLY SLIDES BACKGROUND MEDIA (VIDEO / IMAGE / NONE)
       const slidesBgContainer = document.getElementById('slides-bg-container');
       const slidesBgImg = document.getElementById('slides-bg-img');
       const slidesBgVideo = document.getElementById('slides-bg-video');
       if (slidesBgContainer && data.slidesBgConfig) {
         const bgConf = data.slidesBgConfig;
+        const sFit = bgConf.fitMode || 'cover';
+        applyMediaFitMode(slidesBgImg, sFit);
+        applyMediaFitMode(slidesBgVideo, sFit);
+
         if (bgConf.type === 'template' || bgConf.type === 'custom_video') {
           const vUrl = bgConf.url || (bgConf.type === 'template' ? 'Templates/SlidesBg/Shabahak Akon 2026/Shabahak Akoon Loop Empty Centered.mp4' : '');
           if (vUrl) {
@@ -1940,6 +1990,9 @@
 
       const updateStandbyMediaDisplay = (showStandby) => {
         const standbyConf = data.standbyConfig || { type: 'logo' };
+        const stFit = standbyConf.fitMode || 'cover';
+        applyMediaFitMode(standbyFullscreenImg, stFit);
+        applyMediaFitMode(standbyFullscreenVideo, stFit);
         if (!showStandby) {
           if (standbyEl) {
             standbyEl.classList.add('hidden');
