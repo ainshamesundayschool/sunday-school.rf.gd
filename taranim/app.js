@@ -1917,6 +1917,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.btnFixObsFreeze) {
       els.btnFixObsFreeze.classList.toggle('hidden', !isObsModeOn);
     }
+    const obsPreviewBox = document.getElementById('obs-embedded-preview-container');
+    if (obsPreviewBox) {
+      obsPreviewBox.classList.toggle('hidden', !isObsModeOn);
+    }
   }
 
   let liveSyncDebounceTimer = null;
@@ -2702,6 +2706,25 @@ document.addEventListener('DOMContentLoaded', () => {
         updateObsModeUI();
         syncLiveState();
         showToast(state.obsMode ? 'تم تفعيل وضع OBS المباشر' : 'تم إيقاف وضع OBS المباشر');
+      });
+    }
+
+    const btnCopyObsLink = document.getElementById('btn-copy-obs-preview-link');
+    if (btnCopyObsLink) {
+      btnCopyObsLink.addEventListener('click', () => {
+        const url = `${window.location.origin}/taranim/present.html`;
+        navigator.clipboard.writeText(url).then(() => {
+          showToast('تم نسخ رابط شاشة OBS المباشرة بنجاح!');
+        }).catch(() => {
+          showToast(`رابط الشاشة: ${url}`);
+        });
+      });
+    }
+
+    const btnOpenObsWin = document.getElementById('btn-open-obs-preview-win');
+    if (btnOpenObsWin) {
+      btnOpenObsWin.addEventListener('click', () => {
+        window.open('/taranim/present.html', '_blank', 'width=1280,height=720');
       });
     }
 
@@ -7547,6 +7570,33 @@ document.addEventListener('DOMContentLoaded', () => {
               seg.classList.remove('line-highlighted', 'line-animating', 'line-unhighlighting');
             }
           });
+
+          // Synchronize embedded OBS preview card
+          const obsPreviewCanvas = document.getElementById('obs-preview-embedded-canvas');
+          const obsPreviewBox = document.getElementById('obs-preview-embedded-box');
+          const obsPreviewText = document.getElementById('obs-preview-embedded-text');
+
+          if (obsPreviewCanvas && obsPreviewText && !document.getElementById('obs-embedded-preview-container')?.classList.contains('hidden')) {
+            obsPreviewCanvas.setAttribute('data-chroma', state.chromaKey || 'transparent');
+            obsPreviewText.innerHTML = els.obsLineText.innerHTML;
+            obsPreviewText.style.fontFamily = els.obsLineText.style.fontFamily;
+            obsPreviewText.style.color = els.obsLineText.style.color;
+            obsPreviewText.style.textShadow = els.obsLineText.style.textShadow;
+            obsPreviewText.style.webkitTextStroke = els.obsLineText.style.webkitTextStroke;
+            obsPreviewText.style.textAlign = els.obsLineText.style.textAlign;
+            
+            const previewContainerW = obsPreviewCanvas.clientWidth || 400;
+            const fontScaleFactor = previewContainerW / containerW;
+            const previewFontSize = Math.max(12, Math.round(fontToApply * fontScaleFactor));
+            obsPreviewText.style.fontSize = `${previewFontSize}px`;
+            obsPreviewText.style.lineHeight = els.obsLineText.style.lineHeight;
+
+            if (obsPreviewBox && els.obsLowerThirdBox) {
+              obsPreviewBox.style.background = els.obsLowerThirdBox.style.background;
+              obsPreviewBox.style.borderRadius = els.obsLowerThirdBox.style.borderRadius;
+              obsPreviewBox.style.padding = els.obsLowerThirdBox.style.padding;
+            }
+          }
         }
       });
 

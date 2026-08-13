@@ -245,6 +245,34 @@
 
     </section>
 
+    <!-- OBS LIVE EMBEDDED PREVIEW CARD (ENABLED WHEN OBS LIVE MODE IS ON) -->
+    <section id="obs-embedded-preview-container" class="obs-embedded-preview-card hidden">
+      <div class="obs-preview-header">
+        <div class="obs-preview-title">
+          <span class="obs-live-dot"></span>
+          <i class="fa-solid fa-desktop"></i>
+          <span>معاينة بث OBS المباشر</span>
+          <span class="obs-crop-tag" title="يمكنك قص هذه المعاينة داخل OBS باستخدام (Alt + Drag)">قص المعاينة ✂️</span>
+        </div>
+        <div class="obs-preview-actions">
+          <button id="btn-copy-obs-preview-link" class="btn-preview-tool" type="button" title="نسخ رابط شاشة البث المباشرة">
+            <i class="fa-solid fa-link"></i> نسخ رابط الشاشة
+          </button>
+          <button id="btn-open-obs-preview-win" class="btn-preview-tool btn-primary-accent" type="button" title="فتح شاشة العرض العائمة">
+            <i class="fa-solid fa-up-right-from-square"></i> فتح شاشة العرض
+          </button>
+        </div>
+      </div>
+
+      <div class="obs-preview-canvas-wrapper">
+        <div id="obs-preview-embedded-canvas" class="obs-preview-embedded-screen" data-chroma="transparent">
+          <div id="obs-preview-embedded-box" class="obs-lower-third-box">
+            <div id="obs-preview-embedded-text" class="obs-line-text"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- MULTI-COLUMN DASHBOARD LAYOUT (RIGHT = STYLE PANEL / RECENT SESSION, LEFT = PRESENTATION LINES) -->
     <main class="dashboard-halves">
 
