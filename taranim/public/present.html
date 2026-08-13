@@ -497,6 +497,79 @@
       will-change: transform, opacity;
     }
 
+    /* SLIDES BACKGROUND MEDIA CONTAINER */
+    .slides-bg-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .slides-bg-media {
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+    }
+
+    /* STANDBY CUSTOM FULLSCREEN MEDIA */
+    .standby-fullscreen-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 5;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .standby-fullscreen-media {
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+    }
+
+    /* STINGER VIDEO TRANSITION OVERLAY (ALPHA WEBM) */
+    .stinger-transition-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: 999999;
+      pointer-events: none;
+      background: transparent !important;
+    }
+
+    /* OBS LUMA WIPE SINUS 9 TRANSITION */
+    .luma-wipe-active {
+      animation: obsLumaWipeSinus9 0.55s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+    }
+
+    @keyframes obsLumaWipeSinus9 {
+      0% {
+        clip-path: polygon(100% 0, 100% 0, 100% 100%, 100% 100%);
+        -webkit-clip-path: polygon(100% 0, 100% 0, 100% 100%, 100% 100%);
+      }
+      35% {
+        clip-path: polygon(50% 0, 100% 0, 100% 100%, 40% 100%);
+        -webkit-clip-path: polygon(50% 0, 100% 0, 100% 100%, 40% 100%);
+      }
+      70% {
+        clip-path: polygon(15% 0, 100% 0, 100% 100%, 0 100%);
+        -webkit-clip-path: polygon(15% 0, 100% 0, 100% 100%, 0 100%);
+      }
+      100% {
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+        -webkit-clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+      }
+    }
+
     .standby-branding {
       display: flex;
       flex-direction: column;
@@ -506,6 +579,7 @@
       text-align: center;
       padding: 16px 24px;
       margin: auto;
+      z-index: 10;
     }
 
     .standby-branding .standby-logo {
@@ -521,6 +595,12 @@
 
     .standby-branding .standby-title {
       display: none !important;
+    }
+
+    /* INTERACTIVE TEXT TRANSFORMS (SCALE / POS X / POS Y / ROTATION) */
+    .lower-third-container {
+      transform: translate(calc(-50% + var(--text-pos-x, 0%)), calc(-50% + var(--text-pos-y, 0%))) scale(var(--text-scale, 1)) rotate(var(--text-rot, 0deg)) !important;
+      transform-origin: center center !important;
     }
 
     .blank-blackout-overlay {
@@ -848,6 +928,18 @@
     </div>
   </div>
 
+  <!-- SLIDES BACKGROUND MEDIA CONTAINER -->
+  <div id="slides-bg-container" class="slides-bg-container hidden">
+    <img id="slides-bg-img" class="slides-bg-media hidden" alt="Slides Background">
+    <video id="slides-bg-video" class="slides-bg-media hidden" playsinline webkit-playsinline muted loop></video>
+  </div>
+
+  <!-- STANDBY CUSTOM MEDIA CONTAINER (FULLSCREEN VIDEO / IMAGE) -->
+  <div id="standby-fullscreen-container" class="standby-fullscreen-container hidden">
+    <img id="standby-fullscreen-img" class="standby-fullscreen-media hidden" alt="Standby Image">
+    <video id="standby-fullscreen-video" class="standby-fullscreen-media hidden" playsinline webkit-playsinline muted loop></video>
+  </div>
+
   <!-- TOP-LEFT BIBLE / CHAPTER REFERENCE HEADER -->
   <div id="obs-top-left-header" class="obs-top-left-header hidden"></div>
 
@@ -857,10 +949,13 @@
 
   <div class="lower-third-container" id="presenter-box">
     <div id="standby-branding" class="standby-branding">
-      <img src="logo_tw.png" alt="Sunday School Logo" class="standby-logo">
+      <img id="standby-default-logo" src="logo_tw.png" alt="Sunday School Logo" class="standby-logo">
     </div>
     <div class="line-text hidden" id="presenter-text"></div>
   </div>
+
+  <!-- STINGER ALPHA VIDEO TRANSITION OVERLAY -->
+  <video id="stinger-transition-video" class="stinger-transition-video hidden" playsinline webkit-playsinline muted></video>
 
   <!-- PRESENTATION FOOTER BAR (SLIDE COUNTER) -->
   <div id="presenter-footer-bar" class="presenter-footer-bar hidden">
@@ -1246,28 +1341,6 @@
     let _uniformSongKey = '';
     let _lastAnimSlideText = '';
 
-    function updateSlideScale() {
-      const container = document.getElementById('obs-overlay-container') || document.body;
-      const curW = container.clientWidth || window.innerWidth || 1920;
-      const curH = container.clientHeight || window.innerHeight || 1080;
-
-      const scaleX = curW / 1920;
-      const scaleY = curH / 1080;
-      const scaleFactor = Math.min(scaleX, scaleY);
-
-      const box = document.getElementById('obs-lower-third-box');
-      if (box) {
-        box.style.transformOrigin = 'center center';
-        box.style.transform = `translate(-50%, -50%) scale(${scaleFactor.toFixed(4)})`;
-      }
-    }
-
-    let _lastFitW = 0;
-    let _lastFitH = 0;
-    let _lastFitFontSize = 0;
-    let _isResizingWindow = false;
-    let _resizeEndTimer = null;
-
     function fitTextToSafeArea(isBible = currentIsBible) {
       if (!textEl) return;
       currentIsBible = isBible;
@@ -1342,16 +1415,8 @@
       applyDynamicShadow();
     }
 
-    window.addEventListener('resize', updateSlideScale);
-
     window.addEventListener('resize', () => {
-      _isResizingWindow = true;
       fitTextToSafeArea();
-      if (_resizeEndTimer) clearTimeout(_resizeEndTimer);
-      _resizeEndTimer = setTimeout(() => {
-        _isResizingWindow = false;
-        fitTextToSafeArea();
-      }, 100);
     });
 
     // AUTO POSITION WINDOW TO TARGET SCREEN IF QUERY PARAMS ARE PRESENT
@@ -1768,33 +1833,179 @@
         logoImg.style.filter = filters.join(' ');
       }
 
+      // 1. APPLY TEXT TRANSFORMS (SCALE, POSITION X/Y, ROTATION)
+      if (data.textTransform) {
+        const tf = data.textTransform;
+        const scale = tf.scale !== undefined ? (tf.scale / 100) : 1;
+        const posX = tf.posX !== undefined ? `${tf.posX}%` : '0%';
+        const posY = tf.posY !== undefined ? `${tf.posY}%` : '0%';
+        const rot = tf.rotation !== undefined ? `${tf.rotation}deg` : '0deg';
+        document.documentElement.style.setProperty('--text-scale', `${scale}`);
+        document.documentElement.style.setProperty('--text-pos-x', `${posX}`);
+        document.documentElement.style.setProperty('--text-pos-y', `${posY}`);
+        document.documentElement.style.setProperty('--text-rot', `${rot}`);
+      }
+
+      // 2. APPLY SLIDES BACKGROUND MEDIA (VIDEO / IMAGE / NONE)
+      const slidesBgContainer = document.getElementById('slides-bg-container');
+      const slidesBgImg = document.getElementById('slides-bg-img');
+      const slidesBgVideo = document.getElementById('slides-bg-video');
+      if (slidesBgContainer && data.slidesBgConfig) {
+        const bgConf = data.slidesBgConfig;
+        if (bgConf.type === 'template' || bgConf.type === 'custom_video') {
+          const vUrl = bgConf.url || (bgConf.type === 'template' ? 'Templates/SlidesBg/Shabahak Akon 2026/Shabahak Akoon Loop Empty Centered.mp4' : '');
+          if (vUrl) {
+            if (slidesBgVideo.src !== vUrl && !slidesBgVideo.src.endsWith(vUrl)) {
+              slidesBgVideo.src = vUrl;
+            }
+            slidesBgVideo.loop = (bgConf.loop !== false);
+            slidesBgVideo.classList.remove('hidden');
+            slidesBgImg.classList.add('hidden');
+            slidesBgContainer.classList.remove('hidden');
+            slidesBgVideo.play().catch(() => {});
+          } else {
+            slidesBgContainer.classList.add('hidden');
+          }
+        } else if (bgConf.type === 'custom_image' && bgConf.url) {
+          slidesBgImg.src = bgConf.url;
+          slidesBgImg.classList.remove('hidden');
+          slidesBgVideo.classList.add('hidden');
+          slidesBgContainer.classList.remove('hidden');
+        } else {
+          slidesBgContainer.classList.add('hidden');
+          slidesBgImg.classList.add('hidden');
+          slidesBgVideo.classList.add('hidden');
+        }
+      }
+
+      // 3. APPLY STANDBY MEDIA (VIDEO / IMAGE / LOGO)
+      const standbyFullscreenContainer = document.getElementById('standby-fullscreen-container');
+      const standbyFullscreenImg = document.getElementById('standby-fullscreen-img');
+      const standbyFullscreenVideo = document.getElementById('standby-fullscreen-video');
+
       const isBlankMode = Boolean(data.isBlank);
-      const isLogoSlide = Boolean(data.isLogoSlide);
+      const isStandbyMode = Boolean(data.isStandby || data.isStandbyMode || data.isLogoSlide);
       const hasTextContent = Boolean(data.text && String(data.text).trim());
 
+      const updateStandbyMediaDisplay = (showStandby) => {
+        const standbyConf = data.standbyConfig || { type: 'logo' };
+        if (!showStandby) {
+          if (standbyEl) {
+            standbyEl.classList.add('hidden');
+            standbyEl.style.display = 'none';
+          }
+          if (standbyFullscreenContainer) {
+            standbyFullscreenContainer.classList.add('hidden');
+            if (standbyFullscreenVideo) standbyFullscreenVideo.pause();
+          }
+          return;
+        }
+
+        if (standbyConf.type === 'template' || standbyConf.type === 'custom_video') {
+          if (standbyEl) standbyEl.classList.add('hidden');
+          if (standbyFullscreenContainer && standbyFullscreenVideo) {
+            const vUrl = standbyConf.url || 'Templates/Standby/Shabahak Akon 2026/Shabahak Akoon Loop.mp4';
+            if (standbyFullscreenVideo.src !== vUrl && !standbyFullscreenVideo.src.endsWith(vUrl)) {
+              standbyFullscreenVideo.src = vUrl;
+            }
+            standbyFullscreenVideo.loop = (standbyConf.loop !== false);
+            standbyFullscreenVideo.classList.remove('hidden');
+            if (standbyFullscreenImg) standbyFullscreenImg.classList.add('hidden');
+            standbyFullscreenContainer.classList.remove('hidden');
+            standbyFullscreenVideo.play().catch(() => {});
+          }
+        } else if (standbyConf.type === 'custom_image' && standbyConf.url) {
+          if (standbyEl) standbyEl.classList.add('hidden');
+          if (standbyFullscreenContainer && standbyFullscreenImg) {
+            standbyFullscreenImg.src = standbyConf.url;
+            standbyFullscreenImg.classList.remove('hidden');
+            if (standbyFullscreenVideo) standbyFullscreenVideo.classList.add('hidden');
+            standbyFullscreenContainer.classList.remove('hidden');
+          }
+        } else {
+          // Default logo
+          if (standbyFullscreenContainer) {
+            standbyFullscreenContainer.classList.add('hidden');
+            if (standbyFullscreenVideo) standbyFullscreenVideo.pause();
+          }
+          if (standbyEl) {
+            standbyEl.classList.remove('hidden');
+            standbyEl.style.display = 'flex';
+          }
+        }
+      };
+
+      // 4. TRANSITION TRIGGER LOGIC
+      if (data.triggerTransition) {
+        const transType = data.transitionType || 'stinger';
+        const stingerUrl = data.stingerMediaUrl || 'Templates/Stringer/Shabahak Akon 2026/Stringer 1.webm';
+        const cutPoint = data.stingerCutPointMs || 1200;
+
+        if (transType === 'stinger' && stingerUrl) {
+          const stingerEl = document.getElementById('stinger-transition-video');
+          if (stingerEl) {
+            if (stingerEl.src !== stingerUrl && !stingerEl.src.endsWith(stingerUrl)) {
+              stingerEl.src = stingerUrl;
+            }
+            stingerEl.classList.remove('hidden');
+            stingerEl.style.display = 'block';
+            stingerEl.currentTime = 0;
+            stingerEl.play().catch(() => {});
+
+            setTimeout(() => {
+              // Swap content at cut point
+              if (isStandbyMode || !hasTextContent) {
+                textEl.classList.add('hidden');
+                textEl.style.display = 'none';
+                updateStandbyMediaDisplay(true);
+              } else {
+                updateStandbyMediaDisplay(false);
+                textEl.classList.remove('hidden');
+                textEl.style.display = 'inline-block';
+              }
+            }, cutPoint);
+
+            stingerEl.onended = () => {
+              stingerEl.classList.add('hidden');
+              stingerEl.style.display = 'none';
+            };
+          }
+        } else if (transType === 'luma_sinus9') {
+          const container = document.getElementById('presenter-box') || textEl;
+          container.classList.remove('luma-wipe-active');
+          void container.offsetWidth;
+          container.classList.add('luma-wipe-active');
+          setTimeout(() => {
+            if (isStandbyMode || !hasTextContent) {
+              textEl.classList.add('hidden');
+              textEl.style.display = 'none';
+              updateStandbyMediaDisplay(true);
+            } else {
+              updateStandbyMediaDisplay(false);
+              textEl.classList.remove('hidden');
+              textEl.style.display = 'inline-block';
+            }
+            setTimeout(() => {
+              container.classList.remove('luma-wipe-active');
+            }, 300);
+          }, 280);
+        }
+      }
+
       if (isBlankMode) {
-        // HIDE BUTTON IS ON: Hide text AND hide logo, keep chosen background intact
+        // HIDE BUTTON IS ON: Hide text AND hide standby
         textEl.classList.add('hidden');
         textEl.style.display = 'none';
-        if (standbyEl) {
-          standbyEl.classList.add('hidden');
-          standbyEl.style.display = 'none';
-        }
+        updateStandbyMediaDisplay(false);
         currentIsBlankState = true;
-      } else if (isLogoSlide || !hasTextContent) {
-        // LOGO SLIDE OR NO SONG: Show official logo standby screen
+      } else if (isStandbyMode || !hasTextContent) {
+        // STANDBY MODE OR NO SONG: Show standby media
         textEl.classList.add('hidden');
         textEl.style.display = 'none';
-        if (standbyEl) {
-          standbyEl.classList.remove('hidden');
-          standbyEl.style.display = 'flex';
-        }
+        updateStandbyMediaDisplay(true);
         currentIsBlankState = true;
       } else {
-        if (standbyEl) {
-          standbyEl.classList.add('hidden');
-          standbyEl.style.display = 'none';
-        }
+        updateStandbyMediaDisplay(false);
         textEl.classList.remove('hidden');
         textEl.style.display = 'inline-block';
         textEl.style.visibility = 'visible';
