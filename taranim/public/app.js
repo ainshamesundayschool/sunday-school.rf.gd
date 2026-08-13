@@ -3668,78 +3668,36 @@ document.addEventListener('DOMContentLoaded', () => {
       try { localStorage.setItem('sunday_school_slide_splitting_mode', mode); } catch(e) {}
 
       // Update button active classes
-      const barBtn1 = document.getElementById('btn-bar-lines-1');
-      const barBtn2 = document.getElementById('btn-bar-lines-2');
-      const barBtnAll = document.getElementById('btn-bar-lines-all');
       const tabBtn1 = document.getElementById('btn-tab-lines-1');
       const tabBtn2 = document.getElementById('btn-tab-lines-2');
       const tabBtnAll = document.getElementById('btn-tab-lines-all');
 
-      if (barBtn1) {
-        barBtn1.classList.toggle('active', mode === '1');
-        barBtn1.style.background = (mode === '1') ? '#2563eb' : '';
-        barBtn1.style.color = (mode === '1') ? '#fff' : '';
-      }
-      if (barBtn2) {
-        barBtn2.classList.toggle('active', mode === '2');
-        barBtn2.style.background = (mode === '2') ? '#2563eb' : '';
-        barBtn2.style.color = (mode === '2') ? '#fff' : '';
-      }
-      if (barBtnAll) {
-        barBtnAll.classList.toggle('active', mode === 'all');
-        barBtnAll.style.background = (mode === 'all') ? '#2563eb' : '';
-        barBtnAll.style.color = (mode === 'all') ? '#fff' : '';
-      }
-
-      if (tabBtn1) tabBtn1.classList.toggle('active', mode === '1');
-      if (tabBtn2) tabBtn2.classList.toggle('active', mode === '2');
-      if (tabBtnAll) tabBtnAll.classList.toggle('active', mode === 'all');
+      if (tabBtn1) tabBtn1.classList.toggle('active', mode === '1' || mode === 'oneline');
+      if (tabBtn2) tabBtn2.classList.toggle('active', mode === '2' || mode === 'twelines');
+      if (tabBtnAll) tabBtnAll.classList.toggle('active', mode === 'all' || mode === 'fullslide');
 
       // Re-format active presentation lines
-      if (state.activeSong || state.liveSong) {
-        const song = state.liveSong || state.activeSong;
-        if (typeof preparePresentationLines === 'function') {
-          preparePresentationLines(song);
-        } else if (state.presentationLines) {
-          state.presentationLines.forEach(item => {
-            if (item.isLogoSlide) return;
-            if (!item._origLines) item._origLines = [...(item.lines || [item.text])];
-            
-            if (mode === '1') {
-              item.isCustomSplit = false;
-              item.lines = [item._origLines[0] || ''];
-              item.text = (item.badgeText ? `${item.badgeText} ` : '') + item.lines.join('\n');
-            } else if (mode === '2') {
-              item.isCustomSplit = true;
-              const splitRes = [];
-              item._origLines.forEach(single => splitRes.push(...splitLineIntoTwo(single)));
-              item.lines = splitRes.slice(0, 2);
-              item.text = (item.badgeText ? `${item.badgeText} ` : '') + item.lines.join('\n');
-            } else if (mode === 'all') {
-              item.isCustomSplit = false;
-              item.lines = [...item._origLines];
-              item.text = (item.badgeText ? `${item.badgeText} ` : '') + item.lines.join('\n');
-            }
-          });
-        }
-        renderPresentationLinesList();
-        syncLiveState();
-        showToast(mode === '1' ? 'تم ضبط الشرائح: سطر واحد لكل شريحة' : (mode === '2' ? 'تم ضبط الشرائح: سطرين لكل شريحة' : 'تم ضبط الشرائح: كامل المقطع في شريحة'));
+      const currentSong = state.activeSong || state.liveSong;
+      if (currentSong) {
+        loadSongIntoPresentation(currentSong, true);
+        showToast(mode === '1' ? 'تم ضبط الشرائح: سطر واحد لكل شريحة' : (mode === 'all' ? 'تم ضبط الشرائح: الكل في شريحة واحدة' : 'تم ضبط الشرائح: سطرين لكل شريحة'));
       }
     };
 
-    ['btn-bar-lines-1', 'btn-tab-lines-1'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.addEventListener('click', () => setSlideSplittingMode('1'));
-    });
-    ['btn-bar-lines-2', 'btn-tab-lines-2'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.addEventListener('click', () => setSlideSplittingMode('2'));
-    });
-    ['btn-bar-lines-all', 'btn-tab-lines-all'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.addEventListener('click', () => setSlideSplittingMode('all'));
-    });
+    const tabBtn1 = document.getElementById('btn-tab-lines-1');
+    if (tabBtn1) tabBtn1.addEventListener('click', () => setSlideSplittingMode('1'));
+
+    const tabBtn2 = document.getElementById('btn-tab-lines-2');
+    if (tabBtn2) tabBtn2.addEventListener('click', () => setSlideSplittingMode('2'));
+
+    const tabBtnAll = document.getElementById('btn-tab-lines-all');
+    if (tabBtnAll) tabBtnAll.addEventListener('click', () => setSlideSplittingMode('all'));
+
+    // Initialize active splitting mode from saved settings
+    const savedSplitMode = localStorage.getItem('sunday_school_slide_splitting_mode') || '2';
+    if (tabBtn1) tabBtn1.classList.toggle('active', savedSplitMode === '1');
+    if (tabBtn2) tabBtn2.classList.toggle('active', savedSplitMode === '2');
+    if (tabBtnAll) tabBtnAll.classList.toggle('active', savedSplitMode === 'all');
 
     // Quick Save Template from Header Button
     const btnQuickSaveHeader = document.getElementById('btn-quick-save-template-header');
@@ -6890,7 +6848,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let linesList = [];
 
     const isBible = Boolean((song.is_bible === true || song.is_bible === '1' || song.is_bible === 1) || (song.chapter_number !== undefined && song.chapter_number !== null && song.chapter_number !== ''));
-    const mode = state.presentationMode || 'oneline';
+    const splitMode = state.slideSplittingMode || localStorage.getItem('sunday_school_slide_splitting_mode') || '2';
+    let mode = 'twelines';
+    if (splitMode === '1' || splitMode === 'oneline') mode = 'oneline';
+    else if (splitMode === 'all' || splitMode === 'fullslide') mode = 'fullslide';
+    else mode = 'twelines';
 
     if (song.verses && Array.isArray(song.verses) && song.verses.length > 0) {
       const buildVerseSlideItems = (verse, verseIndex, stanzaNumOverride) => {

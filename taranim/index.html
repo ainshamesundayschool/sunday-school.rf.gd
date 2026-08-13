@@ -392,7 +392,7 @@
 
             <!-- SLIDE SPLITTING MODES CARD (1 LINE, 2 LINES, ALL IN ONE) -->
             <div class="style-card" style="margin-top:10px;">
-              <div class="style-card-title"><i class="fa-solid fa-layer-group"></i> تقسيم شرائح العرض (Lines Per Slide)</div>
+              <div class="style-card-title"><i class="fa-solid fa-layer-group"></i> تقسيم شرائح العرض</div>
               
               <div class="segmented-control-group" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px; margin-top:6px;">
                 <button type="button" class="segmented-btn" id="btn-tab-lines-1" title="عرض سطر واحد في كل شريحة">
@@ -401,8 +401,8 @@
                 <button type="button" class="segmented-btn active" id="btn-tab-lines-2" title="عرض سطرين في كل شريحة">
                   <i class="fa-solid fa-equals"></i> سطرين
                 </button>
-                <button type="button" class="segmented-btn" id="btn-tab-lines-all" title="عرض كامل المقطع في شريحة واحدة">
-                  <i class="fa-solid fa-align-justify"></i> المقطع كامل
+                <button type="button" class="segmented-btn" id="btn-tab-lines-all" title="عرض كامل المقطع / الترنيمة في شريحة واحدة">
+                  <i class="fa-solid fa-align-justify"></i> الكل في شريحة واحدة
                 </button>
               </div>
             </div>
@@ -846,13 +846,7 @@
             <button id="btn-prev-line" class="mini-btn-flat" title="السطر السابق"><i class="fa-solid fa-chevron-right"></i></button>
             <span id="current-line-counter" class="counter-text">0 / 0</span>
             <button id="btn-next-line" class="mini-btn-flat" title="السطر التالي"><i class="fa-solid fa-chevron-left"></i></button>
-            
-            <!-- 1 LINE / 2 LINES / ALL IN ONE SEGMENTED SWITCH -->
-            <div class="segmented-control-group slide-lines-mode-group" style="display:inline-flex; align-items:center; gap:2px; background:#f1f5f9; padding:2px; border-radius:6px; border:1px solid #e2e8f0; margin-right:4px;">
-              <button type="button" id="btn-bar-lines-1" class="mini-btn-flat" style="padding:2px 6px; font-size:0.75rem; border-radius:4px;" title="سطر واحد لكل شريحة"><i class="fa-solid fa-bars"></i></button>
-              <button type="button" id="btn-bar-lines-2" class="mini-btn-flat active" style="padding:2px 6px; font-size:0.75rem; border-radius:4px; background:#2563eb; color:#fff;" title="سطرين لكل شريحة"><i class="fa-solid fa-equals"></i></button>
-              <button type="button" id="btn-bar-lines-all" class="mini-btn-flat" style="padding:2px 6px; font-size:0.75rem; border-radius:4px;" title="كامل المقطع في شريحة واحدة"><i class="fa-solid fa-align-justify"></i></button>
-            </div>
+            <button id="btn-split-all-lines" class="mini-btn-flat" title="تقسيم جميع شرائح الترنيمة لسطرين / سطر واحد"><i class="fa-solid fa-equals"></i></button>
 
             <!-- SLIDE JUMP FLOATING POPOVER ATTACHED UNDER COUNTER -->
             <div id="popover-slide-jump" class="dropdown-popover slide-jump-popover hidden">
