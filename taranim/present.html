@@ -574,6 +574,18 @@
       opacity: 1;
     }
 
+    /* CRITICAL: DISABLE TRANSITIONS ON PRESENTATION TEXT TO PREVENT FLICKERING DURING RESIZE */
+    #obs-line-text,
+    .obs-line-text,
+    .obs-slide-wrapper,
+    .obs-lines-wrapper,
+    .obs-line-row,
+    .obs-line-segment,
+    .obs-lower-third-box {
+      transition: none !important;
+      animation-duration: 0s !important;
+    }
+
     /* Sleek bottom footer info bar for presenter display - NO BACKGROUND OVERLAY */
     .presenter-scale-badge {
       position: fixed;
@@ -1307,13 +1319,26 @@
       return globalOptimalSize;
     }
 
+    let _lastFitW = 0;
+    let _lastFitH = 0;
+    let _lastFitFontSize = 0;
+    let _isResizingWindow = false;
+    let _resizeEndTimer = null;
+
     function fitTextToSafeArea(isBible = currentIsBible) {
       if (!textEl) return;
       currentIsBible = isBible;
-      const baseSize = (lastStyleData && lastStyleData.fontSize) || stateFontSize || 105;
+
       const container = document.getElementById('obs-overlay-container') || document.body;
       const curW = container.clientWidth || window.innerWidth || 1920;
       const curH = container.clientHeight || window.innerHeight || 1080;
+
+      if (_isResizingWindow && _lastFitW > 0 && _lastFitFontSize > 0) {
+        const scaleFactor = curW / _lastFitW;
+        const fastScaledSize = Math.max(14, Math.round(_lastFitFontSize * scaleFactor));
+        textEl.style.fontSize = `${fastScaledSize}px`;
+        return;
+      }
 
       const isVertical = curH > curW;
       if (isVertical) {
@@ -1403,10 +1428,15 @@
         textEl.style.fontWeight = fWeight;
       }
 
+      const baseSize = (lastStyleData && lastStyleData.fontSize) || stateFontSize || 105;
       const slideTextsToEvaluate = [textEl.innerText || textEl.textContent || ''];
       const safeSize = getSafeFontScaleSize(slideTextsToEvaluate, baseSize, curW, curH, currentFont, lastStyleData, isFullSlideOrBible);
 
       textEl.style.fontSize = `${safeSize}px`;
+
+      _lastFitW = curW;
+      _lastFitH = curH;
+      _lastFitFontSize = safeSize;
 
       const wrapper = textEl.querySelector('.obs-slide-wrapper') || textEl;
       wrapper.style.transform = 'none';
@@ -1417,15 +1447,15 @@
       applyDynamicShadow();
     }
 
-    let _fitTextTimeout = null;
-    function debouncedFitTextToSafeArea() {
-      if (_fitTextTimeout) cancelAnimationFrame(_fitTextTimeout);
-      _fitTextTimeout = requestAnimationFrame(() => {
+    window.addEventListener('resize', () => {
+      _isResizingWindow = true;
+      fitTextToSafeArea();
+      if (_resizeEndTimer) clearTimeout(_resizeEndTimer);
+      _resizeEndTimer = setTimeout(() => {
+        _isResizingWindow = false;
         fitTextToSafeArea();
-      });
-    }
-
-    window.addEventListener('resize', debouncedFitTextToSafeArea);
+      }, 100);
+    });
 
     // AUTO POSITION WINDOW TO TARGET SCREEN IF QUERY PARAMS ARE PRESENT
     (function autoPositionWindow() {
