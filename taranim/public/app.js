@@ -7475,9 +7475,13 @@ document.addEventListener('DOMContentLoaded', () => {
             : [];
           const allTextsToEval = (validSlideItems.length > 0) ? validSlideItems : [snapText];
 
-          const computedSafeSize = getSafeFontScaleSize(allTextsToEval, baseSize, containerW, containerH, state.selectedFont, state.styleOptions, isFullSlideOrBible);
-          const fontToApply = isFullSlideOrBible ? computedSafeSize : baseSize;
+          const calcKey = `${allTextsToEval.join('~')}_${containerW}_${containerH}_${state.presentationMode}_${state.selectedFont}_${state.styleOptions?.fontWeight}`;
+          if (els._lastCalcKey !== calcKey) {
+            els._lastCalcKey = calcKey;
+            els._cachedComputedSize = getSafeFontScaleSize(allTextsToEval, baseSize, containerW, containerH, state.selectedFont, state.styleOptions, isFullSlideOrBible);
+          }
 
+          const fontToApply = isFullSlideOrBible ? (els._cachedComputedSize || baseSize) : baseSize;
           els.obsLineText.style.fontSize = `${fontToApply}px`;
           const fixedLH = state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : 1.5;
           els.obsLineText.style.lineHeight = `${fixedLH}`;

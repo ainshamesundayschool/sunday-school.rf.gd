@@ -1393,7 +1393,15 @@
       applyDynamicShadow();
     }
 
-    window.addEventListener('resize', () => fitTextToSafeArea());
+    let _fitTextTimeout = null;
+    function debouncedFitTextToSafeArea() {
+      if (_fitTextTimeout) cancelAnimationFrame(_fitTextTimeout);
+      _fitTextTimeout = requestAnimationFrame(() => {
+        fitTextToSafeArea();
+      });
+    }
+
+    window.addEventListener('resize', debouncedFitTextToSafeArea);
 
     // AUTO POSITION WINDOW TO TARGET SCREEN IF QUERY PARAMS ARE PRESENT
     (function autoPositionWindow() {
