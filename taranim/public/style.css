@@ -2954,12 +2954,12 @@ input[type="checkbox"]:checked::after {
   }
 
   .obs-line-segment {
-    display: block !important;
-    white-space: normal !important;
-    word-break: keep-all !important;
-    overflow-wrap: break-word !important;
+    display: inline-block !important;
+    white-space: nowrap !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
     text-align: center !important;
-    width: 100% !important;
+    width: auto !important;
     margin-top: 0.25em !important;
     margin-bottom: 0.25em !important;
   }
@@ -4630,6 +4630,9 @@ input[type="range"]:active::-moz-range-thumb {
   display: inline-block !important;
   width: auto !important;
   max-width: 100%;
+  white-space: nowrap !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
   transition: color 0.25s ease;
 }
 

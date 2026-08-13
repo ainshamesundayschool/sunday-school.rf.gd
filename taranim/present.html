@@ -1317,9 +1317,9 @@
       segments.forEach(s => {
         s.style.display = 'inline-block';
         s.style.width = 'auto';
-        s.style.whiteSpace = 'pre-wrap';
-        s.style.wordBreak = 'break-word';
-        s.style.overflowWrap = 'break-word';
+        s.style.whiteSpace = 'nowrap';
+        s.style.wordBreak = 'normal';
+        s.style.overflowWrap = 'normal';
         s.style.textAlign = align === 'justify' || isBibleMode ? 'justify' : align;
       });
 
@@ -1347,7 +1347,29 @@
       const safeSize = getSafeFontScaleSize(slideTextsToEvaluate, baseSize, curW, curH, currentFont, lastStyleData, isFullSlideOrBible);
 
       textEl.style.fontSize = `${safeSize}px`;
-      textEl.style.transform = 'none';
+
+      // PROPORTIONAL SCALE DOWN ON WIDTH DECREASE (PRESERVES LOCKED RECTANGLE FORM)
+      const wrapper = textEl.querySelector('.obs-slide-wrapper') || textEl;
+      wrapper.style.transform = 'none';
+      wrapper.style.display = 'inline-block';
+      wrapper.style.maxWidth = 'none';
+      wrapper.style.width = 'auto';
+
+      const maxW = Math.max(260, curW * 0.90);
+      const maxH = Math.max(180, (curH > curW ? curW * (9 / 16) : curH) * 0.85);
+
+      const actualW = wrapper.scrollWidth || wrapper.offsetWidth || maxW;
+      const actualH = wrapper.scrollHeight || wrapper.offsetHeight || maxH;
+
+      if (actualW > maxW || actualH > maxH) {
+        const scaleW = maxW / actualW;
+        const scaleH = maxH / actualH;
+        const scaleFactor = Math.min(scaleW, scaleH);
+        wrapper.style.transformOrigin = 'center center';
+        wrapper.style.transform = `scale(${scaleFactor.toFixed(4)})`;
+      } else {
+        wrapper.style.transform = 'none';
+      }
 
       applyDynamicShadow();
     }

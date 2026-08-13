@@ -7131,7 +7131,37 @@ document.addEventListener('DOMContentLoaded', () => {
           els.obsLineText.style.fontSize = `${baseSize}px`;
           const fixedLH = state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : 1.5;
           els.obsLineText.style.lineHeight = `${fixedLH}`;
-          els.obsLineText.style.transform = 'none';
+
+          const segments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
+          segments.forEach(s => {
+            s.style.display = 'inline-block';
+            s.style.width = 'auto';
+            s.style.whiteSpace = 'nowrap';
+            s.style.wordBreak = 'normal';
+            s.style.overflowWrap = 'normal';
+          });
+
+          const wrapper = els.obsLineText.querySelector('.obs-slide-wrapper') || els.obsLineText;
+          wrapper.style.transform = 'none';
+          wrapper.style.display = 'inline-block';
+          wrapper.style.maxWidth = 'none';
+          wrapper.style.width = 'auto';
+
+          const maxW = Math.max(260, containerW * 0.90);
+          const maxH = Math.max(180, (containerH > containerW ? containerW * (9 / 16) : containerH) * 0.85);
+
+          const actualW = wrapper.scrollWidth || wrapper.offsetWidth || maxW;
+          const actualH = wrapper.scrollHeight || wrapper.offsetHeight || maxH;
+
+          if (actualW > maxW || actualH > maxH) {
+            const scaleW = maxW / actualW;
+            const scaleH = maxH / actualH;
+            const scaleFactor = Math.min(scaleW, scaleH);
+            wrapper.style.transformOrigin = 'center center';
+            wrapper.style.transform = `scale(${scaleFactor.toFixed(4)})`;
+          } else {
+            wrapper.style.transform = 'none';
+          }
           
           // Re-apply highlights after formatting
           const hColor = state.highlightColor || '#ef4444';
