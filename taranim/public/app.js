@@ -1619,9 +1619,9 @@ document.addEventListener('DOMContentLoaded', () => {
     fontSizePopoverRow: document.getElementById('font-size-popover-row'),
     fontSizeValBadge: document.getElementById('font-size-val-badge'),
     obsTextColor: document.getElementById('obs-text-color'),
-    obsStrokeRange: document.getElementById('obs-stroke-range'),
+    obsStrokeRange: document.getElementById('obs-stroke-range') || document.getElementById('obs-stroke-width-range'),
     obsStrokeColor: document.getElementById('obs-stroke-color'),
-    obsShadowRange: document.getElementById('obs-shadow-range'),
+    obsShadowRange: document.getElementById('obs-shadow-range') || document.getElementById('obs-shadow-blur-range'),
     obsShadowColor: document.getElementById('obs-shadow-color'),
     obsShadowStyle: document.getElementById('obs-shadow-style'),
     obsTextAnimSelect: document.getElementById('obs-text-anim-select'),
@@ -2972,41 +2972,60 @@ document.addEventListener('DOMContentLoaded', () => {
       els.obsTextAnimSelect.addEventListener('blur', handleAnimChange);
     }
 
-    els.obsTextColor.addEventListener('input', (e) => {
-      state.styleOptions.textColor = e.target.value;
-      debouncedSyncLiveState(100);
-    });
-    els.obsTextColor.addEventListener('change', () => {
-      saveUserSettings();
-      syncLiveState();
-    });
+    if (els.obsTextColor) {
+      els.obsTextColor.addEventListener('input', (e) => {
+        state.styleOptions.textColor = e.target.value;
+        debouncedSyncLiveState(100);
+      });
+      els.obsTextColor.addEventListener('change', () => {
+        saveUserSettings();
+        syncLiveState();
+      });
+    }
 
-    els.obsStrokeRange.addEventListener('input', (e) => {
-      state.styleOptions.strokeWidth = parseInt(e.target.value);
-      debouncedSyncLiveState(120);
-    });
-    els.obsStrokeRange.addEventListener('change', () => {
-      saveUserSettings();
-      syncLiveState();
-    });
+    if (els.obsStrokeRange) {
+      els.obsStrokeRange.addEventListener('input', (e) => {
+        state.styleOptions.strokeWidth = parseInt(e.target.value);
+        debouncedSyncLiveState(120);
+      });
+      els.obsStrokeRange.addEventListener('change', () => {
+        saveUserSettings();
+        syncLiveState();
+      });
+    }
 
-    els.obsStrokeColor.addEventListener('input', (e) => {
-      state.styleOptions.strokeColor = e.target.value;
-      debouncedSyncLiveState(100);
-    });
-    els.obsStrokeColor.addEventListener('change', () => {
-      saveUserSettings();
-      syncLiveState();
-    });
+    if (els.obsStrokeColor) {
+      els.obsStrokeColor.addEventListener('input', (e) => {
+        state.styleOptions.strokeColor = e.target.value;
+        debouncedSyncLiveState(100);
+      });
+      els.obsStrokeColor.addEventListener('change', () => {
+        saveUserSettings();
+        syncLiveState();
+      });
+    }
 
-    els.obsShadowRange.addEventListener('input', (e) => {
-      state.styleOptions.shadowBlur = parseInt(e.target.value);
-      debouncedSyncLiveState(120);
-    });
-    els.obsShadowRange.addEventListener('change', () => {
-      saveUserSettings();
-      syncLiveState();
-    });
+    if (els.obsShadowRange) {
+      els.obsShadowRange.addEventListener('input', (e) => {
+        state.styleOptions.shadowBlur = parseInt(e.target.value);
+        debouncedSyncLiveState(120);
+      });
+      els.obsShadowRange.addEventListener('change', () => {
+        saveUserSettings();
+        syncLiveState();
+      });
+    }
+
+    if (els.obsShadowColor) {
+      els.obsShadowColor.addEventListener('input', (e) => {
+        state.styleOptions.shadowColor = e.target.value;
+        debouncedSyncLiveState(100);
+      });
+      els.obsShadowColor.addEventListener('change', () => {
+        saveUserSettings();
+        syncLiveState();
+      });
+    }
 
     if (els.obsShadowAngleRange) {
       els.obsShadowAngleRange.addEventListener('input', (e) => {
