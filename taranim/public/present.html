@@ -1404,7 +1404,22 @@
       if (scaledShadowBlur > 0 || scaledDistPx > 0) {
         shadowParts.push(`${offX}px ${offY}px ${scaledShadowBlur}px ${shadowColor}`);
       }
-      textEl.style.textShadow = shadowParts.length > 0 ? shadowParts.join(', ') : 'none';
+      const finalShadow = shadowParts.length > 0 ? shadowParts.join(', ') : 'none';
+      textEl.style.textShadow = finalShadow;
+
+      const childSegs = Array.from(textEl.querySelectorAll('.obs-line-segment'));
+      childSegs.forEach(s => {
+        if (!s.classList.contains('line-highlighted')) {
+          s.style.textShadow = finalShadow;
+          if (scaledStrokeWidth > 0) {
+            s.style.webkitTextStroke = `${scaledStrokeWidth}px ${strokeColor}`;
+            s.style.textStroke = `${scaledStrokeWidth}px ${strokeColor}`;
+          } else {
+            s.style.webkitTextStroke = '0px transparent';
+            s.style.textStroke = '0px transparent';
+          }
+        }
+      });
     }
 
     let currentIsBible = false;

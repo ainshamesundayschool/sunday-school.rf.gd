@@ -8992,8 +8992,26 @@ document.addEventListener('DOMContentLoaded', () => {
         if (shadowB > 0 || shadowD > 0) {
           shadowParts.push(`${offX}px ${offY}px ${shadowB}px ${shadowC}`);
         }
-        els.obsLineText.style.textShadow = shadowParts.length > 0 ? shadowParts.join(', ') : 'none';
+        const textShadowVal = shadowParts.length > 0 ? shadowParts.join(', ') : 'none';
+        els.obsLineText.style.textShadow = textShadowVal;
         els.obsLineText.style.color = state.styleOptions.textColor || '#ffffff';
+
+        // Explicitly sync stroke and shadow to all child line segments in overlay
+        const obsChildSegments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
+        obsChildSegments.forEach(s => {
+          if (!s.classList.contains('line-highlighted')) {
+            s.style.textShadow = textShadowVal;
+            s.style.color = state.styleOptions.textColor || '#ffffff';
+            if (strokeW > 0) {
+              const strkPx = Math.max(1, Math.round(strokeW * 1.2));
+              s.style.webkitTextStroke = `${strkPx}px ${strokeC}`;
+              s.style.textStroke = `${strkPx}px ${strokeC}`;
+            } else {
+              s.style.webkitTextStroke = '0px transparent';
+              s.style.textStroke = '0px transparent';
+            }
+          }
+        });
 
         // 3. UPDATE HIGHLIGHTS IN-PLACE WITHOUT RE-CREATING DOM (FLICKER-FREE)
         const hColor = state.highlightColor || '#ef4444';
