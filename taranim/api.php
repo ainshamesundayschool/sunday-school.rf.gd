@@ -43,6 +43,45 @@ if (strpos($parsedUrl, '/api/live') !== false || (isset($_GET['action']) && $_GE
     }
 }
 
+// TEMPLATES DISCOVERY ENDPOINT
+if (isset($_GET['action']) && $_GET['action'] === 'templates') {
+    $baseDir = __DIR__ . '/Templates';
+    $prefix = 'Templates/';
+    if (!is_dir($baseDir) && is_dir(__DIR__ . '/../Templates')) {
+        $baseDir = __DIR__ . '/../Templates';
+        $prefix = '../Templates/';
+    }
+    $templates = [];
+    if (is_dir($baseDir)) {
+        $types = ['Standby', 'SlidesBg', 'Stringer'];
+        foreach ($types as $type) {
+            $typeDir = $baseDir . '/' . $type;
+            if (is_dir($typeDir)) {
+                $subDirs = scandir($typeDir);
+                foreach ($subDirs as $sd) {
+                    if ($sd === '.' || $sd === '..' || strpos($sd, '.') === 0) continue;
+                    $fullSd = $typeDir . '/' . $sd;
+                    if (is_dir($fullSd)) {
+                        $files = scandir($fullSd);
+                        foreach ($files as $f) {
+                            if ($f === '.' || $f === '..' || strpos($f, '.') === 0 || substr($f, -4) === '.xmp') continue;
+                            if (!isset($templates[$sd])) {
+                                $templates[$sd] = ['name' => $sd, 'standby' => null, 'slidesBg' => null, 'stringer' => null];
+                            }
+                            $relPath = $prefix . $type . '/' . $sd . '/' . $f;
+                            if ($type === 'Standby') $templates[$sd]['standby'] = $relPath;
+                            else if ($type === 'SlidesBg') $templates[$sd]['slidesBg'] = $relPath;
+                            else if ($type === 'Stringer') $templates[$sd]['stringer'] = $relPath;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    echo json_encode(['status' => 'success', 'templates' => array_values($templates)]);
+    exit;
+}
+
 $pdo = null;
 $isMysql = false;
 

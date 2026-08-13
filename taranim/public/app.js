@@ -1160,6 +1160,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  const savedMediaConfig = JSON.parse(localStorage.getItem('sunday_school_taranim_media_config') || '{}');
+
   const state = {
     allSongs: [],
     arabicDictionary: [],
@@ -1171,9 +1173,40 @@ document.addEventListener('DOMContentLoaded', () => {
     livePresentationLines: [],
     liveLineIndex: 0,
     isBlank: false,
+    isStandbyMode: false,
     selectedScreen: savedLockedScreen,
     highlightedLineIndices: [],
     highlightColor: savedSettings.highlightColor || "#ef4444",
+
+    standbyConfig: savedMediaConfig.standbyConfig || {
+      type: 'logo',
+      url: '',
+      loop: true
+    },
+    slidesBgConfig: savedMediaConfig.slidesBgConfig || {
+      type: 'none',
+      url: '',
+      loop: true
+    },
+    transitionConfig: savedMediaConfig.transitionConfig || {
+      type: 'stinger',
+      stingerUrl: 'Templates/Stringer/Shabahak Akon 2026/Stringer 1.webm',
+      cutPointMs: 1200
+    },
+    textTransform: savedMediaConfig.textTransform || {
+      scale: 100,
+      posX: 0,
+      posY: 0,
+      rotation: 0
+    },
+    availableTemplates: [
+      {
+        name: 'Shabahak Akon 2026',
+        standby: 'Templates/Standby/Shabahak Akon 2026/Shabahak Akoon Loop.mp4',
+        slidesBg: 'Templates/SlidesBg/Shabahak Akon 2026/Shabahak Akoon Loop Empty Centered.mp4',
+        stringer: 'Templates/Stringer/Shabahak Akon 2026/Stringer 1.webm'
+      }
+    ],
 
     selectedFont: savedSettings.selectedFont || "'Alexandria', sans-serif",
     fontSize: savedSettings.fontSize || 105,
@@ -1536,6 +1569,46 @@ document.addEventListener('DOMContentLoaded', () => {
     presModeSelect: document.getElementById('pres-mode-select'),
     btnToggleObsMode: document.getElementById('btn-toggle-obs-mode'),
     btnFixObsFreeze: document.getElementById('btn-fix-obs-freeze'),
+
+    btnToggleStandbyTop: document.getElementById('btn-toggle-standby-top'),
+    btnToggleStandby: document.getElementById('btn-toggle-standby'),
+
+    slidesBgTypeSelect: document.getElementById('slides-bg-type-select'),
+    slidesBgTemplateWrap: document.getElementById('slides-bg-template-wrap'),
+    slidesBgTemplateSelect: document.getElementById('slides-bg-template-select'),
+    slidesBgCustomUploadWrap: document.getElementById('slides-bg-custom-upload-wrap'),
+    slidesBgFileInput: document.getElementById('slides-bg-file-input'),
+    slidesBgFileName: document.getElementById('slides-bg-file-name'),
+    slidesBgLoopCb: document.getElementById('slides-bg-loop-cb'),
+
+    textTransformCard: document.getElementById('text-transform-card'),
+    btnResetTextTransform: document.getElementById('btn-reset-text-transform'),
+    transformScaleRange: document.getElementById('transform-scale-range'),
+    transformScaleBadge: document.getElementById('transform-scale-badge'),
+    transformRotRange: document.getElementById('transform-rot-range'),
+    transformRotBadge: document.getElementById('transform-rot-badge'),
+    transformPosxRange: document.getElementById('transform-posx-range'),
+    transformPosxBadge: document.getElementById('transform-posx-badge'),
+    transformPosyRange: document.getElementById('transform-posy-range'),
+    transformPosyBadge: document.getElementById('transform-posy-badge'),
+
+    standbyTypeSelect: document.getElementById('standby-type-select'),
+    standbyTemplateWrap: document.getElementById('standby-template-wrap'),
+    standbyTemplateSelect: document.getElementById('standby-template-select'),
+    standbyCustomUploadWrap: document.getElementById('standby-custom-upload-wrap'),
+    standbyFileInput: document.getElementById('standby-file-input'),
+    standbyFileName: document.getElementById('standby-file-name'),
+    standbyLoopCb: document.getElementById('standby-loop-cb'),
+
+    transitionTypeSelect: document.getElementById('transition-type-select'),
+    stingerConfigWrap: document.getElementById('stinger-config-wrap'),
+    stingerTemplateSelect: document.getElementById('stinger-template-select'),
+    stingerCustomUploadWrap: document.getElementById('stinger-custom-upload-wrap'),
+    stingerFileInput: document.getElementById('stinger-file-input'),
+    stingerFileName: document.getElementById('stinger-file-name'),
+    stingerCutpointRange: document.getElementById('stinger-cutpoint-range'),
+    stingerCutpointBadge: document.getElementById('stinger-cutpoint-badge'),
+    builtinTemplatesList: document.getElementById('builtin-templates-list'),
 
     btnOpenTvWindow: document.getElementById('btn-open-tv-window'),
     btnOpenObsWindow: document.getElementById('btn-open-obs-window'),
@@ -3416,6 +3489,391 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderUserTemplatesList();
     checkURLTemplateImport();
+
+    // ----------------------------------------------------
+    // MEDIA, STANDBY, TRANSITIONS & TRANSFORMS SYSTEM
+    // ----------------------------------------------------
+    const STORAGE_KEY_MEDIA = 'sunday_school_taranim_media_config';
+
+    const saveMediaConfig = () => {
+      try {
+        const config = {
+          standbyConfig: state.standbyConfig,
+          slidesBgConfig: state.slidesBgConfig,
+          transitionConfig: state.transitionConfig,
+          textTransform: state.textTransform
+        };
+        localStorage.setItem(STORAGE_KEY_MEDIA, JSON.stringify(config));
+      } catch (e) {}
+    };
+
+    const toggleStandbyMode = (triggerTransition = true) => {
+      state.isStandbyMode = !state.isStandbyMode;
+
+      if (els.btnToggleStandbyTop) els.btnToggleStandbyTop.classList.toggle('active-mode', state.isStandbyMode);
+      if (els.btnToggleStandby) els.btnToggleStandby.classList.toggle('active-mode', state.isStandbyMode);
+
+      syncLiveState(false, false, { triggerTransition: triggerTransition });
+      showToast(state.isStandbyMode ? 'تم التبديل إلى شاشة الانتظار (Standby) 📺' : 'تمت العودة إلى عرض الشرائح 🎤');
+    };
+
+    if (els.btnToggleStandbyTop) {
+      els.btnToggleStandbyTop.addEventListener('click', () => toggleStandbyMode(true));
+    }
+    if (els.btnToggleStandby) {
+      els.btnToggleStandby.addEventListener('click', () => toggleStandbyMode(true));
+    }
+
+    // --- 1. SLIDES BACKGROUND HANDLERS ---
+    const updateSlidesBgUI = () => {
+      if (!els.slidesBgTypeSelect) return;
+      const type = state.slidesBgConfig?.type || 'none';
+      els.slidesBgTypeSelect.value = type;
+
+      if (els.slidesBgTemplateWrap) els.slidesBgTemplateWrap.classList.toggle('hidden', type !== 'template');
+      if (els.slidesBgCustomUploadWrap) els.slidesBgCustomUploadWrap.classList.toggle('hidden', type !== 'custom_image' && type !== 'custom_video');
+      if (els.slidesBgLoopCb) els.slidesBgLoopCb.checked = (state.slidesBgConfig?.loop !== false);
+
+      if (els.slidesBgTemplateSelect && state.slidesBgConfig?.url) {
+        els.slidesBgTemplateSelect.value = state.slidesBgConfig.url;
+      }
+    };
+
+    if (els.slidesBgTypeSelect) {
+      els.slidesBgTypeSelect.addEventListener('change', (e) => {
+        const val = e.target.value;
+        state.slidesBgConfig.type = val;
+        if (val === 'template') {
+          state.slidesBgConfig.url = els.slidesBgTemplateSelect ? els.slidesBgTemplateSelect.value : 'Templates/SlidesBg/Shabahak Akon 2026/Shabahak Akoon Loop Empty Centered.mp4';
+        } else if (val === 'none') {
+          state.slidesBgConfig.url = '';
+        }
+        updateSlidesBgUI();
+        saveMediaConfig();
+        syncLiveState();
+      });
+    }
+
+    if (els.slidesBgTemplateSelect) {
+      els.slidesBgTemplateSelect.addEventListener('change', (e) => {
+        state.slidesBgConfig.type = 'template';
+        state.slidesBgConfig.url = e.target.value;
+        saveMediaConfig();
+        syncLiveState();
+      });
+    }
+
+    if (els.slidesBgFileInput) {
+      els.slidesBgFileInput.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          state.slidesBgConfig.url = evt.target.result;
+          if (file.type.startsWith('video/')) {
+            state.slidesBgConfig.type = 'custom_video';
+          } else {
+            state.slidesBgConfig.type = 'custom_image';
+          }
+          if (els.slidesBgFileName) els.slidesBgFileName.textContent = file.name;
+          updateSlidesBgUI();
+          saveMediaConfig();
+          syncLiveState();
+          showToast(`تم تعيين خلفية الشرائح: ${file.name}`);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    if (els.slidesBgLoopCb) {
+      els.slidesBgLoopCb.addEventListener('change', (e) => {
+        state.slidesBgConfig.loop = Boolean(e.target.checked);
+        saveMediaConfig();
+        syncLiveState();
+      });
+    }
+
+    // --- 2. TEXT TRANSFORM CONTROLS ---
+    const updateTextTransformUI = () => {
+      const tf = state.textTransform || { scale: 100, posX: 0, posY: 0, rotation: 0 };
+      if (els.transformScaleRange) els.transformScaleRange.value = tf.scale || 100;
+      if (els.transformScaleBadge) els.transformScaleBadge.textContent = `${tf.scale || 100}%`;
+      if (els.transformRotRange) els.transformRotRange.value = tf.rotation || 0;
+      if (els.transformRotBadge) els.transformRotBadge.textContent = `${tf.rotation || 0}°`;
+      if (els.transformPosxRange) els.transformPosxRange.value = tf.posX || 0;
+      if (els.transformPosxBadge) els.transformPosxBadge.textContent = `${tf.posX || 0}%`;
+      if (els.transformPosyRange) els.transformPosyRange.value = tf.posY || 0;
+      if (els.transformPosyBadge) els.transformPosyBadge.textContent = `${tf.posY || 0}%`;
+    };
+
+    if (els.transformScaleRange) {
+      els.transformScaleRange.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value) || 100;
+        state.textTransform.scale = val;
+        if (els.transformScaleBadge) els.transformScaleBadge.textContent = `${val}%`;
+        saveMediaConfig();
+        syncLiveState();
+      });
+    }
+
+    if (els.transformRotRange) {
+      els.transformRotRange.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value) || 0;
+        state.textTransform.rotation = val;
+        if (els.transformRotBadge) els.transformRotBadge.textContent = `${val}°`;
+        saveMediaConfig();
+        syncLiveState();
+      });
+    }
+
+    if (els.transformPosxRange) {
+      els.transformPosxRange.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value) || 0;
+        state.textTransform.posX = val;
+        if (els.transformPosxBadge) els.transformPosxBadge.textContent = `${val}%`;
+        saveMediaConfig();
+        syncLiveState();
+      });
+    }
+
+    if (els.transformPosyRange) {
+      els.transformPosyRange.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value) || 0;
+        state.textTransform.posY = val;
+        if (els.transformPosyBadge) els.transformPosyBadge.textContent = `${val}%`;
+        saveMediaConfig();
+        syncLiveState();
+      });
+    }
+
+    if (els.btnResetTextTransform) {
+      els.btnResetTextTransform.addEventListener('click', () => {
+        state.textTransform = { scale: 100, posX: 0, posY: 0, rotation: 0 };
+        updateTextTransformUI();
+        saveMediaConfig();
+        syncLiveState();
+        showToast('تمت إعادة ضبط أبعاد وموضع النص 🔄');
+      });
+    }
+
+    // --- 3. STANDBY SCREEN HANDLERS ---
+    const updateStandbyUI = () => {
+      if (!els.standbyTypeSelect) return;
+      const type = state.standbyConfig?.type || 'logo';
+      els.standbyTypeSelect.value = type;
+
+      if (els.standbyTemplateWrap) els.standbyTemplateWrap.classList.toggle('hidden', type !== 'template');
+      if (els.standbyCustomUploadWrap) els.standbyCustomUploadWrap.classList.toggle('hidden', type !== 'custom_image' && type !== 'custom_video');
+      if (els.standbyLoopCb) els.standbyLoopCb.checked = (state.standbyConfig?.loop !== false);
+
+      if (els.standbyTemplateSelect && state.standbyConfig?.url) {
+        els.standbyTemplateSelect.value = state.standbyConfig.url;
+      }
+    };
+
+    if (els.standbyTypeSelect) {
+      els.standbyTypeSelect.addEventListener('change', (e) => {
+        const val = e.target.value;
+        state.standbyConfig.type = val;
+        if (val === 'template') {
+          state.standbyConfig.url = els.standbyTemplateSelect ? els.standbyTemplateSelect.value : 'Templates/Standby/Shabahak Akon 2026/Shabahak Akoon Loop.mp4';
+        } else if (val === 'logo') {
+          state.standbyConfig.url = '';
+        }
+        updateStandbyUI();
+        saveMediaConfig();
+        syncLiveState();
+      });
+    }
+
+    if (els.standbyTemplateSelect) {
+      els.standbyTemplateSelect.addEventListener('change', (e) => {
+        state.standbyConfig.type = 'template';
+        state.standbyConfig.url = e.target.value;
+        saveMediaConfig();
+        syncLiveState();
+      });
+    }
+
+    if (els.standbyFileInput) {
+      els.standbyFileInput.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          state.standbyConfig.url = evt.target.result;
+          if (file.type.startsWith('video/')) {
+            state.standbyConfig.type = 'custom_video';
+          } else {
+            state.standbyConfig.type = 'custom_image';
+          }
+          if (els.standbyFileName) els.standbyFileName.textContent = file.name;
+          updateStandbyUI();
+          saveMediaConfig();
+          syncLiveState();
+          showToast(`تم تعيين شاشة الانتظار: ${file.name}`);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    if (els.standbyLoopCb) {
+      els.standbyLoopCb.addEventListener('change', (e) => {
+        state.standbyConfig.loop = Boolean(e.target.checked);
+        saveMediaConfig();
+        syncLiveState();
+      });
+    }
+
+    // --- 4. TRANSITIONS CONFIG HANDLERS ---
+    const updateTransitionUI = () => {
+      if (!els.transitionTypeSelect) return;
+      const type = state.transitionConfig?.type || 'stinger';
+      els.transitionTypeSelect.value = type;
+
+      if (els.stingerConfigWrap) els.stingerConfigWrap.classList.toggle('hidden', type !== 'stinger');
+      if (els.stingerCutpointRange) els.stingerCutpointRange.value = state.transitionConfig?.cutPointMs || 1200;
+      if (els.stingerCutpointBadge) els.stingerCutpointBadge.textContent = `${state.transitionConfig?.cutPointMs || 1200}ms`;
+
+      if (els.stingerTemplateSelect && state.transitionConfig?.stingerUrl) {
+        els.stingerTemplateSelect.value = state.transitionConfig.stingerUrl;
+      }
+    };
+
+    if (els.transitionTypeSelect) {
+      els.transitionTypeSelect.addEventListener('change', (e) => {
+        state.transitionConfig.type = e.target.value;
+        updateTransitionUI();
+        saveMediaConfig();
+        syncLiveState();
+      });
+    }
+
+    if (els.stingerTemplateSelect) {
+      els.stingerTemplateSelect.addEventListener('change', (e) => {
+        const val = e.target.value;
+        if (val === 'custom') {
+          if (els.stingerCustomUploadWrap) els.stingerCustomUploadWrap.classList.remove('hidden');
+        } else {
+          if (els.stingerCustomUploadWrap) els.stingerCustomUploadWrap.classList.add('hidden');
+          state.transitionConfig.stingerUrl = val;
+          saveMediaConfig();
+          syncLiveState();
+        }
+      });
+    }
+
+    if (els.stingerFileInput) {
+      els.stingerFileInput.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          state.transitionConfig.stingerUrl = evt.target.result;
+          if (els.stingerFileName) els.stingerFileName.textContent = file.name;
+          saveMediaConfig();
+          syncLiveState();
+          showToast(`تم تعيين فيديو الستنجر: ${file.name}`);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    if (els.stingerCutpointRange) {
+      els.stingerCutpointRange.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value) || 1200;
+        state.transitionConfig.cutPointMs = val;
+        if (els.stingerCutpointBadge) els.stingerCutpointBadge.textContent = `${val}ms`;
+        saveMediaConfig();
+      });
+    }
+
+    // --- 5. BUILTIN TEMPLATES DISCOVERY & APPLY ---
+    const renderBuiltinTemplates = () => {
+      const container = els.builtinTemplatesList;
+      if (!container) return;
+
+      const templates = state.availableTemplates || [];
+      container.innerHTML = templates.map(t => `
+        <div class="builtin-template-card" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+          <div>
+            <div style="font-weight:800; font-size:0.92rem; color:#1e293b;"><i class="fa-solid fa-sparkles" style="color:#2563eb; margin-left:4px;"></i> ${escapeHtml(t.name)}</div>
+            <div style="font-size:0.75rem; color:#64748b; margin-top:3px;">
+              ${t.standby ? '📺 شاشة انتظار لوب' : ''} ${t.slidesBg ? '• 🎬 خلفية شرائح' : ''} ${t.stringer ? '• ⚡ انتقال ستنجر' : ''}
+            </div>
+          </div>
+          <button type="button" class="btn-apply-builtin-template btn btn-sm btn-primary" data-name="${escapeHtml(t.name)}" style="background:#2563eb; color:#fff; font-weight:700; padding:6px 14px; border-radius:8px;">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> تطبيق القالب
+          </button>
+        </div>
+      `).join('');
+
+      container.querySelectorAll('.btn-apply-builtin-template').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const tmplName = btn.getAttribute('data-name');
+          const tmpl = (state.availableTemplates || []).find(t => t.name === tmplName);
+          if (tmpl) {
+            if (tmpl.standby) {
+              state.standbyConfig.type = 'template';
+              state.standbyConfig.url = tmpl.standby;
+            }
+            if (tmpl.slidesBg) {
+              state.slidesBgConfig.type = 'template';
+              state.slidesBgConfig.url = tmpl.slidesBg;
+            }
+            if (tmpl.stringer) {
+              state.transitionConfig.type = 'stinger';
+              state.transitionConfig.stingerUrl = tmpl.stringer;
+            }
+            updateStandbyUI();
+            updateSlidesBgUI();
+            updateTransitionUI();
+            saveMediaConfig();
+            syncLiveState(false, false, { triggerTransition: true });
+            showToast(`تم تطبيق قالب "${tmpl.name}" بالكامل! 🌟`);
+          }
+        });
+      });
+    };
+
+    const fetchServerTemplates = async () => {
+      try {
+        const res = await fetch('api.php?action=templates').catch(() => null);
+        if (res && res.ok) {
+          const data = await res.json();
+          if (data && data.status === 'success' && Array.isArray(data.templates) && data.templates.length > 0) {
+            state.availableTemplates = data.templates;
+            if (els.slidesBgTemplateSelect) {
+              els.slidesBgTemplateSelect.innerHTML = data.templates
+                .filter(t => t.slidesBg)
+                .map(t => `<option value="${t.slidesBg}">${escapeHtml(t.name)}</option>`)
+                .join('');
+            }
+            if (els.standbyTemplateSelect) {
+              els.standbyTemplateSelect.innerHTML = data.templates
+                .filter(t => t.standby)
+                .map(t => `<option value="${t.standby}">${escapeHtml(t.name)}</option>`)
+                .join('');
+            }
+            if (els.stingerTemplateSelect) {
+              const opts = data.templates
+                .filter(t => t.stringer)
+                .map(t => `<option value="${t.stringer}">${escapeHtml(t.name)} (Stinger WebM)</option>`)
+                .join('');
+              els.stingerTemplateSelect.innerHTML = opts + `<option value="custom">ستنجر مخصص من الجهاز (.webm)...</option>`;
+            }
+            renderBuiltinTemplates();
+          }
+        }
+      } catch (e) {}
+    };
+
+    updateSlidesBgUI();
+    updateTextTransformUI();
+    updateStandbyUI();
+    updateTransitionUI();
+    renderBuiltinTemplates();
+    fetchServerTemplates();
 
     // Chroma Chip Group Syncing
     const chromaChips = document.querySelectorAll('.chroma-chip');
@@ -6996,7 +7454,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return baseSize || 54;
     }
 
-  function syncLiveState(isExplicitPositionUpdate = false, isForceRefresh = false) {
+  function syncLiveState(isExplicitPositionUpdate = false, isForceRefresh = false, extraOptions = {}) {
     const targetSong = state.liveSong || state.activeSong;
     const targetLines = (state.livePresentationLines && state.livePresentationLines.length > 0) ? state.livePresentationLines : state.presentationLines;
     const targetIndex = (state.liveLineIndex >= 0) ? state.liveLineIndex : (state.currentLineIndex >= 0 ? state.currentLineIndex : 0);
@@ -7018,6 +7476,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const payload = {
       type: 'PRESENT_LINE',
       isLogoSlide: isLogoSlide,
+      isStandby: Boolean(state.isStandbyMode),
+      isStandbyMode: Boolean(state.isStandbyMode),
+      standbyConfig: state.standbyConfig,
+      slidesBgConfig: state.slidesBgConfig,
+      transitionConfig: state.transitionConfig,
+      textTransform: state.textTransform,
+      transitionType: state.transitionConfig ? state.transitionConfig.type : 'stinger',
+      stingerMediaUrl: state.transitionConfig ? state.transitionConfig.stingerUrl : '',
+      stingerCutPointMs: state.transitionConfig ? state.transitionConfig.cutPointMs : 1200,
+      triggerTransition: Boolean(extraOptions && extraOptions.triggerTransition),
       text: text,
       badgeText: badgeTxt,
       badgeClass: badgeCls,
@@ -7078,7 +7546,7 @@ document.addEventListener('DOMContentLoaded', () => {
           standbyEl.classList.add('hidden');
           standbyEl.style.display = 'none';
         }
-      } else if (isLogoSlide || !hasTextContent) {
+      } else if (state.isStandbyMode || isLogoSlide || !hasTextContent) {
         els.obsLineText.classList.add('hidden');
         els.obsLineText.style.display = 'none';
         if (standbyEl) {

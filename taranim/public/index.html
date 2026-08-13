@@ -126,12 +126,16 @@
         <img src="logo_t.png" alt="Taranim Logo" class="brand-center-logo">
       </div>
 
-      <!-- LEFT SIDE: CAST MENU BUTTON -->
-      <div class="top-left-options">
+      <!-- LEFT SIDE: STANDBY & CAST MENU BUTTONS -->
+      <div class="top-left-options" style="display:flex; align-items:center; gap:8px;">
+        <button class="icon-menu-btn" id="btn-toggle-standby-top" title="التبديل إلى شاشة الانتظار (Standby)">
+          <i class="fa-solid fa-tv"></i>
+        </button>
+
         <div class="dropdown-wrapper">
           <div id="btn-menu-cast-wrapper">
             <button class="icon-menu-btn" id="btn-menu-cast" title="البث والشاشات">
-              <i class="fa-solid fa-tv"></i>
+              <i class="fa-solid fa-display"></i>
             </button>
           </div>
 
@@ -268,7 +272,10 @@
             <i class="fa-solid fa-wand-magic-sparkles"></i> التأثيرات
           </button>
           <button type="button" class="style-tab-btn" data-tab="tab-display">
-            <i class="fa-solid fa-palette"></i> الشاشة
+            <i class="fa-solid fa-palette"></i> الشاشة والموضع
+          </button>
+          <button type="button" class="style-tab-btn" data-tab="tab-standby">
+            <i class="fa-solid fa-tv"></i> الانتظار والانتقال
           </button>
           <button type="button" class="style-tab-btn" data-tab="tab-templates">
             <i class="fa-solid fa-layer-group"></i> القوالب
@@ -358,37 +365,32 @@
                 <button type="button" class="segmented-btn" id="btn-align-justify" style="width:100%; justify-content:center;" title="تفعيل الضبط والتمديد (كشيدة)"><i class="fa-solid fa-align-justify"></i> تفعيل ضبط الكلمات (كشيدة)</button>
               </div>
 
-              <div class="control-field" style="margin-top:10px;">
-                <label>تنسيق الخط</label>
-                <div class="segmented-control-group">
-                  <button type="button" class="segmented-btn" id="btn-toggle-bold" title="عريض"><i class="fa-solid fa-bold"></i> عريض</button>
-                  <button type="button" class="segmented-btn" id="btn-toggle-italic" title="مائل"><i class="fa-solid fa-italic"></i> مائل</button>
-                  <button type="button" class="segmented-btn" id="btn-toggle-underline" title="سطر سفلي"><i class="fa-solid fa-underline"></i> سطر</button>
-                </div>
-              </div>
-
               <div class="style-grid-2" style="margin-top:10px;">
                 <div class="control-field">
-                  <label>تباعد الحروف</label>
-                  <input type="range" id="obs-letter-spacing-range" min="-2" max="15" value="0" class="slider-input">
+                  <div class="field-label-row">
+                    <label>تباعد الأسطر</label>
+                    <span id="line-height-val-badge" class="counter-text-chip">1.2</span>
+                  </div>
+                  <input type="range" id="obs-line-height-range" min="0.8" max="2.2" step="0.05" value="1.2" class="slider-input">
                 </div>
+
                 <div class="control-field">
-                  <label>ارتفاع السطر</label>
-                  <input type="range" id="obs-line-height-range" min="1.0" max="2.5" step="0.1" value="1.5" class="slider-input">
+                  <div class="field-label-row">
+                    <label>تباعد الحروف</label>
+                    <span id="letter-spacing-val-badge" class="counter-text-chip">0px</span>
+                  </div>
+                  <input type="range" id="obs-letter-spacing-range" min="-2" max="10" step="0.5" value="0" class="slider-input">
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- TAB 2: SHADOW & STROKE EFFECTS -->
+          <!-- TAB 2: EFFECTS (SHADOW & STROKE) -->
           <div id="tab-effects" class="style-tab-content hidden">
             <div class="style-card">
               <div class="style-card-title"><i class="fa-solid fa-border-all"></i> حدود الحروف (Stroke)</div>
+              
               <div class="style-grid-2">
-                <div class="control-field">
-                  <label>حجم الحدود</label>
-                  <input type="range" id="obs-stroke-range" min="0" max="10" value="0" class="slider-input">
-                </div>
                 <div class="control-field">
                   <label>لون الحدود</label>
                   <div class="color-picker-badge-wrap">
@@ -396,23 +398,33 @@
                     <span class="color-val-hex">#000000</span>
                   </div>
                 </div>
+                <div class="control-field">
+                  <div class="field-label-row">
+                    <label>سُمك الحدود</label>
+                    <span id="stroke-width-val-badge" class="counter-text-chip">0px</span>
+                  </div>
+                  <input type="range" id="obs-stroke-width-range" min="0" max="15" step="0.5" value="0" class="slider-input">
+                </div>
               </div>
             </div>
 
             <div class="style-card" style="margin-top:10px;">
-              <div class="style-card-title"><i class="fa-solid fa-sun"></i> ضبابية وزاوية الظل</div>
+              <div class="style-card-title"><i class="fa-solid fa-sun"></i> ظل النص (Drop Shadow)</div>
               
               <div class="style-grid-2">
-                <div class="control-field">
-                  <label>ضبابية الظل</label>
-                  <input type="range" id="obs-shadow-range" min="0" max="60" value="12" class="slider-input">
-                </div>
                 <div class="control-field">
                   <label>لون الظل</label>
                   <div class="color-picker-badge-wrap">
                     <input type="color" id="obs-shadow-color" value="#000000" class="color-picker-input">
                     <span class="color-val-hex">#000000</span>
                   </div>
+                </div>
+                <div class="control-field">
+                  <div class="field-label-row">
+                    <label>ضبابية الظل (Blur)</label>
+                    <span id="shadow-blur-val-badge" class="counter-text-chip">18px</span>
+                  </div>
+                  <input type="range" id="obs-shadow-blur-range" min="0" max="40" value="18" class="slider-input">
                 </div>
               </div>
 
@@ -439,14 +451,13 @@
             </div>
           </div>
 
-          <!-- TAB 3: CHROMA BACKGROUND & BOX CONTAINER -->
+          <!-- TAB 3: CHROMA, CUSTOM SLIDES BG & TEXT TRANSFORMS -->
           <div id="tab-display" class="style-tab-content hidden">
             <div class="style-card">
               <div class="style-card-title"><i class="fa-solid fa-display"></i> خلفية شاشة العرض (Chroma)</div>
               
               <div class="control-field">
-                <label>اختر لون الخلفية</label>
-                <!-- HIDDEN SELECT FOR LEGACY SYNC -->
+                <label>اختر لون الخلفية الأساسي</label>
                 <select id="chroma-select" class="control-select hidden">
                   <option value="black" selected>أسود داكن</option>
                   <option value="green">خلفية خضراء</option>
@@ -471,92 +482,197 @@
               </div>
             </div>
 
+            <!-- CUSTOM SLIDES BACKGROUND CARD -->
             <div class="style-card" style="margin-top:10px;">
-              <div class="style-card-title"><i class="fa-solid fa-square"></i> صندوق حافات النص</div>
+              <div class="style-card-title"><i class="fa-solid fa-photo-film"></i> خلفية مخصصة للشرائح (فيديو / صورة)</div>
               
-              <div class="style-grid-2">
-                <div class="control-field">
-                  <label>لون الصندوق</label>
-                  <div class="color-picker-badge-wrap">
-                    <input type="color" id="obs-box-bg-color" value="#000000" class="color-picker-input">
-                    <span class="color-val-hex">#000000</span>
-                  </div>
+              <div class="control-field">
+                <label>نوع خلفية الشرائح</label>
+                <select id="slides-bg-type-select" class="control-select">
+                  <option value="none" selected>بدون خلفية (لون الكروما فقط)</option>
+                  <option value="template">فيديو لوب من القالب المتاح</option>
+                  <option value="custom_image">صورة مخصصة من الجهاز...</option>
+                  <option value="custom_video">فيديو مخصص من الجهاز (MP4/WebM)...</option>
+                </select>
+              </div>
+
+              <!-- TEMPLATE SLIDES BG SELECTOR -->
+              <div class="control-field hidden" id="slides-bg-template-wrap" style="margin-top:8px;">
+                <label>اختر من فيديوهات القوالب المتاحة</label>
+                <select id="slides-bg-template-select" class="control-select">
+                  <option value="Templates/SlidesBg/Shabahak Akon 2026/Shabahak Akoon Loop Empty Centered.mp4">Shabahak Akon 2026 - Loop Empty Centered</option>
+                </select>
+              </div>
+
+              <!-- CUSTOM MEDIA UPLOAD WRAPPER -->
+              <div class="control-field hidden" id="slides-bg-custom-upload-wrap" style="margin-top:8px;">
+                <label id="slides-bg-upload-label">ملف الخلفية من الجهاز</label>
+                <div style="display:flex; gap:6px; width:100%;">
+                  <label for="slides-bg-file-input" class="control-btn" style="flex:1; text-align:center; cursor:pointer; padding:8px 12px; font-size:0.85rem; display:flex; align-items:center; justify-content:center; gap:6px; background:var(--bg-hover, #e2e8f0); border-radius:8px;">
+                    <i class="fa-solid fa-file-video"></i>
+                    <span id="slides-bg-file-name">اختر ملف خلفية...</span>
+                  </label>
+                  <input type="file" id="slides-bg-file-input" class="hidden">
                 </div>
+              </div>
+
+              <!-- LOOP VIDEO TOGGLE -->
+              <div class="control-field" id="slides-bg-loop-field" style="margin-top:8px;">
+                <label class="toggle-switch-label" style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; font-size:0.88rem; background:#f8fafc; padding:8px 10px; border-radius:8px; border:1px solid #e2e8f0;">
+                  <span><i class="fa-solid fa-repeat" style="margin-left:6px; color:#2563eb;"></i> تكرار تشغيل الفيديو تلقائياً (Loop)</span>
+                  <input type="checkbox" id="slides-bg-loop-cb" class="toggle-checkbox" checked>
+                </label>
+              </div>
+            </div>
+
+            <!-- INTERACTIVE TEXT TRANSFORM CONTROLS -->
+            <div class="style-card" id="text-transform-card" style="margin-top:10px;">
+              <div class="style-card-title" style="display:flex; align-items:center; justify-content:space-between;">
+                <span><i class="fa-solid fa-arrows-up-down-left-right"></i> أبعاد وموضع النص (Text Transforms)</span>
+                <button type="button" id="btn-reset-text-transform" class="btn btn-sm btn-secondary" style="font-size:0.75rem; padding:4px 8px;" title="إعادة تعيين للأبعاد الافتراضية">
+                  <i class="fa-solid fa-rotate-left"></i> إعادة ضبط
+                </button>
+              </div>
+
+              <div class="style-grid-2" style="margin-top:8px;">
                 <div class="control-field">
-                  <label>شفافية الصندوق</label>
-                  <input type="range" id="obs-box-opacity-range" min="0" max="100" value="0" class="slider-input">
+                  <div class="field-label-row">
+                    <label>حجم الصندوق (Scale)</label>
+                    <span id="transform-scale-badge" class="counter-text-chip">100%</span>
+                  </div>
+                  <input type="range" id="transform-scale-range" min="50" max="200" step="1" value="100" class="slider-input">
+                </div>
+
+                <div class="control-field">
+                  <div class="field-label-row">
+                    <label>زاوية الدوران (Rotation)</label>
+                    <span id="transform-rot-badge" class="counter-text-chip">0°</span>
+                  </div>
+                  <input type="range" id="transform-rot-range" min="-180" max="180" step="1" value="0" class="slider-input">
                 </div>
               </div>
 
               <div class="style-grid-2" style="margin-top:10px;">
                 <div class="control-field">
-                  <label>انحناء الحواف</label>
-                  <input type="range" id="obs-box-radius-range" min="0" max="40" value="12" class="slider-input">
-                </div>
-                <div class="control-field">
-                  <label>الهامش الداخلي</label>
-                  <input type="range" id="obs-box-padding-range" min="0" max="50" value="20" class="slider-input">
-                </div>
-              </div>
-            </div>
-
-            <div class="style-card" style="margin-top:10px;">
-              <div class="style-card-title"><i class="fa-solid fa-film"></i> نمط وحركة ظهور النص</div>
-              
-              <div class="style-grid-2">
-                <div class="control-field">
-                  <label>نمط العرض</label>
-                  <select id="pres-mode-select" class="control-select">
-                    <option value="oneline" selected>سطر واحد أسفل الشاشة</option>
-                    <option value="twelines">سطران معاً في الشريحة</option>
-                    <option value="fullslide">شريحة كاملة بالمنتصف</option>
-                    <option value="allinone">الترنيمة بالكامل في شريحة واحدة</option>
-                  </select>
-                </div>
-
-                <div class="control-field" id="split-long-lines-field" style="margin-top:10px;">
-                  <label class="toggle-switch-label" style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; font-size:0.88rem;">
-                    <span><i class="fa-solid fa-equals" style="margin-left:6px; color:#2563eb;"></i> تقسيم السطر الطويل لسطرين</span>
-                    <input type="checkbox" id="btn-toggle-split-long-lines" class="toggle-checkbox" checked>
-                  </label>
+                  <div class="field-label-row">
+                    <label>الموضع الأفقي (Pos X)</label>
+                    <span id="transform-posx-badge" class="counter-text-chip">0%</span>
+                  </div>
+                  <input type="range" id="transform-posx-range" min="-50" max="50" step="0.5" value="0" class="slider-input">
                 </div>
 
                 <div class="control-field">
-                  <label>الحركة</label>
-                  <select id="obs-text-anim-select" class="control-select">
-                    <option value="slide" selected>صعود (Slide Up)</option>
-                    <option value="drop">هبوط (Drop Down)</option>
-                    <option value="pop">تكبير (Pop)</option>
-                    <option value="flip">دوران (Flip)</option>
-                    <option value="glow">ضبابي (Dissolve)</option>
-                    <option value="none">بدون حركة</option>
-                  </select>
+                  <div class="field-label-row">
+                    <label>الموضع الرأسي (Pos Y)</label>
+                    <span id="transform-posy-badge" class="counter-text-chip">0%</span>
+                  </div>
+                  <input type="range" id="transform-posy-range" min="-50" max="50" step="0.5" value="0" class="slider-input">
                 </div>
               </div>
-            </div>
-
-            <div class="style-card" style="margin-top:10px;">
-              <div class="style-card-title"><i class="fa-solid fa-eye-slash"></i> أدوات العرض والتحكم</div>
-
-              <div class="control-field">
-                <label>أدوات التحكم للشاشة</label>
-                <button type="button" id="btn-toggle-hide-controls" class="segmented-btn" style="width:100%; justify-content:center; padding:8px; gap:8px; background:#f1f5f9; border-radius:10px; font-weight:600;">
-                  <i class="fa-solid fa-eye-slash"></i> <span id="hide-controls-btn-text">إخفاء أدوات التحكم</span>
-                </button>
-              </div>
-            </div>
-
-            <div class="popover-actions" style="margin-top:10px; display:flex; flex-direction:column; gap:6px;">
-              <button id="btn-share-style-link" class="btn btn-sm btn-secondary" type="button" style="width:100%; font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px;">
-                <i class="fa-solid fa-share-nodes"></i> مشاركة التنسيق الحالي
-              </button>
             </div>
           </div>
 
-          <!-- TAB 4: TEMPLATES MANAGER (SAVE / APPLY / EXPORT / IMPORT / SHARE) -->
+          <!-- TAB 4: STANDBY SCREEN & TRANSITIONS (STINGER / LUMA SINUS 9) -->
+          <div id="tab-standby" class="style-tab-content hidden">
+            <div class="style-card">
+              <div class="style-card-title"><i class="fa-solid fa-tv"></i> شاشة الانتظار (Standby Screen)</div>
+              
+              <div class="control-field">
+                <label>نوع شاشة الانتظار</label>
+                <select id="standby-type-select" class="control-select">
+                  <option value="logo" selected>الشعار الافتراضي (Sunday School Logo)</option>
+                  <option value="template">فيديو لوب من القالب المتاح</option>
+                  <option value="custom_image">صورة مخصصة من الجهاز...</option>
+                  <option value="custom_video">فيديو لوب مخصص من الجهاز (MP4/WebM)...</option>
+                </select>
+              </div>
+
+              <!-- TEMPLATE STANDBY VIDEO SELECTOR -->
+              <div class="control-field hidden" id="standby-template-wrap" style="margin-top:8px;">
+                <label>اختر من فيديوهات الانتظار المتاحة</label>
+                <select id="standby-template-select" class="control-select">
+                  <option value="Templates/Standby/Shabahak Akon 2026/Shabahak Akoon Loop.mp4">Shabahak Akon 2026 - Standby Loop</option>
+                </select>
+              </div>
+
+              <!-- CUSTOM STANDBY UPLOAD WRAPPER -->
+              <div class="control-field hidden" id="standby-custom-upload-wrap" style="margin-top:8px;">
+                <label id="standby-upload-label">ملف شاشة الانتظار من الجهاز</label>
+                <div style="display:flex; gap:6px; width:100%;">
+                  <label for="standby-file-input" class="control-btn" style="flex:1; text-align:center; cursor:pointer; padding:8px 12px; font-size:0.85rem; display:flex; align-items:center; justify-content:center; gap:6px; background:var(--bg-hover, #e2e8f0); border-radius:8px;">
+                    <i class="fa-solid fa-file-video"></i>
+                    <span id="standby-file-name">اختر ملف شاشة الانتظار...</span>
+                  </label>
+                  <input type="file" id="standby-file-input" class="hidden">
+                </div>
+              </div>
+
+              <div class="control-field" id="standby-loop-field" style="margin-top:8px;">
+                <label class="toggle-switch-label" style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; font-size:0.88rem; background:#f8fafc; padding:8px 10px; border-radius:8px; border:1px solid #e2e8f0;">
+                  <span><i class="fa-solid fa-repeat" style="margin-left:6px; color:#2563eb;"></i> تكرار تشغيل فيديو الانتظار (Loop)</span>
+                  <input type="checkbox" id="standby-loop-cb" class="toggle-checkbox" checked>
+                </label>
+              </div>
+            </div>
+
+            <!-- TRANSITIONS ENGINE CARD -->
+            <div class="style-card" style="margin-top:10px;">
+              <div class="style-card-title"><i class="fa-solid fa-wand-magic-sparkles"></i> نمط حركة الانتقال (Transitions)</div>
+              
+              <div class="control-field">
+                <label>نوع الانتقال بين الشاشة والشرائح</label>
+                <select id="transition-type-select" class="control-select">
+                  <option value="stinger" selected>ستنجر فيديو بقناة ألفا (Stinger Alpha WebM)</option>
+                  <option value="luma_sinus9">مسح سينوس 9 (Luma Wipe Sinus 9 - OBS Style)</option>
+                  <option value="fade">تلاشي ناعم (Smooth Fade)</option>
+                  <option value="zoom">تكبير (Zoom)</option>
+                  <option value="cut">قطع فوري بدون حركة (Cut)</option>
+                </select>
+              </div>
+
+              <!-- STINGER VIDEO SELECTOR -->
+              <div id="stinger-config-wrap" style="margin-top:8px;">
+                <div class="control-field">
+                  <label>فيديو الستنجر المطبق</label>
+                  <select id="stinger-template-select" class="control-select">
+                    <option value="Templates/Stringer/Shabahak Akon 2026/Stringer 1.webm">Shabahak Akon 2026 - Stringer 1 (Alpha WebM)</option>
+                    <option value="custom">ستنجر مخصص من الجهاز (.webm)...</option>
+                  </select>
+                </div>
+
+                <div class="control-field hidden" id="stinger-custom-upload-wrap" style="margin-top:8px;">
+                  <label>ملف الستنجر المخصص (.webm شفاف)</label>
+                  <div style="display:flex; gap:6px; width:100%;">
+                    <label for="stinger-file-input" class="control-btn" style="flex:1; text-align:center; cursor:pointer; padding:8px 12px; font-size:0.85rem; display:flex; align-items:center; justify-content:center; gap:6px; background:var(--bg-hover, #e2e8f0); border-radius:8px;">
+                      <i class="fa-solid fa-file-video"></i>
+                      <span id="stinger-file-name">اختر ملف ستنجر (.webm)...</span>
+                    </label>
+                    <input type="file" id="stinger-file-input" accept=".webm,.mp4" class="hidden">
+                  </div>
+                </div>
+
+                <div class="control-field" style="margin-top:8px;">
+                  <div class="field-label-row">
+                    <label>نقطة التبديل (Cut Point Timing)</label>
+                    <span id="stinger-cutpoint-badge" class="counter-text-chip">1200ms</span>
+                  </div>
+                  <input type="range" id="stinger-cutpoint-range" min="200" max="3000" step="50" value="1200" class="slider-input">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 5: TEMPLATES LIBRARY -->
           <div id="tab-templates" class="style-tab-content hidden">
             <div class="style-card">
-              <div class="style-card-title"><i class="fa-solid fa-floppy-disk"></i> حفظ القالب الحالي</div>
+              <div class="style-card-title"><i class="fa-solid fa-sparkles"></i> قوالب الخدمة الجاهزة</div>
+              <div id="builtin-templates-list" style="display:grid; grid-template-columns:1fr; gap:8px; margin-top:8px;">
+                <!-- Dynamically populated from backend / templates scan -->
+              </div>
+            </div>
+
+            <div class="style-card" style="margin-top:10px;">
+              <div class="style-card-title"><i class="fa-solid fa-floppy-disk"></i> حفظ إعدادات القالب الحالي</div>
               <div style="display:flex; gap:6px; margin-top:8px;">
                 <input type="text" id="custom-template-name-input" class="control-input" placeholder="اسم القالب (مثلاً: خدمة الثانوي)..." style="flex:1; font-size:0.85rem;">
                 <button type="button" id="btn-save-custom-template" class="btn btn-sm btn-primary" style="background:#2563eb; color:#fff; font-weight:700; white-space:nowrap; padding:6px 14px; border-radius:8px;">
@@ -674,6 +790,9 @@
             </div>
           </div>
           <div class="panel-bar-end panel-controls" style="display:flex; align-items:center; gap:6px; position:relative; direction:ltr !important;">
+            <!-- 0. STANDBY BUTTON -->
+            <button id="btn-toggle-standby" class="mini-btn-flat" title="التبديل إلى شاشة الانتظار (Standby)"><i class="fa-solid fa-tv"></i></button>
+
             <!-- 1. FULLSCREEN BUTTON -->
             <button id="btn-presenter-fullscreen" class="mini-btn-flat btn-fullscreen-launch" title="عرض ملء الشاشة"><i class="fa-solid fa-expand"></i></button>
 
