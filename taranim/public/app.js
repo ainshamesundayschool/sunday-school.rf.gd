@@ -5590,7 +5590,7 @@ document.addEventListener('DOMContentLoaded', () => {
       fontSizeRow.style.pointerEvents = isFullSlide ? 'none' : 'auto';
     }
     if (els.fontSizeValBadge) {
-      els.fontSizeValBadge.textContent = isFullSlide ? 'تلقائي ✨' : `${state.fontSize}px`;
+      els.fontSizeValBadge.textContent = isFullSlide ? 'تلقائي' : `${state.fontSize}px`;
     }
 
     // 2. Line Height Control is ALWAYS UNLOCKED and EDITABLE in both Auto & Fixed mode
