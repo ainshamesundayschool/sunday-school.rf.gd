@@ -2087,21 +2087,55 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.btnToggleObsMode) els.btnToggleObsMode.checked = Boolean(state.obsMode === true);
     updateObsModeUI();
 
-    if (els.obsTextColor) els.obsTextColor.value = state.styleOptions.textColor;
-    if (els.obsStrokeRange) els.obsStrokeRange.value = state.styleOptions.strokeWidth;
-    if (els.obsStrokeColor) els.obsStrokeColor.value = state.styleOptions.strokeColor;
-    if (els.obsShadowRange) els.obsShadowRange.value = state.styleOptions.shadowBlur;
-    if (els.obsShadowColor) els.obsShadowColor.value = state.styleOptions.shadowColor || '#000000';
-    if (els.obsShadowAngleRange) els.obsShadowAngleRange.value = state.styleOptions.shadowAngle !== undefined ? state.styleOptions.shadowAngle : 0;
-    if (els.shadowAngleBadge) els.shadowAngleBadge.textContent = `${state.styleOptions.shadowAngle !== undefined ? state.styleOptions.shadowAngle : 0}°`;
-    if (els.obsShadowDistanceRange) els.obsShadowDistanceRange.value = state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 0;
-    if (els.shadowDistanceBadge) els.shadowDistanceBadge.textContent = `${state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 0}px`;
+    if (els.obsTextColor) {
+      els.obsTextColor.value = state.styleOptions.textColor;
+      const hexSpan = els.obsTextColor.nextElementSibling;
+      if (hexSpan && hexSpan.classList.contains('color-val-hex')) hexSpan.textContent = state.styleOptions.textColor.toUpperCase();
+    }
+    if (els.obsStrokeRange) {
+      els.obsStrokeRange.value = state.styleOptions.strokeWidth;
+      const b = document.getElementById('stroke-width-val-badge');
+      if (b) b.textContent = `${state.styleOptions.strokeWidth}px`;
+    }
+    if (els.obsStrokeColor) {
+      els.obsStrokeColor.value = state.styleOptions.strokeColor;
+      const hexSpan = els.obsStrokeColor.nextElementSibling;
+      if (hexSpan && hexSpan.classList.contains('color-val-hex')) hexSpan.textContent = state.styleOptions.strokeColor.toUpperCase();
+    }
+    if (els.obsShadowRange) {
+      els.obsShadowRange.value = state.styleOptions.shadowBlur;
+      const b = document.getElementById('shadow-blur-val-badge');
+      if (b) b.textContent = `${state.styleOptions.shadowBlur}px`;
+    }
+    if (els.obsShadowColor) {
+      els.obsShadowColor.value = state.styleOptions.shadowColor || '#000000';
+      const hexSpan = els.obsShadowColor.nextElementSibling;
+      if (hexSpan && hexSpan.classList.contains('color-val-hex')) hexSpan.textContent = (state.styleOptions.shadowColor || '#000000').toUpperCase();
+    }
+    if (els.obsShadowAngleRange) {
+      els.obsShadowAngleRange.value = state.styleOptions.shadowAngle !== undefined ? state.styleOptions.shadowAngle : 142;
+      if (els.shadowAngleBadge) els.shadowAngleBadge.textContent = `${state.styleOptions.shadowAngle !== undefined ? state.styleOptions.shadowAngle : 142}°`;
+      const pointer = document.getElementById('circle-angle-pointer');
+      if (pointer) pointer.style.transform = `rotate(${state.styleOptions.shadowAngle !== undefined ? state.styleOptions.shadowAngle : 142}deg)`;
+    }
+    if (els.obsShadowDistanceRange) {
+      els.obsShadowDistanceRange.value = state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 13;
+      if (els.shadowDistanceBadge) els.shadowDistanceBadge.textContent = `${state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 13}px`;
+    }
 
     if (els.obsFontWeightSelect) els.obsFontWeightSelect.value = state.styleOptions.fontWeight;
     if (els.obsScaleModeSelect) els.obsScaleModeSelect.value = state.scaleMode || 'auto';
     updateScaleModeLockState();
-    if (els.obsLetterSpacingRange) els.obsLetterSpacingRange.value = state.styleOptions.letterSpacing;
-    if (els.obsLineHeightRange) els.obsLineHeightRange.value = state.styleOptions.lineHeight;
+    if (els.obsLetterSpacingRange) {
+      els.obsLetterSpacingRange.value = state.styleOptions.letterSpacing || 0;
+      const b = document.getElementById('letter-spacing-val-badge');
+      if (b) b.textContent = `${state.styleOptions.letterSpacing || 0}px`;
+    }
+    if (els.obsLineHeightRange) {
+      els.obsLineHeightRange.value = state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : 1.2;
+      const b = document.getElementById('line-height-val-badge');
+      if (b) b.textContent = state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : 1.2;
+    }
     if (els.obsBoxBgColor) els.obsBoxBgColor.value = state.styleOptions.boxBgColor;
     if (els.obsBoxOpacityRange) els.obsBoxOpacityRange.value = state.styleOptions.boxOpacity;
     if (els.obsBoxRadiusRange) els.obsBoxRadiusRange.value = state.styleOptions.boxRadius;
@@ -2114,7 +2148,49 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.btnAlignCenter) els.btnAlignCenter.classList.toggle('active', state.styleOptions.textAlign === 'center');
     if (els.btnAlignRight) els.btnAlignRight.classList.toggle('active', state.styleOptions.textAlign === 'right');
     if (els.btnAlignLeft) els.btnAlignLeft.classList.toggle('active', state.styleOptions.textAlign === 'left');
-    if (els.btnAlignJustify) els.btnAlignJustify.classList.toggle('active', state.styleOptions.textAlign === 'justify');
+    if (els.btnAlignJustify) els.btnAlignJustify.classList.toggle('active', Boolean(state.styleOptions.isJustified || state.styleOptions.textAlign === 'justify'));
+
+    // Slide Splitting Buttons Sync
+    const tabBtnDef = document.getElementById('btn-tab-lines-default');
+    const tabBtn1 = document.getElementById('btn-tab-lines-1');
+    const tabBtn2 = document.getElementById('btn-tab-lines-2');
+    const tabBtnAll = document.getElementById('btn-tab-lines-all');
+    const curSplit = state.slideSplittingMode || state.presentationMode || 'fullslide';
+    if (tabBtnDef) tabBtnDef.classList.toggle('active', curSplit === 'fullslide' || curSplit === 'default');
+    if (tabBtn1) tabBtn1.classList.toggle('active', curSplit === '1' || curSplit === 'oneline');
+    if (tabBtn2) tabBtn2.classList.toggle('active', curSplit === '2' || curSplit === 'twelines');
+    if (tabBtnAll) tabBtnAll.classList.toggle('active', curSplit === 'all' || curSplit === 'allinone');
+
+    // Text Transforms Sync
+    const tf = state.textTransform || { scale: 100, rotation: 0, posX: 0, posY: 0 };
+    const tScale = document.getElementById('transform-scale-range');
+    const tRot = document.getElementById('transform-rot-range');
+    const tPosX = document.getElementById('transform-posx-range');
+    const tPosY = document.getElementById('transform-posy-range');
+    if (tScale) {
+      tScale.value = tf.scale !== undefined ? tf.scale : 100;
+      const b = document.getElementById('transform-scale-badge');
+      if (b) b.textContent = `${tScale.value}%`;
+    }
+    if (tRot) {
+      tRot.value = tf.rotation !== undefined ? tf.rotation : 0;
+      const b = document.getElementById('transform-rot-badge');
+      if (b) b.textContent = `${tRot.value}°`;
+    }
+    if (tPosX) {
+      tPosX.value = tf.posX !== undefined ? tf.posX : 0;
+      const b = document.getElementById('transform-posx-badge');
+      if (b) b.textContent = `${tPosX.value}%`;
+    }
+    if (tPosY) {
+      tPosY.value = tf.posY !== undefined ? tf.posY : 0;
+      const b = document.getElementById('transform-posy-badge');
+      if (b) b.textContent = `${tPosY.value}%`;
+    }
+
+    // Chroma chips
+    const chromaChips = document.querySelectorAll('.chroma-chip');
+    chromaChips.forEach(c => c.classList.toggle('active', c.dataset.chroma === state.chromaKey));
 
     if (els.obsOverlay) els.obsOverlay.setAttribute('data-chroma', state.chromaKey);
     loadPlaylists();
@@ -3242,7 +3318,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ----------------------------------------------------
-    // USER CUSTOM TEMPLATES MANAGER (SAVE / APPLY / EXPORT / IMPORT / SHARE)
+    // USER CUSTOM TEMPLATES MANAGER (ALL 4 SETTINGS TABS)
     // ----------------------------------------------------
     const STORAGE_KEY_TEMPLATES = 'sunday_school_taranim_user_templates';
 
@@ -3266,41 +3342,73 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const getCurrentStyleSnapshot = () => {
       return {
+        // TAB 1: FONT, SPLITTING & TRANSFORMS
         font: state.selectedFont || "'Alexandria', sans-serif",
         fontSize: state.fontSize || 54,
+        customFontDataUrl: localStorage.getItem('sunday_school_custom_font_dataurl') || state.customFontDataUrl || '',
+        customFontName: localStorage.getItem('sunday_school_custom_font_name') || '',
+        presentationMode: state.slideSplittingMode || state.presentationMode || 'fullslide',
+        slideSplittingMode: state.slideSplittingMode || state.presentationMode || 'fullslide',
         fontWeight: state.styleOptions?.fontWeight || '800',
         fontStyle: state.styleOptions?.fontStyle || 'normal',
         textDecoration: state.styleOptions?.textDecoration || 'none',
         textColor: state.styleOptions?.textColor || '#ffffff',
         textAlign: state.styleOptions?.textAlign || 'center',
         isJustified: Boolean(state.styleOptions?.isJustified),
-        letterSpacing: state.styleOptions?.letterSpacing || 0,
-        lineHeight: state.styleOptions?.lineHeight !== undefined ? state.styleOptions?.lineHeight : 1.5,
-        strokeWidth: state.styleOptions?.strokeWidth || 0,
+        letterSpacing: state.styleOptions?.letterSpacing !== undefined ? state.styleOptions?.letterSpacing : 0,
+        lineHeight: state.styleOptions?.lineHeight !== undefined ? state.styleOptions?.lineHeight : 1.2,
+        textTransform: JSON.parse(JSON.stringify(state.textTransform || { scale: 100, rotation: 0, posX: 0, posY: 0 })),
+
+        // TAB 2: EFFECTS (STROKE, SHADOW, BOX, ANIMATION)
+        strokeWidth: state.styleOptions?.strokeWidth !== undefined ? state.styleOptions?.strokeWidth : 0,
         strokeColor: state.styleOptions?.strokeColor || '#000000',
-        shadowBlur: state.styleOptions?.shadowBlur !== undefined ? state.styleOptions?.shadowBlur : 18,
+        shadowBlur: state.styleOptions?.shadowBlur !== undefined ? state.styleOptions?.shadowBlur : 0,
         shadowColor: state.styleOptions?.shadowColor || '#000000',
         shadowAngle: state.styleOptions?.shadowAngle !== undefined ? state.styleOptions?.shadowAngle : 142,
         shadowDistance: state.styleOptions?.shadowDistance !== undefined ? state.styleOptions?.shadowDistance : 13,
-        chromaKey: state.chromaKey || 'black',
         boxBgColor: state.styleOptions?.boxBgColor || '#000000',
-        boxOpacity: state.styleOptions?.boxOpacity || 0,
-        boxRadius: state.styleOptions?.boxRadius || 12,
-        boxPadding: state.styleOptions?.boxPadding || 20,
-        presentationMode: state.presentationMode || 'oneline',
-        textAnimation: state.textAnimation || 'slide'
+        boxOpacity: state.styleOptions?.boxOpacity !== undefined ? state.styleOptions?.boxOpacity : 0,
+        boxRadius: state.styleOptions?.boxRadius !== undefined ? state.styleOptions?.boxRadius : 12,
+        boxPadding: state.styleOptions?.boxPadding !== undefined ? state.styleOptions?.boxPadding : 20,
+        textAnimation: state.textAnimation || 'none',
+
+        // TAB 3: SCREEN & SLIDES BACKGROUND
+        chromaKey: state.chromaKey || 'black',
+        slidesBgConfig: state.slidesBgConfig ? JSON.parse(JSON.stringify(state.slidesBgConfig)) : { type: 'none', url: '', fitMode: 'cover', loop: true },
+
+        // TAB 4: STANDBY & TRANSITIONS
+        standbyConfig: state.standbyConfig ? JSON.parse(JSON.stringify(state.standbyConfig)) : { type: 'logo', url: '', fitMode: 'cover', loop: true },
+        transitionConfig: state.transitionConfig ? JSON.parse(JSON.stringify(state.transitionConfig)) : { type: 'stinger', stingerUrl: '', cutPointMs: 1200 }
       };
     };
 
-    const applyStyleSnapshot = (snapshot) => {
+    const applyStyleSnapshot = (snapshot, templateName = '') => {
       if (!snapshot) return;
 
+      // 1. FONT & TYPOGRAPHY
       if (snapshot.font) state.selectedFont = snapshot.font;
       if (snapshot.fontSize) state.fontSize = snapshot.fontSize;
-      if (snapshot.chromaKey) state.chromaKey = snapshot.chromaKey;
-      if (snapshot.presentationMode) state.presentationMode = snapshot.presentationMode;
-      if (snapshot.textAnimation) state.textAnimation = snapshot.textAnimation;
+      if (snapshot.customFontDataUrl && snapshot.customFontName) {
+        state.customFontDataUrl = snapshot.customFontDataUrl;
+        state.customFontName = snapshot.customFontName;
+        try {
+          localStorage.setItem('sunday_school_custom_font_dataurl', snapshot.customFontDataUrl);
+          localStorage.setItem('sunday_school_custom_font_name', snapshot.customFontName);
+        } catch(e) {}
+      }
 
+      // 2. SLIDE SPLITTING MODE
+      const splitMode = snapshot.slideSplittingMode || snapshot.presentationMode || 'fullslide';
+      state.slideSplittingMode = splitMode;
+      state.presentationMode = splitMode;
+      try { localStorage.setItem('sunday_school_slide_splitting_mode', splitMode); } catch(e) {}
+
+      // 3. TEXT TRANSFORMS
+      if (snapshot.textTransform) {
+        state.textTransform = { ...snapshot.textTransform };
+      }
+
+      // 4. STYLE OPTIONS (COLORS, STROKE, SHADOW, SPACING, BOX)
       state.styleOptions = {
         ...state.styleOptions,
         fontWeight: snapshot.fontWeight || '800',
@@ -3309,28 +3417,98 @@ document.addEventListener('DOMContentLoaded', () => {
         textColor: snapshot.textColor || '#ffffff',
         textAlign: snapshot.textAlign || 'center',
         isJustified: Boolean(snapshot.isJustified),
-        letterSpacing: snapshot.letterSpacing || 0,
-        lineHeight: snapshot.lineHeight !== undefined ? snapshot.lineHeight : 1.5,
-        strokeWidth: snapshot.strokeWidth || 0,
+        letterSpacing: snapshot.letterSpacing !== undefined ? snapshot.letterSpacing : 0,
+        lineHeight: snapshot.lineHeight !== undefined ? snapshot.lineHeight : 1.2,
+        strokeWidth: snapshot.strokeWidth !== undefined ? snapshot.strokeWidth : 0,
         strokeColor: snapshot.strokeColor || '#000000',
-        shadowBlur: snapshot.shadowBlur !== undefined ? snapshot.shadowBlur : 18,
+        shadowBlur: snapshot.shadowBlur !== undefined ? snapshot.shadowBlur : 0,
         shadowColor: snapshot.shadowColor || '#000000',
         shadowAngle: snapshot.shadowAngle !== undefined ? snapshot.shadowAngle : 142,
         shadowDistance: snapshot.shadowDistance !== undefined ? snapshot.shadowDistance : 13,
         boxBgColor: snapshot.boxBgColor || '#000000',
-        boxOpacity: snapshot.boxOpacity || 0,
-        boxRadius: snapshot.boxRadius || 12,
-        boxPadding: snapshot.boxPadding || 20
+        boxOpacity: snapshot.boxOpacity !== undefined ? snapshot.boxOpacity : 0,
+        boxRadius: snapshot.boxRadius !== undefined ? snapshot.boxRadius : 12,
+        boxPadding: snapshot.boxPadding !== undefined ? snapshot.boxPadding : 20
       };
 
-      if (state.activeSong) {
-        loadSongIntoPresentation(state.activeSong);
+      // 5. SCREEN & SLIDES BACKGROUND
+      if (snapshot.chromaKey) state.chromaKey = snapshot.chromaKey;
+      if (snapshot.slidesBgConfig) state.slidesBgConfig = { ...snapshot.slidesBgConfig };
+
+      // 6. STANDBY & TRANSITIONS
+      if (snapshot.standbyConfig) state.standbyConfig = { ...snapshot.standbyConfig };
+      if (snapshot.transitionConfig) state.transitionConfig = { ...snapshot.transitionConfig };
+      if (snapshot.textAnimation) state.textAnimation = snapshot.textAnimation;
+
+      // 7. ACTIVE TEMPLATE NAME & HEADER LABEL
+      if (templateName) {
+        state.activeTemplateName = templateName;
+        const headerLabel = document.getElementById('current-template-header-label');
+        if (headerLabel) headerLabel.textContent = templateName;
       }
 
+      // 8. UPDATE UI IN ALL TABS
       applyInitialUIState();
       updateScaleModeLockState();
+      if (typeof updateSlidesBgUI === 'function') updateSlidesBgUI();
+      if (typeof updateStandbyUI === 'function') updateStandbyUI();
+      if (typeof updateTransitionUI === 'function') updateTransitionUI();
       saveUserSettings();
-      syncLiveState(true);
+      saveMediaConfig();
+
+      // 9. RELOAD PRESENTATION LINES & BROADCAST LIVE
+      if (state.activeSong || state.liveSong) {
+        loadSongIntoPresentation(state.activeSong || state.liveSong, true);
+      } else {
+        syncLiveState(true, true, { triggerTransition: true });
+      }
+
+      renderUserTemplatesList();
+      renderQuickTemplatesDropdown();
+    };
+
+    const renderQuickTemplatesDropdown = () => {
+      const dropdownItemsContainer = document.getElementById('templates-quick-dropdown-items');
+      if (!dropdownItemsContainer) return;
+
+      const userTemplates = getUserTemplates();
+      const activeName = state.activeTemplateName || '';
+
+      let html = '';
+
+      if (userTemplates.length > 0) {
+        userTemplates.forEach(t => {
+          const isActive = (activeName === t.name);
+          html += `
+            <div class="quick-tmpl-item ${isActive ? 'active' : ''}" data-id="${t.id}" style="display:flex; align-items:center; justify-content:space-between; padding:6px 8px; border-radius:6px; background:${isActive ? '#eff6ff' : '#f8fafc'}; cursor:pointer; font-size:0.8rem; font-weight:600; color:${isActive ? '#1d4ed8' : '#334155'}; transition:background 0.15s ease;">
+              <span style="display:flex; align-items:center; gap:6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                <i class="fa-solid ${isActive ? 'fa-circle-check' : 'fa-bookmark'}" style="color:${isActive ? '#2563eb' : '#94a3b8'}; font-size:0.82rem;"></i>
+                <span>${escapeHtml(t.name)}</span>
+              </span>
+              <span style="font-size:0.7rem; color:#94a3b8;">${escapeHtml(t.settings?.presentationMode || 'عام')}</span>
+            </div>
+          `;
+        });
+      } else {
+        html += `<div style="text-align:center; padding:10px 4px; font-size:0.75rem; color:#94a3b8;">لا توجد قوالب مخصصة محفوظة</div>`;
+      }
+
+      dropdownItemsContainer.innerHTML = html;
+
+      dropdownItemsContainer.querySelectorAll('.quick-tmpl-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const id = item.getAttribute('data-id');
+          const tmpl = userTemplates.find(t => t.id === id);
+          if (tmpl && tmpl.settings) {
+            applyStyleSnapshot(tmpl.settings, tmpl.name);
+            showToast(`تم تطبيق قالب "${tmpl.name}" بنجاح!`);
+            const menu = document.getElementById('templates-quick-dropdown-menu');
+            const arrow = document.getElementById('templates-dropdown-arrow');
+            if (menu) menu.classList.add('hidden');
+            if (arrow) arrow.style.transform = 'rotate(0deg)';
+          }
+        });
+      });
     };
 
     const renderUserTemplatesList = () => {
@@ -3373,8 +3551,8 @@ document.addEventListener('DOMContentLoaded', () => {
           const id = btn.getAttribute('data-id');
           const tmpl = getUserTemplates().find(item => item.id === id);
           if (tmpl && tmpl.settings) {
-            applyStyleSnapshot(tmpl.settings);
-            showToast(`تم تطبيق قالب "${tmpl.name}" بنجاح! `);
+            applyStyleSnapshot(tmpl.settings, tmpl.name);
+            showToast(`تم تطبيق قالب "${tmpl.name}" بنجاح!`);
           }
         });
       });
@@ -3386,7 +3564,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (tmpl && tmpl.settings) {
             const shareUrl = `${window.location.origin}${window.location.pathname}?template=${encodeURIComponent(JSON.stringify(tmpl.settings))}`;
             navigator.clipboard.writeText(shareUrl).then(() => {
-              showToast(`تم نسخ رابط مشاركة قالب "${tmpl.name}"! `);
+              showToast(`تم نسخ رابط مشاركة قالب "${tmpl.name}"!`);
             }).catch(() => {
               prompt('انسخ رابط مشاركة القالب:', shareUrl);
             });
@@ -3404,7 +3582,7 @@ document.addEventListener('DOMContentLoaded', () => {
             a.href = URL.createObjectURL(blob);
             a.download = `template_${tmpl.name.replace(/\s+/g, '_')}.json`;
             a.click();
-            showToast(`تم تصدير قالب "${tmpl.name}"! `);
+            showToast(`تم تصدير قالب "${tmpl.name}"!`);
           }
         });
       });
@@ -3415,6 +3593,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const templates = getUserTemplates().filter(item => item.id !== id);
           saveUserTemplates(templates);
           renderUserTemplatesList();
+          renderQuickTemplatesDropdown();
           showToast('تم حذف القالب!');
         });
       });
@@ -3438,9 +3617,68 @@ document.addEventListener('DOMContentLoaded', () => {
 
         templates.unshift(newTemplate);
         saveUserTemplates(templates);
+        state.activeTemplateName = name;
+        const headerLabel = document.getElementById('current-template-header-label');
+        if (headerLabel) headerLabel.textContent = name;
+
         els.customTemplateNameInput.value = '';
         renderUserTemplatesList();
-        showToast(`تم حفظ القالب "${name}" بنجاح! `);
+        renderQuickTemplatesDropdown();
+        showToast(`تم حفظ القالب "${name}" بنجاح!`);
+      });
+    }
+
+    // Header Quick Dropdown Toggle & Save
+    const btnToggleTmplDropdown = document.getElementById('btn-templates-dropdown-toggle');
+    const tmplDropdownMenu = document.getElementById('templates-quick-dropdown-menu');
+    const tmplDropdownArrow = document.getElementById('templates-dropdown-arrow');
+
+    if (btnToggleTmplDropdown && tmplDropdownMenu) {
+      btnToggleTmplDropdown.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isHidden = tmplDropdownMenu.classList.contains('hidden');
+        if (isHidden) {
+          renderQuickTemplatesDropdown();
+          tmplDropdownMenu.classList.remove('hidden');
+          if (tmplDropdownArrow) tmplDropdownArrow.style.transform = 'rotate(180deg)';
+        } else {
+          tmplDropdownMenu.classList.add('hidden');
+          if (tmplDropdownArrow) tmplDropdownArrow.style.transform = 'rotate(0deg)';
+        }
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.templates-header-dropdown-wrap')) {
+          tmplDropdownMenu.classList.add('hidden');
+          if (tmplDropdownArrow) tmplDropdownArrow.style.transform = 'rotate(0deg)';
+        }
+      });
+    }
+
+    const btnQuickSaveHeader = document.getElementById('btn-quick-save-template-header');
+    if (btnQuickSaveHeader) {
+      btnQuickSaveHeader.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const name = prompt('اكتب اسماً للقالب الجديد لحفظ جميع إعدادات الشاشة والتنسيق والانتقال:');
+        if (!name || !name.trim()) return;
+
+        const templates = getUserTemplates();
+        const newTemplate = {
+          id: 'tmpl_' + Date.now(),
+          name: name.trim(),
+          createdAt: new Date().toISOString(),
+          settings: getCurrentStyleSnapshot()
+        };
+
+        templates.unshift(newTemplate);
+        saveUserTemplates(templates);
+        state.activeTemplateName = name.trim();
+        const headerLabel = document.getElementById('current-template-header-label');
+        if (headerLabel) headerLabel.textContent = name.trim();
+
+        renderUserTemplatesList();
+        renderQuickTemplatesDropdown();
+        showToast(`تم حفظ وتفعيل قالب "${name.trim()}" بنجاح!`);
       });
     }
 
@@ -3471,8 +3709,9 @@ document.addEventListener('DOMContentLoaded', () => {
             templates.unshift(newTemplate);
             saveUserTemplates(templates);
             renderUserTemplatesList();
-            applyStyleSnapshot(tmplSettings);
-            showToast(`تم استيراد وتطبيق قالب "${name}"! `);
+            renderQuickTemplatesDropdown();
+            applyStyleSnapshot(tmplSettings, name);
+            showToast(`تم استيراد وتطبيق قالب "${name}"!`);
           } catch (err) {
             console.error('Import template parse error:', err);
             showToast('حدث خطأ أثناء قراءة ملف القالب!', 'error');
@@ -3496,7 +3735,7 @@ document.addEventListener('DOMContentLoaded', () => {
         a.href = URL.createObjectURL(blob);
         a.download = `taranim_all_templates_${Date.now()}.json`;
         a.click();
-        showToast('تم تصدير جميع القوالب بنجاح! ');
+        showToast('تم تصدير جميع القوالب بنجاح!');
       });
     }
 
@@ -3508,7 +3747,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const settings = JSON.parse(raw);
           if (settings) {
             applyStyleSnapshot(settings);
-            showToast('تم تطبيق القالب المشارَك بنجاح! ');
+            showToast('تم تطبيق القالب المشارَك بنجاح!');
           }
         }
       } catch (err) {
@@ -3517,6 +3756,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     renderUserTemplatesList();
+    renderQuickTemplatesDropdown();
     checkURLTemplateImport();
 
     // ----------------------------------------------------
@@ -3728,36 +3968,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (tabBtn2) tabBtn2.classList.toggle('active', savedSplitMode === '2' || savedSplitMode === 'twelines');
     if (tabBtnAll) tabBtnAll.classList.toggle('active', savedSplitMode === 'all' || savedSplitMode === 'allinone');
 
-    // Quick Save Template from Header Button
-    const btnQuickSaveHeader = document.getElementById('btn-quick-save-template-header');
-    if (btnQuickSaveHeader) {
-      btnQuickSaveHeader.addEventListener('click', () => {
-        const name = prompt('اكتب اسماً للقالب الجديد:');
-        if (!name || !name.trim()) return;
-
-        const newTemplate = {
-          id: 'template_' + Date.now(),
-          name: name.trim(),
-          created: Date.now(),
-          styleOptions: JSON.parse(JSON.stringify(state.styleOptions || {})),
-          fontSize: state.fontSize || 105,
-          selectedFont: state.selectedFont || '',
-          customFontDataUrl: localStorage.getItem('sunday_school_custom_font_dataurl') || state.customFontDataUrl || '',
-          customFontName: localStorage.getItem('sunday_school_custom_font_name') || '',
-          chromaKey: state.chromaKey || 'black',
-          textAnimation: state.textAnimation || 'none',
-          slidesBgConfig: JSON.parse(JSON.stringify(state.slidesBgConfig || {})),
-          standbyConfig: JSON.parse(JSON.stringify(state.standbyConfig || {})),
-          transitionConfig: JSON.parse(JSON.stringify(state.transitionConfig || {})),
-          textTransform: JSON.parse(JSON.stringify(state.textTransform || { scale: 100, posX: 0, posY: 0, rotation: 0 }))
-        };
-
-        const list = getSavedTemplates();
-        list.unshift(newTemplate);
-        saveSavedTemplates(list);
-        showToast(`تم حفظ قالب "${name.trim()}" بنجاح! `);
-      });
-    }
 
     // --- 2. TEXT TRANSFORM CONTROLS ---
     const updateTextTransformUI = () => {
