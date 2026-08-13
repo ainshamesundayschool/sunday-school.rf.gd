@@ -5292,14 +5292,18 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateScaleModeLockState() {
+    const isFullSlide = state.presentationMode === 'fullslide';
     if (els.obsFontSizeRange) {
-      els.obsFontSizeRange.disabled = false;
-      els.obsFontSizeRange.title = 'حجم الخط';
+      els.obsFontSizeRange.disabled = isFullSlide;
+      els.obsFontSizeRange.title = isFullSlide ? 'حجم الخط تلقائي حسب أكبر شريحة' : 'حجم الخط';
     }
     const fontSizeRow = document.getElementById('font-size-popover-row') || (els.obsFontSizeRange && els.obsFontSizeRange.closest('.control-field'));
     if (fontSizeRow) {
-      fontSizeRow.style.opacity = '1';
-      fontSizeRow.style.pointerEvents = 'auto';
+      fontSizeRow.style.opacity = isFullSlide ? '0.5' : '1';
+      fontSizeRow.style.pointerEvents = isFullSlide ? 'none' : 'auto';
+    }
+    if (els.fontSizeValBadge) {
+      els.fontSizeValBadge.textContent = isFullSlide ? 'تلقائي ✨' : `${state.fontSize}px`;
     }
 
     // 2. Line Height Control is ALWAYS UNLOCKED and EDITABLE in both Auto & Fixed mode
@@ -6795,7 +6799,7 @@ document.addEventListener('DOMContentLoaded', () => {
       scrollRatio: state.allInOneScrollRatio !== undefined ? state.allInOneScrollRatio : 0,
       activeGroupIndex: state.allInOneActiveGroupIndex !== undefined ? state.allInOneActiveGroupIndex : 0,
       highlightColor: state.highlightColor || '#f59e0b',
-      allSlideTexts: targetLines.map(item => item ? (item.text || '') : ''),
+      allSlideTexts: targetLines.map(item => item ? (Array.isArray(item.lines) ? item.lines.join('\n') : (item.text || '')) : ''),
       obsMode: Boolean(state.obsMode !== false)
     };
 
