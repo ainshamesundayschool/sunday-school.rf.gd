@@ -7470,8 +7470,12 @@ document.addEventListener('DOMContentLoaded', () => {
           }
 
           const isFullSlideOrBible = (state.presentationMode === 'fullslide' || Boolean(state.isBibleMode));
-          const currentTextToEval = snapText || '';
-          const computedSafeSize = getSafeFontScaleSize([currentTextToEval], baseSize, containerW, containerH, state.selectedFont, state.styleOptions, isFullSlideOrBible);
+          const validSlideItems = (targetLines && targetLines.length > 0)
+            ? targetLines.map(l => (l.lines && Array.isArray(l.lines)) ? l.lines.join('\n') : (l.text || '')).filter(t => t && t.trim() && !t.includes('allinone-slide-group'))
+            : [];
+          const allTextsToEval = (validSlideItems.length > 0) ? validSlideItems : [snapText];
+
+          const computedSafeSize = getSafeFontScaleSize(allTextsToEval, baseSize, containerW, containerH, state.selectedFont, state.styleOptions, isFullSlideOrBible);
           const fontToApply = isFullSlideOrBible ? computedSafeSize : baseSize;
 
           els.obsLineText.style.fontSize = `${fontToApply}px`;
