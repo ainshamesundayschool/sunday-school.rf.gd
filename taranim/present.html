@@ -1474,9 +1474,14 @@
         textEl.style.fontWeight = fWeight;
       }
 
-      // UNIFORM PROPORTIONAL RESIZE FOR ALL SLIDES BASED ON WINDOW WIDTH (ZERO VARIATION BETWEEN SLIDES)
-      const scaleFactor = curW / 1920;
-      const scaledFontSize = Math.max(14, Math.round(baseSize * scaleFactor));
+      // UNIFORM PROPORTIONAL RESIZE FOR ALL SLIDES BASED ON WINDOW WIDTH WITH PORTRAIT ENHANCEMENT
+      const isPortrait = (window.innerHeight > curW) || (curW < 768 && window.innerHeight >= curW);
+      let scaleFactor = curW / 1920;
+      if (isPortrait) {
+        // Vertical mobile: scale up proportionally to fit width cleanly without being overly tiny
+        scaleFactor = Math.max(scaleFactor * 1.85, curW / 1050);
+      }
+      const scaledFontSize = Math.max(22, Math.round(baseSize * scaleFactor));
       textEl.style.fontSize = `${scaledFontSize}px`;
 
       const wrapper = textEl.querySelector('.obs-slide-wrapper') || textEl;

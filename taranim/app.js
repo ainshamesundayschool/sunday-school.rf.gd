@@ -9026,9 +9026,13 @@ document.addEventListener('DOMContentLoaded', () => {
           const container = els.obsOverlay || els.obsLineText.parentElement || document.body;
           const containerW = Math.max(320, container.clientWidth || window.innerWidth);
 
-          // UNIFORM PROPORTIONAL RESIZE FOR ALL SLIDES BASED ON CONTAINER WIDTH
-          const scaleFactor = containerW / 1920;
-          const scaledFontSize = Math.max(14, Math.round(effectiveBase * scaleFactor));
+          // UNIFORM PROPORTIONAL RESIZE FOR ALL SLIDES BASED ON CONTAINER WIDTH WITH PORTRAIT ENHANCEMENT
+          const isPortrait = (window.innerHeight > containerW) || (containerW < 768 && window.innerHeight >= containerW);
+          let scaleFactor = containerW / 1920;
+          if (isPortrait) {
+            scaleFactor = Math.max(scaleFactor * 1.85, containerW / 1050);
+          }
+          const scaledFontSize = Math.max(22, Math.round(effectiveBase * scaleFactor));
           els.obsLineText.style.fontSize = `${scaledFontSize}px`;
 
           const fixedLH = state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : 1.5;
