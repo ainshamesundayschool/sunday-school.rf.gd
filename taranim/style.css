@@ -2134,10 +2134,10 @@ input[type="checkbox"]:checked::after {
 
 
 
-.obs-overlay[data-chroma="green"] { background-color: #00FF00 !important; }
-.obs-overlay[data-chroma="blue"] { background-color: #0000FF !important; }
-.obs-overlay[data-chroma="black"] { background-color: #000000 !important; }
-.obs-overlay[data-chroma="transparent"] { background-color: transparent !important; }
+.obs-overlay[data-chroma="green"] { background: #00FF00 !important; background-color: #00FF00 !important; }
+.obs-overlay[data-chroma="blue"] { background: #0000FF !important; background-color: #0000FF !important; }
+.obs-overlay[data-chroma="black"] { background: #000000 !important; background-color: #000000 !important; }
+.obs-overlay[data-chroma="transparent"] { background: transparent !important; background-color: transparent !important; }
 
 .snap-guide { position: absolute; z-index: 50; pointer-events: none; border-color: #f59e0b; box-shadow: 0 0 10px #f59e0b; }
 .snap-guide.vertical { top: 0; bottom: 0; left: 50%; border-left: 2px dashed #f59e0b; }

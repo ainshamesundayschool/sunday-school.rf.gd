@@ -51,15 +51,15 @@
       width: 100vw;
       height: 100vh;
       overflow: hidden;
-      background-color: #000000;
+      background: #000000;
       font-family: 'Alexandria', sans-serif;
       cursor: default;
     }
 
-    body[data-chroma="green"] { background-color: #00FF00 !important; }
-    body[data-chroma="blue"] { background-color: #0000FF !important; }
-    body[data-chroma="black"] { background-color: #000000 !important; }
-    body[data-chroma="transparent"] { background-color: transparent !important; }
+    html[data-chroma="green"], body[data-chroma="green"] { background: #00FF00 !important; background-color: #00FF00 !important; }
+    html[data-chroma="blue"], body[data-chroma="blue"] { background: #0000FF !important; background-color: #0000FF !important; }
+    html[data-chroma="black"], body[data-chroma="black"] { background: #000000 !important; background-color: #000000 !important; }
+    html[data-chroma="transparent"], body[data-chroma="transparent"] { background: transparent !important; background-color: transparent !important; }
 
     /* STEALTH OBS WINDOW CONTROL TOOLBAR */
     .stealth-bar {
@@ -1725,6 +1725,7 @@
 
       const incomingChroma = data.chroma || data.chromaKey;
       if (incomingChroma) {
+        document.documentElement.setAttribute('data-chroma', incomingChroma);
         document.body.setAttribute('data-chroma', incomingChroma);
       }
       const incomingMode = data.mode || data.presentationMode || 'oneline';
