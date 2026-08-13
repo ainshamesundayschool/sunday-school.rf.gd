@@ -1858,7 +1858,7 @@
       // ALL-IN-ONE REAL-TIME SCROLL SYNCHRONIZATION & TRACKING
       if (data.mode === 'allinone' || (data.text && data.text.includes('allinone-slide-group'))) {
         const docEl = document.documentElement || document.body;
-        const presenterBox = document.getElementById('presenter-box');
+        const presenterBox = document.getElementById('presenter-box') || document.querySelector('.lower-third-container') || document.getElementById('obs-lower-third-box');
         const groups = document.querySelectorAll('.allinone-slide-group');
 
         if (data.activeGroupIndex === 0 || (!data.activeGroupIndex && data.scrollRatio === 0)) {

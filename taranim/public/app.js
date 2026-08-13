@@ -8095,6 +8095,8 @@ document.addEventListener('DOMContentLoaded', () => {
       highlightedLines: state.isHighlightMode ? (state.highlightedLineIndices || []) : [],
       mode: state.presentationMode,
       presentationMode: state.presentationMode,
+      activeGroupIndex: state.allInOneActiveGroupIndex !== undefined ? state.allInOneActiveGroupIndex : 0,
+      scrollRatio: state.allInOneScrollRatio !== undefined ? state.allInOneScrollRatio : 0,
       timestamp: Date.now()
     };
 
