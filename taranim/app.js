@@ -7156,7 +7156,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const wrapper = els.obsLineText.querySelector('.obs-slide-wrapper') || els.obsLineText;
             wrapper.style.transform = 'none';
             wrapper.style.display = 'inline-block';
-            wrapper.style.maxWidth = 'none';
+            wrapper.style.maxWidth = '100%';
             wrapper.style.width = 'auto';
 
             const maxW = Math.max(260, containerW * 0.90);
@@ -7169,11 +7169,12 @@ document.addEventListener('DOMContentLoaded', () => {
               const scaleW = maxW / actualW;
               const scaleH = maxH / actualH;
               const scaleFactor = Math.min(scaleW, scaleH);
-              wrapper.style.transformOrigin = 'center center';
-              wrapper.style.transform = `scale(${scaleFactor.toFixed(4)})`;
+              const fittedFontSize = Math.max(16, Math.floor(baseSize * scaleFactor));
+              els.obsLineText.style.fontSize = `${fittedFontSize}px`;
             } else {
-              wrapper.style.transform = 'none';
+              els.obsLineText.style.fontSize = `${baseSize}px`;
             }
+            wrapper.style.transform = 'none';
           }
           
           // Re-apply highlights after formatting

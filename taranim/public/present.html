@@ -1368,7 +1368,7 @@
       const wrapper = textEl.querySelector('.obs-slide-wrapper') || textEl;
       wrapper.style.transform = 'none';
       wrapper.style.display = 'inline-block';
-      wrapper.style.maxWidth = 'none';
+      wrapper.style.maxWidth = '100%';
       wrapper.style.width = 'auto';
 
       const maxW = Math.max(260, curW * 0.90);
@@ -1381,11 +1381,12 @@
         const scaleW = maxW / actualW;
         const scaleH = maxH / actualH;
         const scaleFactor = Math.min(scaleW, scaleH);
-        wrapper.style.transformOrigin = 'center center';
-        wrapper.style.transform = `scale(${scaleFactor.toFixed(4)})`;
+        const fittedFontSize = Math.max(16, Math.floor(safeSize * scaleFactor));
+        textEl.style.fontSize = `${fittedFontSize}px`;
       } else {
-        wrapper.style.transform = 'none';
+        textEl.style.fontSize = `${safeSize}px`;
       }
+      wrapper.style.transform = 'none';
 
       applyDynamicShadow();
     }
