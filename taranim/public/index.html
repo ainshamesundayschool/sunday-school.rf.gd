@@ -260,13 +260,16 @@
         <!-- SLEEK SEGMENTED TAB NAV -->
         <div class="style-nav-tabs">
           <button type="button" class="style-tab-btn active" data-tab="tab-font">
-            <i class="fa-solid fa-font"></i> الخط والقياس
+            <i class="fa-solid fa-font"></i> الخط
           </button>
           <button type="button" class="style-tab-btn" data-tab="tab-effects">
-            <i class="fa-solid fa-wand-magic-sparkles"></i> التأثيرات والظل
+            <i class="fa-solid fa-wand-magic-sparkles"></i> التأثيرات
           </button>
           <button type="button" class="style-tab-btn" data-tab="tab-display">
-            <i class="fa-solid fa-palette"></i> الخلفية والشاشة
+            <i class="fa-solid fa-palette"></i> الشاشة
+          </button>
+          <button type="button" class="style-tab-btn" data-tab="tab-templates">
+            <i class="fa-solid fa-layer-group"></i> القوالب
           </button>
         </div>
 
@@ -543,8 +546,47 @@
 
             <div class="popover-actions" style="margin-top:10px; display:flex; flex-direction:column; gap:6px;">
               <button id="btn-share-style-link" class="btn btn-sm btn-secondary" type="button" style="width:100%; font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px;">
-                <i class="fa-solid fa-share-nodes"></i> مشاركة التنسيق
+                <i class="fa-solid fa-share-nodes"></i> مشاركة التنسيق الحالي
               </button>
+            </div>
+          </div>
+
+          <!-- TAB 4: TEMPLATES MANAGER (SAVE / APPLY / EXPORT / IMPORT / SHARE) -->
+          <div id="tab-templates" class="style-tab-content hidden">
+            <div class="style-card">
+              <div class="style-card-title"><i class="fa-solid fa-floppy-disk"></i> حفظ القالب الحالي</div>
+              <div style="display:flex; gap:6px; margin-top:8px;">
+                <input type="text" id="custom-template-name-input" class="control-input" placeholder="اسم القالب (مثلاً: خدمة الثانوي)..." style="flex:1; font-size:0.85rem;">
+                <button type="button" id="btn-save-custom-template" class="btn btn-sm btn-primary" style="background:#2563eb; color:#fff; font-weight:700; white-space:nowrap; padding:6px 14px; border-radius:8px;">
+                  <i class="fa-solid fa-plus"></i> حفظ
+                </button>
+              </div>
+            </div>
+
+            <div class="style-card" style="margin-top:10px;">
+              <div class="style-card-title" style="display:flex; align-items:center; justify-content:space-between;">
+                <span><i class="fa-solid fa-layer-group"></i> القوالب المحفوظة</span>
+                <span id="templates-count-badge" class="counter-text-chip">0</span>
+              </div>
+              
+              <div id="templates-list-container" style="display:flex; flex-direction:column; gap:8px; margin-top:8px; max-height:220px; overflow-y:auto; padding-right:2px;">
+                <div style="text-align:center; padding:16px; color:var(--text-muted); font-size:0.85rem;">لا توجد قوالب محفوظة حالياً</div>
+              </div>
+            </div>
+
+            <div class="style-card" style="margin-top:10px;">
+              <div class="style-card-title"><i class="fa-solid fa-file-export"></i> استيراد وتصدير القوالب</div>
+              
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px;">
+                <label for="import-template-file-input" class="btn btn-sm btn-secondary" style="cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; font-weight:600; font-size:0.82rem; margin:0; padding:8px;">
+                  <i class="fa-solid fa-file-import"></i> استيراد (JSON)
+                </label>
+                <input type="file" id="import-template-file-input" accept=".json" class="hidden">
+
+                <button type="button" id="btn-export-all-templates" class="btn btn-sm btn-secondary" style="font-weight:600; font-size:0.82rem; padding:8px;">
+                  <i class="fa-solid fa-file-export"></i> تصدير الكل
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -1570,6 +1570,13 @@ document.addEventListener('DOMContentLoaded', () => {
     obsBoxPaddingRange: document.getElementById('obs-box-padding-range'),
     btnResetDefaultTemplate: document.getElementById('btn-reset-default-template'),
 
+    customTemplateNameInput: document.getElementById('custom-template-name-input'),
+    btnSaveCustomTemplate: document.getElementById('btn-save-custom-template'),
+    templatesCountBadge: document.getElementById('templates-count-badge'),
+    templatesListContainer: document.getElementById('templates-list-container'),
+    importTemplateFileInput: document.getElementById('import-template-file-input'),
+    btnExportAllTemplates: document.getElementById('btn-export-all-templates'),
+
     presentationLinesContainer: document.getElementById('presentation-lines-container'),
     recentSessionContainer: document.getElementById('recent-session-container'),
     currentLineCounter: document.getElementById('current-line-counter'),
@@ -2810,12 +2817,14 @@ document.addEventListener('DOMContentLoaded', () => {
         state.presentationMode = e.target.value;
         saveUserSettings();
         updateSplitLongLinesUI();
+        updateScaleModeLockState();
         if (state.activeSong) {
           loadSongIntoPresentation(state.activeSong);
         }
-        syncLiveState();
+        syncLiveState(true);
       });
       updateSplitLongLinesUI();
+      updateScaleModeLockState();
     }
 
     const btnSplitAllLines = document.getElementById('btn-split-all-lines');
@@ -3111,6 +3120,284 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       });
     });
+
+    // ----------------------------------------------------
+    // USER CUSTOM TEMPLATES MANAGER (SAVE / APPLY / EXPORT / IMPORT / SHARE)
+    // ----------------------------------------------------
+    const STORAGE_KEY_TEMPLATES = 'sunday_school_taranim_user_templates';
+
+    const getUserTemplates = () => {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY_TEMPLATES);
+        return raw ? JSON.parse(raw) : [];
+      } catch (err) {
+        console.error('Failed to parse user templates:', err);
+        return [];
+      }
+    };
+
+    const saveUserTemplates = (templates) => {
+      try {
+        localStorage.setItem(STORAGE_KEY_TEMPLATES, JSON.stringify(templates));
+      } catch (err) {
+        console.error('Failed to save user templates:', err);
+      }
+    };
+
+    const getCurrentStyleSnapshot = () => {
+      return {
+        font: state.selectedFont || "'Alexandria', sans-serif",
+        fontSize: state.fontSize || 54,
+        fontWeight: state.styleOptions?.fontWeight || '800',
+        fontStyle: state.styleOptions?.fontStyle || 'normal',
+        textDecoration: state.styleOptions?.textDecoration || 'none',
+        textColor: state.styleOptions?.textColor || '#ffffff',
+        textAlign: state.styleOptions?.textAlign || 'center',
+        isJustified: Boolean(state.styleOptions?.isJustified),
+        letterSpacing: state.styleOptions?.letterSpacing || 0,
+        lineHeight: state.styleOptions?.lineHeight !== undefined ? state.styleOptions?.lineHeight : 1.5,
+        strokeWidth: state.styleOptions?.strokeWidth || 0,
+        strokeColor: state.styleOptions?.strokeColor || '#000000',
+        shadowBlur: state.styleOptions?.shadowBlur !== undefined ? state.styleOptions?.shadowBlur : 18,
+        shadowColor: state.styleOptions?.shadowColor || '#000000',
+        shadowAngle: state.styleOptions?.shadowAngle !== undefined ? state.styleOptions?.shadowAngle : 142,
+        shadowDistance: state.styleOptions?.shadowDistance !== undefined ? state.styleOptions?.shadowDistance : 13,
+        chromaKey: state.chromaKey || 'black',
+        boxBgColor: state.styleOptions?.boxBgColor || '#000000',
+        boxOpacity: state.styleOptions?.boxOpacity || 0,
+        boxRadius: state.styleOptions?.boxRadius || 12,
+        boxPadding: state.styleOptions?.boxPadding || 20,
+        presentationMode: state.presentationMode || 'oneline',
+        textAnimation: state.textAnimation || 'slide'
+      };
+    };
+
+    const applyStyleSnapshot = (snapshot) => {
+      if (!snapshot) return;
+
+      if (snapshot.font) state.selectedFont = snapshot.font;
+      if (snapshot.fontSize) state.fontSize = snapshot.fontSize;
+      if (snapshot.chromaKey) state.chromaKey = snapshot.chromaKey;
+      if (snapshot.presentationMode) state.presentationMode = snapshot.presentationMode;
+      if (snapshot.textAnimation) state.textAnimation = snapshot.textAnimation;
+
+      state.styleOptions = {
+        ...state.styleOptions,
+        fontWeight: snapshot.fontWeight || '800',
+        fontStyle: snapshot.fontStyle || 'normal',
+        textDecoration: snapshot.textDecoration || 'none',
+        textColor: snapshot.textColor || '#ffffff',
+        textAlign: snapshot.textAlign || 'center',
+        isJustified: Boolean(snapshot.isJustified),
+        letterSpacing: snapshot.letterSpacing || 0,
+        lineHeight: snapshot.lineHeight !== undefined ? snapshot.lineHeight : 1.5,
+        strokeWidth: snapshot.strokeWidth || 0,
+        strokeColor: snapshot.strokeColor || '#000000',
+        shadowBlur: snapshot.shadowBlur !== undefined ? snapshot.shadowBlur : 18,
+        shadowColor: snapshot.shadowColor || '#000000',
+        shadowAngle: snapshot.shadowAngle !== undefined ? snapshot.shadowAngle : 142,
+        shadowDistance: snapshot.shadowDistance !== undefined ? snapshot.shadowDistance : 13,
+        boxBgColor: snapshot.boxBgColor || '#000000',
+        boxOpacity: snapshot.boxOpacity || 0,
+        boxRadius: snapshot.boxRadius || 12,
+        boxPadding: snapshot.boxPadding || 20
+      };
+
+      if (state.activeSong) {
+        loadSongIntoPresentation(state.activeSong);
+      }
+
+      applyInitialUIState();
+      updateScaleModeLockState();
+      saveUserSettings();
+      syncLiveState(true);
+    };
+
+    const renderUserTemplatesList = () => {
+      const container = els.templatesListContainer;
+      if (!container) return;
+
+      const templates = getUserTemplates();
+      if (els.templatesCountBadge) els.templatesCountBadge.textContent = templates.length;
+
+      if (templates.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:16px; color:var(--text-muted); font-size:0.85rem;">لا توجد قوالب محفوظة حالياً</div>`;
+        return;
+      }
+
+      container.innerHTML = templates.map(t => `
+        <div class="template-item-card" data-id="${t.id}" style="background:var(--bg-hover, #f8fafc); border:1px solid #e2e8f0; border-radius:10px; padding:10px 12px; display:flex; align-items:center; justify-content:space-between; gap:8px;">
+          <div style="flex:1; min-width:0;">
+            <div style="font-weight:700; font-size:0.88rem; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(t.name)}</div>
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">${t.createdAt ? new Date(t.createdAt).toLocaleDateString('ar-EG') : ''} • ${escapeHtml(t.settings?.presentationMode || 'عام')}</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:4px; flex-shrink:0;">
+            <button type="button" class="btn-apply-template btn btn-sm btn-primary" data-id="${t.id}" title="تطبيق هذا القالب" style="padding:4px 10px; font-size:0.78rem; font-weight:700; background:#2563eb; color:#fff;">
+              <i class="fa-solid fa-check"></i> تطبيق
+            </button>
+            <button type="button" class="btn-share-template btn btn-sm btn-secondary" data-id="${t.id}" title="مشاركة القالب" style="padding:4px 8px; font-size:0.78rem;">
+              <i class="fa-solid fa-share-nodes"></i>
+            </button>
+            <button type="button" class="btn-export-template btn btn-sm btn-secondary" data-id="${t.id}" title="تصدير (JSON)" style="padding:4px 8px; font-size:0.78rem;">
+              <i class="fa-solid fa-download"></i>
+            </button>
+            <button type="button" class="btn-delete-template btn btn-sm" data-id="${t.id}" title="حذف القالب" style="padding:4px 8px; font-size:0.78rem; color:#ef4444; background:transparent;">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      container.querySelectorAll('.btn-apply-template').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-id');
+          const tmpl = getUserTemplates().find(item => item.id === id);
+          if (tmpl && tmpl.settings) {
+            applyStyleSnapshot(tmpl.settings);
+            showToast(`تم تطبيق قالب "${tmpl.name}" بنجاح! ✨`);
+          }
+        });
+      });
+
+      container.querySelectorAll('.btn-share-template').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-id');
+          const tmpl = getUserTemplates().find(item => item.id === id);
+          if (tmpl && tmpl.settings) {
+            const shareUrl = `${window.location.origin}${window.location.pathname}?template=${encodeURIComponent(JSON.stringify(tmpl.settings))}`;
+            navigator.clipboard.writeText(shareUrl).then(() => {
+              showToast(`تم نسخ رابط مشاركة قالب "${tmpl.name}"! 🔗`);
+            }).catch(() => {
+              prompt('انسخ رابط مشاركة القالب:', shareUrl);
+            });
+          }
+        });
+      });
+
+      container.querySelectorAll('.btn-export-template').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-id');
+          const tmpl = getUserTemplates().find(item => item.id === id);
+          if (tmpl) {
+            const blob = new Blob([JSON.stringify(tmpl, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `template_${tmpl.name.replace(/\s+/g, '_')}.json`;
+            a.click();
+            showToast(`تم تصدير قالب "${tmpl.name}"! 📤`);
+          }
+        });
+      });
+
+      container.querySelectorAll('.btn-delete-template').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-id');
+          const templates = getUserTemplates().filter(item => item.id !== id);
+          saveUserTemplates(templates);
+          renderUserTemplatesList();
+          showToast('تم حذف القالب!');
+        });
+      });
+    };
+
+    if (els.btnSaveCustomTemplate && els.customTemplateNameInput) {
+      els.btnSaveCustomTemplate.addEventListener('click', () => {
+        const name = (els.customTemplateNameInput.value || '').trim();
+        if (!name) {
+          showToast('يرجى كتابة اسم للقالب أولاً!', 'warning');
+          return;
+        }
+
+        const templates = getUserTemplates();
+        const newTemplate = {
+          id: 'tmpl_' + Date.now(),
+          name: name,
+          createdAt: new Date().toISOString(),
+          settings: getCurrentStyleSnapshot()
+        };
+
+        templates.unshift(newTemplate);
+        saveUserTemplates(templates);
+        els.customTemplateNameInput.value = '';
+        renderUserTemplatesList();
+        showToast(`تم حفظ القالب "${name}" بنجاح! 💾`);
+      });
+    }
+
+    if (els.importTemplateFileInput) {
+      els.importTemplateFileInput.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          try {
+            const parsed = JSON.parse(evt.target.result);
+            const tmplSettings = parsed.settings || (parsed.font ? parsed : null);
+            if (!tmplSettings) {
+              showToast('ملف القالب غير صالح!', 'error');
+              return;
+            }
+
+            const name = parsed.name || file.name.replace('.json', '');
+            const templates = getUserTemplates();
+            const newTemplate = {
+              id: 'tmpl_' + Date.now(),
+              name: name,
+              createdAt: new Date().toISOString(),
+              settings: tmplSettings
+            };
+
+            templates.unshift(newTemplate);
+            saveUserTemplates(templates);
+            renderUserTemplatesList();
+            applyStyleSnapshot(tmplSettings);
+            showToast(`تم استيراد وتطبيق قالب "${name}"! 📥`);
+          } catch (err) {
+            console.error('Import template parse error:', err);
+            showToast('حدث خطأ أثناء قراءة ملف القالب!', 'error');
+          }
+        };
+        reader.readAsText(file);
+        e.target.value = '';
+      });
+    }
+
+    if (els.btnExportAllTemplates) {
+      els.btnExportAllTemplates.addEventListener('click', () => {
+        const templates = getUserTemplates();
+        if (templates.length === 0) {
+          showToast('لا توجد قوالب محفوظة لتصديرها!', 'warning');
+          return;
+        }
+
+        const blob = new Blob([JSON.stringify(templates, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `taranim_all_templates_${Date.now()}.json`;
+        a.click();
+        showToast('تم تصدير جميع القوالب بنجاح! 📤');
+      });
+    }
+
+    const checkURLTemplateImport = () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('template')) {
+          const raw = params.get('template');
+          const settings = JSON.parse(raw);
+          if (settings) {
+            applyStyleSnapshot(settings);
+            showToast('تم تطبيق القالب المشارَك بنجاح! ✨');
+          }
+        }
+      } catch (err) {
+        console.error('URL template import error:', err);
+      }
+    };
+
+    renderUserTemplatesList();
+    checkURLTemplateImport();
 
     // Chroma Chip Group Syncing
     const chromaChips = document.querySelectorAll('.chroma-chip');
