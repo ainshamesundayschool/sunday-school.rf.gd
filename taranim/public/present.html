@@ -1866,6 +1866,34 @@
 
       applyDynamicShadow(data);
 
+      // ALL-IN-ONE REAL-TIME SCROLL SYNCHRONIZATION & TRACKING
+      if (data.mode === 'allinone' || (data.text && data.text.includes('allinone-slide-group'))) {
+        const docEl = document.documentElement || document.body;
+        const presenterBox = document.getElementById('presenter-box');
+        const groups = document.querySelectorAll('.allinone-slide-group');
+
+        if (data.activeGroupIndex === 0 || (!data.activeGroupIndex && data.scrollRatio === 0)) {
+          if (presenterBox) presenterBox.scrollTop = 0;
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else if (data.activeGroupIndex !== undefined && data.activeGroupIndex !== null && groups.length > 0) {
+          const targetGroup = document.querySelector(`.allinone-slide-group[data-group-idx="${data.activeGroupIndex}"]`) || groups[data.activeGroupIndex];
+          if (targetGroup) {
+            targetGroup.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          }
+        } else if (data.scrollRatio !== undefined && !isNaN(data.scrollRatio)) {
+          if (presenterBox) {
+            const maxScrollHeight = Math.max(0, presenterBox.scrollHeight - presenterBox.clientHeight);
+            if (maxScrollHeight > 0) {
+              presenterBox.scrollTop = Math.round(data.scrollRatio * maxScrollHeight);
+            }
+          }
+          const maxWindowScroll = Math.max(0, docEl.scrollHeight - window.innerHeight);
+          if (maxWindowScroll > 0) {
+            window.scrollTo({ top: Math.round(data.scrollRatio * maxWindowScroll), behavior: 'smooth' });
+          }
+        }
+      }
+
       const blankOverlayEl = document.getElementById('blank-screen-overlay');
       if (blankOverlayEl) {
         blankOverlayEl.classList.toggle('hidden', !data.isBlank);

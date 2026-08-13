@@ -390,19 +390,22 @@
               </div>
             </div>
 
-            <!-- SLIDE SPLITTING MODES CARD (1 LINE, 2 LINES, ALL IN ONE) -->
+            <!-- SLIDE SPLITTING MODES CARD (4 MODES) -->
             <div class="style-card" style="margin-top:10px;">
               <div class="style-card-title"><i class="fa-solid fa-layer-group"></i> تقسيم شرائح العرض</div>
               
-              <div class="segmented-control-group" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px; margin-top:6px;">
+              <div class="segmented-control-group" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:3px; margin-top:6px;">
+                <button type="button" class="segmented-btn active" id="btn-tab-lines-default" title="شريحة أساسية حسب تقسيم الترنيمة الأصلي مع ربط المقاطع">
+                  شريحة أساسية
+                </button>
                 <button type="button" class="segmented-btn" id="btn-tab-lines-1" title="عرض سطر واحد في كل شريحة">
-                  <i class="fa-solid fa-bars"></i> سطر واحد
+                  سطر واحد
                 </button>
-                <button type="button" class="segmented-btn active" id="btn-tab-lines-2" title="عرض سطرين في كل شريحة">
-                  <i class="fa-solid fa-equals"></i> سطرين
+                <button type="button" class="segmented-btn" id="btn-tab-lines-2" title="عرض سطرين في كل شريحة">
+                  سطرين
                 </button>
-                <button type="button" class="segmented-btn" id="btn-tab-lines-all" title="عرض كامل المقطع / الترنيمة في شريحة واحدة">
-                  <i class="fa-solid fa-align-justify"></i> الكل في شريحة واحدة
+                <button type="button" class="segmented-btn" id="btn-tab-lines-all" title="عرض كامل الترنيمة في شريحة واحدة">
+                  الكل في شريحة واحدة
                 </button>
               </div>
             </div>

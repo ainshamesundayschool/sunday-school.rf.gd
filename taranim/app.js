@@ -3662,18 +3662,25 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // --- SLIDE SPLITTING ENGINE (1 LINE, 2 LINES, ALL IN ONE) ---
+    // --- SLIDE SPLITTING ENGINE (4 MODES: DEFAULT/FULLSLIDE, 1 LINE, 2 LINES, ALL IN ONE) ---
     const setSlideSplittingMode = (mode) => {
-      const canonicalMode = (mode === '1' || mode === 'oneline') ? 'oneline' : ((mode === 'all' || mode === 'allinone') ? 'allinone' : 'twelines');
+      let canonicalMode = 'fullslide';
+      if (mode === '1' || mode === 'oneline') canonicalMode = 'oneline';
+      else if (mode === '2' || mode === 'twelines') canonicalMode = 'twelines';
+      else if (mode === 'all' || mode === 'allinone') canonicalMode = 'allinone';
+      else canonicalMode = 'fullslide';
+
       state.slideSplittingMode = canonicalMode;
       state.presentationMode = canonicalMode;
       try { localStorage.setItem('sunday_school_slide_splitting_mode', canonicalMode); } catch(e) {}
 
       // Update button active classes
+      const tabBtnDef = document.getElementById('btn-tab-lines-default');
       const tabBtn1 = document.getElementById('btn-tab-lines-1');
       const tabBtn2 = document.getElementById('btn-tab-lines-2');
       const tabBtnAll = document.getElementById('btn-tab-lines-all');
 
+      if (tabBtnDef) tabBtnDef.classList.toggle('active', canonicalMode === 'fullslide');
       if (tabBtn1) tabBtn1.classList.toggle('active', canonicalMode === 'oneline');
       if (tabBtn2) tabBtn2.classList.toggle('active', canonicalMode === 'twelines');
       if (tabBtnAll) tabBtnAll.classList.toggle('active', canonicalMode === 'allinone');
@@ -3682,9 +3689,18 @@ document.addEventListener('DOMContentLoaded', () => {
       const currentSong = state.activeSong || state.liveSong;
       if (currentSong) {
         loadSongIntoPresentation(currentSong, true);
-        showToast(canonicalMode === 'oneline' ? 'تم ضبط الشرائح: سطر واحد لكل شريحة' : (canonicalMode === 'allinone' ? 'تم ضبط الشرائح: الترنيمة بالكامل في شريحة واحدة' : 'تم ضبط الشرائح: سطرين لكل شريحة'));
+        const modeLabels = {
+          fullslide: 'تم ضبط الشرائح: شريحة أساسية (التقسيم الأصلي)',
+          oneline: 'تم ضبط الشرائح: سطر واحد لكل شريحة',
+          twelines: 'تم ضبط الشرائح: سطرين لكل شريحة',
+          allinone: 'تم ضبط الشرائح: الترنيمة بالكامل في شريحة واحدة'
+        };
+        showToast(modeLabels[canonicalMode] || 'تم تحديث تقسيم الشرائح');
       }
     };
+
+    const tabBtnDef = document.getElementById('btn-tab-lines-default');
+    if (tabBtnDef) tabBtnDef.addEventListener('click', () => setSlideSplittingMode('fullslide'));
 
     const tabBtn1 = document.getElementById('btn-tab-lines-1');
     if (tabBtn1) tabBtn1.addEventListener('click', () => setSlideSplittingMode('oneline'));
@@ -3696,7 +3712,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (tabBtnAll) tabBtnAll.addEventListener('click', () => setSlideSplittingMode('allinone'));
 
     // Initialize active splitting mode from saved settings
-    const savedSplitMode = localStorage.getItem('sunday_school_slide_splitting_mode') || 'twelines';
+    const savedSplitMode = localStorage.getItem('sunday_school_slide_splitting_mode') || 'fullslide';
+    if (tabBtnDef) tabBtnDef.classList.toggle('active', savedSplitMode === 'fullslide' || savedSplitMode === 'default');
     if (tabBtn1) tabBtn1.classList.toggle('active', savedSplitMode === '1' || savedSplitMode === 'oneline');
     if (tabBtn2) tabBtn2.classList.toggle('active', savedSplitMode === '2' || savedSplitMode === 'twelines');
     if (tabBtnAll) tabBtnAll.classList.toggle('active', savedSplitMode === 'all' || savedSplitMode === 'allinone');
@@ -6850,11 +6867,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let linesList = [];
 
     const isBible = Boolean((song.is_bible === true || song.is_bible === '1' || song.is_bible === 1) || (song.chapter_number !== undefined && song.chapter_number !== null && song.chapter_number !== ''));
-    const splitMode = state.slideSplittingMode || state.presentationMode || localStorage.getItem('sunday_school_slide_splitting_mode') || 'twelines';
-    let mode = 'twelines';
+    const splitMode = state.slideSplittingMode || state.presentationMode || localStorage.getItem('sunday_school_slide_splitting_mode') || 'fullslide';
+    let mode = 'fullslide';
     if (splitMode === '1' || splitMode === 'oneline') mode = 'oneline';
+    else if (splitMode === '2' || splitMode === 'twelines') mode = 'twelines';
     else if (splitMode === 'all' || splitMode === 'allinone') mode = 'allinone';
-    else mode = 'twelines';
+    else mode = 'fullslide';
     state.presentationMode = mode;
 
     if (song.verses && Array.isArray(song.verses) && song.verses.length > 0) {
