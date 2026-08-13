@@ -7680,11 +7680,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       };
 
-      if (state.isBlank) {
-        els.obsLineText.classList.add('hidden');
-        els.obsLineText.style.display = 'none';
-        updateObsStandbyDisplay(false);
-      } else if (state.isStandbyMode || isLogoSlide || !hasTextContent) {
+      if (state.isStandbyMode) {
         els.obsLineText.classList.add('hidden');
         els.obsLineText.style.display = 'none';
         updateObsStandbyDisplay(true);
@@ -7728,13 +7724,14 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
       } else {
-        if (standbyEl) {
-          standbyEl.classList.add('hidden');
-          standbyEl.style.display = 'none';
-        }
-        els.obsLineText.classList.remove('hidden');
-        els.obsLineText.style.display = 'inline-block';
-        els.obsLineText.style.visibility = 'visible';
+        updateObsStandbyDisplay(false);
+        if (state.isBlank || !hasTextContent) {
+          els.obsLineText.classList.add('hidden');
+          els.obsLineText.style.display = 'none';
+        } else {
+          els.obsLineText.classList.remove('hidden');
+          els.obsLineText.style.display = 'inline-block';
+          els.obsLineText.style.visibility = 'visible';
 
         const isJomhuria = /jomhuria/i.test(state.selectedFont || '');
         const align = state.styleOptions.textAlign || 'center';

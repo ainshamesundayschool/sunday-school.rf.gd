@@ -1901,7 +1901,7 @@
       const standbyFullscreenVideo = document.getElementById('standby-fullscreen-video');
 
       const isBlankMode = Boolean(data.isBlank);
-      const isStandbyMode = Boolean(data.isStandby || data.isStandbyMode || data.isLogoSlide);
+      const isStandbyMode = Boolean(data.isStandby || data.isStandbyMode);
       const hasTextContent = Boolean(data.text && String(data.text).trim());
 
       const updateStandbyMediaDisplay = (showStandby) => {
@@ -1985,16 +1985,21 @@
 
             setTimeout(() => {
               // Swap content at cut point
-              if (isStandbyMode || !hasTextContent) {
+              if (isStandbyMode) {
                 textEl.classList.add('hidden');
                 textEl.style.display = 'none';
                 updateStandbyMediaDisplay(true);
                 currentIsBlankState = true;
               } else {
                 updateStandbyMediaDisplay(false);
-                textEl.classList.remove('hidden');
-                textEl.style.display = 'inline-block';
-                textEl.style.visibility = 'visible';
+                if (isBlankMode || !hasTextContent) {
+                  textEl.classList.add('hidden');
+                  textEl.style.display = 'none';
+                } else {
+                  textEl.classList.remove('hidden');
+                  textEl.style.display = 'inline-block';
+                  textEl.style.visibility = 'visible';
+                }
                 currentIsBlankState = false;
               }
             }, cutPoint);
@@ -2010,16 +2015,21 @@
           void container.offsetWidth;
           container.classList.add('luma-wipe-active');
           setTimeout(() => {
-            if (isStandbyMode || !hasTextContent) {
+            if (isStandbyMode) {
               textEl.classList.add('hidden');
               textEl.style.display = 'none';
               updateStandbyMediaDisplay(true);
               currentIsBlankState = true;
             } else {
               updateStandbyMediaDisplay(false);
-              textEl.classList.remove('hidden');
-              textEl.style.display = 'inline-block';
-              textEl.style.visibility = 'visible';
+              if (isBlankMode || !hasTextContent) {
+                textEl.classList.add('hidden');
+                textEl.style.display = 'none';
+              } else {
+                textEl.classList.remove('hidden');
+                textEl.style.display = 'inline-block';
+                textEl.style.visibility = 'visible';
+              }
               currentIsBlankState = false;
             }
             setTimeout(() => {
@@ -2028,22 +2038,23 @@
           }, 280);
         }
       } else {
-        if (isBlankMode) {
-          textEl.classList.add('hidden');
-          textEl.style.display = 'none';
-          updateStandbyMediaDisplay(false);
-          currentIsBlankState = true;
-        } else if (isStandbyMode || !hasTextContent) {
+        if (isStandbyMode) {
           textEl.classList.add('hidden');
           textEl.style.display = 'none';
           updateStandbyMediaDisplay(true);
           currentIsBlankState = true;
         } else {
           updateStandbyMediaDisplay(false);
-          textEl.classList.remove('hidden');
-          textEl.style.display = 'inline-block';
-          textEl.style.visibility = 'visible';
-          currentIsBlankState = false;
+          if (isBlankMode || !hasTextContent) {
+            textEl.classList.add('hidden');
+            textEl.style.display = 'none';
+            currentIsBlankState = isBlankMode;
+          } else {
+            textEl.classList.remove('hidden');
+            textEl.style.display = 'inline-block';
+            textEl.style.visibility = 'visible';
+            currentIsBlankState = false;
+          }
         }
       }
 
