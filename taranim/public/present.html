@@ -203,15 +203,15 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        width: 96vw;
-        max-width: 96vw;
+        width: 1800px;
+        max-width: 1800px;
         padding-top: 0.5rem;
         padding-bottom: 0.5rem;
-        max-height: 90vh;
+        max-height: 960px;
       }
       .line-text {
         width: 100%;
-        max-width: 96vw;
+        max-width: 1800px;
         line-height: 1.35;
         margin-top: 0;
         margin-bottom: 0;
@@ -1264,7 +1264,8 @@
       if (!textEl) return;
       currentIsBible = isBible;
 
-      updateSlideScale();
+      const container = document.getElementById('obs-overlay-container') || document.body;
+      const curW = container.clientWidth || window.innerWidth || 1920;
 
       const baseSize = (lastStyleData && lastStyleData.fontSize) || stateFontSize || 105;
       const currentFont = (lastStyleData && lastStyleData.font) || textEl.style.fontFamily || '';
@@ -1319,7 +1320,10 @@
         textEl.style.fontWeight = fWeight;
       }
 
-      textEl.style.fontSize = `${baseSize}px`;
+      // PROPORTIONAL RESIZE BASED ON WINDOW WIDTH (ZERO FLICKER, PROPORTIONAL SCALE DOWN)
+      const scaleFactor = curW / 1920;
+      const scaledFontSize = Math.max(14, Math.round(baseSize * scaleFactor));
+      textEl.style.fontSize = `${scaledFontSize}px`;
 
       const wrapper = textEl.querySelector('.obs-slide-wrapper') || textEl;
       wrapper.style.transform = 'none';
