@@ -3883,7 +3883,7 @@ input[type="checkbox"]:checked::after {
   color: #2563eb;
 }
 
-/* SLEEK SEGMENTED NAV TABS */
+/* SLEEK SEGMENTED NAV TABS (HORIZONTALLY SCROLLABLE ON MOBILE) */
 .style-nav-tabs {
   display: flex;
   background: #f1f5f9;
@@ -3891,14 +3891,25 @@ input[type="checkbox"]:checked::after {
   padding: 4px;
   gap: 4px;
   margin: 10px 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.style-nav-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .style-tab-btn {
-  flex: 1;
+  flex: 1 0 auto;
+  min-width: max-content;
   border: none;
   background: transparent;
-  padding: 7px 8px;
-  font-size: 0.8rem;
+  padding: 8px 12px;
+  font-size: 0.82rem;
   font-weight: 600;
   color: #64748b;
   border-radius: 9px;
@@ -3909,10 +3920,11 @@ input[type="checkbox"]:checked::after {
   gap: 6px;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   white-space: nowrap;
+  user-select: none;
 }
 
 .style-tab-btn i {
-  font-size: 0.82rem;
+  font-size: 0.85rem;
 }
 
 .style-tab-btn:hover {
