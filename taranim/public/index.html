@@ -258,28 +258,28 @@
             <span class="drawer-header-title" style="white-space:nowrap;"><i class="fa-solid fa-sliders"></i> التنسيق</span>
             
             <!-- TEMPLATES QUICK SELECT & CYCLE TOGGLE WRAPPER -->
-            <div class="templates-header-dropdown-wrap" style="position:relative; flex:1; max-width:280px; display:flex; align-items:center; gap:3px;">
-              <button id="btn-prev-template" type="button" class="btn btn-sm" style="padding:5px 7px; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer; color:#475569; font-size:0.75rem;" title="القالب السابق (تغيير فوري)">
+            <div class="templates-header-dropdown-wrap">
+              <button id="btn-prev-template" type="button" class="tmpl-cycle-btn" title="القالب السابق (تغيير فوري)">
                 <i class="fa-solid fa-chevron-right"></i>
               </button>
 
-              <button id="btn-templates-dropdown-toggle" class="btn btn-sm" type="button" style="flex:1; min-width:0; display:flex; align-items:center; justify-content:space-between; padding:5px 8px; font-size:0.8rem; font-weight:700; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer; color:#0f172a;" title="اختيار وتصفح كافة القوالب">
-                <span style="display:flex; align-items:center; gap:5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+              <button id="btn-templates-dropdown-toggle" class="tmpl-dropdown-trigger-btn" type="button" title="اختيار وتصفح كافة القوالب">
+                <span style="display:flex; align-items:center; gap:6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
                   <i class="fa-solid fa-layer-group" style="color:#2563eb; font-size:0.85rem;"></i>
                   <span id="current-template-header-label">القالب الافتراضي</span>
                 </span>
                 <i class="fa-solid fa-chevron-down" id="templates-dropdown-arrow" style="font-size:0.72rem; color:#64748b; transition:transform 0.2s ease;"></i>
               </button>
 
-              <button id="btn-next-template" type="button" class="btn btn-sm" style="padding:5px 7px; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer; color:#475569; font-size:0.75rem;" title="القالب التالي (تغيير فوري)">
+              <button id="btn-next-template" type="button" class="tmpl-cycle-btn" title="القالب التالي (تغيير فوري)">
                 <i class="fa-solid fa-chevron-left"></i>
               </button>
 
               <!-- DROPDOWN MENU -->
-              <div id="templates-quick-dropdown-menu" class="dropdown-popover hidden" style="position:absolute; top:calc(100% + 4px); right:0; left:0; min-width:240px; max-height:300px; overflow-y:auto; background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; box-shadow:0 10px 25px rgba(0,0,0,0.12); z-index:100; padding:6px; display:flex; flex-direction:column; gap:4px;">
-                <div style="display:flex; align-items:center; justify-content:space-between; padding:4px 6px; border-bottom:1px solid #f1f5f9; margin-bottom:2px;">
-                  <span style="font-size:0.75rem; font-weight:800; color:#64748b;">القوالب المتاحة</span>
-                  <button id="btn-quick-save-template-header" class="btn btn-sm btn-primary" type="button" style="padding:2px 7px; font-size:0.72rem; border-radius:4px;" title="حفظ الإعدادات الحالية كقالب جديد">
+              <div id="templates-quick-dropdown-menu" class="tmpl-dropdown-menu-card hidden">
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:6px 8px; border-bottom:1px solid #f1f5f9; margin-bottom:4px;">
+                  <span style="font-size:0.75rem; font-weight:800; color:#475569;">القوالب المتاحة</span>
+                  <button id="btn-quick-save-template-header" class="btn btn-sm btn-primary" type="button" style="padding:3px 8px; font-size:0.72rem; border-radius:6px;" title="حفظ الإعدادات الحالية كقالب جديد">
                     <i class="fa-solid fa-plus"></i> حفظ الحالي
                   </button>
                 </div>
