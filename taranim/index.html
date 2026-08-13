@@ -257,18 +257,26 @@
           <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:0;">
             <span class="drawer-header-title" style="white-space:nowrap;"><i class="fa-solid fa-sliders"></i> التنسيق</span>
             
-            <!-- TEMPLATES QUICK SELECT DROPDOWN WRAPPER -->
-            <div class="templates-header-dropdown-wrap" style="position:relative; flex:1; max-width:240px;">
-              <button id="btn-templates-dropdown-toggle" class="btn btn-sm" type="button" style="width:100%; display:flex; align-items:center; justify-content:space-between; padding:5px 9px; font-size:0.8rem; font-weight:700; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:8px; cursor:pointer; color:#0f172a;" title="اختيار قالب وتطبيقه سريعاً">
-                <span style="display:flex; align-items:center; gap:6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+            <!-- TEMPLATES QUICK SELECT & CYCLE TOGGLE WRAPPER -->
+            <div class="templates-header-dropdown-wrap" style="position:relative; flex:1; max-width:280px; display:flex; align-items:center; gap:3px;">
+              <button id="btn-prev-template" type="button" class="btn btn-sm" style="padding:5px 7px; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer; color:#475569; font-size:0.75rem;" title="القالب السابق (تغيير فوري)">
+                <i class="fa-solid fa-chevron-right"></i>
+              </button>
+
+              <button id="btn-templates-dropdown-toggle" class="btn btn-sm" type="button" style="flex:1; min-width:0; display:flex; align-items:center; justify-content:space-between; padding:5px 8px; font-size:0.8rem; font-weight:700; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer; color:#0f172a;" title="اختيار وتصفح كافة القوالب">
+                <span style="display:flex; align-items:center; gap:5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
                   <i class="fa-solid fa-layer-group" style="color:#2563eb; font-size:0.85rem;"></i>
                   <span id="current-template-header-label">القالب الافتراضي</span>
                 </span>
-                <i class="fa-solid fa-chevron-down" id="templates-dropdown-arrow" style="font-size:0.75rem; color:#64748b; transition:transform 0.2s ease;"></i>
+                <i class="fa-solid fa-chevron-down" id="templates-dropdown-arrow" style="font-size:0.72rem; color:#64748b; transition:transform 0.2s ease;"></i>
+              </button>
+
+              <button id="btn-next-template" type="button" class="btn btn-sm" style="padding:5px 7px; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer; color:#475569; font-size:0.75rem;" title="القالب التالي (تغيير فوري)">
+                <i class="fa-solid fa-chevron-left"></i>
               </button>
 
               <!-- DROPDOWN MENU -->
-              <div id="templates-quick-dropdown-menu" class="dropdown-popover hidden" style="position:absolute; top:calc(100% + 4px); right:0; left:0; min-width:230px; max-height:300px; overflow-y:auto; background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; box-shadow:0 10px 25px rgba(0,0,0,0.12); z-index:100; padding:6px; display:flex; flex-direction:column; gap:4px;">
+              <div id="templates-quick-dropdown-menu" class="dropdown-popover hidden" style="position:absolute; top:calc(100% + 4px); right:0; left:0; min-width:240px; max-height:300px; overflow-y:auto; background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; box-shadow:0 10px 25px rgba(0,0,0,0.12); z-index:100; padding:6px; display:flex; flex-direction:column; gap:4px;">
                 <div style="display:flex; align-items:center; justify-content:space-between; padding:4px 6px; border-bottom:1px solid #f1f5f9; margin-bottom:2px;">
                   <span style="font-size:0.75rem; font-weight:800; color:#64748b;">القوالب المتاحة</span>
                   <button id="btn-quick-save-template-header" class="btn btn-sm btn-primary" type="button" style="padding:2px 7px; font-size:0.72rem; border-radius:4px;" title="حفظ الإعدادات الحالية كقالب جديد">
@@ -1119,6 +1127,44 @@
           <span style="font-size:0.7rem; font-weight:600; background:#f1f5f9; color:#475569; padding:3px 8px; border-radius:6px; white-space:nowrap;">بيانات JSON</span>
         </button>
 
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TEMPLATE MEDIA RE-UPLOAD WIZARD MODAL -->
+  <div id="modal-template-media-import" class="modal-backdrop hidden" style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.7); backdrop-filter:blur(5px); z-index:999999; display:flex; align-items:center; justify-content:center; padding:16px;">
+    <div class="modal-card" style="background:#ffffff; border-radius:18px; width:100%; max-width:520px; max-height:90vh; display:flex; flex-direction:column; box-shadow:0 25px 50px -12px rgba(0,0,0,0.35); border:1px solid #cbd5e1; overflow:hidden;">
+      
+      <!-- MODAL HEADER -->
+      <div style="padding:16px 20px; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; background:#f8fafc;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="width:36px; height:36px; border-radius:10px; background:#eff6ff; color:#2563eb; display:flex; align-items:center; justify-content:center; font-size:1.1rem;">
+            <i class="fa-solid fa-photo-film"></i>
+          </div>
+          <div>
+            <h3 style="margin:0; font-size:1.02rem; font-weight:800; color:#0f172a;" id="tmpl-import-modal-title">وسائط القالب المطلوب رفعها</h3>
+            <p style="margin:2px 0 0 0; font-size:0.75rem; color:#64748b;" id="tmpl-import-modal-subtitle">يرجى رفع ملفات الوسائط الخاصة بهذا القالب لربطها تلقائياً</p>
+          </div>
+        </div>
+        <button id="btn-close-template-media-modal" type="button" style="background:#f1f5f9; border:none; width:30px; height:30px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#64748b;">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- MODAL BODY: MEDIA SLOTS LIST -->
+      <div id="tmpl-import-media-slots-container" style="padding:18px; display:flex; flex-direction:column; gap:12px; overflow-y:auto; flex:1;">
+        <!-- Dynamic Slots Generated by JS -->
+      </div>
+
+      <!-- MODAL FOOTER ACTIONS -->
+      <div style="padding:14px 20px; border-top:1px solid #e2e8f0; background:#f8fafc; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+        <button id="btn-skip-template-media-import" type="button" class="btn btn-secondary" style="padding:8px 14px; font-size:0.82rem; font-weight:600; border-radius:8px;">
+          تخطي ومتابعة
+        </button>
+        <button id="btn-finish-template-media-import" type="button" class="btn btn-primary" style="padding:8px 18px; font-size:0.85rem; font-weight:700; background:#2563eb; color:#ffffff; border-radius:8px; display:flex; align-items:center; gap:6px;">
+          <i class="fa-solid fa-check"></i> حفظ وتطبيق القالب
+        </button>
       </div>
 
     </div>

@@ -1131,6 +1131,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let presenterWindow = null;
   let pendingHttpPush = null;
+  let activePostUrl = null;
+  let lastHttpPushTime = 0;
   let lastPushTimestamp = 0;
   let searchAbortController = null;
   let searchDebounceTimeout = null;
@@ -2838,15 +2840,17 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    els.obsFontSizeRange.addEventListener('input', (e) => {
-      state.fontSize = parseInt(e.target.value);
-      if (els.fontSizeValBadge) els.fontSizeValBadge.textContent = `${state.fontSize}px`;
-      debouncedSyncLiveState(120);
-    });
-    els.obsFontSizeRange.addEventListener('change', () => {
-      saveUserSettings();
-      syncLiveState();
-    });
+    if (els.obsFontSizeRange) {
+      els.obsFontSizeRange.addEventListener('input', (e) => {
+        state.fontSize = parseInt(e.target.value);
+        if (els.fontSizeValBadge) els.fontSizeValBadge.textContent = `${state.fontSize}px`;
+        debouncedSyncLiveState(120);
+      });
+      els.obsFontSizeRange.addEventListener('change', () => {
+        saveUserSettings();
+        syncLiveState();
+      });
+    }
 
     if (els.btnToggleObsMode) {
       els.btnToggleObsMode.addEventListener('change', (e) => {
@@ -3572,17 +3576,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       });
 
+      // Export Template with complete Media Manifest
       container.querySelectorAll('.btn-export-template').forEach(btn => {
         btn.addEventListener('click', () => {
           const id = btn.getAttribute('data-id');
           const tmpl = getUserTemplates().find(item => item.id === id);
           if (tmpl) {
-            const blob = new Blob([JSON.stringify(tmpl, null, 2)], { type: 'application/json' });
+            const exportPayload = generateTemplateExportPayload(tmpl);
+            const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
             a.download = `template_${tmpl.name.replace(/\s+/g, '_')}.json`;
             a.click();
-            showToast(`تم تصدير قالب "${tmpl.name}"!`);
+            showToast(`تم تصدير قالب "${tmpl.name}" متضمناً قائمة الوسائط المطلوبة!`);
           }
         });
       });
@@ -3598,6 +3604,212 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       });
     };
+
+    // Helper to generate export payload with media metadata
+    const generateTemplateExportPayload = (tmpl) => {
+      const s = tmpl.settings || {};
+      const requiredMedia = [];
+
+      // 1. Slides Background Media
+      if (s.slidesBgConfig && s.slidesBgConfig.type !== 'none' && s.slidesBgConfig.url) {
+        const isVid = s.slidesBgConfig.type === 'custom_video' || (s.slidesBgConfig.url && s.slidesBgConfig.url.includes('.mp4'));
+        const ext = isVid ? 'mp4' : 'png';
+        requiredMedia.push({
+          key: 'slidesBg',
+          label: 'خلفية الشرائح (Slides Background)',
+          fileName: `slides_background.${ext}`,
+          extension: ext,
+          accept: isVid ? 'video/mp4,video/*' : 'image/png,image/jpeg,image/*',
+          description: isVid ? 'ملف فيديو لخلفية الشرائح (MP4/WebM)' : 'ملف صورة لخلفية الشرائح (PNG/JPG)'
+        });
+      }
+
+      // 2. Standby Screen Media
+      if (s.standbyConfig && s.standbyConfig.type !== 'logo' && s.standbyConfig.url) {
+        const isVid = s.standbyConfig.type === 'custom_video' || (s.standbyConfig.url && s.standbyConfig.url.includes('.mp4'));
+        const ext = isVid ? 'mp4' : 'png';
+        requiredMedia.push({
+          key: 'standby',
+          label: 'شاشة الانتظار (Standby Screen)',
+          fileName: `standby_screen.${ext}`,
+          extension: ext,
+          accept: isVid ? 'video/mp4,video/*' : 'image/png,image/jpeg,image/*',
+          description: isVid ? 'فيديو شاشة الانتظار اللوب (MP4/WebM)' : 'صورة شاشة الانتظار (PNG/JPG)'
+        });
+      }
+
+      // 3. Stinger Transition Video
+      if (s.transitionConfig && s.transitionConfig.type === 'stinger' && s.transitionConfig.stingerUrl) {
+        requiredMedia.push({
+          key: 'transition',
+          label: 'فيديو الانتقال ستنجر (Stinger Transition)',
+          fileName: 'stinger_transition.webm',
+          extension: 'webm',
+          accept: 'video/webm,video/mp4,video/*',
+          description: 'فيديو شفاف أو حركة ستنجر للانتقال (WebM/MP4)'
+        });
+      }
+
+      // 4. Custom Font File
+      if (s.customFontName || (s.font && s.font.includes('CustomFont'))) {
+        requiredMedia.push({
+          key: 'font',
+          label: 'ملف الخط المخصص (Custom Font)',
+          fileName: `${(s.customFontName || 'custom_font').replace(/\s+/g, '_')}.ttf`,
+          extension: 'ttf',
+          accept: '.ttf,.otf,.woff,.woff2',
+          description: 'ملف الخط المخصص (.ttf, .otf, .woff)'
+        });
+      }
+
+      return {
+        ...tmpl,
+        version: '2.0',
+        exportedAt: new Date().toISOString(),
+        requiredMedia: requiredMedia
+      };
+    };
+
+    // Media Re-Upload Wizard Modal Handler
+    let pendingImportTemplate = null;
+    let pendingImportUploadedMedia = {};
+
+    const openTemplateMediaImportModal = (templateObj) => {
+      pendingImportTemplate = templateObj;
+      pendingImportUploadedMedia = {};
+
+      const modal = document.getElementById('modal-template-media-import');
+      const titleEl = document.getElementById('tmpl-import-modal-title');
+      const subtitleEl = document.getElementById('tmpl-import-modal-subtitle');
+      const container = document.getElementById('tmpl-import-media-slots-container');
+
+      if (!modal || !container) return;
+
+      titleEl.textContent = `وسائط القالب: ${templateObj.name || 'قالب جديد'}`;
+      subtitleEl.textContent = `يتطلب هذا القالب ${templateObj.requiredMedia.length} ملفات وسائط للتشغيل الكامل:`;
+
+      container.innerHTML = templateObj.requiredMedia.map((m, idx) => `
+        <div class="media-import-slot-card" data-key="${m.key}" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px 14px; display:flex; flex-direction:column; gap:8px;">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <div style="font-weight:700; font-size:0.88rem; color:#0f172a; display:flex; align-items:center; gap:6px;">
+              <i class="fa-solid fa-file-video" style="color:#2563eb;"></i>
+              <span>${escapeHtml(m.label)}</span>
+            </div>
+            <span class="slot-status-badge" style="font-size:0.72rem; font-weight:700; background:#fef3c7; color:#92400e; padding:3px 8px; border-radius:6px;">
+              <i class="fa-solid fa-clock"></i> في انتظار الرفع
+            </span>
+          </div>
+
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; background:#ffffff; border:1px dashed #cbd5e1; border-radius:8px; padding:8px 12px;">
+            <div style="flex:1; min-width:0;">
+              <div style="font-size:0.8rem; font-weight:700; color:#334155; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                الاسم المطلوب: <span style="color:#2563eb; direction:ltr; display:inline-block;">${escapeHtml(m.fileName)}</span>
+              </div>
+              <div style="font-size:0.72rem; color:#64748b; margin-top:2px;">
+                الصيغة المدعومة: <span style="font-weight:700; color:#475569;">.${escapeHtml(m.extension)}</span> • ${escapeHtml(m.description || '')}
+              </div>
+            </div>
+
+            <label class="btn btn-sm btn-primary" style="background:#2563eb; color:#ffffff; font-size:0.78rem; font-weight:700; padding:6px 12px; border-radius:6px; cursor:pointer; display:flex; align-items:center; gap:5px; flex-shrink:0;">
+              <i class="fa-solid fa-arrow-up-from-bracket"></i>
+              <span>رفع الملف</span>
+              <input type="file" class="hidden slot-file-input" data-key="${m.key}" accept="${m.accept || '*/*'}">
+            </label>
+          </div>
+        </div>
+      `).join('');
+
+      // Bind file picker changes
+      container.querySelectorAll('.slot-file-input').forEach(input => {
+        input.addEventListener('change', (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (!file) return;
+
+          const key = input.getAttribute('data-key');
+          const slotCard = container.querySelector(`.media-import-slot-card[data-key="${key}"]`);
+          const statusBadge = slotCard ? slotCard.querySelector('.slot-status-badge') : null;
+
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            pendingImportUploadedMedia[key] = {
+              dataUrl: evt.target.result,
+              name: file.name,
+              type: file.type
+            };
+
+            if (statusBadge) {
+              statusBadge.style.background = '#dcfce7';
+              statusBadge.style.color = '#166534';
+              statusBadge.innerHTML = `<i class="fa-solid fa-circle-check"></i> تم التعيين: ${escapeHtml(file.name)}`;
+            }
+          };
+          reader.readAsDataURL(file);
+        });
+      });
+
+      modal.classList.remove('hidden');
+    };
+
+    const closeTemplateMediaImportModal = () => {
+      const modal = document.getElementById('modal-template-media-import');
+      if (modal) modal.classList.add('hidden');
+      pendingImportTemplate = null;
+      pendingImportUploadedMedia = {};
+    };
+
+    const applyFinalImportedTemplate = () => {
+      if (!pendingImportTemplate) return;
+
+      const tmpl = pendingImportTemplate;
+      const settings = tmpl.settings || tmpl;
+
+      // Apply uploaded media into settings
+      if (pendingImportUploadedMedia['slidesBg']) {
+        if (!settings.slidesBgConfig) settings.slidesBgConfig = {};
+        settings.slidesBgConfig.url = pendingImportUploadedMedia['slidesBg'].dataUrl;
+        settings.slidesBgConfig.type = pendingImportUploadedMedia['slidesBg'].type.startsWith('video/') ? 'custom_video' : 'custom_image';
+      }
+      if (pendingImportUploadedMedia['standby']) {
+        if (!settings.standbyConfig) settings.standbyConfig = {};
+        settings.standbyConfig.url = pendingImportUploadedMedia['standby'].dataUrl;
+        settings.standbyConfig.type = pendingImportUploadedMedia['standby'].type.startsWith('video/') ? 'custom_video' : 'custom_image';
+      }
+      if (pendingImportUploadedMedia['transition']) {
+        if (!settings.transitionConfig) settings.transitionConfig = {};
+        settings.transitionConfig.stingerUrl = pendingImportUploadedMedia['transition'].dataUrl;
+        settings.transitionConfig.type = 'stinger';
+      }
+      if (pendingImportUploadedMedia['font']) {
+        settings.customFontDataUrl = pendingImportUploadedMedia['font'].dataUrl;
+        settings.customFontName = pendingImportUploadedMedia['font'].name.replace(/\.[^/.]+$/, "");
+        settings.font = settings.customFontName;
+      }
+
+      const templates = getUserTemplates();
+      const newTemplate = {
+        id: 'tmpl_' + Date.now(),
+        name: tmpl.name || 'قالب مستورد',
+        createdAt: new Date().toISOString(),
+        settings: settings
+      };
+
+      templates.unshift(newTemplate);
+      saveUserTemplates(templates);
+      renderUserTemplatesList();
+      renderQuickTemplatesDropdown();
+      applyStyleSnapshot(settings, newTemplate.name);
+
+      closeTemplateMediaImportModal();
+      showToast(`تم استيراد وتطبيق قالب "${newTemplate.name}" مع الوسائط المرفوعة بنجاح!`);
+    };
+
+    const btnCloseMediaModal = document.getElementById('btn-close-template-media-modal');
+    const btnSkipMediaModal = document.getElementById('btn-skip-template-media-import');
+    const btnFinishMediaModal = document.getElementById('btn-finish-template-media-import');
+
+    if (btnCloseMediaModal) btnCloseMediaModal.addEventListener('click', closeTemplateMediaImportModal);
+    if (btnSkipMediaModal) btnSkipMediaModal.addEventListener('click', applyFinalImportedTemplate);
+    if (btnFinishMediaModal) btnFinishMediaModal.addEventListener('click', applyFinalImportedTemplate);
 
     if (els.btnSaveCustomTemplate && els.customTemplateNameInput) {
       els.btnSaveCustomTemplate.addEventListener('click', () => {
@@ -3655,6 +3867,46 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    // Previous / Next Template Instant Toggle Buttons
+    const btnPrevTemplate = document.getElementById('btn-prev-template');
+    const btnNextTemplate = document.getElementById('btn-next-template');
+
+    const cycleTemplate = (direction) => {
+      const templates = getUserTemplates();
+      if (templates.length === 0) {
+        showToast('لا توجد قوالب مخصصة محفوظة للتبديل بينها!', 'warning');
+        return;
+      }
+
+      const activeName = state.activeTemplateName || '';
+      let currentIndex = templates.findIndex(t => t.name === activeName);
+      if (currentIndex === -1) currentIndex = (direction === 1 ? 0 : templates.length - 1);
+      else currentIndex = currentIndex + direction;
+
+      if (currentIndex < 0) currentIndex = templates.length - 1;
+      if (currentIndex >= templates.length) currentIndex = 0;
+
+      const targetTemplate = templates[currentIndex];
+      if (targetTemplate && targetTemplate.settings) {
+        applyStyleSnapshot(targetTemplate.settings, targetTemplate.name);
+        showToast(`تم التبديل إلى قالب: "${targetTemplate.name}"`);
+      }
+    };
+
+    if (btnPrevTemplate) {
+      btnPrevTemplate.addEventListener('click', (e) => {
+        e.stopPropagation();
+        cycleTemplate(-1);
+      });
+    }
+
+    if (btnNextTemplate) {
+      btnNextTemplate.addEventListener('click', (e) => {
+        e.stopPropagation();
+        cycleTemplate(1);
+      });
+    }
+
     const btnQuickSaveHeader = document.getElementById('btn-quick-save-template-header');
     if (btnQuickSaveHeader) {
       btnQuickSaveHeader.addEventListener('click', (e) => {
@@ -3698,20 +3950,31 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const name = parsed.name || file.name.replace('.json', '');
-            const templates = getUserTemplates();
-            const newTemplate = {
-              id: 'tmpl_' + Date.now(),
+            const templateObj = {
               name: name,
-              createdAt: new Date().toISOString(),
-              settings: tmplSettings
+              settings: tmplSettings,
+              requiredMedia: parsed.requiredMedia || generateTemplateExportPayload({ name: name, settings: tmplSettings }).requiredMedia
             };
 
-            templates.unshift(newTemplate);
-            saveUserTemplates(templates);
-            renderUserTemplatesList();
-            renderQuickTemplatesDropdown();
-            applyStyleSnapshot(tmplSettings, name);
-            showToast(`تم استيراد وتطبيق قالب "${name}"!`);
+            // If template requires media files, trigger the interactive Media Import Wizard
+            if (templateObj.requiredMedia && templateObj.requiredMedia.length > 0) {
+              openTemplateMediaImportModal(templateObj);
+            } else {
+              const templates = getUserTemplates();
+              const newTemplate = {
+                id: 'tmpl_' + Date.now(),
+                name: name,
+                createdAt: new Date().toISOString(),
+                settings: tmplSettings
+              };
+
+              templates.unshift(newTemplate);
+              saveUserTemplates(templates);
+              renderUserTemplatesList();
+              renderQuickTemplatesDropdown();
+              applyStyleSnapshot(tmplSettings, name);
+              showToast(`تم استيراد وتطبيق قالب "${name}"!`);
+            }
           } catch (err) {
             console.error('Import template parse error:', err);
             showToast('حدث خطأ أثناء قراءة ملف القالب!', 'error');
@@ -8140,9 +8403,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     reader.readAsText(file);
   }
-
-  let activePostUrl = null;
-  let lastHttpPushTime = 0;
 
   function sendLivePayload(postBody) {
     const headers = { 'Content-Type': 'application/json' };
