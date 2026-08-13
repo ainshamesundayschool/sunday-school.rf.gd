@@ -854,7 +854,12 @@ function correctWithArabicDictionary(draftArabic, dictionary) {
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
+    navigator.serviceWorker.register('./sw.js', { scope: './' })
+      .then(reg => {
+        // Auto-check for updates every 30 minutes
+        setInterval(() => { reg.update().catch(() => {}); }, 30 * 60 * 1000);
+      })
+      .catch(() => {});
   });
 }
 
@@ -1701,25 +1706,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
   init();
 
-  function unregisterAndClearCaches() {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(registrations => {
-        for (let registration of registrations) {
-          registration.unregister();
-        }
-      }).catch(() => {});
-    }
-    if ('caches' in window) {
-      caches.keys().then(names => {
-        for (let name of names) {
-          caches.delete(name);
-        }
-      }).catch(() => {});
-    }
+  function setupNetworkSync() {
+    window.addEventListener('online', () => {
+      showToast('تم استعادة الاتصال بالإنترنت — جاري مزامنة البيانات...', 'info');
+      fetch('./songs_catalog.json?t=' + Date.now())
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data) && data.length > 0) {
+            state.allSongs = data;
+            state.songIndex = buildSearchIndex(data);
+            showToast('تم تحديث مكتبة الترانيم تلقائياً بنجاح!');
+          }
+        })
+        .catch(() => {});
+
+      if (typeof syncLiveState === 'function') {
+        syncLiveState();
+      }
+    });
+
+    window.addEventListener('offline', () => {
+      showToast('أنت الآن في وضع عدم الاتصال (Offline) — كافة الترانيم والإعدادات متاحة محلياً!', 'warning');
+    });
   }
 
   function init() {
-    unregisterAndClearCaches();
+    setupNetworkSync();
     applyUrlStyleSettings();
     applyInitialUIState();
     bindEvents();

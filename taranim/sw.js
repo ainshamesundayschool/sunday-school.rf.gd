@@ -1,46 +1,43 @@
-// TARANIM PWA & OBS PRESENTER SERVICE WORKER (NETWORK-FIRST FOR LIVE REFRESH)
-const CACHE_NAME = 'taranim-pwa-v26';
+// TARANIM PWA & OBS PRESENTER SERVICE WORKER (OFFLINE FIRST WITH SMART SYNC)
+const CACHE_NAME = 'taranim-pwa-v30';
+
 const PRECACHE_ASSETS = [
-  '/',
   './',
-  'index.html',
   './index.html',
-  'present.html',
   './present.html',
-  'style.css',
   './style.css',
-  'app.js',
   './app.js',
-  'favicon.ico',
+  './manifest.json',
   './favicon.ico',
-  'logoicon.png',
   './logoicon.png',
-  'logo.png',
   './logo.png',
-  'logo_t.png',
   './logo_t.png',
-  'logo_tw.png',
   './logo_tw.png',
-  'song_scales_map.js',
   './song_scales_map.js',
-  'song_scales_map.json',
   './song_scales_map.json',
-  'arabic_dictionary.json',
   './arabic_dictionary.json',
-  'bible_books_data.json',
   './bible_books_data.json',
-  'bible_chapters_data.json',
   './bible_chapters_data.json',
-  'songs_catalog.json',
   './songs_catalog.json',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css'
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css',
+  'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js'
 ];
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(PRECACHE_ASSETS).catch(() => {});
+    caches.open(CACHE_NAME).then(async (cache) => {
+      // Fetch each asset individually so one failure doesn't abort the entire cache
+      for (const asset of PRECACHE_ASSETS) {
+        try {
+          const response = await fetch(asset, { cache: 'no-cache' });
+          if (response && response.ok) {
+            await cache.put(asset, response);
+          }
+        } catch (e) {
+          console.warn('[SW] Precache skipped for:', asset);
+        }
+      }
     })
   );
 });
@@ -50,13 +47,13 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
-          if (key !== CACHE_NAME) {
+          if (key !== CACHE_NAME && key.startsWith('taranim-pwa-')) {
             return caches.delete(key);
           }
         })
       );
     }).then(() => {
-      return self.clients.claim().catch(() => {});
+      return self.clients.claim();
     })
   );
 });
@@ -69,7 +66,7 @@ self.addEventListener('fetch', (event) => {
   if (url.includes('api.php?action=live')) {
     event.respondWith(
       fetch(event.request).catch(() => {
-        return new Response(JSON.stringify({ status: 'offline' }), {
+        return new Response(JSON.stringify({ status: 'offline', local: true }), {
           status: 200,
           headers: { 'Content-Type': 'application/json; charset=utf-8' }
         });
@@ -78,108 +75,98 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Handle HTML, JS, CSS requests Network-First to guarantee instant updates
-  const isCodeAsset = event.request.mode === 'navigate' || 
-                      event.request.destination === 'document' ||
-                      url.includes('present.html') ||
-                      url.includes('index.html') ||
-                      url.endsWith('.js') ||
-                      url.endsWith('.css') ||
-                      (event.request.headers.get('accept') || '').includes('text/html');
-
-  if (isCodeAsset) {
+  // Navigation requests (HTML pages): Network First, fallback to cached HTML
+  if (event.request.mode === 'navigate' || (event.request.headers.get('accept') || '').includes('text/html')) {
     event.respondWith(
       (async () => {
         try {
-          const networkResponse = await fetch(event.request);
+          // Attempt network fetch with a timeout
+          const networkPromise = fetch(event.request);
+          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Network timeout')), 2500));
+          const networkResponse = await Promise.race([networkPromise, timeoutPromise]);
+          
           if (networkResponse && networkResponse.status === 200) {
             const cache = await caches.open(CACHE_NAME);
             cache.put(event.request, networkResponse.clone());
+            return networkResponse;
           }
-          return networkResponse;
         } catch (err) {
-          const cache = await caches.open(CACHE_NAME);
-          const cached = await cache.match(event.request, { ignoreSearch: true });
-          if (cached) return cached;
-
-          // Reliable Fallbacks when network is completely offline/rejected
-          if (url.includes('present.html')) {
-            const matchPresent = (await cache.match('./present.html', { ignoreSearch: true })) ||
-                                 (await cache.match('present.html', { ignoreSearch: true }));
-            if (matchPresent) return matchPresent;
-          }
-
-          if (url.includes('index.html') || event.request.mode === 'navigate' || (event.request.headers.get('accept') || '').includes('text/html')) {
-            const matchIndex = (await cache.match('./index.html', { ignoreSearch: true })) ||
-                               (await cache.match('index.html', { ignoreSearch: true })) ||
-                               (await cache.match('./', { ignoreSearch: true }));
-            if (matchIndex) return matchIndex;
-          }
-
-          if (url.endsWith('.js') || url.includes('.js?')) {
-            const matchJs = (await cache.match('./app.js', { ignoreSearch: true })) ||
-                            (await cache.match('app.js', { ignoreSearch: true }));
-            if (matchJs) return matchJs;
-            return new Response('/* Offline JS */', { status: 200, headers: { 'Content-Type': 'application/javascript' } });
-          }
-
-          if (url.endsWith('.css') || url.includes('.css?')) {
-            const matchCss = (await cache.match('./style.css', { ignoreSearch: true })) ||
-                             (await cache.match('style.css', { ignoreSearch: true }));
-            if (matchCss) return matchCss;
-            return new Response('/* Offline CSS */', { status: 200, headers: { 'Content-Type': 'text/css' } });
-          }
-
-          return new Response('<!DOCTYPE html><html dir="rtl"><head><meta charset="utf-8"><title>غير متصل</title></head><body style="font-family:sans-serif;padding:20px;text-align:center;"><h2>غير متصل بالإنترنت</h2><p>يرجى التحقق من اتصالك بالإنترنت وإعادة المحاولة.</p></body></html>', {
-            status: 200,
-            headers: { 'Content-Type': 'text/html; charset=utf-8' }
-          });
+          // Network failed or timed out — check cache
         }
+
+        const cache = await caches.open(CACHE_NAME);
+        const cached = await cache.match(event.request, { ignoreSearch: true });
+        if (cached) return cached;
+
+        if (url.includes('present.html')) {
+          const matchPresent = await cache.match('./present.html', { ignoreSearch: true });
+          if (matchPresent) return matchPresent;
+        }
+
+        const matchIndex = (await cache.match('./index.html', { ignoreSearch: true })) ||
+                           (await cache.match('./', { ignoreSearch: true }));
+        if (matchIndex) return matchIndex;
+
+        return new Response('<!DOCTYPE html><html dir="rtl"><head><meta charset="utf-8"><title>وضع عدم الاتصال</title></head><body style="font-family:sans-serif;padding:30px;text-align:center;background:#0f172a;color:#ffffff;"><h2>أنت في وضع عدم الاتصال</h2><p>جاري تشغيل المنظومة من الذاكرة المحلية.</p></body></html>', {
+          status: 200,
+          headers: { 'Content-Type': 'text/html; charset=utf-8' }
+        });
       })()
     );
     return;
   }
 
-  // Cache-First with ignoreSearch for all static assets
-  event.respondWith(
-    (async () => {
-      try {
-        const cachedResponse = await caches.match(event.request, { ignoreSearch: true });
-        if (cachedResponse) {
-          if (navigator.onLine) {
-            fetch(event.request).then((networkResponse) => {
-              if (networkResponse && networkResponse.status === 200) {
-                caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
-              }
-            }).catch(() => {});
-          }
-          return cachedResponse;
-        }
-
-        if (navigator.onLine) {
-          const networkResponse = await fetch(event.request);
+  // JSON databases (songs_catalog, bible data, arabic dictionary): Stale-While-Revalidate
+  if (url.endsWith('.json') || url.includes('.json?')) {
+    event.respondWith(
+      caches.open(CACHE_NAME).then(async (cache) => {
+        const cachedResponse = await cache.match(event.request, { ignoreSearch: true });
+        const fetchPromise = fetch(event.request).then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
-            const responseToCache = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
+            cache.put(event.request, networkResponse.clone());
           }
           return networkResponse;
-        }
-      } catch (err) {}
+        }).catch(() => null);
 
-      // Fallbacks when offline
-      if (url.endsWith('.css') || url.includes('.css?')) {
-        const cssRes = await caches.match('./style.css', { ignoreSearch: true }) || await caches.match('style.css', { ignoreSearch: true });
-        return cssRes || new Response('/* Offline CSS */', { status: 200, headers: { 'Content-Type': 'text/css' } });
+        return cachedResponse || (await fetchPromise) || new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
+      })
+    );
+    return;
+  }
+
+  // Static Assets (CSS, JS, Images, Fonts): Cache First with Background Update
+  event.respondWith(
+    caches.open(CACHE_NAME).then(async (cache) => {
+      const cachedResponse = await cache.match(event.request, { ignoreSearch: true });
+      if (cachedResponse) {
+        // Fetch in background to update cache if online
+        if (navigator.onLine) {
+          fetch(event.request).then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200) {
+              cache.put(event.request, networkResponse);
+            }
+          }).catch(() => {});
+        }
+        return cachedResponse;
       }
-      if (url.endsWith('.js') || url.includes('.js?')) {
-        const jsRes = await caches.match('./app.js', { ignoreSearch: true }) || await caches.match('app.js', { ignoreSearch: true });
-        return jsRes || new Response('/* Offline JS */', { status: 200, headers: { 'Content-Type': 'application/javascript' } });
+
+      try {
+        const networkResponse = await fetch(event.request);
+        if (networkResponse && networkResponse.status === 200) {
+          cache.put(event.request, networkResponse.clone());
+        }
+        return networkResponse;
+      } catch (err) {
+        if (url.endsWith('.css') || url.includes('.css?')) {
+          const cssRes = await cache.match('./style.css', { ignoreSearch: true });
+          if (cssRes) return cssRes;
+        }
+        if (url.endsWith('.js') || url.includes('.js?')) {
+          const jsRes = await cache.match('./app.js', { ignoreSearch: true });
+          if (jsRes) return jsRes;
+        }
+        return new Response('', { status: 200, statusText: 'OK' });
       }
-      if (url.endsWith('.json') || url.includes('.json?')) {
-        const jsonRes = await caches.match(event.request, { ignoreSearch: true });
-        return jsonRes || new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
-      }
-      return new Response('', { status: 200, statusText: 'OK' });
-    })()
+    })
   );
 });
