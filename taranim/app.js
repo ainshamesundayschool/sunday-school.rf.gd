@@ -4228,6 +4228,38 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    const fetchServerTemplates = async () => {
+      try {
+        const res = await fetch('api.php?action=templates').catch(() => null);
+        if (res && res.ok) {
+          const data = await res.json();
+          if (data && data.status === 'success' && Array.isArray(data.templates) && data.templates.length > 0) {
+            state.availableTemplates = data.templates;
+            if (els.slidesBgTemplateSelect) {
+              els.slidesBgTemplateSelect.innerHTML = data.templates
+                .filter(t => t.slidesBg)
+                .map(t => `<option value="${t.slidesBg}">${escapeHtml(t.name)}</option>`)
+                .join('');
+            }
+            if (els.standbyTemplateSelect) {
+              els.standbyTemplateSelect.innerHTML = data.templates
+                .filter(t => t.standby)
+                .map(t => `<option value="${t.standby}">${escapeHtml(t.name)}</option>`)
+                .join('');
+            }
+            if (els.stingerTemplateSelect) {
+              const opts = data.templates
+                .filter(t => t.stringer)
+                .map(t => `<option value="${t.stringer}">${escapeHtml(t.name)} (Stinger WebM)</option>`)
+                .join('');
+              els.stingerTemplateSelect.innerHTML = opts + `<option value="custom">ستنجر مخصص من الجهاز (.webm)...</option>`;
+            }
+            renderBuiltinTemplates();
+          }
+        }
+      } catch (e) {}
+    };
+
     renderSavedTemplates();
 
     updateSlidesBgUI();
