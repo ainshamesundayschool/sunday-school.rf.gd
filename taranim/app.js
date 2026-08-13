@@ -7043,7 +7043,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const fWeight = (styleOptions && styleOptions.fontWeight) || '400';
 
       const isBible = Boolean(isFullSlideOrBible || (styleOptions && (styleOptions.isBible || styleOptions.is_bible)));
-      let startTestSize = isFullSlideOrBible ? 140 : baseSize;
+      let startTestSize = isFullSlideOrBible ? 120 : (baseSize || 54);
       let minAllowed = startTestSize;
 
       slideTexts.forEach(slideText => {
