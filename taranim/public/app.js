@@ -8768,6 +8768,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (standbyConf.type === 'template' || standbyConf.type === 'custom_video') {
+          if (obsSlidesBgContainer) obsSlidesBgContainer.classList.add('hidden');
           if (standbyEl) standbyEl.classList.add('hidden');
           if (obsStandbyFullscreenContainer && obsStandbyFullscreenVideo) {
             const vUrl = standbyConf.url || 'Templates/Standby/Shabahak Akon 2026/Shabahak Akoon Loop.mp4';
@@ -8784,6 +8785,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (obsStandbyFullscreenVideo.paused) obsStandbyFullscreenVideo.play().catch(() => {});
           }
         } else if (standbyConf.type === 'custom_image' && standbyConf.url) {
+          if (obsSlidesBgContainer) obsSlidesBgContainer.classList.add('hidden');
           if (standbyEl) standbyEl.classList.add('hidden');
           if (obsStandbyFullscreenContainer && obsStandbyFullscreenImg) {
             obsStandbyFullscreenImg.src = standbyConf.url;
@@ -8795,7 +8797,7 @@ document.addEventListener('DOMContentLoaded', () => {
             obsStandbyFullscreenContainer.classList.remove('hidden');
           }
         } else {
-          // Default logo
+          // Default logo: Keep slides background active underneath if configured
           if (obsStandbyFullscreenContainer) {
             obsStandbyFullscreenContainer.classList.add('hidden');
             if (obsStandbyFullscreenVideo && !obsStandbyFullscreenVideo.paused) {

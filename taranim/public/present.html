@@ -2129,7 +2129,14 @@
             setTimeout(() => {
               // Swap content at cut point
               if (isStandbyMode) {
-                if (slidesLayer) slidesLayer.classList.add('hidden');
+                const isLogoStandby = (!data.standbyConfig || data.standbyConfig.type === 'logo');
+                const hasSlidesBg = Boolean(data.slidesBgConfig && data.slidesBgConfig.type !== 'none' && data.slidesBgConfig.url);
+
+                if (isLogoStandby && hasSlidesBg) {
+                  if (slidesLayer) slidesLayer.classList.remove('hidden');
+                } else {
+                  if (slidesLayer) slidesLayer.classList.add('hidden');
+                }
                 if (standbyLayer) standbyLayer.classList.remove('hidden', 'luma-wipe-outgoing');
                 if (textEl) textEl.classList.add('hidden');
                 updateStandbyMediaDisplay(true);
@@ -2158,6 +2165,9 @@
           }
         } else if (transType === 'luma_sinus9' || transType === 'luma_center') {
           if (isStandbyMode) {
+            const isLogoStandby = (!data.standbyConfig || data.standbyConfig.type === 'logo');
+            const hasSlidesBg = Boolean(data.slidesBgConfig && data.slidesBgConfig.type !== 'none' && data.slidesBgConfig.url);
+
             // OUTGOING: Slides (underneath), INCOMING: Standby (center reveal on top)
             if (slidesLayer) {
               slidesLayer.classList.remove('hidden', 'luma-wipe-incoming-center');
@@ -2173,7 +2183,7 @@
             updateStandbyMediaDisplay(true);
 
             setTimeout(() => {
-              if (slidesLayer) slidesLayer.classList.add('hidden');
+              if (slidesLayer && (!isLogoStandby || !hasSlidesBg)) slidesLayer.classList.add('hidden');
               if (standbyLayer) {
                 standbyLayer.classList.remove('luma-wipe-incoming-center');
                 standbyLayer.style.zIndex = '6';
@@ -2216,10 +2226,22 @@
         }
       } else {
         if (isStandbyMode) {
-          if (slidesLayer) slidesLayer.classList.add('hidden');
+          const isLogoStandby = (!data.standbyConfig || data.standbyConfig.type === 'logo');
+          const hasSlidesBg = Boolean(data.slidesBgConfig && data.slidesBgConfig.type !== 'none' && data.slidesBgConfig.url);
+
+          if (isLogoStandby && hasSlidesBg) {
+            if (slidesLayer) {
+              slidesLayer.classList.remove('hidden', 'luma-wipe-outgoing');
+              slidesLayer.style.zIndex = '5';
+            }
+          } else {
+            if (slidesLayer) slidesLayer.classList.add('hidden');
+          }
+
           if (standbyLayer) {
             standbyLayer.classList.remove('hidden', 'luma-wipe-outgoing');
             standbyLayer.style.zIndex = '6';
+            standbyLayer.style.background = 'transparent';
           }
           if (textEl) textEl.classList.add('hidden');
           updateStandbyMediaDisplay(true);
