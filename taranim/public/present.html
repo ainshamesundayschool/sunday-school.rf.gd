@@ -1367,7 +1367,7 @@
         textEl.style.fontWeight = fWeight;
       }
 
-      const slideTextsToEvaluate = (statePresentationLines && statePresentationLines.length > 0) ? statePresentationLines : [textEl.innerText || textEl.textContent || ''];
+      const slideTextsToEvaluate = [textEl.innerText || textEl.textContent || ''];
       const safeSize = getSafeFontScaleSize(slideTextsToEvaluate, baseSize, curW, curH, currentFont, lastStyleData, isFullSlideOrBible);
 
       textEl.style.fontSize = `${safeSize}px`;
