@@ -1314,6 +1314,22 @@
       textEl.style.fontStyle = fStyle;
       textEl.style.textDecoration = tDeco;
 
+      const isAllInOne = (lastStyleData && (lastStyleData.mode === 'allinone' || lastStyleData.presentationMode === 'allinone')) || Boolean(textEl && textEl.innerHTML && textEl.innerHTML.includes('allinone-slide-group'));
+
+      if (isAllInOne) {
+        segments.forEach(s => {
+          s.style.display = 'block';
+          s.style.width = '100%';
+          s.style.whiteSpace = 'pre-wrap';
+          s.style.wordBreak = 'break-word';
+          s.style.overflowWrap = 'break-word';
+        });
+        const wrapper = textEl.querySelector('.obs-slide-wrapper') || textEl;
+        wrapper.style.transform = 'none';
+        applyDynamicShadow();
+        return;
+      }
+
       segments.forEach(s => {
         s.style.display = 'inline-block';
         s.style.width = 'auto';

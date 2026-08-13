@@ -1472,12 +1472,12 @@ input[type="checkbox"]:checked::after {
 .chorus-num {
   color: #ef4444 !important;
   font-weight: 700 !important;
-  font-size: min(0.52em, 16px) !important;
+  font-size: 0.72em !important;
 }
 
 .badge-num {
   font-weight: 700;
-  font-size: min(0.52em, 16px) !important;
+  font-size: 0.72em !important;
   display: inline-block;
   margin-left: 4px;
 }
@@ -1489,7 +1489,7 @@ input[type="checkbox"]:checked::after {
 .slide-badge-layer {
   color: #94a3b8 !important;
   font-weight: 700 !important;
-  font-size: min(0.52em, 16px) !important;
+  font-size: 0.72em !important;
 }
 
 .stanza-badge-side {
@@ -1530,7 +1530,7 @@ input[type="checkbox"]:checked::after {
   margin-left: 8px !important;
   margin-right: 0 !important;
   font-weight: 800 !important;
-  font-size: min(0.52em, 16px) !important;
+  font-size: 0.72em !important;
   line-height: 1 !important;
   white-space: nowrap !important;
   pointer-events: none !important;
@@ -4242,7 +4242,7 @@ body[data-mode="allinone"] #presenter-box {
   top: 4px !important;
   transform: none !important;
   margin: 0 !important;
-  font-size: min(0.52em, 16px) !important;
+  font-size: 0.72em !important;
   font-weight: 800 !important;
   display: inline-block !important;
   visibility: visible !important;
