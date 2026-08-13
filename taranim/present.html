@@ -928,30 +928,33 @@
     </div>
   </div>
 
-  <!-- SLIDES BACKGROUND MEDIA CONTAINER -->
-  <div id="slides-bg-container" class="slides-bg-container hidden">
-    <img id="slides-bg-img" class="slides-bg-media hidden" alt="Slides Background">
-    <video id="slides-bg-video" class="slides-bg-media hidden" playsinline webkit-playsinline muted loop></video>
-  </div>
-
-  <!-- STANDBY CUSTOM MEDIA CONTAINER (FULLSCREEN VIDEO / IMAGE) -->
-  <div id="standby-fullscreen-container" class="standby-fullscreen-container hidden">
-    <img id="standby-fullscreen-img" class="standby-fullscreen-media hidden" alt="Standby Image">
-    <video id="standby-fullscreen-video" class="standby-fullscreen-media hidden" playsinline webkit-playsinline muted loop></video>
-  </div>
-
-  <!-- TOP-LEFT BIBLE / CHAPTER REFERENCE HEADER -->
-  <div id="obs-top-left-header" class="obs-top-left-header hidden"></div>
-
-  <!-- MAGNETIC SNAP GUIDES -->
-  <div id="snap-guide-h" class="snap-guide horizontal hidden"></div>
-  <div id="snap-guide-v" class="snap-guide vertical hidden"></div>
-
-  <div class="lower-third-container" id="presenter-box">
-    <div id="standby-branding" class="standby-branding">
-      <img id="standby-default-logo" src="logo_tw.png" alt="Sunday School Logo" class="standby-logo">
+  <!-- FULL SCENE WRAPPER FOR SMOOTH FULL-SCREEN MIX TRANSITIONS -->
+  <div id="scene-presentation-wrapper" class="scene-presentation-wrapper">
+    <!-- SLIDES BACKGROUND MEDIA CONTAINER -->
+    <div id="slides-bg-container" class="slides-bg-container hidden">
+      <img id="slides-bg-img" class="slides-bg-media hidden" alt="Slides Background">
+      <video id="slides-bg-video" class="slides-bg-media hidden" playsinline webkit-playsinline muted loop></video>
     </div>
-    <div class="line-text hidden" id="presenter-text"></div>
+
+    <!-- STANDBY CUSTOM MEDIA CONTAINER (FULLSCREEN VIDEO / IMAGE) -->
+    <div id="standby-fullscreen-container" class="standby-fullscreen-container hidden">
+      <img id="standby-fullscreen-img" class="standby-fullscreen-media hidden" alt="Standby Image">
+      <video id="standby-fullscreen-video" class="standby-fullscreen-media hidden" playsinline webkit-playsinline muted loop></video>
+    </div>
+
+    <!-- TOP-LEFT BIBLE / CHAPTER REFERENCE HEADER -->
+    <div id="obs-top-left-header" class="obs-top-left-header hidden"></div>
+
+    <!-- MAGNETIC SNAP GUIDES -->
+    <div id="snap-guide-h" class="snap-guide horizontal hidden"></div>
+    <div id="snap-guide-v" class="snap-guide vertical hidden"></div>
+
+    <div class="lower-third-container" id="presenter-box">
+      <div id="standby-branding" class="standby-branding">
+        <img id="standby-default-logo" src="logo_tw.png" alt="Sunday School Logo" class="standby-logo">
+      </div>
+      <div class="line-text hidden" id="presenter-text"></div>
+    </div>
   </div>
 
   <!-- STINGER ALPHA VIDEO TRANSITION OVERLAY -->
@@ -2002,7 +2005,7 @@
             };
           }
         } else if (transType === 'luma_sinus9') {
-          const container = document.getElementById('presenter-box') || textEl;
+          const container = document.getElementById('scene-presentation-wrapper') || document.getElementById('presenter-box') || textEl;
           container.classList.remove('luma-wipe-active');
           void container.offsetWidth;
           container.classList.add('luma-wipe-active');
