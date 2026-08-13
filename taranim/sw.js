@@ -51,7 +51,9 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         keys.map((key) => caches.delete(key))
       );
-    }).then(() => self.clients.claim())
+    }).then(() => {
+      return self.clients.claim().catch(() => {});
+    })
   );
 });
 
