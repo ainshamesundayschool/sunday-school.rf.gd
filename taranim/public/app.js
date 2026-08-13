@@ -7430,24 +7430,12 @@ document.addEventListener('DOMContentLoaded', () => {
           const baseSize = state.fontSize || 105;
           const container = els.obsOverlay || els.obsLineText.parentElement || document.body;
           const containerW = Math.max(320, container.clientWidth || window.innerWidth);
-          const containerH = Math.max(240, container.clientHeight || window.innerHeight);
 
-          if (containerH > containerW) {
-            els.obsLineText.classList.add('obs-vertical-mode');
-          } else {
-            els.obsLineText.classList.remove('obs-vertical-mode');
-          }
+          // PROPORTIONAL RESIZE BASED ON CONTAINER/WINDOW WIDTH (ZERO FLICKER, PROPORTIONAL SCALE DOWN)
+          const scaleFactor = containerW / 1920;
+          const scaledFontSize = Math.max(14, Math.round(baseSize * scaleFactor));
+          els.obsLineText.style.fontSize = `${scaledFontSize}px`;
 
-          const isFullSlideOrBible = (state.presentationMode === 'fullslide' || Boolean(state.isBibleMode));
-          const currentTextToEval = snapText || '';
-          const calcKey = `${currentTextToEval}_${containerW}_${containerH}_${state.presentationMode}_${state.selectedFont}_${state.styleOptions?.fontWeight}`;
-          if (els._lastCalcKey !== calcKey) {
-            els._lastCalcKey = calcKey;
-            els._cachedComputedSize = getSafeFontScaleSize([currentTextToEval], baseSize, containerW, containerH, state.selectedFont, state.styleOptions, isFullSlideOrBible);
-          }
-
-          const fontToApply = isFullSlideOrBible ? (els._cachedComputedSize || baseSize) : baseSize;
-          els.obsLineText.style.fontSize = `${fontToApply}px`;
           const fixedLH = state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : 1.5;
           els.obsLineText.style.lineHeight = `${fixedLH}`;
 
