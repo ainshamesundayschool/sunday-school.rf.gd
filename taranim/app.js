@@ -2839,22 +2839,29 @@ document.addEventListener('DOMContentLoaded', () => {
     els.chromaSelect.addEventListener('change', (e) => {
       state.chromaKey = e.target.value;
 
+      const strokeBadge = document.getElementById('stroke-width-val-badge');
+      const shadowBlurBadge = document.getElementById('shadow-blur-val-badge');
+      const circleAnglePointer = document.getElementById('circle-angle-pointer');
+
       if (state.chromaKey === 'green' || state.chromaKey === 'blue' || state.chromaKey === 'transparent') {
         state.styleOptions.textColor = '#ffffff';
         state.styleOptions.strokeWidth = state.styleOptions.strokeWidth || 3;
-        state.styleOptions.strokeColor = '#000000';
+        state.styleOptions.strokeColor = state.styleOptions.strokeColor || '#000000';
         state.styleOptions.shadowBlur = state.styleOptions.shadowBlur || 18;
-        state.styleOptions.shadowColor = '#000000';
+        state.styleOptions.shadowColor = state.styleOptions.shadowColor || '#000000';
         state.styleOptions.shadowAngle = 142;
         state.styleOptions.shadowDistance = 13;
 
         if (els.obsTextColor) els.obsTextColor.value = '#ffffff';
         if (els.obsStrokeRange) els.obsStrokeRange.value = state.styleOptions.strokeWidth;
-        if (els.obsStrokeColor) els.obsStrokeColor.value = '#000000';
+        if (strokeBadge) strokeBadge.textContent = `${state.styleOptions.strokeWidth}px`;
+        if (els.obsStrokeColor) els.obsStrokeColor.value = state.styleOptions.strokeColor;
         if (els.obsShadowRange) els.obsShadowRange.value = state.styleOptions.shadowBlur;
-        if (els.obsShadowColor) els.obsShadowColor.value = '#000000';
+        if (shadowBlurBadge) shadowBlurBadge.textContent = `${state.styleOptions.shadowBlur}px`;
+        if (els.obsShadowColor) els.obsShadowColor.value = state.styleOptions.shadowColor;
         if (els.obsShadowAngleRange) els.obsShadowAngleRange.value = 142;
         if (els.shadowAngleBadge) els.shadowAngleBadge.textContent = '142°';
+        if (circleAnglePointer) circleAnglePointer.style.transform = 'rotate(142deg)';
         if (els.obsShadowDistanceRange) els.obsShadowDistanceRange.value = 13;
         if (els.shadowDistanceBadge) els.shadowDistanceBadge.textContent = '13px';
       } else if (state.chromaKey === 'black') {
@@ -2866,9 +2873,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (els.obsTextColor) els.obsTextColor.value = '#ffffff';
         if (els.obsStrokeRange) els.obsStrokeRange.value = 0;
+        if (strokeBadge) strokeBadge.textContent = '0px';
         if (els.obsShadowRange) els.obsShadowRange.value = 0;
+        if (shadowBlurBadge) shadowBlurBadge.textContent = '0px';
         if (els.obsShadowAngleRange) els.obsShadowAngleRange.value = 0;
         if (els.shadowAngleBadge) els.shadowAngleBadge.textContent = '0°';
+        if (circleAnglePointer) circleAnglePointer.style.transform = 'rotate(0deg)';
         if (els.obsShadowDistanceRange) els.obsShadowDistanceRange.value = 0;
         if (els.shadowDistanceBadge) els.shadowDistanceBadge.textContent = '0px';
       }

@@ -1362,14 +1362,6 @@
         lastStyleData = { ...lastStyleData, ...newData };
       }
       const data = lastStyleData;
-      const currentChroma = document.body.getAttribute('data-chroma') || (data && (data.chroma || data.chromaKey)) || 'black';
-      
-      if (currentChroma === 'black') {
-        textEl.style.textShadow = 'none';
-        textEl.style.webkitTextStroke = '0px transparent';
-        textEl.style.textStroke = '0px transparent';
-        return;
-      }
       
       const currentFontSize = parseFloat(textEl.style.fontSize) || data.fontSize || stateFontSize || 54;
       const scale = currentFontSize / 54;
