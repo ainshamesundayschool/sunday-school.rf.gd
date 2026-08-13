@@ -1,5 +1,5 @@
 // TARANIM PWA & OBS PRESENTER SERVICE WORKER (NETWORK-FIRST FOR LIVE REFRESH)
-const CACHE_NAME = 'taranim-pwa-v25';
+const CACHE_NAME = 'taranim-pwa-v26';
 const PRECACHE_ASSETS = [
   '/',
   './',
@@ -49,7 +49,11 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
-        keys.map((key) => caches.delete(key))
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
       );
     }).then(() => {
       return self.clients.claim().catch(() => {});
@@ -85,16 +89,53 @@ self.addEventListener('fetch', (event) => {
 
   if (isCodeAsset) {
     event.respondWith(
-      fetch(event.request).then(async (networkResponse) => {
-        if (networkResponse && networkResponse.status === 200) {
+      (async () => {
+        try {
+          const networkResponse = await fetch(event.request);
+          if (networkResponse && networkResponse.status === 200) {
+            const cache = await caches.open(CACHE_NAME);
+            cache.put(event.request, networkResponse.clone());
+          }
+          return networkResponse;
+        } catch (err) {
           const cache = await caches.open(CACHE_NAME);
-          cache.put(event.request, networkResponse.clone());
+          const cached = await cache.match(event.request, { ignoreSearch: true });
+          if (cached) return cached;
+
+          // Reliable Fallbacks when network is completely offline/rejected
+          if (url.includes('present.html')) {
+            const matchPresent = (await cache.match('./present.html', { ignoreSearch: true })) ||
+                                 (await cache.match('present.html', { ignoreSearch: true }));
+            if (matchPresent) return matchPresent;
+          }
+
+          if (url.includes('index.html') || event.request.mode === 'navigate' || (event.request.headers.get('accept') || '').includes('text/html')) {
+            const matchIndex = (await cache.match('./index.html', { ignoreSearch: true })) ||
+                               (await cache.match('index.html', { ignoreSearch: true })) ||
+                               (await cache.match('./', { ignoreSearch: true }));
+            if (matchIndex) return matchIndex;
+          }
+
+          if (url.endsWith('.js') || url.includes('.js?')) {
+            const matchJs = (await cache.match('./app.js', { ignoreSearch: true })) ||
+                            (await cache.match('app.js', { ignoreSearch: true }));
+            if (matchJs) return matchJs;
+            return new Response('/* Offline JS */', { status: 200, headers: { 'Content-Type': 'application/javascript' } });
+          }
+
+          if (url.endsWith('.css') || url.includes('.css?')) {
+            const matchCss = (await cache.match('./style.css', { ignoreSearch: true })) ||
+                             (await cache.match('style.css', { ignoreSearch: true }));
+            if (matchCss) return matchCss;
+            return new Response('/* Offline CSS */', { status: 200, headers: { 'Content-Type': 'text/css' } });
+          }
+
+          return new Response('<!DOCTYPE html><html dir="rtl"><head><meta charset="utf-8"><title>غير متصل</title></head><body style="font-family:sans-serif;padding:20px;text-align:center;"><h2>غير متصل بالإنترنت</h2><p>يرجى التحقق من اتصالك بالإنترنت وإعادة المحاولة.</p></body></html>', {
+            status: 200,
+            headers: { 'Content-Type': 'text/html; charset=utf-8' }
+          });
         }
-        return networkResponse;
-      }).catch(async () => {
-        const cache = await caches.open(CACHE_NAME);
-        return cache.match(event.request, { ignoreSearch: true });
-      })
+      })()
     );
     return;
   }
