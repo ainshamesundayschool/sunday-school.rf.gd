@@ -578,27 +578,21 @@
       background: transparent !important;
     }
 
-    /* TRUE OBS LUMA WIPE SINUS 9 ON OUTGOING LAYER */
-    .luma-wipe-outgoing {
-      z-index: 25 !important;
-      animation: obsLumaSinus9Wipe 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
+    /* TRUE BROADCAST CENTERED RADIAL LUMA REVEAL */
+    .luma-wipe-incoming-center {
+      z-index: 30 !important;
+      animation: obsLumaCenterReveal 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+      will-change: clip-path, -webkit-clip-path;
     }
 
-    @keyframes obsLumaSinus9Wipe {
+    @keyframes obsLumaCenterReveal {
       0% {
-        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
-      }
-      20% {
-        clip-path: polygon(0 0, 80% 0, 95% 25%, 75% 50%, 90% 75%, 70% 100%, 0 100%);
-      }
-      50% {
-        clip-path: polygon(0 0, 50% 0, 65% 25%, 45% 50%, 60% 75%, 40% 100%, 0 100%);
-      }
-      80% {
-        clip-path: polygon(0 0, 20% 0, 35% 25%, 15% 50%, 30% 75%, 10% 100%, 0 100%);
+        clip-path: circle(0% at 50% 50%);
+        -webkit-clip-path: circle(0% at 50% 50%);
       }
       100% {
-        clip-path: polygon(0 0, 0 0, 0 25%, 0 50%, 0 75%, 0 100%, 0 100%);
+        clip-path: circle(125% at 50% 50%);
+        -webkit-clip-path: circle(125% at 50% 50%);
       }
     }
 
@@ -2056,35 +2050,35 @@
               stingerEl.style.display = 'none';
             };
           }
-        } else if (transType === 'luma_sinus9') {
+        } else if (transType === 'luma_sinus9' || transType === 'luma_center') {
           if (isStandbyMode) {
-            // OUTGOING: Slides (top), INCOMING: Standby (underneath)
+            // OUTGOING: Slides (underneath), INCOMING: Standby (center reveal on top)
+            if (slidesLayer) {
+              slidesLayer.classList.remove('hidden', 'luma-wipe-incoming-center');
+              slidesLayer.style.zIndex = '5';
+            }
+
             if (standbyLayer) {
-              standbyLayer.classList.remove('hidden', 'luma-wipe-outgoing');
-              standbyLayer.style.zIndex = '5';
+              standbyLayer.classList.remove('hidden');
+              standbyLayer.classList.remove('luma-wipe-incoming-center');
+              void standbyLayer.offsetWidth;
+              standbyLayer.classList.add('luma-wipe-incoming-center');
             }
             updateStandbyMediaDisplay(true);
 
-            if (slidesLayer) {
-              slidesLayer.classList.remove('hidden');
-              slidesLayer.classList.remove('luma-wipe-outgoing');
-              void slidesLayer.offsetWidth;
-              slidesLayer.classList.add('luma-wipe-outgoing');
-            }
-
             setTimeout(() => {
-              if (slidesLayer) {
-                slidesLayer.classList.add('hidden');
-                slidesLayer.classList.remove('luma-wipe-outgoing');
+              if (slidesLayer) slidesLayer.classList.add('hidden');
+              if (standbyLayer) {
+                standbyLayer.classList.remove('luma-wipe-incoming-center');
+                standbyLayer.style.zIndex = '6';
               }
-              if (standbyLayer) standbyLayer.style.zIndex = '6';
-            }, 620);
+            }, 660);
             currentIsBlankState = true;
           } else {
-            // OUTGOING: Standby (top), INCOMING: Slides (underneath)
-            if (slidesLayer) {
-              slidesLayer.classList.remove('hidden', 'luma-wipe-outgoing');
-              slidesLayer.style.zIndex = '5';
+            // OUTGOING: Standby (underneath), INCOMING: Slides (center reveal on top)
+            if (standbyLayer) {
+              standbyLayer.classList.remove('hidden', 'luma-wipe-incoming-center');
+              standbyLayer.style.zIndex = '5';
             }
             if (isBlankMode || !hasTextContent) {
               if (textEl) textEl.classList.add('hidden');
@@ -2096,21 +2090,21 @@
               }
             }
 
-            if (standbyLayer) {
-              standbyLayer.classList.remove('hidden');
-              standbyLayer.classList.remove('luma-wipe-outgoing');
-              void standbyLayer.offsetWidth;
-              standbyLayer.classList.add('luma-wipe-outgoing');
+            if (slidesLayer) {
+              slidesLayer.classList.remove('hidden');
+              slidesLayer.classList.remove('luma-wipe-incoming-center');
+              void slidesLayer.offsetWidth;
+              slidesLayer.classList.add('luma-wipe-incoming-center');
             }
 
             setTimeout(() => {
-              if (standbyLayer) {
-                standbyLayer.classList.add('hidden');
-                standbyLayer.classList.remove('luma-wipe-outgoing');
-                standbyLayer.style.zIndex = '6';
+              if (standbyLayer) standbyLayer.classList.add('hidden');
+              if (slidesLayer) {
+                slidesLayer.classList.remove('luma-wipe-incoming-center');
+                slidesLayer.style.zIndex = '6';
               }
               updateStandbyMediaDisplay(false);
-            }, 620);
+            }, 660);
             currentIsBlankState = false;
           }
         }
