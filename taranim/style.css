@@ -1207,7 +1207,7 @@ input[type="checkbox"]:checked::after {
   background: #fef2f2 !important;
 }
 
-/* INLINE EXPANDABLE NEW PLAYLIST BAR (2 BUTTONS TOTAL: X and ✓) */
+/* INLINE EXPANDABLE NEW PLAYLIST BAR */
 .new-playlist-bar {
   display: flex;
   align-items: center;

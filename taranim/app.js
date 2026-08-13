@@ -3374,7 +3374,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const tmpl = getUserTemplates().find(item => item.id === id);
           if (tmpl && tmpl.settings) {
             applyStyleSnapshot(tmpl.settings);
-            showToast(`تم تطبيق قالب "${tmpl.name}" بنجاح! ✨`);
+            showToast(`تم تطبيق قالب "${tmpl.name}" بنجاح! `);
           }
         });
       });
@@ -3386,7 +3386,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (tmpl && tmpl.settings) {
             const shareUrl = `${window.location.origin}${window.location.pathname}?template=${encodeURIComponent(JSON.stringify(tmpl.settings))}`;
             navigator.clipboard.writeText(shareUrl).then(() => {
-              showToast(`تم نسخ رابط مشاركة قالب "${tmpl.name}"! 🔗`);
+              showToast(`تم نسخ رابط مشاركة قالب "${tmpl.name}"! `);
             }).catch(() => {
               prompt('انسخ رابط مشاركة القالب:', shareUrl);
             });
@@ -3404,7 +3404,7 @@ document.addEventListener('DOMContentLoaded', () => {
             a.href = URL.createObjectURL(blob);
             a.download = `template_${tmpl.name.replace(/\s+/g, '_')}.json`;
             a.click();
-            showToast(`تم تصدير قالب "${tmpl.name}"! 📤`);
+            showToast(`تم تصدير قالب "${tmpl.name}"! `);
           }
         });
       });
@@ -3440,7 +3440,7 @@ document.addEventListener('DOMContentLoaded', () => {
         saveUserTemplates(templates);
         els.customTemplateNameInput.value = '';
         renderUserTemplatesList();
-        showToast(`تم حفظ القالب "${name}" بنجاح! 💾`);
+        showToast(`تم حفظ القالب "${name}" بنجاح! `);
       });
     }
 
@@ -3472,7 +3472,7 @@ document.addEventListener('DOMContentLoaded', () => {
             saveUserTemplates(templates);
             renderUserTemplatesList();
             applyStyleSnapshot(tmplSettings);
-            showToast(`تم استيراد وتطبيق قالب "${name}"! 📥`);
+            showToast(`تم استيراد وتطبيق قالب "${name}"! `);
           } catch (err) {
             console.error('Import template parse error:', err);
             showToast('حدث خطأ أثناء قراءة ملف القالب!', 'error');
@@ -3496,7 +3496,7 @@ document.addEventListener('DOMContentLoaded', () => {
         a.href = URL.createObjectURL(blob);
         a.download = `taranim_all_templates_${Date.now()}.json`;
         a.click();
-        showToast('تم تصدير جميع القوالب بنجاح! 📤');
+        showToast('تم تصدير جميع القوالب بنجاح! ');
       });
     }
 
@@ -3508,7 +3508,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const settings = JSON.parse(raw);
           if (settings) {
             applyStyleSnapshot(settings);
-            showToast('تم تطبيق القالب المشارَك بنجاح! ✨');
+            showToast('تم تطبيق القالب المشارَك بنجاح! ');
           }
         }
       } catch (err) {
@@ -3543,7 +3543,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (els.btnToggleStandby) els.btnToggleStandby.classList.toggle('active-mode', state.isStandbyMode);
 
       syncLiveState(false, false, { triggerTransition: triggerTransition });
-      showToast(state.isStandbyMode ? 'تم التبديل إلى شاشة الانتظار (Standby) 📺' : 'تمت العودة إلى عرض الشرائح 🎤');
+      showToast(state.isStandbyMode ? 'تم التبديل إلى شاشة الانتظار (Standby) ' : 'تمت العودة إلى عرض الشرائح ');
     };
 
     if (els.btnToggleStandbyTop) {
@@ -3755,7 +3755,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const list = getSavedTemplates();
         list.unshift(newTemplate);
         saveSavedTemplates(list);
-        showToast(`تم حفظ قالب "${name.trim()}" بنجاح! 💾`);
+        showToast(`تم حفظ قالب "${name.trim()}" بنجاح! `);
       });
     }
 
@@ -3818,7 +3818,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateTextTransformUI();
         saveMediaConfig();
         syncLiveState();
-        showToast('تمت إعادة ضبط أبعاد وموضع النص 🔄');
+        showToast('تمت إعادة ضبط أبعاد وموضع النص ');
       });
     }
 
@@ -3981,7 +3981,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div>
             <div style="font-weight:800; font-size:0.92rem; color:#1e293b;"><i class="fa-solid fa-sparkles" style="color:#2563eb; margin-left:4px;"></i> ${escapeHtml(t.name)}</div>
             <div style="font-size:0.75rem; color:#64748b; margin-top:3px;">
-              ${t.standby ? '📺 شاشة انتظار لوب' : ''} ${t.slidesBg ? '• 🎬 خلفية شرائح' : ''} ${t.stringer ? '• ⚡ انتقال ستنجر' : ''}
+              ${t.standby ? ' شاشة انتظار لوب' : ''} ${t.slidesBg ? '•  خلفية شرائح' : ''} ${t.stringer ? '•  انتقال ستنجر' : ''}
             </div>
           </div>
           <button type="button" class="btn-apply-builtin-template btn btn-sm btn-primary" data-name="${escapeHtml(t.name)}" style="background:#2563eb; color:#fff; font-weight:700; padding:6px 14px; border-radius:8px;">
@@ -4012,7 +4012,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateTransitionUI();
             saveMediaConfig();
             syncLiveState(false, false, { triggerTransition: true });
-            showToast(`تم تطبيق قالب "${tmpl.name}" بالكامل! 🌟`);
+            showToast(`تم تطبيق قالب "${tmpl.name}" بالكامل! `);
           }
         });
       });
@@ -4143,7 +4143,7 @@ document.addEventListener('DOMContentLoaded', () => {
       saveUserSettings();
       saveMediaConfig();
       syncLiveState(false, false, { triggerTransition: true });
-      showToast(`تم تطبيق قالب "${t.name}" بنجاح! 🎨`);
+      showToast(`تم تطبيق قالب "${t.name}" بنجاح! `);
     };
 
     const exportTemplateZip = async (template) => {
@@ -4226,7 +4226,7 @@ document.addEventListener('DOMContentLoaded', () => {
         a.href = URL.createObjectURL(content);
         a.download = `${folderName}.zip`;
         a.click();
-        showToast(`تم تصدير قالب "${template.name}" كملف ZIP بنجاح! 📦`);
+        showToast(`تم تصدير قالب "${template.name}" كملف ZIP بنجاح! `);
       } catch(err) {
         showToast('تعذر تصدير ملف الـ ZIP');
       }
@@ -4282,7 +4282,7 @@ document.addEventListener('DOMContentLoaded', () => {
             list.unshift(parsed);
             saveSavedTemplates(list);
             applyFullTemplate(parsed);
-            showToast(`تم استيراد وتطبيق قالب "${parsed.name || file.name}" بنجاح! 🌟`);
+            showToast(`تم استيراد وتطبيق قالب "${parsed.name || file.name}" بنجاح! `);
           } else {
             showToast('لم يتم العثور على template.json في ملف الـ ZIP');
           }
@@ -4306,7 +4306,7 @@ document.addEventListener('DOMContentLoaded', () => {
               applyFullTemplate(parsed);
             }
             saveSavedTemplates(list);
-            showToast('تم استيراد القالب بنجاح! 🎨');
+            showToast('تم استيراد القالب بنجاح! ');
           } catch(err) {
             showToast('ملف JSON غير صالح');
           }
@@ -4347,7 +4347,7 @@ document.addEventListener('DOMContentLoaded', () => {
         list.unshift(newTemplate);
         saveSavedTemplates(list);
         customTemplateNameInput.value = '';
-        showToast(`تم حفظ قالب "${name}" بنجاح! 💾`);
+        showToast(`تم حفظ قالب "${name}" بنجاح! `);
       });
     }
 
@@ -4384,7 +4384,7 @@ document.addEventListener('DOMContentLoaded', () => {
           a.href = URL.createObjectURL(blob);
           a.download = `Taranim_All_Templates_${Date.now()}.zip`;
           a.click();
-          showToast('تم تصدير جميع القوالب في ملف ZIP بنجاح! 📦');
+          showToast('تم تصدير جميع القوالب في ملف ZIP بنجاح! ');
         } catch(e) {
           showToast('تعذر تصدير الحزمة');
         }
