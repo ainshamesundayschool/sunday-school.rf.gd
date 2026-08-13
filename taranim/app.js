@@ -6356,17 +6356,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let uniformScaleFactor = 1.0;
     if (maxSlideLines >= 6) {
-      uniformScaleFactor = 0.62;
+      uniformScaleFactor = 0.72;
     } else if (maxSlideLines === 5) {
-      uniformScaleFactor = 0.70;
-    } else if (maxSlideLines === 4) {
       uniformScaleFactor = 0.80;
+    } else if (maxSlideLines === 4) {
+      uniformScaleFactor = 0.88;
     } else if (maxSlideLines === 3) {
-      uniformScaleFactor = 0.92;
+      uniformScaleFactor = 0.96;
     }
 
-    if (maxSlideChars > 40) {
-      const charLimitScale = Math.min(1.0, 44 / maxSlideChars);
+    if (maxSlideChars > 45) {
+      const charLimitScale = Math.min(1.0, 52 / maxSlideChars);
       uniformScaleFactor = Math.min(uniformScaleFactor, charLimitScale);
     }
 
