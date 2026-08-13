@@ -750,16 +750,22 @@
     .obs-line-row {
       display: block;
       width: 100%;
+      max-width: 100%;
       text-align: center;
-      margin: 0.12em 0;
+      margin: 0.15em 0;
+      box-sizing: border-box;
     }
 
     .obs-line-segment {
       position: relative;
       isolation: isolate;
-      display: inline-block !important;
-      width: auto !important;
+      display: block;
+      width: 100%;
       max-width: 100%;
+      box-sizing: border-box;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: break-word;
       transition: color 0.25s ease;
     }
 
@@ -1604,9 +1610,9 @@
         const textAlignStyle = isJustify ? 'justify' : 'center';
 
         if (idx === 0) {
-          return `<div class="${rowClass}" style="position:relative; width: 100%; text-align: ${textAlignStyle};">${badgeHtml}<span class="obs-line-segment obs-first-line ${isBible ? 'obs-bible-segment' : ''}" data-line-idx="0" style="display: block; width: 100%; text-align: ${textAlignStyle};">${lineStr}</span></div>`;
+          return `<div class="${rowClass}" style="position:relative; width: 100%; text-align: ${textAlignStyle}; box-sizing: border-box;"><span class="obs-line-segment obs-first-line ${isBible ? 'obs-bible-segment' : ''}" data-line-idx="0" style="display: block; width: 100%; text-align: ${textAlignStyle};">${badgeHtml}${lineStr}</span></div>`;
         }
-        return `<div class="${rowClass}" style="width: 100%; text-align: ${textAlignStyle};"><span class="obs-line-segment ${isBible ? 'obs-bible-segment' : ''}" data-line-idx="${idx}" style="display: block; width: 100%; text-align: ${textAlignStyle};">${lineStr}</span></div>`;
+        return `<div class="${rowClass}" style="width: 100%; text-align: ${textAlignStyle}; box-sizing: border-box;"><span class="obs-line-segment ${isBible ? 'obs-bible-segment' : ''}" data-line-idx="${idx}" style="display: block; width: 100%; text-align: ${textAlignStyle};">${lineStr}</span></div>`;
       }).filter(Boolean).join('');
 
       const wrapperClass = isBible ? 'obs-lines-wrapper is-bible-lines' : 'obs-lines-wrapper';
@@ -1615,6 +1621,10 @@
 
     function applyState(data, source = 'local') {
       if (!data || typeof data !== 'object') return;
+
+      if (data.fontSize) {
+        stateFontSize = data.fontSize;
+      }
 
       // TIMESTAMP DEDUPLICATION: Ignore stale server/HTTP payloads if a newer local message was already rendered
       if (data.updatedAt && (source === 'server' || source === 'http')) {
