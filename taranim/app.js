@@ -3934,6 +3934,53 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    // Normalize imported template settings from any previous or current JSON format
+    const normalizeImportedSettings = (raw) => {
+      if (!raw || typeof raw !== 'object') return null;
+
+      const s = raw.settings || raw.styleOptions || raw;
+      
+      return {
+        // TAB 1: FONT, SPLITTING & TRANSFORMS
+        font: raw.font || raw.selectedFont || s.font || s.selectedFont || "'Alexandria', sans-serif",
+        fontSize: s.fontSize || raw.fontSize || 54,
+        customFontDataUrl: raw.customFontDataUrl || s.customFontDataUrl || '',
+        customFontName: raw.customFontName || s.customFontName || '',
+        presentationMode: raw.slideSplittingMode || raw.presentationMode || s.slideSplittingMode || s.presentationMode || 'fullslide',
+        slideSplittingMode: raw.slideSplittingMode || raw.presentationMode || s.slideSplittingMode || s.presentationMode || 'fullslide',
+        fontWeight: s.fontWeight || raw.fontWeight || '800',
+        fontStyle: s.fontStyle || raw.fontStyle || 'normal',
+        textDecoration: s.textDecoration || raw.textDecoration || 'none',
+        textColor: s.textColor || raw.textColor || '#ffffff',
+        textAlign: s.textAlign || raw.textAlign || 'center',
+        isJustified: Boolean(s.isJustified !== undefined ? s.isJustified : raw.isJustified),
+        letterSpacing: s.letterSpacing !== undefined ? s.letterSpacing : (raw.letterSpacing !== undefined ? raw.letterSpacing : 0),
+        lineHeight: s.lineHeight !== undefined ? s.lineHeight : (raw.lineHeight !== undefined ? raw.lineHeight : 1.2),
+        textTransform: s.textTransform || raw.textTransform || { scale: 100, rotation: 0, posX: 0, posY: 0 },
+
+        // TAB 2: EFFECTS (STROKE, SHADOW, BOX, ANIMATION)
+        strokeWidth: s.strokeWidth !== undefined ? s.strokeWidth : (raw.strokeWidth !== undefined ? raw.strokeWidth : 0),
+        strokeColor: s.strokeColor || raw.strokeColor || '#000000',
+        shadowBlur: s.shadowBlur !== undefined ? s.shadowBlur : (raw.shadowBlur !== undefined ? raw.shadowBlur : 0),
+        shadowColor: s.shadowColor || raw.shadowColor || '#000000',
+        shadowAngle: s.shadowAngle !== undefined ? s.shadowAngle : (raw.shadowAngle !== undefined ? raw.shadowAngle : 142),
+        shadowDistance: s.shadowDistance !== undefined ? s.shadowDistance : (raw.shadowDistance !== undefined ? raw.shadowDistance : 13),
+        boxBgColor: s.boxBgColor || raw.boxBgColor || '#000000',
+        boxOpacity: s.boxOpacity !== undefined ? s.boxOpacity : (raw.boxOpacity !== undefined ? raw.boxOpacity : 0),
+        boxRadius: s.boxRadius !== undefined ? s.boxRadius : (raw.boxRadius !== undefined ? raw.boxRadius : 12),
+        boxPadding: s.boxPadding !== undefined ? s.boxPadding : (raw.boxPadding !== undefined ? raw.boxPadding : 20),
+        textAnimation: s.textAnimation || raw.textAnimation || 'none',
+
+        // TAB 3: SCREEN & SLIDES BACKGROUND
+        chromaKey: s.chromaKey || raw.chromaKey || 'black',
+        slidesBgConfig: s.slidesBgConfig || raw.slidesBgConfig || { type: 'none', url: '', fitMode: 'cover', loop: true },
+
+        // TAB 4: STANDBY & TRANSITIONS
+        standbyConfig: s.standbyConfig || raw.standbyConfig || { type: 'logo', url: '', fitMode: 'cover', loop: true },
+        transitionConfig: s.transitionConfig || raw.transitionConfig || { type: 'stinger', stingerUrl: '', cutPointMs: 1200 }
+      };
+    };
+
     if (els.importTemplateFileInput) {
       els.importTemplateFileInput.addEventListener('change', (e) => {
         const file = e.target.files && e.target.files[0];
@@ -3942,22 +3989,69 @@ document.addEventListener('DOMContentLoaded', () => {
         const reader = new FileReader();
         reader.onload = (evt) => {
           try {
-            const parsed = JSON.parse(evt.target.result);
-            const tmplSettings = parsed.settings || (parsed.font ? parsed : null);
-            if (!tmplSettings) {
+            let content = evt.target.result;
+            // Remove UTF-8 BOM if present
+            if (content.charCodeAt(0) === 0xFEFF) {
+              content = content.slice(1);
+            }
+            const parsed = JSON.parse(content);
+
+            // 1. Handle Array of Templates (Batch Import)
+            if (Array.isArray(parsed)) {
+              if (parsed.length === 0) {
+                showToast('ملف القوالب فارغ!', 'warning');
+                return;
+              }
+              const templates = getUserTemplates();
+              let addedCount = 0;
+              parsed.forEach((item, idx) => {
+                const normSettings = normalizeImportedSettings(item);
+                if (normSettings) {
+                  templates.unshift({
+                    id: 'tmpl_' + Date.now() + '_' + idx,
+                    name: item.name || `قالب مستورد ${idx + 1}`,
+                    createdAt: item.createdAt || new Date().toISOString(),
+                    settings: normSettings
+                  });
+                  addedCount++;
+                }
+              });
+
+              if (addedCount > 0) {
+                saveUserTemplates(templates);
+                renderUserTemplatesList();
+                renderQuickTemplatesDropdown();
+                const first = templates[0];
+                if (first && first.settings) {
+                  applyStyleSnapshot(first.settings, first.name);
+                }
+                showToast(`تم استيراد ${addedCount} قوالب بنجاح!`);
+              } else {
+                showToast('لم يتم العثور على قوالب صالحة في الملف!', 'error');
+              }
+              return;
+            }
+
+            // 2. Handle Single Template Object
+            const normSettings = normalizeImportedSettings(parsed);
+            if (!normSettings) {
               showToast('ملف القالب غير صالح!', 'error');
               return;
             }
 
-            const name = parsed.name || file.name.replace('.json', '');
+            const name = parsed.name || file.name.replace(/\.json$/i, '');
+            const requiredMedia = (parsed.requiredMedia && Array.isArray(parsed.requiredMedia) && parsed.requiredMedia.length > 0)
+              ? parsed.requiredMedia
+              : [];
+
             const templateObj = {
               name: name,
-              settings: tmplSettings,
-              requiredMedia: parsed.requiredMedia || generateTemplateExportPayload({ name: name, settings: tmplSettings }).requiredMedia
+              settings: normSettings,
+              requiredMedia: requiredMedia
             };
 
-            // If template requires media files, trigger the interactive Media Import Wizard
-            if (templateObj.requiredMedia && templateObj.requiredMedia.length > 0) {
+            // If template explicitly requires media files that are missing
+            if (requiredMedia && requiredMedia.length > 0) {
               openTemplateMediaImportModal(templateObj);
             } else {
               const templates = getUserTemplates();
@@ -3965,15 +4059,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 id: 'tmpl_' + Date.now(),
                 name: name,
                 createdAt: new Date().toISOString(),
-                settings: tmplSettings
+                settings: normSettings
               };
 
               templates.unshift(newTemplate);
               saveUserTemplates(templates);
               renderUserTemplatesList();
               renderQuickTemplatesDropdown();
-              applyStyleSnapshot(tmplSettings, name);
-              showToast(`تم استيراد وتطبيق قالب "${name}"!`);
+              applyStyleSnapshot(normSettings, name);
+              showToast(`تم استيراد وتطبيق قالب "${name}" بنجاح!`);
             }
           } catch (err) {
             console.error('Import template parse error:', err);
@@ -3993,7 +4087,8 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
 
-        const blob = new Blob([JSON.stringify(templates, null, 2)], { type: 'application/json' });
+        const exportedList = templates.map(t => generateTemplateExportPayload(t));
+        const blob = new Blob([JSON.stringify(exportedList, null, 2)], { type: 'application/json' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = `taranim_all_templates_${Date.now()}.json`;
@@ -4008,8 +4103,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (params.has('template')) {
           const raw = params.get('template');
           const settings = JSON.parse(raw);
-          if (settings) {
-            applyStyleSnapshot(settings);
+          const normSettings = normalizeImportedSettings(settings);
+          if (normSettings) {
+            applyStyleSnapshot(normSettings);
             showToast('تم تطبيق القالب المشارَك بنجاح!');
           }
         }
