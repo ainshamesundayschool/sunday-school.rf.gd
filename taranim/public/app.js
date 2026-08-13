@@ -7520,15 +7520,11 @@ document.addEventListener('DOMContentLoaded', () => {
           }
 
           const isFullSlideOrBible = (state.presentationMode === 'fullslide' || Boolean(state.isBibleMode));
-          const validSlideItems = (targetLines && targetLines.length > 0)
-            ? targetLines.map(l => (l.lines && Array.isArray(l.lines)) ? l.lines.join('\n') : (l.text || '')).filter(t => t && t.trim() && !t.includes('allinone-slide-group'))
-            : [];
-          const allTextsToEval = (validSlideItems.length > 0) ? validSlideItems : [snapText];
-
-          const calcKey = `${allTextsToEval.join('~')}_${containerW}_${containerH}_${state.presentationMode}_${state.selectedFont}_${state.styleOptions?.fontWeight}`;
+          const currentTextToEval = snapText || '';
+          const calcKey = `${currentTextToEval}_${containerW}_${containerH}_${state.presentationMode}_${state.selectedFont}_${state.styleOptions?.fontWeight}`;
           if (els._lastCalcKey !== calcKey) {
             els._lastCalcKey = calcKey;
-            els._cachedComputedSize = getSafeFontScaleSize(allTextsToEval, baseSize, containerW, containerH, state.selectedFont, state.styleOptions, isFullSlideOrBible);
+            els._cachedComputedSize = getSafeFontScaleSize([currentTextToEval], baseSize, containerW, containerH, state.selectedFont, state.styleOptions, isFullSlideOrBible);
           }
 
           const fontToApply = isFullSlideOrBible ? (els._cachedComputedSize || baseSize) : baseSize;

@@ -1403,10 +1403,7 @@
         textEl.style.fontWeight = fWeight;
       }
 
-      const validPresentationLines = (statePresentationLines && Array.isArray(statePresentationLines) && statePresentationLines.length > 0)
-        ? statePresentationLines.filter(t => t && String(t).trim() && !String(t).includes('allinone-slide-group'))
-        : [];
-      const slideTextsToEvaluate = (validPresentationLines.length > 0) ? validPresentationLines : [textEl.innerText || textEl.textContent || ''];
+      const slideTextsToEvaluate = [textEl.innerText || textEl.textContent || ''];
       const safeSize = getSafeFontScaleSize(slideTextsToEvaluate, baseSize, curW, curH, currentFont, lastStyleData, isFullSlideOrBible);
 
       textEl.style.fontSize = `${safeSize}px`;
