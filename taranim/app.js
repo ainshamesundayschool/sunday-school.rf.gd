@@ -6985,16 +6985,21 @@ document.addEventListener('DOMContentLoaded', () => {
               isFirstSlideOfVerse = false;
             };
 
+            let effectiveLines = [];
             if (isBible) {
-              const multiLines = [];
               cleanLines.forEach(l => {
-                const sub = splitBibleTextIntoLines(l, 45);
-                multiLines.push(...sub);
+                const sub = splitBibleVerseIntoBalancedLines(l);
+                if (sub && sub.length > 0) effectiveLines.push(...sub);
+                else effectiveLines.push(l);
               });
-              pushSlideItem(multiLines.length > 0 ? multiLines : cleanLines);
-            } else if (mode === 'oneline') {
-              cleanLines.forEach((singleLine) => {
-                if (state.splitLongLines !== false) {
+              if (effectiveLines.length === 0) effectiveLines = cleanLines;
+            } else {
+              effectiveLines = cleanLines;
+            }
+
+            if (mode === 'oneline') {
+              effectiveLines.forEach((singleLine) => {
+                if (state.splitLongLines !== false && !isBible) {
                   const split2 = splitLineIntoTwo(singleLine);
                   pushSlideItem(split2);
                 } else {
@@ -7002,18 +7007,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
               });
             } else if (mode === 'twelines') {
-              for (let i = 0; i < cleanLines.length; i += 2) {
-                const pair = cleanLines.slice(i, i + 2);
+              for (let i = 0; i < effectiveLines.length; i += 2) {
+                const pair = effectiveLines.slice(i, i + 2);
                 pushSlideItem(pair);
               }
             } else if (mode === 'threelines') {
-              for (let i = 0; i < cleanLines.length; i += 3) {
-                const group = cleanLines.slice(i, i + 3);
+              for (let i = 0; i < effectiveLines.length; i += 3) {
+                const group = effectiveLines.slice(i, i + 3);
                 pushSlideItem(group);
               }
             } else {
-              // fullslide
-              pushSlideItem(cleanLines);
+              // fullslide: Whole verse / stanza as 1 complete slide
+              pushSlideItem(effectiveLines);
             }
           }
         });

@@ -1967,8 +1967,10 @@
           if (vUrl) {
             if (currentSlidesBgSrc !== vUrl) {
               currentSlidesBgSrc = vUrl;
-              slidesBgVideo.src = vUrl;
-              slidesBgVideo.load();
+              try {
+                slidesBgVideo.pause();
+                slidesBgVideo.src = vUrl;
+              } catch(e) {}
             }
             slidesBgVideo.muted = true;
             slidesBgVideo.loop = (bgConf.loop !== false);
@@ -1981,21 +1983,40 @@
           } else {
             currentSlidesBgSrc = '';
             slidesBgContainer.classList.add('hidden');
-            if (slidesBgVideo && !slidesBgVideo.paused) slidesBgVideo.pause();
+            if (slidesBgVideo) {
+              try {
+                slidesBgVideo.pause();
+                slidesBgVideo.removeAttribute('src');
+              } catch(e) {}
+            }
           }
         } else if (bgConf.type === 'custom_image' && bgConf.url) {
-          currentSlidesBgSrc = '';
+          if (currentSlidesBgSrc) {
+            currentSlidesBgSrc = '';
+            if (slidesBgVideo) {
+              try {
+                slidesBgVideo.pause();
+                slidesBgVideo.removeAttribute('src');
+              } catch(e) {}
+            }
+          }
           slidesBgImg.src = bgConf.url;
           slidesBgImg.classList.remove('hidden');
           slidesBgVideo.classList.add('hidden');
           slidesBgContainer.classList.remove('hidden');
-          if (slidesBgVideo && !slidesBgVideo.paused) slidesBgVideo.pause();
         } else {
-          currentSlidesBgSrc = '';
+          if (currentSlidesBgSrc) {
+            currentSlidesBgSrc = '';
+            if (slidesBgVideo) {
+              try {
+                slidesBgVideo.pause();
+                slidesBgVideo.removeAttribute('src');
+              } catch(e) {}
+            }
+          }
           slidesBgContainer.classList.add('hidden');
           slidesBgImg.classList.add('hidden');
           slidesBgVideo.classList.add('hidden');
-          if (slidesBgVideo && !slidesBgVideo.paused) slidesBgVideo.pause();
         }
       }
 
@@ -2020,7 +2041,7 @@
           }
           if (standbyFullscreenContainer) {
             standbyFullscreenContainer.classList.add('hidden');
-            if (standbyFullscreenVideo && !standbyFullscreenVideo.paused) {
+            if (standbyFullscreenVideo) {
               try { standbyFullscreenVideo.pause(); } catch(e) {}
             }
           }
@@ -2033,8 +2054,10 @@
             const vUrl = standbyConf.url || 'Templates/Standby/Shabahak Akon 2026/Shabahak Akoon Loop.mp4';
             if (currentStandbyBgSrc !== vUrl) {
               currentStandbyBgSrc = vUrl;
-              standbyFullscreenVideo.src = vUrl;
-              standbyFullscreenVideo.load();
+              try {
+                standbyFullscreenVideo.pause();
+                standbyFullscreenVideo.src = vUrl;
+              } catch(e) {}
             }
             standbyFullscreenVideo.muted = true;
             standbyFullscreenVideo.loop = (standbyConf.loop !== false);
@@ -2046,25 +2069,35 @@
             }
           }
         } else if (standbyConf.type === 'custom_image' && standbyConf.url) {
-          currentStandbyBgSrc = '';
+          if (currentStandbyBgSrc) {
+            currentStandbyBgSrc = '';
+            if (standbyFullscreenVideo) {
+              try {
+                standbyFullscreenVideo.pause();
+                standbyFullscreenVideo.removeAttribute('src');
+              } catch(e) {}
+            }
+          }
           if (standbyEl) standbyEl.classList.add('hidden');
           if (standbyFullscreenContainer && standbyFullscreenImg) {
             standbyFullscreenImg.src = standbyConf.url;
             standbyFullscreenImg.classList.remove('hidden');
-            if (standbyFullscreenVideo) {
-              standbyFullscreenVideo.classList.add('hidden');
-              if (!standbyFullscreenVideo.paused) standbyFullscreenVideo.pause();
-            }
+            if (standbyFullscreenVideo) standbyFullscreenVideo.classList.add('hidden');
             standbyFullscreenContainer.classList.remove('hidden');
           }
         } else {
-          currentStandbyBgSrc = '';
-          if (standbyFullscreenContainer) {
-            standbyFullscreenContainer.classList.add('hidden');
-            if (standbyFullscreenVideo && !standbyFullscreenVideo.paused) {
-              try { standbyFullscreenVideo.pause(); } catch(e) {}
+          if (currentStandbyBgSrc) {
+            currentStandbyBgSrc = '';
+            if (standbyFullscreenVideo) {
+              try {
+                standbyFullscreenVideo.pause();
+                standbyFullscreenVideo.removeAttribute('src');
+              } catch(e) {}
             }
           }
+          if (standbyFullscreenContainer) standbyFullscreenContainer.classList.add('hidden');
+          if (standbyFullscreenVideo) standbyFullscreenVideo.classList.add('hidden');
+          if (standbyFullscreenImg) standbyFullscreenImg.classList.add('hidden');
           if (standbyEl) {
             standbyEl.classList.remove('hidden');
             standbyEl.style.display = 'flex';
