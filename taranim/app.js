@@ -6355,16 +6355,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     let uniformScaleFactor = 1.0;
-    if (maxSlideLines >= 5) {
-      uniformScaleFactor = 0.58;
+    if (maxSlideLines >= 6) {
+      uniformScaleFactor = 0.62;
+    } else if (maxSlideLines === 5) {
+      uniformScaleFactor = 0.70;
     } else if (maxSlideLines === 4) {
-      uniformScaleFactor = 0.68;
+      uniformScaleFactor = 0.80;
     } else if (maxSlideLines === 3) {
-      uniformScaleFactor = 0.82;
+      uniformScaleFactor = 0.92;
     }
 
-    if (maxSlideChars > 32) {
-      uniformScaleFactor = Math.min(uniformScaleFactor, 32 / maxSlideChars);
+    if (maxSlideChars > 40) {
+      const charLimitScale = Math.min(1.0, 44 / maxSlideChars);
+      uniformScaleFactor = Math.min(uniformScaleFactor, charLimitScale);
     }
 
     song._uniformScaleFactor = uniformScaleFactor;
