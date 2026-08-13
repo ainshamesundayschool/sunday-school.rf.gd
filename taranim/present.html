@@ -1431,8 +1431,7 @@
       const currentFont = (lastStyleData && lastStyleData.font) || textEl.style.fontFamily || '';
       const isJomhuria = /jomhuria/i.test(currentFont);
 
-      const isBibleMode = Boolean(isBible || (lastStyleData && (lastStyleData.isBible || lastStyleData.is_bible)));
-      const align = isBibleMode ? 'justify' : ((lastStyleData && lastStyleData.textAlign) || textEl.style.textAlign || 'center');
+      const align = (lastStyleData && lastStyleData.textAlign) || textEl.style.textAlign || 'center';
       const lSpacing = (lastStyleData && lastStyleData.letterSpacing !== undefined) ? lastStyleData.letterSpacing : 0;
       const lHeight = (lastStyleData && lastStyleData.lineHeight !== undefined) ? lastStyleData.lineHeight : 1.5;
       const fWeight = (lastStyleData && lastStyleData.fontWeight) || '400';
@@ -1742,8 +1741,7 @@
         badgeHtml = `<span class="slide-badge-layer ${detectedBadgeClass}">${detectedBadge}</span>`;
       }
 
-      const isJomhuria = /jomhuria/i.test((lastStyleData && lastStyleData.font) || '');
-      let isJustify = isBible || Boolean(lastStyleData && (lastStyleData.isJustified || lastStyleData.textAlign === 'justify')) && !isJomhuria;
+      const textAlignStyle = (lastStyleData && lastStyleData.textAlign) || 'center';
       let processedLines = lines.map(l => l.trim()).filter(Boolean);
 
       let lineSegments = processedLines.map((l, idx) => {
@@ -1754,7 +1752,6 @@
         lineStr = lineStr.replace(/\)([\d٠-٩]*)$/, '<span class="rep-num-grey" style="color:#94a3b8; font-weight:600; margin-right:1px;">)$1</span>');
 
         const rowClass = isBible ? 'obs-line-row is-bible-row' : 'obs-line-row';
-        const textAlignStyle = isJustify ? 'justify' : 'center';
 
         if (idx === 0) {
           return `<div class="${rowClass}" style="position:relative; width: 100%; text-align: ${textAlignStyle}; box-sizing: border-box;"><span class="obs-line-segment obs-first-line ${isBible ? 'obs-bible-segment' : ''}" data-line-idx="0" style="display: block; width: 100%; text-align: ${textAlignStyle};">${badgeHtml}${lineStr}</span></div>`;

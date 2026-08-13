@@ -7847,7 +7847,7 @@ document.addEventListener('DOMContentLoaded', () => {
       lineStr = lineStr.replace(/\)([\d٠-٩]*)$/, '<span class="rep-num-grey" style="color:#94a3b8; font-weight:600; margin-right:1px;">)$1</span>');
 
       const rowClass = isBible ? 'obs-line-row is-bible-row' : 'obs-line-row';
-      const textAlignStyle = isBible ? 'justify' : 'center';
+      const textAlignStyle = state.styleOptions?.textAlign || 'center';
 
       if (idx === 0) {
         return `<div class="${rowClass} obs-first-row" style="display: block; width: 100%; text-align: ${textAlignStyle}; position: relative;"><span class="obs-line-segment obs-first-line ${isBible ? 'obs-bible-segment' : ''}" data-line-idx="0" style="display: block; width: 100%; font-size: inherit; text-align: ${textAlignStyle}; overflow: visible;"><span class="obs-first-line-wrapper" style="position: relative; display: inline-block; text-align: ${textAlignStyle}; width: 100%; max-width: 100%; overflow: visible;">${badgeHtml}${lineStr}</span></span></div>`;
