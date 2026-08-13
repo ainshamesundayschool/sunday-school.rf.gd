@@ -497,9 +497,41 @@
       will-change: transform, opacity;
     }
 
+    /* FULL SCENE WRAPPER & TWO-LAYER ARCHITECTURE */
+    .scene-presentation-wrapper {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .scene-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      pointer-events: none;
+      will-change: clip-path, opacity, transform;
+    }
+
+    .scene-slides-layer {
+      z-index: 5;
+    }
+
+    .scene-standby-layer {
+      z-index: 6;
+      background: transparent;
+    }
+
     /* SLIDES BACKGROUND MEDIA CONTAINER */
     .slides-bg-container {
-      position: fixed;
+      position: absolute;
       top: 0;
       left: 0;
       width: 100vw;
@@ -517,12 +549,12 @@
 
     /* STANDBY CUSTOM FULLSCREEN MEDIA */
     .standby-fullscreen-container {
-      position: fixed;
+      position: absolute;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
-      z-index: 5;
+      z-index: 2;
       pointer-events: none;
       overflow: hidden;
     }
@@ -546,27 +578,27 @@
       background: transparent !important;
     }
 
-    /* OBS LUMA WIPE SINUS 9 TRANSITION */
-    .luma-wipe-active {
-      animation: obsLumaWipeSinus9 0.55s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+    /* TRUE OBS LUMA WIPE SINUS 9 ON OUTGOING LAYER */
+    .luma-wipe-outgoing {
+      z-index: 25 !important;
+      animation: obsLumaSinus9Wipe 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
     }
 
-    @keyframes obsLumaWipeSinus9 {
+    @keyframes obsLumaSinus9Wipe {
       0% {
-        clip-path: polygon(100% 0, 100% 0, 100% 100%, 100% 100%);
-        -webkit-clip-path: polygon(100% 0, 100% 0, 100% 100%, 100% 100%);
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
       }
-      35% {
-        clip-path: polygon(50% 0, 100% 0, 100% 100%, 40% 100%);
-        -webkit-clip-path: polygon(50% 0, 100% 0, 100% 100%, 40% 100%);
+      20% {
+        clip-path: polygon(0 0, 80% 0, 95% 25%, 75% 50%, 90% 75%, 70% 100%, 0 100%);
       }
-      70% {
-        clip-path: polygon(15% 0, 100% 0, 100% 100%, 0 100%);
-        -webkit-clip-path: polygon(15% 0, 100% 0, 100% 100%, 0 100%);
+      50% {
+        clip-path: polygon(0 0, 50% 0, 65% 25%, 45% 50%, 60% 75%, 40% 100%, 0 100%);
+      }
+      80% {
+        clip-path: polygon(0 0, 20% 0, 35% 25%, 15% 50%, 30% 75%, 10% 100%, 0 100%);
       }
       100% {
-        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
-        -webkit-clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+        clip-path: polygon(0 0, 0 0, 0 25%, 0 50%, 0 75%, 0 100%, 0 100%);
       }
     }
 
@@ -930,31 +962,39 @@
 
   <!-- FULL SCENE WRAPPER FOR SMOOTH FULL-SCREEN MIX TRANSITIONS -->
   <div id="scene-presentation-wrapper" class="scene-presentation-wrapper">
-    <!-- SLIDES BACKGROUND MEDIA CONTAINER -->
-    <div id="slides-bg-container" class="slides-bg-container hidden">
-      <img id="slides-bg-img" class="slides-bg-media hidden" alt="Slides Background">
-      <video id="slides-bg-video" class="slides-bg-media hidden" playsinline webkit-playsinline muted loop></video>
+    
+    <!-- 1. SLIDES SCENE LAYER (SLIDE BACKGROUND MEDIA + TEXT CONTAINER) -->
+    <div id="scene-slides-layer" class="scene-layer scene-slides-layer">
+      <!-- SLIDES BACKGROUND MEDIA CONTAINER -->
+      <div id="slides-bg-container" class="slides-bg-container hidden">
+        <img id="slides-bg-img" class="slides-bg-media hidden" alt="Slides Background">
+        <video id="slides-bg-video" class="slides-bg-media hidden" playsinline webkit-playsinline muted loop></video>
+      </div>
+
+      <!-- TOP-LEFT BIBLE / CHAPTER REFERENCE HEADER -->
+      <div id="obs-top-left-header" class="obs-top-left-header hidden"></div>
+
+      <!-- MAGNETIC SNAP GUIDES -->
+      <div id="snap-guide-h" class="snap-guide horizontal hidden"></div>
+      <div id="snap-guide-v" class="snap-guide vertical hidden"></div>
+
+      <div class="lower-third-container" id="presenter-box">
+        <div class="line-text hidden" id="presenter-text"></div>
+      </div>
     </div>
 
-    <!-- STANDBY CUSTOM MEDIA CONTAINER (FULLSCREEN VIDEO / IMAGE) -->
-    <div id="standby-fullscreen-container" class="standby-fullscreen-container hidden">
-      <img id="standby-fullscreen-img" class="standby-fullscreen-media hidden" alt="Standby Image">
-      <video id="standby-fullscreen-video" class="standby-fullscreen-media hidden" playsinline webkit-playsinline muted loop></video>
-    </div>
+    <!-- 2. STANDBY SCENE LAYER (STANDBY FULLSCREEN MEDIA + LOGO BRANDING) -->
+    <div id="scene-standby-layer" class="scene-layer scene-standby-layer hidden">
+      <div id="standby-fullscreen-container" class="standby-fullscreen-container hidden">
+        <img id="standby-fullscreen-img" class="standby-fullscreen-media hidden" alt="Standby Image">
+        <video id="standby-fullscreen-video" class="standby-fullscreen-media hidden" playsinline webkit-playsinline muted loop></video>
+      </div>
 
-    <!-- TOP-LEFT BIBLE / CHAPTER REFERENCE HEADER -->
-    <div id="obs-top-left-header" class="obs-top-left-header hidden"></div>
-
-    <!-- MAGNETIC SNAP GUIDES -->
-    <div id="snap-guide-h" class="snap-guide horizontal hidden"></div>
-    <div id="snap-guide-v" class="snap-guide vertical hidden"></div>
-
-    <div class="lower-third-container" id="presenter-box">
       <div id="standby-branding" class="standby-branding">
         <img id="standby-default-logo" src="logo_tw.png" alt="Sunday School Logo" class="standby-logo">
       </div>
-      <div class="line-text hidden" id="presenter-text"></div>
     </div>
+
   </div>
 
   <!-- STINGER ALPHA VIDEO TRANSITION OVERLAY -->
@@ -1965,6 +2005,9 @@
         }
       };
 
+      const slidesLayer = document.getElementById('scene-slides-layer');
+      const standbyLayer = document.getElementById('scene-standby-layer');
+
       // 4. TRANSITION TRIGGER OR DIRECT DISPLAY
       if (data.triggerTransition) {
         const transType = data.transitionType || 'stinger';
@@ -1986,19 +2029,23 @@
             setTimeout(() => {
               // Swap content at cut point
               if (isStandbyMode) {
-                textEl.classList.add('hidden');
-                textEl.style.display = 'none';
+                if (slidesLayer) slidesLayer.classList.add('hidden');
+                if (standbyLayer) standbyLayer.classList.remove('hidden', 'luma-wipe-outgoing');
+                if (textEl) textEl.classList.add('hidden');
                 updateStandbyMediaDisplay(true);
                 currentIsBlankState = true;
               } else {
+                if (standbyLayer) standbyLayer.classList.add('hidden');
+                if (slidesLayer) slidesLayer.classList.remove('hidden', 'luma-wipe-outgoing');
                 updateStandbyMediaDisplay(false);
                 if (isBlankMode || !hasTextContent) {
-                  textEl.classList.add('hidden');
-                  textEl.style.display = 'none';
+                  if (textEl) textEl.classList.add('hidden');
                 } else {
-                  textEl.classList.remove('hidden');
-                  textEl.style.display = 'inline-block';
-                  textEl.style.visibility = 'visible';
+                  if (textEl) {
+                    textEl.classList.remove('hidden');
+                    textEl.style.display = 'inline-block';
+                    textEl.style.visibility = 'visible';
+                  }
                 }
                 currentIsBlankState = false;
               }
@@ -2010,49 +2057,89 @@
             };
           }
         } else if (transType === 'luma_sinus9') {
-          const container = document.getElementById('scene-presentation-wrapper') || document.getElementById('presenter-box') || textEl;
-          container.classList.remove('luma-wipe-active');
-          void container.offsetWidth;
-          container.classList.add('luma-wipe-active');
-          setTimeout(() => {
-            if (isStandbyMode) {
-              textEl.classList.add('hidden');
-              textEl.style.display = 'none';
-              updateStandbyMediaDisplay(true);
-              currentIsBlankState = true;
+          if (isStandbyMode) {
+            // OUTGOING: Slides (top), INCOMING: Standby (underneath)
+            if (standbyLayer) {
+              standbyLayer.classList.remove('hidden', 'luma-wipe-outgoing');
+              standbyLayer.style.zIndex = '5';
+            }
+            updateStandbyMediaDisplay(true);
+
+            if (slidesLayer) {
+              slidesLayer.classList.remove('hidden');
+              slidesLayer.classList.remove('luma-wipe-outgoing');
+              void slidesLayer.offsetWidth;
+              slidesLayer.classList.add('luma-wipe-outgoing');
+            }
+
+            setTimeout(() => {
+              if (slidesLayer) {
+                slidesLayer.classList.add('hidden');
+                slidesLayer.classList.remove('luma-wipe-outgoing');
+              }
+              if (standbyLayer) standbyLayer.style.zIndex = '6';
+            }, 620);
+            currentIsBlankState = true;
+          } else {
+            // OUTGOING: Standby (top), INCOMING: Slides (underneath)
+            if (slidesLayer) {
+              slidesLayer.classList.remove('hidden', 'luma-wipe-outgoing');
+              slidesLayer.style.zIndex = '5';
+            }
+            if (isBlankMode || !hasTextContent) {
+              if (textEl) textEl.classList.add('hidden');
             } else {
-              updateStandbyMediaDisplay(false);
-              if (isBlankMode || !hasTextContent) {
-                textEl.classList.add('hidden');
-                textEl.style.display = 'none';
-              } else {
+              if (textEl) {
                 textEl.classList.remove('hidden');
                 textEl.style.display = 'inline-block';
                 textEl.style.visibility = 'visible';
               }
-              currentIsBlankState = false;
             }
+
+            if (standbyLayer) {
+              standbyLayer.classList.remove('hidden');
+              standbyLayer.classList.remove('luma-wipe-outgoing');
+              void standbyLayer.offsetWidth;
+              standbyLayer.classList.add('luma-wipe-outgoing');
+            }
+
             setTimeout(() => {
-              container.classList.remove('luma-wipe-active');
-            }, 300);
-          }, 280);
+              if (standbyLayer) {
+                standbyLayer.classList.add('hidden');
+                standbyLayer.classList.remove('luma-wipe-outgoing');
+                standbyLayer.style.zIndex = '6';
+              }
+              updateStandbyMediaDisplay(false);
+            }, 620);
+            currentIsBlankState = false;
+          }
         }
       } else {
         if (isStandbyMode) {
-          textEl.classList.add('hidden');
-          textEl.style.display = 'none';
+          if (slidesLayer) slidesLayer.classList.add('hidden');
+          if (standbyLayer) {
+            standbyLayer.classList.remove('hidden', 'luma-wipe-outgoing');
+            standbyLayer.style.zIndex = '6';
+          }
+          if (textEl) textEl.classList.add('hidden');
           updateStandbyMediaDisplay(true);
           currentIsBlankState = true;
         } else {
+          if (standbyLayer) standbyLayer.classList.add('hidden');
+          if (slidesLayer) {
+            slidesLayer.classList.remove('hidden', 'luma-wipe-outgoing');
+            slidesLayer.style.zIndex = '5';
+          }
           updateStandbyMediaDisplay(false);
           if (isBlankMode || !hasTextContent) {
-            textEl.classList.add('hidden');
-            textEl.style.display = 'none';
+            if (textEl) textEl.classList.add('hidden');
             currentIsBlankState = isBlankMode;
           } else {
-            textEl.classList.remove('hidden');
-            textEl.style.display = 'inline-block';
-            textEl.style.visibility = 'visible';
+            if (textEl) {
+              textEl.classList.remove('hidden');
+              textEl.style.display = 'inline-block';
+              textEl.style.visibility = 'visible';
+            }
             currentIsBlankState = false;
           }
         }
