@@ -3855,37 +3855,380 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     };
 
-    const fetchServerTemplates = async () => {
+    // --- 6. CUSTOM TEMPLATES MANAGER & ZIP EXPORT / IMPORT ---
+    function dataURLtoBlob(dataurl) {
+      if (!dataurl || typeof dataurl !== 'string' || !dataurl.startsWith('data:')) return null;
       try {
-        const res = await fetch('api.php?action=templates').catch(() => null);
-        if (res && res.ok) {
-          const data = await res.json();
-          if (data && data.status === 'success' && Array.isArray(data.templates) && data.templates.length > 0) {
-            state.availableTemplates = data.templates;
-            if (els.slidesBgTemplateSelect) {
-              els.slidesBgTemplateSelect.innerHTML = data.templates
-                .filter(t => t.slidesBg)
-                .map(t => `<option value="${t.slidesBg}">${escapeHtml(t.name)}</option>`)
-                .join('');
-            }
-            if (els.standbyTemplateSelect) {
-              els.standbyTemplateSelect.innerHTML = data.templates
-                .filter(t => t.standby)
-                .map(t => `<option value="${t.standby}">${escapeHtml(t.name)}</option>`)
-                .join('');
-            }
-            if (els.stingerTemplateSelect) {
-              const opts = data.templates
-                .filter(t => t.stringer)
-                .map(t => `<option value="${t.stringer}">${escapeHtml(t.name)} (Stinger WebM)</option>`)
-                .join('');
-              els.stingerTemplateSelect.innerHTML = opts + `<option value="custom">ستنجر مخصص من الجهاز (.webm)...</option>`;
-            }
-            renderBuiltinTemplates();
+        const arr = dataurl.split(',');
+        const mimeMatch = arr[0].match(/:(.*?);/);
+        const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while (n--) {
+          u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new Blob([u8arr], { type: mime });
+      } catch(e) {
+        return null;
+      }
+    }
+
+    async function fetchFileAsBlob(url) {
+      try {
+        const res = await fetch(url);
+        if (res.ok) return await res.blob();
+      } catch(e) {}
+      return null;
+    }
+
+    const getSavedTemplates = () => {
+      try {
+        return JSON.parse(localStorage.getItem('sunday_school_saved_templates')) || [];
+      } catch(e) {
+        return [];
+      }
+    };
+
+    const saveSavedTemplates = (templates) => {
+      try {
+        localStorage.setItem('sunday_school_saved_templates', JSON.stringify(templates));
+      } catch(e) {}
+      renderSavedTemplates();
+    };
+
+    const renderSavedTemplates = () => {
+      const container = document.getElementById('templates-list-container');
+      const badge = document.getElementById('templates-count-badge');
+      if (!container) return;
+
+      const templates = getSavedTemplates();
+      if (badge) badge.textContent = `${templates.length}`;
+
+      if (templates.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:16px; color:var(--text-muted); font-size:0.85rem;">لا توجد قوالب مخصصة محفوظة حالياً</div>`;
+        return;
+      }
+
+      container.innerHTML = templates.map(t => `
+        <div class="saved-template-item" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px 12px; display:flex; align-items:center; justify-content:space-between; gap:8px;">
+          <div style="flex:1; min-width:0;">
+            <div style="font-weight:700; font-size:0.88rem; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+              <i class="fa-solid fa-palette" style="color:#2563eb; margin-left:4px;"></i> ${escapeHtml(t.name)}
+            </div>
+            <div style="font-size:0.72rem; color:#64748b; margin-top:2px;">
+              ${t.selectedFont ? t.selectedFont.replace(/['",]/g, '') : 'خط افتراضي'} • مقاس ${t.fontSize || 105}px
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:4px;">
+            <button type="button" class="btn-apply-saved-template btn btn-sm btn-primary" data-id="${t.id}" style="background:#2563eb; color:#fff; font-size:0.75rem; padding:4px 10px; border-radius:6px;" title="تطبيق هذا القالب">
+              <i class="fa-solid fa-check"></i> تطبيق
+            </button>
+            <button type="button" class="btn-export-template-zip btn btn-sm btn-secondary" data-id="${t.id}" style="background:#f1f5f9; color:#475569; font-size:0.75rem; padding:4px 8px; border-radius:6px;" title="تصدير كملف ZIP">
+              <i class="fa-solid fa-file-zipper"></i> ZIP
+            </button>
+            <button type="button" class="btn-delete-saved-template btn btn-sm btn-danger" data-id="${t.id}" style="background:#fee2e2; color:#ef4444; font-size:0.75rem; padding:4px 8px; border-radius:6px; border:none; cursor:pointer;" title="حذف القالب">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      container.querySelectorAll('.btn-apply-saved-template').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-id');
+          const t = getSavedTemplates().find(item => item.id === id);
+          if (t) applyFullTemplate(t);
+        });
+      });
+
+      container.querySelectorAll('.btn-export-template-zip').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-id');
+          const t = getSavedTemplates().find(item => item.id === id);
+          if (t) exportTemplateZip(t);
+        });
+      });
+
+      container.querySelectorAll('.btn-delete-saved-template').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-id');
+          const list = getSavedTemplates().filter(item => item.id !== id);
+          saveSavedTemplates(list);
+          showToast('تم حذف القالب');
+        });
+      });
+    };
+
+    const applyFullTemplate = (t) => {
+      if (!t) return;
+      if (t.styleOptions) state.styleOptions = JSON.parse(JSON.stringify(t.styleOptions));
+      if (t.fontSize) state.fontSize = t.fontSize;
+      if (t.selectedFont) state.selectedFont = t.selectedFont;
+      if (t.customFontDataUrl) state.customFontDataUrl = t.customFontDataUrl;
+      if (t.chromaKey) state.chromaKey = t.chromaKey;
+      if (t.textAnimation) state.textAnimation = t.textAnimation;
+      if (t.slidesBgConfig) state.slidesBgConfig = JSON.parse(JSON.stringify(t.slidesBgConfig));
+      if (t.standbyConfig) state.standbyConfig = JSON.parse(JSON.stringify(t.standbyConfig));
+      if (t.transitionConfig) state.transitionConfig = JSON.parse(JSON.stringify(t.transitionConfig));
+      if (t.textTransform) state.textTransform = JSON.parse(JSON.stringify(t.textTransform));
+
+      updateSlidesBgUI();
+      updateTextTransformUI();
+      updateStandbyUI();
+      updateTransitionUI();
+      saveUserSettings();
+      saveMediaConfig();
+      syncLiveState(false, false, { triggerTransition: true });
+      showToast(`تم تطبيق قالب "${t.name}" بنجاح! 🎨`);
+    };
+
+    const exportTemplateZip = async (template) => {
+      if (typeof JSZip === 'undefined') {
+        showToast('جاري تحميل مكتبة ZIP...');
+        return;
+      }
+      showToast('جاري تجهيز وتصدير ملف الـ ZIP...');
+      try {
+        const zip = new JSZip();
+        const folderName = (template.name || 'Template').replace(/[\\/:*?"<>|]/g, '_');
+        const root = zip.folder(folderName);
+        const cleanT = JSON.parse(JSON.stringify(template));
+
+        // 1. Package Standby Media
+        if (template.standbyConfig && template.standbyConfig.url) {
+          let blob = null;
+          let ext = 'mp4';
+          if (template.standbyConfig.url.startsWith('data:')) {
+            blob = dataURLtoBlob(template.standbyConfig.url);
+            if (blob && blob.type.includes('png')) ext = 'png';
+            else if (blob && blob.type.includes('jpeg')) ext = 'jpg';
+            else if (blob && blob.type.includes('webm')) ext = 'webm';
+          } else {
+            blob = await fetchFileAsBlob(template.standbyConfig.url);
+            const m = template.standbyConfig.url.match(/\.([a-zA-Z0-9]+)$/);
+            if (m) ext = m[1];
+          }
+          if (blob) {
+            const fileName = `Standby_Media.${ext}`;
+            root.folder('Standby').file(fileName, blob);
+            cleanT.standbyConfig.url = `Templates/Standby/${folderName}/${fileName}`;
           }
         }
-      } catch (e) {}
+
+        // 2. Package SlidesBg Media
+        if (template.slidesBgConfig && template.slidesBgConfig.url) {
+          let blob = null;
+          let ext = 'mp4';
+          if (template.slidesBgConfig.url.startsWith('data:')) {
+            blob = dataURLtoBlob(template.slidesBgConfig.url);
+            if (blob && blob.type.includes('png')) ext = 'png';
+            else if (blob && blob.type.includes('jpeg')) ext = 'jpg';
+            else if (blob && blob.type.includes('webm')) ext = 'webm';
+          } else {
+            blob = await fetchFileAsBlob(template.slidesBgConfig.url);
+            const m = template.slidesBgConfig.url.match(/\.([a-zA-Z0-9]+)$/);
+            if (m) ext = m[1];
+          }
+          if (blob) {
+            const fileName = `SlidesBg_Media.${ext}`;
+            root.folder('SlidesBg').file(fileName, blob);
+            cleanT.slidesBgConfig.url = `Templates/SlidesBg/${folderName}/${fileName}`;
+          }
+        }
+
+        // 3. Package Stinger Media
+        if (template.transitionConfig && template.transitionConfig.stingerUrl) {
+          let blob = null;
+          let ext = 'webm';
+          if (template.transitionConfig.stingerUrl.startsWith('data:')) {
+            blob = dataURLtoBlob(template.transitionConfig.stingerUrl);
+            if (blob && blob.type.includes('mp4')) ext = 'mp4';
+          } else {
+            blob = await fetchFileAsBlob(template.transitionConfig.stingerUrl);
+            const m = template.transitionConfig.stingerUrl.match(/\.([a-zA-Z0-9]+)$/);
+            if (m) ext = m[1];
+          }
+          if (blob) {
+            const fileName = `Stringer_Transition.${ext}`;
+            root.folder('Stringer').file(fileName, blob);
+            cleanT.transitionConfig.stingerUrl = `Templates/Stringer/${folderName}/${fileName}`;
+          }
+        }
+
+        root.file('template.json', JSON.stringify(cleanT, null, 2));
+
+        const content = await zip.generateAsync({ type: 'blob' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(content);
+        a.download = `${folderName}.zip`;
+        a.click();
+        showToast(`تم تصدير قالب "${template.name}" كملف ZIP بنجاح! 📦`);
+      } catch(err) {
+        showToast('تعذر تصدير ملف الـ ZIP');
+      }
     };
+
+    const handleImportTemplateFile = async (file) => {
+      if (!file) return;
+      if (file.name.endsWith('.zip')) {
+        if (typeof JSZip === 'undefined') {
+          showToast('مكتبة ZIP غير متوفرة');
+          return;
+        }
+        showToast('جاري قراءة واستخراج حزمة القالب...');
+        try {
+          const zip = await JSZip.loadAsync(file);
+          let templateJsonStr = null;
+          const mediaDataUrls = {};
+
+          for (const path in zip.files) {
+            const entry = zip.files[path];
+            if (entry.dir) continue;
+            if (path.endsWith('template.json') || path.endsWith('.json')) {
+              templateJsonStr = await entry.async('string');
+            } else {
+              const blob = await entry.async('blob');
+              const dataUrl = await new Promise(res => {
+                const r = new FileReader();
+                r.onload = e => res(e.target.result);
+                r.readAsDataURL(blob);
+              });
+              if (path.includes('Standby')) mediaDataUrls.standby = dataUrl;
+              else if (path.includes('SlidesBg')) mediaDataUrls.slidesBg = dataUrl;
+              else if (path.includes('Stringer')) mediaDataUrls.stringer = dataUrl;
+            }
+          }
+
+          if (templateJsonStr) {
+            const parsed = JSON.parse(templateJsonStr);
+            if (mediaDataUrls.standby && parsed.standbyConfig) {
+              parsed.standbyConfig.url = mediaDataUrls.standby;
+              parsed.standbyConfig.type = mediaDataUrls.standby.startsWith('data:video') ? 'custom_video' : 'custom_image';
+            }
+            if (mediaDataUrls.slidesBg && parsed.slidesBgConfig) {
+              parsed.slidesBgConfig.url = mediaDataUrls.slidesBg;
+              parsed.slidesBgConfig.type = mediaDataUrls.slidesBg.startsWith('data:video') ? 'custom_video' : 'custom_image';
+            }
+            if (mediaDataUrls.stringer && parsed.transitionConfig) {
+              parsed.transitionConfig.stingerUrl = mediaDataUrls.stringer;
+            }
+
+            parsed.id = 'template_' + Date.now();
+            const list = getSavedTemplates();
+            list.unshift(parsed);
+            saveSavedTemplates(list);
+            applyFullTemplate(parsed);
+            showToast(`تم استيراد وتطبيق قالب "${parsed.name || file.name}" بنجاح! 🌟`);
+          } else {
+            showToast('لم يتم العثور على template.json في ملف الـ ZIP');
+          }
+        } catch(err) {
+          showToast('حدث خطأ أثناء استيراد ملف الـ ZIP');
+        }
+      } else if (file.name.endsWith('.json')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const parsed = JSON.parse(e.target.result);
+            const list = getSavedTemplates();
+            if (Array.isArray(parsed)) {
+              parsed.forEach(t => {
+                t.id = 'template_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+                list.unshift(t);
+              });
+            } else {
+              parsed.id = 'template_' + Date.now();
+              list.unshift(parsed);
+              applyFullTemplate(parsed);
+            }
+            saveSavedTemplates(list);
+            showToast('تم استيراد القالب بنجاح! 🎨');
+          } catch(err) {
+            showToast('ملف JSON غير صالح');
+          }
+        };
+        reader.readAsText(file);
+      }
+    };
+
+    const btnSaveCustomTemplate = document.getElementById('btn-save-custom-template');
+    const customTemplateNameInput = document.getElementById('custom-template-name-input');
+    if (btnSaveCustomTemplate && customTemplateNameInput) {
+      btnSaveCustomTemplate.addEventListener('click', () => {
+        const name = (customTemplateNameInput.value || '').trim();
+        if (!name) {
+          showToast('يرجى كتابة اسم للقالب أولاً');
+          customTemplateNameInput.focus();
+          return;
+        }
+
+        const newTemplate = {
+          id: 'template_' + Date.now(),
+          name: name,
+          created: Date.now(),
+          styleOptions: JSON.parse(JSON.stringify(state.styleOptions || {})),
+          fontSize: state.fontSize || 105,
+          selectedFont: state.selectedFont || '',
+          customFontDataUrl: localStorage.getItem('sunday_school_custom_font_dataurl') || state.customFontDataUrl || '',
+          customFontName: localStorage.getItem('sunday_school_custom_font_name') || '',
+          chromaKey: state.chromaKey || 'black',
+          textAnimation: state.textAnimation || 'none',
+          slidesBgConfig: JSON.parse(JSON.stringify(state.slidesBgConfig || {})),
+          standbyConfig: JSON.parse(JSON.stringify(state.standbyConfig || {})),
+          transitionConfig: JSON.parse(JSON.stringify(state.transitionConfig || {})),
+          textTransform: JSON.parse(JSON.stringify(state.textTransform || { scale: 100, posX: 0, posY: 0, rotation: 0 }))
+        };
+
+        const list = getSavedTemplates();
+        list.unshift(newTemplate);
+        saveSavedTemplates(list);
+        customTemplateNameInput.value = '';
+        showToast(`تم حفظ قالب "${name}" بنجاح! 💾`);
+      });
+    }
+
+    const importTemplateFileInput = document.getElementById('import-template-file-input');
+    if (importTemplateFileInput) {
+      importTemplateFileInput.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (file) handleImportTemplateFile(file);
+      });
+    }
+
+    const btnExportAllTemplates = document.getElementById('btn-export-all-templates');
+    if (btnExportAllTemplates) {
+      btnExportAllTemplates.addEventListener('click', async () => {
+        const list = getSavedTemplates();
+        if (list.length === 0) {
+          showToast('لا توجد قوالب محفوظة لتصديرها');
+          return;
+        }
+        if (typeof JSZip === 'undefined') {
+          showToast('جاري تحميل مكتبة ZIP...');
+          return;
+        }
+        showToast('جاري حزم جميع القوالب في ملف ZIP...');
+        try {
+          const zip = new JSZip();
+          for (const t of list) {
+            const fName = (t.name || 'Template').replace(/[\\/:*?"<>|]/g, '_');
+            const sub = zip.folder(fName);
+            sub.file('template.json', JSON.stringify(t, null, 2));
+          }
+          const blob = await zip.generateAsync({ type: 'blob' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = `Taranim_All_Templates_${Date.now()}.zip`;
+          a.click();
+          showToast('تم تصدير جميع القوالب في ملف ZIP بنجاح! 📦');
+        } catch(e) {
+          showToast('تعذر تصدير الحزمة');
+        }
+      });
+    }
+
+    renderSavedTemplates();
 
     updateSlidesBgUI();
     updateTextTransformUI();

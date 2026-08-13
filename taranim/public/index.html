@@ -44,7 +44,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
 
   <!-- PWA Manifest -->
-  <link rel="manifest" href="manifest.webmanifest">
+  <!-- JSZip for Template ZIP Export & Import -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
   <link rel="stylesheet" href="style.css">
 </head>
@@ -693,16 +694,16 @@
             </div>
 
             <div class="style-card" style="margin-top:10px;">
-              <div class="style-card-title"><i class="fa-solid fa-file-export"></i> استيراد وتصدير القوالب</div>
+              <div class="style-card-title"><i class="fa-solid fa-file-zipper"></i> استيراد وتصدير حزم القوالب (ZIP / JSON)</div>
               
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px;">
-                <label for="import-template-file-input" class="btn btn-sm btn-secondary" style="cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; font-weight:600; font-size:0.82rem; margin:0; padding:8px;">
-                  <i class="fa-solid fa-file-import"></i> استيراد (JSON)
+                <label for="import-template-file-input" class="btn btn-sm btn-secondary" style="cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; font-weight:700; font-size:0.82rem; margin:0; padding:8px; background:#f1f5f9; border-radius:8px;">
+                  <i class="fa-solid fa-file-import" style="color:#2563eb;"></i> استيراد (ZIP / JSON)
                 </label>
-                <input type="file" id="import-template-file-input" accept=".json" class="hidden">
+                <input type="file" id="import-template-file-input" accept=".zip,.json" class="hidden">
 
-                <button type="button" id="btn-export-all-templates" class="btn btn-sm btn-secondary" style="font-weight:600; font-size:0.82rem; padding:8px;">
-                  <i class="fa-solid fa-file-export"></i> تصدير الكل
+                <button type="button" id="btn-export-all-templates" class="btn btn-sm btn-secondary" style="font-weight:700; font-size:0.82rem; padding:8px; background:#f1f5f9; border-radius:8px;">
+                  <i class="fa-solid fa-file-zipper" style="color:#2563eb;"></i> تصدير الكل (ZIP)
                 </button>
               </div>
             </div>
