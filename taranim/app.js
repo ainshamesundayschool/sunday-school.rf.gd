@@ -3543,38 +3543,69 @@ document.addEventListener('DOMContentLoaded', () => {
       els.btnToggleStandby.addEventListener('click', () => toggleStandbyMode(true));
     }
 
-    // --- 1. SLIDES BACKGROUND HANDLERS ---
+    // --- 1. UNIFIED SLIDES BACKGROUND HANDLERS ---
     const updateSlidesBgUI = () => {
-      if (!els.slidesBgTypeSelect) return;
       const type = state.slidesBgConfig?.type || 'none';
-      els.slidesBgTypeSelect.value = type;
+      const isChroma = (type === 'none' || !state.slidesBgConfig?.url);
 
-      if (els.slidesBgTemplateWrap) els.slidesBgTemplateWrap.classList.toggle('hidden', type !== 'template');
-      if (els.slidesBgCustomUploadWrap) els.slidesBgCustomUploadWrap.classList.toggle('hidden', type !== 'custom_image' && type !== 'custom_video');
-      if (els.slidesBgLoopCb) els.slidesBgLoopCb.checked = (state.slidesBgConfig?.loop !== false);
+      const btnChroma = document.getElementById('btn-bg-mode-chroma');
+      const btnTmpl = document.getElementById('btn-bg-mode-template');
+      const btnCustomImg = document.getElementById('btn-bg-mode-custom-img');
+      const btnCustomVid = document.getElementById('btn-bg-mode-custom-video');
 
-      if (els.slidesBgTemplateSelect && state.slidesBgConfig?.url) {
-        els.slidesBgTemplateSelect.value = state.slidesBgConfig.url;
+      if (btnChroma) btnChroma.classList.toggle('active', isChroma);
+      if (btnTmpl) btnTmpl.classList.toggle('active', type === 'template');
+      if (btnCustomImg) btnCustomImg.classList.toggle('active', type === 'custom_image');
+      if (btnCustomVid) btnCustomVid.classList.toggle('active', type === 'custom_video');
+
+      const secChroma = document.getElementById('bg-section-chroma');
+      const secTmpl = document.getElementById('bg-section-template');
+      const secCustom = document.getElementById('bg-section-custom');
+      const secLoop = document.getElementById('slides-bg-loop-field');
+
+      if (secChroma) secChroma.classList.toggle('hidden', !isChroma);
+      if (secTmpl) secTmpl.classList.toggle('hidden', type !== 'template');
+      if (secCustom) secCustom.classList.toggle('hidden', type !== 'custom_image' && type !== 'custom_video');
+      if (secLoop) secLoop.classList.toggle('hidden', type !== 'custom_video' && type !== 'template');
+
+      const loopCb = document.getElementById('slides-bg-loop-cb');
+      if (loopCb) loopCb.checked = (state.slidesBgConfig?.loop !== false);
+
+      const templateSelect = document.getElementById('slides-bg-template-select');
+      if (templateSelect && state.slidesBgConfig?.url) {
+        templateSelect.value = state.slidesBgConfig.url;
       }
     };
 
-    if (els.slidesBgTypeSelect) {
-      els.slidesBgTypeSelect.addEventListener('change', (e) => {
-        const val = e.target.value;
-        state.slidesBgConfig.type = val;
-        if (val === 'template') {
-          state.slidesBgConfig.url = els.slidesBgTemplateSelect ? els.slidesBgTemplateSelect.value : 'Templates/SlidesBg/Shabahak Akon 2026/Shabahak Akoon Loop Empty Centered.mp4';
-        } else if (val === 'none') {
+    const bgSourceButtons = document.querySelectorAll('.bg-source-segmented .segmented-btn');
+    bgSourceButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const bgType = btn.getAttribute('data-bg-type');
+        if (bgType === 'chroma') {
+          state.slidesBgConfig.type = 'none';
           state.slidesBgConfig.url = '';
+        } else if (bgType === 'template') {
+          state.slidesBgConfig.type = 'template';
+          const tmplSelect = document.getElementById('slides-bg-template-select');
+          state.slidesBgConfig.url = tmplSelect ? tmplSelect.value : 'Templates/SlidesBg/Shabahak Akon 2026/Shabahak Akoon Loop Empty Centered.mp4';
+        } else if (bgType === 'custom_image') {
+          state.slidesBgConfig.type = 'custom_image';
+          const fileInput = document.getElementById('slides-bg-file-input');
+          if (fileInput && !state.slidesBgConfig.url) fileInput.click();
+        } else if (bgType === 'custom_video') {
+          state.slidesBgConfig.type = 'custom_video';
+          const fileInput = document.getElementById('slides-bg-file-input');
+          if (fileInput && !state.slidesBgConfig.url) fileInput.click();
         }
         updateSlidesBgUI();
         saveMediaConfig();
         syncLiveState();
       });
-    }
+    });
 
-    if (els.slidesBgTemplateSelect) {
-      els.slidesBgTemplateSelect.addEventListener('change', (e) => {
+    const slidesBgTmplSelect = document.getElementById('slides-bg-template-select');
+    if (slidesBgTmplSelect) {
+      slidesBgTmplSelect.addEventListener('change', (e) => {
         state.slidesBgConfig.type = 'template';
         state.slidesBgConfig.url = e.target.value;
         saveMediaConfig();
@@ -3582,8 +3613,9 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    if (els.slidesBgFileInput) {
-      els.slidesBgFileInput.addEventListener('change', (e) => {
+    const slidesBgFileInput = document.getElementById('slides-bg-file-input');
+    if (slidesBgFileInput) {
+      slidesBgFileInput.addEventListener('change', (e) => {
         const file = e.target.files && e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
@@ -3594,7 +3626,8 @@ document.addEventListener('DOMContentLoaded', () => {
           } else {
             state.slidesBgConfig.type = 'custom_image';
           }
-          if (els.slidesBgFileName) els.slidesBgFileName.textContent = file.name;
+          const fileNameSpan = document.getElementById('slides-bg-file-name');
+          if (fileNameSpan) fileNameSpan.textContent = file.name;
           updateSlidesBgUI();
           saveMediaConfig();
           syncLiveState();
@@ -3604,11 +3637,122 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    if (els.slidesBgLoopCb) {
-      els.slidesBgLoopCb.addEventListener('change', (e) => {
+    const slidesBgLoopCb = document.getElementById('slides-bg-loop-cb');
+    if (slidesBgLoopCb) {
+      slidesBgLoopCb.addEventListener('change', (e) => {
         state.slidesBgConfig.loop = Boolean(e.target.checked);
         saveMediaConfig();
         syncLiveState();
+      });
+    }
+
+    // --- SLIDE SPLITTING ENGINE (1 LINE, 2 LINES, ALL IN ONE) ---
+    const setSlideSplittingMode = (mode) => {
+      state.slideSplittingMode = mode;
+      try { localStorage.setItem('sunday_school_slide_splitting_mode', mode); } catch(e) {}
+
+      // Update button active classes
+      const barBtn1 = document.getElementById('btn-bar-lines-1');
+      const barBtn2 = document.getElementById('btn-bar-lines-2');
+      const barBtnAll = document.getElementById('btn-bar-lines-all');
+      const tabBtn1 = document.getElementById('btn-tab-lines-1');
+      const tabBtn2 = document.getElementById('btn-tab-lines-2');
+      const tabBtnAll = document.getElementById('btn-tab-lines-all');
+
+      if (barBtn1) {
+        barBtn1.classList.toggle('active', mode === '1');
+        barBtn1.style.background = (mode === '1') ? '#2563eb' : '';
+        barBtn1.style.color = (mode === '1') ? '#fff' : '';
+      }
+      if (barBtn2) {
+        barBtn2.classList.toggle('active', mode === '2');
+        barBtn2.style.background = (mode === '2') ? '#2563eb' : '';
+        barBtn2.style.color = (mode === '2') ? '#fff' : '';
+      }
+      if (barBtnAll) {
+        barBtnAll.classList.toggle('active', mode === 'all');
+        barBtnAll.style.background = (mode === 'all') ? '#2563eb' : '';
+        barBtnAll.style.color = (mode === 'all') ? '#fff' : '';
+      }
+
+      if (tabBtn1) tabBtn1.classList.toggle('active', mode === '1');
+      if (tabBtn2) tabBtn2.classList.toggle('active', mode === '2');
+      if (tabBtnAll) tabBtnAll.classList.toggle('active', mode === 'all');
+
+      // Re-format active presentation lines
+      if (state.activeSong || state.liveSong) {
+        const song = state.liveSong || state.activeSong;
+        if (typeof preparePresentationLines === 'function') {
+          preparePresentationLines(song);
+        } else if (state.presentationLines) {
+          state.presentationLines.forEach(item => {
+            if (item.isLogoSlide) return;
+            if (!item._origLines) item._origLines = [...(item.lines || [item.text])];
+            
+            if (mode === '1') {
+              item.isCustomSplit = false;
+              item.lines = [item._origLines[0] || ''];
+              item.text = (item.badgeText ? `${item.badgeText} ` : '') + item.lines.join('\n');
+            } else if (mode === '2') {
+              item.isCustomSplit = true;
+              const splitRes = [];
+              item._origLines.forEach(single => splitRes.push(...splitLineIntoTwo(single)));
+              item.lines = splitRes.slice(0, 2);
+              item.text = (item.badgeText ? `${item.badgeText} ` : '') + item.lines.join('\n');
+            } else if (mode === 'all') {
+              item.isCustomSplit = false;
+              item.lines = [...item._origLines];
+              item.text = (item.badgeText ? `${item.badgeText} ` : '') + item.lines.join('\n');
+            }
+          });
+        }
+        renderPresentationLinesList();
+        syncLiveState();
+        showToast(mode === '1' ? 'تم ضبط الشرائح: سطر واحد لكل شريحة' : (mode === '2' ? 'تم ضبط الشرائح: سطرين لكل شريحة' : 'تم ضبط الشرائح: كامل المقطع في شريحة'));
+      }
+    };
+
+    ['btn-bar-lines-1', 'btn-tab-lines-1'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('click', () => setSlideSplittingMode('1'));
+    });
+    ['btn-bar-lines-2', 'btn-tab-lines-2'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('click', () => setSlideSplittingMode('2'));
+    });
+    ['btn-bar-lines-all', 'btn-tab-lines-all'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('click', () => setSlideSplittingMode('all'));
+    });
+
+    // Quick Save Template from Header Button
+    const btnQuickSaveHeader = document.getElementById('btn-quick-save-template-header');
+    if (btnQuickSaveHeader) {
+      btnQuickSaveHeader.addEventListener('click', () => {
+        const name = prompt('اكتب اسماً للقالب الجديد:');
+        if (!name || !name.trim()) return;
+
+        const newTemplate = {
+          id: 'template_' + Date.now(),
+          name: name.trim(),
+          created: Date.now(),
+          styleOptions: JSON.parse(JSON.stringify(state.styleOptions || {})),
+          fontSize: state.fontSize || 105,
+          selectedFont: state.selectedFont || '',
+          customFontDataUrl: localStorage.getItem('sunday_school_custom_font_dataurl') || state.customFontDataUrl || '',
+          customFontName: localStorage.getItem('sunday_school_custom_font_name') || '',
+          chromaKey: state.chromaKey || 'black',
+          textAnimation: state.textAnimation || 'none',
+          slidesBgConfig: JSON.parse(JSON.stringify(state.slidesBgConfig || {})),
+          standbyConfig: JSON.parse(JSON.stringify(state.standbyConfig || {})),
+          transitionConfig: JSON.parse(JSON.stringify(state.transitionConfig || {})),
+          textTransform: JSON.parse(JSON.stringify(state.textTransform || { scale: 100, posX: 0, posY: 0, rotation: 0 }))
+        };
+
+        const list = getSavedTemplates();
+        list.unshift(newTemplate);
+        saveSavedTemplates(list);
+        showToast(`تم حفظ قالب "${name.trim()}" بنجاح! 💾`);
       });
     }
 

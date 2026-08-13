@@ -257,8 +257,13 @@
 
       <!-- STYLE & FONT PANEL (DOCKS INLINE ON DESKTOP, OVERLAPS AS FLOATING POPOVER ON MOBILE) -->
       <section class="half-panel style-drawer-panel hidden" id="popover-style">
-        <div class="style-drawer-header">
-          <span class="drawer-header-title"><i class="fa-solid fa-sliders"></i> التنسيق والخط</span>
+        <div class="style-drawer-header" style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="drawer-header-title"><i class="fa-solid fa-sliders"></i> التنسيق والخط</span>
+            <button id="btn-quick-save-template-header" class="btn btn-sm btn-primary" type="button" style="background:#2563eb; color:#fff; font-size:0.75rem; font-weight:700; padding:4px 10px; border-radius:6px; display:inline-flex; align-items:center; gap:4px; border:none; cursor:pointer;" title="حفظ جميع إعدادات التنسيق والشاشات كقالب">
+              <i class="fa-solid fa-floppy-disk"></i> حفظ كقالب
+            </button>
+          </div>
           <button id="btn-close-style-drawer" class="drawer-close-btn" type="button" title="إغلاق">
             <i class="fa-solid fa-xmark"></i>
           </button>
@@ -384,6 +389,23 @@
                 </div>
               </div>
             </div>
+
+            <!-- SLIDE SPLITTING MODES CARD (1 LINE, 2 LINES, ALL IN ONE) -->
+            <div class="style-card" style="margin-top:10px;">
+              <div class="style-card-title"><i class="fa-solid fa-layer-group"></i> تقسيم شرائح العرض (Lines Per Slide)</div>
+              
+              <div class="segmented-control-group" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px; margin-top:6px;">
+                <button type="button" class="segmented-btn" id="btn-tab-lines-1" title="عرض سطر واحد في كل شريحة">
+                  <i class="fa-solid fa-bars"></i> سطر واحد
+                </button>
+                <button type="button" class="segmented-btn active" id="btn-tab-lines-2" title="عرض سطرين في كل شريحة">
+                  <i class="fa-solid fa-equals"></i> سطرين
+                </button>
+                <button type="button" class="segmented-btn" id="btn-tab-lines-all" title="عرض كامل المقطع في شريحة واحدة">
+                  <i class="fa-solid fa-align-justify"></i> المقطع كامل
+                </button>
+              </div>
+            </div>
           </div>
 
           <!-- TAB 2: EFFECTS (SHADOW & STROKE) -->
@@ -452,13 +474,34 @@
             </div>
           </div>
 
-          <!-- TAB 3: CHROMA, CUSTOM SLIDES BG & TEXT TRANSFORMS -->
+          <!-- TAB 3: UNIFIED DISPLAY BACKGROUND (CHROMA + TEMPLATE + CUSTOM) & TEXT TRANSFORMS -->
           <div id="tab-display" class="style-tab-content hidden">
+            
+            <!-- UNIFIED DISPLAY BACKGROUND CARD -->
             <div class="style-card">
-              <div class="style-card-title"><i class="fa-solid fa-display"></i> خلفية شاشة العرض (Chroma)</div>
+              <div class="style-card-title"><i class="fa-solid fa-display"></i> خلفية شاشة العرض</div>
               
               <div class="control-field">
-                <label>اختر لون الخلفية الأساسي</label>
+                <label>نوع ومصدر الخلفية</label>
+                <div class="segmented-control-group bg-source-segmented" style="display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-bottom:10px;">
+                  <button type="button" class="segmented-btn active" id="btn-bg-mode-chroma" data-bg-type="chroma">
+                    <i class="fa-solid fa-palette"></i> لون الكروما
+                  </button>
+                  <button type="button" class="segmented-btn" id="btn-bg-mode-template" data-bg-type="template">
+                    <i class="fa-solid fa-film"></i> قالب جاهز
+                  </button>
+                  <button type="button" class="segmented-btn" id="btn-bg-mode-custom-img" data-bg-type="custom_image">
+                    <i class="fa-solid fa-image"></i> صورة مخصصة
+                  </button>
+                  <button type="button" class="segmented-btn" id="btn-bg-mode-custom-video" data-bg-type="custom_video">
+                    <i class="fa-solid fa-video"></i> فيديو مخصص
+                  </button>
+                </div>
+              </div>
+
+              <!-- 1. CHROMA OPTIONS -->
+              <div id="bg-section-chroma" class="control-field">
+                <label>اختر لون الكروما الأساسي</label>
                 <select id="chroma-select" class="control-select hidden">
                   <option value="black" selected>أسود داكن</option>
                   <option value="green">خلفية خضراء</option>
@@ -481,44 +524,29 @@
                   </button>
                 </div>
               </div>
-            </div>
 
-            <!-- CUSTOM SLIDES BACKGROUND CARD -->
-            <div class="style-card" style="margin-top:10px;">
-              <div class="style-card-title"><i class="fa-solid fa-photo-film"></i> خلفية مخصصة للشرائح (فيديو / صورة)</div>
-              
-              <div class="control-field">
-                <label>نوع خلفية الشرائح</label>
-                <select id="slides-bg-type-select" class="control-select">
-                  <option value="none" selected>بدون خلفية (لون الكروما فقط)</option>
-                  <option value="template">فيديو لوب من القالب المتاح</option>
-                  <option value="custom_image">صورة مخصصة من الجهاز...</option>
-                  <option value="custom_video">فيديو مخصص من الجهاز (MP4/WebM)...</option>
-                </select>
-              </div>
-
-              <!-- TEMPLATE SLIDES BG SELECTOR -->
-              <div class="control-field hidden" id="slides-bg-template-wrap" style="margin-top:8px;">
-                <label>اختر من فيديوهات القوالب المتاحة</label>
+              <!-- 2. TEMPLATE SELECTOR -->
+              <div id="bg-section-template" class="control-field hidden" style="margin-top:6px;">
+                <label>اختر فيديو القالب المتاح</label>
                 <select id="slides-bg-template-select" class="control-select">
                   <option value="Templates/SlidesBg/Shabahak Akon 2026/Shabahak Akoon Loop Empty Centered.mp4">Shabahak Akon 2026 - Loop Empty Centered</option>
                 </select>
               </div>
 
-              <!-- CUSTOM MEDIA UPLOAD WRAPPER -->
-              <div class="control-field hidden" id="slides-bg-custom-upload-wrap" style="margin-top:8px;">
-                <label id="slides-bg-upload-label">ملف الخلفية من الجهاز</label>
+              <!-- 3. CUSTOM MEDIA FILE UPLOAD -->
+              <div id="bg-section-custom" class="control-field hidden" style="margin-top:6px;">
+                <label id="slides-bg-upload-label">ملف الخلفية من جهازك</label>
                 <div style="display:flex; gap:6px; width:100%;">
                   <label for="slides-bg-file-input" class="control-btn" style="flex:1; text-align:center; cursor:pointer; padding:8px 12px; font-size:0.85rem; display:flex; align-items:center; justify-content:center; gap:6px; background:var(--bg-hover, #e2e8f0); border-radius:8px;">
-                    <i class="fa-solid fa-file-video"></i>
-                    <span id="slides-bg-file-name">اختر ملف خلفية...</span>
+                    <i class="fa-solid fa-folder-open"></i>
+                    <span id="slides-bg-file-name">اختر ملف صورة أو فيديو...</span>
                   </label>
                   <input type="file" id="slides-bg-file-input" class="hidden">
                 </div>
               </div>
 
-              <!-- LOOP VIDEO TOGGLE -->
-              <div class="control-field" id="slides-bg-loop-field" style="margin-top:8px;">
+              <!-- 4. LOOP VIDEO TOGGLE -->
+              <div class="control-field hidden" id="slides-bg-loop-field" style="margin-top:10px;">
                 <label class="toggle-switch-label" style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; font-size:0.88rem; background:#f8fafc; padding:8px 10px; border-radius:8px; border:1px solid #e2e8f0;">
                   <span><i class="fa-solid fa-repeat" style="margin-left:6px; color:#2563eb;"></i> تكرار تشغيل الفيديو تلقائياً (Loop)</span>
                   <input type="checkbox" id="slides-bg-loop-cb" class="toggle-checkbox" checked>
@@ -774,7 +802,13 @@
             <button id="btn-prev-line" class="mini-btn-flat" title="السطر السابق"><i class="fa-solid fa-chevron-right"></i></button>
             <span id="current-line-counter" class="counter-text">0 / 0</span>
             <button id="btn-next-line" class="mini-btn-flat" title="السطر التالي"><i class="fa-solid fa-chevron-left"></i></button>
-            <button id="btn-split-all-lines" class="mini-btn-flat" title="تقسيم جميع شرائح الترنيمة لسطرين / سطر واحد"><i class="fa-solid fa-equals"></i></button>
+            
+            <!-- 1 LINE / 2 LINES / ALL IN ONE SEGMENTED SWITCH -->
+            <div class="segmented-control-group slide-lines-mode-group" style="display:inline-flex; align-items:center; gap:2px; background:#f1f5f9; padding:2px; border-radius:6px; border:1px solid #e2e8f0; margin-right:4px;">
+              <button type="button" id="btn-bar-lines-1" class="mini-btn-flat" style="padding:2px 6px; font-size:0.75rem; border-radius:4px;" title="سطر واحد لكل شريحة"><i class="fa-solid fa-bars"></i></button>
+              <button type="button" id="btn-bar-lines-2" class="mini-btn-flat active" style="padding:2px 6px; font-size:0.75rem; border-radius:4px; background:#2563eb; color:#fff;" title="سطرين لكل شريحة"><i class="fa-solid fa-equals"></i></button>
+              <button type="button" id="btn-bar-lines-all" class="mini-btn-flat" style="padding:2px 6px; font-size:0.75rem; border-radius:4px;" title="كامل المقطع في شريحة واحدة"><i class="fa-solid fa-align-justify"></i></button>
+            </div>
 
             <!-- SLIDE JUMP FLOATING POPOVER ATTACHED UNDER COUNTER -->
             <div id="popover-slide-jump" class="dropdown-popover slide-jump-popover hidden">
