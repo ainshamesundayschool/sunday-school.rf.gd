@@ -5644,45 +5644,99 @@ document.addEventListener('DOMContentLoaded', () => {
     return [firstHalf, secondHalf];
   }
 
-  function splitBibleTextIntoLines(text, targetCharsPerLine = 45, minWordsPerLine = 3) {
-    if (!text || !text.trim()) return [text ? text.trim() : ''];
-    const clean = text.trim();
+  function splitBibleVerseIntoBalancedLines(text) {
+    if (!text || !text.trim()) return [''];
+    const clean = text.trim().replace(/\s+/g, ' ');
+    const words = clean.split(' ').filter(Boolean);
+    if (words.length <= 4) return [clean];
 
-    const rawParts = clean.split(/(?<=[\.؛:\!\؟\،])\s+/).map(p => p.trim()).filter(Boolean);
-    if (!rawParts || rawParts.length === 0) return [clean];
+    const totalWords = words.length;
+    const totalChars = clean.length;
 
-    const lines = [];
-    let currentLine = '';
+    let lineCount = 1;
+    if (totalWords <= 7 && totalChars <= 42) {
+      lineCount = 1;
+    } else if (totalWords <= 16 && totalChars <= 90) {
+      lineCount = 2;
+    } else if (totalWords <= 27 && totalChars <= 150) {
+      lineCount = 3;
+    } else if (totalWords <= 38 && totalChars <= 220) {
+      lineCount = 4;
+    } else {
+      lineCount = Math.max(2, Math.round(totalWords / 7.5));
+    }
 
-    for (let part of rawParts) {
-      if (!currentLine) {
-        currentLine = part;
-      } else {
-        const currWords = currentLine.split(/\s+/).filter(Boolean);
-        const combinedLen = currentLine.length + part.length + 1;
+    if (lineCount <= 1) return [clean];
 
-        if (currWords.length < minWordsPerLine || combinedLen <= targetCharsPerLine + 12) {
-          currentLine += ' ' + part;
-        } else {
-          lines.push(currentLine);
-          currentLine = part;
+    const targetWordsPerLine = totalWords / lineCount;
+    const targetCharsPerLine = totalChars / lineCount;
+    const wordLengths = words.map(w => w.length);
+
+    function getLineCost(i, j, isLastLine) {
+      const lineWordCount = j - i + 1;
+      let lineCharCount = 0;
+      for (let k = i; k <= j; k++) lineCharCount += wordLengths[k];
+      lineCharCount += (lineWordCount - 1);
+
+      const wordDiff = lineWordCount - targetWordsPerLine;
+      const charDiff = lineCharCount - targetCharsPerLine;
+      let cost = (wordDiff * wordDiff * 6) + (charDiff * charDiff * 1.5);
+
+      if (lineWordCount < 2) cost += 500;
+      if (lineWordCount < 3 && totalWords >= 8) cost += 150;
+
+      const lastWord = words[j];
+      if (/[،؛:!\?\.]$/.test(lastWord)) {
+        cost -= 35;
+      }
+
+      return cost;
+    }
+
+    const memo = {};
+    function findBestSplit(wordIdx, linesLeft) {
+      if (linesLeft === 1) {
+        return {
+          cost: getLineCost(wordIdx, totalWords - 1, true),
+          splits: [totalWords - 1]
+        };
+      }
+      const key = `${wordIdx}_${linesLeft}`;
+      if (memo[key]) return memo[key];
+
+      let bestCost = Infinity;
+      let bestSplits = [];
+      const maxEnd = totalWords - linesLeft;
+
+      for (let end = wordIdx; end <= maxEnd; end++) {
+        const lineCost = getLineCost(wordIdx, end, false);
+        const rest = findBestSplit(end + 1, linesLeft - 1);
+        const totalCost = lineCost + rest.cost;
+
+        if (totalCost < bestCost) {
+          bestCost = totalCost;
+          bestSplits = [end, ...rest.splits];
         }
       }
+
+      memo[key] = { cost: bestCost, splits: bestSplits };
+      return memo[key];
     }
 
-    if (currentLine) {
-      lines.push(currentLine);
+    const solution = findBestSplit(0, lineCount);
+    const resultLines = [];
+    let currentStart = 0;
+
+    for (let splitEnd of solution.splits) {
+      resultLines.push(words.slice(currentStart, splitEnd + 1).join(' '));
+      currentStart = splitEnd + 1;
     }
 
-    if (lines.length > 1) {
-      const lastWords = lines[lines.length - 1].split(/\s+/).filter(Boolean);
-      if (lastWords.length < minWordsPerLine) {
-        lines[lines.length - 2] += ' ' + lines[lines.length - 1];
-        lines.pop();
-      }
-    }
+    return resultLines.length > 0 ? resultLines : [clean];
+  }
 
-    return lines.length > 0 ? lines : [clean];
+  function splitBibleTextIntoLines(text) {
+    return splitBibleVerseIntoBalancedLines(text);
   }
 
   function ensureSongVerses(song) {
@@ -6287,6 +6341,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     state.presentationLines = linesList;
+    state.isBibleMode = isBible;
+
+    // Calculate uniform song-level font scale to guarantee ALL slides fit without clipping
+    let maxSlideLines = 1;
+    let maxSlideChars = 1;
+    linesList.forEach(item => {
+      const itemLines = item.lines || (item.text ? item.text.split('\n') : []);
+      if (itemLines.length > maxSlideLines) maxSlideLines = itemLines.length;
+      itemLines.forEach(l => {
+        if (l.length > maxSlideChars) maxSlideChars = l.length;
+      });
+    });
+
+    let uniformScaleFactor = 1.0;
+    if (maxSlideLines >= 5) {
+      uniformScaleFactor = 0.68;
+    } else if (maxSlideLines === 4) {
+      uniformScaleFactor = 0.78;
+    } else if (maxSlideLines === 3) {
+      uniformScaleFactor = 0.88;
+    }
+
+    if (maxSlideChars > 55) {
+      uniformScaleFactor = Math.min(uniformScaleFactor, 55 / maxSlideChars);
+    }
+
+    song._uniformScaleFactor = uniformScaleFactor;
+    if (state.activeSong) state.activeSong._uniformScaleFactor = uniformScaleFactor;
+    if (state.liveSong) state.liveSong._uniformScaleFactor = uniformScaleFactor;
+
     if (song && song.title) {
       document.title = `${song.title} | Taranim Online`;
     }
@@ -6887,13 +6971,17 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       lineStr = lineStr.replace(/\)([\d٠-٩]*)$/, '<span class="rep-num-grey" style="color:#94a3b8; font-weight:600; margin-right:1px;">)$1</span>');
 
+      const rowClass = isBible ? 'obs-line-row is-bible-row' : 'obs-line-row';
+      const textAlignStyle = isBible ? 'justify' : 'center';
+
       if (idx === 0) {
-        return `<div class="obs-line-row obs-first-row" style="display: block; width: 100%; text-align: center; position: relative;"><span class="obs-line-segment obs-first-line" data-line-idx="0" style="display: inline-block; width: auto; font-size: inherit; overflow: visible;"><span class="obs-first-line-wrapper" style="position: relative; display: inline-block; text-align: center; max-width: 100%; overflow: visible;">${badgeHtml}${lineStr}</span></span></div>`;
+        return `<div class="${rowClass} obs-first-row" style="display: block; width: 100%; text-align: ${textAlignStyle}; position: relative;"><span class="obs-line-segment obs-first-line ${isBible ? 'obs-bible-segment' : ''}" data-line-idx="0" style="display: block; width: 100%; font-size: inherit; text-align: ${textAlignStyle}; overflow: visible;"><span class="obs-first-line-wrapper" style="position: relative; display: inline-block; text-align: ${textAlignStyle}; width: 100%; max-width: 100%; overflow: visible;">${badgeHtml}${lineStr}</span></span></div>`;
       }
-      return `<div class="obs-line-row" style="display: block; width: 100%; text-align: center;"><span class="obs-line-segment" data-line-idx="${idx}" style="display: inline-block; width: auto; font-size: inherit; overflow: visible;">${lineStr}</span></div>`;
+      return `<div class="${rowClass}" style="display: block; width: 100%; text-align: ${textAlignStyle};"><span class="obs-line-segment ${isBible ? 'obs-bible-segment' : ''}" data-line-idx="${idx}" style="display: block; width: 100%; font-size: inherit; text-align: ${textAlignStyle}; overflow: visible;">${lineStr}</span></div>`;
     }).filter(Boolean).join('');
 
-    return `<div class="obs-slide-wrapper" style="overflow: visible;"><div class="obs-lines-wrapper" style="overflow: visible;">${lineSegments}</div></div>`;
+    const wrapperClass = isBible ? 'obs-lines-wrapper is-bible-lines' : 'obs-lines-wrapper';
+    return `<div class="obs-slide-wrapper" style="overflow: visible; width: 100%;"><div class="${wrapperClass}" style="overflow: visible; width: 100%;">${lineSegments}</div></div>`;
   }
 
   function exportPlaylistObj(targetPl) {
@@ -7105,145 +7193,24 @@ document.addEventListener('DOMContentLoaded', () => {
       boxPadding: state.styleOptions.boxPadding,
       hideControls: Boolean(state.hideControls),
       highlightedLines: state.isHighlightMode ? (state.highlightedLineIndices || []) : [],
-      mode: state.presentationMode || 'oneline',
-      scrollRatio: state.allInOneScrollRatio !== undefined ? state.allInOneScrollRatio : 0,
-      activeGroupIndex: state.allInOneActiveGroupIndex !== undefined ? state.allInOneActiveGroupIndex : 0,
-      highlightColor: state.highlightColor || '#f59e0b',
-      allSlideTexts: targetLines.map(item => item ? (Array.isArray(item.lines) ? item.lines.join('\n') : (item.text || '')) : ''),
-      obsMode: Boolean(state.obsMode !== false)
+      mode: state.presentationMode,
+      presentationMode: state.presentationMode,
+      timestamp: Date.now()
     };
 
-    if (isExplicitPositionUpdate) {
-      payload.pos = state.dragPivot;
+    // BROADCAST TO OBS WINDOW / OVERLAYS
+    if (state.obsBroadcastChannel) {
+      state.obsBroadcastChannel.postMessage(payload);
     }
-    if (isForceRefresh) {
-      payload.forceRefresh = true;
-    }
+    localStorage.setItem('taranim_obs_live_state', JSON.stringify(payload));
 
-    payload.updatedAt = Date.now();
-
-    // 1. INSTANT LOCAL BROADCAST & STORAGE SYNC (0ms)
-    try { broadcastChannel.postMessage(payload); } catch(e) {}
-    try { localStorage.setItem('sunday_school_taranim_live_presentation', JSON.stringify(payload)); } catch(e) {}
-
-    // 2. INSTANT PRESENTER PREVIEW SYNC (0ms)
-    if (els.obsOverlay) {
-      const isOverlayOpen = !els.obsOverlay.classList.contains('hidden');
-      document.body.classList.toggle('has-active-overlay', isOverlayOpen);
-      els.obsOverlay.classList.toggle('controls-hidden', Boolean(state.hideControls));
-      els.obsOverlay.setAttribute('data-mode', state.presentationMode || 'oneline');
-    }
-
+    // LIVE OVERLAY DOM SYNC
     if (els.obsLineText) {
-      const standbyEl = document.getElementById('obs-standby-branding');
-      const logoImg = document.querySelector('.standby-logo');
-      if (logoImg) {
-        const sWidth = state.styleOptions.strokeWidth || 0;
-        const sColor = state.styleOptions.strokeColor || '#000000';
-        const sBlur = state.styleOptions.shadowBlur || 0;
-        const sShadowCol = state.styleOptions.shadowColor || 'rgba(0,0,0,0.85)';
-        const sDist = state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 6;
-        const sAngle = state.styleOptions.shadowAngle !== undefined ? state.styleOptions.shadowAngle : 90;
-
-        const filters = [];
-        if (sWidth > 0 && sColor) {
-          const sw = Math.min(sWidth, 6);
-          filters.push(`drop-shadow(${sw}px 0 0 ${sColor})`);
-          filters.push(`drop-shadow(-${sw}px 0 0 ${sColor})`);
-          filters.push(`drop-shadow(0 ${sw}px 0 ${sColor})`);
-          filters.push(`drop-shadow(0 -${sw}px 0 ${sColor})`);
-        }
-        if (sBlur > 0 || sDist > 0) {
-          const angleRad = sAngle * (Math.PI / 180);
-          const offX = Math.round(sDist * Math.cos(angleRad));
-          const offY = Math.round(sDist * Math.sin(angleRad));
-          filters.push(`drop-shadow(${offX}px ${offY}px ${sBlur}px ${sShadowCol})`);
-        } else {
-          filters.push('drop-shadow(0 8px 24px rgba(0, 0, 0, 0.6))');
-        }
-        logoImg.style.filter = filters.join(' ');
-      }
-
-      const hasText = Boolean(text && text.trim() && !state.isBlank);
-
-      const obsTopLeftHeader = document.getElementById('obs-top-left-header');
-      if (obsTopLeftHeader) {
-        if (isBible && bibleRefShortcut && hasText) {
-          obsTopLeftHeader.textContent = bibleRefShortcut;
-          obsTopLeftHeader.classList.remove('hidden');
-        } else {
-          obsTopLeftHeader.classList.add('hidden');
-        }
-      }
-
-      const obsFooterBar = document.getElementById('obs-footer-bar');
-      const obsScaleBadge = document.getElementById('obs-scale-badge');
-      const obsScaleText = document.getElementById('obs-scale-text');
-      const obsSlideCounter = document.getElementById('obs-slide-counter');
-      const obsCounterText = document.getElementById('obs-counter-text');
-
-      if (obsFooterBar) {
-        let hasContent = false;
-        const validScale = scaleText && String(scaleText).trim().length > 0 && !isBible;
-        if (validScale && hasText) {
-          const cleanScaleText = String(scaleText).replace(/\s*\([^)]*\)/g, '').trim();
-          if (obsScaleText) obsScaleText.textContent = `السلم: ${cleanScaleText}`;
-          if (obsScaleBadge) obsScaleBadge.classList.remove('hidden');
-          hasContent = true;
-        } else {
-          if (obsScaleBadge) obsScaleBadge.classList.add('hidden');
-        }
-
-        if (totalSlides > 0 && hasText) {
-          if (obsCounterText) obsCounterText.textContent = `${currentSlide} من ${totalSlides}`;
-          if (obsSlideCounter) obsSlideCounter.classList.remove('hidden');
-          hasContent = true;
-        } else if (obsSlideCounter) {
-          obsSlideCounter.classList.add('hidden');
-        }
-
-        if (hasContent && hasText && !state.isBlank) {
-          obsFooterBar.classList.remove('hidden');
-        } else {
-          obsFooterBar.classList.add('hidden');
-          if (obsSlideCounter) obsSlideCounter.classList.add('hidden');
-        }
-      }
-
-      const isBlankMode = Boolean(state.isBlank);
-      const isLogoSlide = Boolean(currentSlideItem && currentSlideItem.isLogoSlide);
-      const hasTextContent = Boolean(text && text.trim());
-
-      if (isBlankMode) {
-        // HIDE BUTTON IS ON: Hide text AND hide logo, keep chosen background intact
-        els.obsLineText.classList.add('hidden');
-        els.obsLineText.style.display = 'none';
-        if (standbyEl) {
-          standbyEl.classList.add('hidden');
-          standbyEl.style.display = 'none';
-        }
-      } else if (isLogoSlide || !hasTextContent) {
-        // LOGO SLIDE OR NO ACTIVE SONG: Show official logo standby screen
-        els.obsLineText.classList.add('hidden');
-        els.obsLineText.style.display = 'none';
-
+      const standbyEl = document.getElementById('obs-standby-screen');
+      if (isLogoSlide) {
         if (standbyEl) {
           standbyEl.classList.remove('hidden');
           standbyEl.style.display = 'flex';
-
-          const btnPrev = document.getElementById('btn-standby-prev-song');
-          const btnExit = document.getElementById('btn-standby-exit');
-          const btnNext = document.getElementById('btn-standby-next-song');
-          const prevTitle = document.getElementById('standby-prev-title');
-          const nextTitle = document.getElementById('standby-next-title');
-
-          const recents = state.sessionRecents || [];
-          let currentIdx = -1;
-          const currentSong = state.liveSong || state.activeSong;
-          if (currentSong) {
-            currentIdx = recents.findIndex(r => getItemKey(r) === getItemKey(currentSong));
-          }
-
           const hasPrev = (currentIdx > 0 && currentIdx < recents.length);
           const hasNext = (currentIdx >= 0 && currentIdx < recents.length - 1);
 
@@ -7428,12 +7395,14 @@ document.addEventListener('DOMContentLoaded', () => {
       requestAnimationFrame(() => {
         if (els.obsLineText && snapText.trim() && els.obsLineText.style.display !== 'none') {
           const baseSize = state.fontSize || 105;
+          const uniformScale = (targetSong && targetSong._uniformScaleFactor) || (state.activeSong && state.activeSong._uniformScaleFactor) || 1.0;
+          const effectiveBase = Math.round(baseSize * uniformScale);
           const container = els.obsOverlay || els.obsLineText.parentElement || document.body;
           const containerW = Math.max(320, container.clientWidth || window.innerWidth);
 
           // PROPORTIONAL RESIZE BASED ON CONTAINER/WINDOW WIDTH (ZERO FLICKER, PROPORTIONAL SCALE DOWN)
           const scaleFactor = containerW / 1920;
-          const scaledFontSize = Math.max(14, Math.round(baseSize * scaleFactor));
+          const scaledFontSize = Math.max(14, Math.round(effectiveBase * scaleFactor));
           els.obsLineText.style.fontSize = `${scaledFontSize}px`;
 
           const fixedLH = state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : 1.5;
@@ -7452,12 +7421,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const wrapper = els.obsLineText.querySelector('.obs-slide-wrapper') || els.obsLineText;
             wrapper.style.transform = 'none';
           } else {
+            const isBibleMode = Boolean(isBible || state.isBibleMode);
             segments.forEach(s => {
-              s.style.display = 'inline-block';
-              s.style.width = 'auto';
-              s.style.whiteSpace = 'nowrap';
-              s.style.wordBreak = 'normal';
-              s.style.overflowWrap = 'normal';
+              s.style.display = 'block';
+              s.style.width = '100%';
+              s.style.whiteSpace = 'pre-wrap';
+              s.style.wordBreak = 'break-word';
+              s.style.overflowWrap = 'break-word';
+              s.style.textAlign = isBibleMode ? 'justify' : (state.styleOptions.textAlign || 'center');
+              s.style.textJustify = isBibleMode ? 'inter-word' : 'auto';
+              s.style.textAlignLast = isBibleMode ? 'center' : (state.styleOptions.textAlign || 'center');
             });
 
             const wrapper = els.obsLineText.querySelector('.obs-slide-wrapper') || els.obsLineText;
