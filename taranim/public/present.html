@@ -1372,29 +1372,11 @@
 
       textEl.style.fontSize = `${safeSize}px`;
 
-      // PROPORTIONAL SCALE DOWN ON WIDTH DECREASE (PRESERVES LOCKED RECTANGLE FORM)
       const wrapper = textEl.querySelector('.obs-slide-wrapper') || textEl;
       wrapper.style.transform = 'none';
       wrapper.style.display = 'inline-block';
       wrapper.style.maxWidth = '100%';
       wrapper.style.width = 'auto';
-
-      const maxW = Math.max(260, curW * 0.90);
-      const maxH = Math.max(180, (curH > curW ? curW * (9 / 16) : curH) * 0.85);
-
-      const actualW = wrapper.scrollWidth || wrapper.offsetWidth || maxW;
-      const actualH = wrapper.scrollHeight || wrapper.offsetHeight || maxH;
-
-      if (actualW > maxW || actualH > maxH) {
-        const scaleW = maxW / actualW;
-        const scaleH = maxH / actualH;
-        const scaleFactor = Math.min(scaleW, scaleH);
-        const fittedFontSize = Math.max(16, Math.floor(safeSize * scaleFactor));
-        textEl.style.fontSize = `${fittedFontSize}px`;
-      } else {
-        textEl.style.fontSize = `${safeSize}px`;
-      }
-      wrapper.style.transform = 'none';
 
       applyDynamicShadow();
     }

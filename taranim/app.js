@@ -7507,23 +7507,6 @@ document.addEventListener('DOMContentLoaded', () => {
             wrapper.style.display = 'inline-block';
             wrapper.style.maxWidth = '100%';
             wrapper.style.width = 'auto';
-
-            const maxW = Math.max(260, containerW * 0.90);
-            const maxH = Math.max(180, (containerH > containerW ? containerW * (9 / 16) : containerH) * 0.85);
-
-            const actualW = wrapper.scrollWidth || wrapper.offsetWidth || maxW;
-            const actualH = wrapper.scrollHeight || wrapper.offsetHeight || maxH;
-
-            if (actualW > maxW || actualH > maxH) {
-              const scaleW = maxW / actualW;
-              const scaleH = maxH / actualH;
-              const scaleFactor = Math.min(scaleW, scaleH);
-              const fittedFontSize = Math.max(16, Math.floor(baseSize * scaleFactor));
-              els.obsLineText.style.fontSize = `${fittedFontSize}px`;
-            } else {
-              els.obsLineText.style.fontSize = `${baseSize}px`;
-            }
-            wrapper.style.transform = 'none';
           }
           
           // Re-apply highlights after formatting
