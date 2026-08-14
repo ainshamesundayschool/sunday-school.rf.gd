@@ -4022,8 +4022,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
 
+      const defTaranim = localStorage.getItem('sunday_school_default_tmpl_taranim');
+      const defBible = localStorage.getItem('sunday_school_default_tmpl_bible');
+
       return {
         ...tmpl,
+        isDefaultTaranim: Boolean(defTaranim === tmpl.id || defTaranim === `builtin_${tmpl.name}`),
+        isDefaultBible: Boolean(defBible === tmpl.id || defBible === `builtin_${tmpl.name}`),
         version: '2.0',
         exportedAt: new Date().toISOString(),
         requiredMedia: requiredMedia
@@ -4353,12 +4358,21 @@ document.addEventListener('DOMContentLoaded', () => {
               parsed.forEach((item, idx) => {
                 const normSettings = normalizeImportedSettings(item);
                 if (normSettings) {
+                  const newTmplId = 'tmpl_' + Date.now() + '_' + idx;
                   templates.unshift({
-                    id: 'tmpl_' + Date.now() + '_' + idx,
+                    id: newTmplId,
                     name: item.name || `قالب مستورد ${idx + 1}`,
                     createdAt: item.createdAt || new Date().toISOString(),
                     settings: normSettings
                   });
+
+                  if (item.isDefaultTaranim) {
+                    localStorage.setItem('sunday_school_default_tmpl_taranim', newTmplId);
+                  }
+                  if (item.isDefaultBible) {
+                    localStorage.setItem('sunday_school_default_tmpl_bible', newTmplId);
+                  }
+
                   addedCount++;
                 }
               });
@@ -4393,7 +4407,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const templateObj = {
               name: name,
               settings: normSettings,
-              requiredMedia: requiredMedia
+              requiredMedia: requiredMedia,
+              isDefaultTaranim: Boolean(parsed.isDefaultTaranim),
+              isDefaultBible: Boolean(parsed.isDefaultBible)
             };
 
             // If template explicitly requires media files that are missing
@@ -4407,6 +4423,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 createdAt: new Date().toISOString(),
                 settings: normSettings
               };
+
+              if (parsed.isDefaultTaranim) {
+                localStorage.setItem('sunday_school_default_tmpl_taranim', newTemplate.id);
+              }
+              if (parsed.isDefaultBible) {
+                localStorage.setItem('sunday_school_default_tmpl_bible', newTemplate.id);
+              }
 
               templates.unshift(newTemplate);
               saveUserTemplates(templates);
