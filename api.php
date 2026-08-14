@@ -6501,301 +6501,117 @@ function getData()
             s.id, s.name, s.phone, s.birthday, s.coupons,
 
             s.attendance_coupons, s.commitment_coupons, s.task_coupons,
-
-            s.emergency_phone, s.medical_notes, s.custom_info,
-
-            s.image_url, s.class_id, s.gender, s.is_guest,
-
-            COALESCE(cc.arabic_name, gc.arabic_name, s.class) as class,
-
-            COALESCE(cc.code, gc.code) as class_code,
-
-            c.church_name, c.id as church_id_val
-
-        FROM students s
-
-        LEFT JOIN church_classes cc ON s.class_id = cc.id AND cc.church_id = s.church_id
-
-        LEFT JOIN classes gc ON s.class_id = gc.id
-
-        LEFT JOIN churches c ON s.church_id = c.id
-
-        WHERE COALESCE(s.enrollment_status, 'active') = 'active'
-
-        ORDER BY c.church_name, s.name
-
-    ");
-
+                SELECT 
+                    s.id, s.name, s.phone, s.birthday, s.coupons,
+                    s.attendance_coupons, s.commitment_coupons, s.task_coupons,
+                    s.emergency_phone, s.parent_phones, s.medical_notes, s.custom_info,
+                    s.image_url, s.class_id, s.gender, s.is_guest,
+                    COALESCE(cc.arabic_name, gc.arabic_name, s.class) as class,
+                    COALESCE(cc.code, gc.code) as class_code,
+                    c.church_name, c.id as church_id_val
+                FROM students s
+                LEFT JOIN church_classes cc ON s.class_id = cc.id AND cc.church_id = s.church_id
+                LEFT JOIN classes gc ON s.class_id = gc.id
+                LEFT JOIN churches c ON s.church_id = c.id
+                WHERE COALESCE(s.enrollment_status, 'active') = 'active'
+                ORDER BY c.church_name, s.name
+            ");
             $stmt->execute();
-
             $result = $stmt->get_result();
-
             $students = [];
 
             while ($row = $result->fetch_assoc()) {
-
                 $studentData = [
-
                     'الاسم' => $row['name'],
-
                     '_churchName' => $row['church_name'] ?? '',
-
                     'الكنيسة' => $row['church_name'] ?? '',
-
                     '_churchId' => intval($row['church_id_val'] ?? 0),
-
                     'الفصل' => $row['class'] ?? 'بدون فصل',
-
                     '_classCode' => $row['class_code'] ?? '',
-
                     '_classId' => intval($row['class_id']),
-
                     'العنوان' => '',
-
                     'رقم التليفون' => $row['phone'] ?? '',
-
                     'عيد الميلاد' => formatDateFromDB($row['birthday']),
-
                     'كوبونات' => intval($row['coupons']),
-
                     'كوبونات الحضور' => intval($row['attendance_coupons']),
-
                     'كوبونات الالتزام' => intval($row['commitment_coupons']),
-
                     'كوبونات التاسكات' => intval($row['task_coupons']),
-
                     'تليفون الطوارئ' => $row['emergency_phone'] ?? '',
-
+                    'parent_phones' => $row['parent_phones'] ?? '',
+                    '_parentPhones' => normalizeParentPhones($row['parent_phones'] ?? '', $row['emergency_phone'] ?? ''),
                     'ملاحظات طبية' => $row['medical_notes'] ?? '',
-
                     'معلومات إضافية' => $row['custom_info'] ?? '',
-
                     'صورة' => $row['image_url'] ?? '',
-
                     '_studentId' => intval($row['id']),
-
                     'النوع' => $row['gender'] ?? 'male',
-
                     '_isGuest' => intval($row['is_guest'] ?? 0),
-
-                    '_allAttendance' => [],
-
+                    '_customInfo' => !empty($row['custom_info'])
+                        ? json_decode($row['custom_info'], true)
+                        : null,
                 ];
 
                 $students[] = $studentData;
-
             }
 
-            // Get distinct classes across all churches for developer view
-
-            $classRows = $conn->query("
-
-        SELECT COALESCE(cc.arabic_name, gc.arabic_name) as arabic_name,
-
-               MIN(COALESCE(cc.id, gc.id)) as id, MIN(COALESCE(cc.code, gc.code)) as code,
-
-               MIN(COALESCE(cc.display_order, gc.display_order)) as display_order
-
-        FROM students s
-
-        LEFT JOIN church_classes cc ON s.class_id = cc.id AND cc.church_id = s.church_id
-
-        LEFT JOIN classes gc ON s.class_id = gc.id
-
-        WHERE COALESCE(cc.arabic_name, gc.arabic_name) IS NOT NULL AND COALESCE(cc.arabic_name, gc.arabic_name) != ''
-
-        GROUP BY COALESCE(cc.arabic_name, gc.arabic_name)
-
-        ORDER BY display_order, arabic_name
-
-    ");
-
-            $allClasses = [];
-
-            while ($r = $classRows->fetch_assoc()) {
-
-                $allClasses[] = $r;
-
-            }
-
-            sendJSON(['success' => true, 'data' => $students, 'allStudents' => $students, 'classes' => $allClasses]);
-
-            return;
-
-        }
-
-
-
-        // Debug church ID
-
-        error_log("=== getData() called ===");
-
-        error_log("Church ID from getChurchId(): " . $churchId);
-
-
-
-        $isAll = (!empty($_POST['all_churches']) && $_POST['all_churches'] === '1') || (isset($_POST['dev_override_church_id']) && $_POST['dev_override_church_id'] == -1);
-
-        if ($churchId === 0 && !$isAll) {
-
-            error_log("ERROR: Church ID is 0 - cannot fetch data");
-
             sendJSON([
-
-                'success' => false,
-
-                'message' => 'معرف الكنيسة غير صالح',
-
-                'debug' => 'Church ID is 0'
-
+                'success' => true,
+                'data' => [
+                    'students' => $students,
+                    'classes' => [],
+                    'churchCustomFields' => [],
+                ]
             ]);
-
             return;
-
         }
-
-
-
-        $conn = getDBConnection();
-
-
-
-        // First, check if church exists
-
-        $checkChurch = $conn->prepare("SELECT id, church_name FROM churches WHERE id = ?");
-
-        $checkChurch->bind_param("i", $churchId);
-
-        $checkChurch->execute();
-
-        $churchResult = $checkChurch->get_result();
-
-
-
-        if ($churchResult->num_rows === 0) {
-
-            error_log("ERROR: Church with ID " . $churchId . " not found in database");
-
-            sendJSON([
-
-                'success' => false,
-
-                'message' => 'الكنيسة غير موجودة في قاعدة البيانات'
-
-            ]);
-
-            return;
-
-        }
-
-
-
-        $churchData = $churchResult->fetch_assoc();
-
-        error_log("Church found: " . $churchData['church_name'] . " (ID: " . $churchData['id'] . ")");
-
-
-
-        ensureStudentGraduateSchema($conn);
-
-
 
         $tripId = intval($_POST['trip_id'] ?? 0);
-
         $allowedChurches = [$churchId];
-
         if ($tripId > 0) {
-
             $tStmt = $conn->prepare("SELECT church_id, collaborating_churches FROM trips WHERE id = ?");
-
             $tStmt->bind_param("i", $tripId);
-
             $tStmt->execute();
-
             $trip = $tStmt->get_result()->fetch_assoc();
-
             if ($trip) {
-
                 $participants = [intval($trip['church_id'])];
-
                 $collabRaw = $trip['collaborating_churches'] ?? '';
-
                 if (!empty($collabRaw)) {
-
                     $collab = json_decode($collabRaw, true);
-
                     if (is_array($collab)) {
-
                         $participants = array_unique(array_merge($participants, array_map('intval', $collab)));
-
                     }
-
                 }
-
                 if (in_array($churchId, $participants)) {
-
                     $allowedChurches = $participants;
-
                 }
-
             }
-
         }
-
-
-
         $inPlaceholder = implode(',', array_map('intval', $allowedChurches));
 
-
-
         $stmt = $conn->prepare("
-
             SELECT 
-
                 s.id, 
-
                 s.name, 
-
                 s.address, 
-
                 s.phone, 
-
                 s.birthday, 
-
                 s.coupons, 
-
                 s.attendance_coupons, 
-
                 s.commitment_coupons, 
-
                 s.task_coupons,
-
                 s.emergency_phone,
-
+                s.parent_phones,
                 s.medical_notes,
-
                 s.image_url,
-
                 s.class_id,
-
                 s.custom_info,
-
                 s.church_id,
-
                 s.gender,
-
                 s.is_guest,
-
                 c.church_name,
-
                 COALESCE(cc.id, gc.id) as class_id,
-
                 COALESCE(cc.code, gc.code) as class_code, 
-
                 COALESCE(cc.arabic_name, gc.arabic_name) as class,
-
                 ssgm.group_id AS sibling_group_id,
-
                 ssg.label AS sibling_group_label,
 
                 ssg.status AS sibling_group_status,
@@ -8027,6 +7843,71 @@ function ensureStudentTempIdColumn(mysqli $conn): void
     }
 }
 
+function ensureParentPhonesColumn(mysqli $conn): void
+{
+    static $migrated = false;
+    if ($migrated) return;
+    $check = $conn->query("SHOW COLUMNS FROM students LIKE 'parent_phones'");
+    if ($check && $check->num_rows === 0) {
+        @$conn->query("ALTER TABLE students ADD COLUMN `parent_phones` LONGTEXT DEFAULT NULL AFTER `emergency_phone`");
+    }
+    $migrated = true;
+}
+
+function normalizeParentPhones($rawInput, string $fallbackEmergencyPhone = '', string $fallbackGuardianName = ''): array
+{
+    $list = [];
+    if (is_string($rawInput) && !empty(trim($rawInput))) {
+        $decoded = json_decode($rawInput, true);
+        if (is_array($decoded)) {
+            $list = $decoded;
+        }
+    } elseif (is_array($rawInput)) {
+        $list = $rawInput;
+    }
+
+    $valid = [];
+    foreach ($list as $item) {
+        if (!is_array($item)) continue;
+        $rel = trim($item['relation'] ?? 'guardian');
+        $customRel = trim($item['custom_relation'] ?? $item['custom'] ?? '');
+        $phone = preg_replace('/\s+/', '', (string)($item['phone'] ?? ''));
+        $phone = preg_replace("/^'+/", '', $phone);
+        $phone = preg_replace('/[^\d]/', '', $phone);
+        if (!empty($phone) && substr($phone, 0, 1) !== '0') {
+            $phone = '0' . $phone;
+        }
+        $name = trim((string)($item['name'] ?? ''));
+        if (!empty($phone)) {
+            $valid[] = [
+                'relation' => $rel ?: 'guardian',
+                'custom_relation' => $customRel,
+                'phone' => $phone,
+                'name' => $name
+            ];
+        }
+    }
+
+    if (empty($valid) && !empty($fallbackEmergencyPhone)) {
+        $cleanEmerg = preg_replace('/\s+/', '', (string)$fallbackEmergencyPhone);
+        $cleanEmerg = preg_replace("/^'+/", '', $cleanEmerg);
+        $cleanEmerg = preg_replace('/[^\d]/', '', $cleanEmerg);
+        if (!empty($cleanEmerg) && substr($cleanEmerg, 0, 1) !== '0') {
+            $cleanEmerg = '0' . $cleanEmerg;
+        }
+        if (!empty($cleanEmerg)) {
+            $valid[] = [
+                'relation' => 'guardian',
+                'custom_relation' => '',
+                'phone' => $cleanEmerg,
+                'name' => trim($fallbackGuardianName)
+            ];
+        }
+    }
+
+    return $valid;
+}
+
 function linkTempIdToStudent()
 {
     global $conn;
@@ -8228,14 +8109,29 @@ function createStudentAndLinkTempId()
 
         $totalCoupons = $coupons;
 
+        // Parent phones handling
+        ensureParentPhonesColumn($conn);
+        $parentPhonesRaw = $_POST['parent_phones'] ?? null;
+        $parentPhonesList = normalizeParentPhones($parentPhonesRaw, $cleanEmergencyPhone);
+        $parentPhonesJson = !empty($parentPhonesList) ? json_encode($parentPhonesList, JSON_UNESCAPED_UNICODE) : null;
+        if (empty($cleanEmergencyPhone) && !empty($parentPhonesList)) {
+            $cleanEmergencyPhone = $parentPhonesList[0]['phone'] ?? '';
+        }
+
         // Custom info field
         $customInfoRaw = $_POST['custom_info'] ?? '';
         $customInfoJson = null;
         if (!empty(trim($customInfoRaw))) {
             $decoded = json_decode($customInfoRaw, true);
-            $customInfoJson = is_array($decoded)
-                ? json_encode($decoded, JSON_UNESCAPED_UNICODE)
-                : json_encode(['field_0' => sanitize($customInfoRaw)], JSON_UNESCAPED_UNICODE);
+            if (!is_array($decoded)) {
+                $decoded = ['field_0' => sanitize($customInfoRaw)];
+            }
+            if (!empty($parentPhonesList)) {
+                $decoded['parent_phones'] = $parentPhonesList;
+            }
+            $customInfoJson = json_encode($decoded, JSON_UNESCAPED_UNICODE);
+        } elseif (!empty($parentPhonesList)) {
+            $customInfoJson = json_encode(['parent_phones' => $parentPhonesList], JSON_UNESCAPED_UNICODE);
         }
 
         $gender = sanitize($_POST['gender'] ?? '');
@@ -8248,25 +8144,25 @@ function createStudentAndLinkTempId()
         if ($formattedBirthday === null) {
             $stmt = $conn->prepare("
                 INSERT INTO students 
-                (church_id, name, class_id, class, address, phone, emergency_phone, medical_notes,
-                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, added_by)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
-            ");
-            safeBindParam(
-                $stmt,
-                $churchId, $name, $classId, $className, $address, $cleanPhone, $cleanEmergencyPhone,
-                $medicalNotes, $coupons, $totalCoupons, $photoUrl, $customInfoJson, $gender, $addedByType
-            );
-        } else {
-            $stmt = $conn->prepare("
-                INSERT INTO students 
-                (church_id, name, class_id, class, address, phone, emergency_phone, medical_notes, birthday, 
+                (church_id, name, class_id, class, address, phone, emergency_phone, parent_phones, medical_notes,
                  commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, added_by)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
             ");
             safeBindParam(
                 $stmt,
-                $churchId, $name, $classId, $className, $address, $cleanPhone, $cleanEmergencyPhone,
+                $churchId, $name, $classId, $className, $address, $cleanPhone, $cleanEmergencyPhone, $parentPhonesJson,
+                $medicalNotes, $coupons, $totalCoupons, $photoUrl, $customInfoJson, $gender, $addedByType
+            );
+        } else {
+            $stmt = $conn->prepare("
+                INSERT INTO students 
+                (church_id, name, class_id, class, address, phone, emergency_phone, parent_phones, medical_notes, birthday, 
+                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, added_by)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
+            ");
+            safeBindParam(
+                $stmt,
+                $churchId, $name, $classId, $className, $address, $cleanPhone, $cleanEmergencyPhone, $parentPhonesJson,
                 $medicalNotes, $formattedBirthday, $coupons, $totalCoupons, $photoUrl, $customInfoJson, $gender, $addedByType
             );
         }
@@ -8308,312 +8204,162 @@ function createStudentAndLinkTempId()
 }
 
 function addStudent()
-
 {
-
     try {
-
         $churchId = getChurchId();
-
         $name = sanitize($_POST['name'] ?? '');
-
         $classId = intval($_POST['classId'] ?? 0);
-
         $address = sanitize($_POST['address'] ?? '');
-
         $phone = $_POST['phone'] ?? '';
-
         $emergencyPhone = $_POST['emergency_phone'] ?? '';
-
         $medicalNotes = sanitize($_POST['medical_notes'] ?? '');
-
         $birthday = sanitize($_POST['birthday'] ?? '');
-
         $coupons = max(0, isset($_POST['coupons']) ? intval($_POST['coupons']) : 0);
 
-
-
         error_log("addStudent called:");
-
         error_log("Church ID: $churchId");
-
         error_log("Name: $name");
-
         error_log("Class ID: $classId");
-
         error_log("Raw Phone: " . $phone);
-
         error_log("Coupons: $coupons");
 
-
-
         if (empty($name) || $classId === 0) {
-
             sendJSON(['success' => false, 'message' => 'الاسم والفصل مطلوبان']);
-
             return;
-
         }
-
-
 
         // ── Phone cleaning ──────────────────────────────────────────
-
         // 1. Strip whitespace and leading quote characters
-
         $cleanPhone = preg_replace('/\s+/', '', $phone);
-
         $cleanPhone = preg_replace("/^'+/", '', $cleanPhone);
-
-
-
-        // 2. Remove any non-digit characters EXCEPT the leading zero
-
-        //    (keeps the number as a string, never casts to int)
-
         $cleanPhone = preg_replace('/[^\d]/', '', $cleanPhone);
-
-
-
-        // 3. Enforce leading zero for Egyptian numbers
-
         if (!empty($cleanPhone) && substr($cleanPhone, 0, 1) !== '0') {
-
             $cleanPhone = '0' . $cleanPhone;
-
         }
-
-
-
-        // 4. Validate Egyptian mobile format (01XXXXXXXXX = 11 digits)
-
         if (!empty($cleanPhone) && !preg_match('/^01[0-9]{9}$/', $cleanPhone)) {
-
             sendJSON(['success' => false, 'message' => 'رقم الهاتف يجب أن يبدأ بـ 01 ويتكون من 11 رقم']);
-
             return;
-
         }
-
-
 
         $cleanEmergencyPhone = preg_replace('/\s+/', '', $emergencyPhone);
-
         $cleanEmergencyPhone = preg_replace("/^'+/", '', $cleanEmergencyPhone);
-
         $cleanEmergencyPhone = preg_replace('/[^\d]/', '', $cleanEmergencyPhone);
-
         if (!empty($cleanEmergencyPhone) && substr($cleanEmergencyPhone, 0, 1) !== '0') {
-
             $cleanEmergencyPhone = '0' . $cleanEmergencyPhone;
-
         }
-
         if (!empty($cleanEmergencyPhone) && !preg_match('/^01[0-9]{9}$/', $cleanEmergencyPhone)) {
-
             sendJSON(['success' => false, 'message' => 'تليفون الطوارئ يجب أن يبدأ بـ 01 ويتكون من 11 رقم']);
-
             return;
-
         }
-
-
 
         error_log("Cleaned Phone: " . $cleanPhone);
 
-
-
         $conn = getDBConnection();
 
-
-
         // Check if student already exists
-
         $checkStmt = $conn->prepare("
-
             SELECT id FROM students 
-
             WHERE church_id = ? 
-
             AND LOWER(TRIM(name)) = LOWER(TRIM(?)) 
-
             AND class_id = ?
-
         ");
-
         $normalizedName = trim($name);
-
         $checkStmt->bind_param("isi", $churchId, $normalizedName, $classId);
-
         $checkStmt->execute();
-
-
-
         if ($checkStmt->get_result()->num_rows > 0) {
-
             sendJSON(['success' => false, 'message' => 'الطفل موجود بالفعل في هذا الفصل']);
-
             return;
-
         }
-
-
 
         // Format birthday
-
         $formattedBirthday = null;
-
         if (!empty($birthday)) {
-
             $formattedBirthday = formatDateToDB($birthday);
-
             if (!$formattedBirthday) {
-
                 sendJSON(['success' => false, 'message' => 'تاريخ الميلاد غير صحيح. استخدم DD/MM/YYYY']);
-
                 return;
-
             }
-
         }
-
-
 
         // Get class name — check church_classes first, then global classes
-
         $classStmt = $conn->prepare("
-
             SELECT arabic_name FROM church_classes 
-
             WHERE id = ? AND church_id = ? AND is_active = 1
-
             UNION
-
             SELECT arabic_name FROM classes 
-
             WHERE id = ? 
-
             LIMIT 1
-
         ");
-
         $classStmt->bind_param("iii", $classId, $churchId, $classId);
-
         $classStmt->execute();
-
         $classResult = $classStmt->get_result();
-
         $classData = $classResult->fetch_assoc();
-
         $className = $classData['arabic_name'] ?? '';
 
-
-
         // Handle photo upload
-
         $photoUrl = '';
-
         if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
-
             $photoFilename = !empty($cleanPhone)
-
                 ? "profile_{$cleanPhone}_" . time() . ".jpg"
-
                 : "profile_" . preg_replace('/[^a-zA-Z0-9]/', '_', $name) . "_" . time() . ".jpg";
 
-
-
             $uploadDir = __DIR__ . '/uploads/students/';
-
-
-
             if (!is_dir($uploadDir)) {
-
                 mkdir($uploadDir, 0755, true);
-
             }
-
-
-
             $uploadPath = $uploadDir . $photoFilename;
-
-
-
             $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-
             $fileType = mime_content_type($_FILES['photo']['tmp_name']);
 
-
-
             if (in_array($fileType, $allowedTypes)) {
-
                 if (move_uploaded_file($_FILES['photo']['tmp_name'], $uploadPath)) {
-
-                    // Apply AI enhancement if requested
-
                     $enhanceImage = isset($_POST['enhanceImage']) && $_POST['enhanceImage'] === 'true';
-
                     if ($enhanceImage) {
-
                         $enhancedPath = enhanceImage($uploadPath);
-
                         if ($enhancedPath) {
-
                             $uploadPath = $enhancedPath;
-
                             $photoFilename = basename($enhancedPath);
-
                         }
-
                     }
-
                     $photoUrl = "https://" . ($_SERVER['HTTP_HOST'] ?? 'sunday-school.online') . "/uploads/students/" . $photoFilename;
-
                 }
-
             }
-
         }
-
-
 
         $totalCoupons = $coupons;
 
-
-
         error_log("Phone to store in DB: " . $cleanPhone);
 
-
+        // Parent phones handling
+        ensureParentPhonesColumn($conn);
+        $parentPhonesRaw = $_POST['parent_phones'] ?? null;
+        $guardianName = sanitize($_POST['guardian_name'] ?? '');
+        $parentPhonesList = normalizeParentPhones($parentPhonesRaw, $cleanEmergencyPhone, $guardianName);
+        $parentPhonesJson = !empty($parentPhonesList) ? json_encode($parentPhonesList, JSON_UNESCAPED_UNICODE) : null;
+        if (empty($cleanEmergencyPhone) && !empty($parentPhonesList)) {
+            $cleanEmergencyPhone = $parentPhonesList[0]['phone'] ?? '';
+        }
 
         // Custom info field (one JSON value per church's custom field definition)
-
         $customInfoRaw = $_POST['custom_info'] ?? '';
-
         $customInfoJson = null;
-
         if (!empty(trim($customInfoRaw))) {
-
             $decoded = json_decode($customInfoRaw, true);
-
-            $customInfoJson = is_array($decoded)
-
-                ? json_encode($decoded, JSON_UNESCAPED_UNICODE)
-
-                : json_encode(['field_0' => sanitize($customInfoRaw)], JSON_UNESCAPED_UNICODE);
-
+            if (!is_array($decoded)) {
+                $decoded = ['field_0' => sanitize($customInfoRaw)];
+            }
+            if (!empty($parentPhonesList)) {
+                $decoded['parent_phones'] = $parentPhonesList;
+            }
+            $customInfoJson = json_encode($decoded, JSON_UNESCAPED_UNICODE);
+        } elseif (!empty($parentPhonesList)) {
+            $customInfoJson = json_encode(['parent_phones' => $parentPhonesList], JSON_UNESCAPED_UNICODE);
         }
-
-
 
         $gender = sanitize($_POST['gender'] ?? '');
-
         if ($gender !== 'male' && $gender !== 'female') {
-
             $gender = detectGenderFromName($name);
-
         }
-
-
 
         $isGuest = isset($_POST['is_guest']) && $_POST['is_guest'] === '1' ? 1 : 0;
         $addedByType = 'normal_add';
@@ -8643,32 +8389,7 @@ function addStudent()
         if ($formattedBirthday === null) {
             $stmt = $conn->prepare("
                 INSERT INTO students 
-                (church_id, name, class_id, class, address, phone, emergency_phone, medical_notes,
-                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, added_by, is_guest)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)
-            ");
-            safeBindParam(
-                $stmt,
-                $churchId,
-                $name,
-                $classId,
-                $className,
-                $address,
-                $cleanPhone,
-                $cleanEmergencyPhone,
-                $medicalNotes,
-                $coupons,
-                $totalCoupons,
-                $photoUrl,
-                $customInfoJson,
-                $gender,
-                $addedByType,
-                $isGuest
-            );
-        } else {
-            $stmt = $conn->prepare("
-                INSERT INTO students 
-                (church_id, name, class_id, class, address, phone, emergency_phone, medical_notes, birthday, 
+                (church_id, name, class_id, class, address, phone, emergency_phone, parent_phones, medical_notes,
                  commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, added_by, is_guest)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)
             ");
@@ -8681,6 +8402,33 @@ function addStudent()
                 $address,
                 $cleanPhone,
                 $cleanEmergencyPhone,
+                $parentPhonesJson,
+                $medicalNotes,
+                $coupons,
+                $totalCoupons,
+                $photoUrl,
+                $customInfoJson,
+                $gender,
+                $addedByType,
+                $isGuest
+            );
+        } else {
+            $stmt = $conn->prepare("
+                INSERT INTO students 
+                (church_id, name, class_id, class, address, phone, emergency_phone, parent_phones, medical_notes, birthday, 
+                 commitment_coupons, coupons, attendance_coupons, image_url, custom_info, gender, added_by, is_guest)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)
+            ");
+            safeBindParam(
+                $stmt,
+                $churchId,
+                $name,
+                $classId,
+                $className,
+                $address,
+                $cleanPhone,
+                $cleanEmergencyPhone,
+                $parentPhonesJson,
                 $medicalNotes,
                 $formattedBirthday,
                 $coupons,
@@ -8737,16 +8485,10 @@ function addStudent()
             sendJSON(['success' => false, 'message' => 'فشل في إضافة الطفل: ' . $stmt->error]);
         }
 
-
-
     } catch (Exception $e) {
-
         error_log("❌ addStudent error: " . $e->getMessage());
-
         sendJSON(['success' => false, 'message' => 'خطأ في إضافة الطفل: ' . $e->getMessage()]);
-
     }
-
 }
 
 
@@ -9253,127 +8995,109 @@ function updateStudent()
                 $decoded = json_decode($customInfoRaw, true);
 
                 if (!is_array($decoded)) {
-
                     $decoded = ['field_0' => sanitize($customInfoRaw)];
-
                 }
-
                 $customInfoJson = mergeStudentCustomInfoForUpdate($conn, $studentId, $existingCustomInfoRaw, $decoded);
-
             }
-
         }
 
+        // Parent phones handling
+        ensureParentPhonesColumn($conn);
+        $hasParentPhones = array_key_exists('parent_phones', $_POST);
+        $parentPhonesRaw = $_POST['parent_phones'] ?? null;
+        $guardianName = sanitize($_POST['guardian_name'] ?? '');
+        $parentPhonesList = $hasParentPhones ? normalizeParentPhones($parentPhonesRaw, $cleanEmergencyPhone, $guardianName) : null;
+        $parentPhonesJson = ($parentPhonesList !== null && !empty($parentPhonesList)) ? json_encode($parentPhonesList, JSON_UNESCAPED_UNICODE) : null;
+        if ($hasParentPhones && empty($cleanEmergencyPhone) && !empty($parentPhonesList)) {
+            $cleanEmergencyPhone = $parentPhonesList[0]['phone'] ?? '';
+        }
 
+        if ($hasParentPhones && $parentPhonesList !== null) {
+            $existingCustomDecoded = json_decode($customInfoJson ?: ($existingCustomInfoRaw ?: '{}'), true) ?: [];
+            $existingCustomDecoded['parent_phones'] = $parentPhonesList;
+            $customInfoJson = json_encode($existingCustomDecoded, JSON_UNESCAPED_UNICODE);
+        }
 
         $gender = sanitize($_POST['gender'] ?? '');
-
         if ($gender !== 'male' && $gender !== 'female') {
-
             $gender = detectGenderFromName($name);
-
         }
 
-
-
-        if ($customInfoRaw !== null) {
-
+        if ($hasParentPhones) {
             $updateStmt = $conn->prepare("
-
                 UPDATE students 
-
-                SET name = ?, class_id = ?, class = ?, address = ?, phone = ?, emergency_phone = ?, medical_notes = ?, birthday = ?, 
-
+                SET name = ?, class_id = ?, class = ?, address = ?, phone = ?, emergency_phone = ?, parent_phones = ?, medical_notes = ?, birthday = ?, 
                     commitment_coupons = ?, coupons = ?, custom_info = ?, gender = ?, is_guest = ?, updated_at = NOW()
-
                 WHERE id = ? AND church_id = ?
-
             ");
-
             safeBindParam(
-
                 $updateStmt,
-
                 $name,
-
                 $classId,
-
                 $className,
-
                 $address,
-
                 $cleanPhone,
-
                 $cleanEmergencyPhone,
-
+                $parentPhonesJson,
                 $medicalNotes,
-
                 $formattedBirthday,
-
                 $coupons,
-
                 $totalCoupons,
-
                 $customInfoJson,
-
                 $gender,
-
                 $isGuest,
-
                 $studentId,
-
                 $churchId
-
             );
-
-        } else {
-
+        } elseif ($customInfoRaw !== null) {
             $updateStmt = $conn->prepare("
-
                 UPDATE students 
-
                 SET name = ?, class_id = ?, class = ?, address = ?, phone = ?, emergency_phone = ?, medical_notes = ?, birthday = ?, 
-
-                    commitment_coupons = ?, coupons = ?, gender = ?, is_guest = ?, updated_at = NOW()
-
+                    commitment_coupons = ?, coupons = ?, custom_info = ?, gender = ?, is_guest = ?, updated_at = NOW()
                 WHERE id = ? AND church_id = ?
-
             ");
-
             safeBindParam(
-
                 $updateStmt,
-
                 $name,
-
                 $classId,
-
                 $className,
-
                 $address,
-
                 $cleanPhone,
-
                 $cleanEmergencyPhone,
-
                 $medicalNotes,
-
                 $formattedBirthday,
-
                 $coupons,
-
                 $totalCoupons,
-
+                $customInfoJson,
                 $gender,
-
                 $isGuest,
-
                 $studentId,
-
                 $churchId
-
             );
-
+        } else {
+            $updateStmt = $conn->prepare("
+                UPDATE students 
+                SET name = ?, class_id = ?, class = ?, address = ?, phone = ?, emergency_phone = ?, medical_notes = ?, birthday = ?, 
+                    commitment_coupons = ?, coupons = ?, gender = ?, is_guest = ?, updated_at = NOW()
+                WHERE id = ? AND church_id = ?
+            ");
+            safeBindParam(
+                $updateStmt,
+                $name,
+                $classId,
+                $className,
+                $address,
+                $cleanPhone,
+                $cleanEmergencyPhone,
+                $medicalNotes,
+                $formattedBirthday,
+                $coupons,
+                $totalCoupons,
+                $gender,
+                $isGuest,
+                $studentId,
+                $churchId
+            );
         }
 
 
@@ -21575,51 +21299,32 @@ function getStudentProfile()
 
 
         $conn = getDBConnection();
-
-
+        ensureParentPhonesColumn($conn);
 
         $stmt = $conn->prepare("
-
             SELECT
-
                 s.id, s.name, s.address, s.phone, s.birthday, s.email,
-
                 s.coupons, s.attendance_coupons, s.commitment_coupons,
-
                 s.task_coupons, s.image_url, s.church_id, s.class_id,
-
-                s.custom_info, s.trip_points, s.gender, s.emergency_phone, s.medical_notes,
-
+                s.custom_info, s.trip_points, s.gender, s.emergency_phone, s.parent_phones, s.medical_notes,
                 c.church_name,
-
                 COALESCE(cc.arabic_name, cl.arabic_name, s.class) AS class
-
             FROM students s
-
             LEFT JOIN churches c  ON s.church_id = c.id
-
             LEFT JOIN church_classes cc ON cc.id = s.class_id AND cc.church_id = s.church_id
-
             LEFT JOIN classes cl  ON cl.id = s.class_id
-
             WHERE s.id = ?
-
         ");
-
         $stmt->bind_param("i", $studentId);
-
         $stmt->execute();
-
         $result = $stmt->get_result();
 
-
-
         if ($row = $result->fetch_assoc()) {
+            // Parent phones parsing
+            $row['parent_phones'] = normalizeParentPhones($row['parent_phones'] ?? '', $row['emergency_phone'] ?? '');
 
             // تنسيق تاريخ الميلاد
-
             $row['birthday'] = formatDateFromDB($row['birthday']);
-
             $row['class'] = $row['class'] ?? '---';
 
             $tripPoints = [];
@@ -32369,161 +32074,104 @@ function updateStudentFull()
 
 
         ensureStudentSiblingGroupTables($conn);
+        ensureParentPhonesColumn($conn);
 
-
-
-        $existingCustomStmt = $conn->prepare("SELECT custom_info FROM students WHERE id = ? AND church_id = ? LIMIT 1");
-
+        $existingCustomStmt = $conn->prepare("SELECT custom_info, parent_phones FROM students WHERE id = ? AND church_id = ? LIMIT 1");
         $existingCustomStmt->bind_param('ii', $studentId, $churchId);
-
         $existingCustomStmt->execute();
-
         $existingCustomRow = $existingCustomStmt->get_result()->fetch_assoc();
-
         $existingCustomInfoRaw = $existingCustomRow['custom_info'] ?? null;
+        $existingParentPhonesRaw = $existingCustomRow['parent_phones'] ?? null;
 
-
+        $hasParentPhones = array_key_exists('parent_phones', $_POST);
+        $parentPhonesRaw = $_POST['parent_phones'] ?? null;
+        $guardianName = sanitize($_POST['guardian_name'] ?? '');
+        $parentPhonesList = $hasParentPhones 
+            ? normalizeParentPhones($parentPhonesRaw, $emergencyPhone, $guardianName)
+            : normalizeParentPhones($existingParentPhonesRaw, $emergencyPhone, $guardianName);
+        $parentPhonesJson = ($parentPhonesList !== null && !empty($parentPhonesList)) ? json_encode($parentPhonesList, JSON_UNESCAPED_UNICODE) : null;
+        if ($hasParentPhones && empty($emergencyPhone) && !empty($parentPhonesList)) {
+            $emergencyPhone = $parentPhonesList[0]['phone'] ?? '';
+        }
 
         $hasCustomInfo = array_key_exists('custom_info', $_POST);
-
         $customInfoRaw = $_POST['custom_info'] ?? null;
-
         $customInfoJson = null;
-
         if ($hasCustomInfo) {
-
             if (trim((string) $customInfoRaw) === '') {
-
                 $customInfoJson = mergeStudentCustomInfoForUpdate($conn, $studentId, $existingCustomInfoRaw, []);
-
             } else {
-
                 $decoded = json_decode($customInfoRaw, true);
-
                 if (!is_array($decoded)) {
-
                     $decoded = ['field_0' => sanitize($customInfoRaw)];
-
                 }
-
                 $customInfoJson = mergeStudentCustomInfoForUpdate($conn, $studentId, $existingCustomInfoRaw, $decoded);
-
             }
-
         }
 
-
+        if ($hasParentPhones && $parentPhonesList !== null) {
+            $existingCustomDecoded = json_decode($customInfoJson ?: ($existingCustomInfoRaw ?: '{}'), true) ?: [];
+            $existingCustomDecoded['parent_phones'] = $parentPhonesList;
+            $customInfoJson = json_encode($existingCustomDecoded, JSON_UNESCAPED_UNICODE);
+        }
 
         $gender = sanitize($_POST['gender'] ?? '');
-
         if ($gender !== 'male' && $gender !== 'female') {
-
             $gender = detectGenderFromName($name);
-
         }
 
-
-
         // بناء استعلام التحديث
-
         if ($imageUrl) {
-
             $stmt = $conn->prepare("
-
                 UPDATE students 
-
                 SET name = ?, class_id = ?, class = ?, address = ?, 
-
-                    phone = ?, emergency_phone = ?, medical_notes = ?, 
-
+                    phone = ?, emergency_phone = ?, parent_phones = ?, medical_notes = ?, 
                     birthday = ?, image_url = ?, custom_info = ?, gender = ?, is_guest = ?, updated_at = NOW()
-
                 WHERE id = ? AND church_id = ?
-
             ");
-
             safeBindParam(
-
                 $stmt,
-
                 $name,
-
                 $classId,
-
                 $className,
-
                 $address,
-
                 $phone,
-
                 $emergencyPhone,
-
+                $parentPhonesJson,
                 $medicalNotes,
-
                 $dbBirthday,
-
                 $imageUrl,
-
                 $customInfoJson,
-
                 $gender,
-
                 $isGuest,
-
                 $studentId,
-
                 $churchId
-
             );
-
         } else {
-
             $stmt = $conn->prepare("
-
                 UPDATE students 
-
                 SET name = ?, class_id = ?, class = ?, address = ?, 
-
-                    phone = ?, emergency_phone = ?, medical_notes = ?, 
-
+                    phone = ?, emergency_phone = ?, parent_phones = ?, medical_notes = ?, 
                     birthday = ?, custom_info = ?, gender = ?, is_guest = ?, updated_at = NOW()
-
                 WHERE id = ? AND church_id = ?
-
             ");
-
             safeBindParam(
-
                 $stmt,
-
                 $name,
-
                 $classId,
-
                 $className,
-
                 $address,
-
                 $phone,
-
                 $emergencyPhone,
-
+                $parentPhonesJson,
                 $medicalNotes,
-
                 $dbBirthday,
-
                 $customInfoJson,
-
                 $gender,
-
                 $isGuest,
-
                 $studentId,
-
                 $churchId
-
             );
-
         }
 
         if ($stmt->execute()) {
@@ -38748,7 +38396,7 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
                         continue;
                     }
 
-                    $whitelist = ['id', 'church_id', 'name', 'gender', 'class_id', 'class', 'address', 'phone', 'emergency_phone', 'medical_notes', 'birthday', 'coupons', 'attendance_coupons', 'commitment_coupons', 'task_coupons', 'image_url', 'custom_info', 'email', 'added_by'];
+                    $whitelist = ['id', 'church_id', 'name', 'gender', 'class_id', 'class', 'address', 'phone', 'emergency_phone', 'parent_phones', 'medical_notes', 'birthday', 'coupons', 'attendance_coupons', 'commitment_coupons', 'task_coupons', 'image_url', 'custom_info', 'email', 'added_by'];
                     $fields = [];
                     $placeholders = [];
                     $types = '';
@@ -39193,88 +38841,47 @@ function restoreSingleAuditLogInternal($logId, $churchId, $conn, $targetStudentI
 
 
                 // Update using whitelisted columns
-
-                $whitelist = ['name', 'gender', 'class_id', 'class', 'address', 'phone', 'emergency_phone', 'medical_notes', 'birthday', 'coupons', 'attendance_coupons', 'commitment_coupons', 'task_coupons', 'image_url', 'custom_info', 'email'];
-
+                $whitelist = ['name', 'gender', 'class_id', 'class', 'address', 'phone', 'emergency_phone', 'parent_phones', 'medical_notes', 'birthday', 'coupons', 'attendance_coupons', 'commitment_coupons', 'task_coupons', 'image_url', 'custom_info', 'email'];
                 $updates = [];
-
                 $types = '';
-
                 $params = [];
-
                 foreach ($oldData as $key => $val) {
-
                     if (in_array($key, $whitelist, true)) {
-
                         $updates[] = "`$key` = ?";
-
                         $params[] = $val;
-
                         if (is_int($val)) $types .= 'i';
-
                         elseif (is_float($val)) $types .= 'd';
-
                         else $types .= 's';
-
                     }
-
                 }
-
-
 
                 if (!empty($updates)) {
-
                     $sql = "UPDATE students SET " . implode(', ', $updates) . ", updated_at = NOW() WHERE id = ?";
-
                     $types .= 'i';
-
                     $params[] = $entityId;
-
                     $upd = $conn->prepare($sql);
-
                     $upd->bind_param($types, ...$params);
-
                     if ($upd->execute()) {
-
                         $reverted = true;
-
                         $msg = "تم استرجاع بيانات الطفل بنجاح";
-
                     }
-
                 } else {
-
                     return ['success' => false, 'message' => 'لم يتم العثور على حقول قابلة للتحديث'];
-
                 }
-
             } elseif ($action === 'student_delete') {
-
                 if (empty($oldData)) {
-
                     return ['success' => false, 'message' => 'لا توجد بيانات سابقة لإعادة الإدخال'];
-
                 }
-
                 // Check if student ID already exists
-
                 $chk = $conn->prepare("SELECT id FROM students WHERE id = ?");
-
                 $chk->bind_param("i", $entityId);
-
                 $chk->execute();
-
                 if ($chk->get_result()->num_rows > 0) {
-
                     return ['success' => false, 'message' => 'الطفل موجود بالفعل في قاعدة البيانات ولا حاجة لاسترجاعه'];
-
                 }
-
-
 
                 // Re-insert using whitelisted columns + id + church_id
-
-                $whitelist = ['id', 'church_id', 'name', 'gender', 'class_id', 'class', 'address', 'phone', 'emergency_phone', 'medical_notes', 'birthday', 'coupons', 'attendance_coupons', 'commitment_coupons', 'task_coupons', 'image_url', 'custom_info', 'email', 'added_by'];
+                $whitelist = ['id', 'church_id', 'name', 'gender', 'class_id', 'class', 'address', 'phone', 'emergency_phone', 'parent_phones', 'medical_notes', 'birthday', 'coupons', 'attendance_coupons', 'commitment_coupons', 'task_coupons', 'image_url', 'custom_info', 'email', 'added_by'];
 
                 $fields = [];
 

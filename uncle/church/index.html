@@ -7809,9 +7809,15 @@
                                         <label class="form-label" style="font-size:0.8rem;">رقم الهاتف</label>
                                         <input type="text" id="addKidPhone" class="form-input" placeholder="مثال: 01xxxxxxxxx" style="font-size:0.8rem;height:34px;">
                                     </div>
-                                    <div class="form-group">
-                                        <label class="form-label" style="font-size:0.8rem;">تليفون الطوارئ</label>
-                                        <input type="text" id="addKidEmergencyPhone" class="form-input" placeholder="مثال: 01xxxxxxxxx" style="font-size:0.8rem;height:34px;">
+                                    <div class="form-group" style="grid-column:1/-1;">
+                                        <label class="form-label" style="display:flex;justify-content:space-between;align-items:center;font-size:0.8rem;margin-bottom:6px;">
+                                            <span><i class="fas fa-users" style="margin-left:4px;color:var(--primary);"></i>أرقام أولياء الأمور / جهات الاتصال</span>
+                                            <button type="button" class="btn btn-sm" onclick="addParentPhoneRow('addKidParentPhonesList')" style="padding:2px 8px;font-size:0.75rem;background:rgba(59,130,246,0.15);color:var(--primary);border:1px solid rgba(59,130,246,0.3);border-radius:4px;cursor:pointer;">
+                                                <i class="fas fa-plus"></i> إضافة رقم
+                                            </button>
+                                        </label>
+                                        <div id="addKidParentPhonesList" class="parent-phones-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+                                        <input type="hidden" id="addKidEmergencyPhone" value="">
                                     </div>
                                     <div class="form-group">
                                         <label class="form-label" style="font-size:0.8rem;">تاريخ الميلاد</label>
@@ -14287,6 +14293,133 @@
             });
         }
 
+        // ── Parent Phones Dynamic Helper Functions ───────────────────
+        const PARENT_RELATIONS = [
+            { value: 'father', label: 'أب' },
+            { value: 'mother', label: 'أم' },
+            { value: 'brother', label: 'أخ' },
+            { value: 'sister', label: 'أخت' },
+            { value: 'grandfather', label: 'جد' },
+            { value: 'grandmother', label: 'جدة' },
+            { value: 'uncle', label: 'عم / خال' },
+            { value: 'aunt', label: 'عمة / خالة' },
+            { value: 'guardian', label: 'ولي أمر' },
+            { value: 'other', label: 'أخرى (مخصص)' }
+        ];
+
+        function getRelationLabel(rel, customRel = '') {
+            if (rel === 'other' || !rel) {
+                return customRel ? customRel : 'أخرى';
+            }
+            const found = PARENT_RELATIONS.find(r => r.value === rel);
+            if (found) return found.label;
+            return rel;
+        }
+
+        function renderParentPhoneRowHtml(containerId, item = { relation: 'father', custom_relation: '', name: '', phone: '' }) {
+            const rel = item.relation || 'father';
+            const isOther = (rel === 'other');
+            const customRel = item.custom_relation || '';
+            const name = item.name || '';
+            const phone = item.phone || '';
+            
+            return `
+            <div class="parent-phone-row" style="background:var(--surface-2, rgba(255,255,255,0.05)); border:1px solid var(--border-solid, rgba(255,255,255,0.1)); border-radius:8px; padding:8px; display:flex; flex-direction:column; gap:6px;">
+                <div style="display:flex; gap:6px; align-items:center;">
+                    <select class="form-select parent-phone-relation" style="flex:1; min-width:90px; padding:4px 8px; font-size:0.8rem; height:32px;" onchange="handleParentPhoneRelationChange(this)">
+                        <option value="father" ${rel === 'father' ? 'selected' : ''}>أب</option>
+                        <option value="mother" ${rel === 'mother' ? 'selected' : ''}>أم</option>
+                        <option value="brother" ${rel === 'brother' ? 'selected' : ''}>أخ</option>
+                        <option value="sister" ${rel === 'sister' ? 'selected' : ''}>أخت</option>
+                        <option value="grandfather" ${rel === 'grandfather' ? 'selected' : ''}>جد</option>
+                        <option value="grandmother" ${rel === 'grandmother' ? 'selected' : ''}>جدة</option>
+                        <option value="uncle" ${rel === 'uncle' ? 'selected' : ''}>عم / خال</option>
+                        <option value="aunt" ${rel === 'aunt' ? 'selected' : ''}>عمة / خالة</option>
+                        <option value="guardian" ${rel === 'guardian' ? 'selected' : ''}>ولي أمر</option>
+                        <option value="other" ${isOther ? 'selected' : ''}>أخرى (مخصص)</option>
+                    </select>
+                    <input type="text" class="form-input parent-phone-custom-rel" placeholder="صلة القرابة..." value="${escAttr(customRel)}" style="flex:1; padding:4px 8px; font-size:0.8rem; height:32px; display:${isOther ? 'block' : 'none'};">
+                    <button type="button" class="btn btn-sm" onclick="this.closest('.parent-phone-row').remove()" title="حذف" style="background:rgba(239, 68, 68, 0.15); color:#ef4444; border:1px solid rgba(239, 68, 68, 0.3); border-radius:4px; padding:4px 8px; cursor:pointer;">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1.2fr; gap:6px;">
+                    <input type="text" class="form-input parent-phone-name" placeholder="الاسم (اختياري)" value="${escAttr(name)}" style="padding:4px 8px; font-size:0.8rem; height:32px;">
+                    <input type="tel" class="form-input parent-phone-number" placeholder="رقم الهاتف (01xxxxxxxxx)" value="${escAttr(phone)}" style="padding:4px 8px; font-size:0.8rem; height:32px;" dir="ltr">
+                </div>
+            </div>`;
+        }
+
+        function handleParentPhoneRelationChange(selectEl) {
+            const customInp = selectEl.parentElement.querySelector('.parent-phone-custom-rel');
+            if (customInp) {
+                if (selectEl.value === 'other') {
+                    customInp.style.display = 'block';
+                    customInp.focus();
+                } else {
+                    customInp.style.display = 'none';
+                }
+            }
+        }
+
+        function addParentPhoneRow(containerId, item = { relation: 'father', custom_relation: '', name: '', phone: '' }) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const div = document.createElement('div');
+            div.innerHTML = renderParentPhoneRowHtml(containerId, item);
+            container.appendChild(div.firstElementChild);
+        }
+
+        function collectParentPhonesData(containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return [];
+            const rows = container.querySelectorAll('.parent-phone-row');
+            const list = [];
+            rows.forEach(row => {
+                const rel = row.querySelector('.parent-phone-relation')?.value || 'guardian';
+                const customRel = row.querySelector('.parent-phone-custom-rel')?.value.trim() || '';
+                const name = row.querySelector('.parent-phone-name')?.value.trim() || '';
+                const phone = row.querySelector('.parent-phone-number')?.value.trim() || '';
+                if (phone) {
+                    list.push({
+                        relation: rel,
+                        custom_relation: (rel === 'other') ? customRel : '',
+                        name: name,
+                        phone: phone
+                    });
+                }
+            });
+            return list;
+        }
+
+        function populateParentPhonesUI(containerId, parentPhones, fallbackEmergencyPhone = '', fallbackGuardianName = '') {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = '';
+            
+            let list = [];
+            if (Array.isArray(parentPhones) && parentPhones.length > 0) {
+                list = parentPhones;
+            } else if (typeof parentPhones === 'string' && parentPhones.trim()) {
+                try { list = JSON.parse(parentPhones) || []; } catch(e) { list = []; }
+            }
+            
+            if (list.length === 0 && fallbackEmergencyPhone) {
+                list.push({
+                    relation: 'guardian',
+                    custom_relation: '',
+                    name: fallbackGuardianName || '',
+                    phone: fallbackEmergencyPhone
+                });
+            }
+            
+            if (list.length === 0) {
+                addParentPhoneRow(containerId, { relation: 'father', custom_relation: '', name: '', phone: '' });
+            } else {
+                list.forEach(item => addParentPhoneRow(containerId, item));
+            }
+        }
+
         function populateAddKidClassSelect() {
             const sel = document.getElementById('addKidClass'); if (!sel) return;
             sel.innerHTML = '<option value="">اختر الفصل</option>';
@@ -14298,6 +14431,7 @@
                     sel.appendChild(o);
                 });
             }
+            populateParentPhonesUI('addKidParentPhonesList', []);
         }
 
         async function addStudent(e) {
@@ -14317,12 +14451,16 @@
             const btn = document.getElementById('addKidSubmitBtn');
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; btn.disabled = true;
 
+            const parentPhonesList = collectParentPhonesData('addKidParentPhonesList');
+            const fallbackEmerg = parentPhonesList.length > 0 ? (parentPhonesList[0].phone || '') : (document.getElementById('addKidEmergencyPhone')?.value || '').trim();
+
             const fd = new FormData();
             fd.append('action', 'addStudent');
             fd.append('name', name);
             fd.append('classId', classId);
             fd.append('phone', document.getElementById('addKidPhone').value.trim());
-            fd.append('emergency_phone', document.getElementById('addKidEmergencyPhone').value.trim());
+            fd.append('emergency_phone', fallbackEmerg);
+            fd.append('parent_phones', JSON.stringify(parentPhonesList));
             fd.append('birthday', document.getElementById('addKidBirthday').value.trim());
             fd.append('address', document.getElementById('addKidAddress').value.trim());
             fd.append('medical_notes', document.getElementById('addKidMedicalNotes').value.trim());
@@ -14345,6 +14483,9 @@
                     customInfo['field_0'] = guardianName;
                 }
             }
+            if (parentPhonesList.length > 0) {
+                customInfo.parent_phones = parentPhonesList;
+            }
             fd.append('custom_info', JSON.stringify(customInfo));
             
             const img = document.getElementById('addKidImage')?.files[0];
@@ -14354,6 +14495,7 @@
             if (d.success) { 
                 showToast('تمت إضافة الطفل بنجاح', 'success'); 
                 document.getElementById('addKidForm').reset(); 
+                populateParentPhonesUI('addKidParentPhonesList', []);
                 document.getElementById('studentsSidebar')?.classList.remove('open-mobile');
                 loadStudents(); 
                 loadStatistics();
@@ -14449,6 +14591,22 @@
                 guardianName = ci.guardian_name || ci.father_name || ci.parent_name || ci.mother_name || ci.field_0 || '';
             } catch(e) {}
             if (!guardianName) guardianName = s['اسم ولي الأمر'] || s['ولي الأمر'] || '';
+
+            let pPhones = s._parentPhones || s.parent_phones || [];
+            if (typeof pPhones === 'string' && pPhones.trim()) {
+                try { pPhones = JSON.parse(pPhones); } catch(e) { pPhones = []; }
+            }
+            let parentPhonesHtml = '';
+            if (Array.isArray(pPhones) && pPhones.length > 0) {
+                parentPhonesHtml = pPhones.map(p => {
+                    const rel = getRelationLabel(p.relation, p.custom_relation);
+                    const nameStr = p.name ? ` (${escHtml(p.name)})` : '';
+                    return `<div class="info-box"><small>هاتف ${rel}${nameStr}</small><div dir="ltr"><a href="tel:${escAttr(p.phone)}" style="color:var(--primary);text-decoration:none;font-weight:600;"><i class="fas fa-phone-alt" style="font-size:0.75rem;"></i> ${escHtml(p.phone)}</a></div></div>`;
+                }).join('');
+            } else if (emergPhone) {
+                parentPhonesHtml = `<div class="info-box"><small>هاتف الطوارئ</small><div dir="ltr"><a href="tel:${escAttr(emergPhone)}" style="color:var(--primary);text-decoration:none;font-weight:600;"><i class="fas fa-phone-alt" style="font-size:0.75rem;"></i> ${escHtml(emergPhone)}</a></div></div>`;
+            }
+
             document.getElementById('studentDetails').innerHTML = `
         <div style="text-align:center;margin-bottom:20px;">
             <div style="width:90px;height:90px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;margin:0 auto 12px;border:3px solid var(--primary);overflow:hidden;">
@@ -14459,7 +14617,7 @@
         </div>
         <div class="info-grid" style="margin-bottom:16px;">
             <div class="info-box"><small>رقم الهاتف</small><div>${s['رقم التليفون'] || '---'}</div></div>
-            <div class="info-box"><small>هاتف الطوارئ</small><div>${emergPhone || '---'}</div></div>
+            ${parentPhonesHtml}
             <div class="info-box"><small>تاريخ الميلاد</small><div>${s['عيد الميلاد'] || '---'}</div></div>
             <div class="info-box"><small>ولي الأمر</small><div>${escHtml(guardianName || '---')}</div></div>
             <div class="info-box"><small>العنوان</small><div>${escHtml(address || '---')}</div></div>
@@ -19398,7 +19556,16 @@
                         <div class="form-group"><label class="form-label">الاسم الكامل *</label><input type="text" id="editStudentName" class="form-input" value="${escHtml(s.name || '')}" required></div>
                         <div class="form-group"><label class="form-label">الفصل *</label><select id="editStudentClass" class="form-select" style="width:100%;" required><option value="">اختر الفصل</option></select></div>
                         <div class="form-group"><label class="form-label">رقم الهاتف</label><input type="tel" id="editStudentPhone" class="form-input" value="${escHtml(s.phone || '')}"></div>
-                        <div class="form-group"><label class="form-label">تليفون الطوارئ</label><input type="tel" id="editStudentEmergencyPhone" class="form-input" value="${escHtml(s.emergency_phone || s['تليفون الطوارئ'] || '')}"></div>
+                        <div class="form-group" style="grid-column:1/-1;">
+                            <label class="form-label" style="display:flex;justify-content:space-between;align-items:center;">
+                                <span><i class="fas fa-users" style="margin-left:4px;color:var(--primary);"></i>أرقام أولياء الأمور / جهات الاتصال</span>
+                                <button type="button" class="btn btn-sm" onclick="addParentPhoneRow('editKidParentPhonesList')" style="padding:2px 8px;font-size:0.75rem;background:rgba(59,130,246,0.15);color:var(--primary);border:1px solid rgba(59,130,246,0.3);border-radius:4px;cursor:pointer;">
+                                    <i class="fas fa-plus"></i> إضافة رقم
+                                </button>
+                            </label>
+                            <div id="editKidParentPhonesList" class="parent-phones-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+                            <input type="hidden" id="editStudentEmergencyPhone" value="">
+                        </div>
                         <div class="form-group"><label class="form-label">تاريخ الميلاد</label><input type="text" id="editStudentBirthday" class="form-input" value="${escHtml(s.birthday || '')}" placeholder="DD/MM/YYYY"></div>
                         <div class="form-group"><label class="form-label">العنوان</label><input type="text" id="editStudentAddress" class="form-input" value="${escHtml(s.address || '')}"></div>
                         <div class="form-group"><label class="form-label">اسم الأب / ولي الأمر</label><input type="text" id="editStudentGuardianName" class="form-input" value=""></div>
@@ -19434,6 +19601,10 @@
             document.getElementById('editStudentGuardianName').value = resolvedGuardian;
             document.getElementById('editStudentFamilyStatus').value = editCustomInfo.sibling_group ? `${editCustomInfo.sibling_group.label || 'مجموعة أخوة'} (${editCustomInfo.sibling_group.status || 'قيد المراجعة'})` : '';
             document.getElementById('editStudentCustomInfo').value = s.custom_info || '';
+            
+            const pPhones = s.parent_phones || s._parentPhones || editCustomInfo.parent_phones || [];
+            populateParentPhonesUI('editKidParentPhonesList', pPhones, s.emergency_phone || s['تليفون الطوارئ'] || '', resolvedGuardian);
+
             document.getElementById('editStudentModal').addEventListener('click', e => { if (e.target === document.getElementById('editStudentModal')) document.getElementById('editStudentModal').remove(); });
         }
 
@@ -19455,7 +19626,12 @@
             fd.append('student_id', document.getElementById('editStudentId').value);
             fd.append('name', name); fd.append('class_id', classId);
             fd.append('phone', document.getElementById('editStudentPhone').value);
-            fd.append('emergency_phone', document.getElementById('editStudentEmergencyPhone').value);
+
+            const parentPhonesList = collectParentPhonesData('editKidParentPhonesList');
+            const fallbackEmerg = parentPhonesList.length > 0 ? (parentPhonesList[0].phone || '') : (document.getElementById('editStudentEmergencyPhone')?.value || '').trim();
+
+            fd.append('emergency_phone', fallbackEmerg);
+            fd.append('parent_phones', JSON.stringify(parentPhonesList));
             fd.append('birthday', document.getElementById('editStudentBirthday').value);
             fd.append('address', document.getElementById('editStudentAddress').value);
             const rawCustomInfo = document.getElementById('editStudentCustomInfo')?.value || '';
@@ -19476,6 +19652,9 @@
                 } else {
                     customInfo['field_0'] = guardianName;
                 }
+            }
+            if (parentPhonesList.length > 0) {
+                customInfo.parent_phones = parentPhonesList;
             }
             fd.append('custom_info', JSON.stringify(customInfo));
             fd.append('medical_notes', document.getElementById('editStudentMedicalNotes').value);
@@ -29091,6 +29270,7 @@
                 { key: 'class', label: 'الفصل', selected: true },
                 { key: 'church', label: 'الكنيسة', selected: false },
                 { key: 'phone', label: 'رقم الهاتف', selected: true },
+                { key: 'parent_phones', label: 'أرقام أولياء الأمور', selected: false },
                 { key: 'emergency_phone', label: 'تليفون الطوارئ', selected: true },
                 { key: 'guardian_name', label: 'اسم ولي الأمر', selected: true },
                 { key: 'coupons', label: 'الكوبونات', selected: true },
@@ -29800,6 +29980,22 @@
                 case 'phone':
                     val = item['الهاتف'] || item.phone || item.tel || '-';
                     break;
+                case 'parent_phones': {
+                    let pPhones = item._parentPhones || item.parent_phones;
+                    if (typeof pPhones === 'string' && pPhones.trim()) {
+                        try { pPhones = JSON.parse(pPhones); } catch(e) { pPhones = null; }
+                    }
+                    if (Array.isArray(pPhones) && pPhones.length > 0) {
+                        val = pPhones.map(p => {
+                            const rel = getRelationLabel(p.relation, p.custom_relation);
+                            const nameStr = p.name ? ` (${p.name})` : '';
+                            return `${rel}${nameStr}: ${p.phone}`;
+                        }).join(' | ');
+                    } else {
+                        val = item['تليفون الطوارئ'] || item.emergency_phone || item.emergencyPhone || '-';
+                    }
+                    break;
+                }
                 case 'emergency_phone':
                     val = item['تليفون الطوارئ'] || item.emergency_phone || item.emergencyPhone || '-';
                     break;

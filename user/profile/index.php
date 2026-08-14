@@ -6713,6 +6713,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         class_id: s.class_id || s._classId || 0,
         address: s.address || '',
         phone: s.phone || '',
+        emergency_phone: s.emergency_phone || s['تليفون الطوارئ'] || '',
+        parent_phones: (function () {
+          let pp = s.parent_phones || (s.custom_info && typeof s.custom_info === 'object' ? s.custom_info.parent_phones : null);
+          if (typeof pp === 'string' && pp.trim()) {
+            try { return JSON.parse(pp); } catch (e) { return []; }
+          }
+          return Array.isArray(pp) ? pp : [];
+        })(),
         birthday: s.birthday || '',
         email: s.email || '',
         coupons: parseInt(s.coupons || 0),
@@ -7427,6 +7435,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       if (s.class) pills.push({ bg: '#e0e7ff', c: '#4338ca', icon: 'fas fa-graduation-cap', lbl: 'الفصل', val: s.class });
       if (!isPublic) {
         if (s.phone) pills.push({ bg: '#d1fae5', c: '#065f46', icon: 'fas fa-phone', lbl: 'التليفون', val: s.phone });
+        if (s.parent_phones && s.parent_phones.length > 0) {
+          const relLabels = {
+            'father': 'أب', 'mother': 'أم', 'brother': 'أخ', 'sister': 'أخت',
+            'grandfather': 'جد', 'grandmother': 'جدة', 'uncle': 'عم / خال',
+            'aunt': 'عمة / خالة', 'guardian': 'ولي أمر', 'other': 'أخرى'
+          };
+          s.parent_phones.forEach(p => {
+            const rel = (p.relation === 'other' && p.custom_relation) ? p.custom_relation : (relLabels[p.relation] || p.relation || 'ولي أمر');
+            const nameStr = p.name ? ` (${p.name})` : '';
+            pills.push({ bg: '#ecfdf5', c: '#047857', icon: 'fas fa-phone-alt', lbl: `هاتف ${rel}${nameStr}`, val: p.phone });
+          });
+        } else if (s.emergency_phone) {
+          pills.push({ bg: '#ecfdf5', c: '#047857', icon: 'fas fa-phone-alt', lbl: 'هاتف الطوارئ', val: s.emergency_phone });
+        }
         if (s.address) pills.push({ bg: '#ffedd5', c: '#9a3412', icon: 'fas fa-map-marker-alt', lbl: 'العنوان', val: s.address });
         if (s.birthday) pills.push({ bg: '#fce7f3', c: '#9d174d', icon: 'fas fa-birthday-cake', lbl: 'عيد الميلاد', val: s.birthday });
         if (s.email) pills.push({ bg: '#dbeafe', c: '#1e40af', icon: 'fas fa-envelope', lbl: 'البريد', val: s.email });
@@ -7435,7 +7457,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
           // Match keys against church custom_field definitions for labels/icons
           const defs = customFields || [];
           for (const [key, val] of Object.entries(s.custom_info)) {
-            if (!val || key === 'sibling_group') continue;
+            if (!val || key === 'sibling_group' || key === 'parent_phones') continue;
             const def = defs.find(d => d.key === key);
             const label = def?.name || key;
             const icon = def?.icon || 'fas fa-tag';
