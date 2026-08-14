@@ -1,5 +1,5 @@
 // TARANIM PWA & OBS PRESENTER SERVICE WORKER (OFFLINE FIRST WITH SMART SYNC)
-const CACHE_NAME = 'taranim-pwa-v30';
+const CACHE_NAME = 'taranim-pwa-v31';
 
 const PRECACHE_ASSETS = [
   './',
