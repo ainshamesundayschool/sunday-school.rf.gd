@@ -2353,6 +2353,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (willShow) {
         els.popoverStyle.classList.remove('hidden');
         if (popoverStyleBackdrop) popoverStyleBackdrop.classList.remove('hidden');
+        if (typeof renderUserTemplatesList === 'function') renderUserTemplatesList();
+        if (typeof renderQuickTemplatesDropdown === 'function') renderQuickTemplatesDropdown();
       } else {
         els.popoverStyle.classList.add('hidden');
         if (popoverStyleBackdrop) popoverStyleBackdrop.classList.add('hidden');
@@ -3330,6 +3332,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.style-tab-content').forEach(content => {
           content.classList.toggle('hidden', content.id !== targetTab);
         });
+        if (targetTab === 'tab-templates') {
+          if (typeof renderUserTemplatesList === 'function') renderUserTemplatesList();
+        }
       });
     });
 
