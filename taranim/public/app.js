@@ -3541,7 +3541,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (mode === 'save') {
         if (titleEl) titleEl.textContent = 'حفظ كقالب جديد';
         if (subtitleEl) subtitleEl.textContent = 'حفظ جميع إعدادات التنسيق والشاشة الحالية';
-        if (iconEl) iconEl.className = 'fa-solid fa-layer-group';
+        if (iconEl) iconEl.className = 'fa-solid fa-floppy-disk';
         if (submitTextEl) submitTextEl.textContent = 'حفظ القالب';
         nameInput.value = (els.customTemplateNameInput ? els.customTemplateNameInput.value.trim() : '') || '';
       } else if (mode === 'rename') {
@@ -3554,6 +3554,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       modal.classList.remove('hidden');
+      modal.style.display = 'flex';
       setTimeout(() => {
         nameInput.focus();
         nameInput.select();
@@ -3562,7 +3563,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const closeTemplateEditorModal = () => {
       const modal = document.getElementById('modal-template-editor');
-      if (modal) modal.classList.add('hidden');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+      }
       currentEditingTemplateId = null;
     };
 
@@ -3656,8 +3660,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span>${escapeHtml(t.name)}</span>
               </span>
               <div style="display:flex; align-items:center; gap:4px;">
-                <button type="button" class="btn-quick-update-tmpl" data-id="${t.id}" title="تحديث هذا القالب بالإعدادات الحالية" style="padding:2px 5px; font-size:0.7rem; border:none; background:transparent; color:#2563eb; cursor:pointer; border-radius:4px;">
-                  <i class="fa-solid fa-arrows-rotate"></i>
+                <button type="button" class="btn-quick-update-tmpl" data-id="${t.id}" title="حفظ الإعدادات الحالية وتحديث القالب" style="padding:2px 5px; font-size:0.75rem; border:none; background:transparent; color:#2563eb; cursor:pointer; border-radius:4px;">
+                  <i class="fa-solid fa-floppy-disk"></i>
                 </button>
                 <button type="button" class="btn-quick-rename-tmpl" data-id="${t.id}" title="تعديل اسم القالب" style="padding:2px 5px; font-size:0.7rem; border:none; background:transparent; color:#64748b; cursor:pointer; border-radius:4px;">
                   <i class="fa-solid fa-pen-to-square"></i>
@@ -4262,7 +4266,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnQuickSaveHeader = document.getElementById('btn-quick-save-template-header');
     if (btnQuickSaveHeader) {
       btnQuickSaveHeader.addEventListener('click', (e) => {
+        e.preventDefault();
         e.stopPropagation();
+        const menu = document.getElementById('templates-quick-dropdown-menu');
+        const arrow = document.getElementById('templates-dropdown-arrow');
+        if (menu) menu.classList.add('hidden');
+        if (arrow) arrow.style.transform = 'rotate(0deg)';
         openTemplateEditorModal('save');
       });
     }
@@ -5208,50 +5217,14 @@ document.addEventListener('DOMContentLoaded', () => {
               applyFullTemplate(parsed);
             }
             saveSavedTemplates(list);
-            showToast('تم استيراد القالب بنجاح! ');
+            showToast('تم استيراد القالب بنجاح!');
           } catch(err) {
-            showToast('ملف JSON غير صالح');
+            showToast('ملف JSON غير صالح', 'error');
           }
         };
         reader.readAsText(file);
       }
     };
-
-    const btnSaveCustomTemplate = document.getElementById('btn-save-custom-template');
-    const customTemplateNameInput = document.getElementById('custom-template-name-input');
-    if (btnSaveCustomTemplate && customTemplateNameInput) {
-      btnSaveCustomTemplate.addEventListener('click', () => {
-        const name = (customTemplateNameInput.value || '').trim();
-        if (!name) {
-          showToast('يرجى كتابة اسم للقالب أولاً');
-          customTemplateNameInput.focus();
-          return;
-        }
-
-        const newTemplate = {
-          id: 'template_' + Date.now(),
-          name: name,
-          created: Date.now(),
-          styleOptions: JSON.parse(JSON.stringify(state.styleOptions || {})),
-          fontSize: state.fontSize || 105,
-          selectedFont: state.selectedFont || '',
-          customFontDataUrl: localStorage.getItem('sunday_school_custom_font_dataurl') || state.customFontDataUrl || '',
-          customFontName: localStorage.getItem('sunday_school_custom_font_name') || '',
-          chromaKey: state.chromaKey || 'black',
-          textAnimation: state.textAnimation || 'none',
-          slidesBgConfig: JSON.parse(JSON.stringify(state.slidesBgConfig || {})),
-          standbyConfig: JSON.parse(JSON.stringify(state.standbyConfig || {})),
-          transitionConfig: JSON.parse(JSON.stringify(state.transitionConfig || {})),
-          textTransform: JSON.parse(JSON.stringify(state.textTransform || { scale: 100, posX: 0, posY: 0, rotation: 0 }))
-        };
-
-        const list = getSavedTemplates();
-        list.unshift(newTemplate);
-        saveSavedTemplates(list);
-        customTemplateNameInput.value = '';
-        showToast(`تم حفظ قالب "${name}" بنجاح! `);
-      });
-    }
 
     const importTemplateFileInput = document.getElementById('import-template-file-input');
     if (importTemplateFileInput) {
