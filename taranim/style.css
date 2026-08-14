@@ -2223,6 +2223,8 @@ input[type="checkbox"]:checked::after {
 .media-fit-cover {
   width: 100vw !important;
   height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
   object-fit: cover !important;
 }
 .media-fit-fit_width {
@@ -2242,11 +2244,15 @@ input[type="checkbox"]:checked::after {
 .media-fit-fill {
   width: 100vw !important;
   height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
   object-fit: fill !important;
 }
 .media-fit-contain {
   width: 100vw !important;
   height: 100vh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
   object-fit: contain !important;
 }
 
