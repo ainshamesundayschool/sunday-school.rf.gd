@@ -107,6 +107,8 @@ if (!$hasSession && !$isLoginPage) { ?>
                 .then(function (r) { return r.json(); })
                 .then(function (d) {
                     if (d.success) {
+                        var prevUncleId = localStorage.getItem('uncleId') || localStorage.getItem('uncle_id');
+                        var prevChurchId = localStorage.getItem('churchId') || localStorage.getItem('church_id');
                         if (d.church_type) {
                             try { localStorage.setItem('churchType', d.church_type); } catch (e) { }
                         }
@@ -116,10 +118,22 @@ if (!$hasSession && !$isLoginPage) { ?>
                         if (d.uncle_name) {
                             try { localStorage.setItem('uncleName', d.uncle_name); } catch (e) { }
                         }
-                        if (window.triggerCacheBusterAndReload) {
-                            window.triggerCacheBusterAndReload();
-                        } else {
-                            window.location.reload();
+                        if (d.uncle_id) {
+                            try { localStorage.setItem('uncleId', d.uncle_id); localStorage.setItem('uncle_id', d.uncle_id); } catch (e) { }
+                        }
+                        if (d.church_id) {
+                            try { localStorage.setItem('churchId', d.church_id); localStorage.setItem('church_id', d.church_id); } catch (e) { }
+                        }
+                        var isMismatch = (d.uncle_id && prevUncleId && String(d.uncle_id) !== String(prevUncleId)) ||
+                                         (d.church_id && prevChurchId && String(d.church_id) !== String(prevChurchId));
+                        if (isMismatch) {
+                            if (window.triggerCacheBusterAndReload) {
+                                window.triggerCacheBusterAndReload();
+                            } else {
+                                window.location.reload();
+                            }
+                        } else if (typeof loadData === 'function') {
+                            loadData();
                         }
                     } else if (navigator.onLine && d.message && (d.message.indexOf('not found') !== -1 || d.message.indexOf('No credentials') !== -1 || d.message.indexOf('معلقة') !== -1 || d.message.indexOf('انتظار موافقة') !== -1)) {
                         // Server confirmed user/church does not exist or is pending → clear and redirect
@@ -15567,17 +15581,22 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                     loadClassUncles('الخدام');
                 }
             }, () => {
-                uncleClassNavPermission = 'all';
-                allowedViewUncles = '';
-                churchUncleFeesEnabled = 1;
-                churchAttendanceDay = 5;
-                combinedClassGroups = [];
-                churchCustomFields = [];
-                churchCustomField = null;
-                churchViewMode = 'classes';
+                // If API fails, keep restored localStorage cached settings instead of wiping them!
+                const cached = localStorage.getItem('churchSettings');
+                if (!cached) {
+                    uncleClassNavPermission = 'all';
+                    allowedViewUncles = '';
+                    churchUncleFeesEnabled = 1;
+                    churchAttendanceDay = 5;
+                    combinedClassGroups = [];
+                    churchCustomFields = [];
+                    churchCustomField = null;
+                    churchViewMode = 'classes';
+                }
                 updateUncleFeesVisibility();
                 updateCurrentDateDisplay();
                 _applyDayNameToUI();
+                if (!currentClass) displayClasses();
             });
         }
 
@@ -15657,7 +15676,7 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             if (mergeItem) mergeItem.style.display = (className === 'الخدام') ? 'none' : '';
 
             // If students array is empty (offline, first load), show placeholder until data arrives
-            const classStudents = students.filter(s => s['الفصل'] === className);
+            const classStudents = getActiveViewStudents();
             if (!classStudents.length && !navigator.onLine) {
                 const list = document.getElementById('attendanceList');
                 if (list) list.innerHTML = `
@@ -16981,11 +17000,16 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                             g._customInfo = g._customInfo || {};
                         });
                     }
+                    try {
+                        if (!window.currentUncle) {
+                            const cachedUncle = localStorage.getItem('currentUncleData');
+                            if (cachedUncle) window.currentUncle = JSON.parse(cachedUncle);
+                        }
+                    } catch (e) { }
                     updateDashboardStats();
                     loadDashboardTrips();
                     if (!currentClass) {
-                        if (silent) renderClassesSkeleton();
-                        else displayClasses();
+                        displayClasses();
                     } else renderTodayBirthdayBanner();
                     updateCurrentDateDisplay();
                     if (currentClass) {
@@ -17511,6 +17535,7 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                         makeApiCall({ action: 'getCurrentUncle' }, r => {
                             if (r.uncle && Array.isArray(r.uncle.classes) && r.uncle.classes.length) {
                                 window.currentUncle = r.uncle;
+                                try { localStorage.setItem('currentUncleData', JSON.stringify(r.uncle)); } catch (e) { }
                                 try { localStorage.setItem('uncleAssignedClasses', JSON.stringify(r.uncle.classes.map(c => c.class_name || c.arabic_name || c))); } catch (e) { }
                             }
                             // Re-run display after we've fetched assignments
@@ -18074,7 +18099,23 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             const chKey = `changedStudents_${className}_${dateKey}`;
             const local = JSON.parse(localStorage.getItem(localKey) || '{}');
             const savedChanged = localStorage.getItem(chKey);
-            const cs = className === 'الخدام' ? (window.allUnclesData || []) : students.filter(s => s['الفصل'] === className);
+            let cs = [];
+            if (className === '__ALL__') {
+                cs = (allStudentsData && allStudentsData.length) ? allStudentsData : students;
+            } else if (className === 'الخدام') {
+                cs = window.allUnclesData || [];
+            } else if (className === 'الزوار') {
+                cs = window.allGuestsData || [];
+            } else {
+                const grp = (typeof combinedClassGroups !== 'undefined' && combinedClassGroups)
+                    ? combinedClassGroups.find(g => g.label === className)
+                    : null;
+                if (grp) {
+                    cs = students.filter(s => grp.classes.includes(s['الفصل']));
+                } else {
+                    cs = students.filter(s => s['الفصل'] === className);
+                }
+            }
             let restoredChanged = new Set();
             if (savedChanged) { try { const arr = JSON.parse(savedChanged); const ids = cs.map(s => getStudentId(s)); restoredChanged = new Set(arr.filter(id => ids.includes(id))); } catch (e) { } }
             changedStudents = restoredChanged;
@@ -18109,9 +18150,11 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             const dateKey = date || currentFriday;
             let cs = [];
             if (className === '__ALL__') {
-                cs = students;
+                cs = (allStudentsData && allStudentsData.length) ? allStudentsData : students;
             } else if (className === 'الخدام') {
                 cs = window.allUnclesData || [];
+            } else if (className === 'الزوار') {
+                cs = window.allGuestsData || [];
             } else {
                 const grp = (typeof combinedClassGroups !== 'undefined' && combinedClassGroups)
                     ? combinedClassGroups.find(g => g.label === className)
@@ -18167,7 +18210,23 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             } catch (e) {
                 couponValueIdxByStudent = {};
             }
-            const cs = className === 'الخدام' ? (window.allUnclesData || []) : students.filter(s => s['الفصل'] === className);
+            let cs = [];
+            if (className === '__ALL__') {
+                cs = (allStudentsData && allStudentsData.length) ? allStudentsData : students;
+            } else if (className === 'الخدام') {
+                cs = window.allUnclesData || [];
+            } else if (className === 'الزوار') {
+                cs = window.allGuestsData || [];
+            } else {
+                const grp = (typeof combinedClassGroups !== 'undefined' && combinedClassGroups)
+                    ? combinedClassGroups.find(g => g.label === className)
+                    : null;
+                if (grp) {
+                    cs = students.filter(s => grp.classes.includes(s['الفصل']));
+                } else {
+                    cs = students.filter(s => s['الفصل'] === className);
+                }
+            }
             cs.forEach(s => { const id = getStudentId(s); originalCouponData[id] = parseInt(s['كوبونات الالتزام'] || 0); });
         }
         function saveCouponDataForClass(className) {
@@ -25843,6 +25902,7 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             makeApiCall({ action: 'getCurrentUncle' }, r => {
                 if (r.uncle?.id) {
                     window.currentUncle = r.uncle;
+                    try { localStorage.setItem('currentUncleData', JSON.stringify(r.uncle)); } catch (e) { }
                     localStorage.setItem('uncleName', r.uncle.name || '');
                     localStorage.setItem('uncleUsername', r.uncle.username || '');
                     localStorage.setItem('uncleRole', r.uncle.role || '');
@@ -25980,8 +26040,12 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             if (!bar || !list) return;
 
             if (className === 'الخدام') {
+                let unclesList = window.allUnclesData || [];
+                if (!unclesList.length) {
+                    try { unclesList = JSON.parse(localStorage.getItem('lastUnclesData') || '[]'); } catch (e) { }
+                }
                 const allowedList = (allowedViewUncles || '').split(',').map(x => x.trim().toLowerCase()).filter(x => x);
-                const allowedUncles = (window.allUnclesData || []).filter(u => u.username && allowedList.includes(u.username.toLowerCase()));
+                const allowedUncles = unclesList.filter(u => u.username && allowedList.includes(u.username.toLowerCase()));
 
                 if (allowedUncles.length) {
                     bar.style.display = 'flex';
@@ -25998,15 +26062,18 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 return;
             }
 
-            // Skip network call when offline — uncles bar not critical
-            if (!navigator.onLine) { bar.style.display = 'none'; return; }
+            // Check cached class uncles first
+            const cachedUnclesKey = 'classUncles_' + className;
+            let cachedUncles = null;
+            try {
+                const raw = localStorage.getItem(cachedUnclesKey);
+                if (raw) cachedUncles = JSON.parse(raw);
+            } catch (e) { }
 
-            bar.style.display = 'flex';
-            list.innerHTML = Array(3).fill('<div class="skeleton-uncle"></div>').join('');
-
-            makeApiCall({ action: 'getClassUncles', class: className }, r => {
-                if (r.uncles && r.uncles.length) {
-                    list.innerHTML = r.uncles.map(u =>
+            const renderUncles = (arr) => {
+                if (arr && arr.length) {
+                    bar.style.display = 'flex';
+                    list.innerHTML = arr.map(u =>
                         `<div class="uncle-avatar-wrap">` +
                         `<img class="uncle-avatar-img" src="${window.photoUrl(u.image_url || 'https://sunday-school.online/profile_default.webp')}"` +
                         ` alt="${u.name}" onerror="this.src='https://sunday-school.online/profile_default.webp'">` +
@@ -26016,7 +26083,33 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 } else {
                     bar.style.display = 'none';
                 }
-            }, () => { bar.style.display = 'none'; });
+            };
+
+            if (cachedUncles && cachedUncles.length) {
+                renderUncles(cachedUncles);
+            }
+
+            if (!navigator.onLine) {
+                if (!cachedUncles || !cachedUncles.length) bar.style.display = 'none';
+                return;
+            }
+
+            if (!cachedUncles || !cachedUncles.length) {
+                bar.style.display = 'flex';
+                list.innerHTML = Array(3).fill('<div class="skeleton-uncle"></div>').join('');
+            }
+
+            makeApiCall({ action: 'getClassUncles', class: className }, r => {
+                if (r.uncles && r.uncles.length) {
+                    try { localStorage.setItem(cachedUnclesKey, JSON.stringify(r.uncles)); } catch (e) { }
+                    renderUncles(r.uncles);
+                } else {
+                    try { localStorage.removeItem(cachedUnclesKey); } catch (e) { }
+                    bar.style.display = 'none';
+                }
+            }, () => {
+                if (!cachedUncles || !cachedUncles.length) bar.style.display = 'none';
+            });
         }
 
         // ── PENDING REGISTRATIONS ─────────────────────────────────────
@@ -27594,7 +27687,11 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                     makeApiCall({ action: 'getAllStudentsData' }, r => {
                         if (r && r.students && Array.isArray(r.students)) {
                             try {
-                                localStorage.setItem('lastStudentsData', JSON.stringify(r.students));
+                                localStorage.setItem('lastStudentsData', JSON.stringify({
+                                    students: r.students,
+                                    allStudents: r.students,
+                                    classes: r.classes || classes
+                                }));
                                 if (r.classes) localStorage.setItem('cachedClasses', JSON.stringify(r.classes));
                                 r.students.forEach(st => {
                                     const p = st['صورة'] || st.image_url;

@@ -6792,25 +6792,17 @@ function getData()
                 'كوبونات التاسكات' => intval($row['task_coupons']),
 
                 'تليفون الطوارئ' => $row['emergency_phone'] ?? '',
-
+                'parent_phones' => $row['parent_phones'] ?? '',
+                '_parentPhones' => normalizeParentPhones($row['parent_phones'] ?? '', $row['emergency_phone'] ?? ''),
                 'ملاحظات طبية' => $row['medical_notes'] ?? '',
-
                 'معلومات إضافية' => $row['custom_info'] ?? '',
-
                 'صورة' => $row['image_url'] ?? '',
-
                 '_studentId' => intval($row['id']),
-
                 'النوع' => $row['gender'] ?? 'male',
-
                 '_isGuest' => intval($row['is_guest'] ?? 0),
-
                 '_customInfo' => !empty($row['custom_info'])
-
                     ? json_decode($row['custom_info'], true)
-
                     : null,
-
             ];
 
             appendSiblingGroupToStudentPayload($studentData, $row);
@@ -7854,6 +7846,27 @@ function ensureParentPhonesColumn(mysqli $conn): void
     $migrated = true;
 }
 
+function cleanPhoneNumber($phone): string
+{
+    if (empty($phone)) return '';
+    $arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩', '۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+    $englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    $p = str_replace($arabicNumbers, $englishNumbers, (string)$phone);
+    $p = preg_replace('/\s+/', '', $p);
+    $p = preg_replace("/^'+/", '', $p);
+    $p = preg_replace('/[^\d]/', '', $p);
+    if (strlen($p) === 12 && substr($p, 0, 2) === '20') {
+        $p = '0' . substr($p, 2);
+    } elseif (strlen($p) === 14 && substr($p, 0, 4) === '0020') {
+        $p = '0' . substr($p, 4);
+    } elseif (strlen($p) === 10 && substr($p, 0, 1) === '1') {
+        $p = '0' . $p;
+    } elseif (!empty($p) && strlen($p) >= 10 && substr($p, 0, 1) !== '0') {
+        $p = '0' . $p;
+    }
+    return $p;
+}
+
 function normalizeParentPhones($rawInput, string $fallbackEmergencyPhone = '', string $fallbackGuardianName = ''): array
 {
     $list = [];
@@ -7871,12 +7884,7 @@ function normalizeParentPhones($rawInput, string $fallbackEmergencyPhone = '', s
         if (!is_array($item)) continue;
         $rel = trim($item['relation'] ?? 'guardian');
         $customRel = trim($item['custom_relation'] ?? $item['custom'] ?? '');
-        $phone = preg_replace('/\s+/', '', (string)($item['phone'] ?? ''));
-        $phone = preg_replace("/^'+/", '', $phone);
-        $phone = preg_replace('/[^\d]/', '', $phone);
-        if (!empty($phone) && substr($phone, 0, 1) !== '0') {
-            $phone = '0' . $phone;
-        }
+        $phone = cleanPhoneNumber($item['phone'] ?? '');
         $name = trim((string)($item['name'] ?? ''));
         if (!empty($phone)) {
             $valid[] = [
@@ -7889,12 +7897,7 @@ function normalizeParentPhones($rawInput, string $fallbackEmergencyPhone = '', s
     }
 
     if (empty($valid) && !empty($fallbackEmergencyPhone)) {
-        $cleanEmerg = preg_replace('/\s+/', '', (string)$fallbackEmergencyPhone);
-        $cleanEmerg = preg_replace("/^'+/", '', $cleanEmerg);
-        $cleanEmerg = preg_replace('/[^\d]/', '', $cleanEmerg);
-        if (!empty($cleanEmerg) && substr($cleanEmerg, 0, 1) !== '0') {
-            $cleanEmerg = '0' . $cleanEmerg;
-        }
+        $cleanEmerg = cleanPhoneNumber($fallbackEmergencyPhone);
         if (!empty($cleanEmerg)) {
             $valid[] = [
                 'relation' => 'guardian',
@@ -8229,28 +8232,13 @@ function addStudent()
         }
 
         // ── Phone cleaning ──────────────────────────────────────────
-        // 1. Strip whitespace and leading quote characters
-        $cleanPhone = preg_replace('/\s+/', '', $phone);
-        $cleanPhone = preg_replace("/^'+/", '', $cleanPhone);
-        $cleanPhone = preg_replace('/[^\d]/', '', $cleanPhone);
-        if (!empty($cleanPhone) && substr($cleanPhone, 0, 1) !== '0') {
-            $cleanPhone = '0' . $cleanPhone;
-        }
-        if (!empty($cleanPhone) && !preg_match('/^01[0-9]{9}$/', $cleanPhone)) {
-            sendJSON(['success' => false, 'message' => 'رقم الهاتف يجب أن يبدأ بـ 01 ويتكون من 11 رقم']);
+        $cleanPhone = cleanPhoneNumber($phone);
+        if (!empty($cleanPhone) && !preg_match('/^01[0-9]{9}$/', $cleanPhone) && strlen($cleanPhone) < 7) {
+            sendJSON(['success' => false, 'message' => 'رقم الهاتف غير صحيح']);
             return;
         }
 
-        $cleanEmergencyPhone = preg_replace('/\s+/', '', $emergencyPhone);
-        $cleanEmergencyPhone = preg_replace("/^'+/", '', $cleanEmergencyPhone);
-        $cleanEmergencyPhone = preg_replace('/[^\d]/', '', $cleanEmergencyPhone);
-        if (!empty($cleanEmergencyPhone) && substr($cleanEmergencyPhone, 0, 1) !== '0') {
-            $cleanEmergencyPhone = '0' . $cleanEmergencyPhone;
-        }
-        if (!empty($cleanEmergencyPhone) && !preg_match('/^01[0-9]{9}$/', $cleanEmergencyPhone)) {
-            sendJSON(['success' => false, 'message' => 'تليفون الطوارئ يجب أن يبدأ بـ 01 ويتكون من 11 رقم']);
-            return;
-        }
+        $cleanEmergencyPhone = cleanPhoneNumber($emergencyPhone);
 
         error_log("Cleaned Phone: " . $cleanPhone);
 
@@ -8763,52 +8751,13 @@ function updateStudent()
 
 
         // Phone cleaning
-
-        $cleanPhone = preg_replace('/\s+/', '', $phone);
-
-        $cleanPhone = preg_replace("/^'+/", '', $cleanPhone);
-
-        $cleanPhone = preg_replace('/[^\d]/', '', $cleanPhone);
-
-
-
-        if (!empty($cleanPhone) && substr($cleanPhone, 0, 1) !== '0') {
-
-            $cleanPhone = '0' . $cleanPhone;
-
-        }
-
-
-
-        if (!empty($cleanPhone) && !preg_match('/^01[0-9]{9}$/', $cleanPhone)) {
-
-            sendJSON(['success' => false, 'message' => 'رقم الهاتف يجب أن يبدأ بـ 01 ويتكون من 11 رقم']);
-
+        $cleanPhone = cleanPhoneNumber($phone);
+        if (!empty($cleanPhone) && !preg_match('/^01[0-9]{9}$/', $cleanPhone) && strlen($cleanPhone) < 7) {
+            sendJSON(['success' => false, 'message' => 'رقم الهاتف غير صحيح']);
             return;
-
         }
 
-
-
-        $cleanEmergencyPhone = preg_replace('/\s+/', '', $emergencyPhone);
-
-        $cleanEmergencyPhone = preg_replace("/^'+/", '', $cleanEmergencyPhone);
-
-        $cleanEmergencyPhone = preg_replace('/[^\d]/', '', $cleanEmergencyPhone);
-
-        if (!empty($cleanEmergencyPhone) && substr($cleanEmergencyPhone, 0, 1) !== '0') {
-
-            $cleanEmergencyPhone = '0' . $cleanEmergencyPhone;
-
-        }
-
-        if (!empty($cleanEmergencyPhone) && !preg_match('/^01[0-9]{9}$/', $cleanEmergencyPhone)) {
-
-            sendJSON(['success' => false, 'message' => 'تليفون الطوارئ يجب أن يبدأ بـ 01 ويتكون من 11 رقم']);
-
-            return;
-
-        }
+        $cleanEmergencyPhone = cleanPhoneNumber($emergencyPhone);
 
 
 
