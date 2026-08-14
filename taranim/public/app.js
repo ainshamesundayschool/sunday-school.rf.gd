@@ -4180,7 +4180,7 @@ document.addEventListener('DOMContentLoaded', () => {
       els.btnSaveCustomTemplate.addEventListener('click', () => {
         const name = (els.customTemplateNameInput.value || '').trim();
         if (!name) {
-          showToast('يرجى كتابة اسم للقالب أولاً!', 'warning');
+          openTemplateEditorModal('save');
           return;
         }
 
