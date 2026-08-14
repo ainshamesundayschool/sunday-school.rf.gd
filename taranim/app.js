@@ -8776,8 +8776,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const targetIndex = (state.liveLineIndex >= 0) ? state.liveLineIndex : (state.currentLineIndex >= 0 ? state.currentLineIndex : 0);
 
     const currentSlideItem = targetLines[targetIndex] || null;
-    const isLogoSlide = Boolean(currentSlideItem && currentSlideItem.isLogoSlide);
+    const isPastEnd = (targetLines.length > 0 && targetIndex >= targetLines.length);
+    const isLogoSlide = Boolean(currentSlideItem && currentSlideItem.isLogoSlide) || isPastEnd;
     const text = currentSlideItem ? (currentSlideItem.text || '') : '';
+    const isEndingStandby = Boolean(state.isStandbyMode || isLogoSlide || (!text && !state.isBlank));
     const currentSlide = targetLines.length > 0 ? (targetIndex + 1) : 0;
     const totalSlides = targetLines.length;
     const scaleText = getSongScaleText(targetSong);
@@ -8792,8 +8794,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const payload = {
       type: 'PRESENT_LINE',
       isLogoSlide: isLogoSlide,
-      isStandby: Boolean(state.isStandbyMode),
-      isStandbyMode: Boolean(state.isStandbyMode),
+      isStandby: isEndingStandby,
+      isStandbyMode: isEndingStandby,
       standbyConfig: state.standbyConfig,
       slidesBgConfig: state.slidesBgConfig,
       transitionConfig: state.transitionConfig,
@@ -8981,7 +8983,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       };
 
-      if (state.isStandbyMode) {
+      if (state.isStandbyMode || isEndingStandby) {
         els.obsLineText.classList.add('hidden');
         els.obsLineText.style.display = 'none';
         updateObsStandbyDisplay(true);

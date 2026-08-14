@@ -2046,8 +2046,8 @@
       const standbyFullscreenVideo = document.getElementById('standby-fullscreen-video');
 
       const isBlankMode = Boolean(data.isBlank);
-      const isStandbyMode = Boolean(data.isStandby || data.isStandbyMode);
       const hasTextContent = Boolean(data.text && String(data.text).trim());
+      const isStandbyMode = Boolean(data.isStandby || data.isStandbyMode || data.isLogoSlide || (!hasTextContent && !isBlankMode));
 
       const updateStandbyMediaDisplay = (showStandby) => {
         const standbyConf = data.standbyConfig || { type: 'logo' };
