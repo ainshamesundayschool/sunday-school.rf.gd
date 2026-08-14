@@ -4185,24 +4185,31 @@ input[type="checkbox"]:checked::after {
 /* STYLE CARDS & 2-COLUMN CONTROL GRID */
 .style-card {
   background: #ffffff;
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
   padding: 12px 14px;
-  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.style-card:hover {
+  border-color: #cbd5e1;
 }
 
 .style-card-title {
   font-size: 0.86rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 10px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 8px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
+  letter-spacing: -0.01em;
 }
 
 .style-card-title i {
-  color: #3b82f6;
+  color: #2563eb;
+  font-size: 0.9rem;
 }
 
 .style-grid-2 {
@@ -4225,8 +4232,9 @@ input[type="checkbox"]:checked::after {
 
 .control-field label {
   font-size: 0.78rem;
-  font-weight: 600;
-  color: #475569;
+  font-weight: 700;
+  color: #334155;
+  letter-spacing: -0.01em;
 }
 
 .field-label-row {
@@ -4236,12 +4244,13 @@ input[type="checkbox"]:checked::after {
 }
 
 .counter-text-chip {
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   font-weight: 700;
   color: #2563eb;
   background: #eff6ff;
+  border: 1px solid #dbeafe;
   padding: 1px 7px;
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
 /* APPLE-STYLE SEGMENTED BUTTONS */
