@@ -428,6 +428,20 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
           <i class="fas fa-check-circle" style="font-size:1.1rem; color:var(--success);"></i>
           <span>تم التأكد من رقم الهاتف بنجاح عبر الواتساب</span>
         </div>
+
+        <!-- Parent / Guardian Contacts Builder -->
+        <div style="margin-top:18px; padding-top:14px; border-top:1px dashed var(--border);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <label style="font-weight:700; font-size:0.92rem; color:var(--text); display:flex; align-items:center; gap:6px; margin:0;">
+              <i class="fas fa-users" style="color:var(--brand);"></i> أرقام أولياء الأمور والقرابة (اختياري)
+            </label>
+            <button type="button" class="btn-sub" onclick="addRegParentPhoneRow()" style="padding:5px 12px; font-size:0.8rem; display:inline-flex; align-items:center; gap:5px; background:var(--brand-bg); color:var(--brand); border:1px solid var(--brand); border-radius:var(--r-sm); cursor:pointer; font-weight:700;">
+              <i class="fas fa-plus"></i> إضافة رقم
+            </button>
+          </div>
+          <div id="regParentPhonesList" style="display:flex; flex-direction:column; gap:8px;"></div>
+          <small style="color:var(--text-3); display:block; margin-top:6px; font-size:0.78rem;"><i class="fas fa-info-circle"></i> يمكنك إضافة أرقام الأب، الأم، الأخ، الأخت، الجد، الجدة أو أي صلة قرابة أخرى مع كتابة اسم جهة الاتصال لتسهيل التواصل.</small>
+        </div>
       </div>
       <div class="alert alert-err" id="err2"><i class="fas fa-circle-exclamation"></i><span id="errTxt2"></span></div>
       <div class="act-bar">
@@ -543,6 +557,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
         <div class="rv-row"><span class="rv-lbl">الفصل</span><span class="rv-val" id="rv-class">—</span></div>
         <div class="rv-row"><span class="rv-lbl">تاريخ الميلاد</span><span class="rv-val" id="rv-bday">—</span></div>
         <div class="rv-row"><span class="rv-lbl">رقم التليفون</span><span class="rv-val" id="rv-phone">—</span></div>
+        <div class="rv-row" id="rv-parent-phones-row" style="display:none"><span class="rv-lbl">أرقام أولياء الأمور</span><span class="rv-val" id="rv-parent-phones-val" style="display:flex; flex-wrap:wrap; gap:4px; justify-content:flex-end;">—</span></div>
         <div class="rv-row"><span class="rv-lbl">العنوان</span><span class="rv-val" id="rv-address">—</span></div>
         <div class="rv-row"><span class="rv-lbl">البريد الإلكتروني</span><span class="rv-val" id="rv-email">—</span></div>
       </div>
@@ -739,6 +754,112 @@ function togglePwd(inputId, btnId) {
     inp.type = 'password';
     if (btn) btn.innerHTML = '<i class="fas fa-eye"></i>';
   }
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+/* ════════════════ DYNAMIC PARENT / GUARDIAN CONTACTS ════════════════ */
+const REG_RELATION_LABELS = {
+  father: 'أب',
+  mother: 'أم',
+  brother: 'أخ',
+  sister: 'أخت',
+  grandfather: 'جد',
+  grandmother: 'جدة',
+  uncle: 'عم/خال',
+  aunt: 'عمة/خالة',
+  guardian: 'ولي أمر',
+  other: 'صلة أخرى'
+};
+
+function getRegRelationLabel(rel, custom) {
+  if (rel === 'other' && custom) return custom;
+  return REG_RELATION_LABELS[rel] || rel || 'ولي أمر';
+}
+
+function createRegParentPhoneRow(item = {}) {
+  const rowId = 'reg_parent_phone_' + Math.random().toString(36).substr(2, 9);
+  const rel = item.relation || 'father';
+  const custom = item.custom_relation || '';
+  const name = item.name || '';
+  const phone = item.phone || '';
+  
+  const div = document.createElement('div');
+  div.className = 'reg-parent-phone-row';
+  div.id = rowId;
+  div.style.cssText = 'background:var(--surface); border:1px solid var(--border); border-radius:var(--r-sm); padding:10px; display:flex; flex-direction:column; gap:8px;';
+  
+  div.innerHTML = `
+    <div style="display:flex; gap:8px; align-items:center;">
+      <div style="flex:1;">
+        <select class="reg-phone-rel-select" onchange="toggleRegCustomRelation(this)" style="width:100%; padding:8px 10px; border-radius:var(--r-sm); border:1px solid var(--border); font-size:0.85rem; font-family:inherit; background:var(--bg); color:var(--text);">
+          <option value="father" ${rel==='father'?'selected':''}>أب</option>
+          <option value="mother" ${rel==='mother'?'selected':''}>أم</option>
+          <option value="brother" ${rel==='brother'?'selected':''}>أخ</option>
+          <option value="sister" ${rel==='sister'?'selected':''}>أخت</option>
+          <option value="grandfather" ${rel==='grandfather'?'selected':''}>جد</option>
+          <option value="grandmother" ${rel==='grandmother'?'selected':''}>جدة</option>
+          <option value="uncle" ${rel==='uncle'?'selected':''}>عم / خال</option>
+          <option value="aunt" ${rel==='aunt'?'selected':''}>عمة / خالة</option>
+          <option value="guardian" ${rel==='guardian'?'selected':''}>ولي أمر</option>
+          <option value="other" ${rel==='other'?'selected':''}>أخرى (تحديد يدوي)</option>
+        </select>
+      </div>
+      <div style="flex:1.2;">
+        <input type="text" class="reg-phone-name-input" placeholder="اسم جهة الاتصال (اختياري)" value="${escapeHtml(name)}" style="width:100%; padding:8px 10px; border-radius:var(--r-sm); border:1px solid var(--border); font-size:0.85rem; font-family:inherit; background:var(--bg); color:var(--text);" />
+      </div>
+      <button type="button" onclick="this.closest('.reg-parent-phone-row').remove()" title="حذف" style="background:rgba(239,68,68,0.1); color:#ef4444; border:1px solid rgba(239,68,68,0.3); border-radius:var(--r-sm); width:34px; height:34px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;">
+        <i class="fas fa-trash-alt"></i>
+      </button>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <input type="text" class="reg-phone-custom-rel" placeholder="اكتب صلة القرابة هنا" value="${escapeHtml(custom)}" style="display:${rel==='other'?'block':'none'}; flex:1; padding:8px 10px; border-radius:var(--r-sm); border:1px solid var(--border); font-size:0.85rem; font-family:inherit; background:var(--bg); color:var(--text);" />
+      <input type="tel" class="reg-phone-num-input" placeholder="رقم الهاتف (مثال: 01012345678)" maxlength="11" inputmode="numeric" value="${escapeHtml(phone)}" style="flex:1.5; padding:8px 10px; border-radius:var(--r-sm); border:1px solid var(--border); font-size:0.85rem; font-family:inherit; background:var(--bg); color:var(--text);" />
+    </div>
+  `;
+  return div;
+}
+
+function toggleRegCustomRelation(selectEl) {
+  const row = selectEl.closest('.reg-parent-phone-row');
+  if (!row) return;
+  const customInput = row.querySelector('.reg-phone-custom-rel');
+  if (customInput) {
+    customInput.style.display = selectEl.value === 'other' ? 'block' : 'none';
+    if (selectEl.value === 'other') customInput.focus();
+  }
+}
+
+function addRegParentPhoneRow(item = {}) {
+  const container = document.getElementById('regParentPhonesList');
+  if (container) {
+    container.appendChild(createRegParentPhoneRow(item));
+  }
+}
+
+function collectRegParentPhones() {
+  const container = document.getElementById('regParentPhonesList');
+  if (!container) return [];
+  const rows = container.querySelectorAll('.reg-parent-phone-row');
+  const list = [];
+  rows.forEach(r => {
+    const rel = r.querySelector('.reg-phone-rel-select')?.value || 'father';
+    const custom = r.querySelector('.reg-phone-custom-rel')?.value.trim() || '';
+    const name = r.querySelector('.reg-phone-name-input')?.value.trim() || '';
+    const phone = (r.querySelector('.reg-phone-num-input')?.value || '').replace(/\D/g, '');
+    if (phone) {
+      list.push({
+        relation: rel,
+        custom_relation: rel === 'other' ? custom : '',
+        name: name,
+        phone: phone
+      });
+    }
+  });
+  return list;
 }
 
 /* ════════════════ APPLY CHURCH TYPE THEME ════════════════ */
@@ -1146,6 +1267,23 @@ function fillReview() {
   const rvUsernameRow = document.getElementById('rv-username-row');
   if (rvUsernameRow) rvUsernameRow.style.display = val('kidUsername') ? '' : 'none';
 
+  // Parent phones in review
+  const rvPhonesRow = document.getElementById('rv-parent-phones-row');
+  const rvPhonesVal = document.getElementById('rv-parent-phones-val');
+  const pPhones = collectRegParentPhones();
+  if (rvPhonesRow && rvPhonesVal) {
+    if (pPhones.length > 0) {
+      rvPhonesVal.innerHTML = pPhones.map(p => {
+        const lbl = getRegRelationLabel(p.relation, p.custom_relation);
+        const namePart = p.name ? ` (${escapeHtml(p.name)})` : '';
+        return `<span style="display:inline-flex; align-items:center; gap:4px; margin:2px 3px; padding:3px 8px; background:var(--brand-bg); color:var(--brand); border-radius:6px; font-size:0.8rem; font-weight:600;"><strong>${escapeHtml(lbl)}${namePart}:</strong> <span dir="ltr">${escapeHtml(p.phone)}</span></span>`;
+      }).join(' ');
+      rvPhonesRow.style.display = '';
+    } else {
+      rvPhonesRow.style.display = 'none';
+    }
+  }
+
   // Avatar in review
   const avatarRow = document.getElementById('rv-avatar-row');
   const avatarImg = document.getElementById('rv-avatar-img');
@@ -1218,6 +1356,11 @@ async function submitForm() {
     if (el) extraData[field.key] = el.value.trim();
   });
 
+  const parentPhones = collectRegParentPhones();
+  if (parentPhones.length > 0) {
+    extraData.parent_phones = parentPhones;
+  }
+
   try {
     const fd = new FormData();
     fd.append('action',     'submitRegistrationRequest');
@@ -1231,6 +1374,9 @@ async function submitForm() {
     fd.append('address',    address);
     if (username) fd.append('username', username);
     fd.append('password',   password);
+    if (parentPhones.length > 0) {
+      fd.append('parent_phones', JSON.stringify(parentPhones));
+    }
     fd.append('extra_data', JSON.stringify(extraData));
     if (avatarBase64) fd.append('profile_pic', avatarBase64);
 

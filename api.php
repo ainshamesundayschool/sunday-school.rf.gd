@@ -11699,7 +11699,22 @@ function approveRegistration()
 
         $username = $regData['username'] ?? null;
 
-        $customInfo = !empty($username) ? json_encode(['username' => $username], JSON_UNESCAPED_UNICODE) : null;
+        $rawParentPhones = $regData['parent_phones'] ?? '';
+        if (empty($rawParentPhones) && !empty($regData['extra_data'])) {
+            $decExtra = json_decode($regData['extra_data'], true);
+            if (is_array($decExtra) && !empty($decExtra['parent_phones'])) {
+                $rawParentPhones = $decExtra['parent_phones'];
+            }
+        }
+        $parentPhonesList = normalizeParentPhones($rawParentPhones, $regData['emergency_phone'] ?? '');
+        $parentPhonesJson = !empty($parentPhonesList) ? json_encode($parentPhonesList, JSON_UNESCAPED_UNICODE) : null;
+        $firstParentEmergency = !empty($parentPhonesList) ? ($parentPhonesList[0]['phone'] ?? '') : ($regData['emergency_phone'] ?? '');
+
+        $customInfoArr = !empty($username) ? ['username' => $username] : [];
+        if (!empty($parentPhonesList)) {
+            $customInfoArr['parent_phones'] = $parentPhonesList;
+        }
+        $customInfo = json_encode($customInfoArr, JSON_UNESCAPED_UNICODE);
 
 
 
@@ -11896,25 +11911,26 @@ function approveRegistration()
 
 
         $addedByType = 'registration';
+        ensureParentPhonesColumn($conn);
         // ── Insert student ────────────────────────────────────────
 
         $insertStmt = $conn->prepare("
 
             INSERT INTO students
 
-            (church_id, name, class_id, class, address, phone, birthday,
+            (church_id, name, class_id, class, address, phone, emergency_phone, birthday,
 
-             image_url, password_hash, custom_info, gender,
+             image_url, password_hash, custom_info, parent_phones, gender,
 
              commitment_coupons, coupons, attendance_coupons, created_at, added_by)
 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, NOW(), ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, NOW(), ?)
 
         ");
 
         $insertStmt->bind_param(
 
-            "isssssssssss",
+            "isisssssssssss",
 
             $churchId,
 
@@ -11928,6 +11944,8 @@ function approveRegistration()
 
             $phone,
 
+            $firstParentEmergency,
+
             $birthday,
 
             $imageUrl,
@@ -11935,6 +11953,8 @@ function approveRegistration()
             $passwordHash,
 
             $customInfo,
+
+            $parentPhonesJson,
 
             $gender,
 
@@ -13209,7 +13229,11 @@ function getPendingRegistrations()
 
                     COALESCE(username, '') as username,
 
-                    COALESCE(image_url, '') as image_url
+                    COALESCE(image_url, '') as image_url,
+
+                    COALESCE(parent_phones, '') as parent_phones,
+
+                    COALESCE(extra_data, '') as extra_data
 
                 FROM pending_registrations 
 
@@ -14843,257 +14867,145 @@ function submitRegistrationRequest()
 
 
 
-        // Ensure extra_data column exists
-
+        // Ensure extra_data and parent_phones columns exist
         $conn->query("ALTER TABLE pending_registrations ADD COLUMN IF NOT EXISTS extra_data LONGTEXT DEFAULT NULL");
-
         $conn->query("ALTER TABLE pending_registrations ADD COLUMN IF NOT EXISTS username VARCHAR(100) DEFAULT NULL");
-
         $conn->query("ALTER TABLE pending_registrations ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255) DEFAULT NULL");
-
         $conn->query("ALTER TABLE pending_registrations ADD COLUMN IF NOT EXISTS image_url TEXT DEFAULT NULL");
+        $conn->query("ALTER TABLE pending_registrations ADD COLUMN IF NOT EXISTS parent_phones LONGTEXT DEFAULT NULL");
+        ensureParentPhonesColumn($conn);
 
-
+        $rawParentPhones = $_POST['parent_phones'] ?? ($extraData['parent_phones'] ?? '');
+        $parentPhonesList = normalizeParentPhones($rawParentPhones);
+        $parentPhonesJson = !empty($parentPhonesList) ? json_encode($parentPhonesList, JSON_UNESCAPED_UNICODE) : null;
+        $firstParentEmergency = !empty($parentPhonesList) ? ($parentPhonesList[0]['phone'] ?? '') : '';
 
         if ($autoApprove) {
-
             // ── AUTO-APPROVE: Insert directly into students ────────
-
             $conn->begin_transaction();
 
-
-
             // Resolve class_id
-
             $classId = null;
-
             $finalClassName = null;
-
             $cs = $conn->prepare("SELECT id, arabic_name FROM church_classes WHERE church_id=? AND arabic_name=? AND is_active=1");
-
             $cs->bind_param("is", $churchId, $class);
-
             $cs->execute();
-
             if ($r = $cs->get_result()->fetch_assoc()) {
-
                 $classId = $r['id'];
-
                 $finalClassName = $r['arabic_name'];
-
             }
-
             if (!$classId) {
-
                 $gs = $conn->prepare("SELECT id, arabic_name FROM classes WHERE arabic_name=?");
-
                 $gs->bind_param("s", $class);
-
                 $gs->execute();
-
                 if ($r = $gs->get_result()->fetch_assoc()) {
-
                     $classId = $r['id'];
-
                     $finalClassName = $r['arabic_name'];
-
                 }
-
             }
-
             if (!$classId) {
-
                 $allClasses = getClassesForChurch($churchId);
-
                 if (!empty($allClasses)) {
-
                     $classId = $allClasses[0]['id'];
-
                     $finalClassName = $allClasses[0]['arabic_name'];
-
                 } else {
-
                     $conn->rollback();
-
                     sendJSON(['success' => false, 'message' => 'لا توجد فصول متاحة']);
-
                     return;
-
                 }
-
             }
-
-
 
             // Check username uniqueness
-
             if (!empty($username)) {
-
                 $uCheck = $conn->prepare("SELECT id FROM students WHERE church_id=? AND JSON_UNQUOTE(JSON_EXTRACT(custom_info,'$.username'))=? LIMIT 1");
-
                 if ($uCheck) {
-
                     $uCheck->bind_param("is", $churchId, $username);
-
                     $uCheck->execute();
-
                     if ($uCheck->get_result()->num_rows > 0) {
-
                         $conn->rollback();
-
                         sendJSON(['success' => false, 'message' => 'اسم المستخدم مستخدم بالفعل، اختر اسماً آخر']);
-
                         return;
-
                     }
-
                 }
-
             }
 
-
-
-            $customInfo = !empty($username) ? json_encode(['username' => $username], JSON_UNESCAPED_UNICODE) : json_encode([], JSON_UNESCAPED_UNICODE);
-
-
+            $customInfoArr = !empty($username) ? ['username' => $username] : [];
+            if (!empty($parentPhonesList)) {
+                $customInfoArr['parent_phones'] = $parentPhonesList;
+            }
+            $customInfo = json_encode($customInfoArr, JSON_UNESCAPED_UNICODE);
 
             $addedByType = 'registration';
             $ins = $conn->prepare("
-
                 INSERT INTO students
-
-                (church_id, name, class_id, class, address, phone, email, birthday,
-
-                 image_url, password_hash, custom_info, gender,
-
+                (church_id, name, class_id, class, address, phone, emergency_phone, birthday,
+                 image_url, password_hash, custom_info, parent_phones, gender,
                  commitment_coupons, coupons, attendance_coupons, created_at, added_by)
-
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?, 0,0,0, NOW(), ?)
-
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?, 0,0,0, NOW(), ?)
             ");
-
             $ins->bind_param(
-
-                "isissssssssss",
-
+                "isisssssssssss",
                 $churchId,
-
                 $name,
-
                 $classId,
-
                 $finalClassName,
-
                 $address,
-
                 $phone,
-
-                $email,
-
+                $firstParentEmergency,
                 $formattedBirthday,
-
                 $imageUrl,
-
                 $passwordHash,
-
                 $customInfo,
-
+                $parentPhonesJson,
                 $gender,
-
                 $addedByType
-
             );
-
             if (!$ins->execute()) {
-
                 $conn->rollback();
-
                 sendJSON(['success' => false, 'message' => 'فشل في إضافة الطفل: ' . $ins->error]);
-
                 return;
-
             }
-
             $newStudentId = $conn->insert_id;
 
-
-
             // Also record in pending_registrations as approved for audit
-
             $pendStmt = $conn->prepare("
-
                 INSERT INTO pending_registrations
-
-                (church_id,name,class,birthday,phone,email,address,extra_data,username,password_hash,image_url,status,gender,approved_at,created_at)
-
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,'approved',?,NOW(),NOW())
-
+                (church_id,name,class,birthday,phone,email,address,extra_data,username,password_hash,image_url,parent_phones,status,gender,approved_at,created_at)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,'approved',?,NOW(),NOW())
             ");
-
             $pendStmt->bind_param(
-
-                "isssssssssss",
-
+                "issssssssssss",
                 $churchId,
-
                 $name,
-
                 $class,
-
                 $formattedBirthday,
-
                 $phone,
-
                 $email,
-
                 $address,
-
                 $extraDataJson,
-
                 $username,
-
                 $passwordHash,
-
                 $imageUrl,
-
+                $parentPhonesJson,
                 $gender
-
             );
-
             $pendStmt->execute();
-
             $registrationId = $conn->insert_id;
-
-
 
             $conn->commit();
 
-
-
             // ── Notification: new kid auto-added ──────────────────
-
             $churchName = getChurchName($churchId);
-
             pushNotification(
-
                 $conn,
-
                 $churchId,
-
                 'registration',
-
                 'طفل جديد في الفصل 🎉',
-
                 "تم إضافة $name تلقائياً إلى فصل $finalClassName",
-
                 'student',
-
                 $newStudentId,
-
                 $classId
-
             );
-
             _sendWebPushToChurch(
                 $conn,
                 $churchId,
@@ -15102,68 +15014,37 @@ function submitRegistrationRequest()
                 ['notifType' => 'registration', 'url' => '/uncle/dashboard/']
             );
 
-
-
             sendJSON([
-
                 'success' => true,
-
                 'auto_approved' => true,
-
                 'registration_id' => $registrationId,
-
                 'student_id' => $newStudentId,
-
                 'class_id' => $classId,
-
                 'message' => 'تم القبول تلقائياً وإضافة الطفل'
-
             ]);
 
-
-
         } else {
-
             // ── NORMAL: Insert into pending_registrations ──────────
-
             $stmt = $conn->prepare("
-
                 INSERT INTO pending_registrations
-
-                (church_id,name,class,birthday,phone,email,address,extra_data,username,password_hash,image_url,status,gender,created_at)
-
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,'pending',?,NOW())
-
+                (church_id,name,class,birthday,phone,email,address,extra_data,username,password_hash,image_url,parent_phones,status,gender,created_at)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,'pending',?,NOW())
             ");
-
             $stmt->bind_param(
-
-                "isssssssssss",
-
+                "issssssssssss",
                 $churchId,
-
                 $name,
-
                 $class,
-
                 $formattedBirthday,
-
                 $phone,
-
                 $email,
-
                 $address,
-
                 $extraDataJson,
-
                 $username,
-
                 $passwordHash,
-
                 $imageUrl,
-
+                $parentPhonesJson,
                 $gender
-
             );
 
 
