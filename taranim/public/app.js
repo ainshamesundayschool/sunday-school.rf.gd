@@ -3587,6 +3587,26 @@ document.addEventListener('DOMContentLoaded', () => {
       const templates = getUserTemplates();
 
       if (tmplEditorMode === 'save') {
+        const existingTmpl = templates.find(t => t.name.toLowerCase() === name.toLowerCase());
+        if (existingTmpl) {
+          if (!confirm(`يوجد قالب محفوظ مسبقاً باسم "${existingTmpl.name}".\nهل تريد حفظ التعديلات وتحديث هذا القالب بالإعدادات الحالية؟`)) {
+            return;
+          }
+          existingTmpl.settings = getCurrentStyleSnapshot();
+          existingTmpl.updatedAt = new Date().toISOString();
+          saveUserTemplates(templates);
+          state.activeTemplateName = existingTmpl.name;
+          const headerLabel = document.getElementById('current-template-header-label');
+          if (headerLabel) headerLabel.textContent = existingTmpl.name;
+
+          if (els.customTemplateNameInput) els.customTemplateNameInput.value = '';
+          renderUserTemplatesList();
+          renderQuickTemplatesDropdown();
+          closeTemplateEditorModal();
+          showToast(`تم تحديث قالب "${existingTmpl.name}" بالإعدادات الحالية بنجاح!`);
+          return;
+        }
+
         const newTemplate = {
           id: 'tmpl_' + Date.now(),
           name: name,
@@ -3704,6 +3724,9 @@ document.addEventListener('DOMContentLoaded', () => {
           const templates = getUserTemplates();
           const tmpl = templates.find(t => t.id === id);
           if (tmpl) {
+            if (!confirm(`هل أنت متأكد من حفظ التعديلات الحالية وتحديث قالب "${tmpl.name}"؟`)) {
+              return;
+            }
             tmpl.settings = getCurrentStyleSnapshot();
             tmpl.updatedAt = new Date().toISOString();
             saveUserTemplates(templates);
@@ -3900,6 +3923,9 @@ document.addEventListener('DOMContentLoaded', () => {
           const templates = getUserTemplates();
           const tmpl = templates.find(item => item.id === id);
           if (tmpl) {
+            if (!confirm(`هل أنت متأكد من حفظ التعديلات الحالية وتحديث قالب "${tmpl.name}"؟`)) {
+              return;
+            }
             tmpl.settings = getCurrentStyleSnapshot();
             tmpl.updatedAt = new Date().toISOString();
             saveUserTemplates(templates);
@@ -3956,11 +3982,17 @@ document.addEventListener('DOMContentLoaded', () => {
       container.querySelectorAll('.btn-delete-template').forEach(btn => {
         btn.addEventListener('click', () => {
           const id = btn.getAttribute('data-id');
-          const templates = getUserTemplates().filter(item => item.id !== id);
-          saveUserTemplates(templates);
+          const templates = getUserTemplates();
+          const tmpl = templates.find(item => item.id === id);
+          const name = tmpl ? tmpl.name : 'هذا القالب';
+          if (!confirm(`هل أنت متأكد من حذف قالب "${name}" نهائياً؟`)) {
+            return;
+          }
+          const updatedTemplates = templates.filter(item => item.id !== id);
+          saveUserTemplates(updatedTemplates);
           renderUserTemplatesList();
           renderQuickTemplatesDropdown();
-          showToast('تم حذف القالب!');
+          showToast(`تم حذف قالب "${name}" بنجاح!`);
         });
       });
     };
@@ -4185,6 +4217,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const templates = getUserTemplates();
+        const existingTmpl = templates.find(t => t.name.toLowerCase() === name.toLowerCase());
+        if (existingTmpl) {
+          if (!confirm(`يوجد قالب محفوظ مسبقاً باسم "${existingTmpl.name}".\nهل تريد حفظ التعديلات وتحديث هذا القالب بالإعدادات الحالية؟`)) {
+            return;
+          }
+          existingTmpl.settings = getCurrentStyleSnapshot();
+          existingTmpl.updatedAt = new Date().toISOString();
+          saveUserTemplates(templates);
+          state.activeTemplateName = existingTmpl.name;
+          const headerLabel = document.getElementById('current-template-header-label');
+          if (headerLabel) headerLabel.textContent = existingTmpl.name;
+
+          els.customTemplateNameInput.value = '';
+          renderUserTemplatesList();
+          renderQuickTemplatesDropdown();
+          showToast(`تم تحديث قالب "${existingTmpl.name}" بالإعدادات الحالية بنجاح!`);
+          return;
+        }
+
         const newTemplate = {
           id: 'tmpl_' + Date.now(),
           name: name,
