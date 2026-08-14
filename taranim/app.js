@@ -8796,6 +8796,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const effectiveFontSize = state.fontSize || 105;
 
+    // Determine adjacent opened hymns for navigation on logo standby slide
+    const recents = state.sessionRecents || [];
+    let currentIdx = -1;
+    if (targetSong) {
+      currentIdx = recents.findIndex(r => getItemKey(r) === getItemKey(targetSong));
+    }
+    const prevSong = (currentIdx > 0 && currentIdx < recents.length) ? recents[currentIdx - 1] : null;
+    const nextSong = (currentIdx >= 0 && currentIdx < recents.length - 1) ? recents[currentIdx + 1] : null;
+    const prevSongTitle = prevSong ? (prevSong.title || prevSong.name || '') : '';
+    const nextSongTitle = nextSong ? (nextSong.title || nextSong.name || '') : '';
+
     const payload = {
       type: 'PRESENT_LINE',
       isLogoSlide: isLogoSlide,
@@ -8816,6 +8827,8 @@ document.addEventListener('DOMContentLoaded', () => {
       is_bible: isBible,
       bibleRef: bibleRefShortcut,
       songTitle: targetSong ? targetSong.title : '',
+      prevSongTitle: prevSongTitle,
+      nextSongTitle: nextSongTitle,
       currentSlide: currentSlide,
       totalSlides: totalSlides,
       scaleText: scaleText,
@@ -8859,6 +8872,13 @@ document.addEventListener('DOMContentLoaded', () => {
     try { broadcastChannel.postMessage(payload); } catch(e) {}
     try { localStorage.setItem('sunday_school_taranim_live_presentation', JSON.stringify(payload)); } catch(e) {}
 
+    // Helper to apply fit modes
+    const applyMediaFitMode = (el, fitMode = 'cover') => {
+      if (!el) return;
+      el.classList.remove('media-fit-cover', 'media-fit-fit_width', 'media-fit-fit_height', 'media-fit-fill', 'media-fit-contain');
+      el.classList.add(`media-fit-${fitMode}`);
+    };
+
     // 2. LIVE OVERLAY DOM SYNC
     if (els.obsLineText) {
       const standbyEl = document.getElementById('obs-standby-branding') || document.getElementById('standby-branding');
@@ -8883,6 +8903,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const obsSlidesBgVideo = document.getElementById('obs-slides-bg-video');
       if (obsSlidesBgContainer && state.slidesBgConfig) {
         const bgConf = state.slidesBgConfig;
+        const sFit = bgConf.fitMode || 'cover';
+        applyMediaFitMode(obsSlidesBgImg, sFit);
+        applyMediaFitMode(obsSlidesBgVideo, sFit);
+
         if (bgConf.type === 'template' || bgConf.type === 'custom_video') {
           const vUrl = bgConf.url || (bgConf.type === 'template' ? 'Templates/SlidesBg/Shabahak Akon 2026/Shabahak Akoon Loop Empty Centered.mp4' : '');
           if (vUrl) {
@@ -8930,6 +8954,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const updateObsStandbyDisplay = (showStandby) => {
         const standbyConf = state.standbyConfig || { type: 'logo' };
+        const stFit = standbyConf.fitMode || 'cover';
+        applyMediaFitMode(obsStandbyFullscreenImg, stFit);
+        applyMediaFitMode(obsStandbyFullscreenVideo, stFit);
+
         if (!showStandby) {
           if (standbyEl) {
             standbyEl.classList.add('hidden');
@@ -8994,17 +9022,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateObsStandbyDisplay(true);
 
         if (standbyEl && (state.standbyConfig?.type === 'logo' || !state.standbyConfig?.type)) {
-
-          const recents = state.sessionRecents || [];
-          let currentIdx = -1;
-          const currentSong = state.liveSong || state.activeSong;
-          if (currentSong) {
-            currentIdx = recents.findIndex(r => getItemKey(r) === getItemKey(currentSong));
-          }
-
-          const hasPrev = (currentIdx > 0 && currentIdx < recents.length);
-          const hasNext = (currentIdx >= 0 && currentIdx < recents.length - 1);
-
           const btnPrev = document.getElementById('btn-standby-prev-song');
           const btnNext = document.getElementById('btn-standby-next-song');
           const btnExit = document.getElementById('btn-standby-exit');
@@ -9012,9 +9029,8 @@ document.addEventListener('DOMContentLoaded', () => {
           const nextTitle = document.getElementById('standby-next-title');
 
           if (btnPrev || btnNext) {
-            if (hasPrev) {
-              const prevSong = recents[currentIdx - 1];
-              if (prevTitle) prevTitle.textContent = prevSong.title || prevSong.name || 'السابقة';
+            if (prevSongTitle) {
+              if (prevTitle) prevTitle.textContent = prevSongTitle;
               if (btnPrev) btnPrev.classList.remove('hidden');
               if (btnExit) btnExit.classList.add('hidden');
             } else {
@@ -9022,9 +9038,8 @@ document.addEventListener('DOMContentLoaded', () => {
               if (btnExit) btnExit.classList.remove('hidden');
             }
 
-            if (hasNext) {
-              const nextSong = recents[currentIdx + 1];
-              if (nextTitle) nextTitle.textContent = nextSong.title || nextSong.name || 'التالية';
+            if (nextSongTitle) {
+              if (nextTitle) nextTitle.textContent = nextSongTitle;
               if (btnNext) btnNext.classList.remove('hidden');
             } else {
               if (btnNext) btnNext.classList.add('hidden');
@@ -9106,20 +9121,25 @@ document.addEventListener('DOMContentLoaded', () => {
           els.obsLineText.innerHTML = formatPresenterText(text, isBible, badgeTxt, badgeCls);
         }
 
-        const activeLineRows = els.obsLineText.querySelectorAll('.obs-line-row');
-        activeLineRows.forEach(r => {
-          r.style.display = 'block'; r.style.width = '100%'; r.style.lineHeight = `${finalLineHeight}`; r.style.marginBottom = `${Math.round((finalLineHeight - 1) * 14)}px`;
-        });
-
+        // EXACT matching segment & row structure to present.html
         const obsSegments = Array.from(els.obsLineText.querySelectorAll('.obs-line-segment'));
         obsSegments.forEach(s => {
-          s.style.display = 'inline-block';
-          s.style.width = 'auto';
-          if (isBible || align === 'justify') {
-            s.style.whiteSpace = 'pre-wrap'; s.style.wordBreak = 'break-word'; s.style.overflowWrap = 'break-word'; s.style.textAlign = align;
-          } else {
-            s.style.whiteSpace = 'nowrap'; s.style.wordBreak = 'keep-all'; s.style.overflowWrap = 'normal'; s.style.textAlign = align;
-          }
+          s.style.display = 'block';
+          s.style.width = '100%';
+          s.style.whiteSpace = 'pre-wrap';
+          s.style.wordBreak = 'break-word';
+          s.style.overflowWrap = 'break-word';
+          s.style.wordSpacing = 'normal';
+          s.style.textAlign = align === 'justify' ? 'justify' : align;
+          s.style.textJustify = align === 'justify' ? 'inter-word' : 'auto';
+          s.style.textAlignLast = align === 'justify' ? 'center' : align;
+        });
+
+        const activeLineRows = els.obsLineText.querySelectorAll('.obs-line-row');
+        activeLineRows.forEach(r => {
+          r.style.display = 'block';
+          r.style.width = '100%';
+          r.style.lineHeight = `${finalLineHeight}`;
         });
 
         // 2. TRIGGER TEXT APPEARANCE ANIMATION ONLY IF TEXT OR ANIMATION SETTING CHANGED (ON CONTAINER BOX MATCHING PRESENT.HTML)
