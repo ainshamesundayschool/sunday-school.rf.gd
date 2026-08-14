@@ -3521,6 +3521,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    window.applyAssignedDefaultTemplate = applyAssignedDefaultTemplate;
+    window.getUserTemplates = getUserTemplates;
+    window.applyStyleSnapshot = applyStyleSnapshot;
+
     // In-Website Template Editor Modal (Save New / Rename)
     let tmplEditorMode = 'save'; // 'save' | 'rename'
     let currentEditingTemplateId = null;
