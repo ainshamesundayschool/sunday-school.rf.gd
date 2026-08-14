@@ -638,6 +638,30 @@
       }
     }
 
+    /* SMOOTH FADE REVEAL */
+    .trans-fade-incoming {
+      z-index: 30 !important;
+      animation: obsFadeReveal 0.45s ease-in-out forwards !important;
+      will-change: opacity;
+    }
+
+    @keyframes obsFadeReveal {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    /* SMOOTH ZOOM & POP REVEAL */
+    .trans-zoom-incoming {
+      z-index: 30 !important;
+      animation: obsZoomReveal 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+      will-change: opacity, transform;
+    }
+
+    @keyframes obsZoomReveal {
+      0% { opacity: 0; transform: scale(0.88); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
     .standby-branding {
       display: flex;
       flex-direction: column;
@@ -2169,8 +2193,8 @@
 
       // 4. TRANSITION TRIGGER OR DIRECT DISPLAY
       if (data.triggerTransition) {
-        const transType = data.transitionType || 'stinger';
-        const stingerUrl = data.stingerMediaUrl || 'Templates/Stringer/Shabahak Akon 2026/Stringer 1.webm';
+        const transType = data.transitionType || 'fade';
+        const stingerUrl = data.stingerMediaUrl || '';
         const cutPoint = data.stingerCutPointMs || 1200;
 
         if (transType === 'stinger' && stingerUrl) {
@@ -2196,13 +2220,13 @@
                 } else {
                   if (slidesLayer) slidesLayer.classList.add('hidden');
                 }
-                if (standbyLayer) standbyLayer.classList.remove('hidden', 'luma-wipe-outgoing');
+                if (standbyLayer) standbyLayer.classList.remove('hidden', 'luma-wipe-incoming-center', 'trans-fade-incoming', 'trans-zoom-incoming');
                 if (textEl) textEl.classList.add('hidden');
                 updateStandbyMediaDisplay(true);
                 currentIsBlankState = true;
               } else {
                 if (standbyLayer) standbyLayer.classList.add('hidden');
-                if (slidesLayer) slidesLayer.classList.remove('hidden', 'luma-wipe-outgoing');
+                if (slidesLayer) slidesLayer.classList.remove('hidden', 'luma-wipe-incoming-center', 'trans-fade-incoming', 'trans-zoom-incoming');
                 updateStandbyMediaDisplay(false);
                 if (isBlankMode || !hasTextContent) {
                   if (textEl) textEl.classList.add('hidden');
@@ -2222,37 +2246,69 @@
               stingerEl.style.display = 'none';
             };
           }
-        } else if (transType === 'luma_sinus9' || transType === 'luma_center') {
+        } else if (transType === 'cut') {
+          // CUT (INSTANT SWITCH)
+          if (isStandbyMode) {
+            const isLogoStandby = (!data.standbyConfig || data.standbyConfig.type === 'logo');
+            const hasSlidesBg = Boolean(data.slidesBgConfig && data.slidesBgConfig.type !== 'none' && data.slidesBgConfig.url);
+            if (isLogoStandby && hasSlidesBg) {
+              if (slidesLayer) slidesLayer.classList.remove('hidden');
+            } else {
+              if (slidesLayer) slidesLayer.classList.add('hidden');
+            }
+            if (standbyLayer) standbyLayer.classList.remove('hidden', 'luma-wipe-incoming-center', 'trans-fade-incoming', 'trans-zoom-incoming');
+            if (textEl) textEl.classList.add('hidden');
+            updateStandbyMediaDisplay(true);
+            currentIsBlankState = true;
+          } else {
+            if (standbyLayer) standbyLayer.classList.add('hidden');
+            if (slidesLayer) slidesLayer.classList.remove('hidden', 'luma-wipe-incoming-center', 'trans-fade-incoming', 'trans-zoom-incoming');
+            updateStandbyMediaDisplay(false);
+            if (isBlankMode || !hasTextContent) {
+              if (textEl) textEl.classList.add('hidden');
+            } else {
+              if (textEl) {
+                textEl.classList.remove('hidden');
+                textEl.style.display = 'inline-block';
+                textEl.style.visibility = 'visible';
+              }
+            }
+            currentIsBlankState = false;
+          }
+        } else {
+          // LUMA WIPE, FADE, OR ZOOM
+          const animClass = (transType === 'luma_sinus9' || transType === 'luma_center')
+            ? 'luma-wipe-incoming-center'
+            : (transType === 'zoom' ? 'trans-zoom-incoming' : 'trans-fade-incoming');
+          const duration = (transType === 'luma_sinus9' || transType === 'luma_center') ? 660 : 450;
+
           if (isStandbyMode) {
             const isLogoStandby = (!data.standbyConfig || data.standbyConfig.type === 'logo');
             const hasSlidesBg = Boolean(data.slidesBgConfig && data.slidesBgConfig.type !== 'none' && data.slidesBgConfig.url);
 
-            // OUTGOING: Slides (underneath), INCOMING: Standby (center reveal on top)
             if (slidesLayer) {
-              slidesLayer.classList.remove('hidden', 'luma-wipe-incoming-center');
+              slidesLayer.classList.remove('hidden', 'luma-wipe-incoming-center', 'trans-fade-incoming', 'trans-zoom-incoming');
               slidesLayer.style.zIndex = '5';
             }
 
             if (standbyLayer) {
-              standbyLayer.classList.remove('hidden');
-              standbyLayer.classList.remove('luma-wipe-incoming-center');
+              standbyLayer.classList.remove('hidden', 'luma-wipe-incoming-center', 'trans-fade-incoming', 'trans-zoom-incoming');
               void standbyLayer.offsetWidth;
-              standbyLayer.classList.add('luma-wipe-incoming-center');
+              standbyLayer.classList.add(animClass);
             }
             updateStandbyMediaDisplay(true);
 
             setTimeout(() => {
               if (slidesLayer && (!isLogoStandby || !hasSlidesBg)) slidesLayer.classList.add('hidden');
               if (standbyLayer) {
-                standbyLayer.classList.remove('luma-wipe-incoming-center');
+                standbyLayer.classList.remove('luma-wipe-incoming-center', 'trans-fade-incoming', 'trans-zoom-incoming');
                 standbyLayer.style.zIndex = '6';
               }
-            }, 660);
+            }, duration);
             currentIsBlankState = true;
           } else {
-            // OUTGOING: Standby (underneath), INCOMING: Slides (center reveal on top)
             if (standbyLayer) {
-              standbyLayer.classList.remove('hidden', 'luma-wipe-incoming-center');
+              standbyLayer.classList.remove('hidden', 'luma-wipe-incoming-center', 'trans-fade-incoming', 'trans-zoom-incoming');
               standbyLayer.style.zIndex = '5';
             }
             if (isBlankMode || !hasTextContent) {
@@ -2266,20 +2322,19 @@
             }
 
             if (slidesLayer) {
-              slidesLayer.classList.remove('hidden');
-              slidesLayer.classList.remove('luma-wipe-incoming-center');
+              slidesLayer.classList.remove('hidden', 'luma-wipe-incoming-center', 'trans-fade-incoming', 'trans-zoom-incoming');
               void slidesLayer.offsetWidth;
-              slidesLayer.classList.add('luma-wipe-incoming-center');
+              slidesLayer.classList.add(animClass);
             }
 
             setTimeout(() => {
               if (standbyLayer) standbyLayer.classList.add('hidden');
               if (slidesLayer) {
-                slidesLayer.classList.remove('luma-wipe-incoming-center');
+                slidesLayer.classList.remove('luma-wipe-incoming-center', 'trans-fade-incoming', 'trans-zoom-incoming');
                 slidesLayer.style.zIndex = '6';
               }
               updateStandbyMediaDisplay(false);
-            }, 660);
+            }, duration);
             currentIsBlankState = false;
           }
         }
@@ -2290,7 +2345,7 @@
 
           if (isLogoStandby && hasSlidesBg) {
             if (slidesLayer) {
-              slidesLayer.classList.remove('hidden', 'luma-wipe-outgoing');
+              slidesLayer.classList.remove('hidden', 'luma-wipe-incoming-center', 'trans-fade-incoming', 'trans-zoom-incoming');
               slidesLayer.style.zIndex = '5';
             }
           } else {
@@ -2298,7 +2353,7 @@
           }
 
           if (standbyLayer) {
-            standbyLayer.classList.remove('hidden', 'luma-wipe-outgoing');
+            standbyLayer.classList.remove('hidden', 'luma-wipe-incoming-center', 'trans-fade-incoming', 'trans-zoom-incoming');
             standbyLayer.style.zIndex = '6';
             standbyLayer.style.background = 'transparent';
           }
@@ -2308,7 +2363,7 @@
         } else {
           if (standbyLayer) standbyLayer.classList.add('hidden');
           if (slidesLayer) {
-            slidesLayer.classList.remove('hidden', 'luma-wipe-outgoing');
+            slidesLayer.classList.remove('hidden', 'luma-wipe-incoming-center', 'trans-fade-incoming', 'trans-zoom-incoming');
             slidesLayer.style.zIndex = '5';
           }
           updateStandbyMediaDisplay(false);

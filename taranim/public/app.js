@@ -4938,10 +4938,19 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.transition-source-segmented .segmented-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const type = btn.getAttribute('data-trans-type') || 'stinger';
+        if (!state.transitionConfig) state.transitionConfig = {};
         state.transitionConfig.type = type;
         updateTransitionUI();
         saveMediaConfig();
         syncLiveState();
+        const transNames = {
+          stinger: 'ستنجر فيديو',
+          luma_sinus9: 'مسح متمركز ناعم',
+          fade: 'تلاشي ناعم',
+          zoom: 'تكبير وانبثاق',
+          cut: 'قطع فوري'
+        };
+        showToast(`تم تفعيل نمط انتقال: ${transNames[type] || type}`);
       });
     });
 
