@@ -1,5 +1,5 @@
 // TARANIM PWA & OBS PRESENTER SERVICE WORKER (OFFLINE FIRST WITH SMART SYNC)
-const CACHE_NAME = 'taranim-pwa-v34';
+const CACHE_NAME = 'taranim-pwa-v35';
 
 const PRECACHE_ASSETS = [
   './',
@@ -134,12 +134,36 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static Assets (CSS, JS, Images, Fonts): Cache First with Background Update
+  // JS & CSS Assets (app.js, style.css): Network First with Cache Fallback for instant update delivery
+  if (url.includes('.js') || url.includes('.css')) {
+    event.respondWith(
+      (async () => {
+        try {
+          const networkResponse = await fetch(event.request, { cache: 'no-cache' });
+          if (networkResponse && networkResponse.status === 200) {
+            const cache = await caches.open(CACHE_NAME);
+            cache.put(event.request, networkResponse.clone());
+            return networkResponse;
+          }
+        } catch (err) {
+          // Offline or network error -> fallback to cache
+        }
+        const cache = await caches.open(CACHE_NAME);
+        const cached = await cache.match(event.request);
+        if (cached) return cached;
+        const cachedIgnoreSearch = await cache.match(event.request, { ignoreSearch: true });
+        if (cachedIgnoreSearch) return cachedIgnoreSearch;
+        return new Response('', { status: 200, statusText: 'OK' });
+      })()
+    );
+    return;
+  }
+
+  // Other Static Assets (Images, Fonts, Icons): Cache First with Background Update
   event.respondWith(
     caches.open(CACHE_NAME).then(async (cache) => {
       const cachedResponse = await cache.match(event.request, { ignoreSearch: true });
       if (cachedResponse) {
-        // Fetch in background to update cache if online
         if (navigator.onLine) {
           fetch(event.request).then((networkResponse) => {
             if (networkResponse && networkResponse.status === 200) {
@@ -157,14 +181,6 @@ self.addEventListener('fetch', (event) => {
         }
         return networkResponse;
       } catch (err) {
-        if (url.endsWith('.css') || url.includes('.css?')) {
-          const cssRes = await cache.match('./style.css', { ignoreSearch: true });
-          if (cssRes) return cssRes;
-        }
-        if (url.endsWith('.js') || url.includes('.js?')) {
-          const jsRes = await cache.match('./app.js', { ignoreSearch: true });
-          if (jsRes) return jsRes;
-        }
         return new Response('', { status: 200, statusText: 'OK' });
       }
     })
