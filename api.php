@@ -6803,6 +6803,12 @@ function getData()
                 '_customInfo' => !empty($row['custom_info'])
                     ? json_decode($row['custom_info'], true)
                     : null,
+                'phone_label' => (!empty($row['custom_info']) && is_array(json_decode($row['custom_info'], true))) 
+                    ? (json_decode($row['custom_info'], true)['phone_label'] ?? json_decode($row['custom_info'], true)['phone_type'] ?? 'personal')
+                    : 'personal',
+                'phone_custom_label' => (!empty($row['custom_info']) && is_array(json_decode($row['custom_info'], true))) 
+                    ? (json_decode($row['custom_info'], true)['phone_custom_label'] ?? json_decode($row['custom_info'], true)['phone_custom_type'] ?? '')
+                    : '',
             ];
 
             appendSiblingGroupToStudentPayload($studentData, $row);
@@ -8330,6 +8336,8 @@ function addStudent()
 
         // Custom info field (one JSON value per church's custom field definition)
         $customInfoRaw = $_POST['custom_info'] ?? '';
+        $phoneLabel = sanitize($_POST['phone_label'] ?? $_POST['phone_type'] ?? 'personal');
+        $phoneCustomLabel = sanitize($_POST['phone_custom_label'] ?? $_POST['phone_custom_type'] ?? '');
         $customInfoJson = null;
         if (!empty(trim($customInfoRaw))) {
             $decoded = json_decode($customInfoRaw, true);
@@ -8339,9 +8347,22 @@ function addStudent()
             if (!empty($parentPhonesList)) {
                 $decoded['parent_phones'] = $parentPhonesList;
             }
+            $decoded['phone_label'] = $phoneLabel;
+            if ($phoneLabel === 'other' && !empty($phoneCustomLabel)) {
+                $decoded['phone_custom_label'] = $phoneCustomLabel;
+            }
             $customInfoJson = json_encode($decoded, JSON_UNESCAPED_UNICODE);
-        } elseif (!empty($parentPhonesList)) {
-            $customInfoJson = json_encode(['parent_phones' => $parentPhonesList], JSON_UNESCAPED_UNICODE);
+        } else {
+            $customData = [
+                'phone_label' => $phoneLabel
+            ];
+            if ($phoneLabel === 'other' && !empty($phoneCustomLabel)) {
+                $customData['phone_custom_label'] = $phoneCustomLabel;
+            }
+            if (!empty($parentPhonesList)) {
+                $customData['parent_phones'] = $parentPhonesList;
+            }
+            $customInfoJson = json_encode($customData, JSON_UNESCAPED_UNICODE);
         }
 
         $gender = sanitize($_POST['gender'] ?? '');
@@ -8964,6 +8985,19 @@ function updateStudent()
         if ($hasParentPhones && $parentPhonesList !== null) {
             $existingCustomDecoded = json_decode($customInfoJson ?: ($existingCustomInfoRaw ?: '{}'), true) ?: [];
             $existingCustomDecoded['parent_phones'] = $parentPhonesList;
+            $customInfoJson = json_encode($existingCustomDecoded, JSON_UNESCAPED_UNICODE);
+        }
+
+        if (isset($_POST['phone_label']) || isset($_POST['phone_type'])) {
+            $phoneLabel = sanitize($_POST['phone_label'] ?? $_POST['phone_type'] ?? 'personal');
+            $phoneCustomLabel = sanitize($_POST['phone_custom_label'] ?? $_POST['phone_custom_type'] ?? '');
+            $existingCustomDecoded = json_decode($customInfoJson ?: ($existingCustomInfoRaw ?: '{}'), true) ?: [];
+            $existingCustomDecoded['phone_label'] = $phoneLabel;
+            if ($phoneLabel === 'other' && !empty($phoneCustomLabel)) {
+                $existingCustomDecoded['phone_custom_label'] = $phoneCustomLabel;
+            } else {
+                unset($existingCustomDecoded['phone_custom_label']);
+            }
             $customInfoJson = json_encode($existingCustomDecoded, JSON_UNESCAPED_UNICODE);
         }
 
@@ -19683,20 +19717,10 @@ function sendCustomWhatsAppOTP() {
         $stmt = $conn->prepare("INSERT INTO phone_verifications (phone, request_token, otp_code, is_sent) VALUES (?, ?, ?, 0)");
         $stmt->bind_param("sss", $cleanPhone, $requestToken, $otp);
         $stmt->execute();
+        $newOtpId = $conn->insert_id ?: $stmt->insert_id;
         
-        // --- Instant Replit Wake-Up Trigger ---
-        // Pings the Replit app URL so Replit instantly wakes up from sleep state to poll & deliver the OTP
-        try {
-            $ch = curl_init('https://baileys-qr-code--sundayschooleg.replit.app/');
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 2);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_exec($ch);
-            unset($ch);
-        } catch (Throwable $t) {
-            // Non-blocking catch
-        }
+        // Notify WhatsApp verification service of pending OTP via webhook
+        notifyWhatsAppOTPPending($newOtpId);
         
         sendJSON([
             'success' => true,
@@ -19706,6 +19730,89 @@ function sendCustomWhatsAppOTP() {
         ]);
     } catch (Exception $e) {
         sendJSON(['success' => false, 'message' => 'خطأ في إرسال الكود: ' . $e->getMessage()]);
+    }
+}
+
+/**
+ * Configuration Note:
+ * WHATSAPP_WAKE_URL should point to the published bot URL, for example:
+ * https://YOUR-PUBLISHED-APP-URL/api/wake
+ * WHATSAPP_WAKE_CODE contains the Bearer token for webhook authorization.
+ *
+ * Webhook sends:
+ * POST ${WHATSAPP_WAKE_URL}
+ * Authorization: Bearer ${WHATSAPP_WAKE_CODE}
+ * Content-Type: application/json
+ * Body: { "event": "otp_pending", "otp_id": "<new OTP id>" }
+ *
+ * The WhatsApp service will call getPendingOTPMessages to retrieve the pending records.
+ */
+function notifyWhatsAppOTPPending($otpId) {
+    static $notifiedOtpIds = [];
+
+    $otpIdStr = strval($otpId);
+    if (empty($otpIdStr) || isset($notifiedOtpIds[$otpIdStr])) {
+        return;
+    }
+
+    $wakeUrl = getenv('WHATSAPP_WAKE_URL') ?: ($_ENV['WHATSAPP_WAKE_URL'] ?? ($_SERVER['WHATSAPP_WAKE_URL'] ?? ''));
+    $wakeCode = getenv('WHATSAPP_WAKE_CODE') ?: ($_ENV['WHATSAPP_WAKE_CODE'] ?? ($_SERVER['WHATSAPP_WAKE_CODE'] ?? ''));
+
+    if (empty($wakeUrl)) {
+        if (defined('WHATSAPP_WAKE_URL') && constant('WHATSAPP_WAKE_URL')) {
+            $wakeUrl = constant('WHATSAPP_WAKE_URL');
+        } else {
+            // Default fallback wake URL for Replit container keep-alive
+            $wakeUrl = 'https://sunday-school-reactivate--ainshamesundays.replit.app/api/wake';
+        }
+    }
+    if (empty($wakeCode) && defined('WHATSAPP_WAKE_CODE') && constant('WHATSAPP_WAKE_CODE')) {
+        $wakeCode = constant('WHATSAPP_WAKE_CODE');
+    }
+
+    // Mark as processed for this request lifecycle to avoid duplicates
+    $notifiedOtpIds[$otpIdStr] = true;
+
+    try {
+        $payload = json_encode([
+            'event' => 'otp_pending',
+            'otp_id' => $otpIdStr
+        ]);
+
+        $headers = [
+            'Content-Type: application/json',
+            'Content-Length: ' . strlen($payload)
+        ];
+
+        if (!empty($wakeCode)) {
+            $headers[] = 'Authorization: Bearer ' . $wakeCode;
+        }
+
+        $ch = curl_init($wakeUrl);
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $payload,
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 3,
+            CURLOPT_CONNECTTIMEOUT => 3,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false
+        ]);
+
+        $response = curl_exec($ch);
+        $curlError = curl_error($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($response === false || !empty($curlError) || ($httpCode >= 400 || $httpCode === 0)) {
+            $reason = !empty($curlError) ? $curlError : "HTTP {$httpCode}";
+            error_log("WhatsApp wake request failed: " . $reason);
+        } else {
+            error_log("WhatsApp wake request sent");
+        }
+    } catch (Throwable $t) {
+        error_log("WhatsApp wake request failed: " . $t->getMessage());
     }
 }
 
@@ -31942,6 +32049,19 @@ function updateStudentFull()
         if ($hasParentPhones && $parentPhonesList !== null) {
             $existingCustomDecoded = json_decode($customInfoJson ?: ($existingCustomInfoRaw ?: '{}'), true) ?: [];
             $existingCustomDecoded['parent_phones'] = $parentPhonesList;
+            $customInfoJson = json_encode($existingCustomDecoded, JSON_UNESCAPED_UNICODE);
+        }
+
+        if (isset($_POST['phone_label']) || isset($_POST['phone_type'])) {
+            $phoneLabel = sanitize($_POST['phone_label'] ?? $_POST['phone_type'] ?? 'personal');
+            $phoneCustomLabel = sanitize($_POST['phone_custom_label'] ?? $_POST['phone_custom_type'] ?? '');
+            $existingCustomDecoded = json_decode($customInfoJson ?: ($existingCustomInfoRaw ?: '{}'), true) ?: [];
+            $existingCustomDecoded['phone_label'] = $phoneLabel;
+            if ($phoneLabel === 'other' && !empty($phoneCustomLabel)) {
+                $existingCustomDecoded['phone_custom_label'] = $phoneCustomLabel;
+            } else {
+                unset($existingCustomDecoded['phone_custom_label']);
+            }
             $customInfoJson = json_encode($existingCustomDecoded, JSON_UNESCAPED_UNICODE);
         }
 

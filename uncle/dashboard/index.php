@@ -13787,18 +13787,58 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                     <div class="input-icon-wrap"><i class="fas fa-map-marker-alt input-icon"></i><input type="text"
                             id="editStudentAddress" class="form-input"></div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">رقم التليفون</label>
-                    <div class="input-icon-wrap"><i class="fas fa-phone input-icon"></i><input type="tel"
-                            id="editStudentPhone" class="form-input"></div>
+                <div class="form-group" style="grid-column:1/-1;">
+                    <label class="form-label">رقم التليفون الأساسي</label>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <div class="input-icon-wrap" style="flex:1; min-width:140px;">
+                            <i class="fas fa-user-tag input-icon"></i>
+                            <select id="editStudentPhoneType" class="form-input" onchange="handleMainPhoneTypeChange(this, 'editStudentPhoneCustomType')">
+                                <option value="personal">رقمه الشخصي</option>
+                                <option value="father">هاتف الأب</option>
+                                <option value="mother">هاتف الأم</option>
+                                <option value="brother">هاتف الأخ</option>
+                                <option value="sister">هاتف الأخت</option>
+                                <option value="guardian">هاتف ولي الأمر</option>
+                                <option value="other">أخرى (مخصص)</option>
+                            </select>
+                        </div>
+                        <div class="input-icon-wrap" style="flex:1.5; min-width:180px;">
+                            <i class="fas fa-phone input-icon"></i>
+                            <input type="tel" id="editStudentPhone" class="form-input" placeholder="01xxxxxxxxx" dir="ltr">
+                        </div>
+                        <input type="text" id="editStudentPhoneCustomType" class="form-input" placeholder="اكتب صلة القرابة..." style="width:100%; margin-top:4px; display:none;">
+                    </div>
                 </div>
                 <div class="form-group" style="grid-column:1/-1;" id="editEmergencyPhoneGroup">
                     <label class="form-label" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                        <span><i class="fas fa-users" style="margin-left:6px; color:var(--primary);"></i>أرقام أولياء الأمور / جهات الاتصال</span>
-                        <button type="button" class="btn btn-sm" onclick="addParentPhoneRow('editStudentParentPhonesList')" style="padding:4px 10px; font-size:0.8rem; background:rgba(59, 130, 246, 0.15); color:var(--primary); border:1px solid rgba(59, 130, 246, 0.3); border-radius:6px; cursor:pointer;">
-                            <i class="fas fa-plus"></i> إضافة رقم
-                        </button>
+                        <span><i class="fas fa-users" style="margin-left:6px; color:var(--primary);"></i>أرقام أولياء الأمور / جهات الاتصال الإضافية</span>
                     </label>
+                    <!-- Quick Add Box for additional parent contacts -->
+                    <div style="background:var(--surface-2, rgba(255,255,255,0.05)); border:1px dashed var(--primary); border-radius:10px; padding:12px; margin-bottom:10px;">
+                        <div style="font-size:0.85rem; font-weight:600; margin-bottom:8px; color:var(--primary); display:flex; align-items:center; gap:6px;">
+                            <i class="fas fa-plus-circle"></i> إضافة رقم ولي أمر / جهة اتصال جديدة:
+                        </div>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+                            <select id="editNewParentRelation" class="form-input" style="flex:1; min-width:110px; padding:6px 10px; font-size:0.85rem;" onchange="handleParentPhoneRelationChange(this)">
+                                <option value="father">أب</option>
+                                <option value="mother">أم</option>
+                                <option value="brother">أخ</option>
+                                <option value="sister">أخت</option>
+                                <option value="grandfather">جد</option>
+                                <option value="grandmother">جدة</option>
+                                <option value="uncle">عم / خال</option>
+                                <option value="aunt">عمة / خالة</option>
+                                <option value="guardian" selected>ولي أمر</option>
+                                <option value="other">أخرى (مخصص)</option>
+                            </select>
+                            <input type="text" id="editNewParentCustomRelation" class="form-input parent-phone-custom-rel" placeholder="صلة القرابة..." style="flex:1; min-width:110px; padding:6px 10px; font-size:0.85rem; display:none;">
+                            <input type="text" id="editNewParentName" class="form-input" placeholder="الاسم (اختياري)" style="flex:1.2; min-width:120px; padding:6px 10px; font-size:0.85rem;">
+                            <input type="tel" id="editNewParentPhone" class="form-input" placeholder="رقم الهاتف (01xxxxxxxxx)" dir="ltr" style="flex:1.5; min-width:140px; padding:6px 10px; font-size:0.85rem;">
+                        </div>
+                        <button type="button" class="btn btn-sm btn-primary" onclick="addParentPhoneFromBuilder('edit')" style="width:100%; display:flex; align-items:center; justify-content:center; gap:6px; padding:8px; font-size:0.85rem; font-weight:700; border-radius:8px; cursor:pointer;">
+                            <i class="fas fa-plus"></i> إضافة جهة الاتصال للقائمة
+                        </button>
+                    </div>
                     <div id="editStudentParentPhonesList" class="parent-phones-list" style="display:flex; flex-direction:column; gap:8px;"></div>
                     <input type="hidden" id="editStudentEmergencyPhone" value="">
                 </div>
@@ -13933,18 +13973,58 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                     <div class="input-icon-wrap"><i class="fas fa-map-marker-alt input-icon"></i><input type="text"
                             id="studentAddress" class="form-input"></div>
                 </div>
-                <div class="form-group" id="studentPhoneGroup">
-                    <label class="form-label">رقم التليفون</label>
-                    <div class="input-icon-wrap"><i class="fas fa-phone input-icon"></i><input type="tel"
-                            id="studentPhone" class="form-input"></div>
+                <div class="form-group" id="studentPhoneGroup" style="grid-column:1/-1;">
+                    <label class="form-label">رقم التليفون الأساسي</label>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <div class="input-icon-wrap" style="flex:1; min-width:140px;">
+                            <i class="fas fa-user-tag input-icon"></i>
+                            <select id="studentPhoneType" class="form-input" onchange="handleMainPhoneTypeChange(this, 'studentPhoneCustomType')">
+                                <option value="personal">رقمه الشخصي</option>
+                                <option value="father">هاتف الأب</option>
+                                <option value="mother">هاتف الأم</option>
+                                <option value="brother">هاتف الأخ</option>
+                                <option value="sister">هاتف الأخت</option>
+                                <option value="guardian">هاتف ولي الأمر</option>
+                                <option value="other">أخرى (مخصص)</option>
+                            </select>
+                        </div>
+                        <div class="input-icon-wrap" style="flex:1.5; min-width:180px;">
+                            <i class="fas fa-phone input-icon"></i>
+                            <input type="tel" id="studentPhone" class="form-input" placeholder="01xxxxxxxxx" dir="ltr">
+                        </div>
+                        <input type="text" id="studentPhoneCustomType" class="form-input" placeholder="اكتب صلة القرابة..." style="width:100%; margin-top:4px; display:none;">
+                    </div>
                 </div>
                 <div class="form-group" style="grid-column:1/-1;" id="studentEmergencyPhoneGroup">
                     <label class="form-label" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                        <span><i class="fas fa-users" style="margin-left:6px; color:var(--primary);"></i>أرقام أولياء الأمور / جهات الاتصال</span>
-                        <button type="button" class="btn btn-sm" onclick="addParentPhoneRow('newStudentParentPhonesList')" style="padding:4px 10px; font-size:0.8rem; background:rgba(59, 130, 246, 0.15); color:var(--primary); border:1px solid rgba(59, 130, 246, 0.3); border-radius:6px; cursor:pointer;">
-                            <i class="fas fa-plus"></i> إضافة رقم
-                        </button>
+                        <span><i class="fas fa-users" style="margin-left:6px; color:var(--primary);"></i>أرقام أولياء الأمور / جهات الاتصال الإضافية</span>
                     </label>
+                    <!-- Quick Add Box for additional parent contacts -->
+                    <div style="background:var(--surface-2, rgba(255,255,255,0.05)); border:1px dashed var(--primary); border-radius:10px; padding:12px; margin-bottom:10px;">
+                        <div style="font-size:0.85rem; font-weight:600; margin-bottom:8px; color:var(--primary); display:flex; align-items:center; gap:6px;">
+                            <i class="fas fa-plus-circle"></i> إضافة رقم ولي أمر / جهة اتصال جديدة:
+                        </div>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+                            <select id="newParentRelation" class="form-input" style="flex:1; min-width:110px; padding:6px 10px; font-size:0.85rem;" onchange="handleParentPhoneRelationChange(this)">
+                                <option value="father">أب</option>
+                                <option value="mother">أم</option>
+                                <option value="brother">أخ</option>
+                                <option value="sister">أخت</option>
+                                <option value="grandfather">جد</option>
+                                <option value="grandmother">جدة</option>
+                                <option value="uncle">عم / خال</option>
+                                <option value="aunt">عمة / خالة</option>
+                                <option value="guardian" selected>ولي أمر</option>
+                                <option value="other">أخرى (مخصص)</option>
+                            </select>
+                            <input type="text" id="newParentCustomRelation" class="form-input parent-phone-custom-rel" placeholder="صلة القرابة..." style="flex:1; min-width:110px; padding:6px 10px; font-size:0.85rem; display:none;">
+                            <input type="text" id="newParentName" class="form-input" placeholder="الاسم (اختياري)" style="flex:1.2; min-width:120px; padding:6px 10px; font-size:0.85rem;">
+                            <input type="tel" id="newParentPhone" class="form-input" placeholder="رقم الهاتف (01xxxxxxxxx)" dir="ltr" style="flex:1.5; min-width:140px; padding:6px 10px; font-size:0.85rem;">
+                        </div>
+                        <button type="button" class="btn btn-sm btn-primary" onclick="addParentPhoneFromBuilder('add')" style="width:100%; display:flex; align-items:center; justify-content:center; gap:6px; padding:8px; font-size:0.85rem; font-weight:700; border-radius:8px; cursor:pointer;">
+                            <i class="fas fa-plus"></i> إضافة جهة الاتصال للقائمة
+                        </button>
+                    </div>
                     <div id="newStudentParentPhonesList" class="parent-phones-list" style="display:flex; flex-direction:column; gap:8px;"></div>
                     <input type="hidden" id="studentEmergencyPhone" value="">
                 </div>
@@ -22183,7 +22263,36 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             await linkSiblingToCurrent(tid);
         }
 
-        // ── Parent Phones Dynamic Helper Functions ───────────────────
+        // ── Main Phone & Parent Phones Dynamic Helper Functions ───────
+        const MAIN_PHONE_TYPES = [
+            { value: 'personal', label: 'رقمه الشخصي' },
+            { value: 'father', label: 'هاتف الأب' },
+            { value: 'mother', label: 'هاتف الأم' },
+            { value: 'brother', label: 'هاتف الأخ' },
+            { value: 'sister', label: 'هاتف الأخت' },
+            { value: 'guardian', label: 'هاتف ولي الأمر' },
+            { value: 'other', label: 'أخرى (مخصص)' }
+        ];
+
+        function getMainPhoneLabelText(type, customType = '') {
+            if (!type || type === 'personal') return 'رقمه الشخصي';
+            if (type === 'other') return customType ? customType : 'مخصص';
+            const found = MAIN_PHONE_TYPES.find(t => t.value === type);
+            return found ? found.label : type;
+        }
+
+        function handleMainPhoneTypeChange(selectEl, customInputId) {
+            const customInp = document.getElementById(customInputId);
+            if (customInp) {
+                if (selectEl.value === 'other') {
+                    customInp.style.display = 'block';
+                    customInp.focus();
+                } else {
+                    customInp.style.display = 'none';
+                }
+            }
+        }
+
         const PARENT_RELATIONS = [
             { value: 'father', label: 'أب' },
             { value: 'mother', label: 'أم' },
@@ -22241,7 +22350,8 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
         }
 
         function handleParentPhoneRelationChange(selectEl) {
-            const customInp = selectEl.parentElement.querySelector('.parent-phone-custom-rel');
+            const parentWrap = selectEl.closest('.parent-phone-row') || selectEl.parentElement;
+            const customInp = parentWrap.querySelector('.parent-phone-custom-rel');
             if (customInp) {
                 if (selectEl.value === 'other') {
                     customInp.style.display = 'block';
@@ -22250,6 +22360,46 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                     customInp.style.display = 'none';
                 }
             }
+        }
+
+        function addParentPhoneFromBuilder(mode = 'add') {
+            const prefix = (mode === 'edit') ? 'edit' : 'new';
+            const relEl = document.getElementById(prefix + 'ParentRelation') || document.getElementById('newParentRelation');
+            const customRelEl = document.getElementById(prefix + 'ParentCustomRelation') || document.getElementById('newParentCustomRelation');
+            const nameEl = document.getElementById(prefix + 'ParentName') || document.getElementById('newParentName');
+            const phoneEl = document.getElementById(prefix + 'ParentPhone') || document.getElementById('newParentPhone');
+            const containerId = (mode === 'edit') ? 'editStudentParentPhonesList' : 'newStudentParentPhonesList';
+            
+            if (!phoneEl) return;
+            const phone = phoneEl.value.trim();
+            if (!phone) {
+                if (typeof showToast === 'function') showToast('يرجى إدخال رقم الهاتف أولاً', 'error');
+                else alert('يرجى إدخال رقم الهاتف أولاً');
+                phoneEl.focus();
+                return;
+            }
+            
+            const rel = relEl ? relEl.value : 'guardian';
+            const customRel = customRelEl ? customRelEl.value.trim() : '';
+            const name = nameEl ? nameEl.value.trim() : '';
+            
+            addParentPhoneRow(containerId, {
+                relation: rel,
+                custom_relation: (rel === 'other') ? customRel : '',
+                name: name,
+                phone: phone
+            });
+            
+            // Clear builder inputs for next entry
+            phoneEl.value = '';
+            if (nameEl) nameEl.value = '';
+            if (customRelEl) {
+                customRelEl.value = '';
+                customRelEl.style.display = 'none';
+            }
+            if (relEl) relEl.value = (mode === 'edit') ? 'father' : 'guardian';
+            
+            if (typeof showToast === 'function') showToast('تمت إضافة جهة الاتصال إلى القائمة', 'success');
         }
 
         function addParentPhoneRow(containerId, item = { relation: 'father', custom_relation: '', name: '', phone: '' }) {
@@ -22279,6 +22429,22 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                     });
                 }
             });
+
+            // Check if user filled in the quick add builder inputs but forgot to click '+' button
+            const prefix = (containerId === 'editStudentParentPhonesList') ? 'edit' : 'new';
+            const unaddedPhoneEl = document.getElementById(prefix + 'ParentPhone');
+            if (unaddedPhoneEl && unaddedPhoneEl.value.trim()) {
+                const unaddedRelEl = document.getElementById(prefix + 'ParentRelation');
+                const unaddedCustomRelEl = document.getElementById(prefix + 'ParentCustomRelation');
+                const unaddedNameEl = document.getElementById(prefix + 'ParentName');
+                const unaddedRel = unaddedRelEl ? unaddedRelEl.value : 'guardian';
+                list.push({
+                    relation: unaddedRel,
+                    custom_relation: (unaddedRel === 'other' && unaddedCustomRelEl) ? unaddedCustomRelEl.value.trim() : '',
+                    name: unaddedNameEl ? unaddedNameEl.value.trim() : '',
+                    phone: unaddedPhoneEl.value.trim()
+                });
+            }
             return list;
         }
 
@@ -22286,6 +22452,17 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             const container = document.getElementById(containerId);
             if (!container) return;
             container.innerHTML = '';
+            
+            // Clear builder inputs
+            const prefix = (containerId === 'editStudentParentPhonesList') ? 'edit' : 'new';
+            const phoneEl = document.getElementById(prefix + 'ParentPhone');
+            const nameEl = document.getElementById(prefix + 'ParentName');
+            const customRelEl = document.getElementById(prefix + 'ParentCustomRelation');
+            const relEl = document.getElementById(prefix + 'ParentRelation');
+            if (phoneEl) phoneEl.value = '';
+            if (nameEl) nameEl.value = '';
+            if (customRelEl) { customRelEl.value = ''; customRelEl.style.display = 'none'; }
+            if (relEl) relEl.value = (prefix === 'edit') ? 'father' : 'guardian';
             
             let list = [];
             if (Array.isArray(parentPhones) && parentPhones.length > 0) {
@@ -22303,9 +22480,7 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 });
             }
             
-            if (list.length === 0) {
-                addParentPhoneRow(containerId, { relation: 'father', custom_relation: '', name: '', phone: '' });
-            } else {
+            if (list.length > 0) {
                 list.forEach(item => addParentPhoneRow(containerId, item));
             }
         }
@@ -22353,23 +22528,18 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
         function buildStudentDetailsFromCache(s) {
             const genderLabel = formatGenderLabel(s);
             const siblingHtml = buildSiblingPanel(s);
+            const mainPhoneType = s.phone_label || s.phone_type || (s._customInfo ? s._customInfo.phone_label : '') || 'personal';
+            const mainPhoneCustomType = s.phone_custom_label || (s._customInfo ? s._customInfo.phone_custom_label : '') || '';
+            const mainPhoneLabelTitle = 'رقم التليفون (' + getMainPhoneLabelText(mainPhoneType, mainPhoneCustomType) + ')';
+            const mainPhoneVal = s['رقم التليفون'] || s.phone || '';
+
             let rowsList = [
                 ['معرّف الطفل (ID)', String(getStudentDbId(s)), 'blue', 'fa-fingerprint', String(getStudentDbId(s))],
                 ['الاسم الكامل', s['الاسم'] || '---', 'blue', 'fa-id-card', s['الاسم'] || '---'],
                 ['النوع', genderLabel, 'purple', 'fa-venus-mars', genderLabel],
                 ['الفصل', s['الفصل'] || '---', 'purple', 'fa-chalkboard-teacher', s['الفصل'] || '---'],
                 ['العنوان', s['العنوان'] || '---', 'orange', 'fa-map-marker-alt', s['العنوان'] || '---'],
-                ['رقم التليفون', s['رقم التليفون'] || '---', 'green', 'fa-phone', s['رقم التليفون'] || '---'],
             ];
-            const parentContactsHtml = renderParentContactsDetailsHtml(s._parentPhones || s.parent_phones, s['تليفون الطوارئ'] || s.emergency_phone || '', s.guardian_name || '');
-            if (s['ملاحظات طبية']) {
-                rowsList.push(['ملاحظات طبية', s['ملاحظات طبية'], 'red', 'fa-notes-medical', s['ملاحظات طبية']]);
-            }
-            const displayBday = formatBirthdayForDisplay(s['عيد الميلاد']);
-            rowsList.push(
-                ['تاريخ الميلاد', displayBday, 'pink', 'fa-birthday-cake', displayBday],
-                ['الكوبونات', (s['كوبونات'] || '0') + ' <i class="fas fa-star" style="color:var(--coupon);font-size:.8rem"></i>', 'purple', 'fa-star', String(s['كوبونات'] || '0')]
-            );
 
             let rows = rowsList.map(([l, v, color, icon, copyVal]) => `
         <div class="detail-row">
@@ -22377,6 +22547,39 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             <div class="detail-label">${l}</div>
             <div class="detail-val copy-holdable" data-copy-text="${escAttr(copyVal || v)}">${v}</div>
         </div>`).join('');
+
+            // Main Phone with Label and Direct Call Button
+            rows += `
+        <div class="detail-row">
+            <div class="detail-icon green"><i class="fas fa-phone"></i></div>
+            <div class="detail-label">${mainPhoneLabelTitle}</div>
+            <div class="detail-val" style="display:flex; align-items:center; justify-content:flex-end; gap:8px;">
+                <span class="copy-holdable" data-copy-text="${escAttr(mainPhoneVal)}" dir="ltr" style="font-family:monospace; font-weight:700;">${escHtml(mainPhoneVal || '---')}</span>
+                ${mainPhoneVal ? `<a href="tel:${escAttr(mainPhoneVal)}" class="call-btn" style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; background:rgba(34,197,94,0.15); color:#22c55e; text-decoration:none;" title="اتصال"><i class="fas fa-phone" style="font-size:0.75rem;"></i></a>` : ''}
+            </div>
+        </div>`;
+
+            const parentContactsHtml = renderParentContactsDetailsHtml(s._parentPhones || s.parent_phones, s['تليفون الطوارئ'] || s.emergency_phone || '', s.guardian_name || '');
+            if (s['ملاحظات طبية']) {
+                rows += `
+        <div class="detail-row">
+            <div class="detail-icon red"><i class="fas fa-notes-medical"></i></div>
+            <div class="detail-label">ملاحظات طبية</div>
+            <div class="detail-val copy-holdable" data-copy-text="${escAttr(s['ملاحظات طبية'])}">${escHtml(s['ملاحظات طبية'])}</div>
+        </div>`;
+            }
+            const displayBday = formatBirthdayForDisplay(s['عيد الميلاد']);
+            rows += `
+        <div class="detail-row">
+            <div class="detail-icon pink"><i class="fas fa-birthday-cake"></i></div>
+            <div class="detail-label">تاريخ الميلاد</div>
+            <div class="detail-val copy-holdable" data-copy-text="${escAttr(displayBday)}">${displayBday}</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-icon purple"><i class="fas fa-star"></i></div>
+            <div class="detail-label">الكوبونات</div>
+            <div class="detail-val copy-holdable" data-copy-text="${String(s['كوبونات'] || '0')}">${s['كوبونات'] || '0'} <i class="fas fa-star" style="color:var(--coupon);font-size:.8rem"></i></div>
+        </div>`;
 
             // Append custom fields
             const info = parseStudentCustomInfo(s);
@@ -22445,23 +22648,18 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 ? `<div class="detail-avatar-wrap" ${showImgClick}><img src="${photoSrc}" class="detail-avatar" onerror="this.style.display='none';var el=this.parentElement.querySelector('.detail-avatar-fallback');if(el)el.style.display='flex'"><div class="detail-avatar-fallback ${gender}" style="display:none"><i class="fas fa-user"></i></div><div class="detail-info-text"><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div></div>`
                 : `<div class="detail-avatar-wrap" ${showImgClick}><div class="detail-avatar-fallback ${gender}"><i class="fas fa-user"></i></div><div class="detail-info-text"><div class="detail-student-name">${detailNameStr}</div><div class="detail-student-class">${escStr(full.class || '')}</div></div></div>`;
 
+            const mainPhoneType = full.phone_label || full.phone_type || (full._customInfo ? full._customInfo.phone_label : '') || 'personal';
+            const mainPhoneCustomType = full.phone_custom_label || (full._customInfo ? full._customInfo.phone_custom_label : '') || '';
+            const mainPhoneLabelTitle = 'رقم التليفون (' + getMainPhoneLabelText(mainPhoneType, mainPhoneCustomType) + ')';
+            const mainPhoneVal = full.phone || full['رقم التليفون'] || '';
+
             let rowsList = [
                 ['معرّف الطفل (ID)', String(full.id), 'blue', 'fa-fingerprint', String(full.id)],
                 ['الاسم الكامل', full.name || '---', 'blue', 'fa-id-card', full.name || '---'],
                 ['النوع', formatGenderLabel(full.gender || full['النوع']), 'purple', 'fa-venus-mars', formatGenderLabel(full.gender || full['النوع'])],
                 ['الفصل', full.class || '---', 'purple', 'fa-chalkboard-teacher', full.class || '---'],
                 ['العنوان', full.address || '---', 'orange', 'fa-map-marker-alt', full.address || '---'],
-                ['رقم التليفون', full.phone || '---', 'green', 'fa-phone', full.phone || '---'],
             ];
-            const parentContactsHtml = renderParentContactsDetailsHtml(full.parent_phones || full._parentPhones, full.emergency_phone || full['تليفون الطوارئ'] || '', full.guardian_name || '');
-            if (full.medical_notes) {
-                rowsList.push(['ملاحظات طبية', full.medical_notes, 'red', 'fa-notes-medical', full.medical_notes]);
-            }
-            const displayBday = formatBirthdayForDisplay(full.birthday);
-            rowsList.push(
-                ['تاريخ الميلاد', displayBday, 'pink', 'fa-birthday-cake', displayBday],
-                ['الكوبونات', (full.coupons || 0) + ' <i class="fas fa-star" style="color:var(--coupon);font-size:.8rem"></i>', 'purple', 'fa-star', String(full.coupons || 0)]
-            );
 
             let rows = rowsList.map(([l, v, color, icon, copyVal]) => `
         <div class="detail-row">
@@ -22470,22 +22668,38 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             <div class="detail-val copy-holdable" data-copy-text="${escAttr(copyVal || v)}">${v}</div>
         </div>`).join('');
 
-            // Append custom fields
-            const info = parseStudentCustomInfo(full);
-            if (churchCustomFields && churchCustomFields.length) {
-                churchCustomFields.forEach((cf, idx) => {
-                    const key = 'field_' + idx;
-                    const val = info[key] || info['field_' + idx] || (idx === 0 ? (info.value || '') : '');
-                    if (val) {
-                        rows += `
+            // Main Phone with Label and Direct Call Button
+            rows += `
         <div class="detail-row">
-            <div class="detail-icon orange"><i class="fas ${cf.icon || 'fa-tag'}"></i></div>
-            <div class="detail-label">${cf.name}</div>
-            <div class="detail-val copy-holdable" data-copy-text="${escAttr(val)}">${val}</div>
+            <div class="detail-icon green"><i class="fas fa-phone"></i></div>
+            <div class="detail-label">${mainPhoneLabelTitle}</div>
+            <div class="detail-val" style="display:flex; align-items:center; justify-content:flex-end; gap:8px;">
+                <span class="copy-holdable" data-copy-text="${escAttr(mainPhoneVal)}" dir="ltr" style="font-family:monospace; font-weight:700;">${escHtml(mainPhoneVal || '---')}</span>
+                ${mainPhoneVal ? `<a href="tel:${escAttr(mainPhoneVal)}" class="call-btn" style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; background:rgba(34,197,94,0.15); color:#22c55e; text-decoration:none;" title="اتصال"><i class="fas fa-phone" style="font-size:0.75rem;"></i></a>` : ''}
+            </div>
         </div>`;
-                    }
-                });
+
+            const parentContactsHtml = renderParentContactsDetailsHtml(full.parent_phones || full._parentPhones, full.emergency_phone || full['تليفون الطوارئ'] || '', full.guardian_name || '');
+            if (full.medical_notes) {
+                rows += `
+        <div class="detail-row">
+            <div class="detail-icon red"><i class="fas fa-notes-medical"></i></div>
+            <div class="detail-label">ملاحظات طبية</div>
+            <div class="detail-val copy-holdable" data-copy-text="${escAttr(full.medical_notes)}">${escHtml(full.medical_notes)}</div>
+        </div>`;
             }
+            const displayBday = formatBirthdayForDisplay(full.birthday);
+            rows += `
+        <div class="detail-row">
+            <div class="detail-icon pink"><i class="fas fa-birthday-cake"></i></div>
+            <div class="detail-label">تاريخ الميلاد</div>
+            <div class="detail-val copy-holdable" data-copy-text="${escAttr(displayBday)}">${displayBday}</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-icon purple"><i class="fas fa-star"></i></div>
+            <div class="detail-label">الكوبونات</div>
+            <div class="detail-val copy-holdable" data-copy-text="${String(full.coupons || 0)}">${full.coupons || 0} <i class="fas fa-star" style="color:var(--coupon);font-size:.8rem"></i></div>
+        </div>`;
 
             // Trip points summary
             let tpList = [];

@@ -38,8 +38,9 @@ CREATE TABLE IF NOT EXISTS phone_verifications (
   - Rejects unregistered numbers with: *"عذراً، رقم الهاتف غير مسجل في نظام مدارس الأحد"*.
   - Generates 6-digit random code and unique request token (`REQ-XXXXXXXX`).
   - Inserts row into `phone_verifications` with `is_sent = 0`.
-  - **Instant Replit Wake-Up**: Sends a non-blocking cURL ping to `https://baileys-qr-code--sundayschooleg.replit.app/` so the Replit container instantly wakes up from sleep to deliver the OTP.
-  - **Zero Leak Policy**: Does **NOT** return `otp_code` in JSON response.
+  - **Instant Webhook Wake-Up (`notifyWhatsAppOTPPending`)**: Immediately issues a non-blocking POST request to `${WHATSAPP_WAKE_URL}` (with `Authorization: Bearer ${WHATSAPP_WAKE_CODE}`) sending `{ "event": "otp_pending", "otp_id": "<new OTP id>" }` with a 3s timeout.
+  - **Zero Leak Policy**: Webhook body never includes phone numbers, OTP codes, or personal data. Logs never expose bearer tokens or private information.
+  - **Zero Leak Policy for Client**: Does **NOT** return `otp_code` in JSON response to frontend.
 
 ### 2. `getPendingOTPMessages`
 - **Params**: None

@@ -18,7 +18,7 @@ date_default_timezone_set('Africa/Cairo');
 require_once __DIR__ . '/config.php';
 
 // 1. Ping Replit WhatsApp Bot App
-$replitUrl = 'https://baileys-qr-code--sundayschooleg.replit.app/';
+$replitUrl = 'https://sunday-school-reactivate--ainshamesundays.replit.app/';
 $ch = curl_init($replitUrl);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_TIMEOUT, 10);
