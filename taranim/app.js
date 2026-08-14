@@ -4762,9 +4762,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 3. STANDBY SCREEN HANDLERS ---
     const updateStandbyUI = () => {
-      if (!els.standbyTypeSelect) return;
       const type = state.standbyConfig?.type || 'logo';
-      els.standbyTypeSelect.value = type;
+      if (els.standbyTypeSelect) els.standbyTypeSelect.value = type;
+
+      document.querySelectorAll('.standby-source-segmented .segmented-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-standby-type') === type);
+      });
 
       if (els.standbyTemplateWrap) els.standbyTemplateWrap.classList.toggle('hidden', type !== 'template');
       if (els.standbyCustomUploadWrap) els.standbyCustomUploadWrap.classList.toggle('hidden', type !== 'custom_image' && type !== 'custom_video');
@@ -4779,6 +4782,24 @@ document.addEventListener('DOMContentLoaded', () => {
         b.classList.toggle('active', b.getAttribute('data-fit') === stFit);
       });
     };
+
+    document.querySelectorAll('.standby-source-segmented .segmented-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const type = btn.getAttribute('data-standby-type') || 'logo';
+        state.standbyConfig.type = type;
+        if (type === 'template') {
+          state.standbyConfig.url = els.standbyTemplateSelect ? els.standbyTemplateSelect.value : 'Templates/Standby/Shabahak Akon 2026/Shabahak Akoon Loop.mp4';
+        } else if (type === 'logo') {
+          state.standbyConfig.url = '';
+        } else if (type === 'custom_image' || type === 'custom_video') {
+          const fileInput = document.getElementById('standby-file-input');
+          if (fileInput && !state.standbyConfig.url) fileInput.click();
+        }
+        updateStandbyUI();
+        saveMediaConfig();
+        syncLiveState();
+      });
+    });
 
     document.querySelectorAll('.standby-fit-segmented .segmented-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -4847,9 +4868,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 4. TRANSITIONS CONFIG HANDLERS ---
     const updateTransitionUI = () => {
-      if (!els.transitionTypeSelect) return;
       const type = state.transitionConfig?.type || 'stinger';
-      els.transitionTypeSelect.value = type;
+      if (els.transitionTypeSelect) els.transitionTypeSelect.value = type;
+
+      document.querySelectorAll('.transition-source-segmented .segmented-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-trans-type') === type);
+      });
 
       if (els.stingerConfigWrap) els.stingerConfigWrap.classList.toggle('hidden', type !== 'stinger');
       if (els.stingerCutpointRange) els.stingerCutpointRange.value = state.transitionConfig?.cutPointMs || 1200;
@@ -4859,6 +4883,16 @@ document.addEventListener('DOMContentLoaded', () => {
         els.stingerTemplateSelect.value = state.transitionConfig.stingerUrl;
       }
     };
+
+    document.querySelectorAll('.transition-source-segmented .segmented-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const type = btn.getAttribute('data-trans-type') || 'stinger';
+        state.transitionConfig.type = type;
+        updateTransitionUI();
+        saveMediaConfig();
+        syncLiveState();
+      });
+    });
 
     if (els.transitionTypeSelect) {
       els.transitionTypeSelect.addEventListener('change', (e) => {

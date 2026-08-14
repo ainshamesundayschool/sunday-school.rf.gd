@@ -648,17 +648,31 @@
               <div class="style-card-title"><i class="fa-solid fa-tv"></i> شاشة الانتظار (Standby Screen)</div>
               
               <div class="control-field">
-                <label>نوع شاشة الانتظار</label>
-                <select id="standby-type-select" class="control-select">
-                  <option value="logo" selected>الشعار الافتراضي (Sunday School Logo)</option>
-                  <option value="template">فيديو لوب من القالب المتاح</option>
-                  <option value="custom_image">صورة مخصصة من الجهاز...</option>
-                  <option value="custom_video">فيديو لوب مخصص من الجهاز (MP4/WebM)...</option>
+                <label>نوع ومصدر شاشة الانتظار</label>
+                <select id="standby-type-select" class="control-select hidden">
+                  <option value="logo" selected>الشعار الافتراضي</option>
+                  <option value="template">قالب جاهز</option>
+                  <option value="custom_image">صورة مخصصة</option>
+                  <option value="custom_video">فيديو مخصص</option>
                 </select>
+                <div class="segmented-control-group standby-source-segmented" style="display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-bottom:10px;">
+                  <button type="button" class="segmented-btn active" id="btn-standby-mode-logo" data-standby-type="logo">
+                    <i class="fa-solid fa-shield-halved"></i> الشعار الافتراضي
+                  </button>
+                  <button type="button" class="segmented-btn" id="btn-standby-mode-template" data-standby-type="template">
+                    <i class="fa-solid fa-film"></i> قالب جاهز
+                  </button>
+                  <button type="button" class="segmented-btn" id="btn-standby-mode-custom-img" data-standby-type="custom_image">
+                    <i class="fa-solid fa-image"></i> صورة مخصصة
+                  </button>
+                  <button type="button" class="segmented-btn" id="btn-standby-mode-custom-video" data-standby-type="custom_video">
+                    <i class="fa-solid fa-video"></i> فيديو مخصص
+                  </button>
+                </div>
               </div>
 
               <!-- TEMPLATE STANDBY VIDEO SELECTOR -->
-              <div class="control-field hidden" id="standby-template-wrap" style="margin-top:8px;">
+              <div class="control-field hidden" id="standby-template-wrap" style="margin-top:6px;">
                 <label>اختر من فيديوهات الانتظار المتاحة</label>
                 <select id="standby-template-select" class="control-select">
                   <option value="Templates/Standby/Shabahak Akon 2026/Shabahak Akoon Loop.mp4">Shabahak Akon 2026 - Standby Loop</option>
@@ -666,7 +680,7 @@
               </div>
 
               <!-- CUSTOM STANDBY UPLOAD WRAPPER -->
-              <div class="control-field hidden" id="standby-custom-upload-wrap" style="margin-top:8px;">
+              <div class="control-field hidden" id="standby-custom-upload-wrap" style="margin-top:6px;">
                 <label id="standby-upload-label">ملف شاشة الانتظار من الجهاز</label>
                 <div style="display:flex; gap:6px; width:100%;">
                   <label for="standby-file-input" class="control-btn" style="flex:1; text-align:center; cursor:pointer; padding:8px 12px; font-size:0.85rem; display:flex; align-items:center; justify-content:center; gap:6px; background:var(--bg-hover, #e2e8f0); border-radius:8px;">
@@ -712,14 +726,31 @@
               <div class="style-card-title"><i class="fa-solid fa-wand-magic-sparkles"></i> نمط حركة الانتقال (Transitions)</div>
               
               <div class="control-field">
-                <label>نوع الانتقال بين الشاشة والشرائح</label>
-                <select id="transition-type-select" class="control-select">
-                  <option value="stinger" selected>ستنجر فيديو بقناة ألفا (Stinger Alpha WebM)</option>
-                  <option value="luma_sinus9">مسح متمركز دائري ناعم (Smooth Centered Luma Wipe)</option>
-                  <option value="fade">تلاشي ناعم (Smooth Fade)</option>
-                  <option value="zoom">تكبير (Zoom)</option>
-                  <option value="cut">قطع فوري بدون حركة (Cut)</option>
+                <label>نوع ونمط الانتقال بين الشاشة والشرائح</label>
+                <select id="transition-type-select" class="control-select hidden">
+                  <option value="stinger" selected>ستنجر فيديو</option>
+                  <option value="luma_sinus9">مسح ناعم</option>
+                  <option value="fade">تلاشي</option>
+                  <option value="zoom">تكبير</option>
+                  <option value="cut">قطع فوري</option>
                 </select>
+                <div class="segmented-control-group transition-source-segmented" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:4px; margin-bottom:10px;">
+                  <button type="button" class="segmented-btn active" id="btn-trans-mode-stinger" data-trans-type="stinger" title="ستنجر فيديو بقناة ألفا">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> ستنجر
+                  </button>
+                  <button type="button" class="segmented-btn" id="btn-trans-mode-luma" data-trans-type="luma_sinus9" title="مسح متمركز دائري ناعم">
+                    <i class="fa-solid fa-circle-notch"></i> مسح ناعم
+                  </button>
+                  <button type="button" class="segmented-btn" id="btn-trans-mode-fade" data-trans-type="fade" title="تلاشي ناعم">
+                    <i class="fa-solid fa-water"></i> تلاشي
+                  </button>
+                  <button type="button" class="segmented-btn" id="btn-trans-mode-zoom" data-trans-type="zoom" title="تكبير وانبثاق">
+                    <i class="fa-solid fa-maximize"></i> تكبير
+                  </button>
+                  <button type="button" class="segmented-btn" id="btn-trans-mode-cut" data-trans-type="cut" title="قطع فوري">
+                    <i class="fa-solid fa-bolt"></i> قطع فوري
+                  </button>
+                </div>
               </div>
 
               <!-- STINGER VIDEO SELECTOR -->
