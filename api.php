@@ -19675,13 +19675,15 @@ function sendCustomWhatsAppOTP() {
         $conn = getDBConnection();
 
         if (!$forRegistration) {
-            // Strict student registration check: phone number MUST be registered in students table
+            // Check student phone across primary phone, emergency phone, and parent phones
             $studentStmt = $conn->prepare("
                 SELECT id, name FROM students 
-                WHERE (RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?) 
+                WHERE (RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?
+                   OR RIGHT(emergency_phone, 10) = RIGHT(?, 10) OR emergency_phone = ?
+                   OR parent_phones LIKE CONCAT('%', ?) OR custom_info LIKE CONCAT('%', ?)) 
                 LIMIT 1
             ");
-            $studentStmt->bind_param("ss", $cleanPhone, $cleanPhone);
+            $studentStmt->bind_param("ssssss", $cleanPhone, $cleanPhone, $cleanPhone, $cleanPhone, $cleanPhone, $cleanPhone);
             $studentStmt->execute();
             $studentRes = $studentStmt->get_result();
             
@@ -20340,10 +20342,12 @@ function checkKidPasswordByPhone() {
         $checkStmt = $conn->prepare("
             SELECT id, name, phone 
             FROM students 
-            WHERE (RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?)
+            WHERE (RIGHT(phone, 10) = RIGHT(?, 10) OR phone = ?
+               OR RIGHT(emergency_phone, 10) = RIGHT(?, 10) OR emergency_phone = ?
+               OR parent_phones LIKE CONCAT('%', ?) OR custom_info LIKE CONCAT('%', ?))
             LIMIT 1
         ");
-        $checkStmt->bind_param("ss", $cleanPhone, $cleanPhone);
+        $checkStmt->bind_param("ssssss", $cleanPhone, $cleanPhone, $cleanPhone, $cleanPhone, $cleanPhone, $cleanPhone);
         $checkStmt->execute();
         $result = $checkStmt->get_result();
 
