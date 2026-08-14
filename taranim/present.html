@@ -2190,16 +2190,27 @@
 
       const slidesLayer = document.getElementById('scene-slides-layer');
       const standbyLayer = document.getElementById('scene-standby-layer');
+      let activeLumaAnimFrame = null;
 
       // AUTHENTIC OBS SINUS 9 LUMA WIPE DRIVER (FEATHERED CONCENTRIC SINUSOIDAL WIPER)
       const runLumaSinusWipe = (incomingEl, duration = 1150, onComplete = null) => {
+        if (activeLumaAnimFrame) {
+          cancelAnimationFrame(activeLumaAnimFrame);
+          activeLumaAnimFrame = null;
+        }
+
         if (!incomingEl) {
           if (typeof onComplete === 'function') onComplete();
           return;
         }
 
+        // Apply 0% transparent mask synchronously BEFORE showing element to eliminate 1-frame preview flicker
+        const initialMask = 'radial-gradient(circle at 50% 50%, transparent 0%, transparent 100%)';
+        incomingEl.style.webkitMaskImage = initialMask;
+        incomingEl.style.maskImage = initialMask;
         incomingEl.style.zIndex = '35';
         incomingEl.classList.remove('hidden');
+
         const startTime = performance.now();
 
         const animateWipe = (currentTime) => {
@@ -2223,15 +2234,16 @@
           incomingEl.style.maskImage = maskStr;
 
           if (progress < 1) {
-            requestAnimationFrame(animateWipe);
+            activeLumaAnimFrame = requestAnimationFrame(animateWipe);
           } else {
+            activeLumaAnimFrame = null;
             incomingEl.style.webkitMaskImage = '';
             incomingEl.style.maskImage = '';
             if (typeof onComplete === 'function') onComplete();
           }
         };
 
-        requestAnimationFrame(animateWipe);
+        activeLumaAnimFrame = requestAnimationFrame(animateWipe);
       };
 
       // 4. TRANSITION TRIGGER OR DIRECT DISPLAY
