@@ -3343,7 +3343,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------------------------------
     const STORAGE_KEY_TEMPLATES = 'sunday_school_taranim_user_templates';
 
-    const getUserTemplates = () => {
+    function getUserTemplates() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY_TEMPLATES);
         return raw ? JSON.parse(raw) : [];
@@ -3351,17 +3351,17 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Failed to parse user templates:', err);
         return [];
       }
-    };
+    }
 
-    const saveUserTemplates = (templates) => {
+    function saveUserTemplates(templates) {
       try {
         localStorage.setItem(STORAGE_KEY_TEMPLATES, JSON.stringify(templates));
       } catch (err) {
         console.error('Failed to save user templates:', err);
       }
-    };
+    }
 
-    const getCurrentStyleSnapshot = () => {
+    function getCurrentStyleSnapshot() {
       return {
         // TAB 1: FONT, SPLITTING & TRANSFORMS
         font: state.selectedFont || "'Alexandria', sans-serif",
@@ -3401,9 +3401,9 @@ document.addEventListener('DOMContentLoaded', () => {
         standbyConfig: state.standbyConfig ? JSON.parse(JSON.stringify(state.standbyConfig)) : { type: 'logo', url: '', fitMode: 'cover', loop: true },
         transitionConfig: state.transitionConfig ? JSON.parse(JSON.stringify(state.transitionConfig)) : { type: 'stinger', stingerUrl: '', cutPointMs: 1200 }
       };
-    };
+    }
 
-    const applyStyleSnapshot = (snapshot, templateName = '') => {
+    function applyStyleSnapshot(snapshot, templateName = '') {
       if (!snapshot) return;
 
       // 1. FONT & TYPOGRAPHY
@@ -3484,11 +3484,11 @@ document.addEventListener('DOMContentLoaded', () => {
         syncLiveState(true, true, { triggerTransition: true });
       }
 
-      renderUserTemplatesList();
-      renderQuickTemplatesDropdown();
-    };
+      if (typeof renderUserTemplatesList === 'function') renderUserTemplatesList();
+      if (typeof renderQuickTemplatesDropdown === 'function') renderQuickTemplatesDropdown();
+    }
 
-    const applyAssignedDefaultTemplate = (isItemBible) => {
+    function applyAssignedDefaultTemplate(isItemBible) {
       try {
         const key = isItemBible ? 'sunday_school_default_tmpl_bible' : 'sunday_school_default_tmpl_taranim';
         const assignedId = localStorage.getItem(key);
@@ -3504,10 +3504,10 @@ document.addEventListener('DOMContentLoaded', () => {
             state.activeTemplateName = tmpl.name;
             const headerLabel = document.getElementById('current-template-header-label');
             if (headerLabel) headerLabel.textContent = tmpl.name;
-            updateStandbyUI();
-            updateSlidesBgUI();
-            updateTransitionUI();
-            saveMediaConfig();
+            if (typeof updateStandbyUI === 'function') updateStandbyUI();
+            if (typeof updateSlidesBgUI === 'function') updateSlidesBgUI();
+            if (typeof updateTransitionUI === 'function') updateTransitionUI();
+            if (typeof saveMediaConfig === 'function') saveMediaConfig();
           }
         } else {
           const userTemplates = getUserTemplates();
@@ -3519,7 +3519,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (err) {
         console.error('Error applying assigned default template:', err);
       }
-    };
+    }
 
     // In-Website Template Editor Modal (Save New / Rename)
     let tmplEditorMode = 'save'; // 'save' | 'rename'
