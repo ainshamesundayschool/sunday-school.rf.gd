@@ -3488,6 +3488,39 @@ document.addEventListener('DOMContentLoaded', () => {
       renderQuickTemplatesDropdown();
     };
 
+    const applyAssignedDefaultTemplate = (isItemBible) => {
+      try {
+        const key = isItemBible ? 'sunday_school_default_tmpl_bible' : 'sunday_school_default_tmpl_taranim';
+        const assignedId = localStorage.getItem(key);
+        if (!assignedId) return;
+
+        if (assignedId.startsWith('builtin_')) {
+          const tmplName = assignedId.replace('builtin_', '');
+          const tmpl = (state.availableTemplates || []).find(t => t.name === tmplName);
+          if (tmpl && state.activeTemplateName !== tmpl.name) {
+            if (tmpl.standby) { state.standbyConfig.type = 'template'; state.standbyConfig.url = tmpl.standby; }
+            if (tmpl.slidesBg) { state.slidesBgConfig.type = 'template'; state.slidesBgConfig.url = tmpl.slidesBg; }
+            if (tmpl.stringer) { state.transitionConfig.type = 'stinger'; state.transitionConfig.stingerUrl = tmpl.stringer; }
+            state.activeTemplateName = tmpl.name;
+            const headerLabel = document.getElementById('current-template-header-label');
+            if (headerLabel) headerLabel.textContent = tmpl.name;
+            updateStandbyUI();
+            updateSlidesBgUI();
+            updateTransitionUI();
+            saveMediaConfig();
+          }
+        } else {
+          const userTemplates = getUserTemplates();
+          const tmpl = userTemplates.find(t => t.id === assignedId);
+          if (tmpl && tmpl.settings && state.activeTemplateName !== tmpl.name) {
+            applyStyleSnapshot(tmpl.settings, tmpl.name);
+          }
+        }
+      } catch (err) {
+        console.error('Error applying assigned default template:', err);
+      }
+    };
+
     // In-Website Template Editor Modal (Save New / Rename)
     let tmplEditorMode = 'save'; // 'save' | 'rename'
     let currentEditingTemplateId = null;
@@ -3686,25 +3719,106 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     };
 
+    const renderDefaultTemplatesSelectors = () => {
+      const selTaranim = document.getElementById('select-default-tmpl-taranim');
+      const selBible = document.getElementById('select-default-tmpl-bible');
+      if (!selTaranim && !selBible) return;
+
+      const userTemplates = getUserTemplates();
+      const builtinTemplates = state.availableTemplates || [];
+
+      const currentDefTaranim = localStorage.getItem('sunday_school_default_tmpl_taranim') || '';
+      const currentDefBible = localStorage.getItem('sunday_school_default_tmpl_bible') || '';
+
+      const buildOptions = (selectedVal) => {
+        let opts = `<option value="">-- بدون تعيين تلقائي --</option>`;
+        if (builtinTemplates.length > 0) {
+          opts += `<optgroup label="قوالب الخدمة الجاهزة">`;
+          builtinTemplates.forEach(t => {
+            const val = `builtin_${t.name}`;
+            opts += `<option value="${val}" ${selectedVal === val ? 'selected' : ''}>✨ ${escapeHtml(t.name)}</option>`;
+          });
+          opts += `</optgroup>`;
+        }
+        if (userTemplates.length > 0) {
+          opts += `<optgroup label="القوالب المحفوظة">`;
+          userTemplates.forEach(t => {
+            opts += `<option value="${t.id}" ${selectedVal === t.id ? 'selected' : ''}>📁 ${escapeHtml(t.name)}</option>`;
+          });
+          opts += `</optgroup>`;
+        }
+        return opts;
+      };
+
+      if (selTaranim) {
+        selTaranim.innerHTML = buildOptions(currentDefTaranim);
+        selTaranim.onchange = () => {
+          const val = selTaranim.value;
+          if (val) {
+            localStorage.setItem('sunday_school_default_tmpl_taranim', val);
+            showToast('تم تعيين القالب الافتراضي للترانيم!');
+          } else {
+            localStorage.removeItem('sunday_school_default_tmpl_taranim');
+            showToast('تم إلغاء تعيين القالب الافتراضي للترانيم');
+          }
+          renderUserTemplatesList();
+        };
+      }
+
+      if (selBible) {
+        selBible.innerHTML = buildOptions(currentDefBible);
+        selBible.onchange = () => {
+          const val = selBible.value;
+          if (val) {
+            localStorage.setItem('sunday_school_default_tmpl_bible', val);
+            showToast('تم تعيين القالب الافتراضي للكتاب المقدس!');
+          } else {
+            localStorage.removeItem('sunday_school_default_tmpl_bible');
+            showToast('تم إلغاء تعيين القالب الافتراضي للكتاب المقدس');
+          }
+          renderUserTemplatesList();
+        };
+      }
+    };
+
     const renderUserTemplatesList = () => {
+      renderDefaultTemplatesSelectors();
+
       const container = els.templatesListContainer;
       if (!container) return;
 
       const templates = getUserTemplates();
       if (els.templatesCountBadge) els.templatesCountBadge.textContent = templates.length;
 
+      const currentDefTaranim = localStorage.getItem('sunday_school_default_tmpl_taranim') || '';
+      const currentDefBible = localStorage.getItem('sunday_school_default_tmpl_bible') || '';
+
       if (templates.length === 0) {
         container.innerHTML = `<div style="text-align:center; padding:16px; color:var(--text-muted); font-size:0.85rem;">لا توجد قوالب محفوظة حالياً</div>`;
         return;
       }
 
-      container.innerHTML = templates.map(t => `
-        <div class="template-item-card" data-id="${t.id}" style="background:var(--bg-hover, #f8fafc); border:1px solid #e2e8f0; border-radius:10px; padding:10px 12px; display:flex; align-items:center; justify-content:space-between; gap:8px;">
+      container.innerHTML = templates.map(t => {
+        const isDefTaranim = (currentDefTaranim === t.id);
+        const isDefBible = (currentDefBible === t.id);
+
+        return `
+        <div class="template-item-card" data-id="${t.id}" style="background:var(--bg-hover, #f8fafc); border:1px solid ${isDefTaranim || isDefBible ? '#93c5fd' : '#e2e8f0'}; border-radius:10px; padding:10px 12px; display:flex; align-items:center; justify-content:space-between; gap:8px;">
           <div style="flex:1; min-width:0;">
-            <div style="font-weight:700; font-size:0.88rem; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(t.name)}</div>
+            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+              <span style="font-weight:700; font-size:0.88rem; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(t.name)}</span>
+              ${isDefTaranim ? `<span class="badge" style="background:#dbeafe; color:#1d4ed8; font-size:0.68rem; font-weight:700; padding:1px 6px; border-radius:6px; display:inline-flex; align-items:center; gap:3px;"><i class="fa-solid fa-music"></i> ترانيم</span>` : ''}
+              ${isDefBible ? `<span class="badge" style="background:#dcfce7; color:#15803d; font-size:0.68rem; font-weight:700; padding:1px 6px; border-radius:6px; display:inline-flex; align-items:center; gap:3px;"><i class="fa-solid fa-book-bible"></i> كتاب مقدس</span>` : ''}
+            </div>
             <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">${t.createdAt ? new Date(t.createdAt).toLocaleDateString('ar-EG') : ''} • ${escapeHtml(t.settings?.presentationMode || 'عام')}</div>
           </div>
           <div style="display:flex; align-items:center; gap:4px; flex-shrink:0;">
+            <button type="button" class="btn-toggle-def-taranim btn btn-sm" data-id="${t.id}" title="${isDefTaranim ? 'إلغاء تعيينه كافتراضي للترانيم' : 'تعيينه كقالب افتراضي للترانيم'}" style="padding:4px 8px; font-size:0.75rem; border-radius:6px; border:1px solid ${isDefTaranim ? '#2563eb' : '#cbd5e1'}; background:${isDefTaranim ? '#2563eb' : 'transparent'}; color:${isDefTaranim ? '#ffffff' : '#64748b'};">
+              <i class="fa-solid fa-music"></i>
+            </button>
+            <button type="button" class="btn-toggle-def-bible btn btn-sm" data-id="${t.id}" title="${isDefBible ? 'إلغاء تعيينه كافتراضي للكتاب المقدس' : 'تعيينه كقالب افتراضي للكتاب المقدس'}" style="padding:4px 8px; font-size:0.75rem; border-radius:6px; border:1px solid ${isDefBible ? '#16a34a' : '#cbd5e1'}; background:${isDefBible ? '#16a34a' : 'transparent'}; color:${isDefBible ? '#ffffff' : '#64748b'};">
+              <i class="fa-solid fa-book-bible"></i>
+            </button>
             <button type="button" class="btn-apply-template btn btn-sm btn-primary" data-id="${t.id}" title="تطبيق هذا القالب" style="padding:4px 10px; font-size:0.78rem; font-weight:700; background:#2563eb; color:#fff;">
               <i class="fa-solid fa-check"></i> تطبيق
             </button>
@@ -3725,7 +3839,39 @@ document.addEventListener('DOMContentLoaded', () => {
             </button>
           </div>
         </div>
-      `).join('');
+      `;}).join('');
+
+      // Toggle Default Taranim
+      container.querySelectorAll('.btn-toggle-def-taranim').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-id');
+          const current = localStorage.getItem('sunday_school_default_tmpl_taranim');
+          if (current === id) {
+            localStorage.removeItem('sunday_school_default_tmpl_taranim');
+            showToast('تم إلغاء تعيين القالب الافتراضي للترانيم');
+          } else {
+            localStorage.setItem('sunday_school_default_tmpl_taranim', id);
+            showToast('تم تعيين هذا القالب كافتراضي للترانيم!');
+          }
+          renderUserTemplatesList();
+        });
+      });
+
+      // Toggle Default Bible
+      container.querySelectorAll('.btn-toggle-def-bible').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-id');
+          const current = localStorage.getItem('sunday_school_default_tmpl_bible');
+          if (current === id) {
+            localStorage.removeItem('sunday_school_default_tmpl_bible');
+            showToast('تم إلغاء تعيين القالب الافتراضي للكتاب المقدس');
+          } else {
+            localStorage.setItem('sunday_school_default_tmpl_bible', id);
+            showToast('تم تعيين هذا القالب كافتراضي للكتاب المقدس!');
+          }
+          renderUserTemplatesList();
+        });
+      });
 
       // Apply
       container.querySelectorAll('.btn-apply-template').forEach(btn => {
@@ -7030,6 +7176,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let rawSongId = inputObject ? (inputObject.id !== undefined ? inputObject.id : inputObject.item_id) : songOrId;
     let isItemBible = Boolean(isBible || (inputObject && ((inputObject.is_bible === true || inputObject.is_bible === '1' || inputObject.is_bible === 1) || (inputObject.chapter_number !== undefined && inputObject.chapter_number !== null && inputObject.chapter_number !== ''))));
     
+    // Auto-apply assigned default template for Taranim or Bible
+    applyAssignedDefaultTemplate(isItemBible);
+
     const cleanId = String(rawSongId || '').replace(/^(song_|bible_)/, '').trim();
 
     let targetSong = inputObject ? JSON.parse(JSON.stringify(inputObject)) : null;

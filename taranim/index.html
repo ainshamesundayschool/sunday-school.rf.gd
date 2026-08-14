@@ -791,6 +791,39 @@
               </div>
             </div>
 
+            <!-- DEFAULT TEMPLATE AUTO-ASSIGNMENT CARD -->
+            <div class="style-card" style="margin-top:10px; background:linear-gradient(135deg, rgba(37,99,235,0.04), rgba(22,163,74,0.04)); border:1.5px solid #cbd5e1;">
+              <div class="style-card-title" style="display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-wand-magic-sparkles" style="color:#2563eb;"></i>
+                <span>التعيين التلقائي للقوالب الافتراضية</span>
+              </div>
+              <p style="font-size:0.75rem; color:var(--text-muted); margin-top:4px; margin-bottom:8px; line-height:1.4;">
+                اختر القالب الافتراضي ليتم تطبيقه تلقائياً بمجرد فتح ترنيمة أو إصحاح:
+              </p>
+              
+              <div style="display:flex; flex-direction:column; gap:10px;">
+                <div>
+                  <label style="display:flex; align-items:center; gap:6px; font-size:0.8rem; font-weight:700; color:var(--text-main); margin-bottom:4px;">
+                    <i class="fa-solid fa-music" style="color:#2563eb;"></i>
+                    <span>قالب الترانيم الافتراضي:</span>
+                  </label>
+                  <select id="select-default-tmpl-taranim" class="control-select" style="width:100%; font-size:0.82rem; padding:7px 10px; border-radius:8px; border:1px solid #cbd5e1; background:var(--bg-card, #ffffff); color:var(--text-main);">
+                    <option value="">-- بدون تعيين تلقائي --</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style="display:flex; align-items:center; gap:6px; font-size:0.8rem; font-weight:700; color:var(--text-main); margin-bottom:4px;">
+                    <i class="fa-solid fa-book-bible" style="color:#16a34a;"></i>
+                    <span>قالب الكتاب المقدس والإصحاحات الافتراضي:</span>
+                  </label>
+                  <select id="select-default-tmpl-bible" class="control-select" style="width:100%; font-size:0.82rem; padding:7px 10px; border-radius:8px; border:1px solid #cbd5e1; background:var(--bg-card, #ffffff); color:var(--text-main);">
+                    <option value="">-- بدون تعيين تلقائي --</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
             <div class="style-card" style="margin-top:10px;">
               <div class="style-card-title"><i class="fa-solid fa-file-zipper"></i> استيراد وتصدير حزم القوالب (ZIP / JSON)</div>
               
