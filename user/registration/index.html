@@ -399,12 +399,12 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
           <div class="ff">
             <label><i class="fas fa-mobile-screen"></i> رقم التليفون <span class="req">*</span></label>
             <div style="display:flex; gap:8px;">
-              <input type="tel" id="kidPhone" placeholder="01XXXXXXXXX" maxlength="11" inputmode="numeric" style="flex:1;" />
-              <button type="button" id="sendOtpBtn" onclick="requestPhoneOtp()" style="display:none; padding:0 14px; background:#25D366; color:white; border:none; border-radius:var(--r-sm); font-family:inherit; font-size:0.85rem; font-weight:700; cursor:pointer; align-items:center; gap:6px; flex-shrink:0;">
+              <input type="tel" id="kidPhone" placeholder="01XXXXXXXXX" maxlength="11" inputmode="numeric" style="flex:1;" oninput="if(isPhoneVerified && this.value.replace(/\D/g,'') !== verifiedPhoneNum){ isPhoneVerified = false; document.getElementById('phoneVerifiedBadge').style.display='none'; document.getElementById('sendOtpBtn').style.display='flex'; this.readOnly=false; }" />
+              <button type="button" id="sendOtpBtn" onclick="requestPhoneOtp()" style="padding:0 14px; background:#25D366; color:white; border:none; border-radius:var(--r-sm); font-family:inherit; font-size:0.85rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; flex-shrink:0;">
                 <i class="fab fa-whatsapp" style="font-size:1.1rem;"></i> <span>إرسال كود الواتساب</span>
               </button>
             </div>
-            <small><i class="fas fa-mobile-alt"></i> يبدأ بـ 01 — 11 رقم</small>
+            <small><i class="fas fa-mobile-alt"></i> يبدأ بـ 01 — 11 رقم (يتطلب التحقق عبر الواتساب)</small>
           </div>
         </div>
 
@@ -1224,13 +1224,10 @@ function v2() {
   if (!ph || !ph.startsWith('01') || ph.length !== 11) {
     showErr(2,'رقم التليفون غير صحيح — يبدأ بـ 01 ويتكون من 11 رقم'); focusErr('kidPhone'); return false;
   }
-  // WhatsApp OTP verification paused for now
-  /*
   if (!isPhoneVerified || verifiedPhoneNum !== ph) {
     showErr(2, 'يرجى إثبات ملكية رقم الهاتف عبر الواتساب أولاً قبل المتابعة.');
     return false;
   }
-  */
   return true;
 }
 function v3() {

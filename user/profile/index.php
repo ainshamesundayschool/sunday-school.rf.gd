@@ -6207,8 +6207,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
                 <div>
                   <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:4px;">رقم التليفون</label>
                   <div style="display:flex; gap:8px;">
-                    <input type="tel" id="newKidPhone" placeholder="01........." style="flex:1; padding:10px 12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem; outline:none;">
-                    <button type="button" id="sendNewKidOtpBtn" onclick="requestNewKidPhoneOtp()" style="display:none; padding:0 12px; background:#25D366; color:white; border:none; border-radius:10px; font-family:inherit; font-size:0.85rem; font-weight:700; cursor:pointer; align-items:center; gap:6px; flex-shrink:0;">
+                    <input type="tel" id="newKidPhone" placeholder="01........." style="flex:1; padding:10px 12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem; outline:none;" oninput="if(window.isNewKidPhoneVerified && this.value.replace(/\D/g,'') !== window.verifiedNewKidPhoneNum){ window.isNewKidPhoneVerified = false; document.getElementById('newKidPhoneVerifiedBadge').style.display='none'; document.getElementById('sendNewKidOtpBtn').style.display='flex'; this.readOnly=false; }">
+                    <button type="button" id="sendNewKidOtpBtn" onclick="requestNewKidPhoneOtp()" style="padding:0 12px; background:#25D366; color:white; border:none; border-radius:10px; font-family:inherit; font-size:0.85rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; flex-shrink:0;">
                       <i class="fab fa-whatsapp" style="font-size:1.1rem;"></i> <span>إرسال كود الواتساب</span>
                     </button>
                   </div>
@@ -6594,12 +6594,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         alert('الفصل مطلوب');
         return;
       }
-      /*
       if (phone && (!window.isNewKidPhoneVerified || window.verifiedNewKidPhoneNum !== phone.replace(/\D/g,''))) {
         alert('يرجى إثبات ملكية رقم الهاتف عبر الواتساب أولاً قبل المتابعة.');
         return;
       }
-      */
 
       const customInfo = {};
       currentSelectedChurchCustomFields.forEach((field, index) => {
