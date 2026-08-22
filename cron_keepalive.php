@@ -17,20 +17,29 @@ date_default_timezone_set('Africa/Cairo');
 
 require_once __DIR__ . '/config.php';
 
-// 1. Ping Replit WhatsApp Bot App
-$replitUrl = 'https://sunday-school-reactivate--ainshamesundays.replit.app/';
-$ch = curl_init($replitUrl);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-curl_setopt($ch, CURLOPT_USERAGENT, 'HostingerCronKeepAlive/1.0');
-$response = curl_exec($ch);
-$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-$curlError = curl_error($ch);
-curl_close($ch);
+// 1. Ping Replit WhatsApp Bot Apps
+$replitUrls = [
+    'https://baileys-qr-code--sundayschooleg.replit.app/',
+    'https://sunday-school-reactivate--ainshamesundays.replit.app/'
+];
+$statusMessages = [];
 
-$statusStr = ($httpCode >= 200 && $httpCode < 400) ? "SUCCESS (HTTP $httpCode)" : "FAILED (HTTP $httpCode " . ($curlError ? "- $curlError" : "") . ")";
+foreach ($replitUrls as $replitUrl) {
+    $ch = curl_init($replitUrl);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 8);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_USERAGENT, 'HostingerCronKeepAlive/1.0');
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
+    curl_close($ch);
+
+    $host = parse_url($replitUrl, PHP_URL_HOST);
+    $statusMessages[] = "$host: " . (($httpCode >= 200 && $httpCode < 400) ? "OK ($httpCode)" : "FAIL ($httpCode " . ($curlError ?: "") . ")");
+}
+$statusStr = implode(' | ', $statusMessages);
 
 // 2. Clean up expired OTPs older than 30 minutes
 $cleanedCount = 0;

@@ -589,6 +589,10 @@ async function init() {
     let info = await apiFetch({ action:'auto_login', church_code: churchCode });
 
     if (!info.success || !info.church_id) {
+      info = await apiFetch({ action:'getPublicChurchInfo', church_code: churchCode });
+    }
+
+    if (!info.success || !info.church_id) {
       const asId = parseInt(churchCode);
       if (asId > 0) {
         info = await apiFetch({ action:'getPublicChurchInfo', church_id: asId });
@@ -895,6 +899,7 @@ async function submitForm() {
     const data = await apiFetch({
       action:      'registerUncleWithChurchCode',
       church_code: churchCode,
+      church_id:   churchId || '',
       name,
       phone,
       birthday,
@@ -980,6 +985,7 @@ async function verifyGate() {
     const fd = new FormData();
     fd.append('action', 'verifyChurchPassword');
     fd.append('church_code', churchCode);
+    if (churchId) fd.append('church_id', churchId);
     fd.append('password', pwd);
     const res  = await fetch(API, { method: 'POST', body: fd });
     const text = await res.text();

@@ -148,6 +148,113 @@ function ensureChurchApprovedColumn(mysqli $conn): void
 
 }
 
+function findChurchRow(mysqli $conn, $churchCodeOrId = '', $directId = 0): ?array
+{
+    if (!$conn) return null;
+    ensureChurchTypeColumn($conn);
+    ensureChurchApprovedColumn($conn);
+
+    $code = trim(strval($churchCodeOrId ?? ''));
+    $id = intval($directId ?? 0);
+    if ($id <= 0 && is_numeric($code) && intval($code) > 0) {
+        $id = intval($code);
+    }
+
+    // 1. Direct ID match
+    if ($id > 0) {
+        $stmt = $conn->prepare("SELECT id, church_name, church_code, COALESCE(church_type,'kids') AS church_type, COALESCE(is_approved, 1) AS is_approved, password_hash, admin_email FROM churches WHERE id = ? LIMIT 1");
+        if ($stmt) {
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
+            $row = $stmt->get_result()->fetch_assoc();
+            if ($row) return $row;
+        }
+    }
+
+    if ($code === '') return null;
+
+    // 2. Exact match on church_code
+    $stmt = $conn->prepare("SELECT id, church_name, church_code, COALESCE(church_type,'kids') AS church_type, COALESCE(is_approved, 1) AS is_approved, password_hash, admin_email FROM churches WHERE church_code = ? LIMIT 1");
+    if ($stmt) {
+        $stmt->bind_param("s", $code);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        if ($row) return $row;
+    }
+
+    // 3. Case-insensitive & trimmed match on church_code or church_name
+    $cleanCode = mb_strtolower(trim($code), 'UTF-8');
+    $stmt = $conn->prepare("SELECT id, church_name, church_code, COALESCE(church_type,'kids') AS church_type, COALESCE(is_approved, 1) AS is_approved, password_hash, admin_email FROM churches WHERE LOWER(TRIM(church_code)) = ? OR LOWER(TRIM(church_name)) = ? LIMIT 1");
+    if ($stmt) {
+        $stmt->bind_param("ss", $cleanCode, $cleanCode);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        if ($row) return $row;
+    }
+
+    // 4. Normalized slug comparison (stripping spaces, dashes, underscores)
+    $slugClean = preg_replace('/[^a-zA-Z0-9\x{0600}-\x{06FF}]/u', '', $cleanCode);
+    if (!empty($slugClean)) {
+        $stmt = $conn->prepare("SELECT id, church_name, church_code, COALESCE(church_type,'kids') AS church_type, COALESCE(is_approved, 1) AS is_approved, password_hash, admin_email FROM churches WHERE REPLACE(REPLACE(REPLACE(LOWER(TRIM(church_code)), '-', ''), '_', ''), ' ', '') = ? OR REPLACE(REPLACE(REPLACE(LOWER(TRIM(church_name)), '-', ''), '_', ''), ' ', '') = ? LIMIT 1");
+        if ($stmt) {
+            $stmt->bind_param("ss", $slugClean, $slugClean);
+            $stmt->execute();
+            $row = $stmt->get_result()->fetch_assoc();
+            if ($row) return $row;
+        }
+    }
+
+    // 5. Common city / region / transliteration alias mappings (e.g. october -> أكتوبر)
+    $aliases = [
+        'october' => ['%أكتوبر%', '%اكتوبر%', '%october%'],
+        'october6' => ['%أكتوبر%', '%اكتوبر%', '%october%'],
+        '6october' => ['%أكتوبر%', '%اكتوبر%', '%october%'],
+        'zaytoun' => ['%الزيتون%', '%زيتون%', '%zaytoun%', '%zeitoun%'],
+        'zeitoun' => ['%الزيتون%', '%زيتون%', '%zaytoun%', '%zeitoun%'],
+        'shoubra' => ['%شبرا%', '%shoubra%', '%shubra%'],
+        'shubra' => ['%شبرا%', '%shoubra%', '%shubra%'],
+        'tagamoa' => ['%التجمع%', '%tagamo%'],
+        'tagamo3' => ['%التجمع%', '%tagamo%'],
+        'maadi' => ['%المعادي%', '%maadi%'],
+        'heliopolis' => ['%مصر الجديدة%', '%heliopolis%'],
+        'nasrcity' => ['%مدينة نصر%', '%nasr%'],
+        'rehab' => ['%الرحاب%', '%rehab%'],
+        'madinaty' => ['%مدينتي%', '%madinaty%'],
+        'ainshams' => ['%عين شمس%', '%ain shams%'],
+        'haram' => ['%الهرم%', '%haram%'],
+        'faisal' => ['%فيصل%', '%faisal%'],
+        'giza' => ['%الجيزة%', '%giza%'],
+        'alex' => ['%الإسكندرية%', '%الاسكندرية%', '%alex%'],
+        'alexandria' => ['%الإسكندرية%', '%الاسكندرية%', '%alexandria%'],
+    ];
+
+    foreach ($aliases as $key => $patterns) {
+        if (stripos($cleanCode, $key) !== false || $cleanCode === $key) {
+            foreach ($patterns as $pattern) {
+                $stmt = $conn->prepare("SELECT id, church_name, church_code, COALESCE(church_type,'kids') AS church_type, COALESCE(is_approved, 1) AS is_approved, password_hash, admin_email FROM churches WHERE LOWER(church_code) LIKE ? OR LOWER(church_name) LIKE ? ORDER BY id ASC LIMIT 1");
+                if ($stmt) {
+                    $stmt->bind_param("ss", $pattern, $pattern);
+                    $stmt->execute();
+                    $row = $stmt->get_result()->fetch_assoc();
+                    if ($row) return $row;
+                }
+            }
+        }
+    }
+
+    // 6. Substring LIKE search on church_code and church_name
+    $likePattern = '%' . $cleanCode . '%';
+    $stmt = $conn->prepare("SELECT id, church_name, church_code, COALESCE(church_type,'kids') AS church_type, COALESCE(is_approved, 1) AS is_approved, password_hash, admin_email FROM churches WHERE LOWER(church_code) LIKE ? OR LOWER(church_name) LIKE ? ORDER BY (CASE WHEN LOWER(church_code) LIKE ? THEN 1 ELSE 2 END) ASC, id ASC LIMIT 1");
+    if ($stmt) {
+        $stmt->bind_param("sss", $likePattern, $likePattern, $likePattern);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        if ($row) return $row;
+    }
+
+    return null;
+}
+
 
 
 function ensureStudentsAddedByColumn(mysqli $conn): void
@@ -3454,52 +3561,22 @@ function autoRestoreSessionFromRequest()
         return false;
     }
 
-    // 3. Try restore by church_code
+    // 3. Try restore by church_code or church_id
     $churchCode = trim($_POST['church_code'] ?? $_GET['church_code'] ?? '');
-    if (!empty($churchCode)) {
-        try {
-            $stmt = $conn->prepare("SELECT id, church_name, church_code, COALESCE(church_type,'kids') AS church_type FROM churches WHERE church_code = ? LIMIT 1");
-            if ($stmt) {
-                $stmt->bind_param("s", $churchCode);
-                $stmt->execute();
-                $res = $stmt->get_result();
-                $row = $res ? $res->fetch_assoc() : null;
-                if ($row) {
-                    $_SESSION['church_id'] = intval($row['id']);
-                    $_SESSION['church_name'] = $row['church_name'];
-                    $_SESSION['church_code'] = $row['church_code'];
-                    $_SESSION['church_type'] = $row['church_type'];
-                    $_SESSION['login_type'] = 'church';
-                    $_SESSION['uncle_role'] = 'admin';
-                    $_SESSION['role'] = 'admin';
-                    $_SESSION['loggedIn'] = true;
-                    return true;
-                }
-            }
-        } catch (Exception $e) {}
-    }
-
-    // 4. Try restore by church_id
     $churchId = intval($_POST['church_id'] ?? $_GET['church_id'] ?? 0);
-    if ($churchId > 0) {
+    if (!empty($churchCode) || $churchId > 0) {
         try {
-            $stmt = $conn->prepare("SELECT id, church_name, church_code, COALESCE(church_type,'kids') AS church_type FROM churches WHERE id = ? LIMIT 1");
-            if ($stmt) {
-                $stmt->bind_param("i", $churchId);
-                $stmt->execute();
-                $res = $stmt->get_result();
-                $row = $res ? $res->fetch_assoc() : null;
-                if ($row) {
-                    $_SESSION['church_id'] = intval($row['id']);
-                    $_SESSION['church_name'] = $row['church_name'];
-                    $_SESSION['church_code'] = $row['church_code'];
-                    $_SESSION['church_type'] = $row['church_type'];
-                    $_SESSION['login_type'] = 'church';
-                    $_SESSION['uncle_role'] = 'admin';
-                    $_SESSION['role'] = 'admin';
-                    $_SESSION['loggedIn'] = true;
-                    return true;
-                }
+            $row = findChurchRow($conn, $churchCode, $churchId);
+            if ($row) {
+                $_SESSION['church_id'] = intval($row['id']);
+                $_SESSION['church_name'] = $row['church_name'];
+                $_SESSION['church_code'] = $row['church_code'];
+                $_SESSION['church_type'] = $row['church_type'];
+                $_SESSION['login_type'] = 'church';
+                $_SESSION['uncle_role'] = 'admin';
+                $_SESSION['role'] = 'admin';
+                $_SESSION['loggedIn'] = true;
+                return true;
             }
         } catch (Exception $e) {}
     }
@@ -6255,21 +6332,9 @@ function handleLogin()
 
             $conn = getDBConnection();
 
-            ensureChurchTypeColumn($conn);
+            $row = findChurchRow($conn, $churchCode);
 
-            ensureChurchApprovedColumn($conn);
-
-            $stmt = $conn->prepare("SELECT id, church_name, password_hash, COALESCE(church_type,'kids') AS church_type, COALESCE(is_approved, 1) AS is_approved FROM churches WHERE church_code = ?");
-
-            $stmt->bind_param("s", $churchCode);
-
-            $stmt->execute();
-
-            $row = $stmt->get_result()->fetch_assoc();
-
-
-
-            if ($row && $passwordHash === $row['password_hash']) {
+            if ($row && isset($row['password_hash']) && hash_equals($row['password_hash'], $passwordHash)) {
 
                 if (isset($row['is_approved']) && intval($row['is_approved']) === 0) {
 
@@ -12257,10 +12322,11 @@ function verifyChurchPassword()
     try {
 
         $churchCode = sanitize($_POST['church_code'] ?? '');
+        $churchIdDirect = intval($_POST['church_id'] ?? 0);
 
         $password = $_POST['password'] ?? '';
 
-        if (empty($churchCode) || empty($password)) {
+        if ((empty($churchCode) && $churchIdDirect === 0) || empty($password)) {
 
             sendJSON(['success' => false, 'message' => 'البيانات ناقصة']);
 
@@ -12272,19 +12338,9 @@ function verifyChurchPassword()
 
         $passwordHash = hash('sha256', $password);
 
-        $stmt = $conn->prepare(
+        $row = findChurchRow($conn, $churchCode, $churchIdDirect);
 
-            "SELECT id FROM churches WHERE church_code = ? AND password_hash = ? LIMIT 1"
-
-        );
-
-        $stmt->bind_param("ss", $churchCode, $passwordHash);
-
-        $stmt->execute();
-
-        $row = $stmt->get_result()->fetch_assoc();
-
-        if ($row) {
+        if ($row && isset($row['password_hash']) && hash_equals($row['password_hash'], $passwordHash)) {
 
             sendJSON(['success' => true]);
 
@@ -12312,15 +12368,16 @@ function handleAutoLogin()
 
     try {
 
-        $churchCode = sanitize($_POST['church_code'] ?? '');
+        $churchCode = sanitize($_POST['church_code'] ?? $_GET['church_code'] ?? '');
 
-        $churchIdDirect = intval($_POST['church_id'] ?? 0);
+        $churchIdDirect = intval($_POST['church_id'] ?? $_GET['church_id'] ?? 0);
 
 
 
         if (empty($churchCode) && $churchIdDirect === 0) {
 
             sendJSON(['success' => false, 'message' => 'رمز الكنيسة مطلوب']);
+            return;
 
         }
 
@@ -12328,37 +12385,13 @@ function handleAutoLogin()
 
         $conn = getDBConnection();
 
-
-
-        // Ensure church_type column exists
-
-        ensureChurchTypeColumn($conn);
+        $row = findChurchRow($conn, $churchCode, $churchIdDirect);
 
 
 
-        if (!empty($churchCode)) {
+        if ($row) {
 
-            $stmt = $conn->prepare("SELECT id, church_name, church_code, COALESCE(church_type,'kids') AS church_type FROM churches WHERE church_code = ? LIMIT 1");
-
-            $stmt->bind_param("s", $churchCode);
-
-        } else {
-
-            $stmt = $conn->prepare("SELECT id, church_name, church_code, COALESCE(church_type,'kids') AS church_type FROM churches WHERE id = ? LIMIT 1");
-
-            $stmt->bind_param("i", $churchIdDirect);
-
-        }
-
-        $stmt->execute();
-
-        $result = $stmt->get_result();
-
-
-
-        if ($row = $result->fetch_assoc()) {
-
-            session_regenerate_id(true);
+            @session_regenerate_id(true);
 
 
 
@@ -12367,6 +12400,8 @@ function handleAutoLogin()
             $_SESSION['church_name'] = $row['church_name'];
 
             $_SESSION['church_code'] = $row['church_code'];
+
+            $_SESSION['church_type'] = $row['church_type'];
 
             $_SESSION['auto_logged_in'] = true;
 
@@ -12383,6 +12418,8 @@ function handleAutoLogin()
                 'church_name' => $row['church_name'],
 
                 'church_id' => $row['id'],
+
+                'church_code' => $row['church_code'],
 
                 'church_type' => $row['church_type'],
 
@@ -19757,17 +19794,19 @@ function notifyWhatsAppOTPPending($otpId) {
         return;
     }
 
-    $wakeUrl = getenv('WHATSAPP_WAKE_URL') ?: ($_ENV['WHATSAPP_WAKE_URL'] ?? ($_SERVER['WHATSAPP_WAKE_URL'] ?? ''));
-    $wakeCode = getenv('WHATSAPP_WAKE_CODE') ?: ($_ENV['WHATSAPP_WAKE_CODE'] ?? ($_SERVER['WHATSAPP_WAKE_CODE'] ?? ''));
+    $wakeUrls = [
+        'https://baileys-qr-code--sundayschooleg.replit.app/',
+        'https://baileys-qr-code--sundayschooleg.replit.app/api/wake',
+        'https://sunday-school-reactivate--ainshamesundays.replit.app/',
+        'https://sunday-school-reactivate--ainshamesundays.replit.app/api/wake'
+    ];
 
-    if (empty($wakeUrl)) {
-        if (defined('WHATSAPP_WAKE_URL') && constant('WHATSAPP_WAKE_URL')) {
-            $wakeUrl = constant('WHATSAPP_WAKE_URL');
-        } else {
-            // Default fallback wake URL for Replit container keep-alive
-            $wakeUrl = 'https://sunday-school-reactivate--ainshamesundays.replit.app/api/wake';
-        }
+    $customWakeUrl = getenv('WHATSAPP_WAKE_URL') ?: ($_ENV['WHATSAPP_WAKE_URL'] ?? ($_SERVER['WHATSAPP_WAKE_URL'] ?? ''));
+    if (!empty($customWakeUrl) && !in_array($customWakeUrl, $wakeUrls)) {
+        array_unshift($wakeUrls, $customWakeUrl);
     }
+
+    $wakeCode = getenv('WHATSAPP_WAKE_CODE') ?: ($_ENV['WHATSAPP_WAKE_CODE'] ?? ($_SERVER['WHATSAPP_WAKE_CODE'] ?? ''));
     if (empty($wakeCode) && defined('WHATSAPP_WAKE_CODE') && constant('WHATSAPP_WAKE_CODE')) {
         $wakeCode = constant('WHATSAPP_WAKE_CODE');
     }
@@ -19775,46 +19814,37 @@ function notifyWhatsAppOTPPending($otpId) {
     // Mark as processed for this request lifecycle to avoid duplicates
     $notifiedOtpIds[$otpIdStr] = true;
 
-    try {
-        $payload = json_encode([
-            'event' => 'otp_pending',
-            'otp_id' => $otpIdStr
-        ]);
+    $payload = json_encode([
+        'event' => 'otp_pending',
+        'otp_id' => $otpIdStr
+    ]);
 
-        $headers = [
-            'Content-Type: application/json',
-            'Content-Length: ' . strlen($payload)
-        ];
+    foreach ($wakeUrls as $wakeUrl) {
+        try {
+            $headers = [
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen($payload)
+            ];
+            if (!empty($wakeCode)) {
+                $headers[] = 'Authorization: Bearer ' . $wakeCode;
+            }
 
-        if (!empty($wakeCode)) {
-            $headers[] = 'Authorization: Bearer ' . $wakeCode;
+            $ch = curl_init($wakeUrl);
+            curl_setopt_array($ch, [
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => $payload,
+                CURLOPT_HTTPHEADER => $headers,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 2,
+                CURLOPT_CONNECTTIMEOUT => 2,
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_SSL_VERIFYHOST => false
+            ]);
+            curl_exec($ch);
+            curl_close($ch);
+        } catch (Throwable $t) {
+            // Non-blocking catch
         }
-
-        $ch = curl_init($wakeUrl);
-        curl_setopt_array($ch, [
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => $payload,
-            CURLOPT_HTTPHEADER => $headers,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 3,
-            CURLOPT_CONNECTTIMEOUT => 3,
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSL_VERIFYHOST => false
-        ]);
-
-        $response = curl_exec($ch);
-        $curlError = curl_error($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($response === false || !empty($curlError) || ($httpCode >= 400 || $httpCode === 0)) {
-            $reason = !empty($curlError) ? $curlError : "HTTP {$httpCode}";
-            error_log("WhatsApp wake request failed: " . $reason);
-        } else {
-            error_log("WhatsApp wake request sent");
-        }
-    } catch (Throwable $t) {
-        error_log("WhatsApp wake request failed: " . $t->getMessage());
     }
 }
 
@@ -41125,10 +41155,11 @@ function getPublicChurchInfo()
 {
 
     $churchId = intval($_POST['church_id'] ?? $_GET['church_id'] ?? 0);
+    $churchCode = sanitize($_POST['church_code'] ?? $_GET['church_code'] ?? '');
 
-    if (!$churchId) {
+    if (!$churchId && empty($churchCode)) {
 
-        sendJSON(['success' => false, 'message' => 'church_id مطلوب']);
+        sendJSON(['success' => false, 'message' => 'معرف أو رمز الكنيسة مطلوب']);
 
         return;
 
@@ -41136,13 +41167,7 @@ function getPublicChurchInfo()
 
     $conn = getDBConnection();
 
-    $stmt = $conn->prepare("SELECT id, church_name AS name, church_type AS type FROM churches WHERE id = ? LIMIT 1");
-
-    $stmt->bind_param("i", $churchId);
-
-    $stmt->execute();
-
-    $row = $stmt->get_result()->fetch_assoc();
+    $row = findChurchRow($conn, $churchCode, $churchId);
 
     if (!$row) {
 
@@ -41152,7 +41177,13 @@ function getPublicChurchInfo()
 
     }
 
-    sendJSON(['success' => true, 'church_id' => $row['id'], 'church_name' => $row['name'], 'church_type' => $row['type']]);
+    sendJSON([
+        'success' => true, 
+        'church_id' => $row['id'], 
+        'church_name' => $row['church_name'], 
+        'church_code' => $row['church_code'], 
+        'church_type' => $row['church_type'] ?? 'kids'
+    ]);
 
 }
 
@@ -41253,6 +41284,7 @@ function registerUncleWithChurchCode()
 {
 
     $churchCode = sanitize($_POST['church_code'] ?? '');
+    $churchIdDirect = intval($_POST['church_id'] ?? 0);
 
     $name = sanitize($_POST['name'] ?? '');
 
@@ -41266,7 +41298,7 @@ function registerUncleWithChurchCode()
 
     $classes = $_POST['classes'] ?? '[]';
 
-    if (!$churchCode || !$name || !$username || strlen($password) < 6) {
+    if ((!$churchCode && !$churchIdDirect) || !$name || !$username || strlen($password) < 6) {
 
         sendJSON(['success' => false, 'message' => 'بيانات ناقصة أو كلمة المرور قصيرة جداً']);
 
@@ -41277,14 +41309,7 @@ function registerUncleWithChurchCode()
     $conn = getDBConnection();
 
     // Resolve church code
-
-    $cstmt = $conn->prepare("SELECT id, church_name, admin_email FROM churches WHERE church_code = ? LIMIT 1");
-
-    $cstmt->bind_param("s", $churchCode);
-
-    $cstmt->execute();
-
-    $church = $cstmt->get_result()->fetch_assoc();
+    $church = findChurchRow($conn, $churchCode, $churchIdDirect);
 
     if (!$church) {
 

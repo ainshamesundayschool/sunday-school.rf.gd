@@ -927,7 +927,12 @@ async function init() {
     /* 1. resolve church code → id + church_type via auto_login */
     let info = await apiFetch({ action:'auto_login', church_code: churchCode });
 
-    /* Fallback: if auto_login failed, try getPublicChurchInfo with numeric id */
+    /* Fallback: if auto_login failed, try getPublicChurchInfo with church_code */
+    if (!info.success || !info.church_id) {
+      info = await apiFetch({ action:'getPublicChurchInfo', church_code: churchCode });
+    }
+
+    /* Fallback: if still failed, try getPublicChurchInfo with numeric id */
     if (!info.success || !info.church_id) {
       const asId = parseInt(churchCode);
       if (asId > 0) {
