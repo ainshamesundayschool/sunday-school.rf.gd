@@ -556,13 +556,8 @@
                             <i class="fas fa-eye"></i>
                         </button>
                     </div>
-                </div>
-
-                <!-- Forgot Password Link -->
-                <div class="forgot-password-link" id="forgotPasswordLink">
-                    <a href="#" onclick="event.preventDefault(); showPasswordRecovery();">
-                        <i class="fas fa-key"></i>
-                        نسيت كلمة المرور؟ (إعادة التعيين عبر الواتساب)
+                    <a href="#" class="forgot-password" id="forgotPasswordLink" style="display: none;">
+                        نسيت كلمة المرور؟
                     </a>
                 </div>
 
@@ -571,13 +566,6 @@
                     <i class="fas fa-sign-in-alt"></i>
                     <span id="phoneLoginText">تسجيل الدخول</span>
                 </button>
-
-                <div style="text-align:center; margin-top:14px;">
-                    <a href="#" onclick="event.preventDefault(); showPasswordRecovery();" style="color:var(--primary); font-size:0.85rem; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
-                        <i class="fab fa-whatsapp" style="color:#25D366; font-size:1rem;"></i>
-                        <span>إعادة تعيين كلمة المرور عبر الواتساب</span>
-                    </a>
-                </div>
             </form>
         </div>
 
@@ -929,9 +917,9 @@
                         elements.phoneLoginText.textContent = 'تسجيل الدخول بكلمة المرور';
                         elements.phonePasswordInput.focus();
                     } else {
-                        // User doesn't have password - start WhatsApp OTP verification for first-time password setup
+                        // User doesn't have password - directly open password setup
                         currentPhoneForSetup = cleanPhoneNumber(phone);
-                        startWhatsAppVerification(phone, data.student_id, 'first_time');
+                        showPasswordSetup(phone, data.student_id, 'first_time');
                     }
                 } else {
                     // If check fails, try normal phone login
@@ -1320,7 +1308,7 @@
             
             const isReset = mode === 'reset_password';
             const title = isReset ? 'إعادة تعيين كلمة المرور' : 'تعيين كلمة المرور الجديدة';
-            const subtitle = isReset ? 'تم التحقق من هويتك بنجاح عبر الواتساب. يمكنك الآن إدخال كلمة المرور الجديدة.' : 'تم تأكيد رقم الهاتف بنجاح عبر الواتساب. يرجى تعيين كلمة مرور جديدة للحساب.';
+            const subtitle = isReset ? 'يمكنك الآن إدخال كلمة المرور الجديدة لحسابك.' : 'يرجى تعيين كلمة مرور جديدة للحساب لتسجيل الدخول بسهولة.';
             
             container.innerHTML = `
                 <h3 style="color: var(--dark); font-size: 1.15rem; margin-bottom: 14px; text-align: center; font-weight: 800;">
@@ -1495,7 +1483,7 @@
                 }
                 hideLoading();
                 if (data.success && data.student_id) {
-                    startWhatsAppVerification(phone, data.student_id, 'reset_password');
+                    showPasswordSetup(phone, data.student_id, 'reset_password');
                 } else {
                     showPhoneError(data.message || 'رقم الهاتف غير مسجل في النظام');
                 }
