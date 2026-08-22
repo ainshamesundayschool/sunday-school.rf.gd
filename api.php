@@ -19796,9 +19796,7 @@ function notifyWhatsAppOTPPending($otpId) {
 
     $wakeUrls = [
         'https://baileys-qr-code--sundayschooleg.replit.app/',
-        'https://baileys-qr-code--sundayschooleg.replit.app/api/wake',
-        'https://sunday-school-reactivate--ainshamesundays.replit.app/',
-        'https://sunday-school-reactivate--ainshamesundays.replit.app/api/wake'
+        'https://baileys-qr-code--sundayschooleg.replit.app/api/wake'
     ];
 
     $customWakeUrl = getenv('WHATSAPP_WAKE_URL') ?: ($_ENV['WHATSAPP_WAKE_URL'] ?? ($_SERVER['WHATSAPP_WAKE_URL'] ?? ''));
