@@ -17,9 +17,10 @@ date_default_timezone_set('Africa/Cairo');
 
 require_once __DIR__ . '/config.php';
 
-// 1. Ping Replit WhatsApp Bot App (Baileys QR Code)
+// 1. Ping Replit WhatsApp Bot Apps
 $replitUrls = [
-    'https://baileys-qr-code--sundayschooleg.replit.app/'
+    'https://baileys-qr-code--sundayschooleg.replit.app/',
+    'https://sunday-school-reactivate--ainshamesundays.replit.app/'
 ];
 $statusMessages = [];
 

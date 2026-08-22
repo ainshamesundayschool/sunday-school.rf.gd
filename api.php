@@ -19796,7 +19796,9 @@ function notifyWhatsAppOTPPending($otpId) {
 
     $wakeUrls = [
         'https://baileys-qr-code--sundayschooleg.replit.app/',
-        'https://baileys-qr-code--sundayschooleg.replit.app/api/wake'
+        'https://baileys-qr-code--sundayschooleg.replit.app/api/wake',
+        'https://sunday-school-reactivate--ainshamesundays.replit.app/',
+        'https://sunday-school-reactivate--ainshamesundays.replit.app/api/wake'
     ];
 
     $customWakeUrl = getenv('WHATSAPP_WAKE_URL') ?: ($_ENV['WHATSAPP_WAKE_URL'] ?? ($_SERVER['WHATSAPP_WAKE_URL'] ?? ''));
@@ -19858,8 +19860,7 @@ function getPendingOTPMessages() {
             SELECT id, phone, otp_code FROM phone_verifications 
             WHERE is_verified = 0 
               AND is_sent = 0 
-              AND ABS(TIMESTAMPDIFF(MINUTE, created_at, NOW())) <= 10
-            ORDER BY id ASC LIMIT 10
+            ORDER BY id ASC LIMIT 15
         ");
         if ($stmt) {
             $stmt->execute();
@@ -19869,25 +19870,30 @@ function getPendingOTPMessages() {
                 $r['phone'] = normalizeEgyptianPhone($r['phone']);
                 $rows[] = $r;
             }
-            sendJSON(['success' => true, 'data' => $rows]);
+            sendJSON([
+                'success' => true, 
+                'data' => $rows, 
+                'messages' => $rows,
+                'count' => count($rows)
+            ]);
         } else {
-            sendJSON(['success' => true, 'data' => []]);
+            sendJSON(['success' => true, 'data' => [], 'messages' => [], 'count' => 0]);
         }
     } catch (Throwable $e) {
-        sendJSON(['success' => false, 'data' => [], 'message' => $e->getMessage()]);
+        sendJSON(['success' => false, 'data' => [], 'messages' => [], 'message' => $e->getMessage()]);
     }
 }
 
 function markOTPSent() {
     try {
-        $id = intval($_POST['id'] ?? 0);
+        $id = intval($_POST['id'] ?? $_GET['id'] ?? 0);
         if ($id > 0) {
             $conn = getDBConnection();
             $stmt = $conn->prepare("UPDATE phone_verifications SET is_sent = 1 WHERE id = ?");
             $stmt->bind_param("i", $id);
             $stmt->execute();
         }
-        sendJSON(['success' => true]);
+        sendJSON(['success' => true, 'id' => $id]);
     } catch (Exception $e) {
         sendJSON(['success' => false, 'message' => $e->getMessage()]);
     }

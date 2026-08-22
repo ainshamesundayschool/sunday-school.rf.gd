@@ -771,10 +771,12 @@
             });
 
             // Forgot password link
-            elements.forgotPasswordLink.querySelector('a').addEventListener('click', function(e) {
-                e.preventDefault();
-                showPasswordRecovery();
-            });
+            if (elements.forgotPasswordLink) {
+                elements.forgotPasswordLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showPasswordRecovery();
+                });
+            }
 
             // Toggle password visibility
             document.querySelectorAll('.password-toggle').forEach(toggle => {
