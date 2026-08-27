@@ -9160,8 +9160,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const hasTextContent = Boolean(text && String(text).trim());
 
       // 2.1 SYNC IN-APP TEXT TRANSFORMS
-      if (state.textTransform && els.obsLowerThirdBox) {
-        const tf = state.textTransform;
+      if (els.obsLowerThirdBox) {
+        const tf = state.textTransform || { scale: 100, posX: 0, posY: 0, rotation: 0 };
         const scale = tf.scale !== undefined ? (tf.scale / 100) : 1;
         const posX = tf.posX !== undefined ? `${tf.posX}%` : '0%';
         const posY = tf.posY !== undefined ? `${tf.posY}%` : '0%';
@@ -9170,6 +9170,10 @@ document.addEventListener('DOMContentLoaded', () => {
         els.obsLowerThirdBox.style.setProperty('--text-pos-x', `${posX}`);
         els.obsLowerThirdBox.style.setProperty('--text-pos-y', `${posY}`);
         els.obsLowerThirdBox.style.setProperty('--text-rot', `${rot}`);
+        document.documentElement.style.setProperty('--text-scale', `${scale}`);
+        document.documentElement.style.setProperty('--text-pos-x', `${posX}`);
+        document.documentElement.style.setProperty('--text-pos-y', `${posY}`);
+        document.documentElement.style.setProperty('--text-rot', `${rot}`);
       }
 
       // 2.2 SYNC IN-APP SLIDES BACKGROUND MEDIA
@@ -9417,11 +9421,11 @@ document.addEventListener('DOMContentLoaded', () => {
           r.style.lineHeight = `${finalLineHeight}`;
         });
 
-        // 2. TRIGGER TEXT APPEARANCE ANIMATION ONLY IF TEXT OR ANIMATION SETTING CHANGED (ON CONTAINER BOX MATCHING PRESENT.HTML)
+        // 2. TRIGGER TEXT APPEARANCE ANIMATION ONLY IF TEXT OR ANIMATION SETTING CHANGED (ON TEXT ELEMENT TO NOT OVERRIDE CONTAINER TRANSFORM)
         const animChanged = (currentPresenterAnim !== state.textAnimation);
         if (textChanged || animChanged) {
           currentPresenterAnim = state.textAnimation;
-          const animTarget = els.obsLowerThirdBox || els.obsLineText;
+          const animTarget = els.obsLineText;
           if (animTarget) {
             animTarget.classList.remove('animate-appear-slide', 'animate-appear-drop', 'animate-appear-pop', 'animate-appear-flip', 'animate-appear-glow');
             if (state.textAnimation !== 'none' && text) {
@@ -9591,6 +9595,13 @@ document.addEventListener('DOMContentLoaded', () => {
               obsPreviewBox.style.background = els.obsLowerThirdBox.style.background;
               obsPreviewBox.style.borderRadius = els.obsLowerThirdBox.style.borderRadius;
               obsPreviewBox.style.padding = els.obsLowerThirdBox.style.padding;
+              const tf = state.textTransform || { scale: 100, posX: 0, posY: 0, rotation: 0 };
+              const scale = tf.scale !== undefined ? (tf.scale / 100) : 1;
+              const posX = tf.posX !== undefined ? `${tf.posX}%` : '0%';
+              const posY = tf.posY !== undefined ? `${tf.posY}%` : '0%';
+              const rot = tf.rotation !== undefined ? `${tf.rotation}deg` : '0deg';
+              obsPreviewBox.style.transform = `translate(calc(-50% + ${posX}), calc(-50% + ${posY})) scale(${scale}) rotate(${rot})`;
+              obsPreviewBox.style.transformOrigin = 'center center';
             }
           }
         }
@@ -9602,7 +9613,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (yPct === 75) yPct = 50;
         els.obsLowerThirdBox.style.left = `${xPct}%`;
         els.obsLowerThirdBox.style.top = `${yPct}%`;
-        els.obsLowerThirdBox.style.transform = 'translate3d(-50%, -50%, 0)';
+        const tf = state.textTransform || { scale: 100, posX: 0, posY: 0, rotation: 0 };
+        const scale = tf.scale !== undefined ? (tf.scale / 100) : 1;
+        const posX = tf.posX !== undefined ? `${tf.posX}%` : '0%';
+        const posY = tf.posY !== undefined ? `${tf.posY}%` : '0%';
+        const rot = tf.rotation !== undefined ? `${tf.rotation}deg` : '0deg';
+        els.obsLowerThirdBox.style.transform = `translate(calc(-50% + ${posX}), calc(-50% + ${posY})) scale(${scale}) rotate(${rot})`;
+        els.obsLowerThirdBox.style.transformOrigin = 'center center';
       }
     }
 

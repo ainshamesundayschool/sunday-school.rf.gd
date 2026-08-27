@@ -1994,6 +1994,15 @@
         document.documentElement.style.setProperty('--text-pos-x', `${posX}`);
         document.documentElement.style.setProperty('--text-pos-y', `${posY}`);
         document.documentElement.style.setProperty('--text-rot', `${rot}`);
+        const presenterBox = document.getElementById('presenter-box') || document.querySelector('.lower-third-container') || document.getElementById('obs-lower-third-box');
+        if (presenterBox) {
+          presenterBox.style.setProperty('--text-scale', `${scale}`);
+          presenterBox.style.setProperty('--text-pos-x', `${posX}`);
+          presenterBox.style.setProperty('--text-pos-y', `${posY}`);
+          presenterBox.style.setProperty('--text-rot', `${rot}`);
+          presenterBox.style.transform = `translate(calc(-50% + ${posX}), calc(-50% + ${posY})) scale(${scale}) rotate(${rot})`;
+          presenterBox.style.transformOrigin = 'center center';
+        }
       }
 
       // Helper to apply fit modes
@@ -2521,8 +2530,8 @@
           textEl.classList.remove('animate-appear-slide', 'animate-appear-drop', 'animate-appear-pop', 'animate-appear-flip', 'animate-appear-glow');
 
           if (animType !== 'none' && data.text) {
-            void box.offsetWidth;
-            box.classList.add(`animate-appear-${animType}`);
+            void textEl.offsetWidth;
+            textEl.classList.add(`animate-appear-${animType}`);
           }
         }
         currentIsBlankState = false;

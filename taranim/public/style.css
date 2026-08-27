@@ -2416,7 +2416,8 @@ input[type="checkbox"]:checked::after {
   position: absolute;
   left: 50%;
   top: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(calc(-50% + var(--text-pos-x, 0%)), calc(-50% + var(--text-pos-y, 0%))) scale(var(--text-scale, 1)) rotate(var(--text-rot, 0deg));
+  transform-origin: center center;
   width: 96vw;
   height: 90vh;
   max-width: 96vw;
