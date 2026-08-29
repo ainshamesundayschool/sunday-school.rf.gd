@@ -7018,29 +7018,34 @@ function getData()
 
 
 
-        sendJSON([
+            $cRow = findChurchRow($conn, '', $churchId);
+            $respChurchName = $cRow['church_name'] ?? ($_SESSION['church_name'] ?? '');
 
-            'success' => true,
+            sendJSON([
 
-            'data' => $students,
+                'success' => true,
 
-            'allStudents' => $students,
+                'church_name' => $respChurchName,
 
-            'classes' => $classes,
+                'data' => $students,
 
-            'debug' => [
+                'allStudents' => $students,
 
-                'church_id' => $churchId,
+                'classes' => $classes,
 
-                'total_in_db' => $simpleCountResult['cnt'],
+                'debug' => [
 
-                'returned_count' => count($students),
+                    'church_id' => $churchId,
 
-                'students_with_null_class' => $studentsWithNullClass
+                    'total_in_db' => $simpleCountResult['cnt'],
 
-            ]
+                    'returned_count' => count($students),
 
-        ]);
+                    'students_with_null_class' => $studentsWithNullClass
+
+                ]
+
+            ]);
 
 
 

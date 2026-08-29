@@ -196,20 +196,43 @@ if (!$hasUncle && !$hasChurch) { ?>
 
 
 $uncleName = $_SESSION['uncle_name'] ?? '';
-
-
-
 $uncleId = (int) ($_SESSION['uncle_id'] ?? 0);
-
-
-
 $uncleRole = $_SESSION['uncle_role'] ?? '';
 
+if (isset($_SESSION['uncle_id']) && intval($_SESSION['uncle_id']) > 0 && function_exists('getDBConnection')) {
+    try {
+        $conn = getDBConnection();
+        $uStmt = $conn->prepare("SELECT role, name, church_id FROM uncles WHERE id = ? AND (deleted IS NULL OR deleted = 0) LIMIT 1");
+        $uId = intval($_SESSION['uncle_id']);
+        $uStmt->bind_param("i", $uId);
+        $uStmt->execute();
+        if ($uRow = $uStmt->get_result()->fetch_assoc()) {
+            if (!empty($uRow['name'])) $_SESSION['uncle_name'] = $uRow['name'];
+            if (!empty($uRow['church_id']) && empty($_SESSION['church_id'])) {
+                $_SESSION['church_id'] = intval($uRow['church_id']);
+            }
+        }
+    } catch (Exception $e) {}
+}
 
+if ((empty($_SESSION['church_name']) || $_SESSION['church_name'] === 'الكنيسة') && !empty($_SESSION['church_id']) && function_exists('getDBConnection')) {
+    try {
+        $conn = getDBConnection();
+        $cStmt = $conn->prepare("SELECT church_name, church_type FROM churches WHERE id = ? LIMIT 1");
+        $cId = intval($_SESSION['church_id']);
+        $cStmt->bind_param("i", $cId);
+        $cStmt->execute();
+        if ($cRow = $cStmt->get_result()->fetch_assoc()) {
+            $_SESSION['church_name'] = $cRow['church_name'];
+            if (empty($_SESSION['church_type'])) $_SESSION['church_type'] = $cRow['church_type'];
+        }
+    } catch (Exception $e) {}
+}
 
-$churchName = $_SESSION['church_name'] ?? 'الكنيسة';
-
-
+$churchName = $_SESSION['church_name'] ?? '';
+if (empty($churchName) || $churchName === 'الكنيسة') {
+    $churchName = 'مدارس الأحد';
+}
 
 $churchType = $_SESSION['church_type'] ?? 'kids';
 

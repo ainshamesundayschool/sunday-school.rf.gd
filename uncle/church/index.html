@@ -7417,7 +7417,7 @@
                 <button class="mobile-menu-btn" onclick="openMobileSidebar()"><i class="fas fa-bars"></i></button>
                 <div>
                     <div class="page-header-title" id="topbarTitle">نظرة عامة</div>
-                    <div class="page-header-sub">مدارس الأحد &rsaquo; <span id="topbarSub">الرئيسية</span></div>
+                    <div class="page-header-sub"><span id="topbarChurchName">مدارس الأحد</span> &rsaquo; <span id="topbarSub">الرئيسية</span></div>
                 </div>
             </div>
             <div class="page-header-actions">
@@ -13151,10 +13151,13 @@
                     avatarNode.textContent = displayName.charAt(0);
                 }
             }
-            document.getElementById('sidebarChurchName').textContent = sess.church_name || localStorage.getItem('churchName') || 'مدارس الأحد';
+            const currentChurchDisplayName = sess.church_name || localStorage.getItem('churchName') || 'مدارس الأحد';
+            document.getElementById('sidebarChurchName').textContent = currentChurchDisplayName;
+            const topbarChurchEl = document.getElementById('topbarChurchName');
+            if (topbarChurchEl) topbarChurchEl.textContent = currentChurchDisplayName;
             document.getElementById('sidebarChurchCode').textContent = sessionChurchCode ? `رمز: ${sessionChurchCode}` : 'لوحة الإدارة';
             const ovCN = document.getElementById('overviewChurchName');
-            if (ovCN) ovCN.textContent = sess.church_name || localStorage.getItem('churchName') || 'مدارس الأحد';
+            if (ovCN) ovCN.textContent = currentChurchDisplayName;
             const ovD = document.getElementById('overviewDate');
             if (ovD) ovD.textContent = new Date().toLocaleDateString('ar-EG', { weekday: 'long', day: 'numeric', month: 'long' });
 
@@ -20851,6 +20854,8 @@
                 if (label) label.textContent = '🌍 جميع الكنائس';
                 if (count) count.textContent = '';
                 document.getElementById('sidebarChurchName').textContent = 'جميع الكنائس';
+                const topbarChurchEl = document.getElementById('topbarChurchName');
+                if (topbarChurchEl) topbarChurchEl.textContent = 'جميع الكنائس';
                 document.getElementById('sidebarChurchCode').textContent = 'عرض مدمج';
                 sessionChurchCode = '';
 
@@ -20864,6 +20869,8 @@
                 if (count && ch) count.textContent = `${ch.student_count || 0} ${ch.church_type === 'youth' ? 'شاب' : 'طفل'}`;
                 if (ch) {
                     document.getElementById('sidebarChurchName').textContent = ch.church_name;
+                    const topbarChurchEl = document.getElementById('topbarChurchName');
+                    if (topbarChurchEl) topbarChurchEl.textContent = ch.church_name;
                     document.getElementById('sidebarChurchCode').textContent = 'رمز: ' + ch.church_code;
                     sessionChurchCode = ch.church_code;
                 }

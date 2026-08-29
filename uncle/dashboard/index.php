@@ -234,7 +234,7 @@ if ($hasSession && isset($_GET['kid_id']) && intval($_GET['kid_id']) > 0 && !(is
 if (isset($_SESSION['uncle_id']) && intval($_SESSION['uncle_id']) > 0 && function_exists('getDBConnection')) {
     try {
         $conn = getDBConnection();
-        $uStmt = $conn->prepare("SELECT role, name FROM uncles WHERE id = ? AND (deleted IS NULL OR deleted = 0) LIMIT 1");
+        $uStmt = $conn->prepare("SELECT role, name, church_id FROM uncles WHERE id = ? AND (deleted IS NULL OR deleted = 0) LIMIT 1");
         $uId = intval($_SESSION['uncle_id']);
         $uStmt->bind_param("i", $uId);
         $uStmt->execute();
@@ -242,13 +242,34 @@ if (isset($_SESSION['uncle_id']) && intval($_SESSION['uncle_id']) > 0 && functio
             $_SESSION['uncle_role'] = $uRow['role'];
             $_SESSION['role'] = $uRow['role'];
             if (!empty($uRow['name'])) $_SESSION['uncle_name'] = $uRow['name'];
+            if (!empty($uRow['church_id']) && empty($_SESSION['church_id'])) {
+                $_SESSION['church_id'] = intval($uRow['church_id']);
+            }
         } else {
             unset($_SESSION['uncle_id'], $_SESSION['uncle_role'], $_SESSION['uncle_name']);
         }
     } catch (Exception $e) {}
 }
 
-$churchName = $_SESSION['church_name'] ?? 'الكنيسة';
+if ((empty($_SESSION['church_name']) || $_SESSION['church_name'] === 'الكنيسة') && !empty($_SESSION['church_id']) && function_exists('getDBConnection')) {
+    try {
+        $conn = getDBConnection();
+        $cStmt = $conn->prepare("SELECT church_name, church_code, church_type FROM churches WHERE id = ? LIMIT 1");
+        $cId = intval($_SESSION['church_id']);
+        $cStmt->bind_param("i", $cId);
+        $cStmt->execute();
+        if ($cRow = $cStmt->get_result()->fetch_assoc()) {
+            $_SESSION['church_name'] = $cRow['church_name'];
+            if (empty($_SESSION['church_code'])) $_SESSION['church_code'] = $cRow['church_code'];
+            if (empty($_SESSION['church_type'])) $_SESSION['church_type'] = $cRow['church_type'];
+        }
+    } catch (Exception $e) {}
+}
+
+$churchName = $_SESSION['church_name'] ?? '';
+if (empty($churchName) || $churchName === 'الكنيسة') {
+    $churchName = 'مدارس الأحد';
+}
 $churchCode = $_SESSION['church_code'] ?? '';
 $uncleName = $_SESSION['uncle_name'] ?? '';
 $uncleRole = strtolower(trim($_SESSION['uncle_role'] ?? $_SESSION['role'] ?? ''));
@@ -15042,7 +15063,7 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
 
             try {
                 if (phpChurchType) localStorage.setItem('churchType', phpChurchType);
-                if (phpChurchName) localStorage.setItem('churchName', phpChurchName);
+                if (phpChurchName && phpChurchName !== 'الكنيسة') localStorage.setItem('churchName', phpChurchName);
                 if (phpUncleName) localStorage.setItem('uncleName', phpUncleName);
                 if (phpUncleRole) localStorage.setItem('uncleRole', phpUncleRole);
                 if (phpChurchCode) localStorage.setItem('churchCode', phpChurchCode);
@@ -15056,6 +15077,17 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 }
             } catch (e) { }
         })();
+
+        function syncTopbarChurchDisplay(name) {
+            const finalName = name || localStorage.getItem('churchName') || '';
+            if (finalName && finalName !== 'الكنيسة' && finalName !== 'Sunday School') {
+                const titleEl = document.querySelector('.topbar-title');
+                if (titleEl && (!titleEl.textContent || titleEl.textContent === 'الكنيسة' || titleEl.textContent === 'مدارس الأحد' || titleEl.textContent.trim() === '')) {
+                    titleEl.textContent = finalName;
+                }
+            }
+        }
+        document.addEventListener('DOMContentLoaded', () => syncTopbarChurchDisplay());
 
         // ── STATE ─────────────────────────────────────────────────────
         let students = [], classes = [], allStudentsData = [];
@@ -16915,6 +16947,11 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                     try {
                         localStorage.setItem('lastStudentsData', freshString);
                     } catch (e) { }
+
+                    if (r.church_name) {
+                        try { localStorage.setItem('churchName', r.church_name); } catch(e){}
+                        syncTopbarChurchDisplay(r.church_name);
+                    }
 
                     if (window._prunePhotoCache) {
                         const activeUrls = new Set(students.map(s => s['صورة']).filter(Boolean));
