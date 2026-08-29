@@ -23656,7 +23656,43 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                     fd.append('photo', new File([currentCroppedBlob], `profile_${Date.now()}.jpg`, { type: 'image/jpeg' }));
                 }
 
-                fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).then(d => {
+                if (typeof isDeveloper !== 'undefined' && isDeveloper) {
+                    const devId = (typeof devViewChurchId !== 'undefined' && devViewChurchId !== null && devViewChurchId !== '') ? devViewChurchId : (localStorage.getItem('devViewChurchId') || 0);
+                    fd.append('dev_override_church_id', devId);
+                    fd.append('role', 'developer');
+                    if (devId == -1 || devId == 0) {
+                        fd.append('all_churches', '1');
+                    } else if (devId > 0 && !fd.has('church_id')) {
+                        fd.append('church_id', devId);
+                    }
+                } else if (typeof devViewChurchId !== 'undefined' && devViewChurchId > 0) {
+                    fd.append('dev_override_church_id', devViewChurchId);
+                    if (!fd.has('church_id')) {
+                        fd.append('church_id', devViewChurchId);
+                    }
+                }
+                if (!fd.has('church_id')) {
+                    const cc = localStorage.getItem('churchId') || localStorage.getItem('church_id');
+                    if (cc) fd.append('church_id', cc);
+                }
+                if (!fd.has('username')) {
+                    const un = localStorage.getItem('uncleUsername');
+                    if (un) fd.append('username', un);
+                }
+                if (!fd.has('uncle_id')) {
+                    const uid = localStorage.getItem('uncleId');
+                    if (uid) fd.append('uncle_id', uid);
+                }
+                if (!fd.has('church_code')) {
+                    const code = localStorage.getItem('churchCode');
+                    if (code) fd.append('church_code', code);
+                }
+                if (!fd.has('role')) {
+                    const r = localStorage.getItem('role') || localStorage.getItem('uncleRole');
+                    if (r) fd.append('role', r);
+                }
+
+                fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json()).then(d => {
                     if (d.success) {
                         showToast('تم إضافة الخادم بنجاح', 'success');
                         hideAddPersonModal();
@@ -23693,7 +23729,7 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 if (cfContainer && churchCustomFields.length) {
                     const infoObj = {};
                     cfContainer.querySelectorAll('[data-cf-key]').forEach((inp, idx) => {
-                        const key = 'field_' + idx; // stable sequential key
+                        const key = inp.getAttribute('data-cf-key') || ('field_' + idx);
                         const v = inp.value.trim();
                         if (v) infoObj[key] = v;
                     });
@@ -23701,7 +23737,44 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 }
                 if (currentCroppedBlob && currentPhotoEditorType === 'new') fd.append('photo', new File([currentCroppedBlob], `profile_${Date.now()}.jpg`, { type: 'image/jpeg' }));
                 fd.append('enhanceImage', 'false');
-                fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).then(d => {
+
+                if (typeof isDeveloper !== 'undefined' && isDeveloper) {
+                    const devId = (typeof devViewChurchId !== 'undefined' && devViewChurchId !== null && devViewChurchId !== '') ? devViewChurchId : (localStorage.getItem('devViewChurchId') || 0);
+                    fd.append('dev_override_church_id', devId);
+                    fd.append('role', 'developer');
+                    if (devId == -1 || devId == 0) {
+                        fd.append('all_churches', '1');
+                    } else if (devId > 0 && !fd.has('church_id')) {
+                        fd.append('church_id', devId);
+                    }
+                } else if (typeof devViewChurchId !== 'undefined' && devViewChurchId > 0) {
+                    fd.append('dev_override_church_id', devViewChurchId);
+                    if (!fd.has('church_id')) {
+                        fd.append('church_id', devViewChurchId);
+                    }
+                }
+                if (!fd.has('church_id')) {
+                    const cc = localStorage.getItem('churchId') || localStorage.getItem('church_id');
+                    if (cc) fd.append('church_id', cc);
+                }
+                if (!fd.has('username')) {
+                    const un = localStorage.getItem('uncleUsername');
+                    if (un) fd.append('username', un);
+                }
+                if (!fd.has('uncle_id')) {
+                    const uid = localStorage.getItem('uncleId');
+                    if (uid) fd.append('uncle_id', uid);
+                }
+                if (!fd.has('church_code')) {
+                    const code = localStorage.getItem('churchCode');
+                    if (code) fd.append('church_code', code);
+                }
+                if (!fd.has('role')) {
+                    const r = localStorage.getItem('role') || localStorage.getItem('uncleRole');
+                    if (r) fd.append('role', r);
+                }
+
+                fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json()).then(d => {
                     if (d.success) { showToast('تم الإضافة بنجاح', 'success'); hideAddPersonModal(); document.getElementById('addPersonForm').reset(); cancelNewStudentPhotoUpload(); currentCroppedBlob = null; setTimeout(loadData, 1000); }
                     else showToast('فشل: ' + (d.message || 'خطأ'), 'error');
                 }).catch(() => showToast('خطأ في الاتصال', 'error'));

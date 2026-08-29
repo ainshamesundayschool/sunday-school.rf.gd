@@ -14541,7 +14541,7 @@
             let churchId = getChurchId();
             if (!churchId) {
                 const fd0 = new FormData(); fd0.append('action', 'getSessionInfo');
-                const d0 = await fetch(API_URL, { method: 'POST', body: fd0 }).then(r => r.json()).catch(() => ({ success: false }));
+                const d0 = await fetch(API_URL, { method: 'POST', body: fd0, credentials: 'include' }).then(r => r.json()).catch(() => ({ success: false }));
                 if (d0.success && d0.church_id) { sessionChurchId = d0.church_id; churchId = d0.church_id; localStorage.setItem('churchId', churchId); }
             }
             if (!churchId) { showToast('لم يتم العثور على معرف الكنيسة – الرجاء تسجيل الدخول مجدداً', 'error'); return; }
@@ -14561,6 +14561,31 @@
 
             const fd = new FormData();
             fd.append('action', 'addStudent');
+            fd.append('church_id', churchId);
+            if (typeof isDeveloper !== 'undefined' && isDeveloper) {
+                const devId = (typeof devViewChurchId !== 'undefined' && devViewChurchId !== null && devViewChurchId !== '') ? devViewChurchId : (localStorage.getItem('devViewChurchId') || 0);
+                fd.append('dev_override_church_id', devId);
+                fd.append('role', 'developer');
+                if (devId == -1 || devId == 0) {
+                    fd.append('all_churches', '1');
+                } else if (devId > 0 && !fd.has('church_id')) {
+                    fd.append('church_id', devId);
+                }
+            } else if (typeof devViewChurchId !== 'undefined' && devViewChurchId > 0) {
+                fd.append('dev_override_church_id', devViewChurchId);
+                if (!fd.has('church_id')) {
+                    fd.append('church_id', devViewChurchId);
+                }
+            }
+            const un = localStorage.getItem('uncleUsername') || localStorage.getItem('username');
+            if (un && !fd.has('username')) fd.append('username', un);
+            const uid = localStorage.getItem('uncleId') || localStorage.getItem('uncle_id');
+            if (uid && !fd.has('uncle_id')) fd.append('uncle_id', uid);
+            const code = localStorage.getItem('churchCode') || localStorage.getItem('church_code');
+            if (code && !fd.has('church_code')) fd.append('church_code', code);
+            const role = localStorage.getItem('role') || localStorage.getItem('uncleRole');
+            if (role && !fd.has('role')) fd.append('role', role);
+
             fd.append('name', name);
             fd.append('classId', classId);
             fd.append('phone', document.getElementById('addKidPhone').value.trim());
@@ -14601,7 +14626,7 @@
             const img = document.getElementById('addKidImage')?.files[0];
             if (img) fd.append('photo', img);
 
-            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+            const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json()).catch(() => ({ success: false }));
             if (d.success) { 
                 showToast('تمت إضافة الطفل بنجاح', 'success'); 
                 document.getElementById('addKidForm').reset(); 
@@ -19743,6 +19768,32 @@
             const classId = document.getElementById('editStudentClass').value;
             if (!name || !classId) { showToast('الاسم والفصل مطلوبان', 'warning'); return; }
             const fd = new FormData(); fd.append('action', 'updateStudentFull');
+            let churchId = getChurchId();
+            if (churchId) fd.append('church_id', churchId);
+            if (typeof isDeveloper !== 'undefined' && isDeveloper) {
+                const devId = (typeof devViewChurchId !== 'undefined' && devViewChurchId !== null && devViewChurchId !== '') ? devViewChurchId : (localStorage.getItem('devViewChurchId') || 0);
+                fd.append('dev_override_church_id', devId);
+                fd.append('role', 'developer');
+                if (devId == -1 || devId == 0) {
+                    fd.append('all_churches', '1');
+                } else if (devId > 0 && !fd.has('church_id')) {
+                    fd.append('church_id', devId);
+                }
+            } else if (typeof devViewChurchId !== 'undefined' && devViewChurchId > 0) {
+                fd.append('dev_override_church_id', devViewChurchId);
+                if (!fd.has('church_id')) {
+                    fd.append('church_id', devViewChurchId);
+                }
+            }
+            const un = localStorage.getItem('uncleUsername') || localStorage.getItem('username');
+            if (un && !fd.has('username')) fd.append('username', un);
+            const uid = localStorage.getItem('uncleId') || localStorage.getItem('uncle_id');
+            if (uid && !fd.has('uncle_id')) fd.append('uncle_id', uid);
+            const code = localStorage.getItem('churchCode') || localStorage.getItem('church_code');
+            if (code && !fd.has('church_code')) fd.append('church_code', code);
+            const role = localStorage.getItem('role') || localStorage.getItem('uncleRole');
+            if (role && !fd.has('role')) fd.append('role', role);
+
             fd.append('student_id', document.getElementById('editStudentId').value);
             fd.append('name', name); fd.append('class_id', classId);
             fd.append('phone', document.getElementById('editStudentPhone').value);
@@ -19782,7 +19833,7 @@
             if (img) fd.append('student_image', img);
             const btn = e.target.querySelector('button[type="submit"]');
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; btn.disabled = true;
-            const d = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json()).catch(() => ({ success: false }));
+            const d = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'include' }).then(r => r.json()).catch(() => ({ success: false }));
             if (d.success) { showToast('تم التحديث', 'success'); document.getElementById('editStudentModal')?.remove(); loadStudents(); }
             else showToast(d.message || 'فشل', 'error');
             btn.innerHTML = '<i class="fas fa-save"></i> حفظ'; btn.disabled = false;

@@ -3715,11 +3715,11 @@ function checkAuth()
         return;
     }
 
-    if (!empty($_POST['church_id']) || !empty($_POST['church_code']) || !empty($_POST['username']) || !empty($_POST['uncle_id']) || !empty($_POST['all_churches']) || !empty($_POST['dev_override_church_id'])) {
+    if (!empty($_POST['church_id']) || !empty($_POST['church_code']) || !empty($_POST['username']) || !empty($_POST['uncle_id']) || !empty($_POST['all_churches']) || !empty($_POST['dev_override_church_id']) || !empty($_POST['student_id']) || !empty($_POST['studentId']) || !empty($_POST['kid_id'])) {
         return;
     }
 
-    if (!empty($_GET['church_id']) || !empty($_GET['church_code']) || !empty($_GET['username']) || !empty($_GET['uncle_id']) || !empty($_GET['all_churches']) || !empty($_GET['dev_override_church_id'])) {
+    if (!empty($_GET['church_id']) || !empty($_GET['church_code']) || !empty($_GET['username']) || !empty($_GET['uncle_id']) || !empty($_GET['all_churches']) || !empty($_GET['dev_override_church_id']) || !empty($_GET['student_id']) || !empty($_GET['studentId']) || !empty($_GET['kid_id'])) {
         return;
     }
 
