@@ -2299,7 +2299,14 @@ document.addEventListener('DOMContentLoaded', () => {
       document.documentElement.style.setProperty('--slide-font-family', state.selectedFont);
       if (els.obsLineText) els.obsLineText.style.fontFamily = state.selectedFont;
     }
-    if (els.fontSelect) els.fontSelect.value = state.selectedFont;
+    if (els.fontSelect && state.selectedFont) {
+      els.fontSelect.value = state.selectedFont;
+      if (!els.fontSelect.value) {
+        const opts = Array.from(els.fontSelect.options);
+        const match = opts.find(o => o.value && (state.selectedFont.includes(o.value) || o.value.includes(state.selectedFont)));
+        if (match) els.fontSelect.value = match.value;
+      }
+    }
     if (els.obsFontSizeRange) els.obsFontSizeRange.value = state.fontSize;
     if (els.fontSizeValBadge) els.fontSizeValBadge.textContent = `${state.fontSize}px`;
     if (els.chromaSelect) els.chromaSelect.value = state.chromaKey;
@@ -3787,7 +3794,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       grid.innerHTML = allPresets.map(p => {
         const shadowCss = calculateAaShadowCSS(p);
-        const strokeW = (p.strokeWidth || 0) * 0.5;
+        const rawStrokeW = parseFloat(p.strokeWidth || 0);
+        const strokeW = rawStrokeW > 0 ? Math.min(1.4, Math.max(0.4, rawStrokeW * 0.35)) : 0;
         const strokeC = p.strokeColor || '#000000';
         const textC = p.textColor || '#ffffff';
         const fontW = p.fontWeight || '800';
@@ -3804,7 +3812,9 @@ document.addEventListener('DOMContentLoaded', () => {
               color: ${escapeHtml(textC)};
               font-weight: ${escapeHtml(fontW)};
               text-shadow: ${escapeHtml(shadowCss)};
-              -webkit-text-stroke: ${strokeW > 0 ? `${strokeW}px ${escapeHtml(strokeC)}` : 'none'};
+              -webkit-text-stroke: ${strokeW > 0 ? `${strokeW}px ${escapeHtml(strokeC)}` : '0px transparent'};
+              paint-order: stroke fill markers;
+              -webkit-paint-order: stroke fill markers;
             ">
               Aa
             </div>
@@ -5537,12 +5547,117 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     };
 
-    const saveSavedTemplates = (templates) => {
+    // ----------------------------------------------------
+    // GROUPED TEMPLATES SHUFFLE-PER-SONG MANAGER
+    // ----------------------------------------------------
+    const SHUFFLE_STORAGE_KEY = 'sunday_school_template_shuffle_per_song';
+    const SHUFFLE_TMPL_ID_KEY = 'sunday_school_template_shuffle_id';
+    const SHUFFLE_DECK_KEY_PREFIX = 'sunday_school_shuffle_deck_';
+
+    function isTemplateShuffleEnabled() {
+      return localStorage.getItem(SHUFFLE_STORAGE_KEY) === 'true';
+    }
+
+    function setTemplateShuffleEnabled(enabled, tmplId = null) {
+      localStorage.setItem(SHUFFLE_STORAGE_KEY, enabled ? 'true' : 'false');
+      state.templateShufflePerSong = Boolean(enabled);
+      if (tmplId) {
+        localStorage.setItem(SHUFFLE_TMPL_ID_KEY, tmplId);
+        state.templateShuffleTemplateId = tmplId;
+      }
+      const chkDisplay = document.getElementById('chk-display-template-shuffle');
+      if (chkDisplay) chkDisplay.checked = Boolean(enabled);
+      document.querySelectorAll('.chk-template-shuffle').forEach(chk => {
+        chk.checked = Boolean(enabled);
+      });
+    }
+
+    function getShuffleDeck(tmplId, allVarietyUrls) {
       try {
-        localStorage.setItem('sunday_school_saved_templates', JSON.stringify(templates));
+        const raw = localStorage.getItem(SHUFFLE_DECK_KEY_PREFIX + tmplId);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
       } catch(e) {}
-      renderTemplatesCatalog();
-    };
+      const newDeck = shuffleArray([...allVarietyUrls]);
+      saveShuffleDeck(tmplId, newDeck);
+      return newDeck;
+    }
+
+    function saveShuffleDeck(tmplId, deck) {
+      try {
+        localStorage.setItem(SHUFFLE_DECK_KEY_PREFIX + tmplId, JSON.stringify(deck));
+      } catch(e) {}
+    }
+
+    function shuffleArray(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    let lastShuffledSongKey = null;
+
+    function triggerAutoShuffleGroupedTemplateIfNeeded(song) {
+      if (!isTemplateShuffleEnabled()) return;
+      if (!song) return;
+
+      const isBible = Boolean((song.is_bible === true || song.is_bible === '1' || song.is_bible === 1) || (song.chapter_number !== undefined && song.chapter_number !== null && song.chapter_number !== ''));
+      const songKey = isBible 
+        ? `bible_${song.book_id || song.book}_${song.chapter_number || song.chapter}` 
+        : `song_${song.id !== undefined ? song.id : (song.item_id || song.title)}`;
+
+      if (lastShuffledSongKey === songKey) return;
+      lastShuffledSongKey = songKey;
+
+      const targetTmplId = localStorage.getItem(SHUFFLE_TMPL_ID_KEY) || 'tmpl-paint-sweeps';
+      const templates = state.availableTemplates || [];
+      let tmpl = templates.find(t => t.id === targetTmplId) || templates.find(t => t.varieties && t.varieties.length > 0);
+      if (!tmpl || !tmpl.varieties || tmpl.varieties.length === 0) return;
+
+      const allUrls = tmpl.varieties.map(v => v.url);
+      let deck = getShuffleDeck(tmpl.id, allUrls);
+
+      if (!deck || deck.length === 0) {
+        deck = shuffleArray([...allUrls]);
+        saveShuffleDeck(tmpl.id, deck);
+        showToast(`🔄 تم إكمال دورة خلفيات "${tmpl.name}" وإعادة الترتيب العشوائي!`);
+      }
+
+      const nextBgUrl = deck.pop();
+      saveShuffleDeck(tmpl.id, deck);
+
+      const variety = tmpl.varieties.find(v => v.url === nextBgUrl) || { name: 'عشوائي', url: nextBgUrl };
+
+      state.slidesBgConfig.type = 'template';
+      state.slidesBgConfig.url = nextBgUrl;
+      state.standbyConfig.type = 'template';
+      state.standbyConfig.url = nextBgUrl;
+
+      updateSlidesBgUI();
+      updateStandbyUI();
+      saveMediaConfig();
+      syncLiveState(false, false);
+
+      const card = document.querySelector(`.template-preview-card[data-id="${tmpl.id}"]`);
+      if (card) {
+        const thumbImg = card.querySelector(`#tmpl-thumb-img-${tmpl.id}`);
+        if (thumbImg) thumbImg.src = nextBgUrl;
+
+        const nameEl = card.querySelector(`#tmpl-selected-var-name-${tmpl.id}`);
+        if (nameEl) nameEl.textContent = variety.name;
+
+        card.querySelectorAll('.template-variety-circle').forEach(c => {
+          c.classList.toggle('active', c.dataset.url === nextBgUrl);
+        });
+      }
+
+      showToast(`🔀 خلفية الترنيمة: ${variety.name} (${deck.length} متبقي بالحزمة)`);
+    }
 
     const renderTemplatesCatalog = () => {
       const container = document.getElementById('templates-catalog-grid');
@@ -5661,8 +5776,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
               ${hasVarieties ? `
                 <div class="template-varieties-wrap">
-                  <div class="template-varieties-label">
-                    <i class="fa-solid fa-palette"></i> النمط المختار: <b id="tmpl-selected-var-name-${escapeHtml(t.id)}" style="color:#2563eb;">${escapeHtml(initialVarName)}</b>
+                  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; gap:8px; flex-wrap:wrap;">
+                    <div class="template-varieties-label">
+                      <i class="fa-solid fa-palette"></i> النمط المختار: <b id="tmpl-selected-var-name-${escapeHtml(t.id)}" style="color:#2563eb;">${escapeHtml(initialVarName)}</b>
+                    </div>
+                    <label class="template-shuffle-toggle" title="تفعيل التبديل العشوائي التلقائي لخلفيات هذه المجموعة عند كل ترنيمة جديدة دون تكرار">
+                      <input type="checkbox" class="chk-template-shuffle" data-tmpl-id="${escapeHtml(t.id)}" ${isTemplateShuffleEnabled() ? 'checked' : ''}>
+                      <span class="template-shuffle-text"><i class="fa-solid fa-shuffle"></i> تبديل عشوائي لكل ترنيمة</span>
+                    </label>
                   </div>
                   <div class="template-varieties-bar">
                     ${t.varieties.map((v, vIdx) => `
@@ -5691,6 +5812,24 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         `;
       }).join('');
+
+      // Shuffle checkbox listeners
+      container.querySelectorAll('.chk-template-shuffle').forEach(chk => {
+        chk.addEventListener('change', (e) => {
+          const tmplId = chk.dataset.tmplId;
+          const isChecked = chk.checked;
+          setTemplateShuffleEnabled(isChecked, tmplId);
+          if (isChecked) {
+            lastShuffledSongKey = null;
+            if (state.activeSong) {
+              triggerAutoShuffleGroupedTemplateIfNeeded(state.activeSong);
+            }
+            showToast('تم تفعيل التبديل العشوائي لكل ترنيمة بدون تكرار! 🔀');
+          } else {
+            showToast('تم إيقاف التبديل العشوائي.');
+          }
+        });
+      });
 
       // Add variety circle click listeners
       container.querySelectorAll('.template-variety-circle').forEach(circle => {
@@ -6137,6 +6276,25 @@ document.addEventListener('DOMContentLoaded', () => {
     renderBuiltinTemplates();
     fetchServerTemplates();
     renderEffectPresets();
+
+    // Hook Display Tab Shuffle Checkbox
+    const chkDisplayTemplateShuffle = document.getElementById('chk-display-template-shuffle');
+    if (chkDisplayTemplateShuffle) {
+      chkDisplayTemplateShuffle.checked = isTemplateShuffleEnabled();
+      chkDisplayTemplateShuffle.addEventListener('change', (e) => {
+        const isChecked = e.target.checked;
+        setTemplateShuffleEnabled(isChecked, 'tmpl-paint-sweeps');
+        if (isChecked) {
+          lastShuffledSongKey = null;
+          if (state.activeSong) {
+            triggerAutoShuffleGroupedTemplateIfNeeded(state.activeSong);
+          }
+          showToast('تم تفعيل التبديل العشوائي لكل ترنيمة بدون تكرار! 🔀');
+        } else {
+          showToast('تم إيقاف التبديل العشوائي.');
+        }
+      });
+    }
 
     // Chroma Chip Group Syncing
     const chromaChips = document.querySelectorAll('.chroma-chip');
@@ -8569,6 +8727,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function loadSongIntoPresentation(song, forceLive = true) {
     if (!song) return;
+
+    // Trigger auto-shuffle background if enabled (one new background per song, slides share the same bg)
+    triggerAutoShuffleGroupedTemplateIfNeeded(song);
 
     song = ensureSongVerses(song);
     state.activeSong = song;

@@ -34,7 +34,8 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800&family=Almarai:wght@400;700&family=Amiri:wght@400;700&family=Cairo:wght@400;600;700&family=Jomhuria&family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800;900&family=Almarai:wght@400;700;800&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&family=Cairo:wght@400;600;700;800;900&family=Changa:wght@400;500;600;700;800&family=El+Messiri:wght@400;500;600;700&family=Jomhuria&family=Lemonada:wght@300;400;500;600;700&family=Marhey:wght@300;400;500;600;700&family=Playpen+Sans:wght@300;400;500;600;700;800&family=Rakkas&family=Readex+Pro:wght@300;400;500;600;700&family=Reem+Kufi:wght@400;500;600;700&family=Tajawal:wght@400;500;700;800;900&family=Zain:wght@300;400;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/playpen-sans-arabic@5.3.0/index.css">
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
 
@@ -337,166 +338,64 @@
       }
     }
 
-    /* TEXT APPEARANCE ANIMATIONS FOR CONTAINER (WITH MOBILE SAFARI WEBKIT COMPATIBILITY) */
-    /* HIGH-PERFORMANCE 60FPS GPU ACCELERATED TEXT APPEARANCE ANIMATIONS */
-    /* NOTE: In present.html, animation is applied to the CONTAINER box which uses translate(-50%,-50%) for centering */
-    @-webkit-keyframes textAppearSlide {
-      0% {
-        opacity: 0;
-        -webkit-transform: translate3d(-50%, calc(-50% + 25px), 0) scale3d(0.96, 0.96, 1);
-        transform: translate3d(-50%, calc(-50% + 25px), 0) scale3d(0.96, 0.96, 1);
-      }
-      100% {
-        opacity: 1;
-        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
-        transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
-      }
+    /* TEXT APPEARANCE ANIMATIONS - SMOOTH & FLICKER-FREE */
+    @keyframes textAppearFade {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
     }
 
     @keyframes textAppearSlide {
-      0% {
-        opacity: 0;
-        -webkit-transform: translate3d(-50%, calc(-50% + 25px), 0) scale3d(0.96, 0.96, 1);
-        transform: translate3d(-50%, calc(-50% + 25px), 0) scale3d(0.96, 0.96, 1);
-      }
-      100% {
-        opacity: 1;
-        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
-        transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
-      }
-    }
-
-    @-webkit-keyframes textAppearDrop {
-      0% {
-        opacity: 0;
-        -webkit-transform: translate3d(-50%, calc(-50% - 25px), 0) scale3d(0.96, 0.96, 1);
-        transform: translate3d(-50%, calc(-50% - 25px), 0) scale3d(0.96, 0.96, 1);
-      }
-      100% {
-        opacity: 1;
-        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
-        transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
-      }
+      0% { opacity: 0; transform: translateY(12px); }
+      100% { opacity: 1; transform: translateY(0); }
     }
 
     @keyframes textAppearDrop {
-      0% {
-        opacity: 0;
-        -webkit-transform: translate3d(-50%, calc(-50% - 25px), 0) scale3d(0.96, 0.96, 1);
-        transform: translate3d(-50%, calc(-50% - 25px), 0) scale3d(0.96, 0.96, 1);
-      }
-      100% {
-        opacity: 1;
-        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
-        transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
-      }
-    }
-
-    @-webkit-keyframes textAppearPop {
-      0% {
-        opacity: 0;
-        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(0.85, 0.85, 1);
-        transform: translate3d(-50%, -50%, 0) scale3d(0.85, 0.85, 1);
-      }
-      100% {
-        opacity: 1;
-        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
-        transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
-      }
+      0% { opacity: 0; transform: translateY(-12px); }
+      100% { opacity: 1; transform: translateY(0); }
     }
 
     @keyframes textAppearPop {
-      0% {
-        opacity: 0;
-        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(0.85, 0.85, 1);
-        transform: translate3d(-50%, -50%, 0) scale3d(0.85, 0.85, 1);
-      }
-      100% {
-        opacity: 1;
-        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
-        transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
-      }
-    }
-
-    @-webkit-keyframes textAppearFlip {
-      0% {
-        opacity: 0;
-        -webkit-transform: translate3d(-50%, -50%, 0) perspective(600px) rotateX(-45deg);
-        transform: translate3d(-50%, -50%, 0) perspective(600px) rotateX(-45deg);
-      }
-      100% {
-        opacity: 1;
-        -webkit-transform: translate3d(-50%, -50%, 0) perspective(600px) rotateX(0deg);
-        transform: translate3d(-50%, -50%, 0) perspective(600px) rotateX(0deg);
-      }
+      0% { opacity: 0; transform: scale(0.96); }
+      100% { opacity: 1; transform: scale(1); }
     }
 
     @keyframes textAppearFlip {
-      0% {
-        opacity: 0;
-        -webkit-transform: translate3d(-50%, -50%, 0) perspective(600px) rotateX(-45deg);
-        transform: translate3d(-50%, -50%, 0) perspective(600px) rotateX(-45deg);
-      }
-      100% {
-        opacity: 1;
-        -webkit-transform: translate3d(-50%, -50%, 0) perspective(600px) rotateX(0deg);
-        transform: translate3d(-50%, -50%, 0) perspective(600px) rotateX(0deg);
-      }
-    }
-
-    @-webkit-keyframes textAppearGlow {
-      0% {
-        opacity: 0;
-        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1.06, 1.06, 1);
-        transform: translate3d(-50%, -50%, 0) scale3d(1.06, 1.06, 1);
-      }
-      100% {
-        opacity: 1;
-        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
-        transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
-      }
+      0% { opacity: 0; transform: perspective(400px) rotateX(-12deg); }
+      100% { opacity: 1; transform: perspective(400px) rotateX(0deg); }
     }
 
     @keyframes textAppearGlow {
-      0% {
-        opacity: 0;
-        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1.06, 1.06, 1);
-        transform: translate3d(-50%, -50%, 0) scale3d(1.06, 1.06, 1);
-      }
-      100% {
-        opacity: 1;
-        -webkit-transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
-        transform: translate3d(-50%, -50%, 0) scale3d(1, 1, 1);
-      }
+      0% { opacity: 0; transform: scale(1.02); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .animate-appear-fade {
+      animation: textAppearFade 0.16s ease-out forwards !important;
+      will-change: opacity;
     }
 
     .animate-appear-slide {
-      -webkit-animation: textAppearSlide 0.14s cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
-      animation: textAppearSlide 0.14s cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
+      animation: textAppearSlide 0.16s cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
       will-change: transform, opacity;
     }
 
     .animate-appear-drop {
-      -webkit-animation: textAppearDrop 0.14s cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
-      animation: textAppearDrop 0.14s cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
+      animation: textAppearDrop 0.16s cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
       will-change: transform, opacity;
     }
 
     .animate-appear-pop {
-      -webkit-animation: textAppearPop 0.14s cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
-      animation: textAppearPop 0.14s cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
+      animation: textAppearPop 0.16s cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
       will-change: transform, opacity;
     }
 
     .animate-appear-flip {
-      -webkit-animation: textAppearFlip 0.14s cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
-      animation: textAppearFlip 0.14s cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
+      animation: textAppearFlip 0.16s cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
       will-change: transform, opacity;
     }
 
     .animate-appear-glow {
-      -webkit-animation: textAppearGlow 0.14s cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
-      animation: textAppearGlow 0.14s cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
+      animation: textAppearGlow 0.16s cubic-bezier(0.2, 0.9, 0.3, 1) forwards !important;
       will-change: transform, opacity;
     }
 
@@ -2526,15 +2425,15 @@
           }
         });
 
-        if (_lastAnimSlideText !== data.text || currentAnimState !== animType) {
+        const isNewSlideText = (_lastAnimSlideText !== data.text);
+        if (isNewSlideText || currentAnimState !== animType) {
           _lastAnimSlideText = data.text;
           currentAnimState = animType;
 
-          box.classList.remove('animate-appear-slide', 'animate-appear-drop', 'animate-appear-pop', 'animate-appear-flip', 'animate-appear-glow');
-          textEl.classList.remove('animate-appear-slide', 'animate-appear-drop', 'animate-appear-pop', 'animate-appear-flip', 'animate-appear-glow');
+          box.classList.remove('animate-appear-fade', 'animate-appear-slide', 'animate-appear-drop', 'animate-appear-pop', 'animate-appear-flip', 'animate-appear-glow');
+          textEl.classList.remove('animate-appear-fade', 'animate-appear-slide', 'animate-appear-drop', 'animate-appear-pop', 'animate-appear-flip', 'animate-appear-glow');
 
-          if (animType !== 'none' && data.text) {
-            void textEl.offsetWidth;
+          if (isNewSlideText && animType && animType !== 'none' && data.text) {
             textEl.classList.add(`animate-appear-${animType}`);
           }
         }
@@ -2647,11 +2546,11 @@
 
         if (!data) {
           raw = localStorage.getItem('sunday_school_taranim_live_presentation');
-          if (!raw) return;
-          if (raw === lastRenderedPayloadHash) return;
+          if (!raw || raw === lastRenderedPayloadHash) return;
           data = JSON.parse(raw);
         } else {
           try { raw = JSON.stringify(data); } catch(e) {}
+          if (raw && raw === lastRenderedPayloadHash && !data.forceRefresh) return;
         }
 
         if (data && typeof data === 'object') {
@@ -2667,19 +2566,6 @@
         }
       } catch(e) {}
     }
-
-    // 2. UNTHROTTLED BACKGROUND WEB WORKER TICKER (NEVER SLEEPS OR THROTTLES IN CEF)
-    try {
-      const workerBlob = new Blob([`
-        setInterval(function() {
-          postMessage('tick');
-        }, 20);
-      `], { type: 'application/javascript' });
-      const bgWorker = new Worker(URL.createObjectURL(workerBlob));
-      bgWorker.onmessage = function() {
-        checkAndApplyLatestState();
-      };
-    } catch(e) {}
 
     if (channel) {
       channel.onmessage = (event) => {
@@ -2697,13 +2583,7 @@
 
     setInterval(() => {
       checkAndApplyLatestState();
-    }, 20);
-
-    function tickObsFrame() {
-      checkAndApplyLatestState();
-      requestAnimationFrame(tickObsFrame);
-    }
-    requestAnimationFrame(tickObsFrame);
+    }, 40);
 
     const initialLiveRaw = localStorage.getItem('sunday_school_taranim_live_presentation');
     if (initialLiveRaw) {

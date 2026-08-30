@@ -5287,6 +5287,61 @@ input[type="range"]:active::-moz-range-thumb {
   z-index: 3;
 }
 
+/* TEMPLATE SHUFFLE TOGGLE */
+.template-shuffle-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.22);
+  padding: 3px 8px;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.template-shuffle-toggle:hover {
+  background: rgba(37, 99, 235, 0.15);
+  border-color: #2563eb;
+}
+
+.template-shuffle-toggle input[type="checkbox"] {
+  accent-color: #2563eb;
+  cursor: pointer;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+}
+
+.template-shuffle-text {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #2563eb;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* KIDS & PLAYFUL ARABIC FONTS DEFINITIONS & LOCAL FALLBACKS */
+@font-face {
+  font-family: 'Tufuli Arabic';
+  src: local('Tufuli Arabic'), local('Tufuli'), local('DG Tufuli'), local('ArbFONTS-Tufuli');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Tinta Arabic';
+  src: local('Tinta Arabic'), local('Tinta'), local('DG Tinta'), local('ArbFONTS-Tinta');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lutfey Arabic';
+  src: local('Lutfey Arabic'), local('Lutfey'), local('DG Lutfey'), local('ArbFONTS-Lutfey');
+  font-display: swap;
+}
+
 /* TEXT EFFECTS PRESET TEMPLATES (AA PREVIEW TILES) */
 .effect-presets-card {
   background: #ffffff;
@@ -5342,6 +5397,8 @@ input[type="range"]:active::-moz-range-thumb {
   margin-bottom: 4px;
   transition: transform 0.2s ease;
   pointer-events: none;
+  paint-order: stroke fill markers;
+  -webkit-paint-order: stroke fill markers;
 }
 
 .effect-preset-tile:hover .effect-preset-aa-box {

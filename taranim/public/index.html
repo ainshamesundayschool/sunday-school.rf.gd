@@ -43,7 +43,8 @@
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800&family=Almarai:wght@400;700&family=Amiri:wght@400;700&family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&family=Cairo:wght@400;600;700&family=Jomhuria&family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800;900&family=Almarai:wght@400;700;800&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&family=Cairo:wght@400;600;700;800;900&family=Changa:wght@400;500;600;700;800&family=El+Messiri:wght@400;500;600;700&family=Jomhuria&family=Lemonada:wght@300;400;500;600;700&family=Marhey:wght@300;400;500;600;700&family=Playpen+Sans:wght@300;400;500;600;700;800&family=Rakkas&family=Readex+Pro:wght@300;400;500;600;700&family=Reem+Kufi:wght@400;500;600;700&family=Tajawal:wght@400;500;700;800;900&family=Zain:wght@300;400;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/playpen-sans-arabic@5.3.0/index.css">
 
   <!-- Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
@@ -349,13 +350,32 @@
                 <div class="control-field">
                   <label>نوع الخط</label>
                   <select id="font-family-select" class="control-select">
-                    <option value="'Alexandria', sans-serif">Alexandria</option>
-                    <option value="'Cairo', sans-serif">Cairo</option>
-                    <option value="'Almarai', sans-serif">Almarai</option>
-                    <option value="'Amiri', serif">Amiri</option>
-                    <option value="'Tajawal', sans-serif">Tajawal</option>
-                    <option value="Jomhuria, Arial, sans-serif">Jomhuria</option>
-                    <option value="custom">خط محلي...</option>
+                    <optgroup label="✨ خطوط أطفال ومرحة (Kids & Playful)">
+                      <option value="'Playpen Sans Arabic', 'Playpen Sans', 'Baloo Bhaijaan 2', cursive, sans-serif">Playpen Sans Arabic</option>
+                      <option value="'Tufuli Arabic', 'Tufuli', 'DG Tufuli', 'Marhey', 'Baloo Bhaijaan 2', cursive, sans-serif">Tufuli Arabic (طفولي)</option>
+                      <option value="'Tinta Arabic', 'Tinta', 'Lemonada', 'Baloo Bhaijaan 2', cursive, sans-serif">Tinta Arabic (تينتا)</option>
+                      <option value="'Lutfey Arabic', 'Lutfey', 'DG Lutfey', 'Zain', 'Baloo Bhaijaan 2', cursive, sans-serif">Lutfey Arabic (لطفي)</option>
+                      <option value="'Baloo Bhaijaan 2', cursive, sans-serif">Baloo Bhaijaan 2 (بالو بهيجان)</option>
+                      <option value="'Marhey', cursive, sans-serif">Marhey (مرحي)</option>
+                      <option value="'Lemonada', cursive, sans-serif">Lemonada (ليمونادة)</option>
+                      <option value="'Zain', sans-serif">Zain (زين)</option>
+                      <option value="'Changa', sans-serif">Changa (شانجا)</option>
+                      <option value="'Rakkas', cursive, sans-serif">Rakkas (رقاص)</option>
+                    </optgroup>
+                    <optgroup label="🏛️ خطوط عامة وكلاسيكية (Standard & Display)">
+                      <option value="'Alexandria', sans-serif">Alexandria (الإسكندرية)</option>
+                      <option value="'Cairo', sans-serif">Cairo (القاهرة)</option>
+                      <option value="'Almarai', sans-serif">Almarai (المراعي)</option>
+                      <option value="'Tajawal', sans-serif">Tajawal (تجوال)</option>
+                      <option value="'Readex Pro', sans-serif">Readex Pro (ريديكس)</option>
+                      <option value="'Reem Kufi', sans-serif">Reem Kufi (ريم كوفي)</option>
+                      <option value="'El Messiri', sans-serif">El Messiri (المسيري)</option>
+                      <option value="'Amiri', serif">Amiri (أميري)</option>
+                      <option value="Jomhuria, Arial, sans-serif">Jomhuria (الجمهورية)</option>
+                    </optgroup>
+                    <optgroup label="📁 خط مخصص">
+                      <option value="custom">خط محلي من الجهاز أو ملف...</option>
+                    </optgroup>
                   </select>
                 </div>
 
@@ -609,6 +629,17 @@
                 <select id="slides-bg-template-select" class="control-select">
                   <option value="Templates/SlidesBg/Shabahak Akon 2026/Shabahak Akoon Loop Empty Centered.mp4">Shabahak Akon 2026 - Loop Empty Centered</option>
                 </select>
+
+                <div class="template-shuffle-display-row" style="margin-top:10px; display:flex; align-items:center; justify-content:space-between; background:rgba(37,99,235,0.06); padding:8px 12px; border-radius:8px; border:1px solid rgba(37,99,235,0.15);">
+                  <div style="display:flex; align-items:center; gap:8px; font-size:0.82rem; font-weight:700; color:#1e293b;">
+                    <i class="fa-solid fa-shuffle" style="color:#2563eb;"></i>
+                    <span>تبديل عشوائي تلقائي عند كل ترنيمة</span>
+                  </div>
+                  <label class="switch" style="margin:0;">
+                    <input type="checkbox" id="chk-display-template-shuffle">
+                    <span class="slider round"></span>
+                  </label>
+                </div>
               </div>
 
               <!-- 3. CUSTOM MEDIA FILE UPLOAD -->
