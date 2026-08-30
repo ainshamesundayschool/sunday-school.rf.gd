@@ -131,6 +131,87 @@ function arabicStem(word) {
   return w.length > 1 ? w : normalizeArabic(word);
 }
 
+// ==========================================================================
+// ARABIC ATTACHED / SEPARATED PREPOSITIONS & DIALECT EQUIVALENCE GENERATOR
+// e.g. "جايلك" <-> "جاي لك", "راجعلك" <-> "راجع لك", "مفيش" <-> "ما فيش"
+// ==========================================================================
+const ARABIC_ATTACHED_SUFFIXES = [
+  'لك', 'لي', 'لنا', 'لكم', 'له', 'لها', 'لهم',
+  'بيك', 'بي', 'بينا', 'بيكم', 'بيه', 'بيها', 'بيهم',
+  'بك', 'بنا', 'به', 'بها', 'بهم'
+];
+
+const ARABIC_DIALECT_PAIRS = [
+  ['مفيش', 'ما فيش'],
+  ['معنديش', 'ما عنديش'],
+  ['متخافش', 'ما تخافش'],
+  ['متسبنيش', 'ما تسيبنيش'],
+  ['متنساش', 'ما تنساش'],
+  ['منبقاش', 'ما نبقاش'],
+  ['معرفش', 'ما اعرفش'],
+  ['مبقتش', 'ما بقتش'],
+  ['علشان', 'عشان'],
+  ['علشانك', 'عشانك'],
+  ['علشان لك', 'عشانك'],
+  ['عشان لك', 'عشانك'],
+  ['كتير', 'كثير'],
+  ['دلوقتي', 'دلوقت'],
+  ['ازاي', 'إزاي'],
+  ['كده', 'كدة']
+];
+
+function generateArabicSpellingVariants(text) {
+  if (!text) return [];
+  const raw = String(text).trim();
+  if (!raw) return [];
+  
+  const variants = new Set();
+  const words = raw.split(/\s+/).filter(Boolean);
+  
+  // 1. Separate attached enclitic suffixes (e.g. "جايلك" -> "جاي لك", "راجعلك" -> "راجع لك")
+  for (let i = 0; i < words.length; i++) {
+    const w = words[i];
+    for (let sIdx = 0; sIdx < ARABIC_ATTACHED_SUFFIXES.length; sIdx++) {
+      const suf = ARABIC_ATTACHED_SUFFIXES[sIdx];
+      if (w.length > suf.length + 1 && w.endsWith(suf)) {
+        const base = w.slice(0, -suf.length);
+        if (base.length >= 2) {
+          const newWords = [...words];
+          newWords[i] = base + ' ' + suf;
+          const variant = newWords.join(' ');
+          if (variant !== raw) variants.add(variant);
+        }
+      }
+    }
+  }
+
+  // 2. Combine separated enclitic suffixes (e.g. "جاي لك" -> "جايلك", "راجع لك" -> "راجعلك")
+  for (let i = 0; i < words.length - 1; i++) {
+    const w1 = words[i];
+    const w2 = words[i + 1];
+    if (ARABIC_ATTACHED_SUFFIXES.includes(w2) && w1.length >= 2) {
+      const newWords = [...words];
+      newWords[i] = w1 + w2;
+      newWords.splice(i + 1, 1);
+      const variant = newWords.join(' ');
+      if (variant !== raw) variants.add(variant);
+    }
+  }
+
+  // 3. Dialect replacements (e.g. "مفيش" <-> "ما فيش", "علشان" <-> "عشان")
+  for (let i = 0; i < ARABIC_DIALECT_PAIRS.length; i++) {
+    const [p1, p2] = ARABIC_DIALECT_PAIRS[i];
+    if (raw.includes(p1)) {
+      variants.add(raw.split(p1).join(p2));
+    }
+    if (raw.includes(p2)) {
+      variants.add(raw.split(p2).join(p1));
+    }
+  }
+
+  return Array.from(variants);
+}
+
 function francoToArabic(text) {
   if (!text) return '';
   let s = String(text).trim();
@@ -6539,6 +6620,22 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    const trimmed = text.trim();
+    const suggestions = [];
+
+    const addSuggestion = (val, label, icon = 'fa-wand-magic-sparkles') => {
+      if (val && val !== trimmed && !suggestions.some(item => item.value === val)) {
+        suggestions.push({ value: val, label: label || val, icon });
+      }
+    };
+
+    // 1. Attached <-> Separated Prepositions, Pronouns & Dialect (e.g. "جايلك" <-> "جاي لك", "مفيش" <-> "ما فيش")
+    const variants = (typeof generateArabicSpellingVariants === 'function') ? generateArabicSpellingVariants(trimmed) : [];
+    variants.forEach(v => {
+      addSuggestion(v, v, 'fa-wand-magic-sparkles');
+    });
+
+    // 2. Active word Franco Translation & Dialect Suggestions
     const cursor = els.intelligentSearch.selectionStart || text.length;
     const words = text.split(/\s+/);
     let currentPos = 0;
@@ -6556,28 +6653,40 @@ document.addEventListener('DOMContentLoaded', () => {
       currentPos = end + 1;
     }
 
-    if (!cleanWord || cleanWord.length < 2) {
-      els.searchSuggestionsChips.classList.add('hidden');
-      els.searchSuggestionsChips.innerHTML = '';
-      return;
+    // Word-level attached <-> separated variants (e.g. cursor is on "جايلك" inside a sentence)
+    if (cleanWord && cleanWord.length >= 3 && typeof generateArabicSpellingVariants === 'function') {
+      const wordVars = generateArabicSpellingVariants(cleanWord);
+      wordVars.forEach(wv => {
+        const fullReplaced = text.slice(0, start) + wv + text.slice(end);
+        addSuggestion(fullReplaced, `${cleanWord} ➔ ${wv}`, 'fa-arrow-right-arrow-left');
+      });
     }
 
-    const suggestions = [];
-    const addSuggestion = (s) => {
-      if (s && !suggestions.some(item => item.text === s)) suggestions.push({ text: s });
-    };
-
-    // 1. Instant Franco Translation Suggestion
+    // Franco translations
     if (/[a-z0-9]/i.test(cleanWord)) {
       const rawTrans = francoToArabic(cleanWord);
-      if (rawTrans) addSuggestion(rawTrans);
-      if (typeof francoToArabicVariants === 'function') {
-        const variants = francoToArabicVariants(cleanWord);
-        variants.forEach(v => { if (v && v !== rawTrans) addSuggestion(v); });
+      if (rawTrans) {
+        const fullTrans = text.slice(0, start) + rawTrans + text.slice(end);
+        addSuggestion(fullTrans, rawTrans, 'fa-language');
       }
-    } else if (state.arabicDictionary && typeof state.arabicDictionary === 'object' && state.arabicDictionary[cleanWord]) {
+      if (typeof francoToArabicVariants === 'function') {
+        const fVars = francoToArabicVariants(cleanWord);
+        fVars.forEach(fv => {
+          if (fv && fv !== rawTrans) {
+            const fullTrans = text.slice(0, start) + fv + text.slice(end);
+            addSuggestion(fullTrans, fv, 'fa-language');
+          }
+        });
+      }
+    }
+
+    // Dictionary spell-check correction
+    if (cleanWord && state.arabicDictionary && typeof state.arabicDictionary === 'object' && state.arabicDictionary[cleanWord]) {
       const arCorrected = state.arabicDictionary[cleanWord];
-      if (arCorrected && arCorrected !== cleanWord) addSuggestion(arCorrected);
+      if (arCorrected && arCorrected !== cleanWord) {
+        const fullCorrected = text.slice(0, start) + arCorrected + text.slice(end);
+        addSuggestion(fullCorrected, arCorrected, 'fa-spell-check');
+      }
     }
 
     if (suggestions.length === 0) {
@@ -6586,9 +6695,10 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    els.searchSuggestionsChips.innerHTML = suggestions.map(s => `
-      <button class="suggestion-chip" type="button" data-replacement="${escapeHtml(s.text)}" data-start="${start}" data-end="${end}">
-        <i class="fa-solid fa-language" style="display:inline-block; vertical-align:-1px; margin-left:4px; color:#2563eb;"></i> ${escapeHtml(s.text)}
+    els.searchSuggestionsChips.innerHTML = suggestions.slice(0, 6).map(s => `
+      <button class="suggestion-chip" type="button" data-replacement="${escapeHtml(s.value)}">
+        <i class="fa-solid ${escapeHtml(s.icon)}" style="display:inline-block; vertical-align:-1px; margin-left:4px; color:#2563eb;"></i>
+        <span>${escapeHtml(s.label)}</span>
       </button>
     `).join('');
 
@@ -6598,19 +6708,13 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const rep = btn.dataset.replacement;
-        const sPos = parseInt(btn.dataset.start);
-        const ePos = parseInt(btn.dataset.end);
+        if (!rep) return;
 
-        const fullText = els.intelligentSearch.value;
-        const newText = fullText.slice(0, sPos) + rep + fullText.slice(ePos);
-        els.intelligentSearch.value = newText;
-
-        const newCursor = sPos + rep.length;
-        els.intelligentSearch.setSelectionRange(newCursor, newCursor);
+        els.intelligentSearch.value = rep;
         els.intelligentSearch.focus();
 
-        renderSearchWordSuggestions(newText);
-        performIntelligentSearch(newText);
+        renderSearchWordSuggestions(rep);
+        performIntelligentSearch(rep);
       });
     });
   }
@@ -6778,7 +6882,11 @@ document.addEventListener('DOMContentLoaded', () => {
       ? (typeof francoToArabicVariants === 'function' ? francoToArabicVariants(searchTarget) : [francoToArabic(searchTarget)].filter(Boolean))
       : [];
     
-    const searchTargets = [qNorm, ...qFrancoVariants].filter(Boolean);
+    const spellingVariants = (typeof generateArabicSpellingVariants === 'function')
+      ? generateArabicSpellingVariants(searchTarget).map(normalizeArabic)
+      : [];
+
+    const searchTargets = Array.from(new Set([qNorm, ...spellingVariants, ...qFrancoVariants].filter(Boolean)));
     const qWords = qNorm.split(/\s+/).filter(w => w.length >= 2 || (qNorm.length < 3 && w.length >= 1));
     const qWordCount = qWords.length;
 
