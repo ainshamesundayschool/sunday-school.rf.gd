@@ -6880,19 +6880,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchTarget = bibleInfo ? bibleInfo.searchQuery : trimmedQuery;
 
     // 1. INSTANT 0ms LOCAL SEARCH VIA PRE-INDEXED CATALOG & BIBLE DATA (< 2ms total runtime)
-    const qNorm = normalizeArabic(searchTarget);
-    if (!qNorm) return;
-
     const isFrancoInput = /[a-z]/i.test(searchTarget) && !/[\u0600-\u06FF]/.test(searchTarget);
     const qFrancoVariants = isFrancoInput 
       ? (typeof francoToArabicVariants === 'function' ? francoToArabicVariants(searchTarget) : [francoToArabic(searchTarget)].filter(Boolean))
       : [];
     
+    const effectiveArabicTarget = isFrancoInput && qFrancoVariants.length > 0 ? qFrancoVariants[0] : searchTarget;
+    const qNorm = normalizeArabic(effectiveArabicTarget);
+    if (!qNorm) return;
+
     const spellingVariants = (typeof generateArabicSpellingVariants === 'function')
-      ? generateArabicSpellingVariants(searchTarget).map(normalizeArabic)
+      ? generateArabicSpellingVariants(effectiveArabicTarget).map(normalizeArabic)
       : [];
 
-    const searchTargets = Array.from(new Set([qNorm, ...spellingVariants, ...qFrancoVariants].filter(Boolean)));
+    const searchTargets = Array.from(new Set([qNorm, ...qFrancoVariants.map(normalizeArabic), ...spellingVariants].filter(Boolean)));
     const qWords = qNorm.split(/\s+/).filter(w => w.length >= 2 || (qNorm.length < 3 && w.length >= 1));
     const qWordCount = qWords.length;
 
@@ -7124,12 +7125,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderSearchDropdown(songs, query, displayLimit = 15, isApiPending = false) {
     activeSearchLimit = displayLimit;
-    const qNorm = normalizeArabic(query);
+    
+    // Resolve Franco query to translated Arabic for accurate lyric matching & highlighting
+    const isFrancoInput = /[a-z]/i.test(query) && !/[\u0600-\u06FF]/.test(query);
+    const qFrancoVariants = isFrancoInput 
+      ? (typeof francoToArabicVariants === 'function' ? francoToArabicVariants(query) : [francoToArabic(query)].filter(Boolean))
+      : [];
+    const effectiveArabicQuery = isFrancoInput && qFrancoVariants.length > 0 ? qFrancoVariants[0] : query;
+    const qNorm = normalizeArabic(effectiveArabicQuery);
     const qWords = qNorm.split(/\s+/).filter(w => w.length >= 2 || (qNorm.length < 3 && w.length >= 1));
 
+    // Also include any secondary Franco variant words for highlighting
+    const allQueryVariants = [qNorm, ...qFrancoVariants.map(normalizeArabic)].filter(Boolean);
+    const allHighlightWords = Array.from(new Set(allQueryVariants.flatMap(v => v.split(/\s+/)).filter(w => w.length >= 2 || (v.length < 3 && w.length >= 1))));
+
     let francoHeaderHtml = '';
-    if (state.francoAutoTranslate && /[a-z]/i.test(query) && !/[\u0600-\u06FF]/.test(query)) {
-      const rawTranslated = francoToArabic(query);
+    if (state.francoAutoTranslate && isFrancoInput) {
+      const rawTranslated = qFrancoVariants[0] || francoToArabic(query);
       if (rawTranslated) {
         francoHeaderHtml = `<div class="franco-translation-header"><i class="fa-solid fa-language" style="display:inline-block; vertical-align:-1px; margin-left:6px; color:#2563eb;"></i> <strong>${escapeHtml(rawTranslated)}</strong></div>`;
       }
@@ -7137,7 +7149,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let suggestionBannerHtml = '';
     const spellingVariants = (typeof generateArabicSpellingVariants === 'function')
-      ? generateArabicSpellingVariants(query)
+      ? generateArabicSpellingVariants(effectiveArabicQuery)
       : [];
 
     if (spellingVariants.length > 0) {
@@ -7173,11 +7185,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const isBibleItem = Boolean((s.is_bible === true || s.is_bible === '1' || s.is_bible === 1) || (s.chapter_number !== undefined && s.chapter_number !== null && s.chapter_number !== '') || s.type === 'bible');
 
         // Highlighted title
-        const titleHighlighted = highlightMatches(s.title || '', qNorm, qWords);
+        const titleHighlighted = highlightMatches(s.title || '', qNorm, allHighlightWords);
 
         // Check whether match was in title or lyrics/slides
         const titleNorm = normalizeArabic(s.title || '');
-        const matchIsInTitle = qNorm && (titleNorm.includes(qNorm) || (qWords.length > 1 && qWords.every(w => titleNorm.includes(w))));
+        const matchIsInTitle = qNorm && (titleNorm.includes(qNorm) || (allHighlightWords.length > 1 && allHighlightWords.every(w => titleNorm.includes(w))));
         const matchIsInLyrics = allLines.length > 0;
 
         // Build lyric preview snippet
@@ -7187,7 +7199,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (allLines.length > 0) {
           try {
-            const bestMatch = findBestLyricMatch(allLines, qNorm, qWords);
+            const bestMatch = findBestLyricMatch(allLines, qNorm, allHighlightWords);
             if (bestMatch) {
               matchedLineIdx = bestMatch.idx;
               isConsecutiveMatch = Boolean(bestMatch.isConsecutive);
@@ -7198,7 +7210,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const lineNum = startIdx + idx + 1;
                 const isMatchedLine = (startIdx + idx) === bestMatch.idx;
                 const formattedLine = isMatchedLine
-                  ? highlightMatches(line, qNorm, qWords)
+                  ? highlightMatches(line, qNorm, allHighlightWords)
                   : escapeHtml(line);
                 
                 // Show verse or line badge
