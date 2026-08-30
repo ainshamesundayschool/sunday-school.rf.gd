@@ -7137,7 +7137,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Also include any secondary Franco variant words for highlighting
     const allQueryVariants = [qNorm, ...qFrancoVariants.map(normalizeArabic)].filter(Boolean);
-    const allHighlightWords = Array.from(new Set(allQueryVariants.flatMap(v => v.split(/\s+/)).filter(w => w.length >= 2 || (v.length < 3 && w.length >= 1))));
+    const allHighlightWords = Array.from(new Set(allQueryVariants.flatMap(v => v.split(/\s+/)).filter(w => w && (w.length >= 2 || (qNorm.length < 3 && w.length >= 1)))));
 
     let francoHeaderHtml = '';
     if (state.francoAutoTranslate && isFrancoInput) {
