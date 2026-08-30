@@ -2294,23 +2294,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function applyInitialUIState() {
-    const savedCustomDataUrl = localStorage.getItem('sunday_school_custom_font_dataurl');
-    const savedCustomFontName = localStorage.getItem('sunday_school_custom_font_name');
-    if (savedCustomDataUrl && savedCustomFontName) {
-      let fontStyleEl = document.getElementById('custom-uploaded-font-style');
-      if (!fontStyleEl) {
-        fontStyleEl = document.createElement('style');
-        fontStyleEl.id = 'custom-uploaded-font-style';
-        document.head.appendChild(fontStyleEl);
-      }
-      fontStyleEl.textContent = `@font-face { font-family: "${savedCustomFontName}"; src: url("${savedCustomDataUrl}"); }`;
-      if (els.customFontFileName) {
-        let displayName = savedCustomFontName.replace(/^CustomFont_/, '').replace(/_/g, ' ');
-        els.customFontFileName.textContent = displayName;
-      }
-    }
-
+  function updateControlPanelFromState() {
     if (state.selectedFont) {
       document.documentElement.style.setProperty('--slide-font-family', state.selectedFont);
       if (els.obsLineText) els.obsLineText.style.fontFamily = state.selectedFont;
@@ -2431,6 +2415,28 @@ document.addEventListener('DOMContentLoaded', () => {
     chromaChips.forEach(c => c.classList.toggle('active', c.dataset.chroma === state.chromaKey));
 
     if (els.obsOverlay) els.obsOverlay.setAttribute('data-chroma', state.chromaKey);
+    if (typeof renderEffectPresets === 'function') renderEffectPresets();
+  }
+
+  function applyInitialUIState() {
+    const savedCustomDataUrl = localStorage.getItem('sunday_school_custom_font_dataurl');
+    const savedCustomFontName = localStorage.getItem('sunday_school_custom_font_name');
+    if (savedCustomDataUrl && savedCustomFontName) {
+      let fontStyleEl = document.getElementById('custom-uploaded-font-style');
+      if (!fontStyleEl) {
+        fontStyleEl = document.createElement('style');
+        fontStyleEl.id = 'custom-uploaded-font-style';
+        document.head.appendChild(fontStyleEl);
+      }
+      fontStyleEl.textContent = `@font-face { font-family: "${savedCustomFontName}"; src: url("${savedCustomDataUrl}"); }`;
+      if (els.customFontFileName) {
+        let displayName = savedCustomFontName.replace(/^CustomFont_/, '').replace(/_/g, ' ');
+        els.customFontFileName.textContent = displayName;
+      }
+    }
+
+    updateControlPanelFromState();
+
     loadPlaylists();
     renderRecentSession();
     checkOfflineStatusAndToggleInstallBtn();
@@ -3559,9 +3565,304 @@ document.addEventListener('DOMContentLoaded', () => {
         if (targetTab === 'tab-templates') {
           if (typeof renderTemplatesCatalog === 'function') renderTemplatesCatalog();
           if (typeof renderUserTemplatesList === 'function') renderUserTemplatesList();
+        } else if (targetTab === 'tab-effects') {
+          if (typeof renderEffectPresets === 'function') renderEffectPresets();
         }
       });
     });
+
+    // ==========================================
+    // TEXT EFFECTS TEMPLATES (AA PREVIEW TILES)
+    // ==========================================
+    const BUILTIN_EFFECT_PRESETS = [
+      {
+        id: 'eff-white-classic',
+        name: 'أبيض كلاسيكي',
+        textColor: '#ffffff',
+        strokeWidth: 0,
+        strokeColor: '#000000',
+        shadowColor: 'rgba(0, 0, 0, 0.95)',
+        shadowBlur: 14,
+        shadowDistance: 4,
+        shadowAngle: 90,
+        fontWeight: '800'
+      },
+      {
+        id: 'eff-royal-gold',
+        name: 'ذهبي ملكي',
+        textColor: '#fcd34d',
+        strokeWidth: 1.5,
+        strokeColor: '#78350f',
+        shadowColor: '#000000',
+        shadowBlur: 16,
+        shadowDistance: 5,
+        shadowAngle: 120,
+        fontWeight: '800'
+      },
+      {
+        id: 'eff-cinematic-black',
+        name: 'إطار سينمائي',
+        textColor: '#ffffff',
+        strokeWidth: 3.5,
+        strokeColor: '#000000',
+        shadowColor: '#000000',
+        shadowBlur: 20,
+        shadowDistance: 6,
+        shadowAngle: 135,
+        fontWeight: '900'
+      },
+      {
+        id: 'eff-sky-glow',
+        name: 'توهج سماوي',
+        textColor: '#e0f2fe',
+        strokeWidth: 1.2,
+        strokeColor: '#0369a1',
+        shadowColor: '#0284c7',
+        shadowBlur: 22,
+        shadowDistance: 2,
+        shadowAngle: 90,
+        fontWeight: '800'
+      },
+      {
+        id: 'eff-emerald-glow',
+        name: 'نيون زمردي',
+        textColor: '#a7f3d0',
+        strokeWidth: 1.5,
+        strokeColor: '#065f46',
+        shadowColor: '#059669',
+        shadowBlur: 24,
+        shadowDistance: 3,
+        shadowAngle: 110,
+        fontWeight: '800'
+      },
+      {
+        id: 'eff-sunset-fire',
+        name: 'غروب ناري',
+        textColor: '#ffedd5',
+        strokeWidth: 2,
+        strokeColor: '#9a3412',
+        shadowColor: '#ea580c',
+        shadowBlur: 18,
+        shadowDistance: 5,
+        shadowAngle: 90,
+        fontWeight: '800'
+      },
+      {
+        id: 'eff-crystal-silver',
+        name: 'فضي كريستال',
+        textColor: '#f8fafc',
+        strokeWidth: 1.5,
+        strokeColor: '#334155',
+        shadowColor: '#0f172a',
+        shadowBlur: 15,
+        shadowDistance: 4,
+        shadowAngle: 145,
+        fontWeight: '700'
+      },
+      {
+        id: 'eff-kids-vibrant',
+        name: 'أصفر مبهج',
+        textColor: '#fef08a',
+        strokeWidth: 3,
+        strokeColor: '#713f12',
+        shadowColor: '#854d0e',
+        shadowBlur: 12,
+        shadowDistance: 5,
+        shadowAngle: 90,
+        fontWeight: '900'
+      },
+      {
+        id: 'eff-purple-velvet',
+        name: 'أرجواني ملكي',
+        textColor: '#f3e8ff',
+        strokeWidth: 2,
+        strokeColor: '#581c87',
+        shadowColor: '#7e22ce',
+        shadowBlur: 20,
+        shadowDistance: 4,
+        shadowAngle: 135,
+        fontWeight: '800'
+      },
+      {
+        id: 'eff-ruby-red',
+        name: 'ياقوتي مشع',
+        textColor: '#ffe4e6',
+        strokeWidth: 2,
+        strokeColor: '#881337',
+        shadowColor: '#e11d48',
+        shadowBlur: 22,
+        shadowDistance: 4,
+        shadowAngle: 100,
+        fontWeight: '800'
+      },
+      {
+        id: 'eff-3d-extrude',
+        name: 'ثلاثي الأبعاد',
+        textColor: '#ffffff',
+        strokeWidth: 1,
+        strokeColor: '#1e293b',
+        shadowColor: '#000000',
+        shadowBlur: 4,
+        shadowDistance: 10,
+        shadowAngle: 135,
+        fontWeight: '900'
+      },
+      {
+        id: 'eff-soft-ambient',
+        name: 'إشراقة دافئة',
+        textColor: '#fef3c7',
+        strokeWidth: 0,
+        strokeColor: '#000000',
+        shadowColor: '#d97706',
+        shadowBlur: 26,
+        shadowDistance: 0,
+        shadowAngle: 0,
+        fontWeight: '800'
+      }
+    ];
+
+    const getCustomEffectPresets = () => {
+      try {
+        const raw = localStorage.getItem('sunday_school_custom_effect_presets');
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        return [];
+      }
+    };
+
+    const saveCustomEffectPreset = (name) => {
+      if (!name || !name.trim()) return;
+      const list = getCustomEffectPresets();
+      const newPreset = {
+        id: 'eff_custom_' + Date.now(),
+        name: name.trim(),
+        isCustom: true,
+        textColor: state.styleOptions.textColor || '#ffffff',
+        strokeWidth: state.styleOptions.strokeWidth !== undefined ? state.styleOptions.strokeWidth : 0,
+        strokeColor: state.styleOptions.strokeColor || '#000000',
+        shadowColor: state.styleOptions.shadowColor || '#000000',
+        shadowBlur: state.styleOptions.shadowBlur !== undefined ? state.styleOptions.shadowBlur : 18,
+        shadowDistance: state.styleOptions.shadowDistance !== undefined ? state.styleOptions.shadowDistance : 4,
+        shadowAngle: state.styleOptions.shadowAngle !== undefined ? state.styleOptions.shadowAngle : 90,
+        fontWeight: state.styleOptions.fontWeight || '800'
+      };
+      list.push(newPreset);
+      try {
+        localStorage.setItem('sunday_school_custom_effect_presets', JSON.stringify(list));
+      } catch (e) {}
+      renderEffectPresets();
+      showToast(`تم حفظ قالب التأثير "${newPreset.name}" بنجاح! 💾`);
+    };
+
+    const deleteCustomEffectPreset = (id) => {
+      let list = getCustomEffectPresets();
+      list = list.filter(p => p.id !== id);
+      try {
+        localStorage.setItem('sunday_school_custom_effect_presets', JSON.stringify(list));
+      } catch (e) {}
+      renderEffectPresets();
+      showToast('تم حذف قالب التأثير المخصص');
+    };
+
+    const calculateAaShadowCSS = (p) => {
+      const sColor = p.shadowColor || 'rgba(0,0,0,0.85)';
+      const sBlur = p.shadowBlur !== undefined ? p.shadowBlur : 14;
+      const sDist = p.shadowDistance !== undefined ? p.shadowDistance : 4;
+      const sAngle = p.shadowAngle !== undefined ? p.shadowAngle : 90;
+
+      if (sBlur === 0 && sDist === 0) return 'none';
+      const rad = sAngle * (Math.PI / 180);
+      const offX = Math.round(sDist * Math.cos(rad) * 0.55);
+      const offY = Math.round(sDist * Math.sin(rad) * 0.55);
+      const blur = Math.max(1, Math.round(sBlur * 0.5));
+      return `${offX}px ${offY}px ${blur}px ${sColor}`;
+    };
+
+    const renderEffectPresets = () => {
+      const grid = document.getElementById('effect-presets-grid');
+      if (!grid) return;
+
+      const allPresets = [...BUILTIN_EFFECT_PRESETS, ...getCustomEffectPresets()];
+      const cur = state.styleOptions;
+
+      grid.innerHTML = allPresets.map(p => {
+        const shadowCss = calculateAaShadowCSS(p);
+        const strokeW = (p.strokeWidth || 0) * 0.5;
+        const strokeC = p.strokeColor || '#000000';
+        const textC = p.textColor || '#ffffff';
+        const fontW = p.fontWeight || '800';
+
+        const isMatch = (
+          (cur.textColor || '#ffffff').toLowerCase() === textC.toLowerCase() &&
+          Number(cur.strokeWidth || 0) === Number(p.strokeWidth || 0) &&
+          Number(cur.shadowBlur || 0) === Number(p.shadowBlur || 0)
+        );
+
+        return `
+          <div class="effect-preset-tile ${isMatch ? 'active' : ''}" data-id="${escapeHtml(p.id)}" title="${escapeHtml(p.name)}">
+            <div class="effect-preset-aa-box" style="
+              color: ${escapeHtml(textC)};
+              font-weight: ${escapeHtml(fontW)};
+              text-shadow: ${escapeHtml(shadowCss)};
+              -webkit-text-stroke: ${strokeW > 0 ? `${strokeW}px ${escapeHtml(strokeC)}` : 'none'};
+            ">
+              Aa
+            </div>
+            <div class="effect-preset-title">${escapeHtml(p.name)}</div>
+            ${p.isCustom ? `
+              <button type="button" class="effect-preset-del-btn" data-id="${escapeHtml(p.id)}" title="حذف القالب">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+
+      // Click on tile to apply preset
+      grid.querySelectorAll('.effect-preset-tile').forEach(tile => {
+        tile.addEventListener('click', (e) => {
+          if (e.target.closest('.effect-preset-del-btn')) return;
+          const id = tile.dataset.id;
+          const all = [...BUILTIN_EFFECT_PRESETS, ...getCustomEffectPresets()];
+          const preset = all.find(p => p.id === id);
+          if (preset) {
+            state.styleOptions.textColor = preset.textColor || '#ffffff';
+            state.styleOptions.strokeWidth = preset.strokeWidth !== undefined ? preset.strokeWidth : 0;
+            state.styleOptions.strokeColor = preset.strokeColor || '#000000';
+            state.styleOptions.shadowColor = preset.shadowColor || '#000000';
+            state.styleOptions.shadowBlur = preset.shadowBlur !== undefined ? preset.shadowBlur : 18;
+            state.styleOptions.shadowDistance = preset.shadowDistance !== undefined ? preset.shadowDistance : 4;
+            state.styleOptions.shadowAngle = preset.shadowAngle !== undefined ? preset.shadowAngle : 90;
+            if (preset.fontWeight) state.styleOptions.fontWeight = preset.fontWeight;
+
+            updateControlPanelFromState();
+            saveUserSettings();
+            syncLiveState(false, false);
+            renderEffectPresets();
+            showToast(`تم تطبيق تأثير "${preset.name}" بنجاح! ✨`);
+          }
+        });
+      });
+
+      // Delete custom preset button
+      grid.querySelectorAll('.effect-preset-del-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = btn.dataset.id;
+          deleteCustomEffectPreset(id);
+        });
+      });
+    };
+
+    const btnSaveCustomEffect = document.getElementById('btn-save-custom-effect');
+    if (btnSaveCustomEffect) {
+      btnSaveCustomEffect.addEventListener('click', () => {
+        const name = prompt('أدخل اسماً لقالب التأثير الجديد:', `تأثير ${getCustomEffectPresets().length + 1}`);
+        if (name && name.trim()) {
+          saveCustomEffectPreset(name.trim());
+        }
+      });
+    }
 
     // ----------------------------------------------------
     // USER CUSTOM TEMPLATES MANAGER (ALL 4 SETTINGS TABS)
@@ -5251,7 +5552,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const builtinList = (state.availableTemplates || []).map(t => ({
         ...t,
         isCustom: false,
-        categoryKey: t.categoryKey || (t.category === 'المؤتمرات' ? 'conferences' : (t.category === 'الكتاب المقدس' ? 'bible' : 'services'))
+        categoryKey: t.categoryKey || (t.category === 'المؤتمرات' ? 'conferences' : (t.category === 'خلفيات وسلايدات' ? 'backgrounds' : 'conferences'))
       }));
 
       const customList = getSavedTemplates().map(t => ({
@@ -5270,8 +5571,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const counts = {
         all: allTemplates.length,
         conferences: allTemplates.filter(t => t.categoryKey === 'conferences').length,
-        services: allTemplates.filter(t => t.categoryKey === 'services').length,
-        bible: allTemplates.filter(t => t.categoryKey === 'bible').length,
+        backgrounds: allTemplates.filter(t => t.categoryKey === 'backgrounds').length,
         custom: customList.length
       };
 
@@ -5280,10 +5580,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (countAllEl) countAllEl.textContent = counts.all;
       const countConfEl = document.getElementById('tmpl-cat-count-conferences');
       if (countConfEl) countConfEl.textContent = counts.conferences;
-      const countServEl = document.getElementById('tmpl-cat-count-services');
-      if (countServEl) countServEl.textContent = counts.services;
-      const countBibleEl = document.getElementById('tmpl-cat-count-bible');
-      if (countBibleEl) countBibleEl.textContent = counts.bible;
+      const countBgEl = document.getElementById('tmpl-cat-count-backgrounds');
+      if (countBgEl) countBgEl.textContent = counts.backgrounds;
       const countCustEl = document.getElementById('tmpl-cat-count-custom');
       if (countCustEl) countCustEl.textContent = counts.custom;
 
@@ -5306,8 +5604,21 @@ document.addEventListener('DOMContentLoaded', () => {
       container.innerHTML = filtered.map(t => {
         let thumbHtml = '';
         const videoSrc = t.thumbnailUrl || t.standby || t.slidesBg;
+        const hasVarieties = Boolean(t.varieties && Array.isArray(t.varieties) && t.varieties.length > 0);
         
-        if ((t.thumbnailType === 'video' || (videoSrc && /\.(mp4|webm)$/i.test(videoSrc))) && !t.isCustom) {
+        if (hasVarieties) {
+          const defaultVar = t.varieties[0];
+          thumbHtml = `
+            <div class="template-thumb-container">
+              <img class="template-thumb-img" id="tmpl-thumb-img-${escapeHtml(t.id)}" src="${escapeHtml(defaultVar.url)}" alt="${escapeHtml(t.name)}">
+              <span class="template-badge-pill"><i class="fa-solid fa-layer-group" style="margin-left:3px;"></i> ${escapeHtml(t.category || 'خلفيات وسلايدات')} (${t.varieties.length} خلفية)</span>
+              <div class="template-components-chips">
+                <span class="template-comp-chip" id="tmpl-selected-var-badge-${escapeHtml(t.id)}"><i class="fa-solid fa-palette"></i> ${escapeHtml(defaultVar.name)}</span>
+                <span class="template-comp-chip"><i class="fa-solid fa-image"></i> خلفية شرائح & انتظار</span>
+              </div>
+            </div>
+          `;
+        } else if ((t.thumbnailType === 'video' || (videoSrc && /\.(mp4|webm)$/i.test(videoSrc))) && !t.isCustom) {
           thumbHtml = `
             <div class="template-thumb-container">
               <video class="template-thumb-video" src="${escapeHtml(videoSrc)}" autoplay loop muted playsinline preload="metadata"></video>
@@ -5333,6 +5644,9 @@ document.addEventListener('DOMContentLoaded', () => {
           `;
         }
 
+        const initialVarUrl = hasVarieties ? t.varieties[0].url : '';
+        const initialVarName = hasVarieties ? t.varieties[0].name : '';
+
         return `
           <div class="template-preview-card" data-id="${escapeHtml(t.id || t.name)}" data-iscustom="${t.isCustom ? '1' : '0'}">
             ${thumbHtml}
@@ -5344,8 +5658,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
               </div>
               ${t.desc ? `<div class="template-card-desc">${escapeHtml(t.desc)}</div>` : ''}
+
+              ${hasVarieties ? `
+                <div class="template-varieties-wrap">
+                  <div class="template-varieties-label">
+                    <i class="fa-solid fa-palette"></i> النمط المختار: <b id="tmpl-selected-var-name-${escapeHtml(t.id)}" style="color:#2563eb;">${escapeHtml(initialVarName)}</b>
+                  </div>
+                  <div class="template-varieties-bar">
+                    ${t.varieties.map((v, vIdx) => `
+                      <button type="button" class="template-variety-circle ${vIdx === 0 ? 'active' : ''}" data-tmpl-id="${escapeHtml(t.id)}" data-url="${escapeHtml(v.url)}" data-name="${escapeHtml(v.name)}" title="${escapeHtml(v.name)}" style="background-image: url('${escapeHtml(v.url)}');"></button>
+                    `).join('')}
+                  </div>
+                </div>
+              ` : ''}
+
               <div class="template-card-footer">
-                <button type="button" class="btn-apply-template-card btn btn-sm btn-primary" data-name="${escapeHtml(t.name)}" data-id="${escapeHtml(t.id || '')}" data-iscustom="${t.isCustom ? '1' : '0'}" style="background:#2563eb; color:#fff; font-weight:700; padding:6px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+                <button type="button" class="btn-apply-template-card btn btn-sm btn-primary" data-name="${escapeHtml(t.name)}" data-id="${escapeHtml(t.id || '')}" data-iscustom="${t.isCustom ? '1' : '0'}" ${hasVarieties ? `data-selected-variety-url="${escapeHtml(initialVarUrl)}" data-selected-variety-name="${escapeHtml(initialVarName)}"` : ''} style="background:#2563eb; color:#fff; font-weight:700; padding:6px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
                   <i class="icon-star-sparkle"></i> تطبيق القالب
                 </button>
                 ${t.isCustom ? `
@@ -5364,6 +5692,40 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
       }).join('');
 
+      // Add variety circle click listeners
+      container.querySelectorAll('.template-variety-circle').forEach(circle => {
+        circle.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const tmplId = circle.dataset.tmplId;
+          const url = circle.dataset.url;
+          const name = circle.dataset.name;
+
+          const bar = circle.closest('.template-varieties-bar');
+          if (bar) {
+            bar.querySelectorAll('.template-variety-circle').forEach(c => c.classList.remove('active'));
+          }
+          circle.classList.add('active');
+
+          const card = circle.closest('.template-preview-card');
+          if (card) {
+            const thumbImg = card.querySelector(`#tmpl-thumb-img-${tmplId}`);
+            if (thumbImg) thumbImg.src = url;
+
+            const nameEl = card.querySelector(`#tmpl-selected-var-name-${tmplId}`);
+            if (nameEl) nameEl.textContent = name;
+
+            const badgeEl = card.querySelector(`#tmpl-selected-var-badge-${tmplId}`);
+            if (badgeEl) badgeEl.innerHTML = `<i class="fa-solid fa-palette"></i> ${escapeHtml(name)}`;
+
+            const applyBtn = card.querySelector('.btn-apply-template-card');
+            if (applyBtn) {
+              applyBtn.dataset.selectedVarietyUrl = url;
+              applyBtn.dataset.selectedVarietyName = name;
+            }
+          }
+        });
+      });
+
       // Add click listeners to apply buttons
       container.querySelectorAll('.btn-apply-template-card').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -5377,13 +5739,23 @@ document.addEventListener('DOMContentLoaded', () => {
           } else {
             const tmpl = (state.availableTemplates || []).find(t => t.id === id || t.name === name);
             if (tmpl) {
-              if (tmpl.standby) {
+              const selectedVarUrl = btn.dataset.selectedVarietyUrl;
+              const selectedVarName = btn.dataset.selectedVarietyName;
+
+              if (selectedVarUrl) {
                 state.standbyConfig.type = 'template';
-                state.standbyConfig.url = tmpl.standby;
-              }
-              if (tmpl.slidesBg) {
+                state.standbyConfig.url = selectedVarUrl;
                 state.slidesBgConfig.type = 'template';
-                state.slidesBgConfig.url = tmpl.slidesBg;
+                state.slidesBgConfig.url = selectedVarUrl;
+              } else {
+                if (tmpl.standby) {
+                  state.standbyConfig.type = 'template';
+                  state.standbyConfig.url = tmpl.standby;
+                }
+                if (tmpl.slidesBg) {
+                  state.slidesBgConfig.type = 'template';
+                  state.slidesBgConfig.url = tmpl.slidesBg;
+                }
               }
               if (tmpl.stringer) {
                 state.transitionConfig.type = 'stinger';
@@ -5404,7 +5776,7 @@ document.addEventListener('DOMContentLoaded', () => {
               saveUserSettings();
               saveMediaConfig();
               syncLiveState(false, false, { triggerTransition: true });
-              showToast(`تم تطبيق قالب "${tmpl.name}" بالكامل! `);
+              showToast(`تم تطبيق قالب "${tmpl.name}" ${selectedVarName ? `(${selectedVarName})` : ''} بالكامل! `);
             }
           }
         });
@@ -5696,19 +6068,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
           const bgSelect = document.getElementById('slides-bg-template-select');
           if (bgSelect) {
-            bgSelect.innerHTML = data.templates
-              .filter(t => t.slidesBg)
-              .map(t => `<option value="${t.slidesBg}">${escapeHtml(t.name)} ${t.category ? `(${escapeHtml(t.category)})` : ''}</option>`)
-              .join('');
+            let bgOptionsHtml = '';
+            data.templates.forEach(t => {
+              if (t.varieties && Array.isArray(t.varieties) && t.varieties.length > 0) {
+                t.varieties.forEach(v => {
+                  bgOptionsHtml += `<option value="${escapeHtml(v.url)}">${escapeHtml(t.name)} - ${escapeHtml(v.name)}</option>`;
+                });
+              } else if (t.slidesBg) {
+                bgOptionsHtml += `<option value="${escapeHtml(t.slidesBg)}">${escapeHtml(t.name)} ${t.category ? `(${escapeHtml(t.category)})` : ''}</option>`;
+              }
+            });
+            bgSelect.innerHTML = bgOptionsHtml;
             if (state.slidesBgConfig?.url) bgSelect.value = state.slidesBgConfig.url;
           }
 
           const sbSelect = document.getElementById('standby-template-select');
           if (sbSelect) {
-            sbSelect.innerHTML = data.templates
-              .filter(t => t.standby)
-              .map(t => `<option value="${t.standby}">${escapeHtml(t.name)} ${t.category ? `(${escapeHtml(t.category)})` : ''}</option>`)
-              .join('');
+            let sbOptionsHtml = '';
+            data.templates.forEach(t => {
+              if (t.varieties && Array.isArray(t.varieties) && t.varieties.length > 0) {
+                t.varieties.forEach(v => {
+                  sbOptionsHtml += `<option value="${escapeHtml(v.url)}">${escapeHtml(t.name)} - ${escapeHtml(v.name)}</option>`;
+                });
+              } else if (t.standby) {
+                sbOptionsHtml += `<option value="${escapeHtml(t.standby)}">${escapeHtml(t.name)} ${t.category ? `(${escapeHtml(t.category)})` : ''}</option>`;
+              }
+            });
+            sbSelect.innerHTML = sbOptionsHtml;
             if (state.standbyConfig?.url) sbSelect.value = state.standbyConfig.url;
           }
 
@@ -5750,6 +6136,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateTransitionUI();
     renderBuiltinTemplates();
     fetchServerTemplates();
+    renderEffectPresets();
 
     // Chroma Chip Group Syncing
     const chromaChips = document.querySelectorAll('.chroma-chip');

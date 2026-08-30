@@ -1137,14 +1137,27 @@
     const box = document.getElementById('presenter-box');
     const textEl = document.getElementById('presenter-text');
     const standbyEl = document.getElementById('standby-branding');
+    const standbyFullscreenContainer = document.getElementById('standby-fullscreen-container');
+    const standbyFullscreenImg = document.getElementById('standby-fullscreen-img');
+    const standbyFullscreenVideo = document.getElementById('standby-fullscreen-video');
     const guideV = document.getElementById('snap-guide-v');
     const guideH = document.getElementById('snap-guide-h');
 
     let stateFontSize = 105;
     let lastDragTime = 0;
+    let isDragging = false;
     let currentSlidesBgSrc = '';
     let currentStandbyBgSrc = '';
     let currentStingerSrc = '';
+    let lastProcessedTimestamp = 0;
+    let lastLocalPayloadTime = 0;
+    let lastStyleData = null;
+    let statePresentationLines = [];
+    let currentTextState = null;
+    let _lastAnimSlideText = null;
+    let currentAnimState = null;
+    let currentIsBlankState = false;
+    let currentIsBible = false;
 
     function requestAutoFullscreen() {
       if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
@@ -1384,7 +1397,7 @@
       fitTextToSafeArea();
     });
 
-    let lastStyleData = {};
+    // Dynamic Shadow State
 
     function applyDynamicShadow(newData) {
       if (newData) {
@@ -1449,10 +1462,8 @@
       });
     }
 
-    let currentIsBible = false;
     let _uniformFontSize = null;
     let _uniformSongKey = '';
-    let _lastAnimSlideText = '';
 
     function fitTextToSafeArea(isBible = currentIsBible) {
       if (!textEl) return;
@@ -1559,9 +1570,7 @@
       }
     })();
 
-    let currentTextState = '';
-    let currentAnimState = '';
-    let currentIsBlankState = false;
+    // AUTO FULLSCREEN ON SECONDARY SCREEN VIA WINDOW MANAGEMENT API
 
     // AUTO FULLSCREEN ON SECONDARY SCREEN VIA WINDOW MANAGEMENT API
     let _targetScreen = null;
@@ -1618,7 +1627,6 @@
     window.addEventListener('pointerdown', requestAutoFullscreen);
 
     // DRAGGING LOGIC (ONLY ENABLED IN GREEN SCREEN CHROMA MODE)
-    let isDragging = false;
     let dragStartX = 0;
     let dragStartY = 0;
     let initialXPct = 50;
@@ -1805,6 +1813,11 @@
     function applyState(data, source = 'local') {
       if (!data || typeof data !== 'object') return;
 
+      const isStandbyMode = Boolean(data.isStandbyMode || data.isStandby || (data.type === 'STANDBY'));
+      const isBlankMode = Boolean(data.isBlank || data.is_blank);
+      const hasTextContent = Boolean(data.text && String(data.text).trim() && !isBlankMode && !isStandbyMode);
+      const hasText = hasTextContent;
+
       if (data.fontSize) {
         stateFontSize = data.fontSize;
       }
@@ -1822,6 +1835,9 @@
       const textEl = document.getElementById('presenter-text');
       const box = document.getElementById('presenter-box');
       const standbyEl = document.getElementById('standby-branding');
+      const standbyFullscreenContainer = document.getElementById('standby-fullscreen-container');
+      const standbyFullscreenImg = document.getElementById('standby-fullscreen-img');
+      const standbyFullscreenVideo = document.getElementById('standby-fullscreen-video');
       const animType = data.anim || 'fade';
 
       if (!textEl || !box) return;
@@ -1949,7 +1965,7 @@
         }
       }
 
-      const hasText = Boolean(data.text && String(data.text).trim() && !data.isBlank);
+
 
       const logoImg = document.querySelector('.standby-logo');
       if (logoImg && data) {

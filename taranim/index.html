@@ -473,9 +473,22 @@
             </div>
           </div>
 
-          <!-- TAB 2: EFFECTS (SHADOW & STROKE) -->
+          <!-- TAB 2: EFFECTS (SHADOW, STROKE, & EFFECT PRESETS) -->
           <div id="tab-effects" class="style-tab-content hidden">
-            <div class="style-card">
+            <!-- 1. TEXT EFFECTS TEMPLATES (AA PREVIEW TILES) -->
+            <div class="style-card effect-presets-card">
+              <div class="style-card-title" style="display:flex; align-items:center; justify-content:space-between;">
+                <span><i class="fa-solid fa-wand-magic-sparkles"></i> قوالب وتأثيرات النصوص الجاهزة</span>
+                <button type="button" id="btn-save-custom-effect" class="btn btn-sm btn-secondary" style="font-size:0.73rem; padding:4px 9px; border-radius:6px; font-weight:700; display:flex; align-items:center; gap:4px; background:rgba(37, 99, 235, 0.12); color:#2563eb; border:1px solid rgba(37, 99, 235, 0.25);" title="حفظ إعدادات اللون والحدود والظل الحالية كقالب جديد">
+                  <i class="fa-solid fa-plus"></i> حفظ الحالي
+                </button>
+              </div>
+              <div class="effect-presets-grid" id="effect-presets-grid">
+                <!-- Dynamically populated from JS with Aa style previews -->
+              </div>
+            </div>
+
+            <div class="style-card" style="margin-top:10px;">
               <div class="style-card-title"><i class="fa-solid fa-border-all"></i> حدود الحروف (Stroke)</div>
               
               <div class="style-grid-2">
@@ -846,11 +859,8 @@
                 <button type="button" class="tmpl-category-btn" data-cat="conferences">
                   <i class="fa-solid fa-calendar-star"></i> المؤتمرات (<span id="tmpl-cat-count-conferences">0</span>)
                 </button>
-                <button type="button" class="tmpl-category-btn" data-cat="services">
-                  <i class="fa-solid fa-church"></i> الاجتماعات والنهضات (<span id="tmpl-cat-count-services">0</span>)
-                </button>
-                <button type="button" class="tmpl-category-btn" data-cat="bible">
-                  <i class="fa-solid fa-book-bible"></i> الكتاب المقدس (<span id="tmpl-cat-count-bible">0</span>)
+                <button type="button" class="tmpl-category-btn" data-cat="backgrounds">
+                  <i class="fa-solid fa-image"></i> خلفيات وسلايدات (<span id="tmpl-cat-count-backgrounds">0</span>)
                 </button>
                 <button type="button" class="tmpl-category-btn" data-cat="custom">
                   <i class="fa-solid fa-user-gear"></i> قوالبي المخصصة (<span id="tmpl-cat-count-custom">0</span>)

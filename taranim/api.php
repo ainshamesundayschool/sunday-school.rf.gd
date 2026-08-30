@@ -45,6 +45,12 @@ if (strpos($parsedUrl, '/api/live') !== false || (isset($_GET['action']) && $_GE
 
 // TEMPLATES DISCOVERY ENDPOINT
 if (isset($_GET['action']) && $_GET['action'] === 'templates') {
+    $jsonFile = file_exists(__DIR__ . '/templates.json') ? __DIR__ . '/templates.json' : (file_exists(__DIR__ . '/../templates.json') ? __DIR__ . '/../templates.json' : null);
+    if ($jsonFile) {
+        header('Content-Type: application/json; charset=utf-8');
+        readfile($jsonFile);
+        exit;
+    }
     $baseDir = __DIR__ . '/Templates';
     $prefix = 'Templates/';
     if (!is_dir($baseDir) && is_dir(__DIR__ . '/../Templates')) {
