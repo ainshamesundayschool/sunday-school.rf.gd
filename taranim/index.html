@@ -831,23 +831,35 @@
               </div>
             </div>
 
-            <!-- SAVED USER TEMPLATES -->
+            <!-- TEMPLATES LIBRARY WITH CATEGORIES & THUMBNAIL PREVIEWS -->
             <div class="style-card" style="margin-top:10px;">
               <div class="style-card-title" style="display:flex; align-items:center; justify-content:space-between;">
-                <span><i class="fa-solid fa-layer-group"></i> القوالب المحفوظة</span>
-                <span id="templates-count-badge" class="counter-text-chip">0</span>
+                <span><i class="fa-solid fa-layer-group"></i> مكتبة القوالب والعروض الجاهزة</span>
+                <span id="templates-total-count-badge" class="counter-text-chip">0</span>
               </div>
               
-              <div id="templates-list-container" style="display:flex; flex-direction:column; gap:8px; margin-top:8px; max-height:220px; overflow-y:auto; padding-right:2px;">
-                <div style="text-align:center; padding:16px; color:var(--text-muted); font-size:0.85rem;">لا توجد قوالب محفوظة حالياً</div>
+              <!-- CATEGORIES FILTER BAR -->
+              <div class="templates-categories-bar" id="templates-categories-bar">
+                <button type="button" class="tmpl-category-btn active" data-cat="all">
+                  <i class="fa-solid fa-layer-group"></i> الكل (<span id="tmpl-cat-count-all">0</span>)
+                </button>
+                <button type="button" class="tmpl-category-btn" data-cat="conferences">
+                  <i class="fa-solid fa-calendar-star"></i> المؤتمرات (<span id="tmpl-cat-count-conferences">0</span>)
+                </button>
+                <button type="button" class="tmpl-category-btn" data-cat="services">
+                  <i class="fa-solid fa-church"></i> الاجتماعات والنهضات (<span id="tmpl-cat-count-services">0</span>)
+                </button>
+                <button type="button" class="tmpl-category-btn" data-cat="bible">
+                  <i class="fa-solid fa-book-bible"></i> الكتاب المقدس (<span id="tmpl-cat-count-bible">0</span>)
+                </button>
+                <button type="button" class="tmpl-category-btn" data-cat="custom">
+                  <i class="fa-solid fa-user-gear"></i> قوالبي المخصصة (<span id="tmpl-cat-count-custom">0</span>)
+                </button>
               </div>
-            </div>
 
-            <!-- BUILTIN SERVICE TEMPLATES -->
-            <div class="style-card" style="margin-top:10px;">
-              <div class="style-card-title"><i class="fa-solid fa-sparkles"></i> قوالب الخدمة الجاهزة</div>
-              <div id="builtin-templates-list" style="display:grid; grid-template-columns:1fr; gap:8px; margin-top:6px;">
-                <!-- Dynamically populated from backend / templates scan -->
+              <!-- TEMPLATES CATALOG GRID (RENDERED DYNAMICALLY WITH THUMBNAILS) -->
+              <div id="templates-catalog-grid" class="templates-catalog-grid">
+                <!-- Dynamically populated from JavaScript -->
               </div>
             </div>
 
@@ -934,6 +946,7 @@
             <span id="current-line-counter" class="counter-text">0 / 0</span>
             <button id="btn-next-line" class="mini-btn-flat" title="السطر التالي"><i class="fa-solid fa-chevron-left"></i></button>
             <button id="btn-split-all-lines" class="mini-btn-flat" title="تقسيم جميع شرائح الترنيمة لسطرين / سطر واحد"><i class="fa-solid fa-equals"></i></button>
+            <span id="active-song-scale-badge" class="song-scale-badge hidden" title="مقام الترنيمة الموسيقي"><i class="fa-solid fa-music"></i> <span id="active-song-scale-text" class="scale-text"></span></span>
 
             <!-- SLIDE JUMP FLOATING POPOVER ATTACHED UNDER COUNTER -->
             <div id="popover-slide-jump" class="dropdown-popover slide-jump-popover hidden">

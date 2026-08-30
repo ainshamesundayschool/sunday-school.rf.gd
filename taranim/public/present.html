@@ -949,8 +949,6 @@
       position: relative;
       isolation: isolate;
       z-index: 5;
-      color: #ffffff !important;
-      text-shadow: none !important;
       transform: none !important;
       font-size: inherit !important;
       font-weight: inherit !important;
@@ -1440,15 +1438,13 @@
 
       const childSegs = Array.from(textEl.querySelectorAll('.obs-line-segment'));
       childSegs.forEach(s => {
-        if (!s.classList.contains('line-highlighted')) {
-          s.style.textShadow = finalShadow;
-          if (scaledStrokeWidth > 0) {
-            s.style.webkitTextStroke = `${scaledStrokeWidth}px ${strokeColor}`;
-            s.style.textStroke = `${scaledStrokeWidth}px ${strokeColor}`;
-          } else {
-            s.style.webkitTextStroke = '0px transparent';
-            s.style.textStroke = '0px transparent';
-          }
+        s.style.textShadow = finalShadow;
+        if (scaledStrokeWidth > 0) {
+          s.style.webkitTextStroke = `${scaledStrokeWidth}px ${strokeColor}`;
+          s.style.textStroke = `${scaledStrokeWidth}px ${strokeColor}`;
+        } else {
+          s.style.webkitTextStroke = '0px transparent';
+          s.style.textStroke = '0px transparent';
         }
       });
     }
