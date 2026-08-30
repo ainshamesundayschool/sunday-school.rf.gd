@@ -13643,8 +13643,12 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
                 <div id="studentModalTitleFooter" style="font-size:0.95rem;font-weight:700;color:var(--text-3);">معلومات
                     الطفل</div>
-                <button class="btn btn-xs btn-outline" id="editStudentBtn" style="padding:4px 8px;font-size:0.72rem;"><i
-                        class="fas fa-edit"></i> تعديل</button>
+                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                    <button class="btn btn-xs btn-outline" id="resetStudentPasswordBtn" style="padding:4px 8px;font-size:0.72rem;color:var(--amber, #f59e0b);border-color:rgba(245,158,11,0.4);"><i
+                            class="fas fa-key"></i> إعادة تعيين كلمة المرور</button>
+                    <button class="btn btn-xs btn-outline" id="editStudentBtn" style="padding:4px 8px;font-size:0.72rem;"><i
+                            class="fas fa-edit"></i> تعديل</button>
+                </div>
             </div>
             <div id="studentDetails" style="margin-bottom:14px"></div>
             <div id="studentModalDeleteFooter" style="display:flex;justify-content:center;margin-top:14px;">
@@ -14638,6 +14642,27 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                     نعم، احذف</button>
                 <button class="btn btn-secondary" id="cancelDeleteStudentBtn" style="flex:1"><i
                         class="fas fa-times"></i> إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset Student Password Modal -->
+    <div class="modal-overlay" id="resetStudentPasswordModal" style="z-index:1000007">
+        <div class="modal modal-sm" style="max-width:400px">
+            <div class="modal-header">
+                <h3><i class="fas fa-key" style="color:var(--amber, #f59e0b)"></i> إعادة تعيين كلمة المرور</h3>
+                <button class="close-btn" id="closeResetStudentPasswordModal">&times;</button>
+            </div>
+            <div style="text-align:center;padding:16px 8px">
+                <div style="width:54px;height:54px;border-radius:50%;background:rgba(245,158,11,0.12);color:var(--amber, #f59e0b);display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin:0 auto 12px auto;">
+                    <i class="fas fa-unlock-alt"></i>
+                </div>
+                <h4 id="resetStudentPasswordName" style="font-size:1.05rem;font-weight:700;margin-bottom:8px">هل أنت متأكد؟</h4>
+                <p style="color:var(--text-3);font-size:0.85rem;line-height:1.5;margin-bottom:0">سيتم حذف كلمة المرور الحالية، وعند تسجيل الدخول القادم للطفل سيُطلب منه تعيين كلمة مرور جديدة.</p>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:14px">
+                <button class="btn btn-warning" id="confirmResetStudentPasswordBtn" style="flex:1;background:var(--amber, #f59e0b);color:#fff;border:none"><i class="fas fa-check"></i> تأكيد التعيين</button>
+                <button class="btn btn-secondary" id="cancelResetStudentPasswordBtn" style="flex:1"><i class="fas fa-times"></i> إلغاء</button>
             </div>
         </div>
     </div>
@@ -21210,9 +21235,11 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             // Reset edit/delete buttons visibility to default
             const editBtn = document.getElementById('editStudentBtn');
             const deleteBtn = document.getElementById('deleteStudentBtn');
+            const resetPassBtn = document.getElementById('resetStudentPasswordBtn');
             const viewProfileBtn = document.getElementById('viewProfileBtn');
             if (editBtn) editBtn.style.display = '';
             if (deleteBtn) deleteBtn.style.display = '';
+            if (resetPassBtn) resetPassBtn.style.display = (s._isUncle || s._isGuest) ? 'none' : '';
             const dbId = getStudentDbId(s);
             const isLegacyGuest = s._isGuest && !dbId;
             if (viewProfileBtn) viewProfileBtn.style.display = (s._isUncle || isLegacyGuest) ? 'none' : '';
@@ -23816,6 +23843,43 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                     else showToast('فشل: ' + (d.message || 'خطأ'), 'error');
                 }).catch(() => showToast('خطأ في الاتصال', 'error'));
             }
+        }
+        let studentToResetPassword = null;
+        function showResetStudentPasswordModal(s) {
+            if (!s) return;
+            studentToResetPassword = s;
+            const name = s.name || s['الاسم'] || '';
+            const nameEl = document.getElementById('resetStudentPasswordName');
+            if (nameEl) {
+                nameEl.textContent = name ? `هل تريد إعادة تعيين كلمة مرور "${name}"؟` : 'هل تريد إعادة تعيين كلمة المرور؟';
+            }
+            const modal = document.getElementById('resetStudentPasswordModal');
+            if (modal) modal.classList.add('active');
+        }
+        function hideResetStudentPasswordModal() {
+            studentToResetPassword = null;
+            const modal = document.getElementById('resetStudentPasswordModal');
+            if (modal) modal.classList.remove('active');
+        }
+        function resetStudentPasswordAction() {
+            if (!studentToResetPassword) return;
+            const id = getStudentDbId(studentToResetPassword);
+            if (!id) { showToast('المعرف غير موجود', 'error'); return; }
+            showLoading('جاري إعادة تعيين كلمة المرور...');
+            makeApiCall({ action: 'resetStudentPassword', studentId: id }, r => {
+                hideLoading();
+                if (r && r.success) {
+                    showToast(r.message || 'تم إعادة تعيين كلمة المرور بنجاح', 'success');
+                    hideResetStudentPasswordModal();
+                } else {
+                    showToast((r && r.message) ? r.message : 'فشل إعادة التعيين', 'error');
+                    hideResetStudentPasswordModal();
+                }
+            }, e => {
+                hideLoading();
+                showToast('فشل في الاتصال: ' + e, 'error');
+                hideResetStudentPasswordModal();
+            });
         }
         function showDeleteStudentModal(s) { studentToDelete = s; document.getElementById('deleteStudentName').textContent = `هل تريد حذف: ${s.name || s['الاسم']}؟`; document.getElementById('deleteStudentModal').classList.add('active'); }
         function hideDeleteStudentModal() { studentToDelete = null; document.getElementById('deleteStudentModal').classList.remove('active'); }
@@ -26877,6 +26941,10 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             on('cropClose', 'click', closeCropModal);
             on('cropCancel', 'click', closeCropModal);
             on('cropConfirm', 'click', confirmCrop);
+            on('closeResetStudentPasswordModal', 'click', hideResetStudentPasswordModal);
+            on('cancelResetStudentPasswordBtn', 'click', hideResetStudentPasswordModal);
+            on('resetStudentPasswordBtn', 'click', () => { if (currentStudentForEdit) showResetStudentPasswordModal(currentStudentForEdit); });
+            on('confirmResetStudentPasswordBtn', 'click', resetStudentPasswordAction);
             on('closeRegistrationDetailsModal', 'click', hideRegistrationDetails);
             on('closeAnnouncementsModal', 'click', hideAnnouncementsModal);
             on('editStudentBtn', 'click', showEditForm);
@@ -32794,6 +32862,8 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                     style="display:flex; gap:10px; justify-content:center; margin-bottom: 20px; flex-wrap:wrap; padding: 0 16px;">
                     <button class="btn btn-sm btn-outline" onclick="editStandaloneKidInfo()" style="flex:1;"><i
                             class="fas fa-edit"></i> تعديل البيانات</button>
+                    <button class="btn btn-sm btn-outline" id="standaloneResetPasswordBtn" onclick="if(currentStudentForEdit) showResetStudentPasswordModal(currentStudentForEdit);" style="flex:1;color:var(--amber, #f59e0b);border-color:rgba(245,158,11,0.4);"><i
+                            class="fas fa-key"></i> إعادة تعيين كلمة المرور</button>
                     <a id="standalonePublicProfileLink" href="#" target="_blank" class="btn btn-sm btn-ghost"
                         style="flex:1; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:6px;"><i
                             class="fas fa-external-link-alt"></i> الملف العام</a>

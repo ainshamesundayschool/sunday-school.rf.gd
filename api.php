@@ -4443,6 +4443,15 @@ try {
 
             break;
 
+        case 'resetStudentPassword':
+        case 'resetKidPassword':
+
+            checkAuth();
+
+            resetStudentPassword();
+
+            break;
+
 
 
         case 'updateStudentImage':
@@ -10201,7 +10210,40 @@ function deleteStudent()
         sendJSON(['success' => false, 'message' => 'خطأ في حذف الطفل: ' . $e->getMessage()]);
 
     }
+}
 
+function resetStudentPassword()
+{
+    try {
+        $churchId = getChurchId();
+        $studentId = intval($_POST['studentId'] ?? $_POST['student_id'] ?? 0);
+
+        if ($studentId === 0) {
+            sendJSON(['success' => false, 'message' => 'معرف الطفل مطلوب']);
+            return;
+        }
+
+        $conn = getDBConnection();
+        if ($churchId > 0 && !isAdminOrDevRole()) {
+            $stmt = $conn->prepare("UPDATE students SET password_hash = NULL, updated_at = NOW() WHERE id = ? AND church_id = ?");
+            $stmt->bind_param("ii", $studentId, $churchId);
+        } else {
+            $stmt = $conn->prepare("UPDATE students SET password_hash = NULL, updated_at = NOW() WHERE id = ?");
+            $stmt->bind_param("i", $studentId);
+        }
+
+        if ($stmt->execute()) {
+            sendJSON([
+                'success' => true,
+                'message' => 'تم إعادة تعيين كلمة المرور بنجاح. سيُطلب من الطفل تعيين كلمة مرور جديدة عند تسجيل الدخول.'
+            ]);
+        } else {
+            sendJSON(['success' => false, 'message' => 'فشل في إعادة تعيين كلمة المرور: ' . $conn->error]);
+        }
+    } catch (Exception $e) {
+        error_log("resetStudentPassword error: " . $e->getMessage());
+        sendJSON(['success' => false, 'message' => 'خطأ في إعادة تعيين كلمة المرور: ' . $e->getMessage()]);
+    }
 }
 
 function getMergeComparison()
@@ -33882,6 +33924,15 @@ try {
             checkAuth();
 
             deleteStudent();
+
+            break;
+
+        case 'resetStudentPassword':
+        case 'resetKidPassword':
+
+            checkAuth();
+
+            resetStudentPassword();
 
             break;
 
