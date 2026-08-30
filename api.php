@@ -5791,19 +5791,14 @@ try {
                     error_log("Session restored for uncle: " . $row['username']);
 
                     sendJSON([
-
                         'success' => true,
-
+                        'uncle_id' => $row['id'],
+                        'church_id' => $row['church_id'],
                         'church_type' => $row['church_type'],
-
                         'church_name' => $row['church_name'],
-
                         'uncle_name' => $row['name'],
-
                         'uncle_role' => $row['role'],
-
                         'uncle' => ['role' => $row['role']],
-
                     ]);
 
                 } else {

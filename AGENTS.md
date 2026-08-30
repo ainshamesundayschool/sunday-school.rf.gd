@@ -14,7 +14,3 @@ All search elements added to this project (inputs, selectors, autocomplete sugge
 
 ## 3. Mandatory Absolute Root API Path
 - All frontend fetch calls to `api.php` from subdirectories (e.g. `/user/login/`, `/uncle/trip/`) MUST use the absolute root URL `/api.php` instead of relative `api.php`.
-
-## 4. WhatsApp OTP & Password Recovery Architecture
-- Full documentation for WhatsApp OTP verification and password recovery is maintained in [WHATSAPP_BOT_DOCUMENTATION.md](file:///Users/peterfayez/Documents/Sunday%20School/sunday-school.rf.gd/WHATSAPP_BOT_DOCUMENTATION.md).
-- **Server Bot Script Updates (Replit)**: The WhatsApp verification bot runs on Replit and has a Replit AI Agent. When updates to the WhatsApp bot script (`src/lib/whatsapp.ts`) are needed, AI agents can generate a prompt for the Replit Agent, or the user can manually navigate to the Replit file location to replace the script code.

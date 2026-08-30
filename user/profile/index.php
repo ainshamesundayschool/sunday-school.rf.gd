@@ -6206,31 +6206,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
               <div style="display:flex; flex-direction:column; gap:12px;">
                 <div>
                   <label style="display:block; font-size:0.85rem; font-weight:800; color:var(--t2); margin-bottom:4px;">رقم التليفون</label>
-                  <div style="display:flex; gap:8px;">
-                    <input type="tel" id="newKidPhone" placeholder="01........." style="flex:1; padding:10px 12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem; outline:none;" oninput="if(window.isNewKidPhoneVerified && this.value.replace(/\D/g,'') !== window.verifiedNewKidPhoneNum){ window.isNewKidPhoneVerified = false; document.getElementById('newKidPhoneVerifiedBadge').style.display='none'; document.getElementById('sendNewKidOtpBtn').style.display='flex'; this.readOnly=false; }">
-                    <button type="button" id="sendNewKidOtpBtn" onclick="requestNewKidPhoneOtp()" style="padding:0 12px; background:#25D366; color:white; border:none; border-radius:10px; font-family:inherit; font-size:0.85rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                      <i class="fab fa-whatsapp" style="font-size:1.1rem;"></i> <span>إرسال كود الواتساب</span>
-                    </button>
-                  </div>
-                  <!-- OTP Input Box -->
-                  <div id="newKidOtpVerifyBox" style="display:none; margin-top:8px; padding:12px; background:var(--brand-bg, #eef0ff); border:1.5px dashed var(--brand, #5b6cf5); border-radius:10px;">
-                    <div style="font-size:0.82rem; font-weight:700; color:var(--t1); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
-                      <i class="fab fa-whatsapp" style="color:#25D366; font-size:1rem;"></i>
-                      <span>أدخل كود التحقق (6 أرقام):</span>
-                    </div>
-                    <div style="display:flex; gap:8px;">
-                      <input type="text" id="newKidOtpCodeInput" placeholder="000000" maxlength="6" inputmode="numeric" style="letter-spacing:4px; text-align:center; font-weight:800; font-size:1rem; flex:1; padding:8px; border:1px solid #ccc; border-radius:8px;" />
-                      <button type="button" onclick="confirmNewKidPhoneOtp()" style="padding:0 14px; background:var(--brand, #5b6cf5); color:white; border:none; border-radius:8px; font-family:inherit; font-size:0.85rem; font-weight:700; cursor:pointer;">
-                        تأكيد
-                      </button>
-                    </div>
-                    <div id="newKidOtpStatusMsg" style="font-size:0.78rem; margin-top:4px; color:var(--brand, #5b6cf5); font-weight:600;"></div>
-                  </div>
-                  <!-- Verified Badge -->
-                  <div id="newKidPhoneVerifiedBadge" style="display:none; margin-top:8px; padding:8px 12px; background:#d1fae5; color:#059669; border:1px solid rgba(16,185,129,0.3); border-radius:8px; font-size:0.85rem; font-weight:700; align-items:center; gap:6px;">
-                    <i class="fas fa-check-circle" style="color:#10b981;"></i>
-                    <span>تم التأكد من رقم الهاتف بنجاح عبر الواتساب</span>
-                  </div>
+                  <input type="tel" id="newKidPhone" placeholder="01........." style="width:100%; padding:10px 12px; border:1.5px solid var(--bdr); border-radius:10px; font-family:inherit; font-size:0.9rem; outline:none;">
                 </div>
 
                 <div>
@@ -6503,72 +6479,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       }
     };
 
-    window.isNewKidPhoneVerified = false;
-    window.verifiedNewKidPhoneNum = '';
-
-    window.requestNewKidPhoneOtp = async function() {
-      const ph = (document.getElementById('newKidPhone')?.value || '').replace(/\D/g, '');
-      if (!ph || ph.length < 10) {
-        alert('يرجى إدخال رقم تليفون صحيح أولاً');
-        return;
-      }
-
-      const btn = document.getElementById('sendNewKidOtpBtn');
-      btn.disabled = true;
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
-
-      try {
-        const fd = new FormData();
-        fd.append('action', 'sendRegistrationWhatsAppOTP');
-        fd.append('phone', ph);
-        const res = await fetch('/api.php', { method: 'POST', body: fd }).then(r => r.json());
-
-        if (res.success) {
-          document.getElementById('newKidOtpVerifyBox').style.display = 'block';
-          document.getElementById('newKidOtpStatusMsg').textContent = res.message || 'تم إرسال كود التحقق إلى حساب الواتساب الخاص بك.';
-          btn.innerHTML = '<i class="fab fa-whatsapp"></i> إعادة الإرسال';
-        } else {
-          alert(res.message || 'فشل إرسال كود التحقق عبر الواتساب');
-          btn.innerHTML = '<i class="fab fa-whatsapp"></i> إرسال كود الواتساب';
-        }
-      } catch (err) {
-        alert('خطأ في الاتصال بالخادم عند إرسال الكود');
-        btn.innerHTML = '<i class="fab fa-whatsapp"></i> إرسال كود الواتساب';
-      } finally {
-        btn.disabled = false;
-      }
-    };
-
-    window.confirmNewKidPhoneOtp = async function() {
-      const ph = (document.getElementById('newKidPhone')?.value || '').replace(/\D/g, '');
-      const code = (document.getElementById('newKidOtpCodeInput')?.value || '').trim();
-      if (!code || code.length < 6) {
-        alert('يرجى إدخال كود التحقق المكون من 6 أرقام');
-        return;
-      }
-
-      try {
-        const fd = new FormData();
-        fd.append('action', 'verifyCustomWhatsAppOTP');
-        fd.append('phone', ph);
-        fd.append('code', code);
-        const res = await fetch('/api.php', { method: 'POST', body: fd }).then(r => r.json());
-
-        if (res.success) {
-          window.isNewKidPhoneVerified = true;
-          window.verifiedNewKidPhoneNum = ph;
-          document.getElementById('newKidOtpVerifyBox').style.display = 'none';
-          document.getElementById('newKidPhoneVerifiedBadge').style.display = 'flex';
-          document.getElementById('sendNewKidOtpBtn').style.display = 'none';
-          document.getElementById('newKidPhone').readOnly = true;
-        } else {
-          alert(res.message || 'كود التحقق غير صحيح أو انتهت صلاحيته');
-        }
-      } catch (err) {
-        alert('خطأ أثناء التحقق من كود الواتساب');
-      }
-    };
-
     window.submitCreateAndAssign = async function(tempid) {
       const churchId = document.getElementById('newKidChurchId').value;
       const name = document.getElementById('newKidName').value.trim();
@@ -6592,10 +6502,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
       }
       if (!classId) {
         alert('الفصل مطلوب');
-        return;
-      }
-      if (phone && (!window.isNewKidPhoneVerified || window.verifiedNewKidPhoneNum !== phone.replace(/\D/g,''))) {
-        alert('يرجى إثبات ملكية رقم الهاتف عبر الواتساب أولاً قبل المتابعة.');
         return;
       }
 

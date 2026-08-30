@@ -29,11 +29,67 @@ if (file_exists($rootPath . '/config.php')) {
 ini_set('session.gc_maxlifetime', 315360000);
 ini_set('session.cookie_lifetime', 315360000);
 session_start();
-$isHttps = ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['SERVER_PORT']) && (int) $_SERVER['SERVER_PORT'] === 443));
-if (!isset($_SESSION['uncle_id']) && !isset($_SESSION['church_id'])) {
-    header("Location: " . $pathPrefix . "/login/");
-    exit();
-}
+$hasUncle = isset($_SESSION['uncle_id']);
+$hasChurch = isset($_SESSION['church_id']);
+
+if (!$hasUncle && !$hasChurch) { ?>
+  <script>
+    (function () {
+      var KEY = '_ss_restoring';
+      var prefix = window.location.pathname.indexOf('/testing/') !== -1 ? '/testing' : '';
+      var loginUrl = prefix + '/login/?redirect=' + encodeURIComponent(window.location.href);
+
+      if (!navigator.onLine) return;
+      if (sessionStorage.getItem(KEY)) return;
+
+      var cl = localStorage.getItem('loggedIn') === 'true';
+      var ul = localStorage.getItem('uncleLoggedIn') === 'true';
+      var un = localStorage.getItem('uncleUsername');
+      var cc = localStorage.getItem('churchCode');
+
+      if (!ul && !cl) { 
+        if (navigator.onLine) window.location.href = loginUrl; 
+        return; 
+      }
+
+      var fd = new FormData();
+      fd.append('action', 'restore_session');
+      if (ul && un) fd.append('username', un);
+      else if (cl && cc) fd.append('church_code', cc);
+      else { 
+        if (navigator.onLine) window.location.href = loginUrl; 
+        return; 
+      }
+
+      sessionStorage.setItem(KEY, '1');
+
+      var dynamicApiUrl = prefix ? prefix + '/api.php' : '/api.php';
+      fetch(dynamicApiUrl, { method: 'POST', body: fd, credentials: 'include' })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (d.success) {
+            var prevUncleId = localStorage.getItem('uncleId') || localStorage.getItem('uncle_id');
+            var prevChurchId = localStorage.getItem('churchId') || localStorage.getItem('church_id');
+            if (d.church_type) { try { localStorage.setItem('churchType', d.church_type); } catch (e) { } }
+            if (d.church_name) { try { localStorage.setItem('churchName', d.church_name); } catch (e) { } }
+            if (d.uncle_name) { try { localStorage.setItem('uncleName', d.uncle_name); } catch (e) { } }
+            if (d.uncle_id) { try { localStorage.setItem('uncleId', d.uncle_id); localStorage.setItem('uncle_id', d.uncle_id); } catch (e) { } }
+            if (d.church_id) { try { localStorage.setItem('churchId', d.church_id); localStorage.setItem('church_id', d.church_id); } catch (e) { } }
+
+            var isMismatch = (d.uncle_id && prevUncleId && String(d.uncle_id) !== String(prevUncleId)) ||
+                             (d.church_id && prevChurchId && String(d.church_id) !== String(prevChurchId));
+            if (isMismatch) {
+              window.location.reload();
+            }
+          } else if (navigator.onLine && d.message && (d.message.indexOf('not found') !== -1 || d.message.indexOf('No credentials') !== -1 || d.message.indexOf('معلقة') !== -1 || d.message.indexOf('انتظار موافقة') !== -1)) {
+            ['loggedIn', 'uncleLoggedIn', 'churchCode', 'uncleUsername', 'churchName', 'uncleName']
+              .forEach(function (k) { localStorage.removeItem(k); });
+            window.location.href = loginUrl;
+          }
+        }).catch(function () {});
+    })();
+  </script>
+<?php }
 
 if (isset($_SESSION['uncle_id']) && intval($_SESSION['uncle_id']) > 0 && function_exists('getDBConnection')) {
     try {

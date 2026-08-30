@@ -28,25 +28,13 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Date in the past
 
 
 ini_set('session.gc_probability', 1);
-
-
-
 ini_set('session.gc_divisor', 100);
-
-
-
 ini_set('session.gc_maxlifetime', 60 * 60 * 24 * 365 * 10);
 
-
-
-
-
-
+$isTestingEnv = (strpos($_SERVER['REQUEST_URI'], '/testing/') !== false || strpos($_SERVER['SCRIPT_NAME'], '/testing/') !== false);
+$pathPrefix = $isTestingEnv ? '/testing' : '';
 
 // Robust local session directory to prevent aggressive shared hosting garbage collection
-
-
-
 $rootPath = dirname(__FILE__);
 
 
@@ -129,32 +117,21 @@ if (session_status() === PHP_SESSION_NONE) {
   ]);
 
   @session_start();
-
 }
 
-
-
-
-
-
+if (file_exists($rootPath . '/config.php')) {
+  require_once $rootPath . '/config.php';
+}
 
 $hasUncle = isset($_SESSION['uncle_id']);
-
-
-
 $hasChurch = isset($_SESSION['church_id']);
-
-
-
-
-
-
 
 if (!$hasUncle && !$hasChurch) { ?>
   <script>
     (function () {
-      var KEY = '_tasksRestoreAttempted';
-      var loginUrl = (window.location.pathname.indexOf('/testing/') !== -1 ? '/testing/login/' : '/login/') + '?redirect=' + encodeURIComponent(window.location.href);
+      var KEY = '_ss_restoring';
+      var prefix = window.location.pathname.indexOf('/testing/') !== -1 ? '/testing' : '';
+      var loginUrl = prefix + '/login/?redirect=' + encodeURIComponent(window.location.href);
 
       if (!navigator.onLine) return;
       if (sessionStorage.getItem(KEY)) return;
@@ -164,27 +141,46 @@ if (!$hasUncle && !$hasChurch) { ?>
       var un = localStorage.getItem('uncleUsername');
       var cc = localStorage.getItem('churchCode');
 
-      if (!ul && !cl) { window.location.href = loginUrl; return; }
+      if (!ul && !cl) { 
+        if (navigator.onLine) window.location.href = loginUrl; 
+        return; 
+      }
 
       var fd = new FormData();
       fd.append('action', 'restore_session');
       if (ul && un) fd.append('username', un);
       else if (cl && cc) fd.append('church_code', cc);
-      else { window.location.href = loginUrl; return; }
+      else { 
+        if (navigator.onLine) window.location.href = loginUrl; 
+        return; 
+      }
 
       sessionStorage.setItem(KEY, '1');
 
-      var dynamicApiUrl = window.location.pathname.indexOf('/testing/') !== -1 ? '/testing/api.php' : '/api.php';
+      var dynamicApiUrl = prefix ? prefix + '/api.php' : '/api.php';
       fetch(dynamicApiUrl, { method: 'POST', body: fd, credentials: 'include' })
-        .then(r => r.json()).then(d => {
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
           if (d.success) {
-            window.location.reload();
-          } else if (d.message && (d.message.includes('not found') || d.message.includes('No credentials'))) {
-            localStorage.removeItem('loggedIn');
-            localStorage.removeItem('uncleLoggedIn');
+            var prevUncleId = localStorage.getItem('uncleId') || localStorage.getItem('uncle_id');
+            var prevChurchId = localStorage.getItem('churchId') || localStorage.getItem('church_id');
+            if (d.church_type) { try { localStorage.setItem('churchType', d.church_type); } catch (e) { } }
+            if (d.church_name) { try { localStorage.setItem('churchName', d.church_name); } catch (e) { } }
+            if (d.uncle_name) { try { localStorage.setItem('uncleName', d.uncle_name); } catch (e) { } }
+            if (d.uncle_id) { try { localStorage.setItem('uncleId', d.uncle_id); localStorage.setItem('uncle_id', d.uncle_id); } catch (e) { } }
+            if (d.church_id) { try { localStorage.setItem('churchId', d.church_id); localStorage.setItem('church_id', d.church_id); } catch (e) { } }
+
+            var isMismatch = (d.uncle_id && prevUncleId && String(d.uncle_id) !== String(prevUncleId)) ||
+                             (d.church_id && prevChurchId && String(d.church_id) !== String(prevChurchId));
+            if (isMismatch) {
+              window.location.reload();
+            }
+          } else if (navigator.onLine && d.message && (d.message.indexOf('not found') !== -1 || d.message.indexOf('No credentials') !== -1 || d.message.indexOf('معلقة') !== -1 || d.message.indexOf('انتظار موافقة') !== -1)) {
+            ['loggedIn', 'uncleLoggedIn', 'churchCode', 'uncleUsername', 'churchName', 'uncleName']
+              .forEach(function (k) { localStorage.removeItem(k); });
             window.location.href = loginUrl;
           }
-        }).catch(() => {});
+        }).catch(function () {});
     })();
   </script>
 <?php }
@@ -254,10 +250,7 @@ $activeClass = trim(urldecode($_GET['class'] ?? ''));
 
 
 
-$dashBack = '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeClass) : '');
-
-
-
+$dashBack = $pathPrefix . '/uncle/dashboard/' . ($activeClass ? '?class=' . urlencode($activeClass) : '');
 ?>
 
 
