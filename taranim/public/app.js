@@ -392,129 +392,129 @@ const BIBLE_BOOK_SHORTCUTS = [
 ];
 
 const BIBLE_BOOKS_DATA = [
-  { id: 1, title: "تكوين", abbr: "تك", totalChapters: 50, testament: "ot" },
-  { id: 2, title: "خروج", abbr: "خر", totalChapters: 40, testament: "ot" },
-  { id: 3, title: "لاويِّين", abbr: "لا", totalChapters: 27, testament: "ot" },
-  { id: 4, title: "عدد", abbr: "عد", totalChapters: 36, testament: "ot" },
-  { id: 5, title: "تثنية", abbr: "تث", totalChapters: 34, testament: "ot" },
-  { id: 6, title: "يشوع", abbr: "يش", totalChapters: 24, testament: "ot" },
-  { id: 7, title: "قضاة", abbr: "قض", totalChapters: 21, testament: "ot" },
-  { id: 8, title: "راعوث", abbr: "را", totalChapters: 4, testament: "ot" },
-  { id: 9, title: "صموئيل الأول", abbr: "1 صم", totalChapters: 31, testament: "ot" },
-  { id: 10, title: "صموئيل الثاني", abbr: "2 صم", totalChapters: 24, testament: "ot" },
-  { id: 11, title: "ملوك الأول", abbr: "1 مل", totalChapters: 22, testament: "ot" },
-  { id: 12, title: "ملوك الثاني", abbr: "2 مل", totalChapters: 25, testament: "ot" },
-  { id: 13, title: "أخبار الأيام الأول", abbr: "1 أخ", totalChapters: 29, testament: "ot" },
-  { id: 14, title: "أخبار الأيام الثاني", abbr: "2 أخ", totalChapters: 36, testament: "ot" },
-  { id: 15, title: "عزرا", abbr: "عز", totalChapters: 10, testament: "ot" },
-  { id: 16, title: "نحميا", abbr: "نه", totalChapters: 13, testament: "ot" },
-  { id: 17, title: "استير", abbr: "إس", totalChapters: 10, testament: "ot" },
-  { id: 18, title: "أيوب", abbr: "أي", totalChapters: 42, testament: "ot" },
-  { id: 19, title: "مزامير", abbr: "مز", totalChapters: 150, testament: "ot" },
-  { id: 20, title: "أمثال", abbr: "أم", totalChapters: 31, testament: "ot" },
-  { id: 21, title: "جامعة", abbr: "جا", totalChapters: 12, testament: "ot" },
-  { id: 22, title: "نشيد الأنشاد", abbr: "نش", totalChapters: 8, testament: "ot" },
-  { id: 23, title: "إشعياء", abbr: "إش", totalChapters: 66, testament: "ot" },
-  { id: 24, title: "إرميا", abbr: "إر", totalChapters: 52, testament: "ot" },
-  { id: 25, title: "مراثي إرميا", abbr: "مرا", totalChapters: 5, testament: "ot" },
-  { id: 26, title: "حزقيال", abbr: "حز", totalChapters: 48, testament: "ot" },
-  { id: 27, title: "دانيال", abbr: "دا", totalChapters: 14, testament: "ot" },
-  { id: 28, title: "هوشع", abbr: "هو", totalChapters: 14, testament: "ot" },
-  { id: 29, title: "يوئيل", abbr: "يو", totalChapters: 3, testament: "ot" },
-  { id: 30, title: "عاموس", abbr: "عا", totalChapters: 9, testament: "ot" },
-  { id: 31, title: "عوبديا", abbr: "عو", totalChapters: 1, testament: "ot" },
-  { id: 32, title: "يونان", abbr: "يون", totalChapters: 4, testament: "ot" },
-  { id: 33, title: "ميخا", abbr: "مي", totalChapters: 7, testament: "ot" },
-  { id: 34, title: "ناحوم", abbr: "نا", totalChapters: 3, testament: "ot" },
-  { id: 35, title: "حبقوق", abbr: "حب", totalChapters: 3, testament: "ot" },
-  { id: 36, title: "صفنيا", abbr: "صف", totalChapters: 3, testament: "ot" },
-  { id: 37, title: "حجي", abbr: "حج", totalChapters: 2, testament: "ot" },
-  { id: 38, title: "زكريا", abbr: "زك", totalChapters: 14, testament: "ot" },
-  { id: 39, title: "ملاخي", abbr: "مل", totalChapters: 4, testament: "ot" },
-  { id: 40, title: "متَّى", abbr: "مت", totalChapters: 28, testament: "nt" },
-  { id: 41, title: "مرقس", abbr: "مر", totalChapters: 16, testament: "nt" },
-  { id: 42, title: "لوقا", abbr: "لو", totalChapters: 24, testament: "nt" },
-  { id: 43, title: "يوحنا", abbr: "يو", totalChapters: 21, testament: "nt" },
-  { id: 44, title: "أعمال الرسل", abbr: "أع", totalChapters: 28, testament: "nt" },
-  { id: 45, title: "رومية", abbr: "رو", totalChapters: 16, testament: "nt" },
-  { id: 46, title: "كورنثوس الأولى", abbr: "1 كو", totalChapters: 16, testament: "nt" },
-  { id: 47, title: "كورنثوس الثانية", abbr: "2 كو", totalChapters: 13, testament: "nt" },
-  { id: 48, title: "غلاطية", abbr: "غل", totalChapters: 6, testament: "nt" },
-  { id: 49, title: "أفسس", abbr: "أف", totalChapters: 6, testament: "nt" },
-  { id: 50, title: "فيلبي", abbr: "في", totalChapters: 4, testament: "nt" },
-  { id: 51, title: "كولوسي", abbr: "كو", totalChapters: 4, testament: "nt" },
-  { id: 52, title: "تسالونيكي الأولى", abbr: "1 تس", totalChapters: 5, testament: "nt" },
-  { id: 53, title: "تسالونيكي الثانية", abbr: "2 تس", totalChapters: 3, testament: "nt" },
-  { id: 54, title: "تيموثاوس الأولى", abbr: "1 تي", totalChapters: 6, testament: "nt" },
-  { id: 55, title: "تيموثاوس الثانية", abbr: "2 تي", totalChapters: 4, testament: "nt" },
-  { id: 56, title: "طيطس", abbr: "طيط", totalChapters: 3, testament: "nt" },
-  { id: 57, title: "فيليمون", abbr: "فل", totalChapters: 1, testament: "nt" },
-  { id: 58, title: "عبرانيين", abbr: "عب", totalChapters: 13, testament: "nt" },
-  { id: 59, title: "يعقوب", abbr: "يع", totalChapters: 5, testament: "nt" },
-  { id: 60, title: "بطرس الأولى", abbr: "1 بط", totalChapters: 5, testament: "nt" },
-  { id: 61, title: "بطرس الثانية", abbr: "2 بط", totalChapters: 3, testament: "nt" },
-  { id: 62, title: "يوحنا الأولى", abbr: "1 يو", totalChapters: 5, testament: "nt" },
-  { id: 63, title: "يوحنا الثانية", abbr: "2 يو", totalChapters: 1, testament: "nt" },
-  { id: 64, title: "يوحنا الثالثة", abbr: "3 يو", totalChapters: 1, testament: "nt" },
-  { id: 65, title: "يهوذا", abbr: "يه", totalChapters: 1, testament: "nt" },
-  { id: 66, title: "رؤيا", abbr: "رؤ", totalChapters: 22, testament: "nt" }
+  { id: 1, title: "تكوين", abbr: "تك", totalChapters: 50, testament: "ot", aliases: ["تكوين", "تك", "تكو"] },
+  { id: 2, title: "خروج", abbr: "خر", totalChapters: 40, testament: "ot", aliases: ["خروج", "خر"] },
+  { id: 3, title: "لاويين", abbr: "لا", totalChapters: 27, testament: "ot", aliases: ["لاويين", "لاويّين", "لا", "لاو"] },
+  { id: 4, title: "عدد", abbr: "عد", totalChapters: 36, testament: "ot", aliases: ["عدد", "عد"] },
+  { id: 5, title: "تثنية", abbr: "تث", totalChapters: 34, testament: "ot", aliases: ["تثنية", "تثنيه", "تث"] },
+  { id: 6, title: "يشوع", abbr: "يش", totalChapters: 24, testament: "ot", aliases: ["يشوع", "يش"] },
+  { id: 7, title: "قضاة", abbr: "قض", totalChapters: 21, testament: "ot", aliases: ["قضاة", "قضاه", "قض"] },
+  { id: 8, title: "راعوث", abbr: "را", totalChapters: 4, testament: "ot", aliases: ["راعوث", "راعو", "را"] },
+  { id: 9, title: "صموئيل الأول", abbr: "1 صم", totalChapters: 31, testament: "ot", aliases: ["1 صموئيل", "1صموئيل", "1 صم", "1صم", "صموئيل الاول", "صموئيل الأول", "صموئيل 1", "1صم"] },
+  { id: 10, title: "صموئيل الثاني", abbr: "2 صم", totalChapters: 24, testament: "ot", aliases: ["2 صموئيل", "2صموئيل", "2 صم", "2صم", "صموئيل الثاني", "صموئيل 2", "2صم"] },
+  { id: 11, title: "ملوك الأول", abbr: "1 مل", totalChapters: 22, testament: "ot", aliases: ["1 ملوك", "1ملوك", "1 مل", "1مل", "ملوك الاول", "ملوك الأول", "ملوك 1", "1مل"] },
+  { id: 12, title: "ملوك الثاني", abbr: "2 مل", totalChapters: 25, testament: "ot", aliases: ["2 ملوك", "2ملوك", "2 مل", "2مل", "ملوك الثاني", "ملوك 2", "2مل"] },
+  { id: 13, title: "أخبار الأيام الأول", abbr: "1 أخ", totalChapters: 29, testament: "ot", aliases: ["1 اخبار", "1اخبار", "1 اخ", "1اخ", "1 أخ", "1أخ", "اخبار الايام الاول", "أخبار الأيام الأول", "اخبار 1", "1اخ"] },
+  { id: 14, title: "أخبار الأيام الثاني", abbr: "2 أخ", totalChapters: 36, testament: "ot", aliases: ["2 اخبار", "2اخبار", "2 اخ", "2اخ", "2 أخ", "2أخ", "اخبار الايام الثاني", "أخبار الأيام الثاني", "اخبار 2", "2اخ"] },
+  { id: 15, title: "عزرا", abbr: "عز", totalChapters: 10, testament: "ot", aliases: ["عزرا", "عز"] },
+  { id: 16, title: "نحميا", abbr: "نه", totalChapters: 13, testament: "ot", aliases: ["نحميا", "نه", "نحم"] },
+  { id: 17, title: "استير", abbr: "إس", totalChapters: 10, testament: "ot", aliases: ["استير", "إستير", "اس", "إس"] },
+  { id: 18, title: "أيوب", abbr: "أي", totalChapters: 42, testament: "ot", aliases: ["ايوب", "أيوب", "اي", "أي"] },
+  { id: 19, title: "مزامير", abbr: "مز", totalChapters: 150, testament: "ot", aliases: ["مزامير", "مزمور", "مز"] },
+  { id: 20, title: "أمثال", abbr: "أم", totalChapters: 31, testament: "ot", aliases: ["امثال", "أمثال", "ام", "أم"] },
+  { id: 21, title: "جامعة", abbr: "جا", totalChapters: 12, testament: "ot", aliases: ["جامعة", "جامعه", "جا"] },
+  { id: 22, title: "نشيد الأنشاد", abbr: "نش", totalChapters: 8, testament: "ot", aliases: ["نشيد الانشاد", "نشيد الأنشاد", "نشيد", "نش"] },
+  { id: 23, title: "إشعياء", abbr: "إش", totalChapters: 66, testament: "ot", aliases: ["اشعياء", "إشعياء", "اشعيا", "اش", "إش"] },
+  { id: 24, title: "إرميا", abbr: "إر", totalChapters: 52, testament: "ot", aliases: ["ارميا", "إرميا", "ار", "إر"] },
+  { id: 25, title: "مراثي إرميا", abbr: "مرا", totalChapters: 5, testament: "ot", aliases: ["مراثي ارميا", "مراثي إرميا", "مراثي", "مرا"] },
+  { id: 26, title: "حزقيال", abbr: "حز", totalChapters: 48, testament: "ot", aliases: ["حزقيال", "حز"] },
+  { id: 27, title: "دانيال", abbr: "دا", totalChapters: 14, testament: "ot", aliases: ["دانيال", "دا", "دان"] },
+  { id: 28, title: "هوشع", abbr: "هو", totalChapters: 14, testament: "ot", aliases: ["هوشع", "هو"] },
+  { id: 29, title: "يوئيل", abbr: "يو", totalChapters: 3, testament: "ot", aliases: ["يوئيل", "يوء", "يؤ"] },
+  { id: 30, title: "عاموس", abbr: "عا", totalChapters: 9, testament: "ot", aliases: ["عاموس", "عا"] },
+  { id: 31, title: "عوبديا", abbr: "عو", totalChapters: 1, testament: "ot", aliases: ["عوبديا", "عو"] },
+  { id: 32, title: "يونان", abbr: "يون", totalChapters: 4, testament: "ot", aliases: ["يونان", "يون"] },
+  { id: 33, title: "ميخا", abbr: "مي", totalChapters: 7, testament: "ot", aliases: ["ميخا", "مي"] },
+  { id: 34, title: "ناحوم", abbr: "نا", totalChapters: 3, testament: "ot", aliases: ["ناحوم", "نا"] },
+  { id: 35, title: "حبقوق", abbr: "حب", totalChapters: 3, testament: "ot", aliases: ["حبقوق", "حب"] },
+  { id: 36, title: "صفنيا", abbr: "صف", totalChapters: 3, testament: "ot", aliases: ["صفنيا", "صف"] },
+  { id: 37, title: "حجي", abbr: "حج", totalChapters: 2, testament: "ot", aliases: ["حجي", "حج"] },
+  { id: 38, title: "زكريا", abbr: "زك", totalChapters: 14, testament: "ot", aliases: ["زكريا", "زك"] },
+  { id: 39, title: "ملاخي", abbr: "مل", totalChapters: 4, testament: "ot", aliases: ["ملاخي", "ملا"] },
+  { id: 40, title: "متى", abbr: "مت", totalChapters: 28, testament: "nt", aliases: ["متى", "متي", "مت", "متَّى"] },
+  { id: 41, title: "مرقس", abbr: "مر", totalChapters: 16, testament: "nt", aliases: ["مرقس", "مر"] },
+  { id: 42, title: "لوقا", abbr: "لو", totalChapters: 24, testament: "nt", aliases: ["لوقا", "لو"] },
+  { id: 43, title: "يوحنا", abbr: "يو", totalChapters: 21, testament: "nt", aliases: ["يوحنا", "يو"] },
+  { id: 44, title: "أعمال الرسل", abbr: "أع", totalChapters: 28, testament: "nt", aliases: ["اعمال الرسل", "أعمال الرسل", "اعمال", "أعمال", "اع", "أع"] },
+  { id: 45, title: "رومية", abbr: "رو", totalChapters: 16, testament: "nt", aliases: ["رومية", "روميه", "روميا", "رو", "روم"] },
+  { id: 46, title: "كورنثوس الأولى", abbr: "1 كو", totalChapters: 16, testament: "nt", aliases: ["1 كورنثوس", "1كورنثوس", "1 كو", "1كو", "كورنثوس الاول", "كورنثوس الأولى", "كورنثوس 1", "1كو", "1 كور"] },
+  { id: 47, title: "كورنثوس الثانية", abbr: "2 كو", totalChapters: 13, testament: "nt", aliases: ["2 كورنثوس", "2كورنثوس", "2 كو", "2كو", "كورنثوس الثاني", "كورنثوس الثانية", "كورنثوس 2", "2كو", "2 كور"] },
+  { id: 48, title: "غلاطية", abbr: "غل", totalChapters: 6, testament: "nt", aliases: ["غلاطية", "غلاطيه", "غل"] },
+  { id: 49, title: "أفسس", abbr: "أف", totalChapters: 6, testament: "nt", aliases: ["افسس", "أفسس", "اف", "أف"] },
+  { id: 50, title: "فيلبي", abbr: "في", totalChapters: 4, testament: "nt", aliases: ["فيلبي", "في"] },
+  { id: 51, title: "كولوسي", abbr: "كو", totalChapters: 4, testament: "nt", aliases: ["كولوسي", "كول"] },
+  { id: 52, title: "تسالونيكي الأولى", abbr: "1 تس", totalChapters: 5, testament: "nt", aliases: ["1 تسالونيكي", "1تسالونيكي", "1 تس", "1تس", "تسالونيكي الاول", "تسالونيكي 1", "1تس"] },
+  { id: 53, title: "تسالونيكي الثانية", abbr: "2 تس", totalChapters: 3, testament: "nt", aliases: ["2 تسالونيكي", "2تسالونيكي", "2 تس", "2تس", "تسالونيكي الثاني", "تسالونيكي 2", "2تس"] },
+  { id: 54, title: "تيموثاوس الأولى", abbr: "1 تي", totalChapters: 6, testament: "nt", aliases: ["1 تيموثاوس", "1تيموثاوس", "1 تي", "1تي", "1 تيم", "1تيم", "تيموثاوس 1", "1تي"] },
+  { id: 55, title: "تيموثاوس الثانية", abbr: "2 تي", totalChapters: 4, testament: "nt", aliases: ["2 تيموثاوس", "2تيموثاوس", "2 تي", "2تي", "2 تيم", "2تيم", "تيموثاوس 2", "2تي"] },
+  { id: 56, title: "طيطس", abbr: "طيط", totalChapters: 3, testament: "nt", aliases: ["طيطس", "طيط"] },
+  { id: 57, title: "فيليمون", abbr: "فل", totalChapters: 1, testament: "nt", aliases: ["فيليمون", "فليمون", "فل", "فيل"] },
+  { id: 58, title: "عبرانيين", abbr: "عب", totalChapters: 13, testament: "nt", aliases: ["عبرانيين", "عب"] },
+  { id: 59, title: "يعقوب", abbr: "يع", totalChapters: 5, testament: "nt", aliases: ["يعقوب", "يع"] },
+  { id: 60, title: "بطرس الأولى", abbr: "1 بط", totalChapters: 5, testament: "nt", aliases: ["1 بطرس", "1بطرس", "1 بط", "1بط", "بطرس الاول", "بطرس 1", "1بط"] },
+  { id: 61, title: "بطرس الثانية", abbr: "2 بط", totalChapters: 3, testament: "nt", aliases: ["2 بطرس", "2بطرس", "2 بط", "2بط", "بطرس الثاني", "بطرس 2", "2بط"] },
+  { id: 62, title: "يوحنا الأولى", abbr: "1 يو", totalChapters: 5, testament: "nt", aliases: ["1 يوحنا", "1يوحنا", "1 يو", "1يو", "يوحنا الاول", "يوحنا 1", "1يو"] },
+  { id: 63, title: "يوحنا الثانية", abbr: "2 يو", totalChapters: 1, testament: "nt", aliases: ["2 يوحنا", "2يوحنا", "2 يو", "2يو", "يوحنا الثاني", "يوحنا 2", "2يو"] },
+  { id: 64, title: "يوحنا الثالثة", abbr: "3 يو", totalChapters: 1, testament: "nt", aliases: ["3 يوحنا", "3يوحنا", "3 يو", "3يو", "يوحنا الثالث", "يوحنا 3", "3يو"] },
+  { id: 65, title: "يهوذا", abbr: "يه", totalChapters: 1, testament: "nt", aliases: ["يهوذا", "يهو"] },
+  { id: 66, title: "رؤيا", abbr: "رؤ", totalChapters: 22, testament: "nt", aliases: ["رؤيا", "رؤيا يوحنا", "رؤ"] }
 ];
 
 function parseBibleSearchShortcut(query) {
   if (!query) return null;
 
-  let q = query.trim()
+  let q = String(query).trim()
     .replace(/[٠]/g, '0').replace(/[١]/g, '1').replace(/[٢]/g, '2')
     .replace(/[٣]/g, '3').replace(/[٤]/g, '4').replace(/[٥]/g, '5')
     .replace(/[٦]/g, '6').replace(/[٧]/g, '7').replace(/[٨]/g, '8')
     .replace(/[٩]/g, '9');
 
-  const m = q.match(/^([123])?\s*([^\d]+?)\s*(\d+)?$/);
+  const m = q.match(/^([123])?\s*([^\d:]+?)\s*(\d+)?(?:\s*[:]\s*(\d+)|\s+(\d+))?$/);
   if (!m) return null;
 
-  const numPrefix = m[1] || '';
-  const rawText = m[2].trim();
-  const cleanText = rawText.replace(/^(سفر|إنجيل|انجيل|رسالة|رساله)\s+/i, '').trim();
-  const searchStr = normalizeArabic(cleanText);
-  const chNum = m[3] || '';
+  const numPrefix = (m[1] || '').trim();
+  const rawName = (m[2] || '').trim();
+  const cleanName = rawName.replace(/^(سفر|إنجيل|انجيل|رسالة|رساله|بشارة|بشاره)\s+/i, '').trim();
+  const combinedName = numPrefix ? `${numPrefix} ${cleanName}` : cleanName;
+  const searchNorm = normalizeArabic(combinedName);
+  const cleanNorm = normalizeArabic(cleanName);
+  const chNum = m[3] ? parseInt(m[3]) : null;
+  const verseNum = m[4] ? parseInt(m[4]) : (m[5] ? parseInt(m[5]) : null);
 
-  if (!searchStr) return null;
+  if (!searchNorm && !cleanNorm) return null;
 
-  // 1. Check BIBLE_BOOK_SHORTCUTS
-  for (const b of BIBLE_BOOK_SHORTCUTS) {
-    const isShortcutMatch = b.shortcuts.some(s => normalizeArabic(s) === searchStr);
-    const isNameMatch = normalizeArabic(b.name) === searchStr || normalizeArabic(b.name).includes(searchStr) || searchStr.includes(normalizeArabic(b.name));
-
-    if (isShortcutMatch || isNameMatch) {
-      let fullBookName = b.name;
-      if (b.numbered && numPrefix) {
-        const isFeminine = ['كورنثوس', 'تسالونيكي', 'تيموثاوس', 'بطرس', 'يوحنا'].includes(b.name);
-        const ordinals = isFeminine 
-          ? { '1': 'الأولى', '2': 'الثانية', '3': 'الثالثة' }
-          : { '1': 'الأول', '2': 'الثاني', '3': 'الثالث' };
-        fullBookName = `${b.name} ${ordinals[numPrefix] || ''}`.trim();
-      }
-      return {
-        bookName: fullBookName,
-        chapter: chNum,
-        searchQuery: chNum ? `${fullBookName} ${chNum}` : fullBookName
-      };
-    }
-  }
-
-  // 2. Check BIBLE_BOOKS_DATA catalog
-  if (typeof BIBLE_BOOKS_DATA !== 'undefined' && Array.isArray(BIBLE_BOOKS_DATA)) {
-    for (const b of BIBLE_BOOKS_DATA) {
-      const bTitleNorm = normalizeArabic(b.title);
-      const bAbbrNorm = normalizeArabic(b.abbr);
-
-      if (bTitleNorm === searchStr || bTitleNorm.includes(searchStr) || searchStr.includes(bTitleNorm) || bAbbrNorm === searchStr) {
+  // 1. Exact alias / abbreviation / title match
+  for (let i = 0; i < BIBLE_BOOKS_DATA.length; i++) {
+    const b = BIBLE_BOOKS_DATA[i];
+    const aliases = b.aliases || [b.title, b.abbr];
+    for (let a = 0; a < aliases.length; a++) {
+      const aNorm = normalizeArabic(aliases[a]);
+      if (aNorm === searchNorm || aNorm === cleanNorm) {
         return {
+          bookId: b.id,
           bookName: b.title,
+          bookTitle: b.title,
           chapter: chNum,
+          verse: verseNum,
           searchQuery: chNum ? `${b.title} ${chNum}` : b.title
         };
       }
+    }
+  }
+
+  // 2. Prefix / StartsWith match
+  for (let i = 0; i < BIBLE_BOOKS_DATA.length; i++) {
+    const b = BIBLE_BOOKS_DATA[i];
+    const bTitleNorm = normalizeArabic(b.title);
+    if (bTitleNorm.startsWith(searchNorm) || (cleanNorm.length >= 3 && bTitleNorm.startsWith(cleanNorm))) {
+      return {
+        bookId: b.id,
+        bookName: b.title,
+        bookTitle: b.title,
+        chapter: chNum,
+        verse: verseNum,
+        searchQuery: chNum ? `${b.title} ${chNum}` : b.title
+      };
     }
   }
 
@@ -738,22 +738,28 @@ function getMatchScore(song, query) {
     ? (typeof francoToArabicVariants === 'function' ? francoToArabicVariants(query) : [])
     : (typeof francoToArabic === 'function' ? [francoToArabic(query)].filter(Boolean) : []);
 
-  // Bible shortcut parsing (e.g. "تك 1", "متى 5 10")
+  // Bible shortcut parsing (e.g. "تك 1", "متى 5", "رو 8")
   const bibleInfo = parseBibleSearchShortcut(query);
-  if (bibleInfo) {
-    const bookNorm = normalizeArabic(bibleInfo.bookName);
+  if (bibleInfo && bibleInfo.bookId) {
     const isBibleItem = Boolean((song.is_bible === true || song.is_bible === '1' || song.is_bible === 1) || (song.chapter_number !== undefined && song.chapter_number !== null && song.chapter_number !== ''));
+    const sBookId = parseInt(song.book_id || (song.book !== undefined ? song.book : 0));
+    const sChNum = parseInt(song.chapter_number || (song.chapter !== undefined ? song.chapter : 0));
     const tNorm = song._tNorm || normalizeArabic(title);
-    if (isBibleItem || tNorm.includes(bookNorm)) {
-      if (bibleInfo.chapter) {
-        const chStr = String(bibleInfo.chapter);
-        const songCh = String(song.chapter_number || '');
-        if (songCh === chStr || tNorm.includes(` <sup>${chStr}</sup>`) || tNorm.includes(`اصحاح ${chStr}`) || tNorm.includes(`الأصحاح ${chStr}`) || tNorm.endsWith(` ${chStr}`) || tNorm.includes(` ${chStr} `)) {
-          return 1000000;
+    const bookNorm = normalizeArabic(bibleInfo.bookName);
+
+    if (isBibleItem) {
+      if (sBookId === bibleInfo.bookId || tNorm.includes(bookNorm)) {
+        if (bibleInfo.chapter && sChNum === bibleInfo.chapter) {
+          return 2000000;
+        } else if (!bibleInfo.chapter) {
+          return 1000000 - sChNum;
+        } else {
+          return 800000 - Math.abs(sChNum - (bibleInfo.chapter || 1));
         }
-        return 500000;
       }
-      return 900000;
+      return 0;
+    } else if (tNorm.includes(bookNorm)) {
+      return 50000;
     }
   }
 
@@ -6956,12 +6962,22 @@ document.addEventListener('DOMContentLoaded', () => {
       const bLen = bibleChapters.length;
       for (let i = 0; i < bLen; i++) {
         const chapter = bibleChapters[i];
+        const cBookId = parseInt(chapter.book_id || (chapter.book !== undefined ? chapter.book : 0));
+        const cChNum = parseInt(chapter.chapter_number || (chapter.chapter !== undefined ? chapter.chapter : 0));
         const tNorm = chapter._tNorm || normalizeArabic(chapter.title || '');
         const fullNorm = chapter._fullTextNorm || '';
 
         let score = 0;
-        if (bibleInfo) {
-          score = getMatchScore(chapter, searchTarget);
+        if (bibleInfo && bibleInfo.bookId) {
+          if (cBookId === bibleInfo.bookId) {
+            if (bibleInfo.chapter && cChNum === bibleInfo.chapter) {
+              score = 2000000;
+            } else if (!bibleInfo.chapter) {
+              score = 1000000 - cChNum;
+            } else {
+              score = 800000 - Math.abs(cChNum - bibleInfo.chapter);
+            }
+          }
         } else if (tNorm.includes(qNorm)) {
           score = 70000;
         } else if (qWordCount >= 2 && fullNorm.includes(qNorm)) {
@@ -6978,9 +6994,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (score > 0) {
-          candidateMap.set('bible_' + (chapter.id || `${chapter.book_id}_${chapter.chapter_number}`), {
+          candidateMap.set('bible_' + (chapter.id || `${cBookId}_${cChNum}`), {
             ...chapter,
             is_bible: true,
+            book_id: cBookId,
+            chapter_number: cChNum,
             _score: score
           });
         }
@@ -6991,41 +7009,30 @@ document.addEventListener('DOMContentLoaded', () => {
     let songsList = localMatches;
 
     // GUARANTEE BIBLE CHAPTER RESULT IF SHORTCUT/BIBLE QUERY WAS TYPED
-    if (bibleInfo && bibleInfo.bookName) {
-      const targetBookData = typeof BIBLE_BOOKS_DATA !== 'undefined' ? BIBLE_BOOKS_DATA.find(b => 
-        normalizeArabic(b.title) === normalizeArabic(bibleInfo.bookName) || 
-        normalizeArabic(b.title).includes(normalizeArabic(bibleInfo.bookName)) ||
-        normalizeArabic(b.abbr) === normalizeArabic(bibleInfo.bookName)
-      ) : null;
+    if (bibleInfo && bibleInfo.bookId) {
+      const bookId = bibleInfo.bookId;
+      const chNum = bibleInfo.chapter || 1;
+      const bookTitle = bibleInfo.bookTitle || bibleInfo.bookName;
+      const fallbackTitle = `سفر ${bookTitle} - الأصحاح ${chNum}`;
 
-      if (targetBookData) {
-        const bookId = targetBookData.id;
-        const chNum = parseInt(bibleInfo.chapter) || 1;
-        const maxCh = parseInt(targetBookData.totalChapters || targetBookData.chapters) || 150;
+      const existingInList = songsList.find(s => {
+        const isItemBible = Boolean(s.is_bible);
+        const sBookId = parseInt(s.book_id || (s.book !== undefined ? s.book : 0));
+        const sChNum = parseInt(s.chapter_number || (s.chapter !== undefined ? s.chapter : 0));
+        return isItemBible && sBookId === bookId && sChNum === chNum;
+      });
 
-        if (chNum > 0 && chNum <= maxCh) {
-          const fallbackTitle = `سفر ${targetBookData.title} - الأصحاح ${chNum}`;
-          const targetBookNorm = normalizeArabic(bibleInfo.bookName || targetBookData.title);
-          const existingInList = songsList.find(s => {
-            const isItemBible = Boolean((s.is_bible === true || s.is_bible === '1' || s.is_bible === 1) || (s.chapter_number !== undefined && s.chapter_number !== null && s.chapter_number !== ''));
-            if (!isItemBible) return false;
-            const sTitleNorm = normalizeArabic(s.title || '');
-            const chMatches = String(s.chapter_number || '') === String(chNum) || sTitleNorm.includes(`الاصحاح ${chNum}`) || sTitleNorm.includes(`الأصحاح ${chNum}`) || sTitleNorm.includes(`إصحاح ${chNum}`);
-            return chMatches && (sTitleNorm.includes(targetBookNorm) || (s.book_id && String(s.book_id) === String(bookId)));
-          });
-
-          if (!existingInList) {
-            songsList = [{
-              id: `bible_${bookId}_${chNum}`,
-              item_id: `bible_${bookId}_${chNum}`,
-              title: fallbackTitle,
-              is_bible: true,
-              book_id: bookId,
-              chapter_number: chNum,
-              notes: ""
-            }, ...songsList];
-          }
-        }
+      if (!existingInList) {
+        songsList = [{
+          id: `bible_${bookId}_${chNum}`,
+          item_id: `bible_${bookId}_${chNum}`,
+          title: fallbackTitle,
+          is_bible: true,
+          book_id: bookId,
+          chapter_number: chNum,
+          _score: 2000000,
+          notes: ""
+        }, ...songsList];
       }
     }
 
@@ -7128,11 +7135,33 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    let suggestionBannerHtml = '';
+    const spellingVariants = (typeof generateArabicSpellingVariants === 'function')
+      ? generateArabicSpellingVariants(query)
+      : [];
+
+    if (spellingVariants.length > 0) {
+      const topVar = spellingVariants[0];
+      suggestionBannerHtml = `
+        <div class="search-did-you-mean-banner">
+          <div class="suggestion-text">
+            <i class="fa-solid fa-wand-magic-sparkles" style="color:#2563eb; margin-left:6px;"></i>
+            <span>هل تقصد: <strong>${escapeHtml(topVar)}</strong>؟</span>
+          </div>
+          <button type="button" class="btn-apply-suggestion-banner" data-val="${escapeHtml(topVar)}">
+            <i class="fa-solid fa-arrow-right-arrow-left" style="margin-left:4px;"></i> استبدال والبحث
+          </button>
+        </div>
+      `;
+    }
+
+    const dropdownPrefixHtml = suggestionBannerHtml + francoHeaderHtml;
+
     if (!songs || songs.length === 0) {
       if (isApiPending) {
-        els.searchDropdown.innerHTML = francoHeaderHtml + `<div class="search-item no-results-item"><i class="fa-solid fa-spinner fa-spin" style="color:#2563eb; margin-left:8px;"></i><span class="item-title">جاري البحث...</span></div>`;
+        els.searchDropdown.innerHTML = dropdownPrefixHtml + `<div class="search-item no-results-item"><i class="fa-solid fa-spinner fa-spin" style="color:#2563eb; margin-left:8px;"></i><span class="item-title">جاري البحث...</span></div>`;
       } else {
-        els.searchDropdown.innerHTML = francoHeaderHtml + `<div class="search-item no-results-item"><i class="fa-solid fa-circle-exclamation" style="color:#94a3b8; margin-left:6px;"></i><span class="item-title">لم يتم العثور على ترنيمة أو شاهد كتابي</span></div>`;
+        els.searchDropdown.innerHTML = dropdownPrefixHtml + `<div class="search-item no-results-item"><i class="fa-solid fa-circle-exclamation" style="color:#94a3b8; margin-left:6px;"></i><span class="item-title">لم يتم العثور على ترنيمة أو شاهد كتابي</span></div>`;
       }
     } else {
       const visibleSongs = songs.slice(0, activeSearchLimit);
@@ -7223,10 +7252,22 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
       }
 
-      els.searchDropdown.innerHTML = francoHeaderHtml + itemsHtml + loadMoreBtnHtml;
+      els.searchDropdown.innerHTML = dropdownPrefixHtml + itemsHtml + loadMoreBtnHtml;
     }
 
     els.searchDropdown.classList.remove('hidden');
+
+    els.searchDropdown.querySelectorAll('.btn-apply-suggestion-banner').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const newVal = btn.dataset.val;
+        if (!newVal) return;
+        els.intelligentSearch.value = newVal;
+        els.intelligentSearch.focus();
+        renderSearchWordSuggestions(newVal);
+        performIntelligentSearch(newVal);
+      });
+    });
 
     els.searchDropdown.querySelectorAll('.btn-toggle-item-preview').forEach(btn => {
       btn.addEventListener('click', (e) => {
