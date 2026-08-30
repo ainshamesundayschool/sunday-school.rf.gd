@@ -11804,6 +11804,14 @@ function approveRegistration()
         if (!empty($parentPhonesList)) {
             $customInfoArr['parent_phones'] = $parentPhonesList;
         }
+        if (!empty($decExtra) && is_array($decExtra)) {
+            if (!empty($decExtra['phone_owner']) && $decExtra['phone_owner'] !== 'self') {
+                $customInfoArr['phone_label'] = $decExtra['phone_owner'];
+                if (!empty($decExtra['phone_custom_owner'])) {
+                    $customInfoArr['phone_custom_label'] = $decExtra['phone_custom_owner'];
+                }
+            }
+        }
         $customInfo = json_encode($customInfoArr, JSON_UNESCAPED_UNICODE);
 
 

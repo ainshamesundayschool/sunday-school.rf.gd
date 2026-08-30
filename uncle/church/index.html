@@ -14746,13 +14746,20 @@
             }
 
             let mainPhoneLabel = 'رقم الهاتف';
-            const rawPhoneLabel = s['phone_label'] || (typeof s.custom_info === 'object' ? s.custom_info?.phone_label : '') || '';
-            const rawCustomLabel = s['phone_custom_label'] || (typeof s.custom_info === 'object' ? s.custom_info?.phone_custom_label : '') || '';
-            if (rawPhoneLabel) {
+            let rawPhoneLabel = s['phone_label'] || (typeof s.custom_info === 'object' ? s.custom_info?.phone_label : '') || '';
+            let rawCustomLabel = s['phone_custom_label'] || (typeof s.custom_info === 'object' ? s.custom_info?.phone_custom_label : '') || '';
+            if (!rawPhoneLabel && s.extra_data) {
+                try {
+                    const ed = typeof s.extra_data === 'string' ? JSON.parse(s.extra_data) : s.extra_data;
+                    rawPhoneLabel = ed.phone_owner || ed.phone_label || '';
+                    rawCustomLabel = ed.phone_custom_owner || ed.phone_custom_label || '';
+                } catch(e) {}
+            }
+            if (rawPhoneLabel && rawPhoneLabel !== 'self') {
                 mainPhoneLabel = `رقم الهاتف (${getRelationLabel(rawPhoneLabel, rawCustomLabel)})`;
             }
 
-            const mainPhoneVal = s['رقم التليفون'] || s['phone'] || '';
+            const mainPhoneVal = s['رقم التليفون'] || s['phone'] || s['الهاتف'] || '';
             const mainPhoneHtml = mainPhoneVal ? `<div dir="ltr"><a href="tel:${escAttr(mainPhoneVal)}" style="color:var(--primary);text-decoration:none;font-weight:600;"><i class="fas fa-phone-alt" style="font-size:0.75rem;"></i> ${escHtml(mainPhoneVal)}</a></div>` : '---';
 
             document.getElementById('studentDetails').innerHTML = `

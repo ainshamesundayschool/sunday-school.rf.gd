@@ -213,6 +213,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   .state-card{padding:36px 22px;}
   .act-bar{flex-direction:column-reverse;}
   .btn-back{width:100%;}
+  .phone-input-group{flex-direction:column; gap:8px;}
 }
 </style>
     <script src="/js/og-meta.js"></script>
@@ -398,8 +399,28 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
         <div class="fr full" style="margin-bottom:0">
           <div class="ff">
             <label><i class="fas fa-mobile-screen"></i> رقم التليفون <span class="req">*</span></label>
-            <input type="tel" id="kidPhone" placeholder="01XXXXXXXXX" maxlength="11" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
-            <small><i class="fas fa-mobile-alt"></i> يبدأ بـ 01 — 11 رقم</small>
+            <div class="phone-input-group" style="display:flex; gap:10px; align-items:stretch;">
+              <div style="flex:1.1; min-width:130px;">
+                <select id="kidPhoneOwner" onchange="toggleKidPhoneCustomOwner(this)" style="padding:13px 12px; font-size:.88rem; cursor:pointer;">
+                  <option value="self" selected id="optKidPhoneSelf">الطفل نفسه</option>
+                  <option value="father">الأب</option>
+                  <option value="mother">الأم</option>
+                  <option value="brother">الأخ</option>
+                  <option value="sister">الأخت</option>
+                  <option value="grandfather">الجد</option>
+                  <option value="grandmother">الجدة</option>
+                  <option value="uncle">عم / خال</option>
+                  <option value="aunt">عمة / خالة</option>
+                  <option value="guardian">ولي أمر</option>
+                  <option value="other">صلة أخرى (تحديد يدوي)</option>
+                </select>
+              </div>
+              <div style="flex:1.9; min-width:160px;">
+                <input type="tel" id="kidPhone" placeholder="01XXXXXXXXX" maxlength="11" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
+              </div>
+            </div>
+            <input type="text" id="kidPhoneCustomOwner" placeholder="اكتب صلة القرابة هنا (مثال: الخالة، الجار...)" style="display:none; margin-top:6px;" />
+            <small><i class="fas fa-mobile-alt"></i> يبدأ بـ 01 — 11 رقم (حدد صاحب الرقم من القائمة)</small>
           </div>
         </div>
 
@@ -807,6 +828,24 @@ function toggleRegCustomRelation(selectEl) {
   }
 }
 
+function toggleKidPhoneCustomOwner(selectEl) {
+  const customInput = document.getElementById('kidPhoneCustomOwner');
+  if (!customInput) return;
+  const isOther = selectEl.value === 'other';
+  customInput.style.display = isOther ? 'block' : 'none';
+  if (isOther) customInput.focus();
+}
+
+function getKidPhoneOwnerLabel() {
+  const owner = val('kidPhoneOwner') || 'self';
+  if (owner === 'self') return isYouth ? 'الشاب نفسه' : 'الطفل نفسه';
+  if (owner === 'other') {
+    const custom = val('kidPhoneCustomOwner');
+    return custom || 'صلة أخرى';
+  }
+  return REG_RELATION_LABELS[owner] || owner;
+}
+
 function addRegParentPhoneRow(item = {}) {
   const container = document.getElementById('regParentPhonesList');
   if (container) {
@@ -865,6 +904,8 @@ function applyChurchType(churchType) {
     if (rv) rv.innerHTML                                                     = '<i class="fas fa-user-graduate"></i> بيانات الشاب';
     const kn = document.getElementById('kidName');
     if (kn) kn.placeholder                                                   = kn.dataset.placeholderYouth || 'اسم الشاب كاملاً';
+    const optSelf = document.getElementById('optKidPhoneSelf');
+    if (optSelf) optSelf.textContent                                         = 'الشاب نفسه';
     document.querySelectorAll('.lbl-new-reg').forEach(el => el.textContent  = 'تسجيل شاب آخر');
     // Success screen existing-reg button text
     const existBtn = document.querySelector('#existingScreen .btn-new-reg .lbl-new-reg');
@@ -887,6 +928,8 @@ function applyChurchType(churchType) {
     if (rv) rv.innerHTML                                                     = '<i class="fas fa-user-graduate"></i> بيانات الطفل';
     const kn = document.getElementById('kidName');
     if (kn) kn.placeholder                                                   = kn.dataset.placeholderKids  || 'اسم الطفل كاملاً';
+    const optSelf = document.getElementById('optKidPhoneSelf');
+    if (optSelf) optSelf.textContent                                         = 'الطفل نفسه';
     document.querySelectorAll('.lbl-new-reg').forEach(el => el.textContent  = 'تسجيل طفل آخر');
   }
 }
@@ -1061,6 +1104,10 @@ function startFresh() {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
+  const pOwn = document.getElementById('kidPhoneOwner');
+  if (pOwn) pOwn.value = 'self';
+  const pCustom = document.getElementById('kidPhoneCustomOwner');
+  if (pCustom) { pCustom.value = ''; pCustom.style.display = 'none'; }
   if (document.getElementById('kidGender')) document.getElementById('kidGender').value = 'male';
   removeAvatar();
   customFields.forEach(field => {
@@ -1132,6 +1179,9 @@ function v2() {
   if (!ph || !ph.startsWith('01') || ph.length !== 11) {
     showErr(2,'رقم التليفون غير صحيح — يبدأ بـ 01 ويتكون من 11 رقم'); focusErr('kidPhone'); return false;
   }
+  if (val('kidPhoneOwner') === 'other' && !val('kidPhoneCustomOwner')) {
+    showErr(2,'الرجاء كتابة صلة القرابة لصاحب رقم التليفون'); focusErr('kidPhoneCustomOwner'); return false;
+  }
   return true;
 }
 function v3() {
@@ -1166,7 +1216,13 @@ function fillReview() {
   document.getElementById('rv-gender').textContent  = val('kidGender') === 'female' ? 'بنت' : 'ولد';
   document.getElementById('rv-class').textContent   = val('kidClass')   || '—';
   document.getElementById('rv-bday').textContent    = val('kidBirthday')|| '—';
-  document.getElementById('rv-phone').textContent   = val('kidPhone')   || '—';
+
+  const pOwner = val('kidPhoneOwner') || 'self';
+  const pCustom = val('kidPhoneCustomOwner');
+  const pOwnerLbl = (pOwner === 'self') ? (isYouth ? 'الشاب نفسه' : 'الطفل نفسه') : (pOwner === 'other' && pCustom ? pCustom : (REG_RELATION_LABELS[pOwner] || pOwner));
+  const pNum = val('kidPhone');
+  document.getElementById('rv-phone').innerHTML     = pNum ? `<span dir="ltr">${escapeHtml(pNum)}</span> <span style="display:inline-block; font-size:0.8rem; background:var(--brand-bg); color:var(--brand); border-radius:4px; padding:1px 7px; font-weight:700; margin-right:6px;">${escapeHtml(pOwnerLbl)}</span>` : '—';
+
   document.getElementById('rv-address').textContent = val('kidAddress') || '—';
   document.getElementById('rv-email').textContent   = val('kidEmail')   || '—';
   document.getElementById('rv-username').textContent= val('kidUsername')|| '—';
@@ -1250,6 +1306,8 @@ async function submitForm() {
   const name     = val('kidName');
   const klass    = val('kidClass');
   const phone    = val('kidPhone').replace(/\D/g,'');
+  const phoneOwner = val('kidPhoneOwner') || 'self';
+  const phoneCustomOwner = val('kidPhoneCustomOwner');
   const email    = val('kidEmail');
   const address  = val('kidAddress');
   const bday     = val('kidBirthday');
@@ -1261,8 +1319,24 @@ async function submitForm() {
     const el = document.getElementById('cf_' + field.key);
     if (el) extraData[field.key] = el.value.trim();
   });
+  extraData.phone_owner = phoneOwner;
+  if (phoneOwner === 'other') {
+    extraData.phone_custom_owner = phoneCustomOwner;
+  }
 
   const parentPhones = collectRegParentPhones();
+  if (phoneOwner !== 'self' && phone) {
+    const exists = parentPhones.some(p => p.phone === phone);
+    if (!exists) {
+      parentPhones.unshift({
+        relation: phoneOwner,
+        custom_relation: phoneOwner === 'other' ? phoneCustomOwner : '',
+        name: '',
+        phone: phone,
+        is_primary: true
+      });
+    }
+  }
   if (parentPhones.length > 0) {
     extraData.parent_phones = parentPhones;
   }
@@ -1276,6 +1350,8 @@ async function submitForm() {
     fd.append('class',      klass);
     fd.append('birthday',   bday);
     fd.append('phone',      phone);
+    fd.append('phone_owner', phoneOwner);
+    if (phoneOwner === 'other') fd.append('phone_custom_owner', phoneCustomOwner);
     fd.append('email',      email);
     fd.append('address',    address);
     if (username) fd.append('username', username);
