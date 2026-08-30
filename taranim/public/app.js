@@ -5164,7 +5164,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           </div>
           <button type="button" class="btn-apply-builtin-template btn btn-sm btn-primary" data-name="${escapeHtml(t.name)}" style="background:#2563eb; color:#fff; font-weight:700; padding:6px 14px; border-radius:8px;">
-            <i class="fa-solid fa-wand-magic-sparkles"></i> تطبيق القالب
+            <i class="icon-star-sparkle"></i> تطبيق القالب
           </button>
         </div>
       `).join('');
@@ -6629,7 +6629,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const trimmed = text.trim();
     const suggestions = [];
 
-    const addSuggestion = (val, label, icon = 'fa-wand-magic-sparkles') => {
+    const addSuggestion = (val, label, icon = 'icon-star-sparkle') => {
       if (val && val !== trimmed && !suggestions.some(item => item.value === val)) {
         suggestions.push({ value: val, label: label || val, icon });
       }
@@ -6638,7 +6638,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. Attached <-> Separated Prepositions, Pronouns & Dialect (e.g. "جايلك" <-> "جاي لك", "مفيش" <-> "ما فيش")
     const variants = (typeof generateArabicSpellingVariants === 'function') ? generateArabicSpellingVariants(trimmed) : [];
     variants.forEach(v => {
-      addSuggestion(v, v, 'fa-wand-magic-sparkles');
+      addSuggestion(v, v, 'icon-star-sparkle');
     });
 
     // 2. Active word Franco Translation & Dialect Suggestions
@@ -7157,7 +7157,7 @@ document.addEventListener('DOMContentLoaded', () => {
       suggestionBannerHtml = `
         <div class="search-did-you-mean-banner">
           <div class="suggestion-text">
-            <i class="fa-solid fa-wand-magic-sparkles" style="color:#2563eb; margin-left:6px;"></i>
+            <i class="icon-star-sparkle" style="color:#2563eb; margin-left:6px;"></i>
             <span>هل تقصد: <strong>${escapeHtml(topVar)}</strong>؟</span>
           </div>
           <button type="button" class="btn-apply-suggestion-banner" data-val="${escapeHtml(topVar)}">
@@ -7234,7 +7234,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let matchBadge = '';
         if (isConsecutiveMatch) {
-          matchBadge = `<span class="item-badge lyrics-match-badge" style="background:#dbeafe; color:#1d4ed8; border-color:#93c5fd;"><i class="fa-solid fa-wand-magic-sparkles"></i> تطابق متتالي</span>`;
+          matchBadge = `<span class="item-badge lyrics-match-badge" style="background:#dbeafe; color:#1d4ed8; border-color:#93c5fd;"><i class="icon-star-sparkle"></i> تطابق متتالي</span>`;
         } else if (!matchIsInTitle && matchedLineIdx >= 0) {
           matchBadge = `<span class="item-badge lyrics-match-badge"><i class="fa-solid fa-align-left"></i> في الكلمات</span>`;
         }
