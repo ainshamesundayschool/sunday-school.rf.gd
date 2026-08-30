@@ -14033,9 +14033,21 @@ function updateChurch()
 
         $churchId = intval($_POST['church_id'] ?? 0);
 
+        if ($churchId === 0) {
+
+            $churchId = getChurchId();
+
+        }
+
         $isDeveloper = isDeveloperRole();
 
-        $isChurchAdmin = isAdminOrDevRole() && (intval($_SESSION['church_id'] ?? 0) === $churchId || $isDeveloper || intval($_SESSION['church_id'] ?? 0) === 0);
+        $currentChurchId = getChurchId();
+
+        $sessionChurchId = intval($_SESSION['church_id'] ?? 0);
+
+        $isChurchAdmin = isAdminOrDevRole() && ($isDeveloper || $currentChurchId === $churchId || $sessionChurchId === $churchId || $currentChurchId === 0 || $sessionChurchId === 0);
+
+
 
         if (!$isDeveloper && !$isChurchAdmin) {
 
@@ -14044,6 +14056,8 @@ function updateChurch()
             return;
 
         }
+
+
 
         $churchName = sanitize($_POST['church_name'] ?? '');
 
@@ -14056,6 +14070,8 @@ function updateChurch()
         if ($churchId === 0 || empty($churchName)) {
 
             sendJSON(['success' => false, 'message' => 'بيانات غير كاملة']);
+
+            return;
 
         }
 
@@ -14125,6 +14141,12 @@ function updateChurchPassword()
 
         $churchId = intval($_POST['church_id'] ?? 0);
 
+        if ($churchId === 0) {
+
+            $churchId = getChurchId();
+
+        }
+
         $newPassword = $_POST['new_password'] ?? '';
 
         $currentPassword = $_POST['current_password'] ?? '';
@@ -14133,7 +14155,11 @@ function updateChurchPassword()
 
         $isDeveloper = isDeveloperRole();
 
-        $isChurchAdmin = isAdminOrDevRole() && (intval($_SESSION['church_id'] ?? 0) === $churchId || $isDeveloper || intval($_SESSION['church_id'] ?? 0) === 0);
+        $currentChurchId = getChurchId();
+
+        $sessionChurchId = intval($_SESSION['church_id'] ?? 0);
+
+        $isChurchAdmin = isAdminOrDevRole() && ($isDeveloper || $currentChurchId === $churchId || $sessionChurchId === $churchId || $currentChurchId === 0 || $sessionChurchId === 0);
 
 
 
