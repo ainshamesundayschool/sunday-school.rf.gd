@@ -87,6 +87,11 @@ const FRANCO_MAPPINGS = [
   ["a", "ا"]
 ];
 
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 // ==========================================================================
 // ENHANCED ARABIC NORMALIZATION
 // Handles: harakat, hamzat forms, alef variants, Egyptian dialect substitutions,
@@ -484,172 +489,236 @@ function getSongScaleText(song) {
 }
 
 // ==========================================================================
-// MULTI-SIGNAL MATCH SCORER
-// Returns a score 0–100 based on multiple match strategies
+// CENTRALIZED SONG & BIBLE LYRICS / SEGMENTS EXTRACTION HELPER
 // ==========================================================================
+function getSongAllLines(s) {
+  if (!s) return [];
+  if (Array.isArray(s._allLines) && s._allLines.length > 0) {
+    return s._allLines;
+  }
+  const lines = [];
+
+  // 1. From verses -> slides
+  if (Array.isArray(s.verses) && s.verses.length > 0) {
+    s.verses.forEach((v, vIdx) => {
+      if (!v) return;
+      const isBibleVerse = (s.is_bible || s.chapter_number !== undefined) && (v.id || vIdx !== undefined);
+      const vNumLabel = isBibleVerse ? `[آية ${vIdx + 1}] ` : '';
+
+      if (Array.isArray(v.slides) && v.slides.length > 0) {
+        v.slides.forEach((sl) => {
+          if (!sl) return;
+          if (Array.isArray(sl.lines) && sl.lines.length > 0) {
+            sl.lines.forEach((l, lIdx) => {
+              if (l && typeof l === 'string' && l.trim()) {
+                lines.push((isBibleVerse && lIdx === 0 ? vNumLabel : '') + l.trim());
+              }
+            });
+          } else if (sl.text && typeof sl.text === 'string') {
+            sl.text.split(/[\n\r]+/).forEach((l, lIdx) => {
+              if (l && l.trim()) {
+                lines.push((isBibleVerse && lIdx === 0 ? vNumLabel : '') + l.trim());
+              }
+            });
+          }
+        });
+      } else if (Array.isArray(v.lines) && v.lines.length > 0) {
+        v.lines.forEach((l, lIdx) => {
+          if (l && typeof l === 'string' && l.trim()) {
+            lines.push((isBibleVerse && lIdx === 0 ? vNumLabel : '') + l.trim());
+          }
+        });
+      } else if (v.text && typeof v.text === 'string') {
+        v.text.split(/[\n\r]+/).forEach((l, lIdx) => {
+          if (l && l.trim()) {
+            lines.push((isBibleVerse && lIdx === 0 ? vNumLabel : '') + l.trim());
+          }
+        });
+      } else if (typeof v === 'string' && v.trim()) {
+        lines.push(vNumLabel + v.trim());
+      }
+    });
+  }
+
+  // 2. From slides directly
+  if (lines.length === 0 && Array.isArray(s.slides) && s.slides.length > 0) {
+    s.slides.forEach(sl => {
+      if (!sl) return;
+      if (Array.isArray(sl.lines) && sl.lines.length > 0) {
+        sl.lines.forEach(l => {
+          if (l && typeof l === 'string' && l.trim()) lines.push(l.trim());
+        });
+      } else if (sl.text && typeof sl.text === 'string') {
+        sl.text.split(/[\n\r]+/).forEach(l => {
+          if (l && l.trim()) lines.push(l.trim());
+        });
+      }
+    });
+  }
+
+  // 3. From segments directly
+  if (lines.length === 0 && Array.isArray(s.segments) && s.segments.length > 0) {
+    s.segments.forEach(sg => {
+      if (!sg) return;
+      const c = sg.content || sg.text || '';
+      if (c && typeof c === 'string') {
+        c.split(/[\n\r]+/).forEach(l => {
+          if (l && l.trim()) lines.push(l.trim());
+        });
+      }
+    });
+  }
+
+  // 4. From notes / text / content
+  if (lines.length === 0) {
+    const raw = s.notes || s.text || s.content || '';
+    if (raw && typeof raw === 'string') {
+      raw.split(/[\n\r,]+/).forEach(l => {
+        if (l && l.trim()) lines.push(l.trim());
+      });
+    }
+  }
+
+  return lines;
+}
+
+// ==========================================================================
+// MULTI-SIGNAL INTELLIGENT MATCH SCORER
+// Scores 0 to 1,000,000+ with highest priority for adjacent multi-word matches
+// ==========================================================================
+function evaluateSingleQueryScore(song, title, lines, qNorm) {
+  if (!qNorm) return 0;
+  const qWords = qNorm.split(/\s+/).filter(w => w.length >= 2 || (qNorm.length < 3 && w.length >= 1));
+  const qWordCount = qWords.length;
+  const qStems = qWords.map(arabicStem);
+  const qSkeletons = qWords.map(getWordConsonantSkeleton);
+
+  const tNorm = normalizeArabic(title);
+  const tWords = tNorm.split(/\s+/).filter(w => w.length >= 2 || (tNorm.length < 3 && w.length >= 1));
+  const tStems = tWords.map(arabicStem);
+  const tSkeletons = tWords.map(getWordConsonantSkeleton);
+
+  // 1. Exact Title Match
+  if (tNorm === qNorm) return 100000;
+  if (tNorm.startsWith(qNorm)) return 85000;
+  if (tNorm.includes(qNorm)) return 70000;
+
+  // 2. Multi-word queries (qWordCount >= 2)
+  if (qWordCount >= 2) {
+    // 2a. Consecutive Adjacent Words in Title
+    if (tWords.length >= qWordCount) {
+      for (let i = 0; i <= tWords.length - qWordCount; i++) {
+        let exactCount = 0;
+        let fuzzyCount = 0;
+        for (let j = 0; j < qWordCount; j++) {
+          const tw = tWords[i + j];
+          const qw = qWords[j];
+          if (tw === qw) {
+            exactCount++;
+            fuzzyCount++;
+          } else if (tStems[i + j] === qStems[j] || (tSkeletons[i + j] && tSkeletons[i + j] === qSkeletons[j]) || levenshteinDistance(tw, qw) <= (qw.length <= 4 ? 1 : 2)) {
+            fuzzyCount++;
+          }
+        }
+        if (exactCount === qWordCount) return 78000 + (qWordCount * 1000);
+        if (fuzzyCount === qWordCount) return 65000 + (exactCount * 500);
+      }
+    }
+
+    // 2b. Consecutive Adjacent Words in Lyrics / Slide Segments (HIGH PRIORITY: 45,000 - 65,000)
+    const bestLyric = findBestLyricMatch(lines, qNorm, qWords);
+    if (bestLyric) {
+      if (bestLyric.isExactPhrase) {
+        return 55000 + (qWordCount * 2500) + Math.min(qNorm.length * 20, 2000);
+      }
+      if (bestLyric.isConsecutive) {
+        return 45000 + (qWordCount * 2000) + Math.min(bestLyric.score, 1000);
+      }
+      if (bestLyric.score >= 800) {
+        // All query words appear inside the exact same slide line!
+        return 28000 + (qWordCount * 500);
+      }
+    }
+
+    // 2c. All query words present across title / lyrics (scattered)
+    const fullText = (song._fullTextNorm || (tNorm + ' ' + lines.map(normalizeArabic).join(' ')));
+    let wordsFound = 0;
+    for (let k = 0; k < qWordCount; k++) {
+      const qw = qWords[k];
+      const qs = qStems[k];
+      if (fullText.includes(qw) || (qs && fullText.includes(qs))) {
+        wordsFound++;
+      }
+    }
+    if (wordsFound === qWordCount) {
+      return 15000 + (qWordCount * 500);
+    }
+    if (wordsFound > 0) {
+      return (wordsFound / qWordCount) * 8000;
+    }
+  }
+
+  // 3. Single-word queries (qWordCount === 1)
+  const singleQ = qWords[0] || qNorm;
+  const singleStem = arabicStem(singleQ);
+  const singleSkeleton = getWordConsonantSkeleton(singleQ);
+
+  if (tNorm.includes(singleQ)) return 35000;
+  if (tStems.some(ts => ts === singleStem) || tSkeletons.some(tsk => tsk === singleSkeleton)) return 28000;
+
+  // Single word in lyrics lines
+  const bestLyric = findBestLyricMatch(lines, qNorm, [singleQ]);
+  if (bestLyric && bestLyric.score > 0) {
+    if (bestLyric.isExactPhrase || bestLyric.score >= 1000) return 10000;
+    if (bestLyric.score >= 100) return 6000;
+    return 3000;
+  }
+
+  return 0;
+}
+
 function getMatchScore(song, query) {
   if (!song || !query) return 0;
   const title = song.title || '';
-  const notes = song.notes || '';
+  const lines = getSongAllLines(song);
 
-  const qRaw    = query.trim().toLowerCase();
-  const qNorm   = normalizeArabic(query);
-  const isFrancoQuery = /[a-z0-9]/i.test(query);
+  const qRaw = query.trim().toLowerCase();
+  const qNorm = normalizeArabic(query);
+  if (!qNorm && !qRaw) return 0;
+
+  const isFrancoQuery = /[a-z0-9]/i.test(query) && !/[\u0600-\u06FF]/.test(query);
   const qFrancoVariants = isFrancoQuery 
     ? (typeof francoToArabicVariants === 'function' ? francoToArabicVariants(query) : [])
     : (typeof francoToArabic === 'function' ? [francoToArabic(query)].filter(Boolean) : []);
-  
-  const qWords  = qNorm.split(/\s+/).filter(Boolean);
-  const qStems  = qWords.map(arabicStem);
 
-  const tRaw   = title.toLowerCase();
-  const tNorm  = normalizeArabic(title);
-  const tWords = tNorm.split(/\s+/).filter(Boolean);
-  const tStems = tWords.map(arabicStem);
-  const nNorm  = normalizeArabic(notes);
-  const nLines = notes.split(/[\n,]+/).map(l => normalizeArabic(l.trim())).filter(Boolean);
-
+  // Bible shortcut parsing (e.g. "تك 1", "متى 5 10")
   const bibleInfo = parseBibleSearchShortcut(query);
   if (bibleInfo) {
     const bookNorm = normalizeArabic(bibleInfo.bookName);
     const isBibleItem = Boolean((song.is_bible === true || song.is_bible === '1' || song.is_bible === 1) || (song.chapter_number !== undefined && song.chapter_number !== null && song.chapter_number !== ''));
+    const tNorm = normalizeArabic(title);
     if (isBibleItem || tNorm.includes(bookNorm)) {
       if (bibleInfo.chapter) {
         const chStr = String(bibleInfo.chapter);
         const songCh = String(song.chapter_number || '');
-        if (songCh === chStr || tNorm.includes(` <sup>${chStr}</sup>`) || tNorm.includes(`اصحاح ${chStr}`) || tNorm.includes(`إصحاح ${chStr}`) || tNorm.endsWith(` ${chStr}`) || tNorm.includes(` ${chStr} `)) {
+        if (songCh === chStr || tNorm.includes(` <sup>${chStr}</sup>`) || tNorm.includes(`اصحاح ${chStr}`) || tNorm.includes(`الأصحاح ${chStr}`) || tNorm.endsWith(` ${chStr}`) || tNorm.includes(` ${chStr} `)) {
           return 1000000;
         }
-        return 50000;
+        return 500000;
       }
-      return 90000;
+      return 900000;
     }
   }
 
-  // --- Tier 1: Exact or full-phrase ---
-  if (tRaw === qRaw || tNorm === qNorm) return 100;
-  for (const fVar of qFrancoVariants) {
-    if (fVar && tNorm === fVar) return 98;
+  const queriesToTest = [qNorm, ...qFrancoVariants].filter(q => q && q.length >= 1);
+  let maxScore = 0;
+
+  for (const q of queriesToTest) {
+    const score = evaluateSingleQueryScore(song, title, lines, q);
+    if (score > maxScore) maxScore = score;
   }
 
-  // --- Tier 2: Starts with query ---
-  if (tNorm.startsWith(qNorm)) return 90;
-  for (const fVar of qFrancoVariants) {
-    if (fVar && tNorm.startsWith(fVar)) return 88;
-  }
-
-  // --- Tier 3: Substring match in title ---
-  if (tNorm.includes(qNorm)) return 78;
-  for (const fVar of qFrancoVariants) {
-    if (fVar && tNorm.includes(fVar)) return 74;
-  }
-
-  // --- Tier 3.5: Consonant & Phonetic Skeleton Match ---
-  const qWordSkeletons = qWords.map(getWordConsonantSkeleton).filter(w => w.length >= 2);
-  const tWordSkeletons = tWords.map(getWordConsonantSkeleton).filter(w => w.length >= 2);
-
-  if (qWordSkeletons.length > 0 && tWordSkeletons.length > 0) {
-    const qPhoneticPhrase = qWordSkeletons.join('');
-    const tPhoneticPhrase = tWordSkeletons.join('');
-
-    if (qPhoneticPhrase && qPhoneticPhrase.length >= 3) {
-      if (tPhoneticPhrase === qPhoneticPhrase) return 96;
-      if (tPhoneticPhrase.startsWith(qPhoneticPhrase)) return 92;
-      if (tPhoneticPhrase.includes(qPhoneticPhrase)) return 85;
-    }
-
-    if (qWordSkeletons.length > 1) {
-      const allSkeletonsInTitle = qWordSkeletons.every(qw => 
-        tWordSkeletons.some(tw => tw === qw || tw.includes(qw) || qw.includes(tw))
-      );
-      if (allSkeletonsInTitle) return 84;
-    }
-  }
-
-  const qSkeleton = typeof extractArabicConsonantSkeleton === 'function' 
-    ? (isFrancoQuery ? extractArabicConsonantSkeleton(qFrancoVariants[0] || query) : extractArabicConsonantSkeleton(query))
-    : '';
-  const tSkeleton = typeof extractArabicConsonantSkeleton === 'function' ? extractArabicConsonantSkeleton(title) : '';
-  if (qSkeleton && qSkeleton.length >= 3) {
-    if (tSkeleton === qSkeleton) return 94;
-    if (tSkeleton.startsWith(qSkeleton)) return 86;
-    if (tSkeleton.includes(qSkeleton)) return 72;
-  }
-
-  // --- Tier 4: All query words appear somewhere in title ---
-  if (qWords.length > 1) {
-    const allWordsInTitle = qWords.every(w => tNorm.includes(w));
-    if (allWordsInTitle) return 70;
-    const allStemsInTitle = qStems.every(s => tStems.some(ts => ts.includes(s) || s.includes(ts)));
-    if (allStemsInTitle) return 65;
-  }
-
-  // Check Franco variant words in title
-  for (const fVar of qFrancoVariants) {
-    if (!fVar) continue;
-    const fWords = fVar.split(/\s+/).filter(Boolean);
-    if (fWords.length > 1 && fWords.every(w => tNorm.includes(w))) {
-      return 68;
-    }
-  }
-
-  // --- Tier 5: Any query word matches a title word (stem-aware) ---
-  let wordHits = 0;
-  for (const qStem of qStems) {
-    if (qStem.length < 2) continue;
-    for (const tStem of tStems) {
-      if (tStem.includes(qStem) || qStem.includes(tStem)) {
-        wordHits++;
-        break;
-      }
-    }
-  }
-  if (wordHits > 0) {
-    const wordScore = 40 + Math.round((wordHits / Math.max(qStems.length, 1)) * 20);
-    if (wordHits >= qStems.length) return Math.max(wordScore, 62);
-    return wordScore;
-  }
-
-  // --- Tier 6: Fuzzy per-word (Levenshtein) on title words ---
-  if (qNorm.length >= 3) {
-    for (const qW of qWords) {
-      if (qW.length < 3) continue;
-      for (const tW of tWords) {
-        const maxDist = qW.length <= 4 ? 1 : 2;
-        if (Math.abs(tW.length - qW.length) <= maxDist) {
-          const dist = levenshteinDistance(qW, tW);
-          if (dist <= maxDist) return 38;
-        }
-      }
-    }
-  }
-
-  // --- Tier 7: Match in lyrics/notes ---
-  if (qNorm.length >= 2 || (qFrancoVariants.length > 0 && qFrancoVariants[0].length >= 2)) {
-    // Check if any lyric line contains the full query
-    const lineMatch = nLines.some(l => l.includes(qNorm));
-    if (lineMatch) return 52;
-
-    for (const fVar of qFrancoVariants) {
-      if (fVar && nLines.some(l => l.includes(fVar))) {
-        return 50;
-      }
-    }
-
-    // Check if all words appear in any single lyric line
-    if (qWords.length > 1) {
-      const lineWordMatch = nLines.some(l => qWords.every(w => l.includes(w)));
-      if (lineWordMatch) return 45;
-    }
-
-    // Any word in notes
-    if (nNorm.includes(qNorm)) return 30;
-    for (const fVar of qFrancoVariants) {
-      if (fVar && nNorm.includes(fVar)) return 25;
-    }
-  }
-
-  return 0;
+  return maxScore;
 }
 
 // Find the best matching lyric line and its index for a given query
@@ -657,87 +726,167 @@ function findBestLyricMatch(linesRaw, qNorm, qWords) {
   if (!linesRaw || !linesRaw.length) return null;
 
   let bestScore = -1;
-  let bestIdx = -1;
+  let bestIdx = 0;
+  let isConsecutive = false;
+  let isExactPhrase = false;
+
+  const qWordCount = (qWords && qWords.length) || 0;
+  const qStems = (qWords || []).map(arabicStem);
+  const qSkeletons = (qWords || []).map(getWordConsonantSkeleton);
 
   for (let i = 0; i < linesRaw.length; i++) {
-    const lineNorm = normalizeArabic(linesRaw[i]);
-    let score = 0;
-    if (lineNorm.includes(qNorm)) {
-      score = 100;
-    } else if (qWords.length > 1 && qWords.every(w => lineNorm.includes(w))) {
-      score = 80;
-    } else {
-      for (const w of qWords) {
-        if (w.length >= 2 && lineNorm.includes(w)) score += 30;
+    const rawLine = linesRaw[i];
+    const lineNorm = normalizeArabic(rawLine);
+    const lineWords = lineNorm.split(/\s+/).filter(w => w.length >= 2 || (lineNorm.length < 3 && w.length >= 1));
+    const lineStems = lineWords.map(arabicStem);
+    const lineSkeletons = lineWords.map(getWordConsonantSkeleton);
+
+    let lineScore = 0;
+    let localIsExact = false;
+    let localIsConsecutive = false;
+
+    // 1. Exact phrase match
+    if (qNorm && qNorm.length >= 2 && lineNorm.includes(qNorm)) {
+      lineScore = 2000 + (qNorm.length * 10);
+      localIsExact = true;
+      localIsConsecutive = true;
+    } 
+    // 2. Multi-word consecutive match (when >= 2 words)
+    else if (qWordCount >= 2 && lineWords.length >= qWordCount) {
+      for (let wIdx = 0; wIdx <= lineWords.length - qWordCount; wIdx++) {
+        let allMatched = true;
+        let exactCount = 0;
+        for (let j = 0; j < qWordCount; j++) {
+          const lw = lineWords[wIdx + j];
+          const qw = qWords[j];
+          const ls = lineStems[wIdx + j];
+          const qs = qStems[j];
+          const lsk = lineSkeletons[wIdx + j];
+          const qsk = qSkeletons[j];
+
+          if (lw === qw) {
+            exactCount++;
+          } else if (ls === qs || (ls && qs && ls.length >= 2 && (ls.includes(qs) || qs.includes(ls)))) {
+            // stem match
+          } else if (lsk && qsk && (lsk === qsk || lsk.includes(qsk) || qsk.includes(lsk))) {
+            // skeleton match
+          } else if (levenshteinDistance(lw, qw) <= (qw.length <= 4 ? 1 : 2)) {
+            // fuzzy edit distance
+          } else {
+            allMatched = false;
+            break;
+          }
+        }
+        if (allMatched) {
+          const score = 1500 + (exactCount * 100) + (qWordCount * 50);
+          if (score > lineScore) {
+            lineScore = score;
+            localIsConsecutive = true;
+          }
+        }
       }
     }
-    if (score > bestScore) {
-      bestScore = score;
+
+    // 3. All query words contained in the line
+    if (lineScore < 1000 && qWordCount > 1) {
+      let matchedCount = 0;
+      for (const qw of qWords) {
+        if (lineNorm.includes(qw) || lineStems.some(ls => ls === arabicStem(qw))) {
+          matchedCount++;
+        }
+      }
+      if (matchedCount === qWordCount) {
+        lineScore = 800 + (qWordCount * 30);
+      } else if (matchedCount > 0) {
+        lineScore = matchedCount * 150;
+      }
+    }
+
+    // 4. Single word match or partial word match
+    if (lineScore === 0) {
+      for (const qw of (qWords || [qNorm])) {
+        if (qw && qw.length >= 2) {
+          if (lineNorm.includes(qw)) lineScore += 100;
+          else if (lineStems.some(ls => ls === arabicStem(qw))) lineScore += 60;
+          else if (lineSkeletons.some(lsk => lsk === getWordConsonantSkeleton(qw))) lineScore += 40;
+        }
+      }
+    }
+
+    if (lineScore > bestScore) {
+      bestScore = lineScore;
       bestIdx = i;
+      isConsecutive = localIsConsecutive;
+      isExactPhrase = localIsExact;
     }
   }
 
-  return bestScore > 0 ? { idx: bestIdx, score: bestScore } : null;
+  return bestScore > 0 ? { idx: bestIdx, score: bestScore, matchedLine: linesRaw[bestIdx], isConsecutive, isExactPhrase } : null;
 }
 
-// Highlight matched text inside a string with <mark>
+// Highlight matched text inside a string with <mark> without misaligning Arabic diacritics
 function highlightMatches(rawText, qNorm, qWords) {
   if (!rawText) return '';
-  let escaped = rawText
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const escaped = escapeHtml(rawText);
+  if (!qNorm && (!qWords || qWords.length === 0)) return escaped;
 
-  // Build array of match regions from the normalized version
-  const normText = normalizeArabic(rawText);
+  const terms = [];
+  if (qNorm && qNorm.length >= 2) terms.push(qNorm.trim());
+  if (Array.isArray(qWords)) {
+    qWords.forEach(w => {
+      const cleanW = (w || '').trim();
+      if (cleanW && cleanW.length >= 2 && !terms.includes(cleanW)) {
+        terms.push(cleanW);
+      }
+    });
+  }
 
-  // Collect all ranges to highlight (from qNorm full phrase and each word)
-  const toMark = [];
+  if (terms.length === 0) return escaped;
 
-  function addMatchRanges(needle) {
-    if (!needle || needle.length < 2) return;
-    let start = 0;
-    while (true) {
-      const pos = normText.indexOf(needle, start);
-      if (pos === -1) break;
-      toMark.push({ start: pos, end: pos + needle.length });
-      start = pos + 1;
+  function createArabicPattern(term) {
+    let pat = '';
+    const harakat = '[\\u064B-\\u065F\\u0670\\u0640]*';
+    for (let i = 0; i < term.length; i++) {
+      const ch = term[i];
+      if (ch === ' ' || ch === '\t') {
+        pat += '\\s+';
+      } else if (/[أإآٱاٲٳ]/.test(ch)) {
+        pat += '[أإآٱاٲٳ]' + harakat;
+      } else if (/[ىيئ]/.test(ch)) {
+        pat += '[ىيئ]' + harakat;
+      } else if (/[ةه]/.test(ch)) {
+        pat += '[ةه]' + harakat;
+      } else if (/[ؤو]/.test(ch)) {
+        pat += '[ؤو]' + harakat;
+      } else {
+        pat += ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + harakat;
+      }
     }
+    return pat;
   }
 
-  addMatchRanges(qNorm);
-  for (const w of qWords) {
-    if (w.length >= 2) addMatchRanges(w);
-  }
+  terms.sort((a, b) => b.length - a.length);
+  const patterns = terms.map(createArabicPattern).filter(Boolean);
+  if (patterns.length === 0) return escaped;
 
-  if (!toMark.length) return escaped;
-
-  // Sort and merge overlapping regions
-  toMark.sort((a, b) => a.start - b.start);
-  const merged = [];
-  for (const r of toMark) {
-    if (merged.length && r.start <= merged[merged.length - 1].end) {
-      merged[merged.length - 1].end = Math.max(merged[merged.length - 1].end, r.end);
-    } else {
-      merged.push({ ...r });
+  try {
+    const combinedRegex = new RegExp('(' + patterns.join('|') + ')', 'giu');
+    let lastIndex = 0;
+    let result = '';
+    let match;
+    while ((match = combinedRegex.exec(rawText)) !== null) {
+      const start = match.index;
+      const matchedStr = match[0];
+      const end = start + matchedStr.length;
+      result += escapeHtml(rawText.substring(lastIndex, start));
+      result += `<mark class="search-highlight">${escapeHtml(matchedStr)}</mark>`;
+      lastIndex = end;
     }
+    result += escapeHtml(rawText.substring(lastIndex));
+    return result;
+  } catch (err) {
+    return escaped;
   }
-
-  // Build output: rawText characters with <mark> wrapping matched ranges
-  // Since normalization may differ in length from rawText, we use rawText directly
-  // but use normText positions as a guide (they're character-aligned for Arabic text)
-  let result = '';
-  let lastEnd = 0;
-  for (const { start, end } of merged) {
-    const before = rawText.substring(lastEnd, start)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    const match  = rawText.substring(start, end)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    result += before + `<mark class="search-highlight">${match}</mark>`;
-    lastEnd = end;
-  }
-  result += rawText.substring(lastEnd)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-  return result;
 }
 
 function showToast(message, isHtml = false) {
@@ -1713,8 +1862,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data) && data.length > 0) {
-            state.allSongs = data;
-            state.songIndex = buildSearchIndex(data);
+            state.allSongs = (typeof indexCatalogList === 'function') ? indexCatalogList(data) : data;
             showToast('تم تحديث مكتبة الترانيم تلقائياً بنجاح!');
           }
         })
@@ -6766,19 +6914,48 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     document.body.classList.remove('startup-active');
 
-    // Helper: index raw catalog items with fast search keys
+    // Helper: index raw catalog items with fast search keys & deep slide lines
     const indexCatalogList = (list) => {
       if (!Array.isArray(list)) return [];
       return list.map(song => {
+        const allLines = getSongAllLines(song);
         const tNorm = normalizeArabic(song.title || '');
-        const nNorm = normalizeArabic(song.notes || '');
+        const nNorm = allLines.map(normalizeArabic).join(' ');
         const tSkeleton = typeof extractArabicConsonantSkeleton === 'function' ? extractArabicConsonantSkeleton(song.title || '') : '';
+        const nSkeleton = typeof extractArabicConsonantSkeleton === 'function' ? extractArabicConsonantSkeleton(nNorm) : '';
         return {
           ...song,
+          _allLines: allLines,
           _tNorm: tNorm,
           _nNorm: nNorm,
+          _fullTextNorm: tNorm + ' ' + nNorm,
           _tSkeleton: tSkeleton,
-          _searchIndex: tNorm + ' ' + nNorm + ' ' + tSkeleton
+          _nSkeleton: nSkeleton,
+          _searchIndex: tNorm + ' ' + tSkeleton + ' ' + nNorm + ' ' + nSkeleton
+        };
+      });
+    };
+
+    // Helper: index Bible chapters data for instant local search
+    const indexBibleChaptersData = (bibleData) => {
+      if (!bibleData || typeof bibleData !== 'object') return [];
+      const chaptersList = Object.values(bibleData);
+      return chaptersList.map(chapter => {
+        const allLines = getSongAllLines(chapter);
+        const tNorm = normalizeArabic(chapter.title || '');
+        const nNorm = allLines.map(normalizeArabic).join(' ');
+        const tSkeleton = typeof extractArabicConsonantSkeleton === 'function' ? extractArabicConsonantSkeleton(chapter.title || '') : '';
+        const nSkeleton = typeof extractArabicConsonantSkeleton === 'function' ? extractArabicConsonantSkeleton(nNorm) : '';
+        return {
+          ...chapter,
+          is_bible: true,
+          _allLines: allLines,
+          _tNorm: tNorm,
+          _nNorm: nNorm,
+          _fullTextNorm: tNorm + ' ' + nNorm,
+          _tSkeleton: tSkeleton,
+          _nSkeleton: nSkeleton,
+          _searchIndex: tNorm + ' ' + tSkeleton + ' ' + nNorm + ' ' + nSkeleton
         };
       });
     };
@@ -6809,6 +6986,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (bibleData) {
         state.bibleChaptersData = bibleData;
+        state.allBibleChapters = indexBibleChaptersData(bibleData);
       }
 
       if (els.totalSongsCount && state.allSongs.length > 0) {
@@ -6844,32 +7022,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const bibleInfo = parseBibleSearchShortcut(trimmedQuery);
     const searchTarget = bibleInfo ? bibleInfo.searchQuery : trimmedQuery;
 
-    // 1. INSTANT 0ms LOCAL SEARCH VIA PRE-INDEXED CATALOG
+    // 1. INSTANT 0ms LOCAL SEARCH VIA PRE-INDEXED CATALOG & BIBLE DATA
     let localMatches = [];
+    const qNorm = normalizeArabic(searchTarget);
+    const isFrancoInput = /[a-z]/i.test(searchTarget) && !/[\u0600-\u06FF]/.test(searchTarget);
+    const qFrancoRaw = isFrancoInput ? francoToArabic(searchTarget) : '';
+    const qTarget = isFrancoInput && qFrancoRaw ? qFrancoRaw : qNorm;
+    
+    const qTargetSkeleton = typeof extractArabicConsonantSkeleton === 'function' 
+      ? extractArabicConsonantSkeleton(qTarget) 
+      : '';
+
+    const qWords = qTarget.split(/\s+/).filter(w => w.length >= 2 || (qTarget.length < 3 && w.length >= 1));
+    const qWordSkeletons = typeof getWordConsonantSkeleton === 'function'
+      ? qWords.map(getWordConsonantSkeleton).filter(w => w.length >= 2)
+      : [];
+
+    const candidateMap = new Map();
+
+    // 1A. Search Songs Catalog
     if (state.allSongs && state.allSongs.length > 0) {
-      const qNorm = normalizeArabic(searchTarget);
-      const isFrancoInput = /[a-z]/i.test(searchTarget) && !/[\u0600-\u06FF]/.test(searchTarget);
-      const qFrancoRaw = isFrancoInput ? francoToArabic(searchTarget) : '';
-      const qTarget = isFrancoInput && qFrancoRaw ? qFrancoRaw : qNorm;
-      
-      const qTargetSkeleton = typeof extractArabicConsonantSkeleton === 'function' 
-        ? extractArabicConsonantSkeleton(qTarget) 
-        : '';
-
-      const qWords = qTarget.split(/\s+/).filter(w => w.length >= 2);
-      const qWordSkeletons = typeof getWordConsonantSkeleton === 'function'
-        ? qWords.map(getWordConsonantSkeleton).filter(w => w.length >= 2)
-        : [];
-
-      const candidateMap = new Map();
       const len = state.allSongs.length;
-
       for (let i = 0; i < len; i++) {
         const song = state.allSongs[i];
         const tNorm = song._tNorm || '';
-        const nNorm = song._nNorm || '';
+        const sIndex = song._searchIndex || (tNorm + ' ' + (song._nNorm || ''));
         const tSkeleton = song._tSkeleton || '';
-        const sIndex = song._searchIndex || (tNorm + ' ' + nNorm);
 
         let isCandidate = false;
 
@@ -6877,41 +7055,61 @@ document.addEventListener('DOMContentLoaded', () => {
           isCandidate = true;
         } else if (qNorm && (tNorm.includes(qNorm) || sIndex.includes(qNorm))) {
           isCandidate = true;
-        } else if (qTargetSkeleton && tSkeleton.includes(qTargetSkeleton)) {
+        } else if (qTargetSkeleton && (tSkeleton.includes(qTargetSkeleton) || (song._nSkeleton && song._nSkeleton.includes(qTargetSkeleton)))) {
           isCandidate = true;
-        } else if (qWordSkeletons.length > 0 && qWordSkeletons.some(qw => tSkeleton.includes(qw) || tNorm.includes(qw))) {
+        } else if (qWords.length > 1 && qWords.every(w => sIndex.includes(w))) {
           isCandidate = true;
         } else if (qWords.length > 0 && qWords.some(w => sIndex.includes(w))) {
+          isCandidate = true;
+        } else if (qWordSkeletons.length > 0 && qWordSkeletons.some(qw => sIndex.includes(qw))) {
           isCandidate = true;
         }
 
         if (isCandidate) {
           const score = getMatchScore(song, searchTarget);
           if (score > 0) {
-            candidateMap.set(song.id || song.item_id, { ...song, _score: score });
-            if (candidateMap.size >= 80) break; // Capped at top 80 candidates for 0ms ultra-fast response
+            candidateMap.set('song_' + (song.id || song.item_id), { ...song, _score: score });
           }
         }
       }
-
-      // Fallback: If no candidate matched using fast filters, score catalog for any non-empty query (capped at 60 for speed)
-      if (candidateMap.size === 0 && searchTarget.length >= 1) {
-        for (let i = 0; i < len; i++) {
-          const song = state.allSongs[i];
-          const tNorm = song._tNorm || '';
-          if (tNorm.startsWith(qTarget.charAt(0)) || tNorm.includes(searchTarget.slice(0, 2))) {
-            const score = getMatchScore(song, searchTarget);
-            if (score > 0) {
-              candidateMap.set(song.id || song.item_id, { ...song, _score: score });
-              if (candidateMap.size >= 60) break;
-            }
-          }
-        }
-      }
-
-      localMatches = Array.from(candidateMap.values()).sort((a, b) => b._score - a._score);
     }
 
+    // 1B. Search Bible Chapters & Verses
+    const bibleChapters = state.allBibleChapters || (state.bibleChaptersData ? Object.values(state.bibleChaptersData) : []);
+    if (bibleChapters.length > 0) {
+      const bLen = bibleChapters.length;
+      for (let i = 0; i < bLen; i++) {
+        const chapter = bibleChapters[i];
+        const tNorm = chapter._tNorm || normalizeArabic(chapter.title || '');
+        const sIndex = chapter._searchIndex || (tNorm + ' ' + (chapter._nNorm || ''));
+
+        let isCandidate = false;
+        if (bibleInfo) {
+          isCandidate = true;
+        } else if (tNorm.includes(qTarget) || sIndex.includes(qTarget)) {
+          isCandidate = true;
+        } else if (qNorm && (tNorm.includes(qNorm) || sIndex.includes(qNorm))) {
+          isCandidate = true;
+        } else if (qWords.length > 1 && qWords.every(w => sIndex.includes(w))) {
+          isCandidate = true;
+        } else if (qWords.length > 1 && qWords.some(w => sIndex.includes(w))) {
+          isCandidate = true;
+        }
+
+        if (isCandidate) {
+          const score = getMatchScore(chapter, searchTarget);
+          if (score > 0) {
+            candidateMap.set('bible_' + (chapter.id || `${chapter.book_id}_${chapter.chapter_number}`), {
+              ...chapter,
+              is_bible: true,
+              _score: score
+            });
+          }
+        }
+      }
+    }
+
+    localMatches = Array.from(candidateMap.values()).sort((a, b) => b._score - a._score);
     let songsList = localMatches;
 
     // GUARANTEE BIBLE CHAPTER RESULT IF SHORTCUT/BIBLE QUERY WAS TYPED
@@ -7041,8 +7239,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderSearchDropdown(songs, query, displayLimit = 15, isApiPending = false) {
     activeSearchLimit = displayLimit;
-    const qNorm  = normalizeArabic(query);
-    const qWords = qNorm.split(/\s+/).filter(w => w.length >= 2);
+    const qNorm = normalizeArabic(query);
+    const qWords = qNorm.split(/\s+/).filter(w => w.length >= 2 || (qNorm.length < 3 && w.length >= 1));
 
     let francoHeaderHtml = '';
     if (state.francoAutoTranslate && /[a-z]/i.test(query) && !/[\u0600-\u06FF]/.test(query)) {
@@ -7064,61 +7262,70 @@ document.addEventListener('DOMContentLoaded', () => {
       const remainingCount = songs.length - visibleSongs.length;
 
       const itemsHtml = visibleSongs.map(s => {
-        let rawNotes = s.notes || s.text || s.content || '';
-        if (!rawNotes && s.verses && Array.isArray(s.verses) && s.verses.length > 0) {
-          rawNotes = s.verses.map(v => (typeof v === 'string' ? v : (v.text || v.line || ''))).filter(Boolean).join('\n');
-        }
-
-        const allLines = rawNotes ? rawNotes.split(/[\n,]+/).map(l => l.trim()).filter(l => l.length > 0) : [];
+        const allLines = getSongAllLines(s);
+        const isBibleItem = Boolean((s.is_bible === true || s.is_bible === '1' || s.is_bible === 1) || (s.chapter_number !== undefined && s.chapter_number !== null && s.chapter_number !== '') || s.type === 'bible');
 
         // Highlighted title
         const titleHighlighted = highlightMatches(s.title || '', qNorm, qWords);
 
-        // Is the match in the title or lyrics?
+        // Check whether match was in title or lyrics/slides
         const titleNorm = normalizeArabic(s.title || '');
-        const matchIsInTitle = qNorm && (titleNorm.includes(qNorm) || qWords.some(w => titleNorm.includes(w)));
-        const matchIsInLyrics = !matchIsInTitle && allLines.length > 0;
+        const matchIsInTitle = qNorm && (titleNorm.includes(qNorm) || (qWords.length > 1 && qWords.every(w => titleNorm.includes(w))));
+        const matchIsInLyrics = allLines.length > 0;
 
-        // Build lyric preview snippet (OPEN BY DEFAULT FOR ALL)
+        // Build lyric preview snippet
         let snippetHtml = '';
+        let matchedLineIdx = -1;
+        let isConsecutiveMatch = false;
+
         if (allLines.length > 0) {
           try {
             const bestMatch = findBestLyricMatch(allLines, qNorm, qWords);
-            const startIdx = bestMatch ? Math.max(0, bestMatch.idx - 1) : 0;
-            const previewSlice = allLines.slice(startIdx, startIdx + 3);
+            if (bestMatch) {
+              matchedLineIdx = bestMatch.idx;
+              isConsecutiveMatch = Boolean(bestMatch.isConsecutive);
+              const startIdx = Math.max(0, bestMatch.idx - 1);
+              const previewSlice = allLines.slice(startIdx, startIdx + 3);
 
-            snippetHtml = previewSlice.map((line, idx) => {
-              const lineNum = startIdx + idx + 1;
-              const isMatchedLine = bestMatch && (startIdx + idx) === bestMatch.idx;
-              const formattedLine = matchIsInLyrics && isMatchedLine
-                ? highlightMatches(line, qNorm, qWords)
-                : escapeHtml(line);
-              const numBadge = isMatchedLine
-                ? `<span class="line-num-mini matched-line-badge">${lineNum}</span>`
-                : `<span class="line-num-mini">${lineNum}</span>`;
-              return `${numBadge} ${formattedLine}`;
-            }).join('<span class="preview-sep">•</span>');
+              snippetHtml = previewSlice.map((line, idx) => {
+                const lineNum = startIdx + idx + 1;
+                const isMatchedLine = (startIdx + idx) === bestMatch.idx;
+                const formattedLine = isMatchedLine
+                  ? highlightMatches(line, qNorm, qWords)
+                  : escapeHtml(line);
+                
+                // Show verse or line badge
+                const numBadge = isMatchedLine
+                  ? `<span class="line-num-mini matched-line-badge">${isBibleItem ? 'آية' : lineNum}</span>`
+                  : `<span class="line-num-mini">${lineNum}</span>`;
+                return `${numBadge} ${formattedLine}`;
+              }).join('<span class="preview-sep">•</span>');
+            } else {
+              snippetHtml = allLines.slice(0, 2).map((l, i) => `<span class="line-num-mini">${i + 1}</span> ${escapeHtml(l)}`).join('<span class="preview-sep">•</span>');
+            }
           } catch (err) {
-            snippetHtml = escapeHtml(rawNotes.substring(0, 120));
+            snippetHtml = escapeHtml(allLines.slice(0, 2).join(' • '));
           }
         }
 
-        // Badge: ترنيمة / شاهد كتابي / matched-in-lyrics
-        const isBibleItem = Boolean(s.is_bible || s.chapter_number !== undefined);
+        // Badges:
         const typeBadge = isBibleItem
           ? `<span class="item-badge bible-badge"><i class="fa-solid fa-book-open"></i> شاهد كتابي</span>`
           : `<span class="item-badge"><i class="fa-solid fa-music"></i> ترنيمة</span>`;
 
-        const lyricsMatchBadge = matchIsInLyrics
-          ? `<span class="item-badge lyrics-match-badge"><i class="fa-solid fa-align-left"></i> كلمات</span>`
-          : '';
+        let matchBadge = '';
+        if (isConsecutiveMatch) {
+          matchBadge = `<span class="item-badge lyrics-match-badge" style="background:#dbeafe; color:#1d4ed8; border-color:#93c5fd;"><i class="fa-solid fa-wand-magic-sparkles"></i> تطابق متتالي</span>`;
+        } else if (!matchIsInTitle && matchedLineIdx >= 0) {
+          matchBadge = `<span class="item-badge lyrics-match-badge"><i class="fa-solid fa-align-left"></i> في الكلمات</span>`;
+        }
 
         return `
-          <div class="search-item" data-id="${s.id}" data-is-bible="${isBibleItem ? '1' : '0'}">
+          <div class="search-item" data-id="${s.id || s.item_id}" data-is-bible="${isBibleItem ? '1' : '0'}">
             <div class="item-top">
               <span class="item-title">${titleHighlighted}</span>
               <div class="item-badges-group">
-                ${lyricsMatchBadge}
+                ${matchBadge}
                 ${typeBadge}
               </div>
             </div>
