@@ -13643,9 +13643,7 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
                 style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
                 <div id="studentModalTitleFooter" style="font-size:0.95rem;font-weight:700;color:var(--text-3);">معلومات
                     الطفل</div>
-                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                    <button class="btn btn-xs btn-outline" id="resetStudentPasswordBtn" style="padding:4px 8px;font-size:0.72rem;color:var(--amber, #f59e0b);border-color:rgba(245,158,11,0.4);"><i
-                            class="fas fa-key"></i> إعادة تعيين كلمة المرور</button>
+                <div>
                     <button class="btn btn-xs btn-outline" id="editStudentBtn" style="padding:4px 8px;font-size:0.72rem;"><i
                             class="fas fa-edit"></i> تعديل</button>
                 </div>
@@ -22698,7 +22696,22 @@ $showSettings = $hasChurchId || $isDevOrAdmin;
             </div>
             `;
 
-            document.getElementById('studentDetails').innerHTML = avatar + rows + parentContactsHtml + siblingHtml + notesHtml + publicProfileHtml;
+            // Reset Password link row
+            const dbId = getStudentDbId(s);
+            const isGuestNoId = s._isGuest && !dbId;
+            const resetPasswordHtml = !isGuestNoId ? `
+            <div class="navigation-row" onclick="if(currentStudentForEdit) showResetStudentPasswordModal(currentStudentForEdit);">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div class="navigation-icon orange"><i class="fas fa-key"></i></div>
+                    <div class="navigation-label">إعادة تعيين كلمة المرور</div>
+                </div>
+                <div>
+                    <i class="fas fa-chevron-left navigation-arrow"></i>
+                </div>
+            </div>
+            ` : '';
+
+            document.getElementById('studentDetails').innerHTML = avatar + rows + parentContactsHtml + siblingHtml + notesHtml + publicProfileHtml + resetPasswordHtml;
         }
 
         function buildStudentDetailsFromProfile(full) {

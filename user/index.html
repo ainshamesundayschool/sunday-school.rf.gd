@@ -1006,7 +1006,7 @@ function renderChurchList(churches){
     churches.forEach(ch => {
         const a = document.createElement('a');
         a.className = 'church-row';
-        a.href = `/registration?church=${encodeURIComponent(ch.code || ch.id)}`;
+        a.href = `/user/registration/?church=${encodeURIComponent(ch.code || ch.id)}`;
         a.innerHTML = `
             <span class="church-row-name">${ch.name}</span>
             <i class="fas fa-chevron-left church-row-arrow"></i>`;
