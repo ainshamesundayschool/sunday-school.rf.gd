@@ -2049,15 +2049,26 @@
         const sFit = bgConf.fitMode || 'cover';
         applyMediaFitMode(slidesBgImg, sFit);
         applyMediaFitMode(slidesBgVideo, sFit);
+        const mediaUrl = bgConf.url || '';
+        const isImg = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(mediaUrl) || mediaUrl.startsWith('data:image/') || bgConf.type === 'custom_image';
+        const isVid = /\.(mp4|webm|mov|mkv)$/i.test(mediaUrl) || mediaUrl.startsWith('data:video/') || bgConf.type === 'custom_video';
 
-        if (bgConf.type === 'template' || bgConf.type === 'custom_video') {
-          const vUrl = bgConf.url || (bgConf.type === 'template' ? 'Templates/SlidesBg/Shabahak Akon 2026/Shabahak Akoon Loop Empty Centered.mp4' : '');
-          if (vUrl) {
-            if (currentSlidesBgSrc !== vUrl) {
-              currentSlidesBgSrc = vUrl;
+        if (mediaUrl && (bgConf.type === 'template' || isImg || isVid)) {
+          if (isImg) {
+            currentSlidesBgSrc = '';
+            if (slidesBgVideo) {
+              try { slidesBgVideo.pause(); slidesBgVideo.removeAttribute('src'); } catch(e) {}
+              slidesBgVideo.classList.add('hidden');
+            }
+            slidesBgImg.src = mediaUrl;
+            slidesBgImg.classList.remove('hidden');
+            slidesBgContainer.classList.remove('hidden');
+          } else {
+            if (currentSlidesBgSrc !== mediaUrl) {
+              currentSlidesBgSrc = mediaUrl;
               try {
                 slidesBgVideo.pause();
-                slidesBgVideo.src = vUrl;
+                slidesBgVideo.src = mediaUrl;
               } catch(e) {}
             }
             slidesBgVideo.muted = true;
@@ -2068,60 +2079,39 @@
             if (slidesBgVideo.paused) {
               slidesBgVideo.play().catch(() => {});
             }
-          } else {
-            currentSlidesBgSrc = '';
-            slidesBgContainer.classList.add('hidden');
-            if (slidesBgVideo) {
-              try {
-                slidesBgVideo.pause();
-                slidesBgVideo.removeAttribute('src');
-              } catch(e) {}
-            }
           }
-        } else if (bgConf.type === 'custom_image' && bgConf.url) {
-          if (currentSlidesBgSrc) {
-            currentSlidesBgSrc = '';
-            if (slidesBgVideo) {
-              try {
-                slidesBgVideo.pause();
-                slidesBgVideo.removeAttribute('src');
-              } catch(e) {}
-            }
-          }
-          slidesBgImg.src = bgConf.url;
-          slidesBgImg.classList.remove('hidden');
-          slidesBgVideo.classList.add('hidden');
-          slidesBgContainer.classList.remove('hidden');
         } else {
-          if (currentSlidesBgSrc) {
-            currentSlidesBgSrc = '';
-            if (slidesBgVideo) {
-              try {
-                slidesBgVideo.pause();
-                slidesBgVideo.removeAttribute('src');
-              } catch(e) {}
-            }
-          }
+          currentSlidesBgSrc = '';
           slidesBgContainer.classList.add('hidden');
-          slidesBgImg.classList.add('hidden');
+          if (slidesBgImg) slidesBgImg.classList.add('hidden');
+          if (slidesBgVideo) {
+            try {
+              slidesBgVideo.pause();
+              slidesBgVideo.removeAttribute('src');
+            } catch(e) {}
+            slidesBgVideo.classList.add('hidden');
+          }
+        }
+      } else if (slidesBgContainer) {
+        currentSlidesBgSrc = '';
+        slidesBgContainer.classList.add('hidden');
+        if (slidesBgImg) slidesBgImg.classList.add('hidden');
+        if (slidesBgVideo) {
+          try {
+            slidesBgVideo.pause();
+            slidesBgVideo.removeAttribute('src');
+          } catch(e) {}
           slidesBgVideo.classList.add('hidden');
         }
       }
 
-      // 3. APPLY STANDBY MEDIA (VIDEO / IMAGE / LOGO)
-      const standbyFullscreenContainer = document.getElementById('standby-fullscreen-container');
-      const standbyFullscreenImg = document.getElementById('standby-fullscreen-img');
-      const standbyFullscreenVideo = document.getElementById('standby-fullscreen-video');
-
-      const isBlankMode = Boolean(data.isBlank);
-      const hasTextContent = Boolean(data.text && String(data.text).trim());
-      const isStandbyMode = Boolean(data.isStandby || data.isStandbyMode || data.isLogoSlide || (!hasTextContent && !isBlankMode));
-
+      // 3. APPLY STANDBY SCREEN MEDIA
       const updateStandbyMediaDisplay = (showStandby) => {
         const standbyConf = data.standbyConfig || { type: 'logo' };
         const stFit = standbyConf.fitMode || 'cover';
         applyMediaFitMode(standbyFullscreenImg, stFit);
         applyMediaFitMode(standbyFullscreenVideo, stFit);
+        
         if (!showStandby) {
           if (standbyEl) {
             standbyEl.classList.add('hidden');
@@ -2136,56 +2126,58 @@
           return;
         }
 
-        if (standbyConf.type === 'template' || standbyConf.type === 'custom_video') {
-          if (standbyEl) standbyEl.classList.add('hidden');
-          if (standbyFullscreenContainer && standbyFullscreenVideo) {
-            const vUrl = standbyConf.url || 'Templates/Standby/Shabahak Akon 2026/Shabahak Akoon Loop.mp4';
-            if (currentStandbyBgSrc !== vUrl) {
-              currentStandbyBgSrc = vUrl;
-              try {
-                standbyFullscreenVideo.pause();
-                standbyFullscreenVideo.src = vUrl;
-              } catch(e) {}
-            }
-            standbyFullscreenVideo.muted = true;
-            standbyFullscreenVideo.loop = (standbyConf.loop !== false);
-            standbyFullscreenVideo.classList.remove('hidden');
-            if (standbyFullscreenImg) standbyFullscreenImg.classList.add('hidden');
-            standbyFullscreenContainer.classList.remove('hidden');
-            if (standbyFullscreenVideo.paused) {
-              standbyFullscreenVideo.play().catch(() => {});
-            }
-          }
-        } else if (standbyConf.type === 'custom_image' && standbyConf.url) {
+        const sbUrl = standbyConf.url || '';
+        const isSbImg = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(sbUrl) || sbUrl.startsWith('data:image/') || standbyConf.type === 'custom_image';
+        const isSbVid = /\.(mp4|webm|mov|mkv)$/i.test(sbUrl) || sbUrl.startsWith('data:video/') || standbyConf.type === 'custom_video';
+
+        if (standbyConf.type === 'logo') {
           if (currentStandbyBgSrc) {
             currentStandbyBgSrc = '';
-            if (standbyFullscreenVideo) {
-              try {
-                standbyFullscreenVideo.pause();
-                standbyFullscreenVideo.removeAttribute('src');
-              } catch(e) {}
-            }
+            if (standbyFullscreenVideo) { try { standbyFullscreenVideo.pause(); standbyFullscreenVideo.removeAttribute('src'); } catch(e) {} }
           }
-          if (standbyEl) standbyEl.classList.add('hidden');
-          if (standbyFullscreenContainer && standbyFullscreenImg) {
-            standbyFullscreenImg.src = standbyConf.url;
-            standbyFullscreenImg.classList.remove('hidden');
+          if (standbyFullscreenContainer) standbyFullscreenContainer.classList.add('hidden');
+          if (standbyEl) {
+            standbyEl.classList.remove('hidden');
+            standbyEl.style.display = 'flex';
+          }
+        } else if (sbUrl && (standbyConf.type === 'template' || isSbImg || isSbVid)) {
+          if (standbyEl) { standbyEl.classList.add('hidden'); standbyEl.style.display = 'none'; }
+          if (standbyFullscreenContainer) standbyFullscreenContainer.classList.remove('hidden');
+
+          if (isSbImg) {
+            if (currentStandbyBgSrc) {
+              currentStandbyBgSrc = '';
+              if (standbyFullscreenVideo) { try { standbyFullscreenVideo.pause(); standbyFullscreenVideo.removeAttribute('src'); } catch(e) {} }
+            }
             if (standbyFullscreenVideo) standbyFullscreenVideo.classList.add('hidden');
-            standbyFullscreenContainer.classList.remove('hidden');
+            if (standbyFullscreenImg) {
+              standbyFullscreenImg.src = sbUrl;
+              standbyFullscreenImg.classList.remove('hidden');
+            }
+          } else {
+            if (currentStandbyBgSrc !== sbUrl) {
+              currentStandbyBgSrc = sbUrl;
+              if (standbyFullscreenVideo) {
+                try {
+                  standbyFullscreenVideo.pause();
+                  standbyFullscreenVideo.src = sbUrl;
+                } catch(e) {}
+              }
+            }
+            if (standbyFullscreenImg) standbyFullscreenImg.classList.add('hidden');
+            if (standbyFullscreenVideo) {
+              standbyFullscreenVideo.muted = true;
+              standbyFullscreenVideo.loop = (standbyConf.loop !== false);
+              standbyFullscreenVideo.classList.remove('hidden');
+              if (standbyFullscreenVideo.paused) standbyFullscreenVideo.play().catch(() => {});
+            }
           }
         } else {
           if (currentStandbyBgSrc) {
             currentStandbyBgSrc = '';
-            if (standbyFullscreenVideo) {
-              try {
-                standbyFullscreenVideo.pause();
-                standbyFullscreenVideo.removeAttribute('src');
-              } catch(e) {}
-            }
+            if (standbyFullscreenVideo) { try { standbyFullscreenVideo.pause(); standbyFullscreenVideo.removeAttribute('src'); } catch(e) {} }
           }
           if (standbyFullscreenContainer) standbyFullscreenContainer.classList.add('hidden');
-          if (standbyFullscreenVideo) standbyFullscreenVideo.classList.add('hidden');
-          if (standbyFullscreenImg) standbyFullscreenImg.classList.add('hidden');
           if (standbyEl) {
             standbyEl.classList.remove('hidden');
             standbyEl.style.display = 'flex';

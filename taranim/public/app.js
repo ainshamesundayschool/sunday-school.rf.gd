@@ -522,30 +522,30 @@ function parseBibleSearchShortcut(query) {
 }
 
 const SCALE_MAP = {
-  1: "C (دو كبير)",
-  2: "C# (دو شارج كبير)",
-  3: "D (ري كبير)",
-  4: "Eb (مي بيمول كبير)",
-  5: "E (مي كبير)",
-  6: "F (فا كبير)",
-  7: "F# (فا شارج كبير)",
-  8: "G (صول كبير)",
-  9: "Ab (لا بيمول كبير)",
-  10: "A (لا كبير)",
-  11: "Bb (سي بيمول كبير)",
-  12: "B (سي كبير)",
-  13: "Cm (دو صغير)",
-  14: "C#m (دو شارج صغير)",
-  15: "Dm (ري صغير)",
-  16: "Ebm (مي بيمول صغير)",
-  17: "Em (مي صغير)",
-  18: "Fm (فا صغير)",
-  19: "F#m (فا شارج صغير)",
-  20: "Gm (صول صغير)",
-  21: "Abm (لا بيمول صغير)",
-  22: "Am (لا صغير)",
-  24: "Bbm (سي بيمول صغير)",
-  25: "Bm (سي صغير)",
+  1: "C",
+  2: "C#",
+  3: "D",
+  4: "Eb",
+  5: "E",
+  6: "F",
+  7: "F#",
+  8: "G",
+  9: "Ab",
+  10: "A",
+  11: "Bb",
+  12: "B",
+  13: "Cm",
+  14: "C#m",
+  15: "Dm",
+  16: "Ebm",
+  17: "Em",
+  18: "Fm",
+  19: "F#m",
+  20: "Gm",
+  21: "Abm",
+  22: "Am",
+  24: "Bbm",
+  25: "Bm",
   27: "مقام آخر"
 };
 
@@ -5680,32 +5680,64 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const fetchServerTemplates = async () => {
       try {
-        const res = await fetch('api.php?action=templates').catch(() => null);
-        if (res && res.ok) {
-          const data = await res.json();
-          if (data && data.status === 'success' && Array.isArray(data.templates) && data.templates.length > 0) {
-            state.availableTemplates = data.templates;
-            if (els.slidesBgTemplateSelect) {
-              els.slidesBgTemplateSelect.innerHTML = data.templates
-                .filter(t => t.slidesBg)
-                .map(t => `<option value="${t.slidesBg}">${escapeHtml(t.name)}</option>`)
-                .join('');
-            }
-            if (els.standbyTemplateSelect) {
-              els.standbyTemplateSelect.innerHTML = data.templates
-                .filter(t => t.standby)
-                .map(t => `<option value="${t.standby}">${escapeHtml(t.name)}</option>`)
-                .join('');
-            }
-            if (els.stingerTemplateSelect) {
-              const opts = data.templates
-                .filter(t => t.stringer)
-                .map(t => `<option value="${t.stringer}">${escapeHtml(t.name)} (Stinger WebM)</option>`)
-                .join('');
-              els.stingerTemplateSelect.innerHTML = opts + `<option value="custom">ستنجر مخصص من الجهاز (.webm)...</option>`;
-            }
-            renderBuiltinTemplates();
+        let data = null;
+        try {
+          const res = await fetch('/api.php?action=templates');
+          if (res && res.ok) data = await res.json();
+        } catch(e) {}
+        if (!data || !Array.isArray(data.templates) || data.templates.length === 0) {
+          try {
+            const res2 = await fetch('./templates.json?t=' + Date.now());
+            if (res2 && res2.ok) data = await res2.json();
+          } catch(e) {}
+        }
+        if (data && (data.status === 'success' || Array.isArray(data.templates)) && Array.isArray(data.templates) && data.templates.length > 0) {
+          state.availableTemplates = data.templates;
+
+          const bgSelect = document.getElementById('slides-bg-template-select');
+          if (bgSelect) {
+            bgSelect.innerHTML = data.templates
+              .filter(t => t.slidesBg)
+              .map(t => `<option value="${t.slidesBg}">${escapeHtml(t.name)} ${t.category ? `(${escapeHtml(t.category)})` : ''}</option>`)
+              .join('');
+            if (state.slidesBgConfig?.url) bgSelect.value = state.slidesBgConfig.url;
           }
+
+          const sbSelect = document.getElementById('standby-template-select');
+          if (sbSelect) {
+            sbSelect.innerHTML = data.templates
+              .filter(t => t.standby)
+              .map(t => `<option value="${t.standby}">${escapeHtml(t.name)} ${t.category ? `(${escapeHtml(t.category)})` : ''}</option>`)
+              .join('');
+            if (state.standbyConfig?.url) sbSelect.value = state.standbyConfig.url;
+          }
+
+          const stSelect = document.getElementById('stinger-template-select');
+          if (stSelect) {
+            const opts = data.templates
+              .filter(t => t.stringer)
+              .map(t => `<option value="${t.stringer}">${escapeHtml(t.name)} (Stinger WebM)</option>`)
+              .join('');
+            stSelect.innerHTML = opts + `<option value="custom">ستنجر مخصص من الجهاز (.webm)...</option>`;
+            if (state.transitionConfig?.stingerUrl) stSelect.value = state.transitionConfig.stingerUrl;
+          }
+
+          // Populate Default Template Dropdowns in tab-templates
+          const defTaranimSelect = document.getElementById('select-default-tmpl-taranim');
+          const defBibleSelect = document.getElementById('select-default-tmpl-bible');
+          const tmplOptionsHtml = `<option value="">-- بدون تعيين تلقائي --</option>` + data.templates.map(t => `<option value="${escapeHtml(t.id || t.name)}">${escapeHtml(t.name)} ${t.category ? `(${escapeHtml(t.category)})` : ''}</option>`).join('');
+          if (defTaranimSelect) {
+            const curVal = defTaranimSelect.value;
+            defTaranimSelect.innerHTML = tmplOptionsHtml;
+            if (curVal) defTaranimSelect.value = curVal;
+          }
+          if (defBibleSelect) {
+            const curVal = defBibleSelect.value;
+            defBibleSelect.innerHTML = tmplOptionsHtml;
+            if (curVal) defBibleSelect.value = curVal;
+          }
+
+          renderTemplatesCatalog();
         }
       } catch (e) {}
     };
@@ -9485,12 +9517,25 @@ document.addEventListener('DOMContentLoaded', () => {
         applyMediaFitMode(obsSlidesBgImg, sFit);
         applyMediaFitMode(obsSlidesBgVideo, sFit);
 
-        if (bgConf.type === 'template' || bgConf.type === 'custom_video') {
-          const vUrl = bgConf.url || (bgConf.type === 'template' ? 'Templates/SlidesBg/Shabahak Akon 2026/Shabahak Akoon Loop Empty Centered.mp4' : '');
-          if (vUrl) {
-            if (obsSlidesBgVideo && obsSlidesBgVideo.getAttribute('data-active-src') !== vUrl) {
-              obsSlidesBgVideo.setAttribute('data-active-src', vUrl);
-              obsSlidesBgVideo.src = vUrl;
+        const mediaUrl = bgConf.url || '';
+        const isImg = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(mediaUrl) || mediaUrl.startsWith('data:image/') || bgConf.type === 'custom_image';
+        const isVid = /\.(mp4|webm|mov|mkv)$/i.test(mediaUrl) || mediaUrl.startsWith('data:video/') || bgConf.type === 'custom_video';
+
+        if (mediaUrl && (bgConf.type === 'template' || isImg || isVid)) {
+          if (isImg) {
+            if (obsSlidesBgVideo) {
+              obsSlidesBgVideo.classList.add('hidden');
+              if (!obsSlidesBgVideo.paused) { try { obsSlidesBgVideo.pause(); } catch(e) {} }
+            }
+            if (obsSlidesBgImg) {
+              obsSlidesBgImg.src = mediaUrl;
+              obsSlidesBgImg.classList.remove('hidden');
+            }
+            obsSlidesBgContainer.classList.remove('hidden');
+          } else {
+            if (obsSlidesBgVideo && obsSlidesBgVideo.getAttribute('data-active-src') !== mediaUrl) {
+              obsSlidesBgVideo.setAttribute('data-active-src', mediaUrl);
+              obsSlidesBgVideo.src = mediaUrl;
               obsSlidesBgVideo.load();
             }
             if (obsSlidesBgVideo) {
@@ -9501,20 +9546,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (obsSlidesBgImg) obsSlidesBgImg.classList.add('hidden');
             obsSlidesBgContainer.classList.remove('hidden');
-          } else {
-            obsSlidesBgContainer.classList.add('hidden');
-            if (obsSlidesBgVideo && !obsSlidesBgVideo.paused) obsSlidesBgVideo.pause();
           }
-        } else if (bgConf.type === 'custom_image' && bgConf.url) {
-          if (obsSlidesBgImg) {
-            obsSlidesBgImg.src = bgConf.url;
-            obsSlidesBgImg.classList.remove('hidden');
-          }
-          if (obsSlidesBgVideo) {
-            obsSlidesBgVideo.classList.add('hidden');
-            if (!obsSlidesBgVideo.paused) obsSlidesBgVideo.pause();
-          }
-          obsSlidesBgContainer.classList.remove('hidden');
         } else {
           obsSlidesBgContainer.classList.add('hidden');
           if (obsSlidesBgImg) obsSlidesBgImg.classList.add('hidden');
@@ -9550,42 +9582,54 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
 
-        if (standbyConf.type === 'template' || standbyConf.type === 'custom_video') {
-          if (obsSlidesBgContainer) obsSlidesBgContainer.classList.add('hidden');
-          if (standbyEl) standbyEl.classList.add('hidden');
-          if (obsStandbyFullscreenContainer && obsStandbyFullscreenVideo) {
-            const vUrl = standbyConf.url || 'Templates/Standby/Shabahak Akon 2026/Shabahak Akoon Loop.mp4';
-            if (obsStandbyFullscreenVideo.getAttribute('data-active-src') !== vUrl) {
-              obsStandbyFullscreenVideo.setAttribute('data-active-src', vUrl);
-              obsStandbyFullscreenVideo.src = vUrl;
-              obsStandbyFullscreenVideo.load();
-            }
-            obsStandbyFullscreenVideo.muted = true;
-            obsStandbyFullscreenVideo.loop = (standbyConf.loop !== false);
-            obsStandbyFullscreenVideo.classList.remove('hidden');
-            if (obsStandbyFullscreenImg) obsStandbyFullscreenImg.classList.add('hidden');
-            obsStandbyFullscreenContainer.classList.remove('hidden');
-            if (obsStandbyFullscreenVideo.paused) obsStandbyFullscreenVideo.play().catch(() => {});
+        const sbUrl = standbyConf.url || '';
+        const isSbImg = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(sbUrl) || sbUrl.startsWith('data:image/') || standbyConf.type === 'custom_image';
+        const isSbVid = /\.(mp4|webm|mov|mkv)$/i.test(sbUrl) || sbUrl.startsWith('data:video/') || standbyConf.type === 'custom_video';
+
+        if (standbyConf.type === 'logo') {
+          if (obsStandbyFullscreenContainer) obsStandbyFullscreenContainer.classList.add('hidden');
+          if (obsStandbyFullscreenVideo && !obsStandbyFullscreenVideo.paused) {
+            try { obsStandbyFullscreenVideo.pause(); } catch(e) {}
           }
-        } else if (standbyConf.type === 'custom_image' && standbyConf.url) {
+          if (standbyEl) {
+            standbyEl.classList.remove('hidden');
+            standbyEl.style.display = 'flex';
+          }
+        } else if (sbUrl && (standbyConf.type === 'template' || isSbImg || isSbVid)) {
           if (obsSlidesBgContainer) obsSlidesBgContainer.classList.add('hidden');
-          if (standbyEl) standbyEl.classList.add('hidden');
-          if (obsStandbyFullscreenContainer && obsStandbyFullscreenImg) {
-            obsStandbyFullscreenImg.src = standbyConf.url;
-            obsStandbyFullscreenImg.classList.remove('hidden');
+          if (standbyEl) {
+            standbyEl.classList.add('hidden');
+            standbyEl.style.display = 'none';
+          }
+          if (obsStandbyFullscreenContainer) obsStandbyFullscreenContainer.classList.remove('hidden');
+
+          if (isSbImg) {
             if (obsStandbyFullscreenVideo) {
               obsStandbyFullscreenVideo.classList.add('hidden');
-              if (!obsStandbyFullscreenVideo.paused) obsStandbyFullscreenVideo.pause();
+              if (!obsStandbyFullscreenVideo.paused) { try { obsStandbyFullscreenVideo.pause(); } catch(e) {} }
             }
-            obsStandbyFullscreenContainer.classList.remove('hidden');
+            if (obsStandbyFullscreenImg) {
+              obsStandbyFullscreenImg.src = sbUrl;
+              obsStandbyFullscreenImg.classList.remove('hidden');
+            }
+          } else {
+            if (obsStandbyFullscreenVideo && obsStandbyFullscreenVideo.getAttribute('data-active-src') !== sbUrl) {
+              obsStandbyFullscreenVideo.setAttribute('data-active-src', sbUrl);
+              obsStandbyFullscreenVideo.src = sbUrl;
+              obsStandbyFullscreenVideo.load();
+            }
+            if (obsStandbyFullscreenImg) obsStandbyFullscreenImg.classList.add('hidden');
+            if (obsStandbyFullscreenVideo) {
+              obsStandbyFullscreenVideo.muted = true;
+              obsStandbyFullscreenVideo.loop = (standbyConf.loop !== false);
+              obsStandbyFullscreenVideo.classList.remove('hidden');
+              if (obsStandbyFullscreenVideo.paused) obsStandbyFullscreenVideo.play().catch(() => {});
+            }
           }
         } else {
-          // Default logo: Keep slides background active underneath if configured
-          if (obsStandbyFullscreenContainer) {
-            obsStandbyFullscreenContainer.classList.add('hidden');
-            if (obsStandbyFullscreenVideo && !obsStandbyFullscreenVideo.paused) {
-              try { obsStandbyFullscreenVideo.pause(); } catch(e) {}
-            }
+          if (obsStandbyFullscreenContainer) obsStandbyFullscreenContainer.classList.add('hidden');
+          if (obsStandbyFullscreenVideo && !obsStandbyFullscreenVideo.paused) {
+            try { obsStandbyFullscreenVideo.pause(); } catch(e) {}
           }
           if (standbyEl) {
             standbyEl.classList.remove('hidden');

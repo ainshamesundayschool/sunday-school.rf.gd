@@ -3899,6 +3899,10 @@ try {
 
     switch ($action) {
 
+        case 'templates':
+            getTaranimTemplates();
+            break;
+
         case 'trackSongDownload':
             trackSongDownload();
             break;
@@ -50005,4 +50009,126 @@ function restoreEntityBackup()
     } catch (Exception $e) {
         sendJSON(['success' => false, 'message' => 'خطأ في عملية استعادة البيانات: ' . $e->getMessage()]);
     }
+}
+
+function getTaranimTemplates() {
+    $baseDir = __DIR__ . '/taranim/Templates';
+    $templates = [];
+
+    // 1. Shabahak Akon 2026 suite
+    $templates[] = [
+        'id' => 'tmpl-shabahak-akon-2026',
+        'name' => 'Shabahak Akon 2026',
+        'category' => 'المؤتمرات',
+        'categoryKey' => 'conferences',
+        'desc' => 'حزمة مؤتمر شبابك أكون 2026 الكاملة: فيديو انتظار لوب + خلفية شرائح متمركزة + انتقال ستنجر بقناة ألفا.',
+        'standby' => 'Templates/Standby/Shabahak Akon 2026/Shabahak Akoon Loop.mp4',
+        'slidesBg' => 'Templates/SlidesBg/Shabahak Akon 2026/Shabahak Akoon Loop Empty Centered.mp4',
+        'stringer' => 'Templates/Stringer/Shabahak Akon 2026/Stringer 1.webm',
+        'thumbnailType' => 'video',
+        'thumbnailUrl' => 'Templates/Standby/Shabahak Akon 2026/Shabahak Akoon Loop.mp4'
+    ];
+
+    if (is_dir($baseDir)) {
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($baseDir, RecursiveDirectoryIterator::SKIP_DOTS));
+        foreach ($iterator as $file) {
+            if ($file->isFile()) {
+                $ext = strtolower($file->getExtension());
+                $filename = $file->getFilename();
+                if (substr($filename, 0, 1) === '.' || $ext === 'xmp') continue;
+
+                if (in_array($ext, ['jpg', 'jpeg', 'png', 'webp'])) {
+                    $rel = str_replace('\\', '/', substr($file->getPathname(), strlen(__DIR__ . '/taranim/')));
+                    $nameNoExt = pathinfo($filename, PATHINFO_FILENAME);
+                    $parentDir = basename(dirname($file->getPathname()));
+                    $templates[] = [
+                        'id' => 'tmpl-img-' . preg_replace('/[^a-zA-Z0-9_-]/', '-', strtolower($nameNoExt)),
+                        'name' => $nameNoExt,
+                        'category' => 'خلفيات وسلايدات',
+                        'categoryKey' => 'backgrounds',
+                        'desc' => 'خلفية فنية عالية الدقة (' . $parentDir . ') جاهزة للاستخدام كشاشة انتظار وخلفية للترانيم.',
+                        'standby' => $rel,
+                        'slidesBg' => $rel,
+                        'thumbnailType' => 'image',
+                        'thumbnailUrl' => $rel
+                    ];
+                }
+            }
+        }
+    }
+
+    // 3. Preset Styles
+    $templates[] = [
+        'id' => 'tmpl-spiritual-service',
+        'name' => 'القداس والخدمات الروحية',
+        'category' => 'الاجتماعات والنهضات',
+        'categoryKey' => 'services',
+        'desc' => 'ستايل خط Alexandria عريض مع ظل أسود عميق وخلفية داكنة راقية مريحة للبث والقراءة.',
+        'selectedFont' => "'Alexandria', sans-serif",
+        'fontSize' => 105,
+        'styleOptions' => [
+            'textColor' => '#ffffff',
+            'fontWeight' => '800',
+            'shadowBlur' => 14,
+            'shadowColor' => '#000000',
+            'shadowDistance' => 4,
+            'shadowAngle' => 90,
+            'strokeWidth' => 0,
+            'textAlign' => 'center'
+        ],
+        'thumbnailType' => 'sim',
+        'thumbnailBg' => 'linear-gradient(135deg, #1e3a8a, #0f172a)',
+        'thumbnailText' => 'مجد مريم يتعظم'
+    ];
+
+    $templates[] = [
+        'id' => 'tmpl-bible-study',
+        'name' => 'دراسة الكتاب المقدس والشواهد',
+        'category' => 'الكتاب المقدس',
+        'categoryKey' => 'bible',
+        'desc' => 'ستايل متناسق ونقي مخصص لقراءة الآيات والأصحاحات مع وضوح عالي وإبراز للشواهد الكتابية.',
+        'selectedFont' => "'Cairo', sans-serif",
+        'fontSize' => 100,
+        'styleOptions' => [
+            'textColor' => '#ffffff',
+            'fontWeight' => '700',
+            'shadowBlur' => 10,
+            'shadowColor' => '#000000',
+            'shadowDistance' => 2,
+            'shadowAngle' => 90,
+            'strokeWidth' => 0,
+            'textAlign' => 'center'
+        ],
+        'thumbnailType' => 'sim',
+        'thumbnailBg' => 'linear-gradient(135deg, #064e3b, #022c22)',
+        'thumbnailText' => 'فِي الْبَدْءِ كَانَ الْكَلِمَةُ'
+    ];
+
+    $templates[] = [
+        'id' => 'tmpl-sunday-school-kids',
+        'name' => 'مدارس الأحد والأطفال',
+        'category' => 'الاجتماعات والنهضات',
+        'categoryKey' => 'services',
+        'desc' => 'خط Baloo Bhaijaan كرتوني جذاب مع ألوان مبهجة وإطار خارجي بارز لترانيم الأطفال.',
+        'selectedFont' => "'Baloo Bhaijaan 2', sans-serif",
+        'fontSize' => 110,
+        'styleOptions' => [
+            'textColor' => '#fef08a',
+            'fontWeight' => '800',
+            'shadowBlur' => 8,
+            'shadowColor' => '#78350f',
+            'shadowDistance' => 4,
+            'shadowAngle' => 90,
+            'strokeWidth' => 3,
+            'strokeColor' => '#78350f',
+            'textAlign' => 'center'
+        ],
+        'thumbnailType' => 'sim',
+        'thumbnailBg' => 'linear-gradient(135deg, #7c2d12, #451a03)',
+        'thumbnailText' => 'يسوع بيحب الأطفال'
+    ];
+
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['status' => 'success', 'templates' => $templates], JSON_UNESCAPED_UNICODE);
+    exit;
 }
