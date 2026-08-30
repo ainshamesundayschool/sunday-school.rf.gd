@@ -2610,7 +2610,7 @@ document.addEventListener('DOMContentLoaded', () => {
           { url: './style.css', size: 106000 },
           { url: './logoicon.png', size: 70000 },
           { url: './manifest.webmanifest', size: 800 },
-          { url: './songs_catalog.json', size: 33693104 },
+          { url: './songs_catalog.json', size: 23528339 },
           { url: './arabic_dictionary.json', size: 208186 },
           { url: './playlists.json', size: 100 },
           { url: './song_scales_map.json', size: 20400 },
