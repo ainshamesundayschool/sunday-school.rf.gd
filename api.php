@@ -14045,11 +14045,14 @@ function updateChurch()
 
         $sessionChurchId = intval($_SESSION['church_id'] ?? 0);
 
-        $isChurchAdmin = isAdminOrDevRole() && ($isDeveloper || $currentChurchId === $churchId || $sessionChurchId === $churchId || $currentChurchId === 0 || $sessionChurchId === 0);
+        $isChurchAdmin = $isDeveloper || isAdminOrDevRole() || 
+            (isset($_SESSION['login_type']) && $_SESSION['login_type'] === 'church') ||
+            (isset($_SESSION['church_id']) && intval($_SESSION['church_id']) > 0) ||
+            ($churchId > 0 && ($currentChurchId === $churchId || $sessionChurchId === $churchId));
 
 
 
-        if (!$isDeveloper && !$isChurchAdmin) {
+        if (!$isChurchAdmin) {
 
             sendJSON(['success' => false, 'message' => 'غير مصرح']);
 
@@ -17185,123 +17188,71 @@ function deleteUncle()
 
 
         // Prevent deleting yourself
-
-        if (isset($_SESSION['uncle_id']) && $uncleId === $_SESSION['uncle_id']) {
-
+        if (isset($_SESSION['uncle_id']) && $uncleId === intval($_SESSION['uncle_id'])) {
             sendJSON(['success' => false, 'message' => 'لا يمكنك حذف حسابك الخاص']);
-
+            return;
         }
-
-
 
         $conn = getDBConnection();
 
-
-
         // Verify this uncle exists and check church membership unless developer
-
         $checkStmt = $conn->prepare("SELECT id, name, role, image_url, church_id FROM uncles WHERE id = ?");
-
         $checkStmt->bind_param("i", $uncleId);
-
         $checkStmt->execute();
-
         $result = $checkStmt->get_result();
 
-
-
         if ($result->num_rows === 0) {
-
             sendJSON(['success' => false, 'message' => 'الخادم غير موجود']);
-
             return;
-
         }
 
-
-
         $uncleData = $result->fetch_assoc();
+        if (!$uncleData) {
+            sendJSON(['success' => false, 'message' => 'الخادم غير موجود']);
+            return;
+        }
 
-        if (!isDeveloperRole() && $churchId > 0 && intval($uncleData['church_id']) !== $churchId) {
-
+        if (!isDeveloperRole() && $churchId > 0 && intval($uncleData['church_id'] ?? 0) !== $churchId) {
             sendJSON(['success' => false, 'message' => 'الخادم لا ينتمي لهذه الكنيسة']);
-
             return;
-
         }
 
-
-
-        $uncleData = $result->fetch_assoc();
-
-        $uncleName = $uncleData['name'];
-
-
+        $uncleName = $uncleData['name'] ?? '';
 
         // Prevent deleting developer accounts
-
         $isTargetDeveloper = in_array(strtolower($uncleData['role'] ?? ''), ['developer', 'dev']);
-
         if ($isTargetDeveloper) {
-
             sendJSON(['success' => false, 'message' => 'لا يمكنك حذف حساب المطور']);
-
             return;
-
         }
 
-
-
         // Start transaction
-
         $conn->begin_transaction();
 
-
-
         try {
-
             // Delete class assignments first
-
             $deleteClassesStmt = $conn->prepare("DELETE FROM uncle_class_assignments WHERE uncle_id = ?");
-
             $deleteClassesStmt->bind_param("i", $uncleId);
-
             $deleteClassesStmt->execute();
 
-
-
             // Soft delete the uncle
-
-            $stmt = $conn->prepare("UPDATE uncles SET deleted = 1 WHERE id = ? AND church_id = ?");
-
-            $stmt->bind_param("ii", $uncleId, $churchId);
-
+            $stmt = $conn->prepare("UPDATE uncles SET deleted = 1 WHERE id = ?");
+            $stmt->bind_param("i", $uncleId);
             $stmt->execute();
-
-
 
             $conn->commit();
 
-
-
             // Clean up uncle image file from disk
-
             deleteUploadedFile($uncleData['image_url'] ?? null);
 
-
-
             // Audit log
-
-            writeAuditLog('uncle_delete', 'uncle', $uncleId, $uncleName, null, null, 'حذف خادم');
-
-
+            if (function_exists('writeAuditLog')) {
+                writeAuditLog('uncle_delete', 'uncle', $uncleId, $uncleName, $uncleData, null, 'حذف خادم');
+            }
 
             sendJSON(['success' => true, 'message' => 'تم حذف الخادم بنجاح']);
 
-
-
         } catch (Exception $e) {
-
             $conn->rollback();
 
             throw $e;
