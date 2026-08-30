@@ -6673,14 +6673,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const rawTrans = francoToArabic(cleanWord);
       if (rawTrans) {
         const fullTrans = text.slice(0, start) + rawTrans + text.slice(end);
-        addSuggestion(fullTrans, rawTrans, 'fa-language');
+        addSuggestion(fullTrans, rawTrans, 'icon-star-sparkle');
       }
       if (typeof francoToArabicVariants === 'function') {
         const fVars = francoToArabicVariants(cleanWord);
         fVars.forEach(fv => {
           if (fv && fv !== rawTrans) {
             const fullTrans = text.slice(0, start) + fv + text.slice(end);
-            addSuggestion(fullTrans, fv, 'fa-language');
+            addSuggestion(fullTrans, fv, 'icon-star-sparkle');
           }
         });
       }
@@ -7143,7 +7143,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (state.francoAutoTranslate && isFrancoInput) {
       const rawTranslated = qFrancoVariants[0] || francoToArabic(query);
       if (rawTranslated) {
-        francoHeaderHtml = `<div class="franco-translation-header"><i class="fa-solid fa-language" style="display:inline-block; vertical-align:-1px; margin-left:6px; color:#2563eb;"></i> <strong>${escapeHtml(rawTranslated)}</strong></div>`;
+        francoHeaderHtml = `<div class="franco-translation-header"><i class="icon-star-sparkle" style="display:inline-block; vertical-align:-1px; margin-left:6px; color:#2563eb;"></i> <strong>${escapeHtml(rawTranslated)}</strong></div>`;
       }
     }
 
@@ -7155,14 +7155,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (spellingVariants.length > 0) {
       const topVar = spellingVariants[0];
       suggestionBannerHtml = `
-        <div class="search-did-you-mean-banner">
+        <div class="search-did-you-mean-banner" data-val="${escapeHtml(topVar)}">
           <div class="suggestion-text">
             <i class="icon-star-sparkle" style="color:#2563eb; margin-left:6px;"></i>
-            <span>هل تقصد: <strong>${escapeHtml(topVar)}</strong>؟</span>
+            <span>هل تقصد: <strong class="clickable-suggestion-word" data-val="${escapeHtml(topVar)}" title="اضغط للاستبدال والبحث">${escapeHtml(topVar)}</strong>؟</span>
           </div>
-          <button type="button" class="btn-apply-suggestion-banner" data-val="${escapeHtml(topVar)}">
-            <i class="fa-solid fa-arrow-right-arrow-left" style="margin-left:4px;"></i> استبدال والبحث
-          </button>
         </div>
       `;
     }
@@ -7269,10 +7266,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     els.searchDropdown.classList.remove('hidden');
 
-    els.searchDropdown.querySelectorAll('.btn-apply-suggestion-banner').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+    els.searchDropdown.querySelectorAll('.search-did-you-mean-banner, .clickable-suggestion-word').forEach(el => {
+      el.addEventListener('click', (e) => {
         e.stopPropagation();
-        const newVal = btn.dataset.val;
+        const wordEl = el.classList.contains('clickable-suggestion-word') ? el : el.querySelector('.clickable-suggestion-word');
+        const newVal = wordEl ? wordEl.dataset.val : el.dataset.val;
         if (!newVal) return;
         els.intelligentSearch.value = newVal;
         els.intelligentSearch.focus();
