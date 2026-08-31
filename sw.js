@@ -168,7 +168,7 @@ self.addEventListener('fetch', e => {
     }
 
     // API / POST calls — NEVER force window.reload / client.navigate on transient API cookie challenges
-    if (e.request.method === 'POST' || url.pathname.includes('api.php')) {
+    if (e.request.method === 'POST' || url.pathname.includes('api.php') || url.pathname.includes('remote_sync')) {
         e.respondWith(
             (async () => {
                 try {
@@ -237,9 +237,11 @@ self.addEventListener('fetch', e => {
                     if (timeoutId) clearTimeout(timeoutId);
 
                     if (networkResp && networkResp.ok && isOfflineShellFriendly && await _isCacheableAppResponse(networkResp, e.request)) {
-                        const copy = networkResp.clone();
-                        const cache = await caches.open(CACHE_NAME);
-                        await cache.put(e.request, copy);
+                        try {
+                            const copy = networkResp.clone();
+                            const cache = await caches.open(CACHE_NAME);
+                            await cache.put(e.request, copy);
+                        } catch(putErr) {}
                     }
                     return networkResp;
                 } catch (err) {
@@ -294,9 +296,11 @@ self.addEventListener('fetch', e => {
                     if (timeoutId) clearTimeout(timeoutId);
 
                     if (networkResp && networkResp.ok && await _isCacheableAppResponse(networkResp, e.request)) {
-                        const copy = networkResp.clone();
-                        const cache = await caches.open(CACHE_NAME);
-                        await cache.put(e.request, copy);
+                        try {
+                            const copy = networkResp.clone();
+                            const cache = await caches.open(CACHE_NAME);
+                            await cache.put(e.request, copy);
+                        } catch(putErr) {}
                     }
                     return networkResp;
                 } catch (err) {

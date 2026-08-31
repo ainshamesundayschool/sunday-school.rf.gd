@@ -3008,34 +3008,20 @@ document.addEventListener('DOMContentLoaded', () => {
   let hostPeer = null;
   let activeRemotePeerConnections = new Map();
 
-  // MULTI-ENDPOINT SMART HOST FETCHER (HANDLES ANY SERVER SETUP / DIRECTORY)
+  // CLEAN ROOT API GATEWAY HOST FETCHER
   async function requestRemoteHostApi(action, payload = {}) {
-    const endpoints = [
-      `api.php?action=remote_${action}`,
-      `/api.php?action=remote_${action}`,
-      `remote_sync.php?action=${action}`,
-      `/taranim/remote_sync.php?action=${action}`
-    ];
-
-    for (const ep of endpoints) {
-      try {
-        const res = await fetch(ep, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: action, ...payload })
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data) return data;
-        }
-      } catch(e) {}
-    }
+    try {
+      const res = await fetch(`/api.php?action=remote_${action}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: action, ...payload })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data) return data;
+      }
+    } catch(e) {}
     return null;
-  }
-
-  function getRemoteAppUrl(roomId, pin) {
-    const base = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/remote.html');
-    return `${base}?room=${encodeURIComponent(roomId)}&pin=${encodeURIComponent(pin)}`;
   }
 
   async function initRemoteHost(forceNew = false) {

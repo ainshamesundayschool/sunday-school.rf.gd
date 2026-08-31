@@ -616,28 +616,19 @@
       }
     }
 
-    // MULTI-ENDPOINT SMART FETCHER (HANDLES ANY DOMAIN / SUBDIRECTORY)
+    // CLEAN ROOT API GATEWAY FETCHER
     async function requestRemoteApi(action, payload = {}) {
-      const endpoints = [
-        `api.php?action=remote_${action}`,
-        `/api.php?action=remote_${action}`,
-        `remote_sync.php?action=${action}`,
-        `/taranim/remote_sync.php?action=${action}`
-      ];
-
-      for (const ep of endpoints) {
-        try {
-          const res = await fetch(ep, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: action, ...payload })
-          });
-          if (res.ok) {
-            const data = await res.json();
-            if (data) return data;
-          }
-        } catch(e) {}
-      }
+      try {
+        const res = await fetch(`/api.php?action=remote_${action}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: action, ...payload })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data) return data;
+        }
+      } catch(e) {}
       return null;
     }
 
