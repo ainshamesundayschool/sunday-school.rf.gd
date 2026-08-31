@@ -1344,7 +1344,8 @@
         textEl.style.textStroke = '0px transparent';
       }
 
-      if (scaledShadowBlur > 0 || scaledDistPx > 0) {
+      const isShadowActive = data.shadowEnabled !== false && shadowColor !== 'transparent' && shadowColor !== 'rgba(0,0,0,0)' && (scaledShadowBlur > 0 || scaledDistPx > 0);
+      if (isShadowActive) {
         shadowParts.push(`${offX}px ${offY}px ${scaledShadowBlur}px ${shadowColor}`);
       }
       const finalShadow = shadowParts.length > 0 ? shadowParts.join(', ') : 'none';

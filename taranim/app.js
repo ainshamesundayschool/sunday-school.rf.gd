@@ -1403,8 +1403,10 @@ document.addEventListener('DOMContentLoaded', () => {
       strokeColor: '#000000',
       strokeWidth: 4,
       strokeEnabled: true,
-      shadowColor: 'rgba(0,0,0,0.85)',
-      shadowBlur: 8
+      shadowColor: 'transparent',
+      shadowBlur: 0,
+      shadowDistance: 0,
+      shadowEnabled: false
     },
     textTransform: {
       scale: 75,
@@ -2686,8 +2688,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const SHUFFLE_TMPL_ID_KEY = 'sunday_school_template_shuffle_id';
   const SHUFFLE_DECK_KEY_PREFIX = 'sunday_school_shuffle_deck_';
 
-  function isTemplateShuffleEnabled() {
-    return localStorage.getItem(SHUFFLE_STORAGE_KEY) === 'true';
+  function isTemplateShuffleEnabled(tmplId = null) {
+    const isGlobal = localStorage.getItem(SHUFFLE_STORAGE_KEY) === 'true';
+    if (!tmplId) return isGlobal;
+    const targetId = localStorage.getItem(SHUFFLE_TMPL_ID_KEY) || 'tmpl-paint-sweeps';
+    return isGlobal && targetId === tmplId;
   }
 
   function setTemplateShuffleEnabled(enabled, tmplId = null) {
@@ -2734,7 +2739,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let lastShuffledSongKey = null;
 
-    function triggerAutoShuffleGroupedTemplateIfNeeded(song) {
+  function triggerAutoShuffleGroupedTemplateIfNeeded(song) {
     if (!isTemplateShuffleEnabled()) return;
     if (!song) return;
 
@@ -2754,28 +2759,38 @@ document.addEventListener('DOMContentLoaded', () => {
     let tmpl = templates.find(t => t.id === targetTmplId) || templates.find(t => t.varieties && t.varieties.length > 0);
     if (!tmpl || !tmpl.varieties || tmpl.varieties.length === 0) return;
 
-    // SHUFFLE ONLY WITHIN THE GROUPED PACK (DO NOT JUMP TO OTHER TEMPLATES)
-    const allUrls = tmpl.varieties.map(v => v.url);
-    let deck = getShuffleDeck(tmpl.id, allUrls);
+    // SHUFFLE ACROSS VARIETY INDICES TO SUPPORT BOTH COLOR AND LAYOUT/TRANSFORM VARIETIES
+    const allIndices = tmpl.varieties.map((_, idx) => idx);
+    let deck = getShuffleDeck(tmpl.id, allIndices);
 
     if (!deck || deck.length === 0) {
-      deck = shuffleArray([...allUrls]);
+      deck = shuffleArray([...allIndices]);
       saveShuffleDeck(tmpl.id, deck);
       if (typeof showToast === 'function') {
-        showToast(`🔄 تم إكمال دورة خلفيات "${tmpl.name}" وإعادة الترتيب العشوائي!`);
+        showToast(`🔄 تم إكمال دورة أنماط "${tmpl.name}" وإعادة الترتيب العشوائي!`);
       }
     }
 
-    const nextBgUrl = deck.pop();
+    const nextIdx = deck.pop();
     saveShuffleDeck(tmpl.id, deck);
 
-    const variety = tmpl.varieties.find(v => v.url === nextBgUrl) || { name: 'عشوائي', url: nextBgUrl };
+    const variety = tmpl.varieties[nextIdx] || tmpl.varieties[0];
+    const nextBgUrl = variety.url || tmpl.slidesBg || '';
 
-    // ONLY CHANGE BACKGROUND & STANDBY SCREEN - DO NOT TOUCH STYLES OR FONTS
+    // Apply variety media & properties
     state.slidesBgConfig.type = 'template';
     state.slidesBgConfig.url = nextBgUrl;
     state.standbyConfig.type = 'template';
     state.standbyConfig.url = nextBgUrl;
+    state.standbyConfig.showLogo = (tmpl.showLogo !== undefined) ? Boolean(tmpl.showLogo) : (tmpl.id !== 'tmpl-shabahak-akon-2026' && tmpl.id !== 'tmpl-broadcast-chroma-green');
+
+    if (variety.textTransform) {
+      state.textTransform = JSON.parse(JSON.stringify(variety.textTransform));
+      if (typeof updateTextTransformUI === 'function') updateTextTransformUI();
+    }
+    if (variety.fontSize) {
+      state.fontSize = variety.fontSize;
+    }
 
     if (typeof updateSlidesBgUI === 'function') updateSlidesBgUI();
     if (typeof updateStandbyUI === 'function') updateStandbyUI();
@@ -2785,7 +2800,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const card = document.querySelector(`.template-preview-card[data-id="${tmpl.id}"]`);
     if (card) {
       const thumbImg = card.querySelector(`#tmpl-thumb-img-${tmpl.id}`);
-      if (thumbImg) thumbImg.src = nextBgUrl;
+      if (thumbImg && (variety.thumbUrl || variety.url)) {
+        thumbImg.src = variety.thumbUrl || variety.url;
+      }
 
       const nameEl = card.querySelector(`#tmpl-selected-var-name-${tmpl.id}`);
       if (nameEl) nameEl.textContent = variety.name;
@@ -2793,13 +2810,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const badgeEl = card.querySelector(`#tmpl-selected-var-badge-${tmpl.id}`);
       if (badgeEl) badgeEl.innerHTML = `<i class="fa-solid fa-palette"></i> ${escapeHtml(variety.name)}`;
 
-      card.querySelectorAll('.template-variety-circle').forEach(c => {
-        c.classList.toggle('active', c.dataset.url === nextBgUrl);
+      card.querySelectorAll('.template-variety-circle').forEach((c, cIdx) => {
+        c.classList.toggle('active', cIdx === nextIdx || c.dataset.name === variety.name);
       });
     }
 
     if (typeof showToast === 'function') {
-      showToast(`🔀 خلفية الترنيمة: ${variety.name} (${deck.length} متبقي بالحزمة)`);
+      showToast(`🔀 نمط الترنيمة: ${variety.name} (${deck.length} متبقي بالحزمة)`);
     }
   }
 
@@ -6242,13 +6259,13 @@ document.addEventListener('DOMContentLoaded', () => {
                       <i class="fa-solid fa-palette"></i> النمط المختار: <b id="tmpl-selected-var-name-${escapeHtml(t.id)}" style="color:#2563eb;">${escapeHtml(initialVarName)}</b>
                     </div>
                     <label class="template-shuffle-toggle" title="تفعيل التبديل العشوائي التلقائي لخلفيات هذه المجموعة عند كل ترنيمة جديدة دون تكرار">
-                      <input type="checkbox" class="chk-template-shuffle" data-tmpl-id="${escapeHtml(t.id)}" ${isTemplateShuffleEnabled() ? 'checked' : ''}>
+                      <input type="checkbox" class="chk-template-shuffle" data-tmpl-id="${escapeHtml(t.id)}" ${isTemplateShuffleEnabled(t.id) ? 'checked' : ''}>
                       <span class="template-shuffle-text"><i class="fa-solid fa-shuffle"></i> تبديل عشوائي لكل ترنيمة</span>
                     </label>
                   </div>
                   <div class="template-varieties-bar">
                     ${t.varieties.map((v, vIdx) => `
-                      <button type="button" class="template-variety-circle ${vIdx === 0 ? 'active' : ''}" data-tmpl-id="${escapeHtml(t.id)}" data-url="${escapeHtml(v.url)}" data-thumb-url="${escapeHtml(v.thumbUrl || v.url)}" data-name="${escapeHtml(v.name)}" title="${escapeHtml(v.name)}" style="background-image: url('${escapeHtml(v.thumbUrl || v.url)}');"></button>
+                      <button type="button" class="template-variety-circle ${vIdx === 0 ? 'active' : ''}" data-tmpl-id="${escapeHtml(t.id)}" data-variety-idx="${vIdx}" data-url="${escapeHtml(v.url)}" data-thumb-url="${escapeHtml(v.thumbUrl || v.url)}" data-name="${escapeHtml(v.name)}" title="${escapeHtml(v.name)}" style="background-image: url('${escapeHtml(v.thumbUrl || v.url)}');"></button>
                     `).join('')}
                   </div>
                 </div>
@@ -6269,7 +6286,7 @@ document.addEventListener('DOMContentLoaded', () => {
                       </button>
                     `;
                   })()}
-                  <button type="button" class="btn-apply-template-card btn btn-sm btn-primary" data-name="${escapeHtml(t.name)}" data-id="${escapeHtml(t.id || '')}" data-iscustom="${t.isCustom ? '1' : '0'}" ${hasVarieties ? `data-selected-variety-url="${escapeHtml(initialVarUrl)}" data-selected-variety-name="${escapeHtml(initialVarName)}"` : ''} style="background:#2563eb; color:#fff; font-weight:700; padding:6px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+                  <button type="button" class="btn-apply-template-card btn btn-sm btn-primary" data-name="${escapeHtml(t.name)}" data-id="${escapeHtml(t.id || '')}" data-iscustom="${t.isCustom ? '1' : '0'}" ${hasVarieties ? `data-selected-variety-idx="0" data-selected-variety-url="${escapeHtml(initialVarUrl)}" data-selected-variety-name="${escapeHtml(initialVarName)}"` : ''} style="background:#2563eb; color:#fff; font-weight:700; padding:6px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
                     <i class="icon-star-sparkle"></i> تطبيق القالب
                   </button>
                 </div>
@@ -6328,7 +6345,9 @@ document.addEventListener('DOMContentLoaded', () => {
           e.stopPropagation();
           const tmplId = circle.dataset.tmplId;
           const url = circle.dataset.url;
+          const thumbUrl = circle.dataset.thumbUrl || url;
           const name = circle.dataset.name;
+          const varietyIdx = circle.dataset.varietyIdx;
 
           const bar = circle.closest('.template-varieties-bar');
           if (bar) {
@@ -6339,7 +6358,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const card = circle.closest('.template-preview-card');
           if (card) {
             const thumbImg = card.querySelector(`#tmpl-thumb-img-${tmplId}`);
-            if (thumbImg) thumbImg.src = url;
+            if (thumbImg) thumbImg.src = thumbUrl;
 
             const nameEl = card.querySelector(`#tmpl-selected-var-name-${tmplId}`);
             if (nameEl) nameEl.textContent = name;
@@ -6349,6 +6368,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const applyBtn = card.querySelector('.btn-apply-template-card');
             if (applyBtn) {
+              applyBtn.dataset.selectedVarietyIdx = varietyIdx;
               applyBtn.dataset.selectedVarietyUrl = url;
               applyBtn.dataset.selectedVarietyName = name;
             }
@@ -6371,10 +6391,22 @@ document.addEventListener('DOMContentLoaded', () => {
             if (tmpl) {
               const selectedVarUrl = btn.dataset.selectedVarietyUrl;
               const selectedVarName = btn.dataset.selectedVarietyName;
+              const selectedVarIdx = parseInt(btn.dataset.selectedVarietyIdx, 10);
 
-              const matchedVar = (tmpl && Array.isArray(tmpl.varieties))
-                ? tmpl.varieties.find(v => v.name === selectedVarName || v.url === selectedVarUrl)
-                : null;
+              let matchedVar = null;
+              if (tmpl && Array.isArray(tmpl.varieties) && tmpl.varieties.length > 0) {
+                if (!isNaN(selectedVarIdx) && tmpl.varieties[selectedVarIdx]) {
+                  matchedVar = tmpl.varieties[selectedVarIdx];
+                } else if (selectedVarName) {
+                  matchedVar = tmpl.varieties.find(v => v.name === selectedVarName);
+                }
+                if (!matchedVar && selectedVarUrl) {
+                  matchedVar = tmpl.varieties.find(v => v.url === selectedVarUrl);
+                }
+                if (!matchedVar) {
+                  matchedVar = tmpl.varieties[0];
+                }
+              }
 
               if (selectedVarUrl) {
                 state.standbyConfig.type = 'template';
@@ -6426,6 +6458,9 @@ document.addEventListener('DOMContentLoaded', () => {
               if (typeof updateControlPanelFromState === 'function') updateControlPanelFromState();
               saveUserSettings();
               saveMediaConfig();
+              if (state.activeSong && typeof loadSongIntoPresentation === 'function') {
+                loadSongIntoPresentation(state.activeSong, false);
+              }
               syncLiveState(false, false, { triggerTransition: true });
               showToast(`تم تطبيق قالب "${tmpl.name}" ${selectedVarName ? `(${selectedVarName})` : ''} بالكامل! 🎬`);
             }
@@ -6724,8 +6759,10 @@ document.addEventListener('DOMContentLoaded', () => {
       strokeColor: '#000000',
       strokeWidth: 4,
       strokeEnabled: true,
-      shadowColor: 'rgba(0,0,0,0.85)',
-      shadowBlur: 8
+      shadowColor: 'transparent',
+      shadowBlur: 0,
+      shadowDistance: 0,
+      shadowEnabled: false
     },
     textTransform: {
       scale: 75,
@@ -7475,11 +7512,25 @@ document.addEventListener('DOMContentLoaded', () => {
     window.jumpToBufferedSlideGlobal = jumpToBufferedSlide;
 
     window.addEventListener('keydown', (e) => {
-      if (document.activeElement === els.intelligentSearch || (document.activeElement && document.activeElement.tagName === 'INPUT') || (document.activeElement && document.activeElement.tagName === 'TEXTAREA')) {
+      const activeEl = document.activeElement;
+      const isInput = activeEl && (
+        activeEl.tagName === 'INPUT' || 
+        activeEl.tagName === 'TEXTAREA' || 
+        activeEl.isContentEditable || 
+        activeEl === els.intelligentSearch
+      );
+
+      // If user is actively typing in a text field, do not intercept navigation keys
+      if (isInput) {
+        if (e.key === 'Escape') {
+          activeEl.blur();
+          if (els.searchDropdown) els.searchDropdown.classList.add('hidden');
+        }
         return;
       }
 
-      if (e.key === 'Escape') {
+      // 1. ESCAPE KEY HANDLING
+      if (e.key === 'Escape' || e.key === 'Esc') {
         if (numberJumpBuffer) {
           numberJumpBuffer = '';
           if (numberJumpTimer) clearTimeout(numberJumpTimer);
@@ -7493,22 +7544,21 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
         if (els.obsOverlay && !els.obsOverlay.classList.contains('hidden')) {
-          els.obsOverlay.classList.add('hidden');
-          if (document.fullscreenElement) {
-            document.exitFullscreen().catch(() => {});
-          }
+          exitPresentation(e);
           return;
         }
-        els.intelligentSearch.focus();
-        els.intelligentSearch.select();
-        els.searchDropdown.classList.add('hidden');
+        if (els.intelligentSearch) {
+          els.intelligentSearch.focus();
+          els.intelligentSearch.select();
+        }
+        if (els.searchDropdown) els.searchDropdown.classList.add('hidden');
         if (document.fullscreenElement) {
           document.exitFullscreen().catch(() => {});
         }
         return;
       }
 
-      // Check for numeric keys (0-9 or Numpad 0-9 or Arabic digits ٠-٩)
+      // 2. NUMERIC SLIDE JUMP BUFFER (0-9, Arabic numerals)
       const isDigit = /^[0-9٠-٩]$/.test(e.key);
       if (isDigit) {
         const standardDigit = e.key.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
@@ -7529,23 +7579,36 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowDown' || e.key === ' ') {
+      // 3. ZERO-SCROLL SLIDE NAVIGATION (SPACE & ALL 4 ARROWS)
+      const isSpace = (e.key === ' ' || e.code === 'Space' || e.key === 'Spacebar');
+      const isNextKey = isSpace || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'PageDown';
+      const isPrevKey = e.key === 'ArrowUp' || e.key === 'PageUp';
+
+      if (isNextKey || isPrevKey) {
+        // PREVENT BROWSER DEFAULT SCROLLING ON PANELS / PREVIEW
         e.preventDefault();
-        if (document.activeElement && typeof document.activeElement.blur === 'function' && (document.activeElement.tagName === 'BUTTON' || document.activeElement.classList.contains('launch-fullscreen-btn'))) {
-          document.activeElement.blur();
+        e.stopPropagation();
+
+        if (activeEl && typeof activeEl.blur === 'function' && (activeEl.tagName === 'BUTTON' || activeEl.classList.contains('launch-fullscreen-btn'))) {
+          activeEl.blur();
         }
+
         const noticeEl = document.getElementById('notice-ext-fs-modal');
         if (noticeEl && noticeEl.style.display !== 'none' && !noticeEl.classList.contains('hidden')) {
           hideExternalFullscreenNotice();
         }
-        nextLine();
-      } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
-        e.preventDefault();
-        if (document.activeElement && typeof document.activeElement.blur === 'function' && (document.activeElement.tagName === 'BUTTON' || document.activeElement.classList.contains('launch-fullscreen-btn'))) {
-          document.activeElement.blur();
+
+        if (isPrevKey) {
+          prevLine();
+        } else {
+          nextLine();
         }
-        prevLine();
-      } else if (e.key === 'b' || e.key === 'B') {
+        return;
+      }
+
+      // 4. QUICK SHORTCUTS (BLANK, FULLSCREEN)
+      if (e.key === 'b' || e.key === 'B' || e.key === 'لا') {
+        e.preventDefault();
         toggleBlank();
       } else if (e.key === 'f' || e.key === 'F' || e.key === 'ب' || e.key === '[' || e.code === 'KeyF') {
         e.preventDefault();
@@ -7555,7 +7618,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         handleFullscreenLaunch();
       }
-    });
+    }, { capture: true });
   }
 
   function getActiveWordAtCursor(input) {

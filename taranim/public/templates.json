@@ -215,8 +215,10 @@
         "strokeColor": "#000000",
         "strokeWidth": 4,
         "strokeEnabled": true,
-        "shadowColor": "rgba(0,0,0,0.85)",
-        "shadowBlur": 8
+        "shadowColor": "transparent",
+        "shadowBlur": 0,
+        "shadowDistance": 0,
+        "shadowEnabled": false
       },
       "textTransform": {
         "scale": 75,
