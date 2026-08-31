@@ -1024,7 +1024,7 @@ async function sha256Base64(str) {
   return window.btoa(binary);
 }
 
-// OBS WEBSOCKET V5 PROTOCOL CLIENT
+// OBS WEBSOCKET V5 PROTOCOL CLIENT (WITH LIVE EVENT HANDLING & SCENE SYNC)
 class OBSWSClient {
   constructor(options = {}) {
     this.ws = null;
@@ -1032,8 +1032,13 @@ class OBSWSClient {
     this.ip = options.ip || 'localhost';
     this.port = options.port || 4455;
     this.password = options.password || '';
+    this.currentProgramScene = '';
+    this.currentTransition = '';
+    this.scenes = [];
+    this.transitions = [];
     this.onStatusChange = options.onStatusChange || (() => {});
     this.onScenesUpdated = options.onScenesUpdated || (() => {});
+    this.onCurrentSceneChanged = options.onCurrentSceneChanged || (() => {});
     this.onTransitionsUpdated = options.onTransitionsUpdated || (() => {});
     this.requestIdCounter = 1;
     this.pendingRequests = new Map();
@@ -1169,6 +1174,21 @@ class OBSWSClient {
       this.isConnected = true;
       this.onStatusChange(true, 'متصل بـ OBS Studio');
       Promise.all([this.fetchScenes(), this.fetchTransitions()]).catch(() => {});
+    } else if (msg.op === 5) {
+      // OBS EVENT NOTIFICATION
+      const eventType = msg.d?.eventType;
+      const eventData = msg.d?.eventData || {};
+
+      if (eventType === 'CurrentProgramSceneChanged') {
+        const newScene = eventData.sceneName || '';
+        this.currentProgramScene = newScene;
+        this.onCurrentSceneChanged(newScene);
+      } else if (eventType === 'SceneListChanged' || eventType === 'SceneCreated' || eventType === 'SceneRemoved' || eventType === 'SceneNameChanged') {
+        this.fetchScenes().catch(() => {});
+      } else if (eventType === 'CurrentSceneTransitionChanged') {
+        this.currentTransition = eventData.transitionName || '';
+        this.onTransitionsUpdated(this.transitions, this.currentTransition);
+      }
     } else if (msg.op === 7) {
       const d = msg.d || {};
       const reqId = d.requestId;
@@ -1206,6 +1226,8 @@ class OBSWSClient {
     if (res && res.scenes) {
       const scenes = res.scenes.map(s => s.sceneName);
       const current = res.currentProgramSceneName || res.currentPreviewSceneName || '';
+      this.scenes = scenes;
+      this.currentProgramScene = current;
       this.onScenesUpdated(scenes, current);
     }
   }
@@ -2150,11 +2172,624 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+
+  // =========================================================================
+  // OBS STUDIO WEBSOCKET & SCENE CONTROLLER ENGINE
+  // =========================================================================
+
+  const OBS_PROFILES_STORAGE_KEY = 'sunday_school_obs_saved_connections';
+  let activeQrMediaStream = null;
+  let qrScanInterval = null;
+
+  function getSavedObsProfiles() {
+    try {
+      const raw = localStorage.getItem(OBS_PROFILES_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch(e) {}
+    return [];
+  }
+
+  function saveObsProfiles(list) {
+    try {
+      localStorage.setItem(OBS_PROFILES_STORAGE_KEY, JSON.stringify(list));
+    } catch(e) {}
+  }
+
+  // Initialize Global OBS WebSocket Client Instance
+  const globalObsClient = new OBSWSClient({
+    onStatusChange: (connected, message) => {
+      updateObsUIStatus(connected, message);
+    },
+    onScenesUpdated: (scenes, currentProgramScene) => {
+      renderObsScenesGrid(scenes, currentProgramScene);
+    },
+    onCurrentSceneChanged: (sceneName) => {
+      updateObsActiveSceneDisplay(sceneName);
+    },
+    onTransitionsUpdated: (transitions, currentTransition) => {
+      renderObsTransitionsList(transitions, currentTransition);
+    }
+  });
+
+  window.globalObsClient = globalObsClient;
+
+  function updateObsUIStatus(connected, message) {
+    const headerDot = document.getElementById('obs-header-status-badge');
+    const modalPill = document.getElementById('obs-modal-status-pill');
+    const btnConnect = document.getElementById('btn-obs-connect');
+    const btnDisconnect = document.getElementById('btn-obs-disconnect');
+
+    if (headerDot) {
+      headerDot.className = 'obs-badge-dot ' + (connected ? 'connected' : (message && message.includes('جاري') ? 'connecting' : 'disconnected'));
+    }
+
+    if (modalPill) {
+      modalPill.className = 'status-pill ' + (connected ? 'online' : 'offline');
+      modalPill.innerHTML = `<i class="fa-solid fa-circle-${connected ? 'check' : 'dot'}"></i> ${escapeHtml(message || (connected ? 'متصل بـ OBS' : 'غير متصل'))}`;
+    }
+
+    if (btnConnect && btnDisconnect) {
+      if (connected) {
+        btnConnect.classList.add('hidden');
+        btnDisconnect.classList.remove('hidden');
+      } else {
+        btnConnect.classList.remove('hidden');
+        btnDisconnect.classList.add('hidden');
+      }
+    }
+
+    if (!connected) {
+      const activeSceneNameEl = document.getElementById('obs-active-scene-name');
+      if (activeSceneNameEl) activeSceneNameEl.textContent = 'غير متصل بـ OBS';
+    }
+  }
+
+  function updateObsActiveSceneDisplay(sceneName) {
+    const activeSceneNameEl = document.getElementById('obs-active-scene-name');
+    if (activeSceneNameEl) {
+      activeSceneNameEl.textContent = sceneName || 'بدون تحديد';
+    }
+
+    // Highlight active scene card in grid
+    const grid = document.getElementById('obs-scenes-grid');
+    if (grid) {
+      grid.querySelectorAll('.obs-scene-card').forEach(card => {
+        const isCurrent = card.dataset.sceneName === sceneName;
+        card.classList.toggle('active', isCurrent);
+        const existingBadge = card.querySelector('.obs-scene-badge');
+        if (isCurrent && !existingBadge) {
+          const badge = document.createElement('span');
+          badge.className = 'obs-scene-badge';
+          badge.textContent = 'مباشر LIVE';
+          card.appendChild(badge);
+        } else if (!isCurrent && existingBadge) {
+          existingBadge.remove();
+        }
+      });
+    }
+  }
+
+  function renderObsScenesGrid(scenes, currentProgramScene) {
+    const grid = document.getElementById('obs-scenes-grid');
+    const countBadge = document.getElementById('obs-scenes-count-badge');
+    if (countBadge) countBadge.textContent = scenes.length;
+
+    if (!grid) return;
+
+    if (!scenes || scenes.length === 0) {
+      grid.innerHTML = `
+        <div class="obs-scenes-empty">
+          <i class="fa-solid fa-film"></i>
+          <span>لم يتم العثور على مشاهد في OBS Studio</span>
+        </div>
+      `;
+      return;
+    }
+
+    grid.innerHTML = scenes.map(sceneName => {
+      const isCurrent = sceneName === currentProgramScene;
+      return `
+        <div class="obs-scene-card ${isCurrent ? 'active' : ''}" data-scene-name="${escapeHtml(sceneName)}" title="انقر للتبديل إلى ${escapeHtml(sceneName)}">
+          <i class="fa-solid fa-video obs-scene-icon"></i>
+          <span class="obs-scene-name">${escapeHtml(sceneName)}</span>
+          ${isCurrent ? '<span class="obs-scene-badge">مباشر LIVE</span>' : ''}
+        </div>
+      `;
+    }).join('');
+
+    grid.querySelectorAll('.obs-scene-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const sceneName = card.dataset.sceneName;
+        if (sceneName && globalObsClient.isConnected) {
+          globalObsClient.setCurrentScene(sceneName);
+          showToast(`🎬 تم التبديل إلى مشهد "${sceneName}" في OBS!`);
+        } else if (!globalObsClient.isConnected) {
+          showToast('⚠️ يجب الاتصال بخادم OBS أولاً لتغيير المشاهد.');
+        }
+      });
+    });
+
+    updateObsActiveSceneDisplay(currentProgramScene);
+  }
+
+  function renderObsTransitionsList(transitions, currentTransition) {
+    const container = document.getElementById('obs-transitions-list');
+    if (!container) return;
+
+    if (!transitions || transitions.length === 0) {
+      container.innerHTML = '<span style="color:#64748b; font-size:0.8rem;">لا توجد انتقالات متوفرة</span>';
+      return;
+    }
+
+    container.innerHTML = transitions.map(tName => {
+      const isCurrent = tName === currentTransition;
+      return `
+        <button type="button" class="obs-transition-btn ${isCurrent ? 'active' : ''}" data-trans-name="${escapeHtml(tName)}">
+          ${escapeHtml(tName)}
+        </button>
+      `;
+    }).join('');
+
+    container.querySelectorAll('.obs-transition-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tName = btn.dataset.transName;
+        if (tName && globalObsClient.isConnected) {
+          globalObsClient.setTransition(tName);
+          container.querySelectorAll('.obs-transition-btn').forEach(b => b.classList.toggle('active', b.dataset.transName === tName));
+          showToast(`⚡ تم تحديد انتقال "${tName}" في OBS!`);
+        }
+      });
+    });
+  }
+
+  function renderSavedObsProfilesList() {
+    const listEl = document.getElementById('obs-saved-profiles-list');
+    if (!listEl) return;
+
+    const profiles = getSavedObsProfiles();
+    if (profiles.length === 0) {
+      listEl.innerHTML = `
+        <div style="text-align:center; padding:16px; color:#64748b; font-size:0.82rem;">
+          <i class="fa-solid fa-bookmark" style="font-size:1.4rem; opacity:0.4; display:block; margin-bottom:4px;"></i>
+          لا توجد خوادم محفوظة حتى الآن
+        </div>
+      `;
+      return;
+    }
+
+    listEl.innerHTML = profiles.map(p => {
+      const isActive = globalObsClient.isConnected && globalObsClient.ip === p.ip && String(globalObsClient.port) === String(p.port);
+      return `
+        <div class="obs-profile-item ${isActive ? 'active' : ''}" data-profile-id="${escapeHtml(p.id)}">
+          <div class="profile-main-info">
+            <span class="profile-name"><i class="fa-solid fa-server" style="color:#2563eb; margin-left:4px;"></i> ${escapeHtml(p.name)}</span>
+            <span class="profile-address">${escapeHtml(p.ip)}:${escapeHtml(p.port)}</span>
+          </div>
+          <div class="profile-actions">
+            <button type="button" class="btn btn-sm btn-primary btn-connect-profile" data-profile-id="${escapeHtml(p.id)}" style="font-size:0.75rem; padding:4px 8px;" title="اتصال بهذا الخادم">
+              <i class="fa-solid fa-link"></i> اتصال
+            </button>
+            <button type="button" class="btn btn-sm btn-danger btn-delete-profile" data-profile-id="${escapeHtml(p.id)}" style="font-size:0.75rem; padding:4px 7px; border:none; cursor:pointer;" title="حذف الخادم">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    listEl.querySelectorAll('.btn-connect-profile').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.profileId;
+        const profile = getSavedObsProfiles().find(p => p.id === id);
+        if (profile) {
+          const nameInput = document.getElementById('obs-profile-name-input');
+          const ipInput = document.getElementById('obs-ip-input');
+          const portInput = document.getElementById('obs-port-input');
+          const pwInput = document.getElementById('obs-pw-input');
+
+          if (nameInput) nameInput.value = profile.name || '';
+          if (ipInput) ipInput.value = profile.ip || '';
+          if (portInput) portInput.value = profile.port || 4455;
+          if (pwInput) pwInput.value = profile.password || '';
+
+          globalObsClient.connect(profile.ip, profile.port, profile.password);
+        }
+      });
+    });
+
+    listEl.querySelectorAll('.btn-delete-profile').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.dataset.profileId;
+        const updated = getSavedObsProfiles().filter(p => p.id !== id);
+        saveObsProfiles(updated);
+        renderSavedObsProfilesList();
+        showToast('تم حذف الخادم من القائمة.');
+      });
+    });
+  }
+
+  // QR Code Payload Parser
+  function parseObsQrPayload(raw) {
+    if (!raw || typeof raw !== 'string') return null;
+    const str = raw.trim();
+
+    // 1. Try parsing JSON format
+    if (str.startsWith('{') && str.endsWith('}')) {
+      try {
+        const obj = JSON.parse(str);
+        const ip = obj.ip || obj.host || obj.address || obj.server || 'localhost';
+        const port = obj.port || obj.wsPort || 4455;
+        const password = obj.pw || obj.password || obj.secret || obj.auth || '';
+        const name = obj.name || obj.profileName || 'خادم OBS';
+        return { ip, port, password, name };
+      } catch(e) {}
+    }
+
+    // 2. Try parsing URL format: obs-websocket://ip:port/password or ws://ip:port
+    const urlMatch = str.match(/^(?:obs-websocket|wss?):\/\/([^/:]+)(?::(\d+))?(?:\/(.*))?$/i);
+    if (urlMatch) {
+      const ip = urlMatch[1];
+      const port = urlMatch[2] ? parseInt(urlMatch[2]) : 4455;
+      const password = urlMatch[3] ? decodeURIComponent(urlMatch[3]) : '';
+      return { ip, port, password, name: 'خادم OBS (QR)' };
+    }
+
+    // 3. Try parsing host:port/password
+    const simpleMatch = str.match(/^([^/:]+):(\d+)(?:\/(.*))?$/);
+    if (simpleMatch) {
+      return {
+        ip: simpleMatch[1],
+        port: parseInt(simpleMatch[2]),
+        password: simpleMatch[3] || '',
+        name: 'خادم OBS (QR)'
+      };
+    }
+
+    return null;
+  }
+
+  // Handle scanned QR result
+  function handleScannedQrData(decodedText) {
+    const parsed = parseObsQrPayload(decodedText);
+    if (parsed) {
+      stopQrCameraScanner();
+      
+      const nameInput = document.getElementById('obs-profile-name-input');
+      const ipInput = document.getElementById('obs-ip-input');
+      const portInput = document.getElementById('obs-port-input');
+      const pwInput = document.getElementById('obs-pw-input');
+
+      if (nameInput) nameInput.value = parsed.name || 'خادم OBS من QR';
+      if (ipInput) ipInput.value = parsed.ip;
+      if (portInput) portInput.value = parsed.port;
+      if (pwInput) pwInput.value = parsed.password || '';
+
+      // Auto-save to profiles
+      const currentProfiles = getSavedObsProfiles();
+      const existingIdx = currentProfiles.findIndex(p => p.ip === parsed.ip && String(p.port) === String(parsed.port));
+      const newProfile = {
+        id: 'obs_prof_' + Date.now(),
+        name: parsed.name || `OBS (${parsed.ip})`,
+        ip: parsed.ip,
+        port: parsed.port,
+        password: parsed.password || '',
+        updatedAt: Date.now()
+      };
+
+      if (existingIdx !== -1) {
+        currentProfiles[existingIdx] = { ...currentProfiles[existingIdx], ...newProfile };
+      } else {
+        currentProfiles.push(newProfile);
+      }
+      saveObsProfiles(currentProfiles);
+      renderSavedObsProfilesList();
+
+      // Switch to Scenes / Connection Tab and connect
+      const connectTabBtn = document.querySelector('.obs-tab-btn[data-tab="obs-tab-scenes"]');
+      if (connectTabBtn) connectTabBtn.click();
+
+      globalObsClient.connect(parsed.ip, parsed.port, parsed.password);
+      showToast(`✅ تم التعرف على بيانات OBS والاتصال بـ ${parsed.ip}:${parsed.port}!`);
+    } else {
+      showToast('⚠️ رمز QR غير صالح لخادم OBS.');
+    }
+  }
+
+  // QR Camera Scanner lifecycle
+  async function startQrCameraScanner() {
+    const video = document.getElementById('obs-qr-video');
+    const placeholder = document.getElementById('obs-qr-placeholder');
+    const laser = document.getElementById('obs-qr-laser');
+    const btnStop = document.getElementById('btn-stop-qr-scanner');
+    const canvas = document.getElementById('obs-qr-canvas');
+
+    if (!video || !canvas) return;
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } }
+      });
+      activeQrMediaStream = stream;
+      video.srcObject = stream;
+      video.classList.remove('hidden');
+      if (placeholder) placeholder.classList.add('hidden');
+      if (laser) laser.classList.remove('hidden');
+      if (btnStop) btnStop.classList.remove('hidden');
+
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      let barcodeDetector = null;
+      if ('BarcodeDetector' in window) {
+        try {
+          barcodeDetector = new window.BarcodeDetector({ formats: ['qr_code'] });
+        } catch(e) {}
+      }
+
+      if (qrScanInterval) clearInterval(qrScanInterval);
+      qrScanInterval = setInterval(async () => {
+        if (!activeQrMediaStream || video.readyState !== video.HAVE_ENOUGH_DATA) return;
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // Try native BarcodeDetector API first
+        if (barcodeDetector) {
+          try {
+            const barcodes = await barcodeDetector.detect(canvas);
+            if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
+              handleScannedQrData(barcodes[0].rawValue);
+              return;
+            }
+          } catch(e) {}
+        }
+
+        // Fallback to jsQR if available
+        if (typeof window.jsQR === 'function') {
+          try {
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const code = window.jsQR(imgData.data, imgData.width, imgData.height, {
+              inversionAttempts: 'dontInvert'
+            });
+            if (code && code.data) {
+              handleScannedQrData(code.data);
+              return;
+            }
+          } catch(e) {}
+        }
+      }, 200);
+
+    } catch (err) {
+      showToast('⚠️ تعذر تشغيل الكاميرا. يمكنك مسح صورة رمز QR بدلاً من ذلك.');
+      if (placeholder) placeholder.classList.remove('hidden');
+      if (video) video.classList.add('hidden');
+    }
+  }
+
+  function stopQrCameraScanner() {
+    if (qrScanInterval) {
+      clearInterval(qrScanInterval);
+      qrScanInterval = null;
+    }
+    if (activeQrMediaStream) {
+      activeQrMediaStream.getTracks().forEach(t => t.stop());
+      activeQrMediaStream = null;
+    }
+    const video = document.getElementById('obs-qr-video');
+    const placeholder = document.getElementById('obs-qr-placeholder');
+    const laser = document.getElementById('obs-qr-laser');
+    const btnStop = document.getElementById('btn-stop-qr-scanner');
+
+    if (video) {
+      video.srcObject = null;
+      video.classList.add('hidden');
+    }
+    if (placeholder) placeholder.classList.remove('hidden');
+    if (laser) laser.classList.add('hidden');
+    if (btnStop) btnStop.classList.add('hidden');
+  }
+
+  // Bind OBS Controller Modal UI Events
+  function initObsControllerUI() {
+    const modal = document.getElementById('modal-obs-controller');
+    const btnOpenHeader = document.getElementById('btn-open-obs-modal');
+    const btnOpenCast = document.getElementById('btn-cast-open-obs-modal');
+    const btnClose = document.getElementById('btn-close-obs-modal');
+
+    const openModal = () => {
+      if (modal) modal.classList.remove('hidden');
+      renderSavedObsProfilesList();
+      if (globalObsClient.isConnected) {
+        globalObsClient.fetchScenes().catch(() => {});
+        globalObsClient.fetchTransitions().catch(() => {});
+      }
+    };
+
+    if (btnOpenHeader) btnOpenHeader.addEventListener('click', openModal);
+    if (btnOpenCast) btnOpenCast.addEventListener('click', openModal);
+    if (btnClose) btnClose.addEventListener('click', () => {
+      if (modal) modal.classList.add('hidden');
+      stopQrCameraScanner();
+    });
+
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.classList.add('hidden');
+          stopQrCameraScanner();
+        }
+      });
+    }
+
+    // Modal Tabs Navigation
+    document.querySelectorAll('.obs-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetTabId = btn.dataset.tab;
+        document.querySelectorAll('.obs-tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+        document.querySelectorAll('.obs-tab-content').forEach(content => {
+          content.classList.toggle('active', content.id === targetTabId);
+        });
+        if (targetTabId !== 'obs-tab-qr') {
+          stopQrCameraScanner();
+        }
+      });
+    });
+
+    // Connect & Disconnect Buttons
+    const btnConnect = document.getElementById('btn-obs-connect');
+    const btnDisconnect = document.getElementById('btn-obs-disconnect');
+    const btnSaveProfile = document.getElementById('btn-obs-save-profile');
+    const btnRefreshScenes = document.getElementById('btn-obs-refresh-scenes');
+
+    if (btnConnect) {
+      btnConnect.addEventListener('click', () => {
+        const ipInput = document.getElementById('obs-ip-input');
+        const portInput = document.getElementById('obs-port-input');
+        const pwInput = document.getElementById('obs-pw-input');
+
+        const ip = ipInput ? ipInput.value.trim() : 'localhost';
+        const port = portInput ? (parseInt(portInput.value) || 4455) : 4455;
+        const pw = pwInput ? pwInput.value : '';
+
+        globalObsClient.connect(ip, port, pw);
+      });
+    }
+
+    if (btnDisconnect) {
+      btnDisconnect.addEventListener('click', () => {
+        globalObsClient.disconnect();
+        showToast('تم قطع الاتصال بـ OBS.');
+      });
+    }
+
+    if (btnSaveProfile) {
+      btnSaveProfile.addEventListener('click', () => {
+        const nameInput = document.getElementById('obs-profile-name-input');
+        const ipInput = document.getElementById('obs-ip-input');
+        const portInput = document.getElementById('obs-port-input');
+        const pwInput = document.getElementById('obs-pw-input');
+
+        const name = nameInput && nameInput.value.trim() ? nameInput.value.trim() : 'خادم OBS';
+        const ip = ipInput && ipInput.value.trim() ? ipInput.value.trim() : 'localhost';
+        const port = portInput ? (parseInt(portInput.value) || 4455) : 4455;
+        const pw = pwInput ? pwInput.value : '';
+
+        const profiles = getSavedObsProfiles();
+        const newProf = {
+          id: 'obs_prof_' + Date.now(),
+          name,
+          ip,
+          port,
+          password: pw,
+          updatedAt: Date.now()
+        };
+        profiles.push(newProf);
+        saveObsProfiles(profiles);
+        renderSavedObsProfilesList();
+        showToast(`💾 تم حفظ بيانات الخادم "${name}" بنجاح!`);
+      });
+    }
+
+    if (btnRefreshScenes) {
+      btnRefreshScenes.addEventListener('click', () => {
+        if (globalObsClient.isConnected) {
+          globalObsClient.fetchScenes();
+          showToast('تم تحديث قائمة المشاهد من OBS.');
+        } else {
+          showToast('غير متصل بـ OBS.');
+        }
+      });
+    }
+
+    // Toggle password visibility
+    const btnTogglePw = document.getElementById('btn-toggle-obs-pw-visibility');
+    if (btnTogglePw) {
+      btnTogglePw.addEventListener('click', () => {
+        const pwInput = document.getElementById('obs-pw-input');
+        if (pwInput) {
+          const isPw = pwInput.type === 'password';
+          pwInput.type = isPw ? 'text' : 'password';
+          btnTogglePw.innerHTML = `<i class="fa-solid fa-${isPw ? 'eye-slash' : 'eye'}"></i>`;
+        }
+      });
+    }
+
+    // QR Code Scanner Buttons
+    const btnStartQr = document.getElementById('btn-start-qr-scanner');
+    const btnStopQr = document.getElementById('btn-stop-qr-scanner');
+    const fileInputQr = document.getElementById('obs-qr-file-input');
+
+    if (btnStartQr) btnStartQr.addEventListener('click', startQrCameraScanner);
+    if (btnStopQr) btnStopQr.addEventListener('click', stopQrCameraScanner);
+
+    if (fileInputQr) {
+      fileInputQr.addEventListener('change', async (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        const img = new Image();
+        img.onload = async () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+
+          if ('BarcodeDetector' in window) {
+            try {
+              const detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+              const barcodes = await detector.detect(canvas);
+              if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
+                handleScannedQrData(barcodes[0].rawValue);
+                return;
+              }
+            } catch(err) {}
+          }
+
+          if (typeof window.jsQR === 'function') {
+            try {
+              const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+              const code = window.jsQR(imgData.data, imgData.width, imgData.height);
+              if (code && code.data) {
+                handleScannedQrData(code.data);
+                return;
+              }
+            } catch(err) {}
+          }
+
+          showToast('⚠️ لم يتم العثور على رمز QR صالح في هذه الصورة.');
+        };
+        img.src = URL.createObjectURL(file);
+      });
+    }
+
+    // Auto-connect to first saved profile if available
+    const savedProfiles = getSavedObsProfiles();
+    if (savedProfiles.length > 0) {
+      const defaultProf = savedProfiles[0];
+      const nameInput = document.getElementById('obs-profile-name-input');
+      const ipInput = document.getElementById('obs-ip-input');
+      const portInput = document.getElementById('obs-port-input');
+      const pwInput = document.getElementById('obs-pw-input');
+
+      if (nameInput) nameInput.value = defaultProf.name || '';
+      if (ipInput) ipInput.value = defaultProf.ip || '';
+      if (portInput) portInput.value = defaultProf.port || 4455;
+      if (pwInput) pwInput.value = defaultProf.password || '';
+
+      globalObsClient.connect(defaultProf.ip, defaultProf.port, defaultProf.password);
+    }
+  }
+
   function init() {
     setupNetworkSync();
     applyUrlStyleSettings();
     applyInitialUIState();
     bindEvents();
+    initObsControllerUI();
     initBiblePopover();
     makeDraggableCenterPivot();
     detectConnectedScreens();
