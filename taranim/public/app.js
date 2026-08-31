@@ -1371,71 +1371,42 @@ document.addEventListener('DOMContentLoaded', () => {
         thumbnailUrl: 'Templates/Standby/Shabahak Akon 2026/Shabahak Akoon Loop.mp4'
       },
       {
-        id: 'tmpl-spiritual-service',
-        name: 'القداس والخدمات الروحية',
-        category: 'الاجتماعات والنهضات',
-        categoryKey: 'services',
-        desc: 'ستايل خط Alexandria عريض مع ظل أسود عميق وخلفية داكنة راقية مريحة للبث والقراءة.',
-        selectedFont: "'Alexandria', sans-serif",
-        fontSize: 105,
-        styleOptions: {
-          textColor: '#ffffff',
-          fontWeight: '800',
-          shadowBlur: 14,
-          shadowColor: '#000000',
-          shadowDistance: 4,
-          shadowAngle: 90,
-          strokeWidth: 0,
-          textAlign: 'center'
-        },
-        thumbnailType: 'sim',
-        thumbnailBg: 'linear-gradient(135deg, #1e3a8a, #0f172a)',
-        thumbnailText: 'مجد مريم يتعظم'
-      },
-      {
-        id: 'tmpl-bible-study',
-        name: 'دراسة الكتاب المقدس والشواهد',
-        category: 'الكتاب المقدس',
-        categoryKey: 'bible',
-        desc: 'ستايل متناسق ونقي مخصص لقراءة الآيات والأصحاحات مع وضوح عالي وإبراز للشواهد الكتابية.',
-        selectedFont: "'Cairo', sans-serif",
-        fontSize: 100,
-        styleOptions: {
-          textColor: '#ffffff',
-          fontWeight: '700',
-          shadowBlur: 10,
-          shadowColor: '#000000',
-          shadowDistance: 2,
-          shadowAngle: 90,
-          strokeWidth: 0,
-          textAlign: 'center'
-        },
-        thumbnailType: 'sim',
-        thumbnailBg: 'linear-gradient(135deg, #064e3b, #022c22)',
-        thumbnailText: 'فِي الْبَدْءِ كَانَ الْكَلِمَةُ'
-      },
-      {
-        id: 'tmpl-sunday-school-kids',
-        name: 'مدارس الأحد والأطفال',
-        category: 'الاجتماعات والنهضات',
-        categoryKey: 'services',
-        desc: 'خط Baloo Bhaijaan كرتوني جذاب مع ألوان مبهجة وإطار خارجي بارز لترانيم الأطفال.',
-        selectedFont: "'Baloo Bhaijaan 2', sans-serif",
-        fontSize: 110,
-        styleOptions: {
-          textColor: '#fef08a',
-          fontWeight: '800',
-          shadowBlur: 8,
-          shadowColor: '#78350f',
-          shadowDistance: 4,
-          shadowAngle: 90,
-          strokeWidth: 3,
-          strokeColor: '#78350f',
-          textAlign: 'center'
-        },
-        thumbnailType: 'sim',
-        thumbnailBg: 'linear-gradient(135deg, #7c2d12, #451a03)',
-        thumbnailText: 'يسوع بيحب الأطفال'
+        id: 'tmpl-paint-sweeps',
+        name: 'Paint Sweeps (Paint Splash)',
+        category: 'خلفيات وسلايدات',
+        categoryKey: 'backgrounds',
+        desc: 'مجموعة خلفيات وسلايدات فنية مميزة (Paint Sweeps) بألوان وتدرجات متنوعة فائقة الدقة لعرض الترانيم.',
+        thumbnailType: 'image',
+        thumbnailUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg',
+        standby: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg',
+        slidesBg: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg',
+        varieties: [
+          { name: 'Blank', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg' },
+          { name: 'Burn', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Burn.jpg' },
+          { name: 'Dreams', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Dreams.jpg' },
+          { name: 'Evergreen', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Evergreen.jpg' },
+          { name: 'Field', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Field.jpg' },
+          { name: 'Final', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Final.jpg' },
+          { name: 'Follow Us Blank', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Follow Us Online Red Blue - Blank.jpg' },
+          { name: 'Follow Us Scripture', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Follow Us Online Red Blue - Scripture.jpg' },
+          { name: 'Forest', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Forest.jpg' },
+          { name: 'Forever', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Forever.jpg' },
+          { name: 'Fun', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Fun.jpg' },
+          { name: 'Gold', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Gold.jpg' },
+          { name: 'Hope', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Hope.jpg' },
+          { name: 'Joy', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Joy.jpg' },
+          { name: 'King', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps King.jpg' },
+          { name: 'Love', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Love.jpg' },
+          { name: 'Peace', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Peace.jpg' },
+          { name: 'Shine', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Shine.jpg' },
+          { name: 'Silver', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Silver.jpg' },
+          { name: 'Spread', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Spread.jpg' },
+          { name: 'Strong', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Strong.jpg' },
+          { name: 'Torn', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Torn.jpg' },
+          { name: 'Vive', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Vive.jpg' },
+          { name: 'Ways To Give Blank', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Ways To Give Purple - Blank.jpg' },
+          { name: 'Ways To Give Scripture', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Ways To Give Purple - Scripture.jpg' }
+        ]
       }
     ],
     activeTemplateCategory: 'all',
@@ -2317,9 +2288,9 @@ document.addEventListener('DOMContentLoaded', () => {
     updateObsModeUI();
 
     if (els.obsTextColor) {
-      els.obsTextColor.value = state.styleOptions.textColor;
+      els.obsTextColor.value = toHexColor(state.styleOptions.textColor, '#ffffff');
       const hexSpan = els.obsTextColor.nextElementSibling;
-      if (hexSpan && hexSpan.classList.contains('color-val-hex')) hexSpan.textContent = state.styleOptions.textColor.toUpperCase();
+      if (hexSpan && hexSpan.classList.contains('color-val-hex')) hexSpan.textContent = (state.styleOptions.textColor || '#ffffff').toUpperCase();
     }
     if (els.obsStrokeRange) {
       els.obsStrokeRange.value = state.styleOptions.strokeWidth;
@@ -2327,9 +2298,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (b) b.textContent = `${state.styleOptions.strokeWidth}px`;
     }
     if (els.obsStrokeColor) {
-      els.obsStrokeColor.value = state.styleOptions.strokeColor;
+      els.obsStrokeColor.value = toHexColor(state.styleOptions.strokeColor, '#000000');
       const hexSpan = els.obsStrokeColor.nextElementSibling;
-      if (hexSpan && hexSpan.classList.contains('color-val-hex')) hexSpan.textContent = state.styleOptions.strokeColor.toUpperCase();
+      if (hexSpan && hexSpan.classList.contains('color-val-hex')) hexSpan.textContent = (state.styleOptions.strokeColor || '#000000').toUpperCase();
     }
     if (els.obsShadowRange) {
       els.obsShadowRange.value = state.styleOptions.shadowBlur;
@@ -2337,7 +2308,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (b) b.textContent = `${state.styleOptions.shadowBlur}px`;
     }
     if (els.obsShadowColor) {
-      els.obsShadowColor.value = state.styleOptions.shadowColor || '#000000';
+      els.obsShadowColor.value = toHexColor(state.styleOptions.shadowColor, '#000000');
       const hexSpan = els.obsShadowColor.nextElementSibling;
       if (hexSpan && hexSpan.classList.contains('color-val-hex')) hexSpan.textContent = (state.styleOptions.shadowColor || '#000000').toUpperCase();
     }
@@ -2365,7 +2336,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const b = document.getElementById('line-height-val-badge');
       if (b) b.textContent = state.styleOptions.lineHeight !== undefined ? state.styleOptions.lineHeight : 1.2;
     }
-    if (els.obsBoxBgColor) els.obsBoxBgColor.value = state.styleOptions.boxBgColor;
+    if (els.obsBoxBgColor) els.obsBoxBgColor.value = toHexColor(state.styleOptions.boxBgColor, '#000000');
     if (els.obsBoxOpacityRange) els.obsBoxOpacityRange.value = state.styleOptions.boxOpacity;
     if (els.obsBoxRadiusRange) els.obsBoxRadiusRange.value = state.styleOptions.boxRadius;
     if (els.obsBoxPaddingRange) els.obsBoxPaddingRange.value = state.styleOptions.boxPadding;
@@ -2467,6 +2438,139 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     } catch (e) {}
+  }
+
+  function toHexColor(colorStr, fallback = '#000000') {
+    if (!colorStr) return fallback;
+    colorStr = String(colorStr).trim();
+    if (/^#[0-9a-fA-F]{6}$/.test(colorStr)) return colorStr;
+    if (/^#[0-9a-fA-F]{3}$/.test(colorStr)) {
+      return '#' + colorStr[1] + colorStr[1] + colorStr[2] + colorStr[2] + colorStr[3] + colorStr[3];
+    }
+    const rgbaMatch = colorStr.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+    if (rgbaMatch) {
+      const r = parseInt(rgbaMatch[1]).toString(16).padStart(2, '0');
+      const g = parseInt(rgbaMatch[2]).toString(16).padStart(2, '0');
+      const b = parseInt(rgbaMatch[3]).toString(16).padStart(2, '0');
+      return `#${r}${g}${b}`;
+    }
+    return fallback;
+  }
+
+  // ----------------------------------------------------
+  // GROUPED TEMPLATES SHUFFLE-PER-SONG MANAGER
+  // ----------------------------------------------------
+  const SHUFFLE_STORAGE_KEY = 'sunday_school_template_shuffle_per_song';
+  const SHUFFLE_TMPL_ID_KEY = 'sunday_school_template_shuffle_id';
+  const SHUFFLE_DECK_KEY_PREFIX = 'sunday_school_shuffle_deck_';
+
+  function isTemplateShuffleEnabled() {
+    return localStorage.getItem(SHUFFLE_STORAGE_KEY) === 'true';
+  }
+
+  function setTemplateShuffleEnabled(enabled, tmplId = null) {
+    localStorage.setItem(SHUFFLE_STORAGE_KEY, enabled ? 'true' : 'false');
+    state.templateShufflePerSong = Boolean(enabled);
+    if (tmplId) {
+      localStorage.setItem(SHUFFLE_TMPL_ID_KEY, tmplId);
+      state.templateShuffleTemplateId = tmplId;
+    }
+    const chkDisplay = document.getElementById('chk-display-template-shuffle');
+    if (chkDisplay) chkDisplay.checked = Boolean(enabled);
+    document.querySelectorAll('.chk-template-shuffle').forEach(chk => {
+      chk.checked = Boolean(enabled);
+    });
+  }
+
+  function shuffleArray(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function saveShuffleDeck(tmplId, deck) {
+    try {
+      localStorage.setItem(SHUFFLE_DECK_KEY_PREFIX + tmplId, JSON.stringify(deck));
+    } catch(e) {}
+  }
+
+  function getShuffleDeck(tmplId, allVarietyUrls) {
+    try {
+      const raw = localStorage.getItem(SHUFFLE_DECK_KEY_PREFIX + tmplId);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch(e) {}
+    const newDeck = shuffleArray([...allVarietyUrls]);
+    saveShuffleDeck(tmplId, newDeck);
+    return newDeck;
+  }
+
+  let lastShuffledSongKey = null;
+
+  function triggerAutoShuffleGroupedTemplateIfNeeded(song) {
+    if (!isTemplateShuffleEnabled()) return;
+    if (!song) return;
+
+    const isBible = Boolean((song.is_bible === true || song.is_bible === '1' || song.is_bible === 1) || (song.chapter_number !== undefined && song.chapter_number !== null && song.chapter_number !== ''));
+    const songKey = isBible 
+      ? `bible_${song.book_id || song.book}_${song.chapter_number || song.chapter}` 
+      : `song_${song.id !== undefined ? song.id : (song.item_id || song.title)}`;
+
+    if (lastShuffledSongKey === songKey) return;
+    lastShuffledSongKey = songKey;
+
+    const targetTmplId = localStorage.getItem(SHUFFLE_TMPL_ID_KEY) || 'tmpl-paint-sweeps';
+    const templates = state.availableTemplates || [];
+    let tmpl = templates.find(t => t.id === targetTmplId) || templates.find(t => t.varieties && t.varieties.length > 0);
+    if (!tmpl || !tmpl.varieties || tmpl.varieties.length === 0) return;
+
+    const allUrls = tmpl.varieties.map(v => v.url);
+    let deck = getShuffleDeck(tmpl.id, allUrls);
+
+    if (!deck || deck.length === 0) {
+      deck = shuffleArray([...allUrls]);
+      saveShuffleDeck(tmpl.id, deck);
+      if (typeof showToast === 'function') {
+        showToast(`🔄 تم إكمال دورة خلفيات "${tmpl.name}" وإعادة الترتيب العشوائي!`);
+      }
+    }
+
+    const nextBgUrl = deck.pop();
+    saveShuffleDeck(tmpl.id, deck);
+
+    const variety = tmpl.varieties.find(v => v.url === nextBgUrl) || { name: 'عشوائي', url: nextBgUrl };
+
+    state.slidesBgConfig.type = 'template';
+    state.slidesBgConfig.url = nextBgUrl;
+    state.standbyConfig.type = 'template';
+    state.standbyConfig.url = nextBgUrl;
+
+    if (typeof updateSlidesBgUI === 'function') updateSlidesBgUI();
+    if (typeof updateStandbyUI === 'function') updateStandbyUI();
+    if (typeof saveMediaConfig === 'function') saveMediaConfig();
+    syncLiveState(false, false);
+
+    const card = document.querySelector(`.template-preview-card[data-id="${tmpl.id}"]`);
+    if (card) {
+      const thumbImg = card.querySelector(`#tmpl-thumb-img-${tmpl.id}`);
+      if (thumbImg) thumbImg.src = nextBgUrl;
+
+      const nameEl = card.querySelector(`#tmpl-selected-var-name-${tmpl.id}`);
+      if (nameEl) nameEl.textContent = variety.name;
+
+      card.querySelectorAll('.template-variety-circle').forEach(c => {
+        c.classList.toggle('active', c.dataset.url === nextBgUrl);
+      });
+    }
+
+    if (typeof showToast === 'function') {
+      showToast(`🔀 خلفية الترنيمة: ${variety.name} (${deck.length} متبقي بالحزمة)`);
+    }
   }
 
   function bindEvents() {
@@ -3588,7 +3692,7 @@ document.addEventListener('DOMContentLoaded', () => {
         textColor: '#ffffff',
         strokeWidth: 0,
         strokeColor: '#000000',
-        shadowColor: 'rgba(0, 0, 0, 0.95)',
+        shadowColor: '#000000',
         shadowBlur: 14,
         shadowDistance: 4,
         shadowAngle: 90,
@@ -5547,117 +5651,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     };
 
-    // ----------------------------------------------------
-    // GROUPED TEMPLATES SHUFFLE-PER-SONG MANAGER
-    // ----------------------------------------------------
-    const SHUFFLE_STORAGE_KEY = 'sunday_school_template_shuffle_per_song';
-    const SHUFFLE_TMPL_ID_KEY = 'sunday_school_template_shuffle_id';
-    const SHUFFLE_DECK_KEY_PREFIX = 'sunday_school_shuffle_deck_';
 
-    function isTemplateShuffleEnabled() {
-      return localStorage.getItem(SHUFFLE_STORAGE_KEY) === 'true';
-    }
-
-    function setTemplateShuffleEnabled(enabled, tmplId = null) {
-      localStorage.setItem(SHUFFLE_STORAGE_KEY, enabled ? 'true' : 'false');
-      state.templateShufflePerSong = Boolean(enabled);
-      if (tmplId) {
-        localStorage.setItem(SHUFFLE_TMPL_ID_KEY, tmplId);
-        state.templateShuffleTemplateId = tmplId;
-      }
-      const chkDisplay = document.getElementById('chk-display-template-shuffle');
-      if (chkDisplay) chkDisplay.checked = Boolean(enabled);
-      document.querySelectorAll('.chk-template-shuffle').forEach(chk => {
-        chk.checked = Boolean(enabled);
-      });
-    }
-
-    function getShuffleDeck(tmplId, allVarietyUrls) {
-      try {
-        const raw = localStorage.getItem(SHUFFLE_DECK_KEY_PREFIX + tmplId);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-        }
-      } catch(e) {}
-      const newDeck = shuffleArray([...allVarietyUrls]);
-      saveShuffleDeck(tmplId, newDeck);
-      return newDeck;
-    }
-
-    function saveShuffleDeck(tmplId, deck) {
-      try {
-        localStorage.setItem(SHUFFLE_DECK_KEY_PREFIX + tmplId, JSON.stringify(deck));
-      } catch(e) {}
-    }
-
-    function shuffleArray(arr) {
-      const a = [...arr];
-      for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
-      }
-      return a;
-    }
-
-    let lastShuffledSongKey = null;
-
-    function triggerAutoShuffleGroupedTemplateIfNeeded(song) {
-      if (!isTemplateShuffleEnabled()) return;
-      if (!song) return;
-
-      const isBible = Boolean((song.is_bible === true || song.is_bible === '1' || song.is_bible === 1) || (song.chapter_number !== undefined && song.chapter_number !== null && song.chapter_number !== ''));
-      const songKey = isBible 
-        ? `bible_${song.book_id || song.book}_${song.chapter_number || song.chapter}` 
-        : `song_${song.id !== undefined ? song.id : (song.item_id || song.title)}`;
-
-      if (lastShuffledSongKey === songKey) return;
-      lastShuffledSongKey = songKey;
-
-      const targetTmplId = localStorage.getItem(SHUFFLE_TMPL_ID_KEY) || 'tmpl-paint-sweeps';
-      const templates = state.availableTemplates || [];
-      let tmpl = templates.find(t => t.id === targetTmplId) || templates.find(t => t.varieties && t.varieties.length > 0);
-      if (!tmpl || !tmpl.varieties || tmpl.varieties.length === 0) return;
-
-      const allUrls = tmpl.varieties.map(v => v.url);
-      let deck = getShuffleDeck(tmpl.id, allUrls);
-
-      if (!deck || deck.length === 0) {
-        deck = shuffleArray([...allUrls]);
-        saveShuffleDeck(tmpl.id, deck);
-        showToast(`🔄 تم إكمال دورة خلفيات "${tmpl.name}" وإعادة الترتيب العشوائي!`);
-      }
-
-      const nextBgUrl = deck.pop();
-      saveShuffleDeck(tmpl.id, deck);
-
-      const variety = tmpl.varieties.find(v => v.url === nextBgUrl) || { name: 'عشوائي', url: nextBgUrl };
-
-      state.slidesBgConfig.type = 'template';
-      state.slidesBgConfig.url = nextBgUrl;
-      state.standbyConfig.type = 'template';
-      state.standbyConfig.url = nextBgUrl;
-
-      updateSlidesBgUI();
-      updateStandbyUI();
-      saveMediaConfig();
-      syncLiveState(false, false);
-
-      const card = document.querySelector(`.template-preview-card[data-id="${tmpl.id}"]`);
-      if (card) {
-        const thumbImg = card.querySelector(`#tmpl-thumb-img-${tmpl.id}`);
-        if (thumbImg) thumbImg.src = nextBgUrl;
-
-        const nameEl = card.querySelector(`#tmpl-selected-var-name-${tmpl.id}`);
-        if (nameEl) nameEl.textContent = variety.name;
-
-        card.querySelectorAll('.template-variety-circle').forEach(c => {
-          c.classList.toggle('active', c.dataset.url === nextBgUrl);
-        });
-      }
-
-      showToast(`🔀 خلفية الترنيمة: ${variety.name} (${deck.length} متبقي بالحزمة)`);
-    }
 
     const renderTemplatesCatalog = () => {
       const container = document.getElementById('templates-catalog-grid');

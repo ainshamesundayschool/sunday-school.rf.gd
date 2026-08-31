@@ -50012,6 +50012,17 @@ function restoreEntityBackup()
 }
 
 function getTaranimTemplates() {
+    $jsonFile = __DIR__ . '/taranim/templates.json';
+    if (file_exists($jsonFile)) {
+        $content = file_get_contents($jsonFile);
+        $data = json_decode($content, true);
+        if ($data && isset($data['templates']) && is_array($data['templates'])) {
+            header('Content-Type: application/json; charset=utf-8');
+            echo $content;
+            exit;
+        }
+    }
+
     $baseDir = __DIR__ . '/taranim/Templates';
     $templates = [];
 
