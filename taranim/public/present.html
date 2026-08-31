@@ -2537,29 +2537,75 @@
       document.addEventListener('visibilitychange', (e) => { e.stopImmediatePropagation(); }, true);
     } catch(e) {}
 
-    let lastRenderedPayloadHash = null;
+    let lastRenderedFingerprint = null;
+
+    function getVisualStateFingerprint(data) {
+      if (!data || typeof data !== 'object') return '';
+      return [
+        data.text || '',
+        Boolean(data.isBible || data.is_bible),
+        data.badgeText || '',
+        data.badgeClass || '',
+        data.mode || data.presentationMode || 'oneline',
+        data.font || '',
+        data.fontSize || 0,
+        data.textColor || '',
+        data.strokeWidth || 0,
+        data.strokeColor || '',
+        data.shadowBlur || 0,
+        data.shadowColor || '',
+        data.shadowDistance || 0,
+        data.shadowAngle || 0,
+        data.fontWeight || '',
+        data.fontStyle || '',
+        data.textDecoration || '',
+        data.textAlign || '',
+        Boolean(data.isJustified),
+        data.letterSpacing || 0,
+        data.lineHeight || 1.5,
+        data.boxBgColor || '',
+        data.boxOpacity || 0,
+        data.boxRadius || 0,
+        data.boxPadding || 0,
+        Boolean(data.isBlank),
+        Boolean(data.isStandby || data.isStandbyMode),
+        data.anim || 'none',
+        JSON.stringify(data.slidesBgConfig || {}),
+        JSON.stringify(data.standbyConfig || {}),
+        JSON.stringify(data.textTransform || {}),
+        JSON.stringify(data.highlightedLines || []),
+        data.activeGroupIndex || 0,
+        data.scrollRatio || 0,
+        data.bibleRef || '',
+        data.scaleText || '',
+        data.currentSlide || 0,
+        data.totalSlides || 0,
+        Boolean(data.triggerTransition),
+        Boolean(data.forceRefresh)
+      ].join('||');
+    }
 
     function checkAndApplyLatestState(explicitData = null) {
       try {
         let data = explicitData;
-        let raw = null;
 
         if (!data) {
-          raw = localStorage.getItem('sunday_school_taranim_live_presentation');
-          if (!raw || raw === lastRenderedPayloadHash) return;
+          const raw = localStorage.getItem('sunday_school_taranim_live_presentation');
+          if (!raw) return;
           data = JSON.parse(raw);
-        } else {
-          try { raw = JSON.stringify(data); } catch(e) {}
-          if (raw && raw === lastRenderedPayloadHash && !data.forceRefresh) return;
         }
 
         if (data && typeof data === 'object') {
+          const fingerprint = getVisualStateFingerprint(data);
+          if (fingerprint === lastRenderedFingerprint && !data.forceRefresh) {
+            return;
+          }
           if (data.forceRefresh) {
             currentTextState = null;
             _lastAnimSlideText = null;
-            lastRenderedPayloadHash = null;
+            lastRenderedFingerprint = null;
           } else {
-            if (raw) lastRenderedPayloadHash = raw;
+            lastRenderedFingerprint = fingerprint;
           }
           if (data.updatedAt) lastLocalPayloadTime = data.updatedAt;
           applyState(data, 'local');
