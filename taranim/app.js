@@ -1391,6 +1391,7 @@ document.addEventListener('DOMContentLoaded', () => {
     standby: 'Templates/SlidesBg/Chroma/green.png',
     slidesBg: 'Templates/SlidesBg/Chroma/green.png',
     showLogo: false,
+    hideControls: true,
     selectedFont: "'Lutfey Arabic', 'Lutfey', 'DG Lutfey', 'Zain', 'Baloo Bhaijaan 2', cursive, sans-serif",
     fontSize: 75,
     presentationMode: 'oneline',
@@ -1554,6 +1555,7 @@ document.addEventListener('DOMContentLoaded', () => {
     selectedScreen: savedLockedScreen,
     highlightedLineIndices: [],
     highlightColor: savedSettings.highlightColor || "#ef4444",
+    hideControls: localStorage.getItem('sunday_school_taranim_hide_controls') === 'true',
 
     standbyConfig: (savedMediaConfig.standbyConfig && typeof savedMediaConfig.standbyConfig === 'object') ? {
       showLogo: true,
@@ -6448,6 +6450,13 @@ document.addEventListener('DOMContentLoaded', () => {
               } else if (tmpl.textTransform) {
                 state.textTransform = JSON.parse(JSON.stringify(tmpl.textTransform));
               }
+              if (tmpl.hideControls !== undefined) {
+                state.hideControls = Boolean(tmpl.hideControls);
+                try { localStorage.setItem('sunday_school_taranim_hide_controls', state.hideControls); } catch(e) {}
+                const chkHide = document.getElementById('btn-toggle-hide-controls');
+                if (chkHide) chkHide.checked = state.hideControls;
+                if (els.obsOverlay) els.obsOverlay.classList.toggle('controls-hidden', state.hideControls);
+              }
               if (tmpl.presentationMode) {
                 setSlideSplittingMode(tmpl.presentationMode);
               }
@@ -6975,26 +6984,17 @@ document.addEventListener('DOMContentLoaded', () => {
       updateHex();
     });
 
-    // Hide Controls Toggle Handler
+    // Hide Controls & Clean View Toggle Handler
     const btnToggleHideControls = document.getElementById('btn-toggle-hide-controls');
     if (btnToggleHideControls) {
-      const updateHideControlsBtn = () => {
-        const isHidden = Boolean(state.hideControls);
-        btnToggleHideControls.classList.toggle('active', isHidden);
-        const btnText = document.getElementById('hide-controls-btn-text');
-        if (btnText) {
-          btnText.textContent = isHidden ? 'إظهار أدوات التحكم' : 'إخفاء أدوات التحكم';
-        }
-      };
-      btnToggleHideControls.addEventListener('click', () => {
-        state.hideControls = !state.hideControls;
+      btnToggleHideControls.checked = Boolean(state.hideControls);
+      btnToggleHideControls.addEventListener('change', () => {
+        state.hideControls = btnToggleHideControls.checked;
         try { localStorage.setItem('sunday_school_taranim_hide_controls', state.hideControls); } catch(e) {}
-        updateHideControlsBtn();
         if (els.obsOverlay) els.obsOverlay.classList.toggle('controls-hidden', state.hideControls);
         syncLiveState();
-        showToast(state.hideControls ? 'تم إخفاء أدوات التحكم!' : 'تم إظهار أدوات التحكم!');
+        showToast(state.hideControls ? 'تم تفعيل العرض النقي (إخفاء أرقام الشرائح والآيات) 🎬' : 'تم إظهار أرقام الشرائح والآيات وأدوات التحكم');
       });
-      updateHideControlsBtn();
     }
 
     const btnForceSyncDb = document.getElementById('btn-force-sync-database');

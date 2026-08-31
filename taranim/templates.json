@@ -263,7 +263,8 @@
           },
           "fontSize": 105
         }
-      ]
+      ],
+      "hideControls": true
     }
   ]
 }

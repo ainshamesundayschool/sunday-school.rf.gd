@@ -717,12 +717,22 @@
       pointer-events: none;
     }
 
-    /* HIDE CONTROLS MODE */
+    /* HIDE CONTROLS MODE (CLEAN BROADCAST VIEW) */
     body.controls-hidden #btn-close-window-bottom,
     body.controls-hidden .btn-close-overlay-left,
     body.controls-hidden #presenter-footer-bar,
     body.controls-hidden #presenter-slide-counter,
-    body.controls-hidden .obs-top-left-header {
+    body.controls-hidden #obs-slide-counter,
+    body.controls-hidden .obs-top-left-header,
+    body.controls-hidden .slide-badge-layer,
+    body.controls-hidden .verse-badge-side,
+    body.controls-hidden .chorus-badge-side,
+    body.controls-hidden .stanza-badge-side,
+    body.controls-hidden .verse-num,
+    body.controls-hidden .badge-num,
+    body.controls-hidden .chorus-num,
+    body.controls-hidden .bible-verse-ref,
+    body.controls-hidden .overlay-bottom-left-controls {
       display: none !important;
       opacity: 0 !important;
       pointer-events: none !important;
