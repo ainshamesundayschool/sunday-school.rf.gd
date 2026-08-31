@@ -3018,43 +3018,50 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function initRemoteHost(forceNew = false) {
+    let existingSession = null;
     if (!forceNew) {
       try {
         const saved = localStorage.getItem('sunday_school_remote_host_session');
-        if (saved) {
-          remoteHostSession = JSON.parse(saved);
-        }
+        if (saved) existingSession = JSON.parse(saved);
       } catch(e) {}
     }
 
-    if (!remoteHostSession || forceNew) {
+    const payload = { action: 'create_room' };
+    if (existingSession && existingSession.roomId && existingSession.roomPin && existingSession.hostKey && !forceNew) {
+      payload.roomId = existingSession.roomId;
+      payload.roomPin = existingSession.roomPin;
+      payload.hostKey = existingSession.hostKey;
+    }
+
+    try {
+      let res = null;
       try {
-        let res = null;
+        res = await fetch(getRemoteSyncApiUrl('create_room'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } catch(e) {
+        res = await fetch('remote_sync.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      }
+
+      const data = await res.json();
+      if (data && data.success) {
+        remoteHostSession = {
+          roomId: data.roomId,
+          roomPin: data.roomPin,
+          hostKey: data.hostKey
+        };
         try {
-          res = await fetch(getRemoteSyncApiUrl('create_room'), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'create_room' })
-          });
-        } catch(e) {
-          res = await fetch('remote_sync.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'create_room' })
-          });
-        }
-        const data = await res.json();
-        if (data && data.success) {
-          remoteHostSession = {
-            roomId: data.roomId,
-            roomPin: data.roomPin,
-            hostKey: data.hostKey
-          };
-          try {
-            localStorage.setItem('sunday_school_remote_host_session', JSON.stringify(remoteHostSession));
-          } catch(e) {}
-        }
-      } catch(e) {}
+          localStorage.setItem('sunday_school_remote_host_session', JSON.stringify(remoteHostSession));
+        } catch(e) {}
+      }
+    } catch(err) {
+      if (existingSession) remoteHostSession = existingSession;
     }
 
     if (remoteHostSession) {

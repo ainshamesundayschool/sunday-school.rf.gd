@@ -61,30 +61,44 @@ if (strpos($action, 'remote_') === 0) {
 
 switch ($action) {
     case 'create_room':
+    case 'register_room':
         $sessions = getSessionsData($sessionsFile);
-        $roomId = 'rm_' . substr(md5(uniqid(mt_rand(), true)), 0, 10);
-        $roomPin = strval(mt_rand(100000, 999999));
-        $hostKey = 'hk_' . bin2hex(random_bytes(16));
         $now = time();
+
+        $reqRoomId = trim($input['roomId'] ?? '');
+        $reqPin = trim($input['roomPin'] ?? $input['pin'] ?? '');
+        $reqHostKey = trim($input['hostKey'] ?? '');
+
+        if (!empty($reqRoomId) && !empty($reqPin) && !empty($reqHostKey)) {
+            $roomId = $reqRoomId;
+            $roomPin = $reqPin;
+            $hostKey = $reqHostKey;
+        } else {
+            $roomId = 'rm_' . substr(md5(uniqid(mt_rand(), true)), 0, 10);
+            $roomPin = strval(mt_rand(100000, 999999));
+            $hostKey = 'hk_' . bin2hex(random_bytes(16));
+        }
+
+        $existingState = isset($sessions[$roomId]['state']) ? $sessions[$roomId]['state'] : [
+            'activeSong' => null,
+            'currentLineIndex' => 0,
+            'totalLines' => 0,
+            'presentationLines' => [],
+            'isBlank' => false,
+            'isStandbyMode' => false,
+            'theme' => 'default'
+        ];
 
         $sessions[$roomId] = [
             'room_id' => $roomId,
             'pin' => $roomPin,
             'host_key' => $hostKey,
-            'created_at' => $now,
+            'created_at' => isset($sessions[$roomId]['created_at']) ? $sessions[$roomId]['created_at'] : $now,
             'updated_at' => $now,
-            'state_ver' => 1,
-            'state' => [
-                'activeSong' => null,
-                'currentLineIndex' => 0,
-                'totalLines' => 0,
-                'presentationLines' => [],
-                'isBlank' => false,
-                'isStandbyMode' => false,
-                'theme' => 'default'
-            ],
-            'commands' => [],
-            'clients' => []
+            'state_ver' => isset($sessions[$roomId]['state_ver']) ? $sessions[$roomId]['state_ver'] : 1,
+            'state' => $existingState,
+            'commands' => isset($sessions[$roomId]['commands']) ? $sessions[$roomId]['commands'] : [],
+            'clients' => isset($sessions[$roomId]['clients']) ? $sessions[$roomId]['clients'] : []
         ];
 
         saveSessionsData($sessionsFile, $sessions);

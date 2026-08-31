@@ -927,10 +927,20 @@
     });
 
     // PAIRING FORM
-    document.getElementById('btn-submit-pin').addEventListener('click', () => {
-      const pin = document.getElementById('pin-input').value.trim();
+    const pinInput = document.getElementById('pin-input');
+    const submitBtn = document.getElementById('btn-submit-pin');
+
+    const handlePinSubmit = () => {
+      const pin = pinInput.value.trim();
       if (pin) joinRoom(pin);
-    });
+    };
+
+    if (submitBtn) submitBtn.addEventListener('click', handlePinSubmit);
+    if (pinInput) {
+      pinInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handlePinSubmit();
+      });
+    }
 
     document.getElementById('room-badge-btn').addEventListener('click', () => {
       document.getElementById('pairing-screen').classList.remove('hidden');
