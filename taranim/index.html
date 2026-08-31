@@ -270,25 +270,38 @@
       </div>
 
     </section>
-    <!-- OBS LIVE SCENES SWITCHER BAR (DIRECTLY UNDER SEARCH HERO IN CONTROL PANEL) -->
+    <!-- OBS LIVE SCENES & TRANSITIONS SWITCHER BAR (UNDER SEARCH HERO IN CONTROL PANEL) -->
     <section id="obs-control-panel-scenes-bar" class="obs-control-panel-scenes-bar hidden">
       <div class="obs-bar-inner">
         <div class="obs-bar-header">
           <div class="obs-bar-live-indicator">
             <span class="obs-live-pulse-dot"></span>
-            <span class="obs-bar-title"><i class="fa-solid fa-satellite-dish"></i> مشاهد OBS المباشرة:</span>
+            <span class="obs-bar-title"><i class="fa-solid fa-satellite-dish"></i> OBS المباشر:</span>
             <span class="obs-bar-active-scene-pill" id="obs-bar-active-scene-pill">
-              <i class="fa-solid fa-tower-broadcast fa-fade"></i> <b id="obs-bar-active-scene-txt">غير متصل</b>
+              <i class="fa-solid fa-tower-broadcast fa-fade"></i> <b id="obs-bar-active-scene-txt">جاري التحميل...</b>
             </span>
           </div>
           <div class="obs-bar-actions">
-            <button type="button" id="btn-obs-bar-refresh" class="obs-bar-btn" title="تحديث المشاهد"><i class="fa-solid fa-rotate"></i></button>
-            <button type="button" id="btn-obs-bar-open-modal" class="obs-bar-btn" title="فتح إعدادات وخوادم OBS"><i class="fa-solid fa-sliders"></i> لوحة التحكم</button>
+            <button type="button" id="btn-obs-bar-refresh" class="obs-bar-btn" title="تحديث المشاهد والانتقالات"><i class="fa-solid fa-rotate"></i></button>
+            <button type="button" id="btn-obs-bar-open-modal" class="obs-bar-btn" title="إعدادات وخوادم OBS"><i class="fa-solid fa-gear"></i> إعدادات الاتصال</button>
             <button type="button" id="btn-obs-bar-disconnect" class="obs-bar-btn obs-bar-btn-disconnect" title="قطع اتصال OBS"><i class="fa-solid fa-power-off"></i></button>
           </div>
         </div>
-        <div class="obs-bar-scenes-track" id="obs-bar-scenes-track">
-          <!-- Live scene pills rendered dynamically -->
+
+        <!-- SCENES TRACK -->
+        <div class="obs-bar-row">
+          <div class="obs-row-label"><i class="fa-solid fa-clapperboard"></i> المشاهد:</div>
+          <div class="obs-bar-scenes-track" id="obs-bar-scenes-track">
+            <!-- Live scene pills rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- TRANSITIONS TRACK -->
+        <div class="obs-bar-row" id="obs-bar-transitions-row">
+          <div class="obs-row-label"><i class="fa-solid fa-bolt"></i> الانتقال:</div>
+          <div class="obs-bar-transitions-track" id="obs-bar-transitions-track">
+            <!-- Transition pills rendered dynamically -->
+          </div>
         </div>
       </div>
     </section>
@@ -1390,15 +1403,15 @@
 
   <script src="app.js?v=20260831_v06"></script>
 
-    <!-- OBS STUDIO WEBSOCKET & SCENES CONTROLLER MODAL -->
+    <!-- OBS STUDIO WEBSOCKET CONNECTION MODAL (COMPACT) -->
     <div id="modal-obs-controller" class="modal-overlay hidden">
-      <div class="modal-card modal-obs-card">
+      <div class="modal-card modal-obs-card modal-obs-card-compact">
         <div class="modal-header">
           <div class="modal-header-title-wrap">
             <i class="fa-solid fa-satellite-dish modal-icon" style="color: #2563eb;"></i>
             <div>
-              <div class="modal-title">التحكم المباشر في OBS Studio</div>
-              <div class="modal-subtitle">تبديل المشاهد، التحكم في البث، والاتصال عبر الشبكة أو رمز QR</div>
+              <div class="modal-title">اتصال OBS Studio</div>
+              <div class="modal-subtitle">الاتصال بالشبكة المحلية أو مسح رمز QR</div>
             </div>
           </div>
           <div class="modal-header-right" style="display:flex; align-items:center; gap:8px;">
@@ -1409,61 +1422,25 @@
 
         <!-- OBS TABS -->
         <div class="obs-modal-tabs">
-          <button type="button" class="obs-tab-btn active" data-tab="obs-tab-scenes">
-            <i class="fa-solid fa-film"></i> المشاهد والمصادر (<span id="obs-scenes-count-badge">0</span>)
-          </button>
-          <button type="button" class="obs-tab-btn" data-tab="obs-tab-connect">
-            <i class="fa-solid fa-network-wired"></i> الاتصال والخوادم المحفوظة
+          <button type="button" class="obs-tab-btn active" data-tab="obs-tab-connect">
+            <i class="fa-solid fa-network-wired"></i> بيانات الاتصال والخوادم
           </button>
           <button type="button" class="obs-tab-btn" data-tab="obs-tab-qr">
             <i class="fa-solid fa-qrcode"></i> مسح رمز QR
           </button>
         </div>
 
-        <div class="modal-body obs-modal-body">
-          <!-- TAB 1: SCENES & LIVE CONTROL -->
-          <div id="obs-tab-scenes" class="obs-tab-content active">
-            <!-- CURRENT PROGRAM SCENE BANNER -->
-            <div class="obs-active-scene-banner">
-              <div class="active-scene-info">
-                <span class="scene-live-tag"><i class="fa-solid fa-tower-broadcast fa-fade"></i> المشهد المباشر الحالي:</span>
-                <span class="active-scene-name" id="obs-active-scene-name">غير متصل بـ OBS</span>
-              </div>
-              <div class="obs-quick-actions">
-                <button type="button" id="btn-obs-refresh-scenes" class="btn btn-sm btn-secondary" title="تحديث قائمة المشاهد"><i class="fa-solid fa-rotate"></i> تحديث</button>
-              </div>
-            </div>
-
-            <!-- SCENES GRID -->
-            <div class="obs-scenes-section">
-              <div class="section-title"><i class="fa-solid fa-layer-group"></i> اضغط على أي مشهد للتبديل الفوري إليه في OBS:</div>
-              <div id="obs-scenes-grid" class="obs-scenes-grid">
-                <div class="obs-scenes-empty">
-                  <i class="fa-solid fa-plug-circle-xmark"></i>
-                  <span>قم بالاتصال بخادم OBS WebSocket لعرض وتبديل المشاهد</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- TRANSITIONS SECTION -->
-            <div class="obs-transitions-section" id="obs-transitions-section" style="margin-top:14px;">
-              <div class="section-title"><i class="fa-solid fa-bolt"></i> الانتقالات السريعة في OBS:</div>
-              <div id="obs-transitions-list" class="obs-transitions-list">
-                <!-- Transitions rendered dynamically -->
-              </div>
-            </div>
-          </div>
-
-          <!-- TAB 2: CONNECTION & SAVED PROFILES -->
-          <div id="obs-tab-connect" class="obs-tab-content">
+        <div class="modal-body obs-modal-body" style="padding:14px;">
+          <!-- TAB 1: CONNECTION & SAVED PROFILES -->
+          <div id="obs-tab-connect" class="obs-tab-content active">
             <div class="obs-connect-grid">
               <!-- CONNECTION FORM -->
               <div class="obs-form-card">
-                <div class="form-card-title"><i class="fa-solid fa-plug"></i> بيانات الاتصال بـ OBS</div>
+                <div class="form-card-title"><i class="fa-solid fa-plug"></i> بيانات خادم OBS</div>
                 
                 <div class="control-field">
-                  <label for="obs-profile-name-input">اسم الاتصال / الخادم (للحفظ):</label>
-                  <input type="text" id="obs-profile-name-input" class="control-input" placeholder="مثال: استوديو الكنيسة الرئيسي / OBS اللابتوب">
+                  <label for="obs-profile-name-input">اسم الاتصال / الخادم:</label>
+                  <input type="text" id="obs-profile-name-input" class="control-input" placeholder="مثال: استوديو الكنيسة / OBS اللابتوب">
                 </div>
 
                 <div class="style-grid-2">
@@ -1486,15 +1463,15 @@
                 </div>
 
                 <div class="obs-form-actions">
-                  <button type="button" id="btn-obs-connect" class="btn btn-primary"><i class="fa-solid fa-link"></i> اتصال بـ OBS</button>
-                  <button type="button" id="btn-obs-save-profile" class="btn btn-secondary"><i class="fa-solid fa-floppy-disk"></i> حفظ الخادم</button>
-                  <button type="button" id="btn-obs-disconnect" class="btn btn-danger hidden"><i class="fa-solid fa-link-slash"></i> قطع الاتصال</button>
+                  <button type="button" id="btn-obs-connect" class="btn btn-primary" style="flex:1;"><i class="fa-solid fa-link"></i> اتصال</button>
+                  <button type="button" id="btn-obs-save-profile" class="btn btn-secondary"><i class="fa-solid fa-floppy-disk"></i> حفظ</button>
+                  <button type="button" id="btn-obs-disconnect" class="btn btn-danger hidden"><i class="fa-solid fa-link-slash"></i> قطع</button>
                 </div>
               </div>
 
               <!-- SAVED PROFILES LIST -->
               <div class="obs-saved-profiles-card">
-                <div class="form-card-title"><i class="fa-solid fa-bookmark"></i> الخوادم والاتصالات المحفوظة</div>
+                <div class="form-card-title"><i class="fa-solid fa-bookmark"></i> الخوادم المحفوظة</div>
                 <div id="obs-saved-profiles-list" class="obs-saved-profiles-list">
                   <!-- Saved profiles list -->
                 </div>
@@ -1502,7 +1479,7 @@
             </div>
           </div>
 
-          <!-- TAB 3: QR CODE SCANNER -->
+          <!-- TAB 2: QR CODE SCANNER -->
           <div id="obs-tab-qr" class="obs-tab-content">
             <div class="obs-qr-scanner-box">
               <div class="qr-scanner-viewfinder">
@@ -1530,7 +1507,7 @@
               </div>
 
               <div id="obs-qr-status-msg" class="qr-status-msg">
-                <i class="fa-solid fa-circle-info"></i> في OBS Studio: افتح <strong>Tools</strong> ثم <strong>WebSocket Server Settings</strong> واضغط على <strong>Show Connect Info</strong> لعرض رمز QR.
+                <i class="fa-solid fa-circle-info"></i> في OBS: افتح <strong>Tools</strong> ثم <strong>WebSocket Server Settings</strong> واضغط على <strong>Show Connect Info</strong> لعرض رمز QR.
               </div>
             </div>
           </div>

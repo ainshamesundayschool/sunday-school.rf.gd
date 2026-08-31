@@ -1163,7 +1163,7 @@ class OBSWSClient {
         op: 1,
         d: {
           rpcVersion: 1,
-          eventSubscriptions: 33
+          eventSubscriptions: 2047 // Subscribe to all standard OBS events (Scenes, Transitions, General, etc.)
         }
       };
       if (authObj) {
@@ -1173,7 +1173,24 @@ class OBSWSClient {
     } else if (msg.op === 2) {
       this.isConnected = true;
       this.onStatusChange(true, 'متصل بـ OBS Studio');
-      Promise.all([this.fetchScenes(), this.fetchTransitions()]).catch(() => {});
+      (async () => {
+        try {
+          await this.fetchScenes();
+          await this.fetchTransitions();
+          const curProg = await this.sendRequest('GetCurrentProgramScene');
+          if (curProg && (curProg.currentProgramSceneName || curProg.sceneName)) {
+            const scName = curProg.currentProgramSceneName || curProg.sceneName;
+            this.currentProgramScene = scName;
+            this.onCurrentSceneChanged(scName);
+          }
+          const curTr = await this.sendRequest('GetCurrentSceneTransition');
+          if (curTr && (curTr.currentSceneTransitionName || curTr.transitionName)) {
+            const trName = curTr.currentSceneTransitionName || curTr.transitionName;
+            this.currentTransition = trName;
+            this.onTransitionsUpdated(this.transitions, trName);
+          }
+        } catch(e) {}
+      })();
     } else if (msg.op === 5) {
       // OBS EVENT NOTIFICATION
       const eventType = msg.d?.eventType;
@@ -2381,33 +2398,42 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderObsTransitionsList(transitions, currentTransition) {
-    const container = document.getElementById('obs-transitions-list');
-    if (!container) return;
+    const track = document.getElementById('obs-bar-transitions-track');
+    const row = document.getElementById('obs-bar-transitions-row');
+    const oldContainer = document.getElementById('obs-transitions-list');
 
-    if (!transitions || transitions.length === 0) {
-      container.innerHTML = '<span style="color:#64748b; font-size:0.8rem;">لا توجد انتقالات متوفرة</span>';
-      return;
+    if (row) {
+      row.style.display = (transitions && transitions.length > 0) ? 'flex' : 'none';
     }
 
-    container.innerHTML = transitions.map(tName => {
-      const isCurrent = tName === currentTransition;
-      return `
-        <button type="button" class="obs-transition-btn ${isCurrent ? 'active' : ''}" data-trans-name="${escapeHtml(tName)}">
-          ${escapeHtml(tName)}
-        </button>
-      `;
-    }).join('');
+    const htmlContent = (!transitions || transitions.length === 0)
+      ? '<span style="color:#94a3b8; font-size:0.75rem;">لا توجد انتقالات</span>'
+      : transitions.map(tName => {
+          const isCurrent = tName === currentTransition;
+          return `
+            <button type="button" class="obs-bar-transition-pill ${isCurrent ? 'active' : ''}" data-trans-name="${escapeHtml(tName)}" title="تفعيل انتقال ${escapeHtml(tName)}">
+              ${escapeHtml(tName)}
+            </button>
+          `;
+        }).join('');
 
-    container.querySelectorAll('.obs-transition-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const tName = btn.dataset.transName;
-        if (tName && globalObsClient.isConnected) {
-          globalObsClient.setTransition(tName);
-          container.querySelectorAll('.obs-transition-btn').forEach(b => b.classList.toggle('active', b.dataset.transName === tName));
-          showToast(`⚡ تم تحديد انتقال "${tName}" في OBS!`);
-        }
+    if (track) {
+      track.innerHTML = htmlContent;
+      track.querySelectorAll('.obs-bar-transition-pill').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const tName = btn.dataset.transName;
+          if (tName && globalObsClient.isConnected) {
+            globalObsClient.setTransition(tName);
+            track.querySelectorAll('.obs-bar-transition-pill').forEach(b => b.classList.toggle('active', b.dataset.transName === tName));
+            showToast(`⚡ تم تفعيل انتقال "${tName}" في OBS!`);
+          }
+        });
       });
-    });
+    }
+
+    if (oldContainer) {
+      oldContainer.innerHTML = htmlContent;
+    }
   }
 
   function renderSavedObsProfilesList() {
