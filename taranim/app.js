@@ -3110,6 +3110,18 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch(e) {}
   }
 
+  function getRemoteAppUrl(roomId, roomPin) {
+    const pin = encodeURIComponent(roomPin || roomId || '');
+    const loc = window.location;
+    let path = loc.pathname;
+    if (path.endsWith('.html') || path.endsWith('.php')) {
+      path = path.substring(0, path.lastIndexOf('/') + 1);
+    } else if (!path.endsWith('/')) {
+      path += '/';
+    }
+    return `${loc.origin}${path}remote.html?pin=${pin}`;
+  }
+
   function renderRemotePairingUI() {
     if (!remoteHostSession) return;
     const pinEl = document.getElementById('remote-host-pin-txt');
