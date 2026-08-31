@@ -5738,7 +5738,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // ----------------------------------------------------
   const TEMPLATE_KNOWN_SIZES = {
     'tmpl-shabahak-akon-2026': 64.84, // 29.63 MB (Loop) + 29.60 MB (Empty) + 5.61 MB (Stringer)
-    'tmpl-paint-sweeps': 37.40 // 25 backgrounds total
+    'tmpl-paint-sweeps': 37.40, // 25 backgrounds total
+    'tmpl-paint-sweeps-animated': 328.5 // 10 animated HD 1080 video loops
   };
 
   function getTemplateAssets(tmpl) {
@@ -6449,6 +6450,19 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+      const DEFAULT_PAINT_SWEEPS_ANIMATED_VARIETIES = [
+    { name: 'Burn', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Burn - Slow - HD 1080.mp4' },
+    { name: 'Forest', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Forest - Medium - HD 1080.mp4' },
+    { name: 'Hope', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Hope - Medium - HD 1080.mp4' },
+    { name: 'King', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps King - Medium - HD 1080.mp4' },
+    { name: 'Peace', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Peace - Slow - HD 1080.mp4' },
+    { name: 'Shine', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Shine - Medium - HD 1080.mp4' },
+    { name: 'Spread', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Spread - Medium - HD 1080.mp4' },
+    { name: 'Strong', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Strong - Slow - HD 1080.mp4' },
+    { name: 'Torn', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Torn - Slow - HD 1080.mp4' },
+    { name: 'Vive', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Vive - Medium - HD 1080.mp4' }
+  ];
+
       const DEFAULT_PAINT_SWEEPS_VARIETIES = [
     { name: 'Blank', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg' },
     { name: 'Burn', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Burn.jpg' },
@@ -6512,6 +6526,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let hasGroupedPaintSweeps = false;
 
     templatesList.forEach(t => {
+      if (t.id === 'tmpl-paint-sweeps-animated' || (t.name && /Paint\s*Sweeps\s*Animated/i.test(t.name))) {
+        result.push(t);
+        return;
+      }
+
       if ((t.id === 'tmpl-paint-sweeps' || (t.name && t.name.includes('Paint Sweeps'))) && Array.isArray(t.varieties) && t.varieties.length > 0) {
         hasGroupedPaintSweeps = true;
         result.push(t);
