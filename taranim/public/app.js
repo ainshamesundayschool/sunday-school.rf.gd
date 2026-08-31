@@ -5928,6 +5928,7 @@ document.addEventListener('DOMContentLoaded', () => {
         all: allTemplates.length,
         conferences: allTemplates.filter(t => t.categoryKey === 'conferences').length,
         backgrounds: allTemplates.filter(t => t.categoryKey === 'backgrounds').length,
+        video: allTemplates.filter(t => t.categoryKey === 'video').length,
         custom: customList.length
       };
 
@@ -5938,6 +5939,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (countConfEl) countConfEl.textContent = counts.conferences;
       const countBgEl = document.getElementById('tmpl-cat-count-backgrounds');
       if (countBgEl) countBgEl.textContent = counts.backgrounds;
+      const countVideoEl = document.getElementById('tmpl-cat-count-video');
+      if (countVideoEl) countVideoEl.textContent = counts.video;
       const countCustEl = document.getElementById('tmpl-cat-count-custom');
       if (countCustEl) countCustEl.textContent = counts.custom;
 
@@ -6462,6 +6465,31 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+      const DEFAULT_PAINT_SWEEPS_ANIMATED_TEMPLATE = {
+    id: 'tmpl-paint-sweeps-animated',
+    name: 'Paint Sweeps Animated (فيديوهات متحركة)',
+    category: 'قوالب فيديو وحركة',
+    categoryKey: 'video',
+    desc: 'مجموعة خلفيات فيديو متحركة فائقة الدقة (Paint Sweeps HD 1080 Animated Loops) بتأثيرات وتدرجات لونية حركية مذهلة لعرض الترانيم.',
+    thumbnailType: 'image',
+    thumbnailUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Burn.jpg',
+    standby: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Burn - Slow - HD 1080.mp4',
+    slidesBg: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Burn - Slow - HD 1080.mp4',
+    showLogo: true,
+    varieties: [
+      { name: 'Burn', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Burn - Slow - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Burn.jpg' },
+      { name: 'Forest', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Forest - Medium - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Forest.jpg' },
+      { name: 'Hope', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Hope - Medium - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Hope.jpg' },
+      { name: 'King', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps King - Medium - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps King.jpg' },
+      { name: 'Peace', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Peace - Slow - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Peace.jpg' },
+      { name: 'Shine', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Shine - Medium - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Shine.jpg' },
+      { name: 'Spread', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Spread - Medium - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Spread.jpg' },
+      { name: 'Strong', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Strong - Slow - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Strong.jpg' },
+      { name: 'Torn', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Torn - Slow - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Torn.jpg' },
+      { name: 'Vive', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Vive - Medium - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Vive.jpg' }
+    ]
+  };
+
       const DEFAULT_PAINT_SWEEPS_ANIMATED_VARIETIES = [
     { name: 'Burn', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Burn - Slow - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Burn.jpg' },
     { name: 'Forest', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Forest - Medium - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Forest.jpg' },
@@ -6529,7 +6557,8 @@ document.addEventListener('DOMContentLoaded', () => {
           standby: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg',
           slidesBg: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg',
           varieties: DEFAULT_PAINT_SWEEPS_VARIETIES
-        }
+        },
+        DEFAULT_PAINT_SWEEPS_ANIMATED_TEMPLATE
       ];
     }
 
@@ -6581,6 +6610,10 @@ document.addEventListener('DOMContentLoaded', () => {
         slidesBg: paintSweepVars.length > 0 ? paintSweepVars[0].url : 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg',
         varieties: paintSweepVars.length > 0 ? paintSweepVars : DEFAULT_PAINT_SWEEPS_VARIETIES
       });
+    }
+
+    if (!result.some(t => t.id === 'tmpl-paint-sweeps-animated')) {
+      result.push(DEFAULT_PAINT_SWEEPS_ANIMATED_TEMPLATE);
     }
 
     return result;
