@@ -10044,6 +10044,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const prevSongTitle = prevSong ? (prevSong.title || prevSong.name || '') : '';
     const nextSongTitle = nextSong ? (nextSong.title || nextSong.name || '') : '';
 
+    const transitionId = (extraOptions && extraOptions.triggerTransition) ? Date.now() : 0;
     const payload = {
       type: 'PRESENT_LINE',
       isLogoSlide: isLogoSlide,
@@ -10057,6 +10058,7 @@ document.addEventListener('DOMContentLoaded', () => {
       stingerMediaUrl: state.transitionConfig ? state.transitionConfig.stingerUrl : '',
       stingerCutPointMs: state.transitionConfig ? state.transitionConfig.cutPointMs : 1200,
       triggerTransition: Boolean(extraOptions && extraOptions.triggerTransition),
+      transitionId: transitionId,
       text: text,
       badgeText: badgeTxt,
       badgeClass: badgeCls,

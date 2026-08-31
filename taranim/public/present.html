@@ -1056,6 +1056,8 @@
     let _lastAnimSlideText = null;
     let currentAnimState = null;
     let currentIsBlankState = false;
+    let lastProcessedTransitionId = 0;
+    let isStingerActive = false;
     let currentIsBible = false;
 
     function requestAutoFullscreen() {
@@ -2158,13 +2160,22 @@
         activeLumaAnimFrame = requestAnimationFrame(animateWipe);
       };
 
-      // 4. TRANSITION TRIGGER OR DIRECT DISPLAY
-      if (data.triggerTransition) {
+            // 4. TRANSITIONS & DISPLAY SCENE CONTROLLER (OPTIMIZED & FLICKER-FREE)
+      const shouldRunTransition = Boolean(
+        data.triggerTransition && 
+        data.transitionId && 
+        data.transitionId !== lastProcessedTransitionId && 
+        !isStingerActive
+      );
+
+      if (shouldRunTransition) {
+        lastProcessedTransitionId = data.transitionId;
         const transType = data.transitionType || 'fade';
         const stingerUrl = data.stingerMediaUrl || '';
         const cutPoint = data.stingerCutPointMs || 1200;
 
         if (transType === 'stinger' && stingerUrl) {
+          isStingerActive = true;
           const stingerEl = document.getElementById('stinger-transition-video');
           if (stingerEl) {
             if (stingerEl.src !== stingerUrl && !stingerEl.src.endsWith(stingerUrl)) {
@@ -2176,24 +2187,19 @@
             stingerEl.currentTime = 0;
             stingerEl.play().catch(() => {});
 
-            setTimeout(() => {
-              // Swap content at cut point
+            let contentSwapped = false;
+            const swapContent = () => {
+              if (contentSwapped) return;
+              contentSwapped = true;
               if (isStandbyMode) {
-                const isLogoStandby = (!data.standbyConfig || data.standbyConfig.type === 'logo');
-                const hasSlidesBg = Boolean(data.slidesBgConfig && data.slidesBgConfig.type !== 'none' && data.slidesBgConfig.url);
-
-                if (isLogoStandby && hasSlidesBg) {
-                  if (slidesLayer) slidesLayer.classList.remove('hidden');
-                } else {
-                  if (slidesLayer) slidesLayer.classList.add('hidden');
-                }
-                if (standbyLayer) standbyLayer.classList.remove('hidden', 'luma-wipe-incoming-center', 'trans-fade-incoming', 'trans-zoom-incoming');
+                if (slidesLayer) slidesLayer.classList.add('hidden');
+                if (standbyLayer) standbyLayer.classList.remove('hidden');
                 if (textEl) textEl.classList.add('hidden');
                 updateStandbyMediaDisplay(true);
                 currentIsBlankState = true;
               } else {
                 if (standbyLayer) standbyLayer.classList.add('hidden');
-                if (slidesLayer) slidesLayer.classList.remove('hidden', 'luma-wipe-incoming-center', 'trans-fade-incoming', 'trans-zoom-incoming');
+                if (slidesLayer) slidesLayer.classList.remove('hidden');
                 updateStandbyMediaDisplay(false);
                 if (isBlankMode || !hasTextContent) {
                   if (textEl) textEl.classList.add('hidden');
@@ -2206,30 +2212,30 @@
                 }
                 currentIsBlankState = false;
               }
-            }, cutPoint);
+            };
 
-            stingerEl.onended = () => {
+            setTimeout(swapContent, cutPoint);
+
+            const endStinger = () => {
+              swapContent();
+              isStingerActive = false;
               stingerEl.classList.add('hidden');
               stingerEl.style.display = 'none';
             };
+
+            stingerEl.onended = endStinger;
+            setTimeout(endStinger, cutPoint + 2000);
           }
         } else if (transType === 'cut') {
-          // CUT (INSTANT SWITCH)
           if (isStandbyMode) {
-            const isLogoStandby = (!data.standbyConfig || data.standbyConfig.type === 'logo');
-            const hasSlidesBg = Boolean(data.slidesBgConfig && data.slidesBgConfig.type !== 'none' && data.slidesBgConfig.url);
-            if (isLogoStandby && hasSlidesBg) {
-              if (slidesLayer) slidesLayer.classList.remove('hidden');
-            } else {
-              if (slidesLayer) slidesLayer.classList.add('hidden');
-            }
-            if (standbyLayer) standbyLayer.classList.remove('hidden', 'luma-wipe-incoming-center', 'trans-fade-incoming', 'trans-zoom-incoming');
+            if (slidesLayer) slidesLayer.classList.add('hidden');
+            if (standbyLayer) standbyLayer.classList.remove('hidden');
             if (textEl) textEl.classList.add('hidden');
             updateStandbyMediaDisplay(true);
             currentIsBlankState = true;
           } else {
             if (standbyLayer) standbyLayer.classList.add('hidden');
-            if (slidesLayer) slidesLayer.classList.remove('hidden', 'luma-wipe-incoming-center', 'trans-fade-incoming', 'trans-zoom-incoming');
+            if (slidesLayer) slidesLayer.classList.remove('hidden');
             updateStandbyMediaDisplay(false);
             if (isBlankMode || !hasTextContent) {
               if (textEl) textEl.classList.add('hidden');
@@ -2243,38 +2249,16 @@
             currentIsBlankState = false;
           }
         } else if (transType === 'luma_sinus9' || transType === 'luma_center') {
-          // AUTHENTIC OBS SINUS 9 FEATHERED WAVY LUMA WIPE (SLOWER & CINEMATIC)
           const lumaDuration = 1150;
           if (isStandbyMode) {
-            const isLogoStandby = (!data.standbyConfig || data.standbyConfig.type === 'logo');
-            const hasSlidesBg = Boolean(data.slidesBgConfig && data.slidesBgConfig.type !== 'none' && data.slidesBgConfig.url);
-
-            if (slidesLayer) {
-              slidesLayer.classList.remove('hidden', 'luma-wipe-incoming-center', 'trans-fade-incoming', 'trans-zoom-incoming');
-              slidesLayer.style.zIndex = '5';
-            }
-
             updateStandbyMediaDisplay(true);
             runLumaSinusWipe(standbyLayer, lumaDuration, () => {
-              if (slidesLayer && (!isLogoStandby || !hasSlidesBg)) slidesLayer.classList.add('hidden');
+              if (slidesLayer) slidesLayer.classList.add('hidden');
               if (standbyLayer) standbyLayer.style.zIndex = '6';
             });
             currentIsBlankState = true;
           } else {
-            if (standbyLayer) {
-              standbyLayer.classList.remove('hidden', 'luma-wipe-incoming-center', 'trans-fade-incoming', 'trans-zoom-incoming');
-              standbyLayer.style.zIndex = '5';
-            }
-            if (isBlankMode || !hasTextContent) {
-              if (textEl) textEl.classList.add('hidden');
-            } else {
-              if (textEl) {
-                textEl.classList.remove('hidden');
-                textEl.style.display = 'inline-block';
-                textEl.style.visibility = 'visible';
-              }
-            }
-
+            if (standbyLayer) standbyLayer.classList.remove('hidden');
             runLumaSinusWipe(slidesLayer, lumaDuration, () => {
               if (standbyLayer) standbyLayer.classList.add('hidden');
               if (slidesLayer) slidesLayer.style.zIndex = '6';
@@ -2283,84 +2267,40 @@
             currentIsBlankState = false;
           }
         } else {
-          // FADE OR ZOOM
+          // FADE / ZOOM
           const animClass = (transType === 'zoom') ? 'trans-zoom-incoming' : 'trans-fade-incoming';
           const duration = 650;
-
           if (isStandbyMode) {
-            const isLogoStandby = (!data.standbyConfig || data.standbyConfig.type === 'logo');
-            const hasSlidesBg = Boolean(data.slidesBgConfig && data.slidesBgConfig.type !== 'none' && data.slidesBgConfig.url);
-
-            if (slidesLayer) {
-              slidesLayer.classList.remove('hidden', 'luma-wipe-incoming-center', 'trans-fade-incoming', 'trans-zoom-incoming');
-              slidesLayer.style.zIndex = '5';
-            }
-
             if (standbyLayer) {
-              standbyLayer.classList.remove('hidden', 'luma-wipe-incoming-center', 'trans-fade-incoming', 'trans-zoom-incoming');
-              void standbyLayer.offsetWidth;
+              standbyLayer.classList.remove('hidden');
               standbyLayer.classList.add(animClass);
             }
             updateStandbyMediaDisplay(true);
-
             setTimeout(() => {
-              if (slidesLayer && (!isLogoStandby || !hasSlidesBg)) slidesLayer.classList.add('hidden');
-              if (standbyLayer) {
-                standbyLayer.classList.remove('luma-wipe-incoming-center', 'trans-fade-incoming', 'trans-zoom-incoming');
-                standbyLayer.style.zIndex = '6';
-              }
+              if (slidesLayer) slidesLayer.classList.add('hidden');
+              if (standbyLayer) standbyLayer.classList.remove(animClass);
             }, duration);
             currentIsBlankState = true;
           } else {
-            if (standbyLayer) {
-              standbyLayer.classList.remove('hidden', 'luma-wipe-incoming-center', 'trans-fade-incoming', 'trans-zoom-incoming');
-              standbyLayer.style.zIndex = '5';
-            }
-            if (isBlankMode || !hasTextContent) {
-              if (textEl) textEl.classList.add('hidden');
-            } else {
-              if (textEl) {
-                textEl.classList.remove('hidden');
-                textEl.style.display = 'inline-block';
-                textEl.style.visibility = 'visible';
-              }
-            }
-
             if (slidesLayer) {
-              slidesLayer.classList.remove('hidden', 'luma-wipe-incoming-center', 'trans-fade-incoming', 'trans-zoom-incoming');
-              void slidesLayer.offsetWidth;
+              slidesLayer.classList.remove('hidden');
               slidesLayer.classList.add(animClass);
             }
-
             setTimeout(() => {
               if (standbyLayer) standbyLayer.classList.add('hidden');
-              if (slidesLayer) {
-                slidesLayer.classList.remove('luma-wipe-incoming-center', 'trans-fade-incoming', 'trans-zoom-incoming');
-                slidesLayer.style.zIndex = '6';
-              }
+              if (slidesLayer) slidesLayer.classList.remove(animClass);
               updateStandbyMediaDisplay(false);
             }, duration);
             currentIsBlankState = false;
           }
         }
-      } else {
+      } else if (!isStingerActive) {
+        // DIRECT SCENE DISPLAY (NO TRANSITION RE-TRIGGER)
         if (isStandbyMode) {
-          const isLogoStandby = (!data.standbyConfig || data.standbyConfig.type === 'logo');
-          const hasSlidesBg = Boolean(data.slidesBgConfig && data.slidesBgConfig.type !== 'none' && data.slidesBgConfig.url);
-
-          if (isLogoStandby && hasSlidesBg) {
-            if (slidesLayer) {
-              slidesLayer.classList.remove('hidden', 'luma-wipe-incoming-center', 'trans-fade-incoming', 'trans-zoom-incoming');
-              slidesLayer.style.zIndex = '5';
-            }
-          } else {
-            if (slidesLayer) slidesLayer.classList.add('hidden');
-          }
-
+          if (slidesLayer) slidesLayer.classList.add('hidden');
           if (standbyLayer) {
-            standbyLayer.classList.remove('hidden', 'luma-wipe-incoming-center', 'trans-fade-incoming', 'trans-zoom-incoming');
+            standbyLayer.classList.remove('hidden');
             standbyLayer.style.zIndex = '6';
-            standbyLayer.style.background = 'transparent';
           }
           if (textEl) textEl.classList.add('hidden');
           updateStandbyMediaDisplay(true);
@@ -2368,8 +2308,8 @@
         } else {
           if (standbyLayer) standbyLayer.classList.add('hidden');
           if (slidesLayer) {
-            slidesLayer.classList.remove('hidden', 'luma-wipe-incoming-center', 'trans-fade-incoming', 'trans-zoom-incoming');
-            slidesLayer.style.zIndex = '5';
+            slidesLayer.classList.remove('hidden');
+            slidesLayer.style.zIndex = '6';
           }
           updateStandbyMediaDisplay(false);
           if (isBlankMode || !hasTextContent) {
@@ -2386,20 +2326,28 @@
         }
       }
 
-      if (!isBlankMode && !isStandbyMode && hasTextContent) {
+      // 5. ROCK-SOLID FLICKER-FREE TEXT RENDERING & POSITIONING
+      if (!isBlankMode && !isStandbyMode && hasTextContent && !isStingerActive) {
         const isBible = Boolean(data.isBible || data.is_bible);
-
-        // UPDATE TEXT INNERHTML ONLY WHEN RAW TEXT/BADGE CONTENT CHANGES (FLICKER-FREE)
         const textKey = `${data.text || ''}_${isBible}_${data.badgeText || ''}_${data.badgeClass || ''}`;
-        if (currentTextState !== textKey) {
+        const textChanged = (currentTextState !== textKey);
+
+        if (textChanged) {
           currentTextState = textKey;
           textEl.innerHTML = formatPresenterText(data.text, isBible, data.badgeText, data.badgeClass);
+          fitTextToSafeArea(isBible);
+
+          // ONLY trigger appear animation on actual slide change
+          if (animType && animType !== 'none') {
+            textEl.classList.remove('animate-appear-fade', 'animate-appear-slide', 'animate-appear-drop', 'animate-appear-pop', 'animate-appear-flip', 'animate-appear-glow');
+            void textEl.offsetWidth;
+            textEl.classList.add(`animate-appear-${animType}`);
+          }
+        } else {
+          fitTextToSafeArea(isBible);
         }
 
-        // APPLY STYLING & FIT TO SAFE AREA IN-PLACE WITHOUT RE-CREATING DOM
-        fitTextToSafeArea(isBible);
-
-        // HIGHLIGHT LINE LOGIC (UPDATE IN-PLACE WITH NO FLICKER)
+        // Highlight line updates
         if (data.highlightedLines !== undefined) {
           if (!lastStyleData) lastStyleData = {};
           lastStyleData.highlightedLines = data.highlightedLines;
@@ -2425,21 +2373,7 @@
           }
         });
 
-        const isNewSlideText = (_lastAnimSlideText !== data.text);
-        if (isNewSlideText || currentAnimState !== animType) {
-          _lastAnimSlideText = data.text;
-          currentAnimState = animType;
-
-          box.classList.remove('animate-appear-fade', 'animate-appear-slide', 'animate-appear-drop', 'animate-appear-pop', 'animate-appear-flip', 'animate-appear-glow');
-          textEl.classList.remove('animate-appear-fade', 'animate-appear-slide', 'animate-appear-drop', 'animate-appear-pop', 'animate-appear-flip', 'animate-appear-glow');
-
-          if (isNewSlideText && animType && animType !== 'none' && data.text) {
-            textEl.classList.add(`animate-appear-${animType}`);
-          }
-        }
-        currentIsBlankState = false;
-
-        // ALL-IN-ONE REAL-TIME SCROLL SYNCHRONIZATION
+        // All-In-One real-time smooth scroll
         if (data.mode === 'allinone' || (data.text && data.text.includes('allinone-slide-group'))) {
           const docEl = document.documentElement || document.body;
           const presenterBox = document.getElementById('presenter-box');
