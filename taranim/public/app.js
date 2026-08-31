@@ -6127,6 +6127,15 @@ document.addEventListener('DOMContentLoaded', () => {
       const sizeStr = sizeMB > 0 ? ` (${sizeMB} MB)` : '';
       btnEl.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#10b981;"></i> <span style="color:#059669; font-weight:700;">جاهز للعرض${sizeStr}</span>`;
       btnEl.title = 'تم تحميل وتجهيز كافة خلفيات وفيديوهات هذا القالب بنجاح للعرض الفوري بدون تأخير';
+
+      const card = btnEl.closest('.template-preview-card');
+      if (card) {
+        const applyBtn = card.querySelector('.btn-apply-template-card');
+        if (applyBtn) {
+          applyBtn.style.display = 'inline-flex';
+          applyBtn.classList.remove('hidden');
+        }
+      }
     }
 
     showToast(`✅ تم تجهيز وتحميل قالب "${tmpl.name}" بنجاح! جاهز للعرض الفوري.`);
@@ -6278,19 +6287,19 @@ document.addEventListener('DOMContentLoaded', () => {
                   ${(function() {
                     const sizeMB = getTemplateEstimatedSizeMB(t);
                     const sizeStr = sizeMB > 0 ? ` (${sizeMB} MB)` : '';
-                    const isCached = isTemplatePrerendered(t.id);
+                    const isCached = t.isCustom || isTemplatePrerendered(t.id);
                     return `
                       <button type="button" class="btn-prerender-template-card btn btn-sm ${isCached ? 'cached' : ''}" data-tmpl-id="${escapeHtml(t.id)}" title="${isCached ? 'تم تجهيز وتحميل هذا القالب مسبقاً' : 'تحميل وتجهيز كافة وسائط وخلفيات القالب مسبقاً في الذاكرة لتجنب أي بطء أثناء العرض'}">
                         ${isCached 
                           ? `<i class="fa-solid fa-circle-check" style="color:#10b981;"></i> <span style="color:#059669; font-weight:700;">جاهز${sizeStr}</span>`
-                          : `<i class="fa-solid fa-cloud-arrow-down"></i> <span>تجهيز مسبق</span> <span class="prerender-size-badge">${sizeStr}</span>`
+                          : `<i class="fa-solid fa-cloud-arrow-down"></i> <span>تحميل وتجهيز القالب</span> <span class="prerender-size-badge">${sizeStr}</span>`
                         }
+                      </button>
+                      <button type="button" class="btn-apply-template-card btn btn-sm btn-primary ${isCached ? '' : 'hidden'}" data-name="${escapeHtml(t.name)}" data-id="${escapeHtml(t.id || '')}" data-iscustom="${t.isCustom ? '1' : '0'}" ${hasVarieties ? `data-selected-variety-idx="0" data-selected-variety-url="${escapeHtml(initialVarUrl)}" data-selected-variety-name="${escapeHtml(initialVarName)}"` : ''} style="background:#2563eb; color:#fff; font-weight:700; padding:6px 14px; border-radius:8px; display:${isCached ? 'inline-flex' : 'none'}; align-items:center; gap:6px; cursor:pointer;">
+                        <i class="icon-star-sparkle"></i> تطبيق القالب
                       </button>
                     `;
                   })()}
-                  <button type="button" class="btn-apply-template-card btn btn-sm btn-primary" data-name="${escapeHtml(t.name)}" data-id="${escapeHtml(t.id || '')}" data-iscustom="${t.isCustom ? '1' : '0'}" ${hasVarieties ? `data-selected-variety-idx="0" data-selected-variety-url="${escapeHtml(initialVarUrl)}" data-selected-variety-name="${escapeHtml(initialVarName)}"` : ''} style="background:#2563eb; color:#fff; font-weight:700; padding:6px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
-                    <i class="icon-star-sparkle"></i> تطبيق القالب
-                  </button>
                 </div>
                 ${t.isCustom ? `
                   <div style="display:flex; align-items:center; gap:4px;">
