@@ -1338,10 +1338,14 @@ document.addEventListener('DOMContentLoaded', () => {
     highlightedLineIndices: [],
     highlightColor: savedSettings.highlightColor || "#ef4444",
 
-    standbyConfig: savedMediaConfig.standbyConfig || {
+    standbyConfig: (savedMediaConfig.standbyConfig && typeof savedMediaConfig.standbyConfig === 'object') ? {
+      showLogo: true,
+      ...savedMediaConfig.standbyConfig
+    } : {
       type: 'logo',
       url: '',
-      loop: true
+      loop: true,
+      showLogo: true
     },
     slidesBgConfig: savedMediaConfig.slidesBgConfig || {
       type: 'none',
@@ -10656,13 +10660,15 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
 
-        const sbUrl = standbyConf.url || '';
+        const sbUrl = standbyConf.url || (state.slidesBgConfig && state.slidesBgConfig.url) || '';
         const isSbImg = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(sbUrl) || sbUrl.startsWith('data:image/') || standbyConf.type === 'custom_image';
         const isSbVid = /\.(mp4|webm|mov|mkv)$/i.test(sbUrl) || sbUrl.startsWith('data:video/') || standbyConf.type === 'custom_video';
 
-        const showLogoOnStandby = (standbyConf.showLogo !== undefined) ? Boolean(standbyConf.showLogo) : (standbyConf.type === 'logo');
+        const showLogoOnStandby = (standbyConf.showLogo !== undefined) 
+          ? Boolean(standbyConf.showLogo) 
+          : (standbyConf.type === 'logo' || !state.standbyConfig || state.standbyConfig.type === 'template' || (!sbUrl.includes('Shabahak')));
 
-        if (standbyConf.type === 'logo') {
+        if (standbyConf.type === 'logo' || (!sbUrl && standbyConf.type !== 'template')) {
           if (obsStandbyFullscreenContainer) obsStandbyFullscreenContainer.classList.add('hidden');
           if (obsStandbyFullscreenVideo && !obsStandbyFullscreenVideo.paused) {
             try { obsStandbyFullscreenVideo.pause(); } catch(e) {}
@@ -10670,15 +10676,20 @@ document.addEventListener('DOMContentLoaded', () => {
           if (standbyEl) {
             standbyEl.classList.remove('hidden');
             standbyEl.style.display = 'flex';
+            standbyEl.style.visibility = 'visible';
+            standbyEl.style.opacity = '1';
+            standbyEl.style.zIndex = '20';
           }
-        } else if (sbUrl && (standbyConf.type === 'template' || isSbImg || isSbVid)) {
+        } else if (sbUrl || standbyConf.type === 'template' || isSbImg || isSbVid) {
           if (obsSlidesBgContainer) obsSlidesBgContainer.classList.add('hidden');
           if (obsStandbyFullscreenContainer) obsStandbyFullscreenContainer.classList.remove('hidden');
           if (standbyEl) {
             if (showLogoOnStandby) {
               standbyEl.classList.remove('hidden');
               standbyEl.style.display = 'flex';
-              standbyEl.style.zIndex = '10';
+              standbyEl.style.visibility = 'visible';
+              standbyEl.style.opacity = '1';
+              standbyEl.style.zIndex = '20';
             } else {
               standbyEl.classList.add('hidden');
               standbyEl.style.display = 'none';
