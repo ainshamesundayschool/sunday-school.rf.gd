@@ -1380,8 +1380,8 @@
 
       const align = (lastStyleData && lastStyleData.textAlign) || textEl.style.textAlign || 'center';
       const lSpacing = (lastStyleData && lastStyleData.letterSpacing !== undefined) ? lastStyleData.letterSpacing : 0;
-      const lHeight = (lastStyleData && lastStyleData.lineHeight !== undefined) ? lastStyleData.lineHeight : 1.5;
-      const fWeight = (lastStyleData && lastStyleData.fontWeight) || '400';
+      const lHeight = (lastStyleData && lastStyleData.lineHeight !== undefined) ? lastStyleData.lineHeight : 1.35;
+      const fWeight = (lastStyleData && lastStyleData.fontWeight) || '700';
       const fStyle = (lastStyleData && lastStyleData.fontStyle) || 'normal';
       const tDeco = (lastStyleData && lastStyleData.textDecoration) || 'none';
 
@@ -1401,8 +1401,8 @@
       segments.forEach(s => {
         s.style.display = 'block';
         s.style.width = '100%';
-        s.style.whiteSpace = 'pre-wrap';
-        s.style.wordBreak = 'break-word';
+        s.style.whiteSpace = 'normal'; // Allow clean word wrap if text reaches edge
+        s.style.wordBreak = 'normal';
         s.style.overflowWrap = 'break-word';
         s.style.wordSpacing = 'normal';
         s.style.textAlign = align === 'justify' ? 'justify' : align;
@@ -1410,7 +1410,7 @@
         s.style.textAlignLast = align === 'justify' ? 'center' : align;
       });
 
-      const finalLineHeight = lHeight !== undefined ? lHeight : 1.5;
+      const finalLineHeight = lHeight !== undefined ? lHeight : 1.35;
       textEl.style.lineHeight = `${finalLineHeight}`;
       const lineRows = textEl.querySelectorAll('.obs-line-row');
       lineRows.forEach(r => {
@@ -1429,55 +1429,30 @@
         textEl.style.fontWeight = fWeight;
       }
 
-      // 1. Calculate line count and max characters per line for adaptive scaling
-      const textContent = textEl.innerText || textEl.textContent || (lastStyleData && lastStyleData.text) || '';
-      const rawLines = textContent.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-      const numLines = Math.max(1, rawLines.length);
-      let maxCharsInLine = 0;
-      rawLines.forEach(l => {
-        if (l.length > maxCharsInLine) maxCharsInLine = l.length;
-      });
-
-      let autoScale = 1.0;
-      if (numLines >= 6) autoScale = 0.60;
-      else if (numLines === 5) autoScale = 0.68;
-      else if (numLines === 4) autoScale = 0.76;
-      else if (numLines === 3) autoScale = 0.88;
-      else if (numLines === 2) autoScale = 0.96;
-
-      if (maxCharsInLine > 42) {
-        const charScale = Math.min(1.0, 42 / maxCharsInLine);
-        autoScale = Math.min(autoScale, charScale);
-      }
-
-      if (lastStyleData && lastStyleData.uniformScaleFactor) {
-        autoScale = Math.min(autoScale, lastStyleData.uniformScaleFactor);
-      }
-
-      // UNIFORM PROPORTIONAL RESIZE FOR ALL SLIDES BASED ON WINDOW WIDTH WITH PORTRAIT ENHANCEMENT
+      // Proportional scale factor based on screen width (1920 is standard reference width)
       const isPortrait = (curH > curW) || (curW < 768 && curH >= curW);
       let scaleFactor = curW / 1920;
       if (isPortrait) {
         scaleFactor = Math.max(scaleFactor * 1.85, curW / 1050);
       }
 
-      const effectiveBase = Math.round(baseSize * autoScale);
-      let scaledFontSize = Math.max(20, Math.round(effectiveBase * scaleFactor));
+      // Compute primary font size - bold, generous, and fills the screen
+      let scaledFontSize = Math.max(28, Math.round(baseSize * scaleFactor));
       textEl.style.fontSize = `${scaledFontSize}px`;
 
       const wrapper = textEl.querySelector('.obs-slide-wrapper') || textEl;
       wrapper.style.transform = 'none';
       wrapper.style.display = 'inline-block';
       wrapper.style.maxWidth = '100%';
-      wrapper.style.width = 'auto';
+      wrapper.style.width = '100%';
 
-      // 2. CONTAINER BOUNDS SAFETY CHECK: If content overflows available box height, downscale iteratively
+      // BOUNDS CHECK: Only gently downscale if content physically exceeds screen height
       const presenterBox = document.getElementById('presenter-box') || textEl.parentElement;
-      const maxAllowedH = curH * 0.82;
+      const maxAllowedH = curH * 0.88;
 
-      if (presenterBox && presenterBox.scrollHeight > maxAllowedH && scaledFontSize > 22) {
-        const fitRatio = Math.max(0.65, maxAllowedH / presenterBox.scrollHeight);
-        scaledFontSize = Math.max(20, Math.round(scaledFontSize * fitRatio));
+      if (presenterBox && presenterBox.scrollHeight > maxAllowedH && scaledFontSize > 26) {
+        const fitRatio = Math.max(0.68, maxAllowedH / presenterBox.scrollHeight);
+        scaledFontSize = Math.max(24, Math.round(scaledFontSize * fitRatio));
         textEl.style.fontSize = `${scaledFontSize}px`;
       }
 

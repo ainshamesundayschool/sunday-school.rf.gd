@@ -10436,8 +10436,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const isBible = Boolean(targetSong && ((targetSong.is_bible === true || targetSong.is_bible === '1' || targetSong.is_bible === 1) || (targetSong.chapter_number !== undefined && targetSong.chapter_number !== null && targetSong.chapter_number !== '') || targetSong.type === 'bible'));
     const bibleRefShortcut = isBible ? getBibleVerseShortcut(targetSong, currentSlideItem) : '';
 
-    const uniformScale = (targetSong && targetSong._uniformScaleFactor) || (state.activeSong && state.activeSong._uniformScaleFactor) || 1.0;
-    const effectiveFontSize = Math.round((state.fontSize || 105) * uniformScale);
+    const uniformScale = 1.0;
+    const effectiveFontSize = state.fontSize || 105;
 
     // Determine adjacent opened hymns for navigation on logo standby slide
     const recents = state.sessionRecents || [];
