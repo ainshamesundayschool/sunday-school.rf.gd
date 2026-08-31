@@ -10243,7 +10243,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const isBible = Boolean(targetSong && ((targetSong.is_bible === true || targetSong.is_bible === '1' || targetSong.is_bible === 1) || (targetSong.chapter_number !== undefined && targetSong.chapter_number !== null && targetSong.chapter_number !== '') || targetSong.type === 'bible'));
     const bibleRefShortcut = isBible ? getBibleVerseShortcut(targetSong, currentSlideItem) : '';
 
-    const effectiveFontSize = state.fontSize || 105;
+    const uniformScale = (targetSong && targetSong._uniformScaleFactor) || (state.activeSong && state.activeSong._uniformScaleFactor) || 1.0;
+    const effectiveFontSize = Math.round((state.fontSize || 105) * uniformScale);
 
     // Determine adjacent opened hymns for navigation on logo standby slide
     const recents = state.sessionRecents || [];
@@ -10288,6 +10289,8 @@ document.addEventListener('DOMContentLoaded', () => {
       customFontDataUrl: localStorage.getItem('sunday_school_custom_font_dataurl') || state.customFontDataUrl || '',
       customFontName: localStorage.getItem('sunday_school_custom_font_name') || '',
       fontSize: effectiveFontSize,
+      baseFontSize: state.fontSize || 105,
+      uniformScaleFactor: uniformScale,
       chroma: state.chromaKey,
       isBlank: state.isBlank,
       anim: state.textAnimation,

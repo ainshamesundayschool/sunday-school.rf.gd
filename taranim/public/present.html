@@ -1371,7 +1371,8 @@
       currentIsBible = isBible;
 
       const container = document.getElementById('obs-overlay-container') || document.body;
-      const curW = container.clientWidth || window.innerWidth || 1920;
+      const curW = Math.max(320, container.clientWidth || window.innerWidth || 1920);
+      const curH = Math.max(240, container.clientHeight || window.innerHeight || 1080);
 
       const baseSize = (lastStyleData && lastStyleData.fontSize) || stateFontSize || 105;
       const currentFont = (lastStyleData && lastStyleData.font) || textEl.style.fontFamily || '';
@@ -1428,14 +1429,40 @@
         textEl.style.fontWeight = fWeight;
       }
 
+      // 1. Calculate line count and max characters per line for adaptive scaling
+      const textContent = textEl.innerText || textEl.textContent || (lastStyleData && lastStyleData.text) || '';
+      const rawLines = textContent.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      const numLines = Math.max(1, rawLines.length);
+      let maxCharsInLine = 0;
+      rawLines.forEach(l => {
+        if (l.length > maxCharsInLine) maxCharsInLine = l.length;
+      });
+
+      let autoScale = 1.0;
+      if (numLines >= 6) autoScale = 0.60;
+      else if (numLines === 5) autoScale = 0.68;
+      else if (numLines === 4) autoScale = 0.76;
+      else if (numLines === 3) autoScale = 0.88;
+      else if (numLines === 2) autoScale = 0.96;
+
+      if (maxCharsInLine > 42) {
+        const charScale = Math.min(1.0, 42 / maxCharsInLine);
+        autoScale = Math.min(autoScale, charScale);
+      }
+
+      if (lastStyleData && lastStyleData.uniformScaleFactor) {
+        autoScale = Math.min(autoScale, lastStyleData.uniformScaleFactor);
+      }
+
       // UNIFORM PROPORTIONAL RESIZE FOR ALL SLIDES BASED ON WINDOW WIDTH WITH PORTRAIT ENHANCEMENT
-      const isPortrait = (window.innerHeight > curW) || (curW < 768 && window.innerHeight >= curW);
+      const isPortrait = (curH > curW) || (curW < 768 && curH >= curW);
       let scaleFactor = curW / 1920;
       if (isPortrait) {
-        // Vertical mobile: scale up proportionally to fit width cleanly without being overly tiny
         scaleFactor = Math.max(scaleFactor * 1.85, curW / 1050);
       }
-      const scaledFontSize = Math.max(22, Math.round(baseSize * scaleFactor));
+
+      const effectiveBase = Math.round(baseSize * autoScale);
+      let scaledFontSize = Math.max(20, Math.round(effectiveBase * scaleFactor));
       textEl.style.fontSize = `${scaledFontSize}px`;
 
       const wrapper = textEl.querySelector('.obs-slide-wrapper') || textEl;
@@ -1444,10 +1471,20 @@
       wrapper.style.maxWidth = '100%';
       wrapper.style.width = 'auto';
 
+      // 2. CONTAINER BOUNDS SAFETY CHECK: If content overflows available box height, downscale iteratively
+      const presenterBox = document.getElementById('presenter-box') || textEl.parentElement;
+      const maxAllowedH = curH * 0.82;
+
+      if (presenterBox && presenterBox.scrollHeight > maxAllowedH && scaledFontSize > 22) {
+        const fitRatio = Math.max(0.65, maxAllowedH / presenterBox.scrollHeight);
+        scaledFontSize = Math.max(20, Math.round(scaledFontSize * fitRatio));
+        textEl.style.fontSize = `${scaledFontSize}px`;
+      }
+
       applyDynamicShadow();
     }
 
-    window.addEventListener('resize', () => {
+        window.addEventListener('resize', () => {
       fitTextToSafeArea();
     });
 
@@ -1778,9 +1815,7 @@
         textEl.style.fontFamily = data.font;
       }
 
-      const isFullSlideMode = (data.mode === 'fullslide' || data.presentationMode === 'fullslide');
-      const isBibleData = Boolean(data.isBible || data.is_bible);
-      if (data.fontSize && !isFullSlideMode && !isBibleData) {
+      if (data.fontSize) {
         stateFontSize = data.fontSize;
       }
 
