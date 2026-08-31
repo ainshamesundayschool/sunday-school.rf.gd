@@ -6727,15 +6727,64 @@ body.startup-active {
   border-color: #ef4444;
 }
 
-/* SCENES HORIZONTAL SCROLL TRACK */
+/* SCENES HORIZONTAL SCROLL TRACK & BUTTON FITTING */
 .obs-bar-scenes-track {
   display: flex;
   align-items: center;
   gap: 8px;
   overflow-x: auto;
-  padding-bottom: 4px;
+  padding: 4px 2px 6px 2px;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.obs-bar-btn-toggle-prev {
+  background: rgba(59, 130, 246, 0.2) !important;
+  border-color: rgba(59, 130, 246, 0.45) !important;
+  color: #bfdbfe !important;
+  font-weight: 800 !important;
+  padding: 4px 10px !important;
+  border-radius: 20px !important;
+  transition: all 0.2s ease !important;
+}
+
+.obs-bar-btn-toggle-prev:hover {
+  background: rgba(59, 130, 246, 0.35) !important;
+  border-color: #60a5fa !important;
+  color: #ffffff !important;
+  transform: translateY(-1px);
+}
+
+.obs-bar-scene-pill {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 6px 14px;
+  color: #f1f5f9;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.18s ease;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.obs-bar-scene-pill:hover {
+  background: rgba(59, 130, 246, 0.3);
+  border-color: #3b82f6;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.obs-bar-scene-pill.active {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  border-color: #f87171 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.6) !important;
 }
 
 .obs-bar-scenes-track::-webkit-scrollbar {

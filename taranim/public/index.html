@@ -176,20 +176,7 @@
               </button>
             </div>
 
-            <!-- OBS STUDIO CONTROLLER BUTTON -->
-            <div style="margin-top:6px; border-top:1px dashed #e2e8f0; padding-top:6px;">
-              <button type="button" id="btn-cast-open-obs-modal" class="btn btn-sm" style="width:100%; font-size:0.8rem; padding:8px 10px; font-weight:700; background:#f8fafc; border:1px solid #cbd5e1; color:#1e293b; border-radius:8px; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer; transition:all 0.2s ease;">
-                <i class="fa-solid fa-satellite-dish" style="color:#2563eb;"></i> لوحة تحكم OBS وتبديل المشاهد
-              </button>
-            </div>
 
-            <!-- 4. OBS MODE TOGGLE CARD (AT THE BOTTOM) -->
-            <div class="control-field" style="margin-top:6px; border-top:1px dashed #e2e8f0; padding-top:6px;">
-              <label class="toggle-switch-label" style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; font-size:0.82rem; background:#eff6ff; border:1px solid #bfdbfe; padding:7px 10px; border-radius:9px; font-weight:600; color:#1e40af;">
-                <span><i class="fa-solid fa-video" style="margin-left:6px; color:#2563eb;"></i> وضع OBS المباشر</span>
-                <input type="checkbox" id="btn-toggle-obs-mode" class="toggle-checkbox">
-              </label>
-            </div>
 
             <div class="control-field" style="margin-top:6px;">
               <label class="toggle-switch-label" style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; font-size:0.82rem; background:#f8fafc; border:1px solid #e2e8f0; padding:7px 10px; border-radius:9px; font-weight:600; color:#334155;">
@@ -270,16 +257,21 @@
       </div>
 
     </section>
-    <!-- OBS LIVE SCENES & TRANSITIONS SWITCHER BAR (UNDER SEARCH HERO IN CONTROL PANEL) -->
+    <!-- OBS LIVE SCENES & TRANSITIONS SWITCHER BAR (REFINED & FIT) -->
     <section id="obs-control-panel-scenes-bar" class="obs-control-panel-scenes-bar hidden">
       <div class="obs-bar-inner">
         <div class="obs-bar-header">
           <div class="obs-bar-live-indicator">
             <span class="obs-live-pulse-dot"></span>
-            <span class="obs-bar-title"><i class="fa-solid fa-satellite-dish"></i> OBS المباشر:</span>
+            <span class="obs-bar-title"><i class="fa-solid fa-satellite-dish"></i> OBS Studio:</span>
             <span class="obs-bar-active-scene-pill" id="obs-bar-active-scene-pill">
-              <i class="fa-solid fa-tower-broadcast fa-fade"></i> <b id="obs-bar-active-scene-txt">جاري التحميل...</b>
+              <i class="fa-solid fa-tower-broadcast fa-fade"></i> <b id="obs-bar-active-scene-txt">المشهد المباشر</b>
             </span>
+            <!-- TOGGLE BETWEEN 2 LAST USED SCENES BUTTON -->
+            <button type="button" id="btn-obs-toggle-prev-scene" class="obs-bar-btn obs-bar-btn-toggle-prev hidden" title="التبديل الفوري بين آخر مشهدين مستخدمين">
+              <i class="fa-solid fa-arrow-right-arrow-left"></i>
+              <span>التبديل للمشهد السابق: <b id="obs-bar-prev-scene-txt">--</b></span>
+            </button>
           </div>
           <div class="obs-bar-actions">
             <button type="button" id="btn-obs-bar-refresh" class="obs-bar-btn" title="تحديث المشاهد والانتقالات"><i class="fa-solid fa-rotate"></i></button>
@@ -298,7 +290,7 @@
 
         <!-- TRANSITIONS TRACK -->
         <div class="obs-bar-row" id="obs-bar-transitions-row">
-          <div class="obs-row-label"><i class="fa-solid fa-bolt"></i> الانتقال:</div>
+          <div class="obs-row-label"><i class="fa-solid fa-bolt"></i> نوع الانتقال:</div>
           <div class="obs-bar-transitions-track" id="obs-bar-transitions-track">
             <!-- Transition pills rendered dynamically -->
           </div>

@@ -1033,6 +1033,7 @@ class OBSWSClient {
     this.port = options.port || 4455;
     this.password = options.password || '';
     this.currentProgramScene = '';
+    this.previousProgramScene = '';
     this.currentTransition = '';
     this.scenes = [];
     this.transitions = [];
@@ -1198,6 +1199,9 @@ class OBSWSClient {
 
       if (eventType === 'CurrentProgramSceneChanged') {
         const newScene = eventData.sceneName || '';
+        if (this.currentProgramScene && this.currentProgramScene !== newScene) {
+          this.previousProgramScene = this.currentProgramScene;
+        }
         this.currentProgramScene = newScene;
         this.onCurrentSceneChanged(newScene);
       } else if (eventType === 'SceneListChanged' || eventType === 'SceneCreated' || eventType === 'SceneRemoved' || eventType === 'SceneNameChanged') {
@@ -2034,7 +2038,6 @@ document.addEventListener('DOMContentLoaded', () => {
     customFontFileName: document.getElementById('custom-font-file-name'),
     chromaSelect: document.getElementById('chroma-select'),
     presModeSelect: document.getElementById('pres-mode-select'),
-    btnToggleObsMode: document.getElementById('btn-toggle-obs-mode'),
     btnFixObsFreeze: document.getElementById('btn-fix-obs-freeze'),
 
     btnToggleStandbyTop: document.getElementById('btn-toggle-standby-top'),
@@ -2218,6 +2221,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize Global OBS WebSocket Client Instance
   const globalObsClient = new OBSWSClient({
     onStatusChange: (connected, message) => {
+      if (connected) {
+        try {
+          localStorage.setItem('sunday_school_obs_last_connected', JSON.stringify({
+            ip: globalObsClient.ip,
+            port: globalObsClient.port,
+            password: globalObsClient.password
+          }));
+        } catch(e) {}
+      }
       updateObsUIStatus(connected, message);
     },
     onScenesUpdated: (scenes, currentProgramScene) => {
@@ -2285,6 +2297,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const barActiveTxt = document.getElementById('obs-bar-active-scene-txt');
     if (barActiveTxt) {
       barActiveTxt.textContent = sceneName || 'بدون تحديد';
+    }
+
+    // Toggle Previous Scene Button Management
+    const btnTogglePrev = document.getElementById('btn-obs-toggle-prev-scene');
+    const prevTxt = document.getElementById('obs-bar-prev-scene-txt');
+    if (btnTogglePrev && prevTxt) {
+      if (globalObsClient.previousProgramScene && globalObsClient.previousProgramScene !== sceneName) {
+        btnTogglePrev.classList.remove('hidden');
+        prevTxt.textContent = globalObsClient.previousProgramScene;
+      } else {
+        btnTogglePrev.classList.add('hidden');
+      }
     }
 
     // 1. Highlight active scene card in Modal Grid
@@ -2928,21 +2952,51 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Auto-connect to first saved profile if available
-    const savedProfiles = getSavedObsProfiles();
-    if (savedProfiles.length > 0) {
-      const defaultProf = savedProfiles[0];
-      const nameInput = document.getElementById('obs-profile-name-input');
+    // Toggle Previous Scene Button Click Listener
+    const btnTogglePrev = document.getElementById('btn-obs-toggle-prev-scene');
+    if (btnTogglePrev) {
+      btnTogglePrev.addEventListener('click', () => {
+        if (globalObsClient.isConnected && globalObsClient.previousProgramScene) {
+          const target = globalObsClient.previousProgramScene;
+          globalObsClient.setCurrentScene(target);
+          showToast(`🔄 تم التبديل إلى المشهد السابق: "${target}"!`);
+        }
+      });
+    }
+
+    // AUTO-RECONNECT TO LAST CONNECTED SERVER EVEN ON PAGE REFRESH
+    let lastConn = null;
+    try {
+      const raw = localStorage.getItem('sunday_school_obs_last_connected');
+      if (raw) lastConn = JSON.parse(raw);
+    } catch(e) {}
+
+    if (lastConn && lastConn.ip) {
       const ipInput = document.getElementById('obs-ip-input');
       const portInput = document.getElementById('obs-port-input');
       const pwInput = document.getElementById('obs-pw-input');
 
-      if (nameInput) nameInput.value = defaultProf.name || '';
-      if (ipInput) ipInput.value = defaultProf.ip || '';
-      if (portInput) portInput.value = defaultProf.port || 4455;
-      if (pwInput) pwInput.value = defaultProf.password || '';
+      if (ipInput) ipInput.value = lastConn.ip || 'localhost';
+      if (portInput) portInput.value = lastConn.port || 4455;
+      if (pwInput) pwInput.value = lastConn.password || '';
 
-      globalObsClient.connect(defaultProf.ip, defaultProf.port, defaultProf.password);
+      globalObsClient.connect(lastConn.ip, lastConn.port, lastConn.password);
+    } else {
+      const savedProfiles = getSavedObsProfiles();
+      if (savedProfiles.length > 0) {
+        const defaultProf = savedProfiles[0];
+        const nameInput = document.getElementById('obs-profile-name-input');
+        const ipInput = document.getElementById('obs-ip-input');
+        const portInput = document.getElementById('obs-port-input');
+        const pwInput = document.getElementById('obs-pw-input');
+
+        if (nameInput) nameInput.value = defaultProf.name || '';
+        if (ipInput) ipInput.value = defaultProf.ip || '';
+        if (portInput) portInput.value = defaultProf.port || 4455;
+        if (pwInput) pwInput.value = defaultProf.password || '';
+
+        globalObsClient.connect(defaultProf.ip, defaultProf.port, defaultProf.password);
+      }
     }
   }
 
