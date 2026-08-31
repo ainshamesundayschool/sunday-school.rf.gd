@@ -270,8 +270,28 @@
       </div>
 
     </section>
-
-
+    <!-- OBS LIVE SCENES SWITCHER BAR (DIRECTLY UNDER SEARCH HERO IN CONTROL PANEL) -->
+    <section id="obs-control-panel-scenes-bar" class="obs-control-panel-scenes-bar hidden">
+      <div class="obs-bar-inner">
+        <div class="obs-bar-header">
+          <div class="obs-bar-live-indicator">
+            <span class="obs-live-pulse-dot"></span>
+            <span class="obs-bar-title"><i class="fa-solid fa-satellite-dish"></i> مشاهد OBS المباشرة:</span>
+            <span class="obs-bar-active-scene-pill" id="obs-bar-active-scene-pill">
+              <i class="fa-solid fa-tower-broadcast fa-fade"></i> <b id="obs-bar-active-scene-txt">غير متصل</b>
+            </span>
+          </div>
+          <div class="obs-bar-actions">
+            <button type="button" id="btn-obs-bar-refresh" class="obs-bar-btn" title="تحديث المشاهد"><i class="fa-solid fa-rotate"></i></button>
+            <button type="button" id="btn-obs-bar-open-modal" class="obs-bar-btn" title="فتح إعدادات وخوادم OBS"><i class="fa-solid fa-sliders"></i> لوحة التحكم</button>
+            <button type="button" id="btn-obs-bar-disconnect" class="obs-bar-btn obs-bar-btn-disconnect" title="قطع اتصال OBS"><i class="fa-solid fa-power-off"></i></button>
+          </div>
+        </div>
+        <div class="obs-bar-scenes-track" id="obs-bar-scenes-track">
+          <!-- Live scene pills rendered dynamically -->
+        </div>
+      </div>
+    </section>
 
     <!-- MULTI-COLUMN DASHBOARD LAYOUT (RIGHT = STYLE PANEL / RECENT SESSION, LEFT = PRESENTATION LINES) -->
     <main class="dashboard-halves">

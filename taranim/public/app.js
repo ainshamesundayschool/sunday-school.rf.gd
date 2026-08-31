@@ -2221,6 +2221,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalPill = document.getElementById('obs-modal-status-pill');
     const btnConnect = document.getElementById('btn-obs-connect');
     const btnDisconnect = document.getElementById('btn-obs-disconnect');
+    const controlPanelBar = document.getElementById('obs-control-panel-scenes-bar');
 
     if (headerDot) {
       headerDot.className = 'obs-badge-dot ' + (connected ? 'connected' : (message && message.includes('جاري') ? 'connecting' : 'disconnected'));
@@ -2241,9 +2242,20 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    // SHOW / HIDE CONTROL PANEL SCENES SWITCHER BAR UNDER SEARCH
+    if (controlPanelBar) {
+      if (connected) {
+        controlPanelBar.classList.remove('hidden');
+      } else {
+        controlPanelBar.classList.add('hidden');
+      }
+    }
+
     if (!connected) {
       const activeSceneNameEl = document.getElementById('obs-active-scene-name');
       if (activeSceneNameEl) activeSceneNameEl.textContent = 'غير متصل بـ OBS';
+      const barActiveTxt = document.getElementById('obs-bar-active-scene-txt');
+      if (barActiveTxt) barActiveTxt.textContent = 'غير متصل';
     }
   }
 
@@ -2253,7 +2265,12 @@ document.addEventListener('DOMContentLoaded', () => {
       activeSceneNameEl.textContent = sceneName || 'بدون تحديد';
     }
 
-    // Highlight active scene card in grid
+    const barActiveTxt = document.getElementById('obs-bar-active-scene-txt');
+    if (barActiveTxt) {
+      barActiveTxt.textContent = sceneName || 'بدون تحديد';
+    }
+
+    // 1. Highlight active scene card in Modal Grid
     const grid = document.getElementById('obs-scenes-grid');
     if (grid) {
       grid.querySelectorAll('.obs-scene-card').forEach(card => {
@@ -2270,47 +2287,95 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
     }
+
+    // 2. Highlight active scene pill in Control Panel Bar
+    const track = document.getElementById('obs-bar-scenes-track');
+    if (track) {
+      track.querySelectorAll('.obs-bar-scene-pill').forEach(pill => {
+        const isCurrent = pill.dataset.sceneName === sceneName;
+        pill.classList.toggle('active', isCurrent);
+        const existingBadge = pill.querySelector('.scene-pill-badge');
+        if (isCurrent && !existingBadge) {
+          const badge = document.createElement('span');
+          badge.className = 'scene-pill-badge';
+          badge.textContent = 'LIVE';
+          pill.appendChild(badge);
+        } else if (!isCurrent && existingBadge) {
+          existingBadge.remove();
+        }
+      });
+    }
   }
 
   function renderObsScenesGrid(scenes, currentProgramScene) {
     const grid = document.getElementById('obs-scenes-grid');
     const countBadge = document.getElementById('obs-scenes-count-badge');
-    if (countBadge) countBadge.textContent = scenes.length;
+    const track = document.getElementById('obs-bar-scenes-track');
 
-    if (!grid) return;
+    if (countBadge) countBadge.textContent = (scenes && scenes.length) || 0;
 
-    if (!scenes || scenes.length === 0) {
-      grid.innerHTML = `
-        <div class="obs-scenes-empty">
-          <i class="fa-solid fa-film"></i>
-          <span>لم يتم العثور على مشاهد في OBS Studio</span>
-        </div>
-      `;
-      return;
+    // 1. Render in Modal Grid
+    if (grid) {
+      if (!scenes || scenes.length === 0) {
+        grid.innerHTML = `
+          <div class="obs-scenes-empty">
+            <i class="fa-solid fa-film"></i>
+            <span>لم يتم العثور على مشاهد في OBS Studio</span>
+          </div>
+        `;
+      } else {
+        grid.innerHTML = scenes.map(sceneName => {
+          const isCurrent = sceneName === currentProgramScene;
+          return `
+            <div class="obs-scene-card ${isCurrent ? 'active' : ''}" data-scene-name="${escapeHtml(sceneName)}" title="انقر للتبديل إلى ${escapeHtml(sceneName)}">
+              <i class="fa-solid fa-video obs-scene-icon"></i>
+              <span class="obs-scene-name">${escapeHtml(sceneName)}</span>
+              ${isCurrent ? '<span class="obs-scene-badge">مباشر LIVE</span>' : ''}
+            </div>
+          `;
+        }).join('');
+
+        grid.querySelectorAll('.obs-scene-card').forEach(card => {
+          card.addEventListener('click', () => {
+            const sceneName = card.dataset.sceneName;
+            if (sceneName && globalObsClient.isConnected) {
+              globalObsClient.setCurrentScene(sceneName);
+              showToast(`🎬 تم التبديل إلى مشهد "${sceneName}" في OBS!`);
+            } else if (!globalObsClient.isConnected) {
+              showToast('⚠️ يجب الاتصال بخادم OBS أولاً لتغيير المشاهد.');
+            }
+          });
+        });
+      }
     }
 
-    grid.innerHTML = scenes.map(sceneName => {
-      const isCurrent = sceneName === currentProgramScene;
-      return `
-        <div class="obs-scene-card ${isCurrent ? 'active' : ''}" data-scene-name="${escapeHtml(sceneName)}" title="انقر للتبديل إلى ${escapeHtml(sceneName)}">
-          <i class="fa-solid fa-video obs-scene-icon"></i>
-          <span class="obs-scene-name">${escapeHtml(sceneName)}</span>
-          ${isCurrent ? '<span class="obs-scene-badge">مباشر LIVE</span>' : ''}
-        </div>
-      `;
-    }).join('');
+    // 2. Render in Control Panel Scenes Bar (Under Search Hero)
+    if (track) {
+      if (!scenes || scenes.length === 0) {
+        track.innerHTML = '<span style="color:#94a3b8; font-size:0.8rem;">لا توجد مشاهد</span>';
+      } else {
+        track.innerHTML = scenes.map(sceneName => {
+          const isCurrent = sceneName === currentProgramScene;
+          return `
+            <button type="button" class="obs-bar-scene-pill ${isCurrent ? 'active' : ''}" data-scene-name="${escapeHtml(sceneName)}" title="تبديل إلى ${escapeHtml(sceneName)}">
+              <i class="fa-solid fa-clapperboard scene-pill-icon"></i>
+              <span>${escapeHtml(sceneName)}</span>
+              ${isCurrent ? '<span class="scene-pill-badge">LIVE</span>' : ''}
+            </button>
+          `;
+        }).join('');
 
-    grid.querySelectorAll('.obs-scene-card').forEach(card => {
-      card.addEventListener('click', () => {
-        const sceneName = card.dataset.sceneName;
-        if (sceneName && globalObsClient.isConnected) {
-          globalObsClient.setCurrentScene(sceneName);
-          showToast(`🎬 تم التبديل إلى مشهد "${sceneName}" في OBS!`);
-        } else if (!globalObsClient.isConnected) {
-          showToast('⚠️ يجب الاتصال بخادم OBS أولاً لتغيير المشاهد.');
-        }
-      });
-    });
+        track.querySelectorAll('.obs-bar-scene-pill').forEach(pill => {
+          pill.addEventListener('click', () => {
+            const sceneName = pill.dataset.sceneName;
+            if (sceneName && globalObsClient.isConnected) {
+              globalObsClient.setCurrentScene(sceneName);
+              showToast(`🎬 تم التبديل إلى مشهد "${sceneName}" في OBS!`);
+            }
+          });
+        });
+      }
+    }
 
     updateObsActiveSceneDisplay(currentProgramScene);
   }
@@ -2412,40 +2477,89 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // QR Code Payload Parser
+  // UNIVERSAL OBS QR CODE PAYLOAD PARSER (SUPPORTS ALL OBS STUDIO & REMOTE FORMATS)
   function parseObsQrPayload(raw) {
     if (!raw || typeof raw !== 'string') return null;
-    const str = raw.trim();
+    let str = raw.trim();
 
-    // 1. Try parsing JSON format
+    // 1. Check if Base64 encoded JSON
+    if (/^[A-Za-z0-9+/=]{16,}$/.test(str)) {
+      try {
+        const decoded = atob(str);
+        if (decoded && decoded.trim().startsWith('{')) {
+          str = decoded.trim();
+        }
+      } catch(e) {}
+    }
+
+    // 2. Parse JSON format (e.g. {"ip":"...","port":4455,"pw":"..."})
     if (str.startsWith('{') && str.endsWith('}')) {
       try {
         const obj = JSON.parse(str);
-        const ip = obj.ip || obj.host || obj.address || obj.server || 'localhost';
-        const port = obj.port || obj.wsPort || 4455;
-        const password = obj.pw || obj.password || obj.secret || obj.auth || '';
-        const name = obj.name || obj.profileName || 'خادم OBS';
+        const ip = String(obj.ip || obj.host || obj.address || obj.server || obj.hostname || 'localhost').trim();
+        const port = parseInt(obj.port || obj.wsPort || obj.serverPort || 4455, 10) || 4455;
+        const password = String(obj.pw || obj.password || obj.serverPassword || obj.secret || obj.auth || '');
+        const name = obj.name || obj.profileName || `OBS (${ip})`;
         return { ip, port, password, name };
       } catch(e) {}
     }
 
-    // 2. Try parsing URL format: obs-websocket://ip:port/password or ws://ip:port
-    const urlMatch = str.match(/^(?:obs-websocket|wss?):\/\/([^/:]+)(?::(\d+))?(?:\/(.*))?$/i);
-    if (urlMatch) {
-      const ip = urlMatch[1];
-      const port = urlMatch[2] ? parseInt(urlMatch[2]) : 4455;
-      const password = urlMatch[3] ? decodeURIComponent(urlMatch[3]) : '';
-      return { ip, port, password, name: 'خادم OBS (QR)' };
+    // 3. Parse OBS URL schemes: obs-websocket://, obsws://, ws://, wss://
+    // e.g. obs-websocket://192.168.1.50:4455/mySecretPassword or obsws://192.168.1.50:4455?password=...
+    const schemeMatch = str.match(/^(?:obs-websocket|obsws|wss?):\/\/([^/?#]+)(?:\/([^?#]*))?(?:\?(.*))?$/i);
+    if (schemeMatch) {
+      const hostPart = schemeMatch[1];
+      const pathPart = schemeMatch[2] ? decodeURIComponent(schemeMatch[2]) : '';
+      const queryPart = schemeMatch[3] || '';
+
+      let ip = hostPart;
+      let port = 4455;
+
+      if (hostPart.includes(':')) {
+        const parts = hostPart.split(':');
+        ip = parts[0];
+        port = parseInt(parts[1], 10) || 4455;
+      }
+
+      let password = pathPart;
+
+      // Check query parameters (e.g. ?password=xyz or ?pw=xyz or ?secret=xyz)
+      if (queryPart) {
+        try {
+          const params = new URLSearchParams(queryPart);
+          if (params.has('password')) password = params.get('password');
+          else if (params.has('pw')) password = params.get('pw');
+          else if (params.has('auth')) password = params.get('auth');
+          else if (params.has('secret')) password = params.get('secret');
+        } catch(e) {}
+      }
+
+      return {
+        ip: ip.trim(),
+        port: port,
+        password: password,
+        name: `OBS (${ip.trim()})`
+      };
     }
 
-    // 3. Try parsing host:port/password
-    const simpleMatch = str.match(/^([^/:]+):(\d+)(?:\/(.*))?$/);
-    if (simpleMatch) {
+    // 4. Parse plain host:port/password (e.g. 192.168.1.50:4455/password)
+    const hostPortMatch = str.match(/^([a-zA-Z0-9.\-_]+):(\d+)(?:\/(.*))?$/);
+    if (hostPortMatch) {
       return {
-        ip: simpleMatch[1],
-        port: parseInt(simpleMatch[2]),
-        password: simpleMatch[3] || '',
-        name: 'خادم OBS (QR)'
+        ip: hostPortMatch[1].trim(),
+        port: parseInt(hostPortMatch[2], 10) || 4455,
+        password: hostPortMatch[3] ? decodeURIComponent(hostPortMatch[3]) : '',
+        name: `OBS (${hostPortMatch[1].trim()})`
+      };
+    }
+
+    // 5. Parse plain IP (e.g. 192.168.1.50)
+    if (/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(str) || /^localhost$/i.test(str)) {
+      return {
+        ip: str.trim(),
+        port: 4455,
+        password: '',
+        name: `OBS (${str.trim()})`
       };
     }
 
@@ -2610,6 +2724,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (btnOpenHeader) btnOpenHeader.addEventListener('click', openModal);
     if (btnOpenCast) btnOpenCast.addEventListener('click', openModal);
+    
+    const btnBarOpenModal = document.getElementById('btn-obs-bar-open-modal');
+    if (btnBarOpenModal) btnBarOpenModal.addEventListener('click', openModal);
+
+    const btnBarRefresh = document.getElementById('btn-obs-bar-refresh');
+    if (btnBarRefresh) {
+      btnBarRefresh.addEventListener('click', () => {
+        if (globalObsClient.isConnected) {
+          globalObsClient.fetchScenes();
+          showToast('تم تحديث قائمة مشاهد OBS.');
+        }
+      });
+    }
+
+    const btnBarDisconnect = document.getElementById('btn-obs-bar-disconnect');
+    if (btnBarDisconnect) {
+      btnBarDisconnect.addEventListener('click', () => {
+        globalObsClient.disconnect();
+        showToast('تم قطع اتصال OBS.');
+      });
+    }
+
     if (btnClose) btnClose.addEventListener('click', () => {
       if (modal) modal.classList.add('hidden');
       stopQrCameraScanner();

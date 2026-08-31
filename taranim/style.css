@@ -6609,3 +6609,185 @@ body.startup-active {
   border-radius: 8px;
   border: 1px solid #e2e8f0;
 }
+
+
+/* ==========================================================================
+   OBS LIVE SCENES SWITCHER BAR (UNDER SEARCH HERO IN CONTROL PANEL)
+   ========================================================================== */
+
+.obs-control-panel-scenes-bar {
+  max-width: 1200px;
+  width: 95%;
+  margin: -12px auto 14px auto;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 14px;
+  padding: 10px 14px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.2), 0 0 14px rgba(37, 99, 235, 0.15);
+  animation: obsBarSlideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 10;
+}
+
+@keyframes obsBarSlideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.obs-bar-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.obs-bar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.obs-bar-live-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.obs-live-pulse-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 10px #10b981;
+  animation: pulseGreen 1.5s infinite;
+}
+
+@keyframes pulseGreen {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.obs-bar-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.obs-bar-active-scene-pill {
+  background: rgba(239, 68, 68, 0.18);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.obs-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.obs-bar-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e2e8f0;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+}
+
+.obs-bar-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.obs-bar-btn-disconnect:hover {
+  background: rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  border-color: #ef4444;
+}
+
+/* SCENES HORIZONTAL SCROLL TRACK */
+.obs-bar-scenes-track {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.obs-bar-scenes-track::-webkit-scrollbar {
+  height: 4px;
+}
+
+.obs-bar-scenes-track::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.obs-bar-scene-pill {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 6px 14px;
+  color: #f1f5f9;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+
+.obs-bar-scene-pill:hover {
+  background: rgba(59, 130, 246, 0.25);
+  border-color: #3b82f6;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.obs-bar-scene-pill.active {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  border-color: #f87171;
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+  transform: scale(1.03);
+}
+
+.obs-bar-scene-pill.active .scene-pill-icon {
+  animation: pulse 1s infinite;
+}
+
+.scene-pill-badge {
+  background: rgba(0, 0, 0, 0.35);
+  color: #fecaca;
+  font-size: 0.65rem;
+  padding: 1px 5px;
+  border-radius: 4px;
+  margin-right: 4px;
+}
