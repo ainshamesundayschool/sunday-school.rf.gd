@@ -24,6 +24,12 @@ $liveFile   = __DIR__ . '/live.json';
 $requestUri = $_SERVER['REQUEST_URI'];
 $parsedUrl  = parse_url($requestUri, PHP_URL_PATH);
 
+// MOBILE REMOTE CONTROL REAL-TIME SYNC
+if ((isset($_GET['action']) && strpos($_GET['action'], 'remote_') === 0) || (isset($_REQUEST['action']) && strpos($_REQUEST['action'], 'remote_') === 0) || (isset($_GET['action']) && in_array($_GET['action'], ['create_room', 'join_room', 'push_state', 'get_state', 'send_command', 'poll_commands']))) {
+    require __DIR__ . '/remote_sync.php';
+    exit;
+}
+
 // LIVE PRESENTATION STATE SYNC ENDPOINT (INSTANT 0.001s RESPONSE WITHOUT WAITING FOR DATABASE)
 if (strpos($parsedUrl, '/api/live') !== false || (isset($_GET['action']) && $_GET['action'] === 'live') || isset($_GET['live'])) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {

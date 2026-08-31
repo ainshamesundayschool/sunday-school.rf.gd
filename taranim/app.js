@@ -3008,8 +3008,29 @@ document.addEventListener('DOMContentLoaded', () => {
   let hostPeer = null;
   let activeRemotePeerConnections = new Map();
 
-  function getRemoteSyncApiUrl(action = '') {
-    return `/api.php?action=remote_${action}`;
+  // MULTI-ENDPOINT SMART HOST FETCHER (HANDLES ANY SERVER SETUP / DIRECTORY)
+  async function requestRemoteHostApi(action, payload = {}) {
+    const endpoints = [
+      `api.php?action=remote_${action}`,
+      `/api.php?action=remote_${action}`,
+      `remote_sync.php?action=${action}`,
+      `/taranim/remote_sync.php?action=${action}`
+    ];
+
+    for (const ep of endpoints) {
+      try {
+        const res = await fetch(ep, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: action, ...payload })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data) return data;
+        }
+      } catch(e) {}
+    }
+    return null;
   }
 
   function getRemoteAppUrl(roomId, pin) {
@@ -3033,35 +3054,18 @@ document.addEventListener('DOMContentLoaded', () => {
       payload.hostKey = existingSession.hostKey;
     }
 
-    try {
-      let res = null;
+    const data = await requestRemoteHostApi('create_room', payload);
+    if (data && data.success) {
+      remoteHostSession = {
+        roomId: data.roomId,
+        roomPin: data.roomPin,
+        hostKey: data.hostKey
+      };
       try {
-        res = await fetch(getRemoteSyncApiUrl('create_room'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-      } catch(e) {
-        res = await fetch('remote_sync.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-      }
-
-      const data = await res.json();
-      if (data && data.success) {
-        remoteHostSession = {
-          roomId: data.roomId,
-          roomPin: data.roomPin,
-          hostKey: data.hostKey
-        };
-        try {
-          localStorage.setItem('sunday_school_remote_host_session', JSON.stringify(remoteHostSession));
-        } catch(e) {}
-      }
-    } catch(err) {
-      if (existingSession) remoteHostSession = existingSession;
+        localStorage.setItem('sunday_school_remote_host_session', JSON.stringify(remoteHostSession));
+      } catch(e) {}
+    } else if (existingSession) {
+      remoteHostSession = existingSession;
     }
 
     if (remoteHostSession) {
@@ -3174,31 +3178,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Server State Push
-    try {
-      fetch(getRemoteSyncApiUrl('push_state'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        keepalive: true,
-        body: JSON.stringify({
-          action: 'push_state',
-          roomId: remoteHostSession.roomId,
-          hostKey: remoteHostSession.hostKey,
-          state: stateObj
-        })
-      }).catch(() => {
-        fetch('remote_sync.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          keepalive: true,
-          body: JSON.stringify({
-            action: 'push_state',
-            roomId: remoteHostSession.roomId,
-            hostKey: remoteHostSession.hostKey,
-            state: stateObj
-          })
-        }).catch(() => {});
-      });
-    } catch(e) {}
+    requestRemoteHostApi('push_state', {
+      roomId: remoteHostSession.roomId,
+      hostKey: remoteHostSession.hostKey,
+      state: stateObj
+    }).catch(() => {});
   }
 
   window.pushRemoteHostState = pushRemoteHostState;
@@ -3226,29 +3210,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     while (isHostPolling && remoteHostSession) {
       try {
-        let res = null;
-        try {
-          res = await fetch(getRemoteSyncApiUrl('poll_commands'), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'poll_commands',
-              roomId: remoteHostSession.roomId,
-              hostKey: remoteHostSession.hostKey
-            })
-          });
-        } catch(err) {
-          res = await fetch('remote_sync.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'poll_commands',
-              roomId: remoteHostSession.roomId,
-              hostKey: remoteHostSession.hostKey
-            })
-          });
-        }
-        const data = await res.json();
+        const data = await requestRemoteHostApi('poll_commands', {
+          roomId: remoteHostSession.roomId,
+          hostKey: remoteHostSession.hostKey
+        });
         if (data && data.success) {
           const count = Math.max(data.clientCount || 0, activeRemotePeerConnections.size);
           updateRemoteClientsUI(count);
@@ -3257,6 +3222,7 @@ document.addEventListener('DOMContentLoaded', () => {
             data.commands.forEach(cmd => executeRemoteCommand(cmd));
           }
         }
+        await new Promise(r => setTimeout(r, 300));
       } catch(e) {
         await new Promise(r => setTimeout(r, 1000));
       }

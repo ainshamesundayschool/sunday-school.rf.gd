@@ -616,8 +616,29 @@
       }
     }
 
-    function getApiUrl(action = '') {
-      return `/api.php?action=remote_${action}`;
+    // MULTI-ENDPOINT SMART FETCHER (HANDLES ANY DOMAIN / SUBDIRECTORY)
+    async function requestRemoteApi(action, payload = {}) {
+      const endpoints = [
+        `api.php?action=remote_${action}`,
+        `/api.php?action=remote_${action}`,
+        `remote_sync.php?action=${action}`,
+        `/taranim/remote_sync.php?action=${action}`
+      ];
+
+      for (const ep of endpoints) {
+        try {
+          const res = await fetch(ep, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: action, ...payload })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data) return data;
+          }
+        } catch(e) {}
+      }
+      return null;
     }
 
     // 1. FAST COMMAND DISPATCH (0ms WebRTC Direct DataChannel -> with Instant HTTP fallback)
@@ -635,32 +656,12 @@
         }
       }
 
-      // Always or fallback send via instant HTTP POST
-      try {
-        fetch(getApiUrl('send_command'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          keepalive: true,
-          body: JSON.stringify({
-            action: 'send_command',
-            roomId: currentRoomId,
-            clientToken: currentClientToken,
-            command: cmd
-          })
-        }).catch(() => {
-          fetch('remote_sync.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            keepalive: true,
-            body: JSON.stringify({
-              action: 'send_command',
-              roomId: currentRoomId,
-              clientToken: currentClientToken,
-              command: cmd
-            })
-          }).catch(() => {});
-        });
-      } catch(e) {}
+      // Send via smart multi-endpoint fetcher
+      requestRemoteApi('send_command', {
+        roomId: currentRoomId,
+        clientToken: currentClientToken,
+        command: cmd
+      }).catch(() => {});
     }
 
     // 2. REAL-TIME WEBRTC CONNECTION INITIALIZER
@@ -795,35 +796,12 @@
     async function joinRoom(pinOrId) {
       if (!pinOrId) return;
       const cleanPin = String(pinOrId).trim();
-      let data = null;
 
-      try {
-        const res = await fetch(getApiUrl('join_room'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'join_room',
-            pin: cleanPin,
-            roomId: cleanPin,
-            clientName: 'هاتف ' + (navigator.platform || 'ريموت')
-          })
-        });
-        data = await res.json();
-      } catch(e) {
-        try {
-          const fallbackRes = await fetch('remote_sync.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'join_room',
-              pin: cleanPin,
-              roomId: cleanPin,
-              clientName: 'هاتف ' + (navigator.platform || 'ريموت')
-            })
-          });
-          data = await fallbackRes.json();
-        } catch(err) {}
-      }
+      const data = await requestRemoteApi('join_room', {
+        pin: cleanPin,
+        roomId: cleanPin,
+        clientName: 'هاتف ' + (navigator.platform || 'ريموت')
+      });
 
       if (data && data.success) {
         currentRoomId = data.roomId;
@@ -841,7 +819,14 @@
         startInstantLongPoll();
         loadSongsForSearch();
       } else {
-        alert(data && data.message ? data.message : 'رمز الغرفة غير صحيح أو لم يتم تفعيلها من اللابتوب بعد. يرجى فتح نافذة الريموت على اللابتوب أولاً.');
+        // Even if server request failed or offline, try direct WebRTC pairing with the PIN
+        initWebRtcClient(cleanPin);
+        currentRoomPin = cleanPin;
+        document.getElementById('room-pin-txt').textContent = cleanPin;
+        document.getElementById('pairing-screen').classList.add('hidden');
+        if (data && data.message) {
+          alert(data.message);
+        }
       }
     }
 
