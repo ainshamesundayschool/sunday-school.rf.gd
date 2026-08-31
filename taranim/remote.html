@@ -616,8 +616,8 @@
       }
     }
 
-    function getApiUrl() {
-      return window.location.pathname.replace(/remote\.html.*$/, 'remote_sync.php');
+    function getApiUrl(action = '') {
+      return `/api.php?action=remote_${action}`;
     }
 
     // 1. FAST COMMAND DISPATCH (0ms WebRTC Direct DataChannel -> with Instant HTTP fallback)
@@ -637,7 +637,7 @@
 
       // Always or fallback send via instant HTTP POST
       try {
-        fetch(getApiUrl(), {
+        fetch(getApiUrl('send_command'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           keepalive: true,
@@ -647,7 +647,19 @@
             clientToken: currentClientToken,
             command: cmd
           })
-        }).catch(() => {});
+        }).catch(() => {
+          fetch('remote_sync.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            keepalive: true,
+            body: JSON.stringify({
+              action: 'send_command',
+              roomId: currentRoomId,
+              clientToken: currentClientToken,
+              command: cmd
+            })
+          }).catch(() => {});
+        });
       } catch(e) {}
     }
 
@@ -697,13 +709,19 @@
 
       while (isPolling && currentRoomId) {
         try {
-          const res = await fetch(`${getApiUrl()}?action=get_state&roomId=${encodeURIComponent(currentRoomId)}&clientToken=${encodeURIComponent(currentClientToken || '')}&lastVer=${lastStateVer}&wait=1`);
+          let res = null;
+          try {
+            res = await fetch(`${getApiUrl('get_state')}&roomId=${encodeURIComponent(currentRoomId)}&clientToken=${encodeURIComponent(currentClientToken || '')}&lastVer=${lastStateVer}`);
+          } catch(err) {
+            res = await fetch(`remote_sync.php?action=get_state&roomId=${encodeURIComponent(currentRoomId)}&clientToken=${encodeURIComponent(currentClientToken || '')}&lastVer=${lastStateVer}`);
+          }
           const data = await res.json();
           if (data && data.success && data.state) {
             lastStateVer = data.stateVer || (lastStateVer + 1);
             applyState(data.state);
-            updateConnectionBadge(true, isWebRtcConnected ? 'متصل مباشر (WebRTC 0ms)' : 'متصل بالسيرفر (سريع)');
+            updateConnectionBadge(true, isWebRtcConnected ? 'متصل مباشر (WebRTC 0ms)' : 'متصل بالسيرفر');
           }
+          await new Promise(r => setTimeout(r, 300));
         } catch(e) {
           updateConnectionBadge(false, 'جارٍ إعادة الاتصال...');
           await new Promise(r => setTimeout(r, 1000));
@@ -775,42 +793,55 @@
     }
 
     async function joinRoom(pinOrId) {
+      if (!pinOrId) return;
+      const cleanPin = String(pinOrId).trim();
+      let data = null;
+
       try {
-        const res = await fetch(getApiUrl(), {
+        const res = await fetch(getApiUrl('join_room'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             action: 'join_room',
-            pin: pinOrId,
-            roomId: pinOrId,
+            pin: cleanPin,
+            roomId: cleanPin,
             clientName: 'هاتف ' + (navigator.platform || 'ريموت')
           })
         });
-        const data = await res.json();
-        if (data && data.success) {
-          currentRoomId = data.roomId;
-          currentRoomPin = data.roomPin || pinOrId;
-          currentClientToken = data.clientToken;
-          lastStateVer = data.stateVer || 1;
-
-          document.getElementById('room-pin-txt').textContent = currentRoomPin;
-          document.getElementById('pairing-screen').classList.add('hidden');
-          try { localStorage.setItem('sunday_school_remote_last_room', currentRoomPin); } catch(e) {}
-
-          if (data.state) applyState(data.state);
-
-          // Initialize WebRTC Direct Peer connection
-          initWebRtcClient(currentRoomPin);
-
-          // Start instant long-polling stream
-          startInstantLongPoll();
-
-          loadSongsForSearch();
-        } else {
-          alert(data.message || 'فشل الاتصال بالغرفة');
-        }
+        data = await res.json();
       } catch(e) {
-        alert('تعذر الاتصال بالخادم');
+        try {
+          const fallbackRes = await fetch('remote_sync.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'join_room',
+              pin: cleanPin,
+              roomId: cleanPin,
+              clientName: 'هاتف ' + (navigator.platform || 'ريموت')
+            })
+          });
+          data = await fallbackRes.json();
+        } catch(err) {}
+      }
+
+      if (data && data.success) {
+        currentRoomId = data.roomId;
+        currentRoomPin = data.roomPin || cleanPin;
+        currentClientToken = data.clientToken;
+        lastStateVer = data.stateVer || 1;
+
+        document.getElementById('room-pin-txt').textContent = currentRoomPin;
+        document.getElementById('pairing-screen').classList.add('hidden');
+        try { localStorage.setItem('sunday_school_remote_last_room', currentRoomPin); } catch(e) {}
+
+        if (data.state) applyState(data.state);
+
+        initWebRtcClient(currentRoomPin);
+        startInstantLongPoll();
+        loadSongsForSearch();
+      } else {
+        alert(data && data.message ? data.message : 'رمز الغرفة غير صحيح أو لم يتم تفعيلها من اللابتوب بعد. يرجى فتح نافذة الريموت على اللابتوب أولاً.');
       }
     }
 

@@ -3008,8 +3008,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let hostPeer = null;
   let activeRemotePeerConnections = new Map();
 
-  function getRemoteSyncApiUrl() {
-    return window.location.pathname.replace(/\/[^/]*$/, '/remote_sync.php');
+  function getRemoteSyncApiUrl(action = '') {
+    return `/api.php?action=remote_${action}`;
   }
 
   function getRemoteAppUrl(roomId, pin) {
@@ -3029,11 +3029,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!remoteHostSession || forceNew) {
       try {
-        const res = await fetch(getRemoteSyncApiUrl(), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'create_room' })
-        });
+        let res = null;
+        try {
+          res = await fetch(getRemoteSyncApiUrl('create_room'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'create_room' })
+          });
+        } catch(e) {
+          res = await fetch('remote_sync.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'create_room' })
+          });
+        }
         const data = await res.json();
         if (data && data.success) {
           remoteHostSession = {
@@ -3159,7 +3168,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Server State Push
     try {
-      fetch(getRemoteSyncApiUrl(), {
+      fetch(getRemoteSyncApiUrl('push_state'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         keepalive: true,
@@ -3169,7 +3178,19 @@ document.addEventListener('DOMContentLoaded', () => {
           hostKey: remoteHostSession.hostKey,
           state: stateObj
         })
-      }).catch(() => {});
+      }).catch(() => {
+        fetch('remote_sync.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          keepalive: true,
+          body: JSON.stringify({
+            action: 'push_state',
+            roomId: remoteHostSession.roomId,
+            hostKey: remoteHostSession.hostKey,
+            state: stateObj
+          })
+        }).catch(() => {});
+      });
     } catch(e) {}
   }
 
@@ -3198,16 +3219,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     while (isHostPolling && remoteHostSession) {
       try {
-        const res = await fetch(getRemoteSyncApiUrl(), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'poll_commands',
-            roomId: remoteHostSession.roomId,
-            hostKey: remoteHostSession.hostKey,
-            wait: '1'
-          })
-        });
+        let res = null;
+        try {
+          res = await fetch(getRemoteSyncApiUrl('poll_commands'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'poll_commands',
+              roomId: remoteHostSession.roomId,
+              hostKey: remoteHostSession.hostKey
+            })
+          });
+        } catch(err) {
+          res = await fetch('remote_sync.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'poll_commands',
+              roomId: remoteHostSession.roomId,
+              hostKey: remoteHostSession.hostKey
+            })
+          });
+        }
         const data = await res.json();
         if (data && data.success) {
           const count = Math.max(data.clientCount || 0, activeRemotePeerConnections.size);
