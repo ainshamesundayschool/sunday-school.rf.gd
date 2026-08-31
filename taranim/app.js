@@ -4144,24 +4144,46 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!assignedId) return;
 
         if (assignedId.startsWith('builtin_')) {
-          const tmplName = assignedId.replace('builtin_', '');
-          const tmpl = (state.availableTemplates || []).find(t => t.name === tmplName);
-          if (tmpl && state.activeTemplateName !== tmpl.name) {
+          const identifier = assignedId.replace('builtin_', '').trim();
+          const allTmpls = (typeof sanitizeAndGroupTemplates === 'function')
+            ? sanitizeAndGroupTemplates(state.availableTemplates || [])
+            : (state.availableTemplates || []);
+          const tmpl = allTmpls.find(t => (t.id && t.id === identifier) || (t.name && (t.name === identifier || t.name.trim() === identifier)));
+          if (tmpl) {
+            // 1. Media Backgrounds & Standby
             if (tmpl.standby) { state.standbyConfig.type = 'template'; state.standbyConfig.url = tmpl.standby; }
             if (tmpl.slidesBg) { state.slidesBgConfig.type = 'template'; state.slidesBgConfig.url = tmpl.slidesBg; }
             if (tmpl.stringer) { state.transitionConfig.type = 'stinger'; state.transitionConfig.stingerUrl = tmpl.stringer; }
+
+            // 2. Fonts, Font Size & Style Options if template provides them
+            if (tmpl.selectedFont) {
+              state.selectedFont = tmpl.selectedFont;
+              if (els.fontFamilySelect) els.fontFamilySelect.value = tmpl.selectedFont;
+            }
+            if (tmpl.fontSize) {
+              state.fontSize = tmpl.fontSize;
+              if (els.fontSizeSlider) els.fontSizeSlider.value = tmpl.fontSize;
+              if (els.fontSizeVal) els.fontSizeVal.textContent = tmpl.fontSize;
+            }
+            if (tmpl.styleOptions && typeof tmpl.styleOptions === 'object') {
+              state.styleOptions = { ...state.styleOptions, ...tmpl.styleOptions };
+            }
+
             state.activeTemplateName = tmpl.name;
             const headerLabel = document.getElementById('current-template-header-label');
             if (headerLabel) headerLabel.textContent = tmpl.name;
+
+            if (typeof updateControlPanelFromState === 'function') updateControlPanelFromState();
             if (typeof updateStandbyUI === 'function') updateStandbyUI();
             if (typeof updateSlidesBgUI === 'function') updateSlidesBgUI();
             if (typeof updateTransitionUI === 'function') updateTransitionUI();
             if (typeof saveMediaConfig === 'function') saveMediaConfig();
+            if (typeof saveStyleSettings === 'function') saveStyleSettings();
           }
         } else {
           const userTemplates = getUserTemplates();
-          const tmpl = userTemplates.find(t => t.id === assignedId);
-          if (tmpl && tmpl.settings && state.activeTemplateName !== tmpl.name) {
+          const tmpl = userTemplates.find(t => t.id === assignedId || t.name === assignedId);
+          if (tmpl && tmpl.settings) {
             applyStyleSnapshot(tmpl.settings, tmpl.name);
           }
         }
@@ -4405,7 +4427,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!selTaranim && !selBible) return;
 
       const userTemplates = getUserTemplates();
-      const builtinTemplates = state.availableTemplates || [];
+      const builtinTemplates = (typeof sanitizeAndGroupTemplates === 'function')
+        ? sanitizeAndGroupTemplates(state.availableTemplates || [])
+        : (state.availableTemplates || []);
 
       const currentDefTaranim = localStorage.getItem('sunday_school_default_tmpl_taranim') || '';
       const currentDefBible = localStorage.getItem('sunday_school_default_tmpl_bible') || '';
@@ -4415,8 +4439,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (builtinTemplates.length > 0) {
           opts += `<optgroup label="قوالب الخدمة الجاهزة">`;
           builtinTemplates.forEach(t => {
-            const val = `builtin_${t.name}`;
-            opts += `<option value="${val}" ${selectedVal === val ? 'selected' : ''}>✨ ${escapeHtml(t.name)}</option>`;
+            const val = `builtin_${t.id || t.name}`;
+            const isSelected = (selectedVal === val || selectedVal === `builtin_${t.name}` || selectedVal === `builtin_${t.id}`);
+            opts += `<option value="${val}" ${isSelected ? 'selected' : ''}>✨ ${escapeHtml(t.name)}</option>`;
           });
           opts += `</optgroup>`;
         }
@@ -9025,6 +9050,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function loadSongIntoPresentation(song, forceLive = true) {
     if (!song) return;
+
+    const isBibleSong = Boolean((song.is_bible === true || song.is_bible === '1' || song.is_bible === 1) || (song.chapter_number !== undefined && song.chapter_number !== null && song.chapter_number !== '') || song.type === 'bible');
+    // Auto-apply assigned default template for Hymns or Bible
+    applyAssignedDefaultTemplate(isBibleSong);
 
     // Trigger auto-shuffle background if enabled (one new background per song, slides share the same bg)
     triggerAutoShuffleGroupedTemplateIfNeeded(song);
