@@ -58,33 +58,63 @@ if (isset($_GET['action']) && $_GET['action'] === 'templates') {
         $prefix = '../Templates/';
     }
     $templates = [];
+    $templates[] = [
+        'id' => 'tmpl-shabahak-akon-2026',
+        'name' => 'Shabahak Akon 2026',
+        'category' => 'المؤتمرات',
+        'categoryKey' => 'conferences',
+        'desc' => 'حزمة مؤتمر شبابك أكون 2026 الكاملة: فيديو انتظار لوب + خلفية شرائح متمركزة + انتقال ستنجر بقناة ألفا.',
+        'standby' => $prefix . 'Standby/Shabahak Akon 2026/Shabahak Akoon Loop.mp4',
+        'slidesBg' => $prefix . 'SlidesBg/Shabahak Akon 2026/Shabahak Akoon Loop Empty Centered.mp4',
+        'stringer' => $prefix . 'Stringer/Shabahak Akon 2026/Stringer 1.webm',
+        'thumbnailType' => 'video',
+        'thumbnailUrl' => $prefix . 'Standby/Shabahak Akon 2026/Shabahak Akoon Loop.mp4'
+    ];
+
+    $groupedFolders = [];
     if (is_dir($baseDir)) {
-        $types = ['Standby', 'SlidesBg', 'Stringer'];
-        foreach ($types as $type) {
-            $typeDir = $baseDir . '/' . $type;
-            if (is_dir($typeDir)) {
-                $subDirs = scandir($typeDir);
-                foreach ($subDirs as $sd) {
-                    if ($sd === '.' || $sd === '..' || strpos($sd, '.') === 0) continue;
-                    $fullSd = $typeDir . '/' . $sd;
-                    if (is_dir($fullSd)) {
-                        $files = scandir($fullSd);
-                        foreach ($files as $f) {
-                            if ($f === '.' || $f === '..' || strpos($f, '.') === 0 || substr($f, -4) === '.xmp') continue;
-                            if (!isset($templates[$sd])) {
-                                $templates[$sd] = ['name' => $sd, 'standby' => null, 'slidesBg' => null, 'stringer' => null];
-                            }
-                            $relPath = $prefix . $type . '/' . $sd . '/' . $f;
-                            if ($type === 'Standby') $templates[$sd]['standby'] = $relPath;
-                            else if ($type === 'SlidesBg') $templates[$sd]['slidesBg'] = $relPath;
-                            else if ($type === 'Stringer') $templates[$sd]['stringer'] = $relPath;
-                        }
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($baseDir, RecursiveDirectoryIterator::SKIP_DOTS));
+        foreach ($iterator as $file) {
+            if ($file->isFile()) {
+                $ext = strtolower($file->getExtension());
+                $filename = $file->getFilename();
+                if (substr($filename, 0, 1) === '.' || $ext === 'xmp') continue;
+
+                if (in_array($ext, ['jpg', 'jpeg', 'png', 'webp'])) {
+                    $rel = str_replace('\\', '/', substr($file->getPathname(), strlen(__DIR__ . '/')));
+                    $nameNoExt = pathinfo($filename, PATHINFO_FILENAME);
+                    $parentDir = basename(dirname($file->getPathname()));
+                    $cleanVarName = trim(preg_replace('/^Paint\\s+Sweeps\\s+/i', '', $nameNoExt));
+                    if (empty($cleanVarName)) $cleanVarName = $nameNoExt;
+
+                    if (!isset($groupedFolders[$parentDir])) {
+                        $groupedFolders[$parentDir] = [];
                     }
+                    $groupedFolders[$parentDir][] = [
+                        'name' => $cleanVarName,
+                        'url' => $rel
+                    ];
                 }
             }
         }
     }
-    echo json_encode(['status' => 'success', 'templates' => array_values($templates)]);
+
+    foreach ($groupedFolders as $folderName => $vars) {
+        $firstUrl = !empty($vars) ? $vars[0]['url'] : '';
+        $templates[] = [
+            'id' => 'tmpl-' . preg_replace('/[^a-zA-Z0-9_-]/', '-', strtolower($folderName)),
+            'name' => $folderName . ' (Paint Splash)',
+            'category' => 'خلفيات وسلايدات',
+            'categoryKey' => 'backgrounds',
+            'desc' => 'مجموعة خلفيات وسلايدات فنية مميزة (' . $folderName . ') بألوان وتدرجات متنوعة فائقة الدقة لعرض الترانيم.',
+            'thumbnailType' => 'image',
+            'thumbnailUrl' => $firstUrl,
+            'standby' => $firstUrl,
+            'slidesBg' => $firstUrl,
+            'varieties' => $vars
+        ];
+    }
+    echo json_encode(['status' => 'success', 'templates' => $templates], JSON_UNESCAPED_UNICODE);
     exit;
 }
 

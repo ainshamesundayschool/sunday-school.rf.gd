@@ -2513,7 +2513,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let lastShuffledSongKey = null;
 
-  function triggerAutoShuffleGroupedTemplateIfNeeded(song) {
+    function triggerAutoShuffleGroupedTemplateIfNeeded(song) {
     if (!isTemplateShuffleEnabled()) return;
     if (!song) return;
 
@@ -2526,10 +2526,14 @@ document.addEventListener('DOMContentLoaded', () => {
     lastShuffledSongKey = songKey;
 
     const targetTmplId = localStorage.getItem(SHUFFLE_TMPL_ID_KEY) || 'tmpl-paint-sweeps';
-    const templates = state.availableTemplates || [];
+    const templates = (typeof sanitizeAndGroupTemplates === 'function')
+      ? sanitizeAndGroupTemplates(state.availableTemplates || [])
+      : (state.availableTemplates || []);
+      
     let tmpl = templates.find(t => t.id === targetTmplId) || templates.find(t => t.varieties && t.varieties.length > 0);
     if (!tmpl || !tmpl.varieties || tmpl.varieties.length === 0) return;
 
+    // SHUFFLE ONLY WITHIN THE GROUPED PACK (DO NOT JUMP TO OTHER TEMPLATES)
     const allUrls = tmpl.varieties.map(v => v.url);
     let deck = getShuffleDeck(tmpl.id, allUrls);
 
@@ -2546,6 +2550,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const variety = tmpl.varieties.find(v => v.url === nextBgUrl) || { name: 'عشوائي', url: nextBgUrl };
 
+    // ONLY CHANGE BACKGROUND & STANDBY SCREEN - DO NOT TOUCH STYLES OR FONTS
     state.slidesBgConfig.type = 'template';
     state.slidesBgConfig.url = nextBgUrl;
     state.standbyConfig.type = 'template';
@@ -2563,6 +2568,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const nameEl = card.querySelector(`#tmpl-selected-var-name-${tmpl.id}`);
       if (nameEl) nameEl.textContent = variety.name;
+
+      const badgeEl = card.querySelector(`#tmpl-selected-var-badge-${tmpl.id}`);
+      if (badgeEl) badgeEl.innerHTML = `<i class="fa-solid fa-palette"></i> ${escapeHtml(variety.name)}`;
 
       card.querySelectorAll('.template-variety-circle').forEach(c => {
         c.classList.toggle('active', c.dataset.url === nextBgUrl);
@@ -5659,7 +5667,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const totalBadge = document.getElementById('templates-total-count-badge');
       if (!container) return;
 
-      const builtinList = (state.availableTemplates || []).map(t => ({
+      const groupedBuiltin = sanitizeAndGroupTemplates(state.availableTemplates || []);
+      state.availableTemplates = groupedBuiltin;
+
+      const builtinList = groupedBuiltin.map(t => ({
         ...t,
         isCustom: false,
         categoryKey: t.categoryKey || (t.category === 'المؤتمرات' ? 'conferences' : (t.category === 'خلفيات وسلايدات' ? 'backgrounds' : 'conferences'))
@@ -6184,21 +6195,131 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+      const DEFAULT_PAINT_SWEEPS_VARIETIES = [
+    { name: 'Blank', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg' },
+    { name: 'Burn', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Burn.jpg' },
+    { name: 'Dreams', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Dreams.jpg' },
+    { name: 'Evergreen', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Evergreen.jpg' },
+    { name: 'Field', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Field.jpg' },
+    { name: 'Final', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Final.jpg' },
+    { name: 'Follow Us Blank', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Follow Us Online Red Blue - Blank.jpg' },
+    { name: 'Follow Us Scripture', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Follow Us Online Red Blue - Scripture.jpg' },
+    { name: 'Forest', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Forest.jpg' },
+    { name: 'Forever', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Forever.jpg' },
+    { name: 'Fun', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Fun.jpg' },
+    { name: 'Gold', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Gold.jpg' },
+    { name: 'Hope', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Hope.jpg' },
+    { name: 'Joy', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Joy.jpg' },
+    { name: 'King', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps King.jpg' },
+    { name: 'Love', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Love.jpg' },
+    { name: 'Peace', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Peace.jpg' },
+    { name: 'Shine', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Shine.jpg' },
+    { name: 'Silver', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Silver.jpg' },
+    { name: 'Spread', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Spread.jpg' },
+    { name: 'Strong', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Strong.jpg' },
+    { name: 'Torn', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Torn.jpg' },
+    { name: 'Vive', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Vive.jpg' },
+    { name: 'Ways To Give Blank', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Ways To Give Purple - Blank.jpg' },
+    { name: 'Ways To Give Scripture', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Ways To Give Purple - Scripture.jpg' }
+  ];
+
+  function sanitizeAndGroupTemplates(templatesList) {
+    if (!Array.isArray(templatesList) || templatesList.length === 0) {
+      return [
+        {
+          id: 'tmpl-shabahak-akon-2026',
+          name: 'Shabahak Akon 2026',
+          category: 'المؤتمرات',
+          categoryKey: 'conferences',
+          desc: 'حزمة مؤتمر شبابك أكون 2026 الكاملة: فيديو انتظار لوب + خلفية شرائح متمركزة + انتقال ستنجر بقناة ألفا.',
+          standby: 'Templates/Standby/Shabahak Akon 2026/Shabahak Akoon Loop.mp4',
+          slidesBg: 'Templates/SlidesBg/Shabahak Akon 2026/Shabahak Akoon Loop Empty Centered.mp4',
+          stringer: 'Templates/Stringer/Shabahak Akon 2026/Stringer 1.webm',
+          thumbnailType: 'video',
+          thumbnailUrl: 'Templates/Standby/Shabahak Akon 2026/Shabahak Akoon Loop.mp4'
+        },
+        {
+          id: 'tmpl-paint-sweeps',
+          name: 'Paint Sweeps (Paint Splash)',
+          category: 'خلفيات وسلايدات',
+          categoryKey: 'backgrounds',
+          desc: 'مجموعة خلفيات وسلايدات فنية مميزة (Paint Sweeps) بألوان وتدرجات متنوعة فائقة الدقة لعرض الترانيم.',
+          thumbnailType: 'image',
+          thumbnailUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg',
+          standby: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg',
+          slidesBg: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg',
+          varieties: DEFAULT_PAINT_SWEEPS_VARIETIES
+        }
+      ];
+    }
+
+    const result = [];
+    const paintSweepVars = [];
+    let hasGroupedPaintSweeps = false;
+
+    templatesList.forEach(t => {
+      if ((t.id === 'tmpl-paint-sweeps' || (t.name && t.name.includes('Paint Sweeps'))) && Array.isArray(t.varieties) && t.varieties.length > 0) {
+        hasGroupedPaintSweeps = true;
+        result.push(t);
+        return;
+      }
+
+      if (t.varieties && Array.isArray(t.varieties) && t.varieties.length > 0) {
+        result.push(t);
+        return;
+      }
+
+      const url = t.slidesBg || t.thumbnailUrl || t.standby || t.url || '';
+      const isPaintSweep = (t.name && /Paint\s*Sweeps/i.test(t.name)) || /Paint\s*Sweeps/i.test(url);
+
+      if (isPaintSweep) {
+        const rawName = (t.name || '').replace(/^Paint\s+Sweeps\s*/i, '').trim() || 'خلفية';
+        paintSweepVars.push({
+          name: rawName,
+          url: url
+        });
+      } else {
+        result.push(t);
+      }
+    });
+
+    if (!hasGroupedPaintSweeps) {
+      result.push({
+        id: 'tmpl-paint-sweeps',
+        name: 'Paint Sweeps (Paint Splash)',
+        category: 'خلفيات وسلايدات',
+        categoryKey: 'backgrounds',
+        desc: 'مجموعة خلفيات وسلايدات فنية مميزة (Paint Sweeps) بألوان وتدرجات متنوعة فائقة الدقة لعرض الترانيم.',
+        thumbnailType: 'image',
+        thumbnailUrl: paintSweepVars.length > 0 ? paintSweepVars[0].url : 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg',
+        standby: paintSweepVars.length > 0 ? paintSweepVars[0].url : 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg',
+        slidesBg: paintSweepVars.length > 0 ? paintSweepVars[0].url : 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg',
+        varieties: paintSweepVars.length > 0 ? paintSweepVars : DEFAULT_PAINT_SWEEPS_VARIETIES
+      });
+    }
+
+    return result;
+  }
+
     const fetchServerTemplates = async () => {
       try {
         let data = null;
+        // 1. Prioritize templates.json
         try {
-          const res = await fetch('/api.php?action=templates');
-          if (res && res.ok) data = await res.json();
+          const res2 = await fetch('./templates.json?t=' + Date.now());
+          if (res2 && res2.ok) data = await res2.json();
         } catch(e) {}
+
+        // 2. Fall back to /api.php?action=templates
         if (!data || !Array.isArray(data.templates) || data.templates.length === 0) {
           try {
-            const res2 = await fetch('./templates.json?t=' + Date.now());
-            if (res2 && res2.ok) data = await res2.json();
+            const res = await fetch('/api.php?action=templates');
+            if (res && res.ok) data = await res.json();
           } catch(e) {}
         }
+
         if (data && (data.status === 'success' || Array.isArray(data.templates)) && Array.isArray(data.templates) && data.templates.length > 0) {
-          state.availableTemplates = data.templates;
+          state.availableTemplates = sanitizeAndGroupTemplates(data.templates);
 
           const bgSelect = document.getElementById('slides-bg-template-select');
           if (bgSelect) {
