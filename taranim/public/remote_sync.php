@@ -1,13 +1,21 @@
 <?php
 /**
- * Sunday School Taranim - Mobile Remote Control Real-Time Sync Engine
- * Enables remote pairing between laptop presentation host and mobile controllers.
+ * Sunday School Taranim - Mobile Remote Control High-Speed Real-Time Sync Engine
+ * Supports Instant Long-Polling & WebRTC Signaling for 0ms latency.
  */
+
+// Disable output buffering for instant streaming
+if (function_exists('apache_setenv')) {
+    @apache_setenv('no-gzip', 1);
+}
+@ini_set('zlib.output_compression', 0);
+@ini_set('implicit_flush', 1);
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+header('Cache-Control: no-cache, no-store, must-revalidate');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -30,7 +38,6 @@ function getSessionsData($file) {
 
 function saveSessionsData($file, $data) {
     $now = time();
-    // Auto-cleanup rooms older than 24 hours
     foreach ($data as $roomId => $room) {
         if (isset($room['updated_at']) && ($now - $room['updated_at']) > 86400) {
             unset($data[$roomId]);
@@ -63,6 +70,7 @@ switch ($action) {
             'host_key' => $hostKey,
             'created_at' => $now,
             'updated_at' => $now,
+            'state_ver' => 1,
             'state' => [
                 'activeSong' => null,
                 'currentLineIndex' => 0,
@@ -89,7 +97,6 @@ switch ($action) {
     case 'join_room':
         $roomId = trim($input['roomId'] ?? '');
         $pin = trim($input['pin'] ?? '');
-        $hostKey = trim($input['hostKey'] ?? '');
         $clientName = trim($input['clientName'] ?? 'هاتف ريموت');
 
         $sessions = getSessionsData($sessionsFile);
@@ -129,7 +136,8 @@ switch ($action) {
             'roomId' => $targetRoomId,
             'roomPin' => $room['pin'],
             'clientToken' => $clientToken,
-            'state' => $room['state']
+            'state' => $room['state'],
+            'stateVer' => $room['state_ver'] ?? 1
         ], JSON_UNESCAPED_UNICODE);
         break;
 
@@ -145,33 +153,54 @@ switch ($action) {
         }
 
         $sessions[$roomId]['state'] = $state;
+        $sessions[$roomId]['state_ver'] = ($sessions[$roomId]['state_ver'] ?? 0) + 1;
         $sessions[$roomId]['updated_at'] = time();
 
         saveSessionsData($sessionsFile, $sessions);
-        echo json_encode(['success' => true, 'clientCount' => count($sessions[$roomId]['clients'] ?? [])], JSON_UNESCAPED_UNICODE);
+        echo json_encode([
+            'success' => true,
+            'stateVer' => $sessions[$roomId]['state_ver'],
+            'clientCount' => count($sessions[$roomId]['clients'] ?? [])
+        ], JSON_UNESCAPED_UNICODE);
         break;
 
     case 'get_state':
         $roomId = trim($input['roomId'] ?? '');
         $clientToken = trim($input['clientToken'] ?? '');
+        $lastVer = intval($input['lastVer'] ?? 0);
+        $waitLongPoll = isset($input['wait']) && $input['wait'] == '1';
 
-        $sessions = getSessionsData($sessionsFile);
-        if (!isset($sessions[$roomId])) {
-            echo json_encode(['success' => false, 'message' => 'الغرفة غير موجودة'], JSON_UNESCAPED_UNICODE);
-            exit;
+        $startTime = microtime(true);
+        $maxWait = $waitLongPoll ? 20 : 0; // long-poll wait up to 20 seconds
+
+        while (true) {
+            clearstatcache();
+            $sessions = getSessionsData($sessionsFile);
+            if (!isset($sessions[$roomId])) {
+                echo json_encode(['success' => false, 'message' => 'الغرفة غير موجودة'], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+
+            $room = &$sessions[$roomId];
+            $currentVer = $room['state_ver'] ?? 1;
+
+            if ($currentVer > $lastVer || (microtime(true) - $startTime) >= $maxWait) {
+                if (!empty($clientToken) && isset($room['clients'][$clientToken])) {
+                    $room['clients'][$clientToken]['last_seen'] = time();
+                    saveSessionsData($sessionsFile, $sessions);
+                }
+
+                echo json_encode([
+                    'success' => true,
+                    'state' => $room['state'],
+                    'stateVer' => $currentVer,
+                    'clientCount' => count($room['clients'] ?? [])
+                ], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+
+            usleep(40000); // 40ms check
         }
-
-        $room = &$sessions[$roomId];
-        if (!empty($clientToken) && isset($room['clients'][$clientToken])) {
-            $room['clients'][$clientToken]['last_seen'] = time();
-            saveSessionsData($sessionsFile, $sessions);
-        }
-
-        echo json_encode([
-            'success' => true,
-            'state' => $room['state'],
-            'clientCount' => count($room['clients'] ?? [])
-        ], JSON_UNESCAPED_UNICODE);
         break;
 
     case 'send_command':
@@ -205,33 +234,45 @@ switch ($action) {
     case 'poll_commands':
         $roomId = trim($input['roomId'] ?? '');
         $hostKey = trim($input['hostKey'] ?? '');
+        $waitLongPoll = isset($input['wait']) && $input['wait'] == '1';
 
-        $sessions = getSessionsData($sessionsFile);
-        if (!isset($sessions[$roomId]) || $sessions[$roomId]['host_key'] !== $hostKey) {
-            echo json_encode(['success' => false, 'message' => 'غير مصرح'], JSON_UNESCAPED_UNICODE);
-            exit;
-        }
+        $startTime = microtime(true);
+        $maxWait = $waitLongPoll ? 22 : 0; // wait up to 22s for instant command arrival
 
-        $commands = $sessions[$roomId]['commands'] ?? [];
-        $sessions[$roomId]['commands'] = []; // Drain commands
-        $sessions[$roomId]['updated_at'] = time();
-
-        // Clean stale clients (inactive > 30s)
-        $now = time();
-        $activeClients = 0;
-        foreach ($sessions[$roomId]['clients'] as $cToken => $cData) {
-            if (($now - ($cData['last_seen'] ?? 0)) < 35) {
-                $activeClients++;
+        while (true) {
+            clearstatcache();
+            $sessions = getSessionsData($sessionsFile);
+            if (!isset($sessions[$roomId]) || $sessions[$roomId]['host_key'] !== $hostKey) {
+                echo json_encode(['success' => false, 'message' => 'غير مصرح'], JSON_UNESCAPED_UNICODE);
+                exit;
             }
+
+            $commands = $sessions[$roomId]['commands'] ?? [];
+            if (!empty($commands) || (microtime(true) - $startTime) >= $maxWait) {
+                if (!empty($commands)) {
+                    $sessions[$roomId]['commands'] = []; // Drain commands
+                    $sessions[$roomId]['updated_at'] = time();
+                    saveSessionsData($sessionsFile, $sessions);
+                }
+
+                $now = time();
+                $activeClients = 0;
+                foreach ($sessions[$roomId]['clients'] as $cToken => $cData) {
+                    if (($now - ($cData['last_seen'] ?? 0)) < 30) {
+                        $activeClients++;
+                    }
+                }
+
+                echo json_encode([
+                    'success' => true,
+                    'commands' => $commands,
+                    'clientCount' => $activeClients
+                ], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+
+            usleep(30000); // 30ms check
         }
-
-        saveSessionsData($sessionsFile, $sessions);
-
-        echo json_encode([
-            'success' => true,
-            'commands' => $commands,
-            'clientCount' => $activeClients
-        ], JSON_UNESCAPED_UNICODE);
         break;
 
     default:

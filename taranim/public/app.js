@@ -3002,11 +3002,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   // =========================================================================
-  // MOBILE REMOTE CONTROL HOST ENGINE (SERVER-SYNC & QR CODE PAIRING)
-  // =========================================================================
-
+  // MOBILE REMOTE CONTROL HOST ENGINE (WEBRTC 0MS DIRECT SOCKET + INSTANT SERVER STREAMING)
   let remoteHostSession = null;
-  let remotePollTimer = null;
+  let isHostPolling = false;
+  let hostPeer = null;
+  let activeRemotePeerConnections = new Map();
 
   function getRemoteSyncApiUrl() {
     return window.location.pathname.replace(/\/[^/]*$/, '/remote_sync.php');
@@ -3050,9 +3050,58 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (remoteHostSession) {
       renderRemotePairingUI();
+      initWebRtcHost(remoteHostSession.roomPin);
       pushRemoteHostState();
-      startRemoteCommandPolling();
+      startHostInstantLongPoll();
     }
+  }
+
+  // 1. WEBRTC DIRECT PEER HOST LISTENER (TRUE 0MS SOCKET)
+  function initWebRtcHost(roomPin) {
+    if (!window.Peer || !roomPin) return;
+    try {
+      if (hostPeer) hostPeer.destroy();
+      const hostPeerId = 'sstaranim_' + roomPin;
+      hostPeer = new window.Peer(hostPeerId, { debug: 0 });
+
+      hostPeer.on('open', () => {
+        // Peer host ready
+      });
+
+      hostPeer.on('connection', (conn) => {
+        activeRemotePeerConnections.set(conn.peer, conn);
+        updateRemoteClientsUI(activeRemotePeerConnections.size);
+
+        conn.on('data', (cmd) => {
+          if (cmd) executeRemoteCommand(cmd);
+        });
+
+        conn.on('close', () => {
+          activeRemotePeerConnections.delete(conn.peer);
+          updateRemoteClientsUI(activeRemotePeerConnections.size);
+        });
+
+        conn.on('error', () => {
+          activeRemotePeerConnections.delete(conn.peer);
+        });
+
+        // Send current state immediately on connect
+        const currentLines = state.presentationLines || [];
+        conn.send({
+          type: 'STATE_UPDATE',
+          state: {
+            activeSong: state.activeSong,
+            currentLineIndex: state.currentLineIndex || 0,
+            totalLines: currentLines.length,
+            presentationLines: currentLines,
+            isBlank: Boolean(state.isBlank),
+            isStandbyMode: Boolean(state.isStandbyMode)
+          }
+        });
+      });
+
+      hostPeer.on('error', () => {});
+    } catch(e) {}
   }
 
   function renderRemotePairingUI() {
@@ -3085,39 +3134,69 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // 2. BROADCAST STATE IN 0MS TO ALL CONNECTED PEERS & PUSH TO SERVER
   async function pushRemoteHostState() {
     if (!remoteHostSession) return;
     const currentLines = state.presentationLines || [];
-    const payload = {
-      action: 'push_state',
-      roomId: remoteHostSession.roomId,
-      hostKey: remoteHostSession.hostKey,
-      state: {
-        activeSong: state.activeSong,
-        currentLineIndex: state.currentLineIndex || 0,
-        totalLines: currentLines.length,
-        presentationLines: currentLines,
-        isBlank: Boolean(state.isBlank),
-        isStandbyMode: Boolean(state.isStandbyMode),
-        theme: state.userSettings?.selectedTemplateId || 'default'
-      }
+    const stateObj = {
+      activeSong: state.activeSong,
+      currentLineIndex: state.currentLineIndex || 0,
+      totalLines: currentLines.length,
+      presentationLines: currentLines,
+      isBlank: Boolean(state.isBlank),
+      isStandbyMode: Boolean(state.isStandbyMode),
+      theme: state.userSettings?.selectedTemplateId || 'default'
     };
 
+    // Instant WebRTC Broadcast
+    activeRemotePeerConnections.forEach(conn => {
+      if (conn && conn.open) {
+        try {
+          conn.send({ type: 'STATE_UPDATE', state: stateObj });
+        } catch(e) {}
+      }
+    });
+
+    // Server State Push
     try {
-      await fetch(getRemoteSyncApiUrl(), {
+      fetch(getRemoteSyncApiUrl(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+        keepalive: true,
+        body: JSON.stringify({
+          action: 'push_state',
+          roomId: remoteHostSession.roomId,
+          hostKey: remoteHostSession.hostKey,
+          state: stateObj
+        })
+      }).catch(() => {});
     } catch(e) {}
   }
 
   window.pushRemoteHostState = pushRemoteHostState;
 
-  function startRemoteCommandPolling() {
-    if (remotePollTimer) clearInterval(remotePollTimer);
-    remotePollTimer = setInterval(async () => {
-      if (!remoteHostSession) return;
+  function updateRemoteClientsUI(count) {
+    const headerBadge = document.getElementById('remote-header-status-badge');
+    const clientsDot = document.getElementById('remote-clients-dot');
+    const clientsTxt = document.getElementById('remote-clients-count-txt');
+
+    if (headerBadge) {
+      headerBadge.className = 'remote-badge-dot ' + (count > 0 ? 'connected' : 'disconnected');
+    }
+    if (clientsDot) {
+      clientsDot.className = 'status-dot ' + (count > 0 ? '' : 'offline');
+    }
+    if (clientsTxt) {
+      clientsTxt.textContent = count > 0 ? `🟢 متصل: ${count} هاتف / جهاز (مباشر)` : 'في انتظار مسح رمز QR...';
+    }
+  }
+
+  // 3. INSTANT SERVER LONG-POLL STREAM (ZERO DELAY FALLBACK)
+  async function startHostInstantLongPoll() {
+    if (isHostPolling || !remoteHostSession) return;
+    isHostPolling = true;
+
+    while (isHostPolling && remoteHostSession) {
       try {
         const res = await fetch(getRemoteSyncApiUrl(), {
           method: 'POST',
@@ -3125,34 +3204,23 @@ document.addEventListener('DOMContentLoaded', () => {
           body: JSON.stringify({
             action: 'poll_commands',
             roomId: remoteHostSession.roomId,
-            hostKey: remoteHostSession.hostKey
+            hostKey: remoteHostSession.hostKey,
+            wait: '1'
           })
         });
         const data = await res.json();
         if (data && data.success) {
-          // Update connected clients badge
-          const count = data.clientCount || 0;
-          const headerBadge = document.getElementById('remote-header-status-badge');
-          const clientsDot = document.getElementById('remote-clients-dot');
-          const clientsTxt = document.getElementById('remote-clients-count-txt');
+          const count = Math.max(data.clientCount || 0, activeRemotePeerConnections.size);
+          updateRemoteClientsUI(count);
 
-          if (headerBadge) {
-            headerBadge.className = 'remote-badge-dot ' + (count > 0 ? 'connected' : 'disconnected');
-          }
-          if (clientsDot) {
-            clientsDot.className = 'status-dot ' + (count > 0 ? '' : 'offline');
-          }
-          if (clientsTxt) {
-            clientsTxt.textContent = count > 0 ? `🟢 متصل: ${count} هاتف / جهاز` : 'في انتظار مسح رمز QR...';
-          }
-
-          // Execute commands
           if (Array.isArray(data.commands) && data.commands.length > 0) {
             data.commands.forEach(cmd => executeRemoteCommand(cmd));
           }
         }
-      } catch(e) {}
-    }, 400);
+      } catch(e) {
+        await new Promise(r => setTimeout(r, 1000));
+      }
+    }
   }
 
   function executeRemoteCommand(cmd) {
