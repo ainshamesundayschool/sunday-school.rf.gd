@@ -1760,14 +1760,19 @@
         stateFontSize = data.fontSize;
       }
 
-      // TIMESTAMP DEDUPLICATION: Ignore stale server/HTTP payloads if a newer local message was already rendered
-      if (data.updatedAt && (source === 'server' || source === 'http')) {
-        if (data.updatedAt < lastProcessedTimestamp) {
+      // STRICT LOCAL PRIORITY & TIMESTAMP DEDUPLICATION
+      if (source === 'server' || source === 'http') {
+        // If local update happened in last 10 seconds, NEVER let stale HTTP overwrite local slides
+        if (Date.now() - lastLocalPayloadTime < 10000) {
+          return;
+        }
+        const incomingTs = data.timestamp || data.updatedAt || 0;
+        if (incomingTs && incomingTs < lastProcessedTimestamp) {
           return;
         }
       }
-      if (data.updatedAt) {
-        lastProcessedTimestamp = data.updatedAt;
+      if (data.timestamp || data.updatedAt) {
+        lastProcessedTimestamp = data.timestamp || data.updatedAt;
       }
 
       const textEl = document.getElementById('presenter-text');
@@ -2565,6 +2570,7 @@
         }
 
         if (data && typeof data === 'object') {
+          lastLocalPayloadTime = Date.now();
           const fingerprint = getVisualStateFingerprint(data);
           if (fingerprint === lastRenderedFingerprint && !data.forceRefresh) {
             return;
@@ -2576,7 +2582,6 @@
           } else {
             lastRenderedFingerprint = fingerprint;
           }
-          if (data.updatedAt) lastLocalPayloadTime = data.updatedAt;
           applyState(data, 'local');
         }
       } catch(e) {}

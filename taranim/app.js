@@ -10319,7 +10319,8 @@ document.addEventListener('DOMContentLoaded', () => {
       presentationMode: state.presentationMode,
       activeGroupIndex: state.allInOneActiveGroupIndex !== undefined ? state.allInOneActiveGroupIndex : 0,
       scrollRatio: state.allInOneScrollRatio !== undefined ? state.allInOneScrollRatio : 0,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      updatedAt: Date.now()
     };
 
     // 1. INSTANT LOCAL BROADCAST & STORAGE SYNC (0ms)
