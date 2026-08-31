@@ -3871,18 +3871,20 @@ function getChurchId()
 
 }
 
-// Get action from request
-
 $action = '';
-
-if (isset($_GET['action'])) {
-
+if (!empty($_GET['action'])) {
     $action = $_GET['action'];
-
-} elseif (isset($_POST['action'])) {
-
+} elseif (!empty($_POST['action'])) {
     $action = $_POST['action'];
-
+} else {
+    $rawInput = @file_get_contents('php://input');
+    if ($rawInput) {
+        $jsonInput = @json_decode($rawInput, true);
+        if (is_array($jsonInput) && !empty($jsonInput['action'])) {
+            $action = $jsonInput['action'];
+            $_REQUEST = array_merge($_REQUEST, $jsonInput);
+        }
+    }
 }
 
 
