@@ -2377,10 +2377,9 @@
           textEl.innerHTML = formatPresenterText(data.text, isBible, data.badgeText, data.badgeClass);
           fitTextToSafeArea(isBible);
 
-          // ONLY trigger appear animation on actual slide change
-          if (animType && animType !== 'none') {
-            textEl.classList.remove('animate-appear-fade', 'animate-appear-slide', 'animate-appear-drop', 'animate-appear-pop', 'animate-appear-flip', 'animate-appear-glow');
-            void textEl.offsetWidth;
+          // ONLY trigger special entrance animation if explicitly configured and not default
+          textEl.classList.remove('animate-appear-fade', 'animate-appear-slide', 'animate-appear-drop', 'animate-appear-pop', 'animate-appear-flip', 'animate-appear-glow');
+          if (animType && animType !== 'none' && animType !== 'fade') {
             textEl.classList.add(`animate-appear-${animType}`);
           }
         } else {
