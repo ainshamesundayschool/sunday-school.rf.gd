@@ -55,6 +55,7 @@
 
   <link rel="stylesheet" href="style.css?v=20260831_v06">
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -136,6 +137,11 @@
 
       <!-- LEFT SIDE: CAST MENU & OBS CONTROLLER BUTTONS -->
       <div class="top-left-options" style="display:flex; align-items:center; gap:8px;">
+        <!-- REMOTE CONTROLLER BUTTON -->
+        <button class="icon-menu-btn header-remote-btn" id="btn-open-remote-modal" type="button" title="التحكم عن بعد بالهاتف أو جهاز آخر">
+          <i class="fa-solid fa-mobile-screen-button"></i>
+          <span class="remote-badge-dot disconnected" id="remote-header-status-badge"></span>
+        </button>
         <button class="icon-menu-btn header-obs-btn" id="btn-open-obs-modal" type="button" title="التحكم في OBS Studio وتبديل المشاهد">
           <i class="fa-solid fa-satellite-dish"></i>
           <span class="obs-badge-dot disconnected" id="obs-header-status-badge"></span>
@@ -1503,6 +1509,61 @@
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- MOBILE REMOTE PAIRING MODAL -->
+    <div id="modal-remote-pairing" class="modal-overlay hidden">
+      <div class="modal-card modal-obs-card-compact" style="max-width:440px;">
+        <div class="modal-header">
+          <div class="modal-header-title-wrap">
+            <i class="fa-solid fa-mobile-screen-button modal-icon" style="color: #0ea5e9;"></i>
+            <div>
+              <div class="modal-title">التحكم عن بعد بالهاتف</div>
+              <div class="modal-subtitle">امسح رمز QR للتحكم في العرض المباشر من هاتفك</div>
+            </div>
+          </div>
+          <button id="btn-close-remote-modal" class="modal-close-btn" type="button"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="modal-body" style="padding:16px; display:flex; flex-direction:column; align-items:center; gap:14px; text-align:center;">
+          <!-- QR CODE CONTAINER -->
+          <div class="remote-qr-box" id="remote-qr-code-box">
+            <div id="remote-qr-canvas-container" style="background:#ffffff; padding:12px; border-radius:12px; display:inline-block; box-shadow:0 4px 14px rgba(0,0,0,0.1);"></div>
+          </div>
+
+          <!-- ROOM PIN BADGE -->
+          <div style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:12px; padding:10px 16px; width:100%; display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; flex-direction:column; align-items:flex-start;">
+              <span style="font-size:0.75rem; color:#64748b; font-weight:700;">رمز الغرفة (PIN):</span>
+              <span id="remote-host-pin-txt" style="font-size:1.4rem; font-weight:900; color:#0f172a; letter-spacing:3px;">------</span>
+            </div>
+            <button type="button" id="btn-copy-remote-pin" class="btn btn-sm btn-secondary" style="font-size:0.75rem; padding:6px 10px;">
+              <i class="fa-solid fa-copy"></i> نسخ الرمز
+            </button>
+          </div>
+
+          <!-- CONNECTED DEVICES STATUS -->
+          <div id="remote-connected-clients-pill" style="font-size:0.84rem; font-weight:700; color:#64748b; display:flex; align-items:center; gap:6px;">
+            <span class="status-dot offline" id="remote-clients-dot"></span>
+            <span id="remote-clients-count-txt">في انتظار مسح رمز QR...</span>
+          </div>
+
+          <!-- ACTIONS ROW -->
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%;">
+            <button type="button" id="btn-copy-remote-url" class="btn btn-primary" style="font-size:0.8rem; padding:8px 10px;">
+              <i class="fa-solid fa-link"></i> نسخ رابط الهاتف
+            </button>
+            <button type="button" id="btn-open-remote-tab" class="btn btn-secondary" style="font-size:0.8rem; padding:8px 10px;">
+              <i class="fa-solid fa-up-right-from-square"></i> تجربة الريموت
+            </button>
+          </div>
+
+          <button type="button" id="btn-reset-remote-room" style="background:none; border:none; color:#94a3b8; font-size:0.75rem; cursor:pointer; text-decoration:underline;">
+            إنشاء غرفة جديدة وتغيير الرمز
+          </button>
         </div>
       </div>
     </div>

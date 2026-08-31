@@ -3903,6 +3903,16 @@ try {
             getTaranimTemplates();
             break;
 
+        case 'remote_sync':
+        case 'remote_create_room':
+        case 'remote_join_room':
+        case 'remote_push_state':
+        case 'remote_get_state':
+        case 'remote_send_command':
+        case 'remote_poll_commands':
+            require __DIR__ . '/taranim/remote_sync.php';
+            exit;
+
         case 'trackSongDownload':
             trackSongDownload();
             break;

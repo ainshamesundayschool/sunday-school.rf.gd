@@ -6907,3 +6907,33 @@ body.startup-active {
   color: #ffffff;
   box-shadow: 0 0 8px rgba(37, 99, 235, 0.5);
 }
+
+
+/* REMOTE CONTROLLER BUTTON & BADGE */
+.header-remote-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remote-badge-dot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid #ffffff;
+  transition: all 0.3s ease;
+}
+
+.remote-badge-dot.disconnected {
+  background-color: #94a3b8;
+}
+
+.remote-badge-dot.connected {
+  background-color: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  animation: pulseDot 2s infinite;
+}

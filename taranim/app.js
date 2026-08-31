@@ -3000,12 +3000,253 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+
+  // =========================================================================
+  // MOBILE REMOTE CONTROL HOST ENGINE (SERVER-SYNC & QR CODE PAIRING)
+  // =========================================================================
+
+  let remoteHostSession = null;
+  let remotePollTimer = null;
+
+  function getRemoteSyncApiUrl() {
+    return window.location.pathname.replace(/\/[^/]*$/, '/remote_sync.php');
+  }
+
+  function getRemoteAppUrl(roomId, pin) {
+    const base = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/remote.html');
+    return `${base}?room=${encodeURIComponent(roomId)}&pin=${encodeURIComponent(pin)}`;
+  }
+
+  async function initRemoteHost(forceNew = false) {
+    if (!forceNew) {
+      try {
+        const saved = localStorage.getItem('sunday_school_remote_host_session');
+        if (saved) {
+          remoteHostSession = JSON.parse(saved);
+        }
+      } catch(e) {}
+    }
+
+    if (!remoteHostSession || forceNew) {
+      try {
+        const res = await fetch(getRemoteSyncApiUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'create_room' })
+        });
+        const data = await res.json();
+        if (data && data.success) {
+          remoteHostSession = {
+            roomId: data.roomId,
+            roomPin: data.roomPin,
+            hostKey: data.hostKey
+          };
+          try {
+            localStorage.setItem('sunday_school_remote_host_session', JSON.stringify(remoteHostSession));
+          } catch(e) {}
+        }
+      } catch(e) {}
+    }
+
+    if (remoteHostSession) {
+      renderRemotePairingUI();
+      pushRemoteHostState();
+      startRemoteCommandPolling();
+    }
+  }
+
+  function renderRemotePairingUI() {
+    if (!remoteHostSession) return;
+    const pinEl = document.getElementById('remote-host-pin-txt');
+    const container = document.getElementById('remote-qr-canvas-container');
+
+    if (pinEl) pinEl.textContent = remoteHostSession.roomPin || '------';
+
+    const fullUrl = getRemoteAppUrl(remoteHostSession.roomId, remoteHostSession.roomPin);
+
+    if (container) {
+      container.innerHTML = '';
+      if (typeof window.QRCode === 'function') {
+        try {
+          new window.QRCode(container, {
+            text: fullUrl,
+            width: 200,
+            height: 200,
+            colorDark: '#0f172a',
+            colorLight: '#ffffff',
+            correctLevel: window.QRCode.CorrectLevel.M
+          });
+        } catch(e) {
+          container.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(fullUrl)}" alt="QR Code" style="width:200px; height:200px; display:block;">`;
+        }
+      } else {
+        container.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(fullUrl)}" alt="QR Code" style="width:200px; height:200px; display:block;">`;
+      }
+    }
+  }
+
+  async function pushRemoteHostState() {
+    if (!remoteHostSession) return;
+    const currentLines = state.presentationLines || [];
+    const payload = {
+      action: 'push_state',
+      roomId: remoteHostSession.roomId,
+      hostKey: remoteHostSession.hostKey,
+      state: {
+        activeSong: state.activeSong,
+        currentLineIndex: state.currentLineIndex || 0,
+        totalLines: currentLines.length,
+        presentationLines: currentLines,
+        isBlank: Boolean(state.isBlank),
+        isStandbyMode: Boolean(state.isStandbyMode),
+        theme: state.userSettings?.selectedTemplateId || 'default'
+      }
+    };
+
+    try {
+      await fetch(getRemoteSyncApiUrl(), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    } catch(e) {}
+  }
+
+  window.pushRemoteHostState = pushRemoteHostState;
+
+  function startRemoteCommandPolling() {
+    if (remotePollTimer) clearInterval(remotePollTimer);
+    remotePollTimer = setInterval(async () => {
+      if (!remoteHostSession) return;
+      try {
+        const res = await fetch(getRemoteSyncApiUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'poll_commands',
+            roomId: remoteHostSession.roomId,
+            hostKey: remoteHostSession.hostKey
+          })
+        });
+        const data = await res.json();
+        if (data && data.success) {
+          // Update connected clients badge
+          const count = data.clientCount || 0;
+          const headerBadge = document.getElementById('remote-header-status-badge');
+          const clientsDot = document.getElementById('remote-clients-dot');
+          const clientsTxt = document.getElementById('remote-clients-count-txt');
+
+          if (headerBadge) {
+            headerBadge.className = 'remote-badge-dot ' + (count > 0 ? 'connected' : 'disconnected');
+          }
+          if (clientsDot) {
+            clientsDot.className = 'status-dot ' + (count > 0 ? '' : 'offline');
+          }
+          if (clientsTxt) {
+            clientsTxt.textContent = count > 0 ? `🟢 متصل: ${count} هاتف / جهاز` : 'في انتظار مسح رمز QR...';
+          }
+
+          // Execute commands
+          if (Array.isArray(data.commands) && data.commands.length > 0) {
+            data.commands.forEach(cmd => executeRemoteCommand(cmd));
+          }
+        }
+      } catch(e) {}
+    }, 400);
+  }
+
+  function executeRemoteCommand(cmd) {
+    if (!cmd || !cmd.type) return;
+
+    if (cmd.type === 'NEXT_LINE') {
+      nextLine();
+    } else if (cmd.type === 'PREV_LINE') {
+      prevLine();
+    } else if (cmd.type === 'JUMP_LINE') {
+      if (cmd.lineIndex !== undefined && state.presentationLines && cmd.lineIndex >= 0 && cmd.lineIndex < state.presentationLines.length) {
+        state.currentLineIndex = cmd.lineIndex;
+        updateSlide();
+      }
+    } else if (cmd.type === 'TOGGLE_BLANK') {
+      toggleBlankScreen();
+    } else if (cmd.type === 'TOGGLE_STANDBY') {
+      toggleStandbyMode();
+    } else if (cmd.type === 'PLAY_SONG' && cmd.song) {
+      playSong(cmd.song);
+      showToast(`📱 تم تشغيل ترنيمة "${cmd.song.title}" من الهاتف!`);
+    }
+
+    pushRemoteHostState();
+  }
+
+  function initRemoteModalUI() {
+    const btnOpen = document.getElementById('btn-open-remote-modal');
+    const modal = document.getElementById('modal-remote-pairing');
+    const btnClose = document.getElementById('btn-close-remote-modal');
+    const btnCopyPin = document.getElementById('btn-copy-remote-pin');
+    const btnCopyUrl = document.getElementById('btn-copy-remote-url');
+    const btnOpenTab = document.getElementById('btn-open-remote-tab');
+    const btnResetRoom = document.getElementById('btn-reset-remote-room');
+
+    if (btnOpen) {
+      btnOpen.addEventListener('click', () => {
+        if (!remoteHostSession) initRemoteHost();
+        else renderRemotePairingUI();
+        if (modal) modal.classList.remove('hidden');
+      });
+    }
+
+    if (btnClose && modal) {
+      btnClose.addEventListener('click', () => modal.classList.add('hidden'));
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.classList.add('hidden');
+      });
+    }
+
+    if (btnCopyPin) {
+      btnCopyPin.addEventListener('click', () => {
+        if (remoteHostSession && remoteHostSession.roomPin) {
+          navigator.clipboard.writeText(remoteHostSession.roomPin);
+          showToast('📋 تم نسخ رمز الغرفة (PIN)!');
+        }
+      });
+    }
+
+    if (btnCopyUrl) {
+      btnCopyUrl.addEventListener('click', () => {
+        if (remoteHostSession) {
+          const url = getRemoteAppUrl(remoteHostSession.roomId, remoteHostSession.roomPin);
+          navigator.clipboard.writeText(url);
+          showToast('🔗 تم نسخ رابط الريموت للهاتف!');
+        }
+      });
+    }
+
+    if (btnOpenTab) {
+      btnOpenTab.addEventListener('click', () => {
+        if (remoteHostSession) {
+          const url = getRemoteAppUrl(remoteHostSession.roomId, remoteHostSession.roomPin);
+          window.open(url, '_blank');
+        }
+      });
+    }
+
+    if (btnResetRoom) {
+      btnResetRoom.addEventListener('click', () => {
+        initRemoteHost(true);
+        showToast('🔄 تم إنشاء غرفة جديدة وتحديث رمز QR!');
+      });
+    }
+  }
+
   function init() {
     setupNetworkSync();
     applyUrlStyleSettings();
     applyInitialUIState();
     bindEvents();
     initObsControllerUI();
+    initRemoteModalUI();
+    initRemoteHost();
     initBiblePopover();
     makeDraggableCenterPivot();
     detectConnectedScreens();

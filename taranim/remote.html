@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>الريموت الذكي للترانيم | Remote Controller</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;600;700;800;900&family=Baloo+Bhaijaan+2:wght@500;700;800&family=Cairo:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      font-family: 'Baloo Bhaijaan 2', 'Alexandria', sans-serif;
+      background-color: #090d16;
+      background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #090d16 80%);
+      color: #f8fafc;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      direction: rtl;
+    }
+
+    /* TOP STATUS BAR */
+    .remote-header {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      z-index: 50;
+      flex-shrink: 0;
+    }
+
+    .room-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(37, 99, 235, 0.15);
+      border: 1px solid rgba(37, 99, 235, 0.35);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: #60a5fa;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      animation: pulseDot 2s infinite;
+    }
+
+    .status-dot.offline {
+      background: #ef4444;
+      box-shadow: 0 0 8px #ef4444;
+      animation: none;
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.2); opacity: 0.7; }
+    }
+
+    .header-quick-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-header-action {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #cbd5e1;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-header-action:active {
+      transform: scale(0.92);
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-header-action.active {
+      background: #ef4444;
+      border-color: #f87171;
+      color: #ffffff;
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+    }
+
+    /* CURRENT SONG BANNER */
+    .current-song-banner {
+      background: rgba(30, 41, 59, 0.6);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .song-title-wrap {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .song-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .song-subtitle {
+      font-size: 0.78rem;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+
+    .slide-counter-chip {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 3px 8px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: #38bdf8;
+      white-space: nowrap;
+    }
+
+    /* MAIN BIG TOUCH CONTROLS */
+    .remote-main-touch-area {
+      flex: 1;
+      display: grid;
+      grid-template-rows: 1fr 1fr;
+      gap: 10px;
+      padding: 12px;
+      position: relative;
+    }
+
+    .touch-btn {
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .touch-btn:active {
+      transform: scale(0.97);
+    }
+
+    .touch-btn-next {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #ffffff;
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+      border: 1px solid rgba(96, 165, 250, 0.4);
+    }
+
+    .touch-btn-next:active {
+      background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    }
+
+    .touch-btn-prev {
+      background: linear-gradient(135deg, #334155, #1e293b);
+      color: #e2e8f0;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .touch-btn-prev:active {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+    }
+
+    .touch-btn-icon {
+      font-size: 2.2rem;
+    }
+
+    .touch-btn-label {
+      font-size: 1.35rem;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+    }
+
+    .touch-btn-hint {
+      font-size: 0.75rem;
+      opacity: 0.7;
+      font-weight: 600;
+    }
+
+    /* BOTTOM CONTROLS & DRAWER */
+    .remote-bottom-bar {
+      background: rgba(15, 23, 42, 0.95);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .bottom-action-btn {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 8px 6px;
+      color: #cbd5e1;
+      font-size: 0.78rem;
+      font-weight: 700;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .bottom-action-btn:active {
+      transform: scale(0.94);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .bottom-action-btn.active {
+      background: rgba(37, 99, 235, 0.25);
+      border-color: #3b82f6;
+      color: #60a5fa;
+    }
+
+    .bottom-action-btn i {
+      font-size: 1.1rem;
+    }
+
+    /* SLIDES DRAWER / SHEET */
+    .slides-drawer-sheet {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #0f172a;
+      border-top: 2px solid #3b82f6;
+      border-radius: 20px 20px 0 0;
+      max-height: 75vh;
+      max-height: 75dvh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.8);
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 100;
+    }
+
+    .slides-drawer-sheet.open {
+      transform: translateY(0);
+    }
+
+    .drawer-header {
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .drawer-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .drawer-list {
+      padding: 12px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .slide-card-item {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #e2e8f0;
+      line-height: 1.4;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      transition: all 0.15s ease;
+    }
+
+    .slide-card-item:active {
+      transform: scale(0.98);
+    }
+
+    .slide-card-item.active {
+      background: rgba(37, 99, 235, 0.2);
+      border-color: #3b82f6;
+      color: #ffffff;
+      box-shadow: 0 0 14px rgba(37, 99, 235, 0.4);
+    }
+
+    .slide-item-badge {
+      background: #2563eb;
+      color: #ffffff;
+      font-size: 0.72rem;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    /* SEARCH SHEET */
+    .search-sheet {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #0f172a;
+      z-index: 120;
+      display: flex;
+      flex-direction: column;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .search-sheet.open {
+      transform: translateY(0);
+    }
+
+    .search-sheet-header {
+      padding: 12px 14px;
+      background: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .search-input-box {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 6px 12px;
+      gap: 8px;
+    }
+
+    .search-input-box input {
+      flex: 1;
+      background: none;
+      border: none;
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    .search-results-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .song-result-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 10px 12px;
+      cursor: pointer;
+    }
+
+    .song-result-card:active {
+      background: rgba(37, 99, 235, 0.25);
+    }
+
+    /* PAIRING OVERLAY SCREEN */
+    .pairing-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #090d16;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 20px;
+      text-align: center;
+    }
+
+    .pairing-box {
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      padding: 24px 20px;
+      width: 100%;
+      max-width: 360px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+    }
+
+    .pin-input {
+      width: 100%;
+      background: #0f172a;
+      border: 2px solid #3b82f6;
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: #ffffff;
+      letter-spacing: 6px;
+      outline: none;
+    }
+
+    .btn-connect-pin {
+      width: 100%;
+      background: #2563eb;
+      border: none;
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 1.1rem;
+      font-weight: 800;
+      padding: 12px;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PAIRING MODAL SCREEN (SHOWN IF NO ROOM PIN IN URL) -->
+  <div id="pairing-screen" class="pairing-overlay hidden">
+    <div class="pairing-box">
+      <i class="fa-solid fa-mobile-screen-button" style="font-size:3rem; color:#38bdf8;"></i>
+      <div>
+        <div style="font-size:1.25rem; font-weight:800;">الريموت الذكي للترانيم</div>
+        <div style="font-size:0.85rem; color:#94a3b8; margin-top:4px;">أدخل رمز الغرفة الموضح على شاشة اللابتوب</div>
+      </div>
+      <input type="text" id="pin-input" class="pin-input" placeholder="000000" maxlength="6" inputmode="numeric">
+      <button type="button" id="btn-submit-pin" class="btn-connect-pin">
+        <i class="fa-solid fa-link"></i> اتصال باللابتوب
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN REMOTE INTERFACE -->
+  <header class="remote-header">
+    <div class="room-badge" id="room-badge-btn" title="انقر لتغيير الغرفة">
+      <span class="status-dot" id="status-dot"></span>
+      <span>الغرفة: <b id="room-pin-txt">------</b></span>
+    </div>
+
+    <div class="header-quick-actions">
+      <button type="button" id="btn-remote-blank" class="btn-header-action" title="شاشة سوداء">
+        <i class="fa-solid fa-eye-slash"></i>
+      </button>
+      <button type="button" id="btn-remote-standby" class="btn-header-action" title="شاشة الانتظار">
+        <i class="fa-solid fa-shield-halved"></i>
+      </button>
+      <button type="button" id="btn-open-search" class="btn-header-action" title="بحث عن ترنيمة">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- CURRENT SONG BANNER -->
+  <div class="current-song-banner">
+    <div class="song-title-wrap">
+      <div class="song-title" id="song-title-txt">جاري المزامنة...</div>
+      <div class="song-subtitle" id="song-subtitle-txt">اسحب أو اضغط للتبديل</div>
+    </div>
+    <div class="slide-counter-chip" id="slide-counter-txt">-- / --</div>
+  </div>
+
+  <!-- BIG TOUCH CONTROLS -->
+  <main class="remote-main-touch-area" id="touch-area">
+    <!-- NEXT SLIDE (BIG BLUE TOP BUTTON) -->
+    <button type="button" class="touch-btn touch-btn-next" id="btn-touch-next">
+      <i class="fa-solid fa-chevron-up touch-btn-icon"></i>
+      <span class="touch-btn-label">الشريحة التالية</span>
+      <span class="touch-btn-hint">اسحب لأعلى أو اضغط للتقدم</span>
+    </button>
+
+    <!-- PREVIOUS SLIDE (BOTTOM BUTTON) -->
+    <button type="button" class="touch-btn touch-btn-prev" id="btn-touch-prev">
+      <i class="fa-solid fa-chevron-down touch-btn-icon"></i>
+      <span class="touch-btn-label">الشريحة السابقة</span>
+      <span class="touch-btn-hint">اسحب لأسفل أو اضغط للرجوع</span>
+    </button>
+  </main>
+
+  <!-- BOTTOM BAR -->
+  <footer class="remote-bottom-bar">
+    <button type="button" class="bottom-action-btn" id="btn-open-slides-drawer">
+      <i class="fa-solid fa-list-ol"></i>
+      <span>الشرائح (<b id="drawer-count-txt">0</b>)</span>
+    </button>
+    <button type="button" class="bottom-action-btn" id="btn-bottom-search">
+      <i class="fa-solid fa-search"></i>
+      <span>بحث ترنيمة</span>
+    </button>
+    <button type="button" class="bottom-action-btn" id="btn-refresh-state">
+      <i class="fa-solid fa-rotate"></i>
+      <span>مزامنة</span>
+    </button>
+  </footer>
+
+  <!-- SLIDES LIST DRAWER SHEET -->
+  <div class="slides-drawer-sheet" id="slides-drawer">
+    <div class="drawer-header">
+      <div class="drawer-title"><i class="fa-solid fa-layer-group"></i> شرائح الترنيمة الحالية</div>
+      <button type="button" id="btn-close-drawer" class="btn-header-action"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="drawer-list" id="drawer-slides-list">
+      <!-- Slide items rendered dynamically -->
+    </div>
+  </div>
+
+  <!-- SEARCH MODAL SHEET -->
+  <div class="search-sheet" id="search-sheet">
+    <div class="search-sheet-header">
+      <div class="search-input-box">
+        <i class="fa-solid fa-magnifying-glass" style="color:#64748b;"></i>
+        <input type="text" id="remote-search-input" placeholder="بحث في الترانيم..." autocomplete="off">
+      </div>
+      <button type="button" id="btn-close-search" class="btn-header-action"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="search-results-list" id="search-results-list">
+      <!-- Search results rendered dynamically -->
+    </div>
+  </div>
+
+  <script>
+    // REMOTE CONTROLLER CLIENT SCRIPT
+    let currentRoomId = null;
+    let currentClientToken = null;
+    let currentState = null;
+    let allSongsCache = [];
+    let pollTimer = null;
+
+    function vibrate() {
+      if (navigator.vibrate) {
+        try { navigator.vibrate(35); } catch(e) {}
+      }
+    }
+
+    function getApiUrl() {
+      return window.location.pathname.replace(/remote\.html.*$/, 'remote_sync.php');
+    }
+
+    async function sendRemoteCommand(cmd) {
+      if (!currentRoomId) return;
+      vibrate();
+      try {
+        await fetch(getApiUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'send_command',
+            roomId: currentRoomId,
+            clientToken: currentClientToken,
+            command: cmd
+          })
+        });
+      } catch(e) {}
+    }
+
+    async function fetchState() {
+      if (!currentRoomId) return;
+      try {
+        const res = await fetch(`${getApiUrl()}?action=get_state&roomId=${encodeURIComponent(currentRoomId)}&clientToken=${encodeURIComponent(currentClientToken || '')}`);
+        const data = await res.json();
+        if (data && data.success && data.state) {
+          applyState(data.state);
+          document.getElementById('status-dot').className = 'status-dot';
+        }
+      } catch(e) {
+        document.getElementById('status-dot').className = 'status-dot offline';
+      }
+    }
+
+    function applyState(state) {
+      currentState = state;
+      const songTitleEl = document.getElementById('song-title-txt');
+      const counterEl = document.getElementById('slide-counter-txt');
+      const drawerCountEl = document.getElementById('drawer-count-txt');
+      const btnBlank = document.getElementById('btn-remote-blank');
+      const btnStandby = document.getElementById('btn-remote-standby');
+
+      const song = state.activeSong;
+      const lines = state.presentationLines || [];
+      const idx = state.currentLineIndex || 0;
+
+      if (song) {
+        songTitleEl.textContent = song.title || 'ترنيمة بدون عنوان';
+      } else {
+        songTitleEl.textContent = 'لا توجد ترنيمة نشطة';
+      }
+
+      counterEl.textContent = lines.length > 0 ? `${idx + 1} / ${lines.length}` : '-- / --';
+      drawerCountEl.textContent = lines.length;
+
+      if (btnBlank) btnBlank.classList.toggle('active', Boolean(state.isBlank));
+      if (btnStandby) btnStandby.classList.toggle('active', Boolean(state.isStandbyMode));
+
+      renderDrawerSlidesList(lines, idx);
+    }
+
+    function renderDrawerSlidesList(lines, currentIdx) {
+      const listEl = document.getElementById('drawer-slides-list');
+      if (!listEl) return;
+
+      if (!lines || lines.length === 0) {
+        listEl.innerHTML = '<div style="text-align:center; padding:20px; color:#64748b;">لا توجد شرائح</div>';
+        return;
+      }
+
+      listEl.innerHTML = lines.map((item, i) => {
+        const text = Array.isArray(item.lines) ? item.lines.join(' • ') : (item.text || '');
+        const isCurrent = i === currentIdx;
+        return `
+          <div class="slide-card-item ${isCurrent ? 'active' : ''}" data-idx="${i}">
+            <span>${text}</span>
+            <span class="slide-item-badge">${i + 1}</span>
+          </div>
+        `;
+      }).join('');
+
+      listEl.querySelectorAll('.slide-card-item').forEach(card => {
+        card.addEventListener('click', () => {
+          const idx = parseInt(card.dataset.idx, 10);
+          sendRemoteCommand({ type: 'JUMP_LINE', lineIndex: idx });
+          document.getElementById('slides-drawer').classList.remove('open');
+        });
+      });
+    }
+
+    async function joinRoom(pinOrId) {
+      try {
+        const res = await fetch(getApiUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'join_room',
+            pin: pinOrId,
+            roomId: pinOrId,
+            clientName: 'هاتف ' + (navigator.platform || 'ريموت')
+          })
+        });
+        const data = await res.json();
+        if (data && data.success) {
+          currentRoomId = data.roomId;
+          currentClientToken = data.clientToken;
+          document.getElementById('room-pin-txt').textContent = data.roomPin || pinOrId;
+          document.getElementById('pairing-screen').classList.add('hidden');
+          try { localStorage.setItem('sunday_school_remote_last_room', pinOrId); } catch(e) {}
+          if (data.state) applyState(data.state);
+          startPolling();
+          loadSongsForSearch();
+        } else {
+          alert(data.message || 'فشل الاتصال بالغرفة');
+        }
+      } catch(e) {
+        alert('تعذر الاتصال بالخادم');
+      }
+    }
+
+    function startPolling() {
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = setInterval(fetchState, 600);
+    }
+
+    async function loadSongsForSearch() {
+      try {
+        const res = await fetch('/api.php?action=get_all_songs');
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          allSongsCache = data;
+        } else if (data && Array.isArray(data.songs)) {
+          allSongsCache = data.songs;
+        }
+      } catch(e) {}
+    }
+
+    // GESTURE & SWIPE RECOGNITION
+    let touchStartY = 0;
+    let touchStartX = 0;
+
+    const touchArea = document.getElementById('touch-area');
+    touchArea.addEventListener('touchstart', (e) => {
+      touchStartY = e.changedTouches[0].screenY;
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    touchArea.addEventListener('touchend', (e) => {
+      const diffY = touchStartY - e.changedTouches[0].screenY;
+      const diffX = touchStartX - e.changedTouches[0].screenX;
+
+      if (Math.abs(diffY) > 40 || Math.abs(diffX) > 40) {
+        if (diffY > 40 || diffX > 40) {
+          sendRemoteCommand({ type: 'NEXT_LINE' });
+        } else {
+          sendRemoteCommand({ type: 'PREV_LINE' });
+        }
+      }
+    }, { passive: true });
+
+    // BUTTON EVENT LISTENERS
+    document.getElementById('btn-touch-next').addEventListener('click', () => sendRemoteCommand({ type: 'NEXT_LINE' }));
+    document.getElementById('btn-touch-prev').addEventListener('click', () => sendRemoteCommand({ type: 'PREV_LINE' }));
+    document.getElementById('btn-remote-blank').addEventListener('click', () => sendRemoteCommand({ type: 'TOGGLE_BLANK' }));
+    document.getElementById('btn-remote-standby').addEventListener('click', () => sendRemoteCommand({ type: 'TOGGLE_STANDBY' }));
+    document.getElementById('btn-refresh-state').addEventListener('click', () => { vibrate(); fetchState(); });
+
+    // DRAWER TOGGLES
+    const drawer = document.getElementById('slides-drawer');
+    document.getElementById('btn-open-slides-drawer').addEventListener('click', () => drawer.classList.add('open'));
+    document.getElementById('btn-close-drawer').addEventListener('click', () => drawer.classList.remove('open'));
+
+    // SEARCH SHEET
+    const searchSheet = document.getElementById('search-sheet');
+    const openSearch = () => { searchSheet.classList.add('open'); document.getElementById('remote-search-input').focus(); };
+    document.getElementById('btn-open-search').addEventListener('click', openSearch);
+    document.getElementById('btn-bottom-search').addEventListener('click', openSearch);
+    document.getElementById('btn-close-search').addEventListener('click', () => searchSheet.classList.remove('open'));
+
+    document.getElementById('remote-search-input').addEventListener('input', (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      const listEl = document.getElementById('search-results-list');
+      if (!q || allSongsCache.length === 0) {
+        listEl.innerHTML = '';
+        return;
+      }
+      const matched = allSongsCache.filter(s => (s.title && s.title.toLowerCase().includes(q)) || (s.text && s.text.toLowerCase().includes(q))).slice(0, 20);
+      listEl.innerHTML = matched.map(s => `
+        <div class="song-result-card" data-id="${s.id}">
+          <div style="font-weight:800; font-size:0.95rem; color:#ffffff;">${s.title}</div>
+          <div style="font-size:0.75rem; color:#94a3b8; margin-top:2px;">${(s.text || '').substring(0, 50)}...</div>
+        </div>
+      `).join('');
+
+      listEl.querySelectorAll('.song-result-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const songId = card.dataset.id;
+          const found = allSongsCache.find(s => String(s.id) === String(songId));
+          if (found) {
+            sendRemoteCommand({ type: 'PLAY_SONG', song: found });
+            searchSheet.classList.remove('open');
+          }
+        });
+      });
+    });
+
+    // PAIRING FORM
+    document.getElementById('btn-submit-pin').addEventListener('click', () => {
+      const pin = document.getElementById('pin-input').value.trim();
+      if (pin) joinRoom(pin);
+    });
+
+    document.getElementById('room-badge-btn').addEventListener('click', () => {
+      document.getElementById('pairing-screen').classList.remove('hidden');
+    });
+
+    // AUTO-JOIN VIA URL PARAMS
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomParam = urlParams.get('room') || urlParams.get('pin');
+    if (roomParam) {
+      joinRoom(roomParam);
+    } else {
+      const last = localStorage.getItem('sunday_school_remote_last_room');
+      if (last) {
+        joinRoom(last);
+      } else {
+        document.getElementById('pairing-screen').classList.remove('hidden');
+      }
+    }
+  </script>
+</body>
+</html>
