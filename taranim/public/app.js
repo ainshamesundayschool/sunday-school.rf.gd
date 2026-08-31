@@ -2030,6 +2030,36 @@ document.addEventListener('DOMContentLoaded', () => {
     modalCredits: document.getElementById('modal-credits'),
     btnCloseCredits: document.getElementById('btn-close-credits'),
 
+    // CUSTOM SONG CREATOR & EDITOR ELEMENTS
+    btnOpenAddSongModal: document.getElementById('btn-open-add-song-modal'),
+    modalCustomSongEditor: document.getElementById('modal-custom-song-editor'),
+    btnCloseSongEditorModal: document.getElementById('btn-close-song-editor-modal'),
+    btnCancelCustomSongModal: document.getElementById('btn-cancel-custom-song-modal'),
+    btnSaveCustomSongOnly: document.getElementById('btn-save-custom-song-only'),
+    btnSaveAndPresentSong: document.getElementById('btn-save-and-present-song'),
+    btnExportCurrentSongJson: document.getElementById('btn-export-current-song-json'),
+    btnImportSongJsonFile: document.getElementById('btn-import-song-json-file'),
+    inputImportSongJsonFile: document.getElementById('input-import-song-json-file'),
+    btnEditActiveCustomSong: document.getElementById('btn-edit-active-custom-song'),
+    btnDeleteActiveCustomSong: document.getElementById('btn-delete-active-custom-song'),
+    songInputTitle: document.getElementById('song-input-title'),
+    songInputScale: document.getElementById('song-input-scale'),
+    songInputMedia: document.getElementById('song-input-media'),
+    songEditorModalTitle: document.getElementById('song-editor-modal-title'),
+    btnAddChorusSegment: document.getElementById('btn-add-chorus-segment'),
+    btnAddVerseSegment: document.getElementById('btn-add-verse-segment'),
+    songBuilderSegmentsList: document.getElementById('song-builder-segments-list'),
+    songBuilderLiveSlidesPreview: document.getElementById('song-builder-live-slides-preview'),
+    builderTotalSlidesCountBadge: document.getElementById('builder-total-slides-count-badge'),
+    smartPasteRawTextarea: document.getElementById('smart-paste-raw-textarea'),
+    chkSmartDetectChorus: document.getElementById('chk-smart-detect-chorus'),
+    chkSmartDetectRepeats: document.getElementById('chk-smart-detect-repeats'),
+    selectSmartSplitRule: document.getElementById('select-smart-split-rule'),
+    btnExecuteSmartParse: document.getElementById('btn-execute-smart-parse'),
+    songRawJsonTextarea: document.getElementById('song-raw-json-textarea'),
+    btnCopySongJsonCode: document.getElementById('btn-copy-song-json-code'),
+    btnApplyRawJsonChanges: document.getElementById('btn-apply-raw-json-changes'),
+
     connectedScreensSelect: document.getElementById('connected-screens-select'),
     fontSelect: document.getElementById('font-family-select'),
     customFontWrapper: document.getElementById('custom-font-wrapper'),
@@ -3320,6 +3350,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initRemoteModalUI();
     initRemoteHost();
     initBiblePopover();
+    initCustomSongEditor();
     makeDraggableCenterPivot();
     detectConnectedScreens();
     loadInitialData();
@@ -9531,6 +9562,9 @@ document.addEventListener('DOMContentLoaded', () => {
         state.allBibleChapters = indexBibleChaptersData(bibleData);
       }
 
+      // Sync and prepend local custom hymns into catalog index
+      syncCustomSongsIntoCatalog();
+
       if (els.totalSongsCount && state.allSongs.length > 0) {
         const formatted = Number(state.allSongs.length).toLocaleString('ar-EG');
         els.totalSongsCount.innerHTML = `<i class="fa-solid fa-music"></i> <span>${formatted} ترنيمة</span>`;
@@ -9549,6 +9583,1018 @@ document.addEventListener('DOMContentLoaded', () => {
         loadSongIntoPresentation(restoredSong);
         syncLiveState();
       }
+    }
+  }
+
+  // ==========================================================================
+  // LOCAL CUSTOM HYMN / TARNIMA CREATOR & MANAGER MODULE
+  // ==========================================================================
+  const CUSTOM_SONGS_STORAGE_KEY = 'sunday_school_custom_songs';
+
+  let customSongBuilderState = {
+    id: null,
+    item_id: null,
+    title: '',
+    scale_id: '',
+    media_url: '',
+    is_custom: true,
+    isEditing: false,
+    activeTab: 'tab-song-builder',
+    verses: []
+  };
+
+  function getStoredCustomSongs() {
+    try {
+      const raw = localStorage.getItem(CUSTOM_SONGS_STORAGE_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function setStoredCustomSongs(songsList) {
+    try {
+      localStorage.setItem(CUSTOM_SONGS_STORAGE_KEY, JSON.stringify(songsList));
+    } catch (e) {}
+  }
+
+  function indexSingleSongItem(song) {
+    if (!song) return song;
+    const allLines = getSongAllLines(song);
+    const tNorm = normalizeArabic(song.title || '');
+    const nNorm = allLines.map(normalizeArabic).join(' ');
+    const tSkeleton = typeof extractArabicConsonantSkeleton === 'function' ? extractArabicConsonantSkeleton(song.title || '') : '';
+    const nSkeleton = typeof extractArabicConsonantSkeleton === 'function' ? extractArabicConsonantSkeleton(nNorm) : '';
+    return {
+      ...song,
+      _allLines: allLines,
+      _tNorm: tNorm,
+      _nNorm: nNorm,
+      _fullTextNorm: tNorm + ' ' + nNorm,
+      _tSkeleton: tSkeleton,
+      _nSkeleton: nSkeleton,
+      _searchIndex: tNorm + ' ' + tSkeleton + ' ' + nNorm + ' ' + nSkeleton
+    };
+  }
+
+  function syncCustomSongsIntoCatalog() {
+    const customList = getStoredCustomSongs();
+    if (!state.allSongs) state.allSongs = [];
+    
+    // Remove previous custom songs from catalog in memory
+    state.allSongs = state.allSongs.filter(s => !s.is_custom && !String(s.id).startsWith('custom_'));
+    
+    // Index and prepend custom songs so they appear at top priority in search
+    const indexedCustom = customList.map(song => {
+      song.is_custom = true;
+      return indexSingleSongItem(song);
+    });
+
+    state.allSongs = [...indexedCustom, ...state.allSongs];
+
+    if (els.totalSongsCount && state.allSongs.length > 0) {
+      const formatted = Number(state.allSongs.length).toLocaleString('ar-EG');
+      els.totalSongsCount.innerHTML = `<i class="fa-solid fa-music"></i> <span>${formatted} ترنيمة</span>`;
+    }
+  }
+
+  function initDefaultCustomSongVerses() {
+    return [
+      {
+        id: 1,
+        type: 1, // Chorus
+        isChorus: true,
+        slides: [
+          {
+            id: 1,
+            heading: null,
+            lines: ["(السطر الأول من القرار", "السطر الثاني من القرار)2"],
+            text: "(السطر الأول من القرار\nالسطر الثاني من القرار)2"
+          }
+        ]
+      },
+      {
+        id: 2,
+        type: 0, // Verse 1
+        isChorus: false,
+        stanzaNum: 1,
+        slides: [
+          {
+            id: 1,
+            heading: null,
+            lines: ["السطر الأول من البيت الأول", "السطر الثاني من البيت الأول"],
+            text: "السطر الأول من البيت الأول\nالسطر الثاني من البيت الأول"
+          }
+        ]
+      }
+    ];
+  }
+
+  function openCustomSongEditor(songToEdit = null) {
+    if (!els.modalCustomSongEditor) return;
+
+    if (songToEdit && (songToEdit.verses || songToEdit.title || songToEdit.id)) {
+      // Editing existing custom or pre-populated song
+      const songData = JSON.parse(JSON.stringify(songToEdit));
+      customSongBuilderState = {
+        id: songData.id || ('custom_' + Date.now()),
+        item_id: songData.item_id || songData.id || ('custom_' + Date.now()),
+        title: songData.title || '',
+        scale_id: (songData.scale_id !== undefined && songData.scale_id !== null) ? songData.scale_id : '',
+        media_url: songData.media_url || '',
+        is_custom: true,
+        isEditing: Boolean(songData.id && (songData.is_custom || String(songData.id).startsWith('custom_'))),
+        activeTab: 'tab-song-builder',
+        verses: (Array.isArray(songData.verses) && songData.verses.length > 0) ? songData.verses : initDefaultCustomSongVerses()
+      };
+      if (els.songEditorModalTitle) {
+        els.songEditorModalTitle.textContent = customSongBuilderState.isEditing
+          ? `تعديل ترنيمة: ${songData.title || 'مخصصة'}`
+          : 'إضافة ترنيمة جديدة';
+      }
+    } else {
+      // New custom song
+      const initialTitle = (songToEdit && typeof songToEdit === 'object' && songToEdit.title) ? songToEdit.title : '';
+      customSongBuilderState = {
+        id: 'custom_' + Date.now(),
+        item_id: 'custom_' + Date.now(),
+        title: initialTitle,
+        scale_id: '',
+        media_url: '',
+        is_custom: true,
+        isEditing: false,
+        activeTab: 'tab-song-builder',
+        verses: initDefaultCustomSongVerses()
+      };
+      if (els.songEditorModalTitle) {
+        els.songEditorModalTitle.textContent = 'إضافة ترنيمة جديدة';
+      }
+    }
+
+    if (els.songInputTitle) els.songInputTitle.value = customSongBuilderState.title;
+    if (els.songInputScale) els.songInputScale.value = customSongBuilderState.scale_id || '';
+    if (els.songInputMedia) els.songInputMedia.value = customSongBuilderState.media_url || '';
+
+    switchCustomSongEditorTab('tab-song-builder');
+    renderCustomSongBuilderUI();
+    updateCustomSongLivePreview();
+
+    els.modalCustomSongEditor.classList.remove('hidden');
+    if (els.songInputTitle) els.songInputTitle.focus();
+  }
+
+  function closeCustomSongEditor() {
+    if (els.modalCustomSongEditor) {
+      els.modalCustomSongEditor.classList.add('hidden');
+    }
+  }
+
+  function switchCustomSongEditorTab(targetTabId) {
+    customSongBuilderState.activeTab = targetTabId;
+    if (!els.modalCustomSongEditor) return;
+
+    // Update Tab Nav Buttons
+    els.modalCustomSongEditor.querySelectorAll('.song-editor-tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === targetTabId);
+    });
+
+    // Update Tab Contents
+    els.modalCustomSongEditor.querySelectorAll('.song-editor-tab-content').forEach(tab => {
+      tab.classList.toggle('hidden', tab.id !== targetTabId);
+      tab.classList.toggle('active', tab.id === targetTabId);
+    });
+
+    if (targetTabId === 'tab-song-builder') {
+      renderCustomSongBuilderUI();
+      updateCustomSongLivePreview();
+    } else if (targetTabId === 'tab-song-json') {
+      const songJson = buildCompleteSongObject();
+      if (els.songRawJsonTextarea) {
+        els.songRawJsonTextarea.value = JSON.stringify(songJson, null, 2);
+      }
+    } else if (targetTabId === 'tab-song-smart-paste') {
+      if (els.smartPasteRawTextarea && !els.smartPasteRawTextarea.value.trim()) {
+        const fullNotes = generateNotesFromVerses(customSongBuilderState.verses);
+        els.smartPasteRawTextarea.value = fullNotes;
+      }
+    }
+  }
+
+  function generateNotesFromVerses(verses) {
+    if (!Array.isArray(verses) || verses.length === 0) return '';
+    return verses.map(v => {
+      const isChorus = (v.type === 1 || v.isChorus === true);
+      const prefix = isChorus ? '(القرار)\n' : '';
+      const lines = [];
+      (v.slides || []).forEach(s => {
+        if (Array.isArray(s.lines) && s.lines.length > 0) {
+          lines.push(...s.lines);
+        } else if (s.text) {
+          lines.push(s.text);
+        }
+      });
+      return prefix + lines.join('\n');
+    }).join('\n\n');
+  }
+
+  function formatLineWithRepetition(pureText, repVal) {
+    if (!pureText || !pureText.trim()) return pureText || '';
+    const clean = pureText.trim();
+    if (repVal === 'repeat_2') return `(${clean})2`;
+    if (repVal === 'repeat_3') return `(${clean})3`;
+    if (repVal === 'repeat_4') return `(${clean})4`;
+    if (repVal === 'repeat_martain') return `(${clean}) (مرتين)`;
+    if (repVal === 'prefix_2') return `2 (${clean})`;
+    return clean;
+  }
+
+  function buildCompleteSongObject() {
+    const titleVal = els.songInputTitle ? els.songInputTitle.value.trim() : (customSongBuilderState.title || '');
+    const scaleVal = els.songInputScale ? parseInt(els.songInputScale.value) : customSongBuilderState.scale_id;
+    const mediaVal = els.songInputMedia ? els.songInputMedia.value.trim() : (customSongBuilderState.media_url || '');
+
+    let stanzaCounter = 0;
+    const formattedVerses = (customSongBuilderState.verses || []).map((v, vIdx) => {
+      const isChorus = (v.type === 1 || v.isChorus === true);
+      if (!isChorus) stanzaCounter++;
+
+      const slides = (v.slides || []).map((sl, slIdx) => {
+        const cleanLines = (sl.lines || (sl.text ? sl.text.split('\n') : [])).map(l => String(l).trim()).filter(l => l.length > 0);
+        return {
+          id: slIdx + 1,
+          heading: sl.heading || null,
+          lines: cleanLines,
+          text: cleanLines.join('\n')
+        };
+      }).filter(sl => sl.lines.length > 0);
+
+      return {
+        id: vIdx + 1,
+        type: isChorus ? 1 : 0,
+        isChorus: isChorus,
+        ...(!isChorus ? { stanzaNum: stanzaCounter } : {}),
+        slides: slides.length > 0 ? slides : [{ id: 1, heading: null, lines: ['...'], text: '...' }]
+      };
+    }).filter(v => v.slides.length > 0);
+
+    const notesText = generateNotesFromVerses(formattedVerses);
+
+    return {
+      id: customSongBuilderState.id || ('custom_' + Date.now()),
+      item_id: customSongBuilderState.item_id || ('custom_' + Date.now()),
+      title: titleVal,
+      scale_id: (!isNaN(scaleVal) && scaleVal > 0) ? scaleVal : null,
+      notes: notesText,
+      media_url: mediaVal || '',
+      is_custom: true,
+      created_at: customSongBuilderState.created_at || new Date().toISOString(),
+      verses: formattedVerses
+    };
+  }
+
+  function parseRawLyricsToVerses(rawText, options = {}) {
+    if (!rawText || !rawText.trim()) return [];
+
+    const detectChorus = options.detectChorus !== false;
+    const detectRepeats = options.detectRepeats !== false;
+    const splitRule = options.splitRule || 'full_stanza';
+
+    const cleanRaw = rawText.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+    const blocks = cleanRaw.split(/\n\s*\n+/).map(b => b.trim()).filter(b => b.length > 0);
+
+    const parsedVerses = [];
+    let currentStanzaNum = 0;
+
+    blocks.forEach((block, blockIdx) => {
+      let rawLines = block.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      if (rawLines.length === 0) return;
+
+      let isChorus = false;
+      let foundStanzaNum = null;
+      const firstLine = rawLines[0];
+
+      if (detectChorus) {
+        if (/^\s*\(?\s*(القرار|قرار|ق)\s*\)?\s*[:\s\-]?/i.test(firstLine) || /^\s*\(القرار\)$/i.test(firstLine) || /^\s*\(ق\)$/i.test(firstLine)) {
+          isChorus = true;
+          rawLines[0] = firstLine.replace(/^\s*\(?\s*(القرار|قرار|ق)\s*\)?\s*[:\s\-]?\s*/i, '').trim();
+          if (!rawLines[0]) rawLines.shift();
+        } else {
+          const matchNum = firstLine.match(/^\s*\(?\s*([\d٠-٩]+)\s*\)?\s*[:\s\-\.]\s*(.*)/);
+          if (matchNum) {
+            foundStanzaNum = matchNum[1];
+            if (matchNum[2]) {
+              rawLines[0] = matchNum[2].trim();
+            } else {
+              rawLines.shift();
+            }
+          }
+        }
+
+        if (blockIdx === 0 && !isChorus && !foundStanzaNum && blocks.length > 1) {
+          const secondBlockFirstLine = blocks[1].split('\n')[0].trim();
+          if (/^\s*\(?\s*[1١]\s*\)?\s*[:\s\-\.]/i.test(secondBlockFirstLine)) {
+            isChorus = true;
+          }
+        }
+      }
+
+      let processedLines = rawLines.map(line => {
+        if (!detectRepeats) return line;
+        const mRep = line.match(/^(.*?)\s*[\(\[\{]\s*(مرتين|مرتان|2|٢|×2|x2|3|٣|×3|x3|4|٤|×4|x4)\s*[\)\]\}]$/i);
+        if (mRep && mRep[1]) {
+          const countStr = mRep[2].replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[×x]/i, '');
+          const count = (countStr === 'مرتين' || countStr === 'مرتان') ? 2 : parseInt(countStr) || 2;
+          return `(${mRep[1].trim()})${count}`;
+        }
+        return line;
+      }).filter(l => l.length > 0);
+
+      if (processedLines.length === 0) return;
+
+      let slides = [];
+      if (splitRule === '2_lines') {
+        for (let i = 0; i < processedLines.length; i += 2) {
+          const chunk = processedLines.slice(i, i + 2);
+          slides.push({
+            id: slides.length + 1,
+            heading: null,
+            lines: chunk,
+            text: chunk.join('\n')
+          });
+        }
+      } else if (splitRule === '4_lines') {
+        for (let i = 0; i < processedLines.length; i += 4) {
+          const chunk = processedLines.slice(i, i + 4);
+          slides.push({
+            id: slides.length + 1,
+            heading: null,
+            lines: chunk,
+            text: chunk.join('\n')
+          });
+        }
+      } else if (splitRule === '1_line') {
+        processedLines.forEach((l, idx) => {
+          slides.push({
+            id: idx + 1,
+            heading: null,
+            lines: [l],
+            text: l
+          });
+        });
+      } else {
+        // full_stanza
+        slides.push({
+          id: 1,
+          heading: null,
+          lines: processedLines,
+          text: processedLines.join('\n')
+        });
+      }
+
+      if (isChorus) {
+        parsedVerses.push({
+          id: parsedVerses.length + 1,
+          type: 1,
+          isChorus: true,
+          slides: slides
+        });
+      } else {
+        if (foundStanzaNum) {
+          currentStanzaNum = parseInt(foundStanzaNum.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))) || (currentStanzaNum + 1);
+        } else {
+          currentStanzaNum++;
+        }
+        parsedVerses.push({
+          id: parsedVerses.length + 1,
+          type: 0,
+          isChorus: false,
+          stanzaNum: currentStanzaNum,
+          slides: slides
+        });
+      }
+    });
+
+    return parsedVerses;
+  }
+
+  function renderCustomSongBuilderUI() {
+    if (!els.songBuilderSegmentsList) return;
+
+    if (!customSongBuilderState.verses || customSongBuilderState.verses.length === 0) {
+      els.songBuilderSegmentsList.innerHTML = `
+        <div class="empty-state" style="padding:24px; text-align:center; color:#94a3b8;">
+          <i class="fa-solid fa-layer-group" style="font-size:2.2rem; margin-bottom:8px; color:#cbd5e1;"></i>
+          <p style="font-size:0.88rem; margin:0; font-weight:700; color:#64748b;">لا توجد فقرات مضافة بعد</p>
+          <p style="font-size:0.78rem; margin:4px 0 0 0;">اضغط على "+ إضافة قرار" أو "+ إضافة بيت" بالأعلى للبدء.</p>
+        </div>
+      `;
+      return;
+    }
+
+    let stanzaCounter = 0;
+    els.songBuilderSegmentsList.innerHTML = customSongBuilderState.verses.map((verse, vIdx) => {
+      const isChorus = (verse.type === 1 || verse.isChorus === true);
+      if (!isChorus) stanzaCounter++;
+      const sNum = stanzaCounter;
+
+      const slidesHtml = (verse.slides || []).map((slide, sIdx) => {
+        const lines = (Array.isArray(slide.lines) && slide.lines.length > 0) ? slide.lines : (slide.text ? slide.text.split('\n') : ['']);
+        
+        const linesRowsHtml = lines.map((lineText, lIdx) => {
+          let repVal = 'none';
+          let pureText = String(lineText || '');
+
+          if (/^\(.*?\)(2|٢)$/.test(pureText)) {
+            repVal = 'repeat_2';
+            pureText = pureText.replace(/^\((.*?)\)(2|٢)$/, '$1');
+          } else if (/^\(.*?\)(3|٣)$/.test(pureText)) {
+            repVal = 'repeat_3';
+            pureText = pureText.replace(/^\((.*?)\)(3|٣)$/, '$1');
+          } else if (/^\(.*?\)(4|٤)$/.test(pureText)) {
+            repVal = 'repeat_4';
+            pureText = pureText.replace(/^\((.*?)\)(4|٤)$/, '$1');
+          } else if (/^\(.*?\)\s*\(مرتين\)$/.test(pureText) || /^(.*?)\s*\(مرتين\)$/.test(pureText)) {
+            repVal = 'repeat_martain';
+            pureText = pureText.replace(/^\(?(.*?)\)?\s*\(مرتين\)$/, '$1');
+          } else if (/^2\s*\(.*?\)$/.test(pureText)) {
+            repVal = 'prefix_2';
+            pureText = pureText.replace(/^2\s*\((.*?)\)$/, '$1');
+          }
+
+          return `
+            <div class="slide-line-row" data-verse-idx="${vIdx}" data-slide-idx="${sIdx}" data-line-idx="${lIdx}">
+              <span class="slide-line-num">${lIdx + 1}</span>
+              <input type="text" class="slide-line-input" value="${escapeHtml(pureText)}" placeholder="اكتب نص السطر..." autocomplete="off">
+              <select class="slide-line-repeat-select" title="تكرار السطر">
+                <option value="none" ${repVal === 'none' ? 'selected' : ''}>بدون تكرار</option>
+                <option value="repeat_2" ${repVal === 'repeat_2' ? 'selected' : ''}>(نص)2 مرتين</option>
+                <option value="repeat_3" ${repVal === 'repeat_3' ? 'selected' : ''}>(نص)3 ٣ مرات</option>
+                <option value="repeat_4" ${repVal === 'repeat_4' ? 'selected' : ''}>(نص)4 ٤ مرات</option>
+                <option value="repeat_martain" ${repVal === 'repeat_martain' ? 'selected' : ''}>(مرتين)</option>
+                <option value="prefix_2" ${repVal === 'prefix_2' ? 'selected' : ''}>2 (نص)</option>
+              </select>
+              <button type="button" class="btn-remove-line" title="حذف هذا السطر"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+          `;
+        }).join('');
+
+        return `
+          <div class="song-slide-box" data-verse-idx="${vIdx}" data-slide-idx="${sIdx}">
+            <div class="slide-box-header">
+              <span><i class="fa-solid fa-file-lines" style="color:#2563eb;"></i> الشريحة ${sIdx + 1}</span>
+              ${(verse.slides.length > 1) ? `<button type="button" class="btn-remove-slide seg-btn seg-btn-danger" style="width:22px; height:22px; font-size:0.68rem;" title="حذف هذه الشريحة"><i class="fa-solid fa-trash-can"></i></button>` : ''}
+            </div>
+            <div class="slide-lines-list">
+              ${linesRowsHtml}
+            </div>
+            <button type="button" class="btn-add-line-to-slide"><i class="fa-solid fa-plus"></i> إضافة سطر للشريحة</button>
+          </div>
+        `;
+      }).join('');
+
+      return `
+        <div class="song-segment-card ${isChorus ? 'is-chorus' : 'is-verse'}" data-verse-idx="${vIdx}">
+          <div class="segment-header">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <select class="control-select seg-type-select" style="font-size:0.78rem; font-weight:800; padding:4px 8px; border-radius:8px;">
+                <option value="1" ${isChorus ? 'selected' : ''}>🌟 القرار (Chorus)</option>
+                <option value="0" ${!isChorus ? 'selected' : ''}>📖 بيت ${sNum} (Stanza)</option>
+              </select>
+              <span class="segment-type-pill ${isChorus ? 'chorus' : 'verse'}">
+                ${isChorus ? '<i class="fa-solid fa-star"></i> القرار' : `<i class="fa-solid fa-bookmark"></i> بيت ${sNum}`}
+              </span>
+            </div>
+            <div class="segment-header-actions">
+              <button type="button" class="seg-btn btn-move-seg-up" title="تحريك لأعلى" ${vIdx === 0 ? 'disabled style="opacity:0.4; cursor:not-allowed;"' : ''}><i class="fa-solid fa-arrow-up"></i></button>
+              <button type="button" class="seg-btn btn-move-seg-down" title="تحريك لأسفل" ${vIdx === customSongBuilderState.verses.length - 1 ? 'disabled style="opacity:0.4; cursor:not-allowed;"' : ''}><i class="fa-solid fa-arrow-down"></i></button>
+              <button type="button" class="seg-btn btn-dup-seg" title="تكرار / نسخ هذه الفقرة"><i class="fa-solid fa-clone"></i></button>
+              <button type="button" class="seg-btn seg-btn-danger btn-del-seg" title="حذف هذه الفقرة بالكامل"><i class="fa-solid fa-trash-can"></i></button>
+            </div>
+          </div>
+
+          <div class="segment-slides-container">
+            ${slidesHtml}
+            <button type="button" class="btn-add-slide-to-segment"><i class="fa-solid fa-plus"></i> إضافة شريحة أخرى لهذا ${isChorus ? 'القرار' : 'البيت'}</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    bindCustomSongBuilderEvents();
+  }
+
+  function bindCustomSongBuilderEvents() {
+    if (!els.songBuilderSegmentsList) return;
+
+    // Segment Type Changes
+    els.songBuilderSegmentsList.querySelectorAll('.seg-type-select').forEach(sel => {
+      sel.addEventListener('change', (e) => {
+        const segCard = sel.closest('.song-segment-card');
+        if (!segCard) return;
+        const vIdx = parseInt(segCard.dataset.verseIdx);
+        if (customSongBuilderState.verses[vIdx]) {
+          const isCh = (sel.value === '1');
+          customSongBuilderState.verses[vIdx].type = isCh ? 1 : 0;
+          customSongBuilderState.verses[vIdx].isChorus = isCh;
+          renderCustomSongBuilderUI();
+          updateCustomSongLivePreview();
+        }
+      });
+    });
+
+    // Move Segment Up
+    els.songBuilderSegmentsList.querySelectorAll('.btn-move-seg-up').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const segCard = btn.closest('.song-segment-card');
+        if (!segCard) return;
+        const vIdx = parseInt(segCard.dataset.verseIdx);
+        if (vIdx > 0) {
+          const item = customSongBuilderState.verses.splice(vIdx, 1)[0];
+          customSongBuilderState.verses.splice(vIdx - 1, 0, item);
+          renderCustomSongBuilderUI();
+          updateCustomSongLivePreview();
+        }
+      });
+    });
+
+    // Move Segment Down
+    els.songBuilderSegmentsList.querySelectorAll('.btn-move-seg-down').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const segCard = btn.closest('.song-segment-card');
+        if (!segCard) return;
+        const vIdx = parseInt(segCard.dataset.verseIdx);
+        if (vIdx < customSongBuilderState.verses.length - 1) {
+          const item = customSongBuilderState.verses.splice(vIdx, 1)[0];
+          customSongBuilderState.verses.splice(vIdx + 1, 0, item);
+          renderCustomSongBuilderUI();
+          updateCustomSongLivePreview();
+        }
+      });
+    });
+
+    // Duplicate Segment
+    els.songBuilderSegmentsList.querySelectorAll('.btn-dup-seg').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const segCard = btn.closest('.song-segment-card');
+        if (!segCard) return;
+        const vIdx = parseInt(segCard.dataset.verseIdx);
+        if (customSongBuilderState.verses[vIdx]) {
+          const cloned = JSON.parse(JSON.stringify(customSongBuilderState.verses[vIdx]));
+          customSongBuilderState.verses.splice(vIdx + 1, 0, cloned);
+          renderCustomSongBuilderUI();
+          updateCustomSongLivePreview();
+        }
+      });
+    });
+
+    // Delete Segment
+    els.songBuilderSegmentsList.querySelectorAll('.btn-del-seg').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const segCard = btn.closest('.song-segment-card');
+        if (!segCard) return;
+        const vIdx = parseInt(segCard.dataset.verseIdx);
+        if (customSongBuilderState.verses[vIdx]) {
+          customSongBuilderState.verses.splice(vIdx, 1);
+          renderCustomSongBuilderUI();
+          updateCustomSongLivePreview();
+        }
+      });
+    });
+
+    // Add Slide to Segment
+    els.songBuilderSegmentsList.querySelectorAll('.btn-add-slide-to-segment').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const segCard = btn.closest('.song-segment-card');
+        if (!segCard) return;
+        const vIdx = parseInt(segCard.dataset.verseIdx);
+        if (customSongBuilderState.verses[vIdx]) {
+          if (!customSongBuilderState.verses[vIdx].slides) customSongBuilderState.verses[vIdx].slides = [];
+          customSongBuilderState.verses[vIdx].slides.push({
+            id: customSongBuilderState.verses[vIdx].slides.length + 1,
+            heading: null,
+            lines: [''],
+            text: ''
+          });
+          renderCustomSongBuilderUI();
+          updateCustomSongLivePreview();
+        }
+      });
+    });
+
+    // Delete Slide
+    els.songBuilderSegmentsList.querySelectorAll('.btn-remove-slide').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const slideBox = btn.closest('.song-slide-box');
+        if (!slideBox) return;
+        const vIdx = parseInt(slideBox.dataset.verseIdx);
+        const sIdx = parseInt(slideBox.dataset.slideIdx);
+        if (customSongBuilderState.verses[vIdx] && customSongBuilderState.verses[vIdx].slides) {
+          customSongBuilderState.verses[vIdx].slides.splice(sIdx, 1);
+          renderCustomSongBuilderUI();
+          updateCustomSongLivePreview();
+        }
+      });
+    });
+
+    // Add Line to Slide
+    els.songBuilderSegmentsList.querySelectorAll('.btn-add-line-to-slide').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const slideBox = btn.closest('.song-slide-box');
+        if (!slideBox) return;
+        const vIdx = parseInt(slideBox.dataset.verseIdx);
+        const sIdx = parseInt(slideBox.dataset.slideIdx);
+        if (customSongBuilderState.verses[vIdx] && customSongBuilderState.verses[vIdx].slides[sIdx]) {
+          const slide = customSongBuilderState.verses[vIdx].slides[sIdx];
+          if (!slide.lines) slide.lines = [];
+          slide.lines.push('');
+          renderCustomSongBuilderUI();
+          updateCustomSongLivePreview();
+        }
+      });
+    });
+
+    // Delete Line
+    els.songBuilderSegmentsList.querySelectorAll('.btn-remove-line').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const lineRow = btn.closest('.slide-line-row');
+        if (!lineRow) return;
+        const vIdx = parseInt(lineRow.dataset.verseIdx);
+        const sIdx = parseInt(lineRow.dataset.slideIdx);
+        const lIdx = parseInt(lineRow.dataset.lineIdx);
+        if (customSongBuilderState.verses[vIdx] && customSongBuilderState.verses[vIdx].slides[sIdx]) {
+          const slide = customSongBuilderState.verses[vIdx].slides[sIdx];
+          if (slide.lines) {
+            slide.lines.splice(lIdx, 1);
+            if (slide.lines.length === 0) slide.lines = [''];
+            renderCustomSongBuilderUI();
+            updateCustomSongLivePreview();
+          }
+        }
+      });
+    });
+
+    // Line Input & Repetition Changes
+    const updateLineFromRow = (lineRow) => {
+      if (!lineRow) return;
+      const vIdx = parseInt(lineRow.dataset.verseIdx);
+      const sIdx = parseInt(lineRow.dataset.slideIdx);
+      const lIdx = parseInt(lineRow.dataset.lineIdx);
+      const inputEl = lineRow.querySelector('.slide-line-input');
+      const repSel = lineRow.querySelector('.slide-line-repeat-select');
+      if (!inputEl || !repSel) return;
+
+      const rawTxt = inputEl.value;
+      const repVal = repSel.value;
+      const formatted = formatLineWithRepetition(rawTxt, repVal);
+
+      if (customSongBuilderState.verses[vIdx] && customSongBuilderState.verses[vIdx].slides[sIdx]) {
+        const slide = customSongBuilderState.verses[vIdx].slides[sIdx];
+        if (!slide.lines) slide.lines = [];
+        slide.lines[lIdx] = formatted;
+        slide.text = slide.lines.join('\n');
+        updateCustomSongLivePreview();
+      }
+    };
+
+    els.songBuilderSegmentsList.querySelectorAll('.slide-line-input').forEach(input => {
+      input.addEventListener('input', () => {
+        const lineRow = input.closest('.slide-line-row');
+        updateLineFromRow(lineRow);
+      });
+    });
+
+    els.songBuilderSegmentsList.querySelectorAll('.slide-line-repeat-select').forEach(sel => {
+      sel.addEventListener('change', () => {
+        const lineRow = sel.closest('.slide-line-row');
+        updateLineFromRow(lineRow);
+      });
+    });
+  }
+
+  function updateCustomSongLivePreview() {
+    if (!els.songBuilderLiveSlidesPreview) return;
+
+    let totalSlides = 0;
+    let stanzaCounter = 0;
+    const cardsHtml = (customSongBuilderState.verses || []).flatMap((v, vIdx) => {
+      const isChorus = (v.type === 1 || v.isChorus === true);
+      if (!isChorus) stanzaCounter++;
+      const sNum = stanzaCounter;
+
+      return (v.slides || []).map((slide, sIdx) => {
+        totalSlides++;
+        const rawLines = slide.lines || (slide.text ? slide.text.split('\n') : []);
+        const cleanLines = rawLines.map(l => String(l).trim()).filter(l => l.length > 0);
+
+        const linesHtml = (cleanLines.length > 0 ? cleanLines : ['(شريحة فارغة)']).map(l => {
+          let text = escapeHtml(l);
+          if (text.startsWith('(')) {
+            text = '<span style="color:#60a5fa;">(</span>' + text.substring(1);
+          }
+          text = text.replace(/\)([\d٠-٩]*)$/, '<span style="color:#60a5fa;">)$1</span>');
+          return `<div class="line-row-txt">${text}</div>`;
+        }).join('');
+
+        return `
+          <div class="preview-slide-card">
+            <div class="preview-slide-header">
+              <span class="preview-slide-badge ${isChorus ? 'chorus' : 'verse'}">
+                ${isChorus ? '<i class="fa-solid fa-star"></i> القرار' : `<i class="fa-solid fa-bookmark"></i> بيت ${sNum}`}
+              </span>
+              <span>شريحة ${totalSlides}</span>
+            </div>
+            <div class="preview-slide-lines">
+              ${linesHtml}
+            </div>
+          </div>
+        `;
+      });
+    }).join('');
+
+    if (els.builderTotalSlidesCountBadge) {
+      els.builderTotalSlidesCountBadge.textContent = `${totalSlides} ${totalSlides === 1 ? 'شريحة' : (totalSlides === 2 ? 'شريحتان' : (totalSlides <= 10 ? 'شرائح' : 'شريحة'))}`;
+    }
+
+    els.songBuilderLiveSlidesPreview.innerHTML = cardsHtml || `
+      <div style="text-align:center; padding:20px; color:#94a3b8; font-size:0.82rem;">
+        لا توجد شرائح للمعاينة
+      </div>
+    `;
+  }
+
+  function saveCustomSong(presentImmediately = false) {
+    const songObj = buildCompleteSongObject();
+    
+    if (!songObj.title) {
+      alert('يرجى إدخال عنوان الترنيمة لحفظها.');
+      if (els.songInputTitle) els.songInputTitle.focus();
+      return;
+    }
+
+    if (!songObj.verses || songObj.verses.length === 0) {
+      alert('يرجى إضافة فقرات وكلمات للترنيمة.');
+      return;
+    }
+
+    const currentSongs = getStoredCustomSongs();
+    const existingIdx = currentSongs.findIndex(s => String(s.id) === String(songObj.id) || String(s.item_id) === String(songObj.id));
+
+    if (existingIdx !== -1) {
+      currentSongs[existingIdx] = songObj;
+    } else {
+      currentSongs.unshift(songObj);
+    }
+
+    setStoredCustomSongs(currentSongs);
+    syncCustomSongsIntoCatalog();
+    closeCustomSongEditor();
+
+    // Update active presentation if editing current song
+    if (state.activeSong && String(state.activeSong.id) === String(songObj.id)) {
+      loadSongIntoPresentation(songObj);
+      syncLiveState();
+    }
+
+    if (presentImmediately) {
+      openAndPresentItem(songObj, false);
+    }
+
+    renderRecentSession();
+  }
+
+  function deleteCustomSong(songId) {
+    if (!songId) return;
+    if (!confirm('هل أنت متأكد من حذف هذه الترنيمة نهائياً من جهازك؟')) return;
+
+    let currentSongs = getStoredCustomSongs();
+    currentSongs = currentSongs.filter(s => String(s.id) !== String(songId) && String(s.item_id) !== String(songId));
+    setStoredCustomSongs(currentSongs);
+    syncCustomSongsIntoCatalog();
+
+    // Remove from recents
+    state.sessionRecents = state.sessionRecents.filter(r => String(r.id) !== String(songId));
+    savePlaylists();
+    renderRecentSession();
+
+    // Clear presentation if active
+    if (state.activeSong && String(state.activeSong.id) === String(songId)) {
+      state.activeSong = null;
+      state.presentationLines = [];
+      state.currentLineIndex = -1;
+      renderPresentationLinesList();
+      syncLiveState();
+    }
+  }
+
+  function exportCustomSongJson(songObj) {
+    if (!songObj) songObj = buildCompleteSongObject();
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(songObj, null, 2));
+    const dlAnchor = document.createElement('a');
+    const safeTitle = (songObj.title || 'custom_song').replace(/[/\\?%*:|"<>]/g, '_');
+    dlAnchor.setAttribute("href", dataStr);
+    dlAnchor.setAttribute("download", `${safeTitle}.json`);
+    document.body.appendChild(dlAnchor);
+    dlAnchor.click();
+    dlAnchor.remove();
+  }
+
+  function importCustomSongJson(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        if (!parsed || typeof parsed !== 'object') throw new Error('Invalid JSON format');
+        
+        if (parsed.title) {
+          openCustomSongEditor(parsed);
+        } else if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].title) {
+          // Bulk import of songs
+          const existing = getStoredCustomSongs();
+          const merged = [...parsed.map(s => ({ ...s, is_custom: true })), ...existing];
+          setStoredCustomSongs(merged);
+          syncCustomSongsIntoCatalog();
+          renderRecentSession();
+          alert(`تم استيراد ${parsed.length} ترنيمة بنجاح!`);
+        } else {
+          alert('هيكل ملف JSON غير متطابق مع تنسيق الترانيم.');
+        }
+      } catch (err) {
+        alert('حدث خطأ أثناء قراءة ملف JSON: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function initCustomSongEditor() {
+    // Open Modal Button in Header
+    if (els.btnOpenAddSongModal) {
+      els.btnOpenAddSongModal.addEventListener('click', (e) => {
+        e.preventDefault();
+        openCustomSongEditor();
+      });
+    }
+
+    // Close & Cancel Buttons
+    if (els.btnCloseSongEditorModal) {
+      els.btnCloseSongEditorModal.addEventListener('click', closeCustomSongEditor);
+    }
+    if (els.btnCancelCustomSongModal) {
+      els.btnCancelCustomSongModal.addEventListener('click', closeCustomSongEditor);
+    }
+
+    // Modal Tabs Navigation
+    if (els.modalCustomSongEditor) {
+      els.modalCustomSongEditor.querySelectorAll('.song-editor-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          switchCustomSongEditorTab(btn.dataset.tab);
+        });
+      });
+    }
+
+    // Add Chorus / Verse Buttons in Builder
+    if (els.btnAddChorusSegment) {
+      els.btnAddChorusSegment.addEventListener('click', () => {
+        customSongBuilderState.verses.push({
+          id: customSongBuilderState.verses.length + 1,
+          type: 1,
+          isChorus: true,
+          slides: [{ id: 1, heading: null, lines: [''], text: '' }]
+        });
+        renderCustomSongBuilderUI();
+        updateCustomSongLivePreview();
+      });
+    }
+
+    if (els.btnAddVerseSegment) {
+      els.btnAddVerseSegment.addEventListener('click', () => {
+        customSongBuilderState.verses.push({
+          id: customSongBuilderState.verses.length + 1,
+          type: 0,
+          isChorus: false,
+          slides: [{ id: 1, heading: null, lines: [''], text: '' }]
+        });
+        renderCustomSongBuilderUI();
+        updateCustomSongLivePreview();
+      });
+    }
+
+    // Smart Paste Parser Button
+    if (els.btnExecuteSmartParse) {
+      els.btnExecuteSmartParse.addEventListener('click', () => {
+        const rawTxt = els.smartPasteRawTextarea ? els.smartPasteRawTextarea.value : '';
+        if (!rawTxt.trim()) {
+          alert('يرجى لصق نص الترنيمة أولاً.');
+          return;
+        }
+
+        const detectChorus = els.chkSmartDetectChorus ? els.chkSmartDetectChorus.checked : true;
+        const detectRepeats = els.chkSmartDetectRepeats ? els.chkSmartDetectRepeats.checked : true;
+        const splitRule = els.selectSmartSplitRule ? els.selectSmartSplitRule.value : 'full_stanza';
+
+        const parsedVerses = parseRawLyricsToVerses(rawTxt, { detectChorus, detectRepeats, splitRule });
+        if (parsedVerses.length === 0) {
+          alert('تعذر استخراج أبيات من النص المدخل.');
+          return;
+        }
+
+        customSongBuilderState.verses = parsedVerses;
+        switchCustomSongEditorTab('tab-song-builder');
+      });
+    }
+
+    // Apply Changes from Raw JSON
+    if (els.btnApplyRawJsonChanges) {
+      els.btnApplyRawJsonChanges.addEventListener('click', () => {
+        try {
+          const jsonVal = els.songRawJsonTextarea ? els.songRawJsonTextarea.value : '';
+          const parsed = JSON.parse(jsonVal);
+          if (!parsed || typeof parsed !== 'object') throw new Error('Invalid JSON');
+
+          if (parsed.title) {
+            customSongBuilderState.title = parsed.title;
+            if (els.songInputTitle) els.songInputTitle.value = parsed.title;
+          }
+          if (parsed.scale_id !== undefined) {
+            customSongBuilderState.scale_id = parsed.scale_id;
+            if (els.songInputScale) els.songInputScale.value = parsed.scale_id || '';
+          }
+          if (parsed.media_url !== undefined) {
+            customSongBuilderState.media_url = parsed.media_url;
+            if (els.songInputMedia) els.songInputMedia.value = parsed.media_url || '';
+          }
+          if (Array.isArray(parsed.verses)) {
+            customSongBuilderState.verses = parsed.verses;
+          }
+
+          switchCustomSongEditorTab('tab-song-builder');
+          alert('تم تطبيق التعديلات من JSON بنجاح!');
+        } catch (err) {
+          alert('خطأ في تنسيق JSON: ' + err.message);
+        }
+      });
+    }
+
+    // Copy JSON Code Button
+    if (els.btnCopySongJsonCode) {
+      els.btnCopySongJsonCode.addEventListener('click', () => {
+        const jsonVal = els.songRawJsonTextarea ? els.songRawJsonTextarea.value : '';
+        navigator.clipboard.writeText(jsonVal).then(() => {
+          alert('تم نسخ كود JSON إلى الحافظة.');
+        }).catch(() => {});
+      });
+    }
+
+    // Save Buttons
+    if (els.btnSaveCustomSongOnly) {
+      els.btnSaveCustomSongOnly.addEventListener('click', () => {
+        saveCustomSong(false);
+      });
+    }
+
+    if (els.btnSaveAndPresentSong) {
+      els.btnSaveAndPresentSong.addEventListener('click', () => {
+        saveCustomSong(true);
+      });
+    }
+
+    // Export Single Song JSON Button
+    if (els.btnExportCurrentSongJson) {
+      els.btnExportCurrentSongJson.addEventListener('click', () => {
+        exportCustomSongJson();
+      });
+    }
+
+    // Import Song JSON File
+    if (els.btnImportSongJsonFile && els.inputImportSongJsonFile) {
+      els.btnImportSongJsonFile.addEventListener('click', () => {
+        els.inputImportSongJsonFile.click();
+      });
+      els.inputImportSongJsonFile.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          importCustomSongJson(e.target.files[0]);
+          e.target.value = '';
+        }
+      });
+    }
+
+    // Edit & Delete Active Custom Song Buttons in Presentation Toolbar
+    if (els.btnEditActiveCustomSong) {
+      els.btnEditActiveCustomSong.addEventListener('click', () => {
+        if (state.activeSong) {
+          openCustomSongEditor(state.activeSong);
+        }
+      });
+    }
+
+    if (els.btnDeleteActiveCustomSong) {
+      els.btnDeleteActiveCustomSong.addEventListener('click', () => {
+        if (state.activeSong && state.activeSong.id) {
+          deleteCustomSong(state.activeSong.id);
+        }
+      });
     }
   }
 
@@ -9855,7 +10901,25 @@ document.addEventListener('DOMContentLoaded', () => {
       if (isApiPending) {
         els.searchDropdown.innerHTML = dropdownPrefixHtml + `<div class="search-item no-results-item"><i class="fa-solid fa-spinner fa-spin" style="color:#2563eb; margin-left:8px;"></i><span class="item-title">جاري البحث...</span></div>`;
       } else {
-        els.searchDropdown.innerHTML = dropdownPrefixHtml + `<div class="search-item no-results-item"><i class="fa-solid fa-circle-exclamation" style="color:#94a3b8; margin-left:6px;"></i><span class="item-title">لم يتم العثور على ترنيمة أو شاهد كتابي</span></div>`;
+        els.searchDropdown.innerHTML = dropdownPrefixHtml + `
+          <div class="search-item no-results-item" style="flex-direction:column; align-items:center; gap:8px; padding:16px; text-align:center;">
+            <div style="display:flex; align-items:center; gap:6px; color:#64748b;">
+              <i class="fa-solid fa-circle-exclamation"></i>
+              <span>لم يتم العثور على ترنيمة أو شاهد كتابي</span>
+            </div>
+            <button type="button" id="btn-quick-add-from-search" class="btn btn-sm btn-primary" style="margin-top:4px; font-size:0.82rem; padding:6px 14px; font-weight:700; background:#2563eb; color:#fff; border-radius:8px;">
+              <i class="fa-solid fa-circle-plus"></i> إضافة ترنيمة جديدة باسم "${escapeHtml(query)}"
+            </button>
+          </div>
+        `;
+        const btnQuickAdd = els.searchDropdown.querySelector('#btn-quick-add-from-search');
+        if (btnQuickAdd) {
+          btnQuickAdd.addEventListener('click', (e) => {
+            e.stopPropagation();
+            els.searchDropdown.classList.add('hidden');
+            openCustomSongEditor({ title: query.trim() });
+          });
+        }
       }
     } else {
       const visibleSongs = songs.slice(0, activeSearchLimit);
@@ -9865,6 +10929,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const itemsHtml = visibleSongs.map(s => {
         const allLines = getSongAllLines(s);
         const isBibleItem = Boolean((s.is_bible === true || s.is_bible === '1' || s.is_bible === 1) || (s.chapter_number !== undefined && s.chapter_number !== null && s.chapter_number !== '') || s.type === 'bible');
+        const isCustomItem = Boolean(s.is_custom || (s.id && String(s.id).startsWith('custom_')));
 
         // Highlighted title
         const titleHighlighted = highlightMatches(s.title || '', qNorm, allHighlightWords);
@@ -9912,7 +10977,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Badges:
         const typeBadge = isBibleItem
           ? `<span class="item-badge bible-badge"><i class="fa-solid fa-book-open"></i> شاهد كتابي</span>`
-          : `<span class="item-badge"><i class="fa-solid fa-music"></i> ترنيمة</span>`;
+          : (isCustomItem
+              ? `<span class="item-badge custom-song-badge"><i class="fa-solid fa-user-pen"></i> مضافة محلياً</span>`
+              : `<span class="item-badge"><i class="fa-solid fa-music"></i> ترنيمة</span>`);
 
         let matchBadge = '';
         if (isConsecutiveMatch) {
@@ -11193,6 +12260,23 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    // Toggle Edit / Delete buttons for custom hymns in presentation toolbar
+    const isCustomActive = targetDisplaySong && Boolean(targetDisplaySong.is_custom || (targetDisplaySong.id && String(targetDisplaySong.id).startsWith('custom_')));
+    if (els.btnEditActiveCustomSong) {
+      if (isCustomActive && presentationLines.length > 0) {
+        els.btnEditActiveCustomSong.classList.remove('hidden');
+      } else {
+        els.btnEditActiveCustomSong.classList.add('hidden');
+      }
+    }
+    if (els.btnDeleteActiveCustomSong) {
+      if (isCustomActive && presentationLines.length > 0) {
+        els.btnDeleteActiveCustomSong.classList.remove('hidden');
+      } else {
+        els.btnDeleteActiveCustomSong.classList.add('hidden');
+      }
+    }
+
     if (presentationLines.length === 0) {
       els.presentationLinesContainer.innerHTML = `
         <div class="empty-state">
@@ -11501,11 +12585,13 @@ document.addEventListener('DOMContentLoaded', () => {
       id: song.id !== undefined ? song.id : song.item_id,
       item_id: song.item_id || song.id,
       title: song.title,
+      scale_id: song.scale_id !== undefined ? song.scale_id : null,
       verses: song.verses || null,
       notes: song.notes || null,
       abbr: song.abbr || null,
       chapter_number: (song.chapter_number !== undefined && song.chapter_number !== null && song.chapter_number !== '') ? song.chapter_number : undefined,
-      is_bible: isBibleItem
+      is_bible: isBibleItem,
+      is_custom: Boolean(song.is_custom || (song.id && String(song.id).startsWith('custom_')))
     };
 
     const existsIndex = state.sessionRecents.findIndex(r => getItemKey(r) === targetKey);
@@ -11518,6 +12604,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (fullSongData.title) existing.title = fullSongData.title;
       if (fullSongData.notes) existing.notes = fullSongData.notes;
+      if (fullSongData.scale_id !== undefined) existing.scale_id = fullSongData.scale_id;
     } else {
       // NEW ITEM OPENED FROM SEARCH -> ADD TO TOP OF LIST
       state.sessionRecents.unshift(fullSongData);
@@ -11550,11 +12637,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     els.recentSessionContainer.innerHTML = state.sessionRecents.map((r, idx) => {
       const rScale = getSongScaleText(r);
+      const isCustom = Boolean(r.is_custom || (r.id && String(r.id).startsWith('custom_')));
       return `
       <div class="recent-item ${state.activeSong && String(state.activeSong.id) === String(r.id) && Boolean(state.activeSong.is_bible) === Boolean(r.is_bible) ? 'active' : ''}" data-id="${r.id}" data-is-bible="${r.is_bible ? '1' : '0'}" data-index="${idx}" draggable="true">
         <div class="recent-item-start">
           <i class="fa-solid fa-grip-vertical drag-handle-icon" title="سحب لإعادة الترتيب"></i>
           <span class="recent-title">${escapeHtml(r.title)}</span>
+          ${isCustom ? '<span class="item-badge custom-song-badge" style="font-size:0.68rem; padding:1px 6px; margin-right:4px;"><i class="fa-solid fa-user-pen"></i> مخصصة</span>' : ''}
           ${rScale ? `<span class="song-scale-badge" style="font-size:0.72rem; padding:1px 6px; margin-right:6px;" title="مقام: ${escapeHtml(rScale)}"><i class="fa-solid fa-music"></i> ${escapeHtml(rScale)}</span>` : ''}
         </div>
         <input type="checkbox" class="recent-item-cb" data-index="${idx}">

@@ -129,6 +129,11 @@
           </button>
         </div>
 
+        <!-- ADD CUSTOM SONG BUTTON -->
+        <button class="icon-menu-btn header-add-song-btn" id="btn-open-add-song-modal" type="button" title="إضافة ترنيمة جديدة محلياً">
+          <i class="fa-solid fa-circle-plus" style="color: #2563eb;"></i>
+        </button>
+
       </div>
 
       <!-- CENTERED LOGO -->
@@ -1062,6 +1067,8 @@
             <button id="btn-next-line" class="mini-btn-flat" title="السطر التالي"><i class="fa-solid fa-chevron-left"></i></button>
             <button id="btn-split-all-lines" class="mini-btn-flat" title="تقسيم جميع شرائح الترنيمة لسطرين / سطر واحد"><i class="fa-solid fa-equals"></i></button>
             <span id="active-song-scale-badge" class="song-scale-badge hidden" title="مقام الترنيمة الموسيقي"><i class="fa-solid fa-music"></i> <span id="active-song-scale-text" class="scale-text"></span></span>
+            <button id="btn-edit-active-custom-song" class="mini-btn-flat hidden" title="تعديل هذه الترنيمة المخصصة"><i class="fa-solid fa-pen-to-square"></i></button>
+            <button id="btn-delete-active-custom-song" class="mini-btn-flat mini-btn-danger-outline hidden" title="حذف هذه الترنيمة من الجهاز"><i class="fa-solid fa-trash-can"></i></button>
 
             <!-- SLIDE JUMP FLOATING POPOVER ATTACHED UNDER COUNTER -->
             <div id="popover-slide-jump" class="dropdown-popover slide-jump-popover hidden">
@@ -1562,10 +1569,216 @@
             </button>
           </div>
 
-          <button type="button" id="btn-reset-remote-room" style="background:none; border:none; color:#94a3b8; font-size:0.75rem; cursor:pointer; text-decoration:underline;">
-            إنشاء غرفة جديدة وتغيير الرمز
+    <!-- CUSTOM SONG CREATOR & EDITOR MODAL -->
+    <div id="modal-custom-song-editor" class="modal-overlay hidden">
+      <div class="modal-card modal-song-editor-card">
+        <div class="modal-header">
+          <div class="modal-header-title-wrap">
+            <i class="fa-solid fa-circle-plus modal-icon" id="song-editor-header-icon" style="color: #2563eb;"></i>
+            <div>
+              <div class="modal-title" id="song-editor-modal-title">إضافة ترنيمة جديدة</div>
+              <div class="modal-subtitle">إضافة ترنيمة محلياً بنفس هيكل قاعدة البيانات الرسمي وتقسيم الشرائح والتكرار</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button id="btn-import-song-json-file" type="button" class="btn btn-sm btn-secondary" style="font-size:0.75rem; padding:5px 10px; display:flex; align-items:center; gap:5px;" title="استيراد ملف ترنيمة من جهازك">
+              <i class="fa-solid fa-file-import"></i> استيراد ملف JSON
+            </button>
+            <input type="file" id="input-import-song-json-file" accept=".json" class="hidden">
+            <button id="btn-close-song-editor-modal" class="modal-close-btn" type="button" title="إغلاق"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+        </div>
+
+        <!-- TOP METADATA BAR (TITLE, SCALE, MEDIA) -->
+        <div class="song-editor-metadata-bar">
+          <div class="song-meta-field" style="flex:2.5; min-width:200px;">
+            <label for="song-input-title"><i class="fa-solid fa-heading"></i> عنوان الترنيمة <span class="required-star">*</span></label>
+            <input type="text" id="song-input-title" class="control-input" placeholder="مثلاً: الله بيدعمني ويسندني..." autocomplete="off">
+          </div>
+
+          <div class="song-meta-field" style="flex:1.2; min-width:140px;">
+            <label for="song-input-scale"><i class="fa-solid fa-music"></i> المقام الموسيقي (Scale)</label>
+            <select id="song-input-scale" class="control-select">
+              <option value="">-- بدون مقام --</option>
+              <option value="1">C (دو كبير)</option>
+              <option value="2">C# (دو دييز)</option>
+              <option value="3">D (ري كبير)</option>
+              <option value="4">Eb (مي بيمول)</option>
+              <option value="5">E (مي كبير)</option>
+              <option value="6">F (فا كبير)</option>
+              <option value="7">F# (فا دييز)</option>
+              <option value="8">G (صول كبير)</option>
+              <option value="9">Ab (لا بيمول)</option>
+              <option value="10">A (لا كبير)</option>
+              <option value="11">Bb (سي بيمول)</option>
+              <option value="12">B (سي كبير)</option>
+              <option value="13">Cm (دو صغير)</option>
+              <option value="14">C#m (دو دييز صغير)</option>
+              <option value="15">Dm (ري صغير)</option>
+              <option value="16">Ebm (مي بيمول صغير)</option>
+              <option value="17">Em (مي صغير)</option>
+              <option value="18">Fm (فا صغير)</option>
+              <option value="19">F#m (فا دييز صغير)</option>
+              <option value="20">Gm (صول صغير)</option>
+              <option value="21">Abm (لا بيمول صغير)</option>
+              <option value="22">Am (لا صغير)</option>
+              <option value="24">Bbm (سي بيمول صغير)</option>
+              <option value="25">Bm (سي صغير)</option>
+              <option value="27">مقام آخر</option>
+            </select>
+          </div>
+
+          <div class="song-meta-field" style="flex:1.8; min-width:160px;">
+            <label for="song-input-media"><i class="fa-solid fa-link"></i> رابط الصوت / الفيديو (اختياري)</label>
+            <input type="url" id="song-input-media" class="control-input" placeholder="https://..." autocomplete="off">
+          </div>
+        </div>
+
+        <!-- TABS NAV -->
+        <div class="song-editor-tabs-nav">
+          <button type="button" class="song-editor-tab-btn active" data-tab="tab-song-builder">
+            <i class="fa-solid fa-layer-group"></i> المنشئ المرئي المنظم (الفقرات والشرائح والتكرار)
+          </button>
+          <button type="button" class="song-editor-tab-btn" data-tab="tab-song-smart-paste">
+            <i class="icon-star-sparkle"></i> الاستيراد والتقسيم الذكي السريع
+          </button>
+          <button type="button" class="song-editor-tab-btn" data-tab="tab-song-json">
+            <i class="fa-solid fa-code"></i> هيكل البيانات المباشر (JSON)
           </button>
         </div>
+
+        <!-- TAB 1: VISUAL STRUCTURED BUILDER -->
+        <div id="tab-song-builder" class="song-editor-tab-content active">
+          <div class="song-builder-layout">
+            
+            <!-- SEGMENTS & SLIDES EDITOR COLUMN -->
+            <div class="song-builder-main-col">
+              <div class="song-builder-toolbar">
+                <span style="font-size:0.84rem; font-weight:800; color:#334155; display:flex; align-items:center; gap:6px;">
+                  <i class="fa-solid fa-list-ol" style="color:#2563eb;"></i> فقرات الترنيمة (Verses & Choruses):
+                </span>
+                <div style="display:flex; gap:6px;">
+                  <button type="button" id="btn-add-chorus-segment" class="btn btn-sm btn-primary" style="background:#2563eb; color:#ffffff; font-size:0.8rem; padding:6px 12px; font-weight:700;">
+                    <i class="fa-solid fa-plus"></i> إضافة قرار (Chorus)
+                  </button>
+                  <button type="button" id="btn-add-verse-segment" class="btn btn-sm btn-secondary" style="font-size:0.8rem; padding:6px 12px; font-weight:700;">
+                    <i class="fa-solid fa-plus"></i> إضافة بيت (Stanza)
+                  </button>
+                </div>
+              </div>
+
+              <!-- SEGMENTS LIST CONTAINER -->
+              <div id="song-builder-segments-list" class="song-builder-segments-list">
+                <!-- Dynamically populated segments -->
+              </div>
+            </div>
+
+            <!-- LIVE SLIDES PREVIEW PANE -->
+            <div class="song-builder-preview-col">
+              <div class="preview-col-header">
+                <span style="font-size:0.82rem; font-weight:800; color:#1e293b; display:flex; align-items:center; gap:6px;">
+                  <i class="fa-solid fa-tv" style="color:#2563eb;"></i> معاينة الشرائح كما ستظهر بالعرض:
+                </span>
+                <span id="builder-total-slides-count-badge" class="counter-text-chip">0 شرائح</span>
+              </div>
+              <div id="song-builder-live-slides-preview" class="builder-live-slides-preview">
+                <!-- Rendered slide cards in real time -->
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- TAB 2: SMART PASTE & AUTO-SPLIT -->
+        <div id="tab-song-smart-paste" class="song-editor-tab-content hidden">
+          <div class="smart-paste-container">
+            <div class="smart-paste-info-banner">
+              <i class="icon-star-sparkle" style="font-size:1.2rem; color:#2563eb;"></i>
+              <div>
+                <strong>المساعد الذكي لتقسيم الكلمات:</strong>
+                <span>الصق نص الترنيمة كاملاً بالأسفل، وسيتم التعرف تلقائياً على القرار والأبيات والتكرارات وتقسيمها لشرائح بنفس هيكل قاعدة البيانات فوراً.</span>
+              </div>
+            </div>
+
+            <div class="control-field">
+              <label for="smart-paste-raw-textarea" style="font-weight:700; font-size:0.85rem; margin-bottom:4px;">
+                نص الترنيمة كاملاً (الصق هنا)
+              </label>
+              <textarea id="smart-paste-raw-textarea" class="control-textarea" rows="11" placeholder="مثال:&#10;(الله بيدعمني ويسندني&#10;وفي وقت الأزمة بينجدني)2&#10;وإن كان وارد أتوه في السكة&#10;ألاقيه يناديني ويرشدني&#10;&#10;1- (مش حاجة تطمن طبعاً طبعاً بتطمن&#10;والجاي متأمن طبعاً طبعاً متأمن)2&#10;(يبقى أنا كيف أتوكل على إنسان&#10;وإزاي أحزن لو فارقوني الأعوان)2&#10;وإذا كنتم شايفيني وحدي أنا مش وحدي&#10;(دا اللي معايا)3 سيد الأكوان..."></textarea>
+            </div>
+
+            <div class="smart-paste-options-grid">
+              <div class="smart-paste-opt-card">
+                <div style="font-size:0.82rem; font-weight:800; color:#0f172a; margin-bottom:6px;">خيارات التعرف الذكي:</div>
+                <label class="checkbox-label" style="display:flex; align-items:center; gap:6px; font-size:0.8rem; margin-bottom:6px; cursor:pointer;">
+                  <input type="checkbox" id="chk-smart-detect-chorus" checked>
+                  <span>تمييز القرار تلقائياً (القرار، قرار، ق، أو أول فقرة تتكرر)</span>
+                </label>
+                <label class="checkbox-label" style="display:flex; align-items:center; gap:6px; font-size:0.8rem; cursor:pointer;">
+                  <input type="checkbox" id="chk-smart-detect-repeats" checked>
+                  <span>التعرف على التكرار مثل (2) و (مرتين) و (3) و (4)</span>
+                </label>
+              </div>
+
+              <div class="smart-paste-opt-card">
+                <div style="font-size:0.82rem; font-weight:800; color:#0f172a; margin-bottom:6px;">طريقة تقسيم الشرائح داخل كل بيت:</div>
+                <select id="select-smart-split-rule" class="control-select" style="font-size:0.82rem;">
+                  <option value="full_stanza" selected>كل فقرة / بيت كشريحة واحدة (كاملة)</option>
+                  <option value="2_lines">شريحة لكل سطرين (2 Lines per Slide)</option>
+                  <option value="4_lines">شريحة لكل 4 أسطر (4 Lines per Slide)</option>
+                  <option value="1_line">شريحة لكل سطر منفرد (1 Line per Slide)</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="margin-top:12px; display:flex; justify-content:flex-end;">
+              <button type="button" id="btn-execute-smart-parse" class="btn btn-primary" style="padding:10px 20px; font-size:0.9rem; font-weight:800; display:flex; align-items:center; gap:8px;">
+                <i class="icon-star-sparkle"></i> تحويل النص وتقسيمه إلى المنشئ المرئي
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: RAW JSON DATABASE VIEW -->
+        <div id="tab-song-json" class="song-editor-tab-content hidden">
+          <div class="raw-json-container">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+              <span style="font-size:0.8rem; font-weight:700; color:#64748b;">
+                <i class="fa-solid fa-code"></i> هيكل كائن الترنيمة JSON المتوافق بنسبة 100% مع قاعدة بيانات songs_catalog.json:
+              </span>
+              <button type="button" id="btn-copy-song-json-code" class="btn btn-sm btn-secondary" style="font-size:0.75rem; padding:4px 8px;">
+                <i class="fa-solid fa-copy"></i> نسخ JSON
+              </button>
+            </div>
+            <textarea id="song-raw-json-textarea" class="control-textarea json-textarea" rows="14" spellcheck="false" dir="ltr"></textarea>
+            <div style="margin-top:8px; display:flex; justify-content:flex-end; gap:6px;">
+              <button type="button" id="btn-apply-raw-json-changes" class="btn btn-sm btn-primary" style="font-size:0.82rem; padding:7px 14px; font-weight:700;">
+                <i class="fa-solid fa-check"></i> تطبيق التعديلات من JSON إلى المنشئ
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODAL FOOTER ACTIONS -->
+        <div class="modal-footer song-editor-footer">
+          <div class="footer-start-actions">
+            <button type="button" id="btn-export-current-song-json" class="btn btn-sm btn-secondary" style="font-size:0.82rem; padding:8px 12px;" title="تصدير هذه الترنيمة كملف JSON">
+              <i class="fa-solid fa-file-arrow-down"></i> تصدير JSON
+            </button>
+          </div>
+          <div class="footer-end-actions" style="display:flex; align-items:center; gap:8px;">
+            <button type="button" id="btn-cancel-custom-song-modal" class="btn btn-secondary" style="padding:8px 16px; font-weight:700;">
+              إلغاء
+            </button>
+            <button type="button" id="btn-save-custom-song-only" class="btn btn-secondary" style="padding:8px 16px; font-weight:700; background:#f8fafc; border-color:#cbd5e1; color:#0f172a;">
+              <i class="fa-solid fa-floppy-disk"></i> حفظ في المكتبة
+            </button>
+            <button type="button" id="btn-save-and-present-song" class="btn btn-primary" style="padding:8px 18px; font-weight:800; background:#2563eb; color:#ffffff; display:flex; align-items:center; gap:6px;">
+              <i class="fa-solid fa-play"></i> حفظ وتشغيل العرض المباشر
+            </button>
+          </div>
+        </div>
+
       </div>
     </div>
 
