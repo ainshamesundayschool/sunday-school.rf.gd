@@ -8906,6 +8906,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function splitIntoSingleLineSegments(text, maxWords = 4) {
+    if (!text || !text.trim()) return [];
+    const clean = text.trim().replace(/\r/g, '');
+    
+    // 1. Split by natural phrase separators (commas, semicolons, bullets, colons, slashes, dashes, question marks, exclamation)
+    const rawSegments = clean.split(/[\n\r•،؛\:\.\!\؟\/\-\—]+/).map(s => s.trim()).filter(Boolean);
+    const initialSegments = rawSegments.length > 0 ? rawSegments : [clean];
+    const result = [];
+
+    initialSegments.forEach(seg => {
+      const words = seg.split(/\s+/).filter(Boolean);
+      if (words.length <= maxWords) {
+        result.push(words.join(' '));
+      } else {
+        const totalWords = words.length;
+        const chunksCount = Math.ceil(totalWords / maxWords);
+        const wordsPerChunk = Math.floor(totalWords / chunksCount);
+        const remainder = totalWords % chunksCount;
+
+        let idx = 0;
+        for (let c = 0; c < chunksCount; c++) {
+          const take = wordsPerChunk + (c < remainder ? 1 : 0);
+          const chunkWords = words.slice(idx, idx + take);
+          if (chunkWords.length > 0) {
+            result.push(chunkWords.join(' '));
+          }
+          idx += take;
+        }
+      }
+    });
+
+    return result.length > 0 ? result : [clean];
+  }
+
   function splitLineIntoTwo(text) {
     if (!text || !text.trim()) return [text ? text.trim() : ''];
     const clean = text.trim();
@@ -9414,6 +9448,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (mode === 'oneline') {
+              // ACTUAL 1 LINE: 2, 3, or 4 words max according to segment
+              effectiveLines.forEach((singleLine) => {
+                const singleLineSegments = splitIntoSingleLineSegments(singleLine, 4);
+                singleLineSegments.forEach(seg => {
+                  pushSlideItem([seg]);
+                });
+              });
+            } else if (mode === 'twelines') {
+              // 2 LINES MODE: Each slide displays 2 balanced lines
               effectiveLines.forEach((singleLine) => {
                 if (state.splitLongLines !== false && !isBible) {
                   const split2 = splitLineIntoTwo(singleLine);
@@ -9422,11 +9465,6 @@ document.addEventListener('DOMContentLoaded', () => {
                   pushSlideItem([singleLine]);
                 }
               });
-            } else if (mode === 'twelines') {
-              for (let i = 0; i < effectiveLines.length; i += 2) {
-                const pair = effectiveLines.slice(i, i + 2);
-                pushSlideItem(pair);
-              }
             } else if (mode === 'threelines') {
               for (let i = 0; i < effectiveLines.length; i += 3) {
                 const group = effectiveLines.slice(i, i + 3);
@@ -9630,13 +9668,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (mode === 'oneline') {
           lines.forEach((singleLine) => {
-            pushFallbackSlideItem([singleLine]);
+            const singleLineSegments = splitIntoSingleLineSegments(singleLine, 4);
+            singleLineSegments.forEach(seg => {
+              pushFallbackSlideItem([seg]);
+            });
           });
         } else if (mode === 'twelines') {
-          for (let i = 0; i < lines.length; i += 2) {
-            const pair = lines.slice(i, i + 2);
-            pushFallbackSlideItem(pair);
-          }
+          lines.forEach((singleLine) => {
+            if (state.splitLongLines !== false && !isBible) {
+              const split2 = splitLineIntoTwo(singleLine);
+              pushFallbackSlideItem(split2);
+            } else {
+              pushFallbackSlideItem([singleLine]);
+            }
+          });
         } else {
           pushFallbackSlideItem(lines);
         }
