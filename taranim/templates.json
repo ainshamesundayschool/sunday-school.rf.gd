@@ -191,6 +191,77 @@
         }
       ],
       "showLogo": true
+    },
+    {
+      "id": "tmpl-broadcast-chroma-green",
+      "name": "بث مباشر - كروما خضراء (Broadcast Chroma Green)",
+      "category": "قوالب فيديو وحركة",
+      "categoryKey": "video",
+      "desc": "قالب بث مباشر احترافي (OBS Studio / vMix): خلفية كروما خضراء نقية (#00FF00)، خط لطفي عربي، حد أسود مميز، نمط سطر واحد، شاشة انتظار خالية بدون شعار، وانتقال تلاشي ناعم.",
+      "thumbnailType": "image",
+      "thumbnailUrl": "Templates/SlidesBg/Chroma/thumb_lower_third.png",
+      "standby": "Templates/SlidesBg/Chroma/green.png",
+      "slidesBg": "Templates/SlidesBg/Chroma/green.png",
+      "showLogo": false,
+      "selectedFont": "'Lutfey Arabic', 'Lutfey', 'DG Lutfey', 'Zain', 'Baloo Bhaijaan 2', cursive, sans-serif",
+      "fontSize": 75,
+      "presentationMode": "oneline",
+      "transitionConfig": {
+        "type": "fade",
+        "duration": 400
+      },
+      "styleOptions": {
+        "textColor": "#FFFFFF",
+        "strokeColor": "#000000",
+        "strokeWidth": 4,
+        "strokeEnabled": true,
+        "shadowColor": "rgba(0,0,0,0.85)",
+        "shadowBlur": 8
+      },
+      "textTransform": {
+        "scale": 75,
+        "posX": 0,
+        "posY": 35,
+        "rotation": 0
+      },
+      "varieties": [
+        {
+          "name": "شريط سفلي (Lower Third)",
+          "url": "Templates/SlidesBg/Chroma/green.png",
+          "thumbUrl": "Templates/SlidesBg/Chroma/thumb_lower_third.png",
+          "textTransform": {
+            "scale": 75,
+            "posX": 0,
+            "posY": 35,
+            "rotation": 0
+          },
+          "fontSize": 75
+        },
+        {
+          "name": "شريط علوي (Top Third)",
+          "url": "Templates/SlidesBg/Chroma/green.png",
+          "thumbUrl": "Templates/SlidesBg/Chroma/thumb_top_third.png",
+          "textTransform": {
+            "scale": 75,
+            "posX": 0,
+            "posY": -35,
+            "rotation": 0
+          },
+          "fontSize": 75
+        },
+        {
+          "name": "منتصف كبير (Big Centered)",
+          "url": "Templates/SlidesBg/Chroma/green.png",
+          "thumbUrl": "Templates/SlidesBg/Chroma/thumb_big_center.png",
+          "textTransform": {
+            "scale": 100,
+            "posX": 0,
+            "posY": 0,
+            "rotation": 0
+          },
+          "fontSize": 105
+        }
+      ]
     }
   ]
 }

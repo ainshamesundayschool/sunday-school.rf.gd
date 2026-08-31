@@ -1322,6 +1322,221 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const savedMediaConfig = JSON.parse(localStorage.getItem('sunday_school_taranim_media_config') || '{}');
 
+  // -------------------------------------------------------------
+  // BUILTIN DEFAULT TEMPLATES & MEDIA DEFINITIONS (EARLY HOISTED)
+  // -------------------------------------------------------------
+  const DEFAULT_PAINT_SWEEPS_VARIETIES = [
+    { name: 'Blank', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg' },
+    { name: 'Burn', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Burn.jpg' },
+    { name: 'Dreams', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Dreams.jpg' },
+    { name: 'Evergreen', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Evergreen.jpg' },
+    { name: 'Field', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Field.jpg' },
+    { name: 'Final', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Final.jpg' },
+    { name: 'Follow Us Blank', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Follow Us Online Red Blue - Blank.jpg' },
+    { name: 'Follow Us Scripture', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Follow Us Online Red Blue - Scripture.jpg' },
+    { name: 'Forest', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Forest.jpg' },
+    { name: 'Forever', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Forever.jpg' },
+    { name: 'Fun', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Fun.jpg' },
+    { name: 'Gold', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Gold.jpg' },
+    { name: 'Hope', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Hope.jpg' },
+    { name: 'Joy', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Joy.jpg' },
+    { name: 'King', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps King.jpg' },
+    { name: 'Love', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Love.jpg' },
+    { name: 'Peace', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Peace.jpg' },
+    { name: 'Shine', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Shine.jpg' },
+    { name: 'Silver', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Silver.jpg' },
+    { name: 'Spread', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Spread.jpg' },
+    { name: 'Strong', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Strong.jpg' },
+    { name: 'Torn', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Torn.jpg' },
+    { name: 'Vive', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Vive.jpg' },
+    { name: 'Ways To Give Blank', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Ways To Give Purple - Blank.jpg' },
+    { name: 'Ways To Give Scripture', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Ways To Give Purple - Scripture.jpg' }
+  ];
+
+  const DEFAULT_PAINT_SWEEPS_ANIMATED_VARIETIES = [
+    { name: 'Burn', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Burn - Slow - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Burn.jpg' },
+    { name: 'Forest', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Forest - Medium - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Forest.jpg' },
+    { name: 'Hope', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Hope - Medium - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Hope.jpg' },
+    { name: 'King', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps King - Medium - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps King.jpg' },
+    { name: 'Peace', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Peace - Slow - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Peace.jpg' },
+    { name: 'Shine', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Shine - Medium - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Shine.jpg' },
+    { name: 'Spread', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Spread - Medium - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Spread.jpg' },
+    { name: 'Strong', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Strong - Slow - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Strong.jpg' },
+    { name: 'Torn', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Torn - Slow - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Torn.jpg' },
+    { name: 'Vive', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Vive - Medium - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Vive.jpg' }
+  ];
+
+  const DEFAULT_PAINT_SWEEPS_ANIMATED_TEMPLATE = {
+    id: 'tmpl-paint-sweeps-animated',
+    name: 'Paint Sweeps Animated (فيديوهات متحركة)',
+    category: 'قوالب فيديو وحركة',
+    categoryKey: 'video',
+    desc: 'مجموعة خلفيات فيديو متحركة فائقة الدقة (Paint Sweeps HD 1080 Animated Loops) بتأثيرات وتدرجات لونية حركية مذهلة لعرض الترانيم.',
+    thumbnailType: 'image',
+    thumbnailUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Burn.jpg',
+    standby: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Burn - Slow - HD 1080.mp4',
+    slidesBg: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Burn - Slow - HD 1080.mp4',
+    showLogo: true,
+    varieties: DEFAULT_PAINT_SWEEPS_ANIMATED_VARIETIES
+  };
+
+  const DEFAULT_BROADCAST_CHROMA_TEMPLATE = {
+    id: 'tmpl-broadcast-chroma-green',
+    name: 'بث مباشر - كروما خضراء (Broadcast Chroma Green)',
+    category: 'قوالب فيديو وحركة',
+    categoryKey: 'video',
+    desc: 'قالب بث مباشر احترافي (OBS Studio / vMix): خلفية كروما خضراء نقية (#00FF00)، خط لطفي عربي، حد أسود مميز، نمط سطر واحد، شاشة انتظار خالية بدون شعار، وانتقال تلاشي ناعم.',
+    thumbnailType: 'image',
+    thumbnailUrl: 'Templates/SlidesBg/Chroma/thumb_lower_third.png',
+    standby: 'Templates/SlidesBg/Chroma/green.png',
+    slidesBg: 'Templates/SlidesBg/Chroma/green.png',
+    showLogo: false,
+    selectedFont: "'Lutfey Arabic', 'Lutfey', 'DG Lutfey', 'Zain', 'Baloo Bhaijaan 2', cursive, sans-serif",
+    fontSize: 75,
+    presentationMode: 'oneline',
+    transitionConfig: {
+      type: 'fade',
+      duration: 400
+    },
+    styleOptions: {
+      textColor: '#FFFFFF',
+      strokeColor: '#000000',
+      strokeWidth: 4,
+      strokeEnabled: true,
+      shadowColor: 'rgba(0,0,0,0.85)',
+      shadowBlur: 8
+    },
+    textTransform: {
+      scale: 75,
+      posX: 0,
+      posY: 35,
+      rotation: 0
+    },
+    varieties: [
+      {
+        name: 'شريط سفلي (Lower Third)',
+        url: 'Templates/SlidesBg/Chroma/green.png',
+        thumbUrl: 'Templates/SlidesBg/Chroma/thumb_lower_third.png',
+        textTransform: { scale: 75, posX: 0, posY: 35, rotation: 0 },
+        fontSize: 75
+      },
+      {
+        name: 'شريط علوي (Top Third)',
+        url: 'Templates/SlidesBg/Chroma/green.png',
+        thumbUrl: 'Templates/SlidesBg/Chroma/thumb_top_third.png',
+        textTransform: { scale: 75, posX: 0, posY: -35, rotation: 0 },
+        fontSize: 75
+      },
+      {
+        name: 'منتصف كبير (Big Centered)',
+        url: 'Templates/SlidesBg/Chroma/green.png',
+        thumbUrl: 'Templates/SlidesBg/Chroma/thumb_big_center.png',
+        textTransform: { scale: 100, posX: 0, posY: 0, rotation: 0 },
+        fontSize: 105
+      }
+    ]
+  };
+
+  function sanitizeAndGroupTemplates(templatesList) {
+    if (!Array.isArray(templatesList) || templatesList.length === 0) {
+      return [
+        {
+          id: 'tmpl-shabahak-akon-2026',
+          name: 'Shabahak Akon 2026',
+          category: 'المؤتمرات',
+          categoryKey: 'conferences',
+          desc: 'حزمة مؤتمر شبابك أكون 2026 الكاملة: فيديو انتظار لوب + خلفية شرائح متمركزة + انتقال ستنجر بقناة ألفا.',
+          standby: 'Templates/Standby/Shabahak Akon 2026/Shabahak Akoon Loop.mp4',
+          slidesBg: 'Templates/SlidesBg/Shabahak Akon 2026/Shabahak Akoon Loop Empty Centered.mp4',
+          stringer: 'Templates/Stringer/Shabahak Akon 2026/Stringer 1.webm',
+          thumbnailType: 'video',
+          thumbnailUrl: 'Templates/Standby/Shabahak Akon 2026/Shabahak Akoon Loop.mp4',
+          showLogo: false
+        },
+        {
+          id: 'tmpl-paint-sweeps',
+          name: 'Paint Sweeps (Paint Splash)',
+          category: 'خلفيات وسلايدات',
+          categoryKey: 'backgrounds',
+          desc: 'مجموعة خلفيات وسلايدات فنية مميزة (Paint Sweeps) بألوان وتدرجات متنوعة فائقة الدقة لعرض الترانيم.',
+          thumbnailType: 'image',
+          thumbnailUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg',
+          standby: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg',
+          slidesBg: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg',
+          showLogo: true,
+          varieties: DEFAULT_PAINT_SWEEPS_VARIETIES
+        },
+        DEFAULT_PAINT_SWEEPS_ANIMATED_TEMPLATE,
+        DEFAULT_BROADCAST_CHROMA_TEMPLATE
+      ];
+    }
+
+    const result = [];
+    const paintSweepVars = [];
+    let hasGroupedPaintSweeps = false;
+
+    templatesList.forEach(t => {
+      if (t.id === 'tmpl-broadcast-chroma-green' || (t.name && /Broadcast|Chroma/i.test(t.name))) {
+        result.push(t);
+        return;
+      }
+
+      if (t.id === 'tmpl-paint-sweeps-animated' || (t.name && /Paint\s*Sweeps\s*Animated/i.test(t.name))) {
+        result.push(t);
+        return;
+      }
+
+      if ((t.id === 'tmpl-paint-sweeps' || (t.name && t.name.includes('Paint Sweeps'))) && Array.isArray(t.varieties) && t.varieties.length > 0) {
+        hasGroupedPaintSweeps = true;
+        result.push(t);
+        return;
+      }
+
+      if (t.varieties && Array.isArray(t.varieties) && t.varieties.length > 0) {
+        result.push(t);
+        return;
+      }
+
+      const url = t.slidesBg || t.thumbnailUrl || t.standby || t.url || '';
+      const isPaintSweep = (t.name && /Paint\s*Sweeps/i.test(t.name)) || /Paint\s*Sweeps/i.test(url);
+
+      if (isPaintSweep) {
+        const rawName = (t.name || '').replace(/^Paint\s+Sweeps\s*/i, '').trim() || 'خلفية';
+        paintSweepVars.push({
+          name: rawName,
+          url: url
+        });
+      } else {
+        result.push(t);
+      }
+    });
+
+    if (!hasGroupedPaintSweeps) {
+      result.push({
+        id: 'tmpl-paint-sweeps',
+        name: 'Paint Sweeps (Paint Splash)',
+        category: 'خلفيات وسلايدات',
+        categoryKey: 'backgrounds',
+        desc: 'مجموعة خلفيات وسلايدات فنية مميزة (Paint Sweeps) بألوان وتدرجات متنوعة فائقة الدقة لعرض الترانيم.',
+        thumbnailType: 'image',
+        thumbnailUrl: paintSweepVars.length > 0 ? paintSweepVars[0].url : 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg',
+        standby: paintSweepVars.length > 0 ? paintSweepVars[0].url : 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg',
+        slidesBg: paintSweepVars.length > 0 ? paintSweepVars[0].url : 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg',
+        showLogo: true,
+        varieties: paintSweepVars.length > 0 ? paintSweepVars : DEFAULT_PAINT_SWEEPS_VARIETIES
+      });
+    }
+
+    if (!result.some(t => t.id === 'tmpl-paint-sweeps-animated')) {
+      result.push(DEFAULT_PAINT_SWEEPS_ANIMATED_TEMPLATE);
+    }
+    if (!result.some(t => t.id === 'tmpl-broadcast-chroma-green')) {
+      result.push(DEFAULT_BROADCAST_CHROMA_TEMPLATE);
+    }
+
+    return result;
+  }
+
   const state = {
     allSongs: [],
     arabicDictionary: [],
@@ -5749,7 +5964,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const TEMPLATE_KNOWN_SIZES = {
     'tmpl-shabahak-akon-2026': 64.84, // 29.63 MB (Loop) + 29.60 MB (Empty) + 5.61 MB (Stringer)
     'tmpl-paint-sweeps': 37.40, // 25 backgrounds total
-    'tmpl-paint-sweeps-animated': 328.5 // 10 animated HD 1080 video loops
+    'tmpl-paint-sweeps-animated': 328.5,
+    'tmpl-broadcast-chroma-green': 0.1 // 10 animated HD 1080 video loops
   };
 
   function getTemplateAssets(tmpl) {
@@ -5897,7 +6113,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast(`✅ تم تجهيز وتحميل قالب "${tmpl.name}" بنجاح! جاهز للعرض الفوري.`);
   }
 
-    const renderTemplatesCatalog = () => {
+    function renderTemplatesCatalog() {
       const container = document.getElementById('templates-catalog-grid');
       const totalBadge = document.getElementById('templates-total-count-badge');
       if (!container) return;
@@ -6156,23 +6372,30 @@ document.addEventListener('DOMContentLoaded', () => {
               const selectedVarUrl = btn.dataset.selectedVarietyUrl;
               const selectedVarName = btn.dataset.selectedVarietyName;
 
+              const matchedVar = (tmpl && Array.isArray(tmpl.varieties))
+                ? tmpl.varieties.find(v => v.name === selectedVarName || v.url === selectedVarUrl)
+                : null;
+
               if (selectedVarUrl) {
                 state.standbyConfig.type = 'template';
                 state.standbyConfig.url = selectedVarUrl;
-                state.standbyConfig.showLogo = (tmpl && tmpl.showLogo !== undefined) ? Boolean(tmpl.showLogo) : (tmpl && tmpl.id !== 'tmpl-shabahak-akon-2026');
+                state.standbyConfig.showLogo = (tmpl && tmpl.showLogo !== undefined) ? Boolean(tmpl.showLogo) : (tmpl && tmpl.id !== 'tmpl-shabahak-akon-2026' && tmpl.id !== 'tmpl-broadcast-chroma-green');
                 state.slidesBgConfig.type = 'template';
                 state.slidesBgConfig.url = selectedVarUrl;
               } else {
                 if (tmpl.standby) {
                   state.standbyConfig.type = 'template';
                   state.standbyConfig.url = tmpl.standby;
+                  state.standbyConfig.showLogo = (tmpl.showLogo !== undefined) ? Boolean(tmpl.showLogo) : (tmpl.id !== 'tmpl-shabahak-akon-2026' && tmpl.id !== 'tmpl-broadcast-chroma-green');
                 }
                 if (tmpl.slidesBg) {
                   state.slidesBgConfig.type = 'template';
                   state.slidesBgConfig.url = tmpl.slidesBg;
                 }
               }
-              if (tmpl.stringer) {
+              if (tmpl.transitionConfig) {
+                state.transitionConfig = JSON.parse(JSON.stringify(tmpl.transitionConfig));
+              } else if (tmpl.stringer) {
                 state.transitionConfig.type = 'stinger';
                 state.transitionConfig.stingerUrl = tmpl.stringer;
               }
@@ -6181,17 +6404,30 @@ document.addEventListener('DOMContentLoaded', () => {
               }
               if (tmpl.selectedFont) {
                 state.selectedFont = tmpl.selectedFont;
+                if (els.fontFamilySelect) els.fontFamilySelect.value = tmpl.selectedFont;
               }
-              if (tmpl.fontSize) {
+              if (matchedVar && matchedVar.fontSize) {
+                state.fontSize = matchedVar.fontSize;
+              } else if (tmpl.fontSize) {
                 state.fontSize = tmpl.fontSize;
               }
+              if (matchedVar && matchedVar.textTransform) {
+                state.textTransform = JSON.parse(JSON.stringify(matchedVar.textTransform));
+              } else if (tmpl.textTransform) {
+                state.textTransform = JSON.parse(JSON.stringify(tmpl.textTransform));
+              }
+              if (tmpl.presentationMode) {
+                setSlideSplittingMode(tmpl.presentationMode);
+              }
+              if (typeof updateTextTransformUI === 'function') updateTextTransformUI();
               updateStandbyUI();
               updateSlidesBgUI();
               updateTransitionUI();
+              if (typeof updateControlPanelFromState === 'function') updateControlPanelFromState();
               saveUserSettings();
               saveMediaConfig();
               syncLiveState(false, false, { triggerTransition: true });
-              showToast(`تم تطبيق قالب "${tmpl.name}" ${selectedVarName ? `(${selectedVarName})` : ''} بالكامل! `);
+              showToast(`تم تطبيق قالب "${tmpl.name}" ${selectedVarName ? `(${selectedVarName})` : ''} بالكامل! 🎬`);
             }
           }
         });
@@ -6465,6 +6701,62 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+  const DEFAULT_BROADCAST_CHROMA_TEMPLATE = {
+    id: 'tmpl-broadcast-chroma-green',
+    name: 'بث مباشر - كروما خضراء (Broadcast Chroma Green)',
+    category: 'قوالب فيديو وحركة',
+    categoryKey: 'video',
+    desc: 'قالب بث مباشر احترافي (OBS Studio / vMix): خلفية كروما خضراء نقية (#00FF00)، خط لطفي عربي، حد أسود مميز، نمط سطر واحد، شاشة انتظار خالية بدون شعار، وانتقال تلاشي ناعم.',
+    thumbnailType: 'image',
+    thumbnailUrl: 'Templates/SlidesBg/Chroma/thumb_lower_third.png',
+    standby: 'Templates/SlidesBg/Chroma/green.png',
+    slidesBg: 'Templates/SlidesBg/Chroma/green.png',
+    showLogo: false,
+    selectedFont: "'Lutfey Arabic', 'Lutfey', 'DG Lutfey', 'Zain', 'Baloo Bhaijaan 2', cursive, sans-serif",
+    fontSize: 75,
+    presentationMode: 'oneline',
+    transitionConfig: {
+      type: 'fade',
+      duration: 400
+    },
+    styleOptions: {
+      textColor: '#FFFFFF',
+      strokeColor: '#000000',
+      strokeWidth: 4,
+      strokeEnabled: true,
+      shadowColor: 'rgba(0,0,0,0.85)',
+      shadowBlur: 8
+    },
+    textTransform: {
+      scale: 75,
+      posX: 0,
+      posY: 35,
+      rotation: 0
+    },
+    varieties: [
+      {
+        name: 'شريط سفلي (Lower Third)',
+        url: 'Templates/SlidesBg/Chroma/green.png',
+        thumbUrl: 'Templates/SlidesBg/Chroma/thumb_lower_third.png',
+        textTransform: { scale: 75, posX: 0, posY: 35, rotation: 0 },
+        fontSize: 75
+      },
+      {
+        name: 'شريط علوي (Top Third)',
+        url: 'Templates/SlidesBg/Chroma/green.png',
+        thumbUrl: 'Templates/SlidesBg/Chroma/thumb_top_third.png',
+        textTransform: { scale: 75, posX: 0, posY: -35, rotation: 0 },
+        fontSize: 75
+      },
+      {
+        name: 'منتصف كبير (Big Centered)',
+        url: 'Templates/SlidesBg/Chroma/green.png',
+        thumbUrl: 'Templates/SlidesBg/Chroma/thumb_big_center.png',
+        textTransform: { scale: 100, posX: 0, posY: 0, rotation: 0 },
+        fontSize: 105
+      }
+    ]
+  };
       const DEFAULT_PAINT_SWEEPS_ANIMATED_TEMPLATE = {
     id: 'tmpl-paint-sweeps-animated',
     name: 'Paint Sweeps Animated (فيديوهات متحركة)',
@@ -6502,122 +6794,6 @@ document.addEventListener('DOMContentLoaded', () => {
     { name: 'Torn', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Torn - Slow - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Torn.jpg' },
     { name: 'Vive', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Vive - Medium - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Vive.jpg' }
   ];
-
-      const DEFAULT_PAINT_SWEEPS_VARIETIES = [
-    { name: 'Blank', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg' },
-    { name: 'Burn', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Burn.jpg' },
-    { name: 'Dreams', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Dreams.jpg' },
-    { name: 'Evergreen', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Evergreen.jpg' },
-    { name: 'Field', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Field.jpg' },
-    { name: 'Final', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Final.jpg' },
-    { name: 'Follow Us Blank', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Follow Us Online Red Blue - Blank.jpg' },
-    { name: 'Follow Us Scripture', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Follow Us Online Red Blue - Scripture.jpg' },
-    { name: 'Forest', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Forest.jpg' },
-    { name: 'Forever', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Forever.jpg' },
-    { name: 'Fun', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Fun.jpg' },
-    { name: 'Gold', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Gold.jpg' },
-    { name: 'Hope', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Hope.jpg' },
-    { name: 'Joy', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Joy.jpg' },
-    { name: 'King', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps King.jpg' },
-    { name: 'Love', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Love.jpg' },
-    { name: 'Peace', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Peace.jpg' },
-    { name: 'Shine', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Shine.jpg' },
-    { name: 'Silver', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Silver.jpg' },
-    { name: 'Spread', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Spread.jpg' },
-    { name: 'Strong', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Strong.jpg' },
-    { name: 'Torn', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Torn.jpg' },
-    { name: 'Vive', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Vive.jpg' },
-    { name: 'Ways To Give Blank', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Ways To Give Purple - Blank.jpg' },
-    { name: 'Ways To Give Scripture', url: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Ways To Give Purple - Scripture.jpg' }
-  ];
-
-  function sanitizeAndGroupTemplates(templatesList) {
-    if (!Array.isArray(templatesList) || templatesList.length === 0) {
-      return [
-        {
-          id: 'tmpl-shabahak-akon-2026',
-          name: 'Shabahak Akon 2026',
-          category: 'المؤتمرات',
-          categoryKey: 'conferences',
-          desc: 'حزمة مؤتمر شبابك أكون 2026 الكاملة: فيديو انتظار لوب + خلفية شرائح متمركزة + انتقال ستنجر بقناة ألفا.',
-          standby: 'Templates/Standby/Shabahak Akon 2026/Shabahak Akoon Loop.mp4',
-          slidesBg: 'Templates/SlidesBg/Shabahak Akon 2026/Shabahak Akoon Loop Empty Centered.mp4',
-          stringer: 'Templates/Stringer/Shabahak Akon 2026/Stringer 1.webm',
-          thumbnailType: 'video',
-          thumbnailUrl: 'Templates/Standby/Shabahak Akon 2026/Shabahak Akoon Loop.mp4'
-        },
-        {
-          id: 'tmpl-paint-sweeps',
-          name: 'Paint Sweeps (Paint Splash)',
-          category: 'خلفيات وسلايدات',
-          categoryKey: 'backgrounds',
-          desc: 'مجموعة خلفيات وسلايدات فنية مميزة (Paint Sweeps) بألوان وتدرجات متنوعة فائقة الدقة لعرض الترانيم.',
-          thumbnailType: 'image',
-          thumbnailUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg',
-          standby: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg',
-          slidesBg: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg',
-          varieties: DEFAULT_PAINT_SWEEPS_VARIETIES
-        },
-        DEFAULT_PAINT_SWEEPS_ANIMATED_TEMPLATE
-      ];
-    }
-
-    const result = [];
-    const paintSweepVars = [];
-    let hasGroupedPaintSweeps = false;
-
-    templatesList.forEach(t => {
-      if (t.id === 'tmpl-paint-sweeps-animated' || (t.name && /Paint\s*Sweeps\s*Animated/i.test(t.name))) {
-        result.push(t);
-        return;
-      }
-
-      if ((t.id === 'tmpl-paint-sweeps' || (t.name && t.name.includes('Paint Sweeps'))) && Array.isArray(t.varieties) && t.varieties.length > 0) {
-        hasGroupedPaintSweeps = true;
-        result.push(t);
-        return;
-      }
-
-      if (t.varieties && Array.isArray(t.varieties) && t.varieties.length > 0) {
-        result.push(t);
-        return;
-      }
-
-      const url = t.slidesBg || t.thumbnailUrl || t.standby || t.url || '';
-      const isPaintSweep = (t.name && /Paint\s*Sweeps/i.test(t.name)) || /Paint\s*Sweeps/i.test(url);
-
-      if (isPaintSweep) {
-        const rawName = (t.name || '').replace(/^Paint\s+Sweeps\s*/i, '').trim() || 'خلفية';
-        paintSweepVars.push({
-          name: rawName,
-          url: url
-        });
-      } else {
-        result.push(t);
-      }
-    });
-
-    if (!hasGroupedPaintSweeps) {
-      result.push({
-        id: 'tmpl-paint-sweeps',
-        name: 'Paint Sweeps (Paint Splash)',
-        category: 'خلفيات وسلايدات',
-        categoryKey: 'backgrounds',
-        desc: 'مجموعة خلفيات وسلايدات فنية مميزة (Paint Sweeps) بألوان وتدرجات متنوعة فائقة الدقة لعرض الترانيم.',
-        thumbnailType: 'image',
-        thumbnailUrl: paintSweepVars.length > 0 ? paintSweepVars[0].url : 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg',
-        standby: paintSweepVars.length > 0 ? paintSweepVars[0].url : 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg',
-        slidesBg: paintSweepVars.length > 0 ? paintSweepVars[0].url : 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg',
-        varieties: paintSweepVars.length > 0 ? paintSweepVars : DEFAULT_PAINT_SWEEPS_VARIETIES
-      });
-    }
-
-    if (!result.some(t => t.id === 'tmpl-paint-sweeps-animated')) {
-      result.push(DEFAULT_PAINT_SWEEPS_ANIMATED_TEMPLATE);
-    }
-
-    return result;
-  }
 
     const fetchServerTemplates = async () => {
       try {
