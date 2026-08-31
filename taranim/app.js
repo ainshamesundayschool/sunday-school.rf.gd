@@ -1804,6 +1804,7 @@ document.addEventListener('DOMContentLoaded', () => {
     standbyFileInput: document.getElementById('standby-file-input'),
     standbyFileName: document.getElementById('standby-file-name'),
     standbyLoopCb: document.getElementById('standby-loop-cb'),
+    standbyShowLogoCb: document.getElementById('standby-show-logo-cb'),
 
     transitionTypeSelect: document.getElementById('transition-type-select'),
     stingerConfigWrap: document.getElementById('stinger-config-wrap'),
@@ -4195,7 +4196,11 @@ document.addEventListener('DOMContentLoaded', () => {
           const tmpl = allTmpls.find(t => (t.id && t.id === identifier) || (t.name && (t.name === identifier || t.name.trim() === identifier)));
           if (tmpl) {
             // 1. Media Backgrounds & Standby
-            if (tmpl.standby) { state.standbyConfig.type = 'template'; state.standbyConfig.url = tmpl.standby; }
+            if (tmpl.standby) { 
+              state.standbyConfig.type = 'template'; 
+              state.standbyConfig.url = tmpl.standby; 
+              state.standbyConfig.showLogo = (tmpl.showLogo !== undefined) ? Boolean(tmpl.showLogo) : (tmpl.id !== 'tmpl-shabahak-akon-2026');
+            }
             if (tmpl.slidesBg) { state.slidesBgConfig.type = 'template'; state.slidesBgConfig.url = tmpl.slidesBg; }
             if (tmpl.stringer) { state.transitionConfig.type = 'stinger'; state.transitionConfig.stingerUrl = tmpl.stringer; }
 
@@ -5543,6 +5548,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (els.standbyTemplateWrap) els.standbyTemplateWrap.classList.toggle('hidden', type !== 'template');
       if (els.standbyCustomUploadWrap) els.standbyCustomUploadWrap.classList.toggle('hidden', type !== 'custom_image' && type !== 'custom_video');
       if (els.standbyLoopCb) els.standbyLoopCb.checked = (state.standbyConfig?.loop !== false);
+      if (els.standbyShowLogoCb) els.standbyShowLogoCb.checked = (state.standbyConfig?.showLogo !== false);
 
       if (els.standbyTemplateSelect && state.standbyConfig?.url) {
         els.standbyTemplateSelect.value = state.standbyConfig.url;
@@ -5954,10 +5960,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (hasVarieties) {
           const defaultVar = t.varieties[0];
+          const thumbSrc = defaultVar.thumbUrl || t.thumbnailUrl || (defaultVar.url && !/\.(mp4|webm)$/i.test(defaultVar.url) ? defaultVar.url : 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Blank.jpg');
           thumbHtml = `
             <div class="template-thumb-container">
-              <img class="template-thumb-img" id="tmpl-thumb-img-${escapeHtml(t.id)}" src="${escapeHtml(defaultVar.url)}" alt="${escapeHtml(t.name)}">
-              <span class="template-badge-pill"><i class="fa-solid fa-layer-group" style="margin-left:3px;"></i> ${escapeHtml(t.category || 'خلفيات وسلايدات')} (${t.varieties.length} خلفية)</span>
+              <img class="template-thumb-img" id="tmpl-thumb-img-${escapeHtml(t.id)}" src="${escapeHtml(thumbSrc)}" alt="${escapeHtml(t.name)}">
+              <span class="template-badge-pill"><i class="fa-solid fa-layer-group" style="margin-left:3px;"></i> ${escapeHtml(t.category || 'خلفيات وسلايدات')} (${t.varieties.length} عنصر)</span>
               <div class="template-components-chips">
                 <span class="template-comp-chip" id="tmpl-selected-var-badge-${escapeHtml(t.id)}"><i class="fa-solid fa-palette"></i> ${escapeHtml(defaultVar.name)}</span>
                 <span class="template-comp-chip"><i class="fa-solid fa-image"></i> خلفية شرائح & انتظار</span>
@@ -5967,7 +5974,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if ((t.thumbnailType === 'video' || (videoSrc && /\.(mp4|webm)$/i.test(videoSrc))) && !t.isCustom) {
           thumbHtml = `
             <div class="template-thumb-container">
-              <video class="template-thumb-video" src="${escapeHtml(videoSrc)}" autoplay loop muted playsinline preload="metadata"></video>
+              <video class="template-thumb-video" src="${escapeHtml(videoSrc)}" autoplay loop muted playsinline preload="none"></video>
               <span class="template-badge-pill"><i class="icon-star-sparkle" style="margin-left:3px;"></i> ${escapeHtml(t.category || 'مؤتمرات')}</span>
               <div class="template-components-chips">
                 ${t.standby ? '<span class="template-comp-chip"><i class="fa-solid fa-photo-film"></i> شاشة انتظار</span>' : ''}
@@ -6018,7 +6025,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   </div>
                   <div class="template-varieties-bar">
                     ${t.varieties.map((v, vIdx) => `
-                      <button type="button" class="template-variety-circle ${vIdx === 0 ? 'active' : ''}" data-tmpl-id="${escapeHtml(t.id)}" data-url="${escapeHtml(v.url)}" data-name="${escapeHtml(v.name)}" title="${escapeHtml(v.name)}" style="background-image: url('${escapeHtml(v.url)}');"></button>
+                      <button type="button" class="template-variety-circle ${vIdx === 0 ? 'active' : ''}" data-tmpl-id="${escapeHtml(t.id)}" data-url="${escapeHtml(v.url)}" data-thumb-url="${escapeHtml(v.thumbUrl || v.url)}" data-name="${escapeHtml(v.name)}" title="${escapeHtml(v.name)}" style="background-image: url('${escapeHtml(v.thumbUrl || v.url)}');"></button>
                     `).join('')}
                   </div>
                 </div>
@@ -6145,6 +6152,7 @@ document.addEventListener('DOMContentLoaded', () => {
               if (selectedVarUrl) {
                 state.standbyConfig.type = 'template';
                 state.standbyConfig.url = selectedVarUrl;
+                state.standbyConfig.showLogo = (tmpl && tmpl.showLogo !== undefined) ? Boolean(tmpl.showLogo) : (tmpl && tmpl.id !== 'tmpl-shabahak-akon-2026');
                 state.slidesBgConfig.type = 'template';
                 state.slidesBgConfig.url = selectedVarUrl;
               } else {
@@ -6451,16 +6459,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
       const DEFAULT_PAINT_SWEEPS_ANIMATED_VARIETIES = [
-    { name: 'Burn', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Burn - Slow - HD 1080.mp4' },
-    { name: 'Forest', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Forest - Medium - HD 1080.mp4' },
-    { name: 'Hope', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Hope - Medium - HD 1080.mp4' },
-    { name: 'King', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps King - Medium - HD 1080.mp4' },
-    { name: 'Peace', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Peace - Slow - HD 1080.mp4' },
-    { name: 'Shine', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Shine - Medium - HD 1080.mp4' },
-    { name: 'Spread', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Spread - Medium - HD 1080.mp4' },
-    { name: 'Strong', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Strong - Slow - HD 1080.mp4' },
-    { name: 'Torn', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Torn - Slow - HD 1080.mp4' },
-    { name: 'Vive', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Vive - Medium - HD 1080.mp4' }
+    { name: 'Burn', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Burn - Slow - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Burn.jpg' },
+    { name: 'Forest', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Forest - Medium - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Forest.jpg' },
+    { name: 'Hope', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Hope - Medium - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Hope.jpg' },
+    { name: 'King', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps King - Medium - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps King.jpg' },
+    { name: 'Peace', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Peace - Slow - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Peace.jpg' },
+    { name: 'Shine', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Shine - Medium - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Shine.jpg' },
+    { name: 'Spread', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Spread - Medium - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Spread.jpg' },
+    { name: 'Strong', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Strong - Slow - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Strong.jpg' },
+    { name: 'Torn', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Torn - Slow - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Torn.jpg' },
+    { name: 'Vive', url: 'Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Vive - Medium - HD 1080.mp4', thumbUrl: 'Templates/SlidesBg/Paint Sweeps/Paint Sweeps Vive.jpg' }
   ];
 
       const DEFAULT_PAINT_SWEEPS_VARIETIES = [
@@ -10652,6 +10660,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const isSbImg = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(sbUrl) || sbUrl.startsWith('data:image/') || standbyConf.type === 'custom_image';
         const isSbVid = /\.(mp4|webm|mov|mkv)$/i.test(sbUrl) || sbUrl.startsWith('data:video/') || standbyConf.type === 'custom_video';
 
+        const showLogoOnStandby = (standbyConf.showLogo !== undefined) ? Boolean(standbyConf.showLogo) : (standbyConf.type === 'logo');
+
         if (standbyConf.type === 'logo') {
           if (obsStandbyFullscreenContainer) obsStandbyFullscreenContainer.classList.add('hidden');
           if (obsStandbyFullscreenVideo && !obsStandbyFullscreenVideo.paused) {
@@ -10663,11 +10673,17 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         } else if (sbUrl && (standbyConf.type === 'template' || isSbImg || isSbVid)) {
           if (obsSlidesBgContainer) obsSlidesBgContainer.classList.add('hidden');
-          if (standbyEl) {
-            standbyEl.classList.add('hidden');
-            standbyEl.style.display = 'none';
-          }
           if (obsStandbyFullscreenContainer) obsStandbyFullscreenContainer.classList.remove('hidden');
+          if (standbyEl) {
+            if (showLogoOnStandby) {
+              standbyEl.classList.remove('hidden');
+              standbyEl.style.display = 'flex';
+              standbyEl.style.zIndex = '10';
+            } else {
+              standbyEl.classList.add('hidden');
+              standbyEl.style.display = 'none';
+            }
+          }
 
           if (isSbImg) {
             if (obsStandbyFullscreenVideo) {

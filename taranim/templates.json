@@ -11,7 +11,8 @@
       "slidesBg": "Templates/SlidesBg/Shabahak Akon 2026/Shabahak Akoon Loop Empty Centered.mp4",
       "stringer": "Templates/Stringer/Shabahak Akon 2026/Stringer 1.webm",
       "thumbnailType": "video",
-      "thumbnailUrl": "Templates/Standby/Shabahak Akon 2026/Shabahak Akoon Loop.mp4"
+      "thumbnailUrl": "Templates/Standby/Shabahak Akon 2026/Shabahak Akoon Loop.mp4",
+      "showLogo": false
     },
     {
       "id": "tmpl-paint-sweeps",
@@ -124,7 +125,8 @@
           "name": "Ways To Give Scripture",
           "url": "Templates/SlidesBg/Paint Sweeps/Paint Sweeps Ways To Give Purple - Scripture.jpg"
         }
-      ]
+      ],
+      "showLogo": true
     },
     {
       "id": "tmpl-paint-sweeps-animated",
@@ -132,52 +134,63 @@
       "category": "قوالب فيديو وحركة",
       "categoryKey": "video",
       "desc": "مجموعة خلفيات فيديو متحركة فائقة الدقة (Paint Sweeps HD 1080 Animated Loops) بتأثيرات وتدرجات لونية حركية مذهلة لعرض الترانيم.",
-      "thumbnailType": "video",
-      "thumbnailUrl": "Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Burn - Slow - HD 1080.mp4",
+      "thumbnailType": "image",
+      "thumbnailUrl": "Templates/SlidesBg/Paint Sweeps/Paint Sweeps Burn.jpg",
       "standby": "Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Burn - Slow - HD 1080.mp4",
       "slidesBg": "Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Burn - Slow - HD 1080.mp4",
       "varieties": [
         {
           "name": "Burn",
-          "url": "Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Burn - Slow - HD 1080.mp4"
+          "url": "Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Burn - Slow - HD 1080.mp4",
+          "thumbUrl": "Templates/SlidesBg/Paint Sweeps/Paint Sweeps Burn.jpg"
         },
         {
           "name": "Forest",
-          "url": "Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Forest - Medium - HD 1080.mp4"
+          "url": "Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Forest - Medium - HD 1080.mp4",
+          "thumbUrl": "Templates/SlidesBg/Paint Sweeps/Paint Sweeps Forest.jpg"
         },
         {
           "name": "Hope",
-          "url": "Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Hope - Medium - HD 1080.mp4"
+          "url": "Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Hope - Medium - HD 1080.mp4",
+          "thumbUrl": "Templates/SlidesBg/Paint Sweeps/Paint Sweeps Hope.jpg"
         },
         {
           "name": "King",
-          "url": "Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps King - Medium - HD 1080.mp4"
+          "url": "Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps King - Medium - HD 1080.mp4",
+          "thumbUrl": "Templates/SlidesBg/Paint Sweeps/Paint Sweeps King.jpg"
         },
         {
           "name": "Peace",
-          "url": "Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Peace - Slow - HD 1080.mp4"
+          "url": "Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Peace - Slow - HD 1080.mp4",
+          "thumbUrl": "Templates/SlidesBg/Paint Sweeps/Paint Sweeps Peace.jpg"
         },
         {
           "name": "Shine",
-          "url": "Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Shine - Medium - HD 1080.mp4"
+          "url": "Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Shine - Medium - HD 1080.mp4",
+          "thumbUrl": "Templates/SlidesBg/Paint Sweeps/Paint Sweeps Shine.jpg"
         },
         {
           "name": "Spread",
-          "url": "Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Spread - Medium - HD 1080.mp4"
+          "url": "Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Spread - Medium - HD 1080.mp4",
+          "thumbUrl": "Templates/SlidesBg/Paint Sweeps/Paint Sweeps Spread.jpg"
         },
         {
           "name": "Strong",
-          "url": "Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Strong - Slow - HD 1080.mp4"
+          "url": "Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Strong - Slow - HD 1080.mp4",
+          "thumbUrl": "Templates/SlidesBg/Paint Sweeps/Paint Sweeps Strong.jpg"
         },
         {
           "name": "Torn",
-          "url": "Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Torn - Slow - HD 1080.mp4"
+          "url": "Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Torn - Slow - HD 1080.mp4",
+          "thumbUrl": "Templates/SlidesBg/Paint Sweeps/Paint Sweeps Torn.jpg"
         },
         {
           "name": "Vive",
-          "url": "Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Vive - Medium - HD 1080.mp4"
+          "url": "Templates/SlidesBg/Paint Sweeps Animated/Paint Sweeps Vive - Medium - HD 1080.mp4",
+          "thumbUrl": "Templates/SlidesBg/Paint Sweeps/Paint Sweeps Vive.jpg"
         }
-      ]
+      ],
+      "showLogo": true
     }
   ]
 }

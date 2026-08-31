@@ -2087,6 +2087,8 @@
         const isSbImg = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(sbUrl) || sbUrl.startsWith('data:image/') || standbyConf.type === 'custom_image';
         const isSbVid = /\.(mp4|webm|mov|mkv)$/i.test(sbUrl) || sbUrl.startsWith('data:video/') || standbyConf.type === 'custom_video';
 
+        const showLogoOnStandby = (standbyConf.showLogo !== undefined) ? Boolean(standbyConf.showLogo) : (standbyConf.type === 'logo');
+
         if (standbyConf.type === 'logo') {
           if (currentStandbyBgSrc) {
             currentStandbyBgSrc = '';
@@ -2098,8 +2100,17 @@
             standbyEl.style.display = 'flex';
           }
         } else if (sbUrl && (standbyConf.type === 'template' || isSbImg || isSbVid)) {
-          if (standbyEl) { standbyEl.classList.add('hidden'); standbyEl.style.display = 'none'; }
           if (standbyFullscreenContainer) standbyFullscreenContainer.classList.remove('hidden');
+          if (standbyEl) {
+            if (showLogoOnStandby) {
+              standbyEl.classList.remove('hidden');
+              standbyEl.style.display = 'flex';
+              standbyEl.style.zIndex = '10';
+            } else {
+              standbyEl.classList.add('hidden');
+              standbyEl.style.display = 'none';
+            }
+          }
 
           if (isSbImg) {
             if (currentStandbyBgSrc) {
