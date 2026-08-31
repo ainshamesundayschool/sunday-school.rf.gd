@@ -1,5 +1,5 @@
 // TARANIM PWA & OBS PRESENTER SERVICE WORKER (OFFLINE FIRST WITH SMART SYNC)
-const CACHE_NAME = 'taranim-pwa-v35';
+const CACHE_NAME = 'taranim-pwa-v36';
 
 const PRECACHE_ASSETS = [
   './',
@@ -185,4 +185,13 @@ self.addEventListener('fetch', (event) => {
       }
     })
   );
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+  if (event.data && event.data.type === 'PURGE_CACHE') {
+    caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k))));
+  }
 });
