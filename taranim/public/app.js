@@ -1286,6 +1286,8 @@ document.addEventListener('DOMContentLoaded', () => {
   } catch(e) {}
 
   let presenterWindow = null;
+  let liveFileHandle = null;
+  let bibleChaptersLoadingPromise = null;
   let pendingHttpPush = null;
   let activePostUrl = null;
   let lastHttpPushTime = 0;
@@ -1900,7 +1902,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  init();
 
   function setupNetworkSync() {
     window.addEventListener('online', () => {
@@ -8065,7 +8066,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return false;
   }
 
-  let bibleChaptersLoadingPromise = null;
 
   async function ensureBibleChaptersLoaded() {
     if (state.bibleChaptersData && Object.keys(state.bibleChaptersData).length > 0) {
@@ -10526,7 +10526,6 @@ document.addEventListener('DOMContentLoaded', () => {
     saveLiveTextToDisk(text);
   }
 
-  let liveFileHandle = null;
   let liveFileFormat = 'html';
 
   async function setLiveSyncFile(chosenFormat = 'html') {
@@ -10953,4 +10952,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.addEventListener('focus', () => syncLiveState());
   window.addEventListener('online', () => syncLiveState());
+
+  init();
 });
