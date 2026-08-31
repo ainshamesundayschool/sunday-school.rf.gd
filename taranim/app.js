@@ -5662,6 +5662,159 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+      // ----------------------------------------------------
+  // TEMPLATE PRE-RENDER & CACHE DOWNLOAD ENGINE
+  // ----------------------------------------------------
+  const TEMPLATE_KNOWN_SIZES = {
+    'tmpl-shabahak-akon-2026': 64.84, // 29.63 MB (Loop) + 29.60 MB (Empty) + 5.61 MB (Stringer)
+    'tmpl-paint-sweeps': 37.40 // 25 backgrounds total
+  };
+
+  function getTemplateAssets(tmpl) {
+    if (!tmpl) return [];
+    const urls = [];
+    if (tmpl.standby && !tmpl.standby.startsWith('data:')) urls.push(tmpl.standby);
+    if (tmpl.slidesBg && !tmpl.slidesBg.startsWith('data:')) urls.push(tmpl.slidesBg);
+    if (tmpl.stringer && !tmpl.stringer.startsWith('data:')) urls.push(tmpl.stringer);
+    if (tmpl.thumbnailUrl && !tmpl.thumbnailUrl.startsWith('data:')) urls.push(tmpl.thumbnailUrl);
+    if (tmpl.varieties && Array.isArray(tmpl.varieties)) {
+      tmpl.varieties.forEach(v => {
+        if (v && v.url && !v.url.startsWith('data:')) urls.push(v.url);
+      });
+    }
+    return Array.from(new Set(urls.filter(Boolean)));
+  }
+
+  function getTemplateEstimatedSizeMB(tmpl) {
+    if (!tmpl) return 0;
+    if (TEMPLATE_KNOWN_SIZES[tmpl.id]) {
+      return TEMPLATE_KNOWN_SIZES[tmpl.id];
+    }
+    const assets = getTemplateAssets(tmpl);
+    if (assets.length === 0) return 0;
+    let est = 0;
+    assets.forEach(u => {
+      if (/\.(mp4|webm|mov)$/i.test(u)) est += 15.0;
+      else if (/\.(jpg|jpeg|png|webp)$/i.test(u)) est += 0.8;
+      else est += 0.5;
+    });
+    return Math.round(est * 10) / 10;
+  }
+
+  const PRERENDER_STORAGE_KEY_PREFIX = 'sunday_school_tmpl_prerendered_';
+
+  function isTemplatePrerendered(tmplId) {
+    try {
+      return localStorage.getItem(PRERENDER_STORAGE_KEY_PREFIX + tmplId) === 'true';
+    } catch(e) {
+      return false;
+    }
+  }
+
+  function setTemplatePrerendered(tmplId, isPrerendered = true) {
+    try {
+      if (isPrerendered) {
+        localStorage.setItem(PRERENDER_STORAGE_KEY_PREFIX + tmplId, 'true');
+      } else {
+        localStorage.removeItem(PRERENDER_STORAGE_KEY_PREFIX + tmplId);
+      }
+    } catch(e) {}
+  }
+
+  async function prerenderTemplateAssets(tmpl, btnEl) {
+    const assets = getTemplateAssets(tmpl);
+    if (assets.length === 0) {
+      setTemplatePrerendered(tmpl.id, true);
+      if (btnEl) {
+        btnEl.classList.add('cached');
+        btnEl.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#10b981;"></i> <span style="color:#059669; font-weight:700;">جاهز للعرض</span>`;
+      }
+      showToast(`القالب "${tmpl.name}" جاهز فوراً للعرض! ✨`);
+      return;
+    }
+
+    if (btnEl) {
+      btnEl.disabled = true;
+      btnEl.classList.remove('cached');
+      btnEl.classList.add('downloading');
+      btnEl.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> <span>جاري التجهيز 0%...</span>`;
+    }
+
+    const total = assets.length;
+    let completed = 0;
+
+    let cache = null;
+    try {
+      if ('caches' in window) {
+        cache = await caches.open('taranim-pwa-v36');
+      }
+    } catch(e) {}
+
+    const promises = assets.map(async (url) => {
+      try {
+        const isVid = /\.(mp4|webm|mov)$/i.test(url);
+        const isImg = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(url);
+
+        // 1. Fetch & Store into Cache Storage
+        if (cache) {
+          try {
+            const match = await cache.match(url);
+            if (!match) {
+              const res = await fetch(url, { cache: 'force-cache' });
+              if (res && res.ok) {
+                await cache.put(url, res.clone());
+              }
+            }
+          } catch(err) {}
+        }
+
+        // 2. Pre-decode into browser memory / GPU texture
+        if (isImg) {
+          await new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve();
+            img.onerror = () => resolve();
+            img.src = url;
+          });
+        } else if (isVid) {
+          await new Promise((resolve) => {
+            const vid = document.createElement('video');
+            vid.preload = 'auto';
+            vid.muted = true;
+            vid.oncanplaythrough = () => resolve();
+            vid.onerror = () => resolve();
+            setTimeout(resolve, 2500);
+            vid.src = url;
+            vid.load();
+          });
+        }
+      } catch(e) {
+        console.warn('Pre-render asset skipped:', url, e);
+      } finally {
+        completed++;
+        const pct = Math.round((completed / total) * 100);
+        if (btnEl) {
+          btnEl.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> <span>جاري التجهيز ${pct}% (${completed}/${total})</span>`;
+        }
+      }
+    });
+
+    await Promise.all(promises);
+
+    setTemplatePrerendered(tmpl.id, true);
+    if (btnEl) {
+      btnEl.disabled = false;
+      btnEl.classList.remove('downloading');
+      btnEl.classList.add('cached');
+      const sizeMB = getTemplateEstimatedSizeMB(tmpl);
+      const sizeStr = sizeMB > 0 ? ` (${sizeMB} MB)` : '';
+      btnEl.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#10b981;"></i> <span style="color:#059669; font-weight:700;">جاهز للعرض${sizeStr}</span>`;
+      btnEl.title = 'تم تحميل وتجهيز كافة خلفيات وفيديوهات هذا القالب بنجاح للعرض الفوري بدون تأخير';
+    }
+
+    showToast(`✅ تم تجهيز وتحميل قالب "${tmpl.name}" بنجاح! جاهز للعرض الفوري.`);
+  }
+
     const renderTemplatesCatalog = () => {
       const container = document.getElementById('templates-catalog-grid');
       const totalBadge = document.getElementById('templates-total-count-badge');
@@ -5800,9 +5953,24 @@ document.addEventListener('DOMContentLoaded', () => {
               ` : ''}
 
               <div class="template-card-footer">
-                <button type="button" class="btn-apply-template-card btn btn-sm btn-primary" data-name="${escapeHtml(t.name)}" data-id="${escapeHtml(t.id || '')}" data-iscustom="${t.isCustom ? '1' : '0'}" ${hasVarieties ? `data-selected-variety-url="${escapeHtml(initialVarUrl)}" data-selected-variety-name="${escapeHtml(initialVarName)}"` : ''} style="background:#2563eb; color:#fff; font-weight:700; padding:6px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
-                  <i class="icon-star-sparkle"></i> تطبيق القالب
-                </button>
+                <div class="template-actions-group">
+                  ${(function() {
+                    const sizeMB = getTemplateEstimatedSizeMB(t);
+                    const sizeStr = sizeMB > 0 ? ` (${sizeMB} MB)` : '';
+                    const isCached = isTemplatePrerendered(t.id);
+                    return `
+                      <button type="button" class="btn-prerender-template-card btn btn-sm ${isCached ? 'cached' : ''}" data-tmpl-id="${escapeHtml(t.id)}" title="${isCached ? 'تم تجهيز وتحميل هذا القالب مسبقاً' : 'تحميل وتجهيز كافة وسائط وخلفيات القالب مسبقاً في الذاكرة لتجنب أي بطء أثناء العرض'}">
+                        ${isCached 
+                          ? `<i class="fa-solid fa-circle-check" style="color:#10b981;"></i> <span style="color:#059669; font-weight:700;">جاهز${sizeStr}</span>`
+                          : `<i class="fa-solid fa-cloud-arrow-down"></i> <span>تجهيز مسبق</span> <span class="prerender-size-badge">${sizeStr}</span>`
+                        }
+                      </button>
+                    `;
+                  })()}
+                  <button type="button" class="btn-apply-template-card btn btn-sm btn-primary" data-name="${escapeHtml(t.name)}" data-id="${escapeHtml(t.id || '')}" data-iscustom="${t.isCustom ? '1' : '0'}" ${hasVarieties ? `data-selected-variety-url="${escapeHtml(initialVarUrl)}" data-selected-variety-name="${escapeHtml(initialVarName)}"` : ''} style="background:#2563eb; color:#fff; font-weight:700; padding:6px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+                    <i class="icon-star-sparkle"></i> تطبيق القالب
+                  </button>
+                </div>
                 ${t.isCustom ? `
                   <div style="display:flex; align-items:center; gap:4px;">
                     <button type="button" class="btn-export-template-zip btn btn-sm btn-secondary" data-id="${escapeHtml(t.id)}" style="background:#f1f5f9; color:#475569; font-size:0.75rem; padding:5px 8px; border-radius:6px;" title="تصدير كملف ZIP">
@@ -5818,6 +5986,21 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         `;
       }).join('');
+
+            // Pre-render & Download button listeners
+      container.querySelectorAll('.btn-prerender-template-card').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const tmplId = btn.dataset.tmplId;
+          const allTmpls = (typeof sanitizeAndGroupTemplates === 'function') 
+            ? sanitizeAndGroupTemplates(state.availableTemplates || []) 
+            : (state.availableTemplates || []);
+          const tmpl = allTmpls.find(t => t.id === tmplId);
+          if (tmpl) {
+            await prerenderTemplateAssets(tmpl, btn);
+          }
+        });
+      });
 
       // Shuffle checkbox listeners
       container.querySelectorAll('.chk-template-shuffle').forEach(chk => {

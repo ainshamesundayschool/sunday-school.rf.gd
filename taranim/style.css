@@ -5888,3 +5888,60 @@ body.startup-active {
   transform: scale(1.15) rotate(90deg);
   box-shadow: 0 4px 10px rgba(239, 68, 68, 0.5);
 }
+
+/* TEMPLATE PRE-RENDER & DOWNLOAD BUTTONS */
+.template-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.btn-prerender-template-card {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-prerender-template-card:hover {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+  transform: translateY(-1px);
+}
+
+.btn-prerender-template-card.cached {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #065f46;
+}
+
+.btn-prerender-template-card.cached:hover {
+  background: #d1fae5;
+  border-color: #6ee7b7;
+}
+
+.btn-prerender-template-card.downloading {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+  cursor: wait;
+}
+
+.prerender-size-badge {
+  background: rgba(0, 0, 0, 0.08);
+  padding: 1px 5px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #475569;
+}
