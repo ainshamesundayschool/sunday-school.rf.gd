@@ -347,36 +347,49 @@
               <div class="style-card-title"><i class="fa-solid fa-font"></i> الخط والمظهر</div>
               
               <div class="style-grid-2">
-                <div class="control-field">
+                <div class="control-field" style="position:relative;">
                   <label>نوع الخط</label>
-                  <select id="font-family-select" class="control-select">
-                    <optgroup label="✨ خطوط أطفال ومرحة (Kids & Playful)">
-                      <option value="'Playpen Sans Arabic', 'Playpen Sans', 'Baloo Bhaijaan 2', cursive, sans-serif">Playpen Sans Arabic</option>
-                      <option value="'Tufuli Arabic', 'Tufuli', 'DG Tufuli', 'Marhey', 'Baloo Bhaijaan 2', cursive, sans-serif">Tufuli Arabic (طفولي)</option>
-                      <option value="'Tinta Arabic', 'Tinta', 'Lemonada', 'Baloo Bhaijaan 2', cursive, sans-serif">Tinta Arabic (تينتا)</option>
-                      <option value="'Lutfey Arabic', 'Lutfey', 'DG Lutfey', 'Zain', 'Baloo Bhaijaan 2', cursive, sans-serif">Lutfey Arabic (لطفي)</option>
-                      <option value="'Baloo Bhaijaan 2', cursive, sans-serif">Baloo Bhaijaan 2 (بالو بهيجان)</option>
-                      <option value="'Marhey', cursive, sans-serif">Marhey (مرحي)</option>
-                      <option value="'Lemonada', cursive, sans-serif">Lemonada (ليمونادة)</option>
-                      <option value="'Zain', sans-serif">Zain (زين)</option>
-                      <option value="'Changa', sans-serif">Changa (شانجا)</option>
-                      <option value="'Rakkas', cursive, sans-serif">Rakkas (رقاص)</option>
-                    </optgroup>
-                    <optgroup label="🏛️ خطوط عامة وكلاسيكية (Standard & Display)">
-                      <option value="'Alexandria', sans-serif">Alexandria (الإسكندرية)</option>
-                      <option value="'Cairo', sans-serif">Cairo (القاهرة)</option>
-                      <option value="'Almarai', sans-serif">Almarai (المراعي)</option>
-                      <option value="'Tajawal', sans-serif">Tajawal (تجوال)</option>
-                      <option value="'Readex Pro', sans-serif">Readex Pro (ريديكس)</option>
-                      <option value="'Reem Kufi', sans-serif">Reem Kufi (ريم كوفي)</option>
-                      <option value="'El Messiri', sans-serif">El Messiri (المسيري)</option>
-                      <option value="'Amiri', serif">Amiri (أميري)</option>
-                      <option value="Jomhuria, Arial, sans-serif">Jomhuria (الجمهورية)</option>
-                    </optgroup>
-                    <optgroup label="📁 خط مخصص">
-                      <option value="custom">خط محلي من الجهاز أو ملف...</option>
-                    </optgroup>
+                  <select id="font-family-select" class="control-select hidden" style="display:none;">
+                    <option value="'Playpen Sans Arabic', 'Playpen Sans', 'Baloo Bhaijaan 2', cursive, sans-serif">Playpen Sans Arabic</option>
+                    <option value="'Tufuli Arabic', 'Tufuli', 'DG Tufuli', 'Marhey', 'Baloo Bhaijaan 2', cursive, sans-serif">Tufuli Arabic (طفولي)</option>
+                    <option value="'Tinta Arabic', 'Tinta', 'Lemonada', 'Baloo Bhaijaan 2', cursive, sans-serif">Tinta Arabic (تينتا)</option>
+                    <option value="'Lutfey Arabic', 'Lutfey', 'DG Lutfey', 'Zain', 'Baloo Bhaijaan 2', cursive, sans-serif">Lutfey Arabic (لطفي)</option>
+                    <option value="'Baloo Bhaijaan 2', cursive, sans-serif">Baloo Bhaijaan 2 (بالو بهيجان)</option>
+                    <option value="'Marhey', cursive, sans-serif">Marhey (مرحي)</option>
+                    <option value="'Lemonada', cursive, sans-serif">Lemonada (ليمونادة)</option>
+                    <option value="'Zain', sans-serif">Zain (زين)</option>
+                    <option value="'Changa', sans-serif">Changa (شانجا)</option>
+                    <option value="'Rakkas', cursive, sans-serif">Rakkas (رقاص)</option>
+                    <option value="'Alexandria', sans-serif">Alexandria (الإسكندرية)</option>
+                    <option value="'Cairo', sans-serif">Cairo (القاهرة)</option>
+                    <option value="'Almarai', sans-serif">Almarai (المراعي)</option>
+                    <option value="'Tajawal', sans-serif">Tajawal (تجوال)</option>
+                    <option value="'Readex Pro', sans-serif">Readex Pro (ريديكس)</option>
+                    <option value="'Reem Kufi', sans-serif">Reem Kufi (ريم كوفي)</option>
+                    <option value="'El Messiri', sans-serif">El Messiri (المسيري)</option>
+                    <option value="'Amiri', serif">Amiri (أميري)</option>
+                    <option value="Jomhuria, Arial, sans-serif">Jomhuria (الجمهورية)</option>
+                    <option value="custom">خط محلي من الجهاز أو ملف...</option>
                   </select>
+
+                  <!-- Custom Website Font Dropdown Component with Live Previews -->
+                  <div class="custom-font-dropdown-wrap" id="custom-font-dropdown-wrap">
+                    <button type="button" id="btn-font-dropdown-toggle" class="custom-font-dropdown-btn" title="اختيار نوع الخط مع المعاينة الحية">
+                      <div class="font-dropdown-selected-info">
+                        <i class="fa-solid fa-font" style="color:#2563eb; font-size:0.85rem;"></i>
+                        <span id="font-dropdown-current-name" class="font-dropdown-current-name">Alexandria (الإسكندرية)</span>
+                      </div>
+                      <i class="fa-solid fa-chevron-down font-dropdown-arrow" id="font-dropdown-arrow"></i>
+                    </button>
+
+                    <div id="font-custom-dropdown-menu" class="custom-font-dropdown-menu hidden">
+                      <div class="font-dropdown-search-box">
+                        <i class="fa-solid fa-magnifying-glass font-dropdown-search-icon"></i>
+                        <input type="text" id="input-font-dropdown-search" class="font-dropdown-search-input" placeholder="بحث في الخطوط المتاحة..." autocomplete="off">
+                      </div>
+                      <div id="font-dropdown-items-list" class="font-dropdown-items-list"></div>
+                    </div>
+                  </div>
                 </div>
 
                 <div class="control-field">

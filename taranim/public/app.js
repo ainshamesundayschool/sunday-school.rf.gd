@@ -2279,6 +2279,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (match) els.fontSelect.value = match.value;
       }
     }
+    if (typeof renderCustomFontDropdown === 'function') renderCustomFontDropdown();
     if (els.obsFontSizeRange) els.obsFontSizeRange.value = state.fontSize;
     if (els.fontSizeValBadge) els.fontSizeValBadge.textContent = `${state.fontSize}px`;
     if (els.chromaSelect) els.chromaSelect.value = state.chromaKey;
@@ -3149,6 +3150,46 @@ document.addEventListener('DOMContentLoaded', () => {
         performIntelligentSearch(els.intelligentSearch.value);
       }
     });
+
+        // Custom Font Dropdown Toggle & Search Listeners
+    const fontDropdownToggle = document.getElementById('btn-font-dropdown-toggle');
+    const fontDropdownMenu = document.getElementById('font-custom-dropdown-menu');
+    const fontDropdownSearch = document.getElementById('input-font-dropdown-search');
+
+    if (fontDropdownToggle && fontDropdownMenu) {
+      fontDropdownToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isHidden = fontDropdownMenu.classList.contains('hidden');
+        document.querySelectorAll('.dropdown-popover, .tmpl-dropdown-menu-card, .custom-font-dropdown-menu').forEach(p => p.classList.add('hidden'));
+        document.querySelectorAll('.custom-font-dropdown-btn').forEach(b => b.classList.remove('open'));
+        
+        if (isHidden) {
+          fontDropdownMenu.classList.remove('hidden');
+          fontDropdownToggle.classList.add('open');
+          if (fontDropdownSearch) {
+            fontDropdownSearch.value = '';
+            renderCustomFontDropdown('');
+            setTimeout(() => fontDropdownSearch.focus(), 80);
+          } else {
+            renderCustomFontDropdown();
+          }
+        }
+      });
+
+      if (fontDropdownSearch) {
+        fontDropdownSearch.addEventListener('input', (e) => {
+          renderCustomFontDropdown(e.target.value);
+        });
+        fontDropdownSearch.addEventListener('click', (e) => e.stopPropagation());
+      }
+
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('#custom-font-dropdown-wrap')) {
+          fontDropdownMenu.classList.add('hidden');
+          fontDropdownToggle.classList.remove('open');
+        }
+      });
+    }
 
     els.fontSelect.addEventListener('change', (e) => {
       const val = e.target.value;
@@ -4128,7 +4169,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // 9. RELOAD PRESENTATION LINES & BROADCAST LIVE
       if (state.activeSong || state.liveSong) {
-        loadSongIntoPresentation(state.activeSong || state.liveSong, true);
+        loadSongIntoPresentation(state.activeSong || state.liveSong, true, true);
       } else {
         syncLiveState(true, true, { triggerTransition: true });
       }
@@ -4137,7 +4178,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (typeof renderQuickTemplatesDropdown === 'function') renderQuickTemplatesDropdown();
     }
 
+    let isApplyingDefaultTemplate = false;
     function applyAssignedDefaultTemplate(isItemBible) {
+      if (isApplyingDefaultTemplate) return;
+      isApplyingDefaultTemplate = true;
       try {
         const key = isItemBible ? 'sunday_school_default_tmpl_bible' : 'sunday_school_default_tmpl_taranim';
         const assignedId = localStorage.getItem(key);
@@ -4189,6 +4233,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } catch (err) {
         console.error('Error applying assigned default template:', err);
+      } finally {
+        isApplyingDefaultTemplate = false;
       }
     }
 
@@ -7793,6 +7839,124 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  
+  // ----------------------------------------------------
+  // CUSTOM WEBSITE FONT DROPDOWN WITH LIVE PREVIEWS (NO CATEGORY DIVIDERS)
+  // ----------------------------------------------------
+  const AVAILABLE_FONTS = [
+    { id: 'playpen', name: 'Playpen Sans Arabic', value: "'Playpen Sans Arabic', 'Playpen Sans', 'Baloo Bhaijaan 2', cursive, sans-serif" },
+    { id: 'tufuli', name: 'Tufuli Arabic (طفولي)', value: "'Tufuli Arabic', 'Tufuli', 'DG Tufuli', 'Marhey', 'Baloo Bhaijaan 2', cursive, sans-serif" },
+    { id: 'tinta', name: 'Tinta Arabic (تينتا)', value: "'Tinta Arabic', 'Tinta', 'Lemonada', 'Baloo Bhaijaan 2', cursive, sans-serif" },
+    { id: 'lutfey', name: 'Lutfey Arabic (لطفي)', value: "'Lutfey Arabic', 'Lutfey', 'DG Lutfey', 'Zain', 'Baloo Bhaijaan 2', cursive, sans-serif" },
+    { id: 'baloo', name: 'Baloo Bhaijaan 2 (بالو بهيجان)', value: "'Baloo Bhaijaan 2', cursive, sans-serif" },
+    { id: 'marhey', name: 'Marhey (مرحي)', value: "'Marhey', cursive, sans-serif" },
+    { id: 'lemonada', name: 'Lemonada (ليمونادة)', value: "'Lemonada', cursive, sans-serif" },
+    { id: 'zain', name: 'Zain (زين)', value: "'Zain', sans-serif" },
+    { id: 'changa', name: 'Changa (شانجا)', value: "'Changa', sans-serif" },
+    { id: 'rakkas', name: 'Rakkas (رقاص)', value: "'Rakkas', cursive, sans-serif" },
+    { id: 'alexandria', name: 'Alexandria (الإسكندرية)', value: "'Alexandria', sans-serif" },
+    { id: 'cairo', name: 'Cairo (القاهرة)', value: "'Cairo', sans-serif" },
+    { id: 'almarai', name: 'Almarai (المراعي)', value: "'Almarai', sans-serif" },
+    { id: 'tajawal', name: 'Tajawal (تجوال)', value: "'Tajawal', sans-serif" },
+    { id: 'readex', name: 'Readex Pro (ريديكس)', value: "'Readex Pro', sans-serif" },
+    { id: 'reemkufi', name: 'Reem Kufi (ريم كوفي)', value: "'Reem Kufi', sans-serif" },
+    { id: 'elmessiri', name: 'El Messiri (المسيري)', value: "'El Messiri', sans-serif" },
+    { id: 'amiri', name: 'Amiri (أميري)', value: "'Amiri', serif" },
+    { id: 'jomhuria', name: 'Jomhuria (الجمهورية)', value: "Jomhuria, Arial, sans-serif" },
+    { id: 'custom', name: 'خط محلي من الجهاز أو ملف...', value: "custom", isCustomOption: true }
+  ];
+
+  function getFontDisplayName(fontVal) {
+    if (!fontVal) return 'Alexandria (الإسكندرية)';
+    if (fontVal === 'custom' || String(fontVal).startsWith('CustomFont_')) {
+      const savedName = localStorage.getItem('sunday_school_custom_font_name');
+      return savedName ? `خط مخصص: ${savedName}` : 'خط مخصص من الجهاز';
+    }
+    const found = AVAILABLE_FONTS.find(f => f.value === fontVal || fontVal.includes(f.name.split(' ')[0]));
+    return found ? found.name : fontVal.replace(/['",]/g, '').trim();
+  }
+
+  function renderCustomFontDropdown(filterQuery = '') {
+    const listEl = document.getElementById('font-dropdown-items-list');
+    const nameEl = document.getElementById('font-dropdown-current-name');
+    if (!listEl) return;
+
+    if (nameEl) {
+      nameEl.textContent = getFontDisplayName(state.selectedFont);
+      if (state.selectedFont && state.selectedFont !== 'custom') {
+        nameEl.style.fontFamily = state.selectedFont;
+      } else {
+        nameEl.style.fontFamily = 'inherit';
+      }
+    }
+
+    const q = (filterQuery || '').trim().toLowerCase();
+    const filtered = AVAILABLE_FONTS.filter(f => {
+      if (!q) return true;
+      return f.name.toLowerCase().includes(q) || f.value.toLowerCase().includes(q);
+    });
+
+    if (filtered.length === 0) {
+      listEl.innerHTML = `<div style="text-align:center; padding:16px; color:#94a3b8; font-size:0.8rem;">لا توجد خطوط مطابقة للبحث</div>`;
+      return;
+    }
+
+    listEl.innerHTML = filtered.map(f => {
+      const isCurrent = (state.selectedFont === f.value) || 
+        (!f.isCustomOption && state.selectedFont && f.value && (state.selectedFont.includes(f.name.split(' ')[0])));
+      
+      return `
+        <div class="font-dropdown-item ${isCurrent ? 'active' : ''}" data-font-value="${escapeHtml(f.value)}" data-font-name="${escapeHtml(f.name)}" data-is-custom="${f.isCustomOption ? '1' : '0'}">
+          <div class="font-item-top">
+            <span class="font-item-name">${escapeHtml(f.name)}</span>
+            ${isCurrent ? '<i class="fa-solid fa-check font-item-check"></i>' : ''}
+          </div>
+          ${!f.isCustomOption ? `
+            <div class="font-item-preview" style="font-family:${escapeHtml(f.value)};">
+              ترنيمة جديدة للرب • هللويا
+            </div>
+          ` : `
+            <div class="font-item-preview" style="font-size:0.75rem; color:#64748b; font-family:inherit;">
+              <i class="fa-solid fa-cloud-arrow-up"></i> رفع ملف خط TTF / WOFF / OTF من جهازك
+            </div>
+          `}
+        </div>
+      `;
+    }).join('');
+
+    listEl.querySelectorAll('.font-dropdown-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const fontVal = item.dataset.fontValue;
+        const isCustom = item.dataset.isCustom === '1';
+
+        // Close dropdown
+        const menu = document.getElementById('font-custom-dropdown-menu');
+        const toggleBtn = document.getElementById('btn-font-dropdown-toggle');
+        if (menu) menu.classList.add('hidden');
+        if (toggleBtn) toggleBtn.classList.remove('open');
+
+        if (isCustom || fontVal === 'custom') {
+          if (els.customFontWrapper) els.customFontWrapper.classList.remove('hidden');
+          const savedCustomFontName = localStorage.getItem('sunday_school_custom_font_name');
+          if (savedCustomFontName) {
+            applyFont(`"${savedCustomFontName}", sans-serif`);
+          } else if (els.customFontInput && els.customFontInput.value.trim()) {
+            applyFont(els.customFontInput.value.trim());
+          } else {
+            applyFont('sans-serif');
+          }
+        } else {
+          if (els.customFontWrapper) els.customFontWrapper.classList.add('hidden');
+          applyFont(fontVal);
+        }
+
+        if (els.fontSelect) els.fontSelect.value = fontVal;
+        renderCustomFontDropdown();
+      });
+    });
+  }
+
   function applyFont(fontFamily) {
     state.selectedFont = fontFamily;
     document.documentElement.style.setProperty('--slide-font-family', fontFamily);
@@ -9048,12 +9212,14 @@ document.addEventListener('DOMContentLoaded', () => {
     return song;
   }
 
-  function loadSongIntoPresentation(song, forceLive = true) {
+  function loadSongIntoPresentation(song, forceLive = true, skipDefaultTemplate = false) {
     if (!song) return;
 
     const isBibleSong = Boolean((song.is_bible === true || song.is_bible === '1' || song.is_bible === 1) || (song.chapter_number !== undefined && song.chapter_number !== null && song.chapter_number !== '') || song.type === 'bible');
     // Auto-apply assigned default template for Hymns or Bible
-    applyAssignedDefaultTemplate(isBibleSong);
+    if (!skipDefaultTemplate) {
+      applyAssignedDefaultTemplate(isBibleSong);
+    }
 
     // Trigger auto-shuffle background if enabled (one new background per song, slides share the same bg)
     triggerAutoShuffleGroupedTemplateIfNeeded(song);

@@ -5945,3 +5945,208 @@ body.startup-active {
   font-weight: 800;
   color: #475569;
 }
+
+/* CUSTOM WEBSITE FONT DROPDOWN COMPONENT */
+.custom-font-dropdown-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.custom-font-dropdown-btn {
+  width: 100%;
+  background: var(--bg-card, #ffffff);
+  border: 1.5px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  color: var(--text-main, #0f172a);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  box-sizing: border-box;
+}
+
+.custom-font-dropdown-btn:hover {
+  border-color: #93c5fd;
+  background: #f8fafc;
+}
+
+.custom-font-dropdown-btn:focus-visible,
+.custom-font-dropdown-btn.open {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.font-dropdown-selected-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.font-dropdown-current-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.font-dropdown-arrow {
+  font-size: 0.75rem;
+  color: #64748b;
+  transition: transform 0.25s ease;
+}
+
+.custom-font-dropdown-btn.open .font-dropdown-arrow {
+  transform: rotate(180deg);
+  color: #2563eb;
+}
+
+.custom-font-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 10000;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.16), 0 4px 12px rgba(0, 0, 0, 0.06);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 380px;
+  animation: fontDropdownPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+@keyframes fontDropdownPop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.font-dropdown-search-box {
+  position: relative;
+  width: 100%;
+}
+
+.font-dropdown-search-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.78rem;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.font-dropdown-search-input {
+  width: 100%;
+  padding: 6px 28px 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  font-size: 0.8rem;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.font-dropdown-search-input:focus {
+  background: #ffffff;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.font-dropdown-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+  max-height: 310px;
+  padding-right: 2px;
+}
+
+.font-dropdown-items-list::-webkit-scrollbar {
+  width: 5px;
+}
+.font-dropdown-items-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 6px;
+}
+
+.font-dropdown-item {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1.5px solid transparent;
+  background: #ffffff;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  transition: all 0.15s ease;
+}
+
+.font-dropdown-item:hover {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+}
+
+.font-dropdown-item.active {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.font-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.font-item-name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.font-dropdown-item.active .font-item-name {
+  color: #2563eb;
+  font-weight: 800;
+}
+
+.font-item-check {
+  color: #2563eb;
+  font-size: 0.82rem;
+}
+
+.font-item-preview {
+  font-size: 1.05rem;
+  color: #334155;
+  line-height: 1.35;
+  padding-top: 2px;
+  letter-spacing: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.font-dropdown-item.active .font-item-preview {
+  color: #1e40af;
+}
