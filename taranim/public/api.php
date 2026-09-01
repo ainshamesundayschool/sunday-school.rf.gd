@@ -127,23 +127,27 @@ if (isset($_GET['action']) && $_GET['action'] === 'templates') {
 $pdo = null;
 $isMysql = false;
 
-// 1. TRY MYSQL FIRST
-try {
-    $pdo = new PDO("mysql:host=$mysqlHost;port=$mysqlPort;dbname=$mysqlDb;charset=utf8mb4", $mysqlUser, $mysqlPass, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_TIMEOUT => 3,
-        PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4"
-    ]);
-    $isMysql = true;
-} catch (PDOException $e) {
-    // 2. FALLBACK TO SQLITE FOR LOCAL DESKTOP USE
+// 1. TRY SQLITE FIRST (LOCAL MASTER SOURCE OF TRUTH: database.sqlite)
+if (file_exists($sqlitePath) && filesize($sqlitePath) > 0) {
     try {
         $pdo = new PDO('sqlite:' . $sqlitePath);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $isMysql = false;
     } catch (PDOException $ex) {
-        // Continue even if database connection is pending
+        $pdo = null;
     }
+}
+
+// 2. FALLBACK TO MYSQL IF SQLITE NOT AVAILABLE
+if (!$pdo) {
+    try {
+        $pdo = new PDO("mysql:host=$mysqlHost;port=$mysqlPort;dbname=$mysqlDb;charset=utf8mb4", $mysqlUser, $mysqlPass, [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_TIMEOUT => 3,
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4"
+        ]);
+        $isMysql = true;
+    } catch (PDOException $e) {}
 }
 
 function fetchExternalUrl($url) {
