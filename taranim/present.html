@@ -1681,13 +1681,16 @@
       let detectedBadge = badgeTextOverride || '';
       let detectedBadgeClass = badgeClassOverride || '';
 
+      const badgeRegex = /^\s*(?:[\(\[\{]\s*(ق|قرار|\d+|[٠-٩]+)\s*[\)\]\}]\s*[:\-\.]?|(?:قرار|\d+|[٠-٩]+)\s*[:\-\.]|ق\s*[:\-\/\.])\s*/i;
+
       if (!detectedBadge) {
-        const badgeMatch = text.match(/^\s*\(?(ق|قرار|\d+|[٠-٩]+)\)?[:\s\-]*\s*/i);
+        const badgeMatch = text.match(badgeRegex);
         if (badgeMatch) {
-          const isChorus = /ق|قرار/i.test(badgeMatch[1]);
-          detectedBadge = isChorus ? '(ق)' : `(${badgeMatch[1]})`;
+          const matched = (badgeMatch[1] || (badgeMatch[0].includes('ق') ? 'ق' : '')).trim();
+          const isChorus = /ق|قرار/i.test(matched);
+          detectedBadge = isChorus ? '(ق)' : `(${matched})`;
           detectedBadgeClass = isChorus ? 'chorus-badge-side chorus-num' : 'stanza-badge-side verse-num';
-          text = text.replace(/^\s*\(?(ق|قرار|\d+|[٠-٩]+)\)?[:\s\-]*\s*/i, '').trim();
+          text = text.replace(badgeRegex, '').trim();
         }
       } else {
         const isChorus = /ق|قرار/i.test(detectedBadge);
@@ -1695,7 +1698,7 @@
           detectedBadge = '(ق)';
           detectedBadgeClass = 'chorus-badge-side chorus-num';
         }
-        text = text.replace(/^\s*\(?(ق|قرار|\d+|[٠-٩]+)\)?[:\s\-]*\s*/i, '').trim();
+        text = text.replace(badgeRegex, '').trim();
       }
 
       let html = text

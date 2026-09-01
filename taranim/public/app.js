@@ -10036,9 +10036,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const firstLine = rawLines[0];
 
       if (detectChorus) {
-        if (/^\s*\(?\s*(القرار|قرار|ق)\s*\)?\s*[:\s\-]?/i.test(firstLine) || /^\s*\(القرار\)$/i.test(firstLine) || /^\s*\(ق\)$/i.test(firstLine)) {
+        const chorusPrefixRegex = /^\s*(?:[\(\[\{]\s*(القرار|قرار|ق)\s*[\)\]\}]\s*[:\-\/]?|(?:القرار|قرار)\s*[:\-\/]?|ق\s*[:\-\/\.])\s*/i;
+        const isIsolatedChorus = /^\s*[\(\[\{]?\s*(القرار|قرار|ق)\s*[\)\]\}]?\s*$/i;
+
+        if (chorusPrefixRegex.test(firstLine) || isIsolatedChorus.test(firstLine)) {
           isChorus = true;
-          rawLines[0] = firstLine.replace(/^\s*\(?\s*(القرار|قرار|ق)\s*\)?\s*[:\s\-]?\s*/i, '').trim();
+          rawLines[0] = firstLine.replace(chorusPrefixRegex, '').replace(isIsolatedChorus, '').trim();
           if (!rawLines[0]) rawLines.shift();
         } else {
           const matchNum = firstLine.match(/^\s*\(?\s*([\d٠-٩]+)\s*\)?\s*[:\s\-\.]\s*(.*)/);
@@ -11767,9 +11770,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const isChorusText = (txt) => {
       if (!txt) return false;
-      return /^\s*\(?\s*(القرار|قرار|ق)\s*\)?\s*[:\s\-]?/i.test(txt) ||
-             /^\s*\(القرار\)$/i.test(txt) ||
-             /^\s*\(ق\)$/i.test(txt);
+      return /^\s*[\(\[\{]\s*(القرار|قرار|ق)\s*[\)\]\}]/i.test(txt) ||
+             /^\s*(القرار|قرار)\s*[:\-\/]?\s*/i.test(txt) ||
+             /^\s*ق\s*[:\-\/\.]\s*/i.test(txt) ||
+             /^\s*[\(\[\{]?\s*(القرار|قرار|ق)\s*[\)\]\}]?\s*$/i.test(txt);
     };
 
     // Helper: get all text from a verse (for duplicate detection)
@@ -12018,15 +12022,16 @@ document.addEventListener('DOMContentLoaded', () => {
             verse.isChorus === true ||
             String(rawVerseType).toLowerCase() === 'chorus' ||
             /القرار|قرار|^ق$/i.test(verse.title || '') ||
-            /^\(?(القرار|قرار|ق)\)?[:\s\-]?/i.test(firstRawLine)
+            /^\s*[\(\[\{]\s*(القرار|قرار|ق)\s*[\)\]\}]/i.test(firstRawLine) ||
+            /^\s*(القرار|قرار)\s*[:\-\/]?\s*/i.test(firstRawLine) ||
+            /^\s*ق\s*[:\-\/\.]\s*/i.test(firstRawLine)
           );
 
-          // Clean any redundant leading badges in text
+          // Clean only explicit redundant leading badges in text
+          const stripBadgeRegex = /^\s*(?:[\(\[\{]\s*(القرار|قرار|ق|[\d٠-٩]+)\s*[\)\]\}]\s*[:\-\.]?|(?:القرار|قرار)\s*[:\-\/]?|ق\s*[:\-\/\.]|[\d٠-٩]+\s*[:\-\.])\s*/i;
           cleanLines = cleanLines.map(l => {
-            return l.replace(/^\(?(القرار|قرار|ق)\)?[:\s\-]\s*/i, '')
-                    .replace(/^\(القرار\)$/i, '')
-                    .replace(/^\(ق\)$/i, '')
-                    .replace(/^\(?[\d٠-٩]+\)?[:\s\-]\s*/, '')
+            return l.replace(stripBadgeRegex, '')
+                    .replace(/^\s*[\(\[\{]?\s*(القرار|قرار|ق)\s*[\)\]\}]?\s*$/i, '')
                     .trim();
           }).filter(l => l.length > 0);
 
@@ -12255,22 +12260,23 @@ document.addEventListener('DOMContentLoaded', () => {
         let isChorus = false;
         let foundStanzaNum = null;
 
-        const firstLine = lines[0];
-        if (/^\(?(القرار|قرار|ق)\)?[:\s\-]/i.test(firstLine) || /^\(القرار\)$/i.test(firstLine) || /^\(ق\)$/i.test(firstLine)) {
+        const chorusPrefixRegex = /^\s*(?:[\(\[\{]\s*(القرار|قرار|ق)\s*[\)\]\}]\s*[:\-\/]?|(?:القرار|قرار)\s*[:\-\/]?|ق\s*[:\-\/\.])\s*/i;
+        const isIsolatedChorus = /^\s*[\(\[\{]?\s*(القرار|قرار|ق)\s*[\)\]\}]?\s*$/i;
+
+        if (chorusPrefixRegex.test(firstLine) || isIsolatedChorus.test(firstLine)) {
           isChorus = true;
         } else {
-          const matchNum = firstLine.match(/^\(?([\d٠-٩]+)\)?[:\s\-]/);
+          const matchNum = firstLine.match(/^\s*\(?([\d٠-٩]+)\)?\s*[:\-\.]/);
           if (matchNum) {
             foundStanzaNum = matchNum[1];
           }
         }
 
         // Clean redundant headers
+        const stripBadgeRegex = /^\s*(?:[\(\[\{]\s*(القرار|قرار|ق|[\d٠-٩]+)\s*[\)\]\}]\s*[:\-\.]?|(?:القرار|قرار)\s*[:\-\/]?|ق\s*[:\-\/\.]|[\d٠-٩]+\s*[:\-\.])\s*/i;
         lines = lines.map(l => {
-          return l.replace(/^\(?(القرار|قرار|ق)\)?[:\s\-]\s*/i, '')
-                  .replace(/^\(القرار\)$/i, '')
-                  .replace(/^\(ق\)$/i, '')
-                  .replace(/^\(?[\d٠-٩]+\)?[:\s\-]\s*/, '')
+          return l.replace(stripBadgeRegex, '')
+                  .replace(/^\s*[\(\[\{]?\s*(القرار|قرار|ق)\s*[\)\]\}]?\s*$/i, '')
                   .trim();
         }).filter(l => l.length > 0);
 
@@ -12995,13 +13001,16 @@ document.addEventListener('DOMContentLoaded', () => {
     let detectedBadge = badgeTextOverride || '';
     let detectedBadgeClass = badgeClassOverride || '';
 
+    const badgeRegex = /^\s*(?:[\(\[\{]\s*(ق|قرار|\d+|[٠-٩]+)\s*[\)\]\}]\s*[:\-\.]?|(?:قرار|\d+|[٠-٩]+)\s*[:\-\.]|ق\s*[:\-\/\.])\s*/i;
+
     if (!detectedBadge) {
-      const badgeMatch = text.match(/^\s*\(?(ق|قرار|\d+|[٠-٩]+)\)?[:\s\-]*\s*/i);
+      const badgeMatch = text.match(badgeRegex);
       if (badgeMatch) {
-        const isChorus = /ق|قرار/i.test(badgeMatch[1]);
-        detectedBadge = isChorus ? '(ق)' : `(${badgeMatch[1]})`;
+        const matched = (badgeMatch[1] || (badgeMatch[0].includes('ق') ? 'ق' : '')).trim();
+        const isChorus = /ق|قرار/i.test(matched);
+        detectedBadge = isChorus ? '(ق)' : `(${matched})`;
         detectedBadgeClass = isChorus ? 'chorus-badge-side chorus-num' : 'stanza-badge-side verse-num';
-        text = text.replace(/^\s*\(?(ق|قرار|\d+|[٠-٩]+)\)?[:\s\-]*\s*/i, '').trim();
+        text = text.replace(badgeRegex, '').trim();
       }
     } else {
       const isChorus = /ق|قرار/i.test(detectedBadge);
@@ -13009,7 +13018,7 @@ document.addEventListener('DOMContentLoaded', () => {
         detectedBadge = '(ق)';
         detectedBadgeClass = 'chorus-badge-side chorus-num';
       }
-      text = text.replace(/^\s*\(?(ق|قرار|\d+|[٠-٩]+)\)?[:\s\-]*\s*/i, '').trim();
+      text = text.replace(badgeRegex, '').trim();
     }
 
     let html = escapeHtml(text);
