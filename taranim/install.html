@@ -353,19 +353,27 @@
       deferredPrompt = null;
     });
 
-    // Offline Data Precaching Hub
+    // Offline Data Precaching Hub with IndexedDB support
     const ASSETS_TO_CACHE = [
       './',
       './index.html',
       './present.html',
+      './remote.html',
       './install.html',
       './app.js',
       './style.css',
+      './logoicon.png',
       './logo.png',
+      './manifest.json',
       './manifest.webmanifest',
+      './templates.json',
       './songs_catalog.json',
+      './bible_chapters_data.json',
       './arabic_dictionary.json',
-      './playlists.json'
+      './playlists.json',
+      './song_scales_map.json',
+      './song_scales_map.js',
+      './bible_books_data.json'
     ];
 
     btnPrecacheData.addEventListener('click', async () => {
@@ -377,15 +385,57 @@
       const total = ASSETS_TO_CACHE.length;
 
       try {
-        const cache = await caches.open('sunday_school_taranim_v20260729_v16');
+        const appCache = await caches.open('taranim-pwa-v38');
+        const dataCache = await caches.open('taranim-data-v1');
+
+        // Setup IndexedDB
+        let idb = null;
+        if ('indexedDB' in window) {
+          try {
+            idb = await new Promise((resolve) => {
+              const req = indexedDB.open('sunday_school_taranim_indexed_db', 2);
+              req.onupgradeneeded = (e) => {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains('keyval')) {
+                  db.createObjectStore('keyval');
+                }
+              };
+              req.onsuccess = (e) => resolve(e.target.result);
+              req.onerror = () => resolve(null);
+            });
+          } catch(e) {}
+        }
+
+        const saveToIdb = (key, val) => {
+          if (!idb) return;
+          try {
+            const tx = idb.transaction('keyval', 'readwrite');
+            tx.objectStore('keyval').put(val, key);
+          } catch(e) {}
+        };
 
         for (let i = 0; i < total; i++) {
           const url = ASSETS_TO_CACHE[i];
           precacheBtnText.textContent = `جاري التحميل: ${url.replace('./', '')}...`;
           try {
+            const isLarge = url.includes('songs_catalog') || url.includes('bible_chapters');
+            const targetCache = isLarge ? dataCache : appCache;
             const res = await fetch(url, { cache: 'no-cache' });
             if (res && res.ok) {
-              await cache.put(url, res);
+              const clone = res.clone();
+              await targetCache.put(url, clone);
+
+              if (url.includes('songs_catalog.json')) {
+                try {
+                  const catalogJson = await res.json();
+                  if (Array.isArray(catalogJson)) saveToIdb('songs_catalog', catalogJson);
+                } catch(e) {}
+              } else if (url.includes('bible_chapters_data.json')) {
+                try {
+                  const bibleJson = await res.json();
+                  if (bibleJson) saveToIdb('bible_chapters_data', bibleJson);
+                } catch(e) {}
+              }
             }
           } catch (err) {}
 
@@ -397,7 +447,7 @@
 
         precacheBtnText.textContent = 'تم حفظ جميع البيانات أوفلاين بنجاح';
         statusBadge.classList.add('offline-active');
-        statusText.textContent = 'تم حفظ جميع الملفات والكتالوج محلياً';
+        statusText.textContent = 'تم حفظ جميع الملفات وكتالوج الترانيم كاملاً محلياً';
       } catch (err) {
         precacheBtnText.textContent = 'إعادة المحاولة';
         progressStatusText.textContent = 'حدث خطأ بسيط أثناء التحميل، تأكد من الاتصال لأول مرة فقط.';

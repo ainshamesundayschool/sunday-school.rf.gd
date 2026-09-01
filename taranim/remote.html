@@ -821,7 +821,57 @@
       }
     }
 
+    function normalizeArabic(text) {
+      if (!text) return '';
+      return String(text)
+        .replace(/[\u064B-\u065F\u0670]/g, '') // Remove tashkeel/diacritics
+        .replace(/[أإآٱ]/g, 'ا')
+        .replace(/ة/g, 'ه')
+        .replace(/ى/g, 'ي')
+        .replace(/ؤ/g, 'و')
+        .replace(/ئ/g, 'ي')
+        .trim()
+        .toLowerCase();
+    }
+
+    // Register Service Worker in Remote PWA
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
+
     async function loadSongsForSearch() {
+      // 1. Try IndexedDB
+      if ('indexedDB' in window) {
+        try {
+          const req = indexedDB.open('sunday_school_taranim_indexed_db', 2);
+          req.onsuccess = (e) => {
+            const db = e.target.result;
+            if (db && db.objectStoreNames.contains('keyval')) {
+              const tx = db.transaction('keyval', 'readonly');
+              const g = tx.objectStore('keyval').get('songs_catalog');
+              g.onsuccess = () => {
+                if (Array.isArray(g.result) && g.result.length > 0) {
+                  allSongsCache = g.result;
+                }
+              };
+            }
+          };
+        } catch(e) {}
+      }
+
+      // 2. Fetch local songs_catalog.json (served by ServiceWorker cache offline)
+      try {
+        const res = await fetch('./songs_catalog.json');
+        if (res && res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            allSongsCache = data;
+            return;
+          }
+        }
+      } catch(e) {}
+
+      // 3. Fallback to API endpoint
       try {
         const res = await fetch('/api.php?action=get_all_songs');
         const data = await res.json();
@@ -876,17 +926,22 @@
     document.getElementById('btn-close-search').addEventListener('click', () => searchSheet.classList.remove('open'));
 
     document.getElementById('remote-search-input').addEventListener('input', (e) => {
-      const q = e.target.value.trim().toLowerCase();
+      const q = normalizeArabic(e.target.value);
       const listEl = document.getElementById('search-results-list');
       if (!q || allSongsCache.length === 0) {
         listEl.innerHTML = '';
         return;
       }
-      const matched = allSongsCache.filter(s => (s.title && s.title.toLowerCase().includes(q)) || (s.text && s.text.toLowerCase().includes(q))).slice(0, 20);
+      const matched = allSongsCache.filter(s => {
+        const titleNorm = normalizeArabic(s.title || '');
+        const textNorm = normalizeArabic(s.text || s.notes || '');
+        return titleNorm.includes(q) || textNorm.includes(q);
+      }).slice(0, 25);
+
       listEl.innerHTML = matched.map(s => `
         <div class="song-result-card" data-id="${s.id}">
           <div style="font-weight:800; font-size:0.95rem; color:#ffffff;">${s.title}</div>
-          <div style="font-size:0.75rem; color:#94a3b8; margin-top:2px;">${(s.text || '').substring(0, 50)}...</div>
+          <div style="font-size:0.75rem; color:#94a3b8; margin-top:2px;">${(s.text || s.notes || '').substring(0, 60)}...</div>
         </div>
       `).join('');
 

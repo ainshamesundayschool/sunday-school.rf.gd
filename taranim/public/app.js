@@ -1003,6 +1003,73 @@ function correctWithArabicDictionary(draftArabic, dictionary) {
   return correctedWords.join(' ');
 }
 
+// =========================================================================
+// TARANIM PERSISTENT INDEXEDDB STORAGE ENGINE (100% OFFLINE DATA LAYER)
+// =========================================================================
+const TaranimDB = (function() {
+  const DB_NAME = 'sunday_school_taranim_indexed_db';
+  const DB_VERSION = 2;
+  let dbPromise = null;
+
+  function openDB() {
+    if (dbPromise) return dbPromise;
+    dbPromise = new Promise((resolve) => {
+      if (!('indexedDB' in window)) {
+        resolve(null);
+        return;
+      }
+      try {
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains('keyval')) {
+            db.createObjectStore('keyval');
+          }
+        };
+        req.onsuccess = (e) => resolve(e.target.result);
+        req.onerror = () => resolve(null);
+      } catch(e) {
+        resolve(null);
+      }
+    });
+    return dbPromise;
+  }
+
+  async function get(key) {
+    try {
+      const db = await openDB();
+      if (!db) return null;
+      return new Promise((resolve) => {
+        const tx = db.transaction('keyval', 'readonly');
+        const store = tx.objectStore('keyval');
+        const req = store.get(key);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => resolve(null);
+      });
+    } catch(e) {
+      return null;
+    }
+  }
+
+  async function set(key, val) {
+    try {
+      const db = await openDB();
+      if (!db) return false;
+      return new Promise((resolve) => {
+        const tx = db.transaction('keyval', 'readwrite');
+        const store = tx.objectStore('keyval');
+        const req = store.put(val, key);
+        req.onsuccess = () => resolve(true);
+        req.onerror = () => resolve(false);
+      });
+    } catch(e) {
+      return false;
+    }
+  }
+
+  return { get, set, openDB };
+})();
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js', { scope: './' })
@@ -2203,10 +2270,12 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('online', () => {
       showToast('تم استعادة الاتصال بالإنترنت — جاري مزامنة البيانات...', 'info');
       fetch('./songs_catalog.json?t=' + Date.now())
-        .then(res => res.json())
+        .then(res => res.ok ? res.json() : null)
         .then(data => {
           if (Array.isArray(data) && data.length > 0) {
             state.allSongs = (typeof indexCatalogList === 'function') ? indexCatalogList(data) : data;
+            if (typeof TaranimDB !== 'undefined') TaranimDB.set('songs_catalog', data);
+            syncCustomSongsIntoCatalog();
             showToast('تم تحديث مكتبة الترانيم تلقائياً بنجاح!');
           }
         })
@@ -3846,15 +3915,30 @@ document.addEventListener('DOMContentLoaded', () => {
   async function checkOfflineStatusAndToggleInstallBtn() {
     if (!els.btnMenuInstall) return;
     try {
+      if (typeof TaranimDB !== 'undefined') {
+        const stored = await TaranimDB.get('songs_catalog');
+        if (stored && Array.isArray(stored) && stored.length > 1000) {
+          if (els.popoverOfflineStatusText) {
+            els.popoverOfflineStatusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#10b981;"></i> تم حفظ ${Number(stored.length).toLocaleString('ar-EG')} ترنيمة أوفلاين`;
+          }
+          if (els.btnDropdownPrecache) {
+            els.btnDropdownPrecache.innerHTML = `<i class="fa-solid fa-circle-check"></i> تم حفظ جميع البيانات أوفلاين (${Number(stored.length).toLocaleString('ar-EG')})`;
+          }
+          return;
+        }
+      }
       if ('caches' in window) {
         const keys = await caches.keys();
-        if (keys.some(k => k.includes('sunday_school_taranim'))) {
-          const cacheName = keys.find(k => k.includes('sunday_school_taranim'));
-          const cache = await caches.open(cacheName);
-          const matched = await cache.match('./songs_catalog.json');
-          if (matched) {
-            els.btnMenuInstall.style.display = 'none';
-            return;
+        for (const k of keys) {
+          if (k.includes('taranim') || k.includes('sunday_school')) {
+            const cache = await caches.open(k);
+            const matched = await cache.match('./songs_catalog.json', { ignoreSearch: true });
+            if (matched) {
+              if (els.popoverOfflineStatusText) {
+                els.popoverOfflineStatusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#10b981;"></i> جاهز للعمل بدون إنترنت`;
+              }
+              return;
+            }
           }
         }
       }
@@ -4242,16 +4326,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const ASSETS_TO_CACHE = [
           { url: './', size: 5000 },
-          { url: './index.html', size: 48000 },
-          { url: './present.html', size: 75000 },
-          { url: './app.js', size: 290000 },
-          { url: './style.css', size: 106000 },
+          { url: './index.html', size: 120000 },
+          { url: './present.html', size: 110000 },
+          { url: './remote.html', size: 30000 },
+          { url: './install.html', size: 15000 },
+          { url: './app.js', size: 660000 },
+          { url: './style.css', size: 170000 },
           { url: './logoicon.png', size: 70000 },
+          { url: './logo.png', size: 550000 },
+          { url: './manifest.json', size: 800 },
           { url: './manifest.webmanifest', size: 800 },
+          { url: './templates.json', size: 12000 },
           { url: './songs_catalog.json', size: 23528339 },
+          { url: './bible_chapters_data.json', size: 17842105 },
           { url: './arabic_dictionary.json', size: 208186 },
           { url: './playlists.json', size: 100 },
-          { url: './song_scales_map.json', size: 20400 },
+          { url: './song_scales_map.json', size: 48060 },
+          { url: './song_scales_map.js', size: 20411 },
           { url: './bible_books_data.json', size: 8064 }
         ];
 
@@ -4259,50 +4350,58 @@ document.addEventListener('DOMContentLoaded', () => {
         let downloadedBytes = 0;
 
         try {
-          let cacheName = 'taranim-pwa-v6';
-          if ('caches' in window) {
-            const keys = await caches.keys();
-            const found = keys.find(k => k.includes('taranim') || k.includes('sunday_school'));
-            if (found) cacheName = found;
-          }
-          const cache = await caches.open(cacheName);
+          const appCache = await caches.open('taranim-pwa-v38');
+          const dataCache = await caches.open('taranim-data-v1');
 
           for (const item of ASSETS_TO_CACHE) {
             try {
+              const isLargeData = item.url.includes('songs_catalog') || item.url.includes('bible_chapters');
+              const targetCache = isLargeData ? dataCache : appCache;
+
               const res = await fetch(item.url, { cache: 'no-cache' });
               if (res && res.ok) {
                 const clone = res.clone();
-                await cache.put(item.url, clone);
+                await targetCache.put(item.url, clone);
 
-                if (res.body && typeof res.body.getReader === 'function') {
-                  const reader = res.body.getReader();
-                  while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-                    if (value && value.length) {
-                      downloadedBytes += value.length;
-                      const pct = Math.min(99, Math.round((downloadedBytes / TOTAL_BYTES) * 100));
-                      if (els.popoverProgressFill) els.popoverProgressFill.style.width = `${pct}%`;
-                      if (els.popoverProgressText) els.popoverProgressText.textContent = `جاري التحميل أوفلاين (${pct}%)...`;
+                // Save JSON datasets into IndexedDB as well
+                if (item.url.includes('songs_catalog.json')) {
+                  try {
+                    const catalogJson = await res.json();
+                    if (Array.isArray(catalogJson) && catalogJson.length > 0) {
+                      await TaranimDB.set('songs_catalog', catalogJson);
+                      state.allSongs = indexCatalogList(catalogJson);
+                      syncCustomSongsIntoCatalog();
                     }
-                  }
-                } else {
-                  downloadedBytes += item.size;
-                  const pct = Math.min(99, Math.round((downloadedBytes / TOTAL_BYTES) * 100));
-                  if (els.popoverProgressFill) els.popoverProgressFill.style.width = `${pct}%`;
-                  if (els.popoverProgressText) els.popoverProgressText.textContent = `جاري التحميل أوفلاين (${pct}%)...`;
+                  } catch(e) {}
+                } else if (item.url.includes('bible_chapters_data.json')) {
+                  try {
+                    const bibleJson = await res.json();
+                    if (bibleJson && typeof bibleJson === 'object') {
+                      await TaranimDB.set('bible_chapters_data', bibleJson);
+                      state.bibleChaptersData = bibleJson;
+                    }
+                  } catch(e) {}
+                } else if (item.url.includes('templates.json')) {
+                  try {
+                    const tmplJson = await res.json();
+                    if (tmplJson) await TaranimDB.set('templates_data', tmplJson);
+                  } catch(e) {}
                 }
               }
-            } catch (err) {
-              downloadedBytes += item.size;
-            }
+            } catch (err) {}
+
+            downloadedBytes += item.size;
+            const pct = Math.min(99, Math.round((downloadedBytes / TOTAL_BYTES) * 100));
+            if (els.popoverProgressFill) els.popoverProgressFill.style.width = `${pct}%`;
+            if (els.popoverProgressText) els.popoverProgressText.textContent = `جاري التحميل أوفلاين (${pct}%)...`;
           }
 
           if (els.popoverProgressFill) els.popoverProgressFill.style.width = '100%';
           if (els.popoverProgressText) els.popoverProgressText.textContent = 'تم إكتمال التحميل 100%';
           localStorage.setItem('taranim_pwa_initial_download_done', 'true');
-          if (els.btnDropdownPrecache) els.btnDropdownPrecache.innerHTML = '<i class="fa-solid fa-circle-check"></i> تم حفظ جميع البيانات أوفلاين';
-          if (els.popoverOfflineStatusText) els.popoverOfflineStatusText.innerHTML = '<i class="fa-solid fa-circle-check"></i> جاهز للعمل بدون إنترنت';
+          const countStr = state.allSongs && state.allSongs.length > 0 ? ` (${Number(state.allSongs.length).toLocaleString('ar-EG')})` : '';
+          if (els.btnDropdownPrecache) els.btnDropdownPrecache.innerHTML = `<i class="fa-solid fa-circle-check"></i> تم حفظ جميع البيانات أوفلاين${countStr}`;
+          if (els.popoverOfflineStatusText) els.popoverOfflineStatusText.innerHTML = `<i class="fa-solid fa-circle-check"></i> جاهز للعمل بدون إنترنت${countStr}`;
           showToast('تم حفظ الترانيم والكتاب المقدس أوفلاين بنجاح!');
           setTimeout(() => {
             if (els.popoverProgressWrapper) els.popoverProgressWrapper.classList.add('hidden');
@@ -9538,16 +9637,71 @@ document.addEventListener('DOMContentLoaded', () => {
       els.totalSongsCount.innerHTML = `<i class="fa-solid fa-music"></i> <span>${formatted} ترنيمة</span>`;
     }
 
-    // Fast non-blocking parallel fetch of catalog & bible data directly into memory
+    // 1. FAST 0MS OFFLINE RECOVERY FROM INDEXEDDB (INSTANT AVAILABILITY ON COLD START)
+    try {
+      if (typeof TaranimDB !== 'undefined') {
+        const [savedCatalog, savedBible] = await Promise.all([
+          TaranimDB.get('songs_catalog'),
+          TaranimDB.get('bible_chapters_data')
+        ]);
+        if (savedCatalog && Array.isArray(savedCatalog) && savedCatalog.length > 0) {
+          state.allSongs = indexCatalogList(savedCatalog);
+          syncCustomSongsIntoCatalog();
+          if (els.totalSongsCount) {
+            const formatted = Number(state.allSongs.length).toLocaleString('ar-EG');
+            els.totalSongsCount.innerHTML = `<i class="fa-solid fa-music"></i> <span>${formatted} ترنيمة</span>`;
+          }
+        }
+        if (savedBible && typeof savedBible === 'object' && Object.keys(savedBible).length > 0) {
+          state.bibleChaptersData = savedBible;
+          state.allBibleChapters = indexBibleChaptersData(savedBible);
+        }
+      }
+    } catch(e) {}
+
+    // 2. PARALLEL NETWORK / CACHE SYNC & PERSISTENCE
     try {
       const pathDir = window.location.pathname.replace(/\/[^\/]*$/, '/');
-      const fetchCatalog = fetch('./songs_catalog.json')
-        .then(r => r.ok ? r.json() : null)
-        .catch(() => null);
+      const fetchCatalog = (async () => {
+        try {
+          const r = await fetch('./songs_catalog.json');
+          if (r && r.ok) return await r.json();
+        } catch(e) {}
+        // Fallback: Check caches explicitly
+        if ('caches' in window) {
+          try {
+            const keys = await caches.keys();
+            for (const k of keys) {
+              const cache = await caches.open(k);
+              const m = await cache.match('./songs_catalog.json', { ignoreSearch: true });
+              if (m && m.ok) return await m.json();
+            }
+          } catch(e) {}
+        }
+        return null;
+      })();
 
-      const fetchBible = fetch('./bible_chapters_data.json')
-        .then(r => r.ok ? r.json() : null)
-        .catch(() => fetch(`${window.location.origin}${pathDir}bible_chapters_data.json`).then(r => r.ok ? r.json() : null).catch(() => null));
+      const fetchBible = (async () => {
+        try {
+          const r = await fetch('./bible_chapters_data.json');
+          if (r && r.ok) return await r.json();
+        } catch(e) {}
+        try {
+          const r2 = await fetch(`${window.location.origin}${pathDir}bible_chapters_data.json`);
+          if (r2 && r2.ok) return await r2.json();
+        } catch(e) {}
+        if ('caches' in window) {
+          try {
+            const keys = await caches.keys();
+            for (const k of keys) {
+              const cache = await caches.open(k);
+              const m = await cache.match('./bible_chapters_data.json', { ignoreSearch: true });
+              if (m && m.ok) return await m.json();
+            }
+          } catch(e) {}
+        }
+        return null;
+      })();
 
       const [data, bibleData] = await Promise.all([fetchCatalog, fetchBible]);
 
@@ -9555,11 +9709,17 @@ document.addEventListener('DOMContentLoaded', () => {
         let rawList = Array.isArray(data) ? data : (data && data.songs ? data.songs : []);
         if (rawList.length > 0) {
           state.allSongs = indexCatalogList(rawList);
+          if (typeof TaranimDB !== 'undefined') {
+            TaranimDB.set('songs_catalog', rawList);
+          }
         }
       }
-      if (bibleData) {
+      if (bibleData && typeof bibleData === 'object' && Object.keys(bibleData).length > 0) {
         state.bibleChaptersData = bibleData;
         state.allBibleChapters = indexBibleChaptersData(bibleData);
+        if (typeof TaranimDB !== 'undefined') {
+          TaranimDB.set('bible_chapters_data', bibleData);
+        }
       }
 
       // Sync and prepend local custom hymns into catalog index
@@ -11113,6 +11273,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     bibleChaptersLoadingPromise = (async () => {
       try {
+        // 1. Check IndexedDB first (0ms offline!)
+        if (typeof TaranimDB !== 'undefined') {
+          const dbData = await TaranimDB.get('bible_chapters_data');
+          if (dbData && typeof dbData === 'object' && Object.keys(dbData).length > 0) {
+            state.bibleChaptersData = dbData;
+            return dbData;
+          }
+        }
+
+        // 2. Check Cache API
         if ('caches' in window) {
           const keys = await caches.keys().catch(() => []);
           for (const key of keys) {
@@ -11124,6 +11294,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await res.json().catch(() => null);
                 if (data && Object.keys(data).length > 0) {
                   state.bibleChaptersData = data;
+                  if (typeof TaranimDB !== 'undefined') TaranimDB.set('bible_chapters_data', data);
                   return data;
                 }
               }
@@ -11140,6 +11311,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const data = await res.json().catch(() => null);
           if (data && Object.keys(data).length > 0) {
             state.bibleChaptersData = data;
+            if (typeof TaranimDB !== 'undefined') TaranimDB.set('bible_chapters_data', data);
             return data;
           }
         }
@@ -11233,6 +11405,20 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
       }
+    }
+
+    // 2.1 OFFLINE INDEXEDDB LOOKUP FALLBACK
+    if (!isItemBible && (!targetSong || !hasCompleteContent(targetSong)) && cleanId && typeof TaranimDB !== 'undefined') {
+      try {
+        const storedCatalog = await TaranimDB.get('songs_catalog');
+        if (Array.isArray(storedCatalog)) {
+          const found = storedCatalog.find(s => String(s.id) === cleanId || String(s.item_id) === cleanId);
+          if (found) {
+            targetSong = JSON.parse(JSON.stringify(found));
+            originSource = 'indexeddb_catalog_lookup';
+          }
+        }
+      } catch(e) {}
     }
 
     // 3. INSTANT 0ms UI PRESENTATION (IF TARGET SONG IS COMPLETE)
