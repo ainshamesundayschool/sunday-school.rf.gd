@@ -5788,46 +5788,56 @@ input[type="range"]:active::-moz-range-thumb {
   pointer-events: none !important;
 }
 
+.obs-line-row {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  text-align: center;
+  margin: 0.15em 0 !important;
+  box-sizing: border-box !important;
+}
+
 .obs-line-segment {
-  position: relative;
-  isolation: isolate;
+  position: relative !important;
+  isolation: isolate !important;
   display: inline-block !important;
   width: auto !important;
-  max-width: 100%;
-  white-space: nowrap !important;
+  max-width: 100% !important;
+  white-space: normal !important;
   word-break: normal !important;
   overflow-wrap: normal !important;
   transition: color 0.25s ease;
+  line-height: inherit !important;
+  vertical-align: middle;
+  box-sizing: border-box !important;
 }
 
 .obs-line-segment.line-highlighted {
-  position: relative;
-  isolation: isolate;
-  z-index: 5;
+  position: relative !important;
+  isolation: isolate !important;
+  z-index: 5 !important;
   transform: none !important;
   font-size: inherit !important;
   font-weight: inherit !important;
 }
 
 .obs-line-segment.line-highlighted::before {
-  content: '';
-  position: absolute;
-  top: 10%;
-  bottom: 5%;
-  left: -8px;
-  right: -8px;
+  content: '' !important;
+  position: absolute !important;
+  inset: -0.06em -0.22em -0.04em -0.22em !important;
   background: var(--highlight-bg, rgba(239, 68, 68, 0.85)) !important;
-  border-radius: 6px;
-  z-index: -1;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  border-radius: 0.18em !important;
+  z-index: -1 !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%) !important;
   opacity: 1 !important;
   display: block !important;
+  pointer-events: none !important;
 }
 
 .obs-line-segment.line-animating::before {
-  animation: highlightLinearWipe 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  will-change: clip-path, opacity;
+  animation: highlightLinearWipe 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  will-change: clip-path, opacity !important;
 }
 
 @keyframes highlightLinearWipe {
@@ -5842,7 +5852,7 @@ input[type="range"]:active::-moz-range-thumb {
 }
 
 .obs-line-segment.line-unhighlighting::before {
-  animation: highlightFadeOut 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: highlightFadeOut 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
 }
 
 @keyframes highlightFadeOut {

@@ -13540,9 +13540,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const textAlignStyle = state.styleOptions?.textAlign || 'center';
 
       if (idx === 0) {
-        return `<div class="${rowClass} obs-first-row" style="display: block; width: 100%; text-align: ${textAlignStyle}; position: relative;"><span class="obs-line-segment obs-first-line ${isBible ? 'obs-bible-segment' : ''}" data-line-idx="0" style="display: block; width: 100%; font-size: inherit; text-align: ${textAlignStyle}; overflow: visible;"><span class="obs-first-line-wrapper" style="position: relative; display: inline-block; text-align: ${textAlignStyle}; width: 100%; max-width: 100%; overflow: visible;">${badgeHtml}${lineStr}</span></span></div>`;
+        return `<div class="${rowClass} obs-first-row" style="display: block; width: 100%; text-align: ${textAlignStyle}; position: relative;"><span class="obs-first-line-wrapper" style="position: relative; display: inline-block; text-align: ${textAlignStyle}; max-width: 100%; overflow: visible;">${badgeHtml}<span class="obs-line-segment obs-first-line ${isBible ? 'obs-bible-segment' : ''}" data-line-idx="0" style="display: inline-block; width: auto; max-width: 100%; font-size: inherit; text-align: ${textAlignStyle}; position: relative; overflow: visible;">${lineStr}</span></span></div>`;
       }
-      return `<div class="${rowClass}" style="display: block; width: 100%; text-align: ${textAlignStyle};"><span class="obs-line-segment ${isBible ? 'obs-bible-segment' : ''}" data-line-idx="${idx}" style="display: block; width: 100%; font-size: inherit; text-align: ${textAlignStyle}; overflow: visible;">${lineStr}</span></div>`;
+      return `<div class="${rowClass}" style="display: block; width: 100%; text-align: ${textAlignStyle};"><span class="obs-line-segment ${isBible ? 'obs-bible-segment' : ''}" data-line-idx="${idx}" style="display: inline-block; width: auto; max-width: 100%; font-size: inherit; text-align: ${textAlignStyle}; position: relative; overflow: visible;">${lineStr}</span></div>`;
     }).filter(Boolean).join('');
 
     const wrapperClass = isBible ? 'obs-lines-wrapper is-bible-lines' : 'obs-lines-wrapper';

@@ -223,11 +223,12 @@
         box-sizing: border-box;
       }
       .obs-line-segment {
-        width: 100%;
+        width: auto;
+        max-width: 100%;
         white-space: normal;
-        word-break: keep-all;
-        overflow-wrap: break-word;
-        display: block;
+        word-break: normal;
+        overflow-wrap: normal;
+        display: inline-block;
         text-align: center;
         margin-top: 0.15em;
         margin-bottom: 0.15em;
@@ -833,55 +834,55 @@
 
     /* LIVE SLIDE LINE HIGHLIGHT STYLES FOR PRESENTER WINDOW */
     .obs-line-row {
-      display: block;
-      width: 100%;
-      max-width: 100%;
+      display: block !important;
+      width: 100% !important;
+      max-width: 100% !important;
       text-align: center;
-      margin: 0.15em 0;
-      box-sizing: border-box;
+      margin: 0.15em 0 !important;
+      box-sizing: border-box !important;
     }
 
     .obs-line-segment {
-      position: relative;
-      isolation: isolate;
-      display: block;
-      width: 100%;
-      max-width: 100%;
-      box-sizing: border-box;
-      white-space: pre-wrap;
-      word-break: break-word;
-      overflow-wrap: break-word;
+      position: relative !important;
+      isolation: isolate !important;
+      display: inline-block !important;
+      width: auto !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      white-space: normal !important;
+      word-break: normal !important;
+      overflow-wrap: normal !important;
       transition: color 0.25s ease;
+      line-height: inherit !important;
+      vertical-align: middle;
     }
 
     .obs-line-segment.line-highlighted {
-      position: relative;
-      isolation: isolate;
-      z-index: 5;
+      position: relative !important;
+      isolation: isolate !important;
+      z-index: 5 !important;
       transform: none !important;
       font-size: inherit !important;
       font-weight: inherit !important;
     }
 
     .obs-line-segment.line-highlighted::before {
-      content: '';
-      position: absolute;
-      top: 10%;
-      bottom: 5%;
-      left: -8px;
-      right: -8px;
+      content: '' !important;
+      position: absolute !important;
+      inset: -0.06em -0.22em -0.04em -0.22em !important;
       background: var(--highlight-bg, rgba(239, 68, 68, 0.85)) !important;
-      border-radius: 6px;
-      z-index: -1;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
-      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+      border-radius: 0.18em !important;
+      z-index: -1 !important;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%) !important;
       opacity: 1 !important;
       display: block !important;
+      pointer-events: none !important;
     }
 
     .obs-line-segment.line-animating::before {
-      animation: highlightLinearWipe 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-      will-change: clip-path, opacity;
+      animation: highlightLinearWipe 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+      will-change: clip-path, opacity !important;
     }
 
     @keyframes highlightLinearWipe {
@@ -896,7 +897,7 @@
     }
 
     .obs-line-segment.line-unhighlighting::before {
-      animation: highlightFadeOut 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      animation: highlightFadeOut 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
     }
 
     @keyframes highlightFadeOut {
@@ -1734,9 +1735,9 @@
         const rowClass = isBible ? 'obs-line-row is-bible-row' : 'obs-line-row';
 
         if (idx === 0) {
-          return `<div class="${rowClass}" style="position:relative; width: 100%; text-align: ${textAlignStyle}; box-sizing: border-box;"><span class="obs-line-segment obs-first-line ${isBible ? 'obs-bible-segment' : ''}" data-line-idx="0" style="display: block; width: 100%; text-align: ${textAlignStyle};">${badgeHtml}${lineStr}</span></div>`;
+          return `<div class="${rowClass} obs-first-row" style="position:relative; width: 100%; text-align: ${textAlignStyle}; box-sizing: border-box;"><span class="obs-first-line-wrapper" style="position: relative; display: inline-block; text-align: ${textAlignStyle}; max-width: 100%; overflow: visible;">${badgeHtml}<span class="obs-line-segment obs-first-line ${isBible ? 'obs-bible-segment' : ''}" data-line-idx="0" style="display: inline-block; width: auto; max-width: 100%; text-align: ${textAlignStyle}; position: relative;">${lineStr}</span></span></div>`;
         }
-        return `<div class="${rowClass}" style="width: 100%; text-align: ${textAlignStyle}; box-sizing: border-box;"><span class="obs-line-segment ${isBible ? 'obs-bible-segment' : ''}" data-line-idx="${idx}" style="display: block; width: 100%; text-align: ${textAlignStyle};">${lineStr}</span></div>`;
+        return `<div class="${rowClass}" style="width: 100%; text-align: ${textAlignStyle}; box-sizing: border-box;"><span class="obs-line-segment ${isBible ? 'obs-bible-segment' : ''}" data-line-idx="${idx}" style="display: inline-block; width: auto; max-width: 100%; text-align: ${textAlignStyle}; position: relative;">${lineStr}</span></div>`;
       }).filter(Boolean).join('');
 
       const wrapperClass = isBible ? 'obs-lines-wrapper is-bible-lines' : 'obs-lines-wrapper';
