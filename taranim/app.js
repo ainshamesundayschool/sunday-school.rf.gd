@@ -10535,8 +10535,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const firstLine = rawLines[0];
 
       if (detectChorus) {
-        const chorusPrefixRegex = /^\s*(?:[\(\[\{]\s*(القرار|قرار|ق)\s*[\)\]\}]\s*[:\-\/]?|(?:القرار|قرار)\s*[:\-\/]?|ق\s*[:\-\/\.])\s*/i;
-        const isIsolatedChorus = /^\s*[\(\[\{]?\s*(القرار|قرار|ق)\s*[\)\]\}]?\s*$/i;
+        const chorusPrefixRegex = /^\s*(?:[\(\[\{]\s*(القرار|قرار|ق|القرار\s*[\d٠-٩]+|قرار\s*[\d٠-٩]+)\s*[\)\]\}]\s*[:\-\/]?|(?:القرار|قرار)\s*[:\-\/]?|ق\s*[:\-\/\.]|(?:القرار|قرار)\s*[\d٠-٩]+\s*[:\-\/]?)\s*/i;
+        const isIsolatedChorus = /^\s*[\(\[\{]?\s*(القرار|قرار|ق|القرار\s*[\d٠-٩]+|قرار\s*[\d٠-٩]+)\s*[\)\]\}]?\s*$/i;
 
         if (chorusPrefixRegex.test(firstLine) || isIsolatedChorus.test(firstLine)) {
           isChorus = true;
@@ -10656,10 +10656,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let stanzaCounter = 0;
+    let chorusCounter = 0;
+    const totalChoruses = customSongBuilderState.verses.filter(v => v.type === 1 || v.isChorus).length;
+
     els.songBuilderSegmentsList.innerHTML = customSongBuilderState.verses.map((verse, vIdx) => {
       const isChorus = (verse.type === 1 || verse.isChorus === true);
-      if (!isChorus) stanzaCounter++;
+      if (isChorus) {
+        chorusCounter++;
+      } else {
+        stanzaCounter++;
+      }
       const sNum = stanzaCounter;
+      const chLabel = (totalChoruses > 1) ? `القرار ${chorusCounter}` : `القرار`;
 
       const slidesHtml = (verse.slides || []).map((slide, sIdx) => {
         const lines = (Array.isArray(slide.lines) && slide.lines.length > 0) ? slide.lines : (slide.text ? slide.text.split('\n') : ['']);
@@ -10721,11 +10729,11 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="segment-header">
             <div style="display:flex; align-items:center; gap:8px;">
               <select class="control-select seg-type-select" style="font-size:0.78rem; font-weight:800; padding:4px 8px; border-radius:8px;">
-                <option value="1" ${isChorus ? 'selected' : ''}>🌟 القرار (Chorus)</option>
+                <option value="1" ${isChorus ? 'selected' : ''}>🌟 ${chLabel} (Chorus)</option>
                 <option value="0" ${!isChorus ? 'selected' : ''}>📖 عدد ${sNum} (Verse)</option>
               </select>
               <span class="segment-type-pill ${isChorus ? 'chorus' : 'verse'}">
-                ${isChorus ? '<i class="fa-solid fa-star"></i> القرار' : `<i class="fa-solid fa-bookmark"></i> عدد ${sNum}`}
+                ${isChorus ? `<i class="fa-solid fa-star"></i> ${chLabel}` : `<i class="fa-solid fa-bookmark"></i> عدد ${sNum}`}
               </span>
             </div>
             <div class="segment-header-actions">
@@ -12651,53 +12659,70 @@ document.addEventListener('DOMContentLoaded', () => {
       let orderedVersesToProcess = [];
       const repeatChorus = (!isBible) && (state.repeatChorusAfterVerse !== false);
 
-      if (repeatChorus) {
-        let mainChorusIndex = song.verses.findIndex(v => (
-          v.type === 1 || v.isChorus === true || String(v.type).toLowerCase() === 'chorus' || /القرار|قرار|^ق$/i.test(v.title || '')
-        ));
+      const isChorusVerseItem = (v) => {
+        if (!v) return false;
+        return (
+          v.type === 1 ||
+          v.type === '1' ||
+          v.isChorus === true ||
+          String(v.type).toLowerCase() === 'chorus' ||
+          /القرار|قرار|^ق$/i.test(v.title || '')
+        );
+      };
 
-        if (mainChorusIndex !== -1) {
-          const chorusVerse = song.verses[mainChorusIndex];
-          const isChorusFirst = (mainChorusIndex === 0);
+      const allChorusVerses = song.verses.filter(v => isChorusVerseItem(v));
+      const distinctChorusTexts = new Set();
+      allChorusVerses.forEach(cv => {
+        const txt = (cv.slides || []).map(s => (s.lines || [s.text || '']).join(' ')).join(' ');
+        const norm = (typeof normalizeArabic === 'function') ? normalizeArabic(txt) : txt.trim();
+        distinctChorusTexts.add(norm.replace(/\s+/g, ' ').trim());
+      });
 
-          let stanzaCount = 0;
-          song.verses.forEach((v, idx) => {
-            if (idx === mainChorusIndex || v.type === 1 || v.isChorus === true) return;
-            stanzaCount++;
-            v.stanzaNum = stanzaCount;
-          });
+      const hasMultipleDifferentChoruses = allChorusVerses.length > 1 && distinctChorusTexts.size > 1;
 
-          if (isChorusFirst) {
-            orderedVersesToProcess.push({ verse: chorusVerse, idx: mainChorusIndex, stanzaNum: null });
-            let currentStanza = 0;
-            song.verses.forEach((v, idx) => {
-              if (v.type === 1 || v.isChorus === true) return;
-              currentStanza++;
-              orderedVersesToProcess.push({ verse: v, idx: idx, stanzaNum: currentStanza });
-              orderedVersesToProcess.push({ verse: chorusVerse, idx: mainChorusIndex, stanzaNum: null });
-            });
-          } else {
-            let currentStanza = 0;
-            song.verses.forEach((v, idx) => {
-              if (v.type === 1 || v.isChorus === true) return;
-              currentStanza++;
-              orderedVersesToProcess.push({ verse: v, idx: idx, stanzaNum: currentStanza });
-              orderedVersesToProcess.push({ verse: chorusVerse, idx: mainChorusIndex, stanzaNum: null });
-            });
+      if (hasMultipleDifferentChoruses || !repeatChorus) {
+        // Song already has multiple distinct choruses explicitly placed, or repetition is off
+        let currentStanza = 0;
+        song.verses.forEach((v, idx) => {
+          const isCh = isChorusVerseItem(v);
+          let sNum = null;
+          if (!isCh && !isBible) {
+            currentStanza++;
+            sNum = currentStanza;
           }
+          orderedVersesToProcess.push({ verse: v, idx: idx, stanzaNum: sNum });
+        });
+      } else if (repeatChorus && allChorusVerses.length === 1) {
+        // Single chorus: repeat it after every stanza
+        const mainChorusIndex = song.verses.findIndex(v => isChorusVerseItem(v));
+        const chorusVerse = song.verses[mainChorusIndex];
+        const isChorusFirst = (mainChorusIndex === 0);
+
+        if (isChorusFirst) {
+          orderedVersesToProcess.push({ verse: chorusVerse, idx: mainChorusIndex, stanzaNum: null });
+          let currentStanza = 0;
+          song.verses.forEach((v, idx) => {
+            if (isChorusVerseItem(v)) return;
+            currentStanza++;
+            orderedVersesToProcess.push({ verse: v, idx: idx, stanzaNum: currentStanza });
+            orderedVersesToProcess.push({ verse: chorusVerse, idx: mainChorusIndex, stanzaNum: null });
+          });
         } else {
           let currentStanza = 0;
           song.verses.forEach((v, idx) => {
+            if (isChorusVerseItem(v)) return;
             currentStanza++;
             orderedVersesToProcess.push({ verse: v, idx: idx, stanzaNum: currentStanza });
+            orderedVersesToProcess.push({ verse: chorusVerse, idx: mainChorusIndex, stanzaNum: null });
           });
         }
       } else {
+        // Multiple identical choruses or no chorus
         let currentStanza = 0;
         song.verses.forEach((v, idx) => {
-          const isChorus = (v.type === 1 || v.isChorus === true);
+          const isCh = isChorusVerseItem(v);
           let sNum = null;
-          if (!isChorus && !isBible) {
+          if (!isCh && !isBible) {
             currentStanza++;
             sNum = currentStanza;
           }
