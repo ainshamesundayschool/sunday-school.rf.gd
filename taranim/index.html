@@ -1213,42 +1213,48 @@
   <div id="obs-presentation-overlay" class="obs-overlay hidden" data-chroma="black">
 
     <div id="obs-scene-presentation-wrapper" class="scene-presentation-wrapper">
-      <!-- SLIDES BACKGROUND MEDIA CONTAINER -->
-      <div id="obs-slides-bg-container" class="slides-bg-container hidden">
-        <img id="obs-slides-bg-img" class="slides-bg-media hidden" alt="Slides Background">
-        <video id="obs-slides-bg-video" class="slides-bg-media hidden" playsinline webkit-playsinline muted loop></video>
-      </div>
+      <!-- 1. SLIDES SCENE LAYER -->
+      <div id="obs-scene-slides-layer" class="scene-layer scene-slides-layer">
+        <!-- SLIDES BACKGROUND MEDIA CONTAINER -->
+        <div id="obs-slides-bg-container" class="slides-bg-container hidden">
+          <img id="obs-slides-bg-img" class="slides-bg-media hidden" alt="Slides Background">
+          <video id="obs-slides-bg-video" class="slides-bg-media hidden" playsinline webkit-playsinline muted loop></video>
+        </div>
 
-      <!-- STANDBY CUSTOM FULLSCREEN MEDIA -->
-      <div id="obs-standby-fullscreen-container" class="standby-fullscreen-container hidden">
-        <img id="obs-standby-fullscreen-img" class="standby-fullscreen-media hidden" alt="Standby Image">
-        <video id="obs-standby-fullscreen-video" class="standby-fullscreen-media hidden" playsinline webkit-playsinline muted loop></video>
-      </div>
+        <!-- TOP-LEFT BIBLE / CHAPTER REFERENCE HEADER -->
+        <div id="obs-top-left-header" class="obs-top-left-header hidden"></div>
 
-      <!-- TOP-LEFT BIBLE / CHAPTER REFERENCE HEADER -->
-      <div id="obs-top-left-header" class="obs-top-left-header hidden"></div>
+        <div id="snap-guide-h" class="snap-guide horizontal hidden"></div>
+        <div id="snap-guide-v" class="snap-guide vertical hidden"></div>
 
-      <div id="snap-guide-h" class="snap-guide horizontal hidden"></div>
-      <div id="snap-guide-v" class="snap-guide vertical hidden"></div>
-
-      <div id="obs-standby-branding" class="standby-branding">
-        <img src="logo_tw.png" alt="Sunday School Logo" class="standby-logo">
-
-        <!-- SLEEK NAVIGATION BUTTONS ON LOGO STANDBY SLIDE -->
-        <div class="standby-nav-buttons-container">
-          <button type="button" id="btn-standby-prev-song" class="standby-nav-btn standby-nav-prev hidden" title="الترنيمة السابقة">
-            <i class="fa-solid fa-arrow-right"></i>
-            <span class="standby-song-title" id="standby-prev-title"></span>
-          </button>
-          <button type="button" id="btn-standby-next-song" class="standby-nav-btn standby-nav-next hidden" title="الترنيمة التالية">
-            <span class="standby-song-title" id="standby-next-title"></span>
-            <i class="fa-solid fa-arrow-left"></i>
-          </button>
+        <div class="obs-lower-third-box" id="obs-lower-third-box">
+          <div id="obs-line-text" class="obs-line-text hidden"></div>
         </div>
       </div>
 
-      <div class="obs-lower-third-box" id="obs-lower-third-box">
-        <div id="obs-line-text" class="obs-line-text hidden"></div>
+      <!-- 2. STANDBY SCENE LAYER -->
+      <div id="obs-scene-standby-layer" class="scene-layer scene-standby-layer hidden">
+        <!-- STANDBY CUSTOM FULLSCREEN MEDIA -->
+        <div id="obs-standby-fullscreen-container" class="standby-fullscreen-container hidden">
+          <img id="obs-standby-fullscreen-img" class="standby-fullscreen-media hidden" alt="Standby Image">
+          <video id="obs-standby-fullscreen-video" class="standby-fullscreen-media hidden" playsinline webkit-playsinline muted loop></video>
+        </div>
+
+        <div id="obs-standby-branding" class="standby-branding">
+          <img src="logo_tw.png" alt="Sunday School Logo" class="standby-logo">
+
+          <!-- SLEEK NAVIGATION BUTTONS ON LOGO STANDBY SLIDE -->
+          <div class="standby-nav-buttons-container">
+            <button type="button" id="btn-standby-prev-song" class="standby-nav-btn standby-nav-prev hidden" title="الترنيمة السابقة">
+              <i class="fa-solid fa-arrow-right"></i>
+              <span class="standby-song-title" id="standby-prev-title"></span>
+            </button>
+            <button type="button" id="btn-standby-next-song" class="standby-nav-btn standby-nav-next hidden" title="الترنيمة التالية">
+              <span class="standby-song-title" id="standby-next-title"></span>
+              <i class="fa-solid fa-arrow-left"></i>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 

@@ -2298,6 +2298,49 @@ input[type="checkbox"]:checked::after {
   pointer-events: none;
   background: transparent !important;
 }
+
+/* TRUE BROADCAST CENTERED RADIAL LUMA REVEAL */
+.luma-wipe-incoming-center {
+  z-index: 30 !important;
+  animation: obsLumaCenterReveal 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  will-change: clip-path, -webkit-clip-path;
+}
+
+@keyframes obsLumaCenterReveal {
+  0% {
+    clip-path: circle(0% at 50% 50%);
+    -webkit-clip-path: circle(0% at 50% 50%);
+  }
+  100% {
+    clip-path: circle(125% at 50% 50%);
+    -webkit-clip-path: circle(125% at 50% 50%);
+  }
+}
+
+/* SMOOTH FADE REVEAL */
+.trans-fade-incoming {
+  z-index: 30 !important;
+  animation: obsFadeReveal 0.65s ease-in-out forwards !important;
+  will-change: opacity;
+}
+
+@keyframes obsFadeReveal {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* SMOOTH ZOOM & POP REVEAL */
+.trans-zoom-incoming {
+  z-index: 30 !important;
+  animation: obsZoomReveal 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  will-change: opacity, transform;
+}
+
+@keyframes obsZoomReveal {
+  0% { opacity: 0; transform: scale(0.88); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
 .obs-embedded-preview-card {
   margin: 0 auto 16px auto;
   max-width: 340px;

@@ -1406,6 +1406,59 @@ document.addEventListener('DOMContentLoaded', () => {
   let searchDebounceTimeout = null;
   let currentPresenterText = null;
   let currentPresenterAnim = null;
+  let activeObsLumaAnimFrame = null;
+  let isObsStingerActive = false;
+  let lastObsTransitionId = 0;
+
+  const runObsLumaSinusWipe = (incomingEl, duration = 1000, onComplete = null) => {
+    if (activeObsLumaAnimFrame) {
+      cancelAnimationFrame(activeObsLumaAnimFrame);
+      activeObsLumaAnimFrame = null;
+    }
+
+    if (!incomingEl) {
+      if (typeof onComplete === 'function') onComplete();
+      return;
+    }
+
+    const initialMask = 'radial-gradient(circle at 50% 50%, transparent 0%, transparent 100%)';
+    incomingEl.style.webkitMaskImage = initialMask;
+    incomingEl.style.maskImage = initialMask;
+    incomingEl.style.zIndex = '35';
+    incomingEl.classList.remove('hidden');
+
+    const startTime = performance.now();
+
+    const animateWipe = (currentTime) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(1, elapsed / duration);
+      const ease = 0.5 - 0.5 * Math.cos(progress * Math.PI);
+      const p = ease * 145;
+
+      const w0 = Math.max(0, p - 38);
+      const w1 = Math.max(0, p - 26);
+      const w2 = Math.max(0, p - 16);
+      const w3 = Math.max(0, p - 7);
+      const w4 = p;
+      const w5 = p + 16;
+
+      const maskStr = `radial-gradient(circle at 50% 50%, #000000 0%, #000000 ${w0}%, rgba(0,0,0,0.94) ${w1}%, rgba(0,0,0,0.72) ${w2}%, rgba(0,0,0,0.42) ${w3}%, rgba(0,0,0,0.18) ${w4}%, transparent ${w5}%)`;
+
+      incomingEl.style.webkitMaskImage = maskStr;
+      incomingEl.style.maskImage = maskStr;
+
+      if (progress < 1) {
+        activeObsLumaAnimFrame = requestAnimationFrame(animateWipe);
+      } else {
+        activeObsLumaAnimFrame = null;
+        incomingEl.style.webkitMaskImage = '';
+        incomingEl.style.maskImage = '';
+        if (typeof onComplete === 'function') onComplete();
+      }
+    };
+
+    activeObsLumaAnimFrame = requestAnimationFrame(animateWipe);
+  };
 
   function exitPresentation(e) {
     if (e) {
@@ -13346,37 +13399,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. LIVE OVERLAY DOM SYNC
     if (els.obsLineText) {
-      // 2.0 STINGER TRANSITION OVERLAY ON EMBEDDED PRESENTATION
-      const obsStingerEl = document.getElementById('obs-stinger-transition-video');
-      const shouldRunStinger = Boolean(
-        extraOptions &&
-        extraOptions.triggerTransition &&
-        state.transitionConfig &&
-        state.transitionConfig.type === 'stinger' &&
-        state.transitionConfig.stingerUrl &&
-        obsStingerEl
-      );
-
-      if (shouldRunStinger) {
-        const stingerUrl = state.transitionConfig.stingerUrl;
-        const cutPoint = state.transitionConfig.cutPointMs || 1200;
-        if (obsStingerEl.src !== stingerUrl && !obsStingerEl.src.endsWith(stingerUrl)) {
-          obsStingerEl.src = stingerUrl;
-        }
-        obsStingerEl.muted = true;
-        obsStingerEl.classList.remove('hidden');
-        obsStingerEl.style.display = 'block';
-        obsStingerEl.currentTime = 0;
-        obsStingerEl.play().catch(() => {});
-
-        const endStinger = () => {
-          obsStingerEl.classList.add('hidden');
-          obsStingerEl.style.display = 'none';
-        };
-        obsStingerEl.onended = endStinger;
-        setTimeout(endStinger, cutPoint + 2000);
-      }
-
       const standbyEl = document.getElementById('obs-standby-branding') || document.getElementById('standby-branding');
       const hasTextContent = Boolean(text && String(text).trim());
 
@@ -13541,12 +13563,6 @@ document.addEventListener('DOMContentLoaded', () => {
             standbyEl.style.display = 'flex';
           }
         }
-      };
-
-      if (state.isStandbyMode || isEndingStandby) {
-        els.obsLineText.classList.add('hidden');
-        els.obsLineText.style.display = 'none';
-        updateObsStandbyDisplay(true);
 
         if (standbyEl && (state.standbyConfig?.type === 'logo' || !state.standbyConfig?.type)) {
           const btnPrev = document.getElementById('btn-standby-prev-song');
@@ -13573,15 +13589,165 @@ document.addEventListener('DOMContentLoaded', () => {
             }
           }
         }
-      } else {
-        updateObsStandbyDisplay(false);
-        if (state.isBlank || !hasTextContent) {
+      };
+
+      // 2.4 OBS EMBEDDED SCENE TRANSITIONS CONTROLLER
+      const obsSlidesLayer = document.getElementById('obs-scene-slides-layer');
+      const obsStandbyLayer = document.getElementById('obs-scene-standby-layer');
+      const obsStingerEl = document.getElementById('obs-stinger-transition-video');
+
+      const showObsStandbyContent = () => {
+        if (obsSlidesLayer) obsSlidesLayer.classList.add('hidden');
+        if (obsStandbyLayer) {
+          obsStandbyLayer.classList.remove('hidden');
+          obsStandbyLayer.style.zIndex = '6';
+        }
+        if (els.obsLineText) {
           els.obsLineText.classList.add('hidden');
           els.obsLineText.style.display = 'none';
+        }
+        updateObsStandbyDisplay(true);
+      };
+
+      const showObsSlidesContent = () => {
+        if (obsStandbyLayer) obsStandbyLayer.classList.add('hidden');
+        if (obsSlidesLayer) {
+          obsSlidesLayer.classList.remove('hidden');
+          obsSlidesLayer.style.zIndex = '6';
+        }
+        updateObsStandbyDisplay(false);
+        if (state.isBlank || !hasTextContent) {
+          if (els.obsLineText) {
+            els.obsLineText.classList.add('hidden');
+            els.obsLineText.style.display = 'none';
+          }
         } else {
-          els.obsLineText.classList.remove('hidden');
-          els.obsLineText.style.display = 'inline-block';
-          els.obsLineText.style.visibility = 'visible';
+          if (els.obsLineText) {
+            els.obsLineText.classList.remove('hidden');
+            els.obsLineText.style.display = 'inline-block';
+            els.obsLineText.style.visibility = 'visible';
+          }
+        }
+      };
+
+      const shouldRunObsTransition = Boolean(
+        extraOptions &&
+        extraOptions.triggerTransition &&
+        transitionId &&
+        transitionId !== lastObsTransitionId &&
+        !isObsStingerActive
+      );
+
+      const transType = state.transitionConfig?.type || 'fade';
+      const stingerUrl = state.transitionConfig?.stingerUrl || '';
+      const cutPoint = state.transitionConfig?.cutPointMs || 1200;
+
+      if (shouldRunObsTransition) {
+        lastObsTransitionId = transitionId;
+
+        if (transType === 'stinger' && stingerUrl && obsStingerEl) {
+          isObsStingerActive = true;
+          if (obsStingerEl.src !== stingerUrl && !obsStingerEl.src.endsWith(stingerUrl)) {
+            obsStingerEl.src = stingerUrl;
+          }
+          obsStingerEl.muted = true;
+          obsStingerEl.classList.remove('hidden');
+          obsStingerEl.style.display = 'block';
+          obsStingerEl.currentTime = 0;
+          obsStingerEl.play().catch(() => {});
+
+          let contentSwapped = false;
+          const swapContent = () => {
+            if (contentSwapped) return;
+            contentSwapped = true;
+            if (state.isStandbyMode || isEndingStandby) {
+              showObsStandbyContent();
+            } else {
+              showObsSlidesContent();
+            }
+          };
+
+          setTimeout(swapContent, cutPoint);
+
+          const endStinger = () => {
+            swapContent();
+            isObsStingerActive = false;
+            obsStingerEl.classList.add('hidden');
+            obsStingerEl.style.display = 'none';
+          };
+          obsStingerEl.onended = endStinger;
+          setTimeout(endStinger, cutPoint + 2000);
+        } else if (transType === 'cut') {
+          if (state.isStandbyMode || isEndingStandby) {
+            showObsStandbyContent();
+          } else {
+            showObsSlidesContent();
+          }
+        } else if (transType === 'luma_sinus9' || transType === 'luma_center') {
+          const lumaDuration = 1000;
+          if (state.isStandbyMode || isEndingStandby) {
+            updateObsStandbyDisplay(true);
+            if (els.obsLineText) {
+              els.obsLineText.classList.add('hidden');
+              els.obsLineText.style.display = 'none';
+            }
+            runObsLumaSinusWipe(obsStandbyLayer, lumaDuration, () => {
+              showObsStandbyContent();
+            });
+          } else {
+            if (obsSlidesLayer) obsSlidesLayer.classList.remove('hidden');
+            if (!state.isBlank && hasTextContent && els.obsLineText) {
+              els.obsLineText.classList.remove('hidden');
+              els.obsLineText.style.display = 'inline-block';
+              els.obsLineText.style.visibility = 'visible';
+            }
+            runObsLumaSinusWipe(obsSlidesLayer, lumaDuration, () => {
+              showObsSlidesContent();
+            });
+          }
+        } else {
+          // FADE / ZOOM
+          const animClass = (transType === 'zoom') ? 'trans-zoom-incoming' : 'trans-fade-incoming';
+          const duration = 600;
+          if (state.isStandbyMode || isEndingStandby) {
+            if (els.obsLineText) {
+              els.obsLineText.classList.add('hidden');
+              els.obsLineText.style.display = 'none';
+            }
+            if (obsStandbyLayer) {
+              obsStandbyLayer.classList.remove('hidden');
+              obsStandbyLayer.classList.add(animClass);
+              obsStandbyLayer.style.zIndex = '30';
+            }
+            updateObsStandbyDisplay(true);
+            setTimeout(() => {
+              if (obsStandbyLayer) obsStandbyLayer.classList.remove(animClass);
+              showObsStandbyContent();
+            }, duration);
+          } else {
+            if (obsSlidesLayer) {
+              obsSlidesLayer.classList.remove('hidden');
+              obsSlidesLayer.classList.add(animClass);
+              obsSlidesLayer.style.zIndex = '30';
+            }
+            if (!state.isBlank && hasTextContent && els.obsLineText) {
+              els.obsLineText.classList.remove('hidden');
+              els.obsLineText.style.display = 'inline-block';
+              els.obsLineText.style.visibility = 'visible';
+            }
+            setTimeout(() => {
+              if (obsSlidesLayer) obsSlidesLayer.classList.remove(animClass);
+              showObsSlidesContent();
+            }, duration);
+          }
+        }
+      } else if (!isObsStingerActive) {
+        if (state.isStandbyMode || isEndingStandby) {
+          showObsStandbyContent();
+        } else {
+          showObsSlidesContent();
+        }
+      }
 
         const isJomhuria = /jomhuria/i.test(state.selectedFont || '');
         const align = state.styleOptions.textAlign || 'center';
@@ -13753,8 +13919,6 @@ document.addEventListener('DOMContentLoaded', () => {
             seg.classList.remove('line-highlighted', 'line-animating', 'line-unhighlighting');
           }
         });
-      }
-    }
 
       // 4. ACCURATE FONT APPLICATION & HIGHLIGHT RENDERING
       const snapText = text;

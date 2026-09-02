@@ -2213,7 +2213,44 @@
         activeLumaAnimFrame = requestAnimationFrame(animateWipe);
       };
 
-            // 4. TRANSITIONS & DISPLAY SCENE CONTROLLER (OPTIMIZED & FLICKER-FREE)
+      // 4. TRANSITIONS & DISPLAY SCENE CONTROLLER (OPTIMIZED & FLICKER-FREE)
+      const showStandbyContent = () => {
+        if (slidesLayer) slidesLayer.classList.add('hidden');
+        if (standbyLayer) {
+          standbyLayer.classList.remove('hidden');
+          standbyLayer.style.zIndex = '6';
+        }
+        if (textEl) {
+          textEl.classList.add('hidden');
+          textEl.style.display = 'none';
+        }
+        updateStandbyMediaDisplay(true);
+        currentIsBlankState = true;
+      };
+
+      const showSlidesContent = () => {
+        if (standbyLayer) standbyLayer.classList.add('hidden');
+        if (slidesLayer) {
+          slidesLayer.classList.remove('hidden');
+          slidesLayer.style.zIndex = '6';
+        }
+        updateStandbyMediaDisplay(false);
+        if (isBlankMode || !hasTextContent) {
+          if (textEl) {
+            textEl.classList.add('hidden');
+            textEl.style.display = 'none';
+          }
+          currentIsBlankState = isBlankMode;
+        } else {
+          if (textEl) {
+            textEl.classList.remove('hidden');
+            textEl.style.display = 'inline-block';
+            textEl.style.visibility = 'visible';
+          }
+          currentIsBlankState = false;
+        }
+      };
+
       const shouldRunTransition = Boolean(
         data.triggerTransition && 
         data.transitionId && 
@@ -2245,25 +2282,9 @@
               if (contentSwapped) return;
               contentSwapped = true;
               if (isStandbyMode) {
-                if (slidesLayer) slidesLayer.classList.add('hidden');
-                if (standbyLayer) standbyLayer.classList.remove('hidden');
-                if (textEl) textEl.classList.add('hidden');
-                updateStandbyMediaDisplay(true);
-                currentIsBlankState = true;
+                showStandbyContent();
               } else {
-                if (standbyLayer) standbyLayer.classList.add('hidden');
-                if (slidesLayer) slidesLayer.classList.remove('hidden');
-                updateStandbyMediaDisplay(false);
-                if (isBlankMode || !hasTextContent) {
-                  if (textEl) textEl.classList.add('hidden');
-                } else {
-                  if (textEl) {
-                    textEl.classList.remove('hidden');
-                    textEl.style.display = 'inline-block';
-                    textEl.style.visibility = 'visible';
-                  }
-                }
-                currentIsBlankState = false;
+                showSlidesContent();
               }
             };
 
@@ -2281,101 +2302,73 @@
           }
         } else if (transType === 'cut') {
           if (isStandbyMode) {
-            if (slidesLayer) slidesLayer.classList.add('hidden');
-            if (standbyLayer) standbyLayer.classList.remove('hidden');
-            if (textEl) textEl.classList.add('hidden');
-            updateStandbyMediaDisplay(true);
-            currentIsBlankState = true;
+            showStandbyContent();
           } else {
-            if (standbyLayer) standbyLayer.classList.add('hidden');
-            if (slidesLayer) slidesLayer.classList.remove('hidden');
-            updateStandbyMediaDisplay(false);
-            if (isBlankMode || !hasTextContent) {
-              if (textEl) textEl.classList.add('hidden');
-            } else {
-              if (textEl) {
-                textEl.classList.remove('hidden');
-                textEl.style.display = 'inline-block';
-                textEl.style.visibility = 'visible';
-              }
-            }
-            currentIsBlankState = false;
+            showSlidesContent();
           }
         } else if (transType === 'luma_sinus9' || transType === 'luma_center') {
-          const lumaDuration = 1150;
+          const lumaDuration = 1000;
           if (isStandbyMode) {
             updateStandbyMediaDisplay(true);
-            runLumaSinusWipe(standbyLayer, lumaDuration, () => {
-              if (slidesLayer) slidesLayer.classList.add('hidden');
-              if (standbyLayer) standbyLayer.style.zIndex = '6';
-            });
-            currentIsBlankState = true;
-          } else {
-            if (standbyLayer) standbyLayer.classList.remove('hidden');
-            runLumaSinusWipe(slidesLayer, lumaDuration, () => {
-              if (standbyLayer) standbyLayer.classList.add('hidden');
-              if (slidesLayer) slidesLayer.style.zIndex = '6';
-              updateStandbyMediaDisplay(false);
-            });
-            currentIsBlankState = false;
-          }
-        } else {
-          // FADE / ZOOM
-          const animClass = (transType === 'zoom') ? 'trans-zoom-incoming' : 'trans-fade-incoming';
-          const duration = 650;
-          if (isStandbyMode) {
-            if (standbyLayer) {
-              standbyLayer.classList.remove('hidden');
-              standbyLayer.classList.add(animClass);
-            }
-            updateStandbyMediaDisplay(true);
-            setTimeout(() => {
-              if (slidesLayer) slidesLayer.classList.add('hidden');
-              if (standbyLayer) standbyLayer.classList.remove(animClass);
-            }, duration);
-            currentIsBlankState = true;
-          } else {
-            if (slidesLayer) {
-              slidesLayer.classList.remove('hidden');
-              slidesLayer.classList.add(animClass);
-            }
-            setTimeout(() => {
-              if (standbyLayer) standbyLayer.classList.add('hidden');
-              if (slidesLayer) slidesLayer.classList.remove(animClass);
-              updateStandbyMediaDisplay(false);
-            }, duration);
-            currentIsBlankState = false;
-          }
-        }
-      } else if (!isStingerActive) {
-        // DIRECT SCENE DISPLAY (NO TRANSITION RE-TRIGGER)
-        if (isStandbyMode) {
-          if (slidesLayer) slidesLayer.classList.add('hidden');
-          if (standbyLayer) {
-            standbyLayer.classList.remove('hidden');
-            standbyLayer.style.zIndex = '6';
-          }
-          if (textEl) textEl.classList.add('hidden');
-          updateStandbyMediaDisplay(true);
-          currentIsBlankState = true;
-        } else {
-          if (standbyLayer) standbyLayer.classList.add('hidden');
-          if (slidesLayer) {
-            slidesLayer.classList.remove('hidden');
-            slidesLayer.style.zIndex = '6';
-          }
-          updateStandbyMediaDisplay(false);
-          if (isBlankMode || !hasTextContent) {
-            if (textEl) textEl.classList.add('hidden');
-            currentIsBlankState = isBlankMode;
-          } else {
             if (textEl) {
+              textEl.classList.add('hidden');
+              textEl.style.display = 'none';
+            }
+            runLumaSinusWipe(standbyLayer, lumaDuration, () => {
+              showStandbyContent();
+            });
+          } else {
+            if (slidesLayer) slidesLayer.classList.remove('hidden');
+            if (!isBlankMode && hasTextContent && textEl) {
               textEl.classList.remove('hidden');
               textEl.style.display = 'inline-block';
               textEl.style.visibility = 'visible';
             }
-            currentIsBlankState = false;
+            runLumaSinusWipe(slidesLayer, lumaDuration, () => {
+              showSlidesContent();
+            });
           }
+        } else {
+          // FADE / ZOOM
+          const animClass = (transType === 'zoom') ? 'trans-zoom-incoming' : 'trans-fade-incoming';
+          const duration = 600;
+          if (isStandbyMode) {
+            if (textEl) {
+              textEl.classList.add('hidden');
+              textEl.style.display = 'none';
+            }
+            if (standbyLayer) {
+              standbyLayer.classList.remove('hidden');
+              standbyLayer.classList.add(animClass);
+              standbyLayer.style.zIndex = '30';
+            }
+            updateStandbyMediaDisplay(true);
+            setTimeout(() => {
+              if (standbyLayer) standbyLayer.classList.remove(animClass);
+              showStandbyContent();
+            }, duration);
+          } else {
+            if (slidesLayer) {
+              slidesLayer.classList.remove('hidden');
+              slidesLayer.classList.add(animClass);
+              slidesLayer.style.zIndex = '30';
+            }
+            if (!isBlankMode && hasTextContent && textEl) {
+              textEl.classList.remove('hidden');
+              textEl.style.display = 'inline-block';
+              textEl.style.visibility = 'visible';
+            }
+            setTimeout(() => {
+              if (slidesLayer) slidesLayer.classList.remove(animClass);
+              showSlidesContent();
+            }, duration);
+          }
+        }
+      } else if (!isStingerActive) {
+        if (isStandbyMode) {
+          showStandbyContent();
+        } else {
+          showSlidesContent();
         }
       }
 
