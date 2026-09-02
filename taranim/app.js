@@ -2006,6 +2006,10 @@ document.addEventListener('DOMContentLoaded', () => {
         nextLine();
       } else if (event.data.action === 'PREV_SLIDE') {
         prevLine();
+      } else if (event.data.action === 'TOGGLE_BLANK') {
+        toggleBlank();
+      } else if (event.data.action === 'TOGGLE_STANDBY') {
+        toggleStandbyMode(true);
       } else if (event.data.action === 'EXTERNAL_FULLSCREEN_ACTIVATED') {
         window.focus();
         hideExternalFullscreenNotice();
@@ -3341,7 +3345,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (cmd.type === 'TOGGLE_BLANK') {
       toggleBlankScreen();
     } else if (cmd.type === 'TOGGLE_STANDBY') {
-      toggleStandbyMode();
+      toggleStandbyMode(true);
     } else if (cmd.type === 'PLAY_SONG' && cmd.song) {
       playSong(cmd.song);
       showToast(`📱 تم تشغيل ترنيمة "${cmd.song.title}" من الهاتف!`);
@@ -8909,10 +8913,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // 4. QUICK SHORTCUTS (BLANK, FULLSCREEN)
-      if (e.key === 'b' || e.key === 'B' || e.key === 'لا') {
+      // 4. QUICK SHORTCUTS (BLANK, STANDBY, FULLSCREEN)
+      if (e.key === 'b' || e.key === 'B' || e.key === 'لا' || e.code === 'KeyB') {
         e.preventDefault();
         toggleBlank();
+      } else if (e.key === 's' || e.key === 'S' || e.key === 'س' || e.code === 'KeyS') {
+        e.preventDefault();
+        toggleStandbyMode(true);
       } else if (e.key === 'f' || e.key === 'F' || e.key === 'ب' || e.key === '[' || e.code === 'KeyF') {
         e.preventDefault();
         const noticeEl = document.getElementById('notice-ext-fs-modal');
@@ -13339,6 +13346,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. LIVE OVERLAY DOM SYNC
     if (els.obsLineText) {
+      // 2.0 STINGER TRANSITION OVERLAY ON EMBEDDED PRESENTATION
+      const obsStingerEl = document.getElementById('obs-stinger-transition-video');
+      const shouldRunStinger = Boolean(
+        extraOptions &&
+        extraOptions.triggerTransition &&
+        state.transitionConfig &&
+        state.transitionConfig.type === 'stinger' &&
+        state.transitionConfig.stingerUrl &&
+        obsStingerEl
+      );
+
+      if (shouldRunStinger) {
+        const stingerUrl = state.transitionConfig.stingerUrl;
+        const cutPoint = state.transitionConfig.cutPointMs || 1200;
+        if (obsStingerEl.src !== stingerUrl && !obsStingerEl.src.endsWith(stingerUrl)) {
+          obsStingerEl.src = stingerUrl;
+        }
+        obsStingerEl.muted = true;
+        obsStingerEl.classList.remove('hidden');
+        obsStingerEl.style.display = 'block';
+        obsStingerEl.currentTime = 0;
+        obsStingerEl.play().catch(() => {});
+
+        const endStinger = () => {
+          obsStingerEl.classList.add('hidden');
+          obsStingerEl.style.display = 'none';
+        };
+        obsStingerEl.onended = endStinger;
+        setTimeout(endStinger, cutPoint + 2000);
+      }
+
       const standbyEl = document.getElementById('obs-standby-branding') || document.getElementById('standby-branding');
       const hasTextContent = Boolean(text && String(text).trim());
 

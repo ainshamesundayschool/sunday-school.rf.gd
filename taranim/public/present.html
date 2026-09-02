@@ -1298,6 +1298,12 @@
       } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') {
         e.preventDefault();
         triggerPrevSlide();
+      } else if (e.key === 'b' || e.key === 'B' || e.key === 'لا' || e.code === 'KeyB') {
+        e.preventDefault();
+        try { if (channel) channel.postMessage({ action: 'TOGGLE_BLANK' }); } catch(err) {}
+      } else if (e.key === 's' || e.key === 'S' || e.key === 'س' || e.code === 'KeyS') {
+        e.preventDefault();
+        try { if (channel) channel.postMessage({ action: 'TOGGLE_STANDBY' }); } catch(err) {}
       } else if (e.key === 'f' || e.key === 'F' || e.key === 'ب' || e.key === '[' || e.code === 'KeyF') {
         e.preventDefault();
         requestAutoFullscreen();
@@ -2775,7 +2781,7 @@
       }
 
       window.addEventListener('keydown', (e) => {
-        if (e.key === 's' || e.key === 'S' || e.key === 'س') {
+        if ((e.altKey || e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S' || e.key === 'س')) {
           if (stealthBar) stealthBar.classList.toggle('hidden');
         }
       });
