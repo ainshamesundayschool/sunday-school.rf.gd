@@ -1195,7 +1195,6 @@
             <span id="current-line-counter" class="counter-text">0 / 0</span>
             <button id="btn-next-line" class="mini-btn-flat" title="السطر التالي"><i class="fa-solid fa-chevron-left"></i></button>
             <button id="btn-split-all-lines" class="mini-btn-flat" title="تقسيم جميع شرائح الترنيمة لسطرين / سطر واحد"><i class="fa-solid fa-equals"></i></button>
-            <span id="active-song-scale-badge" class="song-scale-badge hidden" title="مقام الترنيمة الموسيقي"><i class="fa-solid fa-music"></i> <span id="active-song-scale-text" class="scale-text"></span></span>
             <button id="btn-edit-active-custom-song" class="mini-btn-flat hidden" title="تعديل هذه الترنيمة المخصصة"><i class="fa-solid fa-pen-to-square"></i></button>
             <button id="btn-delete-active-custom-song" class="mini-btn-flat mini-btn-danger-outline hidden" title="حذف هذه الترنيمة من الجهاز"><i class="fa-solid fa-trash-can"></i></button>
 
@@ -1217,27 +1216,36 @@
             <!-- 1. FULLSCREEN BUTTON (FIRST LEFT BUTTON) -->
             <button id="btn-presenter-fullscreen" class="mini-btn-flat btn-fullscreen-launch" title="عرض ملء الشاشة (F)"><i class="fa-solid fa-expand"></i></button>
 
-            <!-- 2. STANDBY BUTTON -->
-            <button id="btn-toggle-standby" class="mini-btn-flat" title="التبديل إلى شاشة الانتظار (S)"><i class="fa-solid fa-photo-film"></i></button>
+            <!-- GROUPED MODES CONTAINER (STANDBY, HIDE, HIGHLIGHT) -->
+            <div class="presentation-modes-group">
+              <!-- 2. STANDBY BUTTON -->
+              <button id="btn-toggle-standby" class="mode-group-btn" title="التبديل إلى شاشة الانتظار (S)">
+                <i class="fa-solid fa-photo-film"></i>
+              </button>
 
-            <!-- 3. HIDE BUTTON -->
-            <button id="btn-toggle-blank" class="mini-btn-flat" title="إخفاء النص (B)"><i class="fa-solid fa-eye-slash"></i></button>
+              <!-- 3. HIDE BUTTON -->
+              <button id="btn-toggle-blank" class="mode-group-btn" title="إخفاء النص (B)">
+                <i class="fa-solid fa-eye-slash"></i>
+              </button>
 
-            <!-- 4. HIGHLIGHT BUTTON -->
-            <button id="btn-toggle-highlight-tool" class="mini-btn-flat" title="أداة تظليل السطر"><i class="fa-solid fa-highlighter"></i></button>
+              <!-- 4. HIGHLIGHT BUTTON -->
+              <button id="btn-toggle-highlight-tool" class="mode-group-btn" title="أداة تظليل السطر">
+                <i class="fa-solid fa-highlighter"></i>
+              </button>
 
-            <!-- 4. HIGHLIGHT COLOR CIRCLE -->
-            <div id="highlight-color-picker-wrap" class="highlight-color-picker-wrap hidden" style="position:relative; display:inline-flex; align-items:center;">
-              <button type="button" id="btn-highlight-color-circle" class="highlight-color-circle-btn" title="تغيير لون التظليل" style="width:20px; height:20px; border-radius:50%; border:2px solid #ffffff; box-shadow:0 0 0 1.5px #cbd5e1; cursor:pointer; background:#ef4444; padding:0; outline:none; transition:transform 0.15s ease;"></button>
+              <!-- 4. HIGHLIGHT COLOR CIRCLE -->
+              <div id="highlight-color-picker-wrap" class="highlight-color-picker-wrap hidden">
+                <button type="button" id="btn-highlight-color-circle" class="highlight-color-circle-btn" title="تغيير لون التظليل"></button>
 
-              <!-- INLINE COLOR PALETTE POPUP -->
-              <div id="popover-highlight-color" class="highlight-palette-popover hidden" style="position:absolute; top:calc(100% + 6px); left:0; background:#ffffff; border:1px solid #cbd5e1; border-radius:10px; padding:6px; box-shadow:0 8px 24px rgba(15,23,42,0.2); display:flex; gap:5px; align-items:center; z-index:999999;">
-                <button type="button" class="highlight-color-pill active" data-color="#ef4444" style="background:#ef4444; width:20px; height:20px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px #cbd5e1; cursor:pointer; padding:0;" title="أحمر"></button>
-                <button type="button" class="highlight-color-pill" data-color="#f59e0b" style="background:#f59e0b; width:20px; height:20px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px #cbd5e1; cursor:pointer; padding:0;" title="ذهبي"></button>
-                <button type="button" class="highlight-color-pill" data-color="#3b82f6" style="background:#3b82f6; width:20px; height:20px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px #cbd5e1; cursor:pointer; padding:0;" title="أزرق"></button>
-                <button type="button" class="highlight-color-pill" data-color="#10b981" style="background:#10b981; width:20px; height:20px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px #cbd5e1; cursor:pointer; padding:0;" title="أخضر"></button>
-                <button type="button" class="highlight-color-pill" data-color="#8b5cf6" style="background:#8b5cf6; width:20px; height:20px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px #cbd5e1; cursor:pointer; padding:0;" title="بنفسجي"></button>
-                <input type="color" id="highlight-custom-color" value="#ef4444" style="width:20px; height:20px; border-radius:50%; border:none; cursor:pointer; padding:0; background:none;" title="اختيار لون مخصص">
+                <!-- INLINE COLOR PALETTE POPUP -->
+                <div id="popover-highlight-color" class="highlight-palette-popover hidden">
+                  <button type="button" class="highlight-color-pill active" data-color="#ef4444" style="background:#ef4444;" title="أحمر"></button>
+                  <button type="button" class="highlight-color-pill" data-color="#f59e0b" style="background:#f59e0b;" title="ذهبي"></button>
+                  <button type="button" class="highlight-color-pill" data-color="#3b82f6" style="background:#3b82f6;" title="أزرق"></button>
+                  <button type="button" class="highlight-color-pill" data-color="#10b981" style="background:#10b981;" title="أخضر"></button>
+                  <button type="button" class="highlight-color-pill" data-color="#8b5cf6" style="background:#8b5cf6;" title="بنفسجي"></button>
+                  <input type="color" id="highlight-custom-color" value="#ef4444" title="اختيار لون مخصص">
+                </div>
               </div>
             </div>
 
@@ -1249,6 +1257,13 @@
             <i class="fa-solid fa-music"></i>
             
           </div>
+        </div>
+
+        <!-- SLEEK FLOATING SONG SCALE BADGE (SIMPLE & CLEAN) -->
+        <div id="active-song-scale-badge" class="song-scale-badge hidden" title="مقام الترنيمة الموسيقي">
+          <i class="fa-solid fa-music"></i>
+          <span class="scale-label">المقام:</span>
+          <span id="active-song-scale-text" class="scale-text"></span>
         </div>
       </section>
 
