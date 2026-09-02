@@ -4028,22 +4028,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function isTemplateShuffleEnabled(tmplId = null) {
     const isGlobal = localStorage.getItem(SHUFFLE_STORAGE_KEY) === 'true';
-    if (!tmplId) return isGlobal;
-    const targetId = localStorage.getItem(SHUFFLE_TMPL_ID_KEY) || 'tmpl-paint-sweeps';
+    const targetId = localStorage.getItem(SHUFFLE_TMPL_ID_KEY);
+    if (!isGlobal || !targetId) return false;
+    if (!tmplId) {
+      const currentActiveId = state.selectedTemplateId || (state.slidesBgConfig && state.slidesBgConfig.templateId) || localStorage.getItem('sunday_school_active_template_id');
+      return Boolean(currentActiveId && currentActiveId === targetId);
+    }
     return isGlobal && targetId === tmplId;
   }
 
   function setTemplateShuffleEnabled(enabled, tmplId = null) {
+    const targetId = tmplId || state.selectedTemplateId || (state.slidesBgConfig && state.slidesBgConfig.templateId) || localStorage.getItem(SHUFFLE_TMPL_ID_KEY) || 'tmpl-paint-sweeps';
     localStorage.setItem(SHUFFLE_STORAGE_KEY, enabled ? 'true' : 'false');
     state.templateShufflePerSong = Boolean(enabled);
-    if (tmplId) {
-      localStorage.setItem(SHUFFLE_TMPL_ID_KEY, tmplId);
-      state.templateShuffleTemplateId = tmplId;
+    if (enabled) {
+      localStorage.setItem(SHUFFLE_TMPL_ID_KEY, targetId);
+      state.templateShuffleTemplateId = targetId;
+      state.selectedTemplateId = targetId;
+      if (state.slidesBgConfig) state.slidesBgConfig.templateId = targetId;
+      if (state.standbyConfig) state.standbyConfig.templateId = targetId;
+      localStorage.setItem('sunday_school_active_template_id', targetId);
     }
     const chkDisplay = document.getElementById('chk-display-template-shuffle');
-    if (chkDisplay) chkDisplay.checked = Boolean(enabled);
+    if (chkDisplay) chkDisplay.checked = isTemplateShuffleEnabled();
     document.querySelectorAll('.chk-template-shuffle').forEach(chk => {
-      chk.checked = Boolean(enabled);
+      chk.checked = isTemplateShuffleEnabled(chk.dataset.tmplId);
     });
   }
 
@@ -4078,8 +4087,14 @@ document.addEventListener('DOMContentLoaded', () => {
   let lastShuffledSongKey = null;
 
   function triggerAutoShuffleGroupedTemplateIfNeeded(song) {
-    if (!isTemplateShuffleEnabled()) return;
     if (!song) return;
+
+    const isGlobal = localStorage.getItem(SHUFFLE_STORAGE_KEY) === 'true';
+    const targetTmplId = localStorage.getItem(SHUFFLE_TMPL_ID_KEY);
+    if (!isGlobal || !targetTmplId) return;
+
+    const currentActiveId = state.selectedTemplateId || (state.slidesBgConfig && state.slidesBgConfig.templateId) || localStorage.getItem('sunday_school_active_template_id');
+    if (!currentActiveId || currentActiveId !== targetTmplId) return;
 
     const isBible = Boolean((song.is_bible === true || song.is_bible === '1' || song.is_bible === 1) || (song.chapter_number !== undefined && song.chapter_number !== null && song.chapter_number !== ''));
     const songKey = isBible 
@@ -4089,12 +4104,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (lastShuffledSongKey === songKey) return;
     lastShuffledSongKey = songKey;
 
-    const targetTmplId = localStorage.getItem(SHUFFLE_TMPL_ID_KEY) || 'tmpl-paint-sweeps';
     const templates = (typeof sanitizeAndGroupTemplates === 'function')
       ? sanitizeAndGroupTemplates(state.availableTemplates || [])
       : (state.availableTemplates || []);
       
-    let tmpl = templates.find(t => t.id === targetTmplId) || templates.find(t => t.varieties && t.varieties.length > 0);
+    let tmpl = templates.find(t => t.id === targetTmplId);
     if (!tmpl || !tmpl.varieties || tmpl.varieties.length === 0) return;
 
     // SHUFFLE ACROSS VARIETY INDICES TO SUPPORT BOTH COLOR AND LAYOUT/TRANSFORM VARIETIES
@@ -4104,9 +4118,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!deck || deck.length === 0) {
       deck = shuffleArray([...allIndices]);
       saveShuffleDeck(tmpl.id, deck);
-      if (typeof showToast === 'function') {
-        showToast(`🔄 تم إكمال دورة أنماط "${tmpl.name}" وإعادة الترتيب العشوائي!`);
-      }
     }
 
     const nextIdx = deck.pop();
@@ -4116,11 +4127,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const nextBgUrl = variety.url || tmpl.slidesBg || '';
 
     // Apply variety media & properties
-    state.slidesBgConfig.type = 'template';
-    state.slidesBgConfig.url = nextBgUrl;
-    state.standbyConfig.type = 'template';
-    state.standbyConfig.url = nextBgUrl;
-    state.standbyConfig.showLogo = (tmpl.showLogo !== undefined) ? Boolean(tmpl.showLogo) : (tmpl.id !== 'tmpl-shabahak-akon-2026' && tmpl.id !== 'tmpl-broadcast-chroma-green');
+    state.selectedTemplateId = tmpl.id;
+    if (state.slidesBgConfig) {
+      state.slidesBgConfig.templateId = tmpl.id;
+      state.slidesBgConfig.type = 'template';
+      state.slidesBgConfig.url = nextBgUrl;
+    }
+    if (state.standbyConfig) {
+      state.standbyConfig.templateId = tmpl.id;
+      state.standbyConfig.type = 'template';
+      state.standbyConfig.url = nextBgUrl;
+      state.standbyConfig.showLogo = (tmpl.showLogo !== undefined) ? Boolean(tmpl.showLogo) : (tmpl.id !== 'tmpl-shabahak-akon-2026' && tmpl.id !== 'tmpl-broadcast-chroma-green');
+    }
 
     if (variety.textTransform) {
       state.textTransform = JSON.parse(JSON.stringify(variety.textTransform));
@@ -7770,20 +7788,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
               }
 
+              state.selectedTemplateId = tmpl.id;
+              localStorage.setItem('sunday_school_active_template_id', tmpl.id);
+
               if (selectedVarUrl) {
                 state.standbyConfig.type = 'template';
+                state.standbyConfig.templateId = tmpl.id;
                 state.standbyConfig.url = selectedVarUrl;
                 state.standbyConfig.showLogo = (tmpl && tmpl.showLogo !== undefined) ? Boolean(tmpl.showLogo) : (tmpl && tmpl.id !== 'tmpl-shabahak-akon-2026' && tmpl.id !== 'tmpl-broadcast-chroma-green');
                 state.slidesBgConfig.type = 'template';
+                state.slidesBgConfig.templateId = tmpl.id;
                 state.slidesBgConfig.url = selectedVarUrl;
               } else {
                 if (tmpl.standby) {
                   state.standbyConfig.type = 'template';
+                  state.standbyConfig.templateId = tmpl.id;
                   state.standbyConfig.url = tmpl.standby;
                   state.standbyConfig.showLogo = (tmpl.showLogo !== undefined) ? Boolean(tmpl.showLogo) : (tmpl.id !== 'tmpl-shabahak-akon-2026' && tmpl.id !== 'tmpl-broadcast-chroma-green');
                 }
                 if (tmpl.slidesBg) {
                   state.slidesBgConfig.type = 'template';
+                  state.slidesBgConfig.templateId = tmpl.id;
                   state.slidesBgConfig.url = tmpl.slidesBg;
                 }
               }
@@ -7875,14 +7900,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const applyFullTemplate = (t) => {
       if (!t) return;
+      const tmplId = t.id || t.name;
+      state.selectedTemplateId = tmplId;
+      localStorage.setItem('sunday_school_active_template_id', tmplId);
+
       if (t.styleOptions) state.styleOptions = JSON.parse(JSON.stringify(t.styleOptions));
       if (t.fontSize) state.fontSize = t.fontSize;
       if (t.selectedFont) state.selectedFont = t.selectedFont;
       if (t.customFontDataUrl) state.customFontDataUrl = t.customFontDataUrl;
       if (t.chromaKey) state.chromaKey = t.chromaKey;
       if (t.textAnimation) state.textAnimation = t.textAnimation;
-      if (t.slidesBgConfig) state.slidesBgConfig = JSON.parse(JSON.stringify(t.slidesBgConfig));
-      if (t.standbyConfig) state.standbyConfig = JSON.parse(JSON.stringify(t.standbyConfig));
+      if (t.slidesBgConfig) {
+        state.slidesBgConfig = JSON.parse(JSON.stringify(t.slidesBgConfig));
+        state.slidesBgConfig.templateId = tmplId;
+      }
+      if (t.standbyConfig) {
+        state.standbyConfig = JSON.parse(JSON.stringify(t.standbyConfig));
+        state.standbyConfig.templateId = tmplId;
+      }
       if (t.transitionConfig) state.transitionConfig = JSON.parse(JSON.stringify(t.transitionConfig));
       if (t.textTransform) state.textTransform = JSON.parse(JSON.stringify(t.textTransform));
 
@@ -8299,7 +8334,8 @@ document.addEventListener('DOMContentLoaded', () => {
       chkDisplayTemplateShuffle.checked = isTemplateShuffleEnabled();
       chkDisplayTemplateShuffle.addEventListener('change', (e) => {
         const isChecked = e.target.checked;
-        setTemplateShuffleEnabled(isChecked, 'tmpl-paint-sweeps');
+        const currentTmpl = state.selectedTemplateId || (state.slidesBgConfig && state.slidesBgConfig.templateId) || 'tmpl-paint-sweeps';
+        setTemplateShuffleEnabled(isChecked, currentTmpl);
         if (isChecked) {
           lastShuffledSongKey = null;
           if (state.activeSong) {
