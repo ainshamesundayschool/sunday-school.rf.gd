@@ -11381,11 +11381,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
-      const savedInfo = JSON.parse(localStorage.getItem('sunday_school_submitter_info') || '{}');
-      if (savedInfo.name && els.inputSubmitterName) els.inputSubmitterName.value = savedInfo.name;
-      if (savedInfo.church && els.inputSubmitterChurch) els.inputSubmitterChurch.value = savedInfo.church;
-      if (savedInfo.email && els.inputSubmitterEmail) els.inputSubmitterEmail.value = savedInfo.email;
-      if (savedInfo.phone && els.inputSubmitterPhone) els.inputSubmitterPhone.value = savedInfo.phone;
+      const savedName = localStorage.getItem('sunday_school_submitter_name') || '';
+      if (savedName && els.inputSubmitterName) els.inputSubmitterName.value = savedName;
     } catch(e) {}
 
     if (els.modalSubmitSongDialog) {
@@ -11405,27 +11402,21 @@ document.addEventListener('DOMContentLoaded', () => {
   async function handleSendSongSubmission() {
     const name = els.inputSubmitterName ? els.inputSubmitterName.value.trim() : '';
     if (!name) {
-      showToast('يرجى كتابة اسم الخادم / المُرسل.', 'warning');
+      showToast('يرجى كتابة الاسم.', 'warning');
       if (els.inputSubmitterName) els.inputSubmitterName.focus();
       return;
     }
 
-    const church = els.inputSubmitterChurch ? els.inputSubmitterChurch.value.trim() : '';
-    const email = els.inputSubmitterEmail ? els.inputSubmitterEmail.value.trim() : '';
-    const phone = els.inputSubmitterPhone ? els.inputSubmitterPhone.value.trim() : '';
     const notes = els.inputSubmitterNotes ? els.inputSubmitterNotes.value.trim() : '';
 
     try {
-      localStorage.setItem('sunday_school_submitter_info', JSON.stringify({ name, church, email, phone }));
+      localStorage.setItem('sunday_school_submitter_name', name);
     } catch(e) {}
 
     const songObj = buildCompleteSongObject();
     const payload = {
       ...songObj,
       submitter_name: name,
-      church_name: church,
-      submitter_email: email,
-      submitter_phone: phone,
       notes: notes
     };
 
