@@ -1092,12 +1092,13 @@ input[type="checkbox"]:checked::after {
   color: var(--accent-blue, #2563eb);
 }
 
-/* FLOATING SONG SCALE BADGE (SIMPLE & CLEAN DESIGN) */
+/* FLOATING ACTIVE SONG SCALE BADGE IN PREVIEW PANEL (ICON + VALUE ONLY) */
 .presentation-lines-panel {
   position: relative;
 }
 
-.song-scale-badge {
+#active-song-scale-badge,
+.floating-scale-badge {
   position: absolute;
   bottom: 12px;
   left: 14px;
@@ -1122,31 +1123,52 @@ input[type="checkbox"]:checked::after {
   pointer-events: auto;
 }
 
-.song-scale-badge:hover {
+#active-song-scale-badge:hover,
+.floating-scale-badge:hover {
   background: #ffffff;
   border-color: #94a3b8;
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
   transform: translateY(-1px);
 }
 
-.song-scale-badge i {
+#active-song-scale-badge i,
+.floating-scale-badge i {
   color: #2563eb;
   font-size: 0.72rem;
 }
 
-.song-scale-badge .scale-label {
-  color: #64748b;
-  font-size: 0.7rem;
-  font-weight: 600;
-}
-
-.song-scale-badge .scale-text {
+#active-song-scale-badge .scale-text,
+.floating-scale-badge .scale-text {
   color: #0f172a;
   font-weight: 800;
 }
 
-.song-scale-badge.hidden {
+#active-song-scale-badge.hidden,
+.floating-scale-badge.hidden {
   display: none !important;
+}
+
+/* INLINE SONG SCALE BADGE (FOR RECENTS LIST & SONG ITEMS) */
+.song-scale-badge {
+  position: static;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(37, 99, 235, 0.08);
+  color: #2563eb;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  border-radius: 6px;
+  padding: 1px 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+  user-select: none;
+  vertical-align: middle;
+}
+
+.song-scale-badge i {
+  font-size: 0.68rem;
+  color: #2563eb;
 }
 
 .badge-count {

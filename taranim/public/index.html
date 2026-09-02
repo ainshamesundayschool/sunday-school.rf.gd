@@ -141,17 +141,8 @@
         <img src="logo_t.png" alt="Taranim Logo" class="brand-center-logo">
       </div>
 
-      <!-- LEFT SIDE: CAST MENU & OBS CONTROLLER BUTTONS -->
+      <!-- LEFT SIDE: CAST MENU & CONTROLLER BUTTONS -->
       <div class="top-left-options" style="display:flex; align-items:center; gap:8px;">
-        <!-- REMOTE CONTROLLER BUTTON -->
-        <button class="icon-menu-btn header-remote-btn" id="btn-open-remote-modal" type="button" title="التحكم عن بعد بالهاتف أو جهاز آخر">
-          <i class="fa-solid fa-mobile-screen-button"></i>
-          <span class="remote-badge-dot disconnected" id="remote-header-status-badge"></span>
-        </button>
-        <button class="icon-menu-btn header-obs-btn" id="btn-open-obs-modal" type="button" title="التحكم في OBS Studio وتبديل المشاهد">
-          <i class="fa-solid fa-satellite-dish"></i>
-          <span class="obs-badge-dot disconnected" id="obs-header-status-badge"></span>
-        </button>
         <div class="dropdown-wrapper">
           <div id="btn-menu-cast-wrapper">
             <button class="icon-menu-btn" id="btn-menu-cast" title="البث والشاشات">
@@ -1259,10 +1250,9 @@
           </div>
         </div>
 
-        <!-- SLEEK FLOATING SONG SCALE BADGE (SIMPLE & CLEAN) -->
-        <div id="active-song-scale-badge" class="song-scale-badge hidden" title="مقام الترنيمة الموسيقي">
+        <!-- SLEEK FLOATING SONG SCALE BADGE (ICON + VALUE ONLY) -->
+        <div id="active-song-scale-badge" class="floating-scale-badge song-scale-badge hidden" title="مقام الترنيمة الموسيقي">
           <i class="fa-solid fa-music"></i>
-          <span class="scale-label">المقام:</span>
           <span id="active-song-scale-text" class="scale-text"></span>
         </div>
       </section>
