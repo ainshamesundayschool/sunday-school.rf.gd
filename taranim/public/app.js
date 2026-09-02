@@ -2161,6 +2161,19 @@ document.addEventListener('DOMContentLoaded', () => {
     btnCancelCustomSongModal: document.getElementById('btn-cancel-custom-song-modal'),
     btnSaveCustomSongOnly: document.getElementById('btn-save-custom-song-only'),
     btnSaveAndPresentSong: document.getElementById('btn-save-and-present-song'),
+    btnSubmitSongForReview: document.getElementById('btn-submit-song-for-review'),
+    modalSubmitSongDialog: document.getElementById('modal-submit-song-dialog'),
+    btnCloseSubmitSongModal: document.getElementById('btn-close-submit-song-modal'),
+    btnCancelSubmitSong: document.getElementById('btn-cancel-submit-song'),
+    btnConfirmSendSubmission: document.getElementById('btn-confirm-send-submission'),
+    inputSubmitterName: document.getElementById('input-submitter-name'),
+    inputSubmitterChurch: document.getElementById('input-submitter-church'),
+    inputSubmitterEmail: document.getElementById('input-submitter-email'),
+    inputSubmitterPhone: document.getElementById('input-submitter-phone'),
+    inputSubmitterNotes: document.getElementById('input-submitter-notes'),
+    songEditorReviewBanner: document.getElementById('song-editor-review-banner'),
+    songEditorReviewBannerText: document.getElementById('song-editor-review-banner-text'),
+    btnApproveReviewedSongDirect: document.getElementById('btn-approve-reviewed-song-direct'),
     btnExportCurrentSongJson: document.getElementById('btn-export-current-song-json'),
     btnImportSongJsonFile: document.getElementById('btn-import-song-json-file'),
     inputImportSongJsonFile: document.getElementById('input-import-song-json-file'),
@@ -10230,7 +10243,23 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
       })();
 
-      const [data, bibleData] = await Promise.all([fetchCatalog, fetchBible]);
+      const fetchCustomCatalog = (async () => {
+        try {
+          const r = await fetch('./custom_catalog.json');
+          if (r && r.ok) return await r.json();
+        } catch(e) {}
+        try {
+          const r2 = await fetch(`${window.location.origin}${pathDir}custom_catalog.json`);
+          if (r2 && r2.ok) return await r2.json();
+        } catch(e) {}
+        try {
+          const r3 = await fetch(`${window.location.origin}${pathDir}api.php?action=custom_catalog`);
+          if (r3 && r3.ok) return await r3.json();
+        } catch(e) {}
+        return null;
+      })();
+
+      const [data, bibleData, customData] = await Promise.all([fetchCatalog, fetchBible, fetchCustomCatalog]);
 
       if (data) {
         let rawList = Array.isArray(data) ? data : (data && data.songs ? data.songs : []);
@@ -10241,6 +10270,18 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
       }
+
+      // Merge community accepted custom songs into state.allSongs
+      if (customData && Array.isArray(customData) && customData.length > 0) {
+        const customIndexed = customData.map(cs => {
+          cs.is_custom = true;
+          cs.is_community = true;
+          return indexSingleSongItem(cs);
+        });
+        if (!state.allSongs) state.allSongs = [];
+        state.allSongs = [...customIndexed, ...state.allSongs];
+      }
+
       if (bibleData && typeof bibleData === 'object' && Object.keys(bibleData).length > 0) {
         state.bibleChaptersData = bibleData;
         state.allBibleChapters = indexBibleChaptersData(bibleData);
@@ -10351,7 +10392,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return [];
   }
 
-  function openCustomSongEditor(songToEdit = null) {
+  function openCustomSongEditor(songToEdit = null, reviewOptions = null) {
     if (!els.modalCustomSongEditor) return;
 
     if (songToEdit && (songToEdit.verses || songToEdit.title || songToEdit.id)) {
@@ -10365,13 +10406,16 @@ document.addEventListener('DOMContentLoaded', () => {
         media_url: songData.media_url || '',
         is_custom: true,
         isEditing: Boolean(songData.id && (songData.is_custom || String(songData.id).startsWith('custom_'))),
+        isReviewMode: Boolean(reviewOptions && reviewOptions.submissionId),
+        submissionId: reviewOptions ? reviewOptions.submissionId : null,
+        reviewToken: reviewOptions ? reviewOptions.reviewToken : null,
         activeTab: 'tab-song-builder',
         verses: (Array.isArray(songData.verses) && songData.verses.length > 0) ? songData.verses : []
       };
       if (els.songEditorModalTitle) {
-        els.songEditorModalTitle.textContent = customSongBuilderState.isEditing
-          ? `تعديل ترنيمة: ${songData.title || 'مخصصة'}`
-          : 'إضافة ترنيمة جديدة';
+        els.songEditorModalTitle.textContent = customSongBuilderState.isReviewMode
+          ? `مراجعة واعتماد ترنيمة: ${songData.title || ''}`
+          : (customSongBuilderState.isEditing ? `تعديل ترنيمة: ${songData.title || 'مخصصة'}` : 'إضافة ترنيمة جديدة');
       }
     } else {
       // New custom song (starts clean with no default prefilled slides)
@@ -10384,11 +10428,25 @@ document.addEventListener('DOMContentLoaded', () => {
         media_url: '',
         is_custom: true,
         isEditing: false,
+        isReviewMode: false,
+        submissionId: null,
+        reviewToken: null,
         activeTab: 'tab-song-builder',
         verses: []
       };
       if (els.songEditorModalTitle) {
         els.songEditorModalTitle.textContent = 'إضافة ترنيمة جديدة';
+      }
+    }
+
+    if (els.songEditorReviewBanner) {
+      if (customSongBuilderState.isReviewMode) {
+        els.songEditorReviewBanner.classList.remove('hidden');
+        if (reviewOptions && reviewOptions.submitterName && els.songEditorReviewBannerText) {
+          els.songEditorReviewBannerText.textContent = `وضع مراجعة ترنيمة مرسلة من: ${reviewOptions.submitterName}${reviewOptions.churchName ? ` (${reviewOptions.churchName})` : ''}`;
+        }
+      } else {
+        els.songEditorReviewBanner.classList.add('hidden');
       }
     }
 
@@ -11237,6 +11295,48 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    // Submit for Review & Community Acceptance
+    if (els.btnSubmitSongForReview) {
+      els.btnSubmitSongForReview.addEventListener('click', openSubmitSongDialog);
+    }
+    if (els.btnCloseSubmitSongModal) {
+      els.btnCloseSubmitSongModal.addEventListener('click', closeSubmitSongDialog);
+    }
+    if (els.btnCancelSubmitSong) {
+      els.btnCancelSubmitSong.addEventListener('click', closeSubmitSongDialog);
+    }
+    if (els.btnConfirmSendSubmission) {
+      els.btnConfirmSendSubmission.addEventListener('click', handleSendSongSubmission);
+    }
+    if (els.btnApproveReviewedSongDirect) {
+      els.btnApproveReviewedSongDirect.addEventListener('click', handleApproveReviewedSongDirect);
+    }
+
+    // Check URL parameters on load for ?review_sub=...&token=...
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const reviewSubId = urlParams.get('review_sub');
+      const reviewToken = urlParams.get('token');
+      if (reviewSubId && reviewToken) {
+        (async () => {
+          try {
+            const r = await fetch(`/taranim/api.php?action=get_submission&id=${encodeURIComponent(reviewSubId)}&token=${encodeURIComponent(reviewToken)}`);
+            const d = await r.json();
+            if (d.status === 'success' && d.song) {
+              const subInfo = d.submission || {};
+              openCustomSongEditor(d.song, {
+                submissionId: reviewSubId,
+                reviewToken: reviewToken,
+                submitterName: subInfo.submitter_name,
+                churchName: subInfo.church_name
+              });
+              showToast(`وضع مراجعة ترنيمة مرسلة من: ${subInfo.submitter_name || 'خادم'} 🔍`, 'info');
+            }
+          } catch(e) {}
+        })();
+      }
+    } catch(e) {}
+
     // Import Song JSON File
     if (els.btnImportSongJsonFile && els.inputImportSongJsonFile) {
       els.btnImportSongJsonFile.addEventListener('click', () => {
@@ -11265,6 +11365,135 @@ document.addEventListener('DOMContentLoaded', () => {
           deleteCustomSong(state.activeSong.id);
         }
       });
+    }
+  }
+
+  function openSubmitSongDialog() {
+    const songObj = buildCompleteSongObject();
+    if (!songObj.title) {
+      showToast('يرجى كتابة عنوان الترنيمة أولاً.', 'warning');
+      if (els.songInputTitle) els.songInputTitle.focus();
+      return;
+    }
+    if (!songObj.verses || songObj.verses.length === 0) {
+      showToast('يرجى إضافة فقرات وكلمات للترنيمة قبل إرسالها.', 'warning');
+      return;
+    }
+
+    try {
+      const savedInfo = JSON.parse(localStorage.getItem('sunday_school_submitter_info') || '{}');
+      if (savedInfo.name && els.inputSubmitterName) els.inputSubmitterName.value = savedInfo.name;
+      if (savedInfo.church && els.inputSubmitterChurch) els.inputSubmitterChurch.value = savedInfo.church;
+      if (savedInfo.email && els.inputSubmitterEmail) els.inputSubmitterEmail.value = savedInfo.email;
+      if (savedInfo.phone && els.inputSubmitterPhone) els.inputSubmitterPhone.value = savedInfo.phone;
+    } catch(e) {}
+
+    if (els.modalSubmitSongDialog) {
+      els.modalSubmitSongDialog.classList.remove('hidden');
+      if (els.inputSubmitterName && !els.inputSubmitterName.value) {
+        els.inputSubmitterName.focus();
+      }
+    }
+  }
+
+  function closeSubmitSongDialog() {
+    if (els.modalSubmitSongDialog) {
+      els.modalSubmitSongDialog.classList.add('hidden');
+    }
+  }
+
+  async function handleSendSongSubmission() {
+    const name = els.inputSubmitterName ? els.inputSubmitterName.value.trim() : '';
+    if (!name) {
+      showToast('يرجى كتابة اسم الخادم / المُرسل.', 'warning');
+      if (els.inputSubmitterName) els.inputSubmitterName.focus();
+      return;
+    }
+
+    const church = els.inputSubmitterChurch ? els.inputSubmitterChurch.value.trim() : '';
+    const email = els.inputSubmitterEmail ? els.inputSubmitterEmail.value.trim() : '';
+    const phone = els.inputSubmitterPhone ? els.inputSubmitterPhone.value.trim() : '';
+    const notes = els.inputSubmitterNotes ? els.inputSubmitterNotes.value.trim() : '';
+
+    try {
+      localStorage.setItem('sunday_school_submitter_info', JSON.stringify({ name, church, email, phone }));
+    } catch(e) {}
+
+    const songObj = buildCompleteSongObject();
+    const payload = {
+      ...songObj,
+      submitter_name: name,
+      church_name: church,
+      submitter_email: email,
+      submitter_phone: phone,
+      notes: notes
+    };
+
+    const btn = els.btnConfirmSendSubmission;
+    const origHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الإرسال...';
+    }
+
+    try {
+      const resp = await fetch('/taranim/api.php?action=submit_custom_song', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await resp.json();
+      if (result.status === 'success') {
+        closeSubmitSongDialog();
+        showToast('🚀 تم إرسال الترنيمة للمراجعة والاعتماد بنجاح!', 'success');
+      } else {
+        showToast(result.message || 'حدث خطأ أثناء الإرسال', 'error');
+      }
+    } catch (err) {
+      showToast('فشل إرسال الطلب، تأكد من اتصال الإنترنت.', 'error');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+      }
+    }
+  }
+
+  async function handleApproveReviewedSongDirect() {
+    if (!customSongBuilderState.isReviewMode || !customSongBuilderState.submissionId || !customSongBuilderState.reviewToken) return;
+    const songObj = buildCompleteSongObject();
+    const btn = els.btnApproveReviewedSongDirect;
+    const origHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الحفظ...';
+    }
+
+    try {
+      const resp = await fetch('/taranim/api.php?action=save_reviewed_custom_song', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          submission_id: customSongBuilderState.submissionId,
+          token: customSongBuilderState.reviewToken,
+          song: songObj
+        })
+      });
+      const result = await resp.json();
+      if (result.status === 'success') {
+        showToast('✅ تم اعتماد ونشر الترنيمة بنجاح في قاعدة البيانات الحية للموقع!', 'success');
+        closeCustomSongEditor();
+        if (typeof initCatalog === 'function') initCatalog();
+      } else {
+        showToast(result.message || 'حدث خطأ أثناء الحفظ', 'error');
+      }
+    } catch (err) {
+      showToast('حدث خطأ في الاتصال بالخادم', 'error');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+      }
     }
   }
 

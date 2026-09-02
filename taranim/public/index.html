@@ -1940,11 +1940,25 @@
           </div>
         </div>
 
+        <!-- REVIEW MODE BANNER -->
+        <div id="song-editor-review-banner" class="hidden" style="margin:8px 18px 0 18px; padding:10px 14px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <i class="fa-solid fa-user-check" style="color:#2563eb; font-size:1.1rem;"></i>
+            <span id="song-editor-review-banner-text" style="font-size:0.84rem; font-weight:700; color:#1e40af;">وضع مراجعة ترنيمة مرسلة من خادم</span>
+          </div>
+          <button type="button" id="btn-approve-reviewed-song-direct" class="btn btn-sm btn-primary" style="background:#10b981; border:none; font-size:0.78rem; font-weight:800; padding:6px 14px; display:flex; align-items:center; gap:5px;">
+            <i class="fa-solid fa-check"></i> اعتماد وحفظ بالموقع
+          </button>
+        </div>
+
         <!-- MODAL FOOTER ACTIONS -->
         <div class="modal-footer song-editor-footer">
-          <div class="footer-start-actions">
+          <div class="footer-start-actions" style="display:flex; align-items:center; gap:6px;">
             <button type="button" id="btn-export-current-song-json" class="btn btn-sm btn-secondary" style="font-size:0.78rem; padding:6px 10px;" title="تصدير هذه الترنيمة كملف JSON">
               <i class="fa-solid fa-file-arrow-down"></i> تصدير JSON
+            </button>
+            <button type="button" id="btn-submit-song-for-review" class="btn btn-sm" style="font-size:0.78rem; padding:6px 12px; font-weight:800; background:linear-gradient(135deg, #059669, #10b981); color:#ffffff; border:none; display:flex; align-items:center; gap:5px;" title="إرسال الترنيمة للاعتماد والإضافة للموقع العام">
+              <i class="fa-solid fa-paper-plane"></i> إرسال للاعتماد
             </button>
           </div>
           <div class="footer-end-actions" style="display:flex; align-items:center; gap:6px;">
@@ -1960,6 +1974,50 @@
           </div>
         </div>
 
+      </div>
+    </div>
+
+    <!-- SUBMIT CUSTOM SONG FOR REVIEW DIALOG MODAL -->
+    <div id="modal-submit-song-dialog" class="modal-overlay hidden">
+      <div class="modal-card" style="max-width:440px; width:92%; border-radius:14px;">
+        <div class="modal-header">
+          <div class="modal-header-title-wrap">
+            <i class="fa-solid fa-paper-plane modal-icon" style="color:#10b981;"></i>
+            <div>
+              <div class="modal-title">إرسال الترنيمة للاعتماد</div>
+              <div class="modal-subtitle">إرسال لمراجعتها وإضافتها لقاعدة البيانات العامة</div>
+            </div>
+          </div>
+          <button id="btn-close-submit-song-modal" class="modal-close-btn" type="button" title="إغلاق"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div style="padding:16px 20px;">
+          <div class="control-field" style="margin-bottom:12px;">
+            <label style="font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:4px; display:block;">اسم الخادم / المُرسل <span class="required-star" style="color:#ef4444;">*</span></label>
+            <input type="text" id="input-submitter-name" class="control-input" placeholder="اكتب اسمك..." autocomplete="off">
+          </div>
+          <div class="control-field" style="margin-bottom:12px;">
+            <label style="font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:4px; display:block;">الكنيسة / الخدمة (اختياري)</label>
+            <input type="text" id="input-submitter-church" class="control-input" placeholder="اسم الكنيسة أو الخدمة..." autocomplete="off">
+          </div>
+          <div class="control-field" style="margin-bottom:12px;">
+            <label style="font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:4px; display:block;">البريد الإلكتروني (اختياري - لإشعارك فور الاعتماد)</label>
+            <input type="email" id="input-submitter-email" class="control-input" placeholder="name@example.com" autocomplete="off">
+          </div>
+          <div class="control-field" style="margin-bottom:12px;">
+            <label style="font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:4px; display:block;">رقم الهاتف / واتساب (اختياري)</label>
+            <input type="tel" id="input-submitter-phone" class="control-input" placeholder="01..." autocomplete="off">
+          </div>
+          <div class="control-field" style="margin-bottom:12px;">
+            <label style="font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:4px; display:block;">ملاحظات إضافية (اختياري)</label>
+            <textarea id="input-submitter-notes" class="control-textarea" rows="2" placeholder="ملاحظات حول اللحن أو الكلمات..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:8px; padding:12px 20px;">
+          <button type="button" id="btn-cancel-submit-song" class="btn btn-secondary" style="padding:6px 14px; font-size:0.82rem; font-weight:700;">إلغاء</button>
+          <button type="button" id="btn-confirm-send-submission" class="btn btn-primary" style="padding:7px 18px; font-size:0.84rem; font-weight:800; background:linear-gradient(135deg, #059669, #10b981); color:#ffffff; border:none; display:flex; align-items:center; gap:6px;">
+            <i class="fa-solid fa-paper-plane"></i> إرسال الآن
+          </button>
+        </div>
       </div>
     </div>
 

@@ -49,6 +49,619 @@ if (strpos($parsedUrl, '/api/live') !== false || (isset($_GET['action']) && $_GE
     }
 }
 
+// =========================================================================
+// SEPARATE DATABASE FOR APPROVED USER/COMMUNITY TARANIM (custom_songs.sqlite)
+// =========================================================================
+function getCustomSongsPdo() {
+    static $customPdo = null;
+    if ($customPdo !== null) return $customPdo;
+    $customDbPath = __DIR__ . '/custom_songs.sqlite';
+    try {
+        $customPdo = new PDO('sqlite:' . $customDbPath);
+        $customPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $customPdo->exec("
+            CREATE TABLE IF NOT EXISTS custom_songs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                item_id INTEGER UNIQUE,
+                title TEXT NOT NULL,
+                media_url TEXT,
+                notes TEXT,
+                scale_id INTEGER,
+                author_name TEXT,
+                church_name TEXT,
+                submitter_email TEXT,
+                submitter_phone TEXT,
+                approved_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS custom_verses (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                song_id INTEGER,
+                item_id INTEGER,
+                type INTEGER DEFAULT 0,
+                stanza_num INTEGER,
+                title TEXT
+            );
+            CREATE TABLE IF NOT EXISTS custom_slides (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                verse_id INTEGER,
+                heading TEXT
+            );
+            CREATE TABLE IF NOT EXISTS custom_segments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                slide_id INTEGER,
+                content TEXT
+            );
+            CREATE TABLE IF NOT EXISTS submissions (
+                id TEXT PRIMARY KEY,
+                status TEXT DEFAULT 'pending',
+                token TEXT NOT NULL,
+                submitter_name TEXT,
+                submitter_email TEXT,
+                submitter_phone TEXT,
+                church_name TEXT,
+                notes TEXT,
+                song_json TEXT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                reviewed_at DATETIME
+            );
+        ");
+        return $customPdo;
+    } catch (Exception $e) {
+        return null;
+    }
+}
+
+function rebuildCustomCatalogJson($customPdo) {
+    if (!$customPdo) return [];
+    try {
+        $stmt = $customPdo->query("SELECT * FROM custom_songs ORDER BY id ASC");
+        $songs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $fullList = [];
+        foreach ($songs as $s) {
+            $itemId = (int)$s['item_id'];
+            $vStmt = $customPdo->prepare("SELECT * FROM custom_verses WHERE item_id = :itemId ORDER BY id ASC");
+            $vStmt->execute([':itemId' => $itemId]);
+            $verses = $vStmt->fetchAll(PDO::FETCH_ASSOC);
+            $versesData = [];
+            foreach ($verses as $v) {
+                $slStmt = $customPdo->prepare("SELECT * FROM custom_slides WHERE verse_id = :vid ORDER BY id ASC");
+                $slStmt->execute([':vid' => $v['id']]);
+                $slides = $slStmt->fetchAll(PDO::FETCH_ASSOC);
+                $slidesData = [];
+                foreach ($slides as $sl) {
+                    $segStmt = $customPdo->prepare("SELECT content FROM custom_segments WHERE slide_id = :sid ORDER BY id ASC");
+                    $segStmt->execute([':sid' => $sl['id']]);
+                    $lines = $segStmt->fetchAll(PDO::FETCH_COLUMN);
+                    $slidesData[] = [
+                        'id' => (int)$sl['id'],
+                        'heading' => $sl['heading'],
+                        'lines' => $lines,
+                        'text' => implode("\n", $lines)
+                    ];
+                }
+                $versesData[] = [
+                    'id' => (int)$v['id'],
+                    'type' => (int)$v['type'],
+                    'isChorus' => ((int)$v['type'] === 1),
+                    'stanzaNum' => $v['stanza_num'] ? (int)$v['stanza_num'] : null,
+                    'slides' => $slidesData
+                ];
+            }
+            $fullList[] = [
+                'id' => (int)$s['id'],
+                'item_id' => $itemId,
+                'title' => $s['title'],
+                'scale_id' => $s['scale_id'] ? (int)$s['scale_id'] : null,
+                'media_url' => $s['media_url'] ?? '',
+                'notes' => $s['notes'] ?? '',
+                'author_name' => $s['author_name'] ?? '',
+                'church_name' => $s['church_name'] ?? '',
+                'is_custom' => true,
+                'is_community' => true,
+                'verses' => $versesData
+            ];
+        }
+
+        $jsonStr = json_encode($fullList, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        @file_put_contents(__DIR__ . '/custom_catalog.json', $jsonStr);
+        if (is_dir(__DIR__ . '/public')) {
+            @file_put_contents(__DIR__ . '/public/custom_catalog.json', $jsonStr);
+        }
+        return $fullList;
+    } catch (Exception $e) {
+        return [];
+    }
+}
+
+function sendGoogleScriptNotificationEmail($toEmail, $subject, $bodyHtml) {
+    $appsScriptUrl = 'https://script.google.com/macros/s/AKfycbxsDA0veJTA3C_2Bw47coffOagRigWwaZnyxWuGb_gSVUCWM958V1bUcaZDwfIHVZ7b1g/exec';
+    
+    $payload = json_encode([
+        'to' => $toEmail,
+        'subject' => $subject,
+        'htmlBody' => $bodyHtml
+    ], JSON_UNESCAPED_UNICODE);
+
+    $opts = [
+        'http' => [
+            'method' => 'POST',
+            'header' => "Content-Type: application/json\r\n",
+            'content' => $payload,
+            'timeout' => 8
+        ]
+    ];
+    $context = stream_context_create($opts);
+    @file_get_contents($appsScriptUrl, false, $context);
+    return true;
+}
+
+// 1. SUBMIT LOCAL TARNIMA FOR REVIEW & APP ACCEPTANCE
+if (isset($_GET['action']) && $_GET['action'] === 'submit_custom_song') {
+    $rawInput = file_get_contents('php://input');
+    $data = json_decode($rawInput, true);
+    if (!$data || empty($data['title']) || empty($data['verses'])) {
+        http_response_code(400);
+        echo json_encode(['status' => 'error', 'message' => 'بيانات الترنيمة غير مكتملة']);
+        exit;
+    }
+
+    $customPdo = getCustomSongsPdo();
+    if (!$customPdo) {
+        http_response_code(500);
+        echo json_encode(['status' => 'error', 'message' => 'فشل الاتصال بقاعدة بيانات الترانيم المخصصة']);
+        exit;
+    }
+
+    $submissionId = 'sub_' . time() . '_' . substr(bin2hex(random_bytes(4)), 0, 8);
+    $token = bin2hex(random_bytes(16));
+    $submitterName = trim($data['submitter_name'] ?? 'مستخدم التطبيق');
+    $submitterEmail = trim($data['submitter_email'] ?? '');
+    $submitterPhone = trim($data['submitter_phone'] ?? '');
+    $churchName = trim($data['church_name'] ?? '');
+    $notes = trim($data['notes'] ?? '');
+    $songTitle = trim($data['title']);
+
+    $stmt = $customPdo->prepare("
+        INSERT INTO submissions (id, status, token, submitter_name, submitter_email, submitter_phone, church_name, notes, song_json, created_at)
+        VALUES (:id, 'pending', :token, :sName, :sEmail, :sPhone, :cName, :notes, :sJson, CURRENT_TIMESTAMP)
+    ");
+    $stmt->execute([
+        ':id' => $submissionId,
+        ':token' => $token,
+        ':sName' => $submitterName,
+        ':sEmail' => $submitterEmail,
+        ':sPhone' => $submitterPhone,
+        ':cName' => $churchName,
+        ':notes' => $notes,
+        ':sJson' => json_encode($data, JSON_UNESCAPED_UNICODE)
+    ]);
+
+    // Build base URL
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+    $host = $_SERVER['HTTP_HOST'];
+    $baseUrl = $protocol . $host;
+    $approveUrl = $baseUrl . '/taranim/api.php?action=approve_submission&id=' . urlencode($submissionId) . '&token=' . urlencode($token);
+    $reviewUrl = $baseUrl . '/taranim/?review_sub=' . urlencode($submissionId) . '&token=' . urlencode($token);
+    $rejectUrl = $baseUrl . '/taranim/api.php?action=reject_submission&id=' . urlencode($submissionId) . '&token=' . urlencode($token);
+
+    // Format song lyrics for email
+    $versesHtml = '';
+    $stanzaCount = 0;
+    $chorusCount = 0;
+    foreach ($data['verses'] as $v) {
+        $isCh = ($v['type'] == 1 || (!empty($v['isChorus']) && $v['isChorus'] === true));
+        if ($isCh) {
+            $chorusCount++;
+            $badge = '🌟 القرار' . ($chorusCount > 1 ? " $chorusCount" : '');
+            $bg = '#eff6ff';
+            $border = '#3b82f6';
+            $color = '#1d4ed8';
+        } else {
+            $stanzaCount++;
+            $badge = "📖 عدد $stanzaCount";
+            $bg = '#f8fafc';
+            $border = '#94a3b8';
+            $color = '#334155';
+        }
+        $lines = [];
+        foreach ($v['slides'] ?? [] as $sl) {
+            foreach ($sl['lines'] ?? [] as $l) {
+                if (trim($l)) $lines[] = htmlspecialchars($l);
+            }
+        }
+        $linesHtml = implode('<br>', $lines);
+        $versesHtml .= "
+        <div style='margin-bottom:14px; background:{$bg}; border-right:4px solid {$border}; padding:12px 16px; border-radius:8px;'>
+            <div style='font-weight:bold; font-size:13px; color:{$color}; margin-bottom:6px;'>{$badge}</div>
+            <div style='font-size:14px; line-height:1.7; color:#1e293b;'>{$linesHtml}</div>
+        </div>";
+    }
+
+    $emailSubject = "🎵 طلب اعتماد ترنيمة جديدة: {$songTitle} — {$submitterName}";
+    $emailBodyHtml = "
+    <!DOCTYPE html>
+    <html dir='rtl' lang='ar'>
+    <head><meta charset='utf-8'></head>
+    <body style='font-family:Tahoma, Arial, sans-serif; background-color:#f1f5f9; padding:20px; margin:0; direction:rtl;'>
+        <div style='max-width:620px; margin:0 auto; background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 15px rgba(0,0,0,0.08); border:1px solid #e2e8f0;'>
+            <div style='background:linear-gradient(135deg, #2563eb, #1d4ed8); color:#ffffff; padding:24px 20px; text-align:center;'>
+                <div style='font-size:28px; margin-bottom:6px;'>🎵</div>
+                <h2 style='margin:0; font-size:20px;'>طلب اعتماد وإضافة ترنيمة جديدة</h2>
+                <div style='font-size:13px; opacity:0.9; margin-top:4px;'>منظومة ترانيم مدارس الأحد والعرض المباشر</div>
+            </div>
+            
+            <div style='padding:24px;'>
+                <div style='background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px 16px; margin-bottom:20px;'>
+                    <table style='width:100%; border-collapse:collapse; font-size:13.5px; color:#334155;'>
+                        <tr><td style='padding:4px 0; font-weight:bold; width:110px;'>📌 عنوان الترنيمة:</td><td style='color:#0f172a; font-weight:800;'>{$songTitle}</td></tr>
+                        <tr><td style='padding:4px 0; font-weight:bold;'>👤 اسم المُرسل:</td><td>{$submitterName}</td></tr>
+                        " . ($churchName ? "<tr><td style='padding:4px 0; font-weight:bold;'>⛪ الكنيسة / الخدمة:</td><td>{$churchName}</td></tr>" : "") . "
+                        " . ($submitterEmail ? "<tr><td style='padding:4px 0; font-weight:bold;'>📧 البريد:</td><td>{$submitterEmail}</td></tr>" : "") . "
+                        " . ($submitterPhone ? "<tr><td style='padding:4px 0; font-weight:bold;'>📱 الهاتف / واتساب:</td><td>{$submitterPhone}</td></tr>" : "") . "
+                        " . ($notes ? "<tr><td style='padding:4px 0; font-weight:bold;'>📝 ملاحظات:</td><td style='color:#64748b;'>{$notes}</td></tr>" : "") . "
+                    </table>
+                </div>
+
+                <div style='margin-bottom:20px;'>
+                    <h3 style='font-size:15px; color:#0f172a; margin:0 0 12px 0; border-bottom:2px solid #e2e8f0; padding-bottom:6px;'>📜 كلمات وفقرات الترنيمة:</h3>
+                    {$versesHtml}
+                </div>
+
+                <!-- ACTION BUTTONS -->
+                <div style='background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:18px; text-align:center;'>
+                    <div style='font-weight:bold; font-size:14px; margin-bottom:12px; color:#0f172a;'>اختر الإجراء المناسب:</div>
+                    <div style='display:block; margin-bottom:10px;'>
+                        <a href='{$approveUrl}' style='display:inline-block; background:#10b981; color:#ffffff; text-decoration:none; padding:11px 24px; border-radius:8px; font-weight:bold; font-size:14px; margin:4px;'>
+                            🟢 اعتماد وإضافة مباشرة للموقع
+                        </a>
+                    </div>
+                    <div style='display:block; margin-bottom:10px;'>
+                        <a href='{$reviewUrl}' style='display:inline-block; background:#2563eb; color:#ffffff; text-decoration:none; padding:11px 24px; border-radius:8px; font-weight:bold; font-size:14px; margin:4px;'>
+                            ✏️ مراجعة وتعديل الترنيمة في الموقع
+                        </a>
+                    </div>
+                    <div style='display:block;'>
+                        <a href='{$rejectUrl}' style='display:inline-block; background:#ef4444; color:#ffffff; text-decoration:none; padding:8px 18px; border-radius:8px; font-size:12.5px; margin:4px;'>
+                            🔴 رفض الطلب
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div style='background:#f1f5f9; padding:12px; text-align:center; font-size:12px; color:#64748b; border-top:1px solid #e2e8f0;'>
+                sunday-school.rf.gd/taranim — منظومة الترانيم الذكية
+            </div>
+        </div>
+    </body>
+    </html>
+    ";
+
+    // Send notification email to admin
+    $adminTargetEmail = 'admin@sunday-school.online';
+    sendGoogleScriptNotificationEmail($adminTargetEmail, $emailSubject, $emailBodyHtml);
+
+    // If submitter provided email, send them a confirmation receipt
+    if ($submitterEmail) {
+        $confirmBody = "
+        <div style='font-family:Tahoma, Arial, sans-serif; direction:rtl; padding:16px;'>
+            <h3 style='color:#2563eb;'>سلام ونعمة يا {$submitterName}،</h3>
+            <p>تم استلام طلب إضافة ترنيمة <strong>«{$songTitle}»</strong> بنجاح وجاري مراجعتها واعتمادها في المنظومة.</p>
+            <p>نشكرك على مشاركتك وخدمتك المباركة! 🙏</p>
+        </div>";
+        sendGoogleScriptNotificationEmail($submitterEmail, "تم استلام ترنيمة: {$songTitle} بنجاح", $confirmBody);
+    }
+
+    echo json_encode([
+        'status' => 'success',
+        'submission_id' => $submissionId,
+        'message' => 'تم إرسال الترنيمة بنجاح وسيصلك إشعار فور مراجعتها واعتمادها!'
+    ]);
+    exit;
+}
+
+// 2. APPROVE SUBMISSION DIRECTLY VIA LINK OR API
+if (isset($_GET['action']) && $_GET['action'] === 'approve_submission') {
+    $subId = trim($_GET['id'] ?? '');
+    $token = trim($_GET['token'] ?? '');
+    $customPdo = getCustomSongsPdo();
+
+    if (!$customPdo || !$subId || !$token) {
+        die("<h3>طلب غير صالح</h3>");
+    }
+
+    $stmt = $customPdo->prepare("SELECT * FROM submissions WHERE id = :id AND token = :token LIMIT 1");
+    $stmt->execute([':id' => $subId, ':token' => $token]);
+    $sub = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$sub) {
+        die("<h3>الطلب غير موجود أو رمز التحقق غير صحيح</h3>");
+    }
+
+    $songData = json_decode($sub['song_json'], true);
+    if (!$songData) {
+        die("<h3>بيانات الترنيمة تالفة</h3>");
+    }
+
+    // Allocate safe unique item_id (starting from 500001+)
+    $maxStmt = $customPdo->query("SELECT MAX(item_id) as m FROM custom_songs");
+    $maxRow = $maxStmt->fetch(PDO::FETCH_ASSOC);
+    $nextItemId = max(500001, ((int)($maxRow['m'] ?? 0)) + 1);
+
+    // Insert into custom_songs
+    $insSong = $customPdo->prepare("
+        INSERT INTO custom_songs (item_id, title, media_url, notes, scale_id, author_name, church_name, submitter_email, submitter_phone, approved_at)
+        VALUES (:itemId, :title, :mediaUrl, :notes, :scaleId, :author, :church, :email, :phone, CURRENT_TIMESTAMP)
+    ");
+    $insSong->execute([
+        ':itemId' => $nextItemId,
+        ':title' => $songData['title'] ?? 'ترنيمة مخصصة',
+        ':mediaUrl' => $songData['media_url'] ?? '',
+        ':notes' => $sub['notes'] ?? '',
+        ':scaleId' => !empty($songData['scale_id']) ? (int)$songData['scale_id'] : null,
+        ':author' => $sub['submitter_name'] ?? '',
+        ':church' => $sub['church_name'] ?? '',
+        ':email' => $sub['submitter_email'] ?? '',
+        ':phone' => $sub['submitter_phone'] ?? ''
+    ]);
+    $customSongDbId = $customPdo->lastInsertId();
+
+    // Insert verses, slides, and segments
+    $stanzaNum = 0;
+    foreach ($songData['verses'] ?? [] as $v) {
+        $isCh = ($v['type'] == 1 || (!empty($v['isChorus']) && $v['isChorus'] === true));
+        if (!$isCh) $stanzaNum++;
+        $vType = $isCh ? 1 : 0;
+
+        $vStmt = $customPdo->prepare("INSERT INTO custom_verses (song_id, item_id, type, stanza_num) VALUES (:sId, :itemId, :type, :sNum)");
+        $vStmt->execute([
+            ':sId' => $customSongDbId,
+            ':itemId' => $nextItemId,
+            ':type' => $vType,
+            ':sNum' => $isCh ? null : $stanzaNum
+        ]);
+        $verseDbId = $customPdo->lastInsertId();
+
+        foreach ($v['slides'] ?? [] as $sl) {
+            $slStmt = $customPdo->prepare("INSERT INTO custom_slides (verse_id, heading) VALUES (:vId, :heading)");
+            $slStmt->execute([
+                ':vId' => $verseDbId,
+                ':heading' => $sl['heading'] ?? null
+            ]);
+            $slideDbId = $customPdo->lastInsertId();
+
+            $lines = $sl['lines'] ?? (isset($sl['text']) ? explode("\n", $sl['text']) : []);
+            foreach ($lines as $line) {
+                if (trim($line) !== '') {
+                    $segStmt = $customPdo->prepare("INSERT INTO custom_segments (slide_id, content) VALUES (:slId, :content)");
+                    $segStmt->execute([
+                        ':slId' => $slideDbId,
+                        ':content' => trim($line)
+                    ]);
+                }
+            }
+        }
+    }
+
+    // Mark submission as approved
+    $updStmt = $customPdo->prepare("UPDATE submissions SET status = 'approved', reviewed_at = CURRENT_TIMESTAMP WHERE id = :id");
+    $updStmt->execute([':id' => $subId]);
+
+    // Rebuild custom catalog JSON
+    rebuildCustomCatalogJson($customPdo);
+
+    // Notify submitter if email exists
+    if (!empty($sub['submitter_email'])) {
+        $approvedBody = "
+        <div style='font-family:Tahoma, Arial, sans-serif; direction:rtl; padding:16px;'>
+            <h3 style='color:#10b981;'>مبروك يا {$sub['submitter_name']}! 🎉</h3>
+            <p>تم اعتماد ونشر ترنيمة <strong>«{$songData['title']}»</strong> بنجاح في قاعدة بيانات التطبيق العامة.</p>
+            <p>أصبحت الترنيمة الآن متاحة لجميع الخدام والمستخدمين على الموقع مباشرة.</p>
+            <p><a href='https://sunday-school.rf.gd/taranim/' style='color:#2563eb; font-weight:bold;'>فتح موقع الترانيم</a></p>
+        </div>";
+        sendGoogleScriptNotificationEmail($sub['submitter_email'], "✅ تم اعتماد ونشر ترنيمتك: {$songData['title']}", $approvedBody);
+    }
+
+    // Render beautiful success landing page
+    header('Content-Type: text/html; charset=utf-8');
+    echo "
+    <!DOCTYPE html>
+    <html dir='rtl' lang='ar'>
+    <head>
+        <meta charset='utf-8'>
+        <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+        <title>تم اعتماد الترنيمة بنجاح</title>
+        <style>
+            body { font-family: 'Baloo Bhaijaan 2', Tahoma, sans-serif; background:#f0fdf4; display:flex; align-items:center; justify-content:center; min-height:100vh; margin:0; }
+            .card { background:#ffffff; border-radius:16px; padding:32px; max-width:480px; text-align:center; box-shadow:0 10px 25px rgba(0,0,0,0.08); border:1px solid #bbf7d0; }
+            .icon { font-size:52px; margin-bottom:12px; }
+            h2 { color:#15803d; margin:0 0 8px 0; }
+            p { color:#374151; font-size:15px; line-height:1.6; }
+            .btn { display:inline-block; background:#16a34a; color:#ffffff; text-decoration:none; padding:10px 24px; border-radius:8px; font-weight:bold; margin-top:16px; }
+        </style>
+    </head>
+    <body>
+        <div class='card'>
+            <div class='icon'>✅</div>
+            <h2>تم اعتماد ونشر الترنيمة بنجاح!</h2>
+            <p>تمت إضافة ترنيمة <strong>«" . htmlspecialchars($songData['title']) . "»</strong> إلى قاعدة بيانات الترانيم العامة والموقع بنجاح.</p>
+            <p style='font-size:13px; color:#6b7280;'>الترنيمة محفوظة بشكل مستقل في <code>custom_songs.sqlite</code> ولن تتأثر بأي تحديثات مستقبلية لقاعدة بيانات تسبيحنا.</p>
+            <a href='/taranim/' class='btn'>فتح منظومة الترانيم</a>
+        </div>
+    </body>
+    </html>";
+    exit;
+}
+
+// 3. REJECT SUBMISSION
+if (isset($_GET['action']) && $_GET['action'] === 'reject_submission') {
+    $subId = trim($_GET['id'] ?? '');
+    $token = trim($_GET['token'] ?? '');
+    $customPdo = getCustomSongsPdo();
+
+    if ($customPdo && $subId && $token) {
+        $updStmt = $customPdo->prepare("UPDATE submissions SET status = 'rejected', reviewed_at = CURRENT_TIMESTAMP WHERE id = :id AND token = :token");
+        $updStmt->execute([':id' => $subId, ':token' => $token]);
+    }
+
+    header('Content-Type: text/html; charset=utf-8');
+    echo "
+    <!DOCTYPE html>
+    <html dir='rtl' lang='ar'>
+    <head><meta charset='utf-8'><title>تم رفض الطلب</title></head>
+    <body style='font-family:Tahoma, sans-serif; background:#fef2f2; display:flex; align-items:center; justify-content:center; min-height:100vh; margin:0; text-align:center;'>
+        <div style='background:#fff; padding:30px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.08); border:1px solid #fecaca; max-width:400px;'>
+            <div style='font-size:42px; margin-bottom:10px;'>🛑</div>
+            <h3 style='color:#dc2626; margin:0 0 10px 0;'>تم رفض طلب إضافة الترنيمة</h3>
+            <a href='/taranim/' style='color:#2563eb; text-decoration:none; font-weight:bold;'>العودة للترانيم</a>
+        </div>
+    </body>
+    </html>";
+    exit;
+}
+
+// 4. GET SUBMISSION DATA (FOR IN-APP REVIEW & EDIT MODE)
+if (isset($_GET['action']) && $_GET['action'] === 'get_submission') {
+    $subId = trim($_GET['id'] ?? '');
+    $token = trim($_GET['token'] ?? '');
+    $customPdo = getCustomSongsPdo();
+
+    if (!$customPdo || !$subId || !$token) {
+        http_response_code(400);
+        echo json_encode(['status' => 'error', 'message' => 'بيانات غير صالحة']);
+        exit;
+    }
+
+    $stmt = $customPdo->prepare("SELECT * FROM submissions WHERE id = :id AND token = :token LIMIT 1");
+    $stmt->execute([':id' => $subId, ':token' => $token]);
+    $sub = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$sub) {
+        http_response_code(404);
+        echo json_encode(['status' => 'error', 'message' => 'الطلب غير موجود']);
+        exit;
+    }
+
+    echo json_encode([
+        'status' => 'success',
+        'submission' => [
+            'id' => $sub['id'],
+            'status' => $sub['status'],
+            'submitter_name' => $sub['submitter_name'],
+            'submitter_email' => $sub['submitter_email'],
+            'submitter_phone' => $sub['submitter_phone'],
+            'church_name' => $sub['church_name'],
+            'notes' => $sub['notes'],
+            'created_at' => $sub['created_at']
+        ],
+        'song' => json_decode($sub['song_json'], true)
+    ]);
+    exit;
+}
+
+// 5. SAVE REVIEWED SUBMISSION (DIRECTLY FROM IN-APP SONG EDITOR)
+if (isset($_GET['action']) && $_GET['action'] === 'save_reviewed_custom_song') {
+    $rawInput = file_get_contents('php://input');
+    $data = json_decode($rawInput, true);
+    $subId = trim($data['submission_id'] ?? '');
+    $token = trim($data['token'] ?? '');
+    $songData = $data['song'] ?? null;
+
+    $customPdo = getCustomSongsPdo();
+    if (!$customPdo || !$subId || !$token || !$songData) {
+        http_response_code(400);
+        echo json_encode(['status' => 'error', 'message' => 'بيانات الحفظ غير مكتملة']);
+        exit;
+    }
+
+    $stmt = $customPdo->prepare("SELECT * FROM submissions WHERE id = :id AND token = :token LIMIT 1");
+    $stmt->execute([':id' => $subId, ':token' => $token]);
+    $sub = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$sub) {
+        http_response_code(403);
+        echo json_encode(['status' => 'error', 'message' => 'رمز التحقق غير صالح']);
+        exit;
+    }
+
+    // Allocate safe unique item_id (starting from 500001+)
+    $maxStmt = $customPdo->query("SELECT MAX(item_id) as m FROM custom_songs");
+    $maxRow = $maxStmt->fetch(PDO::FETCH_ASSOC);
+    $nextItemId = max(500001, ((int)($maxRow['m'] ?? 0)) + 1);
+
+    $insSong = $customPdo->prepare("
+        INSERT INTO custom_songs (item_id, title, media_url, notes, scale_id, author_name, church_name, submitter_email, submitter_phone, approved_at)
+        VALUES (:itemId, :title, :mediaUrl, :notes, :scaleId, :author, :church, :email, :phone, CURRENT_TIMESTAMP)
+    ");
+    $insSong->execute([
+        ':itemId' => $nextItemId,
+        ':title' => $songData['title'] ?? 'ترنيمة مخصصة',
+        ':mediaUrl' => $songData['media_url'] ?? '',
+        ':notes' => $sub['notes'] ?? '',
+        ':scaleId' => !empty($songData['scale_id']) ? (int)$songData['scale_id'] : null,
+        ':author' => $sub['submitter_name'] ?? '',
+        ':church' => $sub['church_name'] ?? '',
+        ':email' => $sub['submitter_email'] ?? '',
+        ':phone' => $sub['submitter_phone'] ?? ''
+    ]);
+    $customSongDbId = $customPdo->lastInsertId();
+
+    $stanzaNum = 0;
+    foreach ($songData['verses'] ?? [] as $v) {
+        $isCh = ($v['type'] == 1 || (!empty($v['isChorus']) && $v['isChorus'] === true));
+        if (!$isCh) $stanzaNum++;
+        $vType = $isCh ? 1 : 0;
+
+        $vStmt = $customPdo->prepare("INSERT INTO custom_verses (song_id, item_id, type, stanza_num) VALUES (:sId, :itemId, :type, :sNum)");
+        $vStmt->execute([
+            ':sId' => $customSongDbId,
+            ':itemId' => $nextItemId,
+            ':type' => $vType,
+            ':sNum' => $isCh ? null : $stanzaNum
+        ]);
+        $verseDbId = $customPdo->lastInsertId();
+
+        foreach ($v['slides'] ?? [] as $sl) {
+            $slStmt = $customPdo->prepare("INSERT INTO custom_slides (verse_id, heading) VALUES (:vId, :heading)");
+            $slStmt->execute([
+                ':vId' => $verseDbId,
+                ':heading' => $sl['heading'] ?? null
+            ]);
+            $slideDbId = $customPdo->lastInsertId();
+
+            $lines = $sl['lines'] ?? (isset($sl['text']) ? explode("\n", $sl['text']) : []);
+            foreach ($lines as $line) {
+                if (trim($line) !== '') {
+                    $segStmt = $customPdo->prepare("INSERT INTO custom_segments (slide_id, content) VALUES (:slId, :content)");
+                    $segStmt->execute([
+                        ':slId' => $slideDbId,
+                        ':content' => trim($line)
+                    ]);
+                }
+            }
+        }
+    }
+
+    $updStmt = $customPdo->prepare("UPDATE submissions SET status = 'approved', reviewed_at = CURRENT_TIMESTAMP WHERE id = :id");
+    $updStmt->execute([':id' => $subId]);
+
+    rebuildCustomCatalogJson($customPdo);
+
+    echo json_encode([
+        'status' => 'success',
+        'message' => 'تم حفظ واعتماد الترنيمة بنجاح في قاعدة البيانات الحية!'
+    ]);
+    exit;
+}
+
+// 6. SERVE CUSTOM COMMUNITY CATALOG JSON
+if (isset($_GET['action']) && $_GET['action'] === 'custom_catalog') {
+    $customPdo = getCustomSongsPdo();
+    $list = rebuildCustomCatalogJson($customPdo);
+    echo json_encode($list, JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 // TEMPLATES DISCOVERY ENDPOINT
 if (isset($_GET['action']) && $_GET['action'] === 'templates') {
     $jsonFile = file_exists(__DIR__ . '/templates.json') ? __DIR__ . '/templates.json' : (file_exists(__DIR__ . '/../templates.json') ? __DIR__ . '/../templates.json' : null);
@@ -598,6 +1211,51 @@ if (preg_match('#/api/song/(\d+)#', $parsedUrl, $matches) || (isset($_GET['actio
             $cStmt->execute();
             $song = $cStmt->fetch(PDO::FETCH_ASSOC);
         } catch (Exception $ex) {}
+    }
+
+    // Check in custom_songs.sqlite for accepted user songs
+    if (!$song) {
+        $customPdo = getCustomSongsPdo();
+        if ($customPdo) {
+            $cStmt = $customPdo->prepare("SELECT * FROM custom_songs WHERE id = :id OR item_id = :id LIMIT 1");
+            $cStmt->execute([':id' => $songId]);
+            $cSong = $cStmt->fetch(PDO::FETCH_ASSOC);
+            if ($cSong) {
+                $itemId = (int)$cSong['item_id'];
+                $vStmt = $customPdo->prepare("SELECT * FROM custom_verses WHERE item_id = :itemId ORDER BY id ASC");
+                $vStmt->execute([':itemId' => $itemId]);
+                $verses = $vStmt->fetchAll(PDO::FETCH_ASSOC);
+                $versesData = [];
+                foreach ($verses as $v) {
+                    $slStmt = $customPdo->prepare("SELECT * FROM custom_slides WHERE verse_id = :vid ORDER BY id ASC");
+                    $slStmt->execute([':vid' => $v['id']]);
+                    $slides = $slStmt->fetchAll(PDO::FETCH_ASSOC);
+                    $slidesData = [];
+                    foreach ($slides as $sl) {
+                        $segStmt = $customPdo->prepare("SELECT content FROM custom_segments WHERE slide_id = :sid ORDER BY id ASC");
+                        $segStmt->execute([':sid' => $sl['id']]);
+                        $lines = $segStmt->fetchAll(PDO::FETCH_COLUMN);
+                        $slidesData[] = [
+                            'id' => (int)$sl['id'],
+                            'heading' => $sl['heading'],
+                            'lines' => $lines,
+                            'text' => implode("\n", $lines)
+                        ];
+                    }
+                    $versesData[] = [
+                        'id' => (int)$v['id'],
+                        'type' => (int)$v['type'],
+                        'isChorus' => ((int)$v['type'] === 1),
+                        'slides' => $slidesData
+                    ];
+                }
+                $cSong['verses'] = $versesData;
+                $cSong['is_custom'] = true;
+                $cSong['is_community'] = true;
+                echo json_encode($cSong);
+                exit;
+            }
+        }
     }
 
     if (!$song) {
