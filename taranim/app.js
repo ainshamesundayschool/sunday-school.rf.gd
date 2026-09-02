@@ -3260,6 +3260,20 @@ document.addEventListener('DOMContentLoaded', () => {
   let hostPeer = null;
   let activeRemotePeerConnections = new Map();
 
+  // BROADCAST CHANNEL FOR 0.01MS LOCAL TAB / SAME-DEVICE SYNC
+  const remoteBroadcastChannel = (typeof window.BroadcastChannel !== 'undefined') ? new window.BroadcastChannel('taranim_remote_sync') : null;
+  if (remoteBroadcastChannel) {
+    remoteBroadcastChannel.onmessage = (e) => {
+      if (e.data) {
+        if (e.data.type === 'COMMAND' && e.data.command) {
+          executeRemoteCommand(e.data.command);
+        } else if (e.data.type === 'REQUEST_STATE') {
+          pushRemoteHostState();
+        }
+      }
+    };
+  }
+
   // CLEAN ROOT API GATEWAY HOST FETCHER
   async function requestRemoteHostApi(action, payload = {}) {
     try {
@@ -3320,7 +3334,18 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       if (hostPeer) hostPeer.destroy();
       const hostPeerId = 'sstaranim_' + roomPin;
-      hostPeer = new window.Peer(hostPeerId, { debug: 0 });
+      hostPeer = new window.Peer(hostPeerId, {
+        debug: 0,
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' },
+            { urls: 'stun:stun.cloudflare.com:3478' }
+          ],
+          iceCandidatePoolSize: 10
+        }
+      });
 
       hostPeer.on('open', () => {
         // Peer host ready
@@ -3353,7 +3378,8 @@ document.addEventListener('DOMContentLoaded', () => {
             totalLines: currentLines.length,
             presentationLines: currentLines,
             isBlank: Boolean(state.isBlank),
-            isStandbyMode: Boolean(state.isStandbyMode)
+            isStandbyMode: Boolean(state.isStandbyMode),
+            sessionRecents: (state.sessionRecents || []).slice(0, 20)
           }
         });
       });
@@ -3423,6 +3449,7 @@ document.addEventListener('DOMContentLoaded', () => {
       presentationLines: currentLines,
       isBlank: Boolean(state.isBlank),
       isStandbyMode: Boolean(state.isStandbyMode),
+      sessionRecents: (state.sessionRecents || []).slice(0, 20),
       theme: state.userSettings?.selectedTemplateId || 'default'
     };
 
@@ -3508,8 +3535,26 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (cmd.type === 'TOGGLE_STANDBY') {
       toggleStandbyMode(true);
     } else if (cmd.type === 'PLAY_SONG' && cmd.song) {
-      playSong(cmd.song);
-      showToast(`📱 تم تشغيل ترنيمة "${cmd.song.title}" من الهاتف!`);
+      if (typeof openAndPresentItem === 'function') {
+        openAndPresentItem(cmd.song, Boolean(cmd.song.is_bible));
+      } else if (typeof loadSongIntoPresentation === 'function') {
+        loadSongIntoPresentation(cmd.song, true);
+      }
+      showToast(`📱 تم تشغيل "${cmd.song.title || 'العنصر'}" من الهاتف!`);
+    } else if (cmd.type === 'REQUEST_CATALOG') {
+      if (state.allSongs && state.allSongs.length > 0) {
+        const compactCatalog = state.allSongs.slice(0, 3500).map(s => ({
+          id: s.id,
+          title: s.title,
+          notes: (s.text || s.notes || '').substring(0, 150),
+          is_custom: Boolean(s.is_custom)
+        }));
+        activeRemotePeerConnections.forEach(conn => {
+          if (conn && conn.open) {
+            conn.send({ type: 'CATALOG_DATA', songs: compactCatalog });
+          }
+        });
+      }
     }
 
     pushRemoteHostState();
