@@ -368,10 +368,13 @@
             <i class="fa-solid fa-palette"></i> الشاشة والموضع
           </button>
           <button type="button" class="style-tab-btn" data-tab="tab-standby">
-            <i class="fa-solid fa-photo-film"></i> الانتظار والانتقال
+            <i class="fa-solid fa-photo-film"></i> الانتقال
           </button>
           <button type="button" class="style-tab-btn" data-tab="tab-templates">
             <i class="fa-solid fa-layer-group"></i> القوالب
+          </button>
+          <button type="button" class="style-tab-btn" data-tab="tab-advanced">
+            <i class="fa-solid fa-sliders"></i> الوضع المتقدم
           </button>
         </div>
 
@@ -996,6 +999,132 @@
                 <button type="button" id="btn-export-all-templates" class="btn btn-sm btn-secondary" style="font-weight:700; font-size:0.82rem; padding:8px; background:#f1f5f9; border-radius:8px;">
                   <i class="fa-solid fa-file-zipper" style="color:#2563eb;"></i> تصدير الكل (ZIP)
                 </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 6: ADVANCED MODE (REMOTE CONTROL & OBS STUDIO INTEGRATION) -->
+          <div id="tab-advanced" class="style-tab-content hidden">
+            <!-- 1. MOBILE REMOTE CONTROL SECTION -->
+            <div class="style-card" style="border: 1.5px solid #cbd5e1; background: linear-gradient(135deg, rgba(14, 165, 233, 0.04), rgba(37, 99, 235, 0.04));">
+              <div class="style-card-title" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <i class="fa-solid fa-mobile-screen-button" style="color:#0ea5e9;"></i>
+                  <span>التحكم عن بعد بالهاتف (Remote Control)</span>
+                </div>
+                <span id="remote-adv-status-badge" class="status-pill online" style="font-size:0.75rem; padding:3px 8px;">
+                  <span class="remote-badge-dot connected"></span> <span id="remote-adv-clients-txt">جاهز للاتصال</span>
+                </span>
+              </div>
+              <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0; margin-bottom:12px; line-height:1.4;">
+                امسح رمز QR للتحكم الكامل في عرض الترانيم والإصحاحات وشاشات الانتظار مباشرة من هاتفك أو أي جهاز متصل بنفس الشبكة.
+              </p>
+
+              <!-- QR & PIN ROW -->
+              <div style="display:flex; flex-direction:column; align-items:center; gap:12px; margin-bottom:12px;">
+                <div id="remote-adv-qr-canvas-container" style="background:#ffffff; padding:10px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08); border:1px solid #cbd5e1; display:inline-block;"></div>
+                
+                <div style="background:var(--bg-card, #ffffff); border:1px solid #cbd5e1; border-radius:10px; padding:8px 14px; width:100%; display:flex; align-items:center; justify-content:space-between;">
+                  <div style="display:flex; flex-direction:column; align-items:flex-start;">
+                    <span style="font-size:0.72rem; color:var(--text-muted); font-weight:700;">رمز الغرفة (PIN):</span>
+                    <span id="remote-adv-pin-txt" class="remote-host-pin-txt" style="font-size:1.3rem; font-weight:900; color:var(--text-main); letter-spacing:3px;">------</span>
+                  </div>
+                  <button type="button" id="btn-adv-copy-remote-pin" class="btn btn-sm btn-secondary" style="font-size:0.75rem; padding:6px 10px;">
+                    <i class="fa-solid fa-copy"></i> نسخ الرمز
+                  </button>
+                </div>
+              </div>
+
+              <!-- ACTIONS ROW -->
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <button type="button" id="btn-adv-copy-remote-url" class="btn btn-sm btn-primary" style="font-size:0.8rem; padding:8px 10px; display:flex; align-items:center; justify-content:center; gap:6px;">
+                  <i class="fa-solid fa-link"></i> نسخ رابط الهاتف
+                </button>
+                <button type="button" id="btn-adv-open-remote-tab" class="btn btn-sm btn-secondary" style="font-size:0.8rem; padding:8px 10px; display:flex; align-items:center; justify-content:center; gap:6px;">
+                  <i class="fa-solid fa-up-right-from-square"></i> فتح الريموت في تبويب
+                </button>
+              </div>
+            </div>
+
+            <!-- 2. OBS STUDIO & BROADCAST INTEGRATION SECTION -->
+            <div class="style-card" style="border: 1.5px solid #cbd5e1; margin-top:10px; background: linear-gradient(135deg, rgba(37, 99, 235, 0.04), rgba(16, 185, 129, 0.04));">
+              <div class="style-card-title" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <i class="fa-solid fa-satellite-dish" style="color:#2563eb;"></i>
+                  <span>الربط مع استوديو OBS Studio والبث</span>
+                </div>
+                <div id="obs-adv-status-pill" class="status-pill offline" style="font-size:0.75rem; padding:3px 8px;">
+                  <i class="fa-solid fa-circle-dot"></i> غير متصل
+                </div>
+              </div>
+
+              <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0; margin-bottom:10px; line-height:1.4;">
+                اتصال WebSocket للتحكم التلقائي في مشاهد OBS وتبديل الكاميرات والشرائح أثناء العرض المباشر.
+              </p>
+
+              <!-- OBS CONNECTION FORM IN STYLE TAB -->
+              <div style="display:flex; flex-direction:column; gap:8px;">
+                <div class="control-field" style="margin-bottom:0;">
+                  <label for="obs-adv-ip-input" style="font-size:0.78rem;">عنوان IP / المضيف (Host):</label>
+                  <input type="text" id="obs-adv-ip-input" class="control-input" placeholder="localhost أو 192.168.1.50" value="localhost" style="font-size:0.82rem; padding:6px 10px;">
+                </div>
+
+                <div class="style-grid-2" style="margin-bottom:0; gap:8px;">
+                  <div class="control-field" style="margin-bottom:0;">
+                    <label for="obs-adv-port-input" style="font-size:0.78rem;">المنفذ (Port):</label>
+                    <input type="number" id="obs-adv-port-input" class="control-input" placeholder="4455" value="4455" style="font-size:0.82rem; padding:6px 10px;">
+                  </div>
+                  <div class="control-field" style="margin-bottom:0;">
+                    <label for="obs-adv-pw-input" style="font-size:0.78rem;">كلمة المرور (WebSocket):</label>
+                    <input type="password" id="obs-adv-pw-input" class="control-input" placeholder="كلمة المرور" style="font-size:0.82rem; padding:6px 10px;">
+                  </div>
+                </div>
+
+                <div style="display:flex; gap:6px; margin-top:4px;">
+                  <button type="button" id="btn-obs-adv-connect" class="btn btn-sm btn-primary" style="flex:1; padding:8px 12px; font-size:0.82rem; display:flex; align-items:center; justify-content:center; gap:6px;">
+                    <i class="fa-solid fa-link"></i> اتصال بـ OBS
+                  </button>
+                  <button type="button" id="btn-obs-adv-disconnect" class="btn btn-sm btn-danger hidden" style="flex:1; padding:8px 12px; font-size:0.82rem; display:flex; align-items:center; justify-content:center; gap:6px;">
+                    <i class="fa-solid fa-link-slash"></i> قطع الاتصال
+                  </button>
+                  <button type="button" id="btn-obs-adv-open-modal" class="btn btn-sm btn-secondary" style="padding:8px 12px; font-size:0.82rem;" title="فتح نافذة إعدادات OBS الكاملة ومسح QR">
+                    <i class="fa-solid fa-qrcode"></i> QR
+                  </button>
+                </div>
+              </div>
+
+              <!-- OBS BROWSER SOURCE LINKS & TOOLS -->
+              <div style="margin-top:14px; border-top:1px solid #cbd5e1; padding-top:10px;">
+                <div style="font-size:0.78rem; font-weight:700; color:var(--text-main); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                  <i class="fa-solid fa-display" style="color:#6366f1;"></i> روابط مصادر البث (Browser Sources):
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:6px;">
+                  <div style="background:var(--bg-card, #ffffff); border:1px solid #cbd5e1; border-radius:8px; padding:6px 10px; display:flex; align-items:center; justify-content:space-between;">
+                    <div style="display:flex; flex-direction:column;">
+                      <span style="font-size:0.75rem; font-weight:700; color:var(--text-main);">شاشة العرض الكاملة (Full HD Browser Source)</span>
+                      <span style="font-size:0.68rem; color:var(--text-muted);">present.html</span>
+                    </div>
+                    <div style="display:flex; gap:4px;">
+                      <button type="button" id="btn-copy-adv-presenter-url" class="btn btn-sm btn-secondary" style="font-size:0.72rem; padding:4px 8px;" title="نسخ الرابط لإضافته كمصدر Browser Source في OBS">
+                        <i class="fa-solid fa-copy"></i> نسخ
+                      </button>
+                      <button type="button" id="btn-preview-adv-presenter" class="btn btn-sm btn-secondary" style="font-size:0.72rem; padding:4px 8px;" title="فتح شاشة العرض في تبويب جديد">
+                        <i class="fa-solid fa-up-right-from-square"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div style="background:var(--bg-card, #ffffff); border:1px solid #cbd5e1; border-radius:8px; padding:6px 10px; display:flex; align-items:center; justify-content:space-between;">
+                    <div style="display:flex; flex-direction:column;">
+                      <span style="font-size:0.75rem; font-weight:700; color:var(--text-main);">ملف المزامنة المحلي (Local File Sync)</span>
+                      <span style="font-size:0.68rem; color:var(--text-muted);">live.html / live.txt</span>
+                    </div>
+                    <button type="button" id="btn-adv-choose-live-file" class="btn btn-sm btn-secondary" style="font-size:0.72rem; padding:4px 8px;" title="اختيار أو تغيير مكان حفظ ملف البث الحي">
+                      <i class="fa-solid fa-folder-open"></i> اختيار ملف
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

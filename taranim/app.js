@@ -2417,6 +2417,12 @@ document.addEventListener('DOMContentLoaded', () => {
       modalPill.innerHTML = `<i class="fa-solid fa-circle-${connected ? 'check' : 'dot'}"></i> ${escapeHtml(message || (connected ? 'متصل بـ OBS' : 'غير متصل'))}`;
     }
 
+    const advPill = document.getElementById('obs-adv-status-pill');
+    if (advPill) {
+      advPill.className = 'status-pill ' + (connected ? 'online' : 'offline');
+      advPill.innerHTML = `<i class="fa-solid fa-circle-${connected ? 'check' : 'dot'}"></i> ${escapeHtml(message || (connected ? 'متصل بـ OBS' : 'غير متصل'))}`;
+    }
+
     if (btnConnect && btnDisconnect) {
       if (connected) {
         btnConnect.classList.add('hidden');
@@ -2424,6 +2430,18 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         btnConnect.classList.remove('hidden');
         btnDisconnect.classList.add('hidden');
+      }
+    }
+
+    const btnAdvConnect = document.getElementById('btn-obs-adv-connect');
+    const btnAdvDisconnect = document.getElementById('btn-obs-adv-disconnect');
+    if (btnAdvConnect && btnAdvDisconnect) {
+      if (connected) {
+        btnAdvConnect.classList.add('hidden');
+        btnAdvDisconnect.classList.remove('hidden');
+      } else {
+        btnAdvConnect.classList.remove('hidden');
+        btnAdvDisconnect.classList.add('hidden');
       }
     }
 
@@ -3154,6 +3172,84 @@ document.addEventListener('DOMContentLoaded', () => {
         globalObsClient.connect(defaultProf.ip, defaultProf.port, defaultProf.password);
       }
     }
+
+    // ADVANCED TAB OBS BUTTONS & SOURCES
+    const btnAdvConnect = document.getElementById('btn-obs-adv-connect');
+    const btnAdvDisconnect = document.getElementById('btn-obs-adv-disconnect');
+    const btnAdvOpenModal = document.getElementById('btn-obs-adv-open-modal');
+    const btnCopyPresenterUrl = document.getElementById('btn-copy-adv-presenter-url');
+    const btnPreviewPresenter = document.getElementById('btn-preview-adv-presenter');
+    const btnAdvChooseLiveFile = document.getElementById('btn-adv-choose-live-file');
+
+    if (btnAdvConnect) {
+      btnAdvConnect.addEventListener('click', () => {
+        const advIpInput = document.getElementById('obs-adv-ip-input');
+        const advPortInput = document.getElementById('obs-adv-port-input');
+        const advPwInput = document.getElementById('obs-adv-pw-input');
+
+        const ip = advIpInput ? advIpInput.value.trim() : 'localhost';
+        const port = advPortInput ? (parseInt(advPortInput.value) || 4455) : 4455;
+        const pw = advPwInput ? advPwInput.value : '';
+
+        const ipInput = document.getElementById('obs-ip-input');
+        const portInput = document.getElementById('obs-port-input');
+        const pwInput = document.getElementById('obs-pw-input');
+        if (ipInput) ipInput.value = ip;
+        if (portInput) portInput.value = port;
+        if (pwInput) pwInput.value = pw;
+
+        globalObsClient.connect(ip, port, pw);
+      });
+    }
+
+    if (btnAdvDisconnect) {
+      btnAdvDisconnect.addEventListener('click', () => {
+        globalObsClient.disconnect();
+        showToast('تم قطع الاتصال بـ OBS.');
+      });
+    }
+
+    if (btnAdvOpenModal) {
+      btnAdvOpenModal.addEventListener('click', () => {
+        const modal = document.getElementById('modal-obs-controller');
+        if (modal) modal.classList.remove('hidden');
+      });
+    }
+
+    if (btnCopyPresenterUrl) {
+      btnCopyPresenterUrl.addEventListener('click', () => {
+        const loc = window.location;
+        let basePath = loc.pathname;
+        if (basePath.endsWith('.html') || basePath.endsWith('.php')) {
+          basePath = basePath.substring(0, basePath.lastIndexOf('/') + 1);
+        } else if (!basePath.endsWith('/')) {
+          basePath += '/';
+        }
+        const fullPresenterUrl = `${loc.origin}${basePath}present.html`;
+        navigator.clipboard.writeText(fullPresenterUrl);
+        showToast('📋 تم نسخ رابط شاشة العرض الكاملة (present.html) لـ OBS!');
+      });
+    }
+
+    if (btnPreviewPresenter) {
+      btnPreviewPresenter.addEventListener('click', () => {
+        const loc = window.location;
+        let basePath = loc.pathname;
+        if (basePath.endsWith('.html') || basePath.endsWith('.php')) {
+          basePath = basePath.substring(0, basePath.lastIndexOf('/') + 1);
+        } else if (!basePath.endsWith('/')) {
+          basePath += '/';
+        }
+        window.open(`${loc.origin}${basePath}present.html`, '_blank');
+      });
+    }
+
+    if (btnAdvChooseLiveFile) {
+      btnAdvChooseLiveFile.addEventListener('click', () => {
+        const modal = document.getElementById('modal-live-file-format');
+        if (modal) modal.classList.remove('hidden');
+      });
+    }
   }
 
 
@@ -3281,31 +3377,39 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderRemotePairingUI() {
     if (!remoteHostSession) return;
     const pinEl = document.getElementById('remote-host-pin-txt');
+    const advPinEl = document.getElementById('remote-adv-pin-txt');
     const container = document.getElementById('remote-qr-canvas-container');
+    const advContainer = document.getElementById('remote-adv-qr-canvas-container');
 
-    if (pinEl) pinEl.textContent = remoteHostSession.roomPin || '------';
+    const pinVal = remoteHostSession.roomPin || '------';
+    if (pinEl) pinEl.textContent = pinVal;
+    if (advPinEl) advPinEl.textContent = pinVal;
 
     const fullUrl = getRemoteAppUrl(remoteHostSession.roomId, remoteHostSession.roomPin);
 
-    if (container) {
-      container.innerHTML = '';
+    const renderQr = (cnt, size) => {
+      if (!cnt) return;
+      cnt.innerHTML = '';
       if (typeof window.QRCode === 'function') {
         try {
-          new window.QRCode(container, {
+          new window.QRCode(cnt, {
             text: fullUrl,
-            width: 200,
-            height: 200,
+            width: size,
+            height: size,
             colorDark: '#0f172a',
             colorLight: '#ffffff',
             correctLevel: window.QRCode.CorrectLevel.M
           });
         } catch(e) {
-          container.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(fullUrl)}" alt="QR Code" style="width:200px; height:200px; display:block;">`;
+          cnt.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(fullUrl)}" alt="QR Code" style="width:${size}px; height:${size}px; display:block;">`;
         }
       } else {
-        container.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(fullUrl)}" alt="QR Code" style="width:200px; height:200px; display:block;">`;
+        cnt.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(fullUrl)}" alt="QR Code" style="width:${size}px; height:${size}px; display:block;">`;
       }
-    }
+    };
+
+    renderQr(container, 200);
+    renderQr(advContainer, 160);
   }
 
   // 2. BROADCAST STATE IN 0MS TO ALL CONNECTED PEERS & PUSH TO SERVER
@@ -3345,6 +3449,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const headerBadge = document.getElementById('remote-header-status-badge');
     const clientsDot = document.getElementById('remote-clients-dot');
     const clientsTxt = document.getElementById('remote-clients-count-txt');
+    const advClientsTxt = document.getElementById('remote-adv-clients-txt');
 
     if (headerBadge) {
       headerBadge.className = 'remote-badge-dot ' + (count > 0 ? 'connected' : 'disconnected');
@@ -3354,6 +3459,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (clientsTxt) {
       clientsTxt.textContent = count > 0 ? `🟢 متصل: ${count} هاتف / جهاز (مباشر)` : 'في انتظار مسح رمز QR...';
+    }
+    if (advClientsTxt) {
+      advClientsTxt.textContent = count > 0 ? `متصل (${count} أجهزة)` : 'جاهز للاتصال';
     }
   }
 
@@ -3452,6 +3560,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (btnOpenTab) {
       btnOpenTab.addEventListener('click', () => {
+        if (remoteHostSession) {
+          const url = getRemoteAppUrl(remoteHostSession.roomId, remoteHostSession.roomPin);
+          window.open(url, '_blank');
+        }
+      });
+    }
+
+    // ADVANCED TAB REMOTE BUTTONS
+    const btnAdvCopyPin = document.getElementById('btn-adv-copy-remote-pin');
+    const btnAdvCopyUrl = document.getElementById('btn-adv-copy-remote-url');
+    const btnAdvOpenTab = document.getElementById('btn-adv-open-remote-tab');
+
+    if (btnAdvCopyPin) {
+      btnAdvCopyPin.addEventListener('click', () => {
+        if (remoteHostSession && remoteHostSession.roomPin) {
+          navigator.clipboard.writeText(remoteHostSession.roomPin);
+          showToast('📋 تم نسخ رمز الغرفة (PIN)!');
+        }
+      });
+    }
+
+    if (btnAdvCopyUrl) {
+      btnAdvCopyUrl.addEventListener('click', () => {
+        if (remoteHostSession) {
+          const url = getRemoteAppUrl(remoteHostSession.roomId, remoteHostSession.roomPin);
+          navigator.clipboard.writeText(url);
+          showToast('🔗 تم نسخ رابط الريموت للهاتف!');
+        }
+      });
+    }
+
+    if (btnAdvOpenTab) {
+      btnAdvOpenTab.addEventListener('click', () => {
         if (remoteHostSession) {
           const url = getRemoteAppUrl(remoteHostSession.roomId, remoteHostSession.roomPin);
           window.open(url, '_blank');
@@ -5336,6 +5477,17 @@ document.addEventListener('DOMContentLoaded', () => {
           if (typeof renderUserTemplatesList === 'function') renderUserTemplatesList();
         } else if (targetTab === 'tab-effects') {
           if (typeof renderEffectPresets === 'function') renderEffectPresets();
+        } else if (targetTab === 'tab-advanced') {
+          if (typeof renderRemotePairingUI === 'function') renderRemotePairingUI();
+          const ipInput = document.getElementById('obs-ip-input');
+          const portInput = document.getElementById('obs-port-input');
+          const pwInput = document.getElementById('obs-pw-input');
+          const advIpInput = document.getElementById('obs-adv-ip-input');
+          const advPortInput = document.getElementById('obs-adv-port-input');
+          const advPwInput = document.getElementById('obs-adv-pw-input');
+          if (ipInput && advIpInput && !advIpInput.value) advIpInput.value = ipInput.value;
+          if (portInput && advPortInput && !advPortInput.value) advPortInput.value = portInput.value;
+          if (pwInput && advPwInput && !advPwInput.value) advPwInput.value = pwInput.value;
         }
       });
     });
