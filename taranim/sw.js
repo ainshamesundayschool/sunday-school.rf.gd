@@ -1,7 +1,8 @@
-// TARANIM PWA & OBS PRESENTER SERVICE WORKER (OFFLINE FIRST WITH PERMANENT DATA CACHE)
-const CACHE_NAME = 'taranim-pwa-v38';
+// TARANIM PWA & OBS PRESENTER SERVICE WORKER (LOW DATA CONSUMING & OFFLINE FIRST)
+const CACHE_NAME = 'taranim-pwa-v39';
 const DATA_CACHE_NAME = 'taranim-data-v1';
 
+// Core App Shell Only (Lightweight assets < 1MB)
 const PRECACHE_ASSETS = [
   './',
   './index.html',
@@ -20,9 +21,6 @@ const PRECACHE_ASSETS = [
   './song_scales_map.js',
   './song_scales_map.json',
   './arabic_dictionary.json',
-  './bible_books_data.json',
-  './bible_chapters_data.json',
-  './songs_catalog.json',
   './templates.json',
   './playlists.json',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css',
@@ -37,19 +35,13 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     (async () => {
       const appCache = await caches.open(CACHE_NAME);
-      const dataCache = await caches.open(DATA_CACHE_NAME);
-
       for (const asset of PRECACHE_ASSETS) {
         try {
-          const isLargeData = asset.includes('songs_catalog.json') || asset.includes('bible_chapters_data.json');
-          const targetCache = isLargeData ? dataCache : appCache;
-
-          // Check if already cached
-          const existing = await targetCache.match(asset, { ignoreSearch: true });
+          const existing = await appCache.match(asset, { ignoreSearch: true });
           if (!existing) {
             const response = await fetch(asset, { cache: 'no-cache' });
             if (response && response.ok) {
-              await targetCache.put(asset, response);
+              await appCache.put(asset, response);
             }
           }
         } catch (e) {
@@ -80,7 +72,6 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   const url = event.request.url;
 
-  // 1. Bypass live API calls when offline (handled via BroadcastChannel / localStorage)
   if (url.includes('api.php?action=live') || url.includes('/api/live')) {
     event.respondWith(
       fetch(event.request).catch(() => {
@@ -98,35 +89,35 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       (async () => {
         try {
-          const networkPromise = fetch(event.request);
-          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Network timeout')), 2000));
-          const networkResponse = await Promise.race([networkPromise, timeoutPromise]);
-          
+          const networkResponse = await fetch(event.request);
           if (networkResponse && networkResponse.status === 200) {
             const cache = await caches.open(CACHE_NAME);
             cache.put(event.request, networkResponse.clone());
             return networkResponse;
           }
-        } catch (err) {
-          // Network failed or timed out -> check caches
+        } catch (error) {
+          // Offline -> fallback to cache
         }
 
         const cache = await caches.open(CACHE_NAME);
-        const cached = await cache.match(event.request, { ignoreSearch: true });
-        if (cached) return cached;
+        const urlObj = new URL(event.request.url);
+        const path = urlObj.pathname;
 
-        if (url.includes('present.html')) {
-          const matchPresent = await cache.match('./present.html', { ignoreSearch: true });
+        if (path.includes('present')) {
+          const matchPresent = (await cache.match('./present.html', { ignoreSearch: true })) ||
+                               (await cache.match('present.html', { ignoreSearch: true }));
           if (matchPresent) return matchPresent;
         }
 
-        if (url.includes('remote.html')) {
-          const matchRemote = await cache.match('./remote.html', { ignoreSearch: true });
+        if (path.includes('remote')) {
+          const matchRemote = (await cache.match('./remote.html', { ignoreSearch: true })) ||
+                              (await cache.match('remote.html', { ignoreSearch: true }));
           if (matchRemote) return matchRemote;
         }
 
-        if (url.includes('install.html')) {
-          const matchInstall = await cache.match('./install.html', { ignoreSearch: true });
+        if (path.includes('install')) {
+          const matchInstall = (await cache.match('./install.html', { ignoreSearch: true })) ||
+                               (await cache.match('install.html', { ignoreSearch: true }));
           if (matchInstall) return matchInstall;
         }
 
@@ -143,7 +134,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 3. JSON databases (songs_catalog, bible data, templates, dictionary): Cache First with Background Revalidation
+  // 3. JSON databases: Cache First (NO background re-download to save bandwidth)
   if (url.endsWith('.json') || url.includes('.json?')) {
     event.respondWith(
       (async () => {
@@ -154,39 +145,33 @@ self.addEventListener('fetch', (event) => {
         let cachedResponse = await primaryCache.match(event.request, { ignoreSearch: true });
         
         if (!cachedResponse && isDataFile) {
-          // Fallback check app cache
           const appCache = await caches.open(CACHE_NAME);
           cachedResponse = await appCache.match(event.request, { ignoreSearch: true });
         }
 
-        // Background update if online
-        const fetchPromise = fetch(event.request).then(async (networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            const cacheToSave = await caches.open(targetCacheName);
-            cacheToSave.put(event.request, networkResponse.clone());
-          }
-          return networkResponse;
-        }).catch(() => null);
-
-        if (cachedResponse) {
-          // Don't wait for background fetch, return cached immediately
+        // Return immediately if already cached (save data!)
+        if (cachedResponse && !event.request.cache.includes('reload')) {
           return cachedResponse;
         }
 
-        // If not cached, wait for network fetch
-        const netRes = await fetchPromise;
-        if (netRes && netRes.status === 200) {
-          return netRes;
-        }
+        // Otherwise fetch from network and cache
+        try {
+          const netRes = await fetch(event.request);
+          if (netRes && netRes.status === 200) {
+            const cacheToSave = await caches.open(targetCacheName);
+            cacheToSave.put(event.request, netRes.clone());
+            return netRes;
+          }
+        } catch (err) {}
 
-        // Return error response rather than empty object so caller can fallback to IndexedDB
+        if (cachedResponse) return cachedResponse;
         return new Response(null, { status: 503, statusText: 'Service Unavailable Offline' });
       })()
     );
     return;
   }
 
-  // 4. JS & CSS Assets (app.js, style.css): Network First with Cache Fallback for instant update delivery
+  // 4. JS & CSS Assets: Network First with Cache Fallback
   if (url.includes('.js') || url.includes('.css')) {
     event.respondWith(
       (async () => {
@@ -211,18 +196,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 5. Other Static Assets (Images, Fonts, Media, Icons): Cache First with Background Update
+  // 5. Static Assets (Media, Images, Videos, Fonts): Strict Cache First (Zero background bandwidth consumption)
   event.respondWith(
-    caches.open(CACHE_NAME).then(async (cache) => {
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
       const cachedResponse = await cache.match(event.request, { ignoreSearch: true });
-      if (cachedResponse) {
-        if (navigator.onLine) {
-          fetch(event.request).then((networkResponse) => {
-            if (networkResponse && networkResponse.status === 200) {
-              cache.put(event.request, networkResponse);
-            }
-          }).catch(() => {});
-        }
+      if (cachedResponse && !event.request.cache.includes('reload')) {
         return cachedResponse;
       }
 
@@ -233,9 +212,10 @@ self.addEventListener('fetch', (event) => {
         }
         return networkResponse;
       } catch (err) {
+        if (cachedResponse) return cachedResponse;
         return new Response('', { status: 200, statusText: 'OK' });
       }
-    })
+    })()
   );
 });
 

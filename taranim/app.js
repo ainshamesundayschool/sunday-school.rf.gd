@@ -2325,19 +2325,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function setupNetworkSync() {
     window.addEventListener('online', () => {
-      showToast('تم استعادة الاتصال بالإنترنت — جاري مزامنة البيانات...', 'info');
-      fetch('./songs_catalog.json?t=' + Date.now())
-        .then(res => res.ok ? res.json() : null)
-        .then(data => {
-          if (Array.isArray(data) && data.length > 0) {
-            state.allSongs = (typeof indexCatalogList === 'function') ? indexCatalogList(data) : data;
-            if (typeof TaranimDB !== 'undefined') TaranimDB.set('songs_catalog', data);
-            syncCustomSongsIntoCatalog();
-            showToast('تم تحديث مكتبة الترانيم تلقائياً بنجاح!');
-          }
-        })
-        .catch(() => {});
-
+      showToast('تم استعادة الاتصال بالإنترنت 🌐', 'info');
       if (typeof syncLiveState === 'function') {
         syncLiveState();
       }
@@ -7988,10 +7976,26 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
             </div>
           `;
+        } else if (t.thumbnailUrl && !/\.(mp4|webm|mov)$/i.test(t.thumbnailUrl) && !t.isCustom) {
+          thumbHtml = `
+            <div class="template-thumb-container">
+              <img class="template-thumb-img" id="tmpl-thumb-img-${escapeHtml(t.id)}" src="${escapeHtml(t.thumbnailUrl)}" alt="${escapeHtml(t.name)}" loading="lazy">
+              ${updateBadgeHtml}
+              <span class="template-badge-pill"><i class="icon-star-sparkle" style="margin-left:3px;"></i> ${escapeHtml(t.category || 'مؤتمرات')}</span>
+              <div class="template-components-chips">
+                ${t.standby ? '<span class="template-comp-chip"><i class="fa-solid fa-photo-film"></i> شاشة انتظار</span>' : ''}
+                ${t.slidesBg ? '<span class="template-comp-chip"><i class="fa-solid fa-image"></i> خلفية شرائح</span>' : ''}
+                ${t.stringer ? '<span class="template-comp-chip"><i class="fa-solid fa-bolt"></i> انتقال ستنجر</span>' : ''}
+              </div>
+            </div>
+          `;
         } else if ((t.thumbnailType === 'video' || (videoSrc && /\.(mp4|webm)$/i.test(videoSrc))) && !t.isCustom) {
           thumbHtml = `
             <div class="template-thumb-container">
-              <video class="template-thumb-video" src="${escapeHtml(videoSrc)}" autoplay loop muted playsinline preload="none"></video>
+              <div class="template-thumb-sim" style="background: linear-gradient(135deg, #1e293b, #0f172a);">
+                <div style="font-size:1.8rem; color:#60a5fa; margin-bottom:6px;"><i class="fa-solid fa-video"></i></div>
+                <div style="font-size:0.95rem; font-weight:800; color:#fff;">${escapeHtml(t.name)}</div>
+              </div>
               ${updateBadgeHtml}
               <span class="template-badge-pill"><i class="icon-star-sparkle" style="margin-left:3px;"></i> ${escapeHtml(t.category || 'مؤتمرات')}</span>
               <div class="template-components-chips">
