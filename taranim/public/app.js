@@ -10114,35 +10114,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function initDefaultCustomSongVerses() {
-    return [
-      {
-        id: 1,
-        type: 1, // Chorus
-        isChorus: true,
-        slides: [
-          {
-            id: 1,
-            heading: null,
-            lines: ["(السطر الأول من القرار", "السطر الثاني من القرار)2"],
-            text: "(السطر الأول من القرار\nالسطر الثاني من القرار)2"
-          }
-        ]
-      },
-      {
-        id: 2,
-        type: 0, // Verse 1
-        isChorus: false,
-        stanzaNum: 1,
-        slides: [
-          {
-            id: 1,
-            heading: null,
-            lines: ["السطر الأول من البيت الأول", "السطر الثاني من البيت الأول"],
-            text: "السطر الأول من البيت الأول\nالسطر الثاني من البيت الأول"
-          }
-        ]
-      }
-    ];
+    return [];
   }
 
   function openCustomSongEditor(songToEdit = null) {
@@ -10160,7 +10132,7 @@ document.addEventListener('DOMContentLoaded', () => {
         is_custom: true,
         isEditing: Boolean(songData.id && (songData.is_custom || String(songData.id).startsWith('custom_'))),
         activeTab: 'tab-song-builder',
-        verses: (Array.isArray(songData.verses) && songData.verses.length > 0) ? songData.verses : initDefaultCustomSongVerses()
+        verses: (Array.isArray(songData.verses) && songData.verses.length > 0) ? songData.verses : []
       };
       if (els.songEditorModalTitle) {
         els.songEditorModalTitle.textContent = customSongBuilderState.isEditing
@@ -10168,7 +10140,7 @@ document.addEventListener('DOMContentLoaded', () => {
           : 'إضافة ترنيمة جديدة';
       }
     } else {
-      // New custom song
+      // New custom song (starts clean with no default prefilled slides)
       const initialTitle = (songToEdit && typeof songToEdit === 'object' && songToEdit.title) ? songToEdit.title : '';
       customSongBuilderState = {
         id: 'custom_' + Date.now(),
@@ -10179,7 +10151,7 @@ document.addEventListener('DOMContentLoaded', () => {
         is_custom: true,
         isEditing: false,
         activeTab: 'tab-song-builder',
-        verses: initDefaultCustomSongVerses()
+        verses: []
       };
       if (els.songEditorModalTitle) {
         els.songEditorModalTitle.textContent = 'إضافة ترنيمة جديدة';
@@ -10443,7 +10415,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="empty-state" style="padding:24px; text-align:center; color:#94a3b8;">
           <i class="fa-solid fa-layer-group" style="font-size:2.2rem; margin-bottom:8px; color:#cbd5e1;"></i>
           <p style="font-size:0.88rem; margin:0; font-weight:700; color:#64748b;">لا توجد فقرات مضافة بعد</p>
-          <p style="font-size:0.78rem; margin:4px 0 0 0;">اضغط على "+ إضافة قرار" أو "+ إضافة بيت" بالأعلى للبدء.</p>
+          <p style="font-size:0.78rem; margin:4px 0 0 0;">اضغط على "+ إضافة قرار" أو "+ إضافة عدد" بالأعلى للبدء.</p>
         </div>
       `;
       return;
@@ -10516,10 +10488,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="display:flex; align-items:center; gap:8px;">
               <select class="control-select seg-type-select" style="font-size:0.78rem; font-weight:800; padding:4px 8px; border-radius:8px;">
                 <option value="1" ${isChorus ? 'selected' : ''}>🌟 القرار (Chorus)</option>
-                <option value="0" ${!isChorus ? 'selected' : ''}>📖 بيت ${sNum} (Stanza)</option>
+                <option value="0" ${!isChorus ? 'selected' : ''}>📖 عدد ${sNum} (Verse)</option>
               </select>
               <span class="segment-type-pill ${isChorus ? 'chorus' : 'verse'}">
-                ${isChorus ? '<i class="fa-solid fa-star"></i> القرار' : `<i class="fa-solid fa-bookmark"></i> بيت ${sNum}`}
+                ${isChorus ? '<i class="fa-solid fa-star"></i> القرار' : `<i class="fa-solid fa-bookmark"></i> عدد ${sNum}`}
               </span>
             </div>
             <div class="segment-header-actions">
@@ -10532,7 +10504,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
           <div class="segment-slides-container">
             ${slidesHtml}
-            <button type="button" class="btn-add-slide-to-segment"><i class="fa-solid fa-plus"></i> إضافة شريحة أخرى لهذا ${isChorus ? 'القرار' : 'البيت'}</button>
+            <button type="button" class="btn-add-slide-to-segment"><i class="fa-solid fa-plus"></i> إضافة شريحة أخرى لهذا ${isChorus ? 'القرار' : 'العدد'}</button>
           </div>
         </div>
       `;
@@ -10757,7 +10729,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="preview-slide-card">
             <div class="preview-slide-header">
               <span class="preview-slide-badge ${isChorus ? 'chorus' : 'verse'}">
-                ${isChorus ? '<i class="fa-solid fa-star"></i> القرار' : `<i class="fa-solid fa-bookmark"></i> بيت ${sNum}`}
+                ${isChorus ? '<i class="fa-solid fa-star"></i> القرار' : `<i class="fa-solid fa-bookmark"></i> عدد ${sNum}`}
               </span>
               <span>شريحة ${totalSlides}</span>
             </div>
@@ -12380,7 +12352,7 @@ document.addEventListener('DOMContentLoaded', () => {
               const sNum = stanzaNumOverride || verse.stanzaNum || (verseIndex + 1);
               badgeText = `(${sNum})`;
               badgeClass = 'stanza-badge-side';
-              labelText = `بيت ${sNum}`;
+              labelText = `عدد ${sNum}`;
             }
 
             const pushSlideItem = (linesArray) => {
@@ -12611,7 +12583,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
           badgeText = `(${currentStanzaNum})`;
           badgeClass = 'stanza-badge-side';
-          labelText = `بيت ${currentStanzaNum}`;
+          labelText = `عدد ${currentStanzaNum}`;
         }
 
         let isFirstSlideOfBlock = true;

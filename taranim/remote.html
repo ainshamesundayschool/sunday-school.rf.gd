@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no">
   <meta name="theme-color" content="#070a12">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -38,6 +38,13 @@
       -webkit-tap-highlight-color: transparent;
       user-select: none;
       -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    input, select, textarea {
+      font-size: 16px !important; /* Prevents mobile browser auto-zoom on focus */
+      touch-action: manipulation;
+      -webkit-text-size-adjust: 100%;
     }
 
     body {
@@ -55,6 +62,7 @@
       direction: rtl;
       padding-top: var(--safe-top);
       padding-bottom: var(--safe-bottom);
+      touch-action: manipulation;
     }
 
     /* TOP STATUS BAR */
@@ -502,10 +510,10 @@
     /* FULL SCREEN SEARCH ENGINE */
     .search-sheet {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
       background: #090d16;
       z-index: 150;
       display: flex;
@@ -514,6 +522,8 @@
       transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
       padding-top: var(--safe-top);
       padding-bottom: var(--safe-bottom);
+      overscroll-behavior: contain;
+      touch-action: manipulation;
     }
 
     .search-sheet.open {
@@ -558,9 +568,11 @@
       border: none;
       color: #ffffff;
       font-family: inherit;
-      font-size: 1rem;
+      font-size: 16px !important; /* Prevents iOS/Android mobile auto-zoom */
       font-weight: 700;
       outline: none;
+      touch-action: manipulation;
+      -webkit-text-size-adjust: 100%;
     }
 
     .btn-clear-search {
@@ -2217,12 +2229,21 @@
     const searchSheet = document.getElementById('search-sheet');
     const openSearch = () => {
       searchSheet.classList.add('open');
-      setTimeout(() => searchInput.focus(), 250);
+      setTimeout(() => {
+        try {
+          searchInput.focus({ preventScroll: true });
+        } catch(e) {
+          searchInput.focus();
+        }
+      }, 300);
       if (allSongsCache.length === 0) loadSongsForSearch();
     };
     document.getElementById('btn-open-search').addEventListener('click', openSearch);
     document.getElementById('btn-bottom-search').addEventListener('click', openSearch);
-    document.getElementById('btn-close-search').addEventListener('click', () => searchSheet.classList.remove('open'));
+    document.getElementById('btn-close-search').addEventListener('click', () => {
+      try { searchInput.blur(); } catch(e) {}
+      searchSheet.classList.remove('open');
+    });
 
     // PAIRING FORM
     const pinInput = document.getElementById('pin-input');
