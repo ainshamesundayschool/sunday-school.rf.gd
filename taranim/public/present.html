@@ -2310,10 +2310,6 @@
           const lumaDuration = 1000;
           if (isStandbyMode) {
             updateStandbyMediaDisplay(true);
-            if (textEl) {
-              textEl.classList.add('hidden');
-              textEl.style.display = 'none';
-            }
             runLumaSinusWipe(standbyLayer, lumaDuration, () => {
               showStandbyContent();
             });
@@ -2333,10 +2329,6 @@
           const animClass = (transType === 'zoom') ? 'trans-zoom-incoming' : 'trans-fade-incoming';
           const duration = 600;
           if (isStandbyMode) {
-            if (textEl) {
-              textEl.classList.add('hidden');
-              textEl.style.display = 'none';
-            }
             if (standbyLayer) {
               standbyLayer.classList.remove('hidden');
               standbyLayer.classList.add(animClass);

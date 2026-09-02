@@ -13515,7 +13515,6 @@ document.addEventListener('DOMContentLoaded', () => {
             standbyEl.style.zIndex = '20';
           }
         } else if (sbUrl || standbyConf.type === 'template' || isSbImg || isSbVid) {
-          if (obsSlidesBgContainer) obsSlidesBgContainer.classList.add('hidden');
           if (obsStandbyFullscreenContainer) obsStandbyFullscreenContainer.classList.remove('hidden');
           if (standbyEl) {
             if (showLogoOnStandby) {
@@ -13687,10 +13686,6 @@ document.addEventListener('DOMContentLoaded', () => {
           const lumaDuration = 1000;
           if (state.isStandbyMode || isEndingStandby) {
             updateObsStandbyDisplay(true);
-            if (els.obsLineText) {
-              els.obsLineText.classList.add('hidden');
-              els.obsLineText.style.display = 'none';
-            }
             runObsLumaSinusWipe(obsStandbyLayer, lumaDuration, () => {
               showObsStandbyContent();
             });
@@ -13710,10 +13705,6 @@ document.addEventListener('DOMContentLoaded', () => {
           const animClass = (transType === 'zoom') ? 'trans-zoom-incoming' : 'trans-fade-incoming';
           const duration = 600;
           if (state.isStandbyMode || isEndingStandby) {
-            if (els.obsLineText) {
-              els.obsLineText.classList.add('hidden');
-              els.obsLineText.style.display = 'none';
-            }
             if (obsStandbyLayer) {
               obsStandbyLayer.classList.remove('hidden');
               obsStandbyLayer.classList.add(animClass);
