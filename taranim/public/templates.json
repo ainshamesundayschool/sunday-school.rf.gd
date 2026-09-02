@@ -3,6 +3,7 @@
   "templates": [
     {
       "id": "tmpl-shabahak-akon-2026",
+      "version": 2,
       "name": "Shabahak Akon 2026",
       "category": "المؤتمرات",
       "categoryKey": "conferences",
@@ -16,6 +17,7 @@
     },
     {
       "id": "tmpl-paint-sweeps",
+      "version": 1,
       "name": "Paint Sweeps (Paint Splash)",
       "category": "خلفيات وسلايدات",
       "categoryKey": "backgrounds",
@@ -130,6 +132,7 @@
     },
     {
       "id": "tmpl-paint-sweeps-animated",
+      "version": 1,
       "name": "Paint Sweeps Animated (فيديوهات متحركة)",
       "category": "قوالب فيديو وحركة",
       "categoryKey": "video",
@@ -194,6 +197,7 @@
     },
     {
       "id": "tmpl-broadcast-chroma-green",
+      "version": 1,
       "name": "بث مباشر - كروما خضراء (Broadcast Chroma Green)",
       "category": "قوالب فيديو وحركة",
       "categoryKey": "video",

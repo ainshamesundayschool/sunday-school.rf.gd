@@ -7585,6 +7585,22 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const PRERENDER_STORAGE_KEY_PREFIX = 'sunday_school_tmpl_prerendered_';
+  const PRERENDER_VER_KEY_PREFIX = 'sunday_school_tmpl_version_';
+  const DISMISSED_UPDATE_KEY_PREFIX = 'sunday_school_tmpl_dismissed_update_';
+
+  function getTemplateVersion(tmpl) {
+    if (!tmpl) return '1';
+    if (tmpl.version !== undefined && tmpl.version !== null) return String(tmpl.version);
+    if (tmpl.updated_at !== undefined && tmpl.updated_at !== null) return String(tmpl.updated_at);
+    // Fallback: stable hash from asset URLs
+    const assets = getTemplateAssets(tmpl).join('|');
+    let hash = 0;
+    for (let i = 0; i < assets.length; i++) {
+      hash = ((hash << 5) - hash) + assets.charCodeAt(i);
+      hash |= 0;
+    }
+    return String(hash);
+  }
 
   function isTemplatePrerendered(tmplId) {
     try {
@@ -7594,22 +7610,55 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function setTemplatePrerendered(tmplId, isPrerendered = true) {
+  function getDownloadedTemplateVersion(tmplId) {
+    try {
+      return localStorage.getItem(PRERENDER_VER_KEY_PREFIX + tmplId);
+    } catch(e) {
+      return null;
+    }
+  }
+
+  function isTemplateUpdateAvailable(tmpl) {
+    if (!tmpl || tmpl.isCustom) return false;
+    if (!isTemplatePrerendered(tmpl.id)) return false;
+    const currentVer = getTemplateVersion(tmpl);
+    const downloadedVer = getDownloadedTemplateVersion(tmpl.id);
+    if (downloadedVer && downloadedVer !== currentVer) {
+      return true;
+    }
+    // If downloaded without version record but server version is > 1
+    if (!downloadedVer && currentVer !== '1') {
+      return true;
+    }
+    return false;
+  }
+
+  function setTemplatePrerendered(tmplId, isPrerendered = true, version = null) {
     try {
       if (isPrerendered) {
         localStorage.setItem(PRERENDER_STORAGE_KEY_PREFIX + tmplId, 'true');
+        if (version !== null && version !== undefined) {
+          localStorage.setItem(PRERENDER_VER_KEY_PREFIX + tmplId, String(version));
+        }
+        try {
+          sessionStorage.removeItem(DISMISSED_UPDATE_KEY_PREFIX + tmplId);
+        } catch(e) {}
       } else {
         localStorage.removeItem(PRERENDER_STORAGE_KEY_PREFIX + tmplId);
+        localStorage.removeItem(PRERENDER_VER_KEY_PREFIX + tmplId);
       }
     } catch(e) {}
   }
 
-  async function prerenderTemplateAssets(tmpl, btnEl) {
+  async function prerenderTemplateAssets(tmpl, btnEl, onProgress) {
     const assets = getTemplateAssets(tmpl);
+    const tmplVer = getTemplateVersion(tmpl);
+
     if (assets.length === 0) {
-      setTemplatePrerendered(tmpl.id, true);
+      setTemplatePrerendered(tmpl.id, true, tmplVer);
       if (btnEl) {
         btnEl.classList.add('cached');
+        btnEl.classList.remove('btn-warning', 'downloading');
         btnEl.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#10b981;"></i> <span style="color:#059669; font-weight:700;">جاهز للعرض</span>`;
       }
       showToast(`القالب "${tmpl.name}" جاهز فوراً للعرض! ✨`);
@@ -7618,7 +7667,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (btnEl) {
       btnEl.disabled = true;
-      btnEl.classList.remove('cached');
+      btnEl.classList.remove('cached', 'btn-warning');
       btnEl.classList.add('downloading');
       btnEl.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> <span>جاري التجهيز 0%...</span>`;
     }
@@ -7638,17 +7687,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const isVid = /\.(mp4|webm|mov)$/i.test(url);
         const isImg = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(url);
 
-        // 1. Fetch & Store into Cache Storage
+        // 1. Fetch & Store into Cache Storage (Bypass old cache on update)
         if (cache) {
           try {
-            const match = await cache.match(url);
-            if (!match) {
-              const res = await fetch(url, { cache: 'force-cache' });
-              if (res && res.ok) {
-                await cache.put(url, res.clone());
-              }
+            await cache.delete(url);
+            const fetchUrl = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
+            const res = await fetch(fetchUrl, { cache: 'reload' });
+            if (res && res.ok) {
+              await cache.put(url, res.clone());
             }
-          } catch(err) {}
+          } catch(err) {
+            try {
+              const res2 = await fetch(url, { cache: 'force-cache' });
+              if (res2 && res2.ok) await cache.put(url, res2.clone());
+            } catch(e2) {}
+          }
         }
 
         // 2. Pre-decode into browser memory / GPU texture
@@ -7657,7 +7710,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const img = new Image();
             img.onload = () => resolve();
             img.onerror = () => resolve();
-            img.src = url;
+            img.src = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
           });
         } else if (isVid) {
           await new Promise((resolve) => {
@@ -7666,7 +7719,7 @@ document.addEventListener('DOMContentLoaded', () => {
             vid.muted = true;
             vid.oncanplaythrough = () => resolve();
             vid.onerror = () => resolve();
-            setTimeout(resolve, 2500);
+            setTimeout(resolve, 3000);
             vid.src = url;
             vid.load();
           });
@@ -7676,6 +7729,9 @@ document.addEventListener('DOMContentLoaded', () => {
       } finally {
         completed++;
         const pct = Math.round((completed / total) * 100);
+        if (typeof onProgress === 'function') {
+          onProgress(pct, completed, total);
+        }
         if (btnEl) {
           btnEl.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> <span>جاري التجهيز ${pct}% (${completed}/${total})</span>`;
         }
@@ -7684,10 +7740,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     await Promise.all(promises);
 
-    setTemplatePrerendered(tmpl.id, true);
+    setTemplatePrerendered(tmpl.id, true, tmplVer);
     if (btnEl) {
       btnEl.disabled = false;
-      btnEl.classList.remove('downloading');
+      btnEl.classList.remove('downloading', 'btn-warning');
       btnEl.classList.add('cached');
       const sizeMB = getTemplateEstimatedSizeMB(tmpl);
       const sizeStr = sizeMB > 0 ? ` (${sizeMB} MB)` : '';
@@ -7696,6 +7752,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const card = btnEl.closest('.template-preview-card');
       if (card) {
+        const updateBadge = card.querySelector('.template-update-badge');
+        if (updateBadge) updateBadge.remove();
+
         const applyBtn = card.querySelector('.btn-apply-template-card');
         if (applyBtn) {
           applyBtn.style.display = 'inline-flex';
@@ -7704,7 +7763,165 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    showToast(`✅ تم تجهيز وتحميل قالب "${tmpl.name}" بنجاح! جاهز للعرض الفوري.`);
+    updateTemplatesTabBadge();
+    showToast(`✅ تم تحديث وتجهيز قالب "${tmpl.name}" بنجاح! جاهز للعرض الفوري.`);
+  }
+
+  function updateTemplatesTabBadge() {
+    const allTmpls = sanitizeAndGroupTemplates(state.availableTemplates || []);
+    const hasUpdates = allTmpls.some(t => isTemplateUpdateAvailable(t));
+    const tmplTabBtn = document.querySelector('.style-tab-btn[data-tab="tab-templates"]');
+    if (!tmplTabBtn) return;
+    let dot = tmplTabBtn.querySelector('.template-tab-update-dot');
+    if (hasUpdates) {
+      if (!dot) {
+        dot = document.createElement('span');
+        dot.className = 'template-tab-update-dot';
+        tmplTabBtn.prepend(dot);
+      }
+    } else {
+      if (dot) dot.remove();
+    }
+  }
+
+  function checkAndPromptTemplateUpdates() {
+    const allTmpls = sanitizeAndGroupTemplates(state.availableTemplates || []);
+    const updatedTmpls = allTmpls.filter(t => isTemplateUpdateAvailable(t) && sessionStorage.getItem(DISMISSED_UPDATE_KEY_PREFIX + t.id) !== 'true');
+    
+    updateTemplatesTabBadge();
+
+    if (updatedTmpls.length === 0) return;
+
+    const modal = document.getElementById('modal-template-update-prompt');
+    const listEl = document.getElementById('template-update-prompt-list');
+    const descEl = document.getElementById('template-update-prompt-desc');
+    const btnConfirm = document.getElementById('btn-confirm-update-templates');
+    const btnDismiss = document.getElementById('btn-dismiss-update-templates');
+    const btnViewTab = document.getElementById('btn-view-in-templates-tab');
+    const progressWrap = document.getElementById('template-update-progress-wrap');
+    const progressBar = document.getElementById('template-update-progress-bar');
+    const progressTxt = document.getElementById('template-update-progress-txt');
+
+    if (!modal || !listEl) return;
+
+    if (descEl) {
+      descEl.textContent = (updatedTmpls.length === 1)
+        ? `تم تحديث قالب "${updatedTmpls[0].name}" المحمل لديك بمحتوى وخلفيات جديدة. هل تود تحديثه الآن؟`
+        : `تم تحديث عدد ${updatedTmpls.length} من القوالب المحملة لديك بمحتوى وخلفيات جديدة.`;
+    }
+
+    listEl.innerHTML = updatedTmpls.map(t => {
+      const sizeMB = getTemplateEstimatedSizeMB(t);
+      const sizeStr = sizeMB > 0 ? ` (${sizeMB} MB)` : '';
+      return `
+        <div class="template-update-prompt-item">
+          <div>
+            <div class="template-update-prompt-item-name">
+              <i class="fa-solid fa-layer-group" style="color:#f59e0b;"></i>
+              <span>${escapeHtml(t.name)}</span>
+              <span style="background:#fef3c7; color:#d97706; font-size:0.7rem; padding:2px 7px; border-radius:10px; font-weight:800; display:inline-flex; align-items:center; gap:3px;">
+                <i class="fa-solid fa-sparkles"></i> إصدار جديد
+              </span>
+            </div>
+            <div class="template-update-prompt-item-desc">${escapeHtml(t.category || 'عام')} • الحجم التقديري:${sizeStr}</div>
+          </div>
+          <button type="button" class="btn-single-tmpl-quick-update btn btn-sm btn-warning" data-tmpl-id="${escapeHtml(t.id)}" style="background:linear-gradient(135deg, #f59e0b, #d97706); color:#fff; border:none; padding:6px 12px; border-radius:8px; font-size:0.8rem; font-weight:800; cursor:pointer;">
+            <i class="fa-solid fa-arrows-rotate"></i> تحديث
+          </button>
+        </div>
+      `;
+    }).join('');
+
+    modal.classList.remove('hidden');
+
+    // Single item update button clicks
+    listEl.querySelectorAll('.btn-single-tmpl-quick-update').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const tmplId = btn.dataset.tmplId;
+        const targetTmpl = updatedTmpls.find(t => t.id === tmplId);
+        if (targetTmpl) {
+          btn.disabled = true;
+          btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> جاري...`;
+          await prerenderTemplateAssets(targetTmpl, null, (pct) => {
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> ${pct}%`;
+          });
+          btn.innerHTML = `<i class="fa-solid fa-check"></i> تم!`;
+          btn.style.background = '#10b981';
+          renderTemplatesCatalog();
+          setTimeout(() => {
+            const remaining = allTmpls.filter(t => isTemplateUpdateAvailable(t) && sessionStorage.getItem(DISMISSED_UPDATE_KEY_PREFIX + t.id) !== 'true');
+            if (remaining.length === 0) {
+              modal.classList.add('hidden');
+            } else {
+              checkAndPromptTemplateUpdates();
+            }
+          }, 800);
+        }
+      });
+    });
+
+    // Dismiss button
+    if (btnDismiss) {
+      btnDismiss.onclick = () => {
+        updatedTmpls.forEach(t => {
+          try { sessionStorage.setItem(DISMISSED_UPDATE_KEY_PREFIX + t.id, 'true'); } catch(e) {}
+        });
+        modal.classList.add('hidden');
+      };
+    }
+
+    // View tab button
+    if (btnViewTab) {
+      btnViewTab.onclick = () => {
+        modal.classList.add('hidden');
+        const tabBtn = document.querySelector('.style-tab-btn[data-tab="tab-templates"]');
+        if (tabBtn) tabBtn.click();
+        setTimeout(() => {
+          const firstUpdatedCard = document.querySelector(`.template-preview-card[data-id="${updatedTmpls[0].id}"]`);
+          if (firstUpdatedCard) {
+            firstUpdatedCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            firstUpdatedCard.style.outline = '3px solid #f59e0b';
+            setTimeout(() => firstUpdatedCard.style.outline = '', 3500);
+          }
+        }, 300);
+      };
+    }
+
+    // Confirm all update button
+    if (btnConfirm) {
+      btnConfirm.onclick = async () => {
+        btnConfirm.disabled = true;
+        if (btnDismiss) btnDismiss.disabled = true;
+        if (btnViewTab) btnViewTab.disabled = true;
+        if (progressWrap) progressWrap.classList.remove('hidden');
+
+        for (let i = 0; i < updatedTmpls.length; i++) {
+          const tmpl = updatedTmpls[i];
+          if (progressTxt) progressTxt.textContent = `جاري تحديث قالب "${tmpl.name}" (${i+1}/${updatedTmpls.length})...`;
+          await prerenderTemplateAssets(tmpl, null, (pct, comp, tot) => {
+            if (progressBar) {
+              const overallPct = Math.round(((i + (comp / tot)) / updatedTmpls.length) * 100);
+              progressBar.style.width = overallPct + '%';
+            }
+          });
+        }
+
+        if (progressBar) progressBar.style.width = '100%';
+        if (progressTxt) progressTxt.textContent = '✅ تم تحديث كافة القوالب بنجاح!';
+        showToast('✅ تم تحديث كافة القوالب بنجاح!');
+        renderTemplatesCatalog();
+        updateTemplatesTabBadge();
+
+        setTimeout(() => {
+          modal.classList.add('hidden');
+          if (progressWrap) progressWrap.classList.add('hidden');
+          btnConfirm.disabled = false;
+          if (btnDismiss) btnDismiss.disabled = false;
+          if (btnViewTab) btnViewTab.disabled = false;
+        }, 1200);
+      };
+    }
   }
 
     function renderTemplatesCatalog() {
@@ -7774,6 +7991,8 @@ document.addEventListener('DOMContentLoaded', () => {
         let thumbHtml = '';
         const videoSrc = t.thumbnailUrl || t.standby || t.slidesBg;
         const hasVarieties = Boolean(t.varieties && Array.isArray(t.varieties) && t.varieties.length > 0);
+        const hasUpdate = !t.isCustom && isTemplateUpdateAvailable(t);
+        const updateBadgeHtml = hasUpdate ? `<span class="template-update-badge"><i class="fa-solid fa-arrows-rotate"></i> تحديث متوفر</span>` : '';
         
         if (hasVarieties) {
           const defaultVar = t.varieties[0];
@@ -7781,6 +8000,7 @@ document.addEventListener('DOMContentLoaded', () => {
           thumbHtml = `
             <div class="template-thumb-container">
               <img class="template-thumb-img" id="tmpl-thumb-img-${escapeHtml(t.id)}" src="${escapeHtml(thumbSrc)}" alt="${escapeHtml(t.name)}">
+              ${updateBadgeHtml}
               <span class="template-badge-pill"><i class="fa-solid fa-layer-group" style="margin-left:3px;"></i> ${escapeHtml(t.category || 'خلفيات وسلايدات')} (${t.varieties.length} عنصر)</span>
               <div class="template-components-chips">
                 <span class="template-comp-chip" id="tmpl-selected-var-badge-${escapeHtml(t.id)}"><i class="fa-solid fa-palette"></i> ${escapeHtml(defaultVar.name)}</span>
@@ -7792,6 +8012,7 @@ document.addEventListener('DOMContentLoaded', () => {
           thumbHtml = `
             <div class="template-thumb-container">
               <video class="template-thumb-video" src="${escapeHtml(videoSrc)}" autoplay loop muted playsinline preload="none"></video>
+              ${updateBadgeHtml}
               <span class="template-badge-pill"><i class="icon-star-sparkle" style="margin-left:3px;"></i> ${escapeHtml(t.category || 'مؤتمرات')}</span>
               <div class="template-components-chips">
                 ${t.standby ? '<span class="template-comp-chip"><i class="fa-solid fa-photo-film"></i> شاشة انتظار</span>' : ''}
@@ -7808,6 +8029,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="font-family:${escapeHtml(t.selectedFont || 'inherit')}; font-size:1.15rem; font-weight:800; color:${t.styleOptions?.textColor || '#fff'}; line-height:1.3; text-shadow:0 2px 10px rgba(0,0,0,0.6);">${escapeHtml(t.thumbnailText || t.name)}</div>
                 <div style="font-size:0.75rem; opacity:0.85; margin-top:6px;"><i class="fa-solid fa-font"></i> ${escapeHtml(fontName)} • ${t.fontSize || 105}px</div>
               </div>
+              ${updateBadgeHtml}
               <span class="template-badge-pill">${escapeHtml(t.category || (t.isCustom ? 'قالب مخصص' : 'عام'))}</span>
               ${t.styleOptions?.textColor ? `<div class="template-components-chips"><span class="template-comp-chip"><i class="fa-solid fa-palette"></i> نمط نص مخصص</span></div>` : ''}
             </div>
@@ -7854,6 +8076,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     const sizeMB = getTemplateEstimatedSizeMB(t);
                     const sizeStr = sizeMB > 0 ? ` (${sizeMB} MB)` : '';
                     const isCached = t.isCustom || isTemplatePrerendered(t.id);
+                    
+                    if (hasUpdate) {
+                      return `
+                        <button type="button" class="btn-update-template-card btn btn-sm btn-warning" data-tmpl-id="${escapeHtml(t.id)}" title="يتوفر إصدار أحدث ومحسن من هذا القالب، اضغط للتحديث الفوري">
+                          <i class="fa-solid fa-arrows-rotate"></i> <span>تحديث القالب</span> <span class="prerender-size-badge">${sizeStr}</span>
+                        </button>
+                        <button type="button" class="btn-apply-template-card btn btn-sm btn-primary" data-name="${escapeHtml(t.name)}" data-id="${escapeHtml(t.id || '')}" data-iscustom="${t.isCustom ? '1' : '0'}" ${hasVarieties ? `data-selected-variety-idx="0" data-selected-variety-url="${escapeHtml(initialVarUrl)}" data-selected-variety-name="${escapeHtml(initialVarName)}"` : ''} style="background:#2563eb; color:#fff; font-weight:700; padding:6px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px; cursor:pointer;" title="تطبيق النسخة الحالية">
+                          <i class="icon-star-sparkle"></i> تطبيق القالب
+                        </button>
+                      `;
+                    }
+
                     return `
                       <button type="button" class="btn-prerender-template-card btn btn-sm ${isCached ? 'cached' : ''}" data-tmpl-id="${escapeHtml(t.id)}" title="${isCached ? 'تم تجهيز وتحميل هذا القالب مسبقاً' : 'تحميل وتجهيز كافة وسائط وخلفيات القالب مسبقاً في الذاكرة لتجنب أي بطء أثناء العرض'}">
                         ${isCached 
@@ -7883,8 +8117,23 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
       }).join('');
 
-            // Pre-render & Download button listeners
+      // Pre-render & Download button listeners
       container.querySelectorAll('.btn-prerender-template-card').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const tmplId = btn.dataset.tmplId;
+          const allTmpls = (typeof sanitizeAndGroupTemplates === 'function') 
+            ? sanitizeAndGroupTemplates(state.availableTemplates || []) 
+            : (state.availableTemplates || []);
+          const tmpl = allTmpls.find(t => t.id === tmplId);
+          if (tmpl) {
+            await prerenderTemplateAssets(tmpl, btn);
+          }
+        });
+      });
+
+      // Update Template button listeners
+      container.querySelectorAll('.btn-update-template-card').forEach(btn => {
         btn.addEventListener('click', async (e) => {
           e.stopPropagation();
           const tmplId = btn.dataset.tmplId;
@@ -8511,6 +8760,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
 
           renderTemplatesCatalog();
+          checkAndPromptTemplateUpdates();
         }
       } catch (e) {}
     };

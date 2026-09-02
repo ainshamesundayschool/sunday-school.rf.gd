@@ -5500,6 +5500,90 @@ input[type="range"]:active::-moz-range-thumb {
   gap: 4px;
 }
 
+/* TEMPLATE UPDATE BADGE & BUTTONS */
+.template-update-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.45);
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  animation: pulseTmplUpdate 2s infinite ease-in-out;
+}
+
+@keyframes pulseTmplUpdate {
+  0%, 100% { transform: scale(1); box-shadow: 0 4px 12px rgba(245, 158, 11, 0.45); }
+  50% { transform: scale(1.05); box-shadow: 0 6px 18px rgba(245, 158, 11, 0.65); }
+}
+
+.btn-update-template-card {
+  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35) !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-update-template-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.5) !important;
+}
+
+.btn-update-template-card:active {
+  transform: scale(0.96);
+}
+
+.template-update-prompt-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 8px 12px;
+  text-align: right;
+}
+
+.template-update-prompt-item-name {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.template-update-prompt-item-desc {
+  font-size: 0.74rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.template-tab-update-dot {
+  width: 8px;
+  height: 8px;
+  background: #f59e0b;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 4px;
+  box-shadow: 0 0 6px #f59e0b;
+  animation: pulseTmplUpdate 1.5s infinite;
+}
+
 /* KIDS & PLAYFUL ARABIC FONTS DEFINITIONS & LOCAL FALLBACKS */
 @font-face {
   font-family: 'Tufuli Arabic';
