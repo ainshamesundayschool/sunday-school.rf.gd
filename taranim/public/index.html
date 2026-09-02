@@ -1714,39 +1714,41 @@
 
     <!-- TEMPLATE UPDATE AVAILABLE NOTIFICATION MODAL -->
     <div id="modal-template-update-prompt" class="modal-overlay hidden" style="z-index: 100010;">
-      <div class="modal-card" style="max-width: 460px; text-align: center; padding: 24px 20px;">
-        <div style="width:64px; height:64px; border-radius:20px; background:linear-gradient(135deg, rgba(245,158,11,0.15), rgba(217,119,6,0.25)); border:1px solid rgba(245,158,11,0.4); display:inline-flex; align-items:center; justify-content:center; margin-bottom:14px; box-shadow:0 8px 24px rgba(245,158,11,0.25);">
-          <i class="fa-solid fa-arrows-rotate" style="font-size:1.8rem; color:#f59e0b;"></i>
+      <div class="modal-card" style="max-width: 440px; padding: 0; overflow: hidden; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.35);">
+        <!-- MODAL HEADER WITH TOP 'X' CLOSE BUTTON -->
+        <div class="modal-header" style="padding: 16px 20px; border-bottom: 1px solid rgba(226, 232, 240, 0.8); background: #ffffff;">
+          <div class="modal-header-title-wrap" style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.22)); color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; border: 1px solid rgba(245, 158, 11, 0.3);">
+              <i class="fa-solid fa-arrows-rotate"></i>
+            </div>
+            <div>
+              <div class="modal-title" style="font-size: 1.05rem; font-weight: 800; color: #0f172a;">تحديث القوالب</div>
+              <div class="modal-subtitle" style="font-size: 0.76rem; color: #64748b;">يتوفر إصدار أحدث ومحسن للقوالب المحملة لديك</div>
+            </div>
+          </div>
+          <button id="btn-dismiss-update-templates" class="modal-close-btn" type="button" title="إغلاق"><i class="fa-solid fa-xmark"></i></button>
         </div>
 
-        <h3 style="font-size:1.25rem; font-weight:900; margin-bottom:6px; color:#1e293b;">
-          تحديث متوفر للقوالب
-        </h3>
-        <p id="template-update-prompt-desc" style="font-size:0.86rem; color:#64748b; line-height:1.5; margin-bottom:14px;">
-          تم تحديث أحد القوالب المحملة لديك بمحتوى وخلفيات محسنة جديدة.
-        </p>
+        <!-- MODAL BODY -->
+        <div style="padding: 18px 20px; background: #ffffff;">
+          <p id="template-update-prompt-desc" style="font-size: 0.84rem; color: #475569; line-height: 1.5; margin-bottom: 14px;">
+            تم تحديث أحد القوالب المحملة لديك بمحتوى وخلفيات محسنة جديدة.
+          </p>
 
-        <!-- LIST OF UPDATED TEMPLATES -->
-        <div id="template-update-prompt-list" style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px; max-height:190px; overflow-y:auto; text-align:right;">
-          <!-- Dynamically rendered -->
-        </div>
+          <!-- LIST OF UPDATED TEMPLATES -->
+          <div id="template-update-prompt-list" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; max-height: 220px; overflow-y: auto; text-align: right;">
+            <!-- Dynamically rendered items -->
+          </div>
 
-        <!-- PROGRESS BAR -->
-        <div id="template-update-progress-wrap" class="hidden" style="margin-bottom:16px; background:#f1f5f9; border-radius:10px; padding:3px; overflow:hidden;">
-          <div id="template-update-progress-bar" style="width:0%; height:8px; background:linear-gradient(90deg, #f59e0b, #d97706); border-radius:8px; transition:width 0.2s;"></div>
-          <div id="template-update-progress-txt" style="font-size:0.75rem; color:#64748b; font-weight:700; margin-top:4px;">جاري التحديث...</div>
-        </div>
+          <!-- PROGRESS BAR -->
+          <div id="template-update-progress-wrap" class="hidden" style="margin-bottom: 14px; background: #f1f5f9; border-radius: 10px; padding: 4px; overflow: hidden; border: 1px solid #e2e8f0;">
+            <div id="template-update-progress-bar" style="width: 0%; height: 8px; background: linear-gradient(90deg, #f59e0b, #d97706); border-radius: 6px; transition: width 0.2s ease;"></div>
+            <div id="template-update-progress-txt" style="font-size: 0.74rem; color: #64748b; font-weight: 700; margin-top: 4px; text-align: center;">جاري التحديث...</div>
+          </div>
 
-        <!-- BUTTONS ROW -->
-        <div style="display:flex; gap:8px; justify-content:center;">
-          <button type="button" id="btn-confirm-update-templates" class="btn btn-primary" style="flex:1.2; padding:10px; font-weight:800; font-size:0.88rem; background:linear-gradient(135deg, #f59e0b, #d97706); border:none; box-shadow:0 4px 14px rgba(245,158,11,0.35);">
+          <!-- PRIMARY ACTION BUTTON ONLY -->
+          <button type="button" id="btn-confirm-update-templates" class="btn btn-primary" style="width: 100%; padding: 11px 16px; font-weight: 800; font-size: 0.92rem; background: linear-gradient(135deg, #f59e0b, #d97706); border: none; border-radius: 12px; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35); display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;">
             <i class="fa-solid fa-arrows-rotate"></i> تحديث الآن
-          </button>
-          <button type="button" id="btn-view-in-templates-tab" class="btn btn-secondary" style="padding:10px 12px; font-weight:800; font-size:0.84rem;" title="الانتقال لتبويب القوالب">
-            <i class="fa-solid fa-table-cells-large"></i> القوالب
-          </button>
-          <button type="button" id="btn-dismiss-update-templates" class="btn btn-secondary" style="padding:10px 12px; font-weight:800; font-size:0.84rem; color:#64748b;">
-            تجاهل
           </button>
         </div>
       </div>

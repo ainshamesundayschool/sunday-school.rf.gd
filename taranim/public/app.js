@@ -7797,7 +7797,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const descEl = document.getElementById('template-update-prompt-desc');
     const btnConfirm = document.getElementById('btn-confirm-update-templates');
     const btnDismiss = document.getElementById('btn-dismiss-update-templates');
-    const btnViewTab = document.getElementById('btn-view-in-templates-tab');
     const progressWrap = document.getElementById('template-update-progress-wrap');
     const progressBar = document.getElementById('template-update-progress-bar');
     const progressTxt = document.getElementById('template-update-progress-txt');
@@ -7806,7 +7805,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (descEl) {
       descEl.textContent = (updatedTmpls.length === 1)
-        ? `تم تحديث قالب "${updatedTmpls[0].name}" المحمل لديك بمحتوى وخلفيات جديدة. هل تود تحديثه الآن؟`
+        ? `تم تحديث قالب "${updatedTmpls[0].name}" المحمل لديك بمحتوى وخلفيات جديدة ومحسنة.`
         : `تم تحديث عدد ${updatedTmpls.length} من القوالب المحملة لديك بمحتوى وخلفيات جديدة.`;
     }
 
@@ -7825,7 +7824,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="template-update-prompt-item-desc">${escapeHtml(t.category || 'عام')} • الحجم التقديري:${sizeStr}</div>
           </div>
-          <button type="button" class="btn-single-tmpl-quick-update btn btn-sm btn-warning" data-tmpl-id="${escapeHtml(t.id)}" style="background:linear-gradient(135deg, #f59e0b, #d97706); color:#fff; border:none; padding:6px 12px; border-radius:8px; font-size:0.8rem; font-weight:800; cursor:pointer;">
+          <button type="button" class="btn-single-tmpl-quick-update btn btn-sm btn-warning" data-tmpl-id="${escapeHtml(t.id)}" style="background:linear-gradient(135deg, #f59e0b, #d97706); color:#fff; border:none; padding:6px 14px; border-radius:8px; font-size:0.8rem; font-weight:800; cursor:pointer;">
             <i class="fa-solid fa-arrows-rotate"></i> تحديث
           </button>
         </div>
@@ -7861,7 +7860,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    // Dismiss button
+    // Top X Close button
     if (btnDismiss) {
       btnDismiss.onclick = () => {
         updatedTmpls.forEach(t => {
@@ -7871,29 +7870,11 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    // View tab button
-    if (btnViewTab) {
-      btnViewTab.onclick = () => {
-        modal.classList.add('hidden');
-        const tabBtn = document.querySelector('.style-tab-btn[data-tab="tab-templates"]');
-        if (tabBtn) tabBtn.click();
-        setTimeout(() => {
-          const firstUpdatedCard = document.querySelector(`.template-preview-card[data-id="${updatedTmpls[0].id}"]`);
-          if (firstUpdatedCard) {
-            firstUpdatedCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            firstUpdatedCard.style.outline = '3px solid #f59e0b';
-            setTimeout(() => firstUpdatedCard.style.outline = '', 3500);
-          }
-        }, 300);
-      };
-    }
-
     // Confirm all update button
     if (btnConfirm) {
       btnConfirm.onclick = async () => {
         btnConfirm.disabled = true;
         if (btnDismiss) btnDismiss.disabled = true;
-        if (btnViewTab) btnViewTab.disabled = true;
         if (progressWrap) progressWrap.classList.remove('hidden');
 
         for (let i = 0; i < updatedTmpls.length; i++) {
@@ -7918,7 +7899,6 @@ document.addEventListener('DOMContentLoaded', () => {
           if (progressWrap) progressWrap.classList.add('hidden');
           btnConfirm.disabled = false;
           if (btnDismiss) btnDismiss.disabled = false;
-          if (btnViewTab) btnViewTab.disabled = false;
         }, 1200);
       };
     }
