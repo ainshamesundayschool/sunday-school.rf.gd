@@ -1225,17 +1225,23 @@
               </button>
 
               <!-- 4. HIGHLIGHT COLOR CIRCLE -->
-              <div id="highlight-color-picker-wrap" class="highlight-color-picker-wrap hidden">
-                <button type="button" id="btn-highlight-color-circle" class="highlight-color-circle-btn" title="تغيير لون التظليل"></button>
+              <div id="highlight-color-picker-wrap" class="highlight-color-picker-wrap">
+                <button type="button" id="btn-highlight-color-circle" class="highlight-color-circle-btn" title="تغيير لون التظليل" aria-label="تغيير لون التظليل"></button>
 
                 <!-- INLINE COLOR PALETTE POPUP -->
                 <div id="popover-highlight-color" class="highlight-palette-popover hidden">
-                  <button type="button" class="highlight-color-pill active" data-color="#ef4444" style="background:#ef4444;" title="أحمر"></button>
-                  <button type="button" class="highlight-color-pill" data-color="#f59e0b" style="background:#f59e0b;" title="ذهبي"></button>
-                  <button type="button" class="highlight-color-pill" data-color="#3b82f6" style="background:#3b82f6;" title="أزرق"></button>
-                  <button type="button" class="highlight-color-pill" data-color="#10b981" style="background:#10b981;" title="أخضر"></button>
-                  <button type="button" class="highlight-color-pill" data-color="#8b5cf6" style="background:#8b5cf6;" title="بنفسجي"></button>
-                  <input type="color" id="highlight-custom-color" value="#ef4444" title="اختيار لون مخصص">
+                  <div class="highlight-palette-header">لون التظليل</div>
+                  <div class="highlight-palette-options">
+                    <button type="button" class="highlight-color-pill active" data-color="#ef4444" style="background:#ef4444;" title="أحمر"></button>
+                    <button type="button" class="highlight-color-pill" data-color="#f59e0b" style="background:#f59e0b;" title="ذهبي"></button>
+                    <button type="button" class="highlight-color-pill" data-color="#3b82f6" style="background:#3b82f6;" title="أزرق"></button>
+                    <button type="button" class="highlight-color-pill" data-color="#10b981" style="background:#10b981;" title="أخضر"></button>
+                    <button type="button" class="highlight-color-pill" data-color="#8b5cf6" style="background:#8b5cf6;" title="بنفسجي"></button>
+                    <label class="highlight-custom-color-btn" title="اختيار لون مخصص">
+                      <i class="fa-solid fa-eye-dropper"></i>
+                      <input type="color" id="highlight-custom-color" value="#ef4444">
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>

@@ -4416,9 +4416,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const highlightCustomColor = document.getElementById('highlight-custom-color');
 
     function updateHighlightCircleUI() {
-      const activeColor = state.highlightColor || '#f59e0b';
-      if (btnColorCircle) btnColorCircle.style.background = activeColor;
-      if (highlightCustomColor) highlightCustomColor.value = activeColor;
+      const activeColor = state.highlightColor || '#ef4444';
+      if (btnColorCircle) {
+        btnColorCircle.style.background = activeColor;
+      }
+      if (highlightCustomColor) {
+        highlightCustomColor.value = (activeColor.startsWith('#') && activeColor.length === 7) ? activeColor : '#ef4444';
+      }
 
       document.querySelectorAll('.highlight-color-pill').forEach(pill => {
         pill.classList.toggle('active', pill.dataset.color === activeColor);
@@ -4431,7 +4435,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state.isHighlightMode = !state.isHighlightMode;
         btnToggleHighlight.classList.toggle('active', state.isHighlightMode);
         if (colorPickerWrap) {
-          colorPickerWrap.classList.toggle('hidden', !state.isHighlightMode);
+          colorPickerWrap.classList.remove('hidden');
         }
         if (!state.isHighlightMode) {
           if (popoverHighlightColor) popoverHighlightColor.classList.add('hidden');
@@ -4447,6 +4451,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btnColorCircle.addEventListener('click', (e) => {
         e.stopPropagation();
         popoverHighlightColor.classList.toggle('hidden');
+        updateHighlightCircleUI();
       });
     }
 
@@ -4455,6 +4460,10 @@ document.addEventListener('DOMContentLoaded', () => {
         e.stopPropagation();
         const color = pill.dataset.color;
         state.highlightColor = color;
+        if (!state.isHighlightMode) {
+          state.isHighlightMode = true;
+          if (btnToggleHighlight) btnToggleHighlight.classList.add('active');
+        }
         updateHighlightCircleUI();
         if (popoverHighlightColor) popoverHighlightColor.classList.add('hidden');
         saveUserSettings();
@@ -4466,13 +4475,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (highlightCustomColor) {
       highlightCustomColor.addEventListener('input', (e) => {
         state.highlightColor = e.target.value;
-        if (btnColorCircle) btnColorCircle.style.background = e.target.value;
-        document.querySelectorAll('.highlight-color-pill').forEach(p => p.classList.remove('active'));
+        if (!state.isHighlightMode) {
+          state.isHighlightMode = true;
+          if (btnToggleHighlight) btnToggleHighlight.classList.add('active');
+        }
+        updateHighlightCircleUI();
         saveUserSettings();
         renderPresentationLinesList();
         syncLiveState();
       });
     }
+
+    // Initialize highlight switcher UI on load
+    updateHighlightCircleUI();
 
     const popoverStyleBackdrop = document.getElementById('popover-style-backdrop');
     const btnCloseStyleDrawer = document.getElementById('btn-close-style-drawer');
@@ -4748,6 +4763,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (els.searchDropdown && !els.searchDropdown.contains(e.target) && e.target !== els.intelligentSearch) {
         els.searchDropdown.classList.add('hidden');
+      }
+      const popoverHighlight = document.getElementById('popover-highlight-color');
+      const btnColorCircle = document.getElementById('btn-highlight-color-circle');
+      if (popoverHighlight && !popoverHighlight.contains(e.target) && (!btnColorCircle || !btnColorCircle.contains(e.target))) {
+        popoverHighlight.classList.add('hidden');
       }
     });
 
@@ -13236,9 +13256,10 @@ document.addEventListener('DOMContentLoaded', () => {
         text = text.replace(/\)([\d٠-٩]*)$/, '<span class="rep-num-grey" style="color:#94a3b8; font-weight:600; margin-right:1px;">)$1</span>');
 
         const isHighlighted = isActive && Array.isArray(state.highlightedLineIndices) && state.highlightedLineIndices.includes(lineIdx);
-        const hColor = state.highlightColor || '#f59e0b';
+        const hColor = state.highlightColor || '#ef4444';
+        const hBg = hColor.startsWith('#') && hColor.length === 7 ? `${hColor}33` : hColor;
 
-        return `<div class="slide-line-row ${isHighlighted ? 'line-highlight-active' : ''}" data-line-idx="${lineIdx}" style="${isHighlighted ? `--highlight-color:${hColor};` : ''}"><span>${text}</span></div>`;
+        return `<div class="slide-line-row ${isHighlighted ? 'line-highlight-active' : ''}" data-line-idx="${lineIdx}" style="${isHighlighted ? `--highlight-color:${hColor}; --highlight-bg-light:${hBg};` : ''}"><span>${text}</span></div>`;
       }).join('');
 
       return `
@@ -13398,7 +13419,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (state.presentationMode === 'allinone') {
       const activeHighlights = state.isHighlightMode ? (state.highlightedLineIndices || []) : [];
-      const hColor = state.highlightColor || '#f59e0b';
+      const hColor = state.highlightColor || '#ef4444';
       els.presentationLinesContainer.querySelectorAll('.allinone-slide-group .obs-line-row, .allinone-slide-group .obs-line-segment').forEach((seg) => {
         const segLineIdx = parseInt(seg.dataset.lineIdx);
         if (!isNaN(segLineIdx)) {
@@ -14030,6 +14051,7 @@ document.addEventListener('DOMContentLoaded', () => {
       boxPadding: state.styleOptions.boxPadding,
       hideControls: Boolean(state.hideControls),
       highlightedLines: state.isHighlightMode ? (state.highlightedLineIndices || []) : [],
+      highlightColor: state.highlightColor || '#ef4444',
       mode: state.presentationMode,
       presentationMode: state.presentationMode,
       activeGroupIndex: state.allInOneActiveGroupIndex !== undefined ? state.allInOneActiveGroupIndex : 0,

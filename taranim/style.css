@@ -1062,14 +1062,45 @@ input[type="checkbox"]:checked::after {
 }
 
 .presentation-modes-group .highlight-color-picker-wrap {
-  margin-right: 3px;
-  margin-left: 2px;
+  position: relative;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  margin-right: 3px;
+  margin-left: 2px;
 }
 
 .presentation-modes-group .highlight-color-picker-wrap.hidden {
   display: none !important;
+}
+
+.highlight-color-circle-btn {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1.5px #cbd5e1, 0 1px 3px rgba(0, 0, 0, 0.15);
+  background: #ef4444;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  outline: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  flex-shrink: 0;
+}
+
+.highlight-color-circle-btn:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 2px #94a3b8, 0 2px 6px rgba(0, 0, 0, 0.22);
+}
+
+.highlight-color-circle-btn:active {
+  transform: scale(0.95);
 }
 
 .mini-btn-flat.btn-obs-fix {
@@ -5871,43 +5902,121 @@ input[type="range"]:active::-moz-range-thumb {
 }
 
 .slide-line-row.line-highlight-active span {
-  background: var(--highlight-bg-light, rgba(245, 158, 11, 0.25)) !important;
+  background: var(--highlight-bg-light, rgba(239, 68, 68, 0.25)) !important;
   color: #0f172a !important;
-  border-radius: 4px;
-  padding: 1px 6px;
-  border: none !important;
+  border-radius: 6px;
+  padding: 2px 8px;
+  border-inline-start: 3px solid var(--highlight-color, #ef4444) !important;
   display: inline-block;
   width: fit-content;
   max-width: 100%;
-  box-shadow: 0 1px 4px rgba(245, 158, 11, 0.2);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08), 0 0 0 1px var(--highlight-bg-light, rgba(239, 68, 68, 0.2)) !important;
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .highlight-popover,
 #popover-highlight-color {
   position: absolute !important;
-  top: calc(100% + 6px) !important;
-  left: 0 !important;
+  top: calc(100% + 8px) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
   right: auto !important;
-  min-width: 220px !important;
+  min-width: 200px !important;
   max-width: calc(100vw - 24px) !important;
   z-index: 999999 !important;
-  padding: 0.65rem 0.85rem !important;
+  padding: 10px 12px !important;
   background: #ffffff !important;
   border: 1px solid #cbd5e1 !important;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.22) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.18), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+#popover-highlight-color.hidden {
+  display: none !important;
+}
+
+.highlight-palette-header {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #64748b;
+  text-align: center;
+  font-family: inherit;
+  user-select: none;
+}
+
+.highlight-palette-options {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .highlight-color-pill {
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  min-height: 26px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  padding: 0;
+  outline: none;
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease;
 }
 
 .highlight-color-pill:hover {
   transform: scale(1.2);
+  box-shadow: 0 0 0 2px #64748b, 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 .highlight-color-pill.active {
-  box-shadow: 0 0 0 2px #2563eb, 0 2px 8px rgba(37, 99, 235, 0.4) !important;
-  transform: scale(1.18);
+  box-shadow: 0 0 0 2.5px #0f172a, 0 2px 8px rgba(15, 23, 42, 0.35) !important;
+  transform: scale(1.15);
+}
+
+.highlight-custom-color-btn {
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  min-height: 26px;
+  border-radius: 50%;
+  border: 1.5px dashed #94a3b8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748b;
+  font-size: 0.72rem;
+  position: relative;
+  overflow: hidden;
+  background: #f8fafc;
+  transition: all 0.15s ease;
+  margin: 0;
+  padding: 0;
+  outline: none;
+}
+
+.highlight-custom-color-btn:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+  background: #eff6ff;
+  transform: scale(1.15);
+}
+
+.highlight-custom-color-btn input[type="color"] {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  border: none;
+  padding: 0;
 }
 
 /* OVERLAY BOTTOM CONTROLS & SLIDE COUNTER (MATCHES PRESENT.HTML EXACTLY) */
