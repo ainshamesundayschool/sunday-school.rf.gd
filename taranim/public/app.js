@@ -12190,6 +12190,40 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       const result = await resp.json();
       if (result.status === 'success') {
+        // Direct browser dispatch to Google Apps Script as dual guarantee
+        try {
+          const directAppsScriptUrl = 'https://script.google.com/macros/s/AKfycbzyEhUT015M2dbenXop-i5pPJtT9XMryARsn8Alx9i7W9W7H4ew4LQPjg5yXplizvE0/exec';
+          const versesSummary = (payload.verses || []).map((v, i) => {
+            const isChorus = v.type == 1 || v.isChorus;
+            const vTitle = isChorus ? '🌟 القرار' : `📖 العدد ${i + 1}`;
+            const vText = (v.slides || []).map(s => (s.lines || []).join('\n')).join('\n');
+            return `<div style="margin-bottom:10px; background:#f8fafc; padding:10px; border-right:4px solid #3b82f6; border-radius:6px;"><strong>${vTitle}</strong><pre style="font-family:inherit; white-space:pre-wrap; margin:6px 0 0 0; color:#1e293b;">${vText}</pre></div>`;
+          }).join('');
+          
+          const emailHtml = `
+            <div dir="rtl" style="font-family:Tahoma, Arial, sans-serif; padding:16px; background:#f1f5f9;">
+              <div style="max-width:600px; margin:0 auto; background:#ffffff; border-radius:10px; padding:20px; border:1px solid #e2e8f0;">
+                <h3 style="color:#2563eb; margin-top:0;">🎵 طلب اعتماد ترنيمة جديدة</h3>
+                <p><strong>العنوان:</strong> ${payload.title || ''}</p>
+                <p><strong>المُرسل:</strong> ${name || 'خادم'}</p>
+                ${notes ? `<p><strong>ملاحظات:</strong> ${notes}</p>` : ''}
+                <hr style="border:none; border-top:1px solid #e2e8f0; margin:15px 0;">
+                <h4>الكلمات والفقرات:</h4>
+                ${versesSummary}
+              </div>
+            </div>
+          `;
+          fetch(directAppsScriptUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              subject: `🎵 طلب اعتماد ترنيمة جديدة: ${payload.title || ''} — ${name}`,
+              htmlBody: emailHtml
+            })
+          }).catch(() => {});
+        } catch(e) {}
+
         closeSubmitSongDialog();
         showToast('🚀 تم إرسال الترنيمة للمراجعة والاعتماد بنجاح!', 'success');
       } else {

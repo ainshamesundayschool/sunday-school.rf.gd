@@ -8150,6 +8150,43 @@ body.startup-active {
   gap: 12px;
 }
 
+/* Submit Song for Review - Simple Clean Style */
+#btn-submit-song-for-review {
+  background: #f8fafc !important;
+  color: #334155 !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 6px !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  padding: 6px 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  box-shadow: none !important;
+  cursor: pointer !important;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease !important;
+}
+
+#btn-submit-song-for-review:hover {
+  background: #f1f5f9 !important;
+  border-color: #94a3b8 !important;
+  color: #0f172a !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+#btn-submit-song-for-review i {
+  color: #64748b !important;
+  font-size: 0.8rem !important;
+  filter: none !important;
+  transition: color 0.15s ease !important;
+}
+
+#btn-submit-song-for-review:hover i {
+  color: #2563eb !important;
+  transform: none !important;
+}
+
 /* Custom Song Badge in Search and Recents */
 .item-badge.custom-song-badge {
   background: #fef3c7;

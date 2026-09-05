@@ -175,7 +175,8 @@ function rebuildCustomCatalogJson($customPdo) {
 }
 
 function sendGoogleScriptNotificationEmail($toEmail, $subject, $bodyHtml) {
-    $appsScriptUrl = 'https://script.google.com/macros/s/AKfycbxsDA0veJTA3C_2Bw47coffOagRigWwaZnyxWuGb_gSVUCWM958V1bUcaZDwfIHVZ7b1g/exec';
+    // Current Apps Script Web App URL (can be updated when user provides new deployment link)
+    $appsScriptUrl = 'https://script.google.com/macros/s/AKfycbzyEhUT015M2dbenXop-i5pPJtT9XMryARsn8Alx9i7W9W7H4ew4LQPjg5yXplizvE0/exec';
     
     $payload = json_encode([
         'to' => $toEmail,
@@ -183,17 +184,38 @@ function sendGoogleScriptNotificationEmail($toEmail, $subject, $bodyHtml) {
         'htmlBody' => $bodyHtml
     ], JSON_UNESCAPED_UNICODE);
 
+    // Prefer cURL because Google Apps Script responds with a 302 redirect
+    if (function_exists('curl_init')) {
+        $ch = curl_init($appsScriptUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json',
+            'Accept: application/json'
+        ]);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_MAXREDIRS, 5);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 12);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        $result = curl_exec($ch);
+        curl_close($ch);
+        return $result;
+    }
+
     $opts = [
         'http' => [
             'method' => 'POST',
-            'header' => "Content-Type: application/json\r\n",
+            'header' => "Content-Type: application/json\r\nAccept: application/json\r\n",
             'content' => $payload,
-            'timeout' => 8
+            'timeout' => 12,
+            'ignore_errors' => true,
+            'follow_location' => 1
         ]
     ];
     $context = stream_context_create($opts);
-    @file_get_contents($appsScriptUrl, false, $context);
-    return true;
+    return @file_get_contents($appsScriptUrl, false, $context);
 }
 
 // 1. SUBMIT LOCAL TARNIMA FOR REVIEW & APP ACCEPTANCE
