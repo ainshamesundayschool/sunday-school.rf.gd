@@ -871,9 +871,9 @@
     .obs-line-segment.line-unhighlighting::before {
       content: '' !important;
       position: absolute !important;
-      inset: 0.04em 0.08em !important;
+      inset: 0.16em 0.06em 0.12em 0.06em !important;
       background: var(--highlight-bg, rgba(239, 68, 68, 0.85)) !important;
-      border-radius: 0.15em !important;
+      border-radius: 0.12em !important;
       z-index: -1 !important;
       box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
       display: block !important;
@@ -881,12 +881,12 @@
     }
 
     .obs-line-segment.line-highlighted::before {
-      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%) !important;
-      opacity: 1 !important;
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+      opacity: 1;
     }
 
-    .obs-line-segment.line-animating::before {
-      animation: highlightLinearWipeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    .obs-line-segment.line-highlighted.line-animating::before {
+      animation: highlightLinearWipeIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) both !important;
       will-change: clip-path, opacity !important;
     }
 
@@ -894,6 +894,9 @@
       0% {
         clip-path: polygon(100% 0, 100% 0, 100% 100%, 100% 100%);
         opacity: 0;
+      }
+      25% {
+        opacity: 1;
       }
       100% {
         clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
@@ -2435,12 +2438,15 @@
             seg.style.setProperty('--highlight-bg', `${hColor}cc`);
             seg.classList.remove('line-unhighlighting');
             if (!seg.classList.contains('line-highlighted')) {
+              seg.classList.remove('line-animating');
+              void seg.offsetWidth;
               seg.classList.add('line-highlighted', 'line-animating');
-              setTimeout(() => seg.classList.remove('line-animating'), 550);
+              setTimeout(() => seg.classList.remove('line-animating'), 600);
             }
           } else {
             if (seg.classList.contains('line-highlighted')) {
               seg.classList.remove('line-highlighted', 'line-animating');
+              void seg.offsetWidth;
               seg.classList.add('line-unhighlighting');
               setTimeout(() => seg.classList.remove('line-unhighlighting'), 450);
             }

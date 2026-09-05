@@ -15637,12 +15637,15 @@ document.addEventListener('DOMContentLoaded', () => {
             seg.style.setProperty('--highlight-bg', `${hColor}cc`);
             seg.classList.remove('line-unhighlighting');
             if (!seg.classList.contains('line-highlighted')) {
+              seg.classList.remove('line-animating');
+              void seg.offsetWidth;
               seg.classList.add('line-highlighted', 'line-animating');
-              setTimeout(() => seg.classList.remove('line-animating'), 550);
+              setTimeout(() => seg.classList.remove('line-animating'), 600);
             }
           } else {
             if (seg.classList.contains('line-highlighted')) {
               seg.classList.remove('line-highlighted', 'line-animating');
+              void seg.offsetWidth;
               seg.classList.add('line-unhighlighting');
               setTimeout(() => seg.classList.remove('line-unhighlighting'), 450);
             }
