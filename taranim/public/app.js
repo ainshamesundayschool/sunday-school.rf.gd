@@ -736,10 +736,10 @@ function getMatchScore(song, query) {
   const qNorm = normalizeArabic(query);
   if (!qNorm) return 0;
 
-  const isFrancoQuery = /[a-z0-9]/i.test(query) && !/[\u0600-\u06FF]/.test(query);
+  const isFrancoQuery = (typeof state !== 'undefined' && state && state.francoAutoTranslate !== undefined ? state.francoAutoTranslate : true) && /[a-z0-9]/i.test(query) && !/[\u0600-\u06FF]/.test(query);
   const qFrancoVariants = isFrancoQuery 
     ? (typeof francoToArabicVariants === 'function' ? francoToArabicVariants(query) : [])
-    : (typeof francoToArabic === 'function' ? [francoToArabic(query)].filter(Boolean) : []);
+    : [];
 
   // Bible shortcut parsing (e.g. "تك 1", "متى 5", "رو 8")
   const bibleInfo = parseBibleSearchShortcut(query);
@@ -2133,6 +2133,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnMenuInstall: document.getElementById('btn-menu-install'),
     popoverInstall: document.getElementById('popover-install'),
     btnDropdownPrecache: document.getElementById('btn-dropdown-precache'),
+    btnPrecacheLabel: document.getElementById('btn-precache-label'),
     popoverProgressWrapper: document.getElementById('popover-progress-wrapper'),
     popoverProgressFill: document.getElementById('popover-progress-fill'),
     popoverProgressText: document.getElementById('popover-progress-text'),
@@ -2140,6 +2141,18 @@ document.addEventListener('DOMContentLoaded', () => {
     btnDropdownPwaInstall: document.getElementById('btn-dropdown-pwa-install'),
     dropdownPwaInstallRow: document.getElementById('dropdown-pwa-install-row'),
     popoverOfflineStatusText: document.getElementById('popover-offline-status-text'),
+    modalOfflineDownloadPrompt: document.getElementById('modal-offline-download-prompt'),
+    btnCloseOfflinePrompt: document.getElementById('btn-close-offline-prompt'),
+    btnOfflinePromptLater: document.getElementById('btn-offline-prompt-later'),
+    btnOfflinePromptStart: document.getElementById('btn-offline-prompt-start'),
+    offlinePromptIcon: document.getElementById('offline-prompt-icon'),
+    offlinePromptTitle: document.getElementById('offline-prompt-title'),
+    offlinePromptMessage: document.getElementById('offline-prompt-message'),
+    offlinePromptBtnText: document.getElementById('offline-prompt-btn-text'),
+    offlinePromptProgressWrap: document.getElementById('offline-prompt-progress-wrap'),
+    offlinePromptProgressFill: document.getElementById('offline-prompt-progress-fill'),
+    offlinePromptProgressText: document.getElementById('offline-prompt-progress-text'),
+    offlinePromptActions: document.getElementById('offline-prompt-actions'),
 
     searchSuggestionsChips: document.getElementById('search-suggestions-chips'),
     obsShadowAngleRange: document.getElementById('obs-shadow-angle-range'),
@@ -2375,12 +2388,83 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch(e) {}
   }
 
+  function getLastConnectedObsInfo() {
+    try {
+      const raw = localStorage.getItem('sunday_school_obs_last_connected');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.ip) return parsed;
+      }
+    } catch(e) {}
+
+    const savedProfiles = getSavedObsProfiles();
+    if (savedProfiles && savedProfiles.length > 0) {
+      return savedProfiles[0];
+    }
+    return null;
+  }
+
+  function updateObsLastConnUI() {
+    const banner = document.getElementById('obs-last-conn-bar');
+    const infoEl = document.getElementById('obs-last-conn-info');
+    const btnAction = document.getElementById('btn-obs-connect-last-action');
+    const last = getLastConnectedObsInfo();
+
+    if (!last || globalObsClient.isConnected) {
+      if (banner) {
+        banner.classList.add('hidden');
+        banner.style.display = 'none';
+      }
+      if (btnAction) {
+        btnAction.classList.add('hidden');
+        btnAction.style.display = 'none';
+      }
+      return;
+    }
+
+    const displayText = (last.name ? `${last.name} (${last.ip}:${last.port})` : `${last.ip}:${last.port}`);
+    if (infoEl) infoEl.textContent = displayText;
+
+    if (banner) {
+      banner.classList.remove('hidden');
+      banner.style.display = 'flex';
+    }
+    if (btnAction) {
+      btnAction.classList.remove('hidden');
+      btnAction.style.display = 'inline-flex';
+    }
+  }
+
+  function connectToLastObsServer() {
+    const last = getLastConnectedObsInfo();
+    if (!last || !last.ip) {
+      showToast('لا يوجد خادم OBS محفوظ سابقاً');
+      return;
+    }
+
+    const ipInput = document.getElementById('obs-ip-input');
+    const portInput = document.getElementById('obs-port-input');
+    const pwInput = document.getElementById('obs-pw-input');
+    const nameInput = document.getElementById('obs-profile-name-input');
+
+    if (ipInput) ipInput.value = last.ip || 'localhost';
+    if (portInput) portInput.value = last.port || 4455;
+    if (pwInput) pwInput.value = last.password || '';
+    if (nameInput && last.name) nameInput.value = last.name;
+
+    showToast(`جاري الاتصال بـ OBS (${last.ip}:${last.port})...`);
+    globalObsClient.connect(last.ip, last.port || 4455, last.password || '');
+  }
+
   // Initialize Global OBS WebSocket Client Instance
   const globalObsClient = new OBSWSClient({
     onStatusChange: (connected, message) => {
       if (connected) {
         try {
+          const nameInput = document.getElementById('obs-profile-name-input');
+          const profName = nameInput && nameInput.value.trim() ? nameInput.value.trim() : '';
           localStorage.setItem('sunday_school_obs_last_connected', JSON.stringify({
+            name: profName,
             ip: globalObsClient.ip,
             port: globalObsClient.port,
             password: globalObsClient.password
@@ -2461,6 +2545,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const barActiveTxt = document.getElementById('obs-bar-active-scene-txt');
       if (barActiveTxt) barActiveTxt.textContent = 'غير متصل';
     }
+
+    updateObsLastConnUI();
   }
 
   function updateObsActiveSceneDisplay(sceneName) {
@@ -2941,6 +3027,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const openModal = () => {
       if (modal) modal.classList.remove('hidden');
       renderSavedObsProfilesList();
+      updateObsLastConnUI();
       if (globalObsClient.isConnected) {
         globalObsClient.fetchScenes().catch(() => {});
         globalObsClient.fetchTransitions().catch(() => {});
@@ -3017,6 +3104,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         globalObsClient.connect(ip, port, pw);
       });
+    }
+
+    const btnConnectLast = document.getElementById('btn-obs-connect-last');
+    const btnConnectLastAction = document.getElementById('btn-obs-connect-last-action');
+
+    if (btnConnectLast) {
+      btnConnectLast.addEventListener('click', connectToLastObsServer);
+    }
+    if (btnConnectLastAction) {
+      btnConnectLastAction.addEventListener('click', connectToLastObsServer);
     }
 
     if (btnDisconnect) {
@@ -3139,7 +3236,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // AUTO-RECONNECT TO LAST CONNECTED SERVER EVEN ON PAGE REFRESH
+    // LOAD LAST CONNECTED SERVER CREDENTIALS INTO INPUTS (DO NOT AUTO-CONNECT)
     let lastConn = null;
     try {
       const raw = localStorage.getItem('sunday_school_obs_last_connected');
@@ -3150,12 +3247,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const ipInput = document.getElementById('obs-ip-input');
       const portInput = document.getElementById('obs-port-input');
       const pwInput = document.getElementById('obs-pw-input');
+      const nameInput = document.getElementById('obs-profile-name-input');
 
       if (ipInput) ipInput.value = lastConn.ip || 'localhost';
       if (portInput) portInput.value = lastConn.port || 4455;
       if (pwInput) pwInput.value = lastConn.password || '';
-
-      globalObsClient.connect(lastConn.ip, lastConn.port, lastConn.password);
+      if (nameInput && lastConn.name) nameInput.value = lastConn.name;
     } else {
       const savedProfiles = getSavedObsProfiles();
       if (savedProfiles.length > 0) {
@@ -3169,10 +3266,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (ipInput) ipInput.value = defaultProf.ip || '';
         if (portInput) portInput.value = defaultProf.port || 4455;
         if (pwInput) pwInput.value = defaultProf.password || '';
-
-        globalObsClient.connect(defaultProf.ip, defaultProf.port, defaultProf.password);
       }
     }
+    updateObsLastConnUI();
 
     // ADVANCED TAB OBS BUTTONS & SOURCES
     const btnAdvConnect = document.getElementById('btn-obs-adv-connect');
@@ -4156,37 +4252,204 @@ document.addEventListener('DOMContentLoaded', () => {
     updateDisplayButtonUI();
   }
 
+  // ----------------------------------------------------
+  // OFFLINE READY & HYMNS UPDATE DETECTOR & PROMPT
+  // ----------------------------------------------------
+  let isTaranimDownloadingOffline = false;
+
+  function showOfflinePromptModal({ title, message, btnText, isUpdate = false, diffCount = 0 }) {
+    if (!els.modalOfflineDownloadPrompt) return;
+    if (els.offlinePromptTitle && title) els.offlinePromptTitle.textContent = title;
+    if (els.offlinePromptMessage && message) els.offlinePromptMessage.innerHTML = message;
+    if (els.offlinePromptBtnText && btnText) els.offlinePromptBtnText.textContent = btnText;
+    if (els.offlinePromptIcon) {
+      els.offlinePromptIcon.className = isUpdate ? 'fa-solid fa-arrow-rotate-right' : 'fa-solid fa-cloud-arrow-down';
+      els.offlinePromptIcon.style.color = isUpdate ? '#059669' : '#2563eb';
+    }
+    if (els.btnOfflinePromptStart) {
+      els.btnOfflinePromptStart.style.background = isUpdate ? 'linear-gradient(135deg, #059669, #10b981)' : '#2563eb';
+    }
+    if (els.offlinePromptProgressWrap) els.offlinePromptProgressWrap.classList.add('hidden');
+    if (els.offlinePromptActions) els.offlinePromptActions.classList.remove('hidden');
+    els.modalOfflineDownloadPrompt.classList.remove('hidden');
+  }
+
+  function hideOfflinePromptModal() {
+    if (els.modalOfflineDownloadPrompt) {
+      els.modalOfflineDownloadPrompt.classList.add('hidden');
+    }
+  }
+
+  function setInstallButtonUpdateState(hasUpdate, diffCount = 0) {
+    if (!els.btnMenuInstall) return;
+    let badge = els.btnMenuInstall.querySelector('.install-update-badge');
+    if (hasUpdate) {
+      els.btnMenuInstall.style.display = 'inline-flex';
+      els.btnMenuInstall.classList.add('has-update');
+      els.btnMenuInstall.title = `تحديث متاح: تم إضافة ${Number(diffCount).toLocaleString('ar-EG')} ترنيمة جديدة - اضغط للتنزيل`;
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'install-update-badge';
+        els.btnMenuInstall.appendChild(badge);
+      }
+      if (els.btnPrecacheLabel) {
+        els.btnPrecacheLabel.textContent = `تحديث الترانيم الجديدة (${Number(diffCount).toLocaleString('ar-EG')})`;
+      }
+      if (els.popoverOfflineStatusText) {
+        els.popoverOfflineStatusText.innerHTML = `<i class="fa-solid fa-bell" style="color:#ef4444;"></i> يوجد ${Number(diffCount).toLocaleString('ar-EG')} ترنيمة جديدة للتنزيل`;
+      }
+    } else {
+      els.btnMenuInstall.classList.remove('has-update');
+      if (badge) badge.remove();
+      if (els.btnPrecacheLabel) {
+        els.btnPrecacheLabel.textContent = 'تنزيل الترانيم للعمل بدون إنترنت';
+      }
+    }
+  }
+
   async function checkOfflineStatusAndToggleInstallBtn() {
     if (!els.btnMenuInstall) return;
     try {
+      let isFullyInstalledOffline = false;
+      let localCount = 0;
+
+      // 1. Verify IndexedDB storage of songs_catalog
       if (typeof TaranimDB !== 'undefined') {
         const stored = await TaranimDB.get('songs_catalog');
-        if (stored && Array.isArray(stored) && stored.length > 1000) {
-          if (els.popoverOfflineStatusText) {
-            els.popoverOfflineStatusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#10b981;"></i> تم حفظ ${Number(stored.length).toLocaleString('ar-EG')} ترنيمة أوفلاين`;
-          }
-          if (els.btnDropdownPrecache) {
-            els.btnDropdownPrecache.innerHTML = `<i class="fa-solid fa-circle-check"></i> تم حفظ جميع البيانات أوفلاين (${Number(stored.length).toLocaleString('ar-EG')})`;
-          }
-          return;
+        if (stored && Array.isArray(stored) && stored.length >= 1000) {
+          localCount = stored.length;
+          isFullyInstalledOffline = true;
         }
       }
+
+      // 2. Verify CacheStorage has songs_catalog.json
+      let hasCachedCatalog = false;
       if ('caches' in window) {
-        const keys = await caches.keys();
-        for (const k of keys) {
-          if (k.includes('taranim') || k.includes('sunday_school')) {
+        try {
+          const keys = await caches.keys();
+          for (const k of keys) {
             const cache = await caches.open(k);
             const matched = await cache.match('./songs_catalog.json', { ignoreSearch: true });
-            if (matched) {
-              if (els.popoverOfflineStatusText) {
-                els.popoverOfflineStatusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#10b981;"></i> جاهز للعمل بدون إنترنت`;
-              }
-              return;
+            if (matched && matched.ok) {
+              hasCachedCatalog = true;
+              break;
             }
           }
-        }
+        } catch (e) {}
       }
-    } catch (e) {}
+
+      const initialDownloadDone = localStorage.getItem('taranim_pwa_initial_download_done') === 'true';
+
+      // Needs initial download if missing IDB, or missing Cache, or initial flag is not set
+      const needsInitialDownload = (!isFullyInstalledOffline || !hasCachedCatalog || !initialDownloadDone);
+
+      if (needsInitialDownload) {
+        els.btnMenuInstall.style.display = 'inline-flex';
+        setInstallButtonUpdateState(false);
+
+        if (els.popoverOfflineStatusText) {
+          els.popoverOfflineStatusText.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;"></i> غير جاهز أوفلاين (يحتاج تنزيل الترانيم)`;
+        }
+        if (els.btnDropdownPrecache) {
+          els.btnDropdownPrecache.disabled = false;
+        }
+
+        // Show popup modal prompt on initial session if not already shown in this session
+        if (!sessionStorage.getItem('taranim_initial_offline_prompt_shown')) {
+          sessionStorage.setItem('taranim_initial_offline_prompt_shown', 'true');
+          setTimeout(() => {
+            showOfflinePromptModal({
+              title: 'تنزيل الترانيم للاستخدام بدون إنترنت',
+              message: 'يحتاج تطبيق الترانيم لتنزيل قاعدة الترانيم والكتاب المقدس ليعمل معك بسلاسة في أي مكان حتى بدون اتصال بالإنترنت (أوفلاين).',
+              btnText: 'تنزيل الترانيم الآن',
+              isUpdate: false
+            });
+          }, 1200);
+        }
+        return;
+      }
+
+      // If fully installed offline: hide button initially, but check if there are new taranim on server
+      els.btnMenuInstall.style.display = 'none';
+      setInstallButtonUpdateState(false);
+
+      if (els.popoverOfflineStatusText) {
+        els.popoverOfflineStatusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#10b981;"></i> تم حفظ ${Number(localCount).toLocaleString('ar-EG')} ترنيمة أوفلاين`;
+      }
+      if (els.btnDropdownPrecache) {
+        els.btnDropdownPrecache.innerHTML = `<i class="fa-solid fa-circle-check"></i> تم حفظ جميع البيانات أوفلاين (${Number(localCount).toLocaleString('ar-EG')})`;
+      }
+
+      // Check server for new hymns if online
+      if (navigator.onLine) {
+        checkServerForNewTaranim(localCount);
+      }
+    } catch (e) {
+      console.warn('checkOfflineStatusAndToggleInstallBtn error:', e);
+    }
+  }
+
+  async function checkServerForNewTaranim(currentLocalCount) {
+    if (!navigator.onLine) return;
+    try {
+      let serverCount = 0;
+      const pathDir = window.location.pathname.replace(/\/[^\/]*$/, '/');
+
+      // 1. Check fast stats endpoint
+      try {
+        const statsRes = await fetch(`${window.location.origin}${pathDir}api.php?action=catalog_stats`, { cache: 'no-cache' });
+        if (statsRes && statsRes.ok) {
+          const stats = await statsRes.json();
+          if (stats && stats.grand_total) {
+            serverCount = parseInt(stats.grand_total, 10);
+          } else if (stats && stats.total_songs) {
+            serverCount = parseInt(stats.total_songs, 10) + (parseInt(stats.custom_songs, 10) || 0);
+          }
+        }
+      } catch (e) {}
+
+      // 2. Fallback: query songs endpoint
+      if (!serverCount) {
+        try {
+          const songsRes = await fetch(`${window.location.origin}${pathDir}api.php?action=songs&limit=1`, { cache: 'no-cache' });
+          if (songsRes && songsRes.ok) {
+            const json = await songsRes.json();
+            if (json && json.total_songs) {
+              serverCount = parseInt(json.total_songs, 10);
+            }
+          }
+        } catch (e) {}
+      }
+
+      const recordedInstalledCount = parseInt(localStorage.getItem('taranim_offline_installed_count') || String(currentLocalCount || 0), 10);
+      const effectiveLocalCount = Math.max(currentLocalCount || 0, recordedInstalledCount);
+
+      if (serverCount > effectiveLocalCount) {
+        const diff = serverCount - effectiveLocalCount;
+        els.btnMenuInstall.style.display = 'inline-flex';
+        setInstallButtonUpdateState(true, diff);
+
+        // Show popup modal for new hymns update
+        const promptKey = `taranim_new_songs_prompt_${serverCount}`;
+        if (!sessionStorage.getItem(promptKey)) {
+          sessionStorage.setItem(promptKey, 'true');
+          setTimeout(() => {
+            showOfflinePromptModal({
+              title: '🔔 ترانيم جديدة متاحة للتنزيل!',
+              message: `تم إضافة <strong>${Number(diff).toLocaleString('ar-EG')}</strong> ترنيمة جديدة على السيرفر! قم بالتنزيل الآن لتحديث مكتبة الترانيم وتكون جاهزة بدون إنترنت.`,
+              btnText: 'تحديث وتنزيل الترانيم الآن',
+              isUpdate: true,
+              diffCount: diff
+            });
+          }, 1500);
+        }
+      } else {
+        els.btnMenuInstall.style.display = 'none';
+        setInstallButtonUpdateState(false);
+      }
+    } catch (e) {
+      console.warn('checkServerForNewTaranim error:', e);
+    }
   }
 
   function toHexColor(colorStr, fallback = '#000000') {
@@ -4417,6 +4680,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateHighlightCircleUI() {
       const activeColor = state.highlightColor || '#ef4444';
+      if (colorPickerWrap) {
+        colorPickerWrap.classList.toggle('hidden', !state.isHighlightMode);
+      }
       if (btnColorCircle) {
         btnColorCircle.style.background = activeColor;
       }
@@ -4435,7 +4701,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state.isHighlightMode = !state.isHighlightMode;
         btnToggleHighlight.classList.toggle('active', state.isHighlightMode);
         if (colorPickerWrap) {
-          colorPickerWrap.classList.remove('hidden');
+          colorPickerWrap.classList.toggle('hidden', !state.isHighlightMode);
         }
         if (!state.isHighlightMode) {
           if (popoverHighlightColor) popoverHighlightColor.classList.add('hidden');
@@ -4537,22 +4803,224 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // OBS MODE LISTENER
 
-    if (els.btnMenuInstall && els.popoverInstall) {
+    async function executeTaranimOfflineDownload() {
+      if (isTaranimDownloadingOffline) return;
+      isTaranimDownloadingOffline = true;
+
+      // Update UI in popup modal
+      if (els.offlinePromptActions) els.offlinePromptActions.classList.add('hidden');
+      if (els.offlinePromptProgressWrap) els.offlinePromptProgressWrap.classList.remove('hidden');
+      if (els.offlinePromptProgressFill) els.offlinePromptProgressFill.style.width = '0%';
+      if (els.offlinePromptProgressText) els.offlinePromptProgressText.textContent = 'جاري تحضير الملفات للتحميل...';
+
+      // Update UI in popover if open
+      if (els.btnDropdownPrecache) els.btnDropdownPrecache.disabled = true;
+      if (els.popoverProgressWrapper) els.popoverProgressWrapper.classList.remove('hidden');
+      if (els.popoverProgressFill) els.popoverProgressFill.style.width = '0%';
+      if (els.popoverProgressText) els.popoverProgressText.textContent = 'جاري تحضير البيانات...';
+
+      const updateProgress = (pct, text) => {
+        const p = Math.min(100, Math.max(0, pct));
+        if (els.offlinePromptProgressFill) els.offlinePromptProgressFill.style.width = `${p}%`;
+        if (els.offlinePromptProgressText) els.offlinePromptProgressText.textContent = text || `جاري التنزيل (${p}%)...`;
+        if (els.popoverProgressFill) els.popoverProgressFill.style.width = `${p}%`;
+        if (els.popoverProgressText) els.popoverProgressText.textContent = text || `جاري التنزيل (${p}%)...`;
+      };
+
+      const ASSETS_TO_CACHE = [
+        { url: './', size: 5000 },
+        { url: './index.html', size: 120000 },
+        { url: './present.html', size: 110000 },
+        { url: './remote.html', size: 30000 },
+        { url: './install.html', size: 15000 },
+        { url: './app.js', size: 660000 },
+        { url: './style.css', size: 170000 },
+        { url: './logoicon.png', size: 70000 },
+        { url: './logo.png', size: 550000 },
+        { url: './manifest.json', size: 800 },
+        { url: './manifest.webmanifest', size: 800 },
+        { url: './templates.json', size: 12000 },
+        { url: './songs_catalog.json', size: 23528339 },
+        { url: './bible_chapters_data.json', size: 17842105 },
+        { url: './arabic_dictionary.json', size: 208186 },
+        { url: './playlists.json', size: 100 },
+        { url: './song_scales_map.json', size: 48060 },
+        { url: './song_scales_map.js', size: 20411 },
+        { url: './bible_books_data.json', size: 8064 }
+      ];
+
+      const TOTAL_BYTES = ASSETS_TO_CACHE.reduce((acc, item) => acc + item.size, 0);
+      let downloadedBytes = 0;
+
+      try {
+        let appCache = null;
+        let dataCache = null;
+        if ('caches' in window) {
+          appCache = await caches.open('taranim-pwa-v39');
+          dataCache = await caches.open('taranim-data-v1');
+        }
+
+        for (const item of ASSETS_TO_CACHE) {
+          try {
+            const isLargeData = item.url.includes('songs_catalog') || item.url.includes('bible_chapters');
+            const targetCache = isLargeData ? dataCache : appCache;
+
+            const res = await fetch(item.url, { cache: 'no-cache' });
+            if (res && res.ok) {
+              if (targetCache) {
+                const clone = res.clone();
+                await targetCache.put(item.url, clone);
+              }
+
+              // Save JSON datasets into IndexedDB as well
+              if (item.url.includes('songs_catalog.json')) {
+                try {
+                  const catalogJson = await res.json();
+                  if (Array.isArray(catalogJson) && catalogJson.length > 0) {
+                    if (typeof TaranimDB !== 'undefined') {
+                      await TaranimDB.set('songs_catalog', catalogJson);
+                    }
+                    state.allSongs = indexCatalogList(catalogJson);
+                    syncCustomSongsIntoCatalog();
+                  }
+                } catch(e) {}
+              } else if (item.url.includes('bible_chapters_data.json')) {
+                try {
+                  const bibleJson = await res.json();
+                  if (bibleJson && typeof bibleJson === 'object') {
+                    if (typeof TaranimDB !== 'undefined') {
+                      await TaranimDB.set('bible_chapters_data', bibleJson);
+                    }
+                    state.bibleChaptersData = bibleJson;
+                  }
+                } catch(e) {}
+              } else if (item.url.includes('templates.json')) {
+                try {
+                  const tmplJson = await res.json();
+                  if (tmplJson && typeof TaranimDB !== 'undefined') {
+                    await TaranimDB.set('templates_data', tmplJson);
+                  }
+                } catch(e) {}
+              }
+            }
+          } catch (err) {
+            console.warn('Error downloading item:', item.url, err);
+          }
+
+          downloadedBytes += item.size;
+          const pct = Math.min(99, Math.round((downloadedBytes / TOTAL_BYTES) * 100));
+          updateProgress(pct, `جاري التحميل أوفلاين (${pct}%)...`);
+        }
+
+        // Also cache custom community songs
+        try {
+          const pathDir = window.location.pathname.replace(/\/[^\/]*$/, '/');
+          const customRes = await fetch(`${window.location.origin}${pathDir}api.php?action=custom_catalog`, { cache: 'no-cache' });
+          if (customRes && customRes.ok) {
+            const customData = await customRes.json();
+            if (Array.isArray(customData) && customData.length > 0 && typeof TaranimDB !== 'undefined') {
+              await TaranimDB.set('custom_catalog', customData);
+            }
+          }
+        } catch (e) {}
+
+        updateProgress(100, 'تم إكتمال التحميل 100%');
+        localStorage.setItem('taranim_pwa_initial_download_done', 'true');
+        const finalCount = (state.allSongs && state.allSongs.length > 0) ? state.allSongs.length : 11611;
+        localStorage.setItem('taranim_offline_installed_count', String(finalCount));
+
+        // Hide install button immediately once all taranim are offline and up to date
+        if (els.btnMenuInstall) {
+          els.btnMenuInstall.style.display = 'none';
+          setInstallButtonUpdateState(false);
+        }
+
+        const countFormatted = Number(finalCount).toLocaleString('ar-EG');
+        if (els.btnDropdownPrecache) {
+          els.btnDropdownPrecache.disabled = false;
+          els.btnDropdownPrecache.innerHTML = `<i class="fa-solid fa-circle-check"></i> تم حفظ جميع البيانات أوفلاين (${countFormatted})`;
+        }
+        if (els.popoverOfflineStatusText) {
+          els.popoverOfflineStatusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#10b981;"></i> جاهز للعمل بدون إنترنت (${countFormatted})`;
+        }
+
+        showToast(`تم حفظ ${countFormatted} ترنيمة والكتاب المقدس أوفلاين بنجاح!`);
+
+        setTimeout(() => {
+          hideOfflinePromptModal();
+          if (els.popoverProgressWrapper) els.popoverProgressWrapper.classList.add('hidden');
+          if (els.popoverInstall) els.popoverInstall.classList.add('hidden');
+        }, 1500);
+
+      } catch (err) {
+        console.error('Offline download failed:', err);
+        updateProgress(0, 'تعذر استكمال التنزيل');
+        if (els.offlinePromptActions) els.offlinePromptActions.classList.remove('hidden');
+        if (els.btnDropdownPrecache) {
+          els.btnDropdownPrecache.disabled = false;
+          els.btnDropdownPrecache.textContent = 'إعادة المحاولة';
+        }
+        showToast('تعذر استكمال تنزيل الترانيم، تحقق من الاتصال بالإنترنت وأعد المحاولة');
+      } finally {
+        isTaranimDownloadingOffline = false;
+      }
+    }
+
+    // INSTALL & OFFLINE PROMPT HANDLERS
+    if (els.btnMenuInstall) {
       els.btnMenuInstall.addEventListener('click', (e) => {
         e.stopPropagation();
-        const willShow = els.popoverInstall.classList.contains('hidden');
-        closeAllPopovers(els.popoverInstall);
-        if (willShow) {
-          els.popoverInstall.classList.remove('hidden');
-          if (popoverStyleBackdrop) popoverStyleBackdrop.classList.remove('hidden');
-        } else {
-          els.popoverInstall.classList.add('hidden');
-          if (popoverStyleBackdrop) popoverStyleBackdrop.classList.add('hidden');
+        const hasUpdate = els.btnMenuInstall.classList.contains('has-update');
+        const updateTitle = hasUpdate ? '🔔 ترانيم جديدة متوفرة للتنزيل!' : 'تنزيل الترانيم للاستخدام بدون إنترنت';
+        const updateMsg = hasUpdate 
+          ? 'يوجد ترانيم جديدة تم إضافتها على السيرفر! قم بالتنزيل الآن لتحديث مكتبتك والعمل بدون إنترنت.'
+          : 'تطبيق الترانيم يحتاج لتنزيل قاعدة الترانيم والكتاب المقدس ليعمل معك بسلاسة في أي مكان بدون اتصال بالإنترنت (أوفلاين).';
+        const updateBtn = hasUpdate ? 'تحديث وتنزيل الترانيم الآن' : 'تنزيل الترانيم الآن';
+
+        showOfflinePromptModal({
+          title: updateTitle,
+          message: updateMsg,
+          btnText: updateBtn,
+          isUpdate: hasUpdate
+        });
+      });
+    }
+
+    if (els.btnOfflinePromptStart) {
+      els.btnOfflinePromptStart.addEventListener('click', () => {
+        executeTaranimOfflineDownload();
+      });
+    }
+
+    if (els.btnCloseOfflinePrompt) {
+      els.btnCloseOfflinePrompt.addEventListener('click', () => {
+        if (!isTaranimDownloadingOffline) hideOfflinePromptModal();
+      });
+    }
+
+    if (els.btnOfflinePromptLater) {
+      els.btnOfflinePromptLater.addEventListener('click', () => {
+        if (!isTaranimDownloadingOffline) hideOfflinePromptModal();
+      });
+    }
+
+    if (els.modalOfflineDownloadPrompt) {
+      els.modalOfflineDownloadPrompt.addEventListener('click', (e) => {
+        if (!isTaranimDownloadingOffline && e.target === els.modalOfflineDownloadPrompt) {
+          hideOfflinePromptModal();
         }
       });
-
-      els.popoverInstall.addEventListener('click', (e) => e.stopPropagation());
     }
+
+    if (els.btnDropdownPrecache) {
+      els.btnDropdownPrecache.addEventListener('click', () => {
+        executeTaranimOfflineDownload();
+      });
+    }
+
+    window.addEventListener('online', () => {
+      checkOfflineStatusAndToggleInstallBtn();
+    });
 
     // LIVE FILE FORMAT CHOICE MODAL HANDLERS
     const modalLiveFileFormat = document.getElementById('modal-live-file-format');
@@ -4593,105 +5061,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    if (els.btnDropdownPrecache) {
-      els.btnDropdownPrecache.addEventListener('click', async () => {
-        els.btnDropdownPrecache.disabled = true;
-
-        if (els.popoverProgressWrapper) els.popoverProgressWrapper.classList.remove('hidden');
-        if (els.popoverProgressFill) els.popoverProgressFill.style.width = '0%';
-        if (els.popoverProgressText) els.popoverProgressText.textContent = 'جاري تحضير البيانات...';
-
-        const ASSETS_TO_CACHE = [
-          { url: './', size: 5000 },
-          { url: './index.html', size: 120000 },
-          { url: './present.html', size: 110000 },
-          { url: './remote.html', size: 30000 },
-          { url: './install.html', size: 15000 },
-          { url: './app.js', size: 660000 },
-          { url: './style.css', size: 170000 },
-          { url: './logoicon.png', size: 70000 },
-          { url: './logo.png', size: 550000 },
-          { url: './manifest.json', size: 800 },
-          { url: './manifest.webmanifest', size: 800 },
-          { url: './templates.json', size: 12000 },
-          { url: './songs_catalog.json', size: 23528339 },
-          { url: './bible_chapters_data.json', size: 17842105 },
-          { url: './arabic_dictionary.json', size: 208186 },
-          { url: './playlists.json', size: 100 },
-          { url: './song_scales_map.json', size: 48060 },
-          { url: './song_scales_map.js', size: 20411 },
-          { url: './bible_books_data.json', size: 8064 }
-        ];
-
-        const TOTAL_BYTES = ASSETS_TO_CACHE.reduce((acc, item) => acc + item.size, 0);
-        let downloadedBytes = 0;
-
-        try {
-          const appCache = await caches.open('taranim-pwa-v38');
-          const dataCache = await caches.open('taranim-data-v1');
-
-          for (const item of ASSETS_TO_CACHE) {
-            try {
-              const isLargeData = item.url.includes('songs_catalog') || item.url.includes('bible_chapters');
-              const targetCache = isLargeData ? dataCache : appCache;
-
-              const res = await fetch(item.url, { cache: 'no-cache' });
-              if (res && res.ok) {
-                const clone = res.clone();
-                await targetCache.put(item.url, clone);
-
-                // Save JSON datasets into IndexedDB as well
-                if (item.url.includes('songs_catalog.json')) {
-                  try {
-                    const catalogJson = await res.json();
-                    if (Array.isArray(catalogJson) && catalogJson.length > 0) {
-                      await TaranimDB.set('songs_catalog', catalogJson);
-                      state.allSongs = indexCatalogList(catalogJson);
-                      syncCustomSongsIntoCatalog();
-                    }
-                  } catch(e) {}
-                } else if (item.url.includes('bible_chapters_data.json')) {
-                  try {
-                    const bibleJson = await res.json();
-                    if (bibleJson && typeof bibleJson === 'object') {
-                      await TaranimDB.set('bible_chapters_data', bibleJson);
-                      state.bibleChaptersData = bibleJson;
-                    }
-                  } catch(e) {}
-                } else if (item.url.includes('templates.json')) {
-                  try {
-                    const tmplJson = await res.json();
-                    if (tmplJson) await TaranimDB.set('templates_data', tmplJson);
-                  } catch(e) {}
-                }
-              }
-            } catch (err) {}
-
-            downloadedBytes += item.size;
-            const pct = Math.min(99, Math.round((downloadedBytes / TOTAL_BYTES) * 100));
-            if (els.popoverProgressFill) els.popoverProgressFill.style.width = `${pct}%`;
-            if (els.popoverProgressText) els.popoverProgressText.textContent = `جاري التحميل أوفلاين (${pct}%)...`;
-          }
-
-          if (els.popoverProgressFill) els.popoverProgressFill.style.width = '100%';
-          if (els.popoverProgressText) els.popoverProgressText.textContent = 'تم إكتمال التحميل 100%';
-          localStorage.setItem('taranim_pwa_initial_download_done', 'true');
-          const countStr = state.allSongs && state.allSongs.length > 0 ? ` (${Number(state.allSongs.length).toLocaleString('ar-EG')})` : '';
-          if (els.btnDropdownPrecache) els.btnDropdownPrecache.innerHTML = `<i class="fa-solid fa-circle-check"></i> تم حفظ جميع البيانات أوفلاين${countStr}`;
-          if (els.popoverOfflineStatusText) els.popoverOfflineStatusText.innerHTML = `<i class="fa-solid fa-circle-check"></i> جاهز للعمل بدون إنترنت${countStr}`;
-          showToast('تم حفظ الترانيم والكتاب المقدس أوفلاين بنجاح!');
-          setTimeout(() => {
-            if (els.popoverProgressWrapper) els.popoverProgressWrapper.classList.add('hidden');
-          }, 1500);
-        } catch (err) {
-          if (els.btnDropdownPrecache) {
-            els.btnDropdownPrecache.disabled = false;
-            els.btnDropdownPrecache.textContent = 'إعادة المحاولة';
-          }
-        }
-      });
-    }
-
     let deferredPrompt = null;
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
@@ -4704,7 +5073,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const dropdownIosInstallRow = document.getElementById('dropdown-ios-install-row');
 
     if (isStandalone) {
-      if (els.btnMenuInstall) els.btnMenuInstall.style.display = 'none';
       if (els.dropdownPwaInstallRow) els.dropdownPwaInstallRow.classList.add('hidden');
       if (dropdownIosInstallRow) dropdownIosInstallRow.classList.add('hidden');
     } else if (isIOS && dropdownIosInstallRow) {
@@ -4958,13 +5326,7 @@ document.addEventListener('DOMContentLoaded', () => {
       syncLiveState();
     });
 
-    els.francoToggleBtn.addEventListener('change', (e) => {
-      state.francoAutoTranslate = e.target.checked;
-      saveUserSettings();
-      if (els.intelligentSearch.value.trim()) {
-        performIntelligentSearch(els.intelligentSearch.value);
-      }
-    });
+    // Franco toggle button is handled via click listener with state toggle
 
         // Custom Font Dropdown Toggle & Search Listeners
     const fontDropdownToggle = document.getElementById('btn-font-dropdown-toggle');
@@ -7105,11 +7467,39 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (e) {}
     };
 
+    const updateStandbyButtonUI = () => {
+      const isStandby = Boolean(state.isStandbyMode);
+      // Slides mode: text icon (fa-solid fa-font) referring to text slides mode
+      // Standby mode: image icon (fa-solid fa-image) referring to standby mode
+      const iconClass = isStandby ? 'fa-solid fa-image' : 'fa-solid fa-font';
+      const titleText = isStandby ? 'العودة إلى عرض الشرائح والنص (S)' : 'التبديل إلى شاشة الانتظار (S)';
+
+      if (els.btnToggleStandby) {
+        els.btnToggleStandby.classList.toggle('active-mode', isStandby);
+        els.btnToggleStandby.title = titleText;
+        const iconEl = els.btnToggleStandby.querySelector('i');
+        if (iconEl) {
+          iconEl.className = iconClass;
+        } else {
+          els.btnToggleStandby.innerHTML = `<i class="${iconClass}"></i>`;
+        }
+      }
+      if (els.btnToggleStandbyTop) {
+        els.btnToggleStandbyTop.classList.toggle('active-mode', isStandby);
+        els.btnToggleStandbyTop.title = titleText;
+        const iconTopEl = els.btnToggleStandbyTop.querySelector('i');
+        if (iconTopEl) {
+          iconTopEl.className = iconClass;
+        } else {
+          els.btnToggleStandbyTop.innerHTML = `<i class="${iconClass}"></i>`;
+        }
+      }
+    };
+
     const toggleStandbyMode = (triggerTransition = true) => {
       state.isStandbyMode = !state.isStandbyMode;
 
-      if (els.btnToggleStandbyTop) els.btnToggleStandbyTop.classList.toggle('active-mode', state.isStandbyMode);
-      if (els.btnToggleStandby) els.btnToggleStandby.classList.toggle('active-mode', state.isStandbyMode);
+      updateStandbyButtonUI();
 
       syncLiveState(false, false, { triggerTransition: triggerTransition });
       showToast(state.isStandbyMode ? 'تم التبديل إلى شاشة الانتظار (Standby) ' : 'تمت العودة إلى عرض الشرائح ');
@@ -7121,6 +7511,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.btnToggleStandby) {
       els.btnToggleStandby.addEventListener('click', () => toggleStandbyMode(true));
     }
+
+    // Initialize standby button icon & title according to current mode
+    updateStandbyButtonUI();
 
     // --- 1. UNIFIED SLIDES BACKGROUND HANDLERS ---
     const updateSlidesBgUI = () => {
@@ -9925,8 +10318,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Franco translations
-    if (/[a-z0-9]/i.test(cleanWord)) {
+    // Franco translations (only when francoAutoTranslate is enabled)
+    if (state.francoAutoTranslate && /[a-z0-9]/i.test(cleanWord)) {
       const rawTrans = francoToArabic(cleanWord);
       if (rawTrans) {
         const fullTrans = text.slice(0, start) + rawTrans + text.slice(end);
@@ -10287,6 +10680,28 @@ document.addEventListener('DOMContentLoaded', () => {
           state.allSongs = indexCatalogList(rawList);
           if (typeof TaranimDB !== 'undefined') {
             TaranimDB.set('songs_catalog', rawList);
+          }
+
+          // Check if newly fetched catalog has more hymns than installed offline
+          const installedCount = parseInt(localStorage.getItem('taranim_offline_installed_count') || '0', 10);
+          const initialDone = localStorage.getItem('taranim_pwa_initial_download_done') === 'true';
+          if (initialDone && installedCount > 0 && rawList.length > installedCount) {
+            const diff = rawList.length - installedCount;
+            if (els.btnMenuInstall) els.btnMenuInstall.style.display = 'inline-flex';
+            setInstallButtonUpdateState(true, diff);
+            const promptKey = `taranim_new_songs_prompt_${rawList.length}`;
+            if (!sessionStorage.getItem(promptKey)) {
+              sessionStorage.setItem(promptKey, 'true');
+              setTimeout(() => {
+                showOfflinePromptModal({
+                  title: '🔔 ترانيم جديدة متاحة للتنزيل!',
+                  message: `تم إضافة <strong>${Number(diff).toLocaleString('ar-EG')}</strong> ترنيمة جديدة! قم بالتنزيل الآن لتحديث مكتبتك والعمل بدون إنترنت.`,
+                  btnText: 'تحديث وتنزيل الترانيم الآن',
+                  isUpdate: true,
+                  diffCount: diff
+                });
+              }, 1200);
+            }
           }
         }
       }
@@ -11521,7 +11936,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchTarget = bibleInfo ? bibleInfo.searchQuery : trimmedQuery;
 
     // 1. INSTANT 0ms LOCAL SEARCH VIA PRE-INDEXED CATALOG & BIBLE DATA (< 2ms total runtime)
-    const isFrancoInput = /[a-z]/i.test(searchTarget) && !/[\u0600-\u06FF]/.test(searchTarget);
+    const isFrancoInput = Boolean(state.francoAutoTranslate) && /[a-z]/i.test(searchTarget) && !/[\u0600-\u06FF]/.test(searchTarget);
     const qFrancoVariants = isFrancoInput 
       ? (typeof francoToArabicVariants === 'function' ? francoToArabicVariants(searchTarget) : [francoToArabic(searchTarget)].filter(Boolean))
       : [];
@@ -11768,7 +12183,7 @@ document.addEventListener('DOMContentLoaded', () => {
     activeSearchLimit = displayLimit;
     
     // Resolve Franco query to translated Arabic for accurate lyric matching & highlighting
-    const isFrancoInput = /[a-z]/i.test(query) && !/[\u0600-\u06FF]/.test(query);
+    const isFrancoInput = Boolean(state.francoAutoTranslate) && /[a-z]/i.test(query) && !/[\u0600-\u06FF]/.test(query);
     const qFrancoVariants = isFrancoInput 
       ? (typeof francoToArabicVariants === 'function' ? francoToArabicVariants(query) : [francoToArabic(query)].filter(Boolean))
       : [];

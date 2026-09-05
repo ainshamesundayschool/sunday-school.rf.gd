@@ -662,6 +662,42 @@ if (isset($_GET['action']) && $_GET['action'] === 'custom_catalog') {
     exit;
 }
 
+// CATALOG STATS ENDPOINT FOR OFFLINE / UPDATE CHECKS
+if (isset($_GET['action']) && $_GET['action'] === 'catalog_stats') {
+    $songCount = 11611;
+    $catalogFile = __DIR__ . '/songs_catalog.json';
+    $catalogSize = file_exists($catalogFile) ? filesize($catalogFile) : 0;
+    $catalogMtime = file_exists($catalogFile) ? filemtime($catalogFile) : 0;
+
+    $customCount = 0;
+    try {
+        $customPdo = getCustomSongsPdo();
+        if ($customPdo) {
+            $stmt = $customPdo->query("SELECT COUNT(*) FROM approved_custom_songs");
+            if ($stmt) $customCount = (int)$stmt->fetchColumn();
+        }
+    } catch (Exception $e) {}
+
+    try {
+        if ($pdo) {
+            $stmt = $pdo->query("SELECT COUNT(*) FROM songs");
+            if ($stmt) {
+                $c = (int)$stmt->fetchColumn();
+                if ($c > 0) $songCount = $c;
+            }
+        }
+    } catch (Exception $e) {}
+
+    echo json_encode([
+        'total_songs' => $songCount,
+        'custom_songs' => $customCount,
+        'grand_total' => $songCount + $customCount,
+        'catalog_size' => $catalogSize,
+        'catalog_mtime' => $catalogMtime
+    ]);
+    exit;
+}
+
 // TEMPLATES DISCOVERY ENDPOINT
 if (isset($_GET['action']) && $_GET['action'] === 'templates') {
     $jsonFile = file_exists(__DIR__ . '/templates.json') ? __DIR__ . '/templates.json' : (file_exists(__DIR__ . '/../templates.json') ? __DIR__ . '/../templates.json' : null);

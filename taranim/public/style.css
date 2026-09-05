@@ -249,6 +249,44 @@ input[type="checkbox"]:checked::after {
   color: var(--accent-blue);
 }
 
+#btn-menu-install {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+#btn-menu-install.has-update {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #2563eb;
+}
+
+.install-update-badge {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 9px;
+  height: 9px;
+  background: #ef4444;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  animation: pulseInstallBadge 1.5s infinite;
+}
+
+@keyframes pulseInstallBadge {
+  0% {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
+  100% {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
 /* SLEEK ULTRA-COMPACT DROPDOWN POPOVER */
 .dropdown-popover {
   position: absolute;
@@ -7914,32 +7952,348 @@ body.startup-active {
 @media (max-width: 768px) {
   .modal-song-editor-card {
     width: 98vw !important;
-    height: 95vh !important;
-    border-radius: 14px !important;
+    max-width: 100% !important;
+    height: 96vh !important;
+    height: 96dvh !important;
+    max-height: 98dvh !important;
+    margin: auto !important;
+    border-radius: 12px !important;
+  }
+
+  .modal-song-editor-card .modal-header {
+    padding: 8px 12px !important;
+  }
+
+  .modal-song-editor-card .modal-header-title-wrap {
+    gap: 8px !important;
+  }
+
+  .modal-song-editor-card .modal-title {
+    font-size: 0.92rem !important;
+  }
+
+  .modal-song-editor-card .modal-subtitle {
+    display: none !important;
+  }
+
+  .modal-song-editor-card #btn-import-song-json-file {
+    font-size: 0.7rem !important;
+    padding: 4px 8px !important;
+    gap: 4px !important;
+  }
+
+  .song-editor-metadata-bar {
+    padding: 6px 10px !important;
+    gap: 6px !important;
+  }
+
+  .song-editor-metadata-bar .song-meta-field:nth-child(1) {
+    flex: 1 1 100% !important;
+    min-width: 100% !important;
+  }
+
+  .song-editor-metadata-bar .song-meta-field:nth-child(2) {
+    flex: 1 1 calc(50% - 3px) !important;
+    min-width: 0 !important;
+  }
+
+  .song-editor-metadata-bar .song-meta-field:nth-child(3) {
+    flex: 1 1 calc(50% - 3px) !important;
+    min-width: 0 !important;
+  }
+
+  .song-meta-field label {
+    font-size: 0.7rem !important;
+    margin-bottom: 2px !important;
+  }
+
+  .song-meta-field .control-input,
+  .song-meta-field .control-select {
+    height: 32px !important;
+    padding: 4px 8px !important;
+    font-size: 0.78rem !important;
+  }
+
+  .song-editor-tabs-nav {
+    padding: 4px 8px !important;
+    gap: 4px !important;
+  }
+
+  .song-editor-tab-btn {
+    flex: 1 1 0 !important;
+    justify-content: center !important;
+    padding: 5px 6px !important;
+    font-size: 0.74rem !important;
+    border-radius: 6px !important;
+    gap: 4px !important;
+    white-space: nowrap !important;
+  }
+
+  .song-editor-tab-content {
+    padding: 6px 8px !important;
   }
 
   .song-builder-layout {
-    grid-template-columns: 1fr;
-    gap: 10px;
-    overflow-y: auto;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .song-builder-main-col {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    border-radius: 10px !important;
+  }
+
+  .song-builder-toolbar {
+    padding: 6px 10px !important;
+    gap: 6px !important;
+  }
+
+  .song-builder-toolbar span {
+    font-size: 0.76rem !important;
+  }
+
+  .song-builder-toolbar .btn {
+    padding: 4px 8px !important;
+    font-size: 0.72rem !important;
+    border-radius: 6px !important;
+  }
+
+  .song-builder-segments-list {
+    padding: 6px !important;
+    gap: 8px !important;
+  }
+
+  .song-segment-card {
+    padding: 8px !important;
+    gap: 6px !important;
+    border-radius: 10px !important;
+  }
+
+  .segment-header {
+    padding-bottom: 5px !important;
+  }
+
+  .segment-type-pill {
+    padding: 3px 8px !important;
+    font-size: 0.72rem !important;
+  }
+
+  .seg-btn {
+    width: 26px !important;
+    height: 26px !important;
+    font-size: 0.7rem !important;
+  }
+
+  .song-slide-box {
+    padding: 6px 8px !important;
+    gap: 6px !important;
+    border-radius: 8px !important;
+  }
+
+  .slide-box-header {
+    font-size: 0.7rem !important;
+  }
+
+  .slide-line-row {
+    gap: 4px !important;
+  }
+
+  .slide-line-num {
+    font-size: 0.68rem !important;
+    width: 14px !important;
+  }
+
+  .slide-line-input {
+    padding: 4px 8px !important;
+    font-size: 0.8rem !important;
+    height: 32px !important;
+    border-radius: 6px !important;
+  }
+
+  .btn-add-line-to-slide {
+    padding: 4px 8px !important;
+    font-size: 0.72rem !important;
+  }
+
+  .btn-add-slide-to-segment {
+    padding: 5px 8px !important;
+    font-size: 0.72rem !important;
+  }
+
+  .song-builder-preview-col {
+    flex: 0 0 auto !important;
+    max-height: 145px !important;
+    min-height: 90px !important;
+    height: auto !important;
+    border-radius: 10px !important;
+  }
+
+  .preview-col-header {
+    padding: 5px 10px !important;
+  }
+
+  .preview-col-header span {
+    font-size: 0.74rem !important;
+  }
+
+  .counter-text-chip {
+    padding: 2px 6px !important;
+    font-size: 0.7rem !important;
+  }
+
+  .builder-live-slides-preview {
+    padding: 6px !important;
+    gap: 6px !important;
+  }
+
+  .preview-slide-card {
+    padding: 8px 10px !important;
+    gap: 4px !important;
+  }
+
+  .preview-slide-lines {
+    font-size: 0.82rem !important;
+    line-height: 1.35 !important;
+  }
+
+  .smart-paste-container {
+    gap: 8px !important;
+  }
+
+  .smart-paste-info-banner {
+    padding: 6px 10px !important;
+    font-size: 0.74rem !important;
+    gap: 8px !important;
+    border-radius: 8px !important;
+  }
+
+  #smart-paste-raw-textarea {
+    min-height: 100px !important;
+    font-size: 0.8rem !important;
+    padding: 8px !important;
   }
 
   .smart-paste-options-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+    gap: 6px !important;
+  }
+
+  .smart-paste-opt-card {
+    padding: 8px !important;
+    gap: 4px !important;
+    border-radius: 8px !important;
+  }
+
+  .smart-paste-opt-card div {
+    font-size: 0.75rem !important;
+    margin-bottom: 4px !important;
+  }
+
+  .smart-paste-opt-card .checkbox-label {
+    font-size: 0.74rem !important;
+    margin-bottom: 3px !important;
+  }
+
+  #btn-execute-smart-parse {
+    padding: 6px 12px !important;
+    font-size: 0.78rem !important;
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  .json-textarea {
+    padding: 8px !important;
+    font-size: 0.75rem !important;
+  }
+
+  #btn-apply-raw-json-changes {
+    padding: 5px 10px !important;
+    font-size: 0.75rem !important;
+  }
+
+  #song-editor-review-banner {
+    margin: 4px 8px 0 8px !important;
+    padding: 6px 10px !important;
+    border-radius: 8px !important;
+  }
+
+  #song-editor-review-banner-text {
+    font-size: 0.76rem !important;
+  }
+
+  #btn-approve-reviewed-song-direct {
+    padding: 4px 10px !important;
+    font-size: 0.72rem !important;
   }
 
   .song-editor-footer {
-    flex-direction: column;
-    gap: 8px;
+    padding: 8px 10px !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+  }
+
+  .footer-start-actions {
+    width: 100% !important;
+    display: flex !important;
+    gap: 4px !important;
+  }
+
+  .footer-start-actions button {
+    flex: 1 !important;
+    padding: 5px 6px !important;
+    font-size: 0.72rem !important;
+    justify-content: center !important;
   }
 
   .footer-end-actions {
-    width: 100%;
-    justify-content: stretch;
+    width: 100% !important;
+    display: flex !important;
+    gap: 4px !important;
   }
 
   .footer-end-actions button {
-    flex: 1;
+    flex: 1 !important;
+    padding: 6px 6px !important;
+    font-size: 0.74rem !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+  }
+
+  #btn-save-and-present-song {
+    flex: 1.4 !important;
+    font-weight: 800 !important;
+  }
+
+  #btn-cancel-custom-song-modal {
+    flex: 0.7 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-song-editor-card {
+    width: 100vw !important;
+    height: 100% !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    border-radius: 0 !important;
+    border: none !important;
+  }
+
+  .modal-song-editor-card .modal-header {
+    border-radius: 0 !important;
+  }
+
+  .song-builder-preview-col {
+    max-height: 120px !important;
+    min-height: 80px !important;
   }
 }
 

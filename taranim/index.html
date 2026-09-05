@@ -87,17 +87,32 @@
 
         <!-- DROPDOWN: INSTALL HUB -->
         <div class="dropdown-wrapper">
-          <button class="icon-menu-btn" id="btn-menu-install" title="تثبيت التطبيق">
+          <button class="icon-menu-btn" id="btn-menu-install" title="تنزيل الترانيم أوفلاين" style="display:none;">
             <i class="fa-solid fa-download"></i>
           </button>
 
-          <div class="dropdown-popover hidden" id="popover-install" style="min-width:240px; padding:12px;">
+          <div class="dropdown-popover hidden" id="popover-install" style="min-width:260px; padding:12px;">
             <div class="popover-title">
-              <i class="fa-solid fa-download"></i> تثبيت التطبيق
+              <i class="fa-solid fa-download"></i> تنزيل الترانيم والتثبيت
+            </div>
+
+            <!-- OFFLINE TARANIM PRECACHE / UPDATE ROW -->
+            <div class="popover-row" id="dropdown-precache-row" style="margin-top:0.4rem;">
+              <button id="btn-dropdown-precache" class="btn btn-sm btn-primary" style="width:100%; padding:8px 10px; font-size:0.84rem; font-weight:700; background:#2563eb; color:#ffffff; display:flex; align-items:center; justify-content:center; gap:6px;">
+                <i class="fa-solid fa-cloud-arrow-down"></i> <span id="btn-precache-label">تنزيل الترانيم أوفلاين</span>
+              </button>
+            </div>
+
+            <!-- DOWNLOAD PROGRESS -->
+            <div id="popover-progress-wrapper" class="hidden" style="margin-top:8px;">
+              <div style="background:#e2e8f0; border-radius:6px; height:8px; overflow:hidden;">
+                <div id="popover-progress-fill" style="width:0%; height:100%; background:#2563eb; transition:width 0.2s ease;"></div>
+              </div>
+              <div id="popover-progress-text" style="font-size:0.75rem; text-align:center; color:#64748b; margin-top:4px; font-weight:700;">جاري التحميل...</div>
             </div>
 
             <!-- PWA INSTALLATION BUTTON -->
-            <div class="popover-row hidden" id="dropdown-pwa-install-row" style="margin-top:0.3rem;">
+            <div class="popover-row hidden" id="dropdown-pwa-install-row" style="margin-top:0.5rem;">
               <button id="btn-dropdown-pwa-install" class="btn btn-sm btn-secondary" style="width:100%; padding:8px 10px; font-size:0.84rem; font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px;">
                 <i class="fa-solid fa-download"></i> تثبيت التطبيق
               </button>
@@ -116,7 +131,7 @@
               </div>
             </div>
             
-            <div id="popover-offline-status-text" style="font-size:0.78rem; text-align:center; color:#10b981; margin-top:6px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px;">
+            <div id="popover-offline-status-text" style="font-size:0.78rem; text-align:center; color:#10b981; margin-top:8px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px;">
               <i class="fa-solid fa-circle-check"></i> جاهز أوفلاين
             </div>
           </div>
@@ -1211,7 +1226,7 @@
             <div class="presentation-modes-group">
               <!-- 2. STANDBY BUTTON -->
               <button id="btn-toggle-standby" class="mode-group-btn" title="التبديل إلى شاشة الانتظار (S)">
-                <i class="fa-solid fa-photo-film"></i>
+                <i class="fa-solid fa-font"></i>
               </button>
 
               <!-- 3. HIDE BUTTON -->
@@ -1225,7 +1240,7 @@
               </button>
 
               <!-- 4. HIGHLIGHT COLOR CIRCLE -->
-              <div id="highlight-color-picker-wrap" class="highlight-color-picker-wrap">
+              <div id="highlight-color-picker-wrap" class="highlight-color-picker-wrap hidden">
                 <button type="button" id="btn-highlight-color-circle" class="highlight-color-circle-btn" title="تغيير لون التظليل" aria-label="تغيير لون التظليل"></button>
 
                 <!-- INLINE COLOR PALETTE POPUP -->
@@ -1265,42 +1280,14 @@
 
     </main>
 
-    <!-- BOTTOM FOOTER STATUS BAR WITH DYNAMIC COUNT TARANIM AND CREDITS INFO ICON -->
+    <!-- BOTTOM FOOTER STATUS BAR WITH DYNAMIC COUNT TARANIM -->
     <footer class="app-bottom-bar">
-      <!-- BOTTOM LEFT CREDITS INFO ICON BUTTON -->
-      <button id="btn-credits-info" class="credits-info-btn" title="حقوق النشر والمصدر">
-        <i class="fa-solid fa-circle-info"></i>
-      </button>
-
       <div class="songs-count-subtext" id="total-songs-count">
         <i class="fa-solid fa-music"></i>
         <span>11,611 ترنيمة</span>
       </div>
     </footer>
 
-  </div>
-
-  <!-- CREDITS MODAL POPUP -->
-  <div id="modal-credits" class="modal-overlay hidden">
-    <div class="modal-card">
-      <div class="modal-header">
-        <span class="modal-title"><i class="fa-solid fa-circle-info"></i> حقوق المصدر والمحتوى</span>
-        <button id="btn-close-credits" class="modal-close-btn"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-      <div class="modal-body">
-        <p class="credits-text">
-          منظومة العرض والترنيم الرقمية الخدمية لمدارس الأحد.
-        </p>
-        <div class="credits-author">
-          <i class="fa-solid fa-user-pen"></i> من إعداد وتجميع: <strong>ملاك جورج</strong>
-          <div style="margin-top: 6px; font-size: 0.85rem;">
-            <a href="https://tasbe7na.com" target="_blank" rel="noopener noreferrer" style="color: #2563eb; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;">
-              <i class="fa-solid fa-arrow-up-right-from-square"></i> موقع تسبيحتنا (Tasbe7na)
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- FRANCO TRANSLATOR INTRO MODAL POPUP -->
@@ -1590,6 +1577,20 @@
               <div class="obs-form-card">
                 <div class="form-card-title"><i class="fa-solid fa-plug"></i> بيانات خادم OBS</div>
                 
+                <!-- QUICK CONNECT TO LAST OBS SERVER -->
+                <div id="obs-last-conn-bar" class="obs-last-conn-bar hidden" style="margin-bottom:12px; padding:10px 14px; background:linear-gradient(135deg, #f0fdf4, #dcfce7); border:1px solid #86efac; border-radius:10px; display:none; align-items:center; justify-content:space-between; gap:10px;">
+                  <div style="display:flex; align-items:center; gap:8px; min-width:0;">
+                    <i class="fa-solid fa-clock-rotate-left" style="color:#16a34a; font-size:1.05rem; flex-shrink:0;"></i>
+                    <div style="min-width:0;">
+                      <div style="font-size:0.72rem; color:#15803d; font-weight:700;">آخر خادم تم الاتصال به:</div>
+                      <div id="obs-last-conn-info" style="font-size:0.84rem; font-weight:800; color:#14532d; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">-</div>
+                    </div>
+                  </div>
+                  <button type="button" id="btn-obs-connect-last" class="btn btn-sm" style="background:#16a34a; color:#ffffff; font-weight:800; padding:6px 14px; border-radius:8px; border:none; flex-shrink:0; display:flex; align-items:center; gap:6px; cursor:pointer; box-shadow:0 2px 6px rgba(22,163,74,0.3);">
+                    <i class="fa-solid fa-bolt"></i> اتصال بآخر خادم
+                  </button>
+                </div>
+
                 <div class="control-field">
                   <label for="obs-profile-name-input">اسم الاتصال / الخادم:</label>
                   <input type="text" id="obs-profile-name-input" class="control-input" placeholder="مثال: استوديو الكنيسة / OBS اللابتوب">
@@ -1614,8 +1615,11 @@
                   </div>
                 </div>
 
-                <div class="obs-form-actions">
+                <div class="obs-form-actions" style="display:flex; gap:8px; flex-wrap:wrap;">
                   <button type="button" id="btn-obs-connect" class="btn btn-primary" style="flex:1;"><i class="fa-solid fa-link"></i> اتصال</button>
+                  <button type="button" id="btn-obs-connect-last-action" class="btn btn-secondary hidden" style="flex:1; display:none; align-items:center; justify-content:center; gap:6px; background:#f0fdf4; border-color:#86efac; color:#166534; font-weight:700;">
+                    <i class="fa-solid fa-clock-rotate-left"></i> اتصال بآخر خادم
+                  </button>
                   <button type="button" id="btn-obs-save-profile" class="btn btn-secondary"><i class="fa-solid fa-floppy-disk"></i> حفظ</button>
                   <button type="button" id="btn-obs-disconnect" class="btn btn-danger hidden"><i class="fa-solid fa-link-slash"></i> قطع</button>
                 </div>
@@ -2011,6 +2015,39 @@
           <button type="button" id="btn-confirm-send-submission" class="btn btn-primary" style="padding:7px 18px; font-size:0.84rem; font-weight:800; background:linear-gradient(135deg, #059669, #10b981); color:#ffffff; border:none; display:flex; align-items:center; gap:6px;">
             <i class="fa-solid fa-paper-plane"></i> إرسال الآن
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- OFFLINE TARANIM DOWNLOAD & UPDATE PROMPT MODAL -->
+    <div id="modal-offline-download-prompt" class="modal-overlay hidden">
+      <div class="modal-card" style="max-width: 450px; border-radius: 18px; box-shadow: 0 20px 40px rgba(0,0,0,0.25);">
+        <div class="modal-header" style="padding: 14px 18px; display:flex; align-items:center; justify-content:space-between;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <i class="fa-solid fa-cloud-arrow-down" id="offline-prompt-icon" style="color:#2563eb; font-size:1.15rem;"></i>
+            <div style="font-size:0.95rem; font-weight:800; color:#0f172a;" id="offline-prompt-title">تنزيل الترانيم للاستخدام بدون إنترنت</div>
+          </div>
+          <button type="button" class="modal-close-btn" id="btn-close-offline-prompt" title="إغلاق"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div style="padding: 18px; display:flex; flex-direction:column; gap:14px;">
+          <div id="offline-prompt-message" style="font-size:0.86rem; color:#334155; line-height:1.5;">
+            تطبيق الترانيم يحتاج لتنزيل قاعدة الترانيم لتكون جاهزة دائمًا للعمل بدون إنترنت (أوفلاين).
+          </div>
+          
+          <!-- PROGRESS BAR (shown during download) -->
+          <div id="offline-prompt-progress-wrap" class="hidden" style="display:flex; flex-direction:column; gap:6px;">
+            <div style="background:#e2e8f0; border-radius:8px; height:10px; overflow:hidden;">
+              <div id="offline-prompt-progress-fill" style="width:0%; height:100%; background:linear-gradient(90deg, #2563eb, #3b82f6); transition:width 0.2s ease;"></div>
+            </div>
+            <div id="offline-prompt-progress-text" style="font-size:0.78rem; text-align:center; color:#64748b; font-weight:700;">جاري التحميل...</div>
+          </div>
+
+          <div style="display:flex; align-items:center; justify-content:flex-end; gap:8px;" id="offline-prompt-actions">
+            <button type="button" id="btn-offline-prompt-later" class="btn btn-secondary" style="padding:7px 16px; font-size:0.82rem; font-weight:700;">لاحقاً</button>
+            <button type="button" id="btn-offline-prompt-start" class="btn btn-primary" style="padding:7px 20px; font-size:0.84rem; font-weight:800; background:#2563eb; color:#ffffff; display:flex; align-items:center; gap:6px;">
+              <i class="fa-solid fa-download"></i> <span id="offline-prompt-btn-text">تنزيل الآن</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -1001,7 +1001,7 @@
         <i class="fa-solid fa-eye-slash"></i>
       </button>
       <button type="button" id="btn-remote-standby" class="btn-header-action" title="شاشة الانتظار (Standby)">
-        <i class="fa-solid fa-photo-film"></i>
+        <i class="fa-solid fa-font"></i>
       </button>
       <button type="button" id="btn-open-search" class="btn-header-action" title="بحث ذكي">
         <i class="fa-solid fa-magnifying-glass"></i>
@@ -1738,7 +1738,11 @@
       const isStandby = Boolean(state.isStandbyMode);
 
       if (btnBlank) btnBlank.classList.toggle('active-blank', isBlank);
-      if (btnStandby) btnStandby.classList.toggle('active-standby', isStandby);
+      if (btnStandby) {
+        btnStandby.classList.toggle('active-standby', isStandby);
+        const stIcon = btnStandby.querySelector('i');
+        if (stIcon) stIcon.className = isStandby ? 'fa-solid fa-image' : 'fa-solid fa-font';
+      }
 
       if (blankAlertEl) blankAlertEl.classList.toggle('hidden', !isBlank);
       if (standbyAlertEl) standbyAlertEl.classList.toggle('hidden', !isStandby);
